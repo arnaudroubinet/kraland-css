@@ -1,0 +1,347 @@
+/* Kraland — USSR-inspired red theme
+   Scope: overrides for Bootstrap 3.3.7-based site
+   Purpose: improved contrast, spacing, responsiveness, accessible focus states
+*/
+:root{
+  --kr-red: #a6120d;
+  --kr-red-dark: #7f0c08;
+  --kr-accent: #c41e3a;
+  --kr-gold: #c69100;
+  --kr-bg: #ffffff;
+  --kr-surface: #fff;
+  --kr-text: #0f1724;
+  --kr-muted: #6b7280;
+  --kr-navbar-bg: #111315; /* dark neutral for nav */
+  --kr-radius: .5rem;
+}
+
+/* Variant: high-contrast tweak */
+html.kr-theme-high-contrast{
+  --kr-red: #b71c1c;
+  --kr-red-dark: #7f0b0b;
+  --kr-accent: #ff3b3b;
+  --kr-gold: #c69100;
+  --kr-bg: #fff7f7;
+  --kr-text: #03040a;
+}
+
+/* Base adjustments */
+html,body{height:100%;}
+body{
+  background: var(--kr-bg) !important;
+  color: var(--kr-text) !important;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;
+  -moz-osx-font-smoothing:grayscale;
+} 
+
+/* Links */
+a{color: var(--kr-accent) !important; text-decoration: none !important; transition: color .12s ease, opacity .12s ease}
+a:hover, a:focus { text-decoration: underline; outline: none; color: var(--kr-red-dark) !important }
+
+/* Navbar (Bootstrap 3 selectors) */
+.navbar-default{ background-color: var(--kr-navbar-bg) !important; border-color: rgba(255,255,255,0.04) !important; min-height:56px; }
+.navbar-default .navbar-nav > li > a{ color: #fff !important; padding: 16px 20px !important; font-size: .95rem; }
+.navbar-default .navbar-brand{ color: var(--kr-gold) !important; font-weight:700; font-size:1.1rem; padding:10px 15px; }
+.navbar-default .navbar-nav > li > a:hover{ background: rgba(255,255,255,0.03) !important; }
+.navbar-default .navbar-toggle{ border-color: rgba(255,255,255,0.08); }
+.navbar-default .navbar-toggle .icon-bar{ background-color: #fff; }
+
+/* Buttons */
+.btn{ border-radius: var(--kr-radius) !important; padding: .55rem 1rem !important; transition: transform .06s ease, box-shadow .12s ease; }
+.btn:active{ transform: translateY(1px); }
+.btn-primary{ background-color: var(--kr-red) !important; border-color: var(--kr-red-dark) !important; color: #fff !important; box-shadow: 0 6px 18px rgba(165,18,13,0.12) !important; }
+.btn-primary:hover, .btn-primary:focus{ background-color: var(--kr-red-dark) !important; border-color: var(--kr-red-dark) !important; box-shadow: 0 10px 24px rgba(165,18,13,0.14) !important; }
+.btn-default{ background: #f8f9fa !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* Panels / cards */
+.panel{ border-radius: var(--kr-radius) !important; border-color: rgba(0,0,0,0.06) !important; box-shadow: 0 6px 18px rgba(2,6,23,0.06) !important; overflow:hidden; }
+.panel-default > .panel-heading{ background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01)); color: var(--kr-text) !important; padding:16px; font-weight:600; }
+.panel-body{ padding:16px }
+
+
+/* Forms */
+.form-control{ border-radius: .4rem !important; border:1px solid rgba(0,0,0,0.08) !important; padding: .6rem .8rem !important; font-size: .95rem }
+.form-control:focus{ box-shadow: 0 0 0 .18rem rgba(164,18,13,0.22) !important; border-color: var(--kr-red) !important; outline: none }
+.form-group label{ color: var(--kr-text); font-weight:600 }
+
+/* Checkbox & radio accent color (modern browsers support) */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--kr-red) !important; }
+input[type="checkbox"]:focus, input[type="radio"]:focus { outline: none; box-shadow: 0 0 0 .12rem rgba(164,18,13,0.18) !important; }
+
+/* Fallback for platforms without accent-color: add a faint border when checked (works when native control paints background) */
+input[type="checkbox"]:checked { border-color: var(--kr-red) !important; }
+
+
+
+/* Sidebar widgets */
+.well, .panel{ background: var(--kr-surface) !important }
+
+/* Carousel / hero */
+.carousel-caption{ background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35)); padding: 1.4rem; border-radius: .6rem; color: #fff }
+
+/* Keep indicators visible and avoid overlapping CTAs */
+/* Put indicators a little above the bottom edge, and nudge caption content up to create room */
+.carousel-indicators { bottom: 10px !important; }
+.carousel-caption { padding-bottom: 56px !important; }
+.carousel-caption .btn, .carousel-caption button { margin-bottom: 6px !important; }
+@media (max-width: 767px){ 
+  .carousel-indicators { bottom: 8px !important; }
+  .carousel-caption { padding-bottom: 46px !important; }
+}
+
+
+.carousel-caption h1, .carousel-caption h2{ color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.6) }
+
+
+
+/* Mini chat / list readability */
+.list-group-item{ border: none !important; padding: .6rem .75rem !important }
+
+/* Footer container (visuals split between quote and meta) */
+footer, .footer, .site-footer, .contentinfo {
+  color: #fff !important;
+  padding: 0; /* children control spacing */
+  font-style: italic;
+  display: flex;
+  flex-direction: column; /* stack quote above meta links */
+  align-items: center;
+  justify-content: flex-start; /* ensure quote sits at top and meta links below */
+  min-height: 0; /* let children size the container */
+  gap: .35rem; /* small gap between quote and meta */
+  position: relative; /* default: not fixed */
+}
+
+/* Quote bar visual block */
+.footer-quote {
+  background: rgba(0,0,0,0.95) !important;
+  color: #fff !important;
+  padding: .35rem .8rem; /* reduced for slimmer footer */
+  font-style: italic;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 -1px 6px rgba(0,0,0,0.18);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  order: 0;
+  /* Preserve original site font sizing — do not force a smaller size */
+  font-size: revert !important;
+}
+
+/* Footer meta line below the quote (kept inside footer but visually distinct) */
+.contentinfo {
+  width: 100%;
+  text-align: center;
+  order: 1;
+  margin-top: 0;
+  padding: .18rem .5rem .4rem .5rem; /* reduced vertical padding */
+  background: transparent; /* keep it visually 'below' the quote */
+  font-size: .9rem; /* slightly smaller */
+  color: #fff !important;
+}
+.contentinfo > * { display:block; }
+
+
+/* When page is short, add class to html to fix footer to viewport bottom and reserve space */
+/* When fixed, stack meta at bottom and quote above it using measured heights */
+html.kr-footer-fixed .contentinfo, html.kr-footer-fixed footer { position: fixed !important; left: 0; right: 0; bottom: 0; z-index: 99998; }
+html.kr-footer-fixed .footer-quote { position: fixed !important; left: 0; right: 0; bottom: calc(var(--kr-footer-meta-height, 0px)); z-index: 99999; }
+html.kr-footer-fixed body { padding-bottom: calc(var(--kr-footer-quote-height, 0px) + var(--kr-footer-meta-height, 0px)) !important; }
+
+/* Fallback: use a simple flex layout for short pages so footer always stays at the bottom
+   This avoids gaps when script timing or measurements fail to add the fixed class, and
+   also keeps the footer at the bottom when the class is present. */
+html.kr-footer-fixed body {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+}
+html.kr-footer-fixed #content, html.kr-footer-fixed .container#content { flex: 1 0 auto !important; }
+html.kr-footer-fixed footer, html.kr-footer-fixed .contentinfo { margin-top: auto !important; }
+
+/* Ensure small-screen padding still accounts for stacked footer heights */
+@media (max-width: 575px) {
+  html.kr-footer-fixed body{ padding-bottom: calc(var(--kr-footer-height, 106px)) !important; }
+}
+
+/* Footer meta links (placed below the quote) */
+.contentinfo, footer, .footer { gap: .25rem; }
+.contentinfo a, footer a, .footer a, .footer-quote a { color: #fff !important; font-weight: 600; opacity: 0.95; }
+.contentinfo { width: 100%; text-align: center; order: 1; margin-top: .35rem; padding-top: .25rem; }
+.contentinfo > * { display:block; }
+.footer-quote { width: 100%; text-align: center; order: 0; padding: .35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+/* Small screen adjustments */
+@media (max-width: 575px) {
+  footer, .footer-quote, .site-footer, .contentinfo { padding: .6rem .8rem; min-height: 70px; justify-content: center; }
+  html.kr-footer-fixed body{ padding-bottom: calc(var(--kr-footer-height, 106px)) !important; }
+  .contentinfo a { font-size: .95rem }
+} 
+
+/* Accessibility improvements */
+a:focus, button:focus, input:focus, select:focus, textarea:focus{ outline: none }
+:focus-visible{ outline: none }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{ box-shadow: 0 0 0 .18rem rgba(164,18,13,0.22) !important; border-color: var(--kr-red) !important; }
+
+
+/* Responsive improvements (Bootstrap 3 grid aware) */
+@media (max-width: 991px){
+  /* stack sidebars beneath main content */
+  .container .row > [class*='col-']:not(.col-xs-12){ float:none; width:100%; display:block; margin-bottom:1rem }
+  .navbar-default .navbar-nav{ background: transparent }
+  .carousel-caption{ font-size: .95rem; padding: 1rem; }
+  .panel-default > .panel-heading{ padding: 12px }
+}
+
+@media (max-width: 575px){
+  .navbar-default .navbar-brand{ font-size: 1rem; }
+  .carousel-caption{ font-size: .9rem }
+  .btn{ padding: .5rem .8rem }
+  .form-control{ padding: .5rem .6rem }
+} 
+
+@media (max-width: 575px){
+  .navbar-default .navbar-brand{ font-size: 1rem; }
+  .carousel-caption{ font-size: .95rem }
+}
+
+/* Utility tweaks */
+h1{ font-size: 2rem; font-weight:700; margin-bottom:.5rem }
+h2{ font-size: 1.35rem; font-weight:600; margin-bottom:.35rem }
+.text-muted{ color: var(--kr-muted) !important }
+small, .small{ color: var(--kr-muted) !important }
+
+/* ==========================
+   Blue -> URSS (global overrides)
+   Force common blue UI elements to the red/gold palette
+   ========================== */
+
+/* Links and text */
+a, a:link, a:visited, .text-primary, .text-info { color: var(--kr-accent) !important; }
+
+/* Badges / labels */
+.label, .badge, .label-info, .badge-info, .label-primary, .badge-primary {
+  background-color: var(--kr-red) !important;
+  color: #fff !important;
+  border-color: var(--kr-red-dark) !important;
+}
+
+/* Buttons */
+.btn-info, .btn.btn-info, .navbar-default .btn-info {
+  background-color: var(--kr-red) !important;
+  border-color: var(--kr-red-dark) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(165,18,13,0.12) !important;
+}
+
+/* Alerts and panels */
+.alert-info { background-color: rgba(164,18,13,0.06) !important; border-color: rgba(164,18,13,0.14) !important; color: var(--kr-text) !important; }
+.panel-info, .panel-info > .panel-heading { border-color: rgba(164,18,13,0.12) !important; }
+.bg-info { background-color: var(--kr-red) !important; color: #fff !important; }
+
+/* Icons and glyphs (font-awesome / glyphicons) */
+.glyphicon, .glyphicon *, .fa, .fa * { color: var(--kr-accent) !important; fill: var(--kr-accent) !important; }
+
+/* Extra targeted overrides for detected blue elements */
+/* General anchors & contextual links */
+a, a:link, a:visited, .list-group a, .well a, .panel a, .breadcrumb a { color: var(--kr-accent) !important; }
+
+/* Ensure alert and panel content uses neutral text color (avoid global overrides) */
+.alert strong, .alert p, .panel .panel-body p, .panel .panel-heading strong { color: var(--kr-text) !important; }
+
+/* Carousel captions must remain white for contrast on hero background */
+.carousel-caption, .carousel-caption h1, .carousel-caption h2, .carousel-caption p, .carousel-caption a, .carousel-caption .btn { color: #fff !important; }
+
+/* Alert info specific (dismissible alerts) */
+div.alert.alert-info.alert-dismissible, .alert.alert-info.alert-dismissible { background-color: rgba(164,18,13,0.06) !important; border-color: rgba(164,18,13,0.14) !important; color: var(--kr-text) !important; }
+
+/* Panel primary (boxes with blue borders) */
+.panel.panel-primary, .panel.panel-primary .panel-heading { border-color: var(--kr-red-dark) !important; }
+.panel.panel-primary .panel-heading { background-color: var(--kr-red) !important; color: var(--kr-gold) !important; }
+
+/* Buttons (large primary CTAs) */
+a.btn.btn-lg.btn-primary, input.btn.btn-primary, #sign-in, .btn.btn-primary { background-color: var(--kr-red) !important; border-color: var(--kr-red-dark) !important; color: #fff !important; }
+
+/* Icons (font-based) */
+.fa, .fa *, .glyphicon, .glyphicon * { color: var(--kr-accent) !important; }
+
+/* Active list group items (tabs) */
+.list-group-item.active, .list-group-item.active a { background-color: var(--kr-red) !important; border-color: var(--kr-red-dark) !important; color: #fff !important; }
+
+/* Up/Down chevrons and prev/next wells */
+a.well.well-sm, .carousel-control.left, .carousel-control.right, .prev, .next { color: var(--kr-accent) !important; }
+
+/* Replace small 'MC' anchors with a white chat-bubble icon */
+/* Targets the mini-chat open/close anchors that contain the text 'MC'. We keep the original text for fallback
+   but visually replace it with an inline SVG icon, and ensure high specificity to override theme colors. */
+a.kr-mc-icon, a.open.kr-mc-icon, a.closed.kr-mc-icon {
+  display: inline-block !important;
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: transparent !important;
+  text-indent: -9999px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  vertical-align: middle !important;
+}
+a.kr-mc-icon::before, a.open.kr-mc-icon::before, a.closed.kr-mc-icon::before {
+  content: "" !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M20 2H4c-1.1 0-2 .9-2 2v14l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/></svg>") !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+a.kr-mc-icon:hover::before, a.kr-mc-icon:focus::before { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)) !important; }
+
+/* Attempt recolor of bitmap icons */
+img.icon { filter: sepia(1) saturate(3) hue-rotate(-10deg) brightness(0.9) contrast(1) !important; }
+
+
+/* Carousel controls and prev/next */
+.carousel-control.left, .carousel-control.right, .prev, .next { background: rgba(0,0,0,0.04) !important; color: var(--kr-accent) !important; }
+.carousel-control .icon-prev, .carousel-control .icon-next, .carousel-control .glyphicon, .prev, .next { color: var(--kr-accent) !important; }
+
+/* Active list-group items */
+.list-group-item.active, .list-group-item.active a { background-color: var(--kr-red) !important; border-color: var(--kr-red-dark) !important; color: #fff !important; }
+
+/* Panel headings (mini chat etc) */
+.panel-heading, .well .panel-heading, .panel .panel-heading { color: var(--kr-gold) !important; }
+
+/* Attempt to recolor small decorative bitmap icons via CSS filters (may not be perfect) */
+img.icon, img[src*='icon'], img[src*='logo'], .avatar img { filter: sepia(0.8) saturate(3) hue-rotate(-10deg) brightness(0.95) contrast(1) !important; }
+svg { fill: var(--kr-accent) !important; }
+
+/* Extra fixes for residual elements detected by scan */
+.list-group-item-heading.count { color: var(--kr-accent) !important; }
+.prev .glyphicon, .next .glyphicon, .glyphicon.glyphicon-chevron-down, .glyphicon.glyphicon-chevron-up, i.glyphicon { color: var(--kr-accent) !important; }
+
+/* Ensure cheap bitmap icons get the stronger filter variant */
+img.icon { filter: sepia(1) saturate(4) hue-rotate(-12deg) brightness(0.9) contrast(1.05) !important; }
+
+
+/* Force any remaining bootstrap info/bg classes */
+.alert-info, .panel-info, .bg-info, .btn-info { background-color: var(--kr-red) !important; color: #fff !important; border-color: var(--kr-red-dark) !important; }
+
+/* Ensure focus ring uses brand color */
+:focus-visible{ box-shadow: 0 0 0 .18rem rgba(164,18,13,0.22) !important; border-color: var(--kr-red) !important; }
+
+/* End Blue->URSS overrides */
+
+/* Icon color mapping for sidebar activity indicators */
+.kr-icon-members .fa, .kr-icon-members .glyphicon, .kr-icon-members * { color: var(--kr-accent) !important; fill: var(--kr-accent) !important; }
+.kr-icon-characters .fa, .kr-icon-characters .glyphicon, .kr-icon-characters * { color: var(--kr-gold) !important; fill: var(--kr-gold) !important; }
+.kr-icon-online .fa, .kr-icon-online .glyphicon, .kr-icon-online * { color: var(--kr-red-dark) !important; fill: var(--kr-red-dark) !important; }
+
+/* Scoped helper if we want to toggle */
+.kr-theme-enabled { }
+
+/* End of theme */
