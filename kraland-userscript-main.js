@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766877454755
+// @version      1.0.1766877610294
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -384,10 +384,18 @@ input[type="checkbox"]:checked {
 }
 
 .list-group-item.active,
+.list-group-item.active:focus,
+.list-group-item.active:hover,
 .list-group-item.active a {
-  background-color: var(--kr-red);
-  border-color: var(--kr-red-dark);
-  color: #fff;
+  background-color: var(--kr-red) !important;
+  border-color: var(--kr-red-dark) !important;
+  color: var(--kr-surface) !important;
+}
+
+/* Keep hover for non-active items subtle and themed */
+.list-group-item:hover {
+  color: var(--kr-red-dark);
+  background-color: rgba(0,0,0,0.02);
 }
 
 
