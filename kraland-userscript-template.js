@@ -75,6 +75,23 @@
     }catch(e){/*ignore*/}
   }
 
+  // Ensure footer is fixed and back-to-top button is placed inside it
+  function ensureFooterSticky(){
+    try{
+      const footer = document.querySelector('footer, .footer, .contentinfo');
+      if(!footer) return;
+      const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
+      let back = null;
+      for(const s of selectors){ back = document.querySelector(s); if(back) break; }
+      if(back && back.parentElement !== footer){
+        footer.appendChild(back);
+        back.classList.add('kraland-back-to-top');
+        if(!back.getAttribute('aria-label')) back.setAttribute('aria-label','Remonter en haut');
+      }
+      if(!document.body.style.paddingBottom) document.body.style.paddingBottom = '60px';
+    }catch(e){/*ignore*/}
+  }
+
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
     // MutationObserver to watch for removal of our style element
@@ -88,6 +105,7 @@
       // DOM changes might affect the sidebar composition
       try{ markActiveIcons(); }catch(e){}
       try{ replaceMcAnchors(); }catch(e){}
+      try{ ensureFooterSticky(); }catch(e){}
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
@@ -130,6 +148,7 @@
       console.log('Kraland theme initializing...');
       await ensureTheme();
       startObservers();
+      try{ ensureFooterSticky(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);

@@ -48,13 +48,30 @@ html.kr-theme-high-contrast {
   display: none !important;
 }
 
-/* Sticky footer - absolute positioning approach that doesn't break Bootstrap */
-footer.navbar-inverse {
-  position: absolute !important;
+/* Sticky footer - fixed to viewport bottom and avoids overlapping content */
+footer.navbar-inverse,
+.contentinfo,
+.footer {
+  position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+}
+/* Reserve space so page content doesn't get hidden behind the fixed footer */
+body {
+  padding-bottom: 60px !important;
+}
+/* Position any back-to-top control inside the footer/contentinfo */
+footer.navbar-inverse .kraland-back-to-top,
+.contentinfo .kraland-back-to-top,
+.footer .kraland-back-to-top {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   margin: 0 !important;
 }
 

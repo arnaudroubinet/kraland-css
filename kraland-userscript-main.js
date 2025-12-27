@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766876489052
+// @version      1.0.1766877363385
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -63,13 +63,30 @@ html.kr-theme-high-contrast {
   display: none !important;
 }
 
-/* Sticky footer - absolute positioning approach that doesn't break Bootstrap */
-footer.navbar-inverse {
-  position: absolute !important;
+/* Sticky footer - fixed to viewport bottom and avoids overlapping content */
+footer.navbar-inverse,
+.contentinfo,
+.footer {
+  position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+}
+/* Reserve space so page content doesn't get hidden behind the fixed footer */
+body {
+  padding-bottom: 60px !important;
+}
+/* Position any back-to-top control inside the footer/contentinfo */
+footer.navbar-inverse .kraland-back-to-top,
+.contentinfo .kraland-back-to-top,
+.footer .kraland-back-to-top {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   margin: 0 !important;
 }
 
@@ -563,6 +580,23 @@ a.well.well-sm,
     }catch(e){/*ignore*/}
   }
 
+  // Ensure footer is fixed and back-to-top button is placed inside it
+  function ensureFooterSticky(){
+    try{
+      const footer = document.querySelector('footer, .footer, .contentinfo');
+      if(!footer) return;
+      const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
+      let back = null;
+      for(const s of selectors){ back = document.querySelector(s); if(back) break; }
+      if(back && back.parentElement !== footer){
+        footer.appendChild(back);
+        back.classList.add('kraland-back-to-top');
+        if(!back.getAttribute('aria-label')) back.setAttribute('aria-label','Remonter en haut');
+      }
+      if(!document.body.style.paddingBottom) document.body.style.paddingBottom = '60px';
+    }catch(e){/*ignore*/}
+  }
+
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
     // MutationObserver to watch for removal of our style element
@@ -576,6 +610,7 @@ a.well.well-sm,
       // DOM changes might affect the sidebar composition
       try{ markActiveIcons(); }catch(e){}
       try{ replaceMcAnchors(); }catch(e){}
+      try{ ensureFooterSticky(); }catch(e){}
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
@@ -618,6 +653,7 @@ a.well.well-sm,
       console.log('Kraland theme initializing...');
       await ensureTheme();
       startObservers();
+      try{ ensureFooterSticky(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);
