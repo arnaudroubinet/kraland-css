@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766877363385
+// @version      1.0.1766877454755
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -151,6 +151,37 @@ small.text-muted,
 
 .navbar-default .navbar-toggle .icon-bar {
   background-color: #fff;
+}
+
+/* Pagination — align with theme colors */
+.pagination {
+  margin: .75rem 0;
+}
+.pagination > li > a,
+.pagination > li > span {
+  color: var(--kr-red) !important;
+  background: var(--kr-surface);
+  border-radius: .35rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: .35rem .6rem;
+}
+.pagination > li > a:hover,
+.pagination > li > span:hover {
+  color: var(--kr-red-dark) !important;
+  background-color: rgba(0,0,0,0.02);
+  text-decoration: none;
+}
+.pagination > li.active > a,
+.pagination > li.active > span {
+  background-color: var(--kr-red) !important;
+  color: var(--kr-surface) !important;
+  border-color: var(--kr-red-dark) !important;
+}
+.pagination > li.disabled > a,
+.pagination > li.disabled > span {
+  color: var(--kr-muted) !important;
+  background: transparent;
+  border-color: rgba(0,0,0,0.03);
 }
 
 
