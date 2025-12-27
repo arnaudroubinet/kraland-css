@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766878278801
+// @version      1.0.1766879126017
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -417,8 +417,12 @@ input[type="checkbox"]:checked {
 
 /* ============================================================================
    9.1 AVATARS
-   Ensure avatars are displayed at least 120x120 and crop nicely
+   Ensure avatars are displayed at least the configured size and crop nicely
    ============================================================================ */
+
+:root {
+  --kr-avatar-size: 120px;
+}
 
 /* Target common avatar selectors used on the site */
 .avatar,
@@ -426,11 +430,12 @@ img.avatar,
 img.avatar.img-thumbnail,
 .img-circle,
 .profile-avatar,
-.author img {
-  width: 120px !important;
-  height: 120px !important;
-  min-width: 120px !important;
-  min-height: 120px !important;
+.author img,
+.ds-img {
+  width: var(--kr-avatar-size) !important;
+  height: var(--kr-avatar-size) !important;
+  min-width: var(--kr-avatar-size) !important;
+  min-height: var(--kr-avatar-size) !important;
   object-fit: cover !important;
   display: inline-block !important;
 }
@@ -444,6 +449,30 @@ img.avatar.img-thumbnail,
 .col-md-3.sidebar .avatar,
 .col-md-2.sidebar .avatar {
   margin-bottom: 0.5rem;
+}
+
+/* Align list-group user items with their avatar to prevent overflow */
+.list-group a.list-group-item.ds_user,
+.list-group-item.ds_user {
+  position: relative;
+  min-height: var(--kr-avatar-size) !important;
+  padding-right: calc(var(--kr-avatar-size) + 1rem) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.list-group-item.ds_user .pull-right {
+  position: absolute !important;
+  right: .75rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.list-group-item.ds_user .pull-right img,
+.list-group-item.ds_user .pull-right .ds-img {
+  width: var(--kr-avatar-size) !important;
+  height: var(--kr-avatar-size) !important;
+  object-fit: cover !important;
 }
 
 
