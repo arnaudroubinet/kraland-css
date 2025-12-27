@@ -1,24 +1,40 @@
-# Dependencies
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 package-lock.json
 
-# Playwright MCP
-.playwright-mcp/
-
-# Build output
+# Build outputs
 kraland-userscript-main.js
 
-# Logs
-*.log
-npm-debug.log*
-
-# OS files
-.DS_Store
-Thumbs.db
+# Backups
+*.backup
+*.bak
+*~
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test screenshots
+.playwright-mcp/
+screenshots/
+*.png
+!docs/*.png
+
+# Temporary files
+.claude/
+.tmp/
+temp/
+
+# Logs
+*.log
+logs/

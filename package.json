@@ -1,0 +1,14 @@
+{
+  "name": "kraland-css",
+  "version": "1.0.0",
+  "description": "Kraland USSR Red Theme",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "nodemon --watch kraland-theme.css --watch kraland-userscript-template.js --exec \"npm run build\"",
+    "serve": "http-server -p 4848 --cors -c-1"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "nodemon": "^3.0.1"
+  }
+}
