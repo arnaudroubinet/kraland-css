@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766877610294
+// @version      1.0.1766878278801
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -26,8 +26,8 @@
    ============================================================================ */
 
 :root {
-  --kr-red: #a6120d;
-  --kr-red-dark: #7f0c08;
+  --kr-red: #8b0f0e; /* slightly darker */
+  --kr-red-dark: #700b09;
   --kr-accent: #c41e3a;
   --kr-gold: #c69100;
   --kr-surface: #fff;
@@ -199,6 +199,23 @@ small.text-muted,
 
 .btn:active {
   transform: translateY(1px);
+}
+
+/* Small buttons should keep white text for legibility */
+.btn-sm,
+a.btn-sm,
+button.btn-sm,
+input.btn-sm {
+  color: var(--kr-surface) !important;
+}
+.btn-sm:hover,
+a.btn-sm:hover,
+button.btn-sm:hover,
+input.btn-sm:hover,
+.btn-sm:focus,
+.btn-sm:active {
+  color: var(--kr-surface) !important;
+  text-decoration: none;
 }
 
 /* Primary buttons - compound selectors for higher specificity */
@@ -398,6 +415,37 @@ input[type="checkbox"]:checked {
   background-color: rgba(0,0,0,0.02);
 }
 
+/* ============================================================================
+   9.1 AVATARS
+   Ensure avatars are displayed at least 120x120 and crop nicely
+   ============================================================================ */
+
+/* Target common avatar selectors used on the site */
+.avatar,
+img.avatar,
+img.avatar.img-thumbnail,
+.img-circle,
+.profile-avatar,
+.author img {
+  width: 120px !important;
+  height: 120px !important;
+  min-width: 120px !important;
+  min-height: 120px !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+}
+
+/* Keep circular avatar appearance when applicable */
+.img-circle {
+  border-radius: 50% !important;
+}
+
+/* Ensure layout doesn't break: allow the author column to accommodate larger avatars */
+.col-md-3.sidebar .avatar,
+.col-md-2.sidebar .avatar {
+  margin-bottom: 0.5rem;
+}
+
 
 /* ============================================================================
    10. CAROUSEL
@@ -484,18 +532,10 @@ a.well.well-sm,
 
 /* ============================================================================
    12. ICONS
-   Consolidated from lines 157, 180 - removed duplicate
+   Icons should inherit color from their context; do not force a single accent color here
    ============================================================================ */
 
-.glyphicon,
-.glyphicon *,
-.fa,
-.fa *,
-[class*="glyphicon-"],
-[class*="fa-"] {
-  color: var(--kr-accent);
-  fill: var(--kr-accent);
-}
+/* Icon color rule removed — icons will use surrounding text color or specific component rules */
 
 
 /* ============================================================================
