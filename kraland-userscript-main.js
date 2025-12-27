@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name         Kraland Theme (Bundled)
+// @namespace    https://www.kraland.org/
+// @version      1.0.1766876489052
+// @description  Injects the Kraland CSS theme (bundled)
+// @match        http://www.kraland.org/*
+// @match        https://www.kraland.org/*
+// @run-at       document-end
+// @grant        none
+// ==/UserScript==
+
 // Main script code - CSS bundled inline
 (function(){
   'use strict';

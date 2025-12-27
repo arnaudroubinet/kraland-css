@@ -16,17 +16,23 @@ console.log(`✓ Read CSS (${css.length} chars)`);
 // Read template
 const template = fs.readFileSync(templatePath, 'utf8');
 console.log(`✓ Read template`);
+// Prepare timestamped version header to include in generated file
+const timestamp = Date.now();
+const version = `1.0.${timestamp}`;
 
-// Replace placeholder
-const output = template.replace('__CSS_CONTENT__', css.replace(/`/g, '\\`').replace(/\$/g, '\\$'));
+// Prepend a userscript metadata header to the generated file so it is
+// self-contained when installed directly. The timestamp is embedded in
+// the `@version` field to help with cache-busting/release tracking.
+const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    https://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled)\n// @match        http://www.kraland.org/*\n// @match        https://www.kraland.org/*\n// @run-at       document-end\n// @grant        none\n// ==/UserScript==\n\n`;
+
+// Replace placeholder and prepend header
+const output = userscriptHeader + template.replace('__CSS_CONTENT__', css.replace(/`/g, '\\`').replace(/\$/g, '\\$'));
 
 // Write output
 fs.writeFileSync(outputPath, output, 'utf8');
 console.log(`✓ Written to ${outputPath}`);
 
-// Update userscript version with timestamp
-const timestamp = Date.now();
-const version = `1.0.${timestamp}`;
+// Update userscript version with timestamp in the distributable .user.js
 const userscript = fs.readFileSync(userscriptPath, 'utf8');
 const updatedUserscript = userscript.replace(
   /@version\s+[\d.]+/,
