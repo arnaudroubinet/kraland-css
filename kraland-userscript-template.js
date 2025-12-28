@@ -271,6 +271,10 @@
       try{ ensureSexStrong(); }catch(e){}
       try{ ensureFooterSticky(); }catch(e){}
       try{ relocateKramailToLeft(); }catch(e){}
+      // style dynamically inserted signature editors
+      try{ styleSignatureEditors(); }catch(e){}
+      try{ ensureEditorClasses(); }catch(e){}
+      try{ aggressiveScanEditors(); }catch(e){}
       // ensure page-scoped classes (e.g., members page) are kept in sync
       try{ ensurePageScoping(); }catch(e){}
     });
@@ -325,13 +329,485 @@
       startObservers();
       try{ ensureFooterSticky(); }catch(e){}
       try{ relocateKramailToLeft(); }catch(e){}
+      try{ styleSignatureEditors(); }catch(e){}
+      try{ aggressiveScanEditors(); }catch(e){}
+      try{ observeEditorInsertions(); }catch(e){}
+      try{ injectPageContextScript(); }catch(e){}
 
       // Ensure page-scoped classes are applied after initial load
       try{ ensurePageScoping(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);
+      // Start periodic editor checks for first 60s to catch late AJAX inserts or missed wrappers
+      try{ startPeriodicEditorChecks(); }catch(e){}
+      // Move our style element to the end of the <head> after a short delay so it takes precedence over late-loading site CSS
+      try{ setTimeout(()=>{ const st = document.getElementById(STYLE_ID); if(st && st.parentElement) st.parentElement.appendChild(st); }, 1000); }catch(e){}      // ensure color pickers show correctly after init
+      try{ setTimeout(fixColorButtons, 500); }catch(e){};
+      // wrap AJAX update helpers used by the site so we can re-style dynamic inserts
+      try{
+        // If updateAjax exists now, wrap immediately; otherwise poll until defined
+        function wrapUpdateFns(){
+          try{
+            if(window.updateAjax && typeof window.updateAjax === 'function' && !window._kr_wrapped_updateAjax){
+              const _u = window.updateAjax;
+              window.updateAjax = function(){ const r = _u.apply(this, arguments); setTimeout(styleSignatureEditors, 50); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(ensureEditorClasses, 60); setTimeout(ensureEditorClasses, 220); setTimeout(ensureEditorClasses, 620); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); return r; };
+              window._kr_wrapped_updateAjax = true;
+            }
+            if(window.updateAjaxPost && typeof window.updateAjaxPost === 'function' && !window._kr_wrapped_updateAjaxPost){
+              const _up = window.updateAjaxPost;
+              window.updateAjaxPost = function(){ const r=_up.apply(this, arguments); setTimeout(styleSignatureEditors, 50); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(ensureEditorClasses, 60); setTimeout(ensureEditorClasses, 220); setTimeout(ensureEditorClasses, 620); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); return r; };
+              window._kr_wrapped_updateAjaxPost = true;
+            }
+          }catch(e){}
+        }
+        wrapUpdateFns();
+        const _wrapInterval = setInterval(()=>{ wrapUpdateFns(); if(window._kr_wrapped_updateAjax && window._kr_wrapped_updateAjaxPost) clearInterval(_wrapInterval); }, 200);
+      }catch(e){}
+
+      // click delegation fallback: when anchors with inline updateAjax are clicked, schedule the styling
+      try{
+        document.addEventListener('click', function(e){
+          try{
+            const a = e.target.closest && e.target.closest('a[href^="javascript:updateAjax"], a[href^="javascript:updateAjaxPost"]');
+            if(a){ setTimeout(styleSignatureEditors, 60); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); }
+          }catch(er){}
+        }, true);
+      }catch(e){}
+
     }catch(e){ console.error('Kraland theme init failed', e); }
   })();
+
+  // Apply inline styles to signature editor toolbars inserted by AJAX so buttons are white with red text
+  function styleSignatureEditors(){
+    try{
+      // Find editors inserted by AJAX as well as editors present directly on the page (Kramail new post)
+      const editors = Array.from(document.querySelectorAll('[id^="ajax-"] form#msg, form#msg, form[name="post_msg"], form'))
+        .filter(f => f && (f.querySelector('.btn-toolbar') || f.querySelector('textarea#message, textarea[name="message"], textarea[name="msg"], textarea#msg, textarea')));
+      console.log('styleSignatureEditors: found editors', editors.length);
+      editors.forEach(form => {
+        if(form.getAttribute('data-kr-styled') === '1') { console.log('styleSignatureEditors: already styled'); return; }
+        form.setAttribute('data-kr-styled', '0');
+        let attempts = 0;
+        const apply = () => {
+          attempts++;
+          const btns = Array.from(form.querySelectorAll('.btn-toolbar .btn'));
+          console.log('styleSignatureEditors: attempt', attempts, 'btns', btns.length);
+          if(btns.length){
+            btns.forEach(b => {
+              try{
+                // Skip buttons that appear to be color swatches/pickers: either they or their descendants already have a non-transparent background color.
+                const isColorButton = (function(){ try{ const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || ''; const m = href.match(/addtag\('\s*([^']+?)\s*'/i); return !!(m && /^(yellow|orange|fuchsia|red|olive|lightgreen|green|teal|lightblue|blue|navy|purple|indigo|maroon|brown|gray|darkgray|black|white)$/i.test(m[1])); }catch(e){return false;} })();
+                const btnHasBg = (function(){
+                  try{
+                    const cs = getComputedStyle(b);
+                    if(cs && cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgb(255, 255, 255)') return true;
+                    const child = Array.from(b.querySelectorAll('*')).find(el=>{
+                      const c = getComputedStyle(el);
+                      return c && c.backgroundColor && c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent';
+                    });
+                    return !!child;
+                  }catch(e){ return false; }
+                })();
+                // If this is a known color-button, remove any white background we may have previously set so the palette shows correctly
+                if(isColorButton){
+                  try{
+                    // Restore or enforce the color swatch background (read from inline 'background' or from addtag color name)
+                    const inlineBg = b.style.getPropertyValue('background') || b.style.getPropertyValue('background-color') || '';
+                    const mRgb = inlineBg.match(/rgb\([^)]*\)/);
+                    if(mRgb){
+                      b.style.setProperty('background-color', mRgb[0], 'important');
+                      b.style.removeProperty('background-image');
+                    }else{
+                      // fallback: map common color names to approximate rgb
+                      const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || '';
+                      const mm = href.match(/addtag\('\s*([^']+?)\s*'/i);
+                      const map = { yellow:'rgb(244,172,0)', orange:'rgb(247,116,0)', fuchsia:'rgb(237,97,97)', red:'rgb(213,0,0)', olive:'rgb(128,128,0)', lightgreen:'rgb(33,156,90)', green:'rgb(0,111,0)', teal:'rgb(0,128,128)', lightblue:'rgb(85,119,188)', blue:'rgb(43,43,228)', navy:'rgb(0,0,128)', purple:'rgb(128,0,128)', indigo:'rgb(75,0,130)', maroon:'rgb(128,0,0)', brown:'rgb(94,67,45)', gray:'rgb(128,128,128)', darkgray:'rgb(90,90,90)', black:'rgb(0,0,0)' };
+                      if(mm && map[mm[1].toLowerCase()]){
+                        b.style.setProperty('background-color', map[mm[1].toLowerCase()], 'important');
+                        b.style.removeProperty('background-image');
+                      }
+                    }
+                  }catch(e){}
+                }
+                if(!btnHasBg && !isColorButton){
+                  b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
+                  b.style.setProperty('background-image', 'none', 'important');
+                }
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
+                b.style.setProperty('box-shadow', 'none', 'important');
+                const icons = b.querySelectorAll('i, .fa, .fas, .far');
+                icons.forEach(i => i.style.setProperty('color', 'inherit', 'important'));
+              }catch(e){ console.log('styleSignatureEditors: apply error', e); }
+            });
+            // ensure the form is tagged so CSS rules for editors apply
+            try{ form.classList.add('editeur-text'); }catch(e){}
+            form.setAttribute('data-kr-styled', '1');
+            console.log('styleSignatureEditors: applied to form', form.id || form.parentElement.id);
+            try{ setTimeout(fixColorButtons, 20); }catch(e){}
+            return;
+          }
+          if(attempts < 8) setTimeout(apply, 150);
+          else console.log('styleSignatureEditors: giving up after attempts', attempts);
+        };
+        apply();
+      });
+      // Also apply to standalone toolbars that are not inside a form (e.g., Kramail new post)
+      try{
+        const pageToolbars = Array.from(document.querySelectorAll('.btn-toolbar'));
+        pageToolbars.forEach(tb => {
+          try{
+            // Consider only toolbars that appear near a message input/textarea
+            const nearInput = tb.closest('form') || tb.closest('[id^="ajax-"]') || (tb.nextElementSibling && (tb.nextElementSibling.matches && tb.nextElementSibling.matches('textarea, input'))) || (tb.parentElement && /(message|Votre message|Message)/i.test(tb.parentElement.textContent || ''));
+            if(!nearInput) return;
+            const btns = Array.from(tb.querySelectorAll('.btn'));
+            if(!btns.length) return;
+            btns.forEach(b => {
+              try{
+                const isColorButton = (function(){ try{ const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || ''; const m = href.match(/addtag\('\s*([^']+?)\s*'/i); return !!(m && /^(yellow|orange|fuchsia|red|olive|lightgreen|green|teal|lightblue|blue|navy|purple|indigo|maroon|brown|gray|darkgray|black|white)$/i.test(m[1])); }catch(e){return false;} })();
+                const btnHasBg = (function(){ try{ const cs = getComputedStyle(b); if(cs && cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgb(255, 255, 255)') return true; const child = Array.from(b.querySelectorAll('*')).find(el=>{ const c = getComputedStyle(el); return c && c.backgroundColor && c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent'; }); return !!child; }catch(e){ return false; } })();
+                if(isColorButton){
+                  try{
+                    const inlineBg = b.style.getPropertyValue('background') || b.style.getPropertyValue('background-color') || '';
+                    const mRgb = inlineBg.match(/rgb\([^)]*\)/);
+                    if(mRgb){ b.style.setProperty('background-color', mRgb[0], 'important'); b.style.removeProperty('background-image'); }
+                    else{
+                      const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || '';
+                      const mm = href.match(/addtag\('\s*([^']+?)\s*'/i);
+                      const map = { yellow:'rgb(244,172,0)', orange:'rgb(247,116,0)', fuchsia:'rgb(237,97,97)', red:'rgb(213,0,0)', olive:'rgb(128,128,0)', lightgreen:'rgb(33,156,90)', green:'rgb(0,111,0)', teal:'rgb(0,128,128)', lightblue:'rgb(85,119,188)', blue:'rgb(43,43,228)', navy:'rgb(0,0,128)', purple:'rgb(128,0,128)', indigo:'rgb(75,0,130)', maroon:'rgb(128,0,0)', brown:'rgb(94,67,45)', gray:'rgb(128,128,128)', darkgray:'rgb(90,90,90)', black:'rgb(0,0,0)' };
+                      if(mm && map[mm[1].toLowerCase()]){ b.style.setProperty('background-color', map[mm[1].toLowerCase()], 'important'); b.style.removeProperty('background-image'); }
+                    }
+                  }catch(e){}
+                }
+                if(!btnHasBg && !isColorButton){
+                  b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
+                  b.style.setProperty('background-image', 'none', 'important');
+                }
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
+                b.style.setProperty('box-shadow', 'none', 'important');
+                b.setAttribute('data-kr-styled','1');
+                const f = b.closest('form'); if(f) f.classList.add('editeur-text');
+                const icons = b.querySelectorAll('i, .fa, .fas, .far'); icons.forEach(i=> i.style.setProperty('color','inherit','important'));
+              }catch(e){}
+            });
+            try{ setTimeout(fixColorButtons, 20); }catch(e){}
+          }catch(e){}
+        });
+      }catch(e){}
+    }catch(e){console.log('styleSignatureEditors: error', e);}  
+
+  // After styling passes, ensure color selector buttons show their real colors (override any earlier white !important)
+  function fixColorButtons(){
+    try{
+      const map = { yellow:'rgb(244,172,0)', orange:'rgb(247,116,0)', fuchsia:'rgb(237,97,97)', red:'rgb(213,0,0)', olive:'rgb(128,128,0)', lightgreen:'rgb(33,156,90)', green:'rgb(0,111,0)', teal:'rgb(0,128,128)', lightblue:'rgb(85,119,188)', blue:'rgb(43,43,228)', navy:'rgb(0,0,128)', purple:'rgb(128,0,128)', indigo:'rgb(75,0,130)', maroon:'rgb(128,0,0)', brown:'rgb(94,67,45)', gray:'rgb(128,128,128)', darkgray:'rgb(90,90,90)', black:'rgb(0,0,0)', white:'rgb(255,255,255)'};
+      const els = Array.from(document.querySelectorAll('a[href*="addtag("]'));
+      els.forEach(b => {
+        try{
+          const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || '';
+          const mm = href.match(/addtag\('\s*([^']+?)\s*'/i);
+          if(mm && map[mm[1].toLowerCase()]){
+            b.style.setProperty('background-color', map[mm[1].toLowerCase()], 'important');
+            b.style.setProperty('background-image', 'none', 'important');
+            b.setAttribute('data-kr-styled','1');
+          }
+        }catch(e){}
+      });
+    }catch(e){}
+  }
+
+  // Ensure aggressive scans and observers call fixColorButtons as well
+
+
+  // Aggressive interval-based scan to catch editors inserted by AJAX when other hooks miss them
+  function aggressiveScanEditors(){
+    try{
+      console.log('aggressiveScanEditors: start');
+      let attempts = 0;
+      const maxAttempts = 30; // ~6s at 200ms interval
+      const id = setInterval(() => {
+        attempts++;
+        const newBtns = Array.from(document.querySelectorAll('[id^="ajax-"] .btn-toolbar .btn:not([data-kr-styled])'));
+        if(newBtns.length){
+          console.log('aggressiveScanEditors: found', newBtns.length);
+          newBtns.forEach(b => {
+            try{
+              // Detect known color buttons and skip forcing their background; also remove any white bg we previously applied
+              const isColorButton = (function(){ try{ const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || ''; const m = href.match(/addtag\('\s*([^']+?)\s*'/i); return !!(m && /^(yellow|orange|fuchsia|red|olive|lightgreen|green|teal|lightblue|blue|navy|purple|indigo|maroon|brown|gray|darkgray|black|white)$/i.test(m[1])); }catch(e){return false;} })();
+              const btnHasBg = (function(){
+                  try{
+                    const cs = getComputedStyle(b);
+                    if(cs && cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgb(255, 255, 255)') return true;
+                    const child = Array.from(b.querySelectorAll('*')).find(el=>{
+                      const c = getComputedStyle(el);
+                      return c && c.backgroundColor && c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent';
+                    });
+                    return !!child;
+                  }catch(e){ return false; }
+                })();
+              if(isColorButton){
+                try{
+                  const inlineBg = b.style.getPropertyValue('background') || b.style.getPropertyValue('background-color') || '';
+                  const mRgb = inlineBg.match(/rgb\([^)]*\)/);
+                  if(mRgb){
+                    b.style.setProperty('background-color', mRgb[0], 'important');
+                    b.style.removeProperty('background-image');
+                  }else{
+                    const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || '';
+                    const mm = href.match(/addtag\('\s*([^']+?)\s*'/i);
+                    const map = { yellow:'rgb(244,172,0)', orange:'rgb(247,116,0)', fuchsia:'rgb(237,97,97)', red:'rgb(213,0,0)', olive:'rgb(128,128,0)', lightgreen:'rgb(33,156,90)', green:'rgb(0,111,0)', teal:'rgb(0,128,128)', lightblue:'rgb(85,119,188)', blue:'rgb(43,43,228)', navy:'rgb(0,0,128)', purple:'rgb(128,0,128)', indigo:'rgb(75,0,130)', maroon:'rgb(128,0,0)', brown:'rgb(94,67,45)', gray:'rgb(128,128,128)', darkgray:'rgb(90,90,90)', black:'rgb(0,0,0)' };
+                    if(mm && map[mm[1].toLowerCase()]){ b.style.setProperty('background-color', map[mm[1].toLowerCase()], 'important'); b.style.removeProperty('background-image'); }
+                  }
+                }catch(e){}
+              }
+              if(!btnHasBg && !isColorButton){
+                b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
+                b.style.setProperty('background-image', 'none', 'important');
+              }
+              b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+              b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
+              b.style.setProperty('box-shadow', 'none', 'important');
+              b.setAttribute('data-kr-styled', '1');
+              const f = b.closest('form'); if(f) f.classList.add('editeur-text');
+              const icons = b.querySelectorAll('i, .fa, .fas, .far');
+              icons.forEach(i => i.style.setProperty('color', 'inherit', 'important'));
+            }catch(e){console.log('aggressiveScanEditors: apply error', e);} 
+          });
+          try{ setTimeout(fixColorButtons, 20); }catch(e){}
+        }
+        if(attempts >= maxAttempts || newBtns.length === 0 && attempts > 3) { console.log('aggressiveScanEditors: clearing after attempts', attempts, 'found', newBtns.length); clearInterval(id); }
+      }, 200);
+    }catch(e){console.log('aggressiveScanEditors: error', e);} 
+  }
+
+  // Periodic starter to re-run scans for a short period to catch late updates
+  function startPeriodicEditorChecks(){
+    try{
+      let ticks = 0;
+      const pid = setInterval(()=>{
+        ticks++;
+        try{ aggressiveScanEditors(); }catch(e){}
+        if(ticks > 60) clearInterval(pid);
+      }, 1000);
+    }catch(e){}
+  }
+
+  // Observer that reacts to inserted nodes with id^="ajax-" and immediately applies inline styles
+  function observeEditorInsertions(){
+    try{
+      const applyImmediate = (root)=>{
+        try{
+          const containers = [];
+          if(root.matches && root.matches('[id^="ajax-"]')) containers.push(root);
+          containers.push(...Array.from(root.querySelectorAll('[id^="ajax-"]')));
+          containers.forEach(c => {
+            try{
+              const btns = Array.from(c.querySelectorAll('.btn-toolbar .btn'));
+              if(btns.length){
+                btns.forEach(b => {
+                  try{
+                    // Detect known color buttons and skip forcing their background; also remove any white bg we previously applied
+                    const isColorButton = (function(){ try{ const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || ''; const m = href.match(/addtag\('\s*([^']+?)\s*'/i); return !!(m && /^(yellow|orange|fuchsia|red|olive|lightgreen|green|teal|lightblue|blue|navy|purple|indigo|maroon|brown|gray|darkgray|black|white)$/i.test(m[1])); }catch(e){return false;} })();
+                    const btnHasBg = (function(){
+                      try{
+                        const cs = getComputedStyle(b);
+                        if(cs && cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgb(255, 255, 255)') return true;
+                        const child = Array.from(b.querySelectorAll('*')).find(el=>{
+                          const c = getComputedStyle(el);
+                          return c && c.backgroundColor && c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent';
+                        });
+                        return !!child;
+                      }catch(e){ return false; }
+                    })();
+                    if(isColorButton){ try{ b.style.removeProperty('background-color'); b.style.removeProperty('background-image'); }catch(e){} }
+                    if(!btnHasBg && !isColorButton){
+                      b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
+                      b.style.setProperty('background-image', 'none', 'important');
+                    }
+                    b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                    b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
+                    b.style.setProperty('box-shadow', 'none', 'important');
+                    b.setAttribute('data-kr-styled','1');
+                    const f = b.closest('form'); if(f) f.classList.add('editeur-text');
+                    const icons = b.querySelectorAll('i, .fa, .fas, .far');
+                    icons.forEach(i => i.style.setProperty('color', 'inherit', 'important'));
+                  }catch(e){}
+                });
+              }
+            }catch(e){}
+          });
+        }catch(e){}
+      };
+
+      const m = new MutationObserver((mutations)=>{
+        for(const mu of mutations){
+          for(const n of Array.from(mu.addedNodes || [])){
+            if(n.nodeType !== 1) continue;
+            try{ applyImmediate(n); }catch(e){}
+          }
+        }
+      });
+      m.observe(document.body || document.documentElement, { childList: true, subtree: true });
+      // apply to existing ajax containers on load
+      try{ applyImmediate(document); }catch(e){}
+    }catch(e){/*ignore*/}
+  }
+  // Inject a small script into the page context so we can apply inline '!important' styles
+  // at the exact moment the site inserts AJAX content (more robust: retry + append to multiple roots)
+  function injectPageContextScript(){
+    try{
+      if(document.getElementById('kr-injected-editor-style')) return;
+
+      function makeScript(){
+        const s = document.createElement('script');
+        s.id = 'kr-injected-editor-style';
+        s.type = 'text/javascript';
+        s.textContent = `(function(){
+          try{
+            window.__kr_editor_injected = true;
+            console.log('kr: page-context script initialized');
+          }catch(e){}
+
+          function applyToContainer(c){
+            try{
+              if(!c) return;
+              const btns = c.querySelectorAll('.btn-toolbar .btn');
+              if(!btns || !btns.length) return;
+              btns.forEach(function(b){
+                try{
+                  // Detect known color buttons and skip forcing their background; also remove any white bg we may have previously set
+                  const isColorButton = (function(){ try{ const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || ''; const m = href.match(/addtag\('\s*([^']+?)\s*'/i); return !!(m && /^(yellow|orange|fuchsia|red|olive|lightgreen|green|teal|lightblue|blue|navy|purple|indigo|maroon|brown|gray|darkgray|black|white)$/i.test(m[1])); }catch(e){return false;} })();
+                  const btnHasBg = (function(){
+                      try{
+                        const cs = getComputedStyle(b);
+                        if(cs && cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgb(255, 255, 255)') return true;
+                        const child = Array.from(b.querySelectorAll('*')).find(function(el){
+                          const c = getComputedStyle(el);
+                          return c && c.backgroundColor && c.backgroundColor !== 'rgba(0, 0, 0, 0)' && c.backgroundColor !== 'transparent';
+                        });
+                        return !!child;
+                      }catch(e){ return false; }
+                    })();
+                  if(isColorButton){
+                    try{
+                      const inlineBg = b.style.getPropertyValue('background') || b.style.getPropertyValue('background-color') || '';
+                      const mRgb = inlineBg.match(/rgb\([^)]*\)/);
+                      if(mRgb){
+                        b.style.setProperty('background-color', mRgb[0], 'important');
+                        b.style.removeProperty('background-image');
+                      }else{
+                        const href = (b.getAttribute && (b.getAttribute('href') || b.getAttribute('onclick'))) || '';
+                        const mm = href.match(/addtag\('\s*([^']+?)\s*'/i);
+                        const map = { yellow:'rgb(244,172,0)', orange:'rgb(247,116,0)', fuchsia:'rgb(237,97,97)', red:'rgb(213,0,0)', olive:'rgb(128,128,0)', lightgreen:'rgb(33,156,90)', green:'rgb(0,111,0)', teal:'rgb(0,128,128)', lightblue:'rgb(85,119,188)', blue:'rgb(43,43,228)', navy:'rgb(0,0,128)', purple:'rgb(128,0,128)', indigo:'rgb(75,0,130)', maroon:'rgb(128,0,0)', brown:'rgb(94,67,45)', gray:'rgb(128,128,128)', darkgray:'rgb(90,90,90)', black:'rgb(0,0,0)' };
+                        if(mm && map[mm[1].toLowerCase()]){ b.style.setProperty('background-color', map[mm[1].toLowerCase()], 'important'); b.style.removeProperty('background-image'); }
+                      }
+                    }catch(e){}
+                  }
+                  if(!btnHasBg && !isColorButton){
+                    b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
+                    b.style.setProperty('background-image', 'none', 'important');
+                  }
+                  b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                  b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
+                  b.style.setProperty('box-shadow', 'none', 'important');
+                  b.setAttribute('data-kr-styled','1');
+                  try{ var f = b.closest('form'); if(f) f.classList.add('editeur-text'); }catch(e){}
+                  const icons = b.querySelectorAll('i, .fa, .fas, .far');
+                  icons.forEach(function(i){ try{ i.style.setProperty('color','inherit','important'); }catch(e){} });
+                }catch(e){/*ignore*/}
+              });
+              try{ setTimeout(fixColorButtons, 20); }catch(e){}
+            }catch(e){/*ignore*/}
+          }
+
+          function wrap(fnName){
+            try{
+              if(window[fnName] && !window['_kr_wrapped_'+fnName]){
+                const orig = window[fnName];
+                window[fnName] = function(){
+                  const r = orig.apply(this, arguments);
+                  setTimeout(function(){
+                    try{
+                      var id = arguments && arguments[0] ? arguments[0] : null;
+                      if(id){ var c = document.getElementById(id); if(c) applyToContainer(c); }
+                    }catch(e){}
+                    try{ Array.from(document.querySelectorAll('[id^="ajax-"]')).forEach(applyToContainer); }catch(e){}
+                  }, 10);
+                  return r;
+                };
+                window['_kr_wrapped_'+fnName] = true;
+                console.log('kr: wrapped', fnName);
+              }
+            }catch(e){/*ignore*/}
+          }
+
+          wrap('updateAjax');
+          wrap('updateAjaxPost');
+
+          var mo = new MutationObserver(function(muts){
+            for(var mu of muts){
+              for(var n of Array.from(mu.addedNodes || [])){
+                try{
+                  if(n && n.nodeType === 1){
+                    if(n.id && n.id.indexOf('ajax-') === 0) applyToContainer(n);
+                    else if(n.querySelector && n.querySelector('[id^="ajax-"]')) Array.from(n.querySelectorAll('[id^="ajax-"]')).forEach(applyToContainer);
+                  }
+                }catch(e){}
+              }
+            }
+          });
+          mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
+
+          // initial pass
+          try{ Array.from(document.querySelectorAll('[id^="ajax-"]')).forEach(applyToContainer); }catch(e){}
+        })();`;
+        return s;
+      }
+
+      // Try to append immediately and retry a few times if needed
+      let attempts = 0;
+      const maxAttempts = 40; // ~10s
+      const tryAppend = () => {
+        try{
+          if(document.getElementById('kr-injected-editor-style')) return true;
+          const s = makeScript();
+          try{ (document.head || document.documentElement).appendChild(s); }catch(e){ try{ document.documentElement.appendChild(s); }catch(e){} }
+          if(document.getElementById('kr-injected-editor-style')){ console.log('kr: injected script into page context'); return true; }
+        }catch(e){/*ignore*/}
+        return false;
+      };
+
+      if(tryAppend()) return;
+      const int = setInterval(()=>{
+        attempts++;
+        if(tryAppend()){ clearInterval(int); }
+        else if(attempts >= maxAttempts){ clearInterval(int); console.log('kr: failed to inject page-context script after attempts'); }
+      }, 250);
+    }catch(e){console.log('injectPageContextScript error', e);} 
+  }  }
+
+  // Tag any editor containers with `.editeur-text` so CSS can target them uniformly
+  function ensureEditorClasses(){
+    try{
+      const candidates = Array.from(document.querySelectorAll('[id^="ajax-"] form#msg, [id^="ajax-"] textarea, .col-sm-10 form#msg, .col-sm-10 textarea#message, form[name="post_msg"], textarea#message'));
+      console.log('ensureEditorClasses: candidates', candidates.length);
+      candidates.forEach(el => {
+        try{
+          const root = el.tagName && el.tagName.toLowerCase() === 'form' ? el : (el.closest('form') || el.parentElement);
+          if(root && !root.classList.contains('editeur-text')){
+            root.classList.add('editeur-text');
+            // also mark to avoid reprocessing
+            root.setAttribute('data-kr-styled', root.getAttribute('data-kr-styled') || '0');
+            console.log('ensureEditorClasses: tagged', root.id || root.parentElement && root.parentElement.id || 'no-id');
+          }
+        }catch(e){}
+      });
+    }catch(e){ console.log('ensureEditorClasses error', e); }
+  }
+
+  // ensureSignatureEditors is also invoked from the MutationObserver to catch dynamic insertions
+  // Add to startObservers' MO callback earlier (we already trigger styleSignatureEditors() on init)
+  
 
 })();
