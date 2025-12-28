@@ -20,3 +20,17 @@ Si tu veux tester une modificcation tu dois toujours attendre cinq secondes entr
 Tu en dois pas écrire ou executer de test avec playwright qui s'execute avec NPM. Tu ne peux que tester avec playwright MCP tools.
 
 Tu as interdiction d'utiliser git pour autre chose que reset tes changements.
+
+## Stack technique
+- Userscript tampermonkey
+- CSS de surcharge
+- Bootstrap 3
+
+## Workflow
+1. Toujours capturer le réel (HTML et CSS) en utilisant playwright mcp tools.
+2. Analyser, l'existant et bien définir le changement a apporter.
+3. Utiliser context7 pour récupérer la documentation nécessaire.
+4. Proposer un plan de modification.
+5. Si le plan est validé, faire les modifications.
+6. Tester avec playwright mcp tools les changements.
+7. Réitérer si nécessaire.

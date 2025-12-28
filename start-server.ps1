@@ -9,7 +9,8 @@ This script:
 4. Starts the HTTP server with CORS and no cache
 #>
 param(
-    [int]$Port = 4848
+    [int]$Port = 4848,
+    [switch]$ForceKill
 )
 
 # Check if npm is available
@@ -30,7 +31,7 @@ if (-not (Test-Path "node_modules")) {
         Write-Host "ERROR: npm install failed" -ForegroundColor Red
         exit 1
     }
-    Write-Host "✓ Dependencies installed" -ForegroundColor Green
+    Write-Host "[OK] Dependencies installed" -ForegroundColor Green
 } else {
     Write-Host "[1/4] Dependencies already installed" -ForegroundColor Green
 }
@@ -42,25 +43,77 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Build failed" -ForegroundColor Red
     exit 1
 }
-Write-Host "✓ Project built" -ForegroundColor Green
+Write-Host "[OK] Project built" -ForegroundColor Green
 
 # Step 3: Check if port is already in use
 Write-Host "[3/4] Checking port $Port..." -ForegroundColor Yellow
-$portInUse = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-if ($portInUse) {
-    Write-Host "WARNING: Port $Port is already in use" -ForegroundColor Red
-    $processes = Get-Process -Id $portInUse.OwningProcess -ErrorAction SilentlyContinue
-    if ($processes) {
-        Write-Host "Process using port: $($processes.Name) (PID: $($processes.Id))" -ForegroundColor Yellow
-        $kill = Read-Host "Kill this process? (y/n)"
-        if ($kill -eq 'y') {
-            Stop-Process -Id $processes.Id -Force
-            Write-Host "✓ Process killed" -ForegroundColor Green
+
+function Get-PidsUsingPort([int]$port) {
+    $pids = @()
+    # Prefer Get-NetTCPConnection when available (Windows 8 / Server 2012+)
+    if (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue) {
+        try {
+            $conns = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+            if ($conns) {
+                $pids += $conns | ForEach-Object { $_.OwningProcess } | Where-Object { $_ -and $_ -ne 0 }
+            }
+        } catch { }
+    }
+
+    # Fallback to parsing netstat (works on most systems)
+    if (-not $pids -or $pids.Count -eq 0) {
+        try {
+            $lines = netstat -ano 2>$null | Select-String ":$port\b"
+            foreach ($ln in $lines) {
+                # split on whitespace; PID is last token
+                $parts = ($ln -replace '^\s+','') -split '\s+'
+                $pid = $parts[-1]
+                if ($pid -match '^[0-9]+$') { $pids += [int]$pid }
+            }
+        } catch { }
+    }
+
+    return ($pids | Sort-Object -Unique)
+}
+
+$pids = Get-PidsUsingPort $Port
+if ($pids -and $pids.Count -gt 0) {
+    Write-Host "WARNING: Port $Port is already in use by PID(s): $($pids -join ', ')" -ForegroundColor Red
+    $processes = @()
+    foreach ($pid in $pids) {
+        $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        if ($proc) { $processes += $proc } else { Write-Host "Note: PID $pid not found (may belong to system or exited)." -ForegroundColor Yellow }
+    }
+
+    if ($processes.Count -gt 0) {
+        foreach ($proc in $processes) {
+            Write-Host " - $($proc.ProcessName) (PID: $($proc.Id))" -ForegroundColor Yellow
+        }
+
+        if ($ForceKill) { $killAll = 'y' } else { $killAll = Read-Host "Kill these process(es)? (y/n)" }
+        if ($killAll -eq 'y') {
+            foreach ($proc in $processes) {
+                try {
+                    Stop-Process -Id $proc.Id -Force -ErrorAction Stop
+                    Write-Host "[OK] Killed $($proc.ProcessName) (PID: $($proc.Id))" -ForegroundColor Green
+                } catch {
+                    Write-Host "ERROR: Could not kill PID $($proc.Id): $($_.Exception.Message)" -ForegroundColor Red
+                    Write-Host "Trying taskkill as fallback..." -ForegroundColor Yellow
+                    try {
+                        & taskkill /PID $proc.Id /F /T 2>$null
+                        Write-Host "[OK] taskkill reported success for PID $($proc.Id)" -ForegroundColor Green
+                    } catch {
+                        Write-Host "ERROR: Fallback taskkill also failed for PID $($proc.Id). Try running this script as Administrator." -ForegroundColor Red
+                    }
+                }
+            }
             Start-Sleep -Seconds 1
         } else {
             Write-Host "Exiting..." -ForegroundColor Yellow
             exit 1
         }
+    } else {
+        Write-Host "No user processes found using that port; continuing..." -ForegroundColor Yellow
     }
 }
 
@@ -70,7 +123,7 @@ $watchJob = Start-Job -ScriptBlock {
     Set-Location $using:PWD
     npm run watch
 }
-Write-Host "✓ File watcher started (Job ID: $($watchJob.Id))" -ForegroundColor Green
+Write-Host "[OK] File watcher started (Job ID: $($watchJob.Id))" -ForegroundColor Green
 
 # Give watch a moment to start
 Start-Sleep -Seconds 2
@@ -90,7 +143,7 @@ $cleanup = {
         Stop-Job -Id $watchJob.Id -ErrorAction SilentlyContinue
         Remove-Job -Id $watchJob.Id -Force -ErrorAction SilentlyContinue
     }
-    Write-Host "✓ Stopped" -ForegroundColor Green
+    Write-Host "[OK] Stopped" -ForegroundColor Green
 }
 
 # Register cleanup on Ctrl+C
