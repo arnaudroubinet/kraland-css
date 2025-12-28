@@ -99,7 +99,6 @@ small.text-muted,
   color: var(--kr-muted);
 }
 
-
 /* ============================================================================
    4. NAVIGATION
    Bootstrap navbar override using compound selectors
@@ -128,6 +127,43 @@ small.text-muted,
   font-weight: 700;
   font-size: 1.1rem;
   padding: 10px 15px;
+}
+
+/* Ensure all navbar anchors and dropdown toggles are white (restore lost white text) */
+.navbar-default .navbar-nav > li > a,
+.navbar-default .navbar-nav > li > a.dropdown-toggle,
+.navbar-inverse .navbar-nav > li > a,
+.navbar-inverse .navbar-nav > li > a.dropdown-toggle,
+.navbar .dropdown-toggle,
+#navbar a,
+#navbar button {
+  color: #fff !important;
+}
+.navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+  background-color: rgba(255,255,255,0.03);
+}
+
+/* Dropdown menu anchors: ensure contrast when the menu background is light */
+.navbar-inverse .dropdown-menu > li > a,
+.navbar-default .dropdown-menu > li > a {
+  color: var(--kr-text) !important;
+}
+/* Stronger selector to override #navbar a rules */
+#navbar .dropdown-menu > li > a,
+.navbar-inverse #navbar .dropdown-menu > li > a {
+  color: var(--kr-text) !important;
+}
+#navbar .dropdown-menu > li > a:hover,
+#navbar .dropdown-menu > li > a:focus,
+.navbar-inverse #navbar .dropdown-menu > li > a:hover,
+.navbar-inverse #navbar .dropdown-menu > li > a:focus,
+.navbar-inverse .dropdown-menu > li > a:hover,
+.navbar-inverse .dropdown-menu > li > a:focus,
+.navbar-default .dropdown-menu > li > a:hover,
+.navbar-default .dropdown-menu > li > a:focus {
+  color: var(--kr-red) !important;
+  background-color: rgba(0,0,0,0.03);
 }
 
 .navbar-default .navbar-toggle {
@@ -233,6 +269,62 @@ button.btn.btn-primary,
   border-color: var(--kr-red-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
+}
+
+/* Members page: target only buttons inside panels/wells and member containers to avoid affecting the top navbar */
+html.kr-page-members .panel .btn,
+html.kr-page-members .panel-body .btn,
+html.kr-page-members .well .btn,
+html.kr-page-members .container-fluid .btn,
+html.kr-page-members .col-xs-12 .btn,
+html.kr-page-members .col-sm-4 .btn,
+html.kr-page-members .col-md-8 .btn,
+html.kr-page-members [id^="ajax-"] .btn,
+html.kr-page-members [id^="ajax-"] a.btn,
+html.kr-page-members .panel .btn-block,
+html.kr-page-members .panel .btn-warning,
+html.kr-page-members .panel .btn-default,
+html.kr-page-members .panel .btn-primary,
+html.kr-page-members .panel .btn-info {
+  background-color: var(--kr-red) !important;
+  border-color: var(--kr-red-dark) !important;
+  color: #fff !important;
+}
+html.kr-page-members .panel .btn:hover,
+html.kr-page-members .panel a.btn:hover,
+html.kr-page-members .panel button.btn:hover,
+html.kr-page-members .panel input.btn:hover,
+html.kr-page-members .panel .btn-block:hover,
+html.kr-page-members .panel .btn-warning:hover,
+html.kr-page-members .panel .btn-default:hover {
+  background-color: var(--kr-red-dark) !important;
+  border-color: var(--kr-red-dark) !important;
+}
+/* Remove conflicting shadows and ensure consistent disabled/active variants inside panels */
+html.kr-page-members .panel .btn,
+html.kr-page-members .panel .btn-default,
+html.kr-page-members .panel .btn-warning {
+  box-shadow: none !important;
+}
+html.kr-page-members .panel .btn:disabled,
+html.kr-page-members .panel .btn[disabled] {
+  opacity: 0.85 !important;
+}
+
+/* Ensure navbar/top buttons are not affected by the members overrides */
+html.kr-page-members .navbar .btn,
+html.kr-page-members #navbar .btn,
+html.kr-page-members .navbar-nav .btn,
+html.kr-page-members .navbar .dropdown-toggle,
+html.kr-page-members .navbar .dropdown-toggle.btn {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #fff !important; /* restore white text in navbar */
+}
+/* Also ensure navbar links remain white */
+html.kr-page-members .navbar-default .navbar-nav > li > a {
+  color: #fff !important;
 }
 
 /* Default buttons */
@@ -550,6 +642,50 @@ a.well.well-sm,
    ============================================================================ */
 
 /* Icon color rule removed — icons will use surrounding text color or specific component rules */
+
+/* Symbols that replace small s1/s2/s3 gif images with inline text for accessibility */
+.kr-symbol {
+  font-family: inherit;
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: .25rem;
+  color: var(--kr-text);
+  font-weight: 700; /* bold as requested */
+}
+
+/* Section icons: ensure presentation & medals icons adapt to theme accent color (ICON ONLY) */
+.kr-icon-presentation i,
+.kr-icon-presentation .fa,
+.kr-icon-presentation .glyphicon,
+.kr-icon-medals i,
+.kr-icon-medals .fa,
+.kr-icon-medals .glyphicon {
+  color: var(--kr-accent) !important;
+}
+.kr-symbol.kr-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  white-space: nowrap !important;
+  border:0 !important;
+  padding:0 !important;
+  margin:-1px !important;
+}
+.kr-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  white-space: nowrap !important;
+  border:0 !important;
+  padding:0 !important;
+  margin:-1px !important;
+}
 
 
 /* ============================================================================

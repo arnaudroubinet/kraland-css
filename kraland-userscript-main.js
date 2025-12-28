@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766880096416
+// @version      1.0.1766920112519
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -114,7 +114,6 @@ small.text-muted,
   color: var(--kr-muted);
 }
 
-
 /* ============================================================================
    4. NAVIGATION
    Bootstrap navbar override using compound selectors
@@ -143,6 +142,43 @@ small.text-muted,
   font-weight: 700;
   font-size: 1.1rem;
   padding: 10px 15px;
+}
+
+/* Ensure all navbar anchors and dropdown toggles are white (restore lost white text) */
+.navbar-default .navbar-nav > li > a,
+.navbar-default .navbar-nav > li > a.dropdown-toggle,
+.navbar-inverse .navbar-nav > li > a,
+.navbar-inverse .navbar-nav > li > a.dropdown-toggle,
+.navbar .dropdown-toggle,
+#navbar a,
+#navbar button {
+  color: #fff !important;
+}
+.navbar-inverse .navbar-nav > li > a:hover,
+.navbar-inverse .navbar-nav > li > a:focus {
+  background-color: rgba(255,255,255,0.03);
+}
+
+/* Dropdown menu anchors: ensure contrast when the menu background is light */
+.navbar-inverse .dropdown-menu > li > a,
+.navbar-default .dropdown-menu > li > a {
+  color: var(--kr-text) !important;
+}
+/* Stronger selector to override #navbar a rules */
+#navbar .dropdown-menu > li > a,
+.navbar-inverse #navbar .dropdown-menu > li > a {
+  color: var(--kr-text) !important;
+}
+#navbar .dropdown-menu > li > a:hover,
+#navbar .dropdown-menu > li > a:focus,
+.navbar-inverse #navbar .dropdown-menu > li > a:hover,
+.navbar-inverse #navbar .dropdown-menu > li > a:focus,
+.navbar-inverse .dropdown-menu > li > a:hover,
+.navbar-inverse .dropdown-menu > li > a:focus,
+.navbar-default .dropdown-menu > li > a:hover,
+.navbar-default .dropdown-menu > li > a:focus {
+  color: var(--kr-red) !important;
+  background-color: rgba(0,0,0,0.03);
 }
 
 .navbar-default .navbar-toggle {
@@ -248,6 +284,62 @@ button.btn.btn-primary,
   border-color: var(--kr-red-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
+}
+
+/* Members page: target only buttons inside panels/wells and member containers to avoid affecting the top navbar */
+html.kr-page-members .panel .btn,
+html.kr-page-members .panel-body .btn,
+html.kr-page-members .well .btn,
+html.kr-page-members .container-fluid .btn,
+html.kr-page-members .col-xs-12 .btn,
+html.kr-page-members .col-sm-4 .btn,
+html.kr-page-members .col-md-8 .btn,
+html.kr-page-members [id^="ajax-"] .btn,
+html.kr-page-members [id^="ajax-"] a.btn,
+html.kr-page-members .panel .btn-block,
+html.kr-page-members .panel .btn-warning,
+html.kr-page-members .panel .btn-default,
+html.kr-page-members .panel .btn-primary,
+html.kr-page-members .panel .btn-info {
+  background-color: var(--kr-red) !important;
+  border-color: var(--kr-red-dark) !important;
+  color: #fff !important;
+}
+html.kr-page-members .panel .btn:hover,
+html.kr-page-members .panel a.btn:hover,
+html.kr-page-members .panel button.btn:hover,
+html.kr-page-members .panel input.btn:hover,
+html.kr-page-members .panel .btn-block:hover,
+html.kr-page-members .panel .btn-warning:hover,
+html.kr-page-members .panel .btn-default:hover {
+  background-color: var(--kr-red-dark) !important;
+  border-color: var(--kr-red-dark) !important;
+}
+/* Remove conflicting shadows and ensure consistent disabled/active variants inside panels */
+html.kr-page-members .panel .btn,
+html.kr-page-members .panel .btn-default,
+html.kr-page-members .panel .btn-warning {
+  box-shadow: none !important;
+}
+html.kr-page-members .panel .btn:disabled,
+html.kr-page-members .panel .btn[disabled] {
+  opacity: 0.85 !important;
+}
+
+/* Ensure navbar/top buttons are not affected by the members overrides */
+html.kr-page-members .navbar .btn,
+html.kr-page-members #navbar .btn,
+html.kr-page-members .navbar-nav .btn,
+html.kr-page-members .navbar .dropdown-toggle,
+html.kr-page-members .navbar .dropdown-toggle.btn {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #fff !important; /* restore white text in navbar */
+}
+/* Also ensure navbar links remain white */
+html.kr-page-members .navbar-default .navbar-nav > li > a {
+  color: #fff !important;
 }
 
 /* Default buttons */
@@ -566,6 +658,50 @@ a.well.well-sm,
 
 /* Icon color rule removed — icons will use surrounding text color or specific component rules */
 
+/* Symbols that replace small s1/s2/s3 gif images with inline text for accessibility */
+.kr-symbol {
+  font-family: inherit;
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: .25rem;
+  color: var(--kr-text);
+  font-weight: 700; /* bold as requested */
+}
+
+/* Section icons: ensure presentation & medals icons adapt to theme accent color (ICON ONLY) */
+.kr-icon-presentation i,
+.kr-icon-presentation .fa,
+.kr-icon-presentation .glyphicon,
+.kr-icon-medals i,
+.kr-icon-medals .fa,
+.kr-icon-medals .glyphicon {
+  color: var(--kr-accent) !important;
+}
+.kr-symbol.kr-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  white-space: nowrap !important;
+  border:0 !important;
+  padding:0 !important;
+  margin:-1px !important;
+}
+.kr-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  white-space: nowrap !important;
+  border:0 !important;
+  padding:0 !important;
+  margin:-1px !important;
+}
+
 
 /* ============================================================================
    13. RESPONSIVE
@@ -630,9 +766,23 @@ a.well.well-sm,
       const variant = localStorage.getItem(VARIANT_KEY) || 'urss';
       document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
 
+      // Page-specific class: members list (/communaute/membres) - robust check
+      const isMembers = (location && ( (location.pathname && location.pathname.indexOf('/communaute/membres') === 0) || (location.href && location.href.indexOf('/communaute/membres') !== -1) ));
+      document.documentElement.classList.toggle('kr-page-members', !!isMembers);
+
       // tag activity icons (members / characters / online) so we can style them
       try{ markActiveIcons(); }catch(e){/*ignore*/}
       try{ replaceMcAnchors(); }catch(e){/*ignore*/}
+      try{ replaceSImages(); }catch(e){/*ignore*/}
+      try{ reorderBtnGroupXs(); }catch(e){/*ignore*/}
+      try{ ensureSexStrong(); }catch(e){/*ignore*/}
+
+      // Ensure dropdown menu anchors remain readable even if other styles override
+      try{
+        let sd = document.getElementById('kr-dropdown-fix');
+        const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-red) !important; background-color: rgba(0,0,0,0.03); }`;
+        if(sd) sd.textContent = txt; else { sd = document.createElement('style'); sd.id='kr-dropdown-fix'; sd.textContent = txt; document.head.appendChild(sd); }
+      }catch(e){/*ignore*/}
 
       console.log('✓ Theme applied, CSS length:', cssText.length);
       return true;
@@ -650,7 +800,10 @@ a.well.well-sm,
     const map = [
       {text: 'Membres actifs', cls: 'kr-icon-members'},
       {text: 'Personnages actifs', cls: 'kr-icon-characters'},
-      {text: 'Personnes en ligne', cls: 'kr-icon-online'}
+      {text: 'Personnes en ligne', cls: 'kr-icon-online'},
+      // Section headers that should reflect theme color
+      {text: 'Présentation', cls: 'kr-icon-presentation'},
+      {text: 'Médailles', cls: 'kr-icon-medals'}
     ];
     // clear previous marks
     for(const m of map) Array.from(document.querySelectorAll('.'+m.cls)).forEach(n=>n.classList.remove(m.cls));
@@ -686,6 +839,102 @@ a.well.well-sm,
         a.removeAttribute('aria-hidden');
       }
     }catch(e){/*ignore*/}
+  }
+
+  // Replace small s1/s2/s3 images with equivalent Unicode characters for accessibility
+  function replaceSImages(){
+    try{
+      const map = { 's1.gif': '♂', 's2.gif': '♀', 's3.gif': '⚧' };
+      const imgs = Array.from(document.querySelectorAll('img'))
+        .filter(i => /img7\.kraland\.org\/.+\/(s[123]\.gif)$/.test(i.src));
+      for(const img of imgs){
+        const m = img.src.match(/(s[123]\.gif)$/);
+        const key = m ? m[1] : null;
+        const ch = map[key] || '';
+        const span = document.createElement('span');
+        span.className = 'kr-symbol kr-symbol-' + (key || 's');
+        span.setAttribute('aria-hidden', 'true');
+        span.textContent = ch;
+        if(img.alt){ const sr = document.createElement('span'); sr.className = 'kr-sr-only'; sr.textContent = img.alt; span.appendChild(sr); }
+        // If this image represents the sex value, wrap in <strong>
+        const sexAncestor = img.closest('[id^="ajax-sex"]') || img.closest('[id*="_sex"]') || img.closest('[id*="sex"]');
+        if(sexAncestor){
+          const strong = document.createElement('strong');
+          strong.appendChild(span);
+          img.replaceWith(strong);
+        }else{
+          img.replaceWith(span);
+        }
+      }
+    }catch(e){/*ignore*/}
+  }
+  // Move .btn-group-xs before the parent text in member blocks for cleaner layout
+  // Specifically: if the parent contains a <strong> label (eg. "Nom:") place the button BEFORE that <strong> element.
+  function reorderBtnGroupXs(){
+    try{
+      const candidates = Array.from(document.querySelectorAll('span.btn-group-xs'));
+      candidates.forEach(btn => {
+        const parent = btn.parentElement;
+        if(!parent) return;
+        // If a <strong> label exists, place the btn before it (per design requirement)
+        const strong = parent.querySelector('strong');
+        if(strong && strong.parentElement === parent){
+          if(btn.nextElementSibling !== strong){
+            parent.insertBefore(btn, strong);
+            // If some other script immediately reorders, try again next tick to ensure placement before <strong>
+            setTimeout(()=>{ try{ if(btn.nextElementSibling !== strong) parent.insertBefore(btn, parent.firstChild); }catch(e){} }, 50);
+          }
+          return;
+        }
+        // prefer moving before the first meaningful text node
+        const textNode = Array.from(parent.childNodes).find(n => n.nodeType === 3 && n.textContent && n.textContent.trim().length > 0);
+        if(textNode){
+          if(btn.nextSibling !== textNode && parent.firstChild !== btn){
+            parent.insertBefore(btn, textNode);
+          }
+          return;
+        }
+        // fallback: before first child element that contains visible text
+        const elWithText = Array.from(parent.children).find(ch => (ch.innerText||'').trim().length > 0 && ch !== btn);
+        if(elWithText){
+          if(parent.firstElementChild !== btn){
+            parent.insertBefore(btn, elWithText);
+          }
+          return;
+        }
+        // otherwise don't change (avoid moving before avatars/images)
+      });
+    }catch(e){/*ignore*/ }
+  }
+
+  // Ensure that sex values are wrapped in a <strong> for consistent styling and semantics
+  function ensureSexStrong(){
+    try{
+      const sexEls = Array.from(document.querySelectorAll('[id*="ajax-sex"]'));
+      sexEls.forEach(el => {
+        // if strong exists already, nothing to do
+        if(el.querySelector('strong')) return;
+        // prefer to wrap existing .kr-symbol
+        const sym = el.querySelector('.kr-symbol');
+        if(sym){
+          const strong = document.createElement('strong');
+          // replace the symbol node with a <strong> that contains it (preserve position)
+          sym.parentElement.replaceChild(strong, sym);
+          strong.appendChild(sym);
+          return;
+        }
+        // fallback: find a text node with non-space content and wrap it (replace the text node)
+        const tn = Array.from(el.childNodes).find(n=>n.nodeType===3 && n.textContent && n.textContent.trim().length>0);
+        if(tn){
+          const txt = tn.textContent.trim();
+          const strong = document.createElement('strong');
+          strong.textContent = txt;
+          tn.textContent = tn.textContent.replace(txt, '');
+          // insert strong where the text node was
+          tn.parentElement.insertBefore(strong, tn.nextSibling);
+        }
+      });
+    }catch(e){/*ignore*/ }
   }
 
   // Ensure footer is fixed and back-to-top button is placed inside it
@@ -767,8 +1016,12 @@ a.well.well-sm,
       // DOM changes might affect the sidebar composition
       try{ markActiveIcons(); }catch(e){}
       try{ replaceMcAnchors(); }catch(e){}
+      try{ reorderBtnGroupXs(); }catch(e){}
+      try{ ensureSexStrong(); }catch(e){}
       try{ ensureFooterSticky(); }catch(e){}
       try{ relocateKramailToLeft(); }catch(e){}
+      // ensure page-scoped classes (e.g., members page) are kept in sync
+      try{ ensurePageScoping(); }catch(e){}
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
@@ -777,6 +1030,14 @@ a.well.well-sm,
     history.pushState = wrap(history.pushState);
     history.replaceState = wrap(history.replaceState);
     window.addEventListener('popstate', ()=> setTimeout(()=> ensureTheme(), 250));
+  }
+
+  // Ensure page-specific scoping classes (members page, etc.)
+  function ensurePageScoping(){
+    try{
+      const isMembers = (location && ( (location.pathname && location.pathname.indexOf('/communaute/membres') === 0) || (location.href && location.href.indexOf('/communaute/membres') !== -1) ));
+      document.documentElement.classList.toggle('kr-page-members', !!isMembers);
+    }catch(e){/*ignore*/}
   }
 
   // DEBUG: Log page structure
@@ -813,6 +1074,9 @@ a.well.well-sm,
       startObservers();
       try{ ensureFooterSticky(); }catch(e){}
       try{ relocateKramailToLeft(); }catch(e){}
+
+      // Ensure page-scoped classes are applied after initial load
+      try{ ensurePageScoping(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);

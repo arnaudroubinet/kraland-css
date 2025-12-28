@@ -18,3 +18,5 @@ Tu dois toujours utiliser playwright mcp tools pour analyser le site et tester l
 Si tu veux tester une modificcation tu dois toujours attendre cinq secondes entre ta modification et le rechargement de la page, pour être sûr que le userscript a bien été mis à jour dans tampermonkey.
 
 Tu en dois pas écrire ou executer de test avec playwright qui s'execute avec NPM. Tu ne peux que tester avec playwright MCP tools.
+
+Tu as interdiction d'utiliser git pour autre chose que reset tes changements.
