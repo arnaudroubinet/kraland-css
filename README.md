@@ -75,13 +75,37 @@ Le script propose **9 variantes de thème** basées sur les différentes nations
 
 Les préférences sont sauvegardées automatiquement dans le **localStorage** du navigateur et restent actives entre les sessions.
 
+
+## Captures d'écran
+
+Voici quelques captures d'écran des variantes de thème (fichiers dans `screenshots/`) :
+
+<p align="center">
+<img src="screenshots/home-kraland.png" alt="République de Kraland" width="260" />
+<img src="screenshots/home-empire-brun.png" alt="Empire Brun" width="260" />
+<img src="screenshots/home-paladium.png" alt="Paladium" width="260" />
+</p>
+
+<p align="center">
+<img src="screenshots/home-theocratie-seelienne.png" alt="Théocratie Seelienne" width="260" />
+<img src="screenshots/home-paradigme-vert.png" alt="Paradigme Vert" width="260" />
+<img src="screenshots/home-khanat-elmerien.png" alt="Khanat Elmérien" width="260" />
+</p>
+
+<p align="center">
+<img src="screenshots/home-confederation-libre.png" alt="Confédération Libre" width="260" />
+<img src="screenshots/home-royaume-ruthvenie.png" alt="Royaume de Ruthvénie" width="260" />
+<img src="screenshots/selector-kraland.png" alt="Sélecteur de thème" width="260" />
+</p>
+
+
 ## Comment ça fonctionne
 
 ### Architecture technique
 
 Le userscript `kraland-userscript-main.js` est une version **autonome** qui contient :
-1. **CSS inline** : ~1050 lignes de CSS bundlé dans une constante JavaScript
-2. **Logique JavaScript** : ~600 lignes de code pour l'injection et la gestion du thème
+1. **CSS inline**
+2. **Logique JavaScript**
 
 ### 1. Injection du CSS
 
@@ -231,31 +255,6 @@ function insertTampermonkeyThemeUI() {
   });
 }
 ```
-
-## Captures d'écran ✅
-
-Voici quelques captures d'écran des variantes de thème (fichiers dans `screenshots/`) :
-
-<p align="center">
-<img src="screenshots/home-kraland.png" alt="République de Kraland" width="260" />
-<img src="screenshots/home-empire-brun.png" alt="Empire Brun" width="260" />
-<img src="screenshots/home-paladium.png" alt="Paladium" width="260" />
-</p>
-
-<p align="center">
-<img src="screenshots/home-theocratie-seelienne.png" alt="Théocratie Seelienne" width="260" />
-<img src="screenshots/home-paradigme-vert.png" alt="Paradigme Vert" width="260" />
-<img src="screenshots/home-khanat-elmerien.png" alt="Khanat Elmérien" width="260" />
-</p>
-
-<p align="center">
-<img src="screenshots/home-confederation-libre.png" alt="Confédération Libre" width="260" />
-<img src="screenshots/home-royaume-ruthvenie.png" alt="Royaume de Ruthvénie" width="260" />
-<img src="screenshots/selector-kraland.png" alt="Sélecteur de thème" width="260" />
-</p>
-
-> Les images sont stockées dans `screenshots/` — pour en ajouter ou remplacer, placez vos fichiers dans ce dossier.
-
 
 ## Support
 
