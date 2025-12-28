@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766958439438
+// @version      1.0.1766959234605
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -29,6 +29,7 @@
   --kr-primary: #8b0f0e; /* slightly darker */
   --kr-primary-dark: #700b09;
   --kr-highlight: #c41e3a;
+  --kr-gold: #D4AF37;
   --kr-surface: #fff;
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
@@ -42,55 +43,38 @@
    ============================================================================ */
 
 html.kr-theme-variant-empire-brun {
-  --kr-primary: #5E3B2D; /* brown */
-  --kr-highlight: #C69100; /* gold accent */
-  --kr-gold: #C69100;
-  --kr-surface: #F8F2EC;
-  --kr-text: #231815;
+  --kr-primary: #5E3B2D;
+  --kr-highlight: #C69100; 
 }
 
 html.kr-theme-variant-paladium {
-  --kr-primary: #D4AF37; /* paladium / gold */
-  --kr-highlight: #0B0B0B; /* dark accent */
-  --kr-gold: #D4AF37;
-  --kr-surface: #FFF8E0;
-  --kr-text: #141212;
+  --kr-primary: #D4AF37;
+  --kr-highlight: #0B0B0B; 
 }
 
 html.kr-theme-variant-theocratie-seelienne {
-  --kr-primary: #0033A0; /* bleu france */
-  --kr-highlight: #ffffff;
-  --kr-surface: #ffffff;
-  --kr-text: #03132b;
+  --kr-primary: #0033A0;
+  --kr-highlight: #0082fc;
 }
 
 html.kr-theme-variant-paradigme-vert {
-  --kr-primary: #0B6623; /* dark green */
-  --kr-highlight: #063803; /* light green */
-  --kr-surface: #F3FFF6;
-  --kr-text: #09220f;
+  --kr-primary: #0B6623;
+  --kr-highlight: #063803;
 }
 
 html.kr-theme-variant-khanat-elmerien {
-  --kr-primary: #6A0DAD; /* violet */
-  --kr-highlight: #ffffff;
-  --kr-surface: #ffffff;
-  --kr-text: #1a0830;
+  --kr-primary: #6A0DAD;
+  --kr-highlight: #8c37c9;
 }
 
 html.kr-theme-variant-confederation-libre {
-  --kr-primary: #6B7280; /* grey */
-  --kr-highlight: #ffffff;
-  --kr-surface: #ffffff;
-  --kr-text: #0f1724;
+  --kr-primary: #6B7280;
+  --kr-highlight: #41444a;
 }
 
 html.kr-theme-variant-royaume-ruthvenie {
-  --kr-primary: #0A6B2D; /* green */
-  --kr-highlight: #C41E3A; /* red */
-  --kr-gold: #D4AF37; /* gold */
-  --kr-surface: #fff8f0;
-  --kr-text: #08140b;
+  --kr-primary: #0A6B2D;
+  --kr-highlight: #C41E3A;
 }
 
 
@@ -1415,20 +1399,20 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
           container.id = 'kr-tamper-theme';
           container.className = 'well kr-tamper-theme';
           container.innerHTML = `
-            <h4>Thème Tampermonkey</h4>
+            <h4>Thème Tampermonkey (Activez le thème de base officiel pour éviter les conflits)</h4>
             <form id="kr-tamper-theme-form" class="form-horizontal">
               <div class="form-group">
                 <label class="col-sm-3 control-label">Choix</label>
                 <div class="col-sm-9">
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="disable"> Désactiver la surcharge CSS</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="kraland"> Kraland (courant)</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="empire-brun"> Empire brun</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="paladium"> Paladium</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="theocratie-seelienne"> Théocratie Seelienne</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="paradigme-vert"> Paradigme vert</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="khanat-elmerien"> Khanat Elmerien</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="confederation-libre"> Confédération libre</label></div>
-                  <div class="radio"><label><input type="radio" name="kr-theme" value="royaume-ruthvenie"> Royaume de Ruthvénie</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f0.png" width="15" height="10"><label><input type="radio" name="kr-theme" value="disable"> Désactiver la surcharge CSS</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f1.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="kraland"> République de Kraland</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f2.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="empire-brun"> Empire Brun</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f3.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="paladium"> Paladium Corporation</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f4.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="theocratie-seelienne"> Théocratie Seelienne</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f5.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="paradigme-vert"> Paradigme Vert</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f6.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="khanat-elmerien"> Khanat Elmérien</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f7.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="confederation-libre"> Confédération Libre</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f8.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="royaume-ruthvenie"> Royaume de Ruthvénie</label></div>
                 </div>
               </div>
             </form>
