@@ -33,6 +33,7 @@
       try{ markActiveIcons(); }catch(e){/*ignore*/}
       try{ replaceMcAnchors(); }catch(e){/*ignore*/}
       try{ replaceSImages(); }catch(e){/*ignore*/}
+      try{ replaceNavbarBrand(); }catch(e){/*ignore*/}
       try{ reorderBtnGroupXs(); }catch(e){/*ignore*/}
       try{ ensureSexStrong(); }catch(e){/*ignore*/}
 
@@ -97,6 +98,45 @@
         // ensure the control is reachable by assistive tech
         a.removeAttribute('aria-hidden');
       }
+    }catch(e){/*ignore*/}
+  }
+
+  // Map theme variant slug to logo index used on img7 (logo1.gif..logo8.gif)
+  function getLogoIndexForVariant(variant){
+    try{
+      const map = {
+        'kraland': 1,
+        'empire-brun': 2,
+        'paladium': 3,
+        'theocratie-seelienne': 4,
+        'paradigme-vert': 5,
+        'khanat-elmerien': 6,
+        'confederation-libre': 7,
+        'royaume-ruthvenie': 8
+      };
+      return map[variant] || 1;
+    }catch(e){ return 1; }
+  }
+
+  // Replace the navbar brand text with the themed logo image (logoX.gif)
+  function replaceNavbarBrand(){
+    try{
+      const brand = document.querySelector('.navbar-default .navbar-brand, .navbar .navbar-brand, #navbar .navbar-brand, .navbar-brand');
+      if(!brand) return;
+      const variant = (localStorage.getItem(VARIANT_KEY) || 'kraland');
+      const idx = getLogoIndexForVariant(variant);
+      const url = 'http://img7.kraland.org/2/world/logo' + idx + '.gif';
+      const existing = brand.querySelector('img.kr-logo');
+      if(existing && existing.src && existing.src.indexOf('logo'+idx+'.gif') !== -1) return; // already set
+      // remove existing content but keep attributes
+      try{ while(brand.firstChild) brand.removeChild(brand.firstChild); }catch(e){}
+      const img = document.createElement('img');
+      img.className = 'kr-logo';
+      img.src = url;
+      img.alt = 'Kraland';
+      img.style.height = '28px';
+      img.style.verticalAlign = 'middle';
+      brand.appendChild(img);
     }catch(e){/*ignore*/}
   }
 
@@ -283,6 +323,8 @@
       try{ styleSignatureEditors(); }catch(e){}
       try{ ensureEditorClasses(); }catch(e){}
       try{ aggressiveScanEditors(); }catch(e){}
+      // Ensure navbar brand uses the correct logo for the current variant
+      try{ replaceNavbarBrand(); }catch(e){}
       // ensure page-scoped classes (e.g., members page) are kept in sync
       try{ ensurePageScoping(); }catch(e){}
     });
@@ -359,7 +401,7 @@
               <div class="form-group">
                 <label class="col-sm-3 control-label">Choix</label>
                 <div class="col-sm-9">
-                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f0.png" width="15" height="10"><label><input type="radio" name="kr-theme" value="disable"> Désactiver la surcharge CSS</label></div>
+                  <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f0.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="disable"> Désactiver la surcharge CSS</label></div>
                   <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f1.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="kraland"> République de Kraland</label></div>
                   <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f2.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="empire-brun"> Empire Brun</label></div>
                   <div class="radio"><span class="lefticon"><img src="http://img7.kraland.org/2/world/f3.png" width="15" height="10"></span><label> <input type="radio" name="kr-theme" value="paladium"> Paladium Corporation</label></div>

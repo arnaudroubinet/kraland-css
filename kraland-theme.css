@@ -13,8 +13,8 @@
 :root {
   --kr-primary: #8b0f0e; /* slightly darker */
   --kr-primary-dark: #700b09;
+  --kr-gold: #C69100;
   --kr-highlight: #c41e3a;
-  --kr-gold: #D4AF37;
   --kr-surface: #fff;
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
@@ -29,17 +29,17 @@
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
-  --kr-highlight: #C69100; 
+  --kr-highlight: #C69100;
 }
 
 html.kr-theme-variant-paladium {
-  --kr-primary: #D4AF37;
-  --kr-highlight: #0B0B0B; 
+  --kr-primary: #D4AF37; 
+  --kr-highlight: #044c17; 
 }
 
 html.kr-theme-variant-theocratie-seelienne {
   --kr-primary: #0033A0;
-  --kr-highlight: #0082fc;
+  --kr-highlight: #2d5fcb;
 }
 
 html.kr-theme-variant-paradigme-vert {
@@ -49,17 +49,17 @@ html.kr-theme-variant-paradigme-vert {
 
 html.kr-theme-variant-khanat-elmerien {
   --kr-primary: #6A0DAD;
-  --kr-highlight: #8c37c9;
+  --kr-highlight: #7b4c9c;
 }
 
 html.kr-theme-variant-confederation-libre {
   --kr-primary: #6B7280;
-  --kr-highlight: #41444a;
+  --kr-highlight: #475369;
 }
 
 html.kr-theme-variant-royaume-ruthvenie {
   --kr-primary: #0A6B2D;
-  --kr-highlight: #C41E3A;
+  --kr-highlight: #C41E3A; 
 }
 
 
