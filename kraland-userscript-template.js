@@ -92,6 +92,55 @@
     }catch(e){/*ignore*/}
   }
 
+  // Move Kramail counts (members/characters/online) from right column to end of left column
+  // Idempotent: will not duplicate elements if already moved, and will remove the kramail block
+  function relocateKramailToLeft(){
+    try{
+      const colT = document.getElementById('col-t');
+      const colLeft = document.getElementById('col-left');
+      if(!colT || !colLeft) return;
+
+      // Remove Kramail block(s) (links to /kramail) but avoid removing the entire column
+      const kramailAnchors = Array.from(colT.querySelectorAll('a[href*="kramail"]'));
+      kramailAnchors.forEach(a => {
+        let container = a.closest('div,section,li,article');
+        if(container && container !== colT && container.id !== 'col-t'){
+          if(container.parentElement) container.parentElement.removeChild(container);
+        } else {
+          // fallback: remove only the anchor itself
+          if(a.parentElement) a.parentElement.removeChild(a);
+        }
+      });
+
+      // Select anchors to move by class, falling back to matching text
+      const selectors = ['a.ds_users','a.ds_characters','a.ds_online','a.list-group-item.ds_users','a.list-group-item.ds_characters','a.list-group-item.ds_online'];
+      let toMove = [];
+      selectors.forEach(sel => toMove.push(...Array.from(colT.querySelectorAll(sel))));
+
+      if(toMove.length < 3){
+        const texts = ['Membres actifs','Personnages actifs','Personnes en ligne'];
+        for(const txt of texts){
+          const el = Array.from(colT.querySelectorAll('a, li, div, p')).find(n => (n.textContent||'').includes(txt));
+          if(el && !toMove.includes(el)) toMove.push(el);
+        }
+      }
+
+      // Filter out already moved items
+      toMove = toMove.filter(el => el && !colLeft.contains(el));
+      if(!toMove.length) return;
+
+      // Ensure a container exists at the end of col-left
+      let container = colLeft.querySelector('.kraland-metrics');
+      if(!container){
+        container = document.createElement('div');
+        container.className = 'kraland-metrics list-group';
+        colLeft.appendChild(container);
+      }
+
+      toMove.forEach(el => container.appendChild(el));
+    }catch(e){/*ignore*/}
+  }
+
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
     // MutationObserver to watch for removal of our style element
@@ -106,6 +155,7 @@
       try{ markActiveIcons(); }catch(e){}
       try{ replaceMcAnchors(); }catch(e){}
       try{ ensureFooterSticky(); }catch(e){}
+      try{ relocateKramailToLeft(); }catch(e){}
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
@@ -149,6 +199,7 @@
       await ensureTheme();
       startObservers();
       try{ ensureFooterSticky(); }catch(e){}
+      try{ relocateKramailToLeft(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);
