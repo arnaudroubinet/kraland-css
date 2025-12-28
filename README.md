@@ -99,7 +99,7 @@ kraland-css/
 Le fichier est organisé en **13 sections** :
 
 ```css
-/* 1. CSS Variables (--kr-red, --kr-accent, etc.) */
+/* 1. CSS Variables (--kr-primary, --kr-highlight, etc.) */
 /* 2. Layout Overrides (11 !important critiques) */
 /* 3. Typography & Utilities */
 /* 4. Navigation */
@@ -128,7 +128,7 @@ Le fichier est organisé en **13 sections** :
 
 ✅ **Variables CSS** pour faciliter les variants :
 ```css
-:root { --kr-red: #a6120d; }
+:root { --kr-primary: #a6120d; }
 
 ```
 

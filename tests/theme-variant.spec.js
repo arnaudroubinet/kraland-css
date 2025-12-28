@@ -18,13 +18,13 @@ const { chromium } = require('playwright');
     if(ls.enabled !== 'true' || ls.variant !== 'empire-brun') throw new Error('Empire brun not applied');
 
     // Check that css variable was set (computed style)
-    const color = await page.evaluate(()=> getComputedStyle(document.documentElement).getPropertyValue('--kr-red'));
-    console.log('--kr-red computed:', color);
+    const color = await page.evaluate(()=> getComputedStyle(document.documentElement).getPropertyValue('--kr-primary'));
+    console.log('--kr-primary computed:', color);
 
     // Navigate away and back to ensure persistence across pages
     await page.goto('http://www.kraland.org/');
     await page.waitForTimeout(200);
-    const afterNav = await page.evaluate(()=> ({ variant: localStorage.getItem('kr-theme-variant'), krRed: getComputedStyle(document.documentElement).getPropertyValue('--kr-red'), classes: Array.from(document.documentElement.classList) }));
+    const afterNav = await page.evaluate(()=> ({ variant: localStorage.getItem('kr-theme-variant'), krPrimary: getComputedStyle(document.documentElement).getPropertyValue('--kr-primary'), classes: Array.from(document.documentElement.classList) }));
     console.log('after nav:', afterNav);
     if(afterNav.variant !== 'empire-brun' || !afterNav.classes.some(c => c.indexOf('kr-theme-variant-empire-brun') !== -1)) throw new Error('Theme did not persist across navigation');
 

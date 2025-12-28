@@ -39,7 +39,7 @@
       // Ensure dropdown menu anchors remain readable even if other styles override
       try{
         let sd = document.getElementById('kr-dropdown-fix');
-        const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-red) !important; background-color: rgba(0,0,0,0.03); }`;
+        const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-primary) !important; background-color: rgba(0,0,0,0.03); }`;
         if(sd) sd.textContent = txt; else { sd = document.createElement('style'); sd.id='kr-dropdown-fix'; sd.textContent = txt; document.head.appendChild(sd); }
       }catch(e){/*ignore*/}
 
@@ -556,7 +556,7 @@
                   b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                   b.style.setProperty('background-image', 'none', 'important');
                 }
-                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                 b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                 b.style.setProperty('box-shadow', 'none', 'important');
                 const icons = b.querySelectorAll('i, .fa, .fas, .far');
@@ -606,7 +606,7 @@
                   b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                   b.style.setProperty('background-image', 'none', 'important');
                 }
-                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                 b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                 b.style.setProperty('box-shadow', 'none', 'important');
                 b.setAttribute('data-kr-styled','1');
@@ -687,7 +687,7 @@
                 b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                 b.style.setProperty('background-image', 'none', 'important');
               }
-              b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+              b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
               b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
               b.style.setProperty('box-shadow', 'none', 'important');
               b.setAttribute('data-kr-styled', '1');
@@ -747,7 +747,7 @@
                       b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                       b.style.setProperty('background-image', 'none', 'important');
                     }
-                    b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                    b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                     b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                     b.style.setProperty('box-shadow', 'none', 'important');
                     b.setAttribute('data-kr-styled','1');
@@ -830,7 +830,7 @@
                     b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                     b.style.setProperty('background-image', 'none', 'important');
                   }
-                  b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                  b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                   b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                   b.style.setProperty('box-shadow', 'none', 'important');
                   b.setAttribute('data-kr-styled','1');

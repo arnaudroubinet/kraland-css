@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766957524387
+// @version      1.0.1766958439438
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -26,10 +26,9 @@
    ============================================================================ */
 
 :root {
-  --kr-red: #8b0f0e; /* slightly darker */
-  --kr-red-dark: #700b09;
-  --kr-accent: #c41e3a;
-  --kr-gold: #c69100;
+  --kr-primary: #8b0f0e; /* slightly darker */
+  --kr-primary-dark: #700b09;
+  --kr-highlight: #c41e3a;
   --kr-surface: #fff;
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
@@ -43,52 +42,52 @@
    ============================================================================ */
 
 html.kr-theme-variant-empire-brun {
-  --kr-red: #5E3B2D; /* brown */
-  --kr-accent: #C69100; /* gold accent */
+  --kr-primary: #5E3B2D; /* brown */
+  --kr-highlight: #C69100; /* gold accent */
   --kr-gold: #C69100;
   --kr-surface: #F8F2EC;
   --kr-text: #231815;
 }
 
 html.kr-theme-variant-paladium {
-  --kr-red: #D4AF37; /* paladium / gold */
-  --kr-accent: #0B0B0B; /* dark accent */
+  --kr-primary: #D4AF37; /* paladium / gold */
+  --kr-highlight: #0B0B0B; /* dark accent */
   --kr-gold: #D4AF37;
   --kr-surface: #FFF8E0;
   --kr-text: #141212;
 }
 
 html.kr-theme-variant-theocratie-seelienne {
-  --kr-red: #0033A0; /* bleu france */
-  --kr-accent: #ffffff;
+  --kr-primary: #0033A0; /* bleu france */
+  --kr-highlight: #ffffff;
   --kr-surface: #ffffff;
   --kr-text: #03132b;
 }
 
 html.kr-theme-variant-paradigme-vert {
-  --kr-red: #0B6623; /* dark green */
-  --kr-accent: #063803; /* light green */
+  --kr-primary: #0B6623; /* dark green */
+  --kr-highlight: #063803; /* light green */
   --kr-surface: #F3FFF6;
   --kr-text: #09220f;
 }
 
 html.kr-theme-variant-khanat-elmerien {
-  --kr-red: #6A0DAD; /* violet */
-  --kr-accent: #ffffff;
+  --kr-primary: #6A0DAD; /* violet */
+  --kr-highlight: #ffffff;
   --kr-surface: #ffffff;
   --kr-text: #1a0830;
 }
 
 html.kr-theme-variant-confederation-libre {
-  --kr-red: #6B7280; /* grey */
-  --kr-accent: #ffffff;
+  --kr-primary: #6B7280; /* grey */
+  --kr-highlight: #ffffff;
   --kr-surface: #ffffff;
   --kr-text: #0f1724;
 }
 
 html.kr-theme-variant-royaume-ruthvenie {
-  --kr-red: #0A6B2D; /* green */
-  --kr-accent: #C41E3A; /* red */
+  --kr-primary: #0A6B2D; /* green */
+  --kr-highlight: #C41E3A; /* red */
   --kr-gold: #D4AF37; /* gold */
   --kr-surface: #fff8f0;
   --kr-text: #08140b;
@@ -225,7 +224,7 @@ small.text-muted,
 .navbar-inverse .dropdown-menu > li > a:focus,
 .navbar-default .dropdown-menu > li > a:hover,
 .navbar-default .dropdown-menu > li > a:focus {
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
   background-color: rgba(0,0,0,0.03);
 }
 
@@ -243,7 +242,7 @@ small.text-muted,
 }
 .pagination > li > a,
 .pagination > li > span {
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
   background: var(--kr-surface);
   border-radius: .35rem;
   border: 1px solid rgba(0,0,0,0.06);
@@ -251,15 +250,15 @@ small.text-muted,
 }
 .pagination > li > a:hover,
 .pagination > li > span:hover {
-  color: var(--kr-red-dark) !important;
+  color: var(--kr-primary-dark) !important;
   background-color: rgba(0,0,0,0.02);
   text-decoration: none;
 }
 .pagination > li.active > a,
 .pagination > li.active > span {
-  background-color: var(--kr-red) !important;
+  background-color: var(--kr-primary) !important;
   color: var(--kr-surface) !important;
-  border-color: var(--kr-red-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
 }
 .pagination > li.disabled > a,
 .pagination > li.disabled > span {
@@ -309,8 +308,8 @@ a.btn.btn-primary,
 input.btn.btn-primary,
 button.btn.btn-primary,
 .btn.btn-lg.btn-primary {
-  background-color: var(--kr-red);
-  border-color: var(--kr-red-dark);
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
 }
@@ -319,8 +318,8 @@ button.btn.btn-primary,
 .btn.btn-primary:focus,
 .btn-primary.btn:hover,
 .btn-primary.btn:focus {
-  background-color: var(--kr-red-dark);
-  border-color: var(--kr-red-dark);
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
   box-shadow: 0 10px 24px rgba(165,18,13,0.14);
 }
 
@@ -328,8 +327,8 @@ button.btn.btn-primary,
 .btn.btn-info,
 .btn-info.btn,
 .navbar-default .btn.btn-info {
-  background-color: var(--kr-red);
-  border-color: var(--kr-red-dark);
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
 }
@@ -349,8 +348,8 @@ html.kr-page-members .panel .btn-warning,
 html.kr-page-members .panel .btn-default,
 html.kr-page-members .panel .btn-primary,
 html.kr-page-members .panel .btn-info {
-  background-color: var(--kr-red) !important;
-  border-color: var(--kr-red-dark) !important;
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
   color: #fff !important;
 }
 html.kr-page-members .panel .btn:hover,
@@ -360,8 +359,8 @@ html.kr-page-members .panel input.btn:hover,
 html.kr-page-members .panel .btn-block:hover,
 html.kr-page-members .panel .btn-warning:hover,
 html.kr-page-members .panel .btn-default:hover {
-  background-color: var(--kr-red-dark) !important;
-  border-color: var(--kr-red-dark) !important;
+  background-color: var(--kr-primary-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
 }
 
 /* Specifically target ajax-inserted editor toolbars inside member pages and make their buttons white with red text */
@@ -369,8 +368,8 @@ html.kr-page-members [id^="ajax-"] .btn-toolbar .btn,
 html.kr-page-members [id^="ajax-"] .btn-toolbar a.btn,
 html.kr-page-members [id^="ajax-"] .btn-toolbar .btn-default {
   background-color: var(--kr-surface) !important;
-  color: var(--kr-red) !important;
-  border-color: var(--kr-red-dark) !important;
+  color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -387,8 +386,8 @@ html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolba
 html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn-default,
 html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn {
   background-color: var(--kr-surface) !important;
-  color: var(--kr-red) !important;
-  border-color: var(--kr-red-dark) !important;
+  color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -448,7 +447,7 @@ html.kr-page-members .navbar-default .navbar-nav > li > a {
 
 .form-control:focus {
   box-shadow: 0 0 0 .18rem rgba(164,18,13,0.22);
-  border-color: var(--kr-red);
+  border-color: var(--kr-primary);
   outline: none;
 }
 
@@ -460,7 +459,7 @@ html.kr-page-members .navbar-default .navbar-nav > li > a {
 /* Checkbox & radio - KEEP !important for browser default overrides */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: var(--kr-red) !important;
+  accent-color: var(--kr-primary) !important;
 }
 
 input[type="checkbox"]:focus,
@@ -470,7 +469,7 @@ input[type="radio"]:focus {
 }
 
 input[type="checkbox"]:checked {
-  border-color: var(--kr-red) !important;
+  border-color: var(--kr-primary) !important;
 }
 
 
@@ -515,11 +514,11 @@ input[type="checkbox"]:checked {
 /* Panel primary variant */
 .panel.panel-primary,
 .panel.panel-primary > .panel-heading {
-  border-color: var(--kr-red-dark);
+  border-color: var(--kr-primary-dark);
 }
 
 .panel.panel-primary > .panel-heading {
-  background-color: var(--kr-red);
+  background-color: var(--kr-primary);
   color: var(--kr-gold);
 }
 
@@ -542,9 +541,9 @@ input[type="checkbox"]:checked {
 .badge.badge-info,
 .label.label-primary,
 .badge.badge-primary {
-  background-color: var(--kr-red);
+  background-color: var(--kr-primary);
   color: #fff;
-  border-color: var(--kr-red-dark);
+  border-color: var(--kr-primary-dark);
 }
 
 /* Alerts - info variant */
@@ -561,7 +560,7 @@ input[type="checkbox"]:checked {
 }
 
 .bg-info {
-  background-color: var(--kr-red);
+  background-color: var(--kr-primary);
   color: #fff;
 }
 
@@ -579,14 +578,14 @@ input[type="checkbox"]:checked {
 .list-group-item.active:focus,
 .list-group-item.active:hover,
 .list-group-item.active a {
-  background-color: var(--kr-red) !important;
-  border-color: var(--kr-red-dark) !important;
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
   color: var(--kr-surface) !important;
 }
 
 /* Keep hover for non-active items subtle and themed */
 .list-group-item:hover {
-  color: var(--kr-red-dark);
+  color: var(--kr-primary-dark);
   background-color: rgba(0,0,0,0.02);
 }
 
@@ -694,14 +693,14 @@ img.avatar.img-thumbnail,
 /* Base link styles - cascade wins (loaded after Bootstrap) */
 a:link,
 a:visited {
-  color: var(--kr-accent);
+  color: var(--kr-highlight);
   text-decoration: none;
   transition: color .12s ease, opacity .12s ease;
 }
 
 a:hover,
 a:focus {
-  color: var(--kr-red-dark);
+  color: var(--kr-primary-dark);
   text-decoration: underline;
   outline: none;
 }
@@ -709,11 +708,11 @@ a:focus {
 /* Contextual text utilities */
 .text-primary,
 .text-info {
-  color: var(--kr-accent);
+  color: var(--kr-highlight);
 }
 
 /* Contextual links in components */
-.list-group a:link,
+..list-group a:link,
 .list-group a:visited,
 .well a:link,
 .well a:visited,
@@ -721,7 +720,7 @@ a:focus {
 .panel a:visited,
 .breadcrumb a:link,
 .breadcrumb a:visited {
-  color: var(--kr-accent);
+  color: var(--kr-highlight);
 }
 
 /* Carousel controls & navigation wells */
@@ -730,7 +729,7 @@ a.well.well-sm,
 .carousel-control.right,
 .prev,
 .next {
-  color: var(--kr-accent);
+  color: var(--kr-highlight);
 }
 
 
@@ -760,7 +759,7 @@ a.well.well-sm,
 .kr-icon-medals i,
 .kr-icon-medals .fa,
 .kr-icon-medals .glyphicon {
-  color: var(--kr-accent) !important;
+  color: var(--kr-highlight) !important;
 }
 .kr-symbol.kr-sr-only {
   position: absolute !important;
@@ -850,14 +849,14 @@ html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn {
   justify-content: center;
   font-size: .95rem;
   background-color: var(--kr-surface);
-  color: var(--kr-red) !important; /* white button with red text */
+  color: var(--kr-primary) !important; /* white button with red text */
   border: 1px solid rgba(0,0,0,0.06);
 }
 
 /* Ensure any nested text/icon inherits the red color */
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn,
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn * {
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
 } 
 
 /* Ensure textarea visually matches the toolbar */
@@ -884,11 +883,11 @@ html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn {
   padding: .35rem .6rem;
   background-color: var(--kr-surface) !important; /* force white background to override members red rules */
   border-color: rgba(0,0,0,0.06) !important;
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
 }
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn.btn-default {
   background-color: var(--kr-surface) !important;
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
 }
 
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn i,
@@ -903,13 +902,13 @@ html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn .fas {
 
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:hover i,
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:focus i {
-  color: var(--kr-red-dark) !important;
+  color: var(--kr-primary-dark) !important;
 }
 
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:hover,
 html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:focus {
   background-color: rgba(165,18,13,0.03);
-  color: var(--kr-red-dark);
+  color: var(--kr-primary-dark);
 }
 
 /* small buttons adjust */
@@ -940,7 +939,7 @@ html.kr-theme-enabled .editeur-text .btn-toolbar .btn {
   height: 40px;
   padding: .35rem .6rem;
   background-color: var(--kr-surface) !important; /* force white background */
-  color: var(--kr-red) !important;               /* red text on white */
+  color: var(--kr-primary) !important;               /* red text on white */
   border: 1px solid rgba(0,0,0,0.06) !important;
   box-shadow: none !important;
 }
@@ -956,13 +955,13 @@ html.kr-theme-enabled .editeur-text .btn-toolbar .btn .fas {
 
 html.kr-theme-enabled .editeur-text .btn-toolbar .btn:hover i,
 html.kr-theme-enabled .editeur-text .btn-toolbar .btn:focus i {
-  color: var(--kr-red-dark) !important;
+  color: var(--kr-primary-dark) !important;
 }
 
 html.kr-theme-enabled .editeur-text .btn-toolbar .btn:hover,
 html.kr-theme-enabled .editeur-text .btn-toolbar .btn:focus {
   background-color: rgba(165,18,13,0.03) !important;
-  color: var(--kr-red-dark) !important;
+  color: var(--kr-primary-dark) !important;
 }
 
 /* small buttons adjust */
@@ -993,12 +992,12 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn {
   height: 40px;
   padding: .35rem .6rem;
   background-color: var(--kr-surface) !important; /* force white background to override members red rules */
-  color: var(--kr-red) !important; /* red text on white */
+  color: var(--kr-primary) !important; /* red text on white */
   border: 1px solid rgba(0,0,0,0.06) !important;
 }
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn.btn-default {
   background-color: var(--kr-surface) !important;
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
 }
 
 /* Extra specificity: when a form#msg is inserted via AJAX, ensure toolbar buttons are white with red text */
@@ -1008,15 +1007,15 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] form#msg .btn-toolbar .btn.
   background-color: var(--kr-surface) !important;
   background-image: none !important;
   background-clip: padding-box !important;
-  color: var(--kr-red) !important;
-  -webkit-text-fill-color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
+  -webkit-text-fill-color: var(--kr-primary) !important;
   border: 1px solid rgba(0,0,0,0.06) !important;
   box-shadow: none !important;
 }
 /* Ensure nested nodes inherit red */
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn,
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn * {
-  color: var(--kr-red) !important;
+  color: var(--kr-primary) !important;
 }
 
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn i,
@@ -1031,13 +1030,13 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn .fas {
 
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:hover i,
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:focus i {
-  color: var(--kr-red-dark) !important;
+  color: var(--kr-primary-dark) !important;
 }
 
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:hover,
 html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:focus {
   background-color: rgba(165,18,13,0.03);
-  color: var(--kr-red-dark);
+  color: var(--kr-primary-dark);
 }
 
 /* Keep image smileys intact (don't recolor img elements) */
@@ -1101,7 +1100,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
       // Ensure dropdown menu anchors remain readable even if other styles override
       try{
         let sd = document.getElementById('kr-dropdown-fix');
-        const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-red) !important; background-color: rgba(0,0,0,0.03); }`;
+        const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-primary) !important; background-color: rgba(0,0,0,0.03); }`;
         if(sd) sd.textContent = txt; else { sd = document.createElement('style'); sd.id='kr-dropdown-fix'; sd.textContent = txt; document.head.appendChild(sd); }
       }catch(e){/*ignore*/}
 
@@ -1618,7 +1617,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                   b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                   b.style.setProperty('background-image', 'none', 'important');
                 }
-                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                 b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                 b.style.setProperty('box-shadow', 'none', 'important');
                 const icons = b.querySelectorAll('i, .fa, .fas, .far');
@@ -1668,7 +1667,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                   b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                   b.style.setProperty('background-image', 'none', 'important');
                 }
-                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                 b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                 b.style.setProperty('box-shadow', 'none', 'important');
                 b.setAttribute('data-kr-styled','1');
@@ -1749,7 +1748,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                 b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                 b.style.setProperty('background-image', 'none', 'important');
               }
-              b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+              b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
               b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
               b.style.setProperty('box-shadow', 'none', 'important');
               b.setAttribute('data-kr-styled', '1');
@@ -1809,7 +1808,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                       b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                       b.style.setProperty('background-image', 'none', 'important');
                     }
-                    b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                    b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                     b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                     b.style.setProperty('box-shadow', 'none', 'important');
                     b.setAttribute('data-kr-styled','1');
@@ -1892,7 +1891,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                     b.style.setProperty('background-color', getComputedStyle(document.documentElement).getPropertyValue('--kr-surface') || '#fff', 'important');
                     b.style.setProperty('background-image', 'none', 'important');
                   }
-                  b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-red') || '#8b0f0e', 'important');
+                  b.style.setProperty('color', getComputedStyle(document.documentElement).getPropertyValue('--kr-primary') || '#8b0f0e', 'important');
                   b.style.setProperty('border', '1px solid rgba(0,0,0,0.06)', 'important');
                   b.style.setProperty('box-shadow', 'none', 'important');
                   b.setAttribute('data-kr-styled','1');
