@@ -1,4 +1,4 @@
-/* Kraland — USSR-inspired red theme
+/* Kraland — Red theme
    Scope: overrides for Bootstrap 3.3.7-based site
    Purpose: improved contrast, spacing, responsiveness, accessible focus states
 
@@ -500,7 +500,7 @@ input[type="checkbox"]:checked {
 
 /* ============================================================================
    8. BADGES, LABELS & ALERTS
-   Consolidated color remapping for USSR theme
+   Consolidated color remapping for theme
    ============================================================================ */
 
 /* Badges & labels - info/primary variants use red */

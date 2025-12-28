@@ -425,7 +425,7 @@
               return;
             }
             const v = (localStorage.getItem(VARIANT_KEY) || 'kraland');
-            const mapped = v === 'urss' ? 'kraland' : v;
+            const mapped = v;
             const el = form.querySelector('input[value="'+mapped+'"]');
             if(el) el.checked = true;
           }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766960538954
+// @version      1.0.1766961283274
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -13,7 +13,7 @@
 (function(){
   'use strict';
 
-  const BUNDLED_CSS = `/* Kraland — USSR-inspired red theme
+  const BUNDLED_CSS = `/* Kraland — Red theme
    Scope: overrides for Bootstrap 3.3.7-based site
    Purpose: improved contrast, spacing, responsiveness, accessible focus states
 
@@ -515,7 +515,7 @@ input[type="checkbox"]:checked {
 
 /* ============================================================================
    8. BADGES, LABELS & ALERTS
-   Consolidated color remapping for USSR theme
+   Consolidated color remapping for theme
    ============================================================================ */
 
 /* Badges & labels - info/primary variants use red */
@@ -1470,7 +1470,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
               return;
             }
             const v = (localStorage.getItem(VARIANT_KEY) || 'kraland');
-            const mapped = v === 'urss' ? 'kraland' : v;
+            const mapped = v;
             const el = form.querySelector('input[value="'+mapped+'"]');
             if(el) el.checked = true;
           }

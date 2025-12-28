@@ -1,7 +1,7 @@
 {
   "name": "kraland-css",
   "version": "1.0.0",
-  "description": "Kraland USSR Red Theme",
+  "description": "Kraland Red Theme",
   "scripts": {
     "build": "node build.js",
     "watch": "nodemon --watch kraland-theme.css --watch kraland-userscript-template.js --exec \"npm run build\"",

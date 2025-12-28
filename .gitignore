@@ -24,9 +24,6 @@ desktop.ini
 
 # Test screenshots
 .playwright-mcp/
-screenshots/
-*.png
-!docs/*.png
 
 # Temporary files
 .claude/

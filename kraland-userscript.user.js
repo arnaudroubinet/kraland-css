@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Kraland Red Theme (USSR) - Auto Apply
+// @name         Kraland Red Theme - Auto Apply
 // @namespace    http://www.kraland.org/
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -40,7 +40,7 @@
       else{ st = document.createElement('style'); st.id = STYLE_ID; st.textContent = cssText; document.head.appendChild(st); }
       // add marker class to html so we can scope variants later
       document.documentElement.classList.add('kr-theme-enabled');
-      const variant = localStorage.getItem(VARIANT_KEY) || 'urss';
+      const variant = localStorage.getItem(VARIANT_KEY) || 'kraland';
       document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
 
       // tag activity icons (members / characters / online) so we can style them
@@ -87,7 +87,7 @@
     const sel = document.createElement('select');
     sel.id = 'kr-theme-variant';
     sel.style.cssText = 'background:rgba(0,0,0,0.6);color:#fff;border:none;padding:.4rem .6rem;border-radius:6px;font-weight:600;';
-    const opt1 = document.createElement('option'); opt1.value = 'urss'; opt1.textContent = 'URSS red';
+    const opt1 = document.createElement('option'); opt1.value = 'kraland'; opt1.textContent = 'République de Kraland';
     const opt2 = document.createElement('option'); opt2.value = 'high-contrast'; opt2.textContent = 'High-contrast';
     sel.appendChild(opt1); sel.appendChild(opt2);
     sel.onchange = () => {
@@ -100,8 +100,8 @@
     };
 
     // init
-    if(localStorage.getItem(VARIANT_KEY) === null) localStorage.setItem(VARIANT_KEY,'urss');
-    sel.value = localStorage.getItem(VARIANT_KEY) || 'urss';
+    if(localStorage.getItem(VARIANT_KEY) === null) localStorage.setItem(VARIANT_KEY,'kraland');
+    sel.value = localStorage.getItem(VARIANT_KEY) || 'kraland';
 
     document.addEventListener('DOMContentLoaded', ()=> updateText());
     updateText();
