@@ -22,13 +22,61 @@
   --kr-radius: .5rem;
 }
 
-/* Variant: high-contrast tweak */
-html.kr-theme-high-contrast {
-  --kr-red: #b71c1c;
-  --kr-red-dark: #7f0b0b;
-  --kr-accent: #ff3b3b;
-  --kr-gold: #c69100;
-  --kr-text: #03040a;
+/* ============================================================================
+   Theme variants available via Tampermonkey UI
+   Each variant sets a small set of CSS variables used throughout the theme
+   ============================================================================ */
+
+html.kr-theme-variant-empire-brun {
+  --kr-red: #5E3B2D; /* brown */
+  --kr-accent: #C69100; /* gold accent */
+  --kr-gold: #C69100;
+  --kr-surface: #F8F2EC;
+  --kr-text: #231815;
+}
+
+html.kr-theme-variant-paladium {
+  --kr-red: #D4AF37; /* paladium / gold */
+  --kr-accent: #0B0B0B; /* dark accent */
+  --kr-gold: #D4AF37;
+  --kr-surface: #FFF8E0;
+  --kr-text: #141212;
+}
+
+html.kr-theme-variant-theocratie-seelienne {
+  --kr-red: #0033A0; /* bleu france */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #03132b;
+}
+
+html.kr-theme-variant-paradigme-vert {
+  --kr-red: #0B6623; /* dark green */
+  --kr-accent: #063803; /* light green */
+  --kr-surface: #F3FFF6;
+  --kr-text: #09220f;
+}
+
+html.kr-theme-variant-khanat-elmerien {
+  --kr-red: #6A0DAD; /* violet */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #1a0830;
+}
+
+html.kr-theme-variant-confederation-libre {
+  --kr-red: #6B7280; /* grey */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #0f1724;
+}
+
+html.kr-theme-variant-royaume-ruthvenie {
+  --kr-red: #0A6B2D; /* green */
+  --kr-accent: #C41E3A; /* red */
+  --kr-gold: #D4AF37; /* gold */
+  --kr-surface: #fff8f0;
+  --kr-text: #08140b;
 }
 
 

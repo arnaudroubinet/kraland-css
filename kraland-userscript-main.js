@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1766949416430
+// @version      1.0.1766957524387
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -37,13 +37,61 @@
   --kr-radius: .5rem;
 }
 
-/* Variant: high-contrast tweak */
-html.kr-theme-high-contrast {
-  --kr-red: #b71c1c;
-  --kr-red-dark: #7f0b0b;
-  --kr-accent: #ff3b3b;
-  --kr-gold: #c69100;
-  --kr-text: #03040a;
+/* ============================================================================
+   Theme variants available via Tampermonkey UI
+   Each variant sets a small set of CSS variables used throughout the theme
+   ============================================================================ */
+
+html.kr-theme-variant-empire-brun {
+  --kr-red: #5E3B2D; /* brown */
+  --kr-accent: #C69100; /* gold accent */
+  --kr-gold: #C69100;
+  --kr-surface: #F8F2EC;
+  --kr-text: #231815;
+}
+
+html.kr-theme-variant-paladium {
+  --kr-red: #D4AF37; /* paladium / gold */
+  --kr-accent: #0B0B0B; /* dark accent */
+  --kr-gold: #D4AF37;
+  --kr-surface: #FFF8E0;
+  --kr-text: #141212;
+}
+
+html.kr-theme-variant-theocratie-seelienne {
+  --kr-red: #0033A0; /* bleu france */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #03132b;
+}
+
+html.kr-theme-variant-paradigme-vert {
+  --kr-red: #0B6623; /* dark green */
+  --kr-accent: #063803; /* light green */
+  --kr-surface: #F3FFF6;
+  --kr-text: #09220f;
+}
+
+html.kr-theme-variant-khanat-elmerien {
+  --kr-red: #6A0DAD; /* violet */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #1a0830;
+}
+
+html.kr-theme-variant-confederation-libre {
+  --kr-red: #6B7280; /* grey */
+  --kr-accent: #ffffff;
+  --kr-surface: #ffffff;
+  --kr-text: #0f1724;
+}
+
+html.kr-theme-variant-royaume-ruthvenie {
+  --kr-red: #0A6B2D; /* green */
+  --kr-accent: #C41E3A; /* red */
+  --kr-gold: #D4AF37; /* gold */
+  --kr-surface: #fff8f0;
+  --kr-text: #08140b;
 }
 
 
@@ -1020,6 +1068,8 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   const ENABLE_KEY = 'kr-theme-enabled';
   const VARIANT_KEY = 'kr-theme-variant';
   const STYLE_ID = 'kraland-theme-style';
+  // known theme slugs for persistence and class management
+  const THEME_VARIANTS = ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','high-contrast'];
 
   async function applyThemeInline(cssText){
     try{
@@ -1028,8 +1078,14 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
       else{ st = document.createElement('style'); st.id = STYLE_ID; st.textContent = cssText; document.head.appendChild(st); }
       // add marker class to html so we can scope variants later
       document.documentElement.classList.add('kr-theme-enabled');
-      const variant = localStorage.getItem(VARIANT_KEY) || 'urss';
+      const variant = (localStorage.getItem(VARIANT_KEY) || 'kraland');
+      // apply high contrast flag if requested
       document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
+      // ensure variant class is present and others removed so persistence works across pages
+      try{
+        THEME_VARIANTS.forEach(v => document.documentElement.classList.remove('kr-theme-variant-'+v));
+        if(variant && variant !== 'disable') document.documentElement.classList.add('kr-theme-variant-'+variant);
+      }catch(e){}
 
       // Page-specific class: members list (/communaute/membres) - robust check
       const isMembers = (location && ( (location.pathname && location.pathname.indexOf('/communaute/membres') === 0) || (location.href && location.href.indexOf('/communaute/membres') !== -1) ));
@@ -1309,6 +1365,119 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
     }catch(e){/*ignore*/}
   }
 
+  // Apply a theme variant chosen by the user via Tampermonkey UI
+  function applyThemeVariant(variant){
+    try{
+      // Known variants (shared constant)
+      const variants = THEME_VARIANTS.slice();
+
+      if(!variant || variant === 'disable'){
+        // Disable theme: clear enabled flag and remove our style element
+        localStorage.setItem(ENABLE_KEY, 'false');
+        localStorage.removeItem(VARIANT_KEY);
+        const st = document.getElementById(STYLE_ID);
+        if(st && st.parentElement) st.parentElement.removeChild(st);
+        document.documentElement.classList.remove('kr-theme-enabled');
+        // remove any variant classes we previously set
+        variants.forEach(v => document.documentElement.classList.remove('kr-theme-variant-'+v));
+        return;
+      }
+
+      // enable
+      localStorage.setItem(ENABLE_KEY, 'true');
+      // store the exact slug so it persists across page loads
+      localStorage.setItem(VARIANT_KEY, variant);
+
+      // remove all variant classes then add the requested one
+      THEME_VARIANTS.forEach(v => document.documentElement.classList.remove('kr-theme-variant-'+v));
+      try{ document.documentElement.classList.add('kr-theme-variant-'+variant); }catch(e){}
+
+      // Reapply inline style and theme variables
+      try{ applyThemeInline(BUNDLED_CSS); }catch(e){}
+
+      // ensure any remaining theme markers are correct
+      document.documentElement.classList.add('kr-theme-enabled');
+    }catch(e){console.log('applyThemeVariant error', e);}  
+  }
+
+  // Insert a small UI control on /profil/interface to let the user choose a Tampermonkey theme
+  function insertTampermonkeyThemeUI(){
+    try{
+      if(!(location && location.href && location.href.indexOf('/profil/interface') !== -1)) return;
+      // attempt immediate insertion, falling back to polling/observer if the page builds content later
+      function tryInsert(){
+        try{
+          const headings = Array.from(document.querySelectorAll('h4, h3, h2'));
+          const target = headings.find(h => (h.textContent||'').trim().toLowerCase().indexOf('thème de base') !== -1);
+          if(!target) return false;
+          if(document.getElementById('kr-tamper-theme')) return true; // already present
+
+          const container = document.createElement('div');
+          container.id = 'kr-tamper-theme';
+          container.className = 'well kr-tamper-theme';
+          container.innerHTML = `
+            <h4>Thème Tampermonkey</h4>
+            <form id="kr-tamper-theme-form" class="form-horizontal">
+              <div class="form-group">
+                <label class="col-sm-3 control-label">Choix</label>
+                <div class="col-sm-9">
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="disable"> Désactiver la surcharge CSS</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="kraland"> Kraland (courant)</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="empire-brun"> Empire brun</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="paladium"> Paladium</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="theocratie-seelienne"> Théocratie Seelienne</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="paradigme-vert"> Paradigme vert</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="khanat-elmerien"> Khanat Elmerien</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="confederation-libre"> Confédération libre</label></div>
+                  <div class="radio"><label><input type="radio" name="kr-theme" value="royaume-ruthvenie"> Royaume de Ruthvénie</label></div>
+                </div>
+              </div>
+            </form>
+          `;
+
+          target.parentElement.insertBefore(container, target);
+
+          const form = container.querySelector('#kr-tamper-theme-form');
+          function syncUI(){
+            const enabled = localStorage.getItem(ENABLE_KEY);
+            if(enabled === 'false'){
+              const d = form.querySelector('input[value="disable"]'); if(d) d.checked = true;
+              return;
+            }
+            const v = (localStorage.getItem(VARIANT_KEY) || 'kraland');
+            const mapped = v === 'urss' ? 'kraland' : v;
+            const el = form.querySelector('input[value="'+mapped+'"]');
+            if(el) el.checked = true;
+          }
+
+          form.addEventListener('change', function(e){
+            try{
+              const sel = form.querySelector('input[name="kr-theme"]:checked');
+              if(!sel) return;
+              const val = sel.value;
+              if(val === 'disable') applyThemeVariant('disable'); else applyThemeVariant(val);
+              try{ const t = document.createElement('div'); t.className='alert alert-success'; t.textContent='Thème appliqué: '+val; container.appendChild(t); setTimeout(()=> t.parentElement && t.parentElement.removeChild(t), 1400); }catch(e){}
+            }catch(er){console.log('kr-theme form change error', er);}        
+          });
+
+          // initialize UI
+          syncUI();
+          return true;
+        }catch(e){ return false; }
+      }
+
+      if(!tryInsert()){
+        // try a few times
+        let attempts = 0;
+        const id = setInterval(()=>{
+          attempts++;
+          if(tryInsert() || attempts > 25) clearInterval(id);
+        }, 200);
+      }
+
+    }catch(e){console.log('insertTampermonkeyThemeUI error', e);}  
+  }
+
   // DEBUG: Log page structure
   function debugPageStructure(){
     const footer = document.querySelector('footer, .footer, .contentinfo');
@@ -1350,6 +1519,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
 
       // Ensure page-scoped classes are applied after initial load
       try{ ensurePageScoping(); }catch(e){}
+      try{ insertTampermonkeyThemeUI(); }catch(e){}
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);

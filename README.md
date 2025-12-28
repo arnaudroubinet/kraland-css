@@ -129,7 +129,7 @@ Le fichier est organisé en **13 sections** :
 ✅ **Variables CSS** pour faciliter les variants :
 ```css
 :root { --kr-red: #a6120d; }
-html.kr-theme-high-contrast { --kr-red: #b71c1c; }
+
 ```
 
 ✅ **Media queries consolidés** (pas de duplication)
