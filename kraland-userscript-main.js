@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767391934139
+// @version      1.0.1767394343769
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -1507,85 +1507,9 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   function debugPageStructure(){
     const footer = document.querySelector('footer, .footer, .contentinfo');
     if(!footer) return;
-
-    console.log('=== FOOTER DEBUG ===');
-    console.log('Footer element:', footer.tagName, footer.className);
-
-    let parent = footer.parentElement;
-    let depth = 0;
-    while(parent && depth < 5){
-      console.log(`Parent ${depth}:`, parent.tagName, parent.className, parent.id);
-      parent = parent.parentElement;
-      depth++;
-    }
-
-    console.log('Body children:', Array.from(document.body.children).map(el => ({
-      tag: el.tagName,
-      class: el.className,
-      id: el.id
-    })));
-    console.log('===================');
   }
 
-  // Initial bootstrap
-  (async function init(){
-    try{
-      // Apply immediately if enabled
-      if(localStorage.getItem(ENABLE_KEY) === null) localStorage.setItem(ENABLE_KEY,'true');
-      console.log('Kraland theme initializing...');
-      await ensureTheme();
-      startObservers();
-      try{ ensureFooterSticky(); }catch(e){}
-      try{ relocateKramailToLeft(); }catch(e){}
-      try{ styleSignatureEditors(); }catch(e){}
-      try{ aggressiveScanEditors(); }catch(e){}
-      try{ observeEditorInsertions(); }catch(e){}
-      try{ injectPageContextScript(); }catch(e){}
 
-      // Ensure page-scoped classes are applied after initial load
-      try{ ensurePageScoping(); }catch(e){}
-      try{ insertTampermonkeyThemeUI(); }catch(e){}
-
-      // DEBUG
-      setTimeout(debugPageStructure, 1000);
-      // Start periodic editor checks for first 60s to catch late AJAX inserts or missed wrappers
-      try{ startPeriodicEditorChecks(); }catch(e){}
-      // Move our style element to the end of the <head> after a short delay so it takes precedence over late-loading site CSS
-      try{ setTimeout(()=>{ const st = document.getElementById(STYLE_ID); if(st && st.parentElement) st.parentElement.appendChild(st); }, 1000); }catch(e){}      // ensure color pickers show correctly after init
-      try{ setTimeout(fixColorButtons, 500); }catch(e){};
-      // wrap AJAX update helpers used by the site so we can re-style dynamic inserts
-      try{
-        // If updateAjax exists now, wrap immediately; otherwise poll until defined
-        function wrapUpdateFns(){
-          try{
-            if(window.updateAjax && typeof window.updateAjax === 'function' && !window._kr_wrapped_updateAjax){
-              const _u = window.updateAjax;
-              window.updateAjax = function(){ const r = _u.apply(this, arguments); setTimeout(styleSignatureEditors, 50); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(ensureEditorClasses, 60); setTimeout(ensureEditorClasses, 220); setTimeout(ensureEditorClasses, 620); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); return r; };
-              window._kr_wrapped_updateAjax = true;
-            }
-            if(window.updateAjaxPost && typeof window.updateAjaxPost === 'function' && !window._kr_wrapped_updateAjaxPost){
-              const _up = window.updateAjaxPost;
-              window.updateAjaxPost = function(){ const r=_up.apply(this, arguments); setTimeout(styleSignatureEditors, 50); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(ensureEditorClasses, 60); setTimeout(ensureEditorClasses, 220); setTimeout(ensureEditorClasses, 620); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); return r; };
-              window._kr_wrapped_updateAjaxPost = true;
-            }
-          }catch(e){}
-        }
-        wrapUpdateFns();
-        const _wrapInterval = setInterval(()=>{ wrapUpdateFns(); if(window._kr_wrapped_updateAjax && window._kr_wrapped_updateAjaxPost) clearInterval(_wrapInterval); }, 200);
-      }catch(e){}
-
-      // click delegation fallback: when anchors with inline updateAjax are clicked, schedule the styling
-      try{
-        document.addEventListener('click', function(e){
-          try{
-            const a = e.target.closest && e.target.closest('a[href^="javascript:updateAjax"], a[href^="javascript:updateAjaxPost"]');
-            if(a){ setTimeout(styleSignatureEditors, 60); setTimeout(styleSignatureEditors, 200); setTimeout(styleSignatureEditors, 600); setTimeout(aggressiveScanEditors, 80); setTimeout(aggressiveScanEditors, 240); setTimeout(aggressiveScanEditors, 640); }
-          }catch(er){}
-        }, true);
-      }catch(e){}
-
-    }catch(e){ console.error('Kraland theme init failed', e); }
-  })();
 
   // Apply inline styles to signature editor toolbars inserted by AJAX so buttons are white with red text
   function styleSignatureEditors(){
@@ -1593,7 +1517,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
       // Find editors inserted by AJAX as well as editors present directly on the page (Kramail new post)
       const editors = Array.from(document.querySelectorAll('[id^="ajax-"] form#msg, form#msg, form[name="post_msg"], form'))
         .filter(f => f && (f.querySelector('.btn-toolbar') || f.querySelector('textarea#message, textarea[name="message"], textarea[name="msg"], textarea#msg, textarea')));
-      console.log('styleSignatureEditors: found editors', editors.length);
+      if(editors.length > 0) console.log('styleSignatureEditors: found editors', editors.length);
       editors.forEach(form => {
         if(form.getAttribute('data-kr-styled') === '1') { console.log('styleSignatureEditors: already styled'); return; }
         form.setAttribute('data-kr-styled', '0');
@@ -1654,7 +1578,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
             try{ form.classList.add('editeur-text'); }catch(e){}
             form.setAttribute('data-kr-styled', '1');
             console.log('styleSignatureEditors: applied to form', form.id || form.parentElement.id);
-            try{ setTimeout(fixColorButtons, 20); }catch(e){}
+            try{ setTimeout(() => fixColorButtons(), 20); }catch(e){}
             return;
           }
           if(attempts < 8) setTimeout(apply, 150);
@@ -1701,7 +1625,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                 const icons = b.querySelectorAll('i, .fa, .fas, .far'); icons.forEach(i=> i.style.setProperty('color','inherit','important'));
               }catch(e){}
             });
-            try{ setTimeout(fixColorButtons, 20); }catch(e){}
+            try{ setTimeout(() => fixColorButtons(), 20); }catch(e){}
           }catch(e){}
         });
       }catch(e){}
@@ -1783,7 +1707,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
               icons.forEach(i => i.style.setProperty('color', 'inherit', 'important'));
             }catch(e){console.log('aggressiveScanEditors: apply error', e);} 
           });
-          try{ setTimeout(fixColorButtons, 20); }catch(e){}
+          try{ setTimeout(() => fixColorButtons(), 20); }catch(e){}
         }
         if(attempts >= maxAttempts || newBtns.length === 0 && attempts > 3) { console.log('aggressiveScanEditors: clearing after attempts', attempts, 'found', newBtns.length); clearInterval(id); }
       }, 200);
@@ -1926,7 +1850,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
                   icons.forEach(function(i){ try{ i.style.setProperty('color','inherit','important'); }catch(e){} });
                 }catch(e){/*ignore*/}
               });
-              try{ setTimeout(fixColorButtons, 20); }catch(e){}
+              try{ setTimeout(() => fixColorButtons(), 20); }catch(e){}
             }catch(e){/*ignore*/}
           }
 
@@ -2000,7 +1924,7 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   function ensureEditorClasses(){
     try{
       const candidates = Array.from(document.querySelectorAll('[id^="ajax-"] form#msg, [id^="ajax-"] textarea, .col-sm-10 form#msg, .col-sm-10 textarea#message, form[name="post_msg"], textarea#message'));
-      console.log('ensureEditorClasses: candidates', candidates.length);
+      if(candidates.length > 0) console.log('ensureEditorClasses: candidates', candidates.length);
       candidates.forEach(el => {
         try{
           const root = el.tagName && el.tagName.toLowerCase() === 'form' ? el : (el.closest('form') || el.parentElement);
@@ -2019,4 +1943,64 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   // Add to startObservers' MO callback earlier (we already trigger styleSignatureEditors() on init)
   
 
+  // Initial bootstrap
+  (async function init(){
+    try{
+      // Apply immediately if enabled
+      if(localStorage.getItem(ENABLE_KEY) === null) localStorage.setItem(ENABLE_KEY,'true');
+      console.log('Kraland theme initializing...');
+      await ensureTheme();
+      startObservers();
+      try{ ensureFooterSticky(); }catch(e){}
+      try{ relocateKramailToLeft(); }catch(e){}
+      try{ styleSignatureEditors(); }catch(e){}
+      try{ aggressiveScanEditors(); }catch(e){}
+      try{ observeEditorInsertions(); }catch(e){}
+      try{ injectPageContextScript(); }catch(e){}
+
+      // Ensure page-scoped classes are applied after initial load
+      try{ ensurePageScoping(); }catch(e){}
+      try{ insertTampermonkeyThemeUI(); }catch(e){}
+
+      // DEBUG
+      setTimeout(debugPageStructure, 1000);
+      // Start periodic editor checks for first 60s to catch late AJAX inserts or missed wrappers
+      try{ startPeriodicEditorChecks(); }catch(e){}
+      // Move our style element to the end of the <head> after a short delay so it takes precedence over late-loading site CSS
+      try{ setTimeout(()=>{ const st = document.getElementById(STYLE_ID); if(st && st.parentElement) st.parentElement.appendChild(st); }, 1000); }catch(e){}
+      // ensure color pickers show correctly after init
+      try{ await new Promise(r => setTimeout(r, 500)); fixColorButtons(); }catch(e){}
+      // wrap AJAX update helpers used by the site so we can re-style dynamic inserts
+      try{
+        // If updateAjax exists now, wrap immediately; otherwise poll until defined
+        function wrapUpdateFns(){
+          try{
+            if(window.updateAjax && typeof window.updateAjax === 'function' && !window._kr_wrapped_updateAjax){
+              const _u = window.updateAjax;
+              window.updateAjax = function(){ const r = _u.apply(this, arguments); setTimeout(() => styleSignatureEditors(), 50); setTimeout(() => styleSignatureEditors(), 200); setTimeout(() => styleSignatureEditors(), 600); setTimeout(() => ensureEditorClasses(), 60); setTimeout(() => ensureEditorClasses(), 220); setTimeout(() => ensureEditorClasses(), 620); setTimeout(() => aggressiveScanEditors(), 80); setTimeout(() => aggressiveScanEditors(), 240); setTimeout(() => aggressiveScanEditors(), 640); return r; };
+              window._kr_wrapped_updateAjax = true;
+            }
+            if(window.updateAjaxPost && typeof window.updateAjaxPost === 'function' && !window._kr_wrapped_updateAjaxPost){
+              const _up = window.updateAjaxPost;
+              window.updateAjaxPost = function(){ const r=_up.apply(this, arguments); setTimeout(() => styleSignatureEditors(), 50); setTimeout(() => styleSignatureEditors(), 200); setTimeout(() => styleSignatureEditors(), 600); setTimeout(() => ensureEditorClasses(), 60); setTimeout(() => ensureEditorClasses(), 220); setTimeout(() => ensureEditorClasses(), 620); setTimeout(() => aggressiveScanEditors(), 80); setTimeout(() => aggressiveScanEditors(), 240); setTimeout(() => aggressiveScanEditors(), 640); return r; };
+              window._kr_wrapped_updateAjaxPost = true;
+            }
+          }catch(e){}
+        }
+        wrapUpdateFns();
+        const _wrapInterval = setInterval(()=>{ wrapUpdateFns(); if(window._kr_wrapped_updateAjax && window._kr_wrapped_updateAjaxPost) clearInterval(_wrapInterval); }, 200);
+      }catch(e){}
+
+      // click delegation fallback: when anchors with inline updateAjax are clicked, schedule the styling
+      try{
+        document.addEventListener('click', function(e){
+          try{
+            const a = e.target.closest && e.target.closest('a[href^="javascript:updateAjax"], a[href^="javascript:updateAjaxPost"]');
+            if(a){ setTimeout(() => styleSignatureEditors(), 60); setTimeout(() => styleSignatureEditors(), 200); setTimeout(() => styleSignatureEditors(), 600); setTimeout(() => aggressiveScanEditors(), 80); setTimeout(() => aggressiveScanEditors(), 240); setTimeout(() => aggressiveScanEditors(), 640); }
+          }catch(er){}
+        }, true);
+      }catch(e){}
+
+    }catch(e){ console.error('Kraland theme init failed', e); }
+  })();
 })();
