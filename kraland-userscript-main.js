@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767480304707
+// @version      1.0.1767481254196
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -85,10 +85,16 @@ html.kr-theme-variant-royaume-ruthvenie {
 
 
 html {
-  position: relative;
+  height: 100%;
   min-height: 100%;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 70px; 
+}
 
 /* Increase container width: remove 150px from each side */
 .container {
@@ -350,9 +356,12 @@ hr[style*="border-top: 1px solid #337ab7"] {
    ============================================================================ */
 
 footer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  z-index: 1030;
 }
 
 footer .container.white {

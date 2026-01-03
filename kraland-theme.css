@@ -70,10 +70,16 @@ html.kr-theme-variant-royaume-ruthvenie {
 
 
 html {
-  position: relative;
+  height: 100%;
   min-height: 100%;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 70px; 
+}
 
 /* Increase container width: remove 150px from each side */
 .container {
@@ -335,9 +341,12 @@ hr[style*="border-top: 1px solid #337ab7"] {
    ============================================================================ */
 
 footer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  z-index: 1030;
 }
 
 footer .container.white {
