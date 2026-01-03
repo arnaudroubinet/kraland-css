@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767479784606
+// @version      1.0.1767480259888
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -30,6 +30,20 @@
 
   --kr-radius: .5rem;
   --kr-avatar-size: 120px;
+}
+
+/* ============================================================================
+   2. LAYOUT - Sticky footer
+   ============================================================================ */
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height (52px) */
+  margin-bottom: 52px;
 }
 
 /* ============================================================================
@@ -340,6 +354,12 @@ hr[style*="border-top: 1px solid #337ab7"] {
    10. FOOTER - BACK TO TOP
    Position the back-to-top button on the right side of the footer
    ============================================================================ */
+
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
 
 footer .container.white {
   position: relative;
