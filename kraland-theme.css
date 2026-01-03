@@ -359,3 +359,24 @@ footer .container.white {
   top: 50%;
   transform: translateY(-50%);
 }
+
+/* ============================================================================
+   11. EDITEUR DE TEXTE
+   Styles pour les boutons de l'éditeur BBCode
+   ============================================================================ */
+
+/* Style de base pour tous les boutons de l'éditeur, sauf la palette de couleurs */
+.btn-toolbar .btn:not(.dropdown-menu *) {
+  background-color: var(--kr-surface) !important;
+  background-image: none !important;
+  color: var(--kr-primary) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  box-shadow: none !important;
+}
+
+.btn-toolbar .btn:not(.dropdown-menu *) i,
+.btn-toolbar .btn:not(.dropdown-menu *) .fa,
+.btn-toolbar .btn:not(.dropdown-menu *) .fas,
+.btn-toolbar .btn:not(.dropdown-menu *) .far {
+  color: inherit !important;
+}
