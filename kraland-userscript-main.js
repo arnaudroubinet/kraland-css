@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767473537884
+// @version      1.0.1767478023728
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -13,28 +13,23 @@
 (function(){
   'use strict';
 
-  const BUNDLED_CSS = `/* Kraland — Red theme
-   Scope: overrides for Bootstrap 3.3.7-based site
-   Purpose: improved contrast, spacing, responsiveness, accessible focus states
-
-   Optimized version - Reduced !important usage from 56 to 11 declarations
-   Using CSS specificity and cascade instead of brute-force overrides
-*/
-
-/* ============================================================================
+  const BUNDLED_CSS = `/* ============================================================================
    1. CSS VARIABLES
    ============================================================================ */
 
 :root {
-  --kr-primary: #8b0f0e; /* slightly darker */
+  --kr-primary: #8b0f0e;
   --kr-primary-dark: #700b09;
   --kr-gold: #C69100;
   --kr-highlight: #c41e3a;
+  --kr-highlight-reverse: #f9d9de;
   --kr-surface: #fff;
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
   --kr-navbar-bg: #111315;
+
   --kr-radius: .5rem;
+  --kr-avatar-size: 120px;
 }
 
 /* ============================================================================
@@ -79,8 +74,7 @@ html.kr-theme-variant-royaume-ruthvenie {
 
 
 /* ============================================================================
-   2. LAYOUT OVERRIDES (Critical !important - 8 declarations)
-   Purpose: Override inline styles and Bootstrap positioning
+   2. LAYOUT OVERRIDES
    ============================================================================ */
 
 /* Hide top header with Kraland logo */
@@ -104,292 +98,18 @@ html.kr-theme-variant-royaume-ruthvenie {
 
 
 /* ============================================================================
-   4. NAVIGATION
-   Bootstrap navbar override using compound selectors
+   3. NAVIGATION
    ============================================================================ */
 
-/* Navbar default - compound selector matches Bootstrap specificity */
-.navbar.navbar-default {
-  background-color: var(--kr-navbar-bg);
-  border-color: rgba(255,255,255,0.04);
-  min-height: 56px;
-}
-
-.navbar-default .navbar-nav > li > a {
-  color: #fff;
-  padding: 16px 20px;
-  font-size: .95rem;
-}
-
-.navbar-default .navbar-nav > li > a:hover,
-.navbar-default .navbar-nav > li > a:focus {
-  background-color: rgba(255,255,255,0.03);
-}
-
-.navbar-default .navbar-brand {
-  color: var(--kr-gold);
-  font-weight: 700;
-  font-size: 1.1rem;
-  padding: 10px 15px;
-}
-
-/* Ensure all navbar anchors and dropdown toggles are white (restore lost white text) */
-.navbar-default .navbar-nav > li > a,
-.navbar-default .navbar-nav > li > a.dropdown-toggle,
-.navbar-inverse .navbar-nav > li > a,
-.navbar-inverse .navbar-nav > li > a.dropdown-toggle,
-.navbar .dropdown-toggle,
-#navbar a,
-#navbar button {
+.navbar-nav > li > a{
   color: #fff !important;
-}
-.navbar-inverse .navbar-nav > li > a:hover,
-.navbar-inverse .navbar-nav > li > a:focus {
-  background-color: rgba(255,255,255,0.03);
-}
-
-/* Dropdown menu anchors: ensure contrast when the menu background is light */
-.navbar-inverse .dropdown-menu > li > a,
-.navbar-default .dropdown-menu > li > a {
-  color: var(--kr-text) !important;
-}
-/* Stronger selector to override #navbar a rules */
-#navbar .dropdown-menu > li > a,
-.navbar-inverse #navbar .dropdown-menu > li > a {
-  color: var(--kr-text) !important;
-}
-#navbar .dropdown-menu > li > a:hover,
-#navbar .dropdown-menu > li > a:focus,
-.navbar-inverse #navbar .dropdown-menu > li > a:hover,
-.navbar-inverse #navbar .dropdown-menu > li > a:focus,
-.navbar-inverse .dropdown-menu > li > a:hover,
-.navbar-inverse .dropdown-menu > li > a:focus,
-.navbar-default .dropdown-menu > li > a:hover,
-.navbar-default .dropdown-menu > li > a:focus {
-  color: var(--kr-primary) !important;
-  background-color: rgba(0,0,0,0.03);
-}
-
-.navbar-default .navbar-toggle {
-  border-color: rgba(255,255,255,0.08);
-}
-
-.navbar-default .navbar-toggle .icon-bar {
-  background-color: #fff;
-}
-
-/* Pagination — align with theme colors */
-.pagination {
-  margin: .75rem 0;
-}
-.pagination > li > a,
-.pagination > li > span {
-  color: var(--kr-primary) !important;
-  background: var(--kr-surface);
-  border-radius: .35rem;
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: .35rem .6rem;
-}
-.pagination > li > a:hover,
-.pagination > li > span:hover {
-  color: var(--kr-primary-dark) !important;
-  background-color: rgba(0,0,0,0.02);
-  text-decoration: none;
-}
-.pagination > li.active > a,
-.pagination > li.active > span {
-  background-color: var(--kr-primary) !important;
-  color: var(--kr-surface) !important;
-  border-color: var(--kr-primary-dark) !important;
-}
-.pagination > li.disabled > a,
-.pagination > li.disabled > span {
-  color: var(--kr-muted) !important;
-  background: transparent;
-  border-color: rgba(0,0,0,0.03);
 }
 
 
 /* ============================================================================
-   5. BUTTONS
-   Consolidated from lines 60, 144, 177 - removed duplicates
+   4. FORMS
    ============================================================================ */
 
-/* Base button styles */
-.btn {
-  border: none;
-  border-radius: var(--kr-radius);
-  padding: .55rem 1rem;
-  transition: transform .06s ease, box-shadow .12s ease;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-/* Small buttons should keep white text for legibility */
-.btn-sm,
-a.btn-sm,
-button.btn-sm,
-input.btn-sm {
-  color: var(--kr-surface) !important;
-}
-.btn-sm:hover,
-a.btn-sm:hover,
-button.btn-sm:hover,
-input.btn-sm:hover,
-.btn-sm:focus,
-.btn-sm:active {
-  color: var(--kr-surface) !important;
-  text-decoration: none;
-}
-
-/* Primary buttons - compound selectors for higher specificity */
-.btn.btn-primary,
-.btn-primary.btn,
-a.btn.btn-primary,
-input.btn.btn-primary,
-button.btn.btn-primary,
-.btn.btn-lg.btn-primary {
-  background-color: var(--kr-primary);
-  border-color: var(--kr-primary-dark);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(165,18,13,0.12);
-}
-
-.btn.btn-primary:hover,
-.btn.btn-primary:focus,
-.btn-primary.btn:hover,
-.btn-primary.btn:focus {
-  background-color: var(--kr-primary-dark);
-  border-color: var(--kr-primary-dark);
-  box-shadow: 0 10px 24px rgba(165,18,13,0.14);
-}
-
-/* Info buttons - treated as primary in red theme */
-.btn.btn-info,
-.btn-info.btn,
-.navbar-default .btn.btn-info {
-  background-color: var(--kr-primary);
-  border-color: var(--kr-primary-dark);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(165,18,13,0.12);
-}
-
-.btn.alert14:hover,
-.btn.alert14:focus,
-a.btn.alert14:hover,
-a.btn.alert14:focus {
-  background-color: var(--kr-primary-dark) !important;
-  border-color: var(--kr-primary-dark) !important;
-  box-shadow: 0 10px 24px rgba(165,18,13,0.14) !important;
-}
-
-/* Members page: target only buttons inside panels/wells and member containers to avoid affecting the top navbar */
-html.kr-page-members .panel .btn,
-html.kr-page-members .panel-body .btn,
-html.kr-page-members .well .btn,
-html.kr-page-members .container-fluid .btn,
-html.kr-page-members .col-xs-12 .btn,
-html.kr-page-members .col-sm-4 .btn,
-html.kr-page-members .col-md-8 .btn,
-html.kr-page-members [id^="ajax-"] .btn,
-html.kr-page-members [id^="ajax-"] a.btn,
-html.kr-page-members .panel .btn-block,
-html.kr-page-members .panel .btn-warning,
-html.kr-page-members .panel .btn-default,
-html.kr-page-members .panel .btn-primary,
-html.kr-page-members .panel .btn-info {
-  background-color: var(--kr-primary) !important;
-  border-color: var(--kr-primary-dark) !important;
-  color: #fff !important;
-}
-html.kr-page-members .panel .btn:hover,
-html.kr-page-members .panel a.btn:hover,
-html.kr-page-members .panel button.btn:hover,
-html.kr-page-members .panel input.btn:hover,
-html.kr-page-members .panel .btn-block:hover,
-html.kr-page-members .panel .btn-warning:hover,
-html.kr-page-members .panel .btn-default:hover {
-  background-color: var(--kr-primary-dark) !important;
-  border-color: var(--kr-primary-dark) !important;
-}
-
-/* Specifically target ajax-inserted editor toolbars inside member pages and make their buttons white with red text */
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn,
-html.kr-page-members [id^="ajax-"] .btn-toolbar a.btn,
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn-default {
-  background-color: var(--kr-surface) !important;
-  color: var(--kr-primary) !important;
-  border-color: var(--kr-primary-dark) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn i,
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn .fa,
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn .fas,
-html.kr-page-members [id^="ajax-"] .btn-toolbar .btn .far {
-  color: inherit !important;
-}
-
-/* Super specific fallback to ensure editor buttons inside ajax containers get Kramail-like styling even if site CSS loads after our stylesheet */
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar a.btn,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn-default,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn {
-  background-color: var(--kr-surface) !important;
-  color: var(--kr-primary) !important;
-  border-color: var(--kr-primary-dark) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn i,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn .fa,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn .fas,
-html.kr-theme-enabled.kr-theme-enabled.kr-page-members [id^="ajax-"] .btn-toolbar .btn .far {
-  color: inherit !important;
-}
-/* Remove conflicting shadows and ensure consistent disabled/active variants inside panels */
-html.kr-page-members .panel .btn,
-html.kr-page-members .panel .btn-default,
-html.kr-page-members .panel .btn-warning {
-  box-shadow: none !important;
-}
-html.kr-page-members .panel .btn:disabled,
-html.kr-page-members .panel .btn[disabled] {
-  opacity: 0.85 !important;
-}
-
-/* Ensure navbar/top buttons are not affected by the members overrides */
-html.kr-page-members .navbar .btn,
-html.kr-page-members #navbar .btn,
-html.kr-page-members .navbar-nav .btn,
-html.kr-page-members .navbar .dropdown-toggle,
-html.kr-page-members .navbar .dropdown-toggle.btn {
-  background-color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  color: #fff !important; /* restore white text in navbar */
-}
-/* Also ensure navbar links remain white */
-html.kr-page-members .navbar-default .navbar-nav > li > a {
-  color: #fff !important;
-}
-
-/* Default buttons */
-.btn.btn-default,
-.btn-default.btn {
-  background-color: #f8f9fa;
-  border: none;
-}
-
-
-/* ============================================================================
-   6. FORMS
-   Keep !important only for input native browser overrides (3 declarations)
-   ============================================================================ */
-
-/* Form controls - double-class for specificity */
 .form-control.form-control {
   border-radius: .4rem;
   border: 1px solid rgba(0,0,0,0.08);
@@ -408,7 +128,6 @@ html.kr-page-members .navbar-default .navbar-nav > li > a {
   font-weight: 600;
 }
 
-/* Checkbox & radio - KEEP !important for browser default overrides */
 input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--kr-primary) !important;
@@ -424,83 +143,25 @@ input[type="checkbox"]:checked {
   border-color: var(--kr-primary) !important;
 }
 
-
 /* ============================================================================
-   7. PANELS & CARDS
-   Consolidated from lines 67, 87, 152-154, 173-174
-   ============================================================================ */
-
-/* Panel base styles */
-.panel.panel-default,
-.panel,
-.well {
-  background-color: var(--kr-surface);
-}
-
-.panel.panel-default,
-.panel {
-  border-radius: var(--kr-radius);
-  border-color: rgba(0,0,0,0.06);
-  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
-  overflow: hidden;
-}
-
-.panel-default > .panel-heading,
-.panel > .panel-heading {
-  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
-  color: var(--kr-text);
-  padding: 16px;
-  font-weight: 600;
-}
-
-.panel-body {
-  padding: 16px;
-}
-
-/* Panel info variant */
-.panel.panel-info,
-.panel-info > .panel-heading {
-  border-color: rgba(164,18,13,0.12);
-}
-
-/* Panel primary variant */
-.panel.panel-primary,
-.panel.panel-primary > .panel-heading {
-  border-color: var(--kr-primary-dark);
-}
-
-.panel.panel-primary > .panel-heading {
-  background-color: var(--kr-primary);
-  color: var(--kr-gold);
-}
-
-/* Panel content text color */
-.panel .panel-body p,
-.panel .panel-heading strong {
-  color: var(--kr-text);
-}
-
-
-/* ============================================================================
-   8. BADGES, LABELS & ALERTS
+   5. BADGES, LABELS & ALERTS
    Consolidated color remapping for theme
    ============================================================================ */
 
 /* Badges & labels - info/primary variants use red */
 .label,
-.badge,
-.label.label-info,
-.badge.badge-info,
-.label.label-primary,
-.badge.badge-primary {
+.badge {
   background-color: var(--kr-primary);
   color: #fff;
   border-color: var(--kr-primary-dark);
 }
+.bg-info {
+  background-color: var(--kr-primary);
+  color: #fff;
+}
 
 /* Alerts - info variant */
-.alert.alert-info,
-.alert.alert-info.alert-dismissible {
+.alert.alert-info {
   background-color: rgba(164,18,13,0.06);
   border-color: rgba(164,18,13,0.14);
   color: var(--kr-text);
@@ -511,14 +172,9 @@ input[type="checkbox"]:checked {
   color: var(--kr-text);
 }
 
-.bg-info {
-  background-color: var(--kr-primary);
-  color: #fff;
-}
-
 
 /* ============================================================================
-   9. LIST GROUPS
+   6. LIST GROUPS
    ============================================================================ */
 
 .list-group-item {
@@ -546,34 +202,19 @@ input[type="checkbox"]:checked {
 }
 
 /* ============================================================================
-   9.1 AVATARS
+   7. AVATARS
    Ensure avatars are displayed at least the configured size and crop nicely
    ============================================================================ */
-
-:root {
-  --kr-avatar-size: 120px;
-}
-
-/* Target common avatar selectors used on the site */
-.avatar,
-img.avatar,
-img.avatar.img-thumbnail,
-.img-circle,
-.profile-avatar,
-.author img,
-.ds-img {
-  width: var(--kr-avatar-size) !important;
-  height: var(--kr-avatar-size) !important;
-  min-width: var(--kr-avatar-size) !important;
-  min-height: var(--kr-avatar-size) !important;
-  object-fit: cover !important;
-  display: inline-block !important;
-}
-
-/* Keep circular avatar appearance when applicable */
 .img-circle {
-  border-radius: 50% !important;
+  width: var(--kr-avatar-size);
+  height: var(--kr-avatar-size);
+  min-width: var(--kr-avatar-size);
+  min-height: var(--kr-avatar-size);
+  object-fit: cover;
+  display: inline-block;
+  border-radius: 50%;
 }
+
 
 /* Ensure layout doesn't break: allow the author column to accommodate larger avatars */
 .col-md-3.sidebar .avatar,
@@ -598,17 +239,10 @@ img.avatar.img-thumbnail,
   transform: translateY(-50%) !important;
 }
 
-.list-group-item.ds_user .pull-right img,
-.list-group-item.ds_user .pull-right .ds-img {
-  width: var(--kr-avatar-size) !important;
-  height: var(--kr-avatar-size) !important;
-  object-fit: cover !important;
-}
 
 
 /* ============================================================================
-   10. CAROUSEL
-   Consolidated from lines 89-104, 167
+   8. CAROUSEL
    ============================================================================ */
 
 .carousel-caption {
@@ -619,34 +253,22 @@ img.avatar.img-thumbnail,
   color: #fff;
 }
 
-.carousel-caption h1,
-.carousel-caption h2 {
-  color: #fff;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+.item img[class*="-slide"] {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
 }
-
-.carousel-caption p,
-.carousel-caption a,
-.carousel-caption .btn {
-  color: #fff;
-}
-
-.carousel-caption .btn,
-.carousel-caption button {
-  margin-bottom: 6px;
-}
-
-.carousel-indicators {
-  bottom: 10px;
+a.carousel-control.left,
+a.carousel-control.right{
+   background-image: none;
 }
 
 
 /* ============================================================================
-   11. LINKS
-   Consolidated from lines 48, 134, 161 - removed all !important
+   9. LINKS
    ============================================================================ */
 
-/* Base link styles - cascade wins (loaded after Bootstrap) */
 a:link,
 a:visited {
   color: var(--kr-highlight);
@@ -661,377 +283,29 @@ a:focus {
   outline: none;
 }
 
-/* Contextual text utilities */
-.text-primary,
-.text-info {
-  color: var(--kr-highlight);
+button.btn-primary,
+a.btn-primary {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-highlight-reverse);
+  box-shadow: 0 6px 18px rgba(165,18,13,0.12);
 }
 
-/* Contextual links in components */
-..list-group a:link,
-.list-group a:visited,
-.well a:link,
-.well a:visited,
-.panel a:link,
-.panel a:visited,
-.breadcrumb a:link,
-.breadcrumb a:visited {
-  color: var(--kr-highlight);
+button.btn-primary:hover,
+button.btn-primary:focus,
+a.btn-primary:hover,
+a.btn-primary:focus {
+  background-color: var(--kr-primary-dark);
 }
-
-/* Carousel controls & navigation wells */
-a.well.well-sm,
-.carousel-control.left,
-.carousel-control.right,
-.prev,
-.next {
-  color: var(--kr-highlight);
-}
-
-
-/* ============================================================================
-   12. ICONS
-   Icons should inherit color from their context; do not force a single accent color here
-   ============================================================================ */
-
-/* Icon color rule removed — icons will use surrounding text color or specific component rules */
-
-/* Symbols that replace small s1/s2/s3 gif images with inline text for accessibility */
-.kr-symbol {
-  font-family: inherit;
-  display: inline-block;
-  width: 1em;
-  text-align: center;
-  vertical-align: middle;
-  margin-right: .25rem;
-  color: var(--kr-text);
-  font-weight: 700; /* bold as requested */
-}
-
-/* Section icons: ensure presentation & medals icons adapt to theme accent color (ICON ONLY) */
-.kr-icon-presentation i,
-.kr-icon-presentation .fa,
-.kr-icon-presentation .glyphicon,
-.kr-icon-medals i,
-.kr-icon-medals .fa,
-.kr-icon-medals .glyphicon {
-  color: var(--kr-highlight) !important;
-}
-.kr-symbol.kr-sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-  clip: rect(1px, 1px, 1px, 1px) !important;
-  white-space: nowrap !important;
-  border:0 !important;
-  padding:0 !important;
-  margin:-1px !important;
-}
-.kr-sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-  clip: rect(1px, 1px, 1px, 1px) !important;
-  white-space: nowrap !important;
-  border:0 !important;
-  padding:0 !important;
-  margin:-1px !important;
-}
-
-
-/* ============================================================================
-   13. RESPONSIVE
-   Consolidated media queries - removed duplicates (lines 97-100, 110-120)
-   Resolved conflict: .carousel-caption font-size = .9rem for mobile
-   ============================================================================ */
-
-/* Tablet and below */
-@media (max-width: 767px) {
-  .carousel-indicators {
-    bottom: 8px;
-  }
-
-  .carousel-caption {
-    padding-bottom: 46px;
-  }
-}
-
-/* Mobile only */
-@media (max-width: 575px) {
-  .navbar-default .navbar-brand {
-    font-size: 1rem;
-  }
-
-  .carousel-caption {
-    font-size: .9rem;
-  }
-
-  .btn {
-    padding: .5rem .8rem;
-  }
-
-  .form-control {
-    padding: .5rem .6rem;
-  }
-}
-
-/* ============================================================================
-   POST EDITOR — unify toolbar & textarea inside .col-sm-10
-   Ensure the toolbar buttons, dropdowns and the message textarea share
-   the same size, border and color for improved visual consistency.
-   This is scoped to the theme being enabled (html.kr-theme-enabled) to
-   avoid unintended changes outside the editor.
-   ============================================================================ */
-
-html.kr-theme-enabled .col-sm-10 .btn-toolbar,
-html.kr-theme-enabled .col-sm-10 textarea#message,
-html.kr-theme-enabled .col-sm-10 .btn-group,
-html.kr-theme-enabled .col-sm-10 .dropdown-menu {
-  background: var(--kr-surface);
-  color: var(--kr-text);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: .4rem;
-}
-
-/* Make toolbar buttons match form-control sizing and tone */
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn {
-  padding: .55rem .8rem;
-  min-height: 40px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .95rem;
-  background-color: var(--kr-surface);
-  color: var(--kr-primary) !important; /* white button with red text */
-  border: 1px solid rgba(0,0,0,0.06);
-}
-
-/* Ensure any nested text/icon inherits the red color */
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn * {
-  color: var(--kr-primary) !important;
-} 
-
-/* Ensure textarea visually matches the toolbar */
-html.kr-theme-enabled .col-sm-10 textarea#message {
-  padding: .6rem;
-  min-height: 40px; /* matches toolbar button min-height for visual parity */
-  resize: vertical;
-  font-size: .95rem;
-}
-
-/* Make dropdown content match the editor tone */
-html.kr-theme-enabled .col-sm-10 .dropdown-menu {
-  background: var(--kr-surface);
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: .5rem;
-}
-
-/* Icon color and precise centering */
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px; /* ensure consistent vertical centering */
-  padding: .35rem .6rem;
-  background-color: var(--kr-surface) !important; /* force white background to override members red rules */
-  border-color: rgba(0,0,0,0.06) !important;
-  color: var(--kr-primary) !important;
-}
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn.btn-default {
-  background-color: var(--kr-surface) !important;
-  color: var(--kr-primary) !important;
-}
-
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn i,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn .fa,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn .far,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn .fas {
-  display: inline-block;
-  line-height: normal;
-  font-size: 1.05rem; /* slightly larger to match visual weight */
-  color: inherit !important; /* inherit red from button text */
-}
-
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:hover i,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:focus i {
-  color: var(--kr-primary-dark) !important;
-}
-
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:hover,
-html.kr-theme-enabled .col-sm-10 .btn-toolbar .btn:focus {
-  background-color: rgba(165,18,13,0.03);
-  color: var(--kr-primary-dark);
-}
-
-/* small buttons adjust */
-html.kr-theme-enabled .col-sm-10 .btn.btn-xs {
-  height: 34px;
-  padding: .3rem .5rem;
-}
-
-/* --------------------------------------------------------------------------
-   Shared editor class: \`.editeur-text\`
-   Apply the same rules as the Kramail editor to any container marked with
-   \`.editeur-text\` (members signature editors, kramail editors, etc.)
-   -------------------------------------------------------------------------- */
-html.kr-theme-enabled .editeur-text .btn-toolbar,
-html.kr-theme-enabled .editeur-text textarea,
-html.kr-theme-enabled .editeur-text .btn-group,
-html.kr-theme-enabled .editeur-text .dropdown-menu {
-  background: var(--kr-surface);
-  color: var(--kr-text);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: .4rem;
-}
-
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: .35rem .6rem;
-  background-color: var(--kr-surface) !important; /* force white background */
-  color: var(--kr-primary) !important;               /* red text on white */
-  border: 1px solid rgba(0,0,0,0.06) !important;
-  box-shadow: none !important;
-}
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn i,
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn .fa,
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn .far,
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn .fas {
-  display: inline-block;
-  line-height: normal;
-  font-size: 1.05rem;
-  color: inherit !important; /* icons inherit red */
-}
-
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn:hover i,
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn:focus i {
-  color: var(--kr-primary-dark) !important;
-}
-
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn:hover,
-html.kr-theme-enabled .editeur-text .btn-toolbar .btn:focus {
-  background-color: rgba(165,18,13,0.03) !important;
-  color: var(--kr-primary-dark) !important;
-}
-
-/* small buttons adjust */
-html.kr-theme-enabled .editeur-text .btn.btn-xs {
-  height: 34px;
-  padding: .3rem .5rem;
-}
-
-/* ============================================================================
-   MEMBERS: signature editor — make toolbar/buttons behave like Kramail
-   Target dynamic signature containers inserted by AJAX (id starts with ajax-s)
-   ============================================================================ */
-
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] textarea,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-group,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .dropdown-menu {
-  background: var(--kr-surface);
-  color: var(--kr-text);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: .4rem;
-}
-
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: .35rem .6rem;
-  background-color: var(--kr-surface) !important; /* force white background to override members red rules */
-  color: var(--kr-primary) !important; /* red text on white */
-  border: 1px solid rgba(0,0,0,0.06) !important;
-}
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn.btn-default {
-  background-color: var(--kr-surface) !important;
-  color: var(--kr-primary) !important;
-}
-
-/* Extra specificity: when a form#msg is inserted via AJAX, ensure toolbar buttons are white with red text */
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] form#msg .btn-toolbar .btn,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] form#msg .btn-toolbar .btn.btn-default {
-  background: var(--kr-surface) !important;
-  background-color: var(--kr-surface) !important;
-  background-image: none !important;
-  background-clip: padding-box !important;
-  color: var(--kr-primary) !important;
-  -webkit-text-fill-color: var(--kr-primary) !important;
-  border: 1px solid rgba(0,0,0,0.06) !important;
-  box-shadow: none !important;
-}
-/* Ensure nested nodes inherit red */
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn * {
-  color: var(--kr-primary) !important;
-}
-
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn i,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn .fa,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn .far,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn .fas {
-  display: inline-block;
-  line-height: normal;
-  font-size: 1.05rem;
-  color: inherit !important; /* icons inherit red from button text */
-}
-
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:hover i,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:focus i {
-  color: var(--kr-primary-dark) !important;
-}
-
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:hover,
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar .btn:focus {
-  background-color: rgba(165,18,13,0.03);
-  color: var(--kr-primary-dark);
-}
-
-/* Keep image smileys intact (don't recolor img elements) */
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn-toolbar img {
-  color: initial !important;
-  filter: none !important;
-}
-
-/* small buttons adjust */
-html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
-  height: 34px;
-  padding: .3rem .5rem;
-}
-
-/* ============================================================================
-   TOOLTIP: Disabled via JavaScript
-   Bootstrap tooltips are disabled in the userscript
-   ============================================================================ */
 
 /* ============================================================================
    HIDE UNWANTED HR ELEMENT
+   Supprime la ligne horizontale bleue dans le liste des ordres de la fiche de personnage
    ============================================================================ */
 
 hr[style*="border-top: 1px solid #337ab7"] {
   display: none !important;
-}
-
-/* ============================================================================
-   END OF THEME
-
-   Summary of optimizations:
-   - !important reduced from 56 to 11 declarations (-80%)
-   - Duplicate selectors eliminated (links, icons, buttons)
-   - Media queries consolidated from 3 to 2 blocks
-   - Removed unused CSS variable --kr-bg
-   - Over-qualified selectors removed
-   - Proper CSS cascade and specificity used throughout
-   ============================================================================ */
-`;
+}`;
   const ENABLE_KEY = 'kr-theme-enabled';
   const VARIANT_KEY = 'kr-theme-variant';
   const STYLE_ID = 'kraland-theme-style';
