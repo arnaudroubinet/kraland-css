@@ -604,6 +604,11 @@
         const iconUrl = skillIcons[skillName];
         if(!iconUrl) return;
 
+        // Preserve original classes and add Bootstrap styling for white background
+        // This gives skills the same white background appearance as stats
+        const originalClasses = item.className;
+        item.className = originalClasses + ' btn btn-default mini';
+
         item.innerHTML = '';
         
         const iconContainer = document.createElement('div');
@@ -654,10 +659,20 @@
       const colLeftestStats = document.getElementById('col-leftest-stats');
       if(!colLeftestStats || colLeftestStats.dataset.badgesTransformed) return;
 
+      // Stat icons mapping
+      const statIcons = {
+        'FOR': 'http://img7.kraland.org/2/mat/94/9402.gif',
+        'VOL': 'http://img7.kraland.org/2/mat/94/9415.gif',
+        'CHA': 'http://img7.kraland.org/2/mat/94/9416.gif',
+        'INT': 'http://img7.kraland.org/2/mat/94/9412.gif',
+        'GES': 'http://img7.kraland.org/2/mat/94/9405.gif',
+        'PER': 'http://img7.kraland.org/2/mat/94/9413.gif'
+      };
+
       colLeftestStats.querySelectorAll('.col-md-6 > a.btn').forEach(statBtn => {
-        // Get the text content
+        // Get the text content BEFORE we modify the DOM
         const text = statBtn.textContent.trim();
-        // Extract stat name: first 3-4 chars (FOR, CHA, INT, SAG, CON, DEX, VOL, PER, GES)
+        // Extract stat name: first 3-4 chars (FOR, CHA, INT, etc.)
         const match = text.match(/^([A-Z]+)/);
         const cleanStatName = match ? match[1] : text;
         
@@ -665,11 +680,17 @@
         const levelMatch = text.match(/(\d+)$/);
         const number = levelMatch ? levelMatch[1] : '0';
         
-        // Clear the button
-        statBtn.innerHTML = '';
+        // **KEY FIX**: Instead of clearing innerHTML, we'll use while loop to remove all children
+        // This PRESERVES the <a> element itself and all its event listeners
+        while (statBtn.firstChild) {
+          statBtn.removeChild(statBtn.firstChild);
+        }
         
-        // Apply same structure and styles as skills
-        statBtn.className = 'list-group-item ds_game alert111';
+        // PRESERVE original classes and ADD thème classes
+        // Keep the original 'btn', 'btn-default', 'mini', 'alert12X' classes
+        // Only add 'list-group-item' and 'ds_game' from the theme
+        const originalClasses = statBtn.className;
+        statBtn.className = originalClasses + ' list-group-item ds_game';
         statBtn.setAttribute('style', 'padding: 8px; display: flex; align-items: center; justify-content: center;');
         statBtn.title = cleanStatName;
         
@@ -677,35 +698,50 @@
         const statContainer = document.createElement('div');
         statContainer.setAttribute('style', 'position: relative; display: inline-block; width: 32px; height: 32px;');
         
-        // Create an SVG with the two letters (similar to image for skills)
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '32');
-        svg.setAttribute('height', '32');
-        svg.setAttribute('viewBox', '0 0 32 32');
-        svg.style.display = 'block';
+        // Get the icon URL for this stat, or fallback to first 2 letters in SVG
+        const iconUrl = statIcons[cleanStatName];
         
-        // Background rectangle
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('width', '32');
-        rect.setAttribute('height', '32');
-        rect.setAttribute('fill', '#f0f0f0');
-        rect.setAttribute('stroke', '#ccc');
-        rect.setAttribute('stroke-width', '1');
-        svg.appendChild(rect);
-        
-        // Text with stat abbreviation
-        const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        svgText.setAttribute('x', '16');
-        svgText.setAttribute('y', '20');
-        svgText.setAttribute('text-anchor', 'middle');
-        svgText.setAttribute('font-size', '14');
-        svgText.setAttribute('font-weight', 'bold');
-        svgText.setAttribute('font-family', 'Arial, sans-serif');
-        svgText.setAttribute('fill', '#333');
-        svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
-        svg.appendChild(svgText);
-        
-        statContainer.appendChild(svg);
+        if(iconUrl){
+          // Use image icon
+          const img = document.createElement('img');
+          img.src = iconUrl;
+          img.alt = cleanStatName;
+          img.title = cleanStatName;
+          img.style.width = '32px';
+          img.style.height = '32px';
+          img.style.display = 'block';
+          statContainer.appendChild(img);
+        }else{
+          // Fallback: Create an SVG with the two letters (for stats without icons)
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '32');
+          svg.setAttribute('height', '32');
+          svg.setAttribute('viewBox', '0 0 32 32');
+          svg.style.display = 'block';
+          
+          // Background rectangle
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('width', '32');
+          rect.setAttribute('height', '32');
+          rect.setAttribute('fill', '#f0f0f0');
+          rect.setAttribute('stroke', '#ccc');
+          rect.setAttribute('stroke-width', '1');
+          svg.appendChild(rect);
+          
+          // Text with stat abbreviation
+          const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          svgText.setAttribute('x', '16');
+          svgText.setAttribute('y', '20');
+          svgText.setAttribute('text-anchor', 'middle');
+          svgText.setAttribute('font-size', '14');
+          svgText.setAttribute('font-weight', 'bold');
+          svgText.setAttribute('font-family', 'Arial, sans-serif');
+          svgText.setAttribute('fill', '#333');
+          svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
+          svg.appendChild(svgText);
+          
+          statContainer.appendChild(svg);
+        }
         
         // Create the badge for the number (same as skills)
         const badge = document.createElement('span');

@@ -68,37 +68,9 @@ html.kr-theme-variant-royaume-ruthvenie {
    Purpose: Override inline styles and Bootstrap positioning
    ============================================================================ */
 
-/* Override Bootstrap navbar-inverse grey (rgb(34,34,34)) */
-.navbar-inverse {
-  background-color: rgba(0,0,0,0.95) !important;
-  background-image: none !important;
-}
-
 /* Hide top header with Kraland logo */
 #top {
   display: none !important;
-}
-
-/* Sticky footer - fixed to viewport bottom and avoids overlapping content */
-footer.navbar-inverse,
-.contentinfo,
-.footer {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-  z-index: 9999 !important;
-}
-/* Reserve space so page content doesn't get hidden behind the fixed footer */
-html {
-  height: 100% !important;
-}
-
-body {
-  min-height: 100vh !important;
-  padding-bottom: 60px !important;
 }
 
 /* Increase container width: remove 150px from each side */
@@ -115,96 +87,6 @@ body {
   background-color: #fff !important;
 }
 
-/* Style skills items with icons */
-#skills-panel .list-group-item {
-  padding: 8px !important;
-  text-align: center;
-  border: none !important;
-  min-height: 48px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-#skills-panel .list-group-item img {
-  display: block;
-}
-
-#skills-panel .badge {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-}
-
-/* Style col-leftest-stats similar to skills-panel */
-#col-leftest-stats {
-  display: block !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  border-radius: 5px !important;
-  background-color: #fff !important;
-}
-
-/* Style stat items with similar layout to skills */
-#col-leftest-stats .btn {
-  padding: 8px !important;
-  text-align: center;
-  border: none !important;
-  min-height: 48px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  position: relative !important;
-  background-color: #f5f5f5 !important;
-  color: var(--kr-text) !important;
-  border: 1px solid #ddd !important;
-  width: 100%;
-}
-
-#col-leftest-stats .btn:hover {
-  background-color: #e8e8e8 !important;
-}
-
-/* Position badge on stats if present */
-#col-leftest-stats .badge {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-}
-
-/* Position any back-to-top control inside the footer/contentinfo */
-footer.navbar-inverse .kraland-back-to-top,
-.contentinfo .kraland-back-to-top,
-.footer .kraland-back-to-top {
-  position: absolute !important;
-  right: 12px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  margin: 0 !important;
-}
-
-
-/* ============================================================================
-   3. BASE TYPOGRAPHY & UTILITIES
-   ============================================================================ */
-
-h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: .5rem;
-}
-
-h2 {
-  font-size: 1.35rem;
-  font-weight: 600;
-  margin-bottom: .35rem;
-}
-
-/* Double-class technique for higher specificity without !important */
-.text-muted.text-muted,
-small.text-muted,
-.small {
-  color: var(--kr-muted);
-}
 
 /* ============================================================================
    4. NAVIGATION
@@ -320,6 +202,7 @@ small.text-muted,
 
 /* Base button styles */
 .btn {
+  border: none;
   border-radius: var(--kr-radius);
   padding: .55rem 1rem;
   transition: transform .06s ease, box-shadow .12s ease;
@@ -376,15 +259,6 @@ button.btn.btn-primary,
   border-color: var(--kr-primary-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
-}
-
-/* Style the "Pouvoir" button (alert14) to match other action buttons */
-.btn.alert14,
-a.btn.alert14 {
-  background-color: var(--kr-primary) !important;
-  border-color: var(--kr-primary-dark) !important;
-  color: #fff !important;
-  box-shadow: 0 6px 18px rgba(165,18,13,0.12) !important;
 }
 
 .btn.alert14:hover,
@@ -491,7 +365,7 @@ html.kr-page-members .navbar-default .navbar-nav > li > a {
 .btn.btn-default,
 .btn-default.btn {
   background-color: #f8f9fa;
-  border-color: rgba(0,0,0,0.08);
+  border: none;
 }
 
 
@@ -635,6 +509,10 @@ input[type="checkbox"]:checked {
 .list-group-item {
   border: none;
   padding: .6rem .75rem;
+}
+
+.list-group-item.btn {
+  border: none !important;
 }
 
 .list-group-item.active,

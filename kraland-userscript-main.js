@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767458084800
+// @version      1.0.1767473537884
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -83,37 +83,9 @@ html.kr-theme-variant-royaume-ruthvenie {
    Purpose: Override inline styles and Bootstrap positioning
    ============================================================================ */
 
-/* Override Bootstrap navbar-inverse grey (rgb(34,34,34)) */
-.navbar-inverse {
-  background-color: rgba(0,0,0,0.95) !important;
-  background-image: none !important;
-}
-
 /* Hide top header with Kraland logo */
 #top {
   display: none !important;
-}
-
-/* Sticky footer - fixed to viewport bottom and avoids overlapping content */
-footer.navbar-inverse,
-.contentinfo,
-.footer {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-  z-index: 9999 !important;
-}
-/* Reserve space so page content doesn't get hidden behind the fixed footer */
-html {
-  height: 100% !important;
-}
-
-body {
-  min-height: 100vh !important;
-  padding-bottom: 60px !important;
 }
 
 /* Increase container width: remove 150px from each side */
@@ -130,96 +102,6 @@ body {
   background-color: #fff !important;
 }
 
-/* Style skills items with icons */
-#skills-panel .list-group-item {
-  padding: 8px !important;
-  text-align: center;
-  border: none !important;
-  min-height: 48px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-#skills-panel .list-group-item img {
-  display: block;
-}
-
-#skills-panel .badge {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-}
-
-/* Style col-leftest-stats similar to skills-panel */
-#col-leftest-stats {
-  display: block !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  border-radius: 5px !important;
-  background-color: #fff !important;
-}
-
-/* Style stat items with similar layout to skills */
-#col-leftest-stats .btn {
-  padding: 8px !important;
-  text-align: center;
-  border: none !important;
-  min-height: 48px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  position: relative !important;
-  background-color: #f5f5f5 !important;
-  color: var(--kr-text) !important;
-  border: 1px solid #ddd !important;
-  width: 100%;
-}
-
-#col-leftest-stats .btn:hover {
-  background-color: #e8e8e8 !important;
-}
-
-/* Position badge on stats if present */
-#col-leftest-stats .badge {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-}
-
-/* Position any back-to-top control inside the footer/contentinfo */
-footer.navbar-inverse .kraland-back-to-top,
-.contentinfo .kraland-back-to-top,
-.footer .kraland-back-to-top {
-  position: absolute !important;
-  right: 12px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  margin: 0 !important;
-}
-
-
-/* ============================================================================
-   3. BASE TYPOGRAPHY & UTILITIES
-   ============================================================================ */
-
-h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: .5rem;
-}
-
-h2 {
-  font-size: 1.35rem;
-  font-weight: 600;
-  margin-bottom: .35rem;
-}
-
-/* Double-class technique for higher specificity without !important */
-.text-muted.text-muted,
-small.text-muted,
-.small {
-  color: var(--kr-muted);
-}
 
 /* ============================================================================
    4. NAVIGATION
@@ -335,6 +217,7 @@ small.text-muted,
 
 /* Base button styles */
 .btn {
+  border: none;
   border-radius: var(--kr-radius);
   padding: .55rem 1rem;
   transition: transform .06s ease, box-shadow .12s ease;
@@ -391,15 +274,6 @@ button.btn.btn-primary,
   border-color: var(--kr-primary-dark);
   color: #fff;
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
-}
-
-/* Style the "Pouvoir" button (alert14) to match other action buttons */
-.btn.alert14,
-a.btn.alert14 {
-  background-color: var(--kr-primary) !important;
-  border-color: var(--kr-primary-dark) !important;
-  color: #fff !important;
-  box-shadow: 0 6px 18px rgba(165,18,13,0.12) !important;
 }
 
 .btn.alert14:hover,
@@ -506,7 +380,7 @@ html.kr-page-members .navbar-default .navbar-nav > li > a {
 .btn.btn-default,
 .btn-default.btn {
   background-color: #f8f9fa;
-  border-color: rgba(0,0,0,0.08);
+  border: none;
 }
 
 
@@ -650,6 +524,10 @@ input[type="checkbox"]:checked {
 .list-group-item {
   border: none;
   padding: .6rem .75rem;
+}
+
+.list-group-item.btn {
+  border: none !important;
 }
 
 .list-group-item.active,
@@ -1755,6 +1633,11 @@ hr[style*="border-top: 1px solid #337ab7"] {
         const iconUrl = skillIcons[skillName];
         if(!iconUrl) return;
 
+        // Preserve original classes and add Bootstrap styling for white background
+        // This gives skills the same white background appearance as stats
+        const originalClasses = item.className;
+        item.className = originalClasses + ' btn btn-default mini';
+
         item.innerHTML = '';
         
         const iconContainer = document.createElement('div');
@@ -1805,10 +1688,20 @@ hr[style*="border-top: 1px solid #337ab7"] {
       const colLeftestStats = document.getElementById('col-leftest-stats');
       if(!colLeftestStats || colLeftestStats.dataset.badgesTransformed) return;
 
+      // Stat icons mapping
+      const statIcons = {
+        'FOR': 'http://img7.kraland.org/2/mat/94/9402.gif',
+        'VOL': 'http://img7.kraland.org/2/mat/94/9415.gif',
+        'CHA': 'http://img7.kraland.org/2/mat/94/9416.gif',
+        'INT': 'http://img7.kraland.org/2/mat/94/9412.gif',
+        'GES': 'http://img7.kraland.org/2/mat/94/9405.gif',
+        'PER': 'http://img7.kraland.org/2/mat/94/9413.gif'
+      };
+
       colLeftestStats.querySelectorAll('.col-md-6 > a.btn').forEach(statBtn => {
-        // Get the text content
+        // Get the text content BEFORE we modify the DOM
         const text = statBtn.textContent.trim();
-        // Extract stat name: first 3-4 chars (FOR, CHA, INT, SAG, CON, DEX, VOL, PER, GES)
+        // Extract stat name: first 3-4 chars (FOR, CHA, INT, etc.)
         const match = text.match(/^([A-Z]+)/);
         const cleanStatName = match ? match[1] : text;
         
@@ -1816,11 +1709,17 @@ hr[style*="border-top: 1px solid #337ab7"] {
         const levelMatch = text.match(/(\d+)$/);
         const number = levelMatch ? levelMatch[1] : '0';
         
-        // Clear the button
-        statBtn.innerHTML = '';
+        // **KEY FIX**: Instead of clearing innerHTML, we'll use while loop to remove all children
+        // This PRESERVES the <a> element itself and all its event listeners
+        while (statBtn.firstChild) {
+          statBtn.removeChild(statBtn.firstChild);
+        }
         
-        // Apply same structure and styles as skills
-        statBtn.className = 'list-group-item ds_game alert111';
+        // PRESERVE original classes and ADD thème classes
+        // Keep the original 'btn', 'btn-default', 'mini', 'alert12X' classes
+        // Only add 'list-group-item' and 'ds_game' from the theme
+        const originalClasses = statBtn.className;
+        statBtn.className = originalClasses + ' list-group-item ds_game';
         statBtn.setAttribute('style', 'padding: 8px; display: flex; align-items: center; justify-content: center;');
         statBtn.title = cleanStatName;
         
@@ -1828,35 +1727,50 @@ hr[style*="border-top: 1px solid #337ab7"] {
         const statContainer = document.createElement('div');
         statContainer.setAttribute('style', 'position: relative; display: inline-block; width: 32px; height: 32px;');
         
-        // Create an SVG with the two letters (similar to image for skills)
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '32');
-        svg.setAttribute('height', '32');
-        svg.setAttribute('viewBox', '0 0 32 32');
-        svg.style.display = 'block';
+        // Get the icon URL for this stat, or fallback to first 2 letters in SVG
+        const iconUrl = statIcons[cleanStatName];
         
-        // Background rectangle
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('width', '32');
-        rect.setAttribute('height', '32');
-        rect.setAttribute('fill', '#f0f0f0');
-        rect.setAttribute('stroke', '#ccc');
-        rect.setAttribute('stroke-width', '1');
-        svg.appendChild(rect);
-        
-        // Text with stat abbreviation
-        const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        svgText.setAttribute('x', '16');
-        svgText.setAttribute('y', '20');
-        svgText.setAttribute('text-anchor', 'middle');
-        svgText.setAttribute('font-size', '14');
-        svgText.setAttribute('font-weight', 'bold');
-        svgText.setAttribute('font-family', 'Arial, sans-serif');
-        svgText.setAttribute('fill', '#333');
-        svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
-        svg.appendChild(svgText);
-        
-        statContainer.appendChild(svg);
+        if(iconUrl){
+          // Use image icon
+          const img = document.createElement('img');
+          img.src = iconUrl;
+          img.alt = cleanStatName;
+          img.title = cleanStatName;
+          img.style.width = '32px';
+          img.style.height = '32px';
+          img.style.display = 'block';
+          statContainer.appendChild(img);
+        }else{
+          // Fallback: Create an SVG with the two letters (for stats without icons)
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '32');
+          svg.setAttribute('height', '32');
+          svg.setAttribute('viewBox', '0 0 32 32');
+          svg.style.display = 'block';
+          
+          // Background rectangle
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('width', '32');
+          rect.setAttribute('height', '32');
+          rect.setAttribute('fill', '#f0f0f0');
+          rect.setAttribute('stroke', '#ccc');
+          rect.setAttribute('stroke-width', '1');
+          svg.appendChild(rect);
+          
+          // Text with stat abbreviation
+          const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          svgText.setAttribute('x', '16');
+          svgText.setAttribute('y', '20');
+          svgText.setAttribute('text-anchor', 'middle');
+          svgText.setAttribute('font-size', '14');
+          svgText.setAttribute('font-weight', 'bold');
+          svgText.setAttribute('font-family', 'Arial, sans-serif');
+          svgText.setAttribute('fill', '#333');
+          svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
+          svg.appendChild(svgText);
+          
+          statContainer.appendChild(svg);
+        }
         
         // Create the badge for the number (same as skills)
         const badge = document.createElement('span');
