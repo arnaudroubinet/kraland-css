@@ -152,11 +152,13 @@ try {
 } catch {}
 
 try {
+    $env:NODE_OPTIONS = "--max-old-space-size=256"
     if (Get-Command npx -ErrorAction SilentlyContinue) {
         npx http-server -p $Port --cors -c-1
     } else {
         npm exec -- http-server -p $Port --cors -c-1
     }
 } finally {
+    $env:NODE_OPTIONS = $null
     & $cleanup
 }

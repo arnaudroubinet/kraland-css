@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767394343769
+// @version      1.0.1767447812824
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -107,8 +107,48 @@ footer.navbar-inverse,
   z-index: 9999 !important;
 }
 /* Reserve space so page content doesn't get hidden behind the fixed footer */
+html {
+  height: 100% !important;
+}
+
 body {
+  min-height: 100vh !important;
   padding-bottom: 60px !important;
+}
+
+/* Increase container width: remove 150px from each side */
+.container {
+  max-width: 1608px !important;
+  width: 1608px !important;
+}
+
+/* Show skills panel (no longer collapsed by default) */
+#skills-panel {
+  display: block !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 5px !important;
+  background-color: #fff !important;
+}
+
+/* Style skills items with icons */
+#skills-panel .list-group-item {
+  padding: 8px !important;
+  text-align: center;
+  border: none !important;
+  min-height: 48px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+#skills-panel .list-group-item img {
+  display: block;
+}
+
+#skills-panel .badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
 }
 /* Position any back-to-top control inside the footer/contentinfo */
 footer.navbar-inverse .kraland-back-to-top,
@@ -1035,6 +1075,11 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   padding: .3rem .5rem;
 }
 
+/* ============================================================================
+   TOOLTIP: Disabled via JavaScript
+   Bootstrap tooltips are disabled in the userscript
+   ============================================================================ */
+
 
 /* ============================================================================
    END OF THEME
@@ -1081,6 +1126,12 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
       try{ replaceNavbarBrand(); }catch(e){/*ignore*/}
       try{ reorderBtnGroupXs(); }catch(e){/*ignore*/}
       try{ ensureSexStrong(); }catch(e){/*ignore*/}
+      try{ restructurePlatoColumns(); }catch(e){/*ignore*/}
+      try{ moveBtnGroupToCols(); }catch(e){/*ignore*/}
+      try{ moveSkillsPanelToCols(); }catch(e){/*ignore*/}
+      try{ transformToBootstrapGrid(); }catch(e){/*ignore*/}
+      try{ nameLeftSidebarDivs(); }catch(e){/*ignore*/}
+      try{ transformSkillsToIcons(); }catch(e){/*ignore*/}
 
       // Ensure dropdown menu anchors remain readable even if other styles override
       try{
@@ -1088,6 +1139,9 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
         const txt = `#navbar .dropdown-menu > li > a { color: var(--kr-text) !important; }\n#navbar .dropdown-menu > li > a:hover, #navbar .dropdown-menu > li > a:focus { color: var(--kr-primary) !important; background-color: rgba(0,0,0,0.03); }`;
         if(sd) sd.textContent = txt; else { sd = document.createElement('style'); sd.id='kr-dropdown-fix'; sd.textContent = txt; document.head.appendChild(sd); }
       }catch(e){/*ignore*/}
+
+      // Disable Bootstrap tooltips completely
+      try{ disableTooltips(); }catch(e){/*ignore*/}
 
       console.log('✓ Theme applied, CSS length:', cssText.length);
       return true;
@@ -1098,6 +1152,27 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
     const enabled = localStorage.getItem(ENABLE_KEY);
     if(enabled === 'false') return; // user disabled
     await applyThemeInline(BUNDLED_CSS);
+  }
+
+  // Disable Bootstrap tooltips by removing data-toggle attributes
+  function disableTooltips(){
+    try{
+      // Remove all tooltip data-toggle attributes to prevent Bootstrap from creating them
+      const elements = document.querySelectorAll('[data-toggle="tooltip"]');
+      elements.forEach(el => {
+        el.removeAttribute('data-toggle');
+        el.removeAttribute('data-placement');
+        el.removeAttribute('title');
+        el.removeAttribute('data-original-title');
+      });
+      // Also prevent any dynamically added tooltips by blocking the tooltip plugin
+      if(window.$ && window.$.fn && window.$.fn.tooltip){
+        window.$.fn.tooltip = function(){ return this; };
+      }
+      console.log('[Kraland Dev] Tooltips disabled, removed attributes from', elements.length, 'elements');
+    }catch(e){
+      console.warn('[Kraland Dev] Failed to disable tooltips:', e);
+    }
   }
 
   // tag activity icons by text so we can color them correctly
@@ -1347,6 +1422,261 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
     }catch(e){/*ignore*/}
   }
 
+  // Restructure plateau columns: create col-leftest (col-md-1) and adjust col-right to col-md-8
+  function restructurePlatoColumns(){
+    try{
+      const colLeft = document.getElementById('col-left');
+      const colRight = document.getElementById('col-right');
+      if(!colLeft || !colRight) return;
+
+      const parent = colLeft.parentElement;
+      if(!parent || !parent.classList.contains('row')) return;
+
+      // Create col-leftest if it doesn't exist
+      let colLeftest = document.getElementById('col-leftest');
+      if(!colLeftest){
+        colLeftest = document.createElement('div');
+        colLeftest.id = 'col-leftest';
+        colLeftest.className = 'col-md-1';
+        parent.insertBefore(colLeftest, colLeft);
+      }
+
+      // Update col-right class from col-md-9 to col-md-8 if needed
+      if(colRight.classList.contains('col-md-9')){
+        colRight.classList.remove('col-md-9');
+        colRight.classList.add('col-md-8');
+      }
+    }catch(e){/*ignore*/}
+  }
+
+  // Move btn-group-xs.center to col-leftest and wrap it in a named container
+  function moveBtnGroupToCols(){
+    try{
+      const btnGroupXs = document.querySelector('.btn-group-xs.center');
+      const colLeftest = document.getElementById('col-leftest');
+      if(!btnGroupXs || !colLeftest) return;
+
+      // Check if already moved
+      if(colLeftest.contains(btnGroupXs)) return;
+
+      // Create wrapper container with ID
+      let wrapper = document.getElementById('col-leftest-stats');
+      if(!wrapper){
+        wrapper = document.createElement('div');
+        wrapper.id = 'col-leftest-stats';
+        wrapper.className = 'panel panel-body';
+        colLeftest.appendChild(wrapper);
+      }
+
+      // Move btn-group-xs to wrapper if it's not already there
+      if(!wrapper.contains(btnGroupXs)){
+        wrapper.appendChild(btnGroupXs);
+      }
+    }catch(e){/*ignore*/}
+  }
+
+  // Transform col-leftest-stats and skills-panel to use Bootstrap grid
+  function transformToBootstrapGrid(){
+    try{
+      const colLeftestStats = document.getElementById('col-leftest-stats');
+      const skillsPanel = document.getElementById('skills-panel');
+      
+      // Transform col-leftest-stats: create a row with a column for each button
+      if(colLeftestStats && !colLeftestStats.classList.contains('grid-transformed')){
+        // Get the btn-group-xs
+        const btnGroup = colLeftestStats.querySelector('.btn-group-xs');
+        if(btnGroup){
+          const buttons = Array.from(btnGroup.querySelectorAll('a.btn'));
+          
+          if(buttons.length > 0){
+            // Clear the container
+            colLeftestStats.innerHTML = '';
+            
+            // Create a row
+            const row = document.createElement('div');
+            row.className = 'row';
+            
+            // Create a column for each button
+            buttons.forEach((btn) => {
+              const col = document.createElement('div');
+              col.className = 'col-md-2'; // 6 columns = 2 per row (12/6=2)
+              col.appendChild(btn);
+              row.appendChild(col);
+            });
+            
+            colLeftestStats.appendChild(row);
+            colLeftestStats.classList.add('grid-transformed');
+          }
+        }
+      }
+      
+      // Transform skills-panel: create a row with a column for each skill item
+      if(skillsPanel && !skillsPanel.classList.contains('grid-transformed')){
+        const items = Array.from(skillsPanel.querySelectorAll('a.list-group-item'));
+        
+        if(items.length > 0){
+          // Clear the container
+          skillsPanel.innerHTML = '';
+          
+          // Create a row
+          const row = document.createElement('div');
+          row.className = 'row';
+          
+          // Create a column for each item
+          items.forEach((item) => {
+            const col = document.createElement('div');
+            col.className = 'col-md-6'; // 2 columns per row (12/6=2)
+            col.appendChild(item);
+            row.appendChild(col);
+          });
+          
+          skillsPanel.appendChild(row);
+          skillsPanel.classList.add('grid-transformed');
+        }
+      }
+    }catch(e){/*ignore*/}
+  }
+
+  // Move skills panel body to col-leftest and rename it
+  function moveSkillsPanelToCols(){
+    try{
+      const colLeft = document.getElementById('col-left');
+      const colLeftest = document.getElementById('col-leftest');
+      if(!colLeft || !colLeftest) return;
+
+      // Find the old skills-panel div.panel.panel-default
+      const skillsPanelOld = colLeft.querySelector('.panel.panel-default');
+      if(!skillsPanelOld) return;
+
+      // Find the panel-body inside it
+      const panelBody = skillsPanelOld.querySelector('.panel-body');
+      if(!panelBody) return;
+
+      // If not already done, set the ID on panel-body and move it
+      if(!panelBody.id){
+        panelBody.id = 'skills-panel';
+        // Move panel-body to col-leftest
+        colLeftest.appendChild(panelBody);
+        // Remove the now-empty skills-panel container
+        skillsPanelOld.remove();
+      }
+    }catch(e){/*ignore*/}
+  }
+
+  // Name the sidebar divs in col-left for better CSS targeting and JS manipulation
+  function nameLeftSidebarDivs(){
+    try{
+      const colLeft = document.getElementById('col-left');
+      if(!colLeft) return;
+
+      // 1. Find and name player-main-panel: the main div.panel.panel-body inside col-left
+      let mainPanel = colLeft.querySelector('.panel.panel-body');
+      if(mainPanel && !mainPanel.id){
+        mainPanel.id = 'player-main-panel';
+      }
+
+      // 2. Find and name player-header-section: the list-group element (portrait section)
+      const headerSection = colLeft.querySelector('.list-group');
+      if(headerSection && !headerSection.id){
+        headerSection.id = 'player-header-section';
+      }
+
+      // 4. Find and name player-vitals-section: div.t.row
+      const vitalsSection = colLeft.querySelector('div.t.row');
+      if(vitalsSection && !vitalsSection.id){
+        vitalsSection.id = 'player-vitals-section';
+      }
+
+      // 5. Find and name player-actions-section: div.t that contains action buttons (Dormir, Prier, etc)
+      // It should be the last div.t element and contain btn-primary links
+      const allTDivs = Array.from(colLeft.querySelectorAll('div.t'));
+      if(allTDivs.length > 0){
+        const actionsSection = allTDivs[allTDivs.length - 1];
+        if(!actionsSection.id && actionsSection.querySelector('a.btn-primary')){
+          actionsSection.id = 'player-actions-section';
+        }
+      }
+    }catch(e){/*ignore*/}
+  }
+
+  // Transform skills items to show icons with badges instead of text
+  function transformSkillsToIcons(){
+    try{
+      const skillsPanel = document.getElementById('skills-panel');
+      if(!skillsPanel || skillsPanel.dataset.iconsTransformed) return;
+
+      const skillIcons = {
+        'Baratin': 'http://img7.kraland.org/2/mat/94/9401.gif',
+        'Combat Mains Nues': 'http://img7.kraland.org/2/mat/94/9402.gif',
+        'Combat Contact': 'http://img7.kraland.org/2/mat/94/9403.gif',
+        'Combat Distance': 'http://img7.kraland.org/2/mat/94/9404.gif',
+        'Commerce': 'http://img7.kraland.org/2/mat/94/9405.gif',
+        'Démolition': 'http://img7.kraland.org/2/mat/94/9406.gif',
+        'Discrétion': 'http://img7.kraland.org/2/mat/94/9407.gif',
+        'Éloquence': 'http://img7.kraland.org/2/mat/94/9408.gif',
+        'Falsification': 'http://img7.kraland.org/2/mat/94/9409.gif',
+        'Foi': 'http://img7.kraland.org/2/mat/94/9410.gif',
+        'Informatique': 'http://img7.kraland.org/2/mat/94/9411.gif',
+        'Médecine': 'http://img7.kraland.org/2/mat/94/9412.gif',
+        'Observation': 'http://img7.kraland.org/2/mat/94/9413.gif',
+        'Organisation': 'http://img7.kraland.org/2/mat/94/9414.gif',
+        'Pouvoir': 'http://img7.kraland.org/2/mat/94/9415.gif',
+        'Séduction': 'http://img7.kraland.org/2/mat/94/9416.gif',
+        'Survie': 'http://img7.kraland.org/2/mat/94/9417.gif',
+        'Vol': 'http://img7.kraland.org/2/mat/94/9418.gif'
+      };
+
+      skillsPanel.querySelectorAll('.list-group-item').forEach(item => {
+        const heading = item.querySelector('.list-group-item-heading');
+        const skillName = heading?.querySelector('.mini')?.textContent || '';
+        const level = item.querySelector('.mention')?.textContent || '0';
+        const iconUrl = skillIcons[skillName];
+        if(!iconUrl) return;
+
+        item.innerHTML = '';
+        
+        const iconContainer = document.createElement('div');
+        iconContainer.style.position = 'relative';
+        iconContainer.style.display = 'inline-block';
+        iconContainer.style.width = '32px';
+        iconContainer.style.height = '32px';
+
+        const img = document.createElement('img');
+        img.src = iconUrl;
+        img.alt = skillName;
+        img.title = skillName;
+        iconContainer.appendChild(img);
+
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = level;
+        badge.style.position = 'absolute';
+        badge.style.bottom = '-5px';
+        badge.style.right = '-5px';
+        badge.style.backgroundColor = '#d9534f';
+        badge.style.color = '#fff';
+        badge.style.borderRadius = '50%';
+        badge.style.width = '19px';
+        badge.style.height = '19px';
+        badge.style.display = 'flex';
+        badge.style.alignItems = 'center';
+        badge.style.justifyContent = 'center';
+        badge.style.fontSize = '11px';
+        badge.style.fontWeight = 'bold';
+        badge.style.border = '2px solid #fff';
+        iconContainer.appendChild(badge);
+
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'center';
+        item.style.padding = '8px';
+        item.appendChild(iconContainer);
+      });
+
+      skillsPanel.dataset.iconsTransformed = '1';
+    }catch(e){/*ignore*/}
+  }
+
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
     // MutationObserver to watch for removal of our style element
@@ -1364,6 +1694,11 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
       try{ ensureSexStrong(); }catch(e){}
       try{ ensureFooterSticky(); }catch(e){}
       try{ relocateKramailToLeft(); }catch(e){}
+      try{ restructurePlatoColumns(); }catch(e){}
+      try{ moveBtnGroupToCols(); }catch(e){}
+      try{ moveSkillsPanelToCols(); }catch(e){}
+      try{ transformToBootstrapGrid(); }catch(e){}
+      try{ nameLeftSidebarDivs(); }catch(e){}
       // style dynamically inserted signature editors
       try{ styleSignatureEditors(); }catch(e){}
       try{ ensureEditorClasses(); }catch(e){}
@@ -1999,6 +2334,11 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
             if(a){ setTimeout(() => styleSignatureEditors(), 60); setTimeout(() => styleSignatureEditors(), 200); setTimeout(() => styleSignatureEditors(), 600); setTimeout(() => aggressiveScanEditors(), 80); setTimeout(() => aggressiveScanEditors(), 240); setTimeout(() => aggressiveScanEditors(), 640); }
           }catch(er){}
         }, true);
+      }catch(e){}
+
+      // Periodically disable tooltips to catch dynamically added elements
+      try{
+        setInterval(() => { disableTooltips(); }, 1000);
       }catch(e){}
 
     }catch(e){ console.error('Kraland theme init failed', e); }

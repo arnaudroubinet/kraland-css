@@ -92,8 +92,48 @@ footer.navbar-inverse,
   z-index: 9999 !important;
 }
 /* Reserve space so page content doesn't get hidden behind the fixed footer */
+html {
+  height: 100% !important;
+}
+
 body {
+  min-height: 100vh !important;
   padding-bottom: 60px !important;
+}
+
+/* Increase container width: remove 150px from each side */
+.container {
+  max-width: 1608px !important;
+  width: 1608px !important;
+}
+
+/* Show skills panel (no longer collapsed by default) */
+#skills-panel {
+  display: block !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 5px !important;
+  background-color: #fff !important;
+}
+
+/* Style skills items with icons */
+#skills-panel .list-group-item {
+  padding: 8px !important;
+  text-align: center;
+  border: none !important;
+  min-height: 48px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+#skills-panel .list-group-item img {
+  display: block;
+}
+
+#skills-panel .badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
 }
 /* Position any back-to-top control inside the footer/contentinfo */
 footer.navbar-inverse .kraland-back-to-top,
@@ -1019,6 +1059,11 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
   height: 34px;
   padding: .3rem .5rem;
 }
+
+/* ============================================================================
+   TOOLTIP: Disabled via JavaScript
+   Bootstrap tooltips are disabled in the userscript
+   ============================================================================ */
 
 
 /* ============================================================================
