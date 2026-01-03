@@ -113,6 +113,7 @@
       try{ ensureEditorClasses(); }catch(e){/*ignore*/}
       try{ aggressiveScanEditors(); }catch(e){/*ignore*/}
       try{ ensurePageScoping(); }catch(e){/*ignore*/}
+      try{ ensurePlayerMainPanelRows(); }catch(e){/*ignore*/}
       
       console.log('✓ DOM transformations applied');
     }catch(e){ console.error('DOM transformations failed', e); }
@@ -327,7 +328,7 @@
     }catch(e){/*ignore*/ }
   }
 
-  // Ensure footer is fixed and back-to-top button is placed inside it
+  // Ensure footer is fixed and back-to-top button is placed inside the white container
   function ensureFooterSticky(){
     try{
       const footer = document.querySelector('footer, .footer, .contentinfo');
@@ -335,10 +336,17 @@
       const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
       let back = null;
       for(const s of selectors){ back = document.querySelector(s); if(back) break; }
-      if(back && back.parentElement !== footer){
-        footer.appendChild(back);
+      if(back){
         back.classList.add('kraland-back-to-top');
         if(!back.getAttribute('aria-label')) back.setAttribute('aria-label','Remonter en haut');
+        // Try to place it inside the white container
+        const whiteContainer = footer.querySelector('.container.white');
+        if(whiteContainer){
+          // Force move to white container
+          whiteContainer.appendChild(back);
+        } else if(back.parentElement !== footer){
+          footer.appendChild(back);
+        }
       }
       if(!document.body.style.paddingBottom) document.body.style.paddingBottom = '60px';
     }catch(e){/*ignore*/}
@@ -393,9 +401,21 @@
     }catch(e){/*ignore*/}
   }
 
+  // Helper function to check if we're on the plato page (/jouer)
+  function isPlatoPage(){
+    try{
+      const path = (location && location.pathname) || '';
+      // Check if we're on /jouer page (but not /jouer/communaute, etc.)
+      return path.indexOf('/jouer') === 0 && path !== '/jouer/communaute' && path !== '/jouer/communaute/membres';
+    }catch(e){ return false; }
+  }
+
   // Restructure plateau columns: create col-leftest (col-md-1) and adjust col-right to col-md-8
   function restructurePlatoColumns(){
     try{
+      // Only apply on plato pages
+      if(!isPlatoPage()) return;
+      
       const colLeft = document.getElementById('col-left');
       const colRight = document.getElementById('col-right');
       if(!colLeft || !colRight) return;
@@ -423,6 +443,9 @@
   // Move btn-group-xs.center to col-leftest and wrap it in a named container
   function moveBtnGroupToCols(){
     try{
+      // Only apply on plato pages
+      if(!isPlatoPage()) return;
+      
       const btnGroupXs = document.querySelector('.btn-group-xs.center');
       const colLeftest = document.getElementById('col-leftest');
       if(!btnGroupXs || !colLeftest) return;
@@ -806,6 +829,23 @@
     history.pushState = wrap(history.pushState);
     history.replaceState = wrap(history.replaceState);
     window.addEventListener('popstate', ()=> setTimeout(()=> ensureTheme(), 250));
+  }
+
+  // Ensure all direct child divs of #player-main-panel have the 'row' class
+  function ensurePlayerMainPanelRows(){
+    try{
+      const panel = document.getElementById('player-main-panel');
+      if(!panel) return;
+      
+      // Get all direct child divs
+      const childDivs = Array.from(panel.children).filter(child => child.tagName && child.tagName.toLowerCase() === 'div');
+      
+      childDivs.forEach(div => {
+        if(!div.classList.contains('row')){
+          div.classList.add('row');
+        }
+      });
+    }catch(e){/*ignore*/}
   }
 
   // Ensure page-specific scoping classes (members page, etc.)

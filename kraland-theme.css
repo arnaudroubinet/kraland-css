@@ -254,6 +254,35 @@ a.carousel-control.right{
    9. LINKS
    ============================================================================ */
 
+/*
+  Pagination est utilisé dans les rapports
+*/
+.pagination > li.active > a{
+  color: var(--kr-surface);
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
+}
+.pagination > li > a{
+  color: var(--kr-primary);
+}
+
+.pagination > li.active > a:hover{
+  color: var(--kr-surface);
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary);
+}
+.pagination > li > a:hover{
+  color: var(--kr-primary);
+}
+
+/*
+  .bg-primary est utilisé dans les rapports
+*/
+.bg-primary {
+  background-color: var(--kr-primary) !important;
+  color: var(--kr-surface) !important;
+}
+
 a:link,
 a:visited {
   color: var(--kr-highlight);
@@ -290,4 +319,20 @@ a.btn-primary:focus {
 
 hr[style*="border-top: 1px solid #337ab7"] {
   display: none !important;
+}
+
+/* ============================================================================
+   10. FOOTER - BACK TO TOP
+   Position the back-to-top button on the right side of the footer
+   ============================================================================ */
+
+footer .container.white {
+  position: relative;
+}
+
+.container.white .kraland-back-to-top {
+  position: absolute;
+  right: -5%;
+  top: 50%;
+  transform: translateY(-50%);
 }
