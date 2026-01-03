@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767480259888
+// @version      1.0.1767480304707
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -32,19 +32,6 @@
   --kr-avatar-size: 120px;
 }
 
-/* ============================================================================
-   2. LAYOUT - Sticky footer
-   ============================================================================ */
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  /* Margin bottom by footer height (52px) */
-  margin-bottom: 52px;
-}
 
 /* ============================================================================
    Theme variants available via Tampermonkey UI
@@ -95,6 +82,13 @@ html.kr-theme-variant-royaume-ruthvenie {
 #top {
   display: none !important;
 }
+
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 
 /* Increase container width: remove 150px from each side */
 .container {
