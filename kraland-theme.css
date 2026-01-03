@@ -135,6 +135,42 @@ body {
   bottom: -8px;
   right: -8px;
 }
+
+/* Style col-leftest-stats similar to skills-panel */
+#col-leftest-stats {
+  display: block !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 5px !important;
+  background-color: #fff !important;
+}
+
+/* Style stat items with similar layout to skills */
+#col-leftest-stats .btn {
+  padding: 8px !important;
+  text-align: center;
+  border: none !important;
+  min-height: 48px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  position: relative !important;
+  background-color: #f5f5f5 !important;
+  color: var(--kr-text) !important;
+  border: 1px solid #ddd !important;
+  width: 100%;
+}
+
+#col-leftest-stats .btn:hover {
+  background-color: #e8e8e8 !important;
+}
+
+/* Position badge on stats if present */
+#col-leftest-stats .badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+}
+
 /* Position any back-to-top control inside the footer/contentinfo */
 footer.navbar-inverse .kraland-back-to-top,
 .contentinfo .kraland-back-to-top,

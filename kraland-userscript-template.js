@@ -42,6 +42,7 @@
       try{ transformToBootstrapGrid(); }catch(e){/*ignore*/}
       try{ nameLeftSidebarDivs(); }catch(e){/*ignore*/}
       try{ transformSkillsToIcons(); }catch(e){/*ignore*/}
+      try{ transformStatsToNotifications(); }catch(e){/*ignore*/}
 
       // Ensure dropdown menu anchors remain readable even if other styles override
       try{
@@ -409,7 +410,7 @@
             // Create a column for each button
             buttons.forEach((btn) => {
               const col = document.createElement('div');
-              col.className = 'col-md-2'; // 6 columns = 2 per row (12/6=2)
+              col.className = 'col-md-6'; // 2 columns = 2 per row (12/6=2)
               col.appendChild(btn);
               row.appendChild(col);
             });
@@ -584,6 +585,79 @@
       });
 
       skillsPanel.dataset.iconsTransformed = '1';
+    }catch(e){/*ignore*/}
+  }
+
+  // Transform stats to show with badges - same structure as skills
+  function transformStatsToNotifications(){
+    try{
+      const colLeftestStats = document.getElementById('col-leftest-stats');
+      if(!colLeftestStats || colLeftestStats.dataset.badgesTransformed) return;
+
+      colLeftestStats.querySelectorAll('.col-md-6 > a.btn').forEach(statBtn => {
+        // Get the text content
+        const text = statBtn.textContent.trim();
+        // Extract stat name: first 3-4 chars (FOR, CHA, INT, SAG, CON, DEX, VOL, PER, GES)
+        const match = text.match(/^([A-Z]+)/);
+        const cleanStatName = match ? match[1] : text;
+        
+        // Extract the level number from text (last part after the stat name)
+        const levelMatch = text.match(/(\d+)$/);
+        const number = levelMatch ? levelMatch[1] : '0';
+        
+        // Clear the button
+        statBtn.innerHTML = '';
+        
+        // Apply same structure and styles as skills
+        statBtn.className = 'list-group-item ds_game alert111';
+        statBtn.setAttribute('style', 'padding: 8px; display: flex; align-items: center; justify-content: center;');
+        statBtn.title = cleanStatName;
+        
+        // Create a container for position relative (same as skills)
+        const statContainer = document.createElement('div');
+        statContainer.setAttribute('style', 'position: relative; display: inline-block; width: 32px; height: 32px;');
+        
+        // Create an SVG with the two letters (similar to image for skills)
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '32');
+        svg.setAttribute('height', '32');
+        svg.setAttribute('viewBox', '0 0 32 32');
+        svg.style.display = 'block';
+        
+        // Background rectangle
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '32');
+        rect.setAttribute('height', '32');
+        rect.setAttribute('fill', '#f0f0f0');
+        rect.setAttribute('stroke', '#ccc');
+        rect.setAttribute('stroke-width', '1');
+        svg.appendChild(rect);
+        
+        // Text with stat abbreviation
+        const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        svgText.setAttribute('x', '16');
+        svgText.setAttribute('y', '20');
+        svgText.setAttribute('text-anchor', 'middle');
+        svgText.setAttribute('font-size', '14');
+        svgText.setAttribute('font-weight', 'bold');
+        svgText.setAttribute('font-family', 'Arial, sans-serif');
+        svgText.setAttribute('fill', '#333');
+        svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
+        svg.appendChild(svgText);
+        
+        statContainer.appendChild(svg);
+        
+        // Create the badge for the number (same as skills)
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = number;
+        badge.setAttribute('style', 'position: absolute; bottom: -5px; right: -5px; background-color: rgb(217, 83, 79); color: rgb(255, 255, 255); border-radius: 50%; width: 19px; height: 19px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; border: 2px solid rgb(255, 255, 255);');
+        statContainer.appendChild(badge);
+        
+        statBtn.appendChild(statContainer);
+      });
+
+      colLeftestStats.dataset.badgesTransformed = '1';
     }catch(e){/*ignore*/}
   }
 

@@ -11,7 +11,7 @@ kraland-userscript-main.js ne doit pas être modifié directement, il est géné
 
 Tu peux modifier kraland-userscript-template.js et kraland-theme.css pour faire tes modifications.
 
-Ce userscript tampermonkey est destiné à être utilisé avec le site http://www.kraland.fr uniquement.
+Ce userscript tampermonkey est destiné à être utilisé avec le site http://www.kraland.org uniquement.
 Tu ne peux pas modifier le html et le css du site directement, mais uniquement via ce userscript et ce css de surcharge.
 
 Tu dois toujours utiliser playwright mcp tools pour analyser le site et tester les modifications.
