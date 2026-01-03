@@ -21,6 +21,7 @@
   // Clés de cache pour éviter les rechargements inutiles
   const CACHE_KEY_CSS = 'kr_dev_css_hash';
   const CACHE_KEY_JS = 'kr_dev_js_hash';
+  const CACHE_KEY_CSS_CONTENT = 'kr_dev_css_content'; // Cache CSS content for instant injection
   
   // Intervalle de vérification (en ms)
   const CHECK_INTERVAL = 2000;
@@ -29,6 +30,64 @@
   let cssHash = '';
   let jsHash = '';
   let scriptLoaded = false;
+
+  // ============================================
+  // ANTI-FOUC: Hide page immediately if theme is enabled
+  // This prevents the flash of unstyled content
+  // ============================================
+  (function antiFOUC(){
+    try{
+      const enabled = localStorage.getItem('kr-theme-enabled');
+      if(enabled !== 'true') return; // Theme disabled, show page normally
+      
+      // Hide page immediately to prevent FOUC
+      const hideStyle = document.createElement('style');
+      hideStyle.id = 'kr-anti-fouc';
+      hideStyle.textContent = 'html.kr-loading { visibility: hidden !important; }';
+      (document.head || document.documentElement).appendChild(hideStyle);
+      document.documentElement.classList.add('kr-loading');
+    }catch(e){}
+  })();
+
+  // ============================================
+  // IMMEDIATE CSS INJECTION (before any async code)
+  // Use cached CSS from localStorage to prevent FOUC
+  // ============================================
+  (function injectCachedCSSImmediately(){
+    try{
+      const enabled = localStorage.getItem('kr-theme-enabled');
+      if(enabled !== 'true') return; // Theme disabled
+      
+      const cachedCSS = localStorage.getItem(CACHE_KEY_CSS_CONTENT);
+      if(!cachedCSS) {
+        // No cache yet - reveal page anyway to avoid blank screen
+        document.documentElement.classList.remove('kr-loading');
+        return;
+      }
+      
+      // Inject cached CSS immediately
+      const st = document.createElement('style');
+      st.id = 'kraland-theme-style';
+      st.textContent = cachedCSS;
+      
+      const target = document.head || document.documentElement;
+      if(target) target.appendChild(st);
+      
+      // Add variant class immediately
+      const variant = localStorage.getItem('kr-theme-variant') || 'kraland';
+      document.documentElement.classList.add('kr-theme-enabled');
+      document.documentElement.classList.add('kr-theme-variant-' + variant);
+      if(variant === 'high-contrast'){
+        document.documentElement.classList.add('kr-theme-high-contrast');
+      }
+      
+      // CSS is ready - reveal page
+      document.documentElement.classList.remove('kr-loading');
+    }catch(e){
+      // On error, reveal page
+      document.documentElement.classList.remove('kr-loading');
+    }
+  })();
 
   // Calcule un hash simple pour détecter les changements
   function simpleHash(str) {
@@ -62,6 +121,8 @@
             if (newHash !== cssHash) {
               cssHash = newHash;
               localStorage.setItem(CACHE_KEY_CSS, newHash);
+              // Cache CSS content for immediate injection on next page load
+              localStorage.setItem(CACHE_KEY_CSS_CONTENT, css);
               
               let style = document.getElementById('kraland-theme-style');
               if (!style) {

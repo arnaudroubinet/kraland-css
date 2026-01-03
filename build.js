@@ -23,7 +23,7 @@ const version = `1.0.${timestamp}`;
 // Prepend a userscript metadata header to the generated file so it is
 // self-contained when installed directly. The timestamp is embedded in
 // the `@version` field to help with cache-busting/release tracking.
-const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    https://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled)\n// @match        http://www.kraland.org/*\n// @match        https://www.kraland.org/*\n// @run-at       document-end\n// @grant        none\n// ==/UserScript==\n\n`;
+const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    https://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled)\n// @match        http://www.kraland.org/*\n// @match        https://www.kraland.org/*\n// @run-at       document-idle\n// @grant        none\n// ==/UserScript==\n\n`;
 
 // Replace placeholder and prepend header
 const output = userscriptHeader + template.replace('__CSS_CONTENT__', css.replace(/`/g, '\\`').replace(/\$/g, '\\$'));

@@ -9,8 +9,51 @@
   // known theme slugs for persistence and class management
   const THEME_VARIANTS = ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','high-contrast'];
 
+  // ============================================
+  // IMMEDIATE CSS INJECTION (before any async code)
+  // Runs at document-idle, so no FOUC risk
+  // ============================================
+  // ============================================
+  // IMMEDIATE CSS INJECTION (before any async code)
+  // Runs at document-idle, so no FOUC risk
+  // ============================================
+  (function injectCSSImmediately(){
+    try{
+      const enabled = localStorage.getItem(ENABLE_KEY);
+      if(enabled !== 'true') return; // Theme disabled, don't inject
+      
+      // Create style element and inject CSS immediately
+      const st = document.createElement('style');
+      st.id = STYLE_ID;
+      st.textContent = BUNDLED_CSS;
+      
+      // Inject into <head>
+      const target = document.head || document.documentElement;
+      if(target){
+        target.appendChild(st);
+      }
+      
+      // Add variant class immediately
+      const variant = localStorage.getItem(VARIANT_KEY) || 'kraland';
+      document.documentElement.classList.add('kr-theme-enabled');
+      document.documentElement.classList.add('kr-theme-variant-' + variant);
+      if(variant === 'high-contrast'){
+        document.documentElement.classList.add('kr-theme-high-contrast');
+      }
+    }catch(e){
+      console.error('CSS injection failed', e);
+    }
+  })();
+
   async function applyThemeInline(cssText){
     try{
+      // Check if theme is enabled before injecting CSS
+      const enabled = localStorage.getItem(ENABLE_KEY);
+      if(enabled !== 'true'){
+        // Theme is disabled, don't inject CSS
+        return false;
+      }
+
       let st = document.getElementById(STYLE_ID);
       if(st){ st.textContent = cssText; }
       else{ st = document.createElement('style'); st.id = STYLE_ID; st.textContent = cssText; document.head.appendChild(st); }
@@ -29,21 +72,6 @@
       const isMembers = (location && ( (location.pathname && location.pathname.indexOf('/communaute/membres') === 0) || (location.href && location.href.indexOf('/communaute/membres') !== -1) ));
       document.documentElement.classList.toggle('kr-page-members', !!isMembers);
 
-      // tag activity icons (members / characters / online) so we can style them
-      try{ markActiveIcons(); }catch(e){/*ignore*/}
-      try{ replaceMcAnchors(); }catch(e){/*ignore*/}
-      try{ replaceSImages(); }catch(e){/*ignore*/}
-      try{ replaceNavbarBrand(); }catch(e){/*ignore*/}
-      try{ reorderBtnGroupXs(); }catch(e){/*ignore*/}
-      try{ ensureSexStrong(); }catch(e){/*ignore*/}
-      try{ restructurePlatoColumns(); }catch(e){/*ignore*/}
-      try{ moveBtnGroupToCols(); }catch(e){/*ignore*/}
-      try{ moveSkillsPanelToCols(); }catch(e){/*ignore*/}
-      try{ transformToBootstrapGrid(); }catch(e){/*ignore*/}
-      try{ nameLeftSidebarDivs(); }catch(e){/*ignore*/}
-      try{ transformSkillsToIcons(); }catch(e){/*ignore*/}
-      try{ transformStatsToNotifications(); }catch(e){/*ignore*/}
-
       // Ensure dropdown menu anchors remain readable even if other styles override
       try{
         let sd = document.getElementById('kr-dropdown-fix');
@@ -54,14 +82,46 @@
       // Disable Bootstrap tooltips completely
       try{ disableTooltips(); }catch(e){/*ignore*/}
 
-      console.log('✓ Theme applied, CSS length:', cssText.length);
+      console.log('✓ Theme CSS injected, length:', cssText.length);
       return true;
     }catch(e){ console.error('Kraland theme apply failed', e); return false; }
   }
 
+  // Apply all DOM transformations (called after DOM is stable)
+  function applyDOMTransformations(){
+    try{
+      const enabled = localStorage.getItem(ENABLE_KEY);
+      if(enabled !== 'true') return;
+      
+      // tag activity icons (members / characters / online) so we can style them
+      try{ markActiveIcons(); }catch(e){/*ignore*/}
+      try{ replaceMcAnchors(); }catch(e){/*ignore*/}
+      try{ replaceSImages(); }catch(e){/*ignore*/}
+      try{ replaceNavbarBrand(); }catch(e){/*ignore*/}
+      try{ reorderBtnGroupXs(); }catch(e){/*ignore*/}
+      try{ ensureSexStrong(); }catch(e){/*ignore*/}
+      try{ ensureFooterSticky(); }catch(e){/*ignore*/}
+      try{ relocateKramailToLeft(); }catch(e){/*ignore*/}
+      try{ restructurePlatoColumns(); }catch(e){/*ignore*/}
+      try{ moveBtnGroupToCols(); }catch(e){/*ignore*/}
+      try{ moveSkillsPanelToCols(); }catch(e){/*ignore*/}
+      try{ transformToBootstrapGrid(); }catch(e){/*ignore*/}
+      try{ nameLeftSidebarDivs(); }catch(e){/*ignore*/}
+      try{ transformSkillsToIcons(); }catch(e){/*ignore*/}
+      try{ transformStatsToNotifications(); }catch(e){/*ignore*/}
+      try{ styleSignatureEditors(); }catch(e){/*ignore*/}
+      try{ ensureEditorClasses(); }catch(e){/*ignore*/}
+      try{ aggressiveScanEditors(); }catch(e){/*ignore*/}
+      try{ ensurePageScoping(); }catch(e){/*ignore*/}
+      
+      console.log('✓ DOM transformations applied');
+    }catch(e){ console.error('DOM transformations failed', e); }
+  }
+
   async function ensureTheme(){
     const enabled = localStorage.getItem(ENABLE_KEY);
-    if(enabled === 'false') return; // user disabled
+    // Theme disabled by default, only load if explicitly enabled
+    if(enabled !== 'true') return;
     await applyThemeInline(BUNDLED_CSS);
   }
 
@@ -663,34 +723,45 @@
 
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
-    // MutationObserver to watch for removal of our style element
+    // Flag to track if initial DOM transformations have been applied
+    let domTransformationsApplied = false;
+    
+    // MutationObserver to watch for removal of our style element and AJAX content
     const mo = new MutationObserver((mutations)=>{
       const enabled = localStorage.getItem(ENABLE_KEY);
-      if(enabled === 'false') return;
-      const present = !!document.getElementById(STYLE_ID);
-      if(!present){
-        applyThemeInline(BUNDLED_CSS).catch(()=>{});
+      
+      // Only apply theme if enabled
+      if(enabled === 'true'){
+        // Check if our style element was removed
+        const present = !!document.getElementById(STYLE_ID);
+        if(!present){
+          applyThemeInline(BUNDLED_CSS).catch(()=>{});
+        }
+        
+        // Apply DOM transformations only once (they persist)
+        if(!domTransformationsApplied){
+          applyDOMTransformations();
+          domTransformationsApplied = true;
+        }
+        
+        // Check for new AJAX content that needs styling (editors)
+        const hasNewAjaxContent = mutations.some(m => 
+          Array.from(m.addedNodes || []).some(n => 
+            n.nodeType === 1 && (
+              (n.id && n.id.indexOf('ajax-') === 0) ||
+              (n.querySelector && n.querySelector('[id^="ajax-"]'))
+            )
+          )
+        );
+        
+        if(hasNewAjaxContent){
+          try{ styleSignatureEditors(); }catch(e){}
+          try{ ensureEditorClasses(); }catch(e){}
+        }
       }
-      // DOM changes might affect the sidebar composition
-      try{ markActiveIcons(); }catch(e){}
-      try{ replaceMcAnchors(); }catch(e){}
-      try{ reorderBtnGroupXs(); }catch(e){}
-      try{ ensureSexStrong(); }catch(e){}
-      try{ ensureFooterSticky(); }catch(e){}
-      try{ relocateKramailToLeft(); }catch(e){}
-      try{ restructurePlatoColumns(); }catch(e){}
-      try{ moveBtnGroupToCols(); }catch(e){}
-      try{ moveSkillsPanelToCols(); }catch(e){}
-      try{ transformToBootstrapGrid(); }catch(e){}
-      try{ nameLeftSidebarDivs(); }catch(e){}
-      // style dynamically inserted signature editors
-      try{ styleSignatureEditors(); }catch(e){}
-      try{ ensureEditorClasses(); }catch(e){}
-      try{ aggressiveScanEditors(); }catch(e){}
-      // Ensure navbar brand uses the correct logo for the current variant
-      try{ replaceNavbarBrand(); }catch(e){}
-      // ensure page-scoped classes (e.g., members page) are kept in sync
-      try{ ensurePageScoping(); }catch(e){}
+      
+      // Always update toggle button (user needs to see it regardless of theme state)
+      try{ insertToggleCSSButton(); }catch(e){}
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
@@ -710,28 +781,39 @@
   }
 
   // Apply a theme variant chosen by the user via Tampermonkey UI
-  function applyThemeVariant(variant){
+  function applyThemeVariant(variant, skipReload = false){
     try{
       // Known variants (shared constant)
       const variants = THEME_VARIANTS.slice();
 
       if(!variant || variant === 'disable'){
-        // Disable theme: clear enabled flag and remove our style element
+        // Disable theme: clear enabled flag
         localStorage.setItem(ENABLE_KEY, 'false');
-        localStorage.removeItem(VARIANT_KEY);
-        const st = document.getElementById(STYLE_ID);
-        if(st && st.parentElement) st.parentElement.removeChild(st);
-        document.documentElement.classList.remove('kr-theme-enabled');
-        // remove any variant classes we previously set
-        variants.forEach(v => document.documentElement.classList.remove('kr-theme-variant-'+v));
+        // NOTE: We do NOT remove VARIANT_KEY so we can remember the previous theme choice
+        // when re-enabling later
+        
+        // Reload page to get a clean DOM state (transformations are not reversible)
+        if(!skipReload){
+          location.reload();
+        }
         return;
       }
+
+      // Check if we're enabling from a disabled state (needs reload to apply DOM transformations)
+      const wasDisabled = localStorage.getItem(ENABLE_KEY) !== 'true';
 
       // enable
       localStorage.setItem(ENABLE_KEY, 'true');
       // store the exact slug so it persists across page loads
       localStorage.setItem(VARIANT_KEY, variant);
 
+      // If enabling from disabled state, reload to apply DOM transformations cleanly
+      if(wasDisabled && !skipReload){
+        location.reload();
+        return;
+      }
+
+      // If already enabled, just switch variant (no reload needed)
       // remove all variant classes then add the requested one
       THEME_VARIANTS.forEach(v => document.documentElement.classList.remove('kr-theme-variant-'+v));
       try{ document.documentElement.classList.add('kr-theme-variant-'+variant); }catch(e){}
@@ -739,9 +821,69 @@
       // Reapply inline style and theme variables
       try{ applyThemeInline(BUNDLED_CSS); }catch(e){}
 
+      // Update navbar logo for the new variant
+      try{ replaceNavbarBrand(); }catch(e){}
+
       // ensure any remaining theme markers are correct
       document.documentElement.classList.add('kr-theme-enabled');
     }catch(e){console.log('applyThemeVariant error', e);}  
+  }
+
+  // Insert toggle CSS button in navbar, left of globe button
+  function insertToggleCSSButton(){
+    try{
+      // Check if button already exists to avoid duplication
+      if(document.getElementById('kr-toggle-css-btn')) return;
+
+      // Find the openMap button: <a href="" onclick="javascript:openMap();return false;"><i class="fa fa-globe"></i></a>
+      const mapBtn = Array.from(document.querySelectorAll('a')).find(a => 
+        a.getAttribute('onclick') && a.getAttribute('onclick').indexOf('openMap') !== -1
+      );
+      if(!mapBtn) return;
+
+      const mapLi = mapBtn.closest('li');
+      if(!mapLi || !mapLi.parentElement) return;
+
+      // Create new <li> for the toggle button
+      const newLi = document.createElement('li');
+      const togglBtn = document.createElement('a');
+      togglBtn.href = '';
+      togglBtn.id = 'kr-toggle-css-btn';
+      togglBtn.innerHTML = '<i class="fa fa-palette"></i>';
+      
+      // Function to update button title based on current state
+      function updateButtonTitle(){
+        const enabled = localStorage.getItem(ENABLE_KEY);
+        if(enabled === 'false'){
+          togglBtn.setAttribute('title', 'Activer la surcharge CSS');
+        }else{
+          togglBtn.setAttribute('title', 'Désactiver la surcharge CSS');
+        }
+      }
+      
+      // Initialize title
+      updateButtonTitle();
+      
+      // Click handler: toggle CSS surcharge state
+      togglBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        const enabled = localStorage.getItem(ENABLE_KEY);
+        
+        if(enabled !== 'true'){
+          // CSS is disabled, re-enable with previous theme (or default to 'kraland')
+          applyThemeVariant(localStorage.getItem(VARIANT_KEY) || 'kraland');
+        }else{
+          // CSS is enabled, disable it (will reload page)
+          applyThemeVariant('disable');
+        }
+        
+        return false;
+      });
+
+      newLi.appendChild(togglBtn);
+      // Insert new <li> before the map <li>
+      mapLi.parentElement.insertBefore(newLi, mapLi);
+    }catch(e){ console.log('insertToggleCSSButton error', e); }
   }
 
   // Insert a small UI control on /profil/interface to let the user choose a Tampermonkey theme
@@ -799,8 +941,20 @@
               const sel = form.querySelector('input[name="kr-theme"]:checked');
               if(!sel) return;
               const val = sel.value;
-              if(val === 'disable') applyThemeVariant('disable'); else applyThemeVariant(val);
-              try{ const t = document.createElement('div'); t.className='alert alert-success'; t.textContent='Thème appliqué: '+val; container.appendChild(t); setTimeout(()=> t.parentElement && t.parentElement.removeChild(t), 1400); }catch(e){}
+              
+              // Show feedback before reload
+              try{ 
+                const t = document.createElement('div'); 
+                t.className='alert alert-success'; 
+                t.textContent = val === 'disable' ? 'Désactivation du thème...' : 'Application du thème: '+val; 
+                container.appendChild(t); 
+              }catch(e){}
+              
+              // Apply variant (will trigger reload)
+              setTimeout(() => {
+                if(val === 'disable') applyThemeVariant('disable'); 
+                else applyThemeVariant(val);
+              }, 300);
             }catch(er){console.log('kr-theme form change error', er);}        
           });
 
@@ -1236,8 +1390,8 @@
         if(tryAppend()){ clearInterval(int); }
         else if(attempts >= maxAttempts){ clearInterval(int); console.log('kr: failed to inject page-context script after attempts'); }
       }, 250);
-    }catch(e){console.log('injectPageContextScript error', e);} 
-  }  }
+    }catch(e){console.log('injectPageContextScript error', e);}} 
+  }
 
   // Tag any editor containers with `.editeur-text` so CSS can target them uniformly
   function ensureEditorClasses(){
@@ -1262,31 +1416,83 @@
   // Add to startObservers' MO callback earlier (we already trigger styleSignatureEditors() on init)
   
 
+  // Get theme state - single source of truth
+  // Initializes localStorage if needed and returns boolean
+  function getThemeState(){
+    if(localStorage.getItem(ENABLE_KEY) === null){
+      localStorage.setItem(ENABLE_KEY, 'false');
+    }
+    return localStorage.getItem(ENABLE_KEY) === 'true';
+  }
+
   // Initial bootstrap
   (async function init(){
     try{
-      // Apply immediately if enabled
-      if(localStorage.getItem(ENABLE_KEY) === null) localStorage.setItem(ENABLE_KEY,'true');
-      console.log('Kraland theme initializing...');
-      await ensureTheme();
-      startObservers();
-      try{ ensureFooterSticky(); }catch(e){}
-      try{ relocateKramailToLeft(); }catch(e){}
-      try{ styleSignatureEditors(); }catch(e){}
-      try{ aggressiveScanEditors(); }catch(e){}
-      try{ observeEditorInsertions(); }catch(e){}
-      try{ injectPageContextScript(); }catch(e){}
-
-      // Ensure page-scoped classes are applied after initial load
-      try{ ensurePageScoping(); }catch(e){}
+      // ============================================
+      // PHASE 1: INITIALIZATION & CLEANUP
+      // ============================================
+      // Get the definitive theme state before any modifications
+      const themeEnabled = getThemeState();
+      console.log('Kraland theme initializing... (enabled:', themeEnabled, ')');
+      
+      // Clean up any orphaned CSS before page becomes visible
+      const existingStyle = document.getElementById(STYLE_ID);
+      if(!themeEnabled && existingStyle && existingStyle.parentElement){
+        existingStyle.parentElement.removeChild(existingStyle);
+      }
+      
+      // ============================================
+      // PHASE 2: UI CONTROLS (always needed)
+      // ============================================
+      // These are safe to always inject - they allow the user to toggle the theme
+      try{ insertToggleCSSButton(); }catch(e){}
       try{ insertTampermonkeyThemeUI(); }catch(e){}
+      
+      // ============================================
+      // PHASE 3: CONDITIONAL THEME SETUP
+      // ============================================
+      // Only apply theme if explicitly enabled
+      if(themeEnabled){
+        // Inject CSS first (document-start timing)
+        await ensureTheme();
+        
+        // Wait for DOM to be ready before applying transformations
+        if(document.readyState === 'loading'){
+          document.addEventListener('DOMContentLoaded', ()=>{
+            applyDOMTransformations();
+          }, { once: true });
+        } else {
+          // DOM already loaded
+          applyDOMTransformations();
+        }
+        
+        // Extra transforms not covered by applyDOMTransformations
+        try{ observeEditorInsertions(); }catch(e){}
+        try{ injectPageContextScript(); }catch(e){}
+        
+        // Set up observers to maintain theme on SPA navigation and DOM changes
+        startObservers();
+      } else {
+        // Theme is disabled - still set up basic observers but they won't apply transformations
+        startObservers();
+      }
 
       // DEBUG
       setTimeout(debugPageStructure, 1000);
       // Start periodic editor checks for first 60s to catch late AJAX inserts or missed wrappers
       try{ startPeriodicEditorChecks(); }catch(e){}
       // Move our style element to the end of the <head> after a short delay so it takes precedence over late-loading site CSS
-      try{ setTimeout(()=>{ const st = document.getElementById(STYLE_ID); if(st && st.parentElement) st.parentElement.appendChild(st); }, 1000); }catch(e){}
+      // BUT ONLY if the theme is enabled
+      try{ setTimeout(()=>{ 
+        const st = document.getElementById(STYLE_ID); 
+        const themeEnabled = localStorage.getItem(ENABLE_KEY) === 'true';
+        if(themeEnabled && st && st.parentElement){
+          st.parentElement.appendChild(st);
+        } else if(!themeEnabled && st && st.parentElement){
+          // Remove it if theme is disabled
+          st.parentElement.removeChild(st);
+        }
+      }, 1000); }catch(e){}
       // ensure color pickers show correctly after init
       try{ await new Promise(r => setTimeout(r, 500)); fixColorButtons(); }catch(e){}
       // wrap AJAX update helpers used by the site so we can re-style dynamic inserts

@@ -378,6 +378,24 @@ button.btn.btn-primary,
   box-shadow: 0 6px 18px rgba(165,18,13,0.12);
 }
 
+/* Style the "Pouvoir" button (alert14) to match other action buttons */
+.btn.alert14,
+a.btn.alert14 {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(165,18,13,0.12) !important;
+}
+
+.btn.alert14:hover,
+.btn.alert14:focus,
+a.btn.alert14:hover,
+a.btn.alert14:focus {
+  background-color: var(--kr-primary-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
+  box-shadow: 0 10px 24px rgba(165,18,13,0.14) !important;
+}
+
 /* Members page: target only buttons inside panels/wells and member containers to avoid affecting the top navbar */
 html.kr-page-members .panel .btn,
 html.kr-page-members .panel-body .btn,
@@ -1101,6 +1119,13 @@ html.kr-theme-enabled.kr-page-members [id^="ajax-s"] .btn.btn-xs {
    Bootstrap tooltips are disabled in the userscript
    ============================================================================ */
 
+/* ============================================================================
+   HIDE UNWANTED HR ELEMENT
+   ============================================================================ */
+
+hr[style*="border-top: 1px solid #337ab7"] {
+  display: none !important;
+}
 
 /* ============================================================================
    END OF THEME

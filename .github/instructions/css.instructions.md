@@ -21,6 +21,8 @@ Tu en dois pas écrire ou executer de test avec playwright qui s'execute avec NP
 
 Tu as interdiction d'utiliser git pour autre chose que reset tes changements.
 
+Tu dois demander l'autorisation avant de prendre un screenshot.
+
 ## Stack technique
 - Userscript tampermonkey
 - CSS de surcharge
