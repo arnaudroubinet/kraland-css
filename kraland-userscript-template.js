@@ -207,7 +207,8 @@
       restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, disableTooltips, modifyNavigationMenus
+      ensurePlayerMainPanelRows, disableTooltips, modifyNavigationMenus,
+      transformDashboardToFlexCards
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -223,6 +224,334 @@
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function() { return this; };
     }
+  }
+
+  /**
+   * Extrait les données d'un membre depuis son élément DOM
+   */
+  /**
+   * Extrait les données d'un groupe complet (boutons de groupe + membres avec actions)
+   */
+  function extractGroupData(panel) {
+    const groupData = {
+      title: '',
+      groupButtons: [],
+      members: []
+    };
+
+    // Extraire le titre et les boutons du panel-heading
+    const panelHeading = panel.querySelector('.panel-heading');
+    if (panelHeading) {
+      const panelTitle = panelHeading.querySelector('.panel-title');
+      if (panelTitle) {
+        // Extraire le texte du titre (sans les boutons)
+        groupData.title = panelTitle.textContent.trim();
+        
+        // Extraire les boutons de groupe (avec cloneNode pour préserver événements)
+        const buttons = panelTitle.querySelectorAll('a.btn');
+        buttons.forEach(btn => {
+          groupData.groupButtons.push(btn.cloneNode(true));
+        });
+      }
+    }
+
+    // Extraire les membres et leurs actions individuelles
+    const panelBody = panel.querySelector('.panel-body');
+    if (!panelBody) return groupData;
+
+    const table = panelBody.querySelector('table');
+    if (!table) return groupData;
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      const td1 = row.querySelector('td:first-child');
+      const td2 = row.querySelector('td:last-child');
+      
+      if (!td1 || !td2) return;
+
+      // Récupérer les liens membres (TD1)
+      const memberLinks = td1.querySelectorAll('a.list-group-item.ds_game');
+      
+      // Récupérer les divs d'actions (TD2) - une div de 59px par personnage
+      const actionsDivs = td2.querySelectorAll('div[style*="height:59px"]');
+
+      // Associer chaque membre à sa div d'actions par index
+      memberLinks.forEach((memberLink, index) => {
+        const actionsDiv = actionsDivs[index] || null;
+        const memberData = extractMemberData(memberLink, actionsDiv);
+        groupData.members.push(memberData);
+      });
+    });
+
+    return groupData;
+  }
+
+  /**
+   * Extrait les données d'un membre individuel
+   */
+  function extractMemberData(memberLink, actionsDiv) {
+    const data = {
+      originalLink: memberLink, // Garder le lien original pour préserver classes et événements
+      avatar: null,
+      name: '',
+      status: '',
+      isPNJ: false,
+      worldImage: null,
+      hpInfo: null,
+      profileUrl: '',
+      actionsDiv: null // Div contenant les actions de CE personnage uniquement
+    };
+
+    // Avatar
+    const avatar = memberLink.querySelector('img.pull-left');
+    if (avatar) {
+      data.avatar = avatar.src;
+    }
+
+    // Nom et statut
+    const heading = memberLink.querySelector('.list-group-item-heading');
+    const text = memberLink.querySelector('.list-group-item-text');
+    if (heading) {
+      data.name = heading.textContent.trim();
+    }
+    if (text) {
+      data.status = text.textContent.trim();
+    }
+
+    // PNJ button
+    const pnjButton = memberLink.querySelector('.btn-danger.xmini');
+    if (pnjButton) {
+      data.isPNJ = true;
+    }
+
+    // Icône de monde et HP
+    const mention = memberLink.querySelector('.mention.pull-right');
+    if (mention) {
+      const worldImg = mention.querySelector('img[src*="world"]');
+      if (worldImg) {
+        data.worldImage = worldImg.src;
+      }
+      
+      // Extraire les HP depuis l'image de barre
+      const hpDiv = mention.querySelector('div[style*="background"]');
+      if (hpDiv) {
+        const style = hpDiv.getAttribute('style') || '';
+        const match = style.match(/width:\s*(\d+)%/);
+        if (match) {
+          data.hpInfo = parseInt(match[1], 10);
+        }
+      }
+    }
+
+    // URL du profil
+    data.profileUrl = memberLink.href;
+
+    // Cloner la div d'actions de CE personnage uniquement
+    if (actionsDiv) {
+      data.actionsDiv = actionsDiv.cloneNode(true);
+    }
+
+    return data;
+  }
+
+  /**
+   * Crée une card pour un membre
+   */
+  function buildCard(memberData, isLargeCard = false) {
+    const card = document.createElement('div');
+    card.className = isLargeCard ? 'dashboard-card dashboard-card-large' : 'dashboard-card';
+
+    // Cloner le lien original pour préserver toutes les classes et événements
+    const cardLink = memberData.originalLink.cloneNode(false);
+    cardLink.classList.add('dashboard-card-link');
+    // Vider le contenu pour reconstruire
+
+    // Header avec avatar et nom
+    const header = document.createElement('div');
+    header.className = 'dashboard-card-header';
+
+    if (memberData.avatar) {
+      const avatarImg = document.createElement('img');
+      avatarImg.src = memberData.avatar;
+      avatarImg.className = 'dashboard-card-avatar';
+      avatarImg.alt = memberData.name;
+      header.appendChild(avatarImg);
+    }
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'dashboard-card-name';
+    nameDiv.textContent = memberData.name;
+    header.appendChild(nameDiv);
+
+    cardLink.appendChild(header);
+
+    // Body avec statut et monde
+    const body = document.createElement('div');
+    body.className = 'dashboard-card-body';
+
+    if (memberData.status) {
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'dashboard-card-status';
+      statusDiv.textContent = memberData.status;
+      body.appendChild(statusDiv);
+    }
+
+    if (memberData.worldImage) {
+      const worldImg = document.createElement('img');
+      worldImg.src = memberData.worldImage;
+      worldImg.className = 'dashboard-card-world';
+      worldImg.alt = 'World';
+      body.appendChild(worldImg);
+    }
+
+    cardLink.appendChild(body);
+    card.appendChild(cardLink);
+
+    // Barre de HP
+    if (memberData.hpInfo !== null) {
+      const hpBar = document.createElement('div');
+      hpBar.className = 'dashboard-card-hp';
+      
+      const hpFill = document.createElement('div');
+      hpFill.className = 'dashboard-card-hp-fill';
+      hpFill.style.width = memberData.hpInfo + '%';
+      
+      // Couleur selon le pourcentage
+      if (memberData.hpInfo > 70) {
+        hpFill.style.backgroundColor = '#5cb85c'; // vert
+      } else if (memberData.hpInfo > 30) {
+        hpFill.style.backgroundColor = '#f0ad4e'; // jaune
+      } else {
+        hpFill.style.backgroundColor = '#d9534f'; // rouge
+      }
+      
+      hpBar.appendChild(hpFill);
+      card.appendChild(hpBar);
+    }
+
+    // Bouton PNJ
+    if (memberData.isPNJ) {
+      const pnjBadge = document.createElement('span');
+      pnjBadge.className = 'dashboard-card-pnj';
+      pnjBadge.textContent = 'PNJ';
+      card.appendChild(pnjBadge);
+    }
+
+    // Actions individuelles de CE personnage
+    if (memberData.actionsDiv) {
+      const actionsWrapper = document.createElement('div');
+      actionsWrapper.className = 'dashboard-card-actions';
+      actionsWrapper.appendChild(memberData.actionsDiv);
+      card.appendChild(actionsWrapper);
+    }
+
+    return card;
+  }
+
+  /**
+   * Transforme le dashboard en système de flex cards
+   */
+  function transformDashboardToFlexCards() {
+    if (!isPlatoPage()) return;
+
+    const dashboard = document.querySelector('.dashboard');
+    if (!dashboard) return;
+
+    const panels = dashboard.querySelectorAll(':scope > .panel');
+    if (!panels.length) return;
+
+    // Créer le nouveau conteneur flex
+    const flexContainer = document.createElement('div');
+    flexContainer.className = 'dashboard-flex';
+
+    // Tableau de groupes avec leurs données complètes
+    const groups = [];
+    let firstPlayerPanelFound = false;
+
+    // Extraire toutes les données par groupe
+    panels.forEach(panel => {
+      const panelBody = panel.querySelector('.panel-body');
+      if (!panelBody) return;
+
+      const table = panelBody.querySelector('table');
+      if (!table) return;
+
+      // Vérifier si ce panel contient des personnages (liens avec class ds_game)
+      const hasPlayers = table.querySelector('a.list-group-item.ds_game');
+      if (!hasPlayers) return;
+
+      // Extraire toutes les données du groupe (titre, boutons, membres)
+      const groupData = extractGroupData(panel);
+      
+      if (groupData.members.length === 0) return;
+
+      // Le premier panel avec des personnages = Mon groupe
+      const isMyGroup = !firstPlayerPanelFound;
+      if (hasPlayers) firstPlayerPanelFound = true;
+
+      groups.push({
+        isMyGroup: isMyGroup,
+        title: groupData.title,
+        groupButtons: groupData.groupButtons,
+        members: groupData.members
+      });
+    });
+
+    // Construire les sections pour chaque groupe
+    groups.forEach((group, index) => {
+      const groupSection = document.createElement('div');
+      groupSection.className = group.isMyGroup 
+        ? 'dashboard-section dashboard-section-mygroup' 
+        : 'dashboard-section dashboard-section-others';
+
+      // En-tête de section avec titre et boutons de groupe
+      const header = document.createElement('div');
+      header.className = 'dashboard-section-header';
+      
+      // Ajouter les boutons de groupe en premier
+      if (group.groupButtons && group.groupButtons.length > 0) {
+        const buttonsWrapper = document.createElement('div');
+        buttonsWrapper.className = 'dashboard-group-buttons';
+        group.groupButtons.forEach(btn => {
+          buttonsWrapper.appendChild(btn);
+        });
+        header.appendChild(buttonsWrapper);
+      }
+      
+      // Ajouter le titre du groupe
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'dashboard-group-title';
+      
+      if (group.isMyGroup) {
+        // Extraire le nom sans les icônes
+        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
+        titleSpan.textContent = titleText || 'Mon groupe';
+      } else {
+        // Extraire le nom du groupe
+        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
+        titleSpan.textContent = titleText || `Groupe de ${group.members[0]?.name || 'Inconnu'}`;
+      }
+      
+      header.appendChild(titleSpan);
+      groupSection.appendChild(header);
+
+      // Grille des cartes
+      const cardsContainer = document.createElement('div');
+      cardsContainer.className = group.isMyGroup 
+        ? 'dashboard-cards-grid dashboard-cards-large'
+        : 'dashboard-cards-grid';
+
+      group.members.forEach(member => {
+        cardsContainer.appendChild(buildCard(member, group.isMyGroup));
+      });
+
+      groupSection.appendChild(cardsContainer);
+      flexContainer.appendChild(groupSection);
+    });
+
+    // Remplacer le contenu du dashboard
+    dashboard.innerHTML = '';
+    dashboard.appendChild(flexContainer);
   }
 
   function modifyNavigationMenus() {
