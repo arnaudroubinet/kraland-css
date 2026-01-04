@@ -56,14 +56,29 @@
            path !== '/jouer/communaute/membres';
   }
 
-  /** Crée un badge numérique pour les icônes */
+  /** Crée un badge numérique pour les icônes de compétences (rouge, à droite) */
   function createBadge(text) {
     const badge = document.createElement('span');
     badge.className = 'badge';
     badge.textContent = text;
     Object.assign(badge.style, {
-      position: 'absolute', bottom: '-5px', right: '-5px',
+      position: 'absolute', top: '20px', right: '-5px',
       backgroundColor: '#d9534f', color: '#fff',
+      borderRadius: '50%', width: '19px', height: '19px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
+    });
+    return badge;
+  }
+
+  /** Crée un badge numérique pour les caractéristiques (bleu, en haut à gauche) */
+  function createStatBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = text;
+    Object.assign(badge.style, {
+      position: 'absolute', top: '20px', right: '-5px',
+      backgroundColor: '#007bff', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -87,6 +102,25 @@
     container.appendChild(img);
 
     container.appendChild(createBadge(badgeText));
+    return container;
+  }
+
+  /** Crée un conteneur d'icône avec badge pour caractéristiques */
+  function createStatIconContainer(iconUrl, altText, badgeText) {
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'relative', display: 'inline-block',
+      width: '32px', height: '32px'
+    });
+
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.alt = altText;
+    img.title = altText;
+    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    container.appendChild(img);
+
+    container.appendChild(createStatBadge(badgeText));
     return container;
   }
 
@@ -1090,7 +1124,7 @@
       const iconCode = CONFIG.STAT_ICONS[cleanStatName];
       if (iconCode) {
         const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
-        const iconContainer = createIconContainer(iconUrl, cleanStatName, number);
+        const iconContainer = createStatIconContainer(iconUrl, cleanStatName, number);
         statBtn.appendChild(iconContainer);
       } else {
         // Fallback SVG
@@ -1124,7 +1158,7 @@
         svg.appendChild(svgText);
 
         container.appendChild(svg);
-        container.appendChild(createBadge(number));
+        container.appendChild(createStatBadge(number));
         statBtn.appendChild(container);
       }
     });

@@ -159,6 +159,13 @@ input[type="checkbox"]:checked {
   color: #fff;
 }
 
+/* Badge danger - notification alert always red on all themes */
+.badge-danger {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  border-color: #bd2130 !important;
+}
+
 /* Alerts - info variant */
 .alert.alert-info {
   background-color: rgba(164,18,13,0.06);

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767559024272
+// @version      1.0.1767561089183
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -176,6 +176,13 @@ input[type="checkbox"]:checked {
 .bg-info {
   background-color: var(--kr-primary);
   color: #fff;
+}
+
+/* Badge danger - notification alert always red on all themes */
+.badge-danger {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  border-color: #bd2130 !important;
 }
 
 /* Alerts - info variant */
@@ -742,14 +749,29 @@ footer .container.white {
            path !== '/jouer/communaute/membres';
   }
 
-  /** Crée un badge numérique pour les icônes */
+  /** Crée un badge numérique pour les icônes de compétences (rouge, à droite) */
   function createBadge(text) {
     const badge = document.createElement('span');
     badge.className = 'badge';
     badge.textContent = text;
     Object.assign(badge.style, {
-      position: 'absolute', bottom: '-5px', right: '-5px',
+      position: 'absolute', top: '20px', right: '-5px',
       backgroundColor: '#d9534f', color: '#fff',
+      borderRadius: '50%', width: '19px', height: '19px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
+    });
+    return badge;
+  }
+
+  /** Crée un badge numérique pour les caractéristiques (bleu, en haut à gauche) */
+  function createStatBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = text;
+    Object.assign(badge.style, {
+      position: 'absolute', top: '20px', right: '-5px',
+      backgroundColor: '#007bff', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -773,6 +795,25 @@ footer .container.white {
     container.appendChild(img);
 
     container.appendChild(createBadge(badgeText));
+    return container;
+  }
+
+  /** Crée un conteneur d'icône avec badge pour caractéristiques */
+  function createStatIconContainer(iconUrl, altText, badgeText) {
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'relative', display: 'inline-block',
+      width: '32px', height: '32px'
+    });
+
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.alt = altText;
+    img.title = altText;
+    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    container.appendChild(img);
+
+    container.appendChild(createStatBadge(badgeText));
     return container;
   }
 
@@ -1776,7 +1817,7 @@ footer .container.white {
       const iconCode = CONFIG.STAT_ICONS[cleanStatName];
       if (iconCode) {
         const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
-        const iconContainer = createIconContainer(iconUrl, cleanStatName, number);
+        const iconContainer = createStatIconContainer(iconUrl, cleanStatName, number);
         statBtn.appendChild(iconContainer);
       } else {
         // Fallback SVG
@@ -1810,7 +1851,7 @@ footer .container.white {
         svg.appendChild(svgText);
 
         container.appendChild(svg);
-        container.appendChild(createBadge(number));
+        container.appendChild(createStatBadge(number));
         statBtn.appendChild(container);
       }
     });
