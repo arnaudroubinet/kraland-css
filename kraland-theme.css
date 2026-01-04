@@ -859,6 +859,35 @@ html.kr-theme-variant-empire-brun-dark .input-group-addon {
   color: var(--kr-text-primary);
 }
 
+/* === BUTTONS === */
+html.kr-theme-variant-empire-brun-dark .btn-primary {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-primary:hover,
+html.kr-theme-variant-empire-brun-dark .btn-primary:focus,
+html.kr-theme-variant-empire-brun-dark .btn-primary:active {
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-default {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-default:hover,
+html.kr-theme-variant-empire-brun-dark .btn-default:focus,
+html.kr-theme-variant-empire-brun-dark .btn-default:active {
+  background-color: var(--kr-bg-hover);
+  border-color: var(--kr-border-strong);
+  color: var(--kr-text-primary);
+}
+
 /* === LIST GROUPS === */
 html.kr-theme-variant-empire-brun-dark .list-group-item {
   background-color: var(--kr-bg-surface);

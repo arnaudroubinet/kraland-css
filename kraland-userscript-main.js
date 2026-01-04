@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767568779423
+// @version      1.0.1767569084761
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -875,6 +875,35 @@ html.kr-theme-variant-empire-brun-dark .form-control:focus {
 html.kr-theme-variant-empire-brun-dark .input-group-addon {
   background-color: var(--kr-bg-elevated);
   border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+/* === BUTTONS === */
+html.kr-theme-variant-empire-brun-dark .btn-primary {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-primary:hover,
+html.kr-theme-variant-empire-brun-dark .btn-primary:focus,
+html.kr-theme-variant-empire-brun-dark .btn-primary:active {
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-default {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-default:hover,
+html.kr-theme-variant-empire-brun-dark .btn-default:focus,
+html.kr-theme-variant-empire-brun-dark .btn-default:active {
+  background-color: var(--kr-bg-hover);
+  border-color: var(--kr-border-strong);
   color: var(--kr-text-primary);
 }
 
@@ -2803,8 +2832,7 @@ body > map {
         { value: 'paradigme-vert', flag: 'f5', label: 'Paradigme Vert' },
         { value: 'khanat-elmerien', flag: 'f6', label: 'Khanat Elmérien' },
         { value: 'confederation-libre', flag: 'f7', label: 'Confédération Libre' },
-        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' },
-        { value: 'high-contrast', flag: 'f0', label: 'High Contrast' }
+        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' }
       ];
 
       const radios = themeOptions.map(opt => `

@@ -1346,8 +1346,7 @@
         { value: 'paradigme-vert', flag: 'f5', label: 'Paradigme Vert' },
         { value: 'khanat-elmerien', flag: 'f6', label: 'Khanat Elmérien' },
         { value: 'confederation-libre', flag: 'f7', label: 'Confédération Libre' },
-        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' },
-        { value: 'high-contrast', flag: 'f0', label: 'High Contrast' }
+        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' }
       ];
 
       const radios = themeOptions.map(opt => `
