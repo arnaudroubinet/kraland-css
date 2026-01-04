@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767561089183
+// @version      1.0.1767562890836
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -408,12 +408,12 @@ footer .container.white {
 .dashboard-section-header {
   background: var(--kr-primary);
   color: white;
-  padding: 10px 15px;
-  font-size: 13px;
+  padding: 3px 8px;
+  font-size: 9px;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 /* Boutons de groupe dans l'en-tête */
@@ -500,23 +500,46 @@ footer .container.white {
 .dashboard-card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+
   background: rgba(0,0,0,0.02);
 }
 
+/* Wrapper pour l'avatar avec cercle de PV */
+.dashboard-card-avatar-wrapper {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cercle SVG de progression des PV */
+.dashboard-card-hp-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 82px;
+  height: 82px;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .dashboard-card-avatar {
-  width: 32px;
-  height: 32px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--kr-primary);
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-card-large .dashboard-card-avatar {
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
 }
 
 /* Conteneur pour le drapeau et le nom */
@@ -537,10 +560,10 @@ footer .container.white {
 }
 
 .dashboard-card-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--kr-text);
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -555,21 +578,22 @@ footer .container.white {
 
 /* Body avec statut uniquement (monde dans les actions) */
 .dashboard-card-body {
-  padding: 0 10px 6px 10px;
+  padding: 0 8px 5px 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
   min-height: 0;
 }
 
 .dashboard-card-status {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--kr-muted);
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .dashboard-card-large .dashboard-card-status {
@@ -1025,6 +1049,7 @@ footer .container.white {
       isPNJ: false,
       worldImage: null,
       hpInfo: null,
+      pvLevel: null, // Niveau de PV de 1 à 5 (pdv1.png à pdv5.png)
       profileUrl: '',
       actionsDiv: null // Div contenant les actions de CE personnage uniquement
     };
@@ -1059,7 +1084,16 @@ footer .container.white {
         data.worldImage = worldImg.src;
       }
       
-      // Extraire les HP depuis l'image de barre
+      // Extraire le niveau de PV depuis l'image pdv1.png à pdv5.png
+      const pvImg = mention.querySelector('img[src*="pdv"]');
+      if (pvImg) {
+        const match = pvImg.src.match(/pdv(\d)\.png/);
+        if (match) {
+          data.pvLevel = parseInt(match[1], 10); // 1 à 5
+        }
+      }
+      
+      // Extraire les HP depuis l'image de barre (fallback)
       const hpDiv = mention.querySelector('div[style*="background"]');
       if (hpDiv) {
         const style = hpDiv.getAttribute('style') || '';
@@ -1082,6 +1116,61 @@ footer .container.white {
   }
 
   /**
+   * Crée un cercle SVG de progression pour les PV
+   */
+  function createHPCircle(pvLevel) {
+    if (!pvLevel) return null;
+    
+    // Correspondance niveau PV -> couleur et pourcentage
+    // pdv1 = 100% (pleine santé), pdv5 = 20% (presque mort)
+    const pvConfig = {
+      1: { color: '#32CD32', percentage: 100 },  // Vert lime - Pleine santé
+      2: { color: '#FFD700', percentage: 80 },   // Jaune/or
+      3: { color: '#FF8C00', percentage: 60 },   // Orange foncé
+      4: { color: '#DC143C', percentage: 40 },   // Rouge crimson
+      5: { color: '#8B0000', percentage: 20 }    // Rouge foncé - Presque mort
+    };
+    
+    const config = pvConfig[pvLevel] || pvConfig[1];
+    const radius = 37; // Rayon pour un avatar de 70px (35px) + bordure
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (circumference * config.percentage / 100);
+    
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'dashboard-card-hp-circle');
+    svg.setAttribute('width', '82');
+    svg.setAttribute('height', '82');
+    svg.setAttribute('viewBox', '0 0 82 82');
+    
+    // Cercle de fond (gris)
+    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('cx', '41');
+    bgCircle.setAttribute('cy', '41');
+    bgCircle.setAttribute('r', radius);
+    bgCircle.setAttribute('fill', 'none');
+    bgCircle.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+    bgCircle.setAttribute('stroke-width', '3');
+    
+    // Cercle de progression (coloré)
+    const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('cx', '41');
+    progressCircle.setAttribute('cy', '41');
+    progressCircle.setAttribute('r', radius);
+    progressCircle.setAttribute('fill', 'none');
+    progressCircle.setAttribute('stroke', config.color);
+    progressCircle.setAttribute('stroke-width', '4');
+    progressCircle.setAttribute('stroke-linecap', 'round');
+    progressCircle.setAttribute('stroke-dasharray', circumference);
+    progressCircle.setAttribute('stroke-dashoffset', strokeDashoffset);
+    progressCircle.setAttribute('transform', 'rotate(-90 41 41)');
+    
+    svg.appendChild(bgCircle);
+    svg.appendChild(progressCircle);
+    
+    return svg;
+  }
+
+  /**
    * Crée une card pour un membre
    */
   function buildCard(memberData, isLargeCard = false) {
@@ -1098,11 +1187,33 @@ footer .container.white {
     header.className = 'dashboard-card-header';
 
     if (memberData.avatar) {
+      // Créer un wrapper pour l'avatar avec le cercle de PV
+      const avatarWrapper = document.createElement('div');
+      avatarWrapper.className = 'dashboard-card-avatar-wrapper';
+      
+      // Ajouter le cercle SVG si on a l'info des PV
+      if (memberData.pvLevel) {
+        const hpCircle = createHPCircle(memberData.pvLevel);
+        if (hpCircle) {
+          avatarWrapper.appendChild(hpCircle);
+        }
+      }
+      
+      // Ajouter l'avatar
       const avatarImg = document.createElement('img');
       avatarImg.src = memberData.avatar;
       avatarImg.className = 'dashboard-card-avatar';
       avatarImg.alt = memberData.name;
-      header.appendChild(avatarImg);
+      
+      // Appliquer un filtre gris si le personnage est KO (pdv5)
+      if (memberData.pvLevel === 5) {
+        avatarImg.style.filter = 'grayscale(100%)';
+        avatarImg.style.opacity = '0.7';
+      }
+      
+      avatarWrapper.appendChild(avatarImg);
+      
+      header.appendChild(avatarWrapper);
     }
 
     // Conteneur pour le drapeau et le nom

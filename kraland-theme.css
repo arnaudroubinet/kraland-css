@@ -389,12 +389,12 @@ footer .container.white {
 .dashboard-section-header {
   background: var(--kr-primary);
   color: white;
-  padding: 10px 15px;
-  font-size: 13px;
+  padding: 3px 8px;
+  font-size: 9px;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 /* Boutons de groupe dans l'en-tête */
@@ -481,23 +481,46 @@ footer .container.white {
 .dashboard-card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+
   background: rgba(0,0,0,0.02);
 }
 
+/* Wrapper pour l'avatar avec cercle de PV */
+.dashboard-card-avatar-wrapper {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cercle SVG de progression des PV */
+.dashboard-card-hp-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 82px;
+  height: 82px;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .dashboard-card-avatar {
-  width: 32px;
-  height: 32px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--kr-primary);
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-card-large .dashboard-card-avatar {
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
 }
 
 /* Conteneur pour le drapeau et le nom */
@@ -518,10 +541,10 @@ footer .container.white {
 }
 
 .dashboard-card-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--kr-text);
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -536,21 +559,22 @@ footer .container.white {
 
 /* Body avec statut uniquement (monde dans les actions) */
 .dashboard-card-body {
-  padding: 0 10px 6px 10px;
+  padding: 0 8px 5px 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
   min-height: 0;
 }
 
 .dashboard-card-status {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--kr-muted);
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .dashboard-card-large .dashboard-card-status {

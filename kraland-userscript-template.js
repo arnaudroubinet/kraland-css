@@ -332,6 +332,7 @@
       isPNJ: false,
       worldImage: null,
       hpInfo: null,
+      pvLevel: null, // Niveau de PV de 1 à 5 (pdv1.png à pdv5.png)
       profileUrl: '',
       actionsDiv: null // Div contenant les actions de CE personnage uniquement
     };
@@ -366,7 +367,16 @@
         data.worldImage = worldImg.src;
       }
       
-      // Extraire les HP depuis l'image de barre
+      // Extraire le niveau de PV depuis l'image pdv1.png à pdv5.png
+      const pvImg = mention.querySelector('img[src*="pdv"]');
+      if (pvImg) {
+        const match = pvImg.src.match(/pdv(\d)\.png/);
+        if (match) {
+          data.pvLevel = parseInt(match[1], 10); // 1 à 5
+        }
+      }
+      
+      // Extraire les HP depuis l'image de barre (fallback)
       const hpDiv = mention.querySelector('div[style*="background"]');
       if (hpDiv) {
         const style = hpDiv.getAttribute('style') || '';
@@ -389,6 +399,61 @@
   }
 
   /**
+   * Crée un cercle SVG de progression pour les PV
+   */
+  function createHPCircle(pvLevel) {
+    if (!pvLevel) return null;
+    
+    // Correspondance niveau PV -> couleur et pourcentage
+    // pdv1 = 100% (pleine santé), pdv5 = 20% (presque mort)
+    const pvConfig = {
+      1: { color: '#32CD32', percentage: 100 },  // Vert lime - Pleine santé
+      2: { color: '#FFD700', percentage: 80 },   // Jaune/or
+      3: { color: '#FF8C00', percentage: 60 },   // Orange foncé
+      4: { color: '#DC143C', percentage: 40 },   // Rouge crimson
+      5: { color: '#8B0000', percentage: 20 }    // Rouge foncé - Presque mort
+    };
+    
+    const config = pvConfig[pvLevel] || pvConfig[1];
+    const radius = 37; // Rayon pour un avatar de 70px (35px) + bordure
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (circumference * config.percentage / 100);
+    
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'dashboard-card-hp-circle');
+    svg.setAttribute('width', '82');
+    svg.setAttribute('height', '82');
+    svg.setAttribute('viewBox', '0 0 82 82');
+    
+    // Cercle de fond (gris)
+    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('cx', '41');
+    bgCircle.setAttribute('cy', '41');
+    bgCircle.setAttribute('r', radius);
+    bgCircle.setAttribute('fill', 'none');
+    bgCircle.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+    bgCircle.setAttribute('stroke-width', '3');
+    
+    // Cercle de progression (coloré)
+    const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('cx', '41');
+    progressCircle.setAttribute('cy', '41');
+    progressCircle.setAttribute('r', radius);
+    progressCircle.setAttribute('fill', 'none');
+    progressCircle.setAttribute('stroke', config.color);
+    progressCircle.setAttribute('stroke-width', '4');
+    progressCircle.setAttribute('stroke-linecap', 'round');
+    progressCircle.setAttribute('stroke-dasharray', circumference);
+    progressCircle.setAttribute('stroke-dashoffset', strokeDashoffset);
+    progressCircle.setAttribute('transform', 'rotate(-90 41 41)');
+    
+    svg.appendChild(bgCircle);
+    svg.appendChild(progressCircle);
+    
+    return svg;
+  }
+
+  /**
    * Crée une card pour un membre
    */
   function buildCard(memberData, isLargeCard = false) {
@@ -405,11 +470,33 @@
     header.className = 'dashboard-card-header';
 
     if (memberData.avatar) {
+      // Créer un wrapper pour l'avatar avec le cercle de PV
+      const avatarWrapper = document.createElement('div');
+      avatarWrapper.className = 'dashboard-card-avatar-wrapper';
+      
+      // Ajouter le cercle SVG si on a l'info des PV
+      if (memberData.pvLevel) {
+        const hpCircle = createHPCircle(memberData.pvLevel);
+        if (hpCircle) {
+          avatarWrapper.appendChild(hpCircle);
+        }
+      }
+      
+      // Ajouter l'avatar
       const avatarImg = document.createElement('img');
       avatarImg.src = memberData.avatar;
       avatarImg.className = 'dashboard-card-avatar';
       avatarImg.alt = memberData.name;
-      header.appendChild(avatarImg);
+      
+      // Appliquer un filtre gris si le personnage est KO (pdv5)
+      if (memberData.pvLevel === 5) {
+        avatarImg.style.filter = 'grayscale(100%)';
+        avatarImg.style.opacity = '0.7';
+      }
+      
+      avatarWrapper.appendChild(avatarImg);
+      
+      header.appendChild(avatarWrapper);
     }
 
     // Conteneur pour le drapeau et le nom
