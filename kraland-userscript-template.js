@@ -10,9 +10,9 @@
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STYLE_ID: 'kraland-theme-style',
-    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','high-contrast'],
+    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','high-contrast'],
     LOGO_MAP: {
-      'kraland': 1, 'empire-brun': 2, 'paladium': 3, 'theocratie-seelienne': 4,
+      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'theocratie-seelienne': 4,
       'paradigme-vert': 5, 'khanat-elmerien': 6, 'confederation-libre': 7, 'royaume-ruthvenie': 8
     },
     SKILL_ICONS: {
@@ -1340,12 +1340,14 @@
         { value: 'disable', flag: 'f0', label: 'Désactiver la surcharge CSS' },
         { value: 'kraland', flag: 'f1', label: 'République de Kraland' },
         { value: 'empire-brun', flag: 'f2', label: 'Empire Brun' },
+        { value: 'empire-brun-dark', flag: 'f2', label: 'Empire Brun (Dark Mode)' },
         { value: 'paladium', flag: 'f3', label: 'Paladium Corporation' },
         { value: 'theocratie-seelienne', flag: 'f4', label: 'Théocratie Seelienne' },
         { value: 'paradigme-vert', flag: 'f5', label: 'Paradigme Vert' },
         { value: 'khanat-elmerien', flag: 'f6', label: 'Khanat Elmérien' },
         { value: 'confederation-libre', flag: 'f7', label: 'Confédération Libre' },
-        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' }
+        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' },
+        { value: 'high-contrast', flag: 'f0', label: 'High Contrast' }
       ];
 
       const radios = themeOptions.map(opt => `

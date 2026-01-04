@@ -15,6 +15,22 @@
 
   --kr-radius: .5rem;
   --kr-avatar-size: 120px;
+
+  /* Variables pour le dark mode */
+  --kr-bg-page: #f5f5f5;
+  --kr-bg-surface: #ffffff;
+  --kr-bg-elevated: #ffffff;
+  --kr-bg-hover: rgba(0,0,0,0.02);
+  --kr-bg-active: rgba(0,0,0,0.05);
+  --kr-text-primary: #0f1724;
+  --kr-text-secondary: #6b7280;
+  --kr-text-muted: #9ca3af;
+  --kr-text-inverse: #ffffff;
+  --kr-border-default: rgba(0,0,0,0.08);
+  --kr-border-strong: rgba(0,0,0,0.15);
+  --kr-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --kr-shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --kr-shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
 }
 
 
@@ -58,6 +74,35 @@ html.kr-theme-variant-royaume-ruthvenie {
   --kr-highlight: #C41E3A; 
 }
 
+html.kr-theme-variant-empire-brun-dark {
+  --kr-primary: #7a5240;
+  --kr-primary-dark: #5E3B2D;
+  --kr-highlight: #d4a574;
+  --kr-highlight-reverse: #1a0f0a;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #12100d;
+  --kr-bg-surface: #1e1a15;
+  --kr-bg-elevated: #2a251f;
+  --kr-bg-hover: rgba(255,255,255,0.03);
+  --kr-bg-active: rgba(255,255,255,0.06);
+
+  /* Dark mode texte */
+  --kr-text-primary: #f5f1ed;
+  --kr-text-secondary: #b8a997;
+  --kr-text-muted: #8a7968;
+  --kr-text-inverse: #12100d;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgba(255,255,255,0.08);
+  --kr-border-strong: rgba(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgba(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgba(0,0,0,0.6);
+}
+
 
 /* ============================================================================
    2. LAYOUT OVERRIDES
@@ -99,6 +144,19 @@ body {
 /* ============================================================================
    3. NAVIGATION
    ============================================================================ */
+
+/* Navbar brand (logo) alignment */
+.navbar-brand {
+  display: flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.navbar-brand img.kr-logo {
+  height: 28px;
+  vertical-align: middle;
+}
 
 .navbar-nav > li > a{
   color: #fff !important;
@@ -704,4 +762,686 @@ footer .container.white {
 .btn-toolbar .btn:not(.dropdown-menu *) .fas,
 .btn-toolbar .btn:not(.dropdown-menu *) .far {
   color: inherit !important;
+}
+
+/* ============================================================================
+   13. EMPIRE BRUN DARK MODE
+   Surcharges complètes pour le thème Empire Brun en mode sombre
+   ============================================================================ */
+
+html.kr-theme-variant-empire-brun-dark {
+  color-scheme: dark;
+}
+
+/* === BODY & BACKGROUNDS === */
+html.kr-theme-variant-empire-brun-dark body {
+  background-color: var(--kr-bg-page);
+  color: var(--kr-text-primary);
+}
+
+/* === PANELS === */
+html.kr-theme-variant-empire-brun-dark .panel,
+html.kr-theme-variant-empire-brun-dark .panel-default {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .panel-heading {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .panel-body {
+  background-color: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .panel-footer {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+}
+
+/* === WELLS === */
+html.kr-theme-variant-empire-brun-dark .well {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+/* === THEME SELECTOR TAMPERMONKEY === */
+html.kr-theme-variant-empire-brun-dark .kr-tamper-theme label {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .kr-tamper-theme .control-label {
+  color: var(--kr-text-secondary);
+}
+
+html.kr-theme-variant-empire-brun-dark .kr-tamper-theme h4 {
+  color: var(--kr-text-primary);
+}
+
+/* === MODALS === */
+html.kr-theme-variant-empire-brun-dark .modal-content {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .modal-header,
+html.kr-theme-variant-empire-brun-dark .modal-body,
+html.kr-theme-variant-empire-brun-dark .modal-footer {
+  background-color: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+  border-color: var(--kr-border-default);
+}
+
+/* === FORMS === */
+html.kr-theme-variant-empire-brun-dark .form-control {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .form-control::placeholder {
+  color: var(--kr-text-muted);
+}
+
+html.kr-theme-variant-empire-brun-dark .form-control:focus {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-primary);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .input-group-addon {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+/* === LIST GROUPS === */
+html.kr-theme-variant-empire-brun-dark .list-group-item {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .list-group-item:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+html.kr-theme-variant-empire-brun-dark .list-group-item-heading {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .list-group-item-text {
+  color: var(--kr-text-secondary);
+}
+
+/* === TABLES === */
+html.kr-theme-variant-empire-brun-dark .table {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .table > thead > tr > th,
+html.kr-theme-variant-empire-brun-dark .table > tbody > tr > th,
+html.kr-theme-variant-empire-brun-dark .table > tfoot > tr > th {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .table > tbody > tr > td {
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--kr-bg-hover);
+}
+
+html.kr-theme-variant-empire-brun-dark .table-hover > tbody > tr:hover {
+  background-color: var(--kr-bg-active);
+}
+
+/* === DROPDOWNS === */
+html.kr-theme-variant-empire-brun-dark .dropdown-menu {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-strong);
+}
+
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > li > a {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > li > a:hover,
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > li > a:focus {
+  background-color: var(--kr-bg-hover);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > .active > a,
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > .active > a:hover,
+html.kr-theme-variant-empire-brun-dark .dropdown-menu > .active > a:focus {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* === NAVIGATION === */
+html.kr-theme-variant-empire-brun-dark .nav-tabs {
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .nav-tabs > li > a {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .nav-tabs > li > a:hover {
+  background-color: var(--kr-bg-hover);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .nav-tabs > li.active > a,
+html.kr-theme-variant-empire-brun-dark .nav-tabs > li.active > a:hover,
+html.kr-theme-variant-empire-brun-dark .nav-tabs > li.active > a:focus {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default) var(--kr-border-default) transparent;
+  color: var(--kr-text-primary);
+}
+
+/* === BUTTONS === */
+html.kr-theme-variant-empire-brun-dark .btn-default {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .btn-default:hover {
+  background-color: var(--kr-bg-active);
+  border-color: var(--kr-border-strong);
+}
+
+/* === ALERTS === */
+html.kr-theme-variant-empire-brun-dark .alert {
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .alert * {
+  color: inherit !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .alert a {
+  color: var(--kr-primary) !important;
+  text-decoration: underline;
+}
+
+html.kr-theme-variant-empire-brun-dark .alert-info {
+  background-color: rgba(122, 82, 64, 0.15);
+  border-color: rgba(122, 82, 64, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .alert-success {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .alert-warning {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .alert-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--kr-text-primary);
+}
+
+/* === PROGRESS === */
+html.kr-theme-variant-empire-brun-dark .progress {
+  background-color: var(--kr-bg-elevated);
+}
+
+/* === DASHBOARD CARDS === */
+html.kr-theme-variant-empire-brun-dark .dashboard-card {
+  background: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-card:hover {
+  box-shadow: var(--kr-shadow-md);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-card-header {
+  background: var(--kr-bg-hover);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-card-name {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-card-status {
+  color: var(--kr-text-muted);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-section {
+  background: var(--kr-bg-surface);
+}
+
+html.kr-theme-variant-empire-brun-dark .dashboard-card-hp {
+  background: var(--kr-bg-elevated);
+}
+
+/* === MINI-CHAT === */
+html.kr-theme-variant-empire-brun-dark .chat li {
+  border-bottom-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .panel-body-scroll {
+  background-color: var(--kr-bg-surface);
+}
+
+html.kr-theme-variant-empire-brun-dark #flap {
+  background-color: var(--kr-bg-elevated);
+}
+
+html.kr-theme-variant-empire-brun-dark #flap a.open,
+html.kr-theme-variant-empire-brun-dark #flap a.closed {
+  background: var(--kr-bg-elevated);
+  color: var(--kr-text-primary);
+}
+
+/* === MAP === */
+html.kr-theme-variant-empire-brun-dark .map-box {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .map-box-title {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+html.kr-theme-variant-empire-brun-dark .map-box-content {
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .map-box-bottom {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* === CLASSES KRALAND .f1-.f9 (couleurs nations) === */
+html.kr-theme-variant-empire-brun-dark .f1 { color: #ff8080; }
+html.kr-theme-variant-empire-brun-dark .f2 { color: #d4a574; }
+html.kr-theme-variant-empire-brun-dark .f3 { color: #ffe066; }
+html.kr-theme-variant-empire-brun-dark .f4 { color: #74b9ff; }
+html.kr-theme-variant-empire-brun-dark .f5 { color: #55efc4; }
+html.kr-theme-variant-empire-brun-dark .f6 { color: #a29bfe; }
+html.kr-theme-variant-empire-brun-dark .f7 { color: #b2bec3; }
+html.kr-theme-variant-empire-brun-dark .f8 { color: #81c784; }
+html.kr-theme-variant-empire-brun-dark .f9 { color: #c4b958; }
+
+/* === CLASSES KRALAND .c1-.c10 (fonds nations) === */
+html.kr-theme-variant-empire-brun-dark .c1  { background-color: rgba(255, 128, 128, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c2  { background-color: rgba(170, 112, 0, 0.3); }
+html.kr-theme-variant-empire-brun-dark .c3  { background-color: rgba(255, 255, 128, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c4  { background-color: rgba(128, 128, 255, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c5  { background-color: rgba(128, 255, 128, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c6  { background-color: rgba(204, 128, 255, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c7  { background-color: rgba(170, 170, 170, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c8  { background-color: rgba(115, 151, 115, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c9  { background-color: rgba(170, 170, 68, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c10 { background-color: rgba(204, 255, 255, 0.15); }
+
+/* === SCROLLBARS === */
+html.kr-theme-variant-empire-brun-dark ::-webkit-scrollbar-track {
+  background-color: var(--kr-bg-page);
+}
+
+html.kr-theme-variant-empire-brun-dark ::-webkit-scrollbar-thumb {
+  background-color: var(--kr-text-muted);
+}
+
+html.kr-theme-variant-empire-brun-dark ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--kr-text-secondary);
+}
+
+/* === SELECTION === */
+html.kr-theme-variant-empire-brun-dark ::selection {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* === FOOTER === */
+html.kr-theme-variant-empire-brun-dark footer {
+  background-color: var(--kr-bg-elevated);
+  border-top: 1px solid var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .footer-quote {
+  color: var(--kr-text-secondary);
+}
+
+/* === SKILLS PANEL === */
+html.kr-theme-variant-empire-brun-dark #skills-panel {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+}
+
+/* === SEPARATORS === */
+html.kr-theme-variant-empire-brun-dark hr {
+  display: none;
+}
+
+/* === CAROUSEL === */
+html.kr-theme-variant-empire-brun-dark .carousel-control {
+  color: var(--kr-primary);
+  opacity: 0.7;
+}
+
+html.kr-theme-variant-empire-brun-dark .carousel-control:hover,
+html.kr-theme-variant-empire-brun-dark .carousel-control:focus {
+  color: var(--kr-highlight);
+  opacity: 0.9;
+}
+
+html.kr-theme-variant-empire-brun-dark .carousel-indicators li {
+  background-color: var(--kr-border-default);
+  border-color: var(--kr-border-default);
+}
+
+html.kr-theme-variant-empire-brun-dark .carousel-indicators .active {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary);
+}
+
+/* === LIENS === */
+html.kr-theme-variant-empire-brun-dark a:link,
+html.kr-theme-variant-empire-brun-dark a:visited {
+  color: var(--kr-highlight);
+}
+
+html.kr-theme-variant-empire-brun-dark a:hover,
+html.kr-theme-variant-empire-brun-dark a:focus {
+  color: var(--kr-primary);
+}
+
+/* === BOUTONS DE NAVIGATION PREV/NEXT === */
+html.kr-theme-variant-empire-brun-dark a.prev,
+html.kr-theme-variant-empire-brun-dark a.next {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark a.prev:hover,
+html.kr-theme-variant-empire-brun-dark a.next:hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-highlight) !important;
+}
+
+/* === ICÔNES DE COMPÉTENCES ET CARACTÉRISTIQUES === */
+/* Réduction du contraste des icônes blanches */
+html.kr-theme-variant-empire-brun-dark img[src*="/mat/94/"] {
+  filter: brightness(0.7) sepia(0.3) saturate(1.2);
+  opacity: 0.85;
+}
+
+html.kr-theme-variant-empire-brun-dark img[src*="/mat/94/"]:hover {
+  filter: brightness(0.85) sepia(0.3) saturate(1.2);
+  opacity: 1;
+}
+
+/* === ICÔNES DE BÂTIMENTS === */
+/* Réduction du contraste des icônes blanches */
+html.kr-theme-variant-empire-brun-dark img[src*="/bat/bat"] {
+  filter: brightness(0.7) sepia(0.3) saturate(1.2);
+  opacity: 0.85;
+}
+
+html.kr-theme-variant-empire-brun-dark img[src*="/bat/bat"]:hover {
+  filter: brightness(0.85) sepia(0.3) saturate(1.2);
+  opacity: 1;
+}
+
+/* === ICÔNES DE VOCATIONS === */
+/* Réduction du contraste des icônes blanches */
+html.kr-theme-variant-empire-brun-dark img[src*="/voc/"] {
+  filter: brightness(0.7) sepia(0.3) saturate(1.2);
+  opacity: 0.85;
+}
+
+html.kr-theme-variant-empire-brun-dark img[src*="/voc/"]:hover {
+  filter: brightness(0.85) sepia(0.3) saturate(1.2);
+  opacity: 1;
+}
+
+/* === INDICATEUR CIRCULAIRE DE TEMPS === */
+/* Adaptation pour le thème sombre */
+html.kr-theme-variant-empire-brun-dark .c100 {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .c100:after {
+  background-color: var(--kr-bg-elevated) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .c100 > span {
+  color: var(--kr-text-primary) !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 80px !important;
+  width: 80px !important;
+  height: 80px !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .c100 .slice {
+  border-color: var(--kr-bg-elevated) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .c100 .bar {
+  border-color: var(--kr-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .c100 .fill {
+  border-color: var(--kr-bg-elevated) !important;
+}
+
+/* Pagination */
+html.kr-theme-variant-empire-brun-dark .pagination {
+  background-color: transparent !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .pagination > li > a,
+html.kr-theme-variant-empire-brun-dark .pagination > li > span {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .pagination > li.disabled > a,
+html.kr-theme-variant-empire-brun-dark .pagination > li.disabled > span {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-muted) !important;
+  opacity: 0.6 !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .pagination > li > a:hover,
+html.kr-theme-variant-empire-brun-dark .pagination > li > span:hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .pagination > .active > a,
+html.kr-theme-variant-empire-brun-dark .pagination > .active > span {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .pagination > .active > a:hover,
+html.kr-theme-variant-empire-brun-dark .pagination > .active > span:hover {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+/* DataTables Pagination */
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate {
+  background-color: transparent !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button {
+  background-color: var(--kr-bg-elevated) !important;
+  border: 1px solid var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button.current {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button.disabled,
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button.disabled:hover {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-muted) !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button:not(.disabled):hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_paginate .paginate_button.current:hover {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+/* DataTables - Wrapper et conteneur */
+html.kr-theme-variant-empire-brun-dark .dataTables_wrapper {
+  color: var(--kr-text-primary);
+}
+
+/* DataTables - Info, Filter, Length */
+html.kr-theme-variant-empire-brun-dark .dataTables_info,
+html.kr-theme-variant-empire-brun-dark .dataTables_filter,
+html.kr-theme-variant-empire-brun-dark .dataTables_length {
+  color: var(--kr-text-secondary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_filter label,
+html.kr-theme-variant-empire-brun-dark .dataTables_length label {
+  color: var(--kr-text-secondary);
+}
+
+/* DataTables - Inputs et Selects */
+html.kr-theme-variant-empire-brun-dark .dataTables_filter input,
+html.kr-theme-variant-empire-brun-dark .dataTables_length select {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark .dataTables_filter input:focus,
+html.kr-theme-variant-empire-brun-dark .dataTables_length select:focus {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-primary) !important;
+  outline: none !important;
+}
+
+/* DataTables - Table principale */
+html.kr-theme-variant-empire-brun-dark table.dataTable {
+  background-color: transparent !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* DataTables - En-têtes */
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th,
+html.kr-theme-variant-empire-brun-dark table.dataTable thead td {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting,
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting_asc,
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting_desc {
+  background-color: var(--kr-bg-elevated) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting:hover,
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting_asc:hover,
+html.kr-theme-variant-empire-brun-dark table.dataTable thead th.sorting_desc:hover {
+  background-color: var(--kr-bg-hover) !important;
+}
+
+/* DataTables - Corps de table (lignes) */
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody tr {
+  background-color: var(--kr-bg-surface) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody tr.odd {
+  background-color: var(--kr-bg-surface) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody tr.even {
+  background-color: var(--kr-bg-hover) !important;
+}
+
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody tr:hover {
+  background-color: var(--kr-bg-active) !important;
+}
+
+/* DataTables - Cellules */
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody td {
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* DataTables - Message "Aucune donnée" */
+html.kr-theme-variant-empire-brun-dark table.dataTable tbody td.dataTables_empty {
+  background-color: var(--kr-bg-surface) !important;
+  color: var(--kr-text-secondary) !important;
+}
+
+/* DataTables - Footer */
+html.kr-theme-variant-empire-brun-dark table.dataTable tfoot th,
+html.kr-theme-variant-empire-brun-dark table.dataTable tfoot td {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* ============================================================================
+   MAP PAGE FIX - Carte au dessus des tableaux
+   ============================================================================ */
+
+/* Donner une hauteur au conteneur de la carte pour que le contenu en dessous 
+   ne se superpose pas. La carte utilise des éléments en position absolue. */
+body > div:has([id^="c"]) {
+  display: block;
+  position: relative;
+  min-height: 550px; /* Hauteur de la carte + marge */
+}
+
+/* La balise MAP vide ne doit pas prendre de place */
+body > map {
+  display: none;
 }
