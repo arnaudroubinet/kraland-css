@@ -366,7 +366,7 @@
     cardLink.classList.add('dashboard-card-link');
     // Vider le contenu pour reconstruire
 
-    // Header avec avatar et nom
+    // Header avec avatar, drapeau et nom
     const header = document.createElement('div');
     header.className = 'dashboard-card-header';
 
@@ -378,14 +378,27 @@
       header.appendChild(avatarImg);
     }
 
+    // Conteneur pour le drapeau et le nom
+    const nameContainer = document.createElement('div');
+    nameContainer.className = 'dashboard-card-name-container';
+
+    if (memberData.worldImage) {
+      const worldImg = document.createElement('img');
+      worldImg.src = memberData.worldImage;
+      worldImg.className = 'dashboard-card-world';
+      worldImg.alt = 'World';
+      nameContainer.appendChild(worldImg);
+    }
+
     const nameDiv = document.createElement('div');
     nameDiv.className = 'dashboard-card-name';
     nameDiv.textContent = memberData.name;
-    header.appendChild(nameDiv);
+    nameContainer.appendChild(nameDiv);
 
+    header.appendChild(nameContainer);
     cardLink.appendChild(header);
 
-    // Body avec statut et monde
+    // Body avec statut uniquement (pas de monde, il sera dans les actions)
     const body = document.createElement('div');
     body.className = 'dashboard-card-body';
 
@@ -394,14 +407,6 @@
       statusDiv.className = 'dashboard-card-status';
       statusDiv.textContent = memberData.status;
       body.appendChild(statusDiv);
-    }
-
-    if (memberData.worldImage) {
-      const worldImg = document.createElement('img');
-      worldImg.src = memberData.worldImage;
-      worldImg.className = 'dashboard-card-world';
-      worldImg.alt = 'World';
-      body.appendChild(worldImg);
     }
 
     cardLink.appendChild(body);
@@ -441,7 +446,13 @@
     if (memberData.actionsDiv) {
       const actionsWrapper = document.createElement('div');
       actionsWrapper.className = 'dashboard-card-actions';
-      actionsWrapper.appendChild(memberData.actionsDiv);
+      
+      // Extraire les liens d'action individuels (ignorer les divs conteneurs)
+      const actionLinks = memberData.actionsDiv.querySelectorAll('a');
+      actionLinks.forEach(link => {
+        actionsWrapper.appendChild(link.cloneNode(true));
+      });
+      
       card.appendChild(actionsWrapper);
     }
 

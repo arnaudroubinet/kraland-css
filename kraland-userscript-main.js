@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767558413782
+// @version      1.0.1767559024272
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -473,7 +473,7 @@ footer .container.white {
 }
 
 .dashboard-card-large {
-  min-height: 110px;
+  min-height: 90px;
 }
 
 /* Lien wrapper */
@@ -494,7 +494,7 @@ footer .container.white {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
+  padding: 8px 10px;
   background: rgba(0,0,0,0.02);
 }
 
@@ -512,6 +512,23 @@ footer .container.white {
   height: 40px;
 }
 
+/* Conteneur pour le drapeau et le nom */
+.dashboard-card-name-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Drapeau de nationalité dans le header */
+.dashboard-card-world {
+  width: 20px;
+  height: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .dashboard-card-name {
   font-size: 12px;
   font-weight: 600;
@@ -522,19 +539,21 @@ footer .container.white {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  flex: 1;
 }
 
 .dashboard-card-large .dashboard-card-name {
   font-size: 13px;
 }
 
-/* Body avec statut et monde */
+/* Body avec statut uniquement (monde dans les actions) */
 .dashboard-card-body {
-  padding: 0 10px 8px 10px;
+  padding: 0 10px 6px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-height: 0;
 }
 
 .dashboard-card-status {
@@ -552,13 +571,6 @@ footer .container.white {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-}
-
-.dashboard-card-world {
-  max-width: 20px;
-  max-height: 10px;
-  object-fit: contain;
-  align-self: flex-start;
 }
 
 /* Barre de HP */
@@ -597,8 +609,9 @@ footer .container.white {
   bottom: 4px;
   right: 4px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
   opacity: 0.7;
   transition: opacity 0.2s ease;
   z-index: 2;
@@ -1039,7 +1052,7 @@ footer .container.white {
     cardLink.classList.add('dashboard-card-link');
     // Vider le contenu pour reconstruire
 
-    // Header avec avatar et nom
+    // Header avec avatar, drapeau et nom
     const header = document.createElement('div');
     header.className = 'dashboard-card-header';
 
@@ -1051,14 +1064,27 @@ footer .container.white {
       header.appendChild(avatarImg);
     }
 
+    // Conteneur pour le drapeau et le nom
+    const nameContainer = document.createElement('div');
+    nameContainer.className = 'dashboard-card-name-container';
+
+    if (memberData.worldImage) {
+      const worldImg = document.createElement('img');
+      worldImg.src = memberData.worldImage;
+      worldImg.className = 'dashboard-card-world';
+      worldImg.alt = 'World';
+      nameContainer.appendChild(worldImg);
+    }
+
     const nameDiv = document.createElement('div');
     nameDiv.className = 'dashboard-card-name';
     nameDiv.textContent = memberData.name;
-    header.appendChild(nameDiv);
+    nameContainer.appendChild(nameDiv);
 
+    header.appendChild(nameContainer);
     cardLink.appendChild(header);
 
-    // Body avec statut et monde
+    // Body avec statut uniquement (pas de monde, il sera dans les actions)
     const body = document.createElement('div');
     body.className = 'dashboard-card-body';
 
@@ -1067,14 +1093,6 @@ footer .container.white {
       statusDiv.className = 'dashboard-card-status';
       statusDiv.textContent = memberData.status;
       body.appendChild(statusDiv);
-    }
-
-    if (memberData.worldImage) {
-      const worldImg = document.createElement('img');
-      worldImg.src = memberData.worldImage;
-      worldImg.className = 'dashboard-card-world';
-      worldImg.alt = 'World';
-      body.appendChild(worldImg);
     }
 
     cardLink.appendChild(body);
@@ -1114,7 +1132,13 @@ footer .container.white {
     if (memberData.actionsDiv) {
       const actionsWrapper = document.createElement('div');
       actionsWrapper.className = 'dashboard-card-actions';
-      actionsWrapper.appendChild(memberData.actionsDiv);
+      
+      // Extraire les liens d'action individuels (ignorer les divs conteneurs)
+      const actionLinks = memberData.actionsDiv.querySelectorAll('a');
+      actionLinks.forEach(link => {
+        actionsWrapper.appendChild(link.cloneNode(true));
+      });
+      
       card.appendChild(actionsWrapper);
     }
 
