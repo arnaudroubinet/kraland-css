@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767483913268
+// @version      1.0.1767538158909
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -599,7 +599,7 @@ footer .container.white {
       restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, disableTooltips
+      ensurePlayerMainPanelRows, disableTooltips, modifyNavigationMenus
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -614,6 +614,151 @@ footer .container.white {
     });
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function() { return this; };
+    }
+  }
+
+  function modifyNavigationMenus() {
+    // Modification des liens des boutons principaux du menu
+    const menuLinks = {
+      'Jouer': 'jouer/plateau',
+      'Règles': 'regles/avancees',
+      'Monde': 'monde/evenements',
+      'Communauté': 'communaute/membres'
+    };
+    
+    let forumOriginalItem = null;
+    
+    // Modification des liens existants et ajout du comportement de redirection
+    document.querySelectorAll('.navbar-nav .dropdown > a.dropdown-toggle').forEach(link => {
+      const text = link.textContent.trim().replace(/\s*\n.*$/, '');
+      
+      // Traiter le menu Forum séparément (le menu original avant transformation)
+      if (text.startsWith('Forum') && !text.includes('HRP') && !text.includes('RP')) {
+        forumOriginalItem = link.closest('li.dropdown');
+        return;
+      }
+      
+      const menuKey = Object.keys(menuLinks).find(key => text.includes(key));
+      if (menuKey && menuLinks[menuKey]) {
+        link.href = menuLinks[menuKey];
+        
+        // Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
+        link.removeAttribute('data-toggle');
+        
+        // Marquer comme modifié pour éviter de ré-ajouter l'événement
+        if (!link.hasAttribute('data-nav-modified')) {
+          link.setAttribute('data-nav-modified', 'true');
+          
+          // S'assurer que le clic navigue vers la nouvelle URL
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+      }
+    });
+    
+    // Remplacer le menu Forum original par Forum RP et Forum HRP
+    if (forumOriginalItem && !document.querySelector('[data-forums-added]')) {
+      // Récupérer le dropdown menu original pour le cloner
+      const originalDropdown = forumOriginalItem.querySelector('.dropdown-menu');
+      
+      // Créer Forum RP
+      const forumRpLi = document.createElement('li');
+      forumRpLi.className = 'dropdown';
+      forumRpLi.setAttribute('data-forums-added', 'rp');
+      forumRpLi.innerHTML = `
+        <a href="forum/rp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Forum RP <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="forum/rp/taverne-10101">Taverne</a></li>
+          <li><a href="forum/rp/marche-10102">Marché</a></li>
+          <li><a href="forum/rp/monde-10103">Monde</a></li>
+          <li class="divider"></li>
+          <li><a href="forum/rp">Autre</a></li>
+        </ul>
+      `;
+      
+      // Créer Forum HRP en clonant le dropdown original
+      const forumHrpLi = document.createElement('li');
+      forumHrpLi.className = 'dropdown';
+      forumHrpLi.setAttribute('data-forums-added', 'hrp');
+      forumHrpLi.innerHTML = `
+        <a href="forum/hrp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Forum HRP <span class="caret"></span>
+        </a>
+      `;
+      
+      // Cloner le dropdown original et supprimer uniquement le lien "Jeu (RP)"
+      if (originalDropdown) {
+        const clonedDropdown = originalDropdown.cloneNode(true);
+        // Supprimer le lien "Jeu (RP)" du dropdown cloné
+        const rpLink = Array.from(clonedDropdown.querySelectorAll('li > a'))
+          .find(a => a.textContent.includes('Jeu (RP)'));
+        if (rpLink) {
+          rpLink.parentElement.remove();
+        }
+        forumHrpLi.appendChild(clonedDropdown);
+      }
+      
+      // Insérer Forum RP avant le Forum original
+      forumOriginalItem.parentElement.insertBefore(forumRpLi, forumOriginalItem);
+      // Insérer Forum HRP après Forum RP (donc avant l'original aussi)
+      forumOriginalItem.parentElement.insertBefore(forumHrpLi, forumOriginalItem);
+      // Supprimer le menu Forum original
+      forumOriginalItem.remove();
+      
+      // Ajouter les comportements de navigation directe
+      const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
+      if (forumRpLink) {
+        forumRpLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = this.href;
+          return false;
+        });
+      }
+      
+      const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
+      if (forumHrpLink) {
+        forumHrpLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = this.href;
+          return false;
+        });
+      }
+    }
+    
+    // Ajout du menu Statistiques (une seule fois)
+    const communauteItem = Array.from(document.querySelectorAll('.navbar-nav > li.dropdown'))
+      .find(li => li.querySelector('a.dropdown-toggle')?.textContent.includes('Communauté'));
+    
+    if (communauteItem && !document.querySelector('[data-stats-menu-added]')) {
+      const statsLi = document.createElement('li');
+      statsLi.className = 'dropdown';
+      statsLi.setAttribute('data-stats-menu-added', 'true');
+      statsLi.innerHTML = `
+        <a href="monde/citoyens" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Statistiques <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="communaute/stats">Communautés</a></li>
+          <li><a href="monde/citoyens">Citoyens</a></li>
+        </ul>
+      `;
+      
+      communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
+      
+      // Ajouter le comportement de navigation directe pour le menu Statistiques
+      const statsLink = statsLi.querySelector('a.dropdown-toggle');
+      if (statsLink) {
+        statsLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = this.href;
+          return false;
+        });
+      }
     }
   }
 
