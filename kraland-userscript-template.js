@@ -11,10 +11,12 @@
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
     STYLE_ID: 'kraland-theme-style',
-    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','high-contrast'],
+    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
     LOGO_MAP: {
-      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'theocratie-seelienne': 4,
-      'paradigme-vert': 5, 'khanat-elmerien': 6, 'confederation-libre': 7, 'royaume-ruthvenie': 8
+      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'paladium-dark': 3, 
+      'theocratie-seelienne': 4, 'theocratie-seelienne-dark': 4, 'paradigme-vert': 5, 'paradigme-vert-dark': 5,
+      'khanat-elmerien': 6, 'khanat-elmerien-dark': 6, 'confederation-libre': 7, 'confederation-libre-dark': 7, 
+      'royaume-ruthvenie': 8, 'royaume-ruthvenie-dark': 8
     },
     SKILL_ICONS: {
       'Baratin': '9401', 'Combat Mains Nues': '9402', 'Combat Contact': '9403',
@@ -1460,11 +1462,17 @@
         { value: 'empire-brun', flag: 'f2', label: 'Empire Brun' },
         { value: 'empire-brun-dark', flag: 'f2', label: 'Empire Brun (Dark Mode)' },
         { value: 'paladium', flag: 'f3', label: 'Paladium Corporation' },
+        { value: 'paladium-dark', flag: 'f3', label: 'Paladium Corporation (Dark Mode)' },
         { value: 'theocratie-seelienne', flag: 'f4', label: 'Théocratie Seelienne' },
+        { value: 'theocratie-seelienne-dark', flag: 'f4', label: 'Théocratie Seelienne (Dark Mode)' },
         { value: 'paradigme-vert', flag: 'f5', label: 'Paradigme Vert' },
+        { value: 'paradigme-vert-dark', flag: 'f5', label: 'Paradigme Vert (Dark Mode)' },
         { value: 'khanat-elmerien', flag: 'f6', label: 'Khanat Elmérien' },
+        { value: 'khanat-elmerien-dark', flag: 'f6', label: 'Khanat Elmérien (Dark Mode)' },
         { value: 'confederation-libre', flag: 'f7', label: 'Confédération Libre' },
-        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' }
+        { value: 'confederation-libre-dark', flag: 'f7', label: 'Confédération Libre (Dark Mode)' },
+        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' },
+        { value: 'royaume-ruthvenie-dark', flag: 'f8', label: 'Royaume de Ruthvénie (Dark Mode)' }
       ];
 
       const radios = themeOptions.map(opt => `
