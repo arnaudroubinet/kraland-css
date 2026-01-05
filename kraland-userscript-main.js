@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767569084761
+// @version      1.0.1767616142414
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -142,7 +142,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 70px; 
+  padding-bottom: 80px; /* Augmenté pour meilleure visibilité des formulaires au-dessus du footer fixe */
 }
 
 /* Increase container width: remove 150px from each side */
@@ -202,6 +202,12 @@ body {
 .form-group label {
   color: var(--kr-text);
   font-weight: 600;
+}
+
+/* Ajout de marge en bas des formulaires pour éviter qu'ils soient masqués par le footer fixe */
+form,
+.form-horizontal {
+  margin-bottom: 30px;
 }
 
 input[type="checkbox"],
@@ -857,7 +863,7 @@ html.kr-theme-variant-empire-brun-dark .modal-footer {
 
 /* === FORMS === */
 html.kr-theme-variant-empire-brun-dark .form-control {
-  background-color: var(--kr-bg-elevated);
+  background-color: #3a332b; /* Éclaircissement du fond pour meilleure lisibilité */
   border-color: var(--kr-border-default);
   color: var(--kr-text-primary);
 }
@@ -867,8 +873,13 @@ html.kr-theme-variant-empire-brun-dark .form-control::placeholder {
 }
 
 html.kr-theme-variant-empire-brun-dark .form-control:focus {
-  background-color: var(--kr-bg-elevated);
+  background-color: #423a31; /* Fond légèrement plus clair au focus */
   border-color: var(--kr-primary);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-variant-empire-brun-dark .form-group label,
+html.kr-theme-variant-empire-brun-dark label {
   color: var(--kr-text-primary);
 }
 
