@@ -169,13 +169,19 @@ body {
   height: auto !important; /* Laisser le body grandir avec le contenu */
   display: flex;
   flex-direction: column;
-  margin: 0;
-  padding-top: 52px; /* Compenser la navigation fixe */
+  margin: 0 !important; /* Pas de margin pour éviter le décalage de 60px */
+  padding-top: 60px; /* Compenser la navigation fixe (60px) */
 }
 
 /* La navigation en haut est en position fixed, donc elle sort du flux */
 nav.navbar {
-  /* Position fixed déjà définie par le site */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1030 !important; /* Au-dessus du contenu */
+  height: auto !important; /* Laisser la hauteur s'adapter au contenu */
+  max-height: 60px !important; /* Limiter la hauteur maximale */
 }
 
 /* Le contenu principal occupe l'espace disponible */
@@ -528,10 +534,11 @@ footer .container.white {
 }
 
 .container.white .kraland-back-to-top {
-  position: absolute;
-  right: -5%;
-  top: 50%;
-  transform: translateY(-50%);
+  position: fixed; /* Fixed au lieu d'absolute pour ne pas ajouter de hauteur au footer */
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  transform: none; /* Pas de transform nécessaire avec fixed */
 }
 
 /* ============================================================================
