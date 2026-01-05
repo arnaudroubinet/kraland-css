@@ -238,6 +238,18 @@
   // TRANSFORMATIONS DOM
   // ============================================================================
 
+  /**
+   * Applique l'option de masquage de la citation du footer
+   */
+  function applyFooterQuoteOption() {
+    const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
+    if (hideQuote) {
+      document.documentElement.classList.add('kr-hide-footer-quote');
+    } else {
+      document.documentElement.classList.remove('kr-hide-footer-quote');
+    }
+  }
+
   function applyDOMTransformations() {
     if (!isThemeEnabled()) return;
 
@@ -248,7 +260,7 @@
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, disableTooltips, modifyNavigationMenus,
-      transformDashboardToFlexCards
+      transformDashboardToFlexCards, applyFooterQuoteOption
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -1421,6 +1433,12 @@
         </div>
       `;
 
+      const hideQuoteCheckbox = `
+        <div class="checkbox">
+          <label><input type="checkbox" name="kr-hide-quote" id="kr-hide-quote"> Masquer la citation du footer</label>
+        </div>
+      `;
+
       const container = document.createElement('div');
       container.id = 'kr-tamper-theme';
       container.className = 'well kr-tamper-theme';
@@ -1434,6 +1452,10 @@
           <div class="form-group">
             <label class="col-sm-3 control-label">Affichage des caractéristiques</label>
             <div class="col-sm-9">${statsDisplayRadios}</div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Options du footer</label>
+            <div class="col-sm-9">${hideQuoteCheckbox}</div>
           </div>
         </form>
       `;
@@ -1456,6 +1478,11 @@
         const statsMode = getStatsDisplayMode();
         const statsEl = form.querySelector(`input[name="kr-stats-display"][value="${statsMode}"]`);
         if (statsEl) statsEl.checked = true;
+        
+        // Synchroniser l'option de masquage de la citation
+        const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
+        const hideQuoteEl = form.querySelector('#kr-hide-quote');
+        if (hideQuoteEl) hideQuoteEl.checked = hideQuote;
       }
 
       form.addEventListener('change', (e) => {
@@ -1493,6 +1520,30 @@
           setTimeout(() => {
             feedback.remove();
           }, 5000);
+        }
+        
+        // Gestion du masquage de la citation
+        if (e.target.name === 'kr-hide-quote') {
+          const isChecked = e.target.checked;
+          localStorage.setItem('kr-hide-footer-quote', isChecked.toString());
+          
+          // Appliquer immédiatement le changement
+          if (isChecked) {
+            document.documentElement.classList.add('kr-hide-footer-quote');
+          } else {
+            document.documentElement.classList.remove('kr-hide-footer-quote');
+          }
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked 
+            ? 'Citation du footer masquée.' 
+            : 'Citation du footer affichée.';
+          container.appendChild(feedback);
+
+          setTimeout(() => {
+            feedback.remove();
+          }, 3000);
         }
       });
 

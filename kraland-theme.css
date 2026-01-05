@@ -195,6 +195,11 @@ footer {
   width: 100%;
 }
 
+/* Option pour masquer la citation du footer */
+html.kr-hide-footer-quote .footer-quote {
+  display: none !important;
+}
+
 /* Increase container width: remove 150px from each side */
 .container {
   max-width: 1608px !important;
