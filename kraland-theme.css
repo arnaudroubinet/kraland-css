@@ -12,25 +12,24 @@
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
   --kr-navbar-bg: #111315;
-
   --kr-radius: .5rem;
   --kr-avatar-size: 120px;
 
   /* Variables pour le dark mode */
   --kr-bg-page: #f5f5f5;
-  --kr-bg-surface: #ffffff;
-  --kr-bg-elevated: #ffffff;
-  --kr-bg-hover: rgba(0,0,0,0.02);
-  --kr-bg-active: rgba(0,0,0,0.05);
+  --kr-bg-surface: #fff;
+  --kr-bg-elevated: #fff;
+  --kr-bg-hover: rgb(0,0,0,0.02);
+  --kr-bg-active: rgb(0,0,0,0.05);
   --kr-text-primary: #0f1724;
   --kr-text-secondary: #6b7280;
   --kr-text-muted: #9ca3af;
-  --kr-text-inverse: #ffffff;
-  --kr-border-default: rgba(0,0,0,0.08);
-  --kr-border-strong: rgba(0,0,0,0.15);
-  --kr-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --kr-shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-  --kr-shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --kr-text-inverse: #fff;
+  --kr-border-default: rgb(0,0,0,0.08);
+  --kr-border-strong: rgb(0,0,0,0.15);
+  --kr-shadow-sm: 0 1px 2px rgb(0,0,0,0.05);
+  --kr-shadow-md: 0 4px 6px rgb(0,0,0,0.07);
+  --kr-shadow-lg: 0 10px 15px rgb(0,0,0,0.1);
 }
 
 
@@ -84,8 +83,11 @@ html.kr-theme-variant-empire-brun-dark {
   --kr-bg-page: #12100d;
   --kr-bg-surface: #1e1a15;
   --kr-bg-elevated: #2a251f;
-  --kr-bg-hover: rgba(255,255,255,0.03);
-  --kr-bg-active: rgba(255,255,255,0.06);
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
 
   /* Dark mode texte */
   --kr-text-primary: #f5f1ed;
@@ -94,13 +96,13 @@ html.kr-theme-variant-empire-brun-dark {
   --kr-text-inverse: #12100d;
 
   /* Dark mode bordures */
-  --kr-border-default: rgba(255,255,255,0.08);
-  --kr-border-strong: rgba(255,255,255,0.15);
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
 
   /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgba(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgba(0,0,0,0.6);
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
 }
 
 
@@ -140,7 +142,7 @@ body {
 /* Show skills panel (no longer collapsed by default) */
 #skills-panel {
   display: block !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgb(0, 0, 0, 0.06) !important;
   border-radius: 5px !important;
   background-color: #fff !important;
 }
@@ -174,13 +176,13 @@ body {
 
 .form-control.form-control {
   border-radius: .4rem;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgb(0,0,0,0.08);
   padding: .6rem .8rem;
   font-size: .95rem;
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 .18rem rgba(164,18,13,0.22);
+  box-shadow: 0 0 0 .18rem rgb(164,18,13,0.22);
   border-color: var(--kr-primary);
   outline: none;
 }
@@ -204,7 +206,7 @@ input[type="radio"] {
 input[type="checkbox"]:focus,
 input[type="radio"]:focus {
   outline: none;
-  box-shadow: 0 0 0 .12rem rgba(164,18,13,0.18) !important;
+  box-shadow: 0 0 0 .12rem rgb(164,18,13,0.18) !important;
 }
 
 input[type="checkbox"]:checked {
@@ -223,6 +225,7 @@ input[type="checkbox"]:checked {
   color: #fff;
   border-color: var(--kr-primary-dark);
 }
+
 .bg-info {
   background-color: var(--kr-primary);
   color: #fff;
@@ -237,8 +240,8 @@ input[type="checkbox"]:checked {
 
 /* Alerts - info variant */
 .alert.alert-info {
-  background-color: rgba(164,18,13,0.06);
-  border-color: rgba(164,18,13,0.14);
+  background-color: rgb(164,18,13,0.06);
+  border-color: rgb(164,18,13,0.14);
   color: var(--kr-text);
 }
 
@@ -273,7 +276,7 @@ input[type="checkbox"]:checked {
 /* Keep hover for non-active items subtle and themed */
 .list-group-item:hover {
   color: var(--kr-primary-dark);
-  background-color: rgba(0,0,0,0.02);
+  background-color: rgb(0,0,0,0.02);
 }
 
 /* ============================================================================
@@ -363,7 +366,7 @@ input[type="checkbox"]:checked {
    ============================================================================ */
 
 .carousel-caption {
-  background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35));
+  background: linear-gradient(180deg, rgb(0,0,0,0.55), rgb(0,0,0,0.35));
   padding: 1.4rem;
   padding-bottom: 56px;
   border-radius: .6rem;
@@ -376,6 +379,7 @@ input[type="checkbox"]:checked {
   max-width: 100%;
   height: auto;
 }
+
 a.carousel-control.left,
 a.carousel-control.right{
    background-image: none;
@@ -394,6 +398,7 @@ a.carousel-control.right{
   background-color: var(--kr-primary-dark);
   border-color: var(--kr-primary-dark);
 }
+
 .pagination > li > a{
   color: var(--kr-primary);
 }
@@ -403,6 +408,7 @@ a.carousel-control.right{
   background-color: var(--kr-primary);
   border-color: var(--kr-primary);
 }
+
 .pagination > li > a:hover{
   color: var(--kr-primary);
 }
@@ -434,7 +440,7 @@ a.btn-primary {
   background-color: var(--kr-primary);
   border-color: var(--kr-primary-dark);
   color: var(--kr-highlight-reverse);
-  box-shadow: 0 6px 18px rgba(165,18,13,0.12);
+  box-shadow: 0 6px 18px rgb(165,18,13,0.12);
 }
 
 button.btn-primary:hover,
@@ -494,7 +500,7 @@ footer .container.white {
   background: var(--kr-surface);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 4px rgb(0,0,0,0.08);
 }
 
 .dashboard-section-header {
@@ -515,8 +521,8 @@ footer .container.white {
 }
 
 .dashboard-group-buttons .btn {
-  background-color: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background-color: rgb(255, 255, 255, 0.15);
+  border: 1px solid rgb(255, 255, 255, 0.25);
   color: white;
   padding: 4px 8px;
   font-size: 12px;
@@ -525,8 +531,8 @@ footer .container.white {
 }
 
 .dashboard-group-buttons .btn:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgb(255, 255, 255, 0.25);
+  border-color: rgb(255, 255, 255, 0.4);
   transform: scale(1.05);
 }
 
@@ -556,7 +562,7 @@ footer .container.white {
 /* Cartes individuelles */
 .dashboard-card {
   background: white;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgb(0,0,0,0.08);
   border-radius: 6px;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -567,7 +573,7 @@ footer .container.white {
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgb(0,0,0,0.12);
   border-color: var(--kr-primary);
 }
 
@@ -592,8 +598,7 @@ footer .container.white {
 .dashboard-card-header {
   display: flex;
   align-items: center;
-
-  background: rgba(0,0,0,0.02);
+  background: rgb(0,0,0,0.02);
 }
 
 /* Wrapper pour l'avatar avec cercle de PV */
@@ -670,7 +675,7 @@ footer .container.white {
 
 /* Body avec statut uniquement (monde dans les actions) */
 .dashboard-card-body {
-  padding: 0 8px 5px 8px;
+  padding: 0 8px 5px;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -699,7 +704,7 @@ footer .container.white {
 /* Barre de HP */
 .dashboard-card-hp {
   height: 6px;
-  background: rgba(0,0,0,0.08);
+  background: rgb(0,0,0,0.08);
   position: relative;
   margin: 0;
 }
@@ -766,7 +771,7 @@ footer .container.white {
   align-items: center;
   justify-content: center;
   padding: 4px 6px !important;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgb(0, 0, 0, 0.6);
   border-radius: 3px;
   transition: background-color 0.2s ease;
   min-width: 24px;
@@ -774,7 +779,7 @@ footer .container.white {
 }
 
 .dashboard-card-actions a:hover {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgb(0, 0, 0, 0.8);
 }
 
 .dashboard-card-actions a i {
@@ -784,7 +789,7 @@ footer .container.white {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
@@ -806,7 +811,7 @@ footer .container.white {
   background-color: var(--kr-surface) !important;
   background-image: none !important;
   color: var(--kr-primary) !important;
-  border: 1px solid rgba(0,0,0,0.06) !important;
+  border: 1px solid rgb(0,0,0,0.06) !important;
   box-shadow: none !important;
 }
 
@@ -821,10 +826,6 @@ footer .container.white {
    13. EMPIRE BRUN DARK MODE
    Surcharges complètes pour le thème Empire Brun en mode sombre
    ============================================================================ */
-
-html.kr-theme-variant-empire-brun-dark {
-  color-scheme: dark;
-}
 
 /* === BODY & BACKGROUNDS === */
 html.kr-theme-variant-empire-brun-dark body {
@@ -938,7 +939,11 @@ html.kr-theme-variant-empire-brun-dark .btn-default {
   color: var(--kr-text-primary);
 }
 
-html.kr-theme-variant-empire-brun-dark .btn-default:hover,
+html.kr-theme-variant-empire-brun-dark .btn-default:hover {
+  background-color: var(--kr-bg-active);
+  border-color: var(--kr-border-strong);
+}
+
 html.kr-theme-variant-empire-brun-dark .btn-default:focus,
 html.kr-theme-variant-empire-brun-dark .btn-default:active {
   background-color: var(--kr-bg-hover);
@@ -1035,18 +1040,6 @@ html.kr-theme-variant-empire-brun-dark .nav-tabs > li.active > a:focus {
   color: var(--kr-text-primary);
 }
 
-/* === BUTTONS === */
-html.kr-theme-variant-empire-brun-dark .btn-default {
-  background-color: var(--kr-bg-elevated);
-  border-color: var(--kr-border-default);
-  color: var(--kr-text-primary);
-}
-
-html.kr-theme-variant-empire-brun-dark .btn-default:hover {
-  background-color: var(--kr-bg-active);
-  border-color: var(--kr-border-strong);
-}
-
 /* === ALERTS === */
 html.kr-theme-variant-empire-brun-dark .alert {
   border-color: var(--kr-border-default);
@@ -1063,26 +1056,26 @@ html.kr-theme-variant-empire-brun-dark .alert a {
 }
 
 html.kr-theme-variant-empire-brun-dark .alert-info {
-  background-color: rgba(122, 82, 64, 0.15);
-  border-color: rgba(122, 82, 64, 0.3);
+  background-color: rgb(122, 82, 64, 0.15);
+  border-color: rgb(122, 82, 64, 0.3);
   color: var(--kr-text-primary);
 }
 
 html.kr-theme-variant-empire-brun-dark .alert-success {
-  background-color: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.3);
+  background-color: rgb(34, 197, 94, 0.15);
+  border-color: rgb(34, 197, 94, 0.3);
   color: var(--kr-text-primary);
 }
 
 html.kr-theme-variant-empire-brun-dark .alert-warning {
-  background-color: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.3);
+  background-color: rgb(245, 158, 11, 0.15);
+  border-color: rgb(245, 158, 11, 0.3);
   color: var(--kr-text-primary);
 }
 
 html.kr-theme-variant-empire-brun-dark .alert-danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
+  background-color: rgb(239, 68, 68, 0.15);
+  border-color: rgb(239, 68, 68, 0.3);
   color: var(--kr-text-primary);
 }
 
@@ -1172,16 +1165,16 @@ html.kr-theme-variant-empire-brun-dark .f8 { color: #81c784; }
 html.kr-theme-variant-empire-brun-dark .f9 { color: #c4b958; }
 
 /* === CLASSES KRALAND .c1-.c10 (fonds nations) === */
-html.kr-theme-variant-empire-brun-dark .c1  { background-color: rgba(255, 128, 128, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c2  { background-color: rgba(170, 112, 0, 0.3); }
-html.kr-theme-variant-empire-brun-dark .c3  { background-color: rgba(255, 255, 128, 0.15); }
-html.kr-theme-variant-empire-brun-dark .c4  { background-color: rgba(128, 128, 255, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c5  { background-color: rgba(128, 255, 128, 0.15); }
-html.kr-theme-variant-empire-brun-dark .c6  { background-color: rgba(204, 128, 255, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c7  { background-color: rgba(170, 170, 170, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c8  { background-color: rgba(115, 151, 115, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c9  { background-color: rgba(170, 170, 68, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c10 { background-color: rgba(204, 255, 255, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c1  { background-color: rgb(255, 128, 128, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c2  { background-color: rgb(170, 112, 0, 0.3); }
+html.kr-theme-variant-empire-brun-dark .c3  { background-color: rgb(255, 255, 128, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c4  { background-color: rgb(128, 128, 255, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c5  { background-color: rgb(128, 255, 128, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c6  { background-color: rgb(204, 128, 255, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c7  { background-color: rgb(170, 170, 170, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c8  { background-color: rgb(115, 151, 115, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c9  { background-color: rgb(170, 170, 68, 0.2); }
+html.kr-theme-variant-empire-brun-dark .c10 { background-color: rgb(204, 255, 255, 0.15); }
 
 /* === SCROLLBARS === */
 html.kr-theme-variant-empire-brun-dark ::-webkit-scrollbar-track {
@@ -1272,6 +1265,7 @@ html.kr-theme-variant-empire-brun-dark a.next:hover {
 }
 
 /* === ICÔNES DE COMPÉTENCES ET CARACTÉRISTIQUES === */
+
 /* Réduction du contraste des icônes blanches */
 html.kr-theme-variant-empire-brun-dark img[src*="/mat/94/"] {
   filter: brightness(0.7) sepia(0.3) saturate(1.2);
@@ -1284,6 +1278,7 @@ html.kr-theme-variant-empire-brun-dark img[src*="/mat/94/"]:hover {
 }
 
 /* === ICÔNES DE BÂTIMENTS === */
+
 /* Réduction du contraste des icônes blanches */
 html.kr-theme-variant-empire-brun-dark img[src*="/bat/bat"] {
   filter: brightness(0.7) sepia(0.3) saturate(1.2);
@@ -1296,6 +1291,7 @@ html.kr-theme-variant-empire-brun-dark img[src*="/bat/bat"]:hover {
 }
 
 /* === ICÔNES DE VOCATIONS === */
+
 /* Réduction du contraste des icônes blanches */
 html.kr-theme-variant-empire-brun-dark img[src*="/voc/"] {
   filter: brightness(0.7) sepia(0.3) saturate(1.2);
@@ -1308,6 +1304,7 @@ html.kr-theme-variant-empire-brun-dark img[src*="/voc/"]:hover {
 }
 
 /* === INDICATEUR CIRCULAIRE DE TEMPS === */
+
 /* Adaptation pour le thème sombre */
 html.kr-theme-variant-empire-brun-dark .c100 {
   background-color: var(--kr-bg-elevated) !important;
@@ -1315,7 +1312,7 @@ html.kr-theme-variant-empire-brun-dark .c100 {
   color: var(--kr-text-primary) !important;
 }
 
-html.kr-theme-variant-empire-brun-dark .c100:after {
+html.kr-theme-variant-empire-brun-dark .c100::after {
   background-color: var(--kr-bg-elevated) !important;
 }
 
