@@ -608,9 +608,10 @@
       const table = panelBody.querySelector('table');
       if (!table) return;
 
-      // Vérifier si ce panel contient des personnages (liens avec class ds_game)
-      const hasPlayers = table.querySelector('a.list-group-item.ds_game');
-      if (!hasPlayers) return;
+      // Vérifier si c'est un panel de groupe de personnages (titre contient "Groupe")
+      const panelTitle = panel.querySelector('.panel-heading .panel-title');
+      const titleText = panelTitle ? panelTitle.textContent.trim() : '';
+      if (!titleText.toLowerCase().includes('groupe')) return;
 
       // Extraire toutes les données du groupe (titre, boutons, membres)
       const groupData = extractGroupData(panel);
@@ -619,7 +620,7 @@
 
       // Le premier panel avec des personnages = Mon groupe
       const isMyGroup = !firstPlayerPanelFound;
-      if (hasPlayers) firstPlayerPanelFound = true;
+      if (titleText.toLowerCase().includes('groupe')) firstPlayerPanelFound = true;
 
       groups.push({
         isMyGroup: isMyGroup,
@@ -628,6 +629,9 @@
         members: groupData.members
       });
     });
+
+    // Ne transformer que si on a trouvé au moins un groupe
+    if (groups.length === 0) return;
 
     // Construire les sections pour chaque groupe
     groups.forEach((group, index) => {
