@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767616142414
+// @version      1.0.1767617835498
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -142,13 +142,18 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 80px; /* Augmenté pour meilleure visibilité des formulaires au-dessus du footer fixe */
+  padding-bottom:80px;
 }
 
 /* Increase container width: remove 150px from each side */
 .container {
   max-width: 1608px !important;
   width: 1608px !important;
+}
+
+/* S'assurer que tous les dashboards ont un margin-bottom suffisant pour ne pas être cachés par le footer */
+.dashboard, .dashboard.dashboard-flex, .panel.panel-default {
+  margin-bottom: 60px !important;
 }
 
 /* Show skills panel (no longer collapsed by default) */
