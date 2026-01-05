@@ -30,13 +30,42 @@
   --kr-shadow-sm: 0 1px 2px rgb(0,0,0,0.05);
   --kr-shadow-md: 0 4px 6px rgb(0,0,0,0.07);
   --kr-shadow-lg: 0 10px 15px rgb(0,0,0,0.1);
+
+  /* Couleurs spécifiques */
+  --kr-white: #fff;
+  --kr-focus-ring: rgb(164,18,13,0.22);
+  --kr-focus-ring-light: rgb(164,18,13,0.18);
+  --kr-alert-info-bg: rgb(164,18,13,0.06);
+  --kr-alert-info-border: rgb(164,18,13,0.14);
+  --kr-btn-shadow: rgb(165,18,13,0.12);
+  --kr-badge-danger: #dc3545;
+  --kr-badge-danger-border: #bd2130;
+  --kr-badge-pnj: #d9534f;
+  --kr-bootstrap-blue: #337ab7;
+  
+  /* Couleurs nations (.f1-.f9) */
+  --kr-nation-1: #C41E3A;
+  --kr-nation-2: #C69100;
+  --kr-nation-3: #FFFF00;
+  --kr-nation-4: #0033A0;
+  --kr-nation-5: #0B6623;
+  --kr-nation-6: #6A0DAD;
+  --kr-nation-7: #6B7280;
+  --kr-nation-8: #0A6B2D;
+  --kr-nation-9: #aa7700;
+  
+  /* Couleurs nations fonds (.c1-.c10) */
+  --kr-nation-bg-1: rgb(255, 128, 128, 0.2);
+  --kr-nation-bg-2: rgb(170, 112, 0, 0.3);
+  --kr-nation-bg-3: rgb(255, 255, 128, 0.15);
+  --kr-nation-bg-4: rgb(128, 128, 255, 0.2);
+  --kr-nation-bg-5: rgb(128, 255, 128, 0.15);
+  --kr-nation-bg-6: rgb(204, 128, 255, 0.2);
+  --kr-nation-bg-7: rgb(170, 170, 170, 0.2);
+  --kr-nation-bg-8: rgb(115, 151, 115, 0.2);
+  --kr-nation-bg-9: rgb(170, 170, 68, 0.2);
+  --kr-nation-bg-10: rgb(204, 255, 255, 0.15);
 }
-
-
-/* ============================================================================
-   Theme variants available via Tampermonkey UI
-   Each variant sets a small set of CSS variables used throughout the theme
-   ============================================================================ */
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
@@ -103,6 +132,21 @@ html.kr-theme-variant-empire-brun-dark {
   --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
   --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
   --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #3a332b;
+  --kr-form-bg-focus: #423a31;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
 }
 
 
@@ -144,7 +188,7 @@ body {
   display: block !important;
   border: 1px solid rgb(0, 0, 0, 0.06) !important;
   border-radius: 5px !important;
-  background-color: #fff !important;
+  background-color: var(--kr-white) !important;
 }
 
 
@@ -166,7 +210,7 @@ body {
 }
 
 .navbar-nav > li > a{
-  color: #fff !important;
+  color: var(--kr-white) !important;
 }
 
 
@@ -182,7 +226,7 @@ body {
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 .18rem rgb(164,18,13,0.22);
+  box-shadow: 0 0 0 .18rem var(--kr-focus-ring);
   border-color: var(--kr-primary);
   outline: none;
 }
@@ -206,7 +250,7 @@ input[type="radio"] {
 input[type="checkbox"]:focus,
 input[type="radio"]:focus {
   outline: none;
-  box-shadow: 0 0 0 .12rem rgb(164,18,13,0.18) !important;
+  box-shadow: 0 0 0 .12rem var(--kr-focus-ring-light) !important;
 }
 
 input[type="checkbox"]:checked {
@@ -222,26 +266,26 @@ input[type="checkbox"]:checked {
 .label,
 .badge {
   background-color: var(--kr-primary);
-  color: #fff;
+  color: var(--kr-white);
   border-color: var(--kr-primary-dark);
 }
 
 .bg-info {
   background-color: var(--kr-primary);
-  color: #fff;
+  color: var(--kr-white);
 }
 
 /* Badge danger - notification alert always red on all themes */
 .badge-danger {
-  background-color: #dc3545 !important;
-  color: #fff !important;
-  border-color: #bd2130 !important;
+  background-color: var(--kr-badge-danger) !important;
+  color: var(--kr-white) !important;
+  border-color: var(--kr-badge-danger-border) !important;
 }
 
 /* Alerts - info variant */
 .alert.alert-info {
-  background-color: rgb(164,18,13,0.06);
-  border-color: rgb(164,18,13,0.14);
+  background-color: var(--kr-alert-info-bg);
+  border-color: var(--kr-alert-info-border);
   color: var(--kr-text);
 }
 
@@ -370,7 +414,7 @@ input[type="checkbox"]:checked {
   padding: 1.4rem;
   padding-bottom: 56px;
   border-radius: .6rem;
-  color: #fff;
+  color: var(--kr-white);
 }
 
 .item img[class*="-slide"] {
@@ -440,7 +484,7 @@ a.btn-primary {
   background-color: var(--kr-primary);
   border-color: var(--kr-primary-dark);
   color: var(--kr-highlight-reverse);
-  box-shadow: 0 6px 18px rgb(165,18,13,0.12);
+  box-shadow: 0 6px 18px var(--kr-btn-shadow);
 }
 
 button.btn-primary:hover,
@@ -455,7 +499,7 @@ a.btn-primary:focus {
    Supprime la ligne horizontale bleue dans le liste des ordres de la fiche de personnage
    ============================================================================ */
 
-hr[style*="border-top: 1px solid #337ab7"] {
+hr[style*="border-top: 1px solid"][style*="337ab7"] {
   display: none !important;
 }
 
@@ -505,7 +549,7 @@ footer .container.white {
 
 .dashboard-section-header {
   background: var(--kr-primary);
-  color: white;
+  color: var(--kr-white);
   padding: 3px 8px;
   font-size: 9px;
   font-weight: 600;
@@ -523,7 +567,7 @@ footer .container.white {
 .dashboard-group-buttons .btn {
   background-color: rgb(255, 255, 255, 0.15);
   border: 1px solid rgb(255, 255, 255, 0.25);
-  color: white;
+  color: var(--kr-white);
   padding: 4px 8px;
   font-size: 12px;
   border-radius: 4px;
@@ -561,7 +605,7 @@ footer .container.white {
 
 /* Cartes individuelles */
 .dashboard-card {
-  background: white;
+  background: var(--kr-white);
   border: 1px solid rgb(0,0,0,0.08);
   border-radius: 6px;
   overflow: hidden;
@@ -720,8 +764,8 @@ footer .container.white {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #d9534f;
-  color: white;
+  background: var(--kr-badge-pnj);
+  color: var(--kr-white);
   font-size: 8px;
   font-weight: 600;
   padding: 2px 5px;
@@ -783,7 +827,7 @@ footer .container.white {
 }
 
 .dashboard-card-actions a i {
-  color: white;
+  color: var(--kr-white);
   font-size: 12px;
   margin: 0;
 }
@@ -892,7 +936,7 @@ html.kr-theme-variant-empire-brun-dark .modal-footer {
 
 /* === FORMS === */
 html.kr-theme-variant-empire-brun-dark .form-control {
-  background-color: #3a332b; /* Éclaircissement du fond pour meilleure lisibilité */
+  background-color: var(--kr-form-bg);
   border-color: var(--kr-border-default);
   color: var(--kr-text-primary);
 }
@@ -902,7 +946,7 @@ html.kr-theme-variant-empire-brun-dark .form-control::placeholder {
 }
 
 html.kr-theme-variant-empire-brun-dark .form-control:focus {
-  background-color: #423a31; /* Fond légèrement plus clair au focus */
+  background-color: var(--kr-form-bg-focus);
   border-color: var(--kr-primary);
   color: var(--kr-text-primary);
 }
@@ -1154,27 +1198,27 @@ html.kr-theme-variant-empire-brun-dark .map-box-bottom {
 }
 
 /* === CLASSES KRALAND .f1-.f9 (couleurs nations) === */
-html.kr-theme-variant-empire-brun-dark .f1 { color: #ff8080; }
-html.kr-theme-variant-empire-brun-dark .f2 { color: #d4a574; }
-html.kr-theme-variant-empire-brun-dark .f3 { color: #ffe066; }
-html.kr-theme-variant-empire-brun-dark .f4 { color: #74b9ff; }
-html.kr-theme-variant-empire-brun-dark .f5 { color: #55efc4; }
-html.kr-theme-variant-empire-brun-dark .f6 { color: #a29bfe; }
-html.kr-theme-variant-empire-brun-dark .f7 { color: #b2bec3; }
-html.kr-theme-variant-empire-brun-dark .f8 { color: #81c784; }
-html.kr-theme-variant-empire-brun-dark .f9 { color: #c4b958; }
+html.kr-theme-variant-empire-brun-dark .f1 { color: var(--kr-nation-1); }
+html.kr-theme-variant-empire-brun-dark .f2 { color: var(--kr-nation-2); }
+html.kr-theme-variant-empire-brun-dark .f3 { color: var(--kr-nation-3); }
+html.kr-theme-variant-empire-brun-dark .f4 { color: var(--kr-nation-4); }
+html.kr-theme-variant-empire-brun-dark .f5 { color: var(--kr-nation-5); }
+html.kr-theme-variant-empire-brun-dark .f6 { color: var(--kr-nation-6); }
+html.kr-theme-variant-empire-brun-dark .f7 { color: var(--kr-nation-7); }
+html.kr-theme-variant-empire-brun-dark .f8 { color: var(--kr-nation-8); }
+html.kr-theme-variant-empire-brun-dark .f9 { color: var(--kr-nation-9); }
 
 /* === CLASSES KRALAND .c1-.c10 (fonds nations) === */
-html.kr-theme-variant-empire-brun-dark .c1  { background-color: rgb(255, 128, 128, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c2  { background-color: rgb(170, 112, 0, 0.3); }
-html.kr-theme-variant-empire-brun-dark .c3  { background-color: rgb(255, 255, 128, 0.15); }
-html.kr-theme-variant-empire-brun-dark .c4  { background-color: rgb(128, 128, 255, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c5  { background-color: rgb(128, 255, 128, 0.15); }
-html.kr-theme-variant-empire-brun-dark .c6  { background-color: rgb(204, 128, 255, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c7  { background-color: rgb(170, 170, 170, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c8  { background-color: rgb(115, 151, 115, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c9  { background-color: rgb(170, 170, 68, 0.2); }
-html.kr-theme-variant-empire-brun-dark .c10 { background-color: rgb(204, 255, 255, 0.15); }
+html.kr-theme-variant-empire-brun-dark .c1  { background-color: var(--kr-nation-bg-1); }
+html.kr-theme-variant-empire-brun-dark .c2  { background-color: var(--kr-nation-bg-2); }
+html.kr-theme-variant-empire-brun-dark .c3  { background-color: var(--kr-nation-bg-3); }
+html.kr-theme-variant-empire-brun-dark .c4  { background-color: var(--kr-nation-bg-4); }
+html.kr-theme-variant-empire-brun-dark .c5  { background-color: var(--kr-nation-bg-5); }
+html.kr-theme-variant-empire-brun-dark .c6  { background-color: var(--kr-nation-bg-6); }
+html.kr-theme-variant-empire-brun-dark .c7  { background-color: var(--kr-nation-bg-7); }
+html.kr-theme-variant-empire-brun-dark .c8  { background-color: var(--kr-nation-bg-8); }
+html.kr-theme-variant-empire-brun-dark .c9  { background-color: var(--kr-nation-bg-9); }
+html.kr-theme-variant-empire-brun-dark .c10 { background-color: var(--kr-nation-bg-10); }
 
 /* === SCROLLBARS === */
 html.kr-theme-variant-empire-brun-dark ::-webkit-scrollbar-track {
