@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767638028627
+// @version      1.0.1767641700237
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -180,15 +180,32 @@ html.kr-theme-variant-empire-brun-dark {
 
 
 html {
-  height: 100%;
-  min-height: 100%;
+  height: auto !important; /* Force HTML à grandir avec le contenu */
 }
 
 body {
+  min-height: 100vh !important; /* Le body fait au moins la hauteur du viewport pour les pages courtes */
+  height: auto !important; /* Laisser le body grandir avec le contenu */
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding-bottom:80px;
+  margin: 0;
+  padding-top: 52px; /* Compenser la navigation fixe */
+}
+
+/* La navigation en haut est en position fixed, donc elle sort du flux */
+nav.navbar {
+  /* Position fixed déjà définie par le site */
+}
+
+/* Le contenu principal occupe l'espace disponible */
+#content {
+  flex: 1 0 auto;
+}
+
+footer {
+  /* Footer en position normale, collé en bas grâce au flexbox */
+  flex-shrink: 0;
+  width: 100%;
 }
 
 /* Increase container width: remove 150px from each side */
@@ -197,10 +214,7 @@ body {
   width: 1608px !important;
 }
 
-/* S'assurer que tous les dashboards ont un margin-bottom suffisant pour ne pas être cachés par le footer */
-.dashboard, .dashboard.dashboard-flex, .panel.panel-default {
-  margin-bottom: 60px !important;
-}
+
 
 /* Show skills panel (no longer collapsed by default) */
 #skills-panel {
@@ -255,11 +269,7 @@ body {
   font-weight: 600;
 }
 
-/* Ajout de marge en bas des formulaires pour éviter qu'ils soient masqués par le footer fixe */
-form,
-.form-horizontal {
-  margin-bottom: 30px;
-}
+
 
 input[type="checkbox"],
 input[type="radio"] {
@@ -528,12 +538,8 @@ hr[style*="border-top: 1px solid"][style*="337ab7"] {
    ============================================================================ */
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  /* Position normale dans le flux flexbox - ne pas utiliser position absolute */
   width: 100%;
-  z-index: 1030;
 }
 
 footer .container.white {
@@ -2565,6 +2571,11 @@ body > map {
   function ensureFooterSticky() {
     const footer = document.querySelector('footer, .footer, .contentinfo');
     if (!footer) return;
+    
+    // Déplacer le footer à la fin du body pour que le flexbox fonctionne correctement
+    if (footer.nextSibling !== null) {
+      document.body.appendChild(footer);
+    }
 
     const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
     let back = null;
@@ -2584,8 +2595,9 @@ body > map {
       }
     }
 
-    if (!document.body.style.paddingBottom) {
-      document.body.style.paddingBottom = '60px';
+    // Bootstrap 3.3 sticky footer: use margin-bottom on body
+    if (!document.body.style.marginBottom) {
+      document.body.style.marginBottom = '60px';
     }
   }
 

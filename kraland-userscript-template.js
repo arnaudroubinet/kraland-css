@@ -980,6 +980,11 @@
   function ensureFooterSticky() {
     const footer = document.querySelector('footer, .footer, .contentinfo');
     if (!footer) return;
+    
+    // Déplacer le footer à la fin du body pour que le flexbox fonctionne correctement
+    if (footer.nextSibling !== null) {
+      document.body.appendChild(footer);
+    }
 
     const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
     let back = null;
@@ -999,8 +1004,9 @@
       }
     }
 
-    if (!document.body.style.paddingBottom) {
-      document.body.style.paddingBottom = '60px';
+    // Bootstrap 3.3 sticky footer: use margin-bottom on body
+    if (!document.body.style.marginBottom) {
+      document.body.style.marginBottom = '60px';
     }
   }
 
