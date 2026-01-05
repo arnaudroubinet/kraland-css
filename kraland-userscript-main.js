@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767643776487
+// @version      1.0.1767646010060
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -436,6 +436,11 @@ input[type="checkbox"]:checked {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0 15px !important;
+}
+
+/* Espacement entre les lignes de boutons d'accès rapide */
+.kr-quick-access-buttons .col-xs-6 {
+  margin-bottom: 10px;
 }
 
 #player-actions-section hr {
@@ -1862,8 +1867,8 @@ body > map {
       restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, disableTooltips, modifyNavigationMenus,
-      transformDashboardToFlexCards, applyFooterQuoteOption
+      ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
+      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -2950,9 +2955,59 @@ body > map {
 
     Array.from(panel.children)
       .filter(child => child.tagName?.toLowerCase() === 'div')
+      .filter(div => !div.classList.contains('kr-quick-access-buttons'))
       .forEach(div => {
         if (!div.classList.contains('row')) div.classList.add('row');
       });
+  }
+
+  function addQuickAccessButtons() {
+    const panel = document.getElementById('player-main-panel');
+    if (!panel) return;
+    
+    // Vérifier si les boutons ont déjà été ajoutés
+    if (panel.querySelector('.kr-quick-access-buttons')) return;
+    
+    // Définir les boutons
+    const buttons = [
+      { label: 'Agir', url: '/jouer/plateau', icon: 'fa-map' },
+      { label: 'Matériel', url: '/jouer/materiel', icon: 'fa-box' },
+      { label: 'Personnage', url: '/jouer/perso', icon: 'fa-user' },
+      { label: 'Bâtiments', url: '/jouer/bat', icon: 'fa-building' },
+      { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
+    ];
+    
+    // Créer le conteneur principal avec le système de grille Bootstrap
+    const container = document.createElement('div');
+    container.className = 'kr-quick-access-buttons';
+    container.style.marginTop = '10px';
+    
+    const row = document.createElement('div');
+    row.className = 'row';
+    
+    // Créer chaque bouton avec une colonne Bootstrap (2 par ligne)
+    buttons.forEach(btn => {
+      const col = document.createElement('div');
+      col.className = 'col-xs-6 col-sm-6';
+      
+      const link = document.createElement('a');
+      link.href = btn.url;
+      link.className = 'btn btn-default btn-block mini';
+      
+      const icon = document.createElement('i');
+      icon.className = `fa ${btn.icon}`;
+      
+      link.appendChild(icon);
+      link.appendChild(document.createTextNode(' ' + btn.label));
+      
+      col.appendChild(link);
+      row.appendChild(col);
+    });
+    
+    container.appendChild(row);
+    
+    // Ajouter les boutons à la fin du panneau
+    panel.appendChild(container);
   }
 
   // ============================================================================

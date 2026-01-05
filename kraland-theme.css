@@ -419,6 +419,11 @@ input[type="checkbox"]:checked {
   padding: 0 15px !important;
 }
 
+/* Espacement entre les lignes de boutons d'accès rapide */
+.kr-quick-access-buttons .col-xs-6 {
+  margin-bottom: 10px;
+}
+
 #player-actions-section hr {
   width: 100%;
   margin: 0.5rem 0;
