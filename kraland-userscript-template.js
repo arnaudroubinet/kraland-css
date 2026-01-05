@@ -9,6 +9,7 @@
     BUNDLED_CSS: `__CSS_CONTENT__`,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
+    STATS_DISPLAY_KEY: 'kr-stats-display',
     STYLE_ID: 'kraland-theme-style',
     THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','high-contrast'],
     LOGO_MAP: {
@@ -48,6 +49,11 @@
     return localStorage.getItem(CONFIG.VARIANT_KEY) || 'kraland';
   }
 
+  /** Récupère le mode d'affichage des caractéristiques ('icon' ou 'text') */
+  function getStatsDisplayMode() {
+    return localStorage.getItem(CONFIG.STATS_DISPLAY_KEY) || 'icon';
+  }
+
   /** Vérifie si on est sur la page /jouer */
   function isPlatoPage() {
     const path = location?.pathname || '';
@@ -62,7 +68,7 @@
     badge.className = 'badge';
     badge.textContent = text;
     Object.assign(badge.style, {
-      position: 'absolute', top: '20px', right: '-5px',
+      position: 'absolute', top: '25px', right: '-8px',
       backgroundColor: '#d9534f', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -77,7 +83,7 @@
     badge.className = 'badge';
     badge.textContent = text;
     Object.assign(badge.style, {
-      position: 'absolute', top: '20px', right: '-5px',
+      position: 'absolute', top: '25px', right: '-8px',
       backgroundColor: '#007bff', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1099,6 +1105,10 @@
           buttons.forEach(btn => {
             const col = document.createElement('div');
             col.className = 'col-md-6';
+            col.style.display = 'flex';
+            col.style.justifyContent = 'center';
+            col.style.alignItems = 'center';
+            col.style.marginBottom = '8px';
             col.appendChild(btn);
             row.appendChild(col);
           });
@@ -1117,6 +1127,10 @@
         items.forEach(item => {
           const col = document.createElement('div');
           col.className = 'col-md-6';
+          col.style.display = 'flex';
+          col.style.justifyContent = 'center';
+          col.style.alignItems = 'center';
+          col.style.marginBottom = '8px';
           col.appendChild(item);
           row.appendChild(col);
         });
@@ -1183,7 +1197,9 @@
       const iconContainer = createIconContainer(iconUrl, skillName, level);
       Object.assign(item.style, {
         display: 'flex', alignItems: 'center',
-        justifyContent: 'center', padding: '8px'
+        justifyContent: 'center', padding: '8px',
+        width: '40px', height: '40px',
+        minWidth: '40px', minHeight: '40px'
       });
       item.appendChild(iconContainer);
     });
@@ -1208,50 +1224,80 @@
       statBtn.className = originalClasses + ' list-group-item ds_game';
       Object.assign(statBtn.style, {
         padding: '8px', display: 'flex',
-        alignItems: 'center', justifyContent: 'center'
+        alignItems: 'center', justifyContent: 'center',
+        width: '40px', height: '40px',
+        minWidth: '40px', minHeight: '40px'
       });
       statBtn.title = cleanStatName;
 
-      const iconCode = CONFIG.STAT_ICONS[cleanStatName];
-      if (iconCode) {
-        const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
-        const iconContainer = createStatIconContainer(iconUrl, cleanStatName, number);
-        statBtn.appendChild(iconContainer);
-      } else {
-        // Fallback SVG
-        const container = document.createElement('div');
-        Object.assign(container.style, {
-          position: 'relative', display: 'inline-block',
-          width: '32px', height: '32px'
+      const displayMode = getStatsDisplayMode();
+
+      // Créer le conteneur principal (toujours avec badge)
+      const container = document.createElement('div');
+      Object.assign(container.style, {
+        position: 'relative', display: 'inline-block',
+        width: '32px', height: '32px'
+      });
+
+      if (displayMode === 'text') {
+        // Mode texte : afficher uniquement l'abréviation (3 lettres)
+        const textSpan = document.createElement('span');
+        textSpan.textContent = cleanStatName.substring(0, 3).toUpperCase();
+        Object.assign(textSpan.style, {
+          fontWeight: 'bold',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '32px',
+          height: '32px'
         });
+        container.appendChild(textSpan);
+      } else {
+        // Mode icône (par défaut)
+        const iconCode = CONFIG.STAT_ICONS[cleanStatName];
+        if (iconCode) {
+          const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
+          const img = document.createElement('img');
+          img.src = iconUrl;
+          img.alt = cleanStatName;
+          img.title = cleanStatName;
+          Object.assign(img.style, {
+            display: 'block', width: '32px', height: '32px'
+          });
+          container.appendChild(img);
+        } else {
+          // Fallback SVG
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '32');
+          svg.setAttribute('height', '32');
+          svg.setAttribute('viewBox', '0 0 32 32');
+          svg.style.display = 'block';
 
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '32');
-        svg.setAttribute('height', '32');
-        svg.setAttribute('viewBox', '0 0 32 32');
-        svg.style.display = 'block';
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('width', '32');
+          rect.setAttribute('height', '32');
+          rect.setAttribute('fill', '#f0f0f0');
+          rect.setAttribute('stroke', '#ccc');
+          svg.appendChild(rect);
 
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('width', '32');
-        rect.setAttribute('height', '32');
-        rect.setAttribute('fill', '#f0f0f0');
-        rect.setAttribute('stroke', '#ccc');
-        svg.appendChild(rect);
+          const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          svgText.setAttribute('x', '16');
+          svgText.setAttribute('y', '20');
+          svgText.setAttribute('text-anchor', 'middle');
+          svgText.setAttribute('font-size', '14');
+          svgText.setAttribute('font-weight', 'bold');
+          svgText.setAttribute('fill', '#333');
+          svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
+          svg.appendChild(svgText);
 
-        const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        svgText.setAttribute('x', '16');
-        svgText.setAttribute('y', '20');
-        svgText.setAttribute('text-anchor', 'middle');
-        svgText.setAttribute('font-size', '14');
-        svgText.setAttribute('font-weight', 'bold');
-        svgText.setAttribute('fill', '#333');
-        svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
-        svg.appendChild(svgText);
-
-        container.appendChild(svg);
-        container.appendChild(createStatBadge(number));
-        statBtn.appendChild(container);
+          container.appendChild(svg);
+        }
       }
+
+      // Toujours ajouter le badge de notification
+      container.appendChild(createStatBadge(number));
+      statBtn.appendChild(container);
     });
 
     colLeftestStats.dataset.badgesTransformed = '1';
@@ -1360,6 +1406,15 @@
         </div>
       `).join('');
 
+      const statsDisplayRadios = `
+        <div class="radio">
+          <label><input type="radio" name="kr-stats-display" value="icon"> Icônes</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="kr-stats-display" value="text"> Texte</label>
+        </div>
+      `;
+
       const container = document.createElement('div');
       container.id = 'kr-tamper-theme';
       container.className = 'well kr-tamper-theme';
@@ -1367,8 +1422,12 @@
         <h4>Thème Tampermonkey (Activez le thème de base officiel pour éviter les conflits)</h4>
         <form id="kr-tamper-theme-form" class="form-horizontal">
           <div class="form-group">
-            <label class="col-sm-3 control-label">Choix</label>
+            <label class="col-sm-3 control-label">Choix du thème</label>
             <div class="col-sm-9">${radios}</div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Affichage des caractéristiques</label>
+            <div class="col-sm-9">${statsDisplayRadios}</div>
           </div>
         </form>
       `;
@@ -1381,26 +1440,54 @@
         if (!isThemeEnabled()) {
           const d = form.querySelector('input[value="disable"]');
           if (d) d.checked = true;
-          return;
+        } else {
+          const v = getVariant();
+          const el = form.querySelector(`input[value="${v}"]`);
+          if (el) el.checked = true;
         }
-        const v = getVariant();
-        const el = form.querySelector(`input[value="${v}"]`);
-        if (el) el.checked = true;
+        
+        // Synchroniser l'affichage des caractéristiques
+        const statsMode = getStatsDisplayMode();
+        const statsEl = form.querySelector(`input[name="kr-stats-display"][value="${statsMode}"]`);
+        if (statsEl) statsEl.checked = true;
       }
 
-      form.addEventListener('change', () => {
-        const sel = form.querySelector('input[name="kr-theme"]:checked');
-        if (!sel) return;
-        const val = sel.value;
+      form.addEventListener('change', (e) => {
+        // Gestion du changement de thème
+        if (e.target.name === 'kr-theme') {
+          const sel = form.querySelector('input[name="kr-theme"]:checked');
+          if (!sel) return;
+          const val = sel.value;
 
-        const feedback = document.createElement('div');
-        feedback.className = 'alert alert-success';
-        feedback.textContent = val === 'disable' 
-          ? 'Désactivation du thème...' 
-          : 'Application du thème: ' + val;
-        container.appendChild(feedback);
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = val === 'disable' 
+            ? 'Désactivation du thème...' 
+            : 'Application du thème: ' + val;
+          container.appendChild(feedback);
 
-        setTimeout(() => applyThemeVariant(val), 300);
+          setTimeout(() => applyThemeVariant(val), 300);
+        }
+        
+        // Gestion du changement d'affichage des caractéristiques
+        if (e.target.name === 'kr-stats-display') {
+          const sel = form.querySelector('input[name="kr-stats-display"]:checked');
+          if (!sel) return;
+          const val = sel.value;
+
+          localStorage.setItem(CONFIG.STATS_DISPLAY_KEY, val);
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = val === 'icon' 
+            ? 'Affichage en icônes activé. Rechargez la page pour voir les changements.' 
+            : 'Affichage en texte activé. Rechargez la page pour voir les changements.';
+          container.appendChild(feedback);
+
+          setTimeout(() => {
+            feedback.remove();
+          }, 5000);
+        }
       });
 
       syncUI();
