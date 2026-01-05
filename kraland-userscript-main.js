@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767634040582
+// @version      1.0.1767636318421
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -331,6 +331,48 @@ input[type="checkbox"]:checked {
   right: .75rem !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
+}
+
+/* ============================================================================
+   7.1 PLAYER HEADER SECTION - FIX BOOTSTRAP GRID
+   
+   Le HTML utilise des classes .nopadding qui cassent le système de grille Bootstrap.
+   On restaure ici les paddings standards pour que les .row et .col- fonctionnent correctement.
+   ============================================================================ */
+
+/* Restaurer le padding Bootstrap standard (15px) pour toutes les colonnes dans le header */
+#player-header-section .nopadding,
+#player-header-section .nopadding-right,
+#player-main-panel .nopadding,
+#player-main-panel .nopadding-right,
+#player-vitals-section .nopadding,
+#player-vitals-section .nopadding-right {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+/* Exception : le bouton avatar peut avoir moins de padding pour rester centré */
+#player-main-panel > .row > .nopadding:first-child {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Corriger le padding-left inline sur player-vitals-section */
+#player-vitals-section[style*="padding-left"] {
+  padding-left: 0 !important;
+}
+
+/* Structurer correctement player-actions-section qui contient des boutons sans colonnes */
+#player-actions-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 15px !important;
+}
+
+#player-actions-section hr {
+  width: 100%;
+  margin: 0.5rem 0;
 }
 
 
