@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767903964003
+// @version      1.0.1767908502864
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -1747,6 +1747,189 @@ html.kr-theme-variant-empire-brun-dark img[src*="/voc/"]:hover {
   filter: none;
   opacity: 1;
 }
+
+/* ============================================================================
+   HORLOGE À DOUBLE TOUR (0-48H)
+   ============================================================================ */
+
+/* Système d'horloge circulaire qui supporte jusqu'à 48 heures avec deux tours de cadran.
+   Le premier tour (0-24h) s'affiche sur le cercle principal.
+   Le deuxième tour (24-48h) s'affiche sur un cercle extérieur plus visible.
+*/
+
+/* Container de l'horloge */
+.c100 {
+  position: relative !important;
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  background-color: var(--kr-bg-elevated, #f5f5f5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+/* Masquer l'ancien système à base de .slice, .bar, .fill */
+.c100 .slice,
+.c100 .bar,
+.c100 .fill {
+  display: none !important;
+}
+
+/* Texte de l'heure au centre */
+.c100 > span {
+  position: relative !important;
+  z-index: 10 !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--kr-text-primary, #333) !important;
+  text-align: center !important;
+}
+
+/* Fond circulaire après */
+.c100::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 50% !important;
+  background-color: var(--kr-bg-elevated, #f5f5f5) !important;
+  z-index: 5 !important;
+}
+
+/* Cercle de progression - Premier tour (0-24h) */
+.c100::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: conic-gradient(
+    var(--clock-color, #8B0000) 0deg,
+    var(--clock-color, #8B0000) calc(var(--clock-deg, 0) * 1deg),
+    transparent calc(var(--clock-deg, 0) * 1deg),
+    transparent 360deg
+  ) !important;
+  z-index: 1 !important;
+  transition: none !important;
+}
+
+/* Deuxième tour (24-48h) - Cercle extérieur avec bordure reprenant la couleur de l'horloge */
+.c100[data-second-lap="true"]::before {
+  box-shadow: 
+    0 0 0 1px var(--kr-bg-elevated, #f5f5f5),
+    0 0 0 5px var(--clock-color, #32CD32),
+    inset 0 0 0 2px var(--clock-color, #32CD32) !important;
+}
+
+/* Classes de pourcentage p0 à p100 pour la compatibilité */
+.c100.p0 { --clock-deg: 0; }
+.c100.p1 { --clock-deg: 3.6; }
+.c100.p2 { --clock-deg: 7.2; }
+.c100.p3 { --clock-deg: 10.8; }
+.c100.p4 { --clock-deg: 14.4; }
+.c100.p5 { --clock-deg: 18; }
+.c100.p6 { --clock-deg: 21.6; }
+.c100.p7 { --clock-deg: 25.2; }
+.c100.p8 { --clock-deg: 28.8; }
+.c100.p9 { --clock-deg: 32.4; }
+.c100.p10 { --clock-deg: 36; }
+.c100.p11 { --clock-deg: 39.6; }
+.c100.p12 { --clock-deg: 43.2; }
+.c100.p13 { --clock-deg: 46.8; }
+.c100.p14 { --clock-deg: 50.4; }
+.c100.p15 { --clock-deg: 54; }
+.c100.p16 { --clock-deg: 57.6; }
+.c100.p17 { --clock-deg: 61.2; }
+.c100.p18 { --clock-deg: 64.8; }
+.c100.p19 { --clock-deg: 68.4; }
+.c100.p20 { --clock-deg: 72; }
+.c100.p21 { --clock-deg: 75.6; }
+.c100.p22 { --clock-deg: 79.2; }
+.c100.p23 { --clock-deg: 82.8; }
+.c100.p24 { --clock-deg: 86.4; }
+.c100.p25 { --clock-deg: 90; }
+.c100.p26 { --clock-deg: 93.6; }
+.c100.p27 { --clock-deg: 97.2; }
+.c100.p28 { --clock-deg: 100.8; }
+.c100.p29 { --clock-deg: 104.4; }
+.c100.p30 { --clock-deg: 108; }
+.c100.p31 { --clock-deg: 111.6; }
+.c100.p32 { --clock-deg: 115.2; }
+.c100.p33 { --clock-deg: 118.8; }
+.c100.p34 { --clock-deg: 122.4; }
+.c100.p35 { --clock-deg: 126; }
+.c100.p36 { --clock-deg: 129.6; }
+.c100.p37 { --clock-deg: 133.2; }
+.c100.p38 { --clock-deg: 136.8; }
+.c100.p39 { --clock-deg: 140.4; }
+.c100.p40 { --clock-deg: 144; }
+.c100.p41 { --clock-deg: 147.6; }
+.c100.p42 { --clock-deg: 151.2; }
+.c100.p43 { --clock-deg: 154.8; }
+.c100.p44 { --clock-deg: 158.4; }
+.c100.p45 { --clock-deg: 162; }
+.c100.p46 { --clock-deg: 165.6; }
+.c100.p47 { --clock-deg: 169.2; }
+.c100.p48 { --clock-deg: 172.8; }
+.c100.p49 { --clock-deg: 176.4; }
+.c100.p50 { --clock-deg: 180; }
+.c100.p51 { --clock-deg: 183.6; }
+.c100.p52 { --clock-deg: 187.2; }
+.c100.p53 { --clock-deg: 190.8; }
+.c100.p54 { --clock-deg: 194.4; }
+.c100.p55 { --clock-deg: 198; }
+.c100.p56 { --clock-deg: 201.6; }
+.c100.p57 { --clock-deg: 205.2; }
+.c100.p58 { --clock-deg: 208.8; }
+.c100.p59 { --clock-deg: 212.4; }
+.c100.p60 { --clock-deg: 216; }
+.c100.p61 { --clock-deg: 219.6; }
+.c100.p62 { --clock-deg: 223.2; }
+.c100.p63 { --clock-deg: 226.8; }
+.c100.p64 { --clock-deg: 230.4; }
+.c100.p65 { --clock-deg: 234; }
+.c100.p66 { --clock-deg: 237.6; }
+.c100.p67 { --clock-deg: 241.2; }
+.c100.p68 { --clock-deg: 244.8; }
+.c100.p69 { --clock-deg: 248.4; }
+.c100.p70 { --clock-deg: 252; }
+.c100.p71 { --clock-deg: 255.6; }
+.c100.p72 { --clock-deg: 259.2; }
+.c100.p73 { --clock-deg: 262.8; }
+.c100.p74 { --clock-deg: 266.4; }
+.c100.p75 { --clock-deg: 270; }
+.c100.p76 { --clock-deg: 273.6; }
+.c100.p77 { --clock-deg: 277.2; }
+.c100.p78 { --clock-deg: 280.8; }
+.c100.p79 { --clock-deg: 284.4; }
+.c100.p80 { --clock-deg: 288; }
+.c100.p81 { --clock-deg: 291.6; }
+.c100.p82 { --clock-deg: 295.2; }
+.c100.p83 { --clock-deg: 298.8; }
+.c100.p84 { --clock-deg: 302.4; }
+.c100.p85 { --clock-deg: 306; }
+.c100.p86 { --clock-deg: 309.6; }
+.c100.p87 { --clock-deg: 313.2; }
+.c100.p88 { --clock-deg: 316.8; }
+.c100.p89 { --clock-deg: 320.4; }
+.c100.p90 { --clock-deg: 324; }
+.c100.p91 { --clock-deg: 327.6; }
+.c100.p92 { --clock-deg: 331.2; }
+.c100.p93 { --clock-deg: 334.8; }
+.c100.p94 { --clock-deg: 338.4; }
+.c100.p95 { --clock-deg: 342; }
+.c100.p96 { --clock-deg: 345.6; }
+.c100.p97 { --clock-deg: 349.2; }
+.c100.p98 { --clock-deg: 352.8; }
+.c100.p99 { --clock-deg: 356.4; }
+.c100.p100 { --clock-deg: 360; }
 
 /* === INDICATEUR CIRCULAIRE DE TEMPS === */
 
@@ -36183,7 +36366,8 @@ body > map {
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
-      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption
+      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption,
+      handleDualLapClock
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -37626,6 +37810,76 @@ body > map {
 
     // Observer le body pour détecter l'ajout de modals
     modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  // ============================================================================
+  // HORLOGE À DOUBLE TOUR
+  // ============================================================================
+
+  /**
+   * Gère l'affichage de l'horloge à double tour (0-48h)
+   * Le HTML contient une classe .c100 avec .pXX (pourcentage 0-100) et <span>HH:MM</span>
+   * Pour les heures >24h, on ajoute data-second-lap="true" et on ajuste la classe
+   * Applique également un code couleur selon les paliers d'heures (comme les PV)
+   */
+  function handleDualLapClock() {
+    const clockEl = document.querySelector('.c100');
+    if (!clockEl) return;
+
+    const timeSpan = clockEl.querySelector('span');
+    if (!timeSpan) return;
+
+    // Extraire l'heure du format "HH:MM"
+    const timeText = timeSpan.textContent.trim();
+    const match = timeText.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return;
+
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+
+    // Calculer le total en minutes depuis le début de la journée Kraland
+    const totalMinutes = hours * 60 + minutes;
+    
+    // Système de couleurs par palier d'heures (inspiré des PV)
+    // 0-6h   → Rouge foncé (#8B0000) - "Critique"
+    // 6-12h  → Orange (#FF8C00) - "Attention"
+    // 12-18h → Jaune/or (#FFD700) - "Moyen"
+    // 18-24h → Vert clair (#90EE90) - "Bon"
+    // 24-48h → Vert lime (#32CD32) - "Excellent" (second tour)
+    let clockColor;
+    if (hours >= 24) {
+      clockColor = '#32CD32'; // Vert lime - Second tour
+    } else if (hours >= 18) {
+      clockColor = '#90EE90'; // Vert clair
+    } else if (hours >= 12) {
+      clockColor = '#FFD700'; // Jaune/or
+    } else if (hours >= 6) {
+      clockColor = '#FF8C00'; // Orange
+    } else {
+      clockColor = '#8B0000'; // Rouge foncé
+    }
+    
+    // Appliquer la couleur via CSS custom property
+    clockEl.style.setProperty('--clock-color', clockColor);
+    
+    // Une journée Kraland = 24h = 1440 minutes
+    // Si on dépasse 24h, on est sur le deuxième tour
+    if (hours >= 24) {
+      clockEl.setAttribute('data-second-lap', 'true');
+      
+      // Calculer le nouveau pourcentage pour 24-48h
+      // On mappe 24-48h sur 0-100% du deuxième tour
+      const hoursInSecondLap = hours - 24;
+      const percentInSecondLap = Math.floor(((hoursInSecondLap * 60 + minutes) / 1440) * 100);
+      
+      // Retirer l'ancienne classe pXX
+      clockEl.className = clockEl.className.replace(/\bp\d{1,3}\b/g, '');
+      // Ajouter la nouvelle classe
+      clockEl.className += ' p' + percentInSecondLap;
+    } else {
+      // Premier tour (0-24h) - rien à changer, le serveur fournit déjà le bon pourcentage
+      clockEl.removeAttribute('data-second-lap');
+    }
   }
 
   // ============================================================================

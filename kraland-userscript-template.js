@@ -262,7 +262,8 @@
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
-      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption
+      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption,
+      handleDualLapClock
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -1705,6 +1706,76 @@
 
     // Observer le body pour détecter l'ajout de modals
     modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  // ============================================================================
+  // HORLOGE À DOUBLE TOUR
+  // ============================================================================
+
+  /**
+   * Gère l'affichage de l'horloge à double tour (0-48h)
+   * Le HTML contient une classe .c100 avec .pXX (pourcentage 0-100) et <span>HH:MM</span>
+   * Pour les heures >24h, on ajoute data-second-lap="true" et on ajuste la classe
+   * Applique également un code couleur selon les paliers d'heures (comme les PV)
+   */
+  function handleDualLapClock() {
+    const clockEl = document.querySelector('.c100');
+    if (!clockEl) return;
+
+    const timeSpan = clockEl.querySelector('span');
+    if (!timeSpan) return;
+
+    // Extraire l'heure du format "HH:MM"
+    const timeText = timeSpan.textContent.trim();
+    const match = timeText.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return;
+
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+
+    // Calculer le total en minutes depuis le début de la journée Kraland
+    const totalMinutes = hours * 60 + minutes;
+    
+    // Système de couleurs par palier d'heures (inspiré des PV)
+    // 0-6h   → Rouge foncé (#8B0000) - "Critique"
+    // 6-12h  → Orange (#FF8C00) - "Attention"
+    // 12-18h → Jaune/or (#FFD700) - "Moyen"
+    // 18-24h → Vert clair (#90EE90) - "Bon"
+    // 24-48h → Vert lime (#32CD32) - "Excellent" (second tour)
+    let clockColor;
+    if (hours >= 24) {
+      clockColor = '#32CD32'; // Vert lime - Second tour
+    } else if (hours >= 18) {
+      clockColor = '#90EE90'; // Vert clair
+    } else if (hours >= 12) {
+      clockColor = '#FFD700'; // Jaune/or
+    } else if (hours >= 6) {
+      clockColor = '#FF8C00'; // Orange
+    } else {
+      clockColor = '#8B0000'; // Rouge foncé
+    }
+    
+    // Appliquer la couleur via CSS custom property
+    clockEl.style.setProperty('--clock-color', clockColor);
+    
+    // Une journée Kraland = 24h = 1440 minutes
+    // Si on dépasse 24h, on est sur le deuxième tour
+    if (hours >= 24) {
+      clockEl.setAttribute('data-second-lap', 'true');
+      
+      // Calculer le nouveau pourcentage pour 24-48h
+      // On mappe 24-48h sur 0-100% du deuxième tour
+      const hoursInSecondLap = hours - 24;
+      const percentInSecondLap = Math.floor(((hoursInSecondLap * 60 + minutes) / 1440) * 100);
+      
+      // Retirer l'ancienne classe pXX
+      clockEl.className = clockEl.className.replace(/\bp\d{1,3}\b/g, '');
+      // Ajouter la nouvelle classe
+      clockEl.className += ' p' + percentInSecondLap;
+    } else {
+      // Premier tour (0-24h) - rien à changer, le serveur fournit déjà le bon pourcentage
+      clockEl.removeAttribute('data-second-lap');
+    }
   }
 
   // ============================================================================
