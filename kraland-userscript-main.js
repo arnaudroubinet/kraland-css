@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767908502864
+// @version      1.0.1767909848268
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -555,6 +555,11 @@ html.kr-hide-footer-quote .footer-quote {
   box-shadow: 0 0 0 .18rem var(--kr-focus-ring);
   border-color: var(--kr-primary);
   outline: none;
+}
+
+textarea.form-control.form-control {
+  font-size: 1.4rem !important;
+  line-height: 1.6 !important;
 }
 
 .form-group label {
