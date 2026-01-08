@@ -1652,6 +1652,62 @@
   }
 
   // ============================================================================
+  // MODAL BACKDROP CLICK TO CLOSE
+  // ============================================================================
+
+  /** 
+   * Active la fermeture des modals Bootbox en cliquant à l'extérieur
+   * Par défaut, Kraland configure Bootbox avec backdrop: "static" 
+   * qui empêche la fermeture par clic extérieur
+   * 
+   * Empêche également le scroll automatique de la page lors de l'ouverture
+   */
+  function enableModalBackdropClick() {
+    // Sauvegarder la position avant chaque modal
+    let scrollBeforeModal = { x: 0, y: 0 };
+    
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            // Sauvegarder immédiatement la position actuelle
+            scrollBeforeModal.x = window.scrollX;
+            scrollBeforeModal.y = window.scrollY;
+            
+            setTimeout(() => {
+              // Récupérer les données Bootstrap de la modal
+              const modalData = $(node).data('bs.modal');
+              if (modalData && modalData.options.backdrop === 'static') {
+                // Changer backdrop de "static" à true pour permettre fermeture par clic
+                modalData.options.backdrop = true;
+                
+                // Réattacher le handler de clic sur backdrop
+                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function(e) {
+                  if (e.target === this) {
+                    $(this).modal('hide');
+                  }
+                });
+              }
+              
+              // Restaurer la position de scroll
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            }, 100); // Augmenter le délai à 100ms pour laisser Bootstrap terminer
+            
+            // Ajouter aussi un handler sur l'événement 'shown.bs.modal' pour être sûr
+            $(node).one('shown.bs.modal', function() {
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            });
+          }
+        });
+      });
+    });
+
+    // Observer le body pour détecter l'ajout de modals
+    modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  // ============================================================================
   // INITIALISATION
   // ============================================================================
 
@@ -1681,6 +1737,9 @@
       }
 
       startObservers();
+
+      // Activer le clic sur backdrop pour fermer les modals
+      enableModalBackdropClick();
 
       // Déplacer le style à la fin du head pour la priorité
       setTimeout(() => {

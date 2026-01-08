@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767901239577
+// @version      1.0.1767903964003
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -766,7 +766,62 @@ a.carousel-control.right{
 
 
 /* ============================================================================
-   9. LINKS
+   9. MODALS
+   Fix modal overflow - prevent modals from extending beyond viewport
+   Allow clicking outside to close
+   ============================================================================ */
+
+/* Conteneur modal - empêcher le scroll du conteneur */
+.modal {
+  display: flex !important;
+  position: fixed !important; /* Nécessaire pour que la modal reste par-dessus le contenu */
+  align-items: flex-start; /* Évite le scroll automatique */
+  justify-content: center;
+  overflow-y: hidden !important; /* Pas de scroll sur le conteneur modal */
+  pointer-events: auto;
+  padding-top: 30px; /* Espacement du haut */
+}
+
+.modal.in {
+  /* Force le scroll à rester en haut lors de l'ouverture */
+  overflow-y: hidden !important;
+}
+
+/* Dialog avec contraintes de hauteur et son propre scroll */
+.modal-dialog {
+  width: 900px;
+  max-width: 90vw;
+  margin: 0 auto 30px; /* Pas de margin-top car géré par padding du parent */
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  overflow-y: auto; /* Le dialog peut scroller si nécessaire */
+}
+
+/* Content avec structure flex */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Body scrollable - le contenu peut scroller si trop grand */
+.modal-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+/* Header et footer restent fixes et toujours visibles */
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}
+
+
+/* ============================================================================
+   10. LINKS
    ============================================================================ */
 
 /*
@@ -37518,6 +37573,62 @@ body > map {
   }
 
   // ============================================================================
+  // MODAL BACKDROP CLICK TO CLOSE
+  // ============================================================================
+
+  /** 
+   * Active la fermeture des modals Bootbox en cliquant à l'extérieur
+   * Par défaut, Kraland configure Bootbox avec backdrop: "static" 
+   * qui empêche la fermeture par clic extérieur
+   * 
+   * Empêche également le scroll automatique de la page lors de l'ouverture
+   */
+  function enableModalBackdropClick() {
+    // Sauvegarder la position avant chaque modal
+    let scrollBeforeModal = { x: 0, y: 0 };
+    
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            // Sauvegarder immédiatement la position actuelle
+            scrollBeforeModal.x = window.scrollX;
+            scrollBeforeModal.y = window.scrollY;
+            
+            setTimeout(() => {
+              // Récupérer les données Bootstrap de la modal
+              const modalData = $(node).data('bs.modal');
+              if (modalData && modalData.options.backdrop === 'static') {
+                // Changer backdrop de "static" à true pour permettre fermeture par clic
+                modalData.options.backdrop = true;
+                
+                // Réattacher le handler de clic sur backdrop
+                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function(e) {
+                  if (e.target === this) {
+                    $(this).modal('hide');
+                  }
+                });
+              }
+              
+              // Restaurer la position de scroll
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            }, 100); // Augmenter le délai à 100ms pour laisser Bootstrap terminer
+            
+            // Ajouter aussi un handler sur l'événement 'shown.bs.modal' pour être sûr
+            $(node).one('shown.bs.modal', function() {
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            });
+          }
+        });
+      });
+    });
+
+    // Observer le body pour détecter l'ajout de modals
+    modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  // ============================================================================
   // INITIALISATION
   // ============================================================================
 
@@ -37547,6 +37658,9 @@ body > map {
       }
 
       startObservers();
+
+      // Activer le clic sur backdrop pour fermer les modals
+      enableModalBackdropClick();
 
       // Déplacer le style à la fin du head pour la priorité
       setTimeout(() => {
