@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767909848268
+// @version      1.0.1767915227303
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -12,6 +12,86 @@
 // Main script code - CSS bundled inline
 (function(){
   'use strict';
+
+  // ============================================================================
+  // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
+  // ============================================================================
+  if (window.innerWidth < 768 && window.location.hash && window.location.hash !== '#top') {
+    // Sauvegarder la position actuelle avant que le navigateur ne scrolle
+    const initialScrollRestoration = history.scrollRestoration;
+    history.scrollRestoration = 'manual';
+    
+    // Supprimer l'ancre de l'URL
+    const cleanUrl = window.location.pathname + window.location.search;
+    history.replaceState(null, '', cleanUrl);
+    
+    // Forcer le scroll en haut immédiatement et après le chargement
+    const forceScrollTop = () => window.scrollTo(0, 0);
+    forceScrollTop();
+    
+    // S'assurer que le scroll reste en haut même après le chargement complet
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', forceScrollTop);
+    }
+    window.addEventListener('load', forceScrollTop);
+    
+    // Restaurer le comportement par défaut après 500ms
+    setTimeout(() => {
+      history.scrollRestoration = initialScrollRestoration;
+    }, 500);
+  }
+  
+  // ============================================================================
+  // NOUVELLES : Gestion du repliement/dépliement (mobile uniquement)
+  // ============================================================================
+  // News collapsible sur mobile
+  if (window.innerWidth < 768 && !window.__krNewsToggleInit) {
+    window.__krNewsToggleInit = true;
+    
+    function initNewsToggle() {
+      const newsToggle = document.getElementById('slide-submenu');
+      const newsContainer = document.getElementById('player-header-section');
+      
+      if (newsToggle && newsContainer) {
+        // Fonction pour mettre à jour le bouton
+        function updateButton(isCollapsed) {
+          newsToggle.innerHTML = isCollapsed ? '▼' : '×';
+          newsToggle.setAttribute('aria-label', isCollapsed ? 'Déplier les nouvelles' : 'Replier les nouvelles');
+          newsToggle.setAttribute('title', isCollapsed ? 'Déplier' : 'Replier');
+        }
+        
+        // Charger l'état depuis localStorage
+        const isCollapsed = localStorage.getItem('kr-news-collapsed') === 'true';
+        if (isCollapsed) {
+          newsContainer.classList.add('kr-news-collapsed');
+        }
+        updateButton(isCollapsed);
+        
+        // Gérer le clic (capturer en premier pour empêcher Bootstrap)
+        newsToggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // Empêche les autres handlers Bootstrap
+          newsContainer.classList.toggle('kr-news-collapsed');
+          
+          // Sauvegarder l'état et mettre à jour le bouton
+          const collapsed = newsContainer.classList.contains('kr-news-collapsed');
+          localStorage.setItem('kr-news-collapsed', collapsed);
+          updateButton(collapsed);
+        }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
+      }
+    }
+    
+    // Attendre que le DOM soit complètement chargé
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initNewsToggle, { once: true });
+    } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      // Utiliser requestAnimationFrame pour s'assurer que le DOM est vraiment prêt
+      requestAnimationFrame(() => {
+        setTimeout(initNewsToggle, 50);
+      });
+    }
+  }
 
   // ============================================================================
   // CONFIGURATION
@@ -36115,6 +36195,775 @@ body > map {
   display: none;
 }
 
+
+/* ============================================================================
+   MOBILE RESPONSIVE - Compatibilité mobile (<768px)
+   Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  
+  /* ==========================================================================
+     FIX : Empêcher le scroll automatique vers les ancres au chargement
+     ========================================================================== */
+  
+  html {
+    overflow-anchor: none !important; /* Désactive l'ancrage automatique du scroll */
+  }
+  
+  /* ==========================================================================
+     PHASE 1 : CONTAINER RESPONSIVE
+     Supprime le débordement horizontal causé par la largeur fixe
+     ========================================================================== */
+  
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 2 : NAVBAR MOBILE AMÉLIORÉE
+     Améliore l'ergonomie du menu hamburger et des icônes
+     ========================================================================== */
+  
+  /* Fix du layout du header pour que logo et hamburger soient bien alignés */
+  .navbar-header {
+    display: flex !important;
+    justify-content: center !important; /* Logo au centre */
+    align-items: center !important;
+    width: 100vw !important; /* Prend toute la largeur du viewport */
+    position: relative !important; /* Pour positionner le toggle en absolu */
+    margin-left: calc(-50vw + 50%) !important; /* Centre par rapport au viewport */
+    margin-right: calc(-50vw + 50%) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    height: 60px !important; /* Hauteur fixe pour centrage vertical */
+  }
+  
+  .navbar-brand {
+    float: none !important;
+    margin: 0 !important; /* Centré par flexbox */
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px !important; /* Ajout d'un padding pour ne pas coller aux bords */
+  }
+  
+  /* Boutons plus grands pour touch (minimum 44x44px recommandé) */
+  .navbar-toggle {
+    position: absolute !important; /* Position absolue pour le placer en haut à droite */
+    right: 15px !important; /* Aligné à droite avec espacement */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Centrage vertical parfait */
+    padding: 8px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    float: none !important;
+    margin: 0 !important;
+    border-radius: 12px !important; /* Coins plus arrondis, style moderne */
+    border: none !important; /* Pas de bordure pour un style épuré */
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important; /* Effet de flou moderne */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important; /* Espacement réduit entre les barres */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; /* Animation fluide */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Ombre légère */
+  }
+  
+  .navbar-toggle:hover,
+  .navbar-toggle:focus {
+    background: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-50%) scale(1.05) !important; /* Léger effet de zoom */
+  }
+  
+  .navbar-toggle:active {
+    transform: translateY(-50%) scale(0.98) !important; /* Effet d'appui */
+  }
+  
+  /* Barres du hamburger plus stylées et modernes */
+  .navbar-toggle .icon-bar {
+    width: 22px !important;
+    height: 2px !important; /* Plus fines pour un look moderne */
+    border-radius: 2px !important;
+    background-color: #fff !important;
+    display: block !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  /* Animation subtile au hover - Les barres s'écartent légèrement */
+  .navbar-toggle:hover .icon-bar:nth-child(2) {
+    width: 18px !important;
+    margin-left: 4px !important;
+  }
+  
+  .navbar-toggle:hover .icon-bar:nth-child(4) {
+    width: 18px !important;
+  }
+  
+  /* Menu déroulant pleine largeur - Respecte le comportement Bootstrap */
+  .navbar-collapse {
+    width: 100% !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Quand le menu est ouvert (classe .in ajoutée par Bootstrap) */
+  .navbar-collapse.in {
+    overflow-y: auto !important;
+    max-height: calc(100vh - 60px) !important;
+  }
+  
+  /* Items de navigation plus espacés */
+  .navbar-nav > li > a {
+    padding: 15px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Icônes de la barre (notifications, messages) */
+  .navbar-nav.navbar-right > li > a {
+    padding: 15px 12px !important;
+  }
+  
+  /* Logo plus petit sur mobile */
+  .navbar-brand img.kr-logo {
+    height: 24px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 3 : PAGE D'ACCUEIL MOBILE
+     Réorganise les blocs pour une lecture verticale fluide
+     ========================================================================== */
+  
+  /* Empiler les colonnes verticalement */
+  .container > .row > [class*="col-md-"],
+  .container > .row > [class*="col-sm-"] {
+    width: 100% !important;
+    float: none !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Carousel responsive */
+  .carousel {
+    margin-bottom: 20px !important;
+  }
+  
+  .carousel .carousel-caption {
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    padding: 15px !important;
+  }
+  
+  .carousel .carousel-caption h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .carousel .carousel-caption p {
+    font-size: 0.95rem !important;
+  }
+  
+  /* Images du carousel */
+  .carousel-inner > .item > img {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Masquer les statistiques (Membres actifs, Personnages actifs, etc.) en mobile */
+  a.list-group-item.ds_users,
+  a.list-group-item.ds_characters,
+  a.list-group-item.ds_online {
+    display: none !important;
+  }
+  
+  /* N'afficher qu'une seule nouvelle en mode mobile */
+  .panel-body.panel-news ul.demo li.news-item:nth-child(n+2) {
+    display: none !important;
+  }
+  
+  /* Réduire la taille des flèches de navigation dans la section nouvelles */
+  .panel-default ul.pagination.pull-right > li > a {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Header "Nouvelles" avec croix à droite */
+  .list-group-item.active {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 15px !important;
+  }
+  
+  #slide-submenu {
+    flex-shrink: 0 !important;
+    margin-left: 10px !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    padding: 4px 8px !important;
+    background: transparent !important;
+    border: none !important;
+    color: inherit !important;
+    transition: opacity 0.2s ease !important;
+  }
+  
+  #slide-submenu:hover {
+    opacity: 0.7 !important;
+  }
+  
+  /* Masquer le contenu quand replié */
+  #player-header-section.kr-news-collapsed .panel.panel-default {
+    display: none !important;
+  }
+  
+  /* Stats cards en grille 3 colonnes */
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  /* Cartes de dashboard plus compactes */
+  .dashboard-card {
+    padding: 10px !important;
+  }
+  
+  .dashboard-card h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  /* Panels responsive */
+  .panel {
+    margin-bottom: 15px !important;
+  }
+  
+  .panel-heading {
+    padding: 10px 15px !important;
+  }
+  
+  .panel-body {
+    padding: 15px !important;
+  }
+  
+  /* Wells plus compacts */
+  .well {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Alerts responsive */
+  .alert {
+    padding: 12px 15px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Mini-chat : masqué par défaut sur mobile, accessible via bouton flottant */
+  #flap {
+    position: fixed !important;
+    top: 0 !important;
+    right: -100% !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    height: 100vh !important;
+    z-index: 1050 !important;
+    transition: right 0.3s ease !important;
+    overflow-y: auto !important;
+    background: var(--kr-bg-surface) !important;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  #flap.mobile-open {
+    right: 0 !important;
+  }
+  
+  /* Bouton MC visible pour ouvrir le chat */
+  a[href*="#flap"] {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 1000 !important;
+    background: var(--kr-primary) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 56px !important;
+    height: 56px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    box-shadow: var(--kr-shadow-lg) !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 4 : PAGE PLATEAU DE JEU MOBILE
+     Réorganise l'interface de jeu pour le mobile
+     ========================================================================== */
+  
+  /* === PANNEAU DE COMPÉTENCES === */
+  /* Masquer le panneau latéral, accessible via bouton */
+  #skills-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    height: 100vh !important;
+    z-index: 1050 !important;
+    transition: left 0.3s ease !important;
+    overflow-y: auto !important;
+    background: var(--kr-bg-surface) !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+    padding: 15px !important;
+  }
+  
+  #skills-panel.mobile-open {
+    left: 0 !important;
+  }
+  
+  /* Conteneur parent du skills-panel */
+  .col-md-1:has(#skills-panel) {
+    position: static !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Grille des compétences plus compacte sur mobile */
+  #skills-panel .grid-transformed {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  /* === PANNEAU PERSONNAGE === */
+  /* Toutes les colonnes en pleine largeur */
+  .container > .row > .col-md-3,
+  .container > .row > .col-md-6,
+  .container > .row > .col-md-8,
+  .container > .row > .col-md-1 {
+    width: 100% !important;
+    float: none !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  /* Header du personnage compact */
+  .panel-heading {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  
+  /* Avatar réduit */
+  .panel-heading img {
+    max-width: 60px !important;
+    max-height: 60px !important;
+  }
+  
+  /* Stats du personnage */
+  .panel-body > div {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Barres de progression */
+  .progress {
+    height: 24px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .progress-bar {
+    font-size: 12px !important;
+    line-height: 24px !important;
+  }
+  
+  /* === CARTE DU JEU === */
+  /* Carte avec scroll horizontal si nécessaire */
+  .panel-body:has(map),
+  .panel-body:has([id^="c"]) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 10px !important;
+  }
+  
+  /* Conteneur de carte */
+  body > div:has([id^="c"]) {
+    min-height: 400px !important;
+  }
+  
+  /* Images de la carte */
+  map + img,
+  [id^="c"] img {
+    max-width: none !important;
+    height: auto !important;
+  }
+  
+  /* === LISTE DES PERSONNAGES === */
+  /* En liste verticale compacte */
+  .list-group {
+    margin-bottom: 15px !important;
+  }
+  
+  .list-group-item {
+    padding: 10px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  
+  /* Avatars de la liste réduits */
+  .list-group-item img {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Texte des items */
+  .list-group-item-heading {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .list-group-item-text {
+    font-size: 12px !important;
+  }
+  
+  /* === PANNEAU COMMERCE === */
+  /* Items du commerce en liste compacte */
+  .panel-body h4 {
+    font-size: 1rem !important;
+    margin-top: 15px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  /* Items de commerce */
+  .panel-body a {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px !important;
+    gap: 10px !important;
+    font-size: 14px !important;
+    margin-bottom: 5px !important;
+    border-radius: 4px !important;
+  }
+  
+  .panel-body a:hover {
+    background-color: var(--kr-bg-hover) !important;
+  }
+  
+  .panel-body a img {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Tables responsive */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Tables plus compactes */
+  .table > thead > tr > th,
+  .table > tbody > tr > th,
+  .table > tfoot > tr > th,
+  .table > thead > tr > td,
+  .table > tbody > tr > td,
+  .table > tfoot > tr > td {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 5 : ÉLÉMENTS TOUCH-FRIENDLY
+     Assure que tous les éléments interactifs sont cliquables facilement
+     ========================================================================== */
+  
+  /* Taille minimale des zones cliquables (44x44px minimum recommandé) */
+  a:not(.list-group-item), 
+  button, 
+  .btn,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Boutons de formulaire */
+  .btn {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  .btn-xs {
+    min-height: 32px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  .btn-sm {
+    min-height: 38px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .btn-lg {
+    min-height: 50px !important;
+    padding: 14px 24px !important;
+    font-size: 18px !important;
+  }
+  
+  /* Liens dans les listes */
+  .list-group-item {
+    min-height: 44px !important;
+    padding: 15px !important;
+  }
+  
+  /* Formulaires */
+  .form-control {
+    height: 44px !important;
+    font-size: 16px !important; /* Évite le zoom iOS */
+    padding: 10px 12px !important;
+  }
+  
+  textarea.form-control {
+    height: auto !important;
+    min-height: 100px !important;
+  }
+  
+  select.form-control {
+    height: 44px !important;
+  }
+  
+  /* Checkboxes et radios plus grands */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 4px !important;
+  }
+  
+  /* Labels cliquables */
+  label {
+    display: inline-block !important;
+    padding: 5px 0 !important;
+    cursor: pointer !important;
+  }
+  
+  /* Espacement entre éléments cliquables */
+  .btn + .btn {
+    margin-top: 8px !important;
+    margin-left: 0 !important;
+  }
+  
+  .btn-group-vertical > .btn {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Boutons groupés en colonne sur mobile */
+  .btn-group {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  
+  .btn-group > .btn {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Pagination plus grande */
+  .pagination > li > a,
+  .pagination > li > span {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Breadcrumb responsive */
+  .breadcrumb {
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Tabs plus grandes */
+  .nav-tabs > li > a {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Dropdown menu */
+  .dropdown-menu > li > a {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Modal responsive */
+  .modal-dialog {
+    width: auto !important;
+    margin: 10px !important;
+  }
+  
+  .modal-content {
+    border-radius: 8px !important;
+  }
+  
+  .modal-header {
+    padding: 15px !important;
+  }
+  
+  .modal-body {
+    padding: 15px !important;
+  }
+  
+  .modal-footer {
+    padding: 15px !important;
+  }
+  
+  /* Popover et tooltip responsive */
+  .popover {
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  .tooltip {
+    font-size: 14px !important;
+  }
+  
+  /* Footer responsive */
+  .footer {
+    padding: 15px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Typographie mobile */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  h4 { font-size: 1.1rem !important; }
+  h5 { font-size: 1rem !important; }
+  h6 { font-size: 0.9rem !important; }
+  
+  /* Espacement vertical */
+  .row {
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+  }
+  
+  /* Masquer les éléments non essentiels sur mobile */
+  .hidden-xs {
+    display: none !important;
+  }
+  
+  /* Afficher les éléments mobile uniquement */
+  .visible-xs,
+  .visible-xs-block,
+  .visible-xs-inline,
+  .visible-xs-inline-block {
+    display: block !important;
+  }
+  
+  .visible-xs-inline {
+    display: inline !important;
+  }
+  
+  .visible-xs-inline-block {
+    display: inline-block !important;
+  }
+}
+
+
+/* ==========================================================================
+   OVERLAY MOBILE - Pour fermer les panneaux latéraux
+   ========================================================================== */
+
+.kr-mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kr-mobile-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Bouton de fermeture dans les panneaux mobiles */
+.kr-mobile-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background: var(--kr-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 20px;
+}
+
+.kr-mobile-close:hover {
+  background: var(--kr-primary-dark);
+}
+
+/* Bouton pour ouvrir le panneau de compétences sur mobile */
+.kr-mobile-skills-toggle {
+  position: fixed !important;
+  bottom: 90px !important;
+  right: 20px !important;
+  z-index: 1000 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: none !important;
+  box-shadow: var(--kr-shadow-lg) !important;
+}
+
+@media (max-width: 767px) {
+  .kr-mobile-skills-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
 `,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
@@ -37888,6 +38737,159 @@ body > map {
   }
 
   // ============================================================================
+  // MOBILE FEATURES
+  // Fonctionnalités spécifiques au mobile (Phase 6)
+  // ============================================================================
+
+  /**
+   * Initialise les fonctionnalités mobiles
+   * - Overlay pour fermer les panneaux latéraux
+   * - Bouton pour ouvrir le panneau de compétences
+   * - Gestion du mini-chat mobile
+   */
+  function initMobileFeatures() {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
+    // Créer l'overlay pour fermer les panneaux
+    createMobileOverlay();
+
+    // Initialiser le panneau de compétences mobile
+    initMobileSkillsPanel();
+
+    // Initialiser le mini-chat mobile
+    initMobileMiniChat();
+
+    // Gérer le redimensionnement de la fenêtre
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const nowMobile = window.innerWidth < 768;
+        if (nowMobile !== isMobile) {
+          location.reload(); // Recharger si on passe desktop <-> mobile
+        }
+      }, 250);
+    });
+  }
+
+  /**
+   * Crée l'overlay mobile pour fermer les panneaux latéraux
+   */
+  function createMobileOverlay() {
+    if (document.querySelector('.kr-mobile-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'kr-mobile-overlay';
+    overlay.addEventListener('click', () => {
+      // Fermer le panneau de compétences
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        skillsPanel.classList.remove('mobile-open');
+      }
+
+      // Fermer le mini-chat
+      const miniChat = document.getElementById('flap');
+      if (miniChat) {
+        miniChat.classList.remove('mobile-open');
+      }
+
+      // Masquer l'overlay
+      overlay.classList.remove('active');
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  /**
+   * Initialise le panneau de compétences pour mobile
+   */
+  function initMobileSkillsPanel() {
+    if (!isPlatoPage()) return;
+
+    const skillsPanel = document.getElementById('skills-panel');
+    if (!skillsPanel) return;
+
+    // Créer le bouton pour ouvrir le panneau de compétences
+    const skillsToggle = document.createElement('button');
+    skillsToggle.className = 'kr-mobile-skills-toggle btn btn-primary';
+    skillsToggle.innerHTML = '<i class="fa fa-chart-bar"></i>';
+    skillsToggle.setAttribute('aria-label', 'Afficher les compétences');
+    skillsToggle.onclick = () => {
+      skillsPanel.classList.toggle('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.toggle('active');
+      }
+    };
+
+    document.body.appendChild(skillsToggle);
+
+    // Créer le bouton de fermeture dans le panneau
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'kr-mobile-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Fermer');
+    closeBtn.onclick = () => {
+      skillsPanel.classList.remove('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+      }
+    };
+
+    skillsPanel.insertBefore(closeBtn, skillsPanel.firstChild);
+  }
+
+  /**
+   * Initialise le mini-chat pour mobile
+   */
+  function initMobileMiniChat() {
+    const miniChat = document.getElementById('flap');
+    if (!miniChat) return;
+
+    // Bouton pour ouvrir le mini-chat
+    const chatButton = document.querySelector('a[href*="#flap"]');
+    if (chatButton) {
+      chatButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        miniChat.classList.toggle('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.toggle('active');
+        }
+      });
+    }
+
+    // Créer le bouton de fermeture dans le mini-chat
+    if (!miniChat.querySelector('.kr-mobile-close')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'kr-mobile-close';
+      closeBtn.innerHTML = '×';
+      closeBtn.setAttribute('aria-label', 'Fermer le mini-chat');
+      closeBtn.onclick = () => {
+        miniChat.classList.remove('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.remove('active');
+        }
+      };
+
+      // Trouver le header du mini-chat pour y insérer le bouton
+      const chatHeader = miniChat.querySelector('.panel-heading') || 
+                        miniChat.querySelector('.modal-header') ||
+                        miniChat.firstElementChild;
+
+      if (chatHeader) {
+        chatHeader.style.position = 'relative';
+        chatHeader.appendChild(closeBtn);
+      } else {
+        miniChat.insertBefore(closeBtn, miniChat.firstChild);
+      }
+    }
+  }
+
+  // ============================================================================
   // INITIALISATION
   // ============================================================================
 
@@ -37920,6 +38922,9 @@ body > map {
 
       // Activer le clic sur backdrop pour fermer les modals
       enableModalBackdropClick();
+
+      // Gestion mobile : détection et fonctionnalités spécifiques
+      initMobileFeatures();
 
       // Déplacer le style à la fin du head pour la priorité
       setTimeout(() => {

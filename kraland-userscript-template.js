@@ -3,6 +3,86 @@
   'use strict';
 
   // ============================================================================
+  // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
+  // ============================================================================
+  if (window.innerWidth < 768 && window.location.hash && window.location.hash !== '#top') {
+    // Sauvegarder la position actuelle avant que le navigateur ne scrolle
+    const initialScrollRestoration = history.scrollRestoration;
+    history.scrollRestoration = 'manual';
+    
+    // Supprimer l'ancre de l'URL
+    const cleanUrl = window.location.pathname + window.location.search;
+    history.replaceState(null, '', cleanUrl);
+    
+    // Forcer le scroll en haut immédiatement et après le chargement
+    const forceScrollTop = () => window.scrollTo(0, 0);
+    forceScrollTop();
+    
+    // S'assurer que le scroll reste en haut même après le chargement complet
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', forceScrollTop);
+    }
+    window.addEventListener('load', forceScrollTop);
+    
+    // Restaurer le comportement par défaut après 500ms
+    setTimeout(() => {
+      history.scrollRestoration = initialScrollRestoration;
+    }, 500);
+  }
+  
+  // ============================================================================
+  // NOUVELLES : Gestion du repliement/dépliement (mobile uniquement)
+  // ============================================================================
+  // News collapsible sur mobile
+  if (window.innerWidth < 768 && !window.__krNewsToggleInit) {
+    window.__krNewsToggleInit = true;
+    
+    function initNewsToggle() {
+      const newsToggle = document.getElementById('slide-submenu');
+      const newsContainer = document.getElementById('player-header-section');
+      
+      if (newsToggle && newsContainer) {
+        // Fonction pour mettre à jour le bouton
+        function updateButton(isCollapsed) {
+          newsToggle.innerHTML = isCollapsed ? '▼' : '×';
+          newsToggle.setAttribute('aria-label', isCollapsed ? 'Déplier les nouvelles' : 'Replier les nouvelles');
+          newsToggle.setAttribute('title', isCollapsed ? 'Déplier' : 'Replier');
+        }
+        
+        // Charger l'état depuis localStorage
+        const isCollapsed = localStorage.getItem('kr-news-collapsed') === 'true';
+        if (isCollapsed) {
+          newsContainer.classList.add('kr-news-collapsed');
+        }
+        updateButton(isCollapsed);
+        
+        // Gérer le clic (capturer en premier pour empêcher Bootstrap)
+        newsToggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // Empêche les autres handlers Bootstrap
+          newsContainer.classList.toggle('kr-news-collapsed');
+          
+          // Sauvegarder l'état et mettre à jour le bouton
+          const collapsed = newsContainer.classList.contains('kr-news-collapsed');
+          localStorage.setItem('kr-news-collapsed', collapsed);
+          updateButton(collapsed);
+        }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
+      }
+    }
+    
+    // Attendre que le DOM soit complètement chargé
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initNewsToggle, { once: true });
+    } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      // Utiliser requestAnimationFrame pour s'assurer que le DOM est vraiment prêt
+      requestAnimationFrame(() => {
+        setTimeout(initNewsToggle, 50);
+      });
+    }
+  }
+
+  // ============================================================================
   // CONFIGURATION
   // ============================================================================
   const CONFIG = {
@@ -1779,6 +1859,159 @@
   }
 
   // ============================================================================
+  // MOBILE FEATURES
+  // Fonctionnalités spécifiques au mobile (Phase 6)
+  // ============================================================================
+
+  /**
+   * Initialise les fonctionnalités mobiles
+   * - Overlay pour fermer les panneaux latéraux
+   * - Bouton pour ouvrir le panneau de compétences
+   * - Gestion du mini-chat mobile
+   */
+  function initMobileFeatures() {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) return;
+
+    // Créer l'overlay pour fermer les panneaux
+    createMobileOverlay();
+
+    // Initialiser le panneau de compétences mobile
+    initMobileSkillsPanel();
+
+    // Initialiser le mini-chat mobile
+    initMobileMiniChat();
+
+    // Gérer le redimensionnement de la fenêtre
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const nowMobile = window.innerWidth < 768;
+        if (nowMobile !== isMobile) {
+          location.reload(); // Recharger si on passe desktop <-> mobile
+        }
+      }, 250);
+    });
+  }
+
+  /**
+   * Crée l'overlay mobile pour fermer les panneaux latéraux
+   */
+  function createMobileOverlay() {
+    if (document.querySelector('.kr-mobile-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'kr-mobile-overlay';
+    overlay.addEventListener('click', () => {
+      // Fermer le panneau de compétences
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        skillsPanel.classList.remove('mobile-open');
+      }
+
+      // Fermer le mini-chat
+      const miniChat = document.getElementById('flap');
+      if (miniChat) {
+        miniChat.classList.remove('mobile-open');
+      }
+
+      // Masquer l'overlay
+      overlay.classList.remove('active');
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  /**
+   * Initialise le panneau de compétences pour mobile
+   */
+  function initMobileSkillsPanel() {
+    if (!isPlatoPage()) return;
+
+    const skillsPanel = document.getElementById('skills-panel');
+    if (!skillsPanel) return;
+
+    // Créer le bouton pour ouvrir le panneau de compétences
+    const skillsToggle = document.createElement('button');
+    skillsToggle.className = 'kr-mobile-skills-toggle btn btn-primary';
+    skillsToggle.innerHTML = '<i class="fa fa-chart-bar"></i>';
+    skillsToggle.setAttribute('aria-label', 'Afficher les compétences');
+    skillsToggle.onclick = () => {
+      skillsPanel.classList.toggle('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.toggle('active');
+      }
+    };
+
+    document.body.appendChild(skillsToggle);
+
+    // Créer le bouton de fermeture dans le panneau
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'kr-mobile-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Fermer');
+    closeBtn.onclick = () => {
+      skillsPanel.classList.remove('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+      }
+    };
+
+    skillsPanel.insertBefore(closeBtn, skillsPanel.firstChild);
+  }
+
+  /**
+   * Initialise le mini-chat pour mobile
+   */
+  function initMobileMiniChat() {
+    const miniChat = document.getElementById('flap');
+    if (!miniChat) return;
+
+    // Bouton pour ouvrir le mini-chat
+    const chatButton = document.querySelector('a[href*="#flap"]');
+    if (chatButton) {
+      chatButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        miniChat.classList.toggle('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.toggle('active');
+        }
+      });
+    }
+
+    // Créer le bouton de fermeture dans le mini-chat
+    if (!miniChat.querySelector('.kr-mobile-close')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'kr-mobile-close';
+      closeBtn.innerHTML = '×';
+      closeBtn.setAttribute('aria-label', 'Fermer le mini-chat');
+      closeBtn.onclick = () => {
+        miniChat.classList.remove('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.remove('active');
+        }
+      };
+
+      // Trouver le header du mini-chat pour y insérer le bouton
+      const chatHeader = miniChat.querySelector('.panel-heading') || 
+                        miniChat.querySelector('.modal-header') ||
+                        miniChat.firstElementChild;
+
+      if (chatHeader) {
+        chatHeader.style.position = 'relative';
+        chatHeader.appendChild(closeBtn);
+      } else {
+        miniChat.insertBefore(closeBtn, miniChat.firstChild);
+      }
+    }
+  }
+
+  // ============================================================================
   // INITIALISATION
   // ============================================================================
 
@@ -1811,6 +2044,9 @@
 
       // Activer le clic sur backdrop pour fermer les modals
       enableModalBackdropClick();
+
+      // Gestion mobile : détection et fonctionnalités spécifiques
+      initMobileFeatures();
 
       // Déplacer le style à la fin du head pour la priorité
       setTimeout(() => {
