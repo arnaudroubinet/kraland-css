@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767653942591
+// @version      1.0.1767901239577
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -657,6 +657,14 @@ input[type="checkbox"]:checked {
   object-fit: cover;
   display: inline-block;
   border-radius: 50%;
+}
+
+/* Fix: Override Bootstrap .img-responsive on avatars to prevent stretching */
+.img-circle.img-responsive,
+.img-circle.img-thumbnail {
+  max-width: none !important;
+  width: var(--kr-avatar-size);
+  height: var(--kr-avatar-size);
 }
 
 

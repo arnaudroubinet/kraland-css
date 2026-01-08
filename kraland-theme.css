@@ -640,6 +640,14 @@ input[type="checkbox"]:checked {
   border-radius: 50%;
 }
 
+/* Fix: Override Bootstrap .img-responsive on avatars to prevent stretching */
+.img-circle.img-responsive,
+.img-circle.img-thumbnail {
+  max-width: none !important;
+  width: var(--kr-avatar-size);
+  height: var(--kr-avatar-size);
+}
+
 
 /* Ensure layout doesn't break: allow the author column to accommodate larger avatars */
 .col-md-3.sidebar .avatar,
