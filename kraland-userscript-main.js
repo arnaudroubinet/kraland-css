@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1767915227303
+// @version      1.0.1768147248485
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -12,6 +12,1163 @@
 // Main script code - CSS bundled inline
 (function(){
   'use strict';
+
+  // ============================================================================
+  // TASK-1.1 - MOBILE DETECTION & INITIALIZATION
+  // ============================================================================
+  (function() {
+    // Configuration
+    const MOBILE_BREAKPOINT = 768; // px
+    
+    /**
+     * Détecte si on est sur mobile
+     */
+    function isMobileDevice() {
+      return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+    
+    /**
+     * Initialise le mode mobile
+     */
+    function initMobileMode() {
+      if (isMobileDevice()) {
+        document.body.classList.add('mobile-mode');
+        console.log('[Kraland Mobile] Mode mobile activé');
+        // Applique les styles critiques via JavaScript (fix Bootstrap)
+        applyMobileCriticalStyles();
+      } else {
+        document.body.classList.remove('mobile-mode');
+        console.log('[Kraland Mobile] Mode desktop');
+      }
+    }
+    
+    /**
+     * Applique les styles critiques qui doivent surcharger Bootstrap
+     * Cette fonction force les styles inline pour contrer la spécificité CSS de Bootstrap
+     */
+    function applyMobileCriticalStyles() {
+      // Attendre que le DOM soit prêt
+      const applyStyles = () => {
+        // Retrait padding de toutes les colonnes Bootstrap
+        const cols = document.querySelectorAll('[class*="col-"]');
+        cols.forEach(col => {
+          col.style.setProperty('padding-left', '0px', 'important');
+          col.style.setProperty('padding-right', '0px', 'important');
+        });
+        
+        // Retrait margin des rows
+        const rows = document.querySelectorAll('.row');
+        rows.forEach(row => {
+          row.style.setProperty('margin-left', '0px', 'important');
+          row.style.setProperty('margin-right', '0px', 'important');
+        });
+        
+        // Fix des containers
+        const containers = document.querySelectorAll('.container, .container-fluid');
+        containers.forEach(container => {
+          container.style.setProperty('padding-left', '0px', 'important');
+          container.style.setProperty('padding-right', '0px', 'important');
+        });
+        
+        // Dashboard pleine largeur
+        const dashboards = document.querySelectorAll('.dashboard');
+        dashboards.forEach(dashboard => {
+          dashboard.style.setProperty('margin-left', '0px', 'important');
+          dashboard.style.setProperty('margin-right', '0px', 'important');
+          dashboard.style.setProperty('width', '100%', 'important');
+          dashboard.style.setProperty('padding', '0px', 'important');
+        });
+      };
+      
+      // Applique immédiatement et après un court délai (pour le contenu chargé dynamiquement)
+      applyStyles();
+      setTimeout(applyStyles, 100);
+      setTimeout(applyStyles, 500);
+    }
+    
+    /**
+     * Gère le resize de la fenêtre
+     */
+    let resizeTimeout;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        initMobileMode();
+      }, 150);
+    }
+    
+    // Initialisation au chargement
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileMode);
+    } else {
+      initMobileMode();
+    }
+    
+    // Écoute du resize
+    window.addEventListener('resize', handleResize);
+    
+    // Export global pour debug
+    window.KralandMobile = {
+      isMobile: isMobileDevice,
+      reinit: initMobileMode
+    };
+  })();
+
+  // ============================================================================
+  // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
+  // ============================================================================
+  (function() {
+    /**
+     * Initialise le comportement mobile du header Bootstrap 3
+     * Utilise les composants natifs .navbar-toggle et .navbar-collapse
+     */
+    function initMobileHeader() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Vérifier que Bootstrap JS est chargé
+      if (typeof jQuery === 'undefined' || typeof jQuery.fn.collapse === 'undefined') {
+        console.warn('[Mobile Header] Bootstrap JS non chargé, utilisation du fallback');
+        initFallbackToggle();
+        return;
+      }
+      
+      // Bootstrap 3 gère automatiquement le toggle via data-toggle="collapse"
+      // On s'assure juste que le markup est correct
+      
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+      
+      if (!toggle || !collapse) {
+        console.log('[Mobile Header] Éléments navbar-toggle ou navbar-collapse non trouvés');
+        return;
+      }
+      
+      // Vérifier/ajouter les attributs data nécessaires pour BS3
+      if (!toggle.getAttribute('data-toggle')) {
+        toggle.setAttribute('data-toggle', 'collapse');
+      }
+      if (!toggle.getAttribute('data-target')) {
+        const collapseId = collapse.id || 'navbar-collapse-mobile';
+        collapse.id = collapseId;
+        toggle.setAttribute('data-target', '#' + collapseId);
+      }
+      
+      // Auto-close menu au clic sur un lien
+      initMenuAutoClose();
+      
+      console.log('[Mobile Header] Header Bootstrap 3 initialisé');
+    }
+    
+    /**
+     * Fallback manuel si Bootstrap JS n'est pas disponible
+     */
+    function initFallbackToggle() {
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+      
+      if (!toggle || !collapse) return;
+      
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        collapse.classList.toggle('in');
+        
+        const expanded = collapse.classList.contains('in');
+        toggle.setAttribute('aria-expanded', expanded);
+        
+        // Gestion du scroll
+        if (expanded) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      });
+      
+      console.log('[Mobile Header] Fallback toggle initialisé');
+    }
+    
+    /**
+     * Ferme le menu au clic sur un lien
+     */
+    function initMenuAutoClose() {
+      const collapse = document.querySelector('.navbar-collapse');
+      if (!collapse) return;
+      
+      const links = collapse.querySelectorAll('a:not(.dropdown-toggle)');
+      links.forEach(link => {
+        link.addEventListener('click', function() {
+          // Fermer le menu après un court délai
+          setTimeout(() => {
+            if (typeof jQuery !== 'undefined' && jQuery.fn.collapse) {
+              jQuery(collapse).collapse('hide');
+            } else {
+              collapse.classList.remove('in');
+              document.body.style.overflow = '';
+            }
+          }, 150);
+        });
+      });
+    }
+    
+    // Attendre que le DOM soit prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initMobileHeader, 100);
+      });
+    } else {
+      setTimeout(initMobileHeader, 100);
+    }
+    
+    // Export pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.reinitHeader = initMobileHeader;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.4 - MINI-PROFIL COLLAPSIBLE
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Extrait les données d'une jauge (valeur/max)
+     */
+    function extractGaugeData(element, type) {
+      const text = element.textContent;
+      const match = text.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);
+      
+      if (!match) {
+        // Chercher juste le nombre si pas de format complet
+        const numMatch = text.match(/\d+/);
+        if (numMatch) {
+          const val = parseInt(numMatch[0]);
+          return { type, current: val, max: val, percent: 100 };
+        }
+        return { type, current: 0, max: 1, percent: 0 };
+      }
+      
+      const current = parseInt(match[1] || match[3]);
+      const max = parseInt(match[2] || match[4]);
+      const percent = Math.min(100, (current / max) * 100);
+      
+      return { type, current, max, percent };
+    }
+    
+    /**
+     * Trouve les données du profil joueur
+     */
+    function findProfileData() {
+      // Container principal
+      const profileSection = document.getElementById('player-header-section');
+      const mainPanel = document.getElementById('player-main-panel');
+      
+      if (!profileSection || !mainPanel) {
+        console.warn('[Mobile Mini-Profile] Sections profil non trouvées');
+        return null;
+      }
+      
+      // Nom du joueur (dans le header)
+      const nameElement = profileSection.querySelector('.list-group-item.active');
+      const playerName = nameElement ? nameElement.textContent.replace('×', '').trim() : 'Joueur';
+      
+      // Avatar (dans la première row)
+      const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
+      const avatarSrc = avatarLink ? avatarLink.src : null;
+      
+      // Argent (chercher "MØ")
+      const moneyElement = Array.from(mainPanel.querySelectorAll('*')).find(el => {
+        const text = el.textContent.trim();
+        return text.includes('MØ') && el.children.length === 0 && text.length < 20;
+      });
+      const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
+      
+      // Horloge (dans player-vitals-section)
+      const vitalsSection = document.getElementById('player-vitals-section');
+      const clockElement = vitalsSection ? vitalsSection.querySelector('.c100') : null;
+      const clock = clockElement ? clockElement.textContent.trim() : '--:--';
+      
+      // Jauges PV/PM/PP - Nouvelle approche
+      // Chercher les éléments contenant "PV", "PM", "PP" avec leur valeur
+      const findGaugeInSection = (section, type) => {
+        if (!section) return null;
+        
+        // Chercher l'élément contenant le type (PV, PM, PP)
+        const elements = Array.from(section.querySelectorAll('*'));
+        const gaugeEl = elements.find(el => {
+          const text = el.textContent.trim();
+          const hasType = text.startsWith(type) || text.includes(` ${type} `);
+          const hasNumber = /\d+/.test(text);
+          return hasType && hasNumber && el.children.length <= 2;
+        });
+        
+        if (!gaugeEl) return null;
+        
+        // Extraire la valeur actuelle et max
+        const text = gaugeEl.textContent.trim();
+        const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+        
+        if (match) {
+          // Format "27 / 27"
+          return extractGaugeData(gaugeEl, type.toLowerCase());
+        } else {
+          // Format "PV 27" sans max - chercher la barre de progression pour le max
+          const valueMatch = text.match(/\d+/);
+          if (!valueMatch) return null;
+          
+          const current = parseInt(valueMatch[0]);
+          
+          // Chercher la barre de progression associée
+          const progressBar = gaugeEl.querySelector('.progress-bar, [class*="bar"]');
+          let max = current; // Par défaut, considérer que c'est plein
+          
+          if (progressBar) {
+            const width = progressBar.style.width;
+            if (width && width.includes('%')) {
+              const percent = parseInt(width);
+              if (percent > 0) {
+                max = Math.round(current * 100 / percent);
+              }
+            }
+          }
+          
+          const percent = max > 0 ? Math.min(100, (current / max) * 100) : 0;
+          return { type: type.toLowerCase(), current, max, percent };
+        }
+      };
+      
+      const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
+      const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
+      const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
+      
+      return {
+        name: playerName,
+        avatar: avatarSrc,
+        money: money,
+        clock: clock,
+        gauges: {
+          pv: gaugesPV,
+          pm: gaugesPM,
+          pp: gaugesPP
+        }
+      };
+    }
+    
+    /**
+     * Crée le mini-profil mobile
+     */
+    function createMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-mini-profile')) return;
+      
+      const profileData = findProfileData();
+      if (!profileData) {
+        console.warn('[Mobile Mini-Profile] Données profil non trouvées');
+        return;
+      }
+      
+      // Container principal
+      const miniProfile = document.createElement('div');
+      miniProfile.className = 'mobile-mini-profile collapsed';
+      miniProfile.setAttribute('data-task', '1.4');
+      
+      // Header (toujours visible)
+      const header = document.createElement('div');
+      header.className = 'mobile-mini-profile-header';
+      
+      if (profileData.avatar) {
+        const avatar = document.createElement('img');
+        avatar.src = profileData.avatar;
+        avatar.className = 'avatar';
+        avatar.alt = 'Avatar';
+        header.appendChild(avatar);
+      }
+      
+      const info = document.createElement('div');
+      info.className = 'mobile-mini-profile-info';
+      
+      const name = document.createElement('div');
+      name.className = 'mobile-mini-profile-name';
+      name.textContent = profileData.name;
+      info.appendChild(name);
+      
+      const moneyRow = document.createElement('div');
+      moneyRow.className = 'mobile-mini-profile-money';
+      moneyRow.innerHTML = `
+        <span>${profileData.money}</span>
+        <span class="mobile-mini-profile-clock">⏱️ ${profileData.clock}</span>
+      `;
+      info.appendChild(moneyRow);
+      
+      header.appendChild(info);
+      miniProfile.appendChild(header);
+      
+      // Bouton settings
+      const settings = document.createElement('a');
+      settings.href = '/jouer/perso';
+      settings.className = 'mobile-mini-profile-settings';
+      settings.innerHTML = '⚙️';
+      settings.title = 'Voir le personnage';
+      settings.addEventListener('click', (e) => e.stopPropagation());
+      miniProfile.appendChild(settings);
+      
+      // Jauges compactes (toujours visibles)
+      const gaugesCompact = document.createElement('div');
+      gaugesCompact.className = 'mobile-mini-profile-gauges-compact';
+      
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) return;
+        
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-compact';
+        el.innerHTML = `
+          <span class="mobile-gauge-compact-label">${type.toUpperCase()}</span>
+          <div class="mobile-gauge-compact-bar">
+            <div class="mobile-gauge-compact-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+          <span class="mobile-gauge-compact-value">${gauge.current}</span>
+        `;
+        gaugesCompact.appendChild(el);
+      });
+      
+      miniProfile.appendChild(gaugesCompact);
+      
+      // Détails (masqués par défaut)
+      const details = document.createElement('div');
+      details.className = 'mobile-mini-profile-details';
+      
+      // Jauges détaillées
+      const gaugesFull = document.createElement('div');
+      gaugesFull.className = 'mobile-mini-profile-gauges-full';
+      
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) return;
+        
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-full';
+        el.innerHTML = `
+          <div class="mobile-gauge-full-header">
+            <span>${type.toUpperCase()}</span>
+            <span>${gauge.current}/${gauge.max}</span>
+          </div>
+          <div class="mobile-gauge-full-bar">
+            <div class="mobile-gauge-full-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+        `;
+        gaugesFull.appendChild(el);
+      });
+      
+      details.appendChild(gaugesFull);
+      miniProfile.appendChild(details);
+      
+      // Toggle expand/collapse
+      miniProfile.addEventListener('click', (e) => {
+        // Ne pas toggle si clic sur le bouton settings
+        if (e.target.classList.contains('mobile-mini-profile-settings') || 
+            e.target.closest('.mobile-mini-profile-settings')) {
+          return;
+        }
+        
+        miniProfile.classList.toggle('collapsed');
+        miniProfile.classList.toggle('expanded');
+        
+        console.log('[Mobile Mini-Profile] État:', 
+          miniProfile.classList.contains('expanded') ? 'déplié' : 'replié'
+        );
+      });
+      
+      // Insérer après la tab bar ou au début du body
+      const tabBar = document.querySelector('.mobile-tab-bar');
+      const container = document.getElementById('content') || document.body;
+      
+      if (tabBar && tabBar.nextSibling) {
+        tabBar.parentNode.insertBefore(miniProfile, tabBar.nextSibling);
+      } else {
+        container.insertBefore(miniProfile, container.firstChild);
+      }
+      
+      console.log('[Mobile Mini-Profile] Créé avec succès');
+      console.log('  - Nom:', profileData.name);
+      console.log('  - Argent:', profileData.money);
+      console.log('  - Horloge:', profileData.clock);
+      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current}/${profileData.gauges.pv.max}` : 'N/A');
+    }
+    
+    /**
+     * Initialise le mini-profil
+     */
+    function initMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createMiniProfile();
+    }
+    
+    // Attendre le DOM + délai pour autres tâches (après tab bar)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initMiniProfile, 250);
+      });
+    } else {
+      setTimeout(initMiniProfile, 250);
+    }
+    
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initMiniProfile = initMiniProfile;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.5 - ACTIONS RAPIDES HORIZONTALES (Bootstrap 3)
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Crée la barre d'actions rapides mobile avec Bootstrap 3
+     */
+    function createQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-quick-actions')) return;
+      
+      // Trouver la section actions originale
+      const actionsSection = document.getElementById('player-actions-section');
+      if (!actionsSection) {
+        console.warn('[Mobile Quick Actions] Section actions non trouvée');
+        return;
+      }
+      
+      // Récupérer les boutons originaux
+      const originalButtons = actionsSection.querySelectorAll('a.btn, button.btn');
+      if (originalButtons.length === 0) {
+        console.warn('[Mobile Quick Actions] Aucun bouton trouvé');
+        return;
+      }
+      
+      // Container avec btn-group-justified Bootstrap 3
+      const container = document.createElement('div');
+      container.className = 'btn-group btn-group-justified mobile-quick-actions';
+      container.setAttribute('role', 'group');
+      container.setAttribute('data-task', '1.5');
+      
+      // Cloner chaque bouton avec structure Bootstrap 3 justified
+      originalButtons.forEach((originalBtn) => {
+        // Wrapper btn-group requis par BS3 justified
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group';
+        btnGroup.setAttribute('role', 'group');
+        
+        // Cloner le bouton
+        const btn = originalBtn.cloneNode(true);
+        btn.classList.add('mobile-quick-action');
+        
+        // Extraire l'icône et le label
+        const icon = btn.querySelector('i');
+        const label = btn.textContent.trim();
+        
+        // Reconstruire le contenu avec structure mobile
+        btn.innerHTML = '';
+        
+        if (icon) {
+          const iconClone = icon.cloneNode(true);
+          iconClone.classList.add('mobile-quick-action-icon');
+          btn.appendChild(iconClone);
+        }
+        
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'mobile-quick-action-label';
+        labelSpan.textContent = label;
+        btn.appendChild(labelSpan);
+        
+        btnGroup.appendChild(btn);
+        container.appendChild(btnGroup);
+      });
+      
+      // Insérer après le mini-profil
+      const miniProfile = document.querySelector('.mobile-mini-profile');
+      const tabBar = document.querySelector('.mobile-tab-bar');
+      
+      if (miniProfile && miniProfile.nextSibling) {
+        miniProfile.parentNode.insertBefore(container, miniProfile.nextSibling);
+      } else if (tabBar && tabBar.nextSibling) {
+        tabBar.parentNode.insertBefore(container, tabBar.nextSibling);
+      } else {
+        document.body.insertBefore(container, document.body.firstChild);
+      }
+      
+      console.log('[Mobile Quick Actions] Créées avec', originalButtons.length, 'actions');
+    }
+    
+    /**
+     * Initialise les actions rapides
+     */
+    function initQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createQuickActions();
+    }
+    
+    // Attendre le DOM + délai (après mini-profil)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initQuickActions, 300);
+      });
+    } else {
+      setTimeout(initQuickActions, 300);
+    }
+    
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initQuickActions = initQuickActions;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Trouve les liens du menu navigation jeu
+     */
+    function findNavigationLinks() {
+      // Patterns à chercher avec icônes Font Awesome
+      const patterns = [
+        { pattern: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
+        { pattern: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
+        { pattern: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
+        { pattern: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
+        { pattern: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
+      ];
+      
+      const links = [];
+      
+      patterns.forEach(item => {
+        const link = document.querySelector(`a[href*="${item.pattern}"]`);
+        if (link) {
+          links.push({
+            href: link.getAttribute('href'),
+            text: link.textContent.trim() || item.label,
+            pattern: item.pattern,
+            icon: item.icon
+          });
+        }
+      });
+      
+      return links;
+    }
+    
+    /**
+     * Crée la tab bar avec structure Bootstrap 3
+     */
+    function createTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-tab-bar')) return; // Déjà créé
+      
+      // Trouver les liens
+      const navLinks = findNavigationLinks();
+      
+      if (navLinks.length === 0) {
+        console.warn('[Mobile Tab Bar] Liens navigation jeu non trouvés');
+        return;
+      }
+      
+      // Créer la tab bar avec structure Bootstrap 3 (ul.nav.nav-tabs)
+      const tabBar = document.createElement('ul');
+      tabBar.className = 'nav nav-tabs mobile-tab-bar';
+      tabBar.setAttribute('role', 'tablist');
+      
+      // Créer les tabs (li > a comme dans BS3) avec icônes + texte
+      navLinks.forEach(linkData => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'presentation');
+        
+        const a = document.createElement('a');
+        a.href = linkData.href;
+        a.setAttribute('role', 'tab');
+        
+        // Créer structure icône + texte
+        const icon = document.createElement('i');
+        icon.className = `fa ${linkData.icon} mobile-tab-icon`;
+        
+        const label = document.createElement('span');
+        label.className = 'mobile-tab-label';
+        label.textContent = linkData.text;
+        
+        a.appendChild(icon);
+        a.appendChild(label);
+        
+        // Marquer l'onglet actif (classe sur le li comme dans BS3)
+        const currentPath = window.location.pathname;
+        if (currentPath.includes(linkData.pattern)) {
+          li.classList.add('active');
+          a.setAttribute('aria-selected', 'true');
+        } else {
+          a.setAttribute('aria-selected', 'false');
+        }
+        
+        li.appendChild(a);
+        tabBar.appendChild(li);
+      });
+      
+      // Insérer après le header
+      const header = document.querySelector('.navbar') ||
+                     document.querySelector('header') ||
+                     document.body.firstElementChild;
+      
+      if (header && header.nextSibling) {
+        header.parentNode.insertBefore(tabBar, header.nextSibling);
+      } else {
+        document.body.insertBefore(tabBar, document.body.firstChild);
+      }
+      
+      // Gérer l'indicateur de scroll
+      handleTabBarScroll(tabBar);
+      
+      // Scroll automatique vers l'onglet actif
+      setTimeout(() => scrollToActiveTab(tabBar), 100);
+      
+      console.log('[Mobile Tab Bar] Créée avec', navLinks.length, 'onglets');
+    }
+    
+    /**
+     * Gère l'indicateur de scroll de la tab bar
+     */
+    function handleTabBarScroll(tabBar) {
+      const checkScroll = () => {
+        const isAtEnd = tabBar.scrollLeft + tabBar.clientWidth >= tabBar.scrollWidth - 5;
+        tabBar.classList.toggle('scrolled-end', isAtEnd);
+      };
+      
+      tabBar.addEventListener('scroll', checkScroll);
+      
+      // Check initial
+      setTimeout(checkScroll, 100);
+      
+      // Re-check au resize
+      window.addEventListener('resize', checkScroll);
+    }
+    
+    /**
+     * Scroll automatique vers l'onglet actif
+     */
+    function scrollToActiveTab(tabBar) {
+      const activeTab = tabBar.querySelector('li.active > a');
+      if (!activeTab) return;
+      
+      // Scroll smooth vers l'onglet actif
+      const tabBarRect = tabBar.getBoundingClientRect();
+      const activeRect = activeTab.getBoundingClientRect();
+      
+      const scrollLeft = activeRect.left - tabBarRect.left - (tabBarRect.width / 2) + (activeRect.width / 2);
+      
+      tabBar.scrollTo({
+        left: tabBar.scrollLeft + scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+    
+    /**
+     * Initialise la tab bar
+     */
+    function initTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createTabBar();
+    }
+    
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initTabBar = initTabBar;
+    }
+    
+    // Initialiser au chargement avec un délai pour s'assurer que le DOM est prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(initTabBar, 100));
+    } else {
+      setTimeout(initTabBar, 100);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.2 - ACCORDÉON GROUPES (Base)
+  // ============================================================================
+  (function() {
+    /**
+     * Transforme les sections de groupes en accordéon collapsible
+     * Structure DOM identifiée :
+     * - .dashboard-section : Container de chaque groupe
+     * - .dashboard-section-mygroup : Mon groupe (toujours visible)
+     * - .dashboard-section-header : Header avec titre du groupe
+     * - .dashboard-group-title : Nom du leader
+     * - .dashboard-cards-grid : Grille des membres (à masquer/afficher)
+     */
+    
+    /**
+     * Rend un groupe collapsible
+     */
+    function makeGroupCollapsible(section, isMyGroup) {
+      const header = section.querySelector('.dashboard-section-header');
+      const cardsGrid = section.querySelector('.dashboard-cards-grid');
+      
+      if (!header || !cardsGrid) return;
+      
+      // Ajouter la classe accordion au header
+      header.classList.add('dashboard-section-header-accordion');
+      
+      // État initial : mon groupe ouvert, autres fermés
+      const isExpanded = isMyGroup;
+      cardsGrid.classList.toggle('collapsed', !isExpanded);
+      header.classList.toggle('expanded', isExpanded);
+      
+      // Ajouter l'icône d'expansion
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      header.appendChild(icon);
+      
+      // Gérer le clic
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        // Ne pas intercepter les clics sur les boutons d'action
+        if (e.target.closest('.dashboard-group-buttons')) return;
+        
+        // Toggle l'état
+        const isNowExpanded = !cardsGrid.classList.contains('collapsed');
+        cardsGrid.classList.toggle('collapsed', isNowExpanded);
+        header.classList.toggle('expanded', !isNowExpanded);
+        
+        console.log('[Group Accordion]', 
+          section.querySelector('.dashboard-group-title')?.textContent,
+          isNowExpanded ? 'collapsed' : 'expanded'
+        );
+      });
+      
+      console.log('[Group Accordion] Groupe configuré:', 
+        section.querySelector('.dashboard-group-title')?.textContent,
+        'état initial:', isExpanded ? 'ouvert' : 'fermé'
+      );
+    }
+    
+    /**
+     * Initialise l'accordéon pour tous les groupes
+     */
+    function initGroupsAccordion() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      const sections = document.querySelectorAll('.dashboard-section');
+      let count = 0;
+      
+      sections.forEach(section => {
+        const header = section.querySelector('.dashboard-section-header');
+        const title = section.querySelector('.dashboard-group-title');
+        
+        // Vérifier que c'est bien un groupe (a un header avec titre)
+        if (header && title) {
+          const isMyGroup = section.classList.contains('dashboard-section-mygroup');
+          makeGroupCollapsible(section, isMyGroup);
+          count++;
+        }
+      });
+      
+      console.log('[Groups Accordion] Initialisé pour', count, 'groupes');
+    }
+    
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initGroupsAccordion = initGroupsAccordion;
+    }
+    
+    // Initialiser au chargement avec délai pour s'assurer que le DOM est prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(initGroupsAccordion, 150));
+    } else {
+      setTimeout(initGroupsAccordion, 150);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.5 : Commerce - Accordéon catégories
+  // ============================================================================
+  (function initCommerceAccordion() {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
+    const categoryDivs = [];
+    
+    // Trouver tous les divs de catégorie
+    document.querySelectorAll('h4.list-group-item-heading').forEach(h4 => {
+      const categoryName = h4.textContent.trim();
+      if (categories.includes(categoryName)) {
+        const categoryDiv = h4.parentElement;
+        if (categoryDiv && categoryDiv.classList.contains('list-group-item')) {
+          categoryDivs.push({
+            name: categoryName,
+            div: categoryDiv,
+            h4: h4
+          });
+        }
+      }
+    });
+    
+    if (categoryDivs.length === 0) return;
+    
+    console.log(`[Commerce Accordion] Trouvé ${categoryDivs.length} catégories`);
+    
+    // Pour chaque catégorie, trouver ses produits (les <a> qui suivent jusqu'à la prochaine catégorie)
+    categoryDivs.forEach((category, index) => {
+      const products = [];
+      let currentElement = category.div.nextElementSibling;
+      
+      // Parcourir les éléments suivants jusqu'à la prochaine catégorie
+      while (currentElement) {
+        // Si on trouve une autre catégorie, on s'arrête
+        if (currentElement.classList.contains('ds_forum') && 
+            currentElement.querySelector('h4.list-group-item-heading')) {
+          break;
+        }
+        
+        // Si c'est un produit (lien avec classe ds_game)
+        if (currentElement.tagName === 'A' && currentElement.classList.contains('ds_game')) {
+          products.push(currentElement);
+        }
+        
+        currentElement = currentElement.nextElementSibling;
+      }
+      
+      // Créer un conteneur pour les produits
+      const productsContainer = document.createElement('div');
+      productsContainer.className = 'commerce-products-container';
+      
+      // Déplacer les produits dans le conteneur
+      products.forEach(product => {
+        productsContainer.appendChild(product);
+      });
+      
+      // Insérer le conteneur après le div de catégorie
+      category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);
+      
+      // Ajouter la classe accordion au div de catégorie
+      category.div.classList.add('commerce-category-header');
+      
+      // État initial : première catégorie (Nourriture) ouverte
+      const isExpanded = index === 0;
+      if (!isExpanded) {
+        productsContainer.classList.add('collapsed');
+        category.div.classList.add('collapsed');
+      } else {
+        category.div.classList.add('expanded');
+      }
+      
+      // Ajouter l'icône chevron
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      category.h4.appendChild(icon);
+      
+      // Ajouter le gestionnaire de clic
+      category.div.style.cursor = 'pointer';
+      category.div.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isNowExpanded = !productsContainer.classList.contains('collapsed');
+        productsContainer.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('expanded', !isNowExpanded);
+        
+        console.log(`[Commerce Accordion] ${category.name}: ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+      });
+      
+      console.log(`[Commerce Accordion] ${category.name}: ${products.length} produits, état initial: ${isExpanded ? 'ouvert' : 'fermé'}`);
+    });
+  })();
+
+  // ============================================================================
+  // TASK-2.4 : Section bâtiment collapsible
+  // ============================================================================
+  (function initBuildingCollapse() {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h => 
+      h.textContent.includes('Bâtiment')
+    );
+    
+    if (!batimentHeader) return;
+    
+    const panelHeading = batimentHeader.parentElement;
+    const panelBody = panelHeading.nextElementSibling;
+    
+    if (!panelHeading || !panelBody || !panelBody.classList.contains('panel-body')) return;
+    
+    // Ajouter les classes
+    panelHeading.classList.add('building-section-header');
+    panelBody.classList.add('building-section-content');
+    
+    // Ajouter l'icône chevron
+    const icon = document.createElement('i');
+    icon.className = 'fa fa-chevron-down accordion-icon';
+    panelHeading.appendChild(icon);
+    
+    // État initial : ouvert
+    panelHeading.classList.add('expanded');
+    
+    // Gestionnaire de clic
+    panelHeading.style.cursor = 'pointer';
+    panelHeading.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const isNowExpanded = !panelBody.classList.contains('collapsed');
+      panelBody.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('expanded', !isNowExpanded);
+      
+      console.log(`[Building Section] ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+    });
+    
+    console.log('[Building Section] Initialisé - section collapsible');
+  })();
+
+  // ============================================================================
+  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
+  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // ============================================================================
+  (function() {
+    function initNavigationRow() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Trouver le conteneur des actions rapides
+      const quickActions = document.querySelector('.mobile-quick-actions');
+      if (!quickActions) return;
+      
+      // Trouver l'image "Sortir" avec la croix directionnelle
+      const exitImg = document.querySelector('img[alt="Sortir"]');
+      if (!exitImg) return;
+      
+      const parent = exitImg.parentElement;
+      const map = parent.querySelector('map[name="exitmap"]');
+      
+      // Trouver toutes les images bat*.gif (accès aux pièces)
+      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
+      if (allBatImages.length === 0) return;
+      
+      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
+      const originalImages = allBatImages.filter(img => {
+        let current = img;
+        while (current && current !== document.body) {
+          if (current.classList && current.classList.contains('kr-navigation-row')) {
+            return false;
+          }
+          current = current.parentElement;
+        }
+        return true;
+      });
+      
+      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
+      originalImages.sort((a, b) => {
+        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        return numA - numB;
+      });
+      
+      if (originalImages.length === 0) return;
+      
+      // Trouver et masquer le conteneur d'origine (div.row.center)
+      const originalContainer = parent.closest('.row.center');
+      if (originalContainer) {
+        originalContainer.style.display = 'none';
+      }
+      
+      // Récupérer les liens parents des images
+      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
+      if (roomLinks.length === 0) return;
+    
+      // Créer le conteneur de la ligne de navigation
+      const navRow = document.createElement('div');
+      navRow.className = 'kr-navigation-row';
+      navRow.setAttribute('role', 'group');
+    
+      // Créer la croix directionnelle en premier
+      if (exitImg && map) {
+        const directionGroup = document.createElement('div');
+        directionGroup.className = 'btn-group kr-direction-cross';
+        directionGroup.setAttribute('role', 'group');
+        
+        // Créer un lien style btn pour la croix
+        const directionLink = document.createElement('div');
+        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
+        
+        // Cloner l'image et la map
+        const exitImgClone = exitImg.cloneNode(true);
+        exitImgClone.style.width = '60px';
+        exitImgClone.style.height = '60px';
+        exitImgClone.style.display = 'block';
+        
+        const mapClone = map.cloneNode(true);
+        
+        // Forcer la navigation pour chaque area de la map
+        const areas = mapClone.querySelectorAll('area');
+        areas.forEach(area => {
+          area.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = area.href;
+            if (url && url !== '#') {
+              window.location.href = url;
+            }
+          });
+        });
+        
+        directionLink.appendChild(exitImgClone);
+        directionLink.appendChild(mapClone);
+        directionGroup.appendChild(directionLink);
+        navRow.appendChild(directionGroup);
+      }
+    
+      // Créer une carte pour chaque accès aux pièces
+      roomLinks.forEach(link => {
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group kr-room-access-card';
+        btnGroup.setAttribute('role', 'group');
+        
+        // Cloner le lien pour ne pas modifier l'original
+        const linkClone = link.cloneNode(true);
+        // Utiliser les mêmes classes que les actions rapides
+        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
+        
+        // Forcer la navigation pour éviter l'interception par Kraland
+        linkClone.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const url = linkClone.href;
+          if (url && url !== '#') {
+            window.location.href = url;
+          }
+        });
+        
+        btnGroup.appendChild(linkClone);
+        
+        navRow.appendChild(btnGroup);
+      });
+    
+      // Insérer la nouvelle ligne après les actions rapides
+      quickActions.parentElement.insertBefore(navRow, quickActions.nextSibling);
+    
+      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
+    }
+    
+    // Attendre le DOM et un délai pour que tout soit prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initNavigationRow, 350);
+      });
+    } else {
+      setTimeout(initNavigationRow, 350);
+    }
+  })();
 
   // ============================================================================
   // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
@@ -164,6 +1321,49 @@
   --kr-nation-bg-8: rgb(115, 151, 115, 0.2);
   --kr-nation-bg-9: rgb(170, 170, 68, 0.2);
   --kr-nation-bg-10: rgb(204, 255, 255, 0.15);
+  
+  /* ============================================
+     MOBILE ADAPTATION - VARIABLES (TASK-1.1)
+     ============================================ */
+  /* Hauteurs fixes mobile */
+  --mobile-header-height: 56px;
+  --mobile-tab-bar-height: 48px;
+  --mobile-touch-target: 44px;
+  
+  /* Espacements */
+  --mobile-spacing-xs: 4px;
+  --mobile-spacing-sm: 8px;
+  --mobile-spacing-md: 12px;
+  --mobile-spacing-lg: 16px;
+  --mobile-spacing-xl: 24px;
+  
+  /* Bordures */
+  --mobile-radius: 8px;
+  --mobile-radius-lg: 16px;
+  
+  /* Z-index */
+  --z-header: 1000;
+  --z-tab-bar: 999;
+  --z-bottom-sheet: 998;
+  --z-drawer: 1001;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Couleurs des jauges (Bootstrap success/info/warning) */
+  --kr-gauge-pv: #28a745; /* Vert Bootstrap success */
+  --kr-gauge-pm: #007bff; /* Bleu Bootstrap info */
+  --kr-gauge-pp: #ffc107; /* Jaune Bootstrap warning */
+  
+  /* Overlays et transparence pour navbar sombre */
+  --kr-overlay-light-10: rgba(255, 255, 255, 0.1);
+  --kr-overlay-light-05: rgba(255, 255, 255, 0.05);
+  --kr-overlay-light-20: rgba(255, 255, 255, 0.2);
+  --kr-overlay-dark-20: rgba(0, 0, 0, 0.2);
+  --kr-overlay-dark-30: rgba(0, 0, 0, 0.3);
+  --kr-overlay-dark-125: rgba(0, 0, 0, 0.125);
 }
 
 html.kr-theme-variant-empire-brun {
@@ -902,6 +2102,391 @@ a.carousel-control.right{
 .modal-header,
 .modal-footer {
   flex-shrink: 0;
+}
+
+/* ============================================================================
+   9b. BOOTBOX ORDER MODAL - MOBILE UX OPTIMIZATION
+   Améliore l'utilisabilité mobile de la modale d'ordre
+   - Zones tactiles 44px minimum (WCAG 2.1)
+   - Grille responsive pour les actions
+   - Footer sticky
+   - Prévention zoom iOS (font-size 16px+)
+   ============================================================================ */
+
+/* 1. SELECT PERSONNAGE */
+.bootbox-confirm .modal-body > select:first-of-type,
+.bootbox-confirm select.form-control {
+  min-height: var(--mobile-touch-target);
+  font-size: 16px !important; /* Évite zoom iOS */
+  padding: 8px 12px;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-radius: var(--mobile-radius);
+}
+
+/* 2. ACTIONS PRIMAIRES/SECONDAIRES EN GRILLE */
+.bootbox-confirm .panel-heading ul.nav-tabs {
+  display: grid !important; /* Override Bootstrap flex */
+  grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+  gap: var(--mobile-spacing-md) !important;
+  padding-left: 0;
+  margin-bottom: var(--mobile-spacing-md);
+  border-bottom: none !important; /* Retire la bordure des nav-tabs Bootstrap */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li {
+  margin: 0 !important;
+  padding: 0;
+  display: block;
+  float: none !important; /* Override Bootstrap float */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--mobile-touch-target);
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--kr-bg-elevated);
+  border: 1px solid var(--kr-border-default) !important;
+  border-radius: var(--mobile-radius) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  margin: 0 !important; /* Override Bootstrap margin */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li.active > a {
+  background: var(--kr-primary);
+  color: white;
+  border-color: var(--kr-primary) !important;
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:hover,
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:focus {
+  background: var(--kr-bg-hover);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--kr-shadow-sm);
+  border-color: var(--kr-primary) !important;
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:active {
+  transform: translateY(0);
+  background: var(--kr-bg-active);
+}
+
+/* Icônes dans les actions (si présentes) */
+.bootbox-confirm .list-inline > li > a > .fa,
+.bootbox-confirm .list-inline > li > a > .glyphicon {
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+/* 3. TABLEAU RADIO BUTTONS */
+/* 3. PANEL ACTIONS - Layout Grid Compact */
+.bootbox-confirm .panel-actions {
+  padding: var(--mobile-spacing-md);
+  background: var(--kr-bg-surface);
+  border-radius: var(--mobile-radius);
+}
+
+/* Headers "Actions / Diff. / Jet" */
+.bootbox-confirm .panel-actions::before {
+  content: "Actions";
+  display: block;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--kr-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--mobile-spacing-sm);
+  padding-bottom: var(--mobile-spacing-sm);
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+/* ACTIONS GRID - Layout compact à 4 colonnes */
+.bootbox-confirm .panel-actions .row.form-group {
+  display: grid !important;
+  grid-template-columns: 44px 1fr 60px 70px;
+  gap: 0;
+  padding: 0 !important;
+  margin: 0 0 2px 0 !important;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+/* Hover sur row */
+.bootbox-confirm .panel-actions .row.form-group:hover {
+  background: rgba(212, 165, 116, 0.05);
+  border-color: rgba(212, 165, 116, 0.3);
+  transform: translateX(2px);
+}
+
+/* Row checked - highlight fort */
+.bootbox-confirm .panel-actions .row.form-group:has(input[type="radio"]:checked) {
+  background: rgba(212, 165, 116, 0.12);
+  border-color: var(--kr-primary);
+  box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.2);
+}
+
+/* Cellules du grid */
+.bootbox-confirm .panel-actions .row.form-group > div {
+  padding: 8px 6px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center;
+  min-height: 44px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bootbox-confirm .panel-actions .row.form-group > div:last-child {
+  border-right: none;
+}
+
+/* Colonne 1 : Radio button (centré) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(1) {
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Colonne 2 : Label (aligné à gauche) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(2) {
+  padding-left: 12px !important;
+}
+
+/* Colonnes 3 & 4 : Diff et Jet (alignés à droite, font compact) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(3),
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(4) {
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--kr-text-secondary);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Radio buttons - Style custom */
+.bootbox-confirm .panel-actions input[type="radio"] {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  cursor: pointer;
+  accent-color: var(--kr-primary);
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Labels - Style clickable */
+.bootbox-confirm .panel-actions label {
+  cursor: pointer;
+  margin: 0 !important;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--kr-text-primary);
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.bootbox-confirm .panel-actions label:hover {
+  color: var(--kr-primary);
+}
+
+/* TABLE OBJETS - Style normal conservé */
+.bootbox-confirm table {
+  width: 100%;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bootbox-confirm table td,
+.bootbox-confirm table th {
+  padding: 12px 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+.bootbox-confirm table th {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--kr-text-secondary);
+  background: var(--kr-bg-elevated);
+}
+
+/* 4. CHECKBOXES & BONUS - Ligne horizontale unifiée */
+.bootbox-confirm input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  cursor: pointer;
+  accent-color: var(--kr-primary);
+  margin: 0;
+}
+
+/* Groupes de formulaire en ligne */
+.bootbox-confirm .form-group:has(input[type="checkbox"]),
+.bootbox-confirm .form-group:has(select[name="bonus"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  width: auto;
+  margin-right: var(--mobile-spacing-md);
+  margin-bottom: var(--mobile-spacing-md);
+}
+
+.bootbox-confirm .modal-body label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 0;
+  padding: 10px 0;
+}
+
+/* Select Bonus optimisé */
+.bootbox-confirm select[name="bonus"] {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--kr-border-default);
+  border-radius: 8px;
+  background: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+  cursor: pointer;
+}
+
+.bootbox-confirm .form-group {
+  margin-bottom: var(--mobile-spacing-lg);
+}
+
+/* 5. TOOLBAR BBCODE */
+.bootbox-confirm .btn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--mobile-spacing-md);
+}
+
+.bootbox-confirm .btn-toolbar .btn-group {
+  margin-right: 0;
+  margin-bottom: 4px;
+}
+
+.bootbox-confirm .btn-toolbar .btn {
+  min-height: var(--mobile-touch-target);
+  min-width: var(--mobile-touch-target);
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bootbox-confirm .btn-toolbar .btn:hover {
+  background: var(--kr-bg-hover);
+  border-color: var(--kr-primary);
+}
+
+/* 6. TEXTAREA MESSAGE */
+.bootbox-confirm textarea.form-control {
+  min-height: 120px;
+  font-size: 16px !important; /* Évite zoom iOS */
+  line-height: 1.5;
+  resize: vertical;
+  padding: 12px;
+  border-radius: var(--mobile-radius);
+  border: 1px solid var(--kr-border-default);
+}
+
+.bootbox-confirm textarea.form-control:focus {
+  border-color: var(--kr-primary);
+  box-shadow: 0 0 0 3px var(--kr-focus-ring);
+  outline: none;
+}
+
+/* 7. ALERT D'AIDE */
+.bootbox-confirm .alert {
+  font-size: 0.875rem;
+  padding: 12px;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-radius: var(--mobile-radius);
+  background: var(--kr-alert-info-bg);
+  border: 1px solid var(--kr-alert-info-border);
+}
+
+.bootbox-confirm .alert .close {
+  font-size: 1.5rem;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+/* 8. FOOTER STICKY */
+.bootbox-confirm .modal-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--kr-bg-surface);
+  border-top: 2px solid var(--kr-border-strong);
+  padding: var(--mobile-spacing-lg);
+  z-index: 10;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mobile-spacing-md);
+}
+
+/* Info coût/durée/potentiel */
+.bootbox-confirm .modal-footer p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--kr-text-primary);
+  margin-bottom: 0;
+  padding: var(--mobile-spacing-sm) var(--mobile-spacing-md);
+  background: var(--kr-bg-elevated);
+  border-radius: var(--mobile-radius);
+  border-left: 3px solid var(--kr-primary);
+}
+
+/* Boutons footer */
+.bootbox-confirm .modal-footer .btn {
+  min-height: var(--mobile-touch-target);
+  min-width: 100px;
+  font-size: 1rem;
+  padding: 10px 24px;
+  border-radius: var(--mobile-radius);
+  font-weight: 500;
+}
+
+.bootbox-confirm .modal-footer > div {
+  display: flex;
+  gap: var(--mobile-spacing-md);
+  justify-content: flex-end;
+}
+
+/* 9. MEDIA QUERY DESKTOP */
+@media (min-width: 768px) {
+  /* Sur desktop, 3 colonnes pour les actions */
+  .bootbox-confirm .panel-heading ul.nav-tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Footer horizontal sur desktop */
+  .bootbox-confirm .modal-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .bootbox-confirm .modal-footer p {
+    margin-bottom: 0;
+  }
 }
 
 
@@ -36343,9 +37928,11 @@ body > map {
      Réorganise les blocs pour une lecture verticale fluide
      ========================================================================== */
   
-  /* Empiler les colonnes verticalement */
-  .container > .row > [class*="col-md-"],
-  .container > .row > [class*="col-sm-"] {
+  /* Empiler les colonnes verticalement (sauf dans les modales) */
+  body.mobile-mode > .container > .row > [class*="col-md-"],
+  body.mobile-mode > .container > .row > [class*="col-sm-"],
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-md-"],
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"] {
     width: 100% !important;
     float: none !important;
     padding-left: 10px !important;
@@ -36556,11 +38143,11 @@ body > map {
   }
   
   /* === PANNEAU PERSONNAGE === */
-  /* Toutes les colonnes en pleine largeur */
-  .container > .row > .col-md-3,
-  .container > .row > .col-md-6,
-  .container > .row > .col-md-8,
-  .container > .row > .col-md-1 {
+  /* Toutes les colonnes en pleine largeur (page principale uniquement, pas les modales) */
+  body.mobile-mode > .container > .row > .col-md-3,
+  body.mobile-mode > .container > .row > .col-md-6,
+  body.mobile-mode > .container > .row > .col-md-8,
+  body.mobile-mode > .container > .row > .col-md-1 {
     width: 100% !important;
     float: none !important;
     padding-left: 15px !important;
@@ -36964,7 +38551,1922 @@ body > map {
   }
 }
 
-`,
+/* ============================================
+   TASK-1.1 - BREAKPOINTS (Bootstrap 3)
+   ============================================ */
+
+/* Bootstrap 3 utilise ces breakpoints précis :
+   - xs: < 768px (mobile)
+   - sm: >= 768px (tablet)
+   - md: >= 992px (desktop)
+   - lg: >= 1200px (large desktop)
+*/
+
+/* Mobile First approach */
+/* Default styles = mobile (< 768px) */
+
+/* Small devices (tablets, >= 768px) */
+@media (min-width: 768px) {
+  /* Retour progressif au layout desktop */
+  body.mobile-mode {
+    /* Désactiver progressivement les adaptations mobiles */
+  }
+}
+
+/* Medium devices (desktops, >= 992px) */
+@media (min-width: 992px) {
+  /* Layout desktop complet */
+  body.mobile-mode {
+    /* Annuler complètement les adaptations mobiles */
+  }
+}
+
+/* Large devices (large desktops, >= 1200px) */
+@media (min-width: 1200px) {
+  /* Layout large desktop si nécessaire */
+}
+
+/* ============================================
+   TASK-1.1 - CLASSES UTILITAIRES MOBILE
+   ============================================ */
+
+/* Masquer certains éléments en mode mobile */
+@media (max-width: 767px) {
+  body.mobile-mode .desktop-only,
+  body.mobile-mode .mobile-hidden {
+    display: none;
+  }
+}
+
+/* Masquer certains éléments en mode desktop */
+@media (min-width: 768px) {
+  body.mobile-mode .mobile-only {
+    display: none;
+  }
+}
+
+/* Classes utilitaires supplémentaires compatibles BS3 */
+@media (max-width: 767px) {
+  .visible-xs-block { display: block; }
+  .visible-xs-inline { display: inline; }
+  .visible-xs-inline-block { display: inline-block; }
+  .hidden-xs { display: none; }
+}
+
+/* ============================================
+   TASK-1.4 - MINI-PROFIL COLLAPSIBLE
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Container du mini-profil */
+    .mobile-mini-profile {
+      position: relative;
+      background: var(--kr-bg-surface) !important;
+      border-bottom: 1px solid var(--kr-border-default) !important;
+      padding: 12px;
+      cursor: pointer;
+      transition: all var(--transition-normal);
+    }
+    
+    .mobile-mini-profile:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* État replié (défaut) */
+    .mobile-mini-profile.collapsed {
+      min-height: 72px;
+    }
+    
+    /* État déplié */
+    .mobile-mini-profile.expanded {
+      min-height: 200px;
+    }
+    
+    /* Header toujours visible */
+    .mobile-mini-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    /* Avatar */
+    .mobile-mini-profile .avatar {
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: all var(--transition-normal);
+      object-fit: cover;
+    }
+    
+    .mobile-mini-profile.expanded .avatar {
+      width: 64px !important;
+      height: 64px !important;
+    }
+    
+    /* Info principale */
+    .mobile-mini-profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .mobile-mini-profile-name {
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      margin-bottom: 2px !important;
+      color: var(--kr-text-primary) !important;
+    }
+    
+    .mobile-mini-profile-money {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      font-size: 13px !important;
+      color: var(--kr-text-secondary) !important;
+    }
+    
+    .mobile-mini-profile-clock {
+      font-size: 12px !important;
+      color: var(--kr-text-muted) !important;
+      margin-left: 8px !important;
+    }
+    
+    /* Bouton settings */
+    .mobile-mini-profile-settings {
+      position: absolute !important;
+      top: 12px !important;
+      right: 12px !important;
+      width: 32px !important;
+      height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: var(--kr-bg-hover) !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      font-size: 16px !important;
+      z-index: 10 !important;
+      text-decoration: none !important;
+    }
+    
+    .mobile-mini-profile-settings:hover {
+      background: var(--kr-bg-active) !important;
+    }
+    
+    /* Jauges compactes (toujours visibles) */
+    .mobile-mini-profile-gauges-compact {
+      display: flex !important;
+      gap: 8px !important;
+      font-size: 11px !important;
+      margin-top: 4px !important;
+    }
+    
+    .mobile-gauge-compact {
+      flex: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+    }
+    
+    .mobile-gauge-compact-label {
+      font-weight: 600 !important;
+      min-width: 20px !important;
+      font-size: 10px !important;
+    }
+    
+    .mobile-gauge-compact-bar {
+      flex: 1 !important;
+      height: 6px !important;
+      background: var(--kr-border-default) !important;
+      border-radius: 3px !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+    
+    .mobile-gauge-compact-fill {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      height: 100% !important;
+      transition: width var(--transition-normal) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pv {
+      background: var(--kr-gauge-pv) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pm {
+      background: var(--kr-gauge-pm) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pp {
+      background: var(--kr-gauge-pp) !important;
+    }
+    
+    .mobile-gauge-compact-value {
+      font-size: 10px !important;
+      color: var(--kr-text-secondary) !important;
+      white-space: nowrap !important;
+      min-width: 20px !important;
+      text-align: right !important;
+    }
+    
+    /* Détails (visibles uniquement si déplié) */
+    .mobile-mini-profile-details {
+      max-height: 0 !important;
+      overflow: hidden !important;
+      transition: max-height var(--transition-normal) !important;
+    }
+    
+    .mobile-mini-profile.expanded .mobile-mini-profile-details {
+      max-height: 500px !important;
+    }
+    
+    /* Jauges détaillées */
+    .mobile-mini-profile-gauges-full {
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+    }
+    
+    .mobile-gauge-full {
+      margin-bottom: 8px !important;
+    }
+    
+    .mobile-gauge-full:last-child {
+      margin-bottom: 0 !important;
+    }
+    
+    .mobile-gauge-full-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      margin-bottom: 4px !important;
+    }
+    
+    .mobile-gauge-full-bar {
+      height: 12px !important;
+      background: var(--kr-border-default) !important;
+      border-radius: 6px !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+    
+    .mobile-gauge-full-fill {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      height: 100% !important;
+      transition: width var(--transition-normal) !important;
+    }
+    
+    .mobile-gauge-full-fill.pv {
+      background: var(--kr-gauge-pv) !important;
+    }
+    
+    .mobile-gauge-full-fill.pm {
+      background: var(--kr-gauge-pm) !important;
+    }
+    
+    .mobile-gauge-full-fill.pp {
+      background: var(--kr-gauge-pp) !important;
+    }
+    
+    /* Masquer le profil original en mobile */
+    #player-header-section {
+      display: none !important;
+    }
+    
+    /* Masquer la section actions originale en mobile */
+    #player-actions-section {
+      display: none !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.6 - MASQUER 18 COMPÉTENCES
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Masquer le panel des 18 compétences */
+    /* Les compétences sont accessibles via l'onglet "Personnage" (/jouer/perso) */
+    .panel-body.grid-transformed {
+      display: none !important;
+    }
+    
+    /* Masquer le bouton "Afficher les compétences" */
+    .kr-mobile-skills-toggle {
+      display: none !important;
+    }
+    
+    /* Masquer l'overlay des compétences si présent */
+    .kr-mobile-overlay {
+      display: none !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Container actions - Utilise btn-group-justified BS3 */
+    .mobile-quick-actions.btn-group-justified {
+      display: flex !important;
+      flex-direction: row !important;
+      width: 100% !important;
+      border-bottom: 1px solid var(--kr-border-default) !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    /* Wrapper btn-group requis par BS3 justified */
+    .mobile-quick-actions .btn-group {
+      flex: 1 1 0 !important;
+      display: flex !important;
+    }
+    
+    /* Bouton d'action individuel - Réutilise btn BS3 */
+    .mobile-quick-action.btn {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 1 !important;
+      width: 100% !important;
+      min-height: 60px !important;
+      padding: 8px 4px !important;
+      background: var(--kr-bg-surface) !important;
+      color: var(--kr-text-primary) !important;
+      border-radius: 0 !important;
+      border-left: none !important;
+      border-right: 1px solid var(--kr-border-default) !important;
+      border-top: none !important;
+      border-bottom: none !important;
+      transition: all var(--transition-fast) !important;
+    }
+    
+    .mobile-quick-action.btn:first-child {
+      border-left: 1px solid var(--kr-border-default) !important;
+    }
+    
+    .mobile-quick-action.btn:last-child {
+      border-right: 1px solid var(--kr-border-default) !important;
+    }
+    
+    .mobile-quick-action.btn:active {
+      box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125) !important;
+      transform: scale(0.95) !important;
+    }
+    
+    .mobile-quick-action.btn.disabled,
+    .mobile-quick-action.btn[disabled] {
+      opacity: 0.65 !important;
+      cursor: not-allowed !important;
+    }
+    
+    /* Icône */
+    .mobile-quick-action-icon {
+      font-size: 20px !important;
+      margin-bottom: 2px !important;
+      display: block !important;
+    }
+    
+    .mobile-quick-action.btn i {
+      font-size: 20px !important;
+      margin-bottom: 2px !important;
+      display: block !important;
+    }
+    
+    /* Label */
+    .mobile-quick-action-label {
+      font-size: 11px !important;
+      display: block !important;
+      line-height: 1.2 !important;
+      margin-top: 2px !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Tab bar container - Utilise nav-tabs BS3 */
+    .mobile-tab-bar.nav-tabs {
+      position: sticky;
+      top: var(--mobile-header-height);
+      z-index: calc(var(--z-header) - 1);
+      background: var(--kr-bg-surface) !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      margin-bottom: 0;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      
+      /* Masquer scrollbar */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .mobile-tab-bar.nav-tabs::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+    
+    /* Tabs individuels - Utilise les styles BS3 */
+    .mobile-tab-bar.nav-tabs > li {
+      flex: 1 1 0; /* Répartition égale */
+      float: none;
+      min-width: 0; /* Permet le shrink */
+    }
+    
+    .mobile-tab-bar.nav-tabs > li > a {
+      min-height: var(--mobile-touch-target);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      margin-right: 0;
+      border-radius: 0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: all var(--transition-fast);
+      color: var(--kr-text-primary) !important;
+      background: transparent !important;
+    }
+    
+    /* Icône de tab */
+    .mobile-tab-icon {
+      font-size: 18px !important;
+      margin-bottom: 4px !important;
+      display: block !important;
+    }
+    
+    /* Label de tab */
+    .mobile-tab-label {
+      font-size: 10px !important;
+      display: block !important;
+      line-height: 1.2 !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 100% !important;
+    }
+    
+    .mobile-tab-bar.nav-tabs > li > a:hover {
+      background: var(--kr-bg-hover) !important;
+      border-color: transparent;
+    }
+    
+    .mobile-tab-bar.nav-tabs > li.active > a,
+    .mobile-tab-bar.nav-tabs > li.active > a:hover,
+    .mobile-tab-bar.nav-tabs > li.active > a:focus {
+      color: var(--kr-primary);
+      background: transparent;
+      border-bottom-color: var(--kr-primary);
+      font-weight: 600;
+    }
+    
+    /* Badge notifications (utilise badge BS3) */
+    .mobile-tab-bar.nav-tabs .badge {
+      margin-left: var(--mobile-spacing-xs);
+    }
+    
+    /* Indicateur de scroll (optionnel) */
+    .mobile-tab-bar.nav-tabs::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(to right, transparent, var(--kr-bg-surface));
+      pointer-events: none;
+    }
+    
+    .mobile-tab-bar.nav-tabs.scrolled-end::after {
+      display: none;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Header principal - Utilise les classes BS3 */
+    .navbar,
+    .navbar-default,
+    .navbar-inverse {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-header);
+      background: var(--kr-navbar-bg);
+      border-bottom: 1px solid var(--kr-overlay-light-10);
+      box-shadow: 0 2px 4px var(--kr-overlay-dark-30);
+      margin-bottom: 0;
+      min-height: var(--mobile-header-height);
+    }
+    
+    .navbar .container {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    /* Zone gauche - Hamburger (réutilise navbar-toggle BS3) */
+    .navbar-toggle {
+      display: block;
+      margin: 8px 10px;
+      padding: 9px 10px;
+      border: 1px solid var(--kr-overlay-light-20);
+      border-radius: 4px;
+      background: transparent;
+    }
+    
+    .navbar-toggle:hover,
+    .navbar-toggle:focus {
+      background: var(--kr-overlay-light-10);
+    }
+    
+    .navbar-toggle .icon-bar {
+      background-color: var(--kr-white);
+    }
+    
+    /* Logo - Optimisé pour mobile */
+    .navbar-brand {
+      padding: 10px 15px;
+      height: var(--mobile-header-height);
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-brand .kr-logo {
+      max-height: 36px;
+      width: auto;
+    }
+    
+    /* Zone droite - Icônes (conservées telles quelles) */
+    .navbar-right {
+      margin-right: 0;
+    }
+    
+    .navbar-right > li > a {
+      padding: 15px 10px;
+    }
+    
+    /* Menu mobile - Utilise navbar-collapse BS3 */
+    .navbar-collapse {
+      border-top: 1px solid var(--kr-overlay-light-10);
+      box-shadow: inset 0 1px 0 var(--kr-overlay-light-05);
+      max-height: calc(100vh - var(--mobile-header-height));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .navbar-collapse.in,
+    .navbar-collapse.collapsing {
+      overflow-y: auto;
+    }
+    
+    /* Navigation dans le collapse */
+    .navbar-nav {
+      margin: 7.5px -15px;
+    }
+    
+    .navbar-nav > li > a {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      line-height: 20px;
+    }
+    
+    .navbar-nav > li > a:hover,
+    .navbar-nav > li > a:focus {
+      background: var(--kr-overlay-light-05);
+    }
+    
+    /* Dropdowns dans le menu mobile */
+    .navbar-nav .dropdown-menu {
+      position: static;
+      float: none;
+      width: auto;
+      margin-top: 0;
+      background-color: var(--kr-overlay-dark-20);
+      border: 0;
+      box-shadow: none;
+    }
+    
+    .navbar-nav .dropdown-menu > li > a {
+      padding: 10px 30px;
+    }
+    
+    .navbar-nav .dropdown-menu > li > a:hover {
+      background: var(--kr-overlay-light-05);
+    }
+  }
+}
+
+/* ============================================
+   TASK-2.2 - ACCORDÉON GROUPES (Base)
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Header de groupe avec accordéon */
+    .dashboard-section-header-accordion {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color var(--transition-fast);
+    }
+    
+    .dashboard-section-header-accordion:active {
+      background-color: var(--kr-overlay-light-05);
+    }
+    
+    /* Icône chevron pour l'accordéon */
+    .dashboard-section-header-accordion .accordion-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%) rotate(0deg);
+      transition: transform var(--transition-normal);
+      color: var(--kr-text-secondary);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    
+    /* Rotation de l'icône quand le groupe est ouvert */
+    .dashboard-section-header-accordion.expanded .accordion-icon {
+      transform: translateY(-50%) rotate(-180deg);
+    }
+    
+    /* Grille de membres collapsible */
+    .dashboard-cards-grid {
+      overflow: hidden;
+      transition: max-height var(--transition-normal) ease-in-out,
+                  opacity var(--transition-normal) ease-in-out,
+                  margin var(--transition-fast);
+      max-height: 5000px; /* Grande valeur pour le contenu étendu */
+      opacity: 1;
+    }
+    
+    /* État collapsed */
+    .dashboard-cards-grid.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin: 0;
+      pointer-events: none;
+    }
+    
+    /* Espacement pour les groupes */
+    .dashboard-section {
+      margin-bottom: 10px;
+    }
+    
+    /* Mon groupe - style spécial */
+    .dashboard-section-mygroup .dashboard-section-header {
+      background: var(--kr-bg-hover);
+      border-left: 3px solid var(--kr-primary);
+    }
+  }
+}
+
+/* ============================================
+   TASK-2.3 - CARDS PERSOS (Mobile Optimized)
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    
+    /* Grille de cartes compacte */
+    .dashboard-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      padding: 10px;
+      background: var(--kr-bg-surface);
+    }
+    
+    /* Carte de personnage compacte */
+    .dashboard-card {
+      position: relative;
+      width: 100%;
+      min-height: 140px;
+      margin: 0;
+    }
+    
+    /* Lien principal de la carte */
+    .dashboard-card-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      background: var(--kr-bg-hover);
+      border: 1px solid var(--kr-border-default);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    
+    .dashboard-card-link:hover,
+    .dashboard-card-link:active {
+      background: var(--kr-bg-active);
+      border-color: var(--kr-primary);
+      transform: translateY(-1px);
+    }
+    
+    /* Header avec avatar */
+    .dashboard-card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+    
+    /* Wrapper d'avatar avec cercle HP */
+    .dashboard-card-avatar-wrapper {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin-bottom: 4px;
+    }
+    
+    /* Cercle de vie (HP) */
+    .dashboard-card-hp-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px !important;
+      height: 60px !important;
+    }
+    
+    .dashboard-card-hp-circle circle {
+      stroke-width: 2 !important;
+    }
+    
+    /* Avatar du personnage */
+    .dashboard-card-avatar {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 5px;
+      z-index: 1;
+    }
+    
+    /* Container du nom */
+    .dashboard-card-name-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      gap: 2px;
+    }
+    
+    /* Icône du monde */
+    .dashboard-card-world {
+      width: 14px;
+      height: 14px;
+      opacity: 0.6;
+    }
+    
+    /* Nom du personnage */
+    .dashboard-card-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--kr-text-primary);
+      text-align: center;
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    
+    /* Body avec statut */
+    .dashboard-card-body {
+      width: 100%;
+      padding: 0 2px;
+    }
+    
+    /* Statut du personnage */
+    .dashboard-card-status {
+      font-size: 9px;
+      color: var(--kr-text-secondary);
+      text-align: center;
+      font-style: italic;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Badge PNJ */
+    .dashboard-card-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: var(--kr-primary);
+      color: var(--kr-text-primary);
+      font-size: 8px;
+      font-weight: 600;
+      padding: 2px 4px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    
+    /* Actions (profil, message) */
+    .dashboard-card-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      padding: 6px 4px 4px;
+      border-top: 1px solid var(--kr-border-default);
+      margin-top: 6px;
+    }
+    
+    .dashboard-card-actions a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--kr-bg-surface);
+      border: 1px solid var(--kr-border-default);
+      border-radius: 6px;
+      color: var(--kr-text-secondary);
+      transition: all var(--transition-fast);
+      text-decoration: none;
+    }
+    
+    .dashboard-card-actions a:hover {
+      background: var(--kr-primary);
+      border-color: var(--kr-primary);
+      color: var(--kr-text-primary);
+      transform: scale(1.1);
+    }
+    
+    .dashboard-card-actions i {
+      font-size: 13px;
+    }
+  }
+}
+
+/* ============================================================================
+ * TASK-2.5 : Commerce - Accordéon catégories
+ * ============================================================================
+ */
+
+/* Header de catégorie cliquable */
+body.mobile-mode .commerce-category-header {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+body.mobile-mode .commerce-category-header:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+body.mobile-mode .commerce-category-header:active {
+  background-color: var(--kr-bg-active);
+}
+
+/* Icône chevron */
+body.mobile-mode .commerce-category-header .accordion-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform var(--transition-normal);
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+}
+
+body.mobile-mode .commerce-category-header.expanded .accordion-icon {
+  transform: translateY(-50%) rotate(-180deg);
+}
+
+/* Conteneur de produits collapsible */
+body.mobile-mode .commerce-products-container {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height var(--transition-normal), opacity var(--transition-normal);
+}
+
+body.mobile-mode .commerce-products-container.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* ============================================================================
+ * TASK-2.6 : Commerce - Cards produits compactes
+ * ============================================================================
+ */
+
+/* Conteneur de produits en grille */
+body.mobile-mode .commerce-products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* Carte produit compacte */
+body.mobile-mode .commerce-products-container > a.list-group-item {
+  display: flex !important;
+  flex-direction: column;
+  padding: 8px !important;
+  min-height: 120px;
+  border-radius: 8px;
+  background-color: var(--kr-bg-surface);
+  border: 1px solid var(--kr-border-default);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+body.mobile-mode .commerce-products-container > a.list-group-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Prix en haut à droite */
+body.mobile-mode .commerce-products-container > a.list-group-item .mention {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  float: none !important;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: right;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
+  font-size: 9px;
+  opacity: 0.8;
+}
+
+/* Image centrée */
+body.mobile-mode .commerce-products-container > a.list-group-item img {
+  float: none !important;
+  display: block;
+  margin: 0 auto 8px;
+  width: 40px;
+  height: 40px;
+}
+
+/* Titre du produit */
+body.mobile-mode .commerce-products-container > a.list-group-item h4 {
+  font-size: 11px;
+  line-height: 1.3;
+  margin: 0 0 4px;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* Description (optionnel, peut être masquée sur mobile) */
+body.mobile-mode .commerce-products-container > a.list-group-item p {
+  font-size: 9px;
+  line-height: 1.2;
+  margin: 0;
+  text-align: center;
+  color: var(--kr-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Masquer l'icône carré de la description */
+body.mobile-mode .commerce-products-container > a.list-group-item p i {
+  display: none;
+}
+
+/* ============================================================================
+ * TASK-2.4 : Section bâtiment collapsible
+ * ============================================================================
+ */
+
+/* Header de section bâtiment cliquable */
+body.mobile-mode .building-section-header {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+body.mobile-mode .building-section-header:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+body.mobile-mode .building-section-header:active {
+  background-color: var(--kr-bg-active);
+}
+
+/* Icône chevron */
+body.mobile-mode .building-section-header .accordion-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform var(--transition-normal);
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+}
+
+body.mobile-mode .building-section-header.expanded .accordion-icon {
+  transform: translateY(-50%) rotate(-180deg);
+}
+
+/* Contenu collapsible */
+body.mobile-mode .building-section-content {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height var(--transition-normal), opacity var(--transition-normal);
+}
+
+body.mobile-mode .building-section-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* ============================================================================
+ * TASK-2.1 : Accès aux pièces en ligne horizontale avec croix directionnelle
+ * Style identique aux actions rapides (Dormir, Prier, etc.)
+ * ============================================================================ */
+
+/* Conteneur principal : table layout comme mobile-quick-actions */
+body.mobile-mode .kr-navigation-row {
+  display: table !important;
+  width: 100%;
+  table-layout: fixed;
+  margin-bottom: 5px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Réduire l'espacement du container suivant */
+body.mobile-mode .kr-navigation-row + .container {
+  padding-top: 10px !important;
+}
+
+/* Groupes (croix + cartes) - affichage en cellules de table */
+body.mobile-mode .kr-navigation-row > .btn-group {
+  display: table-cell !important;
+  width: 1%;
+  vertical-align: middle;
+  float: none !important;
+}
+
+/* Croix directionnelle - même style que les actions rapides */
+body.mobile-mode .kr-direction-link {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px !important;
+  padding: 0 !important;
+  text-align: center;
+  position: relative;
+}
+
+body.mobile-mode .kr-direction-link img {
+  width: 60px;
+  height: 60px;
+  display: block;
+}
+
+body.mobile-mode .kr-direction-link map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Cases des accès aux pièces - même style que mobile-quick-action */
+body.mobile-mode .kr-room-link {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px !important;
+  padding: 0 !important;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+body.mobile-mode .kr-room-link img {
+  width: 60px;
+  height: 60px;
+  display: block;
+}
+
+/* Premier élément : bordures arrondies à gauche */
+body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-room-link {
+  border-radius: 4px 0 0 4px;
+}
+
+/* Dernier élément : bordures arrondies à droite */
+body.mobile-mode .kr-navigation-row > .btn-group:last-child .kr-room-link {
+  border-radius: 0 4px 4px 0;
+}
+
+/* Éléments du milieu : pas de bordure gauche pour éviter le doublon */
+body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-room-link {
+  border-left: none;
+}
+
+/* Si un seul élément : bordures arrondies partout */
+body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
+  border-radius: 4px;
+}
+
+/* ============================================
+   GROUPES DE PERSONNAGES - STYLE BARRE
+   ============================================ */
+
+@media (max-width: 767px) {
+  body.mobile-mode {
+    /* Mode mobile activé */
+  }
+  
+  /* Retrait padding conteneurs et colonnes Bootstrap en mobile */
+  body.mobile-mode .container,
+  body.mobile-mode .container-fluid,
+  body.mobile-mode [class*="col-"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  body.mobile-mode .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Conteneur dashboard pleine largeur */
+  body.mobile-mode .dashboard {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+    
+    /* Style du panel-group pour ressembler aux barres du dessus */
+    .panel-group {
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-radius: 0 !important;
+      margin-bottom: 5px !important;
+      margin-left: -15px !important;
+      margin-right: -15px !important;
+      width: calc(100% + 30px) !important;
+    }
+    
+    /* Panel individuel */
+    .panel-group .panel {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      margin-bottom: 0 !important;
+      box-shadow: none !important;
+    }
+    
+    /* Séparateur entre les panels */
+    .panel-group .panel + .panel {
+      border-top: 1px solid var(--kr-border-default) !important;
+    }
+    
+    /* Header du groupe - style barre */
+    .panel-group .panel-heading {
+      background: var(--kr-bg-surface) !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 12px 0 !important;
+      margin: 0 !important;
+      transition: background-color var(--transition-fast) !important;
+    }
+    
+    .panel-group .panel-heading:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* Contenu du groupe */
+    .panel-group .panel-collapse {
+      border: none !important;
+    }
+    
+    .panel-group .panel-body {
+      background: var(--kr-bg-surface) !important;
+      border: none !important;
+      padding: 10px 0 !important;
+    }
+    
+    /* Titre du groupe */
+    .panel-group .panel-title {
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: var(--kr-text-primary) !important;
+    }
+    
+    .panel-group .panel-title a {
+      display: block !important;
+      color: var(--kr-text-primary) !important;
+      text-decoration: none !important;
+    }
+    
+    .panel-group .panel-title a:hover {
+      color: var(--kr-text-primary) !important;
+    }
+    
+    /* ========================================================================
+       MODAL / DIALOG MOBILE OPTIMIZATIONS
+       ======================================================================== */
+    
+    /* Modal backdrop - assombrir légèrement */
+    body.mobile-mode .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    /* Modal dialog - pleine largeur avec marges minimales */
+    body.mobile-mode .modal-dialog {
+      width: 100% !important;
+      max-width: calc(100vw - 20px) !important;
+      margin: 10px !important;
+      max-height: calc(100vh - 20px) !important;
+    }
+    
+    /* Modal content - optimiser l'espace */
+    body.mobile-mode .modal-content {
+      border-radius: 8px !important;
+    }
+    
+    /* Modal header - plus compact */
+    body.mobile-mode .modal-header {
+      padding: 15px !important;
+    }
+    
+    body.mobile-mode .modal-header h3 {
+      font-size: 18px !important;
+      margin: 0 !important;
+    }
+    
+    /* Close button - plus grand pour touch */
+    body.mobile-mode .modal-header .close,
+    body.mobile-mode .bootbox-close-button {
+      width: 44px !important;
+      height: 44px !important;
+      padding: 10px !important;
+      font-size: 28px !important;
+      line-height: 24px !important;
+      opacity: 0.7 !important;
+    }
+    
+    /* Modal body - plus de padding */
+    body.mobile-mode .modal-body {
+      padding: 15px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Select dropdown - pleine largeur et plus grand */
+    body.mobile-mode .modal-body select {
+      width: 100% !important;
+      height: 44px !important;
+      font-size: 16px !important;
+      padding: 10px !important;
+      margin-bottom: 15px !important;
+      border-radius: 6px !important;
+    }
+    
+    /* Nav tabs (actions buttons) - layout vertical pour mobile */
+    body.mobile-mode .modal-body .nav-tabs {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 10px !important;
+      border: none !important;
+      margin-bottom: 20px !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li {
+      flex: 1 1 calc(50% - 5px) !important;
+      min-width: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li > a {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 44px !important;
+      padding: 12px 10px !important;
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 6px !important;
+      background: var(--kr-bg-secondary) !important;
+      color: var(--kr-text-primary) !important;
+      text-align: center !important;
+      word-wrap: break-word !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li.active > a,
+    body.mobile-mode .modal-body .nav-tabs > li > a:hover,
+    body.mobile-mode .modal-body .nav-tabs > li > a:focus {
+      background: var(--kr-primary) !important;
+      color: var(--kr-surface) !important;
+      border-color: var(--kr-primary) !important;
+    }
+    
+    /* Form groups - meilleur espacement */
+    body.mobile-mode .modal-body .form-group {
+      margin-bottom: 20px !important;
+    }
+    
+    body.mobile-mode .modal-body label {
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      margin-bottom: 8px !important;
+      display: block !important;
+    }
+    
+    /* Inputs et textareas - plus grands */
+    body.mobile-mode .modal-body input[type="text"],
+    body.mobile-mode .modal-body input[type="number"],
+    body.mobile-mode .modal-body textarea {
+      width: 100% !important;
+      min-height: 44px !important;
+      font-size: 16px !important;
+      padding: 10px !important;
+      border-radius: 6px !important;
+    }
+    
+    body.mobile-mode .modal-body textarea {
+      min-height: 120px !important;
+      resize: vertical !important;
+    }
+    
+    /* Checkboxes et radios - plus grands touch targets */
+    body.mobile-mode .modal-body input[type="checkbox"],
+    body.mobile-mode .modal-body input[type="radio"] {
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 10px !important;
+    }
+    
+    body.mobile-mode .modal-body .checkbox label,
+    body.mobile-mode .modal-body .radio label {
+      display: flex !important;
+      align-items: center !important;
+      min-height: 44px !important;
+      padding: 8px 0 !important;
+      cursor: pointer !important;
+    }
+    
+    /* Tables - améliorer lisibilité */
+    body.mobile-mode .modal-body table {
+      font-size: 14px !important;
+    }
+    
+    body.mobile-mode .modal-body table td,
+    body.mobile-mode .modal-body table th {
+      padding: 10px 8px !important;
+    }
+    
+    body.mobile-mode .modal-body table th {
+      text-align: center !important;
+    }
+    
+    /* Toolbar de mise en forme - plus compact */
+    body.mobile-mode .modal-body .btn-toolbar {
+      margin-bottom: 10px !important;
+    }
+    
+    body.mobile-mode .modal-body .btn-toolbar .btn {
+      min-width: 36px !important;
+      min-height: 36px !important;
+      padding: 6px !important;
+      margin: 2px !important;
+    }
+    
+    /* Modal footer - sticky en bas avec boutons pleine largeur */
+    body.mobile-mode .modal-footer {
+      padding: 15px !important;
+      display: flex !important;
+      gap: 10px !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn {
+      flex: 1 !important;
+      min-height: 48px !important;
+      max-height: 48px !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      border-radius: 6px !important;
+      padding: 12px 20px !important;
+      box-sizing: border-box !important;
+      line-height: 1.2 !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn-primary {
+      order: 2 !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn-default {
+      order: 1 !important;
+    }
+    
+    /* Alert dans modal - meilleur affichage */
+    body.mobile-mode .modal-body .alert {
+      padding: 12px !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      margin-bottom: 15px !important;
+      border-radius: 6px !important;
+    }
+    
+    /* Avatar/Image dans header - optimiser */
+    body.mobile-mode .modal-header img {
+      max-width: 60px !important;
+      max-height: 60px !important;
+      border-radius: 4px !important;
+    }
+  }
+
+  /* ========================================================================
+     MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
+     ======================================================================== */
+  @media (max-width: 767px) {
+    /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
+    body.mobile-mode .bootbox.modal select[name="top"].form-control {
+      min-height: 56px !important;
+      font-size: 16px !important;
+      padding: 12px 16px !important;
+      border-radius: 8px !important;
+      border: 2px solid var(--kr-border-default) !important;
+      background-color: var(--kr-bg-elevated) !important;
+      transition: border-color 0.2s ease !important;
+    }
+    
+    body.mobile-mode .bootbox.modal select[name="top"].form-control:focus {
+      border-color: var(--kr-primary) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Conteneur du select avec marges */
+    body.mobile-mode .bootbox.modal select[name="top"].form-control + br,
+    body.mobile-mode .bootbox.modal .row:has(> .col-md-6 > select[name="top"]) {
+      margin-bottom: 16px !important;
+    }
+    
+    /* ===== 2. HEADER H3 - avatar + nom compact ===== */
+    body.mobile-mode .bootbox.modal h3 {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 12px 16px !important;
+      margin: 0 0 16px 0 !important;
+      background: var(--kr-bg-surface) !important;
+      border-radius: 8px !important;
+      font-size: 18px !important;
+      line-height: 1.3 !important;
+    }
+    
+    /* Avatar 48px */
+    body.mobile-mode .bootbox.modal h3 img[width="80"] {
+      width: 48px !important;
+      height: 48px !important;
+      max-width: 48px !important;
+      max-height: 48px !important;
+      border-radius: 6px !important;
+      flex-shrink: 0 !important;
+      order: -1 !important;
+    }
+    
+    /* Wrapper pull-right dans h3 */
+    body.mobile-mode .bootbox.modal h3 .pull-right {
+      float: none !important;
+      order: -1 !important;
+      margin: 0 !important;
+    }
+    
+    /* Liens mini (profil + kramail) */
+    body.mobile-mode .bootbox.modal h3 .mini.center {
+      display: flex !important;
+      gap: 8px !important;
+      margin: 0 !important;
+      justify-content: flex-start !important;
+    }
+    
+    body.mobile-mode .bootbox.modal h3 .mini.center a {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Bouton groupe (user-friends) */
+    body.mobile-mode .bootbox.modal h3 .btn.btn-xs {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 8px !important;
+      margin-left: auto !important;
+    }
+    
+    /* ===== 3. NAVIGATION TABS - fusionner les deux listes en une seule ===== */
+    /* Conteneur des listes */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .panel-heading {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .panel-heading::-webkit-scrollbar {
+      display: none !important;
+    }
+    
+    /* Chaque liste .nav-tabs inline */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      flex-shrink: 0 !important;
+      border: none !important;
+      padding: 0 !important;
+      gap: 0 !important;
+      margin: 0 !important;
+      background: transparent !important;
+      position: relative !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs::-webkit-scrollbar {
+      display: none !important;
+    }
+    
+    /* Tabs individuels - min 88px tactiles */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li {
+      flex: 0 0 auto !important;
+      min-width: 88px !important;
+      width: auto !important;
+      height: 44px !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li > a {
+      padding: 10px 16px !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      border-radius: 0 !important;
+      border: none !important;
+      border-bottom: 3px solid transparent !important;
+      background: transparent !important;
+      color: var(--kr-text-secondary) !important;
+      transition: all 0.2s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      margin: 0 !important;
+    }
+    
+    /* Tab active */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a,
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:hover,
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:focus {
+      background: var(--kr-bg-elevated) !important;
+      color: var(--kr-primary) !important;
+      border: none !important;
+      border-bottom: 3px solid var(--kr-primary) !important;
+      font-weight: 600 !important;
+      height: 44px !important;
+    }
+    
+    /* Feedback tactile tabs */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li > a:active {
+      transform: scale(0.96) !important;
+      background: var(--kr-bg-active) !important;
+    }
+    
+    /* ===== 4. PANEL BODY - padding optimisé ===== */
+    body.mobile-mode .bootbox.modal .panel-body.panel-order {
+      padding: 16px !important;
+    }
+    
+    /* ===== 5. COLONNES FUSIONNÉES EN MODE MOBILE ===== */
+    /* Les colonnes sont fusionnées en une seule div par JavaScript */
+    body.mobile-mode .bootbox.modal .merged-columns {
+      padding: 12px !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+    }
+    
+    /* Styles pour l'en-tête du tableau */
+    body.mobile-mode .bootbox.modal .panel-heading {
+      background: var(--kr-bg-elevated) !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+      font-weight: 600 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-heading .merged-columns {
+      font-size: 13px !important;
+      color: var(--kr-text-secondary) !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+    }
+    
+    /* Footer (ligne Maladresse/Bonus) */
+    body.mobile-mode .bootbox.modal .panel-footer {
+      background: var(--kr-bg-elevated) !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-footer label {
+      margin: 0 !important;
+      font-size: 14px !important;
+    }
+
+    
+    body.mobile-mode .bootbox.modal .panel-footer select {
+      padding: 6px 8px !important;
+      border-radius: 6px !important;
+      border: 1px solid var(--kr-border-default) !important;
+      font-size: 14px !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group {
+      margin: 0 0 8px 0 !important;
+      background: var(--kr-bg-elevated) !important;
+      border: 2px solid var(--kr-border-default) !important;
+      border-radius: 8px !important;
+      min-height: 56px !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    /* Row checked */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:has(input[type="radio"]:checked) {
+      border-color: var(--kr-primary) !important;
+      background: var(--kr-alert-info-bg) !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Feedback tactile sur la row */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:active {
+      transform: scale(0.98) !important;
+      background: var(--kr-bg-active) !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div {
+      padding: 0 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Colonne du radio button - aligné à gauche */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-1 {
+      justify-content: flex-start !important;
+    }
+    
+    /* Colonne du label - aligné à gauche */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-7 {
+      justify-content: flex-start !important;
+    }
+    
+    /* Radio inputs cachés */
+    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"] {
+      position: absolute !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    
+    /* Labels comme boutons */
+    body.mobile-mode .bootbox.modal .panel-actions label {
+      cursor: pointer !important;
+      font-weight: normal !important;
+      font-size: 15px !important;
+      margin: 0 !important;
+      padding: 14px 0 !important;
+      display: block !important;
+      width: 100% !important;
+    }
+    
+    /* Label checked */
+    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"]:checked + label {
+      font-weight: 600 !important;
+    }
+    
+    /* Colonnes diff/jet plus compactes */
+    body.mobile-mode .bootbox.modal .panel-actions .center {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+    }
+    
+    /* ===== 6. TOOLBAR - boutons tactiles optimisés ===== */
+    body.mobile-mode .bootbox.modal .btn-toolbar {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      margin-bottom: 16px !important;
+      padding: 0 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group {
+      display: contents !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 10px !important;
+      font-size: 18px !important;
+      border-radius: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active {
+      transform: scale(0.95) !important;
+      background: var(--kr-bg-active) !important;
+    }
+    
+    /* Dropdown smiley/couleurs */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
+      max-width: 90vw !important;
+      max-height: 60vh !important;
+      overflow-y: auto !important;
+      padding: 12px !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table {
+      width: 100% !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table td a {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* ===== 7. TEXTAREA - 120px min + compteur visible ===== */
+    body.mobile-mode .bootbox.modal textarea#message,
+    body.mobile-mode .bootbox.modal textarea.form-control {
+      font-size: 16px !important;
+      line-height: 1.5 !important;
+      padding: 12px !important;
+      border-radius: 8px !important;
+      min-height: 120px !important;
+      border: 2px solid var(--kr-border-default) !important;
+      transition: border-color 0.2s ease !important;
+    }
+    
+    body.mobile-mode .bootbox.modal textarea#message:focus,
+    body.mobile-mode .bootbox.modal textarea.form-control:focus {
+      border-color: var(--kr-primary) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Compteur */
+    body.mobile-mode .bootbox.modal .pull-right:has(#car),
+    body.mobile-mode .bootbox.modal #car {
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: var(--kr-text-secondary) !important;
+      margin-top: 4px !important;
+    }
+    
+    /* ===== 8. FOOTER - sticky avec bouton OK 2x ===== */
+    body.mobile-mode .bootbox.modal .modal-footer {
+      position: sticky !important;
+      bottom: 0 !important;
+      display: flex !important;
+      gap: 10px !important;
+      padding: 12px 16px !important;
+      padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+      background: var(--kr-bg-surface) !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08) !important;
+      flex-shrink: 0 !important;
+      margin: 0 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .modal-footer .btn {
+      margin: 0 !important;
+      min-height: 50px !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      border: none !important;
+    }
+    
+    /* Bouton Cancel - 1x */
+    body.mobile-mode .bootbox.modal .modal-footer .btn-default {
+      flex: 1 !important;
+      order: 1 !important;
+    }
+    
+    /* Bouton OK - 2x plus large */
+    body.mobile-mode .bootbox.modal .modal-footer .btn-primary {
+      flex: 2 !important;
+      order: 2 !important;
+      min-height: 52px !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .modal-footer .btn:active {
+      transform: scale(0.97) !important;
+    }
+    
+    /* ===== 9. PANEL FOOTER (coût, durée, potentiel) ===== */
+    body.mobile-mode .bootbox.modal .panel-footer {
+      padding: 12px 16px !important;
+      font-size: 13px !important;
+      line-height: 1.4 !important;
+      background: var(--kr-bg-surface) !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      white-space: nowrap !important;
+      overflow-x: auto !important;
+    }
+  }`,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
@@ -38611,6 +42113,581 @@ body > map {
   }
 
   // ============================================================================
+  // MODAL PERSONNAGE MOBILE - INTERACTIONS UX/UI
+  // ============================================================================
+
+  /**
+   * Améliore l'UX mobile du modal de sélection personnage
+   * - Navigation carousel pour sélecteur personnages (prev/next)
+   * - Description collapsible dans le header
+   * - Tabs swipeable avec détection de geste
+   * - Indicateurs de navigation (dots)
+   * - Compteur de caractères pour textarea
+   * - Feedback tactile sur les interactions
+   */
+  function initCharacterModalMobile() {
+    // Observer l'apparition des modals Bootbox
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            setTimeout(() => {
+              enhanceCharacterModal(node);
+            }, 150);
+          }
+        });
+      });
+    });
+
+    modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  /**
+   * Scroll automatiquement vers l'onglet actif dans les modals personnage
+   * Surveille les mises à jour AJAX et maintient le scroll sur le bon onglet
+   */
+  function initModalTabScroll() {
+    // Observer les changements dans les modals pour détecter les mises à jour AJAX
+    const tabScrollObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Vérifier si c'est un changement de contenu dans une modal
+        const modal = mutation.target.closest('.bootbox.modal');
+        if (!modal) return;
+        
+        // Chercher le panel-heading avec les tabs
+        const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
+        if (!panelHeading) return;
+        
+        // Chercher l'onglet actif
+        const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
+        if (!activeTab) return;
+        
+        // Scroller vers l'onglet actif
+        setTimeout(() => {
+          const tabRect = activeTab.getBoundingClientRect();
+          const containerRect = panelHeading.getBoundingClientRect();
+          
+          // Calculer la position de scroll pour centrer l'onglet
+          const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
+          
+          panelHeading.scrollTo({
+            left: Math.max(0, scrollLeft),
+            behavior: 'smooth'
+          });
+        }, 100);
+      });
+    });
+    
+    // Observer le body pour détecter les changements dans les modals
+    tabScrollObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  /**
+   * Fusionne les colonnes d'une row en une seule div pour le mode mobile
+   * Remplace les changements de div par des espaces
+   */
+  function mergeColumnsInMobile(modal) {
+    if (!modal) return;
+
+    // Trouver tous les panneaux avec des colonnes Bootstrap
+    const panels = modal.querySelectorAll('.panel-info, .panel-primary, .panel-default');
+    
+    panels.forEach(panel => {
+      // Cibler les lignes dans panel-heading, panel-body, panel-footer
+      const rows = panel.querySelectorAll('.panel-heading .row, .panel-body .row, .panel-actions .row, .panel-footer .row');
+      
+      rows.forEach(row => {
+        // Récupérer toutes les colonnes de cette row
+        const columns = row.querySelectorAll('[class*="col-"]');
+        
+        if (columns.length > 0) {
+          // Collecter le contenu de toutes les colonnes avec des espaces entre elles
+          const contents = [];
+          columns.forEach(col => {
+            const text = col.textContent.trim();
+            const html = col.innerHTML.trim();
+            
+            // Si la colonne contient des éléments (pas juste du texte), garder le HTML
+            if (col.children.length > 0) {
+              contents.push(html);
+            } else if (text) {
+              contents.push(text);
+            }
+          });
+          
+          // Créer une nouvelle div unique avec tout le contenu
+          const mergedDiv = document.createElement('div');
+          mergedDiv.className = 'col-xs-12 merged-columns';
+          mergedDiv.innerHTML = contents.join(' ');
+          
+          // Supprimer toutes les colonnes existantes
+          columns.forEach(col => col.remove());
+          
+          // Ajouter la div fusionnée
+          row.appendChild(mergedDiv);
+        }
+      });
+    });
+  }
+
+  /**
+   * Force le layout grid pour les actions de la modal d'ordre
+   * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
+   */
+  function forceOrderModalGridLayout(modal) {
+    if (!modal) return;
+    
+    // Vérifier si c'est une modal d'ordre (avec .bootbox-confirm)
+    if (!modal.classList.contains('bootbox-confirm')) return;
+    
+    // Forcer le .panel-heading en colonne pour empiler les grilles verticalement
+    const panelHeading = modal.querySelector('.panel-heading');
+    if (panelHeading) {
+      panelHeading.style.setProperty('display', 'block', 'important');
+    }
+    
+    // Chercher tous les ul.nav-tabs dans .panel-heading
+    const navTabsElements = modal.querySelectorAll('.panel-heading ul.nav-tabs');
+    if (navTabsElements.length === 0) return;
+    
+    console.log('[Order Modal] Forçage du layout grid pour', navTabsElements.length, 'nav-tabs');
+    
+    // Appliquer les styles grid via JavaScript (contourne Bootstrap)
+    navTabsElements.forEach((ul, index) => {
+      // Force display grid avec !important via setProperty
+      ul.style.setProperty('display', 'grid', 'important');
+      
+      // Tous les groupes en 2 colonnes - grille homogène continue
+      ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+      
+      ul.style.setProperty('gap', '12px', 'important');
+      ul.style.setProperty('padding-left', '0', 'important');
+      
+      // Force l'alignement des grid items au début (gauche)
+      ul.style.setProperty('justify-items', 'start', 'important');
+      ul.style.setProperty('align-items', 'stretch', 'important');
+      
+      // Grille continue - même espacement partout (pas de séparation visuelle)
+      ul.style.setProperty('margin-bottom', '12px', 'important');
+      ul.style.setProperty('border-bottom', 'none', 'important');
+      ul.style.setProperty('border-top', 'none', 'important');
+      ul.style.setProperty('padding-top', '0', 'important');
+      
+      // Désactiver les pseudo-éléments clearfix de Bootstrap qui deviennent grid items
+      // Créer/mettre à jour un élément <style> pour cibler les pseudo-éléments
+      let styleId = 'grid-pseudo-fix-' + index;
+      let styleEl = document.getElementById(styleId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      // Générer un ID unique pour ce UL
+      if (!ul.id) ul.id = 'order-modal-nav-' + index;
+      styleEl.textContent = `
+        #${ul.id}::before,
+        #${ul.id}::after {
+          display: none !important;
+          content: none !important;
+        }
+      `;
+      
+      // Force les li à être des grid items
+      const listItems = ul.querySelectorAll('li');
+      listItems.forEach(li => {
+        li.style.setProperty('margin', '0', 'important');
+        li.style.setProperty('padding', '0', 'important');
+        li.style.setProperty('float', 'none', 'important');
+        li.style.setProperty('display', 'block', 'important');
+        li.style.setProperty('position', 'static', 'important');
+        li.style.setProperty('width', '100%', 'important'); // Force largeur complète de la colonne
+        li.style.setProperty('grid-column', 'auto', 'important');
+        li.style.setProperty('grid-row', 'auto', 'important');
+        li.style.setProperty('justify-self', 'stretch', 'important');
+        li.style.setProperty('align-self', 'stretch', 'important');
+        
+        // Style les liens
+        const link = li.querySelector('a');
+        if (link) {
+          link.style.setProperty('display', 'block', 'important');
+          link.style.setProperty('width', '100%', 'important');
+          link.style.setProperty('min-height', '44px', 'important');
+          link.style.setProperty('padding', '12px 16px', 'important');
+          link.style.setProperty('text-align', 'center', 'important');
+          link.style.setProperty('border-radius', '8px', 'important');
+          link.style.setProperty('margin', '0', 'important');
+          link.style.setProperty('box-sizing', 'border-box', 'important');
+        }
+      });
+      
+      console.log(`[Order Modal] Grid appliqué sur nav-tabs #${index + 1} (${listItems.length} items)`);
+    });
+    
+    // Appliquer un second coup après un délai pour contrer les réinitialisations Bootstrap
+    setTimeout(() => {
+      navTabsElements.forEach(ul => {
+        ul.style.setProperty('display', 'grid', 'important');
+      });
+    }, 100);
+  }
+
+  /**
+   * Applique toutes les améliorations mobiles à une modal de personnage
+   */
+  function enhanceCharacterModal(modal) {
+    if (!modal) return;
+
+    // Vérifier qu'on est bien en mode mobile
+    if (!document.body.classList.contains('mobile-mode')) return;
+
+    // Force le layout grid pour les modals d'ordre (initial)
+    forceOrderModalGridLayout(modal);
+
+    // Observer les changements dans le body de la modal pour réappliquer le grid après Ajax
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (modalBody) {
+      const contentObserver = new MutationObserver(() => {
+        console.log('[Order Modal] Contenu Ajax détecté - réapplication du grid');
+        forceOrderModalGridLayout(modal);
+      });
+      
+      contentObserver.observe(modalBody, {
+        childList: true,
+        subtree: true
+      });
+      
+      console.log('[Order Modal] Observer Ajax installé sur modal body');
+    }
+
+    // Fusionner les colonnes en une seule div pour simplifier le layout mobile
+    mergeColumnsInMobile(modal);
+
+    // Chercher le select de personnages
+    const charSelect = modal.querySelector('select[onchange*="perso"]');
+    if (charSelect) {
+      createCharacterCarousel(modal, charSelect);
+    }
+
+    // Rendre la description collapsible
+    makeDescriptionCollapsible(modal);
+
+    // Améliorer les tabs avec swipe
+    enhanceTabsWithSwipe(modal);
+
+    // Ajouter compteur de caractères aux textarea
+    addCharCounterToTextareas(modal);
+
+    // Ajouter feedback tactile
+    addTouchFeedback(modal);
+  }
+
+  /**
+   * Crée un carousel de navigation pour le sélecteur de personnages
+   */
+  function createCharacterCarousel(modal, select) {
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length <= 1) return; // Pas besoin de carousel avec 1 seul perso
+
+    const currentIndex = select.selectedIndex;
+
+    // Créer le wrapper carousel
+    const carouselWrapper = document.createElement('div');
+    carouselWrapper.className = 'kr-char-selector';
+
+    // Bouton précédent
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'kr-char-nav-btn';
+    prevBtn.innerHTML = '‹';
+    prevBtn.disabled = currentIndex === 0;
+    prevBtn.setAttribute('aria-label', 'Personnage précédent');
+
+    // Affichage du personnage actuel
+    const currentDisplay = document.createElement('div');
+    currentDisplay.className = 'kr-selector-current';
+    
+    const currentAvatar = document.createElement('img');
+    currentAvatar.src = modal.querySelector('.modal-header img')?.src || '';
+    currentAvatar.alt = 'Avatar';
+    
+    const currentName = document.createElement('span');
+    currentName.className = 'kr-selector-current-name';
+    currentName.textContent = options[currentIndex].text;
+    
+    const currentCount = document.createElement('span');
+    currentCount.className = 'kr-selector-current-count';
+    currentCount.textContent = `${currentIndex + 1}/${options.length}`;
+
+    currentDisplay.appendChild(currentAvatar);
+    currentDisplay.appendChild(currentName);
+    currentDisplay.appendChild(currentCount);
+
+    // Bouton suivant
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'kr-char-nav-btn';
+    nextBtn.innerHTML = '›';
+    nextBtn.disabled = currentIndex === options.length - 1;
+    nextBtn.setAttribute('aria-label', 'Personnage suivant');
+
+    // Assembler
+    carouselWrapper.appendChild(prevBtn);
+    carouselWrapper.appendChild(currentDisplay);
+    carouselWrapper.appendChild(nextBtn);
+
+    // Insérer après le select (ou à la place visuellement)
+    select.parentNode.insertBefore(carouselWrapper, select.nextSibling);
+
+    // Handlers de navigation
+    prevBtn.addEventListener('click', () => {
+      if (select.selectedIndex > 0) {
+        select.selectedIndex--;
+        select.dispatchEvent(new Event('change'));
+        // Modal va se recharger, pas besoin de mettre à jour manuellement
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (select.selectedIndex < options.length - 1) {
+        select.selectedIndex++;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  /**
+   * Rend la description du personnage collapsible dans le header
+   */
+  function makeDescriptionCollapsible(modal) {
+    const header = modal.querySelector('.modal-header');
+    if (!header) return;
+
+    // Chercher le texte de description (souvent après le nom)
+    const headerDiv = header.querySelector('div');
+    if (!headerDiv) return;
+
+    // Séparer le nom et la description
+    const contentNodes = Array.from(headerDiv.childNodes);
+    const textNodes = contentNodes.filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+    
+    if (textNodes.length === 0) return;
+
+    // Wrapper pour la description
+    const descWrapper = document.createElement('div');
+    descWrapper.className = 'kr-char-description collapsed';
+    
+    // Mettre les nœuds texte dans le wrapper (sauf le premier qui est le nom)
+    textNodes.slice(1).forEach(node => {
+      descWrapper.appendChild(node.cloneNode(true));
+      node.remove();
+    });
+
+    if (descWrapper.textContent.trim()) {
+      headerDiv.appendChild(descWrapper);
+
+      // Bouton toggle
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'kr-char-expand-btn';
+      toggleBtn.innerHTML = '▼';
+      toggleBtn.setAttribute('aria-label', 'Afficher/masquer description');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+
+      header.appendChild(toggleBtn);
+
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = descWrapper.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+          descWrapper.classList.remove('collapsed');
+          descWrapper.classList.add('expanded');
+          toggleBtn.classList.add('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          descWrapper.classList.remove('expanded');
+          descWrapper.classList.add('collapsed');
+          toggleBtn.classList.remove('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  }
+
+  /**
+   * Améliore les tabs avec swipe et indicateurs
+   */
+  function enhanceTabsWithSwipe(modal) {
+    const tabsContainer = modal.querySelector('.nav-tabs');
+    if (!tabsContainer) return;
+
+    const tabs = Array.from(tabsContainer.querySelectorAll('li'));
+    if (tabs.length === 0) return;
+
+    // Créer indicateurs de navigation (dots)
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'kr-tabs-indicator';
+
+    tabs.forEach((tab, index) => {
+      const dot = document.createElement('span');
+      dot.className = 'kr-tab-dot';
+      if (tab.classList.contains('active')) {
+        dot.classList.add('active');
+      }
+      dotsContainer.appendChild(dot);
+    });
+
+    // Insérer les dots après les tabs
+    tabsContainer.parentNode.insertBefore(dotsContainer, tabsContainer.nextSibling);
+
+    // Observer les changements d'onglet actif pour mettre à jour les dots
+    const updateDots = () => {
+      const activeDot = tabs.findIndex(tab => tab.classList.contains('active'));
+      dotsContainer.querySelectorAll('.kr-tab-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === activeDot);
+      });
+    };
+
+    // Observer avec MutationObserver
+    const tabObserver = new MutationObserver(updateDots);
+    tabs.forEach(tab => {
+      tabObserver.observe(tab, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // Détecter le swipe horizontal sur les tabs
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    tabsContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    tabsContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const swipeThreshold = 50; // pixels minimum pour détecter un swipe
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) < swipeThreshold) return;
+
+      const activeIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+      
+      if (diff > 0 && activeIndex < tabs.length - 1) {
+        // Swipe left → onglet suivant
+        tabs[activeIndex + 1].querySelector('a')?.click();
+      } else if (diff < 0 && activeIndex > 0) {
+        // Swipe right → onglet précédent
+        tabs[activeIndex - 1].querySelector('a')?.click();
+      }
+    }
+
+    // Scroll automatique vers l'onglet actif
+    const scrollToActiveTab = () => {
+      // Chercher l'onglet actif dans TOUTES les listes .nav-tabs du modal
+      const modal = tabsContainer.closest('.bootbox.modal');
+      const allNavTabs = modal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+      let activeTab = null;
+      
+      for (const navTab of allNavTabs) {
+        activeTab = navTab.querySelector('li.active');
+        if (activeTab) {
+          activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          break;
+        }
+      }
+    };
+
+    // Scroll initial
+    setTimeout(scrollToActiveTab, 100);
+
+    // Scroll lors des changements d'onglet - pour TOUTES les listes de tabs du modal
+    const parentModal = tabsContainer.closest('.bootbox.modal');
+    const allNavTabsLists = parentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+    
+    allNavTabsLists.forEach(navTab => {
+      const allTabs = Array.from(navTab.querySelectorAll('li'));
+      allTabs.forEach(tab => {
+        tab.querySelector('a')?.addEventListener('click', () => {
+          setTimeout(scrollToActiveTab, 100);
+        });
+      });
+    });
+  }
+
+  /**
+   * Ajoute un compteur de caractères aux textarea
+   */
+  function addCharCounterToTextareas(modal) {
+    const textareas = modal.querySelectorAll('textarea');
+    
+    textareas.forEach(textarea => {
+      const maxLength = textarea.getAttribute('maxlength');
+      if (!maxLength) return;
+
+      const counter = document.createElement('div');
+      counter.className = 'kr-char-counter';
+      
+      const updateCounter = () => {
+        const remaining = maxLength - textarea.value.length;
+        counter.textContent = `${remaining} caractères restants`;
+        
+        // Code couleur selon le seuil
+        counter.classList.remove('warning', 'error');
+        if (remaining <= 0) {
+          counter.classList.add('error');
+        } else if (remaining <= 20) {
+          counter.classList.add('warning');
+        }
+      };
+
+      textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+      textarea.addEventListener('input', updateCounter);
+      updateCounter();
+    });
+  }
+
+  /**
+   * Ajoute un feedback tactile (ripple effect) sur les éléments interactifs
+   */
+  function addTouchFeedback(modal) {
+    const interactiveElements = modal.querySelectorAll(
+      '.kr-char-nav-btn, .kr-char-expand-btn, .nav-tabs a, .btn, .radio label'
+    );
+
+    interactiveElements.forEach(el => {
+      el.classList.add('kr-touch-feedback');
+
+      el.addEventListener('touchstart', () => {
+        el.classList.add('active');
+        
+        // Vibration haptique si disponible
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+      }, { passive: true });
+
+      el.addEventListener('touchend', () => {
+        setTimeout(() => {
+          el.classList.remove('active');
+        }, 600);
+      }, { passive: true });
+
+      el.addEventListener('touchcancel', () => {
+        el.classList.remove('active');
+      }, { passive: true });
+    });
+  }
+
+  // ============================================================================
   // MODAL BACKDROP CLICK TO CLOSE
   // ============================================================================
 
@@ -38759,6 +42836,12 @@ body > map {
 
     // Initialiser le mini-chat mobile
     initMobileMiniChat();
+
+    // Initialiser les améliorations UX pour les modals personnages
+    initCharacterModalMobile();
+    
+    // Initialiser le scroll automatique des tabs dans les modals
+    initModalTabScroll();
 
     // Gérer le redimensionnement de la fenêtre
     let resizeTimer;
@@ -38922,6 +43005,9 @@ body > map {
 
       // Activer le clic sur backdrop pour fermer les modals
       enableModalBackdropClick();
+
+      // Initialiser les améliorations mobiles des modals personnage
+      initCharacterModalMobile();
 
       // Gestion mobile : détection et fonctionnalités spécifiques
       initMobileFeatures();

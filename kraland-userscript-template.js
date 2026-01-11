@@ -3,6 +3,1163 @@
   'use strict';
 
   // ============================================================================
+  // TASK-1.1 - MOBILE DETECTION & INITIALIZATION
+  // ============================================================================
+  (function() {
+    // Configuration
+    const MOBILE_BREAKPOINT = 768; // px
+    
+    /**
+     * Détecte si on est sur mobile
+     */
+    function isMobileDevice() {
+      return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+    
+    /**
+     * Initialise le mode mobile
+     */
+    function initMobileMode() {
+      if (isMobileDevice()) {
+        document.body.classList.add('mobile-mode');
+        console.log('[Kraland Mobile] Mode mobile activé');
+        // Applique les styles critiques via JavaScript (fix Bootstrap)
+        applyMobileCriticalStyles();
+      } else {
+        document.body.classList.remove('mobile-mode');
+        console.log('[Kraland Mobile] Mode desktop');
+      }
+    }
+    
+    /**
+     * Applique les styles critiques qui doivent surcharger Bootstrap
+     * Cette fonction force les styles inline pour contrer la spécificité CSS de Bootstrap
+     */
+    function applyMobileCriticalStyles() {
+      // Attendre que le DOM soit prêt
+      const applyStyles = () => {
+        // Retrait padding de toutes les colonnes Bootstrap
+        const cols = document.querySelectorAll('[class*="col-"]');
+        cols.forEach(col => {
+          col.style.setProperty('padding-left', '0px', 'important');
+          col.style.setProperty('padding-right', '0px', 'important');
+        });
+        
+        // Retrait margin des rows
+        const rows = document.querySelectorAll('.row');
+        rows.forEach(row => {
+          row.style.setProperty('margin-left', '0px', 'important');
+          row.style.setProperty('margin-right', '0px', 'important');
+        });
+        
+        // Fix des containers
+        const containers = document.querySelectorAll('.container, .container-fluid');
+        containers.forEach(container => {
+          container.style.setProperty('padding-left', '0px', 'important');
+          container.style.setProperty('padding-right', '0px', 'important');
+        });
+        
+        // Dashboard pleine largeur
+        const dashboards = document.querySelectorAll('.dashboard');
+        dashboards.forEach(dashboard => {
+          dashboard.style.setProperty('margin-left', '0px', 'important');
+          dashboard.style.setProperty('margin-right', '0px', 'important');
+          dashboard.style.setProperty('width', '100%', 'important');
+          dashboard.style.setProperty('padding', '0px', 'important');
+        });
+      };
+      
+      // Applique immédiatement et après un court délai (pour le contenu chargé dynamiquement)
+      applyStyles();
+      setTimeout(applyStyles, 100);
+      setTimeout(applyStyles, 500);
+    }
+    
+    /**
+     * Gère le resize de la fenêtre
+     */
+    let resizeTimeout;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        initMobileMode();
+      }, 150);
+    }
+    
+    // Initialisation au chargement
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileMode);
+    } else {
+      initMobileMode();
+    }
+    
+    // Écoute du resize
+    window.addEventListener('resize', handleResize);
+    
+    // Export global pour debug
+    window.KralandMobile = {
+      isMobile: isMobileDevice,
+      reinit: initMobileMode
+    };
+  })();
+
+  // ============================================================================
+  // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
+  // ============================================================================
+  (function() {
+    /**
+     * Initialise le comportement mobile du header Bootstrap 3
+     * Utilise les composants natifs .navbar-toggle et .navbar-collapse
+     */
+    function initMobileHeader() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Vérifier que Bootstrap JS est chargé
+      if (typeof jQuery === 'undefined' || typeof jQuery.fn.collapse === 'undefined') {
+        console.warn('[Mobile Header] Bootstrap JS non chargé, utilisation du fallback');
+        initFallbackToggle();
+        return;
+      }
+      
+      // Bootstrap 3 gère automatiquement le toggle via data-toggle="collapse"
+      // On s'assure juste que le markup est correct
+      
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+      
+      if (!toggle || !collapse) {
+        console.log('[Mobile Header] Éléments navbar-toggle ou navbar-collapse non trouvés');
+        return;
+      }
+      
+      // Vérifier/ajouter les attributs data nécessaires pour BS3
+      if (!toggle.getAttribute('data-toggle')) {
+        toggle.setAttribute('data-toggle', 'collapse');
+      }
+      if (!toggle.getAttribute('data-target')) {
+        const collapseId = collapse.id || 'navbar-collapse-mobile';
+        collapse.id = collapseId;
+        toggle.setAttribute('data-target', '#' + collapseId);
+      }
+      
+      // Auto-close menu au clic sur un lien
+      initMenuAutoClose();
+      
+      console.log('[Mobile Header] Header Bootstrap 3 initialisé');
+    }
+    
+    /**
+     * Fallback manuel si Bootstrap JS n'est pas disponible
+     */
+    function initFallbackToggle() {
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+      
+      if (!toggle || !collapse) return;
+      
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        collapse.classList.toggle('in');
+        
+        const expanded = collapse.classList.contains('in');
+        toggle.setAttribute('aria-expanded', expanded);
+        
+        // Gestion du scroll
+        if (expanded) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      });
+      
+      console.log('[Mobile Header] Fallback toggle initialisé');
+    }
+    
+    /**
+     * Ferme le menu au clic sur un lien
+     */
+    function initMenuAutoClose() {
+      const collapse = document.querySelector('.navbar-collapse');
+      if (!collapse) return;
+      
+      const links = collapse.querySelectorAll('a:not(.dropdown-toggle)');
+      links.forEach(link => {
+        link.addEventListener('click', function() {
+          // Fermer le menu après un court délai
+          setTimeout(() => {
+            if (typeof jQuery !== 'undefined' && jQuery.fn.collapse) {
+              jQuery(collapse).collapse('hide');
+            } else {
+              collapse.classList.remove('in');
+              document.body.style.overflow = '';
+            }
+          }, 150);
+        });
+      });
+    }
+    
+    // Attendre que le DOM soit prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initMobileHeader, 100);
+      });
+    } else {
+      setTimeout(initMobileHeader, 100);
+    }
+    
+    // Export pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.reinitHeader = initMobileHeader;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.4 - MINI-PROFIL COLLAPSIBLE
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Extrait les données d'une jauge (valeur/max)
+     */
+    function extractGaugeData(element, type) {
+      const text = element.textContent;
+      const match = text.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);
+      
+      if (!match) {
+        // Chercher juste le nombre si pas de format complet
+        const numMatch = text.match(/\d+/);
+        if (numMatch) {
+          const val = parseInt(numMatch[0]);
+          return { type, current: val, max: val, percent: 100 };
+        }
+        return { type, current: 0, max: 1, percent: 0 };
+      }
+      
+      const current = parseInt(match[1] || match[3]);
+      const max = parseInt(match[2] || match[4]);
+      const percent = Math.min(100, (current / max) * 100);
+      
+      return { type, current, max, percent };
+    }
+    
+    /**
+     * Trouve les données du profil joueur
+     */
+    function findProfileData() {
+      // Container principal
+      const profileSection = document.getElementById('player-header-section');
+      const mainPanel = document.getElementById('player-main-panel');
+      
+      if (!profileSection || !mainPanel) {
+        console.warn('[Mobile Mini-Profile] Sections profil non trouvées');
+        return null;
+      }
+      
+      // Nom du joueur (dans le header)
+      const nameElement = profileSection.querySelector('.list-group-item.active');
+      const playerName = nameElement ? nameElement.textContent.replace('×', '').trim() : 'Joueur';
+      
+      // Avatar (dans la première row)
+      const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
+      const avatarSrc = avatarLink ? avatarLink.src : null;
+      
+      // Argent (chercher "MØ")
+      const moneyElement = Array.from(mainPanel.querySelectorAll('*')).find(el => {
+        const text = el.textContent.trim();
+        return text.includes('MØ') && el.children.length === 0 && text.length < 20;
+      });
+      const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
+      
+      // Horloge (dans player-vitals-section)
+      const vitalsSection = document.getElementById('player-vitals-section');
+      const clockElement = vitalsSection ? vitalsSection.querySelector('.c100') : null;
+      const clock = clockElement ? clockElement.textContent.trim() : '--:--';
+      
+      // Jauges PV/PM/PP - Nouvelle approche
+      // Chercher les éléments contenant "PV", "PM", "PP" avec leur valeur
+      const findGaugeInSection = (section, type) => {
+        if (!section) return null;
+        
+        // Chercher l'élément contenant le type (PV, PM, PP)
+        const elements = Array.from(section.querySelectorAll('*'));
+        const gaugeEl = elements.find(el => {
+          const text = el.textContent.trim();
+          const hasType = text.startsWith(type) || text.includes(` ${type} `);
+          const hasNumber = /\d+/.test(text);
+          return hasType && hasNumber && el.children.length <= 2;
+        });
+        
+        if (!gaugeEl) return null;
+        
+        // Extraire la valeur actuelle et max
+        const text = gaugeEl.textContent.trim();
+        const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+        
+        if (match) {
+          // Format "27 / 27"
+          return extractGaugeData(gaugeEl, type.toLowerCase());
+        } else {
+          // Format "PV 27" sans max - chercher la barre de progression pour le max
+          const valueMatch = text.match(/\d+/);
+          if (!valueMatch) return null;
+          
+          const current = parseInt(valueMatch[0]);
+          
+          // Chercher la barre de progression associée
+          const progressBar = gaugeEl.querySelector('.progress-bar, [class*="bar"]');
+          let max = current; // Par défaut, considérer que c'est plein
+          
+          if (progressBar) {
+            const width = progressBar.style.width;
+            if (width && width.includes('%')) {
+              const percent = parseInt(width);
+              if (percent > 0) {
+                max = Math.round(current * 100 / percent);
+              }
+            }
+          }
+          
+          const percent = max > 0 ? Math.min(100, (current / max) * 100) : 0;
+          return { type: type.toLowerCase(), current, max, percent };
+        }
+      };
+      
+      const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
+      const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
+      const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
+      
+      return {
+        name: playerName,
+        avatar: avatarSrc,
+        money: money,
+        clock: clock,
+        gauges: {
+          pv: gaugesPV,
+          pm: gaugesPM,
+          pp: gaugesPP
+        }
+      };
+    }
+    
+    /**
+     * Crée le mini-profil mobile
+     */
+    function createMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-mini-profile')) return;
+      
+      const profileData = findProfileData();
+      if (!profileData) {
+        console.warn('[Mobile Mini-Profile] Données profil non trouvées');
+        return;
+      }
+      
+      // Container principal
+      const miniProfile = document.createElement('div');
+      miniProfile.className = 'mobile-mini-profile collapsed';
+      miniProfile.setAttribute('data-task', '1.4');
+      
+      // Header (toujours visible)
+      const header = document.createElement('div');
+      header.className = 'mobile-mini-profile-header';
+      
+      if (profileData.avatar) {
+        const avatar = document.createElement('img');
+        avatar.src = profileData.avatar;
+        avatar.className = 'avatar';
+        avatar.alt = 'Avatar';
+        header.appendChild(avatar);
+      }
+      
+      const info = document.createElement('div');
+      info.className = 'mobile-mini-profile-info';
+      
+      const name = document.createElement('div');
+      name.className = 'mobile-mini-profile-name';
+      name.textContent = profileData.name;
+      info.appendChild(name);
+      
+      const moneyRow = document.createElement('div');
+      moneyRow.className = 'mobile-mini-profile-money';
+      moneyRow.innerHTML = `
+        <span>${profileData.money}</span>
+        <span class="mobile-mini-profile-clock">⏱️ ${profileData.clock}</span>
+      `;
+      info.appendChild(moneyRow);
+      
+      header.appendChild(info);
+      miniProfile.appendChild(header);
+      
+      // Bouton settings
+      const settings = document.createElement('a');
+      settings.href = '/jouer/perso';
+      settings.className = 'mobile-mini-profile-settings';
+      settings.innerHTML = '⚙️';
+      settings.title = 'Voir le personnage';
+      settings.addEventListener('click', (e) => e.stopPropagation());
+      miniProfile.appendChild(settings);
+      
+      // Jauges compactes (toujours visibles)
+      const gaugesCompact = document.createElement('div');
+      gaugesCompact.className = 'mobile-mini-profile-gauges-compact';
+      
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) return;
+        
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-compact';
+        el.innerHTML = `
+          <span class="mobile-gauge-compact-label">${type.toUpperCase()}</span>
+          <div class="mobile-gauge-compact-bar">
+            <div class="mobile-gauge-compact-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+          <span class="mobile-gauge-compact-value">${gauge.current}</span>
+        `;
+        gaugesCompact.appendChild(el);
+      });
+      
+      miniProfile.appendChild(gaugesCompact);
+      
+      // Détails (masqués par défaut)
+      const details = document.createElement('div');
+      details.className = 'mobile-mini-profile-details';
+      
+      // Jauges détaillées
+      const gaugesFull = document.createElement('div');
+      gaugesFull.className = 'mobile-mini-profile-gauges-full';
+      
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) return;
+        
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-full';
+        el.innerHTML = `
+          <div class="mobile-gauge-full-header">
+            <span>${type.toUpperCase()}</span>
+            <span>${gauge.current}/${gauge.max}</span>
+          </div>
+          <div class="mobile-gauge-full-bar">
+            <div class="mobile-gauge-full-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+        `;
+        gaugesFull.appendChild(el);
+      });
+      
+      details.appendChild(gaugesFull);
+      miniProfile.appendChild(details);
+      
+      // Toggle expand/collapse
+      miniProfile.addEventListener('click', (e) => {
+        // Ne pas toggle si clic sur le bouton settings
+        if (e.target.classList.contains('mobile-mini-profile-settings') || 
+            e.target.closest('.mobile-mini-profile-settings')) {
+          return;
+        }
+        
+        miniProfile.classList.toggle('collapsed');
+        miniProfile.classList.toggle('expanded');
+        
+        console.log('[Mobile Mini-Profile] État:', 
+          miniProfile.classList.contains('expanded') ? 'déplié' : 'replié'
+        );
+      });
+      
+      // Insérer après la tab bar ou au début du body
+      const tabBar = document.querySelector('.mobile-tab-bar');
+      const container = document.getElementById('content') || document.body;
+      
+      if (tabBar && tabBar.nextSibling) {
+        tabBar.parentNode.insertBefore(miniProfile, tabBar.nextSibling);
+      } else {
+        container.insertBefore(miniProfile, container.firstChild);
+      }
+      
+      console.log('[Mobile Mini-Profile] Créé avec succès');
+      console.log('  - Nom:', profileData.name);
+      console.log('  - Argent:', profileData.money);
+      console.log('  - Horloge:', profileData.clock);
+      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current}/${profileData.gauges.pv.max}` : 'N/A');
+    }
+    
+    /**
+     * Initialise le mini-profil
+     */
+    function initMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createMiniProfile();
+    }
+    
+    // Attendre le DOM + délai pour autres tâches (après tab bar)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initMiniProfile, 250);
+      });
+    } else {
+      setTimeout(initMiniProfile, 250);
+    }
+    
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initMiniProfile = initMiniProfile;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.5 - ACTIONS RAPIDES HORIZONTALES (Bootstrap 3)
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Crée la barre d'actions rapides mobile avec Bootstrap 3
+     */
+    function createQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-quick-actions')) return;
+      
+      // Trouver la section actions originale
+      const actionsSection = document.getElementById('player-actions-section');
+      if (!actionsSection) {
+        console.warn('[Mobile Quick Actions] Section actions non trouvée');
+        return;
+      }
+      
+      // Récupérer les boutons originaux
+      const originalButtons = actionsSection.querySelectorAll('a.btn, button.btn');
+      if (originalButtons.length === 0) {
+        console.warn('[Mobile Quick Actions] Aucun bouton trouvé');
+        return;
+      }
+      
+      // Container avec btn-group-justified Bootstrap 3
+      const container = document.createElement('div');
+      container.className = 'btn-group btn-group-justified mobile-quick-actions';
+      container.setAttribute('role', 'group');
+      container.setAttribute('data-task', '1.5');
+      
+      // Cloner chaque bouton avec structure Bootstrap 3 justified
+      originalButtons.forEach((originalBtn) => {
+        // Wrapper btn-group requis par BS3 justified
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group';
+        btnGroup.setAttribute('role', 'group');
+        
+        // Cloner le bouton
+        const btn = originalBtn.cloneNode(true);
+        btn.classList.add('mobile-quick-action');
+        
+        // Extraire l'icône et le label
+        const icon = btn.querySelector('i');
+        const label = btn.textContent.trim();
+        
+        // Reconstruire le contenu avec structure mobile
+        btn.innerHTML = '';
+        
+        if (icon) {
+          const iconClone = icon.cloneNode(true);
+          iconClone.classList.add('mobile-quick-action-icon');
+          btn.appendChild(iconClone);
+        }
+        
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'mobile-quick-action-label';
+        labelSpan.textContent = label;
+        btn.appendChild(labelSpan);
+        
+        btnGroup.appendChild(btn);
+        container.appendChild(btnGroup);
+      });
+      
+      // Insérer après le mini-profil
+      const miniProfile = document.querySelector('.mobile-mini-profile');
+      const tabBar = document.querySelector('.mobile-tab-bar');
+      
+      if (miniProfile && miniProfile.nextSibling) {
+        miniProfile.parentNode.insertBefore(container, miniProfile.nextSibling);
+      } else if (tabBar && tabBar.nextSibling) {
+        tabBar.parentNode.insertBefore(container, tabBar.nextSibling);
+      } else {
+        document.body.insertBefore(container, document.body.firstChild);
+      }
+      
+      console.log('[Mobile Quick Actions] Créées avec', originalButtons.length, 'actions');
+    }
+    
+    /**
+     * Initialise les actions rapides
+     */
+    function initQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createQuickActions();
+    }
+    
+    // Attendre le DOM + délai (après mini-profil)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initQuickActions, 300);
+      });
+    } else {
+      setTimeout(initQuickActions, 300);
+    }
+    
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initQuickActions = initQuickActions;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
+  // ============================================
+
+  (function() {
+    'use strict';
+    
+    /**
+     * Trouve les liens du menu navigation jeu
+     */
+    function findNavigationLinks() {
+      // Patterns à chercher avec icônes Font Awesome
+      const patterns = [
+        { pattern: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
+        { pattern: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
+        { pattern: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
+        { pattern: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
+        { pattern: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
+      ];
+      
+      const links = [];
+      
+      patterns.forEach(item => {
+        const link = document.querySelector(`a[href*="${item.pattern}"]`);
+        if (link) {
+          links.push({
+            href: link.getAttribute('href'),
+            text: link.textContent.trim() || item.label,
+            pattern: item.pattern,
+            icon: item.icon
+          });
+        }
+      });
+      
+      return links;
+    }
+    
+    /**
+     * Crée la tab bar avec structure Bootstrap 3
+     */
+    function createTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      if (document.querySelector('.mobile-tab-bar')) return; // Déjà créé
+      
+      // Trouver les liens
+      const navLinks = findNavigationLinks();
+      
+      if (navLinks.length === 0) {
+        console.warn('[Mobile Tab Bar] Liens navigation jeu non trouvés');
+        return;
+      }
+      
+      // Créer la tab bar avec structure Bootstrap 3 (ul.nav.nav-tabs)
+      const tabBar = document.createElement('ul');
+      tabBar.className = 'nav nav-tabs mobile-tab-bar';
+      tabBar.setAttribute('role', 'tablist');
+      
+      // Créer les tabs (li > a comme dans BS3) avec icônes + texte
+      navLinks.forEach(linkData => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'presentation');
+        
+        const a = document.createElement('a');
+        a.href = linkData.href;
+        a.setAttribute('role', 'tab');
+        
+        // Créer structure icône + texte
+        const icon = document.createElement('i');
+        icon.className = `fa ${linkData.icon} mobile-tab-icon`;
+        
+        const label = document.createElement('span');
+        label.className = 'mobile-tab-label';
+        label.textContent = linkData.text;
+        
+        a.appendChild(icon);
+        a.appendChild(label);
+        
+        // Marquer l'onglet actif (classe sur le li comme dans BS3)
+        const currentPath = window.location.pathname;
+        if (currentPath.includes(linkData.pattern)) {
+          li.classList.add('active');
+          a.setAttribute('aria-selected', 'true');
+        } else {
+          a.setAttribute('aria-selected', 'false');
+        }
+        
+        li.appendChild(a);
+        tabBar.appendChild(li);
+      });
+      
+      // Insérer après le header
+      const header = document.querySelector('.navbar') ||
+                     document.querySelector('header') ||
+                     document.body.firstElementChild;
+      
+      if (header && header.nextSibling) {
+        header.parentNode.insertBefore(tabBar, header.nextSibling);
+      } else {
+        document.body.insertBefore(tabBar, document.body.firstChild);
+      }
+      
+      // Gérer l'indicateur de scroll
+      handleTabBarScroll(tabBar);
+      
+      // Scroll automatique vers l'onglet actif
+      setTimeout(() => scrollToActiveTab(tabBar), 100);
+      
+      console.log('[Mobile Tab Bar] Créée avec', navLinks.length, 'onglets');
+    }
+    
+    /**
+     * Gère l'indicateur de scroll de la tab bar
+     */
+    function handleTabBarScroll(tabBar) {
+      const checkScroll = () => {
+        const isAtEnd = tabBar.scrollLeft + tabBar.clientWidth >= tabBar.scrollWidth - 5;
+        tabBar.classList.toggle('scrolled-end', isAtEnd);
+      };
+      
+      tabBar.addEventListener('scroll', checkScroll);
+      
+      // Check initial
+      setTimeout(checkScroll, 100);
+      
+      // Re-check au resize
+      window.addEventListener('resize', checkScroll);
+    }
+    
+    /**
+     * Scroll automatique vers l'onglet actif
+     */
+    function scrollToActiveTab(tabBar) {
+      const activeTab = tabBar.querySelector('li.active > a');
+      if (!activeTab) return;
+      
+      // Scroll smooth vers l'onglet actif
+      const tabBarRect = tabBar.getBoundingClientRect();
+      const activeRect = activeTab.getBoundingClientRect();
+      
+      const scrollLeft = activeRect.left - tabBarRect.left - (tabBarRect.width / 2) + (activeRect.width / 2);
+      
+      tabBar.scrollTo({
+        left: tabBar.scrollLeft + scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+    
+    /**
+     * Initialise la tab bar
+     */
+    function initTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      createTabBar();
+    }
+    
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initTabBar = initTabBar;
+    }
+    
+    // Initialiser au chargement avec un délai pour s'assurer que le DOM est prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(initTabBar, 100));
+    } else {
+      setTimeout(initTabBar, 100);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.2 - ACCORDÉON GROUPES (Base)
+  // ============================================================================
+  (function() {
+    /**
+     * Transforme les sections de groupes en accordéon collapsible
+     * Structure DOM identifiée :
+     * - .dashboard-section : Container de chaque groupe
+     * - .dashboard-section-mygroup : Mon groupe (toujours visible)
+     * - .dashboard-section-header : Header avec titre du groupe
+     * - .dashboard-group-title : Nom du leader
+     * - .dashboard-cards-grid : Grille des membres (à masquer/afficher)
+     */
+    
+    /**
+     * Rend un groupe collapsible
+     */
+    function makeGroupCollapsible(section, isMyGroup) {
+      const header = section.querySelector('.dashboard-section-header');
+      const cardsGrid = section.querySelector('.dashboard-cards-grid');
+      
+      if (!header || !cardsGrid) return;
+      
+      // Ajouter la classe accordion au header
+      header.classList.add('dashboard-section-header-accordion');
+      
+      // État initial : mon groupe ouvert, autres fermés
+      const isExpanded = isMyGroup;
+      cardsGrid.classList.toggle('collapsed', !isExpanded);
+      header.classList.toggle('expanded', isExpanded);
+      
+      // Ajouter l'icône d'expansion
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      header.appendChild(icon);
+      
+      // Gérer le clic
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        // Ne pas intercepter les clics sur les boutons d'action
+        if (e.target.closest('.dashboard-group-buttons')) return;
+        
+        // Toggle l'état
+        const isNowExpanded = !cardsGrid.classList.contains('collapsed');
+        cardsGrid.classList.toggle('collapsed', isNowExpanded);
+        header.classList.toggle('expanded', !isNowExpanded);
+        
+        console.log('[Group Accordion]', 
+          section.querySelector('.dashboard-group-title')?.textContent,
+          isNowExpanded ? 'collapsed' : 'expanded'
+        );
+      });
+      
+      console.log('[Group Accordion] Groupe configuré:', 
+        section.querySelector('.dashboard-group-title')?.textContent,
+        'état initial:', isExpanded ? 'ouvert' : 'fermé'
+      );
+    }
+    
+    /**
+     * Initialise l'accordéon pour tous les groupes
+     */
+    function initGroupsAccordion() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      const sections = document.querySelectorAll('.dashboard-section');
+      let count = 0;
+      
+      sections.forEach(section => {
+        const header = section.querySelector('.dashboard-section-header');
+        const title = section.querySelector('.dashboard-group-title');
+        
+        // Vérifier que c'est bien un groupe (a un header avec titre)
+        if (header && title) {
+          const isMyGroup = section.classList.contains('dashboard-section-mygroup');
+          makeGroupCollapsible(section, isMyGroup);
+          count++;
+        }
+      });
+      
+      console.log('[Groups Accordion] Initialisé pour', count, 'groupes');
+    }
+    
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initGroupsAccordion = initGroupsAccordion;
+    }
+    
+    // Initialiser au chargement avec délai pour s'assurer que le DOM est prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(initGroupsAccordion, 150));
+    } else {
+      setTimeout(initGroupsAccordion, 150);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.5 : Commerce - Accordéon catégories
+  // ============================================================================
+  (function initCommerceAccordion() {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
+    const categoryDivs = [];
+    
+    // Trouver tous les divs de catégorie
+    document.querySelectorAll('h4.list-group-item-heading').forEach(h4 => {
+      const categoryName = h4.textContent.trim();
+      if (categories.includes(categoryName)) {
+        const categoryDiv = h4.parentElement;
+        if (categoryDiv && categoryDiv.classList.contains('list-group-item')) {
+          categoryDivs.push({
+            name: categoryName,
+            div: categoryDiv,
+            h4: h4
+          });
+        }
+      }
+    });
+    
+    if (categoryDivs.length === 0) return;
+    
+    console.log(`[Commerce Accordion] Trouvé ${categoryDivs.length} catégories`);
+    
+    // Pour chaque catégorie, trouver ses produits (les <a> qui suivent jusqu'à la prochaine catégorie)
+    categoryDivs.forEach((category, index) => {
+      const products = [];
+      let currentElement = category.div.nextElementSibling;
+      
+      // Parcourir les éléments suivants jusqu'à la prochaine catégorie
+      while (currentElement) {
+        // Si on trouve une autre catégorie, on s'arrête
+        if (currentElement.classList.contains('ds_forum') && 
+            currentElement.querySelector('h4.list-group-item-heading')) {
+          break;
+        }
+        
+        // Si c'est un produit (lien avec classe ds_game)
+        if (currentElement.tagName === 'A' && currentElement.classList.contains('ds_game')) {
+          products.push(currentElement);
+        }
+        
+        currentElement = currentElement.nextElementSibling;
+      }
+      
+      // Créer un conteneur pour les produits
+      const productsContainer = document.createElement('div');
+      productsContainer.className = 'commerce-products-container';
+      
+      // Déplacer les produits dans le conteneur
+      products.forEach(product => {
+        productsContainer.appendChild(product);
+      });
+      
+      // Insérer le conteneur après le div de catégorie
+      category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);
+      
+      // Ajouter la classe accordion au div de catégorie
+      category.div.classList.add('commerce-category-header');
+      
+      // État initial : première catégorie (Nourriture) ouverte
+      const isExpanded = index === 0;
+      if (!isExpanded) {
+        productsContainer.classList.add('collapsed');
+        category.div.classList.add('collapsed');
+      } else {
+        category.div.classList.add('expanded');
+      }
+      
+      // Ajouter l'icône chevron
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      category.h4.appendChild(icon);
+      
+      // Ajouter le gestionnaire de clic
+      category.div.style.cursor = 'pointer';
+      category.div.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isNowExpanded = !productsContainer.classList.contains('collapsed');
+        productsContainer.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('expanded', !isNowExpanded);
+        
+        console.log(`[Commerce Accordion] ${category.name}: ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+      });
+      
+      console.log(`[Commerce Accordion] ${category.name}: ${products.length} produits, état initial: ${isExpanded ? 'ouvert' : 'fermé'}`);
+    });
+  })();
+
+  // ============================================================================
+  // TASK-2.4 : Section bâtiment collapsible
+  // ============================================================================
+  (function initBuildingCollapse() {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h => 
+      h.textContent.includes('Bâtiment')
+    );
+    
+    if (!batimentHeader) return;
+    
+    const panelHeading = batimentHeader.parentElement;
+    const panelBody = panelHeading.nextElementSibling;
+    
+    if (!panelHeading || !panelBody || !panelBody.classList.contains('panel-body')) return;
+    
+    // Ajouter les classes
+    panelHeading.classList.add('building-section-header');
+    panelBody.classList.add('building-section-content');
+    
+    // Ajouter l'icône chevron
+    const icon = document.createElement('i');
+    icon.className = 'fa fa-chevron-down accordion-icon';
+    panelHeading.appendChild(icon);
+    
+    // État initial : ouvert
+    panelHeading.classList.add('expanded');
+    
+    // Gestionnaire de clic
+    panelHeading.style.cursor = 'pointer';
+    panelHeading.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const isNowExpanded = !panelBody.classList.contains('collapsed');
+      panelBody.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('expanded', !isNowExpanded);
+      
+      console.log(`[Building Section] ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+    });
+    
+    console.log('[Building Section] Initialisé - section collapsible');
+  })();
+
+  // ============================================================================
+  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
+  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // ============================================================================
+  (function() {
+    function initNavigationRow() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Trouver le conteneur des actions rapides
+      const quickActions = document.querySelector('.mobile-quick-actions');
+      if (!quickActions) return;
+      
+      // Trouver l'image "Sortir" avec la croix directionnelle
+      const exitImg = document.querySelector('img[alt="Sortir"]');
+      if (!exitImg) return;
+      
+      const parent = exitImg.parentElement;
+      const map = parent.querySelector('map[name="exitmap"]');
+      
+      // Trouver toutes les images bat*.gif (accès aux pièces)
+      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
+      if (allBatImages.length === 0) return;
+      
+      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
+      const originalImages = allBatImages.filter(img => {
+        let current = img;
+        while (current && current !== document.body) {
+          if (current.classList && current.classList.contains('kr-navigation-row')) {
+            return false;
+          }
+          current = current.parentElement;
+        }
+        return true;
+      });
+      
+      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
+      originalImages.sort((a, b) => {
+        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        return numA - numB;
+      });
+      
+      if (originalImages.length === 0) return;
+      
+      // Trouver et masquer le conteneur d'origine (div.row.center)
+      const originalContainer = parent.closest('.row.center');
+      if (originalContainer) {
+        originalContainer.style.display = 'none';
+      }
+      
+      // Récupérer les liens parents des images
+      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
+      if (roomLinks.length === 0) return;
+    
+      // Créer le conteneur de la ligne de navigation
+      const navRow = document.createElement('div');
+      navRow.className = 'kr-navigation-row';
+      navRow.setAttribute('role', 'group');
+    
+      // Créer la croix directionnelle en premier
+      if (exitImg && map) {
+        const directionGroup = document.createElement('div');
+        directionGroup.className = 'btn-group kr-direction-cross';
+        directionGroup.setAttribute('role', 'group');
+        
+        // Créer un lien style btn pour la croix
+        const directionLink = document.createElement('div');
+        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
+        
+        // Cloner l'image et la map
+        const exitImgClone = exitImg.cloneNode(true);
+        exitImgClone.style.width = '60px';
+        exitImgClone.style.height = '60px';
+        exitImgClone.style.display = 'block';
+        
+        const mapClone = map.cloneNode(true);
+        
+        // Forcer la navigation pour chaque area de la map
+        const areas = mapClone.querySelectorAll('area');
+        areas.forEach(area => {
+          area.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = area.href;
+            if (url && url !== '#') {
+              window.location.href = url;
+            }
+          });
+        });
+        
+        directionLink.appendChild(exitImgClone);
+        directionLink.appendChild(mapClone);
+        directionGroup.appendChild(directionLink);
+        navRow.appendChild(directionGroup);
+      }
+    
+      // Créer une carte pour chaque accès aux pièces
+      roomLinks.forEach(link => {
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group kr-room-access-card';
+        btnGroup.setAttribute('role', 'group');
+        
+        // Cloner le lien pour ne pas modifier l'original
+        const linkClone = link.cloneNode(true);
+        // Utiliser les mêmes classes que les actions rapides
+        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
+        
+        // Forcer la navigation pour éviter l'interception par Kraland
+        linkClone.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const url = linkClone.href;
+          if (url && url !== '#') {
+            window.location.href = url;
+          }
+        });
+        
+        btnGroup.appendChild(linkClone);
+        
+        navRow.appendChild(btnGroup);
+      });
+    
+      // Insérer la nouvelle ligne après les actions rapides
+      quickActions.parentElement.insertBefore(navRow, quickActions.nextSibling);
+    
+      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
+    }
+    
+    // Attendre le DOM et un délai pour que tout soit prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initNavigationRow, 350);
+      });
+    } else {
+      setTimeout(initNavigationRow, 350);
+    }
+  })();
+
+  // ============================================================================
   // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
   // ============================================================================
   if (window.innerWidth < 768 && window.location.hash && window.location.hash !== '#top') {
@@ -1733,6 +2890,581 @@
   }
 
   // ============================================================================
+  // MODAL PERSONNAGE MOBILE - INTERACTIONS UX/UI
+  // ============================================================================
+
+  /**
+   * Améliore l'UX mobile du modal de sélection personnage
+   * - Navigation carousel pour sélecteur personnages (prev/next)
+   * - Description collapsible dans le header
+   * - Tabs swipeable avec détection de geste
+   * - Indicateurs de navigation (dots)
+   * - Compteur de caractères pour textarea
+   * - Feedback tactile sur les interactions
+   */
+  function initCharacterModalMobile() {
+    // Observer l'apparition des modals Bootbox
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            setTimeout(() => {
+              enhanceCharacterModal(node);
+            }, 150);
+          }
+        });
+      });
+    });
+
+    modalObserver.observe(document.body, { childList: true, subtree: false });
+  }
+
+  /**
+   * Scroll automatiquement vers l'onglet actif dans les modals personnage
+   * Surveille les mises à jour AJAX et maintient le scroll sur le bon onglet
+   */
+  function initModalTabScroll() {
+    // Observer les changements dans les modals pour détecter les mises à jour AJAX
+    const tabScrollObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Vérifier si c'est un changement de contenu dans une modal
+        const modal = mutation.target.closest('.bootbox.modal');
+        if (!modal) return;
+        
+        // Chercher le panel-heading avec les tabs
+        const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
+        if (!panelHeading) return;
+        
+        // Chercher l'onglet actif
+        const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
+        if (!activeTab) return;
+        
+        // Scroller vers l'onglet actif
+        setTimeout(() => {
+          const tabRect = activeTab.getBoundingClientRect();
+          const containerRect = panelHeading.getBoundingClientRect();
+          
+          // Calculer la position de scroll pour centrer l'onglet
+          const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
+          
+          panelHeading.scrollTo({
+            left: Math.max(0, scrollLeft),
+            behavior: 'smooth'
+          });
+        }, 100);
+      });
+    });
+    
+    // Observer le body pour détecter les changements dans les modals
+    tabScrollObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  /**
+   * Fusionne les colonnes d'une row en une seule div pour le mode mobile
+   * Remplace les changements de div par des espaces
+   */
+  function mergeColumnsInMobile(modal) {
+    if (!modal) return;
+
+    // Trouver tous les panneaux avec des colonnes Bootstrap
+    const panels = modal.querySelectorAll('.panel-info, .panel-primary, .panel-default');
+    
+    panels.forEach(panel => {
+      // Cibler les lignes dans panel-heading, panel-body, panel-footer
+      const rows = panel.querySelectorAll('.panel-heading .row, .panel-body .row, .panel-actions .row, .panel-footer .row');
+      
+      rows.forEach(row => {
+        // Récupérer toutes les colonnes de cette row
+        const columns = row.querySelectorAll('[class*="col-"]');
+        
+        if (columns.length > 0) {
+          // Collecter le contenu de toutes les colonnes avec des espaces entre elles
+          const contents = [];
+          columns.forEach(col => {
+            const text = col.textContent.trim();
+            const html = col.innerHTML.trim();
+            
+            // Si la colonne contient des éléments (pas juste du texte), garder le HTML
+            if (col.children.length > 0) {
+              contents.push(html);
+            } else if (text) {
+              contents.push(text);
+            }
+          });
+          
+          // Créer une nouvelle div unique avec tout le contenu
+          const mergedDiv = document.createElement('div');
+          mergedDiv.className = 'col-xs-12 merged-columns';
+          mergedDiv.innerHTML = contents.join(' ');
+          
+          // Supprimer toutes les colonnes existantes
+          columns.forEach(col => col.remove());
+          
+          // Ajouter la div fusionnée
+          row.appendChild(mergedDiv);
+        }
+      });
+    });
+  }
+
+  /**
+   * Force le layout grid pour les actions de la modal d'ordre
+   * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
+   */
+  function forceOrderModalGridLayout(modal) {
+    if (!modal) return;
+    
+    // Vérifier si c'est une modal d'ordre (avec .bootbox-confirm)
+    if (!modal.classList.contains('bootbox-confirm')) return;
+    
+    // Forcer le .panel-heading en colonne pour empiler les grilles verticalement
+    const panelHeading = modal.querySelector('.panel-heading');
+    if (panelHeading) {
+      panelHeading.style.setProperty('display', 'block', 'important');
+    }
+    
+    // Chercher tous les ul.nav-tabs dans .panel-heading
+    const navTabsElements = modal.querySelectorAll('.panel-heading ul.nav-tabs');
+    if (navTabsElements.length === 0) return;
+    
+    console.log('[Order Modal] Forçage du layout grid pour', navTabsElements.length, 'nav-tabs');
+    
+    // Appliquer les styles grid via JavaScript (contourne Bootstrap)
+    navTabsElements.forEach((ul, index) => {
+      // Force display grid avec !important via setProperty
+      ul.style.setProperty('display', 'grid', 'important');
+      
+      // Tous les groupes en 2 colonnes - grille homogène continue
+      ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+      
+      ul.style.setProperty('gap', '12px', 'important');
+      ul.style.setProperty('padding-left', '0', 'important');
+      
+      // Force l'alignement des grid items au début (gauche)
+      ul.style.setProperty('justify-items', 'start', 'important');
+      ul.style.setProperty('align-items', 'stretch', 'important');
+      
+      // Grille continue - même espacement partout (pas de séparation visuelle)
+      ul.style.setProperty('margin-bottom', '12px', 'important');
+      ul.style.setProperty('border-bottom', 'none', 'important');
+      ul.style.setProperty('border-top', 'none', 'important');
+      ul.style.setProperty('padding-top', '0', 'important');
+      
+      // Désactiver les pseudo-éléments clearfix de Bootstrap qui deviennent grid items
+      // Créer/mettre à jour un élément <style> pour cibler les pseudo-éléments
+      let styleId = 'grid-pseudo-fix-' + index;
+      let styleEl = document.getElementById(styleId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      // Générer un ID unique pour ce UL
+      if (!ul.id) ul.id = 'order-modal-nav-' + index;
+      styleEl.textContent = `
+        #${ul.id}::before,
+        #${ul.id}::after {
+          display: none !important;
+          content: none !important;
+        }
+      `;
+      
+      // Force les li à être des grid items
+      const listItems = ul.querySelectorAll('li');
+      listItems.forEach(li => {
+        li.style.setProperty('margin', '0', 'important');
+        li.style.setProperty('padding', '0', 'important');
+        li.style.setProperty('float', 'none', 'important');
+        li.style.setProperty('display', 'block', 'important');
+        li.style.setProperty('position', 'static', 'important');
+        li.style.setProperty('width', '100%', 'important'); // Force largeur complète de la colonne
+        li.style.setProperty('grid-column', 'auto', 'important');
+        li.style.setProperty('grid-row', 'auto', 'important');
+        li.style.setProperty('justify-self', 'stretch', 'important');
+        li.style.setProperty('align-self', 'stretch', 'important');
+        
+        // Style les liens
+        const link = li.querySelector('a');
+        if (link) {
+          link.style.setProperty('display', 'block', 'important');
+          link.style.setProperty('width', '100%', 'important');
+          link.style.setProperty('min-height', '44px', 'important');
+          link.style.setProperty('padding', '12px 16px', 'important');
+          link.style.setProperty('text-align', 'center', 'important');
+          link.style.setProperty('border-radius', '8px', 'important');
+          link.style.setProperty('margin', '0', 'important');
+          link.style.setProperty('box-sizing', 'border-box', 'important');
+        }
+      });
+      
+      console.log(`[Order Modal] Grid appliqué sur nav-tabs #${index + 1} (${listItems.length} items)`);
+    });
+    
+    // Appliquer un second coup après un délai pour contrer les réinitialisations Bootstrap
+    setTimeout(() => {
+      navTabsElements.forEach(ul => {
+        ul.style.setProperty('display', 'grid', 'important');
+      });
+    }, 100);
+  }
+
+  /**
+   * Applique toutes les améliorations mobiles à une modal de personnage
+   */
+  function enhanceCharacterModal(modal) {
+    if (!modal) return;
+
+    // Vérifier qu'on est bien en mode mobile
+    if (!document.body.classList.contains('mobile-mode')) return;
+
+    // Force le layout grid pour les modals d'ordre (initial)
+    forceOrderModalGridLayout(modal);
+
+    // Observer les changements dans le body de la modal pour réappliquer le grid après Ajax
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (modalBody) {
+      const contentObserver = new MutationObserver(() => {
+        console.log('[Order Modal] Contenu Ajax détecté - réapplication du grid');
+        forceOrderModalGridLayout(modal);
+      });
+      
+      contentObserver.observe(modalBody, {
+        childList: true,
+        subtree: true
+      });
+      
+      console.log('[Order Modal] Observer Ajax installé sur modal body');
+    }
+
+    // Fusionner les colonnes en une seule div pour simplifier le layout mobile
+    mergeColumnsInMobile(modal);
+
+    // Chercher le select de personnages
+    const charSelect = modal.querySelector('select[onchange*="perso"]');
+    if (charSelect) {
+      createCharacterCarousel(modal, charSelect);
+    }
+
+    // Rendre la description collapsible
+    makeDescriptionCollapsible(modal);
+
+    // Améliorer les tabs avec swipe
+    enhanceTabsWithSwipe(modal);
+
+    // Ajouter compteur de caractères aux textarea
+    addCharCounterToTextareas(modal);
+
+    // Ajouter feedback tactile
+    addTouchFeedback(modal);
+  }
+
+  /**
+   * Crée un carousel de navigation pour le sélecteur de personnages
+   */
+  function createCharacterCarousel(modal, select) {
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length <= 1) return; // Pas besoin de carousel avec 1 seul perso
+
+    const currentIndex = select.selectedIndex;
+
+    // Créer le wrapper carousel
+    const carouselWrapper = document.createElement('div');
+    carouselWrapper.className = 'kr-char-selector';
+
+    // Bouton précédent
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'kr-char-nav-btn';
+    prevBtn.innerHTML = '‹';
+    prevBtn.disabled = currentIndex === 0;
+    prevBtn.setAttribute('aria-label', 'Personnage précédent');
+
+    // Affichage du personnage actuel
+    const currentDisplay = document.createElement('div');
+    currentDisplay.className = 'kr-selector-current';
+    
+    const currentAvatar = document.createElement('img');
+    currentAvatar.src = modal.querySelector('.modal-header img')?.src || '';
+    currentAvatar.alt = 'Avatar';
+    
+    const currentName = document.createElement('span');
+    currentName.className = 'kr-selector-current-name';
+    currentName.textContent = options[currentIndex].text;
+    
+    const currentCount = document.createElement('span');
+    currentCount.className = 'kr-selector-current-count';
+    currentCount.textContent = `${currentIndex + 1}/${options.length}`;
+
+    currentDisplay.appendChild(currentAvatar);
+    currentDisplay.appendChild(currentName);
+    currentDisplay.appendChild(currentCount);
+
+    // Bouton suivant
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'kr-char-nav-btn';
+    nextBtn.innerHTML = '›';
+    nextBtn.disabled = currentIndex === options.length - 1;
+    nextBtn.setAttribute('aria-label', 'Personnage suivant');
+
+    // Assembler
+    carouselWrapper.appendChild(prevBtn);
+    carouselWrapper.appendChild(currentDisplay);
+    carouselWrapper.appendChild(nextBtn);
+
+    // Insérer après le select (ou à la place visuellement)
+    select.parentNode.insertBefore(carouselWrapper, select.nextSibling);
+
+    // Handlers de navigation
+    prevBtn.addEventListener('click', () => {
+      if (select.selectedIndex > 0) {
+        select.selectedIndex--;
+        select.dispatchEvent(new Event('change'));
+        // Modal va se recharger, pas besoin de mettre à jour manuellement
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (select.selectedIndex < options.length - 1) {
+        select.selectedIndex++;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  /**
+   * Rend la description du personnage collapsible dans le header
+   */
+  function makeDescriptionCollapsible(modal) {
+    const header = modal.querySelector('.modal-header');
+    if (!header) return;
+
+    // Chercher le texte de description (souvent après le nom)
+    const headerDiv = header.querySelector('div');
+    if (!headerDiv) return;
+
+    // Séparer le nom et la description
+    const contentNodes = Array.from(headerDiv.childNodes);
+    const textNodes = contentNodes.filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+    
+    if (textNodes.length === 0) return;
+
+    // Wrapper pour la description
+    const descWrapper = document.createElement('div');
+    descWrapper.className = 'kr-char-description collapsed';
+    
+    // Mettre les nœuds texte dans le wrapper (sauf le premier qui est le nom)
+    textNodes.slice(1).forEach(node => {
+      descWrapper.appendChild(node.cloneNode(true));
+      node.remove();
+    });
+
+    if (descWrapper.textContent.trim()) {
+      headerDiv.appendChild(descWrapper);
+
+      // Bouton toggle
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'kr-char-expand-btn';
+      toggleBtn.innerHTML = '▼';
+      toggleBtn.setAttribute('aria-label', 'Afficher/masquer description');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+
+      header.appendChild(toggleBtn);
+
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = descWrapper.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+          descWrapper.classList.remove('collapsed');
+          descWrapper.classList.add('expanded');
+          toggleBtn.classList.add('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          descWrapper.classList.remove('expanded');
+          descWrapper.classList.add('collapsed');
+          toggleBtn.classList.remove('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  }
+
+  /**
+   * Améliore les tabs avec swipe et indicateurs
+   */
+  function enhanceTabsWithSwipe(modal) {
+    const tabsContainer = modal.querySelector('.nav-tabs');
+    if (!tabsContainer) return;
+
+    const tabs = Array.from(tabsContainer.querySelectorAll('li'));
+    if (tabs.length === 0) return;
+
+    // Créer indicateurs de navigation (dots)
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'kr-tabs-indicator';
+
+    tabs.forEach((tab, index) => {
+      const dot = document.createElement('span');
+      dot.className = 'kr-tab-dot';
+      if (tab.classList.contains('active')) {
+        dot.classList.add('active');
+      }
+      dotsContainer.appendChild(dot);
+    });
+
+    // Insérer les dots après les tabs
+    tabsContainer.parentNode.insertBefore(dotsContainer, tabsContainer.nextSibling);
+
+    // Observer les changements d'onglet actif pour mettre à jour les dots
+    const updateDots = () => {
+      const activeDot = tabs.findIndex(tab => tab.classList.contains('active'));
+      dotsContainer.querySelectorAll('.kr-tab-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === activeDot);
+      });
+    };
+
+    // Observer avec MutationObserver
+    const tabObserver = new MutationObserver(updateDots);
+    tabs.forEach(tab => {
+      tabObserver.observe(tab, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // Détecter le swipe horizontal sur les tabs
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    tabsContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    tabsContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const swipeThreshold = 50; // pixels minimum pour détecter un swipe
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) < swipeThreshold) return;
+
+      const activeIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+      
+      if (diff > 0 && activeIndex < tabs.length - 1) {
+        // Swipe left → onglet suivant
+        tabs[activeIndex + 1].querySelector('a')?.click();
+      } else if (diff < 0 && activeIndex > 0) {
+        // Swipe right → onglet précédent
+        tabs[activeIndex - 1].querySelector('a')?.click();
+      }
+    }
+
+    // Scroll automatique vers l'onglet actif
+    const scrollToActiveTab = () => {
+      // Chercher l'onglet actif dans TOUTES les listes .nav-tabs du modal
+      const modal = tabsContainer.closest('.bootbox.modal');
+      const allNavTabs = modal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+      let activeTab = null;
+      
+      for (const navTab of allNavTabs) {
+        activeTab = navTab.querySelector('li.active');
+        if (activeTab) {
+          activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          break;
+        }
+      }
+    };
+
+    // Scroll initial
+    setTimeout(scrollToActiveTab, 100);
+
+    // Scroll lors des changements d'onglet - pour TOUTES les listes de tabs du modal
+    const parentModal = tabsContainer.closest('.bootbox.modal');
+    const allNavTabsLists = parentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+    
+    allNavTabsLists.forEach(navTab => {
+      const allTabs = Array.from(navTab.querySelectorAll('li'));
+      allTabs.forEach(tab => {
+        tab.querySelector('a')?.addEventListener('click', () => {
+          setTimeout(scrollToActiveTab, 100);
+        });
+      });
+    });
+  }
+
+  /**
+   * Ajoute un compteur de caractères aux textarea
+   */
+  function addCharCounterToTextareas(modal) {
+    const textareas = modal.querySelectorAll('textarea');
+    
+    textareas.forEach(textarea => {
+      const maxLength = textarea.getAttribute('maxlength');
+      if (!maxLength) return;
+
+      const counter = document.createElement('div');
+      counter.className = 'kr-char-counter';
+      
+      const updateCounter = () => {
+        const remaining = maxLength - textarea.value.length;
+        counter.textContent = `${remaining} caractères restants`;
+        
+        // Code couleur selon le seuil
+        counter.classList.remove('warning', 'error');
+        if (remaining <= 0) {
+          counter.classList.add('error');
+        } else if (remaining <= 20) {
+          counter.classList.add('warning');
+        }
+      };
+
+      textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+      textarea.addEventListener('input', updateCounter);
+      updateCounter();
+    });
+  }
+
+  /**
+   * Ajoute un feedback tactile (ripple effect) sur les éléments interactifs
+   */
+  function addTouchFeedback(modal) {
+    const interactiveElements = modal.querySelectorAll(
+      '.kr-char-nav-btn, .kr-char-expand-btn, .nav-tabs a, .btn, .radio label'
+    );
+
+    interactiveElements.forEach(el => {
+      el.classList.add('kr-touch-feedback');
+
+      el.addEventListener('touchstart', () => {
+        el.classList.add('active');
+        
+        // Vibration haptique si disponible
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+      }, { passive: true });
+
+      el.addEventListener('touchend', () => {
+        setTimeout(() => {
+          el.classList.remove('active');
+        }, 600);
+      }, { passive: true });
+
+      el.addEventListener('touchcancel', () => {
+        el.classList.remove('active');
+      }, { passive: true });
+    });
+  }
+
+  // ============================================================================
   // MODAL BACKDROP CLICK TO CLOSE
   // ============================================================================
 
@@ -1881,6 +3613,12 @@
 
     // Initialiser le mini-chat mobile
     initMobileMiniChat();
+
+    // Initialiser les améliorations UX pour les modals personnages
+    initCharacterModalMobile();
+    
+    // Initialiser le scroll automatique des tabs dans les modals
+    initModalTabScroll();
 
     // Gérer le redimensionnement de la fenêtre
     let resizeTimer;
@@ -2044,6 +3782,9 @@
 
       // Activer le clic sur backdrop pour fermer les modals
       enableModalBackdropClick();
+
+      // Initialiser les améliorations mobiles des modals personnage
+      initCharacterModalMobile();
 
       // Gestion mobile : détection et fonctionnalités spécifiques
       initMobileFeatures();
