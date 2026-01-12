@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1768258645312
+// @version      1.0.1768259374849
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -1837,6 +1837,7 @@
   /* ============================================
      MOBILE ADAPTATION - VARIABLES (TASK-1.1)
      ============================================ */
+
   /* Hauteurs fixes mobile */
   --mobile-header-height: 56px;
   --mobile-tab-bar-height: 48px;
@@ -2700,6 +2701,7 @@ a.carousel-control.right{
 }
 
 /* 3. TABLEAU RADIO BUTTONS */
+
 /* 3. PANEL ACTIONS - Layout Grid Compact */
 .bootbox-confirm .panel-actions {
   padding: var(--mobile-spacing-md);
@@ -2924,9 +2926,9 @@ a.carousel-control.right{
    ============================================================================ */
 
 /* GARDE-FOU : Tous les styles dans media query mobile uniquement */
-@media (max-width: 768px) {
-  
+@media (width <= 768px) {
   /* === STRUCTURE FLEXBOX STICKY === */
+
   /* IMPORTANT: Cibler uniquement .modal-content, pas .modal-dialog */
   .bootbox-confirm > .modal-dialog {
     display: block !important; /* Annuler tout flex sur modal-dialog */
@@ -2972,8 +2974,7 @@ a.carousel-control.right{
   /* Body scrollable */
   .bootbox-confirm .modal-body {
     flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden auto !important;
     padding: 0 !important;
   }
   
@@ -3019,7 +3020,9 @@ a.carousel-control.right{
   }
   
   /* === OPTIMISATION DES NAV-TABS (déjà en grid par forceOrderModalGridLayout) === */
+
   /* Les nav-tabs sont déjà stylés en grid 2 colonnes par le JS */
+
   /* On améliore juste le spacing et les couleurs */
   
   .bootbox-confirm .nav.nav-tabs li a {
@@ -3064,8 +3067,7 @@ a.carousel-control.right{
   .bootbox-confirm .panel-info .panel-body .row,
   .bootbox-confirm .panel-info .panel-footer .row {
     display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
+    flex-flow: row nowrap !important;
     align-items: center !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -3077,6 +3079,7 @@ a.carousel-control.right{
   }
   
   /* Largeurs spécifiques: Nouvelle répartition sm-0 / sm-7 / sm-3 / sm-3 */
+
   /* IMPORTANT: Définir les largeurs AVANT les paddings pour éviter les écrasements */
   .bootbox-confirm .panel-info .panel-heading .row > .col-sm-1,
   .bootbox-confirm .panel-info .panel-body .row > .col-sm-1 {
@@ -3117,6 +3120,7 @@ a.carousel-control.right{
   /* === FOOTER: Layout spécifique pour Maladresse + Bonus === */
   
   /* Footer: Groupement visuel avec widths fixes (proportions: 15% + 25% | 20% + 40%) */
+
   /* Groupe 1: Checkbox (15%) + Maladresse (25%) = 40% */
   .bootbox-confirm .panel-info .panel-footer .row > .col-sm-1 {
     flex: 0 0 15% !important;
@@ -3226,8 +3230,7 @@ a.carousel-control.right{
    9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
    ============================================================================ */
 
-@media (max-width: 768px) {
-  
+@media (width <= 768px) {
   /* === UX #1: ALERTE REPLIABLE === */
   .bootbox-confirm .kr-alert-collapsible {
     padding: 0 !important;
@@ -3264,14 +3267,15 @@ a.carousel-control.right{
     padding: 12px 16px !important;
     background: white !important;
     border-top: 1px solid #e0e0e0 !important;
-    animation: slideDown 0.2s ease !important;
+    animation: slide-down 0.2s ease !important;
   }
   
-  @keyframes slideDown {
+  @keyframes slide-down {
     from {
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -4783,7 +4787,6 @@ body > map {
    ============================================================================ */
 
 @media (width < 768px) {
-  
   /* ==========================================================================
      FIX : Empêcher le scroll automatique vers les ancres au chargement
      ========================================================================== */
@@ -5038,6 +5041,9 @@ body > map {
   
   .panel-heading {
     padding: 10px 15px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
   }
   
   .panel-body {
@@ -5103,6 +5109,7 @@ body > map {
      ========================================================================== */
   
   /* === PANNEAU DE COMPÉTENCES === */
+
   /* Masquer le panneau latéral, accessible via bouton */
   #skills-panel {
     position: fixed !important;
@@ -5139,6 +5146,7 @@ body > map {
   }
   
   /* === PANNEAU PERSONNAGE === */
+
   /* Toutes les colonnes en pleine largeur (page principale uniquement, pas les modales) */
   body.mobile-mode > .container > .row > .col-md-3,
   body.mobile-mode > .container > .row > .col-md-6,
@@ -5148,14 +5156,6 @@ body > map {
     float: none !important;
     padding-left: 15px !important;
     padding-right: 15px !important;
-  }
-  
-  /* Header du personnage compact */
-  .panel-heading {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 10px !important;
-    padding: 10px !important;
   }
   
   /* Avatar réduit */
@@ -5181,6 +5181,7 @@ body > map {
   }
   
   /* === CARTE DU JEU === */
+
   /* Carte avec scroll horizontal si nécessaire */
   .panel-body:has(map),
   .panel-body:has([id^="c"]) {
@@ -5202,6 +5203,7 @@ body > map {
   }
   
   /* === LISTE DES PERSONNAGES === */
+
   /* En liste verticale compacte */
   .list-group {
     margin-bottom: 15px !important;
@@ -5209,6 +5211,8 @@ body > map {
   
   .list-group-item {
     padding: 10px 12px !important;
+    min-height: 44px !important;
+    justify-content: space-between !important;
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
@@ -5232,6 +5236,7 @@ body > map {
   }
   
   /* === PANNEAU COMMERCE === */
+
   /* Items du commerce en liste compacte */
   .panel-body h4 {
     font-size: 1rem !important;
@@ -5319,12 +5324,6 @@ body > map {
     min-height: 50px !important;
     padding: 14px 24px !important;
     font-size: 18px !important;
-  }
-  
-  /* Liens dans les listes */
-  .list-group-item {
-    min-height: 44px !important;
-    padding: 15px !important;
   }
   
   /* Formulaires */
@@ -5556,6 +5555,7 @@ body > map {
 */
 
 /* Mobile First approach */
+
 /* Default styles = mobile (< 768px) */
 
 /* Small devices (tablets, >= 768px) */
@@ -5567,7 +5567,7 @@ body > map {
 }
 
 /* Medium devices (desktops, >= 992px) */
-@media (min-width: 992px) {
+@media (width >= 992px) {
   /* Layout desktop complet */
   body.mobile-mode {
     /* Annuler complètement les adaptations mobiles */
@@ -5575,7 +5575,7 @@ body > map {
 }
 
 /* Large devices (large desktops, >= 1200px) */
-@media (min-width: 1200px) {
+@media (width >= 1200px) {
   /* Layout large desktop si nécessaire */
 }
 
@@ -5612,7 +5612,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Container du mini-profil */
     .mobile-mini-profile {
       position: relative;
@@ -5852,8 +5851,8 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Masquer le panel des 18 compétences */
+
     /* Les compétences sont accessibles via l'onglet "Personnage" (/jouer/perso) */
     .panel-body.grid-transformed {
       display: none !important;
@@ -5877,7 +5876,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Container actions - Utilise btn-group-justified BS3 */
     .mobile-quick-actions.btn-group-justified {
       display: flex !important;
@@ -5961,7 +5959,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Tab bar container - Utilise nav-tabs BS3 */
     .mobile-tab-bar.nav-tabs {
       position: sticky;
@@ -6070,7 +6067,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Header principal - Utilise les classes BS3 */
     .navbar,
     .navbar-default,
@@ -6096,6 +6092,9 @@ body > map {
       margin: 8px 10px;
       padding: 9px 10px;
       border: 1px solid var(--kr-overlay-light-20);
+      order: 1;
+      margin-right: 0;
+      margin-left: auto;
       border-radius: 4px;
       background: transparent;
     }
@@ -6203,15 +6202,11 @@ body > map {
       width: 100%;
     }
     
-    .navbar-toggle {
-      order: 1;
-      margin-right: 0;
-      margin-left: auto;
-    }
-    
     /* Zone droite - Icônes (conservées telles quelles) */
     .navbar-right {
-      margin-right: 0;
+      margin: 0 !important;
+      padding: 8px 0 !important;
+      border-top: 1px solid var(--kr-overlay-light-10) !important;
     }
     
     .navbar-right > li > a {
@@ -6267,13 +6262,6 @@ body > map {
       display: none !important; /* Masquer les sous-menus en mobile */
     }
     
-    /* Menu de droite (icônes utilisateur) */
-    .navbar-right {
-      margin: 0 !important;
-      padding: 8px 0 !important;
-      border-top: 1px solid var(--kr-overlay-light-10) !important;
-    }
-    
     .navbar-right > li {
       display: inline-block !important;
     }
@@ -6316,7 +6304,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Header de groupe avec accordéon */
     .dashboard-section-header-accordion {
       position: relative;
@@ -6384,7 +6371,6 @@ body > map {
 
 @media (width < 768px) {
   body.mobile-mode {
-    
     /* Grille de cartes compacte */
     .dashboard-cards-grid {
       display: grid;
@@ -6608,6 +6594,10 @@ body.mobile-mode .commerce-products-container {
   opacity: 1;
   overflow: hidden;
   transition: max-height var(--transition-normal), opacity var(--transition-normal);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  padding: 8px 0;
 }
 
 body.mobile-mode .commerce-products-container.collapsed {
@@ -6619,14 +6609,6 @@ body.mobile-mode .commerce-products-container.collapsed {
  * TASK-2.6 : Commerce - Cards produits compactes
  * ============================================================================
  */
-
-/* Conteneur de produits en grille */
-body.mobile-mode .commerce-products-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
-  padding: 8px 0;
-}
 
 /* Carte produit compacte */
 body.mobile-mode .commerce-products-container > a.list-group-item {
@@ -7242,6 +7224,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
     
     /* ===== 3. NAVIGATION TABS - fusionner les deux listes en une seule ===== */
+
     /* Conteneur des listes */
     body.mobile-mode .bootbox.modal .panel.with-nav-tabs .panel-heading {
       display: flex !important;
@@ -7332,6 +7315,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
     
     /* ===== 5. COLONNES FUSIONNÉES EN MODE MOBILE ===== */
+
     /* Les colonnes sont fusionnées en une seule div par JavaScript */
     body.mobile-mode .bootbox.modal .merged-columns {
       padding: 12px !important;
@@ -7354,11 +7338,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       letter-spacing: 0.5px !important;
     }
     
-    /* Footer (ligne Maladresse/Bonus) */
+    /* Footer (ligne Maladresse/Bonus) et Boutons */
     body.mobile-mode .bootbox.modal .panel-footer {
       background: var(--kr-bg-elevated) !important;
       border-top: 1px solid var(--kr-border-default) !important;
       padding: 0 !important;
+      display: flex !important;
+      gap: 6px !important;
+      border: none !important;
     }
     
     body.mobile-mode .bootbox.modal .panel-footer label {
@@ -7448,7 +7435,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       display: grid !important;
       grid-template-columns: repeat(6, 1fr) !important;
       gap: 4px !important;
-      margin: 0 0 16px 0 !important;
+      margin: 0 0 16px !important;
       padding: 0 !important;
       width: 100% !important;
       max-width: 100% !important;
@@ -7549,7 +7536,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
     
     /* Dropdown smiley/couleurs - doit apparaître PAR-DESSUS la modal */
+
     /* NOTE CRITIQUE: Bootstrap JS force position:fixed dynamiquement */
+
     /* Solution: Sélecteur ultra-spécifique + !important pour override Bootstrap */
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown .dropdown-menu,
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
@@ -7557,14 +7546,19 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       max-height: 50vh !important;
       overflow-y: auto !important;
       padding: 12px !important;
+
       /* CRITIQUE: Garder position: absolute pour le positionnement relatif Bootstrap */
+
       /* Bootstrap JS essaie de forcer position:fixed - on l'override ici */
       position: absolute !important;
+
       /* z-index élevé pour passer au-dessus du footer modal */
       z-index: 10000 !important;
+
       /* Forcer l'affichage VERS LE HAUT (dropup behavior) */
       bottom: 100% !important;
       top: auto !important;
+
       /* Petit espace entre le bouton et le dropdown */
       margin-bottom: 4px !important;
     }
@@ -7576,6 +7570,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
     
     /* SOLUTION: Forcer tous les parents à ne PAS créer de contexte d'empilement */
+
     /* Cela permet au dropdown avec z-index: 10000 de passer au-dessus du footer */
     body.mobile-mode .bootbox.modal .modal-dialog,
     body.mobile-mode .bootbox.modal .modal-content,
@@ -7589,6 +7584,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       perspective: none !important;
       will-change: auto !important;
       contain: none !important;
+
       /* NE PAS mettre de z-index ici, sinon ça crée un nouveau contexte */
       z-index: auto !important;
     }
@@ -7692,23 +7688,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     body.mobile-mode .bootbox.modal .modal-footer .btn:active {
       transform: scale(0.97) !important;
     }
-    
-    /* ===== 9. PANEL FOOTER (coût, durée, potentiel) ===== */
-    body.mobile-mode .bootbox.modal .panel-footer {
-      padding: 12px 16px !important;
-      font-size: 13px !important;
-      line-height: 1.4 !important;
-      background: var(--kr-bg-surface) !important;
-      border-top: 1px solid var(--kr-border-default) !important;
-      white-space: nowrap !important;
-      overflow-x: auto !important;
-    }
   }
 
 /* ============================================================================
    MOBILE - PAGE PROFIL/INTERFACE
    ============================================================================ */
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* Correction de l'affichage des sélecteurs de thème */
   body.mobile-mode #kr-tamper-theme-form .form-group {
     margin-bottom: 20px;
@@ -7849,6 +7834,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* === RÉORGANISATION DES CELLULES AVEC GRID === */
+
   /* Utiliser grid-row pour contrôler l'ordre d'affichage */
   body.mobile-mode .panel-default .table > tbody > tr > td {
     display: block !important;
@@ -7858,7 +7844,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* td:first-child à la ligne 1 (contient titre, mods, description) */
+
+  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
+
+  /* Cette cellule contient 3 éléments dont on doit cacher la description pour la réafficher plus tard */
   body.mobile-mode .panel-default .table > tbody > tr > td:first-child {
+    display: flex !important;
+    flex-direction: column !important;
     grid-row: 1 !important;
   }
   
@@ -7871,14 +7863,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* td:nth-child(4) (dernier message) à la ligne 4 */
   body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) {
     grid-row: 4 !important;
-  }
-  
-  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
-  /* Cette cellule contient 3 éléments dont on doit cacher la description pour la réafficher plus tard */
-  body.mobile-mode .panel-default .table > tbody > tr > td:first-child {
-    display: flex !important;
-    flex-direction: column !important;
-    grid-row: 1 !important;
   }
   
   /* === TITRE DU FORUM === */
@@ -7902,6 +7886,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* === MODÉRATEURS === */
+
   /* Afficher les modérateurs juste après le titre */
   body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
@@ -7927,6 +7912,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* === DESCRIPTION === */
+
   /* La description est maintenant dans un wrapper créé par JavaScript */
   body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
   body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper > p {
@@ -7939,10 +7925,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   
   /* Description wrapper */
   body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper {
-    margin: 0 0 6px 0 !important;
+    margin: 0 0 6px !important;
   }
   
   /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
+
   /* Les stats sont maintenant dans un wrapper créé par JavaScript */
   body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2),
   body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3),
@@ -7957,7 +7944,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   
   /* Stats wrapper */
   body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper {
-    margin: 0 0 2px 0 !important;
+    margin: 0 0 2px !important;
   }
   
   /* Ajouter "sujets · " après le premier nombre */
@@ -7973,6 +7960,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* === CELLULE 4 : Dernier message === */
+
   /* Maintenant que le DOM est réorganisé, la cellule du dernier message est à la fin */
   body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4),
   body.mobile-mode .panel-default .table > tbody > tr > td:last-child {
@@ -7982,11 +7970,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     margin-top: 0 !important;
     font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
-  }
-  
-  /* Wrapper du dernier message - tout inline */
-  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4),
-  body.mobile-mode .panel-default .table > tbody > tr > td:last-child {
     display: block !important;
   }
   
