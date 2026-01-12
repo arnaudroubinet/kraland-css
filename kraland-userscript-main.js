@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1768149565704
+// @version      1.0.1768221282161
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -2404,15 +2404,473 @@ a.carousel-control.right{
   font-size: 16px !important; /* Évite zoom iOS */
   line-height: 1.5;
   resize: vertical;
-  padding: 12px;
-  border-radius: var(--mobile-radius);
-  border: 1px solid var(--kr-border-default);
+}
+
+/* ============================================================================
+   9c. MODAL ORDRE - OPTIMISATION MOBILE (MOBILE ONLY)
+   Structure sticky, zones identifiées, grille d'actions (nav-tabs)
+   ============================================================================ */
+
+/* GARDE-FOU : Tous les styles dans media query mobile uniquement */
+@media (max-width: 768px) {
+  
+  /* === STRUCTURE FLEXBOX STICKY === */
+  /* IMPORTANT: Cibler uniquement .modal-content, pas .modal-dialog */
+  .bootbox-confirm > .modal-dialog {
+    display: block !important; /* Annuler tout flex sur modal-dialog */
+  }
+  
+  .bootbox-confirm .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
+  }
+  
+  /* Header zone (select + title) - sticky */
+  .bootbox-confirm .kraland-modal-header,
+  .bootbox-confirm .kraland-character-title {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 110 !important;
+    background: white !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-header {
+    padding: 12px 16px 8px !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+  
+  .bootbox-confirm .kraland-character-title {
+    padding: 8px 16px !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+  }
+  
+  /* Actions zone (panel-heading avec nav-tabs) - sticky */
+  .bootbox-confirm .kraland-actions-zone {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: white !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #f0f0f0 !important;
+  }
+  
+  /* Body scrollable */
+  .bootbox-confirm .modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 0 !important;
+  }
+  
+  /* Zone de formulaire (panel-body) - scrollable */
+  .bootbox-confirm .kraland-form-zone {
+    padding: 16px !important;
+  }
+  
+  /* Footer du panel (coût/durée) - sticky avant footer modal */
+  .bootbox-confirm .kraland-action-footer {
+    position: sticky !important;
+    bottom: 72px !important; /* Hauteur du footer modal */
+    z-index: 90 !important;
+    background: #f8f8f8 !important;
+    padding: 12px 16px !important;
+    border-top: 1px solid #e0e0e0 !important;
+  }
+  
+  .bootbox-confirm .kraland-action-footer p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: #666 !important;
+  }
+  
+  /* Footer modal sticky (boutons OK/Cancel) */
+  .bootbox-confirm .kraland-modal-footer {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 110 !important;
+    background: white !important;
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+    border-top: 2px solid #e0e0e0 !important;
+    display: flex !important;
+    gap: 12px !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-footer .btn {
+    flex: 1 !important;
+    min-height: 56px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* === OPTIMISATION DES NAV-TABS (déjà en grid par forceOrderModalGridLayout) === */
+  /* Les nav-tabs sont déjà stylés en grid 2 colonnes par le JS */
+  /* On améliore juste le spacing et les couleurs */
+  
+  .bootbox-confirm .nav.nav-tabs li a {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  /* Hover sur les nav-tabs */
+  .bootbox-confirm .nav.nav-tabs li a:hover {
+    background: #f0f8ff !important;
+    text-decoration: none !important;
+  }
+  
+  /* État actif des nav-tabs */
+  .bootbox-confirm .nav.nav-tabs li.active a {
+    background: #428bca !important;
+    border-color: #428bca !important;
+    color: white !important;
+  }
+  
+  /* === OPTIMISATIONS FORMULAIRE === */
+  
+  /* IMPORTANT: Annuler les flex indésirables sur certains éléments Bootstrap SAUF les panels avec tableau */
+  .bootbox-confirm .row,
+  .bootbox-confirm [class*="col-"],
+  .bootbox-confirm .form-group,
+  .bootbox-confirm .tab-content {
+    display: block !important;
+  }
+  
+  /* EXCEPTION CRITIQUE: Les panels de type info (tableaux Actions) doivent utiliser flexbox */
+  .bootbox-confirm .panel-info .panel-heading,
+  .bootbox-confirm .panel-info .panel-body,
+  .bootbox-confirm .panel-info .panel-footer {
+    display: block !important; /* Garder block pour le container */
+  }
+  
+  /* Les ROWS à l'intérieur des panels doivent être en flex pour l'alignement horizontal */
+  .bootbox-confirm .panel-info .panel-heading .row,
+  .bootbox-confirm .panel-info .panel-body .row,
+  .bootbox-confirm .panel-info .panel-footer .row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Les colonnes dans ces rows doivent avoir leur largeur Bootstrap */
+  .bootbox-confirm .panel-info .row > [class*="col-"] {
+    flex-shrink: 0 !important;
+  }
+  
+  /* Largeurs spécifiques: Nouvelle répartition sm-0 / sm-7 / sm-3 / sm-3 */
+  /* IMPORTANT: Définir les largeurs AVANT les paddings pour éviter les écrasements */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-1,
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-1 {
+    flex: 0 0 0% !important;
+    max-width: 0% !important;
+    padding: 0 !important; /* Masquer complètement */
+    overflow: hidden !important;
+    width: 0 !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-7,
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-7 {
+    flex: 0 0 46% !important; /* 46% pour Actions */
+    max-width: 46% !important;
+  }
+  
+  /* Premier col-sm-2 (Diff.) devient col-sm-3 visuellement */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-2:nth-child(3),
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-2:nth-child(3) {
+    flex: 0 0 27% !important; /* 27% pour Diff. */
+    max-width: 27% !important;
+  }
+  
+  /* Deuxième col-sm-2 (Jet) devient col-sm-3 visuellement */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-2:nth-child(4),
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-2:nth-child(4) {
+    flex: 0 0 27% !important; /* 27% pour Jet */
+    max-width: 27% !important;
+  }
+  
+  /* ESPACEMENT: Padding pour éviter que les colonnes soient collées (APRÈS les largeurs) */
+  .bootbox-confirm .panel-info .panel-heading .row > [class*="col-"]:not(.col-sm-1),
+  .bootbox-confirm .panel-info .panel-body .row > [class*="col-"]:not(.col-sm-1) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  /* === FOOTER: Layout spécifique pour Maladresse + Bonus === */
+  
+  /* Footer: Groupement visuel avec widths fixes (proportions: 15% + 25% | 20% + 40%) */
+  /* Groupe 1: Checkbox (15%) + Maladresse (25%) = 40% */
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-1 {
+    flex: 0 0 15% !important;
+    max-width: 15% !important;
+    padding-left: 8px !important;
+    padding-right: 4px !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-7 {
+    flex: 0 0 25% !important;
+    max-width: 25% !important;
+    padding-left: 0 !important;
+    padding-right: 12px !important; /* Gap avant groupe 2 */
+  }
+  
+  /* Groupe 2: Bonus (20%) + Select (40%) = 60% */
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-2:nth-child(3) {
+    flex: 0 0 20% !important;
+    max-width: 20% !important;
+    padding-left: 12px !important; /* Gap après groupe 1 */
+    padding-right: 4px !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-2:nth-child(4) {
+    flex: 0 0 40% !important;
+    max-width: 40% !important;
+    padding-left: 0 !important;
+    padding-right: 8px !important;
+  }
+  
+  /* === Alignement vertical des éléments du footer === */
+  .bootbox-confirm .panel-info .panel-footer .row {
+    align-items: center !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer input[type="checkbox"],
+  .bootbox-confirm .panel-info .panel-footer select,
+  .bootbox-confirm .panel-info .panel-footer label {
+    vertical-align: middle !important;
+  }
+  
+  /* IMPORTANT: Préserver le comportement normal des tableaux Bootstrap */
+  .bootbox-confirm table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+  
+  .bootbox-confirm table tbody {
+    display: table-row-group !important;
+  }
+  
+  .bootbox-confirm table tr {
+    display: table-row !important;
+  }
+  
+  .bootbox-confirm table td,
+  .bootbox-confirm table th {
+    display: table-cell !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Select personnage */
+  .bootbox-confirm .kraland-modal-header select {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Image personnage dans title */
+  .bootbox-confirm .kraland-character-title img {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    margin-right: 12px !important;
+  }
+  
+  /* Panel formulaire */
+  .bootbox-confirm .kraland-form-zone .panel {
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  /* Inputs et textarea */
+  .bootbox-confirm .kraland-form-zone input[type="text"],
+  .bootbox-confirm .kraland-form-zone textarea,
+  .bootbox-confirm .kraland-form-zone select {
+    font-size: 16px !important; /* Évite zoom iOS */
+    border-radius: 6px !important;
+  }
+  
+  .bootbox-confirm .kraland-form-zone textarea {
+    min-height: 120px !important;
+  }
+  
 }
 
 .bootbox-confirm textarea.form-control:focus {
   border-color: var(--kr-primary);
   box-shadow: 0 0 0 3px var(--kr-focus-ring);
   outline: none;
+}
+
+/* ============================================================================
+   9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  
+  /* === UX #1: ALERTE REPLIABLE === */
+  .bootbox-confirm .kr-alert-collapsible {
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    background: #e3f2fd !important;
+    border: none !important;
+    color: #1565c0 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle:active {
+    background: #bbdefb !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle i {
+    font-size: 18px !important;
+  }
+  
+  .bootbox-confirm .kr-alert-content {
+    padding: 12px 16px !important;
+    background: white !important;
+    border-top: 1px solid #e0e0e0 !important;
+    animation: slideDown 0.2s ease !important;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* === UX #2: NAV-TABS ÉTAT ACTIF RENFORCÉ === */
+  .bootbox-confirm .nav.nav-tabs li.active a {
+    background: linear-gradient(135deg, #428bca 0%, #3071a9 100%) !important;
+    border-color: #428bca !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(66, 139, 202, 0.4) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .bootbox-confirm .nav.nav-tabs li a:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  }
+  
+  /* === UX #3: TEXTAREA AGRANDI === */
+  .bootbox-confirm .kraland-form-zone textarea#message {
+    min-height: 160px !important;
+    resize: vertical !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    padding: 12px !important;
+  }
+  
+  /* === UX #4: FOOTER EN BADGES === */
+  .bootbox-confirm .kr-action-badges {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+  
+  .bootbox-confirm .kr-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 12px !important;
+    border-radius: 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+  }
+  
+  .bootbox-confirm .kr-badge i {
+    font-size: 14px !important;
+  }
+  
+  .bootbox-confirm .kr-badge-cost {
+    background: #fff3cd !important;
+    color: #856404 !important;
+    border: 1px solid #ffeaa7 !important;
+  }
+  
+  .bootbox-confirm .kr-badge-duration {
+    background: #d1ecf1 !important;
+    color: #0c5460 !important;
+    border: 1px solid #b8daff !important;
+  }
+  
+  .bootbox-confirm .kr-badge-potential {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    border: 1px solid #f5c6cb !important;
+  }
+  
+  /* === UX #5: BOUTON OK RENFORCÉ === */
+  .bootbox-confirm .kr-btn-primary-enhanced {
+    background: linear-gradient(135deg, #5cb85c 0%, #449d44 100%) !important;
+    border-color: #449d44 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    box-shadow: 0 4px 12px rgba(92, 184, 92, 0.4) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .bootbox-confirm .kr-btn-primary-enhanced:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 2px 6px rgba(92, 184, 92, 0.3) !important;
+  }
+  
+  .bootbox-confirm .kr-btn-secondary-subtle {
+    background: #f5f5f5 !important;
+    border-color: #ddd !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+  }
+  
+  .bootbox-confirm .kr-btn-secondary-subtle:active {
+    background: #e0e0e0 !important;
+  }
+  
+  /* === UX #6: SELECT GROUPÉ === */
+  .bootbox-confirm .kraland-modal-header select optgroup {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: #428bca !important;
+    padding: 8px 0 !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-header select option {
+    padding: 8px 12px !important;
+    font-size: 15px !important;
+  }
+  
 }
 
 /* 7. ALERT D'AIDE */
@@ -2438,7 +2896,7 @@ a.carousel-control.right{
   background: var(--kr-bg-surface);
   border-top: 2px solid var(--kr-border-strong);
   padding: var(--mobile-spacing-lg);
-  z-index: 10;
+  z-index: 100;
   box-shadow: 0 -4px 8px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
@@ -6015,18 +6473,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       text-align: center !important;
     }
     
-    /* Toolbar de mise en forme - plus compact */
-    body.mobile-mode .modal-body .btn-toolbar {
-      margin-bottom: 10px !important;
-    }
-    
-    body.mobile-mode .modal-body .btn-toolbar .btn {
-      min-width: 36px !important;
-      min-height: 36px !important;
-      padding: 6px !important;
-      margin: 2px !important;
-    }
-    
     /* Modal footer - sticky en bas avec boutons pleine largeur */
     body.mobile-mode .modal-footer {
       padding: 15px !important;
@@ -6359,40 +6805,117 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     
     /* ===== 6. TOOLBAR - boutons tactiles optimisés ===== */
     body.mobile-mode .bootbox.modal .btn-toolbar {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 8px !important;
-      margin-bottom: 16px !important;
+      display: grid !important;
+      grid-template-columns: repeat(6, 1fr) !important;
+      gap: 4px !important;
+      margin: 0 0 16px 0 !important;
       padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
     }
     
     body.mobile-mode .bootbox.modal .btn-toolbar .btn-group {
       display: contents !important;
     }
     
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn {
+    /* Supprimer COMPLÈTEMENT les pseudo-éléments clearfix de Bootstrap 3 */
+    body.mobile-mode .bootbox.modal .btn-toolbar::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::after {
+      content: none !important;
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Tous les boutons directs et liens dans la toolbar */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > button.btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > .dropdown {
       min-width: 44px !important;
+      max-width: none !important;
+      width: 100% !important;
       min-height: 44px !important;
-      padding: 10px !important;
+      max-height: 44px !important;
+      height: 44px !important;
+      padding: 8px !important;
+      margin: 0 !important;
       font-size: 18px !important;
-      border-radius: 8px !important;
+      line-height: 1 !important;
+      border-radius: 4px !important;
+      border-width: 1px !important;
+      display: grid !important;
+      place-items: center !important;
+      transition: all 0.2s ease !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Dropdown wrapper - ne pas appliquer de style sur le span dropdown */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown {
+      display: contents !important;
+      position: relative !important;
+    }
+    
+    /* Le lien dropdown-toggle à l'intérieur du span dropdown */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle {
+      min-width: 44px !important;
+      width: 100% !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      padding: 0 !important;
+      margin: 0 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      transition: all 0.2s ease !important;
+      border: none !important;
+      background: transparent !important;
+      text-decoration: none !important;
     }
     
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active {
+    /* Le bouton à l'intérieur du dropdown-toggle */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn {
+      min-width: 44px !important;
+      width: 100% !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      padding: 8px !important;
+      margin: 0 !important;
+      font-size: 18px !important;
+      line-height: 1 !important;
+      border-radius: 4px !important;
+      border-width: 1px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Feedback tactile sur tous les boutons */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn:active {
       transform: scale(0.95) !important;
       background: var(--kr-bg-active) !important;
+      opacity: 0.8 !important;
     }
     
     /* Dropdown smiley/couleurs */
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
       max-width: 90vw !important;
-      max-height: 60vh !important;
+      max-height: 50vh !important;
       overflow-y: auto !important;
       padding: 12px !important;
+      z-index: 1050 !important; /* Au-dessus du footer sticky (z-index: 100) */
+      position: absolute !important;
     }
     
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table {
@@ -6405,6 +6928,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
+    }
+    
+    /* Backdrop du dropdown sous le dropdown lui-même */
+    body.mobile-mode .bootbox.modal .dropdown-backdrop {
+      z-index: 1049 !important;
     }
     
     /* ===== 7. TEXTAREA - 120px min + compteur visible ===== */
@@ -6448,6 +6976,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       box-shadow: 0 -2px 8px rgba(0,0,0,0.08) !important;
       flex-shrink: 0 !important;
       margin: 0 !important;
+      z-index: 100 !important; /* Sous le dropdown (z-index: 1050) */
     }
     
     body.mobile-mode .bootbox.modal .modal-footer .btn {
@@ -8360,6 +8889,323 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /**
+   * NOUVELLE FONCTION - Optimise la structure de la modal pour mobile
+   */
+  function transformOrderModalStructure(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    if (modal.dataset.structureTransformed) return;
+    
+    console.log('[Order Modal] Optimisation structure mobile');
+    
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (!modalBody) return;
+    
+    // === 1. Optimiser le header (select + h3) ===
+    const selectRow = modalBody.querySelector('.row');
+    const h3Title = modalBody.querySelector('h3');
+    
+    if (selectRow && h3Title) {
+      // Marquer pour styling sticky
+      selectRow.classList.add('kraland-modal-header');
+      h3Title.classList.add('kraland-character-title');
+      console.log('[Order Modal] Header marqué');
+    }
+    
+    // === 2. Identifier la zone d'actions (panel-heading avec nav-tabs) ===
+    const panelWithTabs = modalBody.querySelector('.panel.with-nav-tabs');
+    if (panelWithTabs) {
+      const panelHeading = panelWithTabs.querySelector('.panel-heading');
+      if (panelHeading) {
+        panelHeading.classList.add('kraland-actions-zone');
+        console.log('[Order Modal] Zone actions identifiée');
+      }
+      
+      // === 3. Identifier la zone de formulaire (panel-body) ===
+      const panelBody = panelWithTabs.querySelector('.panel-body.panel-order');
+      if (panelBody) {
+        panelBody.classList.add('kraland-form-zone');
+        console.log('[Order Modal] Zone formulaire identifiée');
+      }
+      
+      // === 4. Identifier le footer du panel ===
+      const panelFooter = panelWithTabs.querySelector('.panel-footer');
+      if (panelFooter) {
+        panelFooter.classList.add('kraland-action-footer');
+        console.log('[Order Modal] Footer action identifié');
+      }
+    }
+    
+    // === 5. Marquer le footer de la modal (boutons OK/Cancel) ===
+    const modalFooter = modal.querySelector('.modal-footer');
+    if (modalFooter) {
+      modalFooter.classList.add('kraland-modal-footer');
+      console.log('[Order Modal] Footer modal identifié');
+    }
+    
+    // === 6. Nettoyer les styles inline du panel-info (tableau Actions) ===
+    const panelInfo = modalBody.querySelector('.panel-info');
+    if (panelInfo) {
+      // Retirer les styles inline sur les rows et colonnes
+      const rows = panelInfo.querySelectorAll('.row');
+      rows.forEach(row => {
+        row.style.marginLeft = '';
+        row.style.marginRight = '';
+      });
+      
+      const cols = panelInfo.querySelectorAll('[class*="col-"]');
+      cols.forEach(col => {
+        col.style.paddingLeft = '';
+        col.style.paddingRight = '';
+      });
+      
+      console.log('[Order Modal] Styles inline nettoyés du panel-info');
+    }
+    
+    modal.dataset.structureTransformed = 'true';
+    console.log('[Order Modal] Structure optimisée pour mobile');
+  }
+  
+  /**
+   * Nettoie les whitespace text nodes de la toolbar et force le grid layout
+   */
+  function cleanToolbarWhitespace(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const toolbar = modal.querySelector('.btn-toolbar');
+    if (!toolbar) return;
+    
+    // Supprimer tous les text nodes qui ne contiennent que des espaces
+    const childNodes = Array.from(toolbar.childNodes);
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && /^\s*$/.test(node.textContent)) {
+        toolbar.removeChild(node);
+      }
+    });
+    
+    // Forcer le grid layout inline (contourner les règles Bootstrap)
+    toolbar.style.setProperty('display', 'grid', 'important');
+    toolbar.style.setProperty('grid-template-columns', 'repeat(6, 1fr)', 'important');
+    toolbar.style.setProperty('gap', '4px', 'important');
+    
+    // Forcer display: contents sur TOUS les wrappers (.btn-group ET .dropdown)
+    toolbar.querySelectorAll('.btn-group, .dropdown, span.dropdown').forEach(wrapper => {
+      wrapper.style.setProperty('display', 'contents', 'important');
+    });
+    
+    // Forcer les boutons (y compris ceux dans les dropdowns) à remplir leur cellule
+    toolbar.querySelectorAll('.btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button').forEach(btn => {
+      btn.style.setProperty('width', '100%', 'important');
+      btn.style.setProperty('min-width', '0', 'important');
+      btn.style.setProperty('max-width', 'none', 'important');
+    });
+    
+    console.log('[Order Modal] Toolbar grid forcé et whitespace nettoyé');
+  }
+  
+  /**
+   * Améliore le feedback visuel des nav-tabs
+   */
+  function enhanceNavTabsFeedback(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    // Ajouter un meilleur feedback au clic sur les nav-tabs
+    const navTabs = modal.querySelectorAll('.nav.nav-tabs li a');
+    navTabs.forEach(link => {
+      // Ajouter classe pour feedback tactile
+      link.classList.add('kr-touch-feedback');
+      
+      // UX AMÉLIORATION #2: Meilleur feedback visuel sur l'état actif
+      link.addEventListener('click', function() {
+        // Retirer classe active de tous les onglets
+        modal.querySelectorAll('.nav.nav-tabs li').forEach(li => li.classList.remove('active'));
+        // Ajouter à l'onglet cliqué
+        this.parentElement.classList.add('active');
+      });
+    });
+    
+    console.log('[Order Modal] Feedback tactile ajouté aux nav-tabs');
+  }
+  
+  /**
+   * UX AMÉLIORATION #1: Rend l'alerte d'aide repliable
+   */
+  function makeAlertCollapsible(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const alert = modal.querySelector('.alert');
+    if (!alert) return;
+    
+    // Créer le bouton toggle
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'kr-alert-toggle';
+    toggleBtn.innerHTML = '<i class="fas fa-question-circle"></i> Aide';
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.setAttribute('aria-label', 'Afficher/masquer l\'aide');
+    
+    // Wrapper pour le contenu de l'alerte
+    const alertContent = document.createElement('div');
+    alertContent.className = 'kr-alert-content';
+    alertContent.style.display = 'none';
+    
+    // Déplacer le contenu dans le wrapper
+    while (alert.firstChild) {
+      alertContent.appendChild(alert.firstChild);
+    }
+    
+    // Ajouter le bouton et le contenu
+    alert.appendChild(toggleBtn);
+    alert.appendChild(alertContent);
+    alert.classList.add('kr-alert-collapsible');
+    
+    // Gérer le toggle
+    toggleBtn.addEventListener('click', function() {
+      const isExpanded = alertContent.style.display !== 'none';
+      alertContent.style.display = isExpanded ? 'none' : 'block';
+      toggleBtn.setAttribute('aria-expanded', !isExpanded);
+      toggleBtn.innerHTML = isExpanded ? 
+        '<i class="fas fa-question-circle"></i> Aide' : 
+        '<i class="fas fa-times-circle"></i> Masquer l\'aide';
+    });
+    
+    console.log('[Order Modal] Alerte rendue repliable');
+  }
+  
+  /**
+   * UX AMÉLIORATION #3: Agrandit le textarea pour meilleur confort
+   */
+  function enlargeTextarea(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const textarea = modal.querySelector('textarea#message');
+    if (!textarea) return;
+    
+    // Passer de 5 à 8 rows minimum
+    textarea.rows = 8;
+    
+    // Ajouter auto-resize
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    console.log('[Order Modal] Textarea agrandi (8 rows + auto-resize)');
+  }
+  
+  /**
+   * UX AMÉLIORATION #4: Formate le footer en badges visuels
+   */
+  function formatFooterAsBadges(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const actionFooter = modal.querySelector('.kraland-action-footer p');
+    if (!actionFooter) return;
+    
+    const text = actionFooter.textContent;
+    
+    // Parser le texte: "Coût: 0 MØ | Durée: 00:00 | Potentiel: PER + Discrétion = 1"
+    const costMatch = text.match(/Coût:\s*([^|]+)/);
+    const durationMatch = text.match(/Durée:\s*([^|]+)/);
+    const potentialMatch = text.match(/Potentiel:\s*(.+)$/);
+    
+    if (!costMatch && !durationMatch && !potentialMatch) return;
+    
+    // Créer les badges
+    const badgesHTML = `
+      <div class="kr-action-badges">
+        ${costMatch ? `<span class="kr-badge kr-badge-cost"><i class="fas fa-coins"></i> ${costMatch[1].trim()}</span>` : ''}
+        ${durationMatch ? `<span class="kr-badge kr-badge-duration"><i class="far fa-clock"></i> ${durationMatch[1].trim()}</span>` : ''}
+        ${potentialMatch ? `<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${potentialMatch[1].trim()}</span>` : ''}
+      </div>
+    `;
+    
+    actionFooter.innerHTML = badgesHTML;
+    console.log('[Order Modal] Footer formaté en badges');
+  }
+  
+  /**
+   * UX AMÉLIORATION #5: Renforce visuellement le bouton OK
+   */
+  function enhanceOkButton(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const modalFooter = modal.querySelector('.kraland-modal-footer');
+    if (!modalFooter) return;
+    
+    const okButton = modalFooter.querySelector('.btn-primary');
+    const cancelButton = modalFooter.querySelector('.btn-default');
+    
+    if (okButton) {
+      okButton.classList.add('kr-btn-primary-enhanced');
+    }
+    
+    if (cancelButton) {
+      cancelButton.classList.add('kr-btn-secondary-subtle');
+    }
+    
+    console.log('[Order Modal] Boutons OK/Cancel améliorés');
+  }
+  
+  /**
+   * UX AMÉLIORATION #6: Groupe les options du select par type (PJ/PNJ)
+   */
+  function groupSelectOptions(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const select = modal.querySelector('.kraland-modal-header select');
+    if (!select) return;
+    
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length === 0) return;
+    
+    // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
+    const pjOptions = [];
+    const pnjOptions = [];
+    
+    options.forEach(option => {
+      const text = option.textContent;
+      // Détecter PNJ par patterns communs
+      if (text.includes('PNJ') || text.includes('[') || text.match(/\d+ /) || text.includes('Garde') || text.includes('Esclave')) {
+        pnjOptions.push(option);
+      } else {
+        pjOptions.push(option);
+      }
+    });
+    
+    // Ne grouper que s'il y a les deux types
+    if (pjOptions.length === 0 || pnjOptions.length === 0) return;
+    
+    // Vider le select
+    select.innerHTML = '';
+    
+    // Créer les optgroups
+    if (pjOptions.length > 0) {
+      const pjGroup = document.createElement('optgroup');
+      pjGroup.label = 'Personnages Joueurs';
+      pjOptions.forEach(opt => pjGroup.appendChild(opt));
+      select.appendChild(pjGroup);
+    }
+    
+    if (pnjOptions.length > 0) {
+      const pnjGroup = document.createElement('optgroup');
+      pnjGroup.label = 'Personnages Non-Joueurs';
+      pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
+      select.appendChild(pnjGroup);
+    }
+    
+    console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
+  }
+
+  /**
    * Applique toutes les améliorations mobiles à une modal de personnage
    */
   function enhanceCharacterModal(modal) {
@@ -8367,6 +9213,31 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     // Vérifier qu'on est bien en mode mobile
     if (!document.body.classList.contains('mobile-mode')) return;
+
+    // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
+    transformOrderModalStructure(modal);
+    
+    // Nettoyer les whitespace nodes de la toolbar pour le grid
+    cleanToolbarWhitespace(modal);
+    
+    // === AMÉLIORATIONS UX === 
+    // #1: Alerte repliable
+    makeAlertCollapsible(modal);
+    
+    // #2: Améliorer le feedback des nav-tabs (avec état actif)
+    enhanceNavTabsFeedback(modal);
+    
+    // #3: Agrandir le textarea
+    enlargeTextarea(modal);
+    
+    // #4: Footer en badges
+    formatFooterAsBadges(modal);
+    
+    // #5: Bouton OK renforcé
+    enhanceOkButton(modal);
+    
+    // #6: Select groupé
+    groupSelectOptions(modal);
 
     // Force le layout grid pour les modals d'ordre (initial)
     forceOrderModalGridLayout(modal);
@@ -8377,6 +9248,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       const contentObserver = new MutationObserver(() => {
         console.log('[Order Modal] Contenu Ajax détecté - réapplication du grid');
         forceOrderModalGridLayout(modal);
+        cleanToolbarWhitespace(modal);
       });
       
       contentObserver.observe(modalBody, {

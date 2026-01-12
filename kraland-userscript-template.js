@@ -3115,6 +3115,323 @@
   }
 
   /**
+   * NOUVELLE FONCTION - Optimise la structure de la modal pour mobile
+   */
+  function transformOrderModalStructure(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    if (modal.dataset.structureTransformed) return;
+    
+    console.log('[Order Modal] Optimisation structure mobile');
+    
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (!modalBody) return;
+    
+    // === 1. Optimiser le header (select + h3) ===
+    const selectRow = modalBody.querySelector('.row');
+    const h3Title = modalBody.querySelector('h3');
+    
+    if (selectRow && h3Title) {
+      // Marquer pour styling sticky
+      selectRow.classList.add('kraland-modal-header');
+      h3Title.classList.add('kraland-character-title');
+      console.log('[Order Modal] Header marqué');
+    }
+    
+    // === 2. Identifier la zone d'actions (panel-heading avec nav-tabs) ===
+    const panelWithTabs = modalBody.querySelector('.panel.with-nav-tabs');
+    if (panelWithTabs) {
+      const panelHeading = panelWithTabs.querySelector('.panel-heading');
+      if (panelHeading) {
+        panelHeading.classList.add('kraland-actions-zone');
+        console.log('[Order Modal] Zone actions identifiée');
+      }
+      
+      // === 3. Identifier la zone de formulaire (panel-body) ===
+      const panelBody = panelWithTabs.querySelector('.panel-body.panel-order');
+      if (panelBody) {
+        panelBody.classList.add('kraland-form-zone');
+        console.log('[Order Modal] Zone formulaire identifiée');
+      }
+      
+      // === 4. Identifier le footer du panel ===
+      const panelFooter = panelWithTabs.querySelector('.panel-footer');
+      if (panelFooter) {
+        panelFooter.classList.add('kraland-action-footer');
+        console.log('[Order Modal] Footer action identifié');
+      }
+    }
+    
+    // === 5. Marquer le footer de la modal (boutons OK/Cancel) ===
+    const modalFooter = modal.querySelector('.modal-footer');
+    if (modalFooter) {
+      modalFooter.classList.add('kraland-modal-footer');
+      console.log('[Order Modal] Footer modal identifié');
+    }
+    
+    // === 6. Nettoyer les styles inline du panel-info (tableau Actions) ===
+    const panelInfo = modalBody.querySelector('.panel-info');
+    if (panelInfo) {
+      // Retirer les styles inline sur les rows et colonnes
+      const rows = panelInfo.querySelectorAll('.row');
+      rows.forEach(row => {
+        row.style.marginLeft = '';
+        row.style.marginRight = '';
+      });
+      
+      const cols = panelInfo.querySelectorAll('[class*="col-"]');
+      cols.forEach(col => {
+        col.style.paddingLeft = '';
+        col.style.paddingRight = '';
+      });
+      
+      console.log('[Order Modal] Styles inline nettoyés du panel-info');
+    }
+    
+    modal.dataset.structureTransformed = 'true';
+    console.log('[Order Modal] Structure optimisée pour mobile');
+  }
+  
+  /**
+   * Nettoie les whitespace text nodes de la toolbar et force le grid layout
+   */
+  function cleanToolbarWhitespace(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const toolbar = modal.querySelector('.btn-toolbar');
+    if (!toolbar) return;
+    
+    // Supprimer tous les text nodes qui ne contiennent que des espaces
+    const childNodes = Array.from(toolbar.childNodes);
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && /^\s*$/.test(node.textContent)) {
+        toolbar.removeChild(node);
+      }
+    });
+    
+    // Forcer le grid layout inline (contourner les règles Bootstrap)
+    toolbar.style.setProperty('display', 'grid', 'important');
+    toolbar.style.setProperty('grid-template-columns', 'repeat(6, 1fr)', 'important');
+    toolbar.style.setProperty('gap', '4px', 'important');
+    
+    // Forcer display: contents sur TOUS les wrappers (.btn-group ET .dropdown)
+    toolbar.querySelectorAll('.btn-group, .dropdown, span.dropdown').forEach(wrapper => {
+      wrapper.style.setProperty('display', 'contents', 'important');
+    });
+    
+    // Forcer les boutons (y compris ceux dans les dropdowns) à remplir leur cellule
+    toolbar.querySelectorAll('.btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button').forEach(btn => {
+      btn.style.setProperty('width', '100%', 'important');
+      btn.style.setProperty('min-width', '0', 'important');
+      btn.style.setProperty('max-width', 'none', 'important');
+    });
+    
+    console.log('[Order Modal] Toolbar grid forcé et whitespace nettoyé');
+  }
+  
+  /**
+   * Améliore le feedback visuel des nav-tabs
+   */
+  function enhanceNavTabsFeedback(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    // Ajouter un meilleur feedback au clic sur les nav-tabs
+    const navTabs = modal.querySelectorAll('.nav.nav-tabs li a');
+    navTabs.forEach(link => {
+      // Ajouter classe pour feedback tactile
+      link.classList.add('kr-touch-feedback');
+      
+      // UX AMÉLIORATION #2: Meilleur feedback visuel sur l'état actif
+      link.addEventListener('click', function() {
+        // Retirer classe active de tous les onglets
+        modal.querySelectorAll('.nav.nav-tabs li').forEach(li => li.classList.remove('active'));
+        // Ajouter à l'onglet cliqué
+        this.parentElement.classList.add('active');
+      });
+    });
+    
+    console.log('[Order Modal] Feedback tactile ajouté aux nav-tabs');
+  }
+  
+  /**
+   * UX AMÉLIORATION #1: Rend l'alerte d'aide repliable
+   */
+  function makeAlertCollapsible(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const alert = modal.querySelector('.alert');
+    if (!alert) return;
+    
+    // Créer le bouton toggle
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'kr-alert-toggle';
+    toggleBtn.innerHTML = '<i class="fas fa-question-circle"></i> Aide';
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.setAttribute('aria-label', 'Afficher/masquer l\'aide');
+    
+    // Wrapper pour le contenu de l'alerte
+    const alertContent = document.createElement('div');
+    alertContent.className = 'kr-alert-content';
+    alertContent.style.display = 'none';
+    
+    // Déplacer le contenu dans le wrapper
+    while (alert.firstChild) {
+      alertContent.appendChild(alert.firstChild);
+    }
+    
+    // Ajouter le bouton et le contenu
+    alert.appendChild(toggleBtn);
+    alert.appendChild(alertContent);
+    alert.classList.add('kr-alert-collapsible');
+    
+    // Gérer le toggle
+    toggleBtn.addEventListener('click', function() {
+      const isExpanded = alertContent.style.display !== 'none';
+      alertContent.style.display = isExpanded ? 'none' : 'block';
+      toggleBtn.setAttribute('aria-expanded', !isExpanded);
+      toggleBtn.innerHTML = isExpanded ? 
+        '<i class="fas fa-question-circle"></i> Aide' : 
+        '<i class="fas fa-times-circle"></i> Masquer l\'aide';
+    });
+    
+    console.log('[Order Modal] Alerte rendue repliable');
+  }
+  
+  /**
+   * UX AMÉLIORATION #3: Agrandit le textarea pour meilleur confort
+   */
+  function enlargeTextarea(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const textarea = modal.querySelector('textarea#message');
+    if (!textarea) return;
+    
+    // Passer de 5 à 8 rows minimum
+    textarea.rows = 8;
+    
+    // Ajouter auto-resize
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    console.log('[Order Modal] Textarea agrandi (8 rows + auto-resize)');
+  }
+  
+  /**
+   * UX AMÉLIORATION #4: Formate le footer en badges visuels
+   */
+  function formatFooterAsBadges(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const actionFooter = modal.querySelector('.kraland-action-footer p');
+    if (!actionFooter) return;
+    
+    const text = actionFooter.textContent;
+    
+    // Parser le texte: "Coût: 0 MØ | Durée: 00:00 | Potentiel: PER + Discrétion = 1"
+    const costMatch = text.match(/Coût:\s*([^|]+)/);
+    const durationMatch = text.match(/Durée:\s*([^|]+)/);
+    const potentialMatch = text.match(/Potentiel:\s*(.+)$/);
+    
+    if (!costMatch && !durationMatch && !potentialMatch) return;
+    
+    // Créer les badges
+    const badgesHTML = `
+      <div class="kr-action-badges">
+        ${costMatch ? `<span class="kr-badge kr-badge-cost"><i class="fas fa-coins"></i> ${costMatch[1].trim()}</span>` : ''}
+        ${durationMatch ? `<span class="kr-badge kr-badge-duration"><i class="far fa-clock"></i> ${durationMatch[1].trim()}</span>` : ''}
+        ${potentialMatch ? `<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${potentialMatch[1].trim()}</span>` : ''}
+      </div>
+    `;
+    
+    actionFooter.innerHTML = badgesHTML;
+    console.log('[Order Modal] Footer formaté en badges');
+  }
+  
+  /**
+   * UX AMÉLIORATION #5: Renforce visuellement le bouton OK
+   */
+  function enhanceOkButton(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const modalFooter = modal.querySelector('.kraland-modal-footer');
+    if (!modalFooter) return;
+    
+    const okButton = modalFooter.querySelector('.btn-primary');
+    const cancelButton = modalFooter.querySelector('.btn-default');
+    
+    if (okButton) {
+      okButton.classList.add('kr-btn-primary-enhanced');
+    }
+    
+    if (cancelButton) {
+      cancelButton.classList.add('kr-btn-secondary-subtle');
+    }
+    
+    console.log('[Order Modal] Boutons OK/Cancel améliorés');
+  }
+  
+  /**
+   * UX AMÉLIORATION #6: Groupe les options du select par type (PJ/PNJ)
+   */
+  function groupSelectOptions(modal) {
+    if (!modal) return;
+    if (!document.body.classList.contains('mobile-mode')) return;
+    
+    const select = modal.querySelector('.kraland-modal-header select');
+    if (!select) return;
+    
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length === 0) return;
+    
+    // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
+    const pjOptions = [];
+    const pnjOptions = [];
+    
+    options.forEach(option => {
+      const text = option.textContent;
+      // Détecter PNJ par patterns communs
+      if (text.includes('PNJ') || text.includes('[') || text.match(/\d+ /) || text.includes('Garde') || text.includes('Esclave')) {
+        pnjOptions.push(option);
+      } else {
+        pjOptions.push(option);
+      }
+    });
+    
+    // Ne grouper que s'il y a les deux types
+    if (pjOptions.length === 0 || pnjOptions.length === 0) return;
+    
+    // Vider le select
+    select.innerHTML = '';
+    
+    // Créer les optgroups
+    if (pjOptions.length > 0) {
+      const pjGroup = document.createElement('optgroup');
+      pjGroup.label = 'Personnages Joueurs';
+      pjOptions.forEach(opt => pjGroup.appendChild(opt));
+      select.appendChild(pjGroup);
+    }
+    
+    if (pnjOptions.length > 0) {
+      const pnjGroup = document.createElement('optgroup');
+      pnjGroup.label = 'Personnages Non-Joueurs';
+      pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
+      select.appendChild(pnjGroup);
+    }
+    
+    console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
+  }
+
+  /**
    * Applique toutes les améliorations mobiles à une modal de personnage
    */
   function enhanceCharacterModal(modal) {
@@ -3122,6 +3439,31 @@
 
     // Vérifier qu'on est bien en mode mobile
     if (!document.body.classList.contains('mobile-mode')) return;
+
+    // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
+    transformOrderModalStructure(modal);
+    
+    // Nettoyer les whitespace nodes de la toolbar pour le grid
+    cleanToolbarWhitespace(modal);
+    
+    // === AMÉLIORATIONS UX === 
+    // #1: Alerte repliable
+    makeAlertCollapsible(modal);
+    
+    // #2: Améliorer le feedback des nav-tabs (avec état actif)
+    enhanceNavTabsFeedback(modal);
+    
+    // #3: Agrandir le textarea
+    enlargeTextarea(modal);
+    
+    // #4: Footer en badges
+    formatFooterAsBadges(modal);
+    
+    // #5: Bouton OK renforcé
+    enhanceOkButton(modal);
+    
+    // #6: Select groupé
+    groupSelectOptions(modal);
 
     // Force le layout grid pour les modals d'ordre (initial)
     forceOrderModalGridLayout(modal);
@@ -3132,6 +3474,7 @@
       const contentObserver = new MutationObserver(() => {
         console.log('[Order Modal] Contenu Ajax détecté - réapplication du grid');
         forceOrderModalGridLayout(modal);
+        cleanToolbarWhitespace(modal);
       });
       
       contentObserver.observe(modalBody, {
