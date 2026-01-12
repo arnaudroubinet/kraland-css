@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1768221282161
+// @version      1.0.1768258645312
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -222,6 +222,181 @@
     if (window.KralandMobile) {
       window.KralandMobile.reinitHeader = initMobileHeader;
     }
+  })();
+
+
+  // ============================================================================
+  // TASK-2.4 - DÉPLACER BOUTONS DANS HEADER MOBILE
+  // ============================================================================
+  (function() {
+    'use strict';
+    
+    /**
+     * Déplace les boutons notification, kramail, palette, profil et carte dans le header mobile
+     * - Notification, Kramail et Palette à gauche du hamburger
+     * - Profil et Carte à droite du header
+     */
+    function moveHeaderButtons() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      const navbarHeader = document.querySelector('.navbar-header');
+      const navRight = document.querySelector('.navbar-right');
+      
+      if (!navbarHeader || !navRight) {
+        console.log('[Mobile Header Buttons] Éléments non trouvés');
+        return;
+      }
+      
+      // Identifier les boutons
+      const allButtons = Array.from(navRight.querySelectorAll('li'));
+      
+      // Trouver les boutons spécifiques par leur icône
+      const notificationBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-bell');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+      
+      const kramailBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-envelope');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+      
+      const paletteBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-palette');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+      
+      const profileBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-user');
+        const hasDropdown = li.querySelector('.dropdown-menu');
+        return icon && hasDropdown;
+      });
+      
+      const mapBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-globe');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+      
+      if (!notificationBtn && !kramailBtn && !paletteBtn && !profileBtn && !mapBtn) {
+        console.log('[Mobile Header Buttons] Aucun bouton trouvé');
+        return;
+      }
+      
+      // Vérifier si déjà déplacés
+      if (notificationBtn && notificationBtn.hasAttribute('data-moved-to-header')) {
+        return;
+      }
+      
+      // Créer le conteneur pour tous les boutons (à gauche)
+      const leftButtonsContainer = document.createElement('div');
+      leftButtonsContainer.className = 'navbar-header-buttons-left';
+      
+      if (notificationBtn) {
+        notificationBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(notificationBtn.cloneNode(true));
+      }
+      
+      if (kramailBtn) {
+        kramailBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(kramailBtn.cloneNode(true));
+      }
+      
+      if (paletteBtn) {
+        paletteBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(paletteBtn.cloneNode(true));
+      }
+      
+      if (profileBtn) {
+        profileBtn.setAttribute('data-moved-to-header', 'true');
+        const profileClone = profileBtn.cloneNode(true);
+        // Supprimer le dropdown pour simplifier l'interface mobile
+        const dropdown = profileClone.querySelector('.dropdown-menu');
+        if (dropdown) dropdown.remove();
+        leftButtonsContainer.appendChild(profileClone);
+      }
+      
+      if (mapBtn) {
+        mapBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(mapBtn.cloneNode(true));
+      }
+      
+      // Insérer le conteneur dans le header
+      if (leftButtonsContainer.children.length > 0) {
+        navbarHeader.insertBefore(leftButtonsContainer, navbarHeader.firstChild);
+      }
+      
+      // Cacher le logo en mobile
+      const navbarBrand = document.querySelector('.navbar-brand');
+      if (navbarBrand) {
+        navbarBrand.style.display = 'none';
+      }
+      
+      console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, palette, profil, map)');
+    }
+    
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(moveHeaderButtons, 150);
+      });
+    } else {
+      setTimeout(moveHeaderButtons, 150);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC BIENVENU
+  // ============================================================================
+  (function() {
+    'use strict';
+    
+    /**
+     * [DÉSACTIVÉ] Le logo reste maintenant dans la navbar à gauche
+     * Ancienne fonction qui déplaçait le logo sous la navbar
+     */
+    /*
+    function moveLogoToWelcomeBlock() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Trouver le logo
+      const logo = document.querySelector('.navbar-brand');
+      if (!logo) {
+        console.log('[Mobile Logo] Logo non trouvé');
+        return;
+      }
+      
+      // Vérifier si déjà déplacé
+      if (document.querySelector('[data-moved-below-navbar]')) {
+        return;
+      }
+      
+      // Trouver la navbar
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) {
+        console.log('[Mobile Logo] Navbar non trouvée');
+        return;
+      }
+      
+      // Cloner le logo et le rendre visible
+      const logoClone = logo.cloneNode(true);
+      logoClone.style.display = 'flex';
+      logoClone.setAttribute('data-moved-below-navbar', 'true');
+      
+      // Insérer le logo juste après la navbar
+      navbar.parentElement.insertBefore(logoClone, navbar.nextSibling);
+      
+      console.log('[Mobile Logo] Logo déplacé sous la navbar');
+    }
+    
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(moveLogoToWelcomeBlock, 200);
+      });
+    } else {
+      setTimeout(moveLogoToWelcomeBlock, 200);
+    }
+    */
   })();
 
   // ============================================
@@ -627,6 +802,52 @@
   })();
 
   // ============================================
+  // TASK-1.6 - HOMEPAGE CAROUSEL REMOVAL (Mobile)
+  // ============================================
+  (function() {
+    /**
+     * Supprime le carousel Bootstrap sur la page d'accueil en mode mobile
+     * Le carousel prend trop de place et n'est pas adapté aux petits écrans
+     */
+    function removeHomepageCarousel() {
+      // Ne s'exécute qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) return;
+      
+      // Ne s'exécute que sur la page d'accueil
+      const isHomePage = window.location.pathname === '/' || 
+                         window.location.pathname === '/accueil' ||
+                         window.location.pathname.endsWith('/');
+      
+      if (!isHomePage) return;
+      
+      // Sélectionner le carousel Bootstrap (.carousel)
+      const carousel = document.querySelector('.carousel');
+      
+      if (!carousel) {
+        console.log('[Homepage Carousel] Carousel non trouvé sur la page');
+        return;
+      }
+      
+      // Supprimer le carousel du DOM
+      carousel.remove();
+      
+      console.log('[Homepage Carousel] Carousel supprimé en mode mobile');
+    }
+    
+    // Attendre le chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', removeHomepageCarousel);
+    } else {
+      removeHomepageCarousel();
+    }
+    
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.removeHomepageCarousel = removeHomepageCarousel;
+    }
+  })();
+
+  // ============================================
   // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
   // ============================================
 
@@ -792,6 +1013,297 @@
       document.addEventListener('DOMContentLoaded', () => setTimeout(initTabBar, 100));
     } else {
       setTimeout(initTabBar, 100);
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.1 - MÉMORISATION DES ALERTES FERMÉES
+  // ============================================================================
+  (function() {
+    const STORAGE_KEY = 'kraland_dismissed_alerts';
+    
+    /**
+     * Génère un hash simple à partir d'une chaîne
+     */
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return Math.abs(hash).toString(36);
+    }
+    
+    /**
+     * Récupère la liste des alertes fermées depuis le localStorage
+     */
+    function getDismissedAlerts() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Alerts Memory] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+    
+    /**
+     * Sauvegarde une alerte fermée dans le localStorage
+     */
+    function saveDismissedAlert(alertId) {
+      try {
+        const dismissed = getDismissedAlerts();
+        if (!dismissed.includes(alertId)) {
+          dismissed.push(alertId);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissed));
+          console.log('[Alerts Memory] Alerte mémorisée:', alertId);
+        }
+      } catch (e) {
+        console.warn('[Alerts Memory] Erreur sauvegarde localStorage:', e);
+      }
+    }
+    
+    /**
+     * Génère un identifiant unique pour une alerte basé sur son contenu
+     */
+    function getAlertId(alert) {
+      // Essayer d'utiliser un ID existant
+      if (alert.id) return alert.id;
+      
+      // Sinon, créer un hash du contenu texte (sans les espaces multiples)
+      const text = alert.textContent.trim().replace(/\s+/g, ' ');
+      return 'alert_' + simpleHash(text);
+    }
+    
+    /**
+     * Cache automatiquement les alertes déjà fermées
+     */
+    function hideRememberedAlerts() {
+      const dismissedAlerts = getDismissedAlerts();
+      if (dismissedAlerts.length === 0) return;
+      
+      const alerts = document.querySelectorAll('.alert.alert-dismissible');
+      let hiddenCount = 0;
+      
+      alerts.forEach(alert => {
+        const alertId = getAlertId(alert);
+        if (dismissedAlerts.includes(alertId)) {
+          alert.style.display = 'none';
+          hiddenCount++;
+        }
+      });
+      
+      if (hiddenCount > 0) {
+        console.log(`[Alerts Memory] ${hiddenCount} alerte(s) masquée(s) automatiquement`);
+      }
+    }
+    
+    /**
+     * Écoute les fermetures d'alertes et les mémorise
+     */
+    function watchAlertDismissal() {
+      const alerts = document.querySelectorAll('.alert.alert-dismissible');
+      
+      alerts.forEach(alert => {
+        // Trouver le bouton de fermeture
+        const closeBtn = alert.querySelector('.close, [data-dismiss="alert"]');
+        if (!closeBtn) return;
+        
+        // Écouter le clic sur le bouton de fermeture
+        closeBtn.addEventListener('click', function() {
+          const alertId = getAlertId(alert);
+          saveDismissedAlert(alertId);
+        });
+      });
+      
+      console.log(`[Alerts Memory] Surveillance activée pour ${alerts.length} alerte(s)`);
+    }
+    
+    /**
+     * Initialise la mémorisation des alertes
+     */
+    function initAlertsMemory() {
+      // D'abord cacher les alertes déjà fermées
+      hideRememberedAlerts();
+      
+      // Puis surveiller les nouvelles fermetures
+      watchAlertDismissal();
+    }
+    
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAlertsMemory);
+    } else {
+      initAlertsMemory();
+    }
+    
+    /**
+     * Ajoute un bouton de réinitialisation dans la page profil/interface
+     */
+    function addResetButtonToInterfacePage() {
+      // Vérifier qu'on est sur la bonne page
+      if (!window.location.pathname.includes('/profil/interface')) return;
+      
+      // Attendre que le formulaire Tampermonkey soit présent
+      const checkForm = setInterval(() => {
+        const tamperForm = document.querySelector('#kr-tamper-theme-form');
+        if (!tamperForm) return;
+        
+        clearInterval(checkForm);
+        
+        // Créer une section dédiée pour le bouton
+        const section = document.createElement('div');
+        section.className = 'form-group';
+        section.style.marginTop = '20px';
+        section.style.paddingTop = '15px';
+        section.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+        
+        // Créer le label
+        const label = document.createElement('label');
+        label.className = 'col-sm-3 control-label';
+        label.style.paddingLeft = '0px';
+        label.style.paddingRight = '0px';
+        label.textContent = 'Alertes';
+        
+        // Créer le conteneur du bouton
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'col-sm-9';
+        btnContainer.style.paddingLeft = '0px';
+        
+        // Créer le bouton de réinitialisation
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'btn btn-warning btn-block';
+        
+        // Ajouter l'icône et le texte
+        const icon = document.createElement('span');
+        icon.className = 'glyphicon glyphicon-refresh';
+        icon.style.marginRight = '5px';
+        
+        const text = document.createTextNode('Réinitialiser les alertes fermées');
+        
+        resetBtn.appendChild(icon);
+        resetBtn.appendChild(text);
+        
+        // Action au clic
+        resetBtn.addEventListener('click', function() {
+          const dismissed = getDismissedAlerts();
+          const count = dismissed.length;
+          
+          if (count === 0) {
+            alert('Aucune alerte fermée à réinitialiser.');
+            return;
+          }
+          
+          if (confirm(`Voulez-vous vraiment réinitialiser ${count} alerte(s) fermée(s) ? Elles réapparaîtront lors du prochain chargement de page.`)) {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log('[Alerts Memory] Alertes mémorisées effacées');
+            
+            // Feedback visuel
+            icon.className = 'glyphicon glyphicon-ok';
+            resetBtn.textContent = '';
+            resetBtn.appendChild(icon);
+            resetBtn.appendChild(document.createTextNode(` ${count} alerte(s) réinitialisée(s) !`));
+            resetBtn.className = 'btn btn-success btn-block';
+            
+            setTimeout(() => {
+              icon.className = 'glyphicon glyphicon-refresh';
+              resetBtn.textContent = '';
+              resetBtn.appendChild(icon);
+              resetBtn.appendChild(document.createTextNode(' Réinitialiser les alertes fermées'));
+              resetBtn.className = 'btn btn-warning btn-block';
+            }, 3000);
+          }
+        });
+        
+        // Ajouter une description
+        const helpText = document.createElement('p');
+        helpText.className = 'help-block';
+        helpText.style.marginTop = '10px';
+        helpText.style.fontSize = '12px';
+        helpText.style.opacity = '0.7';
+        helpText.textContent = `${getDismissedAlerts().length} alerte(s) actuellement masquée(s)`;
+        
+        // Assembler la section
+        btnContainer.appendChild(resetBtn);
+        btnContainer.appendChild(helpText);
+        section.appendChild(label);
+        section.appendChild(btnContainer);
+        
+        // Insérer après le formulaire Tampermonkey
+        tamperForm.parentNode.insertBefore(section, tamperForm.nextSibling);
+        
+        console.log('[Alerts Memory] Bouton de réinitialisation ajouté');
+      }, 100);
+    }
+    
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAlertsMemory);
+      document.addEventListener('DOMContentLoaded', addResetButtonToInterfacePage);
+    } else {
+      initAlertsMemory();
+      addResetButtonToInterfacePage();
+    }
+    
+    // Exposer une fonction pour réinitialiser (debug)
+    if (window.KralandMobile) {
+      window.KralandMobile.clearDismissedAlerts = function() {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('[Alerts Memory] Alertes mémorisées effacées');
+      };
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.3 - MESSAGE DE BIENVENUE SUR PAGE D'ACCUEIL
+  // ============================================================================
+  (function() {
+    'use strict';
+    
+    /**
+     * Ajoute "Bienvenu " avant le nom de l'utilisateur sur la page d'accueil
+     */
+    function addWelcomeMessage() {
+      // Vérifier qu'on est sur la page d'accueil
+      const path = window.location.pathname;
+      if (path !== '/' && path !== '/accueil' && !path.startsWith('/accueil')) {
+        return;
+      }
+      
+      // Chercher le h4 qui contient le nom de l'utilisateur
+      // C'est un h4.list-group-item-heading.count qui n'est pas un nombre
+      const allH4 = Array.from(document.querySelectorAll('h4.list-group-item-heading.count'));
+      const userNameH4 = allH4.find(h4 => {
+        const text = h4.textContent.trim();
+        // Le nom d'utilisateur n'est pas un nombre
+        return !/^\d+$/.test(text) && text.length > 0;
+      });
+      
+      if (!userNameH4) {
+        console.log('[Welcome Message] Nom d\'utilisateur non trouvé');
+        return;
+      }
+      
+      const userName = userNameH4.textContent.trim();
+      
+      // Vérifier que "Bienvenu" n'est pas déjà présent
+      if (userName.startsWith('Bienvenu')) {
+        return;
+      }
+      
+      // Ajouter "Bienvenu " avant le nom
+      userNameH4.textContent = 'Bienvenu ' + userName;
+      
+      console.log('[Welcome Message] Message de bienvenue ajouté pour:', userName);
+    }
+    
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addWelcomeMessage);
+    } else {
+      addWelcomeMessage();
     }
   })();
 
@@ -5597,17 +6109,104 @@ body > map {
       background-color: var(--kr-white);
     }
     
-    /* Logo - Optimisé pour mobile */
-    .navbar-brand {
-      padding: 10px 15px;
-      height: var(--mobile-header-height);
-      display: flex;
+    /* Logo visible dans la navbar à gauche */
+    .navbar-header .navbar-brand {
+      display: flex !important;
       align-items: center;
+      padding: 8px 12px !important;
+      margin-right: auto !important;
+      height: var(--mobile-header-height);
+      min-width: 44px; /* Zone tactile minimum WCAG 2.5.5 */
     }
     
-    .navbar-brand .kr-logo {
-      max-height: 36px;
+    .navbar-header .navbar-brand img {
+      max-height: 32px;
       width: auto;
+    }
+    
+    /* Feedback tactile */
+    .navbar-header .navbar-brand:active {
+      background: var(--kr-overlay-dark-20);
+      transform: scale(0.95);
+    }
+    
+    /* Cacher le logo déplacé sous la navbar */
+    .navbar-brand[data-moved-below-navbar] {
+      display: none !important;
+    }
+    
+    /* Boutons déplacés dans le header */
+    .navbar-header-buttons-left,
+    .navbar-header-buttons-right {
+      display: flex;
+      align-items: center;
+      height: var(--mobile-header-height);
+    }
+    
+    .navbar-header-buttons-left {
+      order: -1; /* Place à gauche avant le toggle */
+      padding-left: 8px;
+    }
+    
+    .navbar-header-buttons-right {
+      order: 2; /* Avant le logo */
+      margin-left: auto; /* Pousse à droite */
+      padding-right: 8px;
+    }
+    
+    .navbar-header-buttons-left li,
+    .navbar-header-buttons-right li {
+      list-style: none;
+      display: inline-block;
+      margin: 0 2px;
+    }
+    
+    .navbar-header-buttons-left li a,
+    .navbar-header-buttons-right li a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 10px !important;
+      font-size: 18px;
+      color: var(--kr-white) !important;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 150ms ease;
+      position: relative;
+    }
+    
+    .navbar-header-buttons-left li a:active,
+    .navbar-header-buttons-right li a:active {
+      background-color: var(--kr-overlay-light-10);
+    }
+    
+    /* Badge dans le header */
+    .navbar-header-buttons-left .badge,
+    .navbar-header-buttons-right .badge {
+      position: absolute !important;
+      top: 6px !important;
+      right: 6px !important;
+      min-width: 16px !important;
+      height: 16px !important;
+      padding: 2px 4px !important;
+      font-size: 10px !important;
+      line-height: 12px !important;
+      border-radius: 8px !important;
+    }
+    
+    /* Réorganiser l'ordre des éléments du header */
+    .navbar-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .navbar-toggle {
+      order: 1;
+      margin-right: 0;
+      margin-left: auto;
     }
     
     /* Zone droite - Icônes (conservées telles quelles) */
@@ -5631,41 +6230,82 @@ body > map {
     .navbar-collapse.in,
     .navbar-collapse.collapsing {
       overflow-y: auto;
+      height: auto !important; /* Force hauteur auto pour éviter les problèmes de collapse.js */
     }
     
     /* Navigation dans le collapse */
     .navbar-nav {
-      margin: 7.5px -15px;
+      margin: 0;
+      padding: 8px 0;
     }
     
+    /* Liens principaux du menu - optimisés pour le tactile */
     .navbar-nav > li > a {
-      padding-top: 12px;
-      padding-bottom: 12px;
-      line-height: 20px;
+      min-height: 44px !important; /* WCAG 2.5.5 - zone tactile minimum */
+      padding: 14px 20px !important;
+      font-size: 16px !important; /* Évite le zoom automatique iOS */
+      line-height: 1.5 !important;
+      display: flex !important;
+      align-items: center !important;
+      border-bottom: 1px solid var(--kr-overlay-light-05) !important;
+      transition: background-color 150ms ease !important;
     }
     
-    .navbar-nav > li > a:hover,
-    .navbar-nav > li > a:focus {
-      background: var(--kr-overlay-light-05);
+    /* Feedback tactile au toucher */
+    .navbar-nav > li > a:active {
+      background: var(--kr-overlay-light-10) !important;
+      transition: none !important;
     }
     
-    /* Dropdowns dans le menu mobile */
+    /* Masquer les carets (chevrons) en mobile - navigation directe */
+    .navbar-nav > li > a .caret {
+      display: none !important;
+    }
+    
+    /* Dropdowns dans le menu mobile - masqués par défaut car navigation directe */
     .navbar-nav .dropdown-menu {
-      position: static;
-      float: none;
-      width: auto;
-      margin-top: 0;
-      background-color: var(--kr-overlay-dark-20);
-      border: 0;
-      box-shadow: none;
+      display: none !important; /* Masquer les sous-menus en mobile */
     }
     
-    .navbar-nav .dropdown-menu > li > a {
-      padding: 10px 30px;
+    /* Menu de droite (icônes utilisateur) */
+    .navbar-right {
+      margin: 0 !important;
+      padding: 8px 0 !important;
+      border-top: 1px solid var(--kr-overlay-light-10) !important;
     }
     
-    .navbar-nav .dropdown-menu > li > a:hover {
-      background: var(--kr-overlay-light-05);
+    .navbar-right > li {
+      display: inline-block !important;
+    }
+    
+    .navbar-right > li > a,
+    .navbar-right > li > button {
+      min-width: 44px !important; /* Zone tactile minimum */
+      min-height: 44px !important;
+      padding: 12px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 18px !important; /* Icônes plus grandes */
+      border-radius: 4px !important;
+      margin: 0 4px !important;
+    }
+    
+    .navbar-right > li > a:active,
+    .navbar-right > li > button:active {
+      background: var(--kr-overlay-light-10) !important;
+    }
+    
+    /* Badge de notification */
+    .navbar-right .badge {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      min-width: 18px !important;
+      height: 18px !important;
+      padding: 2px 5px !important;
+      font-size: 11px !important;
+      line-height: 14px !important;
     }
   }
 }
@@ -6908,14 +7548,61 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       opacity: 0.8 !important;
     }
     
-    /* Dropdown smiley/couleurs */
+    /* Dropdown smiley/couleurs - doit apparaître PAR-DESSUS la modal */
+    /* NOTE CRITIQUE: Bootstrap JS force position:fixed dynamiquement */
+    /* Solution: Sélecteur ultra-spécifique + !important pour override Bootstrap */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown .dropdown-menu,
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
       max-width: 90vw !important;
       max-height: 50vh !important;
       overflow-y: auto !important;
       padding: 12px !important;
-      z-index: 1050 !important; /* Au-dessus du footer sticky (z-index: 100) */
+      /* CRITIQUE: Garder position: absolute pour le positionnement relatif Bootstrap */
+      /* Bootstrap JS essaie de forcer position:fixed - on l'override ici */
       position: absolute !important;
+      /* z-index élevé pour passer au-dessus du footer modal */
+      z-index: 10000 !important;
+      /* Forcer l'affichage VERS LE HAUT (dropup behavior) */
+      bottom: 100% !important;
+      top: auto !important;
+      /* Petit espace entre le bouton et le dropdown */
+      margin-bottom: 4px !important;
+    }
+    
+    /* CRITIQUE: Forcer display: block quand le dropdown est ouvert */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown.open .dropdown-menu,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown:has([aria-expanded="true"]) .dropdown-menu {
+      display: block !important;
+    }
+    
+    /* SOLUTION: Forcer tous les parents à ne PAS créer de contexte d'empilement */
+    /* Cela permet au dropdown avec z-index: 10000 de passer au-dessus du footer */
+    body.mobile-mode .bootbox.modal .modal-dialog,
+    body.mobile-mode .bootbox.modal .modal-content,
+    body.mobile-mode .bootbox.modal .modal-body,
+    body.mobile-mode .bootbox.modal .modal-footer,
+    body.mobile-mode .bootbox.modal .btn-toolbar,
+    body.mobile-mode .bootbox.modal .dropdown {
+      /* Enlever TOUTES les propriétés qui créent un nouveau contexte d'empilement */
+      transform: none !important;
+      filter: none !important;
+      perspective: none !important;
+      will-change: auto !important;
+      contain: none !important;
+      /* NE PAS mettre de z-index ici, sinon ça crée un nouveau contexte */
+      z-index: auto !important;
+    }
+    
+    /* CRITIQUE: Forcer overflow: visible sur les parents pour ne PAS couper le dropdown */
+    body.mobile-mode .bootbox.modal .modal-content,
+    body.mobile-mode .bootbox.modal .modal-body,
+    body.mobile-mode .bootbox.modal .panel-body {
+      overflow: visible !important;
+    }
+    
+    /* La modal racine doit garder son z-index pour le backdrop */
+    body.mobile-mode .bootbox.modal {
+      z-index: 1050 !important;
     }
     
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table {
@@ -7017,6 +7704,371 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       overflow-x: auto !important;
     }
   }
+
+/* ============================================================================
+   MOBILE - PAGE PROFIL/INTERFACE
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Correction de l'affichage des sélecteurs de thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* Grid pour les options de thème avec images */
+  body.mobile-mode #kr-tamper-theme-form .form-group > div[style*="padding-left"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+  
+  /* Chaque option de thème (conteneur label + image) */
+  body.mobile-mode #kr-tamper-theme-form .form-group > div > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Cacher l'icône float left qui crée un conflit */
+  body.mobile-mode #kr-tamper-theme-form .form-group .lefticon {
+    display: none !important;
+  }
+  
+  /* Image de prévisualisation du thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    border-radius: 4px !important;
+    margin: 0 !important;
+  }
+  
+  /* Label du thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Radio button */
+  body.mobile-mode #kr-tamper-theme-form .form-group input[type="radio"] {
+    position: static !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Checkbox */
+  body.mobile-mode #kr-tamper-theme-form .form-group input[type="checkbox"] {
+    position: static !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Label principal de la section */
+  body.mobile-mode #kr-tamper-theme-form .form-group > label.control-label {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin-bottom: 12px !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* ============================================================================
+     FORUM RP - TRANSFORMATION EN CARDS STYLE REDDIT EXPLORE
+     Inspiré de la section "Recommandées pour toi" de Reddit
+     ============================================================================ */
+  
+  /* Conteneur principal du forum */
+  body.mobile-mode .panel-default {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Header du panel - titre "Jeu (RP)" */
+  body.mobile-mode .panel-default > .panel-heading {
+    background: var(--kr-bg-surface) !important;
+    border: none !important;
+    border-radius: var(--mobile-radius) !important;
+    padding: var(--mobile-spacing-lg) !important;
+    margin-bottom: var(--mobile-spacing-md) !important;
+  }
+  
+  body.mobile-mode .panel-default > .panel-heading h3 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  /* Cacher le header du tableau (colonnes) */
+  body.mobile-mode .panel-default .table > thead {
+    display: none !important;
+  }
+  
+  /* Transformer le tbody en container flex vertical */
+  body.mobile-mode .panel-default .table > tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  
+  /* Chaque ligne devient une card avec CSS Grid pour contrôler l'ordre d'affichage */
+  body.mobile-mode .panel-default .table > tbody > tr {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    box-shadow: var(--kr-shadow-sm) !important;
+    transition: all var(--transition-fast) !important;
+    position: relative !important;
+    min-height: auto !important;
+  }
+  
+  /* Effet au tap sur la card */
+  body.mobile-mode .panel-default .table > tbody > tr:active {
+    background: var(--kr-bg-hover) !important;
+    transform: scale(0.98) !important;
+  }
+  
+  /* === RÉORGANISATION DES CELLULES AVEC GRID === */
+  /* Utiliser grid-row pour contrôler l'ordre d'affichage */
+  body.mobile-mode .panel-default .table > tbody > tr > td {
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* td:first-child à la ligne 1 (contient titre, mods, description) */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child {
+    grid-row: 1 !important;
+  }
+  
+  /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3) {
+    grid-row: 2 !important;
+  }
+  
+  /* td:nth-child(4) (dernier message) à la ligne 4 */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) {
+    grid-row: 4 !important;
+  }
+  
+  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
+  /* Cette cellule contient 3 éléments dont on doit cacher la description pour la réafficher plus tard */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-row: 1 !important;
+  }
+  
+  /* === TITRE DU FORUM === */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child {
+    order: 1 !important;
+    margin: 0 !important;
+    font-size: 0 !important; /* Masquer le texte brut "→" */
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    line-height: 1.1 !important;
+    display: block !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* === MODÉRATEURS === */
+  /* Afficher les modérateurs juste après le titre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+    order: 2 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+    display: none !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* === DESCRIPTION === */
+  /* La description est maintenant dans un wrapper créé par JavaScript */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+    order: 999 !important;
+    font-size: 12px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  
+  /* Description wrapper */
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper {
+    margin: 0 0 6px 0 !important;
+  }
+  
+  /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
+  /* Les stats sont maintenant dans un wrapper créé par JavaScript */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3),
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+    display: inline !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Stats wrapper */
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper {
+    margin: 0 0 2px 0 !important;
+  }
+  
+  /* Ajouter "sujets · " après le premier nombre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+    content: " sujets · " !important;
+  }
+  
+  /* Ajouter "messages" après le second nombre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+    content: " messages" !important;
+  }
+  
+  /* === CELLULE 4 : Dernier message === */
+  /* Maintenant que le DOM est réorganisé, la cellule du dernier message est à la fin */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4),
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child {
+    order: 5 !important;
+    padding-top: 3px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    margin-top: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+  
+  /* Wrapper du dernier message - tout inline */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4),
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child {
+    display: block !important;
+  }
+  
+  /* Préfixe "→" avant l'auteur */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child::before {
+    content: "→ " !important;
+    color: var(--kr-text-secondary) !important;
+    font-weight: 400 !important;
+    margin-right: 4px !important;
+  }
+  
+  /* Auteur du dernier message - inline */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* Séparateur avant le timestamp */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a::after {
+    content: " · " !important;
+    color: var(--kr-text-muted) !important;
+    font-weight: 400 !important;
+  }
+  
+  /* Timestamp et lien vers le message - inline, pas de bouton */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p {
+    display: inline !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Icône flèche dans le lien vers le message - 20x20px */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Badges/images dans les noms d'utilisateurs */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) img {
+    vertical-align: middle !important;
+    margin: 0 2px !important;
+    max-height: 16px !important;
+  }
+}
 `,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
@@ -9206,6 +10258,52 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /**
+   * CRITIQUE: Force position:absolute sur les dropdowns pour contrer Bootstrap JS
+   * Bootstrap 3 applique dynamiquement position:fixed sur les dropdowns, ce qui les
+   * positionne en dehors du contexte de la modal. On force position:absolute pour
+   * qu'ils restent relatifs à leur parent .dropdown et apparaissent au bon endroit.
+   */
+  function fixDropdownPosition(modal) {
+    if (!modal) return;
+    
+    // Observer les dropdowns qui s'ouvrent
+    const dropdownObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Vérifier si un dropdown a été ouvert (classe .open ajoutée)
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const dropdown = mutation.target;
+          if (dropdown.classList.contains('dropdown') && dropdown.classList.contains('open')) {
+            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+            if (dropdownMenu) {
+              // FORCE position:absolute pour override Bootstrap JS
+              dropdownMenu.style.setProperty('position', 'absolute', 'important');
+              dropdownMenu.style.setProperty('bottom', '100%', 'important');
+              dropdownMenu.style.setProperty('top', 'auto', 'important');
+              dropdownMenu.style.setProperty('left', '0', 'important');
+              dropdownMenu.style.setProperty('margin-bottom', '4px', 'important');
+              dropdownMenu.style.setProperty('z-index', '10000', 'important');
+              console.log('[Order Modal] Dropdown position forcée à absolute');
+            }
+          }
+        }
+      });
+    });
+    
+    // Observer tous les dropdowns dans la toolbar
+    const toolbar = modal.querySelector('.btn-toolbar');
+    if (toolbar) {
+      const dropdowns = toolbar.querySelectorAll('.dropdown');
+      dropdowns.forEach(dropdown => {
+        dropdownObserver.observe(dropdown, {
+          attributes: true,
+          attributeFilter: ['class']
+        });
+      });
+      console.log(`[Order Modal] Observateur dropdown installé sur ${dropdowns.length} dropdowns`);
+    }
+  }
+
+  /**
    * Applique toutes les améliorations mobiles à une modal de personnage
    */
   function enhanceCharacterModal(modal) {
@@ -9216,6 +10314,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
     transformOrderModalStructure(modal);
+    
+    // CRITIQUE: Fixer la position des dropdowns (couleurs/smileys)
+    fixDropdownPosition(modal);
     
     // Nettoyer les whitespace nodes de la toolbar pour le grid
     cleanToolbarWhitespace(modal);
