@@ -1,21 +1,21 @@
 // Main script code - CSS bundled inline
-(function(){
+(function (){
   'use strict';
 
   // ============================================================================
   // TASK-1.1 - MOBILE DETECTION & INITIALIZATION
   // ============================================================================
-  (function() {
+  (function () {
     // Configuration
     const MOBILE_BREAKPOINT = 768; // px
-    
+
     /**
      * Détecte si on est sur mobile
      */
     function isMobileDevice() {
       return window.innerWidth < MOBILE_BREAKPOINT;
     }
-    
+
     /**
      * Initialise le mode mobile
      */
@@ -30,7 +30,7 @@
         console.log('[Kraland Mobile] Mode desktop');
       }
     }
-    
+
     /**
      * Applique les styles critiques qui doivent surcharger Bootstrap
      * Cette fonction force les styles inline pour contrer la spécificité CSS de Bootstrap
@@ -44,21 +44,21 @@
           col.style.setProperty('padding-left', '0px', 'important');
           col.style.setProperty('padding-right', '0px', 'important');
         });
-        
+
         // Retrait margin des rows
         const rows = document.querySelectorAll('.row');
         rows.forEach(row => {
           row.style.setProperty('margin-left', '0px', 'important');
           row.style.setProperty('margin-right', '0px', 'important');
         });
-        
+
         // Fix des containers
         const containers = document.querySelectorAll('.container, .container-fluid');
         containers.forEach(container => {
           container.style.setProperty('padding-left', '0px', 'important');
           container.style.setProperty('padding-right', '0px', 'important');
         });
-        
+
         // Dashboard pleine largeur
         const dashboards = document.querySelectorAll('.dashboard');
         dashboards.forEach(dashboard => {
@@ -68,13 +68,13 @@
           dashboard.style.setProperty('padding', '0px', 'important');
         });
       };
-      
+
       // Applique immédiatement et après un court délai (pour le contenu chargé dynamiquement)
       applyStyles();
       setTimeout(applyStyles, 100);
       setTimeout(applyStyles, 500);
     }
-    
+
     /**
      * Gère le resize de la fenêtre
      */
@@ -85,17 +85,17 @@
         initMobileMode();
       }, 150);
     }
-    
+
     // Initialisation au chargement
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initMobileMode);
     } else {
       initMobileMode();
     }
-    
+
     // Écoute du resize
     window.addEventListener('resize', handleResize);
-    
+
     // Export global pour debug
     window.KralandMobile = {
       isMobile: isMobileDevice,
@@ -106,32 +106,32 @@
   // ============================================================================
   // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
   // ============================================================================
-  (function() {
+  (function () {
     /**
      * Initialise le comportement mobile du header Bootstrap 3
      * Utilise les composants natifs .navbar-toggle et .navbar-collapse
      */
     function initMobileHeader() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       // Vérifier que Bootstrap JS est chargé
       if (typeof jQuery === 'undefined' || typeof jQuery.fn.collapse === 'undefined') {
         console.warn('[Mobile Header] Bootstrap JS non chargé, utilisation du fallback');
         initFallbackToggle();
         return;
       }
-      
+
       // Bootstrap 3 gère automatiquement le toggle via data-toggle="collapse"
       // On s'assure juste que le markup est correct
-      
+
       const toggle = document.querySelector('.navbar-toggle');
       const collapse = document.querySelector('.navbar-collapse');
-      
+
       if (!toggle || !collapse) {
         console.log('[Mobile Header] Éléments navbar-toggle ou navbar-collapse non trouvés');
         return;
       }
-      
+
       // Vérifier/ajouter les attributs data nécessaires pour BS3
       if (!toggle.getAttribute('data-toggle')) {
         toggle.setAttribute('data-toggle', 'collapse');
@@ -141,29 +141,29 @@
         collapse.id = collapseId;
         toggle.setAttribute('data-target', '#' + collapseId);
       }
-      
+
       // Auto-close menu au clic sur un lien
       initMenuAutoClose();
-      
+
       console.log('[Mobile Header] Header Bootstrap 3 initialisé');
     }
-    
+
     /**
      * Fallback manuel si Bootstrap JS n'est pas disponible
      */
     function initFallbackToggle() {
       const toggle = document.querySelector('.navbar-toggle');
       const collapse = document.querySelector('.navbar-collapse');
-      
-      if (!toggle || !collapse) return;
-      
-      toggle.addEventListener('click', function(e) {
+
+      if (!toggle || !collapse) {return;}
+
+      toggle.addEventListener('click', function (e) {
         e.preventDefault();
         collapse.classList.toggle('in');
-        
+
         const expanded = collapse.classList.contains('in');
         toggle.setAttribute('aria-expanded', expanded);
-        
+
         // Gestion du scroll
         if (expanded) {
           document.body.style.overflow = 'hidden';
@@ -171,20 +171,20 @@
           document.body.style.overflow = '';
         }
       });
-      
+
       console.log('[Mobile Header] Fallback toggle initialisé');
     }
-    
+
     /**
      * Ferme le menu au clic sur un lien
      */
     function initMenuAutoClose() {
       const collapse = document.querySelector('.navbar-collapse');
-      if (!collapse) return;
-      
+      if (!collapse) {return;}
+
       const links = collapse.querySelectorAll('a:not(.dropdown-toggle)');
       links.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
           // Fermer le menu après un court délai
           setTimeout(() => {
             if (typeof jQuery !== 'undefined' && jQuery.fn.collapse) {
@@ -197,7 +197,7 @@
         });
       });
     }
-    
+
     // Attendre que le DOM soit prêt
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -206,7 +206,7 @@
     } else {
       setTimeout(initMobileHeader, 100);
     }
-    
+
     // Export pour debug
     if (window.KralandMobile) {
       window.KralandMobile.reinitHeader = initMobileHeader;
@@ -217,112 +217,112 @@
   // ============================================================================
   // TASK-2.4 - DÉPLACER BOUTONS DANS HEADER MOBILE
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * Déplace les boutons notification, kramail, palette, profil et carte dans le header mobile
      * - Notification, Kramail et Palette à gauche du hamburger
      * - Profil et Carte à droite du header
      */
     function moveHeaderButtons() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       const navbarHeader = document.querySelector('.navbar-header');
       const navRight = document.querySelector('.navbar-right');
-      
+
       if (!navbarHeader || !navRight) {
         console.log('[Mobile Header Buttons] Éléments non trouvés');
         return;
       }
-      
+
       // Identifier les boutons
       const allButtons = Array.from(navRight.querySelectorAll('li'));
-      
+
       // Trouver les boutons spécifiques par leur icône
       const notificationBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-bell');
         return icon && !li.querySelector('.dropdown-menu');
       });
-      
+
       const kramailBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-envelope');
         return icon && !li.querySelector('.dropdown-menu');
       });
-      
+
       const paletteBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-palette');
         return icon && !li.querySelector('.dropdown-menu');
       });
-      
+
       const profileBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-user');
         const hasDropdown = li.querySelector('.dropdown-menu');
         return icon && hasDropdown;
       });
-      
+
       const mapBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-globe');
         return icon && !li.querySelector('.dropdown-menu');
       });
-      
+
       if (!notificationBtn && !kramailBtn && !paletteBtn && !profileBtn && !mapBtn) {
         console.log('[Mobile Header Buttons] Aucun bouton trouvé');
         return;
       }
-      
+
       // Vérifier si déjà déplacés
       if (notificationBtn && notificationBtn.hasAttribute('data-moved-to-header')) {
         return;
       }
-      
+
       // Créer le conteneur pour tous les boutons (à gauche)
       const leftButtonsContainer = document.createElement('div');
       leftButtonsContainer.className = 'navbar-header-buttons-left';
-      
+
       if (notificationBtn) {
         notificationBtn.setAttribute('data-moved-to-header', 'true');
         leftButtonsContainer.appendChild(notificationBtn.cloneNode(true));
       }
-      
+
       if (kramailBtn) {
         kramailBtn.setAttribute('data-moved-to-header', 'true');
         leftButtonsContainer.appendChild(kramailBtn.cloneNode(true));
       }
-      
+
       if (paletteBtn) {
         paletteBtn.setAttribute('data-moved-to-header', 'true');
         leftButtonsContainer.appendChild(paletteBtn.cloneNode(true));
       }
-      
+
       if (profileBtn) {
         profileBtn.setAttribute('data-moved-to-header', 'true');
         const profileClone = profileBtn.cloneNode(true);
         // Supprimer le dropdown pour simplifier l'interface mobile
         const dropdown = profileClone.querySelector('.dropdown-menu');
-        if (dropdown) dropdown.remove();
+        if (dropdown) {dropdown.remove();}
         leftButtonsContainer.appendChild(profileClone);
       }
-      
+
       if (mapBtn) {
         mapBtn.setAttribute('data-moved-to-header', 'true');
         leftButtonsContainer.appendChild(mapBtn.cloneNode(true));
       }
-      
+
       // Insérer le conteneur dans le header
       if (leftButtonsContainer.children.length > 0) {
         navbarHeader.insertBefore(leftButtonsContainer, navbarHeader.firstChild);
       }
-      
+
       // Cacher le logo en mobile
       const navbarBrand = document.querySelector('.navbar-brand');
       if (navbarBrand) {
         navbarBrand.style.display = 'none';
       }
-      
+
       console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, palette, profil, map)');
     }
-    
+
     // Initialiser au chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -336,9 +336,9 @@
   // ============================================================================
   // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC BIENVENU
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * [DÉSACTIVÉ] Le logo reste maintenant dans la navbar à gauche
      * Ancienne fonction qui déplaçait le logo sous la navbar
@@ -346,37 +346,37 @@
     /*
     function moveLogoToWelcomeBlock() {
       if (!document.body.classList.contains('mobile-mode')) return;
-      
+
       // Trouver le logo
       const logo = document.querySelector('.navbar-brand');
       if (!logo) {
         console.log('[Mobile Logo] Logo non trouvé');
         return;
       }
-      
+
       // Vérifier si déjà déplacé
       if (document.querySelector('[data-moved-below-navbar]')) {
         return;
       }
-      
+
       // Trouver la navbar
       const navbar = document.querySelector('.navbar');
       if (!navbar) {
         console.log('[Mobile Logo] Navbar non trouvée');
         return;
       }
-      
+
       // Cloner le logo et le rendre visible
       const logoClone = logo.cloneNode(true);
       logoClone.style.display = 'flex';
       logoClone.setAttribute('data-moved-below-navbar', 'true');
-      
+
       // Insérer le logo juste après la navbar
       navbar.parentElement.insertBefore(logoClone, navbar.nextSibling);
-      
+
       console.log('[Mobile Logo] Logo déplacé sous la navbar');
     }
-    
+
     // Initialiser au chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -392,16 +392,16 @@
   // TASK-1.4 - MINI-PROFIL COLLAPSIBLE
   // ============================================
 
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * Extrait les données d'une jauge (valeur/max)
      */
     function extractGaugeData(element, type) {
       const text = element.textContent;
       const match = text.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);
-      
+
       if (!match) {
         // Chercher juste le nombre si pas de format complet
         const numMatch = text.match(/\d+/);
@@ -411,14 +411,14 @@
         }
         return { type, current: 0, max: 1, percent: 0 };
       }
-      
+
       const current = parseInt(match[1] || match[3]);
       const max = parseInt(match[2] || match[4]);
       const percent = Math.min(100, (current / max) * 100);
-      
+
       return { type, current, max, percent };
     }
-    
+
     /**
      * Trouve les données du profil joueur
      */
@@ -426,37 +426,37 @@
       // Container principal
       const profileSection = document.getElementById('player-header-section');
       const mainPanel = document.getElementById('player-main-panel');
-      
+
       if (!profileSection || !mainPanel) {
         console.warn('[Mobile Mini-Profile] Sections profil non trouvées');
         return null;
       }
-      
+
       // Nom du joueur (dans le header)
       const nameElement = profileSection.querySelector('.list-group-item.active');
       const playerName = nameElement ? nameElement.textContent.replace('×', '').trim() : 'Joueur';
-      
+
       // Avatar (dans la première row)
       const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
       const avatarSrc = avatarLink ? avatarLink.src : null;
-      
+
       // Argent (chercher "MØ")
       const moneyElement = Array.from(mainPanel.querySelectorAll('*')).find(el => {
         const text = el.textContent.trim();
         return text.includes('MØ') && el.children.length === 0 && text.length < 20;
       });
       const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
-      
+
       // Horloge (dans player-vitals-section)
       const vitalsSection = document.getElementById('player-vitals-section');
       const clockElement = vitalsSection ? vitalsSection.querySelector('.c100') : null;
       const clock = clockElement ? clockElement.textContent.trim() : '--:--';
-      
+
       // Jauges PV/PM/PP - Nouvelle approche
       // Chercher les éléments contenant "PV", "PM", "PP" avec leur valeur
       const findGaugeInSection = (section, type) => {
-        if (!section) return null;
-        
+        if (!section) {return null;}
+
         // Chercher l'élément contenant le type (PV, PM, PP)
         const elements = Array.from(section.querySelectorAll('*'));
         const gaugeEl = elements.find(el => {
@@ -465,27 +465,27 @@
           const hasNumber = /\d+/.test(text);
           return hasType && hasNumber && el.children.length <= 2;
         });
-        
-        if (!gaugeEl) return null;
-        
+
+        if (!gaugeEl) {return null;}
+
         // Extraire la valeur actuelle et max
         const text = gaugeEl.textContent.trim();
         const match = text.match(/(\d+)\s*\/\s*(\d+)/);
-        
+
         if (match) {
           // Format "27 / 27"
           return extractGaugeData(gaugeEl, type.toLowerCase());
         } else {
           // Format "PV 27" sans max - chercher la barre de progression pour le max
           const valueMatch = text.match(/\d+/);
-          if (!valueMatch) return null;
-          
+          if (!valueMatch) {return null;}
+
           const current = parseInt(valueMatch[0]);
-          
+
           // Chercher la barre de progression associée
           const progressBar = gaugeEl.querySelector('.progress-bar, [class*="bar"]');
           let max = current; // Par défaut, considérer que c'est plein
-          
+
           if (progressBar) {
             const width = progressBar.style.width;
             if (width && width.includes('%')) {
@@ -495,16 +495,16 @@
               }
             }
           }
-          
+
           const percent = max > 0 ? Math.min(100, (current / max) * 100) : 0;
           return { type: type.toLowerCase(), current, max, percent };
         }
       };
-      
+
       const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
       const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
       const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
-      
+
       return {
         name: playerName,
         avatar: avatarSrc,
@@ -517,29 +517,29 @@
         }
       };
     }
-    
+
     /**
      * Crée le mini-profil mobile
      */
     function createMiniProfile() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      if (document.querySelector('.mobile-mini-profile')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-mini-profile')) {return;}
+
       const profileData = findProfileData();
       if (!profileData) {
         console.warn('[Mobile Mini-Profile] Données profil non trouvées');
         return;
       }
-      
+
       // Container principal
       const miniProfile = document.createElement('div');
       miniProfile.className = 'mobile-mini-profile collapsed';
       miniProfile.setAttribute('data-task', '1.4');
-      
+
       // Header (toujours visible)
       const header = document.createElement('div');
       header.className = 'mobile-mini-profile-header';
-      
+
       if (profileData.avatar) {
         const avatar = document.createElement('img');
         avatar.src = profileData.avatar;
@@ -547,15 +547,15 @@
         avatar.alt = 'Avatar';
         header.appendChild(avatar);
       }
-      
+
       const info = document.createElement('div');
       info.className = 'mobile-mini-profile-info';
-      
+
       const name = document.createElement('div');
       name.className = 'mobile-mini-profile-name';
       name.textContent = profileData.name;
       info.appendChild(name);
-      
+
       const moneyRow = document.createElement('div');
       moneyRow.className = 'mobile-mini-profile-money';
       moneyRow.innerHTML = `
@@ -563,10 +563,10 @@
         <span class="mobile-mini-profile-clock">⏱️ ${profileData.clock}</span>
       `;
       info.appendChild(moneyRow);
-      
+
       header.appendChild(info);
       miniProfile.appendChild(header);
-      
+
       // Bouton settings
       const settings = document.createElement('a');
       settings.href = '/jouer/perso';
@@ -575,15 +575,15 @@
       settings.title = 'Voir le personnage';
       settings.addEventListener('click', (e) => e.stopPropagation());
       miniProfile.appendChild(settings);
-      
+
       // Jauges compactes (toujours visibles)
       const gaugesCompact = document.createElement('div');
       gaugesCompact.className = 'mobile-mini-profile-gauges-compact';
-      
+
       ['pv', 'pm', 'pp'].forEach(type => {
         const gauge = profileData.gauges[type];
-        if (!gauge) return;
-        
+        if (!gauge) {return;}
+
         const el = document.createElement('div');
         el.className = 'mobile-gauge-compact';
         el.innerHTML = `
@@ -595,21 +595,21 @@
         `;
         gaugesCompact.appendChild(el);
       });
-      
+
       miniProfile.appendChild(gaugesCompact);
-      
+
       // Détails (masqués par défaut)
       const details = document.createElement('div');
       details.className = 'mobile-mini-profile-details';
-      
+
       // Jauges détaillées
       const gaugesFull = document.createElement('div');
       gaugesFull.className = 'mobile-mini-profile-gauges-full';
-      
+
       ['pv', 'pm', 'pp'].forEach(type => {
         const gauge = profileData.gauges[type];
-        if (!gauge) return;
-        
+        if (!gauge) {return;}
+
         const el = document.createElement('div');
         el.className = 'mobile-gauge-full';
         el.innerHTML = `
@@ -623,52 +623,52 @@
         `;
         gaugesFull.appendChild(el);
       });
-      
+
       details.appendChild(gaugesFull);
       miniProfile.appendChild(details);
-      
+
       // Toggle expand/collapse
       miniProfile.addEventListener('click', (e) => {
         // Ne pas toggle si clic sur le bouton settings
-        if (e.target.classList.contains('mobile-mini-profile-settings') || 
+        if (e.target.classList.contains('mobile-mini-profile-settings') ||
             e.target.closest('.mobile-mini-profile-settings')) {
           return;
         }
-        
+
         miniProfile.classList.toggle('collapsed');
         miniProfile.classList.toggle('expanded');
-        
-        console.log('[Mobile Mini-Profile] État:', 
+
+        console.log('[Mobile Mini-Profile] État:',
           miniProfile.classList.contains('expanded') ? 'déplié' : 'replié'
         );
       });
-      
+
       // Insérer après la tab bar ou au début du body
       const tabBar = document.querySelector('.mobile-tab-bar');
       const container = document.getElementById('content') || document.body;
-      
+
       if (tabBar && tabBar.nextSibling) {
         tabBar.parentNode.insertBefore(miniProfile, tabBar.nextSibling);
       } else {
         container.insertBefore(miniProfile, container.firstChild);
       }
-      
+
       console.log('[Mobile Mini-Profile] Créé avec succès');
       console.log('  - Nom:', profileData.name);
       console.log('  - Argent:', profileData.money);
       console.log('  - Horloge:', profileData.clock);
       console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current}/${profileData.gauges.pv.max}` : 'N/A');
     }
-    
+
     /**
      * Initialise le mini-profil
      */
     function initMiniProfile() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       createMiniProfile();
     }
-    
+
     // Attendre le DOM + délai pour autres tâches (après tab bar)
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -677,7 +677,7 @@
     } else {
       setTimeout(initMiniProfile, 250);
     }
-    
+
     // Exposer pour debug
     if (window.KralandMobile) {
       window.KralandMobile.initMiniProfile = initMiniProfile;
@@ -688,73 +688,73 @@
   // TASK-1.5 - ACTIONS RAPIDES HORIZONTALES (Bootstrap 3)
   // ============================================
 
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * Crée la barre d'actions rapides mobile avec Bootstrap 3
      */
     function createQuickActions() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      if (document.querySelector('.mobile-quick-actions')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-quick-actions')) {return;}
+
       // Trouver la section actions originale
       const actionsSection = document.getElementById('player-actions-section');
       if (!actionsSection) {
         console.warn('[Mobile Quick Actions] Section actions non trouvée');
         return;
       }
-      
+
       // Récupérer les boutons originaux
       const originalButtons = actionsSection.querySelectorAll('a.btn, button.btn');
       if (originalButtons.length === 0) {
         console.warn('[Mobile Quick Actions] Aucun bouton trouvé');
         return;
       }
-      
+
       // Container avec btn-group-justified Bootstrap 3
       const container = document.createElement('div');
       container.className = 'btn-group btn-group-justified mobile-quick-actions';
       container.setAttribute('role', 'group');
       container.setAttribute('data-task', '1.5');
-      
+
       // Cloner chaque bouton avec structure Bootstrap 3 justified
       originalButtons.forEach((originalBtn) => {
         // Wrapper btn-group requis par BS3 justified
         const btnGroup = document.createElement('div');
         btnGroup.className = 'btn-group';
         btnGroup.setAttribute('role', 'group');
-        
+
         // Cloner le bouton
         const btn = originalBtn.cloneNode(true);
         btn.classList.add('mobile-quick-action');
-        
+
         // Extraire l'icône et le label
         const icon = btn.querySelector('i');
         const label = btn.textContent.trim();
-        
+
         // Reconstruire le contenu avec structure mobile
         btn.innerHTML = '';
-        
+
         if (icon) {
           const iconClone = icon.cloneNode(true);
           iconClone.classList.add('mobile-quick-action-icon');
           btn.appendChild(iconClone);
         }
-        
+
         const labelSpan = document.createElement('span');
         labelSpan.className = 'mobile-quick-action-label';
         labelSpan.textContent = label;
         btn.appendChild(labelSpan);
-        
+
         btnGroup.appendChild(btn);
         container.appendChild(btnGroup);
       });
-      
+
       // Insérer après le mini-profil
       const miniProfile = document.querySelector('.mobile-mini-profile');
       const tabBar = document.querySelector('.mobile-tab-bar');
-      
+
       if (miniProfile && miniProfile.nextSibling) {
         miniProfile.parentNode.insertBefore(container, miniProfile.nextSibling);
       } else if (tabBar && tabBar.nextSibling) {
@@ -762,19 +762,19 @@
       } else {
         document.body.insertBefore(container, document.body.firstChild);
       }
-      
+
       console.log('[Mobile Quick Actions] Créées avec', originalButtons.length, 'actions');
     }
-    
+
     /**
      * Initialise les actions rapides
      */
     function initQuickActions() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       createQuickActions();
     }
-    
+
     // Attendre le DOM + délai (après mini-profil)
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -783,7 +783,7 @@
     } else {
       setTimeout(initQuickActions, 300);
     }
-    
+
     // Exposer pour debug
     if (window.KralandMobile) {
       window.KralandMobile.initQuickActions = initQuickActions;
@@ -793,43 +793,43 @@
   // ============================================
   // TASK-1.6 - HOMEPAGE CAROUSEL REMOVAL (Mobile)
   // ============================================
-  (function() {
+  (function () {
     /**
      * Supprime le carousel Bootstrap sur la page d'accueil en mode mobile
      * Le carousel prend trop de place et n'est pas adapté aux petits écrans
      */
     function removeHomepageCarousel() {
       // Ne s'exécute qu'en mode mobile
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       // Ne s'exécute que sur la page d'accueil
-      const isHomePage = window.location.pathname === '/' || 
+      const isHomePage = window.location.pathname === '/' ||
                          window.location.pathname === '/accueil' ||
                          window.location.pathname.endsWith('/');
-      
-      if (!isHomePage) return;
-      
+
+      if (!isHomePage) {return;}
+
       // Sélectionner le carousel Bootstrap (.carousel)
       const carousel = document.querySelector('.carousel');
-      
+
       if (!carousel) {
         console.log('[Homepage Carousel] Carousel non trouvé sur la page');
         return;
       }
-      
+
       // Supprimer le carousel du DOM
       carousel.remove();
-      
+
       console.log('[Homepage Carousel] Carousel supprimé en mode mobile');
     }
-    
+
     // Attendre le chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', removeHomepageCarousel);
     } else {
       removeHomepageCarousel();
     }
-    
+
     // Exposer pour debug
     if (window.KralandMobile) {
       window.KralandMobile.removeHomepageCarousel = removeHomepageCarousel;
@@ -840,9 +840,9 @@
   // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
   // ============================================
 
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * Trouve les liens du menu navigation jeu
      */
@@ -855,9 +855,9 @@
         { pattern: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
         { pattern: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
       ];
-      
+
       const links = [];
-      
+
       patterns.forEach(item => {
         const link = document.querySelector(`a[href*="${item.pattern}"]`);
         if (link) {
@@ -869,50 +869,50 @@
           });
         }
       });
-      
+
       return links;
     }
-    
+
     /**
      * Crée la tab bar avec structure Bootstrap 3
      */
     function createTabBar() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      if (document.querySelector('.mobile-tab-bar')) return; // Déjà créé
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-tab-bar')) {return;} // Déjà créé
+
       // Trouver les liens
       const navLinks = findNavigationLinks();
-      
+
       if (navLinks.length === 0) {
         console.warn('[Mobile Tab Bar] Liens navigation jeu non trouvés');
         return;
       }
-      
+
       // Créer la tab bar avec structure Bootstrap 3 (ul.nav.nav-tabs)
       const tabBar = document.createElement('ul');
       tabBar.className = 'nav nav-tabs mobile-tab-bar';
       tabBar.setAttribute('role', 'tablist');
-      
+
       // Créer les tabs (li > a comme dans BS3) avec icônes + texte
       navLinks.forEach(linkData => {
         const li = document.createElement('li');
         li.setAttribute('role', 'presentation');
-        
+
         const a = document.createElement('a');
         a.href = linkData.href;
         a.setAttribute('role', 'tab');
-        
+
         // Créer structure icône + texte
         const icon = document.createElement('i');
         icon.className = `fa ${linkData.icon} mobile-tab-icon`;
-        
+
         const label = document.createElement('span');
         label.className = 'mobile-tab-label';
         label.textContent = linkData.text;
-        
+
         a.appendChild(icon);
         a.appendChild(label);
-        
+
         // Marquer l'onglet actif (classe sur le li comme dans BS3)
         const currentPath = window.location.pathname;
         if (currentPath.includes(linkData.pattern)) {
@@ -921,31 +921,31 @@
         } else {
           a.setAttribute('aria-selected', 'false');
         }
-        
+
         li.appendChild(a);
         tabBar.appendChild(li);
       });
-      
+
       // Insérer après le header
       const header = document.querySelector('.navbar') ||
                      document.querySelector('header') ||
                      document.body.firstElementChild;
-      
+
       if (header && header.nextSibling) {
         header.parentNode.insertBefore(tabBar, header.nextSibling);
       } else {
         document.body.insertBefore(tabBar, document.body.firstChild);
       }
-      
+
       // Gérer l'indicateur de scroll
       handleTabBarScroll(tabBar);
-      
+
       // Scroll automatique vers l'onglet actif
       setTimeout(() => scrollToActiveTab(tabBar), 100);
-      
+
       console.log('[Mobile Tab Bar] Créée avec', navLinks.length, 'onglets');
     }
-    
+
     /**
      * Gère l'indicateur de scroll de la tab bar
      */
@@ -954,49 +954,49 @@
         const isAtEnd = tabBar.scrollLeft + tabBar.clientWidth >= tabBar.scrollWidth - 5;
         tabBar.classList.toggle('scrolled-end', isAtEnd);
       };
-      
+
       tabBar.addEventListener('scroll', checkScroll);
-      
+
       // Check initial
       setTimeout(checkScroll, 100);
-      
+
       // Re-check au resize
       window.addEventListener('resize', checkScroll);
     }
-    
+
     /**
      * Scroll automatique vers l'onglet actif
      */
     function scrollToActiveTab(tabBar) {
       const activeTab = tabBar.querySelector('li.active > a');
-      if (!activeTab) return;
-      
+      if (!activeTab) {return;}
+
       // Scroll smooth vers l'onglet actif
       const tabBarRect = tabBar.getBoundingClientRect();
       const activeRect = activeTab.getBoundingClientRect();
-      
+
       const scrollLeft = activeRect.left - tabBarRect.left - (tabBarRect.width / 2) + (activeRect.width / 2);
-      
+
       tabBar.scrollTo({
         left: tabBar.scrollLeft + scrollLeft,
         behavior: 'smooth'
       });
     }
-    
+
     /**
      * Initialise la tab bar
      */
     function initTabBar() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       createTabBar();
     }
-    
+
     // Ajouter la fonction à l'API globale
     if (window.KralandMobile) {
       window.KralandMobile.initTabBar = initTabBar;
     }
-    
+
     // Initialiser au chargement avec un délai pour s'assurer que le DOM est prêt
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => setTimeout(initTabBar, 100));
@@ -1008,9 +1008,9 @@
   // ============================================================================
   // TASK-2.1 - MÉMORISATION DES ALERTES FERMÉES
   // ============================================================================
-  (function() {
+  (function () {
     const STORAGE_KEY = 'kraland_dismissed_alerts';
-    
+
     /**
      * Génère un hash simple à partir d'une chaîne
      */
@@ -1023,7 +1023,7 @@
       }
       return Math.abs(hash).toString(36);
     }
-    
+
     /**
      * Récupère la liste des alertes fermées depuis le localStorage
      */
@@ -1036,7 +1036,7 @@
         return [];
       }
     }
-    
+
     /**
      * Sauvegarde une alerte fermée dans le localStorage
      */
@@ -1052,29 +1052,29 @@
         console.warn('[Alerts Memory] Erreur sauvegarde localStorage:', e);
       }
     }
-    
+
     /**
      * Génère un identifiant unique pour une alerte basé sur son contenu
      */
     function getAlertId(alert) {
       // Essayer d'utiliser un ID existant
-      if (alert.id) return alert.id;
-      
+      if (alert.id) {return alert.id;}
+
       // Sinon, créer un hash du contenu texte (sans les espaces multiples)
       const text = alert.textContent.trim().replace(/\s+/g, ' ');
       return 'alert_' + simpleHash(text);
     }
-    
+
     /**
      * Cache automatiquement les alertes déjà fermées
      */
     function hideRememberedAlerts() {
       const dismissedAlerts = getDismissedAlerts();
-      if (dismissedAlerts.length === 0) return;
-      
+      if (dismissedAlerts.length === 0) {return;}
+
       const alerts = document.querySelectorAll('.alert.alert-dismissible');
       let hiddenCount = 0;
-      
+
       alerts.forEach(alert => {
         const alertId = getAlertId(alert);
         if (dismissedAlerts.includes(alertId)) {
@@ -1082,120 +1082,120 @@
           hiddenCount++;
         }
       });
-      
+
       if (hiddenCount > 0) {
         console.log(`[Alerts Memory] ${hiddenCount} alerte(s) masquée(s) automatiquement`);
       }
     }
-    
+
     /**
      * Écoute les fermetures d'alertes et les mémorise
      */
     function watchAlertDismissal() {
       const alerts = document.querySelectorAll('.alert.alert-dismissible');
-      
+
       alerts.forEach(alert => {
         // Trouver le bouton de fermeture
         const closeBtn = alert.querySelector('.close, [data-dismiss="alert"]');
-        if (!closeBtn) return;
-        
+        if (!closeBtn) {return;}
+
         // Écouter le clic sur le bouton de fermeture
-        closeBtn.addEventListener('click', function() {
+        closeBtn.addEventListener('click', function () {
           const alertId = getAlertId(alert);
           saveDismissedAlert(alertId);
         });
       });
-      
+
       console.log(`[Alerts Memory] Surveillance activée pour ${alerts.length} alerte(s)`);
     }
-    
+
     /**
      * Initialise la mémorisation des alertes
      */
     function initAlertsMemory() {
       // D'abord cacher les alertes déjà fermées
       hideRememberedAlerts();
-      
+
       // Puis surveiller les nouvelles fermetures
       watchAlertDismissal();
     }
-    
+
     // Initialiser au chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initAlertsMemory);
     } else {
       initAlertsMemory();
     }
-    
+
     /**
      * Ajoute un bouton de réinitialisation dans la page profil/interface
      */
     function addResetButtonToInterfacePage() {
       // Vérifier qu'on est sur la bonne page
-      if (!window.location.pathname.includes('/profil/interface')) return;
-      
+      if (!window.location.pathname.includes('/profil/interface')) {return;}
+
       // Attendre que le formulaire Tampermonkey soit présent
       const checkForm = setInterval(() => {
         const tamperForm = document.querySelector('#kr-tamper-theme-form');
-        if (!tamperForm) return;
-        
+        if (!tamperForm) {return;}
+
         clearInterval(checkForm);
-        
+
         // Créer une section dédiée pour le bouton
         const section = document.createElement('div');
         section.className = 'form-group';
         section.style.marginTop = '20px';
         section.style.paddingTop = '15px';
         section.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
-        
+
         // Créer le label
         const label = document.createElement('label');
         label.className = 'col-sm-3 control-label';
         label.style.paddingLeft = '0px';
         label.style.paddingRight = '0px';
         label.textContent = 'Alertes';
-        
+
         // Créer le conteneur du bouton
         const btnContainer = document.createElement('div');
         btnContainer.className = 'col-sm-9';
         btnContainer.style.paddingLeft = '0px';
-        
+
         // Créer le bouton de réinitialisation
         const resetBtn = document.createElement('button');
         resetBtn.type = 'button';
         resetBtn.className = 'btn btn-warning btn-block';
-        
+
         // Ajouter l'icône et le texte
         const icon = document.createElement('span');
         icon.className = 'glyphicon glyphicon-refresh';
         icon.style.marginRight = '5px';
-        
+
         const text = document.createTextNode('Réinitialiser les alertes fermées');
-        
+
         resetBtn.appendChild(icon);
         resetBtn.appendChild(text);
-        
+
         // Action au clic
-        resetBtn.addEventListener('click', function() {
+        resetBtn.addEventListener('click', function () {
           const dismissed = getDismissedAlerts();
           const count = dismissed.length;
-          
+
           if (count === 0) {
             alert('Aucune alerte fermée à réinitialiser.');
             return;
           }
-          
+
           if (confirm(`Voulez-vous vraiment réinitialiser ${count} alerte(s) fermée(s) ? Elles réapparaîtront lors du prochain chargement de page.`)) {
             localStorage.removeItem(STORAGE_KEY);
             console.log('[Alerts Memory] Alertes mémorisées effacées');
-            
+
             // Feedback visuel
             icon.className = 'glyphicon glyphicon-ok';
             resetBtn.textContent = '';
             resetBtn.appendChild(icon);
             resetBtn.appendChild(document.createTextNode(` ${count} alerte(s) réinitialisée(s) !`));
             resetBtn.className = 'btn btn-success btn-block';
-            
+
             setTimeout(() => {
               icon.className = 'glyphicon glyphicon-refresh';
               resetBtn.textContent = '';
@@ -1205,7 +1205,7 @@
             }, 3000);
           }
         });
-        
+
         // Ajouter une description
         const helpText = document.createElement('p');
         helpText.className = 'help-block';
@@ -1213,20 +1213,20 @@
         helpText.style.fontSize = '12px';
         helpText.style.opacity = '0.7';
         helpText.textContent = `${getDismissedAlerts().length} alerte(s) actuellement masquée(s)`;
-        
+
         // Assembler la section
         btnContainer.appendChild(resetBtn);
         btnContainer.appendChild(helpText);
         section.appendChild(label);
         section.appendChild(btnContainer);
-        
+
         // Insérer après le formulaire Tampermonkey
         tamperForm.parentNode.insertBefore(section, tamperForm.nextSibling);
-        
+
         console.log('[Alerts Memory] Bouton de réinitialisation ajouté');
       }, 100);
     }
-    
+
     // Initialiser au chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initAlertsMemory);
@@ -1235,10 +1235,10 @@
       initAlertsMemory();
       addResetButtonToInterfacePage();
     }
-    
+
     // Exposer une fonction pour réinitialiser (debug)
     if (window.KralandMobile) {
-      window.KralandMobile.clearDismissedAlerts = function() {
+      window.KralandMobile.clearDismissedAlerts = function () {
         localStorage.removeItem(STORAGE_KEY);
         console.log('[Alerts Memory] Alertes mémorisées effacées');
       };
@@ -1248,9 +1248,9 @@
   // ============================================================================
   // TASK-2.3 - MESSAGE DE BIENVENUE SUR PAGE D'ACCUEIL
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
-    
+
     /**
      * Ajoute "Bienvenu " avant le nom de l'utilisateur sur la page d'accueil
      */
@@ -1260,7 +1260,7 @@
       if (path !== '/' && path !== '/accueil' && !path.startsWith('/accueil')) {
         return;
       }
-      
+
       // Chercher le h4 qui contient le nom de l'utilisateur
       // C'est un h4.list-group-item-heading.count qui n'est pas un nombre
       const allH4 = Array.from(document.querySelectorAll('h4.list-group-item-heading.count'));
@@ -1269,25 +1269,25 @@
         // Le nom d'utilisateur n'est pas un nombre
         return !/^\d+$/.test(text) && text.length > 0;
       });
-      
+
       if (!userNameH4) {
         console.log('[Welcome Message] Nom d\'utilisateur non trouvé');
         return;
       }
-      
+
       const userName = userNameH4.textContent.trim();
-      
+
       // Vérifier que "Bienvenu" n'est pas déjà présent
       if (userName.startsWith('Bienvenu')) {
         return;
       }
-      
+
       // Ajouter "Bienvenu " avant le nom
       userNameH4.textContent = 'Bienvenu ' + userName;
-      
+
       console.log('[Welcome Message] Message de bienvenue ajouté pour:', userName);
     }
-    
+
     // Initialiser au chargement du DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', addWelcomeMessage);
@@ -1299,7 +1299,7 @@
   // ============================================================================
   // TASK-2.2 - ACCORDÉON GROUPES (Base)
   // ============================================================================
-  (function() {
+  (function () {
     /**
      * Transforme les sections de groupes en accordéon collapsible
      * Structure DOM identifiée :
@@ -1309,65 +1309,65 @@
      * - .dashboard-group-title : Nom du leader
      * - .dashboard-cards-grid : Grille des membres (à masquer/afficher)
      */
-    
+
     /**
      * Rend un groupe collapsible
      */
     function makeGroupCollapsible(section, isMyGroup) {
       const header = section.querySelector('.dashboard-section-header');
       const cardsGrid = section.querySelector('.dashboard-cards-grid');
-      
-      if (!header || !cardsGrid) return;
-      
+
+      if (!header || !cardsGrid) {return;}
+
       // Ajouter la classe accordion au header
       header.classList.add('dashboard-section-header-accordion');
-      
+
       // État initial : mon groupe ouvert, autres fermés
       const isExpanded = isMyGroup;
       cardsGrid.classList.toggle('collapsed', !isExpanded);
       header.classList.toggle('expanded', isExpanded);
-      
+
       // Ajouter l'icône d'expansion
       const icon = document.createElement('i');
       icon.className = 'fa fa-chevron-down accordion-icon';
       header.appendChild(icon);
-      
+
       // Gérer le clic
       header.style.cursor = 'pointer';
       header.addEventListener('click', (e) => {
         // Ne pas intercepter les clics sur les boutons d'action
-        if (e.target.closest('.dashboard-group-buttons')) return;
-        
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+
         // Toggle l'état
         const isNowExpanded = !cardsGrid.classList.contains('collapsed');
         cardsGrid.classList.toggle('collapsed', isNowExpanded);
         header.classList.toggle('expanded', !isNowExpanded);
-        
-        console.log('[Group Accordion]', 
+
+        console.log('[Group Accordion]',
           section.querySelector('.dashboard-group-title')?.textContent,
           isNowExpanded ? 'collapsed' : 'expanded'
         );
       });
-      
-      console.log('[Group Accordion] Groupe configuré:', 
+
+      console.log('[Group Accordion] Groupe configuré:',
         section.querySelector('.dashboard-group-title')?.textContent,
         'état initial:', isExpanded ? 'ouvert' : 'fermé'
       );
     }
-    
+
     /**
      * Initialise l'accordéon pour tous les groupes
      */
     function initGroupsAccordion() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       const sections = document.querySelectorAll('.dashboard-section');
       let count = 0;
-      
+
       sections.forEach(section => {
         const header = section.querySelector('.dashboard-section-header');
         const title = section.querySelector('.dashboard-group-title');
-        
+
         // Vérifier que c'est bien un groupe (a un header avec titre)
         if (header && title) {
           const isMyGroup = section.classList.contains('dashboard-section-mygroup');
@@ -1375,15 +1375,15 @@
           count++;
         }
       });
-      
+
       console.log('[Groups Accordion] Initialisé pour', count, 'groupes');
     }
-    
+
     // Ajouter la fonction à l'API globale
     if (window.KralandMobile) {
       window.KralandMobile.initGroupsAccordion = initGroupsAccordion;
     }
-    
+
     // Initialiser au chargement avec délai pour s'assurer que le DOM est prêt
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => setTimeout(initGroupsAccordion, 150));
@@ -1396,11 +1396,11 @@
   // TASK-2.5 : Commerce - Accordéon catégories
   // ============================================================================
   (function initCommerceAccordion() {
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
     const categoryDivs = [];
-    
+
     // Trouver tous les divs de catégorie
     document.querySelectorAll('h4.list-group-item-heading').forEach(h4 => {
       const categoryName = h4.textContent.trim();
@@ -1415,47 +1415,47 @@
         }
       }
     });
-    
-    if (categoryDivs.length === 0) return;
-    
+
+    if (categoryDivs.length === 0) {return;}
+
     console.log(`[Commerce Accordion] Trouvé ${categoryDivs.length} catégories`);
-    
+
     // Pour chaque catégorie, trouver ses produits (les <a> qui suivent jusqu'à la prochaine catégorie)
     categoryDivs.forEach((category, index) => {
       const products = [];
       let currentElement = category.div.nextElementSibling;
-      
+
       // Parcourir les éléments suivants jusqu'à la prochaine catégorie
       while (currentElement) {
         // Si on trouve une autre catégorie, on s'arrête
-        if (currentElement.classList.contains('ds_forum') && 
+        if (currentElement.classList.contains('ds_forum') &&
             currentElement.querySelector('h4.list-group-item-heading')) {
           break;
         }
-        
+
         // Si c'est un produit (lien avec classe ds_game)
         if (currentElement.tagName === 'A' && currentElement.classList.contains('ds_game')) {
           products.push(currentElement);
         }
-        
+
         currentElement = currentElement.nextElementSibling;
       }
-      
+
       // Créer un conteneur pour les produits
       const productsContainer = document.createElement('div');
       productsContainer.className = 'commerce-products-container';
-      
+
       // Déplacer les produits dans le conteneur
       products.forEach(product => {
         productsContainer.appendChild(product);
       });
-      
+
       // Insérer le conteneur après le div de catégorie
       category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);
-      
+
       // Ajouter la classe accordion au div de catégorie
       category.div.classList.add('commerce-category-header');
-      
+
       // État initial : première catégorie (Nourriture) ouverte
       const isExpanded = index === 0;
       if (!isExpanded) {
@@ -1464,26 +1464,26 @@
       } else {
         category.div.classList.add('expanded');
       }
-      
+
       // Ajouter l'icône chevron
       const icon = document.createElement('i');
       icon.className = 'fa fa-chevron-down accordion-icon';
       category.h4.appendChild(icon);
-      
+
       // Ajouter le gestionnaire de clic
       category.div.style.cursor = 'pointer';
       category.div.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const isNowExpanded = !productsContainer.classList.contains('collapsed');
         productsContainer.classList.toggle('collapsed', isNowExpanded);
         category.div.classList.toggle('collapsed', isNowExpanded);
         category.div.classList.toggle('expanded', !isNowExpanded);
-        
+
         console.log(`[Commerce Accordion] ${category.name}: ${isNowExpanded ? 'fermé' : 'ouvert'}`);
       });
-      
+
       console.log(`[Commerce Accordion] ${category.name}: ${products.length} produits, état initial: ${isExpanded ? 'ouvert' : 'fermé'}`);
     });
   })();
@@ -1492,45 +1492,45 @@
   // TASK-2.4 : Section bâtiment collapsible
   // ============================================================================
   (function initBuildingCollapse() {
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
-    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h => 
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h =>
       h.textContent.includes('Bâtiment')
     );
-    
-    if (!batimentHeader) return;
-    
+
+    if (!batimentHeader) {return;}
+
     const panelHeading = batimentHeader.parentElement;
     const panelBody = panelHeading.nextElementSibling;
-    
-    if (!panelHeading || !panelBody || !panelBody.classList.contains('panel-body')) return;
-    
+
+    if (!panelHeading || !panelBody || !panelBody.classList.contains('panel-body')) {return;}
+
     // Ajouter les classes
     panelHeading.classList.add('building-section-header');
     panelBody.classList.add('building-section-content');
-    
+
     // Ajouter l'icône chevron
     const icon = document.createElement('i');
     icon.className = 'fa fa-chevron-down accordion-icon';
     panelHeading.appendChild(icon);
-    
+
     // État initial : ouvert
     panelHeading.classList.add('expanded');
-    
+
     // Gestionnaire de clic
     panelHeading.style.cursor = 'pointer';
     panelHeading.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const isNowExpanded = !panelBody.classList.contains('collapsed');
       panelBody.classList.toggle('collapsed', isNowExpanded);
       panelHeading.classList.toggle('collapsed', isNowExpanded);
       panelHeading.classList.toggle('expanded', !isNowExpanded);
-      
+
       console.log(`[Building Section] ${isNowExpanded ? 'fermé' : 'ouvert'}`);
     });
-    
+
     console.log('[Building Section] Initialisé - section collapsible');
   })();
 
@@ -1538,25 +1538,25 @@
   // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
   // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
   // ============================================================================
-  (function() {
+  (function () {
     function initNavigationRow() {
-      if (!document.body.classList.contains('mobile-mode')) return;
-      
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
       // Trouver le conteneur des actions rapides
       const quickActions = document.querySelector('.mobile-quick-actions');
-      if (!quickActions) return;
-      
+      if (!quickActions) {return;}
+
       // Trouver l'image "Sortir" avec la croix directionnelle
       const exitImg = document.querySelector('img[alt="Sortir"]');
-      if (!exitImg) return;
-      
+      if (!exitImg) {return;}
+
       const parent = exitImg.parentElement;
       const map = parent.querySelector('map[name="exitmap"]');
-      
+
       // Trouver toutes les images bat*.gif (accès aux pièces)
       const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
-      if (allBatImages.length === 0) return;
-      
+      if (allBatImages.length === 0) {return;}
+
       // Trouver les images qui ne sont PAS déjà dans notre ligne créée
       const originalImages = allBatImages.filter(img => {
         let current = img;
@@ -1568,49 +1568,49 @@
         }
         return true;
       });
-      
+
       // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
       originalImages.sort((a, b) => {
         const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
         const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
         return numA - numB;
       });
-      
-      if (originalImages.length === 0) return;
-      
+
+      if (originalImages.length === 0) {return;}
+
       // Trouver et masquer le conteneur d'origine (div.row.center)
       const originalContainer = parent.closest('.row.center');
       if (originalContainer) {
         originalContainer.style.display = 'none';
       }
-      
+
       // Récupérer les liens parents des images
       const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
-      if (roomLinks.length === 0) return;
-    
+      if (roomLinks.length === 0) {return;}
+
       // Créer le conteneur de la ligne de navigation
       const navRow = document.createElement('div');
       navRow.className = 'kr-navigation-row';
       navRow.setAttribute('role', 'group');
-    
+
       // Créer la croix directionnelle en premier
       if (exitImg && map) {
         const directionGroup = document.createElement('div');
         directionGroup.className = 'btn-group kr-direction-cross';
         directionGroup.setAttribute('role', 'group');
-        
+
         // Créer un lien style btn pour la croix
         const directionLink = document.createElement('div');
         directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
-        
+
         // Cloner l'image et la map
         const exitImgClone = exitImg.cloneNode(true);
         exitImgClone.style.width = '60px';
         exitImgClone.style.height = '60px';
         exitImgClone.style.display = 'block';
-        
+
         const mapClone = map.cloneNode(true);
-        
+
         // Forcer la navigation pour chaque area de la map
         const areas = mapClone.querySelectorAll('area');
         areas.forEach(area => {
@@ -1623,24 +1623,24 @@
             }
           });
         });
-        
+
         directionLink.appendChild(exitImgClone);
         directionLink.appendChild(mapClone);
         directionGroup.appendChild(directionLink);
         navRow.appendChild(directionGroup);
       }
-    
+
       // Créer une carte pour chaque accès aux pièces
       roomLinks.forEach(link => {
         const btnGroup = document.createElement('div');
         btnGroup.className = 'btn-group kr-room-access-card';
         btnGroup.setAttribute('role', 'group');
-        
+
         // Cloner le lien pour ne pas modifier l'original
         const linkClone = link.cloneNode(true);
         // Utiliser les mêmes classes que les actions rapides
         linkClone.className = 'btn btn-default alert11 mini kr-room-link';
-        
+
         // Forcer la navigation pour éviter l'interception par Kraland
         linkClone.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1649,18 +1649,18 @@
             window.location.href = url;
           }
         });
-        
+
         btnGroup.appendChild(linkClone);
-        
+
         navRow.appendChild(btnGroup);
       });
-    
+
       // Insérer la nouvelle ligne après les actions rapides
       quickActions.parentElement.insertBefore(navRow, quickActions.nextSibling);
-    
+
       console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
     }
-    
+
     // Attendre le DOM et un délai pour que tout soit prêt
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -1678,38 +1678,38 @@
     // Sauvegarder la position actuelle avant que le navigateur ne scrolle
     const initialScrollRestoration = history.scrollRestoration;
     history.scrollRestoration = 'manual';
-    
+
     // Supprimer l'ancre de l'URL
     const cleanUrl = window.location.pathname + window.location.search;
     history.replaceState(null, '', cleanUrl);
-    
+
     // Forcer le scroll en haut immédiatement et après le chargement
     const forceScrollTop = () => window.scrollTo(0, 0);
     forceScrollTop();
-    
+
     // S'assurer que le scroll reste en haut même après le chargement complet
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', forceScrollTop);
     }
     window.addEventListener('load', forceScrollTop);
-    
+
     // Restaurer le comportement par défaut après 500ms
     setTimeout(() => {
       history.scrollRestoration = initialScrollRestoration;
     }, 500);
   }
-  
+
   // ============================================================================
   // NOUVELLES : Gestion du repliement/dépliement (mobile uniquement)
   // ============================================================================
   // News collapsible sur mobile
   if (window.innerWidth < 768 && !window.__krNewsToggleInit) {
     window.__krNewsToggleInit = true;
-    
+
     function initNewsToggle() {
       const newsToggle = document.getElementById('slide-submenu');
       const newsContainer = document.getElementById('player-header-section');
-      
+
       if (newsToggle && newsContainer) {
         // Fonction pour mettre à jour le bouton
         function updateButton(isCollapsed) {
@@ -1717,21 +1717,21 @@
           newsToggle.setAttribute('aria-label', isCollapsed ? 'Déplier les nouvelles' : 'Replier les nouvelles');
           newsToggle.setAttribute('title', isCollapsed ? 'Déplier' : 'Replier');
         }
-        
+
         // Charger l'état depuis localStorage
         const isCollapsed = localStorage.getItem('kr-news-collapsed') === 'true';
         if (isCollapsed) {
           newsContainer.classList.add('kr-news-collapsed');
         }
         updateButton(isCollapsed);
-        
+
         // Gérer le clic (capturer en premier pour empêcher Bootstrap)
-        newsToggle.addEventListener('click', function(e) {
+        newsToggle.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation(); // Empêche les autres handlers Bootstrap
           newsContainer.classList.toggle('kr-news-collapsed');
-          
+
           // Sauvegarder l'état et mettre à jour le bouton
           const collapsed = newsContainer.classList.contains('kr-news-collapsed');
           localStorage.setItem('kr-news-collapsed', collapsed);
@@ -1739,7 +1739,7 @@
         }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
       }
     }
-    
+
     // Attendre que le DOM soit complètement chargé
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initNewsToggle, { once: true });
@@ -1755,16 +1755,16 @@
   // CONFIGURATION
   // ============================================================================
   const CONFIG = {
-    BUNDLED_CSS: `__CSS_CONTENT__`,
+    BUNDLED_CSS: '__CSS_CONTENT__',
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
     STYLE_ID: 'kraland-theme-style',
     THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
     LOGO_MAP: {
-      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'paladium-dark': 3, 
+      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'paladium-dark': 3,
       'theocratie-seelienne': 4, 'theocratie-seelienne-dark': 4, 'paradigme-vert': 5, 'paradigme-vert-dark': 5,
-      'khanat-elmerien': 6, 'khanat-elmerien-dark': 6, 'confederation-libre': 7, 'confederation-libre-dark': 7, 
+      'khanat-elmerien': 6, 'khanat-elmerien-dark': 6, 'confederation-libre': 7, 'confederation-libre-dark': 7,
       'royaume-ruthvenie': 8, 'royaume-ruthvenie-dark': 8
     },
     SKILL_ICONS: {
@@ -1784,10 +1784,10 @@
   // ============================================================================
   // UTILITAIRES
   // ============================================================================
-  
+
   /** Exécute une fonction en silence (catch les erreurs) */
   function safeCall(fn) {
-    try { fn(); } catch(e) { /* ignore */ }
+    try { fn(); } catch (_e) { /* ignore */ }
   }
 
   /** Vérifie si le thème est activé */
@@ -1808,8 +1808,8 @@
   /** Vérifie si on est sur la page /jouer */
   function isPlatoPage() {
     const path = location?.pathname || '';
-    return path.indexOf('/jouer') === 0 && 
-           path !== '/jouer/communaute' && 
+    return path.indexOf('/jouer') === 0 &&
+           path !== '/jouer/communaute' &&
            path !== '/jouer/communaute/membres';
   }
 
@@ -1863,7 +1863,7 @@
   }
 
   /** Crée un conteneur d'icône avec badge pour caractéristiques */
-  function createStatIconContainer(iconUrl, altText, badgeText) {
+  function _createStatIconContainer(iconUrl, altText, badgeText) {
     const container = document.createElement('div');
     Object.assign(container.style, {
       position: 'relative', display: 'inline-block',
@@ -1886,13 +1886,13 @@
   // ============================================================================
   (function injectCSSImmediately(){
     try {
-      if (!isThemeEnabled()) return;
-      
+      if (!isThemeEnabled()) {return;}
+
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
       (document.head || document.documentElement).appendChild(st);
-      
+
       const variant = getVariant();
       document.documentElement.classList.add('kr-theme-enabled', 'kr-theme-variant-' + variant);
       if (variant === 'high-contrast') {
@@ -1904,9 +1904,9 @@
   // ============================================================================
   // GESTION DU THÈME
   // ============================================================================
-  
+
   async function applyThemeInline(cssText) {
-    if (!isThemeEnabled()) return false;
+    if (!isThemeEnabled()) {return false;}
 
     try {
       let st = document.getElementById(CONFIG.STYLE_ID);
@@ -1921,12 +1921,12 @@
 
       document.documentElement.classList.add('kr-theme-enabled');
       const variant = getVariant();
-      
+
       // High contrast
       document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
-      
+
       // Variant classes
-      CONFIG.THEME_VARIANTS.forEach(v => 
+      CONFIG.THEME_VARIANTS.forEach(v =>
         document.documentElement.classList.remove('kr-theme-variant-' + v)
       );
       if (variant && variant !== 'disable') {
@@ -1938,14 +1938,14 @@
       document.documentElement.classList.toggle('kr-page-members', isMembers);
 
       return true;
-    } catch(e) { 
-      console.error('Theme apply failed', e); 
-      return false; 
+    } catch(e) {
+      console.error('Theme apply failed', e);
+      return false;
     }
   }
 
   async function ensureTheme() {
-    if (!isThemeEnabled()) return;
+    if (!isThemeEnabled()) {return;}
     await applyThemeInline(CONFIG.BUNDLED_CSS);
   }
 
@@ -1953,7 +1953,7 @@
     try {
       if (!variant || variant === 'disable') {
         localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
-        if (!skipReload) location.reload();
+        if (!skipReload) {location.reload();}
         return;
       }
 
@@ -1967,7 +1967,7 @@
       }
 
       // Switch variant sans reload
-      CONFIG.THEME_VARIANTS.forEach(v => 
+      CONFIG.THEME_VARIANTS.forEach(v =>
         document.documentElement.classList.remove('kr-theme-variant-' + v)
       );
       document.documentElement.classList.add('kr-theme-variant-' + variant);
@@ -2002,7 +2002,7 @@
   }
 
   function applyDOMTransformations() {
-    if (!isThemeEnabled()) return;
+    if (!isThemeEnabled()) {return;}
 
     const transforms = [
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
@@ -2026,7 +2026,7 @@
       el.removeAttribute('data-original-title');
     });
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
-      window.$.fn.tooltip = function() { return this; };
+      window.$.fn.tooltip = function () { return this; };
     }
   }
 
@@ -2050,7 +2050,7 @@
       if (panelTitle) {
         // Extraire le texte du titre (sans les boutons)
         groupData.title = panelTitle.textContent.trim();
-        
+
         // Extraire les boutons de groupe (avec cloneNode pour préserver événements)
         const buttons = panelTitle.querySelectorAll('a.btn');
         buttons.forEach(btn => {
@@ -2061,21 +2061,21 @@
 
     // Extraire les membres et leurs actions individuelles
     const panelBody = panel.querySelector('.panel-body');
-    if (!panelBody) return groupData;
+    if (!panelBody) {return groupData;}
 
     const table = panelBody.querySelector('table');
-    if (!table) return groupData;
+    if (!table) {return groupData;}
 
     const rows = table.querySelectorAll('tr');
     rows.forEach(row => {
       const td1 = row.querySelector('td:first-child');
       const td2 = row.querySelector('td:last-child');
-      
-      if (!td1 || !td2) return;
+
+      if (!td1 || !td2) {return;}
 
       // Récupérer les liens membres (TD1)
       const memberLinks = td1.querySelectorAll('a.list-group-item.ds_game');
-      
+
       // Récupérer les divs d'actions (TD2) - une div de 59px par personnage
       const actionsDivs = td2.querySelectorAll('div[style*="height:59px"]');
 
@@ -2136,7 +2136,7 @@
       if (worldImg) {
         data.worldImage = worldImg.src;
       }
-      
+
       // Extraire le niveau de PV depuis l'image pdv1.png à pdv5.png
       const pvImg = mention.querySelector('img[src*="pdv"]');
       if (pvImg) {
@@ -2145,7 +2145,7 @@
           data.pvLevel = parseInt(match[1], 10); // 1 à 5
         }
       }
-      
+
       // Extraire les HP depuis l'image de barre (fallback)
       const hpDiv = mention.querySelector('div[style*="background"]');
       if (hpDiv) {
@@ -2172,8 +2172,8 @@
    * Crée un cercle SVG de progression pour les PV
    */
   function createHPCircle(pvLevel) {
-    if (!pvLevel) return null;
-    
+    if (!pvLevel) {return null;}
+
     // Correspondance niveau PV -> couleur et pourcentage
     // pdv1 = 100% (pleine santé), pdv5 = 20% (presque mort)
     const pvConfig = {
@@ -2183,18 +2183,18 @@
       4: { color: '#DC143C', percentage: 40 },   // Rouge crimson
       5: { color: '#8B0000', percentage: 20 }    // Rouge foncé - Presque mort
     };
-    
+
     const config = pvConfig[pvLevel] || pvConfig[1];
     const radius = 37; // Rayon pour un avatar de 70px (35px) + bordure
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (circumference * config.percentage / 100);
-    
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'dashboard-card-hp-circle');
     svg.setAttribute('width', '82');
     svg.setAttribute('height', '82');
     svg.setAttribute('viewBox', '0 0 82 82');
-    
+
     // Cercle de fond (gris)
     const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     bgCircle.setAttribute('cx', '41');
@@ -2203,7 +2203,7 @@
     bgCircle.setAttribute('fill', 'none');
     bgCircle.setAttribute('stroke', 'rgba(0,0,0,0.1)');
     bgCircle.setAttribute('stroke-width', '3');
-    
+
     // Cercle de progression (coloré)
     const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     progressCircle.setAttribute('cx', '41');
@@ -2216,10 +2216,10 @@
     progressCircle.setAttribute('stroke-dasharray', circumference);
     progressCircle.setAttribute('stroke-dashoffset', strokeDashoffset);
     progressCircle.setAttribute('transform', 'rotate(-90 41 41)');
-    
+
     svg.appendChild(bgCircle);
     svg.appendChild(progressCircle);
-    
+
     return svg;
   }
 
@@ -2243,7 +2243,7 @@
       // Créer un wrapper pour l'avatar avec le cercle de PV
       const avatarWrapper = document.createElement('div');
       avatarWrapper.className = 'dashboard-card-avatar-wrapper';
-      
+
       // Ajouter le cercle SVG si on a l'info des PV
       if (memberData.pvLevel) {
         const hpCircle = createHPCircle(memberData.pvLevel);
@@ -2251,21 +2251,21 @@
           avatarWrapper.appendChild(hpCircle);
         }
       }
-      
+
       // Ajouter l'avatar
       const avatarImg = document.createElement('img');
       avatarImg.src = memberData.avatar;
       avatarImg.className = 'dashboard-card-avatar';
       avatarImg.alt = memberData.name;
-      
+
       // Appliquer un filtre gris si le personnage est KO (pdv5)
       if (memberData.pvLevel === 5) {
         avatarImg.style.filter = 'grayscale(100%)';
         avatarImg.style.opacity = '0.7';
       }
-      
+
       avatarWrapper.appendChild(avatarImg);
-      
+
       header.appendChild(avatarWrapper);
     }
 
@@ -2307,11 +2307,11 @@
     if (memberData.hpInfo !== null) {
       const hpBar = document.createElement('div');
       hpBar.className = 'dashboard-card-hp';
-      
+
       const hpFill = document.createElement('div');
       hpFill.className = 'dashboard-card-hp-fill';
       hpFill.style.width = memberData.hpInfo + '%';
-      
+
       // Couleur selon le pourcentage
       if (memberData.hpInfo > 70) {
         hpFill.style.backgroundColor = '#5cb85c'; // vert
@@ -2320,7 +2320,7 @@
       } else {
         hpFill.style.backgroundColor = '#d9534f'; // rouge
       }
-      
+
       hpBar.appendChild(hpFill);
       card.appendChild(hpBar);
     }
@@ -2337,13 +2337,13 @@
     if (memberData.actionsDiv) {
       const actionsWrapper = document.createElement('div');
       actionsWrapper.className = 'dashboard-card-actions';
-      
+
       // Extraire les liens d'action individuels (ignorer les divs conteneurs)
       const actionLinks = memberData.actionsDiv.querySelectorAll('a');
       actionLinks.forEach(link => {
         actionsWrapper.appendChild(link.cloneNode(true));
       });
-      
+
       card.appendChild(actionsWrapper);
     }
 
@@ -2354,13 +2354,13 @@
    * Transforme le dashboard en système de flex cards
    */
   function transformDashboardToFlexCards() {
-    if (!isPlatoPage()) return;
+    if (!isPlatoPage()) {return;}
 
     const dashboard = document.querySelector('.dashboard');
-    if (!dashboard) return;
+    if (!dashboard) {return;}
 
     const panels = dashboard.querySelectorAll(':scope > .panel');
-    if (!panels.length) return;
+    if (!panels.length) {return;}
 
     // Créer le nouveau conteneur flex
     const flexContainer = document.createElement('div');
@@ -2373,24 +2373,24 @@
     // Extraire toutes les données par groupe
     panels.forEach(panel => {
       const panelBody = panel.querySelector('.panel-body');
-      if (!panelBody) return;
+      if (!panelBody) {return;}
 
       const table = panelBody.querySelector('table');
-      if (!table) return;
+      if (!table) {return;}
 
       // Vérifier si c'est un panel de groupe de personnages (titre contient "Groupe")
       const panelTitle = panel.querySelector('.panel-heading .panel-title');
       const titleText = panelTitle ? panelTitle.textContent.trim() : '';
-      if (!titleText.toLowerCase().includes('groupe')) return;
+      if (!titleText.toLowerCase().includes('groupe')) {return;}
 
       // Extraire toutes les données du groupe (titre, boutons, membres)
       const groupData = extractGroupData(panel);
-      
-      if (groupData.members.length === 0) return;
+
+      if (groupData.members.length === 0) {return;}
 
       // Le premier panel avec des personnages = Mon groupe
       const isMyGroup = !firstPlayerPanelFound;
-      if (titleText.toLowerCase().includes('groupe')) firstPlayerPanelFound = true;
+      if (titleText.toLowerCase().includes('groupe')) {firstPlayerPanelFound = true;}
 
       groups.push({
         isMyGroup: isMyGroup,
@@ -2401,19 +2401,19 @@
     });
 
     // Ne transformer que si on a trouvé au moins un groupe
-    if (groups.length === 0) return;
+    if (groups.length === 0) {return;}
 
     // Construire les sections pour chaque groupe
-    groups.forEach((group, index) => {
+    groups.forEach((group, _index) => {
       const groupSection = document.createElement('div');
-      groupSection.className = group.isMyGroup 
-        ? 'dashboard-section dashboard-section-mygroup' 
+      groupSection.className = group.isMyGroup
+        ? 'dashboard-section dashboard-section-mygroup'
         : 'dashboard-section dashboard-section-others';
 
       // En-tête de section avec titre et boutons de groupe
       const header = document.createElement('div');
       header.className = 'dashboard-section-header';
-      
+
       // Ajouter les boutons de groupe en premier
       if (group.groupButtons && group.groupButtons.length > 0) {
         const buttonsWrapper = document.createElement('div');
@@ -2423,11 +2423,11 @@
         });
         header.appendChild(buttonsWrapper);
       }
-      
+
       // Ajouter le titre du groupe
       const titleSpan = document.createElement('span');
       titleSpan.className = 'dashboard-group-title';
-      
+
       if (group.isMyGroup) {
         // Extraire le nom sans les icônes
         const titleText = group.title.replace(/\s*Groupe\s+/i, '');
@@ -2437,13 +2437,13 @@
         const titleText = group.title.replace(/\s*Groupe\s+/i, '');
         titleSpan.textContent = titleText || `Groupe de ${group.members[0]?.name || 'Inconnu'}`;
       }
-      
+
       header.appendChild(titleSpan);
       groupSection.appendChild(header);
 
       // Grille des cartes
       const cardsContainer = document.createElement('div');
-      cardsContainer.className = group.isMyGroup 
+      cardsContainer.className = group.isMyGroup
         ? 'dashboard-cards-grid dashboard-cards-large'
         : 'dashboard-cards-grid';
 
@@ -2468,32 +2468,32 @@
       'Monde': 'monde/evenements',
       'Communauté': 'communaute/membres'
     };
-    
+
     let forumOriginalItem = null;
-    
+
     // Modification des liens existants et ajout du comportement de redirection
     document.querySelectorAll('.navbar-nav .dropdown > a.dropdown-toggle').forEach(link => {
       const text = link.textContent.trim().replace(/\s*\n.*$/, '');
-      
+
       // Traiter le menu Forum séparément (le menu original avant transformation)
       if (text.startsWith('Forum') && !text.includes('HRP') && !text.includes('RP')) {
         forumOriginalItem = link.closest('li.dropdown');
         return;
       }
-      
+
       const menuKey = Object.keys(menuLinks).find(key => text.includes(key));
       if (menuKey && menuLinks[menuKey]) {
         link.href = menuLinks[menuKey];
-        
+
         // Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
         link.removeAttribute('data-toggle');
-        
+
         // Marquer comme modifié pour éviter de ré-ajouter l'événement
         if (!link.hasAttribute('data-nav-modified')) {
           link.setAttribute('data-nav-modified', 'true');
-          
+
           // S'assurer que le clic navigue vers la nouvelle URL
-          link.addEventListener('click', function(e) {
+          link.addEventListener('click', function (e) {
             e.preventDefault();
             window.location.href = this.href;
             return false;
@@ -2501,12 +2501,12 @@
         }
       }
     });
-    
+
     // Remplacer le menu Forum original par Forum RP et Forum HRP
     if (forumOriginalItem && !document.querySelector('[data-forums-added]')) {
       // Récupérer le dropdown menu original pour le cloner
       const originalDropdown = forumOriginalItem.querySelector('.dropdown-menu');
-      
+
       // Créer Forum RP
       const forumRpLi = document.createElement('li');
       forumRpLi.className = 'dropdown';
@@ -2523,7 +2523,7 @@
           <li><a href="forum/rp">Autre</a></li>
         </ul>
       `;
-      
+
       // Créer Forum HRP en clonant le dropdown original
       const forumHrpLi = document.createElement('li');
       forumHrpLi.className = 'dropdown';
@@ -2533,7 +2533,7 @@
           Forum HRP <span class="caret"></span>
         </a>
       `;
-      
+
       // Cloner le dropdown original et supprimer uniquement le lien "Jeu (RP)"
       if (originalDropdown) {
         const clonedDropdown = originalDropdown.cloneNode(true);
@@ -2545,38 +2545,38 @@
         }
         forumHrpLi.appendChild(clonedDropdown);
       }
-      
+
       // Insérer Forum RP avant le Forum original
       forumOriginalItem.parentElement.insertBefore(forumRpLi, forumOriginalItem);
       // Insérer Forum HRP après Forum RP (donc avant l'original aussi)
       forumOriginalItem.parentElement.insertBefore(forumHrpLi, forumOriginalItem);
       // Supprimer le menu Forum original
       forumOriginalItem.remove();
-      
+
       // Ajouter les comportements de navigation directe
       const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
       if (forumRpLink) {
-        forumRpLink.addEventListener('click', function(e) {
+        forumRpLink.addEventListener('click', function (e) {
           e.preventDefault();
           window.location.href = this.href;
           return false;
         });
       }
-      
+
       const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
       if (forumHrpLink) {
-        forumHrpLink.addEventListener('click', function(e) {
+        forumHrpLink.addEventListener('click', function (e) {
           e.preventDefault();
           window.location.href = this.href;
           return false;
         });
       }
     }
-    
+
     // Ajout du menu Statistiques (une seule fois)
     const communauteItem = Array.from(document.querySelectorAll('.navbar-nav > li.dropdown'))
       .find(li => li.querySelector('a.dropdown-toggle')?.textContent.includes('Communauté'));
-    
+
     if (communauteItem && !document.querySelector('[data-stats-menu-added]')) {
       const statsLi = document.createElement('li');
       statsLi.className = 'dropdown';
@@ -2590,13 +2590,13 @@
           <li><a href="monde/citoyens">Citoyens</a></li>
         </ul>
       `;
-      
+
       communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
-      
+
       // Ajouter le comportement de navigation directe pour le menu Statistiques
       const statsLink = statsLi.querySelector('a.dropdown-toggle');
       if (statsLink) {
-        statsLink.addEventListener('click', function(e) {
+        statsLink.addEventListener('click', function (e) {
           e.preventDefault();
           window.location.href = this.href;
           return false;
@@ -2614,7 +2614,7 @@
       { text: 'Médailles', cls: 'kr-icon-medals' }
     ];
 
-    markers.forEach(m => 
+    markers.forEach(m =>
       document.querySelectorAll('.' + m.cls).forEach(n => n.classList.remove(m.cls))
     );
 
@@ -2623,12 +2623,12 @@
       let best = null;
       for (const el of all) {
         const txt = (el.textContent || '').trim();
-        if (!txt.includes(m.text)) continue;
+        if (!txt.includes(m.text)) {continue;}
         const hasIcon = !!el.querySelector('i.fa, i.falarge, .glyphicon, svg');
         const score = (hasIcon ? 100 : 0) + Math.max(0, 200 - Math.min(txt.length, 200));
-        if (!best || score > best.score) best = { el, score };
+        if (!best || score > best.score) {best = { el, score };}
       }
-      if (best?.el) best.el.classList.add(m.cls);
+      if (best?.el) {best.el.classList.add(m.cls);}
     });
   }
 
@@ -2637,23 +2637,23 @@
       .filter(a => (a.textContent || '').trim() === 'MC')
       .forEach(a => {
         a.classList.add('kr-mc-icon');
-        const title = a.getAttribute('data-original-title') || a.getAttribute('title') || 
+        const title = a.getAttribute('data-original-title') || a.getAttribute('title') ||
                       (a.classList.contains('open') ? 'ouvrir le mini-chat' : 'fermer le mini-chat');
-        if (title) a.setAttribute('aria-label', title);
+        if (title) {a.setAttribute('aria-label', title);}
         a.removeAttribute('aria-hidden');
       });
   }
 
   function replaceNavbarBrand() {
     const brand = document.querySelector('.navbar-brand');
-    if (!brand) return;
+    if (!brand) {return;}
 
     const variant = getVariant();
     const idx = CONFIG.LOGO_MAP[variant] || 1;
     const url = `http://img7.kraland.org/2/world/logo${idx}.gif`;
-    
+
     const existing = brand.querySelector('img.kr-logo');
-    if (existing?.src?.includes(`logo${idx}.gif`)) return;
+    if (existing?.src?.includes(`logo${idx}.gif`)) {return;}
 
     brand.innerHTML = '';
     const img = document.createElement('img');
@@ -2701,7 +2701,7 @@
   function reorderBtnGroupXs() {
     document.querySelectorAll('span.btn-group-xs').forEach(btn => {
       const parent = btn.parentElement;
-      if (!parent) return;
+      if (!parent) {return;}
 
       const strong = parent.querySelector('strong');
       if (strong && strong.parentElement === parent && btn.nextElementSibling !== strong) {
@@ -2719,7 +2719,7 @@
 
   function ensureSexStrong() {
     document.querySelectorAll('[id*="ajax-sex"]').forEach(el => {
-      if (el.querySelector('strong')) return;
+      if (el.querySelector('strong')) {return;}
 
       const sym = el.querySelector('.kr-symbol');
       if (sym) {
@@ -2743,8 +2743,8 @@
 
   function ensureFooterSticky() {
     const footer = document.querySelector('footer, .footer, .contentinfo');
-    if (!footer) return;
-    
+    if (!footer) {return;}
+
     // Déplacer le footer à la fin du body pour que le flexbox fonctionne correctement
     if (footer.nextSibling !== null) {
       document.body.appendChild(footer);
@@ -2754,12 +2754,12 @@
     let back = null;
     for (const s of selectors) {
       back = document.querySelector(s);
-      if (back) break;
+      if (back) {break;}
     }
 
     if (back) {
       back.classList.add('kraland-back-to-top');
-      if (!back.getAttribute('aria-label')) back.setAttribute('aria-label', 'Remonter en haut');
+      if (!back.getAttribute('aria-label')) {back.setAttribute('aria-label', 'Remonter en haut');}
       const whiteContainer = footer.querySelector('.container.white');
       if (whiteContainer) {
         whiteContainer.appendChild(back);
@@ -2777,7 +2777,7 @@
   function relocateKramailToLeft() {
     const colT = document.getElementById('col-t');
     const colLeft = document.getElementById('col-left');
-    if (!colT || !colLeft) return;
+    if (!colT || !colLeft) {return;}
 
     // Supprimer les blocs Kramail
     colT.querySelectorAll('a[href*="kramail"]').forEach(a => {
@@ -2799,12 +2799,12 @@
       texts.forEach(txt => {
         const el = Array.from(colT.querySelectorAll('a, li, div, p'))
           .find(n => n.textContent?.includes(txt));
-        if (el && !toMove.includes(el)) toMove.push(el);
+        if (el && !toMove.includes(el)) {toMove.push(el);}
       });
     }
 
     toMove = toMove.filter(el => el && !colLeft.contains(el));
-    if (!toMove.length) return;
+    if (!toMove.length) {return;}
 
     let container = colLeft.querySelector('.kraland-metrics');
     if (!container) {
@@ -2817,14 +2817,14 @@
   }
 
   function restructurePlatoColumns() {
-    if (!isPlatoPage()) return;
+    if (!isPlatoPage()) {return;}
 
     const colLeft = document.getElementById('col-left');
     const colRight = document.getElementById('col-right');
-    if (!colLeft || !colRight) return;
+    if (!colLeft || !colRight) {return;}
 
     const parent = colLeft.parentElement;
-    if (!parent?.classList.contains('row')) return;
+    if (!parent?.classList.contains('row')) {return;}
 
     let colLeftest = document.getElementById('col-leftest');
     if (!colLeftest) {
@@ -2841,11 +2841,11 @@
   }
 
   function moveBtnGroupToCols() {
-    if (!isPlatoPage()) return;
+    if (!isPlatoPage()) {return;}
 
     const btnGroupXs = document.querySelector('.btn-group-xs.center');
     const colLeftest = document.getElementById('col-leftest');
-    if (!btnGroupXs || !colLeftest || colLeftest.contains(btnGroupXs)) return;
+    if (!btnGroupXs || !colLeftest || colLeftest.contains(btnGroupXs)) {return;}
 
     let wrapper = document.getElementById('col-leftest-stats');
     if (!wrapper) {
@@ -2913,13 +2913,13 @@
   function moveSkillsPanelToCols() {
     const colLeft = document.getElementById('col-left');
     const colLeftest = document.getElementById('col-leftest');
-    if (!colLeft || !colLeftest) return;
+    if (!colLeft || !colLeftest) {return;}
 
     const skillsPanelOld = colLeft.querySelector('.panel.panel-default');
-    if (!skillsPanelOld) return;
+    if (!skillsPanelOld) {return;}
 
     const panelBody = skillsPanelOld.querySelector('.panel-body');
-    if (!panelBody || panelBody.id) return;
+    if (!panelBody || panelBody.id) {return;}
 
     panelBody.id = 'skills-panel';
     colLeftest.appendChild(panelBody);
@@ -2928,16 +2928,16 @@
 
   function nameLeftSidebarDivs() {
     const colLeft = document.getElementById('col-left');
-    if (!colLeft) return;
+    if (!colLeft) {return;}
 
     const mainPanel = colLeft.querySelector('.panel.panel-body');
-    if (mainPanel && !mainPanel.id) mainPanel.id = 'player-main-panel';
+    if (mainPanel && !mainPanel.id) {mainPanel.id = 'player-main-panel';}
 
     const headerSection = colLeft.querySelector('.list-group');
-    if (headerSection && !headerSection.id) headerSection.id = 'player-header-section';
+    if (headerSection && !headerSection.id) {headerSection.id = 'player-header-section';}
 
     const vitalsSection = colLeft.querySelector('div.t.row');
-    if (vitalsSection && !vitalsSection.id) vitalsSection.id = 'player-vitals-section';
+    if (vitalsSection && !vitalsSection.id) {vitalsSection.id = 'player-vitals-section';}
 
     const allTDivs = Array.from(colLeft.querySelectorAll('div.t'));
     if (allTDivs.length > 0) {
@@ -2950,14 +2950,14 @@
 
   function transformSkillsToIcons() {
     const skillsPanel = document.getElementById('skills-panel');
-    if (!skillsPanel || skillsPanel.dataset.iconsTransformed) return;
+    if (!skillsPanel || skillsPanel.dataset.iconsTransformed) {return;}
 
     skillsPanel.querySelectorAll('.list-group-item').forEach(item => {
       const heading = item.querySelector('.list-group-item-heading');
       const skillName = heading?.querySelector('.mini')?.textContent || '';
       const level = item.querySelector('.mention')?.textContent || '0';
       const iconCode = CONFIG.SKILL_ICONS[skillName];
-      if (!iconCode) return;
+      if (!iconCode) {return;}
 
       const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
       const originalClasses = item.className;
@@ -2979,7 +2979,7 @@
 
   function transformStatsToNotifications() {
     const colLeftestStats = document.getElementById('col-leftest-stats');
-    if (!colLeftestStats || colLeftestStats.dataset.badgesTransformed) return;
+    if (!colLeftestStats || colLeftestStats.dataset.badgesTransformed) {return;}
 
     colLeftestStats.querySelectorAll('.col-md-6 > a.btn').forEach(statBtn => {
       const text = statBtn.textContent.trim();
@@ -2988,7 +2988,7 @@
       const levelMatch = text.match(/(\d+)$/);
       const number = levelMatch ? levelMatch[1] : '0';
 
-      while (statBtn.firstChild) statBtn.removeChild(statBtn.firstChild);
+      while (statBtn.firstChild) {statBtn.removeChild(statBtn.firstChild);}
 
       const originalClasses = statBtn.className;
       statBtn.className = originalClasses + ' list-group-item ds_game';
@@ -3079,7 +3079,7 @@
       '.col-sm-10 form#msg', '.col-sm-10 textarea#message',
       'form[name="post_msg"]', 'textarea#message'
     ];
-    
+
     document.querySelectorAll(selectors.join(',')).forEach(el => {
       const root = el.tagName?.toLowerCase() === 'form' ? el : (el.closest('form') || el.parentElement);
       if (root && !root.classList.contains('editeur-text')) {
@@ -3095,23 +3095,23 @@
 
   function ensurePlayerMainPanelRows() {
     const panel = document.getElementById('player-main-panel');
-    if (!panel) return;
+    if (!panel) {return;}
 
     Array.from(panel.children)
       .filter(child => child.tagName?.toLowerCase() === 'div')
       .filter(div => !div.classList.contains('kr-quick-access-buttons'))
       .forEach(div => {
-        if (!div.classList.contains('row')) div.classList.add('row');
+        if (!div.classList.contains('row')) {div.classList.add('row');}
       });
   }
 
   function addQuickAccessButtons() {
     const panel = document.getElementById('player-main-panel');
-    if (!panel) return;
-    
+    if (!panel) {return;}
+
     // Vérifier si les boutons ont déjà été ajoutés
-    if (panel.querySelector('.kr-quick-access-buttons')) return;
-    
+    if (panel.querySelector('.kr-quick-access-buttons')) {return;}
+
     // Définir les boutons
     const buttons = [
       { label: 'Agir', url: '/jouer/plateau', icon: 'fa-map' },
@@ -3120,36 +3120,36 @@
       { label: 'Bâtiments', url: '/jouer/bat', icon: 'fa-building' },
       { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
     ];
-    
+
     // Créer le conteneur principal avec le système de grille Bootstrap
     const container = document.createElement('div');
     container.className = 'kr-quick-access-buttons';
     container.style.marginTop = '10px';
-    
+
     const row = document.createElement('div');
     row.className = 'row';
-    
+
     // Créer chaque bouton avec une colonne Bootstrap (2 par ligne)
     buttons.forEach(btn => {
       const col = document.createElement('div');
       col.className = 'col-xs-6 col-sm-6';
-      
+
       const link = document.createElement('a');
       link.href = btn.url;
       link.className = 'btn btn-default btn-block mini';
-      
+
       const icon = document.createElement('i');
       icon.className = `fa ${btn.icon}`;
-      
+
       link.appendChild(icon);
       link.appendChild(document.createTextNode(' ' + btn.label));
-      
+
       col.appendChild(link);
       row.appendChild(col);
     });
-    
+
     container.appendChild(row);
-    
+
     // Ajouter les boutons à la fin du panneau
     panel.appendChild(container);
   }
@@ -3159,14 +3159,14 @@
   // ============================================================================
 
   function insertToggleCSSButton() {
-    if (document.getElementById('kr-toggle-css-btn')) return;
+    if (document.getElementById('kr-toggle-css-btn')) {return;}
 
     const mapBtn = Array.from(document.querySelectorAll('a'))
       .find(a => a.getAttribute('onclick')?.includes('openMap'));
-    if (!mapBtn) return;
+    if (!mapBtn) {return;}
 
     const mapLi = mapBtn.closest('li');
-    if (!mapLi?.parentElement) return;
+    if (!mapLi?.parentElement) {return;}
 
     const newLi = document.createElement('li');
     const toggleBtn = document.createElement('a');
@@ -3175,8 +3175,8 @@
     toggleBtn.innerHTML = '<i class="fa fa-palette"></i>';
 
     function updateTitle() {
-      toggleBtn.title = isThemeEnabled() 
-        ? 'Désactiver la surcharge CSS' 
+      toggleBtn.title = isThemeEnabled()
+        ? 'Désactiver la surcharge CSS'
         : 'Activer la surcharge CSS';
     }
     updateTitle();
@@ -3196,15 +3196,15 @@
   }
 
   function insertTampermonkeyThemeUI() {
-    if (!location?.href?.includes('/profil/interface')) return;
+    if (!location?.href?.includes('/profil/interface')) {return;}
 
     function tryInsert() {
       const headings = Array.from(document.querySelectorAll('h4, h3, h2'));
-      const target = headings.find(h => 
+      const target = headings.find(h =>
         h.textContent?.trim().toLowerCase().includes('thème de base')
       );
-      if (!target) return false;
-      if (document.getElementById('kr-tamper-theme')) return true;
+      if (!target) {return false;}
+      if (document.getElementById('kr-tamper-theme')) {return true;}
 
       const themeOptions = [
         { value: 'disable', flag: 'f0', label: 'Désactiver la surcharge CSS' },
@@ -3271,57 +3271,57 @@
       target.parentElement.insertBefore(container, target);
 
       const form = container.querySelector('#kr-tamper-theme-form');
-      
+
       function syncUI() {
         if (!isThemeEnabled()) {
           const d = form.querySelector('input[value="disable"]');
-          if (d) d.checked = true;
+          if (d) {d.checked = true;}
         } else {
           const v = getVariant();
           const el = form.querySelector(`input[value="${v}"]`);
-          if (el) el.checked = true;
+          if (el) {el.checked = true;}
         }
-        
+
         // Synchroniser l'affichage des caractéristiques
         const statsMode = getStatsDisplayMode();
         const statsEl = form.querySelector(`input[name="kr-stats-display"][value="${statsMode}"]`);
-        if (statsEl) statsEl.checked = true;
-        
+        if (statsEl) {statsEl.checked = true;}
+
         // Synchroniser l'option de masquage de la citation
         const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
         const hideQuoteEl = form.querySelector('#kr-hide-quote');
-        if (hideQuoteEl) hideQuoteEl.checked = hideQuote;
+        if (hideQuoteEl) {hideQuoteEl.checked = hideQuote;}
       }
 
       form.addEventListener('change', (e) => {
         // Gestion du changement de thème
         if (e.target.name === 'kr-theme') {
           const sel = form.querySelector('input[name="kr-theme"]:checked');
-          if (!sel) return;
+          if (!sel) {return;}
           const val = sel.value;
 
           const feedback = document.createElement('div');
           feedback.className = 'alert alert-success';
-          feedback.textContent = val === 'disable' 
-            ? 'Désactivation du thème...' 
+          feedback.textContent = val === 'disable'
+            ? 'Désactivation du thème...'
             : 'Application du thème: ' + val;
           container.appendChild(feedback);
 
           setTimeout(() => applyThemeVariant(val), 300);
         }
-        
+
         // Gestion du changement d'affichage des caractéristiques
         if (e.target.name === 'kr-stats-display') {
           const sel = form.querySelector('input[name="kr-stats-display"]:checked');
-          if (!sel) return;
+          if (!sel) {return;}
           const val = sel.value;
 
           localStorage.setItem(CONFIG.STATS_DISPLAY_KEY, val);
 
           const feedback = document.createElement('div');
           feedback.className = 'alert alert-success';
-          feedback.textContent = val === 'icon' 
-            ? 'Affichage en icônes activé. Rechargez la page pour voir les changements.' 
+          feedback.textContent = val === 'icon'
+            ? 'Affichage en icônes activé. Rechargez la page pour voir les changements.'
             : 'Affichage en texte activé. Rechargez la page pour voir les changements.';
           container.appendChild(feedback);
 
@@ -3329,12 +3329,12 @@
             feedback.remove();
           }, 5000);
         }
-        
+
         // Gestion du masquage de la citation
         if (e.target.name === 'kr-hide-quote') {
           const isChecked = e.target.checked;
           localStorage.setItem('kr-hide-footer-quote', isChecked.toString());
-          
+
           // Appliquer immédiatement le changement
           if (isChecked) {
             document.documentElement.classList.add('kr-hide-footer-quote');
@@ -3344,8 +3344,8 @@
 
           const feedback = document.createElement('div');
           feedback.className = 'alert alert-success';
-          feedback.textContent = isChecked 
-            ? 'Citation du footer masquée.' 
+          feedback.textContent = isChecked
+            ? 'Citation du footer masquée.'
             : 'Citation du footer affichée.';
           container.appendChild(feedback);
 
@@ -3363,7 +3363,7 @@
       let attempts = 0;
       const id = setInterval(() => {
         attempts++;
-        if (tryInsert() || attempts > 25) clearInterval(id);
+        if (tryInsert() || attempts > 25) {clearInterval(id);}
       }, 200);
     }
   }
@@ -3391,7 +3391,7 @@
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
     // SPA navigation
-    const wrap = orig => function() {
+    const wrap = orig => function () {
       const ret = orig.apply(this, arguments);
       setTimeout(() => ensureTheme(), 250);
       return ret;
@@ -3442,24 +3442,24 @@
       mutations.forEach((mutation) => {
         // Vérifier si c'est un changement de contenu dans une modal
         const modal = mutation.target.closest('.bootbox.modal');
-        if (!modal) return;
-        
+        if (!modal) {return;}
+
         // Chercher le panel-heading avec les tabs
         const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
-        if (!panelHeading) return;
-        
+        if (!panelHeading) {return;}
+
         // Chercher l'onglet actif
         const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
-        if (!activeTab) return;
-        
+        if (!activeTab) {return;}
+
         // Scroller vers l'onglet actif
         setTimeout(() => {
           const tabRect = activeTab.getBoundingClientRect();
           const containerRect = panelHeading.getBoundingClientRect();
-          
+
           // Calculer la position de scroll pour centrer l'onglet
           const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-          
+
           panelHeading.scrollTo({
             left: Math.max(0, scrollLeft),
             behavior: 'smooth'
@@ -3467,7 +3467,7 @@
         }, 100);
       });
     });
-    
+
     // Observer le body pour détecter les changements dans les modals
     tabScrollObserver.observe(document.body, {
       childList: true,
@@ -3482,26 +3482,26 @@
    * Remplace les changements de div par des espaces
    */
   function mergeColumnsInMobile(modal) {
-    if (!modal) return;
+    if (!modal) {return;}
 
     // Trouver tous les panneaux avec des colonnes Bootstrap
     const panels = modal.querySelectorAll('.panel-info, .panel-primary, .panel-default');
-    
+
     panels.forEach(panel => {
       // Cibler les lignes dans panel-heading, panel-body, panel-footer
       const rows = panel.querySelectorAll('.panel-heading .row, .panel-body .row, .panel-actions .row, .panel-footer .row');
-      
+
       rows.forEach(row => {
         // Récupérer toutes les colonnes de cette row
         const columns = row.querySelectorAll('[class*="col-"]');
-        
+
         if (columns.length > 0) {
           // Collecter le contenu de toutes les colonnes avec des espaces entre elles
           const contents = [];
           columns.forEach(col => {
             const text = col.textContent.trim();
             const html = col.innerHTML.trim();
-            
+
             // Si la colonne contient des éléments (pas juste du texte), garder le HTML
             if (col.children.length > 0) {
               contents.push(html);
@@ -3509,15 +3509,15 @@
               contents.push(text);
             }
           });
-          
+
           // Créer une nouvelle div unique avec tout le contenu
           const mergedDiv = document.createElement('div');
           mergedDiv.className = 'col-xs-12 merged-columns';
           mergedDiv.innerHTML = contents.join(' ');
-          
+
           // Supprimer toutes les colonnes existantes
           columns.forEach(col => col.remove());
-          
+
           // Ajouter la div fusionnée
           row.appendChild(mergedDiv);
         }
@@ -3530,44 +3530,44 @@
    * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
    */
   function forceOrderModalGridLayout(modal) {
-    if (!modal) return;
-    
+    if (!modal) {return;}
+
     // Vérifier si c'est une modal d'ordre (avec .bootbox-confirm)
-    if (!modal.classList.contains('bootbox-confirm')) return;
-    
+    if (!modal.classList.contains('bootbox-confirm')) {return;}
+
     // Forcer le .panel-heading en colonne pour empiler les grilles verticalement
     const panelHeading = modal.querySelector('.panel-heading');
     if (panelHeading) {
       panelHeading.style.setProperty('display', 'block', 'important');
     }
-    
+
     // Chercher tous les ul.nav-tabs dans .panel-heading
     const navTabsElements = modal.querySelectorAll('.panel-heading ul.nav-tabs');
-    if (navTabsElements.length === 0) return;
-    
+    if (navTabsElements.length === 0) {return;}
+
     console.log('[Order Modal] Forçage du layout grid pour', navTabsElements.length, 'nav-tabs');
-    
+
     // Appliquer les styles grid via JavaScript (contourne Bootstrap)
     navTabsElements.forEach((ul, index) => {
       // Force display grid avec !important via setProperty
       ul.style.setProperty('display', 'grid', 'important');
-      
+
       // Tous les groupes en 2 colonnes - grille homogène continue
       ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
-      
+
       ul.style.setProperty('gap', '12px', 'important');
       ul.style.setProperty('padding-left', '0', 'important');
-      
+
       // Force l'alignement des grid items au début (gauche)
       ul.style.setProperty('justify-items', 'start', 'important');
       ul.style.setProperty('align-items', 'stretch', 'important');
-      
+
       // Grille continue - même espacement partout (pas de séparation visuelle)
       ul.style.setProperty('margin-bottom', '12px', 'important');
       ul.style.setProperty('border-bottom', 'none', 'important');
       ul.style.setProperty('border-top', 'none', 'important');
       ul.style.setProperty('padding-top', '0', 'important');
-      
+
       // Désactiver les pseudo-éléments clearfix de Bootstrap qui deviennent grid items
       // Créer/mettre à jour un élément <style> pour cibler les pseudo-éléments
       let styleId = 'grid-pseudo-fix-' + index;
@@ -3578,7 +3578,7 @@
         document.head.appendChild(styleEl);
       }
       // Générer un ID unique pour ce UL
-      if (!ul.id) ul.id = 'order-modal-nav-' + index;
+      if (!ul.id) {ul.id = 'order-modal-nav-' + index;}
       styleEl.textContent = `
         #${ul.id}::before,
         #${ul.id}::after {
@@ -3586,7 +3586,7 @@
           content: none !important;
         }
       `;
-      
+
       // Force les li à être des grid items
       const listItems = ul.querySelectorAll('li');
       listItems.forEach(li => {
@@ -3600,7 +3600,7 @@
         li.style.setProperty('grid-row', 'auto', 'important');
         li.style.setProperty('justify-self', 'stretch', 'important');
         li.style.setProperty('align-self', 'stretch', 'important');
-        
+
         // Style les liens
         const link = li.querySelector('a');
         if (link) {
@@ -3614,10 +3614,10 @@
           link.style.setProperty('box-sizing', 'border-box', 'important');
         }
       });
-      
+
       console.log(`[Order Modal] Grid appliqué sur nav-tabs #${index + 1} (${listItems.length} items)`);
     });
-    
+
     // Appliquer un second coup après un délai pour contrer les réinitialisations Bootstrap
     setTimeout(() => {
       navTabsElements.forEach(ul => {
@@ -3630,26 +3630,26 @@
    * NOUVELLE FONCTION - Optimise la structure de la modal pour mobile
    */
   function transformOrderModalStructure(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    if (modal.dataset.structureTransformed) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+    if (modal.dataset.structureTransformed) {return;}
+
     console.log('[Order Modal] Optimisation structure mobile');
-    
+
     const modalBody = modal.querySelector('.bootbox-body, .modal-body');
-    if (!modalBody) return;
-    
+    if (!modalBody) {return;}
+
     // === 1. Optimiser le header (select + h3) ===
     const selectRow = modalBody.querySelector('.row');
     const h3Title = modalBody.querySelector('h3');
-    
+
     if (selectRow && h3Title) {
       // Marquer pour styling sticky
       selectRow.classList.add('kraland-modal-header');
       h3Title.classList.add('kraland-character-title');
       console.log('[Order Modal] Header marqué');
     }
-    
+
     // === 2. Identifier la zone d'actions (panel-heading avec nav-tabs) ===
     const panelWithTabs = modalBody.querySelector('.panel.with-nav-tabs');
     if (panelWithTabs) {
@@ -3658,14 +3658,14 @@
         panelHeading.classList.add('kraland-actions-zone');
         console.log('[Order Modal] Zone actions identifiée');
       }
-      
+
       // === 3. Identifier la zone de formulaire (panel-body) ===
       const panelBody = panelWithTabs.querySelector('.panel-body.panel-order');
       if (panelBody) {
         panelBody.classList.add('kraland-form-zone');
         console.log('[Order Modal] Zone formulaire identifiée');
       }
-      
+
       // === 4. Identifier le footer du panel ===
       const panelFooter = panelWithTabs.querySelector('.panel-footer');
       if (panelFooter) {
@@ -3673,14 +3673,14 @@
         console.log('[Order Modal] Footer action identifié');
       }
     }
-    
+
     // === 5. Marquer le footer de la modal (boutons OK/Cancel) ===
     const modalFooter = modal.querySelector('.modal-footer');
     if (modalFooter) {
       modalFooter.classList.add('kraland-modal-footer');
       console.log('[Order Modal] Footer modal identifié');
     }
-    
+
     // === 6. Nettoyer les styles inline du panel-info (tableau Actions) ===
     const panelInfo = modalBody.querySelector('.panel-info');
     if (panelInfo) {
@@ -3690,30 +3690,30 @@
         row.style.marginLeft = '';
         row.style.marginRight = '';
       });
-      
+
       const cols = panelInfo.querySelectorAll('[class*="col-"]');
       cols.forEach(col => {
         col.style.paddingLeft = '';
         col.style.paddingRight = '';
       });
-      
+
       console.log('[Order Modal] Styles inline nettoyés du panel-info');
     }
-    
+
     modal.dataset.structureTransformed = 'true';
     console.log('[Order Modal] Structure optimisée pour mobile');
   }
-  
+
   /**
    * Nettoie les whitespace text nodes de la toolbar et force le grid layout
    */
   function cleanToolbarWhitespace(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const toolbar = modal.querySelector('.btn-toolbar');
-    if (!toolbar) return;
-    
+    if (!toolbar) {return;}
+
     // Supprimer tous les text nodes qui ne contiennent que des espaces
     const childNodes = Array.from(toolbar.childNodes);
     childNodes.forEach(node => {
@@ -3721,62 +3721,62 @@
         toolbar.removeChild(node);
       }
     });
-    
+
     // Forcer le grid layout inline (contourner les règles Bootstrap)
     toolbar.style.setProperty('display', 'grid', 'important');
     toolbar.style.setProperty('grid-template-columns', 'repeat(6, 1fr)', 'important');
     toolbar.style.setProperty('gap', '4px', 'important');
-    
+
     // Forcer display: contents sur TOUS les wrappers (.btn-group ET .dropdown)
     toolbar.querySelectorAll('.btn-group, .dropdown, span.dropdown').forEach(wrapper => {
       wrapper.style.setProperty('display', 'contents', 'important');
     });
-    
+
     // Forcer les boutons (y compris ceux dans les dropdowns) à remplir leur cellule
     toolbar.querySelectorAll('.btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button').forEach(btn => {
       btn.style.setProperty('width', '100%', 'important');
       btn.style.setProperty('min-width', '0', 'important');
       btn.style.setProperty('max-width', 'none', 'important');
     });
-    
+
     console.log('[Order Modal] Toolbar grid forcé et whitespace nettoyé');
   }
-  
+
   /**
    * Améliore le feedback visuel des nav-tabs
    */
   function enhanceNavTabsFeedback(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     // Ajouter un meilleur feedback au clic sur les nav-tabs
     const navTabs = modal.querySelectorAll('.nav.nav-tabs li a');
     navTabs.forEach(link => {
       // Ajouter classe pour feedback tactile
       link.classList.add('kr-touch-feedback');
-      
+
       // UX AMÉLIORATION #2: Meilleur feedback visuel sur l'état actif
-      link.addEventListener('click', function() {
+      link.addEventListener('click', function () {
         // Retirer classe active de tous les onglets
         modal.querySelectorAll('.nav.nav-tabs li').forEach(li => li.classList.remove('active'));
         // Ajouter à l'onglet cliqué
         this.parentElement.classList.add('active');
       });
     });
-    
+
     console.log('[Order Modal] Feedback tactile ajouté aux nav-tabs');
   }
-  
+
   /**
    * UX AMÉLIORATION #1: Rend l'alerte d'aide repliable
    */
   function makeAlertCollapsible(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const alert = modal.querySelector('.alert');
-    if (!alert) return;
-    
+    if (!alert) {return;}
+
     // Créer le bouton toggle
     const toggleBtn = document.createElement('button');
     toggleBtn.type = 'button';
@@ -3784,76 +3784,76 @@
     toggleBtn.innerHTML = '<i class="fas fa-question-circle"></i> Aide';
     toggleBtn.setAttribute('aria-expanded', 'false');
     toggleBtn.setAttribute('aria-label', 'Afficher/masquer l\'aide');
-    
+
     // Wrapper pour le contenu de l'alerte
     const alertContent = document.createElement('div');
     alertContent.className = 'kr-alert-content';
     alertContent.style.display = 'none';
-    
+
     // Déplacer le contenu dans le wrapper
     while (alert.firstChild) {
       alertContent.appendChild(alert.firstChild);
     }
-    
+
     // Ajouter le bouton et le contenu
     alert.appendChild(toggleBtn);
     alert.appendChild(alertContent);
     alert.classList.add('kr-alert-collapsible');
-    
+
     // Gérer le toggle
-    toggleBtn.addEventListener('click', function() {
+    toggleBtn.addEventListener('click', function () {
       const isExpanded = alertContent.style.display !== 'none';
       alertContent.style.display = isExpanded ? 'none' : 'block';
       toggleBtn.setAttribute('aria-expanded', !isExpanded);
-      toggleBtn.innerHTML = isExpanded ? 
-        '<i class="fas fa-question-circle"></i> Aide' : 
+      toggleBtn.innerHTML = isExpanded ?
+        '<i class="fas fa-question-circle"></i> Aide' :
         '<i class="fas fa-times-circle"></i> Masquer l\'aide';
     });
-    
+
     console.log('[Order Modal] Alerte rendue repliable');
   }
-  
+
   /**
    * UX AMÉLIORATION #3: Agrandit le textarea pour meilleur confort
    */
   function enlargeTextarea(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const textarea = modal.querySelector('textarea#message');
-    if (!textarea) return;
-    
+    if (!textarea) {return;}
+
     // Passer de 5 à 8 rows minimum
     textarea.rows = 8;
-    
+
     // Ajouter auto-resize
-    textarea.addEventListener('input', function() {
+    textarea.addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
     });
-    
+
     console.log('[Order Modal] Textarea agrandi (8 rows + auto-resize)');
   }
-  
+
   /**
    * UX AMÉLIORATION #4: Formate le footer en badges visuels
    */
   function formatFooterAsBadges(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const actionFooter = modal.querySelector('.kraland-action-footer p');
-    if (!actionFooter) return;
-    
+    if (!actionFooter) {return;}
+
     const text = actionFooter.textContent;
-    
+
     // Parser le texte: "Coût: 0 MØ | Durée: 00:00 | Potentiel: PER + Discrétion = 1"
     const costMatch = text.match(/Coût:\s*([^|]+)/);
     const durationMatch = text.match(/Durée:\s*([^|]+)/);
     const potentialMatch = text.match(/Potentiel:\s*(.+)$/);
-    
-    if (!costMatch && !durationMatch && !potentialMatch) return;
-    
+
+    if (!costMatch && !durationMatch && !potentialMatch) {return;}
+
     // Créer les badges
     const badgesHTML = `
       <div class="kr-action-badges">
@@ -3862,53 +3862,53 @@
         ${potentialMatch ? `<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${potentialMatch[1].trim()}</span>` : ''}
       </div>
     `;
-    
+
     actionFooter.innerHTML = badgesHTML;
     console.log('[Order Modal] Footer formaté en badges');
   }
-  
+
   /**
    * UX AMÉLIORATION #5: Renforce visuellement le bouton OK
    */
   function enhanceOkButton(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const modalFooter = modal.querySelector('.kraland-modal-footer');
-    if (!modalFooter) return;
-    
+    if (!modalFooter) {return;}
+
     const okButton = modalFooter.querySelector('.btn-primary');
     const cancelButton = modalFooter.querySelector('.btn-default');
-    
+
     if (okButton) {
       okButton.classList.add('kr-btn-primary-enhanced');
     }
-    
+
     if (cancelButton) {
       cancelButton.classList.add('kr-btn-secondary-subtle');
     }
-    
+
     console.log('[Order Modal] Boutons OK/Cancel améliorés');
   }
-  
+
   /**
    * UX AMÉLIORATION #6: Groupe les options du select par type (PJ/PNJ)
    */
   function groupSelectOptions(modal) {
-    if (!modal) return;
-    if (!document.body.classList.contains('mobile-mode')) return;
-    
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
     const select = modal.querySelector('.kraland-modal-header select');
-    if (!select) return;
-    
+    if (!select) {return;}
+
     // Récupérer toutes les options
     const options = Array.from(select.options);
-    if (options.length === 0) return;
-    
+    if (options.length === 0) {return;}
+
     // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
     const pjOptions = [];
     const pnjOptions = [];
-    
+
     options.forEach(option => {
       const text = option.textContent;
       // Détecter PNJ par patterns communs
@@ -3918,13 +3918,13 @@
         pjOptions.push(option);
       }
     });
-    
+
     // Ne grouper que s'il y a les deux types
-    if (pjOptions.length === 0 || pnjOptions.length === 0) return;
-    
+    if (pjOptions.length === 0 || pnjOptions.length === 0) {return;}
+
     // Vider le select
     select.innerHTML = '';
-    
+
     // Créer les optgroups
     if (pjOptions.length > 0) {
       const pjGroup = document.createElement('optgroup');
@@ -3932,14 +3932,14 @@
       pjOptions.forEach(opt => pjGroup.appendChild(opt));
       select.appendChild(pjGroup);
     }
-    
+
     if (pnjOptions.length > 0) {
       const pnjGroup = document.createElement('optgroup');
       pnjGroup.label = 'Personnages Non-Joueurs';
       pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
       select.appendChild(pnjGroup);
     }
-    
+
     console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
   }
 
@@ -3950,8 +3950,8 @@
    * qu'ils restent relatifs à leur parent .dropdown et apparaissent au bon endroit.
    */
   function fixDropdownPosition(modal) {
-    if (!modal) return;
-    
+    if (!modal) {return;}
+
     // Observer les dropdowns qui s'ouvrent
     const dropdownObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -3974,7 +3974,7 @@
         }
       });
     });
-    
+
     // Observer tous les dropdowns dans la toolbar
     const toolbar = modal.querySelector('.btn-toolbar');
     if (toolbar) {
@@ -3993,36 +3993,36 @@
    * Applique toutes les améliorations mobiles à une modal de personnage
    */
   function enhanceCharacterModal(modal) {
-    if (!modal) return;
+    if (!modal) {return;}
 
     // Vérifier qu'on est bien en mode mobile
-    if (!document.body.classList.contains('mobile-mode')) return;
+    if (!document.body.classList.contains('mobile-mode')) {return;}
 
     // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
     transformOrderModalStructure(modal);
-    
+
     // CRITIQUE: Fixer la position des dropdowns (couleurs/smileys)
     fixDropdownPosition(modal);
-    
+
     // Nettoyer les whitespace nodes de la toolbar pour le grid
     cleanToolbarWhitespace(modal);
-    
-    // === AMÉLIORATIONS UX === 
+
+    // === AMÉLIORATIONS UX ===
     // #1: Alerte repliable
     makeAlertCollapsible(modal);
-    
+
     // #2: Améliorer le feedback des nav-tabs (avec état actif)
     enhanceNavTabsFeedback(modal);
-    
+
     // #3: Agrandir le textarea
     enlargeTextarea(modal);
-    
+
     // #4: Footer en badges
     formatFooterAsBadges(modal);
-    
+
     // #5: Bouton OK renforcé
     enhanceOkButton(modal);
-    
+
     // #6: Select groupé
     groupSelectOptions(modal);
 
@@ -4037,12 +4037,12 @@
         forceOrderModalGridLayout(modal);
         cleanToolbarWhitespace(modal);
       });
-      
+
       contentObserver.observe(modalBody, {
         childList: true,
         subtree: true
       });
-      
+
       console.log('[Order Modal] Observer Ajax installé sur modal body');
     }
 
@@ -4074,7 +4074,7 @@
   function createCharacterCarousel(modal, select) {
     // Récupérer toutes les options
     const options = Array.from(select.options);
-    if (options.length <= 1) return; // Pas besoin de carousel avec 1 seul perso
+    if (options.length <= 1) {return;} // Pas besoin de carousel avec 1 seul perso
 
     const currentIndex = select.selectedIndex;
 
@@ -4093,15 +4093,15 @@
     // Affichage du personnage actuel
     const currentDisplay = document.createElement('div');
     currentDisplay.className = 'kr-selector-current';
-    
+
     const currentAvatar = document.createElement('img');
     currentAvatar.src = modal.querySelector('.modal-header img')?.src || '';
     currentAvatar.alt = 'Avatar';
-    
+
     const currentName = document.createElement('span');
     currentName.className = 'kr-selector-current-name';
     currentName.textContent = options[currentIndex].text;
-    
+
     const currentCount = document.createElement('span');
     currentCount.className = 'kr-selector-current-count';
     currentCount.textContent = `${currentIndex + 1}/${options.length}`;
@@ -4148,22 +4148,22 @@
    */
   function makeDescriptionCollapsible(modal) {
     const header = modal.querySelector('.modal-header');
-    if (!header) return;
+    if (!header) {return;}
 
     // Chercher le texte de description (souvent après le nom)
     const headerDiv = header.querySelector('div');
-    if (!headerDiv) return;
+    if (!headerDiv) {return;}
 
     // Séparer le nom et la description
     const contentNodes = Array.from(headerDiv.childNodes);
     const textNodes = contentNodes.filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
-    
-    if (textNodes.length === 0) return;
+
+    if (textNodes.length === 0) {return;}
 
     // Wrapper pour la description
     const descWrapper = document.createElement('div');
     descWrapper.className = 'kr-char-description collapsed';
-    
+
     // Mettre les nœuds texte dans le wrapper (sauf le premier qui est le nom)
     textNodes.slice(1).forEach(node => {
       descWrapper.appendChild(node.cloneNode(true));
@@ -4185,7 +4185,7 @@
 
       toggleBtn.addEventListener('click', () => {
         const isCollapsed = descWrapper.classList.contains('collapsed');
-        
+
         if (isCollapsed) {
           descWrapper.classList.remove('collapsed');
           descWrapper.classList.add('expanded');
@@ -4206,16 +4206,16 @@
    */
   function enhanceTabsWithSwipe(modal) {
     const tabsContainer = modal.querySelector('.nav-tabs');
-    if (!tabsContainer) return;
+    if (!tabsContainer) {return;}
 
     const tabs = Array.from(tabsContainer.querySelectorAll('li'));
-    if (tabs.length === 0) return;
+    if (tabs.length === 0) {return;}
 
     // Créer indicateurs de navigation (dots)
     const dotsContainer = document.createElement('div');
     dotsContainer.className = 'kr-tabs-indicator';
 
-    tabs.forEach((tab, index) => {
+    tabs.forEach((tab, _index) => {
       const dot = document.createElement('span');
       dot.className = 'kr-tab-dot';
       if (tab.classList.contains('active')) {
@@ -4258,10 +4258,10 @@
       const swipeThreshold = 50; // pixels minimum pour détecter un swipe
       const diff = touchStartX - touchEndX;
 
-      if (Math.abs(diff) < swipeThreshold) return;
+      if (Math.abs(diff) < swipeThreshold) {return;}
 
       const activeIndex = tabs.findIndex(tab => tab.classList.contains('active'));
-      
+
       if (diff > 0 && activeIndex < tabs.length - 1) {
         // Swipe left → onglet suivant
         tabs[activeIndex + 1].querySelector('a')?.click();
@@ -4274,10 +4274,10 @@
     // Scroll automatique vers l'onglet actif
     const scrollToActiveTab = () => {
       // Chercher l'onglet actif dans TOUTES les listes .nav-tabs du modal
-      const modal = tabsContainer.closest('.bootbox.modal');
-      const allNavTabs = modal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+      const currentModal = tabsContainer.closest('.bootbox.modal');
+      const allNavTabs = currentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
       let activeTab = null;
-      
+
       for (const navTab of allNavTabs) {
         activeTab = navTab.querySelector('li.active');
         if (activeTab) {
@@ -4293,7 +4293,7 @@
     // Scroll lors des changements d'onglet - pour TOUTES les listes de tabs du modal
     const parentModal = tabsContainer.closest('.bootbox.modal');
     const allNavTabsLists = parentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
-    
+
     allNavTabsLists.forEach(navTab => {
       const allTabs = Array.from(navTab.querySelectorAll('li'));
       allTabs.forEach(tab => {
@@ -4309,18 +4309,18 @@
    */
   function addCharCounterToTextareas(modal) {
     const textareas = modal.querySelectorAll('textarea');
-    
+
     textareas.forEach(textarea => {
       const maxLength = textarea.getAttribute('maxlength');
-      if (!maxLength) return;
+      if (!maxLength) {return;}
 
       const counter = document.createElement('div');
       counter.className = 'kr-char-counter';
-      
+
       const updateCounter = () => {
         const remaining = maxLength - textarea.value.length;
         counter.textContent = `${remaining} caractères restants`;
-        
+
         // Code couleur selon le seuil
         counter.classList.remove('warning', 'error');
         if (remaining <= 0) {
@@ -4349,7 +4349,7 @@
 
       el.addEventListener('touchstart', () => {
         el.classList.add('active');
-        
+
         // Vibration haptique si disponible
         if (navigator.vibrate) {
           navigator.vibrate(10);
@@ -4372,17 +4372,17 @@
   // MODAL BACKDROP CLICK TO CLOSE
   // ============================================================================
 
-  /** 
+  /**
    * Active la fermeture des modals Bootbox en cliquant à l'extérieur
-   * Par défaut, Kraland configure Bootbox avec backdrop: "static" 
+   * Par défaut, Kraland configure Bootbox avec backdrop: "static"
    * qui empêche la fermeture par clic extérieur
-   * 
+   *
    * Empêche également le scroll automatique de la page lors de l'ouverture
    */
   function enableModalBackdropClick() {
     // Sauvegarder la position avant chaque modal
     let scrollBeforeModal = { x: 0, y: 0 };
-    
+
     const modalObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
@@ -4391,28 +4391,28 @@
             // Sauvegarder immédiatement la position actuelle
             scrollBeforeModal.x = window.scrollX;
             scrollBeforeModal.y = window.scrollY;
-            
+
             setTimeout(() => {
               // Récupérer les données Bootstrap de la modal
               const modalData = $(node).data('bs.modal');
               if (modalData && modalData.options.backdrop === 'static') {
                 // Changer backdrop de "static" à true pour permettre fermeture par clic
                 modalData.options.backdrop = true;
-                
+
                 // Réattacher le handler de clic sur backdrop
-                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function(e) {
+                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function (e) {
                   if (e.target === this) {
                     $(this).modal('hide');
                   }
                 });
               }
-              
+
               // Restaurer la position de scroll
               window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
             }, 100); // Augmenter le délai à 100ms pour laisser Bootstrap terminer
-            
+
             // Ajouter aussi un handler sur l'événement 'shown.bs.modal' pour être sûr
-            $(node).one('shown.bs.modal', function() {
+            $(node).one('shown.bs.modal', function () {
               window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
             });
           }
@@ -4436,22 +4436,22 @@
    */
   function handleDualLapClock() {
     const clockEl = document.querySelector('.c100');
-    if (!clockEl) return;
+    if (!clockEl) {return;}
 
     const timeSpan = clockEl.querySelector('span');
-    if (!timeSpan) return;
+    if (!timeSpan) {return;}
 
     // Extraire l'heure du format "HH:MM"
     const timeText = timeSpan.textContent.trim();
     const match = timeText.match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) return;
+    if (!match) {return;}
 
     const hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
 
     // Calculer le total en minutes depuis le début de la journée Kraland
-    const totalMinutes = hours * 60 + minutes;
-    
+    const _totalMinutes = hours * 60 + minutes;
+
     // Système de couleurs par palier d'heures (inspiré des PV)
     // 0-6h   → Rouge foncé (#8B0000) - "Critique"
     // 6-12h  → Orange (#FF8C00) - "Attention"
@@ -4470,20 +4470,20 @@
     } else {
       clockColor = '#8B0000'; // Rouge foncé
     }
-    
+
     // Appliquer la couleur via CSS custom property
     clockEl.style.setProperty('--clock-color', clockColor);
-    
+
     // Une journée Kraland = 24h = 1440 minutes
     // Si on dépasse 24h, on est sur le deuxième tour
     if (hours >= 24) {
       clockEl.setAttribute('data-second-lap', 'true');
-      
+
       // Calculer le nouveau pourcentage pour 24-48h
       // On mappe 24-48h sur 0-100% du deuxième tour
       const hoursInSecondLap = hours - 24;
       const percentInSecondLap = Math.floor(((hoursInSecondLap * 60 + minutes) / 1440) * 100);
-      
+
       // Retirer l'ancienne classe pXX
       clockEl.className = clockEl.className.replace(/\bp\d{1,3}\b/g, '');
       // Ajouter la nouvelle classe
@@ -4507,7 +4507,7 @@
    */
   function initMobileFeatures() {
     const isMobile = window.innerWidth < 768;
-    if (!isMobile) return;
+    if (!isMobile) {return;}
 
     // Créer l'overlay pour fermer les panneaux
     createMobileOverlay();
@@ -4520,7 +4520,7 @@
 
     // Initialiser les améliorations UX pour les modals personnages
     initCharacterModalMobile();
-    
+
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
@@ -4541,7 +4541,7 @@
    * Crée l'overlay mobile pour fermer les panneaux latéraux
    */
   function createMobileOverlay() {
-    if (document.querySelector('.kr-mobile-overlay')) return;
+    if (document.querySelector('.kr-mobile-overlay')) {return;}
 
     const overlay = document.createElement('div');
     overlay.className = 'kr-mobile-overlay';
@@ -4569,10 +4569,10 @@
    * Initialise le panneau de compétences pour mobile
    */
   function initMobileSkillsPanel() {
-    if (!isPlatoPage()) return;
+    if (!isPlatoPage()) {return;}
 
     const skillsPanel = document.getElementById('skills-panel');
-    if (!skillsPanel) return;
+    if (!skillsPanel) {return;}
 
     // Créer le bouton pour ouvrir le panneau de compétences
     const skillsToggle = document.createElement('button');
@@ -4610,7 +4610,7 @@
    */
   function initMobileMiniChat() {
     const miniChat = document.getElementById('flap');
-    if (!miniChat) return;
+    if (!miniChat) {return;}
 
     // Bouton pour ouvrir le mini-chat
     const chatButton = document.querySelector('a[href*="#flap"]');
@@ -4640,7 +4640,7 @@
       };
 
       // Trouver le header du mini-chat pour y insérer le bouton
-      const chatHeader = miniChat.querySelector('.panel-heading') || 
+      const chatHeader = miniChat.querySelector('.panel-heading') ||
                         miniChat.querySelector('.modal-header') ||
                         miniChat.firstElementChild;
 
@@ -4706,8 +4706,8 @@
       // Désactiver les tooltips périodiquement
       setInterval(disableTooltips, 2000);
 
-    } catch(e) { 
-      console.error('Kraland theme init failed', e); 
+    } catch(e) {
+      console.error('Kraland theme init failed', e);
     }
   })();
 })();

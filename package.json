@@ -1,6 +1,7 @@
 {
   "name": "kraland-css",
   "version": "1.0.0",
+  "type": "module",
   "description": "Kraland Red Theme",
   "scripts": {
     "build": "node build.js",
@@ -8,9 +9,15 @@
     "serve": "http-server -p 4848 --cors -c-1",
     "test:e2e": "npx playwright test --project=chromium",
     "lint:css": "stylelint \"**/*.css\"",
-    "lint:css:fix": "stylelint \"**/*.css\" --fix"
+    "lint:css:fix": "stylelint \"**/*.css\" --fix",
+    "lint:js": "eslint .",
+    "lint:js:fix": "eslint . --fix",
+    "lint": "npm run lint:css && npm run lint:js",
+    "lint:fix": "npm run lint:css:fix && npm run lint:js:fix"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
     "http-server": "^14.1.1",
     "nodemon": "^3.0.1",
     "playwright": "^1.51.0",

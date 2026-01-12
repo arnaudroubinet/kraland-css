@@ -6,7 +6,7 @@
 // @grant        none
 // ==/UserScript==
 
-(function(){
+(function (){
   'use strict';
 
   const CSS_URL = 'http://localhost:4848/workspace/kraland-css/kraland-theme.css';
@@ -25,11 +25,11 @@
         console.debug('Kraland theme: fetched css from', CSS_URL);
         return text;
       }
-    }catch(e){
+    } catch (_e) {
       // ignore
     }
     const cached = localStorage.getItem(CACHE_KEY);
-    if(cached) return cached;
+    if(cached) {return cached;}
     return null;
   }
 
@@ -44,27 +44,27 @@
       document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
 
       // tag activity icons (members / characters / online) so we can style them
-      try{ markActiveIcons(); }catch(e){/*ignore*/}
-      try{ replaceMcAnchors(); }catch(e){/*ignore*/}
+      try { markActiveIcons(); } catch (_e) { /* ignore */ }
+      try { replaceMcAnchors(); } catch (_e) { /* ignore */ }
 
       return true;
     }catch(e){ console.error('Kraland theme apply failed', e); return false; }
   }
 
   function removeTheme(){
-    const s = document.getElementById(STYLE_ID); if(s) s.remove(); document.documentElement.classList.remove('kr-theme-enabled');
+    const s = document.getElementById(STYLE_ID); if(s) {s.remove();} document.documentElement.classList.remove('kr-theme-enabled');
   }
 
   async function ensureTheme(){
     const enabled = localStorage.getItem(ENABLE_KEY);
-    if(enabled === 'false') return; // user disabled
+    if(enabled === 'false') {return;} // user disabled
     const css = await fetchCss();
-    if(css) await applyThemeInline(css);
+    if(css) {await applyThemeInline(css);}
   }
 
   // Setup toggler UI + variant switcher
   function installToggler(){
-    if(document.getElementById('kr-theme-toggle')) return;
+    if(document.getElementById('kr-theme-toggle')) {return;}
 
     const container = document.createElement('div');
     container.id = 'kr-theme-toggle-container';
@@ -96,11 +96,11 @@
       document.documentElement.classList.toggle('kr-theme-high-contrast', sel.value === 'high-contrast');
       // reapply style from cache to ensure variables take effect
       const css = localStorage.getItem(CACHE_KEY);
-      if(css) applyThemeInline(css);
+      if(css) {applyThemeInline(css);}
     };
 
     // init
-    if(localStorage.getItem(VARIANT_KEY) === null) localStorage.setItem(VARIANT_KEY,'kraland');
+    if(localStorage.getItem(VARIANT_KEY) === null) {localStorage.setItem(VARIANT_KEY,'kraland');}
     sel.value = localStorage.getItem(VARIANT_KEY) || 'kraland';
 
     document.addEventListener('DOMContentLoaded', ()=> updateText());
@@ -119,7 +119,7 @@
       {text: 'Personnes en ligne', cls: 'kr-icon-online'}
     ];
     // clear previous marks
-    for(const m of map) Array.from(document.querySelectorAll('.'+m.cls)).forEach(n=>n.classList.remove(m.cls));
+    for(const m of map) {Array.from(document.querySelectorAll('.'+m.cls)).forEach(n=>n.classList.remove(m.cls));}
 
     // find specific candidate elements (prefer small elements near the text)
     const all = Array.from(document.querySelectorAll('*'));
@@ -127,64 +127,63 @@
       let best = null;
       for(const el of all){
         const txt = (el.textContent||'').trim();
-        if(!txt || !txt.includes(m.text)) continue;
+        if(!txt || !txt.includes(m.text)) {continue;}
         // prefer elements that are not large containers
         const len = txt.length;
         const hasIcon = !!el.querySelector('i.fa, i.falarge, .glyphicon, svg');
         // score: prefer small length and having an icon
         const score = (hasIcon?100:0) + Math.max(0, 200 - Math.min(len,200));
-        if(!best || score > best.score) best = {el, score};
+        if(!best || score > best.score) {best = {el, score};}
       }
       if(best && best.el){ best.el.classList.add(m.cls); }
     }
   }
 
-    // Replace 'MC' anchors with an accessible chat-bubble icon (visual only)
-    function replaceMcAnchors(){
-      try{
-        const anchors = Array.from(document.querySelectorAll('a'))
-          .filter(a => (a.textContent||'').trim() === 'MC');
-        for(const a of anchors){
-          a.classList.add('kr-mc-icon');
-          const title = a.getAttribute('data-original-title') || a.getAttribute('title') || (a.classList.contains('open') ? 'ouvrir le mini-chat' : 'fermer le mini-chat');
-          if(title) a.setAttribute('aria-label', title);
-          // ensure the control is reachable by assistive tech
-          a.removeAttribute('aria-hidden');
-        }
-      }catch(e){/*ignore*/}
-    }
+  // Replace 'MC' anchors with an accessible chat-bubble icon (visual only)
+  function replaceMcAnchors(){
+    try{
+      const anchors = Array.from(document.querySelectorAll('a'))
+        .filter(a => (a.textContent||'').trim() === 'MC');
+      for(const a of anchors){
+        a.classList.add('kr-mc-icon');
+        const title = a.getAttribute('data-original-title') || a.getAttribute('title') || (a.classList.contains('open') ? 'ouvrir le mini-chat' : 'fermer le mini-chat');
+        if(title) {a.setAttribute('aria-label', title);}
+        // ensure the control is reachable by assistive tech
+        a.removeAttribute('aria-hidden');
+      }
+    } catch (_e) { /* ignore */ }
+  }
   // Reapply if removed, and on navigation (SPA)
   function startObservers(){
     // MutationObserver to watch for removal of our style element
-    const mo = new MutationObserver((mutations)=>{
+    const mo = new MutationObserver((_mutations) => {
       const enabled = localStorage.getItem(ENABLE_KEY);
-      if(enabled === 'false') return;
+      if(enabled === 'false') {return;}
       const present = !!document.getElementById(STYLE_ID);
       if(!present){
         // reapply from cache
         const css = localStorage.getItem(CACHE_KEY);
-        if(css) applyThemeInline(css).catch(()=>{});
-        else ensureTheme();
+        if(css) {applyThemeInline(css).catch(()=>{});}
+        else {ensureTheme();}
       }
       // DOM changes might affect the sidebar composition
-      try{ markActiveIcons(); }catch(e){}
-      try{ replaceMcAnchors(); }catch(e){}
-      try{ ensureFooterPosition(); }catch(e){}
+      try { markActiveIcons(); } catch (_e) { /* ignore */ }
+      try { replaceMcAnchors(); } catch (_e) { /* ignore */ }
     });
     mo.observe(document.documentElement || document, { childList: true, subtree: true });
 
     // Polling safety (in case MutationObserver misses)
     setInterval(()=>{
       const enabled = localStorage.getItem(ENABLE_KEY);
-      if(enabled === 'false') return;
+      if(enabled === 'false') {return;}
       if(!document.getElementById(STYLE_ID)){
         const css = localStorage.getItem(CACHE_KEY);
-        if(css) applyThemeInline(css).catch(()=>{});
+        if(css) {applyThemeInline(css).catch(()=>{});}
       }
     }, CHECK_INTERVAL);
 
     // catch SPA navigations
-    const wrap = (orig) => function(){ const ret = orig.apply(this, arguments); setTimeout(()=> ensureTheme(), 250); return ret; };
+    const wrap = (orig) => function (){ const ret = orig.apply(this, arguments); setTimeout(()=> ensureTheme(), 250); return ret; };
     history.pushState = wrap(history.pushState);
     history.replaceState = wrap(history.replaceState);
     window.addEventListener('popstate', ()=> setTimeout(()=> ensureTheme(), 250));
@@ -194,17 +193,14 @@
   (async function init(){
     try{
       // Apply immediately if enabled
-      if(localStorage.getItem(ENABLE_KEY) === null) localStorage.setItem(ENABLE_KEY,'true');
+      if(localStorage.getItem(ENABLE_KEY) === null) {localStorage.setItem(ENABLE_KEY,'true');}
       installToggler();
       await ensureTheme();
       startObservers();
-      // initial footer placement
-      try{ ensureFooterPosition(); }catch(e){}
-      window.addEventListener('resize', ()=> { try{ ensureFooterPosition(); }catch(e){} });
 
       // Periodically refresh CSS from source (in case of updates)
-      setInterval(async ()=>{ if(localStorage.getItem(ENABLE_KEY) === 'false') return; const newCss = await fetchCss(); if(newCss && newCss !== localStorage.getItem(CACHE_KEY)){ applyThemeInline(newCss); console.debug('Kraland theme: updated from source'); } }, 60*1000); // every 60s
-    }catch(e){ console.error('Kraland theme init failed', e); }
+      setInterval(async () => { if (localStorage.getItem(ENABLE_KEY) === 'false') {return;} const newCss = await fetchCss(); if (newCss && newCss !== localStorage.getItem(CACHE_KEY)) { applyThemeInline(newCss); console.debug('Kraland theme: updated from source'); } }, 60*1000); // every 60s
+    } catch (_e) { console.error('Kraland theme init failed', _e); }
   })();
 
 })();

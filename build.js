@@ -15,7 +15,7 @@ console.log(`✓ Read CSS (${css.length} chars)`);
 
 // Read template
 const template = fs.readFileSync(templatePath, 'utf8');
-console.log(`✓ Read template`);
+console.log('✓ Read template');
 // Prepare timestamped version header to include in generated file
 const timestamp = Date.now();
 const version = `1.0.${timestamp}`;
