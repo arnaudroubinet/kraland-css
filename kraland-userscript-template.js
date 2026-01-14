@@ -2545,6 +2545,9 @@
 
     let forumOriginalItem = null;
 
+    // Vérifier si on est en mode mobile
+    const isMobileMode = document.body.classList.contains('mobile-mode');
+
     // Modification des liens existants et ajout du comportement de redirection
     document.querySelectorAll('.navbar-nav .dropdown > a.dropdown-toggle').forEach(link => {
       const text = link.textContent.trim().replace(/\s*\n.*$/, '');
@@ -2559,19 +2562,25 @@
       if (menuKey && menuLinks[menuKey]) {
         link.href = menuLinks[menuKey];
 
-        // Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
-        link.removeAttribute('data-toggle');
+        // EN DESKTOP UNIQUEMENT : Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
+        // EN MOBILE : Garder data-toggle pour permettre l'affichage du sous-menu
+        if (!isMobileMode) {
+          link.removeAttribute('data-toggle');
 
-        // Marquer comme modifié pour éviter de ré-ajouter l'événement
-        if (!link.hasAttribute('data-nav-modified')) {
-          link.setAttribute('data-nav-modified', 'true');
+          // Marquer comme modifié pour éviter de ré-ajouter l'événement
+          if (!link.hasAttribute('data-nav-modified')) {
+            link.setAttribute('data-nav-modified', 'true');
 
-          // S'assurer que le clic navigue vers la nouvelle URL
-          link.addEventListener('click', function (e) {
-            e.preventDefault();
-            window.location.href = this.href;
-            return false;
-          });
+            // S'assurer que le clic navigue vers la nouvelle URL
+            link.addEventListener('click', function (e) {
+              e.preventDefault();
+              window.location.href = this.href;
+              return false;
+            });
+          }
+        } else {
+          // EN MOBILE : Conserver/restaurer data-toggle="dropdown" pour Bootstrap 3
+          link.setAttribute('data-toggle', 'dropdown');
         }
       }
     });
@@ -2627,23 +2636,38 @@
       // Supprimer le menu Forum original
       forumOriginalItem.remove();
 
-      // Ajouter les comportements de navigation directe
-      const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
-      if (forumRpLink) {
-        forumRpLink.addEventListener('click', function (e) {
-          e.preventDefault();
-          window.location.href = this.href;
-          return false;
-        });
-      }
+      // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
+      if (!isMobileMode) {
+        const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
+        if (forumRpLink) {
+          forumRpLink.removeAttribute('data-toggle');
+          forumRpLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
 
-      const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
-      if (forumHrpLink) {
-        forumHrpLink.addEventListener('click', function (e) {
-          e.preventDefault();
-          window.location.href = this.href;
-          return false;
-        });
+        const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
+        if (forumHrpLink) {
+          forumHrpLink.removeAttribute('data-toggle');
+          forumHrpLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+      } else {
+        // EN MOBILE : Garder data-toggle pour les dropdowns
+        const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
+        if (forumRpLink) {
+          forumRpLink.setAttribute('data-toggle', 'dropdown');
+        }
+
+        const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
+        if (forumHrpLink) {
+          forumHrpLink.setAttribute('data-toggle', 'dropdown');
+        }
       }
     }
 
@@ -2667,14 +2691,23 @@
 
       communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
 
-      // Ajouter le comportement de navigation directe pour le menu Statistiques
-      const statsLink = statsLi.querySelector('a.dropdown-toggle');
-      if (statsLink) {
-        statsLink.addEventListener('click', function (e) {
-          e.preventDefault();
-          window.location.href = this.href;
-          return false;
-        });
+      // EN DESKTOP UNIQUEMENT : Ajouter le comportement de navigation directe
+      if (!isMobileMode) {
+        const statsLink = statsLi.querySelector('a.dropdown-toggle');
+        if (statsLink) {
+          statsLink.removeAttribute('data-toggle');
+          statsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+      } else {
+        // EN MOBILE : Garder data-toggle pour le dropdown
+        const statsLink = statsLi.querySelector('a.dropdown-toggle');
+        if (statsLink) {
+          statsLink.setAttribute('data-toggle', 'dropdown');
+        }
       }
     }
   }

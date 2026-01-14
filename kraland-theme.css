@@ -6284,3 +6284,95 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     max-height: 16px !important;
   }
 }
+
+/* ============================================================================
+   MOBILE MENU DROPDOWNS - Bootstrap 3 native handling
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* EN MOBILE : Afficher les dropdown-menu avec la structure Bootstrap 3 */
+  
+  /* Les dropdown-menu doivent être visibles quand le parent a la classe 'open' */
+  .navbar-collapse .dropdown.open > .dropdown-menu {
+    display: block !important;
+    position: static !important;
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+  }
+  
+  /* Styling des items dans le dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a {
+    display: block !important;
+    padding: 10px 15px 10px 25px !important;
+    clear: both !important;
+    font-weight: 400 !important;
+    line-height: 1.42857143 !important;
+    color: var(--kr-text-primary) !important;
+    white-space: nowrap !important;
+    background-color: transparent !important;
+    border-left: 4px solid transparent !important;
+  }
+  
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:hover,
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:focus {
+    color: var(--kr-text-primary) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:active {
+    color: var(--kr-primary) !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  /* Dividers dans le dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .divider {
+    height: 1px !important;
+    margin: 9px 0 !important;
+    background-color: var(--kr-border-default) !important;
+  }
+  
+  /* Dropdown headers */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .dropdown-header {
+    display: block !important;
+    padding: 3px 15px 3px 25px !important;
+    font-size: 12px !important;
+    line-height: 1.42857143 !important;
+    color: var(--kr-text-muted) !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Active items in dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a,
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:hover,
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:focus {
+    color: var(--kr-primary) !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  /* Bootstrap 3 collapse pour les items principaux du menu */
+  .navbar-collapse .navbar-nav > li > a {
+    padding: 15px !important;
+  }
+  
+  /* Assurer que le caret du dropdown-toggle est visible */
+  .navbar-collapse .dropdown > a.dropdown-toggle .caret {
+    border-top-color: currentColor !important;
+    border-bottom-color: transparent !important;
+  }
+  
+  /* Quand ouvert, inverser le caret */
+  .navbar-collapse .dropdown.open > a.dropdown-toggle .caret {
+    border-top-color: transparent !important;
+    border-bottom-color: currentColor !important;
+    transform: rotate(180deg) !important;
+  }
+}
