@@ -4377,11 +4377,17 @@
    * Par défaut, Kraland configure Bootbox avec backdrop: "static"
    * qui empêche la fermeture par clic extérieur
    *
+   * AMÉLIORATION: Détecte un vrai clic (mousedown + mouseup au même endroit)
+   * et non pas juste un relâchement de bouton (redimensionnement fenêtre)
+   *
    * Empêche également le scroll automatique de la page lors de l'ouverture
    */
   function enableModalBackdropClick() {
     // Sauvegarder la position avant chaque modal
     let scrollBeforeModal = { x: 0, y: 0 };
+
+    // Map pour tracker les position mousedown par modal
+    const mousedownPositions = new WeakMap();
 
     const modalObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -4399,11 +4405,49 @@
                 // Changer backdrop de "static" à true pour permettre fermeture par clic
                 modalData.options.backdrop = true;
 
-                // Réattacher le handler de clic sur backdrop
-                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function (e) {
+                // Handler pour tracker le mousedown sur le backdrop
+                $(node).on('mousedown.backdrop.track', function (e) {
+                  // Ne tracker que si on clique sur le backdrop lui-même (pas sur la modal)
                   if (e.target === this) {
-                    $(this).modal('hide');
+                    mousedownPositions.set(this, { x: e.clientX, y: e.clientY });
                   }
+                });
+
+                // Réattacher le handler de clic sur backdrop avec détection de vrai clic
+                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function (e) {
+                  // Vérifier que c'est un clic sur le backdrop lui-même
+                  if (e.target !== this) {
+                    return;
+                  }
+
+                  // Vérifier qu'il y a eu un mousedown au même endroit
+                  // Cela élimine les faux clics dus au relâchement du bouton lors du redimensionnement
+                  const downPos = mousedownPositions.get(this);
+                  if (!downPos) {
+                    // Pas de mousedown préalable = pas de vrai clic, ignorer
+                    return;
+                  }
+
+                  // Vérifier que le mousedown et mouseup sont au même endroit (tolérance 5px)
+                  const tolerance = 5;
+                  const distance = Math.sqrt(
+                    Math.pow(e.clientX - downPos.x, 2) + Math.pow(e.clientY - downPos.y, 2)
+                  );
+                  if (distance > tolerance) {
+                    // Le curseur a bougé significativement = action de redimensionnement
+                    return;
+                  }
+
+                  // Vrai clic détecté: fermer la modal
+                  $(this).modal('hide');
+
+                  // Nettoyer la position trackée
+                  mousedownPositions.delete(this);
+                });
+
+                // Nettoyer la position trackée quand la modal se ferme
+                $(node).one('hidden.bs.modal', function () {
+                  mousedownPositions.delete(this);
                 });
               }
 
