@@ -2019,15 +2019,23 @@
   }
 
   function disableTooltips() {
-    // Ne désactiver les tooltips que sur mobile
-    if (!document.body.classList.contains('mobile-mode')) {return;}
+    // Désactiver les tooltips:
+    // 1. Sur mobile
+    // 2. Si enfant de col-leftest ou panel-body grid-transformed
     
     document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
-      el.removeAttribute('data-toggle');
-      el.removeAttribute('data-placement');
-      el.removeAttribute('title');
-      el.removeAttribute('data-original-title');
+      const isMobile = document.body.classList.contains('mobile-mode');
+      const isInColLeftest = el.closest('.col-leftest');
+      const isInGridTransformed = el.closest('.panel-body.grid-transformed');
+      
+      if (isMobile || isInColLeftest || isInGridTransformed) {
+        el.removeAttribute('data-toggle');
+        el.removeAttribute('data-placement');
+        el.removeAttribute('title');
+        el.removeAttribute('data-original-title');
+      }
     });
+    
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function () { return this; };
     }
