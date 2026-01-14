@@ -1,10 +1,9 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
-// @namespace    https://www.kraland.org/
-// @version      1.0.1768372128201
+// @namespace    http://www.kraland.org/
+// @version      1.0.1768372619008
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
-// @match        https://www.kraland.org/*
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
