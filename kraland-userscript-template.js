@@ -2043,12 +2043,29 @@
     // Trouver toutes les images de rang
     document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
       // Récupérer le contenu de data-original-title
-      const title = img.getAttribute('data-original-title');
+      let title = img.getAttribute('data-original-title');
       if (!title) {return;}
 
       // Trouver la div parente contenant l'image
       let parentDiv = img.closest('div');
       if (!parentDiv) {return;}
+
+      // Chercher une <strong> qui contient un lien avec "charlie-2-82045"
+      // La strong devrait être dans le même cartouche (div parente du parent)
+      let cartouche = parentDiv.closest('.cartouche') || parentDiv.closest('div[class="cartouche"]');
+      if (!cartouche) {
+        cartouche = parentDiv.parentElement;
+      }
+
+      if (cartouche) {
+        const strongWithLink = cartouche.querySelector('strong a[href*="charlie-2-82045"]');
+        if (strongWithLink) {
+          // C'est Charlie (ou un compte avec charlie-2-82045), remplacer "Empereur" par "Emperatrice"
+          if (title === 'Empereur') {
+            title = 'Emperatrice';
+          }
+        }
+      }
 
       // Vérifier si une div soeur avec ce titre existe déjà (pour éviter les doublons)
       const nextSiblings = parentDiv.parentElement.querySelectorAll('div');
