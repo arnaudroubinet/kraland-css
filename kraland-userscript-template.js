@@ -2012,13 +2012,16 @@
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
       modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption,
-      handleDualLapClock
+      handleDualLapClock, addRankTitles
     ];
 
     transforms.forEach(fn => safeCall(fn));
   }
 
   function disableTooltips() {
+    // Ne désactiver les tooltips que sur mobile
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+    
     document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
       el.removeAttribute('data-toggle');
       el.removeAttribute('data-placement');
@@ -2028,6 +2031,52 @@
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function () { return this; };
     }
+  }
+
+  /**
+   * Ajoute les titres des rangs du forum dans des divs soeurs
+   */
+  function addRankTitles() {
+    // Ne s'exécuter que sur les pages du forum
+    if (!window.location.pathname.startsWith('/forum/')) {return;}
+
+    // Trouver toutes les images de rang
+    document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
+      // Récupérer le contenu de data-original-title
+      const title = img.getAttribute('data-original-title');
+      if (!title) {return;}
+
+      // Trouver la div parente contenant l'image
+      let parentDiv = img.closest('div');
+      if (!parentDiv) {return;}
+
+      // Vérifier si une div soeur avec ce titre existe déjà (pour éviter les doublons)
+      const nextSiblings = parentDiv.parentElement.querySelectorAll('div');
+      let titleAlreadyExists = false;
+      for (let sibling of nextSiblings) {
+        if (sibling.textContent.trim() === title && sibling !== parentDiv) {
+          titleAlreadyExists = true;
+          break;
+        }
+      }
+
+      // Si le titre existe déjà, ne rien faire
+      if (titleAlreadyExists) {return;}
+
+      // Vérifier aussi si on a déjà créé cette div (avec le data-kr-rank-title)
+      const nextSibling = parentDiv.nextElementSibling;
+      if (nextSibling && nextSibling.hasAttribute('data-kr-rank-title')) {return;}
+
+      // Créer une nouvelle div soeur
+      const titleDiv = document.createElement('div');
+      titleDiv.setAttribute('data-kr-rank-title', 'true');
+      const strong = document.createElement('strong');
+      strong.textContent = title;
+      titleDiv.appendChild(strong);
+
+      // Insérer la div soeur juste après la div parente
+      parentDiv.parentElement.insertBefore(titleDiv, parentDiv.nextSibling);
+    });
   }
 
   /**
