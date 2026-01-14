@@ -4,7 +4,6 @@
 // @version      1.0.dev
 // @description  Charge dynamiquement le CSS et le JS depuis le serveur local pour le développement
 // @match        http://www.kraland.org/*
-// @match        https://www.kraland.org/*
 // @run-at       document-start
 // @grant        GM_xmlhttpRequest
 // @connect      localhost
