@@ -3,6 +3,55 @@
   'use strict';
 
   // ============================================================================
+  // INITIALIZATION ORCHESTRATOR
+  // Garantit l'ordre d'exécution séquentiel de tous les modules
+  // Chaque module décide lui-même s'il doit s'exécuter (mobile/desktop/page)
+  // ============================================================================
+  const InitQueue = {
+    _queue: [],
+    _initialized: false,
+    
+    /**
+     * Enregistre une fonction d'initialisation avec sa priorité
+     * @param {string} name - Nom du module (pour debug)
+     * @param {Function} fn - Fonction d'initialisation
+     * @param {number} priority - Priorité (plus petit = exécuté en premier)
+     */
+    register(name, fn, priority = 100) {
+      this._queue.push({ name, fn, priority });
+    },
+    
+    /**
+     * Exécute toutes les fonctions enregistrées dans l'ordre de priorité
+     * Appelé une seule fois après le DOMContentLoaded
+     */
+    run() {
+      if (this._initialized) return;
+      
+      this._initialized = true;
+      
+      // Trier par priorité (plus petit en premier)
+      this._queue.sort((a, b) => a.priority - b.priority);
+      
+      const isMobile = document.body.classList.contains('mobile-mode');
+      console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
+      console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
+      
+      // Exécuter séquentiellement
+      this._queue.forEach(({ name, fn }) => {
+        try {
+          fn();
+          console.log(`[InitQueue] ✓ ${name}`);
+        } catch (e) {
+          console.error(`[InitQueue] ✗ ${name}:`, e);
+        }
+      });
+      
+      console.log('[InitQueue] Initialisation terminée');
+    }
+  };
+
+  // ============================================================================
   // TASK-1.1 - MOBILE DETECTION & INITIALIZATION
   // ============================================================================
   (function () {
@@ -211,14 +260,8 @@
       });
     }
 
-    // Attendre que le DOM soit prêt
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initMobileHeader, 100);
-      });
-    } else {
-      setTimeout(initMobileHeader, 100);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 10)
+    InitQueue.register('initMobileHeader', initMobileHeader, 10);
 
     // Export pour debug
     if (window.KralandMobile) {
@@ -311,14 +354,8 @@
       console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, map)');
     }
 
-    // Initialiser au chargement du DOM
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(moveHeaderButtons, 150);
-      });
-    } else {
-      setTimeout(moveHeaderButtons, 150);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 20)
+    InitQueue.register('moveHeaderButtons', moveHeaderButtons, 20);
   })();
 
   // ============================================================================
@@ -631,12 +668,13 @@
         );
       });
 
-      // Insérer après la tab bar ou au début du body
-      const tabBar = document.querySelector('.mobile-tab-bar');
+      // Insérer après la navbar (élément préexistant) ou au début du body
+      // Note: On utilise .navbar (DOM original) et non .mobile-tab-bar (créé par le script)
+      const navbar = document.querySelector('.navbar');
       const container = document.getElementById('content') || document.body;
 
-      if (tabBar && tabBar.nextSibling) {
-        tabBar.parentNode.insertBefore(miniProfile, tabBar.nextSibling);
+      if (navbar && navbar.nextSibling) {
+        navbar.parentNode.insertBefore(miniProfile, navbar.nextSibling);
       } else {
         container.insertBefore(miniProfile, container.firstChild);
       }
@@ -657,14 +695,8 @@
       createMiniProfile();
     }
 
-    // Attendre le DOM + délai pour autres tâches (après tab bar)
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initMiniProfile, 250);
-      });
-    } else {
-      setTimeout(initMiniProfile, 250);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 40 - après tab bar)
+    InitQueue.register('initMiniProfile', initMiniProfile, 40);
 
     // Exposer pour debug
     if (window.KralandMobile) {
@@ -739,14 +771,12 @@
         container.appendChild(btnGroup);
       });
 
-      // Insérer après le mini-profil
-      const miniProfile = document.querySelector('.mobile-mini-profile');
-      const tabBar = document.querySelector('.mobile-tab-bar');
+      // Insérer après la navbar (élément préexistant)
+      // Note: On utilise .navbar (DOM original) et non .mobile-mini-profile/.mobile-tab-bar (créés par le script)
+      const navbar = document.querySelector('.navbar');
 
-      if (miniProfile && miniProfile.nextSibling) {
-        miniProfile.parentNode.insertBefore(container, miniProfile.nextSibling);
-      } else if (tabBar && tabBar.nextSibling) {
-        tabBar.parentNode.insertBefore(container, tabBar.nextSibling);
+      if (navbar && navbar.nextSibling) {
+        navbar.parentNode.insertBefore(container, navbar.nextSibling);
       } else {
         document.body.insertBefore(container, document.body.firstChild);
       }
@@ -763,14 +793,8 @@
       createQuickActions();
     }
 
-    // Attendre le DOM + délai (après mini-profil)
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initQuickActions, 300);
-      });
-    } else {
-      setTimeout(initQuickActions, 300);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 50 - après mini-profil)
+    InitQueue.register('initQuickActions', initQuickActions, 50);
 
     // Exposer pour debug
     if (window.KralandMobile) {
@@ -984,12 +1008,8 @@
       window.KralandMobile.initTabBar = initTabBar;
     }
 
-    // Initialiser au chargement avec un délai pour s'assurer que le DOM est prêt
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => setTimeout(initTabBar, 100));
-    } else {
-      setTimeout(initTabBar, 100);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 30 - après header buttons)
+    InitQueue.register('initTabBar', initTabBar, 30);
   })();
 
   // ============================================================================
@@ -1371,12 +1391,8 @@
       window.KralandMobile.initGroupsAccordion = initGroupsAccordion;
     }
 
-    // Initialiser au chargement avec délai pour s'assurer que le DOM est prêt
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => setTimeout(initGroupsAccordion, 150));
-    } else {
-      setTimeout(initGroupsAccordion, 150);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 70)
+    InitQueue.register('initGroupsAccordion', initGroupsAccordion, 70);
   })();
 
   // ============================================================================
@@ -1529,9 +1545,9 @@
     function initNavigationRow() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
 
-      // Trouver le conteneur des actions rapides
-      const quickActions = document.querySelector('.mobile-quick-actions');
-      if (!quickActions) {return;}
+      // Utiliser un élément DOM préexistant comme ancre (pas .mobile-quick-actions créé par le script)
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) {return;}
 
       // Trouver l'image "Sortir" avec la croix directionnelle
       const exitImg = document.querySelector('img[alt="Sortir"]');
@@ -1642,20 +1658,15 @@
         navRow.appendChild(btnGroup);
       });
 
-      // Insérer la nouvelle ligne après les actions rapides
-      quickActions.parentElement.insertBefore(navRow, quickActions.nextSibling);
+      // Insérer la nouvelle ligne après la navbar (élément préexistant)
+      // Note: On utilise .navbar (DOM original) et non .mobile-quick-actions (créé par le script)
+      navbar.parentNode.insertBefore(navRow, navbar.nextSibling);
 
       console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
     }
 
-    // Attendre le DOM et un délai pour que tout soit prêt
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initNavigationRow, 350);
-      });
-    } else {
-      setTimeout(initNavigationRow, 350);
-    }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 60 - après quick actions)
+    InitQueue.register('initNavigationRow', initNavigationRow, 60);
   })();
 
   // ============================================================================
@@ -1689,11 +1700,10 @@
   // ============================================================================
   // NOUVELLES : Gestion du repliement/dépliement (mobile uniquement)
   // ============================================================================
-  // News collapsible sur mobile
-  if (window.innerWidth < 768 && !window.__krNewsToggleInit) {
-    window.__krNewsToggleInit = true;
-
+  (function () {
     function initNewsToggle() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      
       const newsToggle = document.getElementById('slide-submenu');
       const newsContainer = document.getElementById('player-header-section');
 
@@ -1724,19 +1734,14 @@
           localStorage.setItem('kr-news-collapsed', collapsed);
           updateButton(collapsed);
         }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
+        
+        console.log('[News Toggle] Initialisé');
       }
     }
 
-    // Attendre que le DOM soit complètement chargé
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initNewsToggle, { once: true });
-    } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-      // Utiliser requestAnimationFrame pour s'assurer que le DOM est vraiment prêt
-      requestAnimationFrame(() => {
-        setTimeout(initNewsToggle, 50);
-      });
-    }
-  }
+    // Enregistrer dans la queue d'initialisation mobile (priorité 80)
+    InitQueue.register('initNewsToggle', initNewsToggle, 80);
+  })();
 
   // ============================================================================
   // CONFIGURATION
@@ -4830,6 +4835,14 @@
 
       // Gestion mobile : détection et fonctionnalités spécifiques
       initMobileFeatures();
+
+      // Exécuter la queue d'initialisation mobile (ordre garanti)
+      // Doit être appelé après DOMContentLoaded et après que mobile-mode soit défini
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => InitQueue.run(), { once: true });
+      } else {
+        InitQueue.run();
+      }
 
       // Déplacer le style à la fin du head pour la priorité
       setTimeout(() => {
