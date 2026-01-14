@@ -250,23 +250,12 @@
         return icon && !li.querySelector('.dropdown-menu');
       });
 
-      const paletteBtn = allButtons.find(li => {
-        const icon = li.querySelector('.fa-palette');
-        return icon && !li.querySelector('.dropdown-menu');
-      });
-
-      const profileBtn = allButtons.find(li => {
-        const icon = li.querySelector('.fa-user');
-        const hasDropdown = li.querySelector('.dropdown-menu');
-        return icon && hasDropdown;
-      });
-
       const mapBtn = allButtons.find(li => {
         const icon = li.querySelector('.fa-globe');
         return icon && !li.querySelector('.dropdown-menu');
       });
 
-      if (!notificationBtn && !kramailBtn && !paletteBtn && !profileBtn && !mapBtn) {
+      if (!notificationBtn && !kramailBtn && !mapBtn) {
         console.log('[Mobile Header Buttons] Aucun bouton trouvé');
         return;
       }
@@ -290,20 +279,6 @@
         leftButtonsContainer.appendChild(kramailBtn.cloneNode(true));
       }
 
-      if (paletteBtn) {
-        paletteBtn.setAttribute('data-moved-to-header', 'true');
-        leftButtonsContainer.appendChild(paletteBtn.cloneNode(true));
-      }
-
-      if (profileBtn) {
-        profileBtn.setAttribute('data-moved-to-header', 'true');
-        const profileClone = profileBtn.cloneNode(true);
-        // Supprimer le dropdown pour simplifier l'interface mobile
-        const dropdown = profileClone.querySelector('.dropdown-menu');
-        if (dropdown) {dropdown.remove();}
-        leftButtonsContainer.appendChild(profileClone);
-      }
-
       if (mapBtn) {
         mapBtn.setAttribute('data-moved-to-header', 'true');
         leftButtonsContainer.appendChild(mapBtn.cloneNode(true));
@@ -320,7 +295,7 @@
         navbarBrand.style.display = 'none';
       }
 
-      console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, palette, profil, map)');
+      console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, map)');
     }
 
     // Initialiser au chargement du DOM
@@ -849,25 +824,24 @@
     function findNavigationLinks() {
       // Patterns à chercher avec icônes Font Awesome
       const patterns = [
-        { pattern: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
-        { pattern: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
-        { pattern: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
-        { pattern: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
-        { pattern: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
+        { pattern: '/jouer/plateau', href: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
+        { pattern: '/jouer/materiel', href: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
+        { pattern: '/jouer/perso', href: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
+        { pattern: '/jouer/bat', href: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
+        { pattern: '/jouer/pnj', href: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
       ];
 
       const links = [];
 
       patterns.forEach(item => {
         const link = document.querySelector(`a[href*="${item.pattern}"]`);
-        if (link) {
-          links.push({
-            href: link.getAttribute('href'),
-            text: link.textContent.trim() || item.label,
-            pattern: item.pattern,
-            icon: item.icon
-          });
-        }
+        // Créer le lien même s'il n'existe pas sur la page actuelle
+        links.push({
+          href: link ? link.getAttribute('href') : item.href,
+          text: link ? (link.textContent.trim() || item.label) : item.label,
+          pattern: item.pattern,
+          icon: item.icon
+        });
       });
 
       return links;
@@ -884,7 +858,7 @@
       const navLinks = findNavigationLinks();
 
       if (navLinks.length === 0) {
-        console.warn('[Mobile Tab Bar] Liens navigation jeu non trouvés');
+        console.warn('[Mobile Tab Bar] Aucun lien de navigation disponible');
         return;
       }
 
