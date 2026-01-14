@@ -2,6 +2,62 @@
 
 Extension CSS/JavaScript pour moderniser l'interface de [Kraland Interactif](http://www.kraland.org) côté client.
 
+## Développement
+
+### Prérequis pour les développeurs
+
+- Node.js (version 20 ou supérieure)
+- npm
+
+### Installation des dépendances
+
+```bash
+npm install
+```
+
+### Build du script
+
+Le script principal `kraland-userscript-main.js` est généré automatiquement à partir du template et du CSS :
+
+```bash
+npm run build
+```
+
+Cette commande :
+1. Lit le fichier CSS (`kraland-theme.css`)
+2. Injecte le CSS dans le template JavaScript (`kraland-userscript-template.js`)
+3. Génère le fichier final (`kraland-userscript-main.js`)
+4. Met à jour le numéro de version avec un timestamp
+
+⚠️ **Important** : Ne modifiez jamais `kraland-userscript-main.js` directement. Modifiez plutôt :
+- `kraland-userscript-template.js` pour les changements JavaScript
+- `kraland-theme.css` pour les changements CSS
+
+Puis exécutez `npm run build` pour régénérer le fichier principal.
+
+### Développement avec hot reload
+
+Pour le développement avec rechargement automatique :
+
+1. Démarrer le serveur local :
+```bash
+npm run serve
+```
+
+2. Utiliser le script de développement `kraland-userscript-dev.user.js` qui charge dynamiquement les fichiers depuis localhost:4848
+
+3. Pour le watch automatique des changements :
+```bash
+npm run watch
+```
+
+### Linting
+
+```bash
+npm run lint          # Vérifie CSS et JS
+npm run lint:fix      # Corrige automatiquement les problèmes
+```
+
 ## Installation
 
 ### Prérequis
