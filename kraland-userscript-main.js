@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768429761337
+// @version      1.0.1768432586823
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -8385,9 +8385,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
-      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption,
-      handleDualLapClock, addRankTitles
+      ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
+      disableTooltips, modifyNavigationMenus, transformDashboardToFlexCards, 
+      applyFooterQuoteOption, handleDualLapClock
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -8425,8 +8425,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     // Trouver toutes les images de rang
     document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
-      // Récupérer le contenu de data-original-title
-      let title = img.getAttribute('data-original-title');
+      // Récupérer le contenu de data-original-title ou title
+      let title = img.getAttribute('data-original-title') || img.getAttribute('title');
       if (!title) {return;}
 
       // Trouver la div parente contenant l'image

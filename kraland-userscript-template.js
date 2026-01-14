@@ -1997,9 +1997,9 @@
       restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, disableTooltips,
-      modifyNavigationMenus, transformDashboardToFlexCards, applyFooterQuoteOption,
-      handleDualLapClock, addRankTitles
+      ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
+      disableTooltips, modifyNavigationMenus, transformDashboardToFlexCards, 
+      applyFooterQuoteOption, handleDualLapClock
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -2037,8 +2037,8 @@
 
     // Trouver toutes les images de rang
     document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
-      // Récupérer le contenu de data-original-title
-      let title = img.getAttribute('data-original-title');
+      // Récupérer le contenu de data-original-title ou title
+      let title = img.getAttribute('data-original-title') || img.getAttribute('title');
       if (!title) {return;}
 
       // Trouver la div parente contenant l'image
