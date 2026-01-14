@@ -1,6 +1,10 @@
 // Build script - combines CSS into JS and updates userscript version
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const cssPath = path.join(__dirname, 'kraland-theme.css');
 const templatePath = path.join(__dirname, 'kraland-userscript-template.js');
@@ -26,7 +30,9 @@ const version = `1.0.${timestamp}`;
 const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    https://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled)\n// @match        http://www.kraland.org/*\n// @match        https://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// ==/UserScript==\n\n`;
 
 // Replace placeholder and prepend header
-const output = userscriptHeader + template.replace('__CSS_CONTENT__', css.replace(/`/g, '\\`').replace(/\$/g, '\\$'));
+// Escape backticks and $ in CSS for template literal, then replace the placeholder
+const escapedCss = css.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+const output = userscriptHeader + template.replace("'__CSS_CONTENT__'", '`' + escapedCss + '`');
 
 // Write output
 fs.writeFileSync(outputPath, output, 'utf8');

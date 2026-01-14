@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    https://www.kraland.org/
-// @version      1.0.1768259496249
+// @version      1.0.1768370799371
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @match        https://www.kraland.org/*
@@ -1766,7 +1766,7 @@
   // CONFIGURATION
   // ============================================================================
   const CONFIG = {
-    BUNDLED_CSS: '/* ============================================================================
+    BUNDLED_CSS: `/* ============================================================================
    1. CSS VARIABLES
    ============================================================================ */
 
@@ -8052,7 +8052,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     max-height: 16px !important;
   }
 }
-',
+`,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
@@ -8084,7 +8084,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
   /** Exécute une fonction en silence (catch les erreurs) */
   function safeCall(fn) {
-    try { fn(); } catch(e) { /* ignore */ }
+    try { fn(); } catch (_e) { /* ignore */ }
   }
 
   /** Vérifie si le thème est activé */
@@ -8160,7 +8160,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /** Crée un conteneur d'icône avec badge pour caractéristiques */
-  function createStatIconContainer(iconUrl, altText, badgeText) {
+  function _createStatIconContainer(iconUrl, altText, badgeText) {
     const container = document.createElement('div');
     Object.assign(container.style, {
       position: 'relative', display: 'inline-block',
@@ -8701,7 +8701,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     if (groups.length === 0) {return;}
 
     // Construire les sections pour chaque groupe
-    groups.forEach((group, index) => {
+    groups.forEach((group, _index) => {
       const groupSection = document.createElement('div');
       groupSection.className = group.isMyGroup
         ? 'dashboard-section dashboard-section-mygroup'
@@ -10512,7 +10512,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     const dotsContainer = document.createElement('div');
     dotsContainer.className = 'kr-tabs-indicator';
 
-    tabs.forEach((tab, index) => {
+    tabs.forEach((tab, _index) => {
       const dot = document.createElement('span');
       dot.className = 'kr-tab-dot';
       if (tab.classList.contains('active')) {
@@ -10571,8 +10571,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     // Scroll automatique vers l'onglet actif
     const scrollToActiveTab = () => {
       // Chercher l'onglet actif dans TOUTES les listes .nav-tabs du modal
-      const modal = tabsContainer.closest('.bootbox.modal');
-      const allNavTabs = modal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+      const currentModal = tabsContainer.closest('.bootbox.modal');
+      const allNavTabs = currentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
       let activeTab = null;
 
       for (const navTab of allNavTabs) {
@@ -10747,7 +10747,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     const minutes = parseInt(match[2], 10);
 
     // Calculer le total en minutes depuis le début de la journée Kraland
-    const totalMinutes = hours * 60 + minutes;
+    const _totalMinutes = hours * 60 + minutes;
 
     // Système de couleurs par palier d'heures (inspiré des PV)
     // 0-6h   → Rouge foncé (#8B0000) - "Critique"
