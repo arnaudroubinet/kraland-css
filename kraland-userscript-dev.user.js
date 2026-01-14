@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Kraland Theme - Dev Mode (Hot Reload)
-// @namespace    http://www.kraland.org/
+// @namespace    http://www.kraland.org/dev/
 // @version      1.0.dev
 // @description  Charge dynamiquement le CSS et le JS depuis le serveur local pour le développement
 // @match        http://www.kraland.org/*

@@ -8,6 +8,9 @@
   (function () {
     // Configuration
     const MOBILE_BREAKPOINT = 768; // px
+    
+    // État mémorisé pour éviter les logs redondants lors des multiples appels
+    let previousMobileState = null;
 
     /**
      * Détecte si on est sur mobile
@@ -17,10 +20,20 @@
     }
 
     /**
-     * Initialise le mode mobile
+     * Initialise le mode mobile avec détection intelligente
+     * Évite les logs redondants en mémorisant l'état précédent
      */
     function initMobileMode() {
-      if (isMobileDevice()) {
+      const currentIsMobile = isMobileDevice();
+      
+      // Ne log et ne process que si l'état a changé
+      if (previousMobileState === currentIsMobile) {
+        return; // État inchangé, pas besoin de retraiter
+      }
+      
+      previousMobileState = currentIsMobile;
+      
+      if (currentIsMobile) {
         document.body.classList.add('mobile-mode');
         console.log('[Kraland Mobile] Mode mobile activé');
         // Applique les styles critiques via JavaScript (fix Bootstrap)

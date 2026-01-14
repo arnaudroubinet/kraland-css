@@ -19,11 +19,11 @@ console.log('Building kraland-userscript-main.js...');
 let css = fs.readFileSync(cssPath, 'utf8');
 console.log(`✓ Read CSS (${css.length} chars)`);
 
-// Minify CSS
-console.log('⚙ Minifying CSS...');
-const minifiedCSS = minifyCSS(css);
-css = minifiedCSS.css;
-console.log(`✓ CSS minified (${css.length} chars, ${Math.round((1 - css.length / fs.readFileSync(cssPath, 'utf8').length) * 100)}% reduction)`);
+// Minify CSS - DISABLED
+console.log('⚙ Skipping CSS minification (disabled for debugging)...');
+// const minifiedCSS = minifyCSS(css);
+// css = minifiedCSS.css;
+console.log(`✓ CSS not minified (${css.length} chars)`);
 
 // Read template
 const template = fs.readFileSync(templatePath, 'utf8');
@@ -42,33 +42,10 @@ const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bun
 const escapedCss = css.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 let output = userscriptHeader + template.replace("'__CSS_CONTENT__'", '`' + escapedCss + '`');
 
-// Minify JavaScript (but preserve userscript header)
-console.log('⚙ Minifying JavaScript...');
+// Minify JavaScript - DISABLED
+console.log('⚙ Skipping JavaScript minification (disabled for debugging)...');
 const jsCode = output.substring(userscriptHeader.length);
-const originalJSSize = jsCode.length;
-
-const minifyResult = await minify(jsCode, {
-  compress: {
-    dead_code: true,
-    drop_console: false, // Keep console for debugging
-    drop_debugger: true,
-    keep_classnames: true,
-    keep_fnames: true, // Keep function names for better debugging
-    passes: 2
-  },
-  mangle: false, // Don't mangle names to preserve readability
-  format: {
-    comments: false,
-    beautify: false
-  }
-});
-
-if (minifyResult.code) {
-  output = userscriptHeader + minifyResult.code;
-  console.log(`✓ JavaScript minified (${minifyResult.code.length} chars, ${Math.round((1 - minifyResult.code.length / originalJSSize) * 100)}% reduction)`);
-} else {
-  console.log('⚠ JavaScript minification skipped (no output)');
-}
+console.log(`✓ JavaScript not minified (${jsCode.length} chars)`);
 
 // Write output
 fs.writeFileSync(outputPath, output, 'utf8');

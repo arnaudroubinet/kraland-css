@@ -860,7 +860,7 @@ a.carousel-control.right{
    ⚠️ MOBILE ONLY - Ne s'applique QUE sur mobile (<768px)
    ============================================================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   /* 1. SELECT PERSONNAGE */
   .bootbox-confirm .modal-body > select:first-of-type,
   .bootbox-confirm select.form-control {
@@ -3018,7 +3018,7 @@ body > map {
    Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
    ============================================================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   /* ==========================================================================
      FIX : Empêcher le scroll automatique vers les ancres au chargement
      ========================================================================== */
@@ -3767,7 +3767,7 @@ body > map {
   box-shadow: var(--kr-shadow-lg) !important;
 }
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   .kr-mobile-skills-toggle {
     display: flex !important;
     align-items: center !important;
@@ -3791,7 +3791,7 @@ body > map {
 /* Default styles = mobile (< 768px) */
 
 /* Small devices (tablets, >= 768px) */
-@media (width >= 768px) {
+@media (min-width: 768px) {
   /* Retour progressif au layout desktop */
   body.mobile-mode {
     /* Désactiver progressivement les adaptations mobiles */
@@ -3816,7 +3816,7 @@ body > map {
    ============================================ */
 
 /* Masquer certains éléments en mode mobile */
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode .desktop-only,
   body.mobile-mode .mobile-hidden {
     display: none;
@@ -3824,7 +3824,7 @@ body > map {
 }
 
 /* Masquer certains éléments en mode desktop */
-@media (width >= 768px) {
+@media (min-width: 768px) {
   body.mobile-mode .mobile-only {
     display: none;
   }
@@ -3842,7 +3842,7 @@ body > map {
    TASK-1.4 - MINI-PROFIL COLLAPSIBLE
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Container du mini-profil */
     .mobile-mini-profile {
@@ -4081,7 +4081,7 @@ body > map {
    TASK-1.6 - MASQUER 18 COMPÉTENCES
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Masquer le panel des 18 compétences */
 
@@ -4106,7 +4106,7 @@ body > map {
    TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Container actions - Utilise btn-group-justified BS3 */
     .mobile-quick-actions.btn-group-justified {
@@ -4189,7 +4189,7 @@ body > map {
    TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Tab bar container - Utilise nav-tabs BS3 */
     .mobile-tab-bar.nav-tabs {
@@ -4297,7 +4297,7 @@ body > map {
    TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Header principal - Utilise les classes BS3 */
     .navbar,
@@ -4534,7 +4534,7 @@ body > map {
    TASK-2.2 - ACCORDÉON GROUPES (Base)
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Header de groupe avec accordéon */
     .dashboard-section-header-accordion {
@@ -4601,7 +4601,7 @@ body > map {
    TASK-2.3 - CARDS PERSOS (Mobile Optimized)
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Grille de cartes compacte */
     .dashboard-cards-grid {
@@ -5072,7 +5072,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    GROUPES DE PERSONNAGES - STYLE BARRE
    ============================================ */
 
-@media (width < 768px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Mode mobile activé */
   }
@@ -5376,7 +5376,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* ========================================================================
      MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
      ======================================================================== */
-  @media (width < 768px) {
+  @media (max-width: 767px) {
     /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
     body.mobile-mode .bootbox.modal select[name="top"].form-control {
       min-height: 56px !important;
