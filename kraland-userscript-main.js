@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768511944896
+// @version      1.0.1768512381088
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768511944896';
+  const CURRENT_VERSION = '1.0.1768512381088';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -47,20 +47,20 @@
       this._queue.sort((a, b) => a.priority - b.priority);
 
       const isMobile = document.body.classList.contains('mobile-mode');
-      console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
-      console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
+      // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
+      // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
 
       // Exécuter séquentiellement
       this._queue.forEach(({ name, fn }) => {
         try {
           fn();
-          console.log(`[InitQueue] ✓ ${name}`);
+          // console.log(`[InitQueue] ✓ ${name}`);
         } catch (e) {
           console.error(`[InitQueue] ✗ ${name}:`, e);
         }
       });
 
-      console.log('[InitQueue] Initialisation terminée');
+      // console.log('[InitQueue] Initialisation terminée');
     }
   };
 
@@ -9429,7 +9429,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     window.updateForumRPMenu = function () {
       const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
       if (!forumRpDropdown) {
-        console.warn('[Forums RP] Menu Forum RP non trouvé');
+        // Menu pas encore créé ou page sans navigation - normal
         return;
       }
 
@@ -9538,7 +9538,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     window.updateForumHRPMenu = function () {
       const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
       if (!forumHrpDropdown) {
-        console.warn('[Forums HRP] Menu Forum HRP non trouvé');
+        // Menu pas encore créé ou page sans navigation - normal
         return;
       }
 

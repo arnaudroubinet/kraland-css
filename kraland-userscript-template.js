@@ -37,20 +37,20 @@
       this._queue.sort((a, b) => a.priority - b.priority);
 
       const isMobile = document.body.classList.contains('mobile-mode');
-      console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
-      console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
+      // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
+      // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
 
       // Exécuter séquentiellement
       this._queue.forEach(({ name, fn }) => {
         try {
           fn();
-          console.log(`[InitQueue] ✓ ${name}`);
+          // console.log(`[InitQueue] ✓ ${name}`);
         } catch (e) {
           console.error(`[InitQueue] ✗ ${name}:`, e);
         }
       });
 
-      console.log('[InitQueue] Initialisation terminée');
+      // console.log('[InitQueue] Initialisation terminée');
     }
   };
 
@@ -2719,7 +2719,7 @@
     window.updateForumRPMenu = function () {
       const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
       if (!forumRpDropdown) {
-        console.warn('[Forums RP] Menu Forum RP non trouvé');
+        // Menu pas encore créé ou page sans navigation - normal
         return;
       }
 
@@ -2828,7 +2828,7 @@
     window.updateForumHRPMenu = function () {
       const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
       if (!forumHrpDropdown) {
-        console.warn('[Forums HRP] Menu Forum HRP non trouvé');
+        // Menu pas encore créé ou page sans navigation - normal
         return;
       }
 
