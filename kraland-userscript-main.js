@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768509075401
+// @version      1.0.1768509387321
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768509075401';
+  const CURRENT_VERSION = '1.0.1768509387321';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -10146,7 +10146,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /**
    * Affiche les informations de version du CSS dans le footer
    * - Version actuelle du userscript chargé
-   * - Dernière version disponible sur GitHub
+   * - Dernière version disponible sur GitHub (ou serveur local en dev)
    */
   function displayVersionInfo() {
     const footer = document.querySelector('footer, .footer, .contentinfo');
@@ -10167,8 +10167,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     const currentVersion = CURRENT_VERSION !== '__USERSCRIPT_VERSION__' ? CURRENT_VERSION : 'dev';
     versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
 
+    // Déterminer l'URL du fichier version.json (serveur local en dev, GitHub en prod)
+    const versionUrl = currentVersion === 'dev' 
+      ? 'http://localhost:4848/version.json'
+      : 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
+
     // Récupérer la dernière version disponible
-    fetch('https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json')
+    fetch(versionUrl)
       .then(response => {
         if (!response.ok) throw new Error('Fetch failed');
         return response.json();
@@ -10181,6 +10186,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           // Comparer les versions et afficher un indicateur si mise à jour disponible
           if (currentVersion !== 'dev' && data.version !== currentVersion) {
             latestSpan.innerHTML += ' <span style="color: #f0ad4e;">⚠️ (mise à jour disponible)</span>';
+          } else if (currentVersion === 'dev') {
+            latestSpan.innerHTML += ' <span style="color: #5bc0de;">ℹ️ (mode développement)</span>';
           }
         }
       })
@@ -10188,7 +10195,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         console.error('[Version Info] Erreur lors de la récupération de la version:', error);
         const latestSpan = document.getElementById('latest-version');
         if (latestSpan) {
-          latestSpan.textContent = 'erreur';
+          if (currentVersion === 'dev') {
+            latestSpan.innerHTML = '<em>serveur local requis (localhost:4848)</em>';
+          } else {
+            latestSpan.textContent = 'erreur';
+          }
         }
       });
   }
