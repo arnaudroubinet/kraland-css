@@ -12,6 +12,7 @@ const cssPath = path.join(__dirname, 'kraland-theme.css');
 const templatePath = path.join(__dirname, 'kraland-userscript-template.js');
 const outputPath = path.join(__dirname, 'kraland-userscript-main.js');
 const userscriptPath = path.join(__dirname, 'kraland-userscript.user.js');
+const versionJsonPath = path.join(__dirname, 'version.json');
 
 console.log('Building kraland-userscript-main.js...');
 
@@ -42,6 +43,9 @@ const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bun
 const escapedCss = css.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 let output = userscriptHeader + template.replace("'__CSS_CONTENT__'", '`' + escapedCss + '`');
 
+// Replace version placeholder in the template
+output = output.replace('__USERSCRIPT_VERSION__', version);
+
 // Minify JavaScript - DISABLED
 console.log('⚙ Skipping JavaScript minification (disabled for debugging)...');
 const jsCode = output.substring(userscriptHeader.length);
@@ -62,5 +66,14 @@ const updatedUserscript = userscript.replace(
 );
 fs.writeFileSync(userscriptPath, updatedUserscript, 'utf8');
 console.log(`✓ Updated userscript version to ${version}`);
+
+// Generate version.json
+const versionJson = {
+  version: version,
+  timestamp: timestamp,
+  buildDate: new Date().toISOString()
+};
+fs.writeFileSync(versionJsonPath, JSON.stringify(versionJson, null, 2), 'utf8');
+console.log(`✓ Generated version.json with version ${version}`);
 
 console.log('Build complete!');

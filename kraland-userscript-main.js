@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768508519769
+// @version      1.0.1768509075401
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -11,6 +11,9 @@
 // Main script code - CSS bundled inline
 (function (){
   'use strict';
+
+  // Version du userscript (sera remplacée par le build)
+  const CURRENT_VERSION = '1.0.1768509075401';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -8793,8 +8796,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     const transforms = [
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
-      reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, relocateKramailToLeft,
-      restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
+      reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, displayVersionInfo,
+      relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
@@ -10138,6 +10141,56 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     if (!document.body.style.marginBottom) {
       document.body.style.marginBottom = '60px';
     }
+  }
+
+  /**
+   * Affiche les informations de version du CSS dans le footer
+   * - Version actuelle du userscript chargé
+   * - Dernière version disponible sur GitHub
+   */
+  function displayVersionInfo() {
+    const footer = document.querySelector('footer, .footer, .contentinfo');
+    if (!footer) {return;}
+
+    // Créer l'élément de version s'il n'existe pas
+    let versionDiv = footer.querySelector('.kraland-css-version');
+    if (!versionDiv) {
+      versionDiv = document.createElement('div');
+      versionDiv.className = 'kraland-css-version';
+      versionDiv.style.cssText = 'text-align: center; padding: 10px; font-size: 12px; color: #666;';
+      
+      const container = footer.querySelector('.container.white') || footer;
+      container.appendChild(versionDiv);
+    }
+
+    // Afficher la version actuelle
+    const currentVersion = CURRENT_VERSION !== '__USERSCRIPT_VERSION__' ? CURRENT_VERSION : 'dev';
+    versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
+
+    // Récupérer la dernière version disponible
+    fetch('https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json')
+      .then(response => {
+        if (!response.ok) throw new Error('Fetch failed');
+        return response.json();
+      })
+      .then(data => {
+        const latestSpan = document.getElementById('latest-version');
+        if (latestSpan) {
+          latestSpan.innerHTML = `<strong>${data.version}</strong>`;
+          
+          // Comparer les versions et afficher un indicateur si mise à jour disponible
+          if (currentVersion !== 'dev' && data.version !== currentVersion) {
+            latestSpan.innerHTML += ' <span style="color: #f0ad4e;">⚠️ (mise à jour disponible)</span>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('[Version Info] Erreur lors de la récupération de la version:', error);
+        const latestSpan = document.getElementById('latest-version');
+        if (latestSpan) {
+          latestSpan.textContent = 'erreur';
+        }
+      });
   }
 
   function relocateKramailToLeft() {
