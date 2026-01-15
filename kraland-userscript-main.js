@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768509741943
+// @version      1.0.1768510128043
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768509741943';
+  const CURRENT_VERSION = '1.0.1768510128043';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -1533,6 +1533,12 @@
       products.forEach(product => {
         productsContainer.appendChild(product);
       });
+
+      // Vérifier que le div de catégorie a bien un parent
+      if (!category.div.parentElement) {
+        console.warn(`[Commerce Accordion] ${category.name}: pas de parent trouvé`);
+        return;
+      }
 
       // Insérer le conteneur après le div de catégorie
       category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);

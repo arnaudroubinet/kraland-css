@@ -1524,6 +1524,12 @@
         productsContainer.appendChild(product);
       });
 
+      // Vérifier que le div de catégorie a bien un parent
+      if (!category.div.parentElement) {
+        console.warn(`[Commerce Accordion] ${category.name}: pas de parent trouvé`);
+        return;
+      }
+
       // Insérer le conteneur après le div de catégorie
       category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);
 
