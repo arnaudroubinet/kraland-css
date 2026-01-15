@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768509387321
+// @version      1.0.1768509472480
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768509387321';
+  const CURRENT_VERSION = '1.0.1768509472480';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -10185,7 +10185,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           
           // Comparer les versions et afficher un indicateur si mise à jour disponible
           if (currentVersion !== 'dev' && data.version !== currentVersion) {
-            latestSpan.innerHTML += ' <span style="color: #f0ad4e;">⚠️ (mise à jour disponible)</span>';
+            latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
           } else if (currentVersion === 'dev') {
             latestSpan.innerHTML += ' <span style="color: #5bc0de;">ℹ️ (mode développement)</span>';
           }

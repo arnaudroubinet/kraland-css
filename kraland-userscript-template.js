@@ -3472,7 +3472,7 @@
           
           // Comparer les versions et afficher un indicateur si mise à jour disponible
           if (currentVersion !== 'dev' && data.version !== currentVersion) {
-            latestSpan.innerHTML += ' <span style="color: #f0ad4e;">⚠️ (mise à jour disponible)</span>';
+            latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
           } else if (currentVersion === 'dev') {
             latestSpan.innerHTML += ' <span style="color: #5bc0de;">ℹ️ (mode développement)</span>';
           }
