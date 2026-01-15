@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768463618947
+// @version      1.0.1768464110521
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -475,11 +475,15 @@
       const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
       const avatarSrc = avatarLink ? avatarLink.src : null;
 
-      // Argent (chercher "MØ")
-      const moneyElement = Array.from(mainPanel.querySelectorAll('*')).find(el => {
-        const text = el.textContent.trim();
-        return text.includes('MØ') && el.children.length === 0 && text.length < 20;
-      });
+      // Argent (chercher div.mini.t avec icône fa-coins)
+      let moneyElement = null;
+      const moneyContainers = document.querySelectorAll('div.mini.t');
+      for (const container of moneyContainers) {
+        if (container.querySelector('i.fa.fa-coins') && container.textContent.includes('MØ')) {
+          moneyElement = container;
+          break;
+        }
+      }
       const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
 
       // Horloge (dans player-vitals-section)
