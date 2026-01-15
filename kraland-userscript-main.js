@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768510895879
+// @version      1.0.1768511474765
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768510895879';
+  const CURRENT_VERSION = '1.0.1768511474765';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -23,7 +23,7 @@
   const InitQueue = {
     _queue: [],
     _initialized: false,
-    
+
     /**
      * Enregistre une fonction d'initialisation avec sa priorité
      * @param {string} name - Nom du module (pour debug)
@@ -33,23 +33,23 @@
     register(name, fn, priority = 100) {
       this._queue.push({ name, fn, priority });
     },
-    
+
     /**
      * Exécute toutes les fonctions enregistrées dans l'ordre de priorité
      * Appelé une seule fois après le DOMContentLoaded
      */
     run() {
-      if (this._initialized) return;
-      
+      if (this._initialized) {return;}
+
       this._initialized = true;
-      
+
       // Trier par priorité (plus petit en premier)
       this._queue.sort((a, b) => a.priority - b.priority);
-      
+
       const isMobile = document.body.classList.contains('mobile-mode');
       console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
       console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
-      
+
       // Exécuter séquentiellement
       this._queue.forEach(({ name, fn }) => {
         try {
@@ -59,7 +59,7 @@
           console.error(`[InitQueue] ✗ ${name}:`, e);
         }
       });
-      
+
       console.log('[InitQueue] Initialisation terminée');
     }
   };
@@ -70,7 +70,7 @@
   (function () {
     // Configuration
     const MOBILE_BREAKPOINT = 768; // px
-    
+
     // État mémorisé pour éviter les logs redondants lors des multiples appels
     let previousMobileState = null;
 
@@ -87,14 +87,14 @@
      */
     function initMobileMode() {
       const currentIsMobile = isMobileDevice();
-      
+
       // Ne log et ne process que si l'état a changé
       if (previousMobileState === currentIsMobile) {
         return; // État inchangé, pas besoin de retraiter
       }
-      
+
       previousMobileState = currentIsMobile;
-      
+
       if (currentIsMobile) {
         document.body.classList.add('mobile-mode');
         console.log('[Kraland Mobile] Mode mobile activé');
@@ -410,7 +410,9 @@
       logoClone.setAttribute('data-moved-below-navbar', 'true');
 
       // Insérer le logo juste après la navbar
-      navbar.parentElement.insertBefore(logoClone, navbar.nextSibling);
+      if (navbar.parentElement) {
+        navbar.parentElement.insertBefore(logoClone, navbar.nextSibling);
+      }
 
       console.log('[Mobile Logo] Logo déplacé sous la navbar');
     }
@@ -595,12 +597,12 @@
 
       const nameRow = document.createElement('div');
       nameRow.className = 'mobile-mini-profile-name-row';
-      
+
       const name = document.createElement('div');
       name.className = 'mobile-mini-profile-name';
       name.textContent = profileData.name;
       nameRow.appendChild(name);
-      
+
       // Bouton Gestion du personnage
       const manageBtn = document.createElement('a');
       manageBtn.href = '#';
@@ -610,7 +612,7 @@
       manageBtn.setAttribute('data-placement', 'bottom');
       manageBtn.setAttribute('title', 'Gestion du personnage');
       nameRow.appendChild(manageBtn);
-      
+
       info.appendChild(nameRow);
 
       const moneyRow = document.createElement('div');
@@ -677,7 +679,7 @@
       // Caractéristiques (FOR, VOL, CHA, GES, INT, PER)
       const characteristicsContainer = document.createElement('div');
       characteristicsContainer.className = 'mobile-mini-profile-characteristics';
-      
+
       const statsSection = document.getElementById('col-leftest-stats');
       if (statsSection) {
         // Chercher les 6 premières caractéristiques (alert121 à alert126)
@@ -688,7 +690,7 @@
             charElements.push(char);
           }
         }
-        
+
         if (charElements.length > 0) {
           charElements.forEach(charEl => {
             const charClone = charEl.cloneNode(true);
@@ -696,7 +698,7 @@
             charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
             characteristicsContainer.appendChild(charClone);
           });
-          
+
           details.appendChild(characteristicsContainer);
         }
       }
@@ -704,12 +706,12 @@
       // Compétences
       const skillsContainer = document.createElement('div');
       skillsContainer.className = 'mobile-mini-profile-skills';
-      
+
       const skillsPanel = document.getElementById('skills-panel');
       if (skillsPanel) {
         // Récupérer toutes les compétences (alert111 à alert1118)
         const skills = skillsPanel.querySelectorAll('.ds_game[class*="alert11"]');
-        
+
         if (skills.length > 0) {
           skills.forEach(skillEl => {
             const skillClone = skillEl.cloneNode(true);
@@ -717,7 +719,7 @@
             skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
             skillsContainer.appendChild(skillClone);
           });
-          
+
           details.appendChild(skillsContainer);
         }
       }
@@ -730,7 +732,7 @@
         if (e.target.closest('.mobile-mini-profile-avatar-btn, .mobile-characteristic-badge, .mobile-skill-item')) {
           return;
         }
-        
+
         miniProfile.classList.toggle('collapsed');
         miniProfile.classList.toggle('expanded');
 
@@ -788,7 +790,7 @@
     function createQuickActions() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
       if (document.querySelector('.mobile-quick-actions')) {return;}
-      
+
       // Vérifier qu'on est bien sur une page /jouer/*
       if (!window.location.pathname.startsWith('/jouer/')) {
         return;
@@ -966,7 +968,7 @@
     function createTabBar() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
       if (document.querySelector('.mobile-tab-bar')) {return;} // Déjà créé
-      
+
       // Vérifier qu'on est bien sur une page /jouer/*
       if (!window.location.pathname.startsWith('/jouer/')) {
         return;
@@ -1558,7 +1560,11 @@
       // Ajouter l'icône chevron
       const icon = document.createElement('i');
       icon.className = 'fa fa-chevron-down accordion-icon';
-      category.h4.appendChild(icon);
+
+      // Vérification de sécurité avant d'ajouter l'icône
+      if (category.h4 && category.h4.appendChild) {
+        category.h4.appendChild(icon);
+      }
 
       // Ajouter le gestionnaire de clic
       category.div.style.cursor = 'pointer';
@@ -1591,9 +1597,11 @@
     if (!batimentHeader) {return;}
 
     const panelHeading = batimentHeader.parentElement;
+    if (!panelHeading) {return;}
+
     const panelBody = panelHeading.nextElementSibling;
 
-    if (!panelHeading || !panelBody || !panelBody.classList.contains('panel-body')) {return;}
+    if (!panelBody || !panelBody.classList.contains('panel-body')) {return;}
 
     // Ajouter les classes
     panelHeading.classList.add('building-section-header');
@@ -1638,7 +1646,7 @@
 
       // Trouver l'image "Sortir" avec la croix directionnelle
       const exitImg = document.querySelector('img[alt="Sortir"]');
-      if (!exitImg) {return;}
+      if (!exitImg || !exitImg.parentElement) {return;}
 
       const parent = exitImg.parentElement;
       const map = parent.querySelector('map[name="exitmap"]');
@@ -1804,7 +1812,7 @@
   (function () {
     function initNewsToggle() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
-      
+
       const newsToggle = document.getElementById('slide-submenu');
       const newsContainer = document.getElementById('player-header-section');
 
@@ -1835,7 +1843,7 @@
           localStorage.setItem('kr-news-collapsed', collapsed);
           updateButton(collapsed);
         }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
-        
+
         console.log('[News Toggle] Initialisé');
       }
     }
@@ -2710,7 +2718,7 @@ a.carousel-control.right{
    ⚠️ MOBILE ONLY - Ne s'applique QUE sur mobile (<768px)
    ============================================================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* 1. SELECT PERSONNAGE */
   .bootbox-confirm .modal-body > select:first-of-type,
   .bootbox-confirm select.form-control {
@@ -4868,7 +4876,7 @@ body > map {
    Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
    ============================================================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* ==========================================================================
      FIX : Empêcher le scroll automatique vers les ancres au chargement
      ========================================================================== */
@@ -5617,7 +5625,7 @@ body > map {
   box-shadow: var(--kr-shadow-lg) !important;
 }
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   .kr-mobile-skills-toggle {
     display: flex !important;
     align-items: center !important;
@@ -5641,7 +5649,7 @@ body > map {
 /* Default styles = mobile (< 768px) */
 
 /* Small devices (tablets, >= 768px) */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   /* Retour progressif au layout desktop */
   body.mobile-mode {
     /* Désactiver progressivement les adaptations mobiles */
@@ -5666,7 +5674,7 @@ body > map {
    ============================================ */
 
 /* Masquer certains éléments en mode mobile */
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode .desktop-only,
   body.mobile-mode .mobile-hidden {
     display: none;
@@ -5674,7 +5682,7 @@ body > map {
 }
 
 /* Masquer certains éléments en mode desktop */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   body.mobile-mode .mobile-only {
     display: none;
   }
@@ -5692,7 +5700,7 @@ body > map {
    TASK-1.4 - MINI-PROFIL COLLAPSIBLE
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Container du mini-profil */
     .mobile-mini-profile {
@@ -6008,7 +6016,7 @@ body > map {
    TASK-1.6 - MASQUER 18 COMPÉTENCES
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Masquer le panel des 18 compétences */
 
@@ -6033,7 +6041,7 @@ body > map {
    TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Container actions - Utilise btn-group-justified BS3 */
     .mobile-quick-actions.btn-group-justified {
@@ -6116,7 +6124,7 @@ body > map {
    TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Tab bar container - Utilise nav-tabs BS3 */
     .mobile-tab-bar.nav-tabs {
@@ -6224,7 +6232,7 @@ body > map {
    TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Header principal - Utilise les classes BS3 */
     .navbar,
@@ -6461,7 +6469,7 @@ body > map {
    TASK-2.2 - ACCORDÉON GROUPES (Base)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Header de groupe avec accordéon */
     .dashboard-section-header-accordion {
@@ -6528,7 +6536,7 @@ body > map {
    TASK-2.3 - CARDS PERSOS (Mobile Optimized)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Grille de cartes compacte */
     .dashboard-cards-grid {
@@ -6999,7 +7007,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    GROUPES DE PERSONNAGES - STYLE BARRE
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Mode mobile activé */
   }
@@ -7303,7 +7311,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* ========================================================================
      MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
      ======================================================================== */
-  @media (max-width: 767px) {
+  @media (width <= 767px) {
     /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
     body.mobile-mode .bootbox.modal select[name="top"].form-control {
       min-height: 56px !important;
@@ -8215,7 +8223,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* ============================================================================
    MOBILE MENU DROPDOWNS - Bootstrap 3 native handling
    ============================================================================ */
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* EN MOBILE : Afficher les dropdown-menu avec la structure Bootstrap 3 */
   
   /* Les dropdown-menu doivent être visibles quand le parent a la classe 'open' */
@@ -8237,7 +8245,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: 10px 15px 10px 25px !important;
     clear: both !important;
     font-weight: 400 !important;
-    line-height: 1.42857143 !important;
+    line-height: 1.4286 !important;
     color: var(--kr-text-primary) !important;
     white-space: nowrap !important;
     background-color: transparent !important;
@@ -8269,7 +8277,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     display: block !important;
     padding: 3px 15px 3px 25px !important;
     font-size: 12px !important;
-    line-height: 1.42857143 !important;
+    line-height: 1.4286 !important;
     color: var(--kr-text-muted) !important;
     white-space: nowrap !important;
     text-transform: uppercase !important;
@@ -8292,14 +8300,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   
   /* Assurer que le caret du dropdown-toggle est visible */
   .navbar-collapse .dropdown > a.dropdown-toggle .caret {
-    border-top-color: currentColor !important;
+    border-top-color: currentcolor !important;
     border-bottom-color: transparent !important;
   }
   
   /* Quand ouvert, inverser le caret */
   .navbar-collapse .dropdown.open > a.dropdown-toggle .caret {
     border-top-color: transparent !important;
-    border-bottom-color: currentColor !important;
+    border-bottom-color: currentcolor !important;
     transform: rotate(180deg) !important;
   }
 }
@@ -8332,7 +8340,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 .forum-card {
   background: var(--kr-bg-surface);
   border-radius: 12px;
-  margin: 0 12px 12px 12px;
+  margin: 0 12px 12px;
   box-shadow: var(--kr-shadow-sm);
   transition: box-shadow 0.2s ease, transform 0.1s ease;
   overflow: hidden;
@@ -8397,7 +8405,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   font-size: 14px;
   color: var(--kr-text-secondary);
   line-height: 1.5;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   text-align: left !important;
   
   /* Limitation à 2 lignes */
@@ -8413,7 +8421,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 .forum-moderators {
   font-size: 12px;
   color: var(--kr-text-muted);
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   font-style: normal;
   font-weight: 400;
   text-align: left !important;
@@ -8514,10 +8522,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* Mini-chat en overlay fullscreen */
 .mobile-mode .mini-chat-overlay {
   position: fixed !important;
-  top: 56px !important; /* Sous le header */
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  inset: 56px 0 0 !important; /* Sous le header */
   width: 100% !important;
   height: auto !important;
   z-index: 999 !important;
@@ -8527,7 +8532,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* === RESPONSIVE === */
 
 /* Tablettes en mode portrait */
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+@media (width >= 768px) and (width <= 1024px) and (orientation: portrait) {
   .forum-card {
     margin: 12px 24px;
   }
@@ -8538,7 +8543,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 }
 
 /* Desktop: désactiver les cards */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .forums-cards-container {
     display: none !important;
   }
@@ -8807,8 +8812,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
-      disableTooltips, modifyNavigationMenus, window.updateForumRPMenu, 
-      window.updateForumHRPMenu, transformDashboardToFlexCards, 
+      disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
+      window.updateForumHRPMenu, transformDashboardToFlexCards,
       applyFooterQuoteOption, handleDualLapClock
     ];
 
@@ -8819,12 +8824,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     // Désactiver les tooltips:
     // 1. Sur mobile
     // 2. Si enfant de col-leftest ou panel-body grid-transformed
-    
+
     document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
       const isMobile = document.body.classList.contains('mobile-mode');
       const isInColLeftest = el.closest('.col-leftest');
       const isInGridTransformed = el.closest('.panel-body.grid-transformed');
-      
+
       if (isMobile || isInColLeftest || isInGridTransformed) {
         el.removeAttribute('data-toggle');
         el.removeAttribute('data-placement');
@@ -8832,7 +8837,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         el.removeAttribute('data-original-title');
       }
     });
-    
+
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function () { return this; };
     }
@@ -8853,7 +8858,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       // Trouver la div parente contenant l'image
       let parentDiv = img.closest('div');
-      if (!parentDiv) {return;}
+      if (!parentDiv || !parentDiv.parentElement) {return;}
 
       // Chercher une <strong> qui contient un lien avec "charlie-2-82045"
       // La strong devrait être dans le même cartouche (div parente du parent)
@@ -8904,7 +8909,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       titleDiv.appendChild(strong);
 
       // Insérer la div soeur juste après la div parente
-      parentDiv.parentElement.insertBefore(titleDiv, parentDiv.nextSibling);
+      if (parentDiv.parentElement) {
+        parentDiv.parentElement.insertBefore(titleDiv, parentDiv.nextSibling);
+      }
     });
   }
 
@@ -9360,22 +9367,22 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       console.log('[Forums RP] Extraction des forums depuis la page...');
 
       const forums = [];
-      
+
       // Sélectionner toutes les lignes du tableau des forums
       const forumRows = document.querySelectorAll('table.table tbody tr');
-      
+
       forumRows.forEach(row => {
         const linkCell = row.querySelector('td:first-child a');
         if (!linkCell) {return;}
-        
+
         const forumName = linkCell.textContent.trim();
         const forumUrl = linkCell.getAttribute('href');
-        
+
         // Exclure les forums de la liste noire (insensible à la casse)
-        const isExcluded = EXCLUDED_FORUMS.some(excluded => 
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
           forumName.toLowerCase().includes(excluded)
         );
-        
+
         if (!isExcluded && forumUrl) {
           forums.push({
             name: forumName,
@@ -9412,7 +9419,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     /**
      * Met à jour le menu Forum RP avec les forums stockés
      */
-    window.updateForumRPMenu = function() {
+    window.updateForumRPMenu = function () {
       const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
       if (!forumRpDropdown) {
         console.warn('[Forums RP] Menu Forum RP non trouvé');
@@ -9424,13 +9431,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       // Conserver les 3 premiers liens (Taverne, Marché, Monde) et le divider
       const staticItems = Array.from(forumRpDropdown.children).slice(0, 4); // 3 liens + 1 divider
-      
+
       // Vider le menu
       forumRpDropdown.innerHTML = '';
-      
+
       // Remettre les items statiques
       staticItems.forEach(item => forumRpDropdown.appendChild(item));
-      
+
       // Ajouter les forums dynamiques
       if (forums.length > 0) {
         forums.forEach(forum => {
@@ -9476,17 +9483,17 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       console.log('[Forums HRP] Extraction des forums depuis la page...');
 
       const forums = [];
-      
+
       // Sélectionner toutes les lignes du tableau des forums
       const forumRows = document.querySelectorAll('table.table tbody tr');
-      
+
       forumRows.forEach(row => {
         const linkCell = row.querySelector('td:first-child a');
         if (!linkCell) {return;}
-        
+
         const forumName = linkCell.textContent.trim();
         const forumUrl = linkCell.getAttribute('href');
-        
+
         if (forumUrl) {
           forums.push({
             name: forumName,
@@ -9521,7 +9528,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     /**
      * Met à jour le menu Forum HRP avec les forums stockés
      */
-    window.updateForumHRPMenu = function() {
+    window.updateForumHRPMenu = function () {
       const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
       if (!forumHrpDropdown) {
         console.warn('[Forums HRP] Menu Forum HRP non trouvé');
@@ -9533,7 +9540,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       // Vider le menu
       forumHrpDropdown.innerHTML = '';
-      
+
       // Ajouter tous les forums dynamiques
       if (forums.length > 0) {
         forums.forEach(forum => {
@@ -9551,7 +9558,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         a.href = 'forum/hrp';
         a.textContent = 'Voir tous les forums';
         li.appendChild(a);
-        forumRpDropdown.appendChild(li);
+        forumHrpDropdown.appendChild(li);
       }
     };
 
@@ -9606,23 +9613,25 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       // Remplacement du tableau par les cards
       const tableElement = forumTable.closest('table');
-      tableElement.parentNode.insertBefore(cardsContainer, tableElement);
-      tableElement.style.display = 'none';
-      tableElement.setAttribute('data-mobile-hidden', 'true');
+      if (tableElement && tableElement.parentNode) {
+        tableElement.parentNode.insertBefore(cardsContainer, tableElement);
+        tableElement.style.display = 'none';
+        tableElement.setAttribute('data-mobile-hidden', 'true');
+      }
 
       console.log(`[Forum Cards] ${rows.length} forums transformés en cards`);
     }
 
     function createForumCard(row, index) {
       const cells = row.querySelectorAll('td');
-      if (cells.length < 3) return null;
+      if (cells.length < 3) {return null;}
 
       // === EXTRACTION DES DONNÉES ===
-      
+
       // Cellule 1: Titre, description, modérateurs
       const titleCell = cells[0];
       const titleLink = titleCell.querySelector('p:first-child a');
-      if (!titleLink) return null;
+      if (!titleLink) {return null;}
 
       const title = titleLink.textContent.trim();
       const forumUrl = titleLink.getAttribute('href');
@@ -9673,7 +9682,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       }
 
       // === CRÉATION DE LA CARTE ===
-      
+
       const card = document.createElement('article');
       card.className = 'forum-card';
       card.setAttribute('role', 'listitem');
@@ -9697,13 +9706,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       }
 
       if (moderators.length > 0) {
-        const modText = moderators.length > 2 
+        const modText = moderators.length > 2
           ? `${moderators[0].name}, ${moderators[1].name}...`
           : moderators.map(m => m.name).join(', ');
         cardHTML += `<p class="forum-moderators">Mod: ${modText}</p>`;
       }
 
-      cardHTML += `<div class="forum-footer">`;
+      cardHTML += '<div class="forum-footer">';
 
       // Stats
       cardHTML += `
@@ -9724,24 +9733,24 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         `;
       }
 
-      cardHTML += `</div>`; // Fermeture forum-footer
+      cardHTML += '</div>'; // Fermeture forum-footer
 
       cardLink.innerHTML = cardHTML;
-      
+
       // FORCER les styles inline avec !important pour contourner Bootstrap
       cardLink.style.setProperty('display', 'flex', 'important');
       cardLink.style.setProperty('flex-direction', 'column', 'important');
       cardLink.style.setProperty('align-items', 'flex-start', 'important');
       cardLink.style.setProperty('justify-content', 'flex-start', 'important');
       cardLink.style.setProperty('width', '100%', 'important');
-      
+
       card.appendChild(cardLink);
 
       return card;
     }
 
     // === ENREGISTREMENT DANS InitQueue ===
-    
+
     function init() {
       // Attendre que le DOM soit prêt
       if (document.readyState === 'loading') {
@@ -9763,11 +9772,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   (function initMiniChatFAB() {
     'use strict';
 
-    if (!document.body.classList.contains('mobile-mode')) return;
+    if (!document.body.classList.contains('mobile-mode')) {return;}
 
     function createChatFAB() {
       const miniChat = document.getElementById('flap');
-      if (!miniChat) return;
+      if (!miniChat) {return;}
 
       // Masquer le mini-chat par défaut sur mobile
       miniChat.style.display = 'none';
@@ -9784,7 +9793,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       fab.addEventListener('click', (e) => {
         e.preventDefault();
         const isOpen = miniChat.style.display === 'block';
-        
+
         if (isOpen) {
           miniChat.style.display = 'none';
           fab.classList.remove('active');
@@ -9903,16 +9912,18 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         // Supprimer le lien "Jeu (RP)" du dropdown cloné
         const rpLink = Array.from(clonedDropdown.querySelectorAll('li > a'))
           .find(a => a.textContent.includes('Jeu (RP)'));
-        if (rpLink) {
+        if (rpLink && rpLink.parentElement) {
           rpLink.parentElement.remove();
         }
         forumHrpLi.appendChild(clonedDropdown);
       }
 
       // Insérer Forum RP avant le Forum original
-      forumOriginalItem.parentElement.insertBefore(forumRpLi, forumOriginalItem);
-      // Insérer Forum HRP après Forum RP (donc avant l'original aussi)
-      forumOriginalItem.parentElement.insertBefore(forumHrpLi, forumOriginalItem);
+      if (forumOriginalItem.parentElement) {
+        forumOriginalItem.parentElement.insertBefore(forumRpLi, forumOriginalItem);
+        // Insérer Forum HRP après Forum RP (donc avant l'original aussi)
+        forumOriginalItem.parentElement.insertBefore(forumHrpLi, forumOriginalItem);
+      }
       // Supprimer le menu Forum original
       forumOriginalItem.remove();
 
@@ -9969,7 +9980,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         </ul>
       `;
 
-      communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
+      if (communauteItem.parentElement) {
+        communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
+      }
 
       // EN DESKTOP UNIQUEMENT : Ajouter le comportement de navigation directe
       if (!isMobileMode) {
@@ -10109,7 +10122,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       if (el.querySelector('strong')) {return;}
 
       const sym = el.querySelector('.kr-symbol');
-      if (sym) {
+      if (sym && sym.parentElement) {
         const strong = document.createElement('strong');
         sym.parentElement.replaceChild(strong, sym);
         strong.appendChild(sym);
@@ -10118,7 +10131,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       const tn = Array.from(el.childNodes)
         .find(n => n.nodeType === 3 && n.textContent?.trim().length > 0);
-      if (tn) {
+      if (tn && tn.parentElement) {
         const txt = tn.textContent.trim();
         const strong = document.createElement('strong');
         strong.textContent = txt;
@@ -10176,7 +10189,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       versionDiv = document.createElement('div');
       versionDiv.className = 'kraland-css-version';
       versionDiv.style.cssText = 'text-align: center; padding: 10px; font-size: 12px; color: #666;';
-      
+
       const container = footer.querySelector('.container.white') || footer;
       container.appendChild(versionDiv);
     }
@@ -10186,21 +10199,21 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
 
     // Déterminer l'URL du fichier version.json (serveur local en dev, GitHub en prod)
-    const versionUrl = currentVersion === 'dev' 
+    const versionUrl = currentVersion === 'dev'
       ? 'http://localhost:4848/version.json'
       : 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
 
     // Récupérer la dernière version disponible
     fetch(versionUrl)
       .then(response => {
-        if (!response.ok) throw new Error('Fetch failed');
+        if (!response.ok) {throw new Error('Fetch failed');}
         return response.json();
       })
       .then(data => {
         const latestSpan = document.getElementById('latest-version');
         if (latestSpan) {
           latestSpan.innerHTML = `<strong>${data.version}</strong>`;
-          
+
           // Comparer les versions et afficher un indicateur si mise à jour disponible
           if (currentVersion !== 'dev' && data.version !== currentVersion) {
             latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
@@ -10272,7 +10285,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     if (!colLeft || !colRight) {return;}
 
     const parent = colLeft.parentElement;
-    if (!parent?.classList.contains('row')) {return;}
+    if (!parent || !parent.classList.contains('row')) {return;}
 
     let colLeftest = document.getElementById('col-leftest');
     if (!colLeftest) {
@@ -10640,7 +10653,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     });
 
     newLi.appendChild(toggleBtn);
-    mapLi.parentElement.insertBefore(newLi, mapLi);
+    if (mapLi.parentElement) {
+      mapLi.parentElement.insertBefore(newLi, mapLi);
+    }
   }
 
   function insertTampermonkeyThemeUI() {
@@ -10716,7 +10731,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         </form>
       `;
 
-      target.parentElement.insertBefore(container, target);
+      if (target.parentElement) {
+        target.parentElement.insertBefore(container, target);
+      }
 
       const form = container.querySelector('#kr-tamper-theme-form');
 

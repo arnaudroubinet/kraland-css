@@ -860,7 +860,7 @@ a.carousel-control.right{
    ⚠️ MOBILE ONLY - Ne s'applique QUE sur mobile (<768px)
    ============================================================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* 1. SELECT PERSONNAGE */
   .bootbox-confirm .modal-body > select:first-of-type,
   .bootbox-confirm select.form-control {
@@ -3018,7 +3018,7 @@ body > map {
    Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
    ============================================================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* ==========================================================================
      FIX : Empêcher le scroll automatique vers les ancres au chargement
      ========================================================================== */
@@ -3767,7 +3767,7 @@ body > map {
   box-shadow: var(--kr-shadow-lg) !important;
 }
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   .kr-mobile-skills-toggle {
     display: flex !important;
     align-items: center !important;
@@ -3791,7 +3791,7 @@ body > map {
 /* Default styles = mobile (< 768px) */
 
 /* Small devices (tablets, >= 768px) */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   /* Retour progressif au layout desktop */
   body.mobile-mode {
     /* Désactiver progressivement les adaptations mobiles */
@@ -3816,7 +3816,7 @@ body > map {
    ============================================ */
 
 /* Masquer certains éléments en mode mobile */
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode .desktop-only,
   body.mobile-mode .mobile-hidden {
     display: none;
@@ -3824,7 +3824,7 @@ body > map {
 }
 
 /* Masquer certains éléments en mode desktop */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   body.mobile-mode .mobile-only {
     display: none;
   }
@@ -3842,7 +3842,7 @@ body > map {
    TASK-1.4 - MINI-PROFIL COLLAPSIBLE
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Container du mini-profil */
     .mobile-mini-profile {
@@ -4158,7 +4158,7 @@ body > map {
    TASK-1.6 - MASQUER 18 COMPÉTENCES
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Masquer le panel des 18 compétences */
 
@@ -4183,7 +4183,7 @@ body > map {
    TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Container actions - Utilise btn-group-justified BS3 */
     .mobile-quick-actions.btn-group-justified {
@@ -4266,7 +4266,7 @@ body > map {
    TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Tab bar container - Utilise nav-tabs BS3 */
     .mobile-tab-bar.nav-tabs {
@@ -4374,7 +4374,7 @@ body > map {
    TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Header principal - Utilise les classes BS3 */
     .navbar,
@@ -4611,7 +4611,7 @@ body > map {
    TASK-2.2 - ACCORDÉON GROUPES (Base)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Header de groupe avec accordéon */
     .dashboard-section-header-accordion {
@@ -4678,7 +4678,7 @@ body > map {
    TASK-2.3 - CARDS PERSOS (Mobile Optimized)
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Grille de cartes compacte */
     .dashboard-cards-grid {
@@ -5149,7 +5149,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    GROUPES DE PERSONNAGES - STYLE BARRE
    ============================================ */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   body.mobile-mode {
     /* Mode mobile activé */
   }
@@ -5453,7 +5453,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* ========================================================================
      MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
      ======================================================================== */
-  @media (max-width: 767px) {
+  @media (width <= 767px) {
     /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
     body.mobile-mode .bootbox.modal select[name="top"].form-control {
       min-height: 56px !important;
@@ -6365,7 +6365,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* ============================================================================
    MOBILE MENU DROPDOWNS - Bootstrap 3 native handling
    ============================================================================ */
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* EN MOBILE : Afficher les dropdown-menu avec la structure Bootstrap 3 */
   
   /* Les dropdown-menu doivent être visibles quand le parent a la classe 'open' */
@@ -6387,7 +6387,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: 10px 15px 10px 25px !important;
     clear: both !important;
     font-weight: 400 !important;
-    line-height: 1.42857143 !important;
+    line-height: 1.4286 !important;
     color: var(--kr-text-primary) !important;
     white-space: nowrap !important;
     background-color: transparent !important;
@@ -6419,7 +6419,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     display: block !important;
     padding: 3px 15px 3px 25px !important;
     font-size: 12px !important;
-    line-height: 1.42857143 !important;
+    line-height: 1.4286 !important;
     color: var(--kr-text-muted) !important;
     white-space: nowrap !important;
     text-transform: uppercase !important;
@@ -6442,14 +6442,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   
   /* Assurer que le caret du dropdown-toggle est visible */
   .navbar-collapse .dropdown > a.dropdown-toggle .caret {
-    border-top-color: currentColor !important;
+    border-top-color: currentcolor !important;
     border-bottom-color: transparent !important;
   }
   
   /* Quand ouvert, inverser le caret */
   .navbar-collapse .dropdown.open > a.dropdown-toggle .caret {
     border-top-color: transparent !important;
-    border-bottom-color: currentColor !important;
+    border-bottom-color: currentcolor !important;
     transform: rotate(180deg) !important;
   }
 }
@@ -6482,7 +6482,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 .forum-card {
   background: var(--kr-bg-surface);
   border-radius: 12px;
-  margin: 0 12px 12px 12px;
+  margin: 0 12px 12px;
   box-shadow: var(--kr-shadow-sm);
   transition: box-shadow 0.2s ease, transform 0.1s ease;
   overflow: hidden;
@@ -6547,7 +6547,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   font-size: 14px;
   color: var(--kr-text-secondary);
   line-height: 1.5;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   text-align: left !important;
   
   /* Limitation à 2 lignes */
@@ -6563,7 +6563,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 .forum-moderators {
   font-size: 12px;
   color: var(--kr-text-muted);
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   font-style: normal;
   font-weight: 400;
   text-align: left !important;
@@ -6664,10 +6664,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* Mini-chat en overlay fullscreen */
 .mobile-mode .mini-chat-overlay {
   position: fixed !important;
-  top: 56px !important; /* Sous le header */
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  inset: 56px 0 0 !important; /* Sous le header */
   width: 100% !important;
   height: auto !important;
   z-index: 999 !important;
@@ -6677,7 +6674,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* === RESPONSIVE === */
 
 /* Tablettes en mode portrait */
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+@media (width >= 768px) and (width <= 1024px) and (orientation: portrait) {
   .forum-card {
     margin: 12px 24px;
   }
@@ -6688,7 +6685,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 }
 
 /* Desktop: désactiver les cards */
-@media (min-width: 768px) {
+@media (width >= 768px) {
   .forums-cards-container {
     display: none !important;
   }
