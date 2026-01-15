@@ -1614,17 +1614,31 @@
 
         const mapClone = map.cloneNode(true);
 
-        // Forcer la navigation pour chaque area de la map
-        const areas = mapClone.querySelectorAll('area');
-        areas.forEach(area => {
-          area.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const url = area.href;
-            if (url && url !== '#') {
-              window.location.href = url;
+        // En desktop, l'interaction se fait via les areas de la map
+        // En mobile, on doit intercepter les clics sur le conteneur et les rediriger vers les areas
+        directionLink.addEventListener('click', (e) => {
+          // Calculer les coordonnées relatives du clic
+          const rect = directionLink.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Trouver l'area qui correspond à ces coordonnées
+          const areas = mapClone.querySelectorAll('area');
+          for (const area of areas) {
+            if (area.shape === 'rect') {
+              const coords = area.coords.split(',').map(c => parseInt(c));
+              const [x1, y1, x2, y2] = coords;
+              if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+                e.preventDefault();
+                e.stopPropagation();
+                const url = area.href;
+                if (url && url !== '#') {
+                  window.location.href = url;
+                }
+                return;
+              }
             }
-          });
+          }
         });
 
         directionLink.appendChild(exitImgClone);
