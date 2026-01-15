@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768509472480
+// @version      1.0.1768509741943
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768509472480';
+  const CURRENT_VERSION = '1.0.1768509741943';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -8864,6 +8864,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
             title = 'Emperatrice';
           }
         }
+      }
+
+      // Remplacements pour Mystisie
+      if (title === 'Gouverneure Mystisie') {
+        title = 'Sultane Eternelle de Mystisie';
+      } else if (title === 'Gouverneur Mystisie') {
+        title = 'Sultan Eternel de Mystisie';
       }
 
       // Vérifier si une div soeur avec ce titre existe déjà (pour éviter les doublons)

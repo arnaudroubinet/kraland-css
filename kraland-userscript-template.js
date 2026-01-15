@@ -2153,6 +2153,13 @@
         }
       }
 
+      // Remplacements pour Mystisie
+      if (title === 'Gouverneure Mystisie') {
+        title = 'Sultane Eternelle de Mystisie';
+      } else if (title === 'Gouverneur Mystisie') {
+        title = 'Sultan Eternel de Mystisie';
+      }
+
       // Vérifier si une div soeur avec ce titre existe déjà (pour éviter les doublons)
       const nextSiblings = parentDiv.parentElement.querySelectorAll('div');
       let titleAlreadyExists = false;
