@@ -1524,9 +1524,9 @@
         productsContainer.appendChild(product);
       });
 
-      // Vérifier que le div de catégorie a bien un parent
-      if (!category.div.parentElement) {
-        console.warn(`[Commerce Accordion] ${category.name}: pas de parent trouvé`);
+      // Vérifier que le div de catégorie a bien un parent et que les éléments existent
+      if (!category.div || !category.div.parentElement || !category.h4) {
+        console.warn(`[Commerce Accordion] ${category.name}: éléments manquants`);
         return;
       }
 
@@ -2852,6 +2852,11 @@
    */
   (function initForumCardsMobile() {
     'use strict';
+
+    // Ne s'exécuter que sur les pages du forum
+    if (!window.location.pathname.startsWith('/forum/')) {
+      return;
+    }
 
     if (!document.body.classList.contains('mobile-mode')) {
       console.log('[Forum Cards] Mode desktop détecté, transformation annulée');
