@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768504131088
+// @version      1.0.1768508519769
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -8294,6 +8294,254 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     transform: rotate(180deg) !important;
   }
 }
+
+
+/* ========================================
+   FORUM CARDS MOBILE
+   Design cards-based pour liste des forums
+   ======================================== */
+
+/* Container des cards */
+.forums-cards-container {
+  display: none; /* Caché par défaut (desktop) */
+  padding: 12px 8px;
+  background: var(--kr-bg-page);
+}
+
+/* Affichage mobile uniquement */
+.mobile-mode .forums-cards-container {
+  display: block;
+}
+
+/* Masquer le tableau sur mobile */
+.mobile-mode table[data-mobile-hidden="true"] {
+  display: none !important;
+}
+
+/* === CARD COMPONENT === */
+
+.forum-card {
+  background: var(--kr-bg-surface);
+  border-radius: 12px;
+  margin: 0 12px 12px 12px;
+  box-shadow: var(--kr-shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  overflow: hidden;
+  border: 1px solid var(--kr-border-default);
+}
+
+/* Forcer l'alignement à gauche pour TOUS les descendants */
+.forum-card *,
+.forum-card-link *,
+.forum-card-header *,
+.forum-footer * {
+  text-align: left !important;
+}
+
+.forum-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--kr-shadow-md);
+}
+
+.forum-card-link {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  
+  /* Touch target minimum 44px */
+  min-height: 100px;
+  
+  /* Active state feedback */
+  -webkit-tap-highlight-color: rgba(139, 15, 14, 0.05);
+}
+
+.forum-card-link:hover,
+.forum-card-link:focus {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* === HEADER === */
+
+.forum-card-header {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.forum-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kr-text-primary);
+  line-height: 1.3;
+  margin: 0;
+  padding: 0;
+  text-align: left !important;
+}
+
+/* === DESCRIPTION === */
+
+.forum-description {
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+  text-align: left !important;
+  
+  /* Limitation à 2 lignes */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === MODERATEURS === */
+
+.forum-moderators {
+  font-size: 12px;
+  color: var(--kr-text-muted);
+  margin: 0 0 10px 0;
+  font-style: normal;
+  font-weight: 400;
+  text-align: left !important;
+}
+
+/* === FOOTER (Stats + Dernière activité) === */
+
+.forum-footer {
+  border-top: 1px solid var(--kr-border-default);
+  padding-top: 10px;
+  margin-top: auto;
+  text-align: left !important;
+}
+
+.forum-stats {
+  font-size: 13px;
+  color: var(--kr-text-muted);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  text-align: left !important;
+}
+
+.forum-topics,
+.forum-messages {
+  font-weight: 600;
+  color: var(--kr-text-secondary);
+}
+
+.forum-separator {
+  margin: 0 4px;
+  color: var(--kr-text-muted);
+}
+
+.forum-last-activity {
+  font-size: 13px;
+  color: var(--kr-text-secondary);
+  line-height: 1.5;
+  text-align: left !important;
+}
+
+.last-user {
+  font-weight: 600;
+  color: var(--kr-text-primary);
+}
+
+.last-time {
+  color: var(--kr-text-muted);
+  font-size: 12px;
+}
+
+/* === ÉTATS SPÉCIAUX === */
+
+/* Forum sans activité */
+.forum-card:has(.forum-topics:empty) {
+  opacity: 0.6;
+}
+
+/* Accessibilité: focus visible */
+.forum-card-link:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+/* === MINI-CHAT FAB === */
+
+.mini-chat-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.mini-chat-fab:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mini-chat-fab.active {
+  background: #f44336;
+}
+
+.mini-chat-fab .fab-text {
+  display: block;
+  line-height: 1;
+}
+
+/* Mini-chat en overlay fullscreen */
+.mobile-mode .mini-chat-overlay {
+  position: fixed !important;
+  top: 56px !important; /* Sous le header */
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  z-index: 999 !important;
+  background: white;
+}
+
+/* === RESPONSIVE === */
+
+/* Tablettes en mode portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .forum-card {
+    margin: 12px 24px;
+  }
+  
+  .forum-card-link {
+    padding: 20px;
+  }
+}
+
+/* Desktop: désactiver les cards */
+@media (min-width: 768px) {
+  .forums-cards-container {
+    display: none !important;
+  }
+  
+  table[data-mobile-hidden="true"] {
+    display: table !important;
+  }
+  
+  .mini-chat-fab {
+    display: none;
+  }
+}
 `,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
@@ -9293,6 +9541,256 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
     InitQueue.register('ForumsHRP:Extract', extractAndStoreForumsHRP, 5);
+  })();
+
+  /**
+   * MODULE: Forum Cards Mobile
+   * Transforme le tableau des forums en cards tactiles sur mobile
+   */
+  (function initForumCardsMobile() {
+    'use strict';
+
+    if (!document.body.classList.contains('mobile-mode')) {
+      console.log('[Forum Cards] Mode desktop détecté, transformation annulée');
+      return;
+    }
+
+    function transformTableToCards() {
+      const forumTable = document.querySelector('table.table tbody');
+      if (!forumTable) {
+        console.warn('[Forum Cards] Tableau forums introuvable');
+        return;
+      }
+
+      const rows = Array.from(forumTable.querySelectorAll('tr'));
+      if (rows.length === 0) {
+        console.warn('[Forum Cards] Aucun forum trouvé');
+        return;
+      }
+
+      const cardsContainer = document.createElement('div');
+      cardsContainer.className = 'forums-cards-container';
+      cardsContainer.setAttribute('role', 'list');
+
+      rows.forEach((row, index) => {
+        try {
+          const card = createForumCard(row, index);
+          if (card) {
+            cardsContainer.appendChild(card);
+          }
+        } catch (error) {
+          console.error('[Forum Cards] Erreur création carte:', error);
+        }
+      });
+
+      // Remplacement du tableau par les cards
+      const tableElement = forumTable.closest('table');
+      tableElement.parentNode.insertBefore(cardsContainer, tableElement);
+      tableElement.style.display = 'none';
+      tableElement.setAttribute('data-mobile-hidden', 'true');
+
+      console.log(`[Forum Cards] ${rows.length} forums transformés en cards`);
+    }
+
+    function createForumCard(row, index) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 3) return null;
+
+      // === EXTRACTION DES DONNÉES ===
+      
+      // Cellule 1: Titre, description, modérateurs
+      const titleCell = cells[0];
+      const titleLink = titleCell.querySelector('p:first-child a');
+      if (!titleLink) return null;
+
+      const title = titleLink.textContent.trim();
+      const forumUrl = titleLink.getAttribute('href');
+
+      // Description (2e paragraphe)
+      const descriptionP = titleCell.querySelector('p:nth-child(2)');
+      const description = descriptionP ? descriptionP.textContent.trim() : '';
+
+      // Modérateurs (div avec classe contenant "mod" ou texte "Modérateurs")
+      const moderators = [];
+      const modElements = titleCell.querySelectorAll('div, span');
+      modElements.forEach(el => {
+        const text = el.textContent;
+        if (text.includes('Modérateur')) {
+          const links = el.querySelectorAll('a');
+          links.forEach(link => {
+            const name = link.textContent.trim();
+            if (name && !name.includes('[mod]')) {
+              moderators.push({
+                name: name.replace(/\[.*?\]/g, '').trim(),
+                url: link.getAttribute('href')
+              });
+            }
+          });
+        }
+      });
+
+      // Cellule 2: Nombre de sujets
+      const topicsText = cells[1]?.textContent.trim().replace('·', '').trim() || '0 sujets';
+
+      // Cellule 3: Nombre de messages
+      const messagesText = cells[2]?.textContent.trim() || '0 messages';
+
+      // Cellule 4: Dernière activité
+      let lastActivity = '';
+      let lastUser = '';
+      let lastTime = '';
+      if (cells[3]) {
+        const activityText = cells[3].textContent.trim();
+        const userLink = cells[3].querySelector('a');
+        if (userLink) {
+          lastUser = userLink.textContent.trim();
+          // Extraire le timestamp (format "Aujourd'hui (HH:MM)")
+          const timeMatch = activityText.match(/(\w+.*?\(\d{2}:\d{2}\))/);
+          lastTime = timeMatch ? timeMatch[1] : '';
+        }
+        lastActivity = activityText.replace('→', '').trim();
+      }
+
+      // === CRÉATION DE LA CARTE ===
+      
+      const card = document.createElement('article');
+      card.className = 'forum-card';
+      card.setAttribute('role', 'listitem');
+      card.setAttribute('data-forum-index', index);
+
+      // Lien englobant (accessibility)
+      const cardLink = document.createElement('a');
+      cardLink.href = forumUrl;
+      cardLink.className = 'forum-card-link';
+      cardLink.setAttribute('aria-label', `Accéder au forum ${title}`);
+
+      // Contenu de la carte
+      let cardHTML = `
+        <div class="forum-card-header">
+          <h3 class="forum-title">${title}</h3>
+        </div>
+      `;
+
+      if (description) {
+        cardHTML += `<p class="forum-description">${description}</p>`;
+      }
+
+      if (moderators.length > 0) {
+        const modText = moderators.length > 2 
+          ? `${moderators[0].name}, ${moderators[1].name}...`
+          : moderators.map(m => m.name).join(', ');
+        cardHTML += `<p class="forum-moderators">Mod: ${modText}</p>`;
+      }
+
+      cardHTML += `<div class="forum-footer">`;
+
+      // Stats
+      cardHTML += `
+        <div class="forum-stats">
+          <span class="forum-topics">${topicsText}</span>
+          <span class="forum-separator">·</span>
+          <span class="forum-messages">${messagesText}</span>
+        </div>
+      `;
+
+      // Dernière activité
+      if (lastActivity && lastUser) {
+        cardHTML += `
+          <div class="forum-last-activity">
+            <span class="last-user">${lastUser}</span>
+            <span class="last-time"> · ${lastTime}</span>
+          </div>
+        `;
+      }
+
+      cardHTML += `</div>`; // Fermeture forum-footer
+
+      cardLink.innerHTML = cardHTML;
+      
+      // FORCER les styles inline avec !important pour contourner Bootstrap
+      cardLink.style.setProperty('display', 'flex', 'important');
+      cardLink.style.setProperty('flex-direction', 'column', 'important');
+      cardLink.style.setProperty('align-items', 'flex-start', 'important');
+      cardLink.style.setProperty('justify-content', 'flex-start', 'important');
+      cardLink.style.setProperty('width', '100%', 'important');
+      
+      card.appendChild(cardLink);
+
+      return card;
+    }
+
+    // === ENREGISTREMENT DANS InitQueue ===
+    
+    function init() {
+      // Attendre que le DOM soit prêt
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', transformTableToCards);
+      } else {
+        transformTableToCards();
+      }
+    }
+
+    // Priorité 15: après navigation menus (10) mais avant autres transformations
+    InitQueue.register('ForumCards:MobileTransform', init, 15);
+
+  })();
+
+  /**
+   * MODULE: Mini-Chat FAB (Floating Action Button)
+   * Transforme le mini-chat latéral en overlay fullscreen sur mobile
+   */
+  (function initMiniChatFAB() {
+    'use strict';
+
+    if (!document.body.classList.contains('mobile-mode')) return;
+
+    function createChatFAB() {
+      const miniChat = document.getElementById('flap');
+      if (!miniChat) return;
+
+      // Masquer le mini-chat par défaut sur mobile
+      miniChat.style.display = 'none';
+      miniChat.classList.add('mini-chat-overlay');
+
+      // Créer le bouton flottant
+      const fab = document.createElement('button');
+      fab.className = 'mini-chat-fab';
+      fab.innerHTML = '<span class="fab-text">MC</span>';
+      fab.setAttribute('aria-label', 'Ouvrir le mini-chat');
+      fab.setAttribute('type', 'button');
+
+      // Toggle du mini-chat
+      fab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isOpen = miniChat.style.display === 'block';
+        
+        if (isOpen) {
+          miniChat.style.display = 'none';
+          fab.classList.remove('active');
+          document.body.style.overflow = '';
+        } else {
+          miniChat.style.display = 'block';
+          fab.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+
+      // Bouton fermeture dans le chat
+      const closeBtn = miniChat.querySelector('.close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          miniChat.style.display = 'none';
+          fab.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+
+      document.body.appendChild(fab);
+      console.log('[Mini-Chat FAB] Initialisé');
+    }
+
+    InitQueue.register('MiniChat:FAB', createChatFAB, 20);
+
   })();
 
   function modifyNavigationMenus() {
