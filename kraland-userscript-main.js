@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768464110521
+// @version      1.0.1768500734342
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -606,15 +606,6 @@
       header.appendChild(info);
       miniProfile.appendChild(header);
 
-      // Bouton settings
-      const settings = document.createElement('a');
-      settings.href = '/jouer/perso';
-      settings.className = 'mobile-mini-profile-settings';
-      settings.innerHTML = '⚙️';
-      settings.title = 'Voir le personnage';
-      settings.addEventListener('click', (e) => e.stopPropagation());
-      miniProfile.appendChild(settings);
-
       // Jauges compactes (toujours visibles)
       const gaugesCompact = document.createElement('div');
       gaugesCompact.className = 'mobile-mini-profile-gauges-compact';
@@ -668,12 +659,6 @@
 
       // Toggle expand/collapse
       miniProfile.addEventListener('click', (e) => {
-        // Ne pas toggle si clic sur le bouton settings
-        if (e.target.classList.contains('mobile-mini-profile-settings') ||
-            e.target.closest('.mobile-mini-profile-settings')) {
-          return;
-        }
-
         miniProfile.classList.toggle('collapsed');
         miniProfile.classList.toggle('expanded');
 
