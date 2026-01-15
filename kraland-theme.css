@@ -3274,8 +3274,16 @@ body > map {
   .panel-heading {
     padding: 10px 15px !important;
     display: flex !important;
+    align-items: center !important;
     flex-wrap: wrap !important;
     gap: 10px !important;
+  }
+  
+  .panel-heading .pull-right {
+    float: none !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
   }
   
   .panel-body {
@@ -5209,6 +5217,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       border-radius: 0 !important;
       padding: 12px 0 !important;
       margin: 0 !important;
+      align-items: center !important;
       transition: background-color var(--transition-fast) !important;
     }
     
@@ -6100,6 +6109,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border-radius: var(--mobile-radius) !important;
     padding: var(--mobile-spacing-lg) !important;
     margin-bottom: var(--mobile-spacing-md) !important;
+    align-items: center !important;
   }
   
   body.mobile-mode .panel-default > .panel-heading h3 {
@@ -6697,4 +6707,399 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   .mini-chat-fab {
     display: none;
   }
+}
+
+/* ============================================================================
+   MOBILE OPTIMISATION - FORUM SUJETS (DataTables)
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  
+  /* === CONTRÔLES DATATABLE (Recherche, Affichage, Pagination) === */
+  
+  /* Wrapper général */
+  .dataTables_wrapper {
+    padding: 0 !important;
+  }
+  
+  /* Section contrôles haut (Afficher X lignes + Recherche) */
+  .dataTables_length,
+  .dataTables_filter {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 var(--mobile-spacing-md) !important;
+    text-align: left !important;
+    float: none !important;
+  }
+  
+  /* Label "Afficher lignes" */
+  .dataTables_length label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+  }
+  
+  /* Dropdown "Afficher X lignes" - WCAG 2.5.5 (44px min) */
+  .dataTables_length select {
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 32px 10px 12px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    flex: 0 0 auto !important;
+    min-width: 80px !important;
+  }
+  
+  /* Label recherche */
+  .dataTables_filter label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+  }
+  
+  /* Input recherche - WCAG 2.5.5 (44px min) */
+  .dataTables_filter input {
+    flex: 1 !important;
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    width: 100% !important;
+  }
+  
+  /* Focus sur inputs */
+  .dataTables_filter input:focus,
+  .dataTables_length select:focus {
+    outline: 2px solid var(--kr-primary) !important;
+    outline-offset: 2px !important;
+    border-color: var(--kr-primary) !important;
+  }
+  
+  /* === TABLEAU → CARDS === */
+  
+  /* Masquer le header du tableau */
+  table.dataTable thead {
+    display: none !important;
+  }
+  
+  /* Transformer tbody en flex vertical */
+  table.dataTable tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--mobile-spacing-md) !important;
+  }
+  
+  /* Chaque <tr> devient une card */
+  table.dataTable tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: var(--kr-shadow-sm) !important;
+    overflow: hidden !important;
+    transition: box-shadow var(--transition-fast) !important;
+  }
+  
+  /* Hover effect sur card (optionnel, pas prioritaire sur tactile) */
+  table.dataTable tbody tr:hover {
+    box-shadow: var(--kr-shadow-md) !important;
+  }
+  
+  /* === COLONNES VISIBLES === */
+  
+  /* Masquer colonnes Msg, Vus, Auteur, Dernier Message (affichées autrement) */
+  table.dataTable tbody td:nth-child(2), /* Msg */
+  table.dataTable tbody td:nth-child(3), /* Vus */
+  table.dataTable tbody td:nth-child(4), /* Auteur */
+  table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
+    display: none !important;
+  }
+  
+  /* Colonne Sujet (zone unique, comme Sujets permanents) */
+  table.dataTable tbody td:nth-child(1) {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: var(--mobile-spacing-md) !important;
+    min-height: var(--mobile-touch-target) !important;
+    gap: var(--mobile-spacing-sm) !important;
+  }
+  
+  /* === ZONE 1 : TITRE DU SUJET === */
+  
+  /* Conteneur titre + icône non-lu */
+  table.dataTable tbody td:nth-child(1) p {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+  
+  /* Titre du sujet (lien principal vers page 1) */
+  table.dataTable tbody td:nth-child(1) p a {
+    flex: 1 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: block !important;
+    padding: 4px 0 !important;
+  }
+  
+  /* Feedback tactile sur titre */
+  table.dataTable tbody td:nth-child(1) p a:active {
+    color: var(--kr-primary) !important;
+    background-color: rgba(139, 15, 14, 0.05) !important;
+  }
+  
+  /* === ICÔNES ET PAGINATION : MASQUÉES === */
+  
+  /* Masquer l'icône folder-open (1ère UL) */
+  table.dataTable tbody td:nth-child(1) > ul:first-of-type {
+    display: none !important;
+  }
+  
+  /* Masquer la pagination (2ème UL) */
+  table.dataTable tbody td:nth-child(1) > ul:nth-of-type(2) {
+    display: none !important;
+  }
+  
+  /* === ZONE 1 : TITRE DU SUJET === */
+  
+  /* Titre du sujet */
+  table.dataTable tbody td:nth-child(1) p {
+    margin: 0 0 8px 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Lien titre */
+  table.dataTable tbody td:nth-child(1) p a {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: block !important;
+  }
+  
+  /* Feedback tactile sur titre */
+  table.dataTable tbody td:nth-child(1) p a:active {
+    color: var(--kr-primary) !important;
+    opacity: 0.7 !important;
+  }
+  
+  /* Tags */
+  table.dataTable tbody td:nth-child(1) .forum-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    margin-top: 6px !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon {
+    color: var(--kr-text-muted) !important;
+    font-size: 8px !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags a {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    color: var(--kr-text-secondary) !important;
+    background: var(--kr-bg-hover) !important;
+    border-radius: 2px !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags a:active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === BADGES STATS (Msg + Vus) === */
+  
+  .forum-topic-stats-mobile {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .badge-stat {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 5px 10px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-secondary) !important;
+    border-radius: 6px !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  .badge-stat i {
+    font-size: 12px !important;
+  }
+  
+  .badge-messages {
+    background: rgba(33, 150, 243, 0.1) !important;
+    border: 1px solid rgba(33, 150, 243, 0.2) !important;
+    color: #1976d2 !important;
+  }
+  
+  .badge-views {
+    background: rgba(76, 175, 80, 0.1) !important;
+    border: 1px solid rgba(76, 175, 80, 0.2) !important;
+    color: #388e3c !important;
+  }
+  
+  /* === ZONE 2 : DERNIER MESSAGE === */
+  
+  /* Lien auteur */
+  table.dataTable tbody td:nth-child(5) a:first-child {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  
+  /* Image nation dans auteur */
+  table.dataTable tbody td:nth-child(5) a:first-child img {
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Paragraphe date/heure */
+  table.dataTable tbody td:nth-child(5) p {
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  
+  /* Icône lien vers message */
+  table.dataTable tbody td:nth-child(5) p a .glyphicon {
+    font-size: 12px !important;
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Feedback tactile zone dernier message */
+  table.dataTable tbody td:nth-child(5):active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === AFFICHER STATS (Msg + Vus) EN BADGES === */
+  
+  /* Créer un conteneur pour stats après le titre */
+  table.dataTable tbody td:nth-child(1)::after {
+    content: '';
+    display: none; /* On va gérer ça avec JS si besoin */
+  }
+  
+  /* === PAGINATION === */
+  
+  /* Wrapper pagination */
+  .dataTables_paginate {
+    display: flex !important;
+    justify-content: center !important;
+    gap: var(--mobile-spacing-sm) !important;
+    margin-top: var(--mobile-spacing-lg) !important;
+    padding: 0 !important;
+  }
+  
+  /* Boutons Précédent/Suivant - WCAG 2.5.5 (44px min) */
+  .dataTables_paginate .paginate_button {
+    min-height: var(--mobile-touch-target) !important;
+    min-width: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  /* État actif */
+  .dataTables_paginate .paginate_button.current {
+    background: var(--kr-primary) !important;
+    color: white !important;
+    border-color: var(--kr-primary) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* État désactivé */
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+  
+  /* Feedback tactile */
+  .dataTables_paginate .paginate_button:not(.disabled):not(.current):active {
+    background: var(--kr-bg-active) !important;
+    transform: scale(0.95) !important;
+  }
+  
+  /* === INFO PAGINATION (Affiche X à Y de Z lignes) === */
+  
+  .dataTables_info {
+    text-align: center !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+    margin-top: var(--mobile-spacing-md) !important;
+    padding: 0 var(--mobile-spacing-md) !important;
+  }
+  
+  /* === DARK MODE === */
+  
+  html[class*="-dark"] table.dataTable tbody tr {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(1) {
+    border-bottom-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(5) {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_filter input,
+  html[class*="-dark"] .dataTables_length select {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_paginate .paginate_button {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
 }

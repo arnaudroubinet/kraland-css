@@ -3120,6 +3120,352 @@
 
   })();
 
+  // ============================================================================
+  // FORUM TOPICS - Afficher les titres complets
+  // Remplace les titres abrégés (...) par le texte complet du span invisible
+  // ============================================================================
+  (function () {
+    function useFullTopicTitles() {
+      // Cibler tous les sujets avec span.invisible
+      const topics = document.querySelectorAll('p.nomargin');
+      
+      topics.forEach(topic => {
+        const invisibleSpan = topic.querySelector('span.invisible');
+        const link = topic.querySelector('a');
+        
+        if (invisibleSpan && link) {
+          const fullTitle = invisibleSpan.textContent.trim();
+          const currentTitle = link.textContent.trim();
+          
+          // Remplacer seulement si le titre est abrégé (contient ...)
+          if (currentTitle.includes('(...)') && fullTitle) {
+            link.textContent = fullTitle;
+          }
+        }
+      });
+    }
+
+    InitQueue.register('ForumTopics:FullTitles', useFullTopicTitles, 5);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM TOPICS - Stats + Smart Navigation
+  // Layout identique aux "Sujets permanents" (simple et épuré)
+  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
+  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
+  // Rend toute la card cliquable (comme les Sujets permanents)
+  // ============================================================================
+  (function () {
+    function enrichForumTopicsCards() {
+      // N'exécuter qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Cibler uniquement les DataTables de forum (pas les "Sujets permanents")
+      const forumTable = document.querySelector('table.dataTable');
+      if (!forumTable) {return;}
+
+      const rows = forumTable.querySelectorAll('tbody tr');
+      if (rows.length === 0) {return;}
+
+      rows.forEach(row => {
+        // Éviter le double traitement
+        if (row.hasAttribute('data-stats-added')) {return;}
+        row.setAttribute('data-stats-added', 'true');
+
+        // Récupérer les cellules
+        const titleCell = row.querySelector('td:nth-child(1)');
+        const msgCell = row.querySelector('td:nth-child(2)');
+        const viewsCell = row.querySelector('td:nth-child(3)');
+
+        if (!titleCell || !msgCell || !viewsCell) {return;}
+
+        // === SMART NAVIGATION ===
+        // Détecter si l'icône "premier message non lu" existe
+        const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+        const titleLink = titleCell.querySelector('p > a');
+        
+        if (unreadIconLink && titleLink) {
+          // Sujet NON LU : rediriger le titre vers le premier message non lu
+          titleLink.href = unreadIconLink.href;
+          titleLink.setAttribute('data-smart-redirect', 'first-unread');
+        }
+        // Si pas d'icône (sujet lu), le titre garde son URL d'origine (page 1)
+
+        // === CARD CLIQUABLE (comme Sujets permanents) ===
+        if (titleLink) {
+          row.style.cursor = 'pointer';
+          
+          row.addEventListener('click', (e) => {
+            // Ne pas intercepter les clics sur les liens de tags
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+              return;
+            }
+            // Simuler le clic sur le titre
+            titleLink.click();
+          });
+        }
+
+        // === STATS SIMPLES (style "Sujets permanents") ===
+        
+        // Extraire les valeurs
+        const msgCount = msgCell.textContent.trim();
+        const viewsCount = viewsCell.textContent.trim();
+
+        // Créer les stats avec icônes pour clarté
+        const statsContainer = document.createElement('div');
+        statsContainer.className = 'forum-topic-stats-mobile';
+        statsContainer.innerHTML = `
+          <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+          <span style="margin: 0 4px;">·</span>
+          <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+        `;
+        statsContainer.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 13px;
+          color: var(--kr-text-secondary);
+          margin-bottom: 8px;
+        `;
+
+        // Insérer après le titre
+        const titleParagraph = titleCell.querySelector('p');
+        if (titleParagraph) {
+          titleParagraph.after(statsContainer);
+        }
+      });
+
+      console.log(`[Forum Topics Mobile] ${rows.length} sujets enrichis`);
+    }
+
+    InitQueue.register('ForumTopics:MobileStats', enrichForumTopicsCards, 25);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM PERMANENT TOPICS - Stats avec icônes
+  // Ajoute les icônes aux stats des "Sujets permanents"
+  // ============================================================================
+  (function () {
+    function enrichPermanentTopicsStats() {
+      // N'exécuter qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Cibler les panel-default (Sujets permanents)
+      const panels = document.querySelectorAll('.panel-default');
+      if (panels.length === 0) {return;}
+
+      panels.forEach(panel => {
+        const rows = panel.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-permanent-icons-added')) {return;}
+          row.setAttribute('data-permanent-icons-added', 'true');
+
+          // Chercher les cellules de stats
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 2) {return;}
+
+          // Les stats sont dans les cellules 2 et 3 (index 1 et 2)
+          const msgCell = cells[1];
+          const viewsCell = cells[2];
+
+          if (!msgCell || !viewsCell) {return;}
+
+          // Extraire les valeurs
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
+
+          // Créer un wrapper pour les stats avec icônes
+          const statsWrapper = document.createElement('div');
+          statsWrapper.className = 'permanent-topic-stats';
+          statsWrapper.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span style="margin: 0 4px;">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
+          statsWrapper.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--kr-text-secondary);
+            order: 2;
+            margin: 0 0 2px 0;
+          `;
+
+          // Remplacer les cellules originales par le wrapper
+          msgCell.style.display = 'none';
+          viewsCell.style.display = 'none';
+          
+          // Insérer le wrapper après la première cellule
+          const firstCell = cells[0];
+          if (firstCell) {
+            firstCell.after(statsWrapper);
+          }
+        });
+      });
+
+      console.log(`[Permanent Topics Mobile] Icônes ajoutées`);
+    }
+
+    InitQueue.register('PermanentTopics:Icons', enrichPermanentTopicsStats, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumHeader:MobileBreadcrumb
+  // Transforme le header forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Cibler le h1 qui contient "Taverne" et les liens
+      const forumHeading = document.querySelector('.container h1');
+      if (!forumHeading) {
+        console.warn('[Forum Header Mobile] h1 non trouvé');
+        return;
+      }
+
+      // Extraire le titre du forum (texte direct du h1)
+      const titleText = Array.from(forumHeading.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!titleText) {
+        return;
+      }
+
+      // Trouver les liens "Jeu (RP)" et "nouveau sujet"
+      const links = forumHeading.querySelectorAll('a');
+      if (links.length < 2) {
+        return;
+      }
+
+      const backLink = links[0]; // Lien "Jeu (RP)"
+      const newTopicLink = links[1]; // Lien "nouveau sujet"
+
+      // ========================================
+      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // ========================================
+      const breadcrumbWrapper = document.createElement('div');
+      breadcrumbWrapper.className = 'forum-mobile-breadcrumb';
+      breadcrumbWrapper.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--kr-text-secondary);
+      `;
+
+      // Partie gauche : breadcrumb
+      const breadcrumbLeft = document.createElement('div');
+      breadcrumbLeft.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      `;
+
+      // Cloner le lien "Jeu (RP)"
+      const breadcrumbLink = backLink.cloneNode(true);
+      breadcrumbLink.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        background: none;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+      `;
+
+      // Ajouter le séparateur ">"
+      const separator = document.createElement('span');
+      separator.textContent = '›';
+      separator.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+      `;
+
+      // Titre actuel (Taverne)
+      const currentTitle = document.createElement('span');
+      currentTitle.textContent = titleText;
+      currentTitle.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-weight: 400;
+      `;
+
+      breadcrumbLeft.appendChild(breadcrumbLink);
+      breadcrumbLeft.appendChild(separator);
+      breadcrumbLeft.appendChild(currentTitle);
+
+      // Partie droite : bouton (+)
+      const fab = document.createElement('a');
+      fab.href = newTopicLink.href;
+      fab.className = 'forum-new-topic-fab';
+      fab.setAttribute('aria-label', 'Nouveau sujet');
+      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+      fab.style.cssText = `
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: var(--kr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        transition: all 0.2s ease;
+      `;
+
+      // Feedback tactile
+      fab.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.92)';
+        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+      });
+
+      fab.addEventListener('touchend', function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+      });
+
+      breadcrumbWrapper.appendChild(breadcrumbLeft);
+      breadcrumbWrapper.appendChild(fab);
+
+      // ========================================
+      // 2. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+
+      forumHeading.appendChild(breadcrumbWrapper);
+
+      console.log('[Forum Header Mobile] Fil d\'ariane + FAB créés');
+    }
+
+    InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
   function modifyNavigationMenus() {
     // Modification des liens des boutons principaux du menu
     const menuLinks = {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768512381088
+// @version      1.0.1768515925249
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768512381088';
+  const CURRENT_VERSION = '1.0.1768515925249';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -5139,8 +5139,16 @@ body > map {
   .panel-heading {
     padding: 10px 15px !important;
     display: flex !important;
+    align-items: center !important;
     flex-wrap: wrap !important;
     gap: 10px !important;
+  }
+  
+  .panel-heading .pull-right {
+    float: none !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
   }
   
   .panel-body {
@@ -7074,6 +7082,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       border-radius: 0 !important;
       padding: 12px 0 !important;
       margin: 0 !important;
+      align-items: center !important;
       transition: background-color var(--transition-fast) !important;
     }
     
@@ -7965,6 +7974,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border-radius: var(--mobile-radius) !important;
     padding: var(--mobile-spacing-lg) !important;
     margin-bottom: var(--mobile-spacing-md) !important;
+    align-items: center !important;
   }
   
   body.mobile-mode .panel-default > .panel-heading h3 {
@@ -8562,6 +8572,401 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   .mini-chat-fab {
     display: none;
   }
+}
+
+/* ============================================================================
+   MOBILE OPTIMISATION - FORUM SUJETS (DataTables)
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  
+  /* === CONTRÔLES DATATABLE (Recherche, Affichage, Pagination) === */
+  
+  /* Wrapper général */
+  .dataTables_wrapper {
+    padding: 0 !important;
+  }
+  
+  /* Section contrôles haut (Afficher X lignes + Recherche) */
+  .dataTables_length,
+  .dataTables_filter {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 var(--mobile-spacing-md) !important;
+    text-align: left !important;
+    float: none !important;
+  }
+  
+  /* Label "Afficher lignes" */
+  .dataTables_length label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+  }
+  
+  /* Dropdown "Afficher X lignes" - WCAG 2.5.5 (44px min) */
+  .dataTables_length select {
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 32px 10px 12px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    flex: 0 0 auto !important;
+    min-width: 80px !important;
+  }
+  
+  /* Label recherche */
+  .dataTables_filter label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+  }
+  
+  /* Input recherche - WCAG 2.5.5 (44px min) */
+  .dataTables_filter input {
+    flex: 1 !important;
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    width: 100% !important;
+  }
+  
+  /* Focus sur inputs */
+  .dataTables_filter input:focus,
+  .dataTables_length select:focus {
+    outline: 2px solid var(--kr-primary) !important;
+    outline-offset: 2px !important;
+    border-color: var(--kr-primary) !important;
+  }
+  
+  /* === TABLEAU → CARDS === */
+  
+  /* Masquer le header du tableau */
+  table.dataTable thead {
+    display: none !important;
+  }
+  
+  /* Transformer tbody en flex vertical */
+  table.dataTable tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--mobile-spacing-md) !important;
+  }
+  
+  /* Chaque <tr> devient une card */
+  table.dataTable tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: var(--kr-shadow-sm) !important;
+    overflow: hidden !important;
+    transition: box-shadow var(--transition-fast) !important;
+  }
+  
+  /* Hover effect sur card (optionnel, pas prioritaire sur tactile) */
+  table.dataTable tbody tr:hover {
+    box-shadow: var(--kr-shadow-md) !important;
+  }
+  
+  /* === COLONNES VISIBLES === */
+  
+  /* Masquer colonnes Msg, Vus, Auteur, Dernier Message (affichées autrement) */
+  table.dataTable tbody td:nth-child(2), /* Msg */
+  table.dataTable tbody td:nth-child(3), /* Vus */
+  table.dataTable tbody td:nth-child(4), /* Auteur */
+  table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
+    display: none !important;
+  }
+  
+  /* Colonne Sujet (zone unique, comme Sujets permanents) */
+  table.dataTable tbody td:nth-child(1) {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: var(--mobile-spacing-md) !important;
+    min-height: var(--mobile-touch-target) !important;
+    gap: var(--mobile-spacing-sm) !important;
+  }
+  
+  /* === ZONE 1 : TITRE DU SUJET === */
+  
+  /* Conteneur titre + icône non-lu */
+  table.dataTable tbody td:nth-child(1) p {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+  
+  /* Titre du sujet (lien principal vers page 1) */
+  table.dataTable tbody td:nth-child(1) p a {
+    flex: 1 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: block !important;
+    padding: 4px 0 !important;
+  }
+  
+  /* Feedback tactile sur titre */
+  table.dataTable tbody td:nth-child(1) p a:active {
+    color: var(--kr-primary) !important;
+    background-color: rgba(139, 15, 14, 0.05) !important;
+  }
+  
+  /* === ICÔNES ET PAGINATION : MASQUÉES === */
+  
+  /* Masquer l'icône folder-open (1ère UL) */
+  table.dataTable tbody td:nth-child(1) > ul:first-of-type {
+    display: none !important;
+  }
+  
+  /* Masquer la pagination (2ème UL) */
+  table.dataTable tbody td:nth-child(1) > ul:nth-of-type(2) {
+    display: none !important;
+  }
+  
+  /* === ZONE 1 : TITRE DU SUJET === */
+  
+  /* Titre du sujet */
+  table.dataTable tbody td:nth-child(1) p {
+    margin: 0 0 8px 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Lien titre */
+  table.dataTable tbody td:nth-child(1) p a {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: block !important;
+  }
+  
+  /* Feedback tactile sur titre */
+  table.dataTable tbody td:nth-child(1) p a:active {
+    color: var(--kr-primary) !important;
+    opacity: 0.7 !important;
+  }
+  
+  /* Tags */
+  table.dataTable tbody td:nth-child(1) .forum-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    margin-top: 6px !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon {
+    color: var(--kr-text-muted) !important;
+    font-size: 8px !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags a {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    color: var(--kr-text-secondary) !important;
+    background: var(--kr-bg-hover) !important;
+    border-radius: 2px !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  table.dataTable tbody td:nth-child(1) .forum-tags a:active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === BADGES STATS (Msg + Vus) === */
+  
+  .forum-topic-stats-mobile {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .badge-stat {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 5px 10px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-secondary) !important;
+    border-radius: 6px !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  .badge-stat i {
+    font-size: 12px !important;
+  }
+  
+  .badge-messages {
+    background: rgba(33, 150, 243, 0.1) !important;
+    border: 1px solid rgba(33, 150, 243, 0.2) !important;
+    color: #1976d2 !important;
+  }
+  
+  .badge-views {
+    background: rgba(76, 175, 80, 0.1) !important;
+    border: 1px solid rgba(76, 175, 80, 0.2) !important;
+    color: #388e3c !important;
+  }
+  
+  /* === ZONE 2 : DERNIER MESSAGE === */
+  
+  /* Lien auteur */
+  table.dataTable tbody td:nth-child(5) a:first-child {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  
+  /* Image nation dans auteur */
+  table.dataTable tbody td:nth-child(5) a:first-child img {
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Paragraphe date/heure */
+  table.dataTable tbody td:nth-child(5) p {
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  
+  /* Icône lien vers message */
+  table.dataTable tbody td:nth-child(5) p a .glyphicon {
+    font-size: 12px !important;
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Feedback tactile zone dernier message */
+  table.dataTable tbody td:nth-child(5):active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === AFFICHER STATS (Msg + Vus) EN BADGES === */
+  
+  /* Créer un conteneur pour stats après le titre */
+  table.dataTable tbody td:nth-child(1)::after {
+    content: '';
+    display: none; /* On va gérer ça avec JS si besoin */
+  }
+  
+  /* === PAGINATION === */
+  
+  /* Wrapper pagination */
+  .dataTables_paginate {
+    display: flex !important;
+    justify-content: center !important;
+    gap: var(--mobile-spacing-sm) !important;
+    margin-top: var(--mobile-spacing-lg) !important;
+    padding: 0 !important;
+  }
+  
+  /* Boutons Précédent/Suivant - WCAG 2.5.5 (44px min) */
+  .dataTables_paginate .paginate_button {
+    min-height: var(--mobile-touch-target) !important;
+    min-width: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  /* État actif */
+  .dataTables_paginate .paginate_button.current {
+    background: var(--kr-primary) !important;
+    color: white !important;
+    border-color: var(--kr-primary) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* État désactivé */
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+  
+  /* Feedback tactile */
+  .dataTables_paginate .paginate_button:not(.disabled):not(.current):active {
+    background: var(--kr-bg-active) !important;
+    transform: scale(0.95) !important;
+  }
+  
+  /* === INFO PAGINATION (Affiche X à Y de Z lignes) === */
+  
+  .dataTables_info {
+    text-align: center !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+    margin-top: var(--mobile-spacing-md) !important;
+    padding: 0 var(--mobile-spacing-md) !important;
+  }
+  
+  /* === DARK MODE === */
+  
+  html[class*="-dark"] table.dataTable tbody tr {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(1) {
+    border-bottom-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(5) {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_filter input,
+  html[class*="-dark"] .dataTables_length select {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_paginate .paginate_button {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
 }
 `,
     ENABLE_KEY: 'kr-theme-enabled',
@@ -9827,6 +10232,352 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
 
     InitQueue.register('MiniChat:FAB', createChatFAB, 20);
+
+  })();
+
+  // ============================================================================
+  // FORUM TOPICS - Afficher les titres complets
+  // Remplace les titres abrégés (...) par le texte complet du span invisible
+  // ============================================================================
+  (function () {
+    function useFullTopicTitles() {
+      // Cibler tous les sujets avec span.invisible
+      const topics = document.querySelectorAll('p.nomargin');
+      
+      topics.forEach(topic => {
+        const invisibleSpan = topic.querySelector('span.invisible');
+        const link = topic.querySelector('a');
+        
+        if (invisibleSpan && link) {
+          const fullTitle = invisibleSpan.textContent.trim();
+          const currentTitle = link.textContent.trim();
+          
+          // Remplacer seulement si le titre est abrégé (contient ...)
+          if (currentTitle.includes('(...)') && fullTitle) {
+            link.textContent = fullTitle;
+          }
+        }
+      });
+    }
+
+    InitQueue.register('ForumTopics:FullTitles', useFullTopicTitles, 5);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM TOPICS - Stats + Smart Navigation
+  // Layout identique aux "Sujets permanents" (simple et épuré)
+  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
+  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
+  // Rend toute la card cliquable (comme les Sujets permanents)
+  // ============================================================================
+  (function () {
+    function enrichForumTopicsCards() {
+      // N'exécuter qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Cibler uniquement les DataTables de forum (pas les "Sujets permanents")
+      const forumTable = document.querySelector('table.dataTable');
+      if (!forumTable) {return;}
+
+      const rows = forumTable.querySelectorAll('tbody tr');
+      if (rows.length === 0) {return;}
+
+      rows.forEach(row => {
+        // Éviter le double traitement
+        if (row.hasAttribute('data-stats-added')) {return;}
+        row.setAttribute('data-stats-added', 'true');
+
+        // Récupérer les cellules
+        const titleCell = row.querySelector('td:nth-child(1)');
+        const msgCell = row.querySelector('td:nth-child(2)');
+        const viewsCell = row.querySelector('td:nth-child(3)');
+
+        if (!titleCell || !msgCell || !viewsCell) {return;}
+
+        // === SMART NAVIGATION ===
+        // Détecter si l'icône "premier message non lu" existe
+        const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+        const titleLink = titleCell.querySelector('p > a');
+        
+        if (unreadIconLink && titleLink) {
+          // Sujet NON LU : rediriger le titre vers le premier message non lu
+          titleLink.href = unreadIconLink.href;
+          titleLink.setAttribute('data-smart-redirect', 'first-unread');
+        }
+        // Si pas d'icône (sujet lu), le titre garde son URL d'origine (page 1)
+
+        // === CARD CLIQUABLE (comme Sujets permanents) ===
+        if (titleLink) {
+          row.style.cursor = 'pointer';
+          
+          row.addEventListener('click', (e) => {
+            // Ne pas intercepter les clics sur les liens de tags
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+              return;
+            }
+            // Simuler le clic sur le titre
+            titleLink.click();
+          });
+        }
+
+        // === STATS SIMPLES (style "Sujets permanents") ===
+        
+        // Extraire les valeurs
+        const msgCount = msgCell.textContent.trim();
+        const viewsCount = viewsCell.textContent.trim();
+
+        // Créer les stats avec icônes pour clarté
+        const statsContainer = document.createElement('div');
+        statsContainer.className = 'forum-topic-stats-mobile';
+        statsContainer.innerHTML = `
+          <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+          <span style="margin: 0 4px;">·</span>
+          <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+        `;
+        statsContainer.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 13px;
+          color: var(--kr-text-secondary);
+          margin-bottom: 8px;
+        `;
+
+        // Insérer après le titre
+        const titleParagraph = titleCell.querySelector('p');
+        if (titleParagraph) {
+          titleParagraph.after(statsContainer);
+        }
+      });
+
+      console.log(`[Forum Topics Mobile] ${rows.length} sujets enrichis`);
+    }
+
+    InitQueue.register('ForumTopics:MobileStats', enrichForumTopicsCards, 25);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM PERMANENT TOPICS - Stats avec icônes
+  // Ajoute les icônes aux stats des "Sujets permanents"
+  // ============================================================================
+  (function () {
+    function enrichPermanentTopicsStats() {
+      // N'exécuter qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Cibler les panel-default (Sujets permanents)
+      const panels = document.querySelectorAll('.panel-default');
+      if (panels.length === 0) {return;}
+
+      panels.forEach(panel => {
+        const rows = panel.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-permanent-icons-added')) {return;}
+          row.setAttribute('data-permanent-icons-added', 'true');
+
+          // Chercher les cellules de stats
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 2) {return;}
+
+          // Les stats sont dans les cellules 2 et 3 (index 1 et 2)
+          const msgCell = cells[1];
+          const viewsCell = cells[2];
+
+          if (!msgCell || !viewsCell) {return;}
+
+          // Extraire les valeurs
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
+
+          // Créer un wrapper pour les stats avec icônes
+          const statsWrapper = document.createElement('div');
+          statsWrapper.className = 'permanent-topic-stats';
+          statsWrapper.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span style="margin: 0 4px;">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
+          statsWrapper.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--kr-text-secondary);
+            order: 2;
+            margin: 0 0 2px 0;
+          `;
+
+          // Remplacer les cellules originales par le wrapper
+          msgCell.style.display = 'none';
+          viewsCell.style.display = 'none';
+          
+          // Insérer le wrapper après la première cellule
+          const firstCell = cells[0];
+          if (firstCell) {
+            firstCell.after(statsWrapper);
+          }
+        });
+      });
+
+      console.log(`[Permanent Topics Mobile] Icônes ajoutées`);
+    }
+
+    InitQueue.register('PermanentTopics:Icons', enrichPermanentTopicsStats, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumHeader:MobileBreadcrumb
+  // Transforme le header forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Cibler le h1 qui contient "Taverne" et les liens
+      const forumHeading = document.querySelector('.container h1');
+      if (!forumHeading) {
+        console.warn('[Forum Header Mobile] h1 non trouvé');
+        return;
+      }
+
+      // Extraire le titre du forum (texte direct du h1)
+      const titleText = Array.from(forumHeading.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!titleText) {
+        return;
+      }
+
+      // Trouver les liens "Jeu (RP)" et "nouveau sujet"
+      const links = forumHeading.querySelectorAll('a');
+      if (links.length < 2) {
+        return;
+      }
+
+      const backLink = links[0]; // Lien "Jeu (RP)"
+      const newTopicLink = links[1]; // Lien "nouveau sujet"
+
+      // ========================================
+      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // ========================================
+      const breadcrumbWrapper = document.createElement('div');
+      breadcrumbWrapper.className = 'forum-mobile-breadcrumb';
+      breadcrumbWrapper.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--kr-text-secondary);
+      `;
+
+      // Partie gauche : breadcrumb
+      const breadcrumbLeft = document.createElement('div');
+      breadcrumbLeft.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      `;
+
+      // Cloner le lien "Jeu (RP)"
+      const breadcrumbLink = backLink.cloneNode(true);
+      breadcrumbLink.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        background: none;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+      `;
+
+      // Ajouter le séparateur ">"
+      const separator = document.createElement('span');
+      separator.textContent = '›';
+      separator.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+      `;
+
+      // Titre actuel (Taverne)
+      const currentTitle = document.createElement('span');
+      currentTitle.textContent = titleText;
+      currentTitle.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-weight: 400;
+      `;
+
+      breadcrumbLeft.appendChild(breadcrumbLink);
+      breadcrumbLeft.appendChild(separator);
+      breadcrumbLeft.appendChild(currentTitle);
+
+      // Partie droite : bouton (+)
+      const fab = document.createElement('a');
+      fab.href = newTopicLink.href;
+      fab.className = 'forum-new-topic-fab';
+      fab.setAttribute('aria-label', 'Nouveau sujet');
+      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+      fab.style.cssText = `
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: var(--kr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        transition: all 0.2s ease;
+      `;
+
+      // Feedback tactile
+      fab.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.92)';
+        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+      });
+
+      fab.addEventListener('touchend', function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+      });
+
+      breadcrumbWrapper.appendChild(breadcrumbLeft);
+      breadcrumbWrapper.appendChild(fab);
+
+      // ========================================
+      // 2. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+
+      forumHeading.appendChild(breadcrumbWrapper);
+
+      console.log('[Forum Header Mobile] Fil d\'ariane + FAB créés');
+    }
+
+    InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
 
   })();
 
