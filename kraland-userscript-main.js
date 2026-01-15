@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768511474765
+// @version      1.0.1768511944896
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768511474765';
+  const CURRENT_VERSION = '1.0.1768511944896';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -1483,6 +1483,7 @@
   // ============================================================================
   (function initCommerceAccordion() {
     if (!document.body.classList.contains('mobile-mode')) {return;}
+    if (!window.location.href.includes('jouer/plateau')) {return;}
 
     const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
     const categoryDivs = [];
@@ -1513,6 +1514,12 @@
 
       // Parcourir les éléments suivants jusqu'à la prochaine catégorie
       while (currentElement) {
+        // Vérifier que l'élément a bien une propriété classList (éléments HTML uniquement)
+        if (!currentElement.classList) {
+          currentElement = currentElement.nextElementSibling;
+          continue;
+        }
+
         // Si on trouve une autre catégorie, on s'arrête
         if (currentElement.classList.contains('ds_forum') &&
             currentElement.querySelector('h4.list-group-item-heading')) {

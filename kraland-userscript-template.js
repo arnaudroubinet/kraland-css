@@ -1473,6 +1473,7 @@
   // ============================================================================
   (function initCommerceAccordion() {
     if (!document.body.classList.contains('mobile-mode')) {return;}
+    if (!window.location.href.includes('jouer/plateau')) {return;}
 
     const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
     const categoryDivs = [];
@@ -1503,6 +1504,12 @@
 
       // Parcourir les éléments suivants jusqu'à la prochaine catégorie
       while (currentElement) {
+        // Vérifier que l'élément a bien une propriété classList (éléments HTML uniquement)
+        if (!currentElement.classList) {
+          currentElement = currentElement.nextElementSibling;
+          continue;
+        }
+
         // Si on trouve une autre catégorie, on s'arrête
         if (currentElement.classList.contains('ds_forum') &&
             currentElement.querySelector('h4.list-group-item-heading')) {
