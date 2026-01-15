@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768502516158
+// @version      1.0.1768502834810
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -785,6 +785,11 @@
     function createQuickActions() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
       if (document.querySelector('.mobile-quick-actions')) {return;}
+      
+      // Vérifier qu'on est bien sur une page /jouer/*
+      if (!window.location.pathname.startsWith('/jouer/')) {
+        return;
+      }
 
       // Trouver la section actions originale
       const actionsSection = document.getElementById('player-actions-section');
@@ -958,6 +963,11 @@
     function createTabBar() {
       if (!document.body.classList.contains('mobile-mode')) {return;}
       if (document.querySelector('.mobile-tab-bar')) {return;} // Déjà créé
+      
+      // Vérifier qu'on est bien sur une page /jouer/*
+      if (!window.location.pathname.startsWith('/jouer/')) {
+        return;
+      }
 
       // Trouver les liens
       const navLinks = findNavigationLinks();
