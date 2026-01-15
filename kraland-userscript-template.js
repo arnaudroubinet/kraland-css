@@ -580,10 +580,25 @@
       const info = document.createElement('div');
       info.className = 'mobile-mini-profile-info';
 
+      const nameRow = document.createElement('div');
+      nameRow.className = 'mobile-mini-profile-name-row';
+      
       const name = document.createElement('div');
       name.className = 'mobile-mini-profile-name';
       name.textContent = profileData.name;
-      info.appendChild(name);
+      nameRow.appendChild(name);
+      
+      // Bouton Gestion du personnage
+      const manageBtn = document.createElement('a');
+      manageBtn.href = '#';
+      manageBtn.className = 'btn btn-default alert100 mobile-mini-profile-manage-btn';
+      manageBtn.innerHTML = '<span>⚙️</span>';
+      manageBtn.setAttribute('data-toggle', 'tooltip');
+      manageBtn.setAttribute('data-placement', 'bottom');
+      manageBtn.setAttribute('title', 'Gestion du personnage');
+      nameRow.appendChild(manageBtn);
+      
+      info.appendChild(nameRow);
 
       const moneyRow = document.createElement('div');
       moneyRow.className = 'mobile-mini-profile-money';
@@ -645,10 +660,64 @@
       });
 
       details.appendChild(gaugesFull);
+
+      // Caractéristiques (FOR, VOL, CHA, GES, INT, PER)
+      const characteristicsContainer = document.createElement('div');
+      characteristicsContainer.className = 'mobile-mini-profile-characteristics';
+      
+      const statsSection = document.getElementById('col-leftest-stats');
+      if (statsSection) {
+        // Chercher les 6 premières caractéristiques (alert121 à alert126)
+        const charElements = [];
+        for (let i = 121; i <= 126; i++) {
+          const char = statsSection.querySelector(`.alert${i}`);
+          if (char) {
+            charElements.push(char);
+          }
+        }
+        
+        if (charElements.length > 0) {
+          charElements.forEach(charEl => {
+            const charClone = charEl.cloneNode(true);
+            charClone.className = charEl.className + ' mobile-characteristic-badge';
+            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
+            characteristicsContainer.appendChild(charClone);
+          });
+          
+          details.appendChild(characteristicsContainer);
+        }
+      }
+
+      // Compétences
+      const skillsContainer = document.createElement('div');
+      skillsContainer.className = 'mobile-mini-profile-skills';
+      
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        // Récupérer toutes les compétences (alert111 à alert1118)
+        const skills = skillsPanel.querySelectorAll('.ds_game[class*="alert11"]');
+        
+        if (skills.length > 0) {
+          skills.forEach(skillEl => {
+            const skillClone = skillEl.cloneNode(true);
+            skillClone.className = skillEl.className + ' mobile-skill-item';
+            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
+            skillsContainer.appendChild(skillClone);
+          });
+          
+          details.appendChild(skillsContainer);
+        }
+      }
+
       miniProfile.appendChild(details);
 
       // Toggle expand/collapse
       miniProfile.addEventListener('click', (e) => {
+        // Ne pas toggler si on clique sur un élément interactif (bouton, lien)
+        if (e.target.closest('.mobile-mini-profile-avatar-btn, .mobile-characteristic-badge, .mobile-skill-item')) {
+          return;
+        }
+        
         miniProfile.classList.toggle('collapsed');
         miniProfile.classList.toggle('expanded');
 

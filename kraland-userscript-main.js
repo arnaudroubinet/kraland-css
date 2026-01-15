@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768500734342
+// @version      1.0.1768502460362
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -590,10 +590,25 @@
       const info = document.createElement('div');
       info.className = 'mobile-mini-profile-info';
 
+      const nameRow = document.createElement('div');
+      nameRow.className = 'mobile-mini-profile-name-row';
+      
       const name = document.createElement('div');
       name.className = 'mobile-mini-profile-name';
       name.textContent = profileData.name;
-      info.appendChild(name);
+      nameRow.appendChild(name);
+      
+      // Bouton Gestion du personnage
+      const manageBtn = document.createElement('a');
+      manageBtn.href = '#';
+      manageBtn.className = 'btn btn-default alert100 mobile-mini-profile-manage-btn';
+      manageBtn.innerHTML = '<span>⚙️</span>';
+      manageBtn.setAttribute('data-toggle', 'tooltip');
+      manageBtn.setAttribute('data-placement', 'bottom');
+      manageBtn.setAttribute('title', 'Gestion du personnage');
+      nameRow.appendChild(manageBtn);
+      
+      info.appendChild(nameRow);
 
       const moneyRow = document.createElement('div');
       moneyRow.className = 'mobile-mini-profile-money';
@@ -655,10 +670,64 @@
       });
 
       details.appendChild(gaugesFull);
+
+      // Caractéristiques (FOR, VOL, CHA, GES, INT, PER)
+      const characteristicsContainer = document.createElement('div');
+      characteristicsContainer.className = 'mobile-mini-profile-characteristics';
+      
+      const statsSection = document.getElementById('col-leftest-stats');
+      if (statsSection) {
+        // Chercher les 6 premières caractéristiques (alert121 à alert126)
+        const charElements = [];
+        for (let i = 121; i <= 126; i++) {
+          const char = statsSection.querySelector(`.alert${i}`);
+          if (char) {
+            charElements.push(char);
+          }
+        }
+        
+        if (charElements.length > 0) {
+          charElements.forEach(charEl => {
+            const charClone = charEl.cloneNode(true);
+            charClone.className = charEl.className + ' mobile-characteristic-badge';
+            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
+            characteristicsContainer.appendChild(charClone);
+          });
+          
+          details.appendChild(characteristicsContainer);
+        }
+      }
+
+      // Compétences
+      const skillsContainer = document.createElement('div');
+      skillsContainer.className = 'mobile-mini-profile-skills';
+      
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        // Récupérer toutes les compétences (alert111 à alert1118)
+        const skills = skillsPanel.querySelectorAll('.ds_game[class*="alert11"]');
+        
+        if (skills.length > 0) {
+          skills.forEach(skillEl => {
+            const skillClone = skillEl.cloneNode(true);
+            skillClone.className = skillEl.className + ' mobile-skill-item';
+            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
+            skillsContainer.appendChild(skillClone);
+          });
+          
+          details.appendChild(skillsContainer);
+        }
+      }
+
       miniProfile.appendChild(details);
 
       // Toggle expand/collapse
       miniProfile.addEventListener('click', (e) => {
+        // Ne pas toggler si on clique sur un élément interactif (bouton, lien)
+        if (e.target.closest('.mobile-mini-profile-avatar-btn, .mobile-characteristic-badge, .mobile-skill-item')) {
+          return;
+        }
+        
         miniProfile.classList.toggle('collapsed');
         miniProfile.classList.toggle('expanded');
 
@@ -5659,14 +5728,39 @@ body > map {
       min-width: 0;
     }
     
+    .mobile-mini-profile-name-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      margin-bottom: 2px !important;
+    }
+    
     .mobile-mini-profile-name {
       font-weight: 600 !important;
       font-size: 14px !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
-      margin-bottom: 2px !important;
       color: var(--kr-text-primary) !important;
+      flex: 1 !important;
+    }
+    
+    .mobile-mini-profile-manage-btn {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 20px !important;
+      flex-shrink: 0 !important;
+      border: none !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    .mobile-mini-profile-manage-btn:active {
+      background: var(--kr-bg-hover) !important;
     }
     
     .mobile-mini-profile-money {
@@ -5771,7 +5865,7 @@ body > map {
     }
     
     .mobile-mini-profile.expanded .mobile-mini-profile-details {
-      max-height: 500px !important;
+      max-height: 1200px !important;
     }
     
     /* Jauges détaillées */
@@ -5825,6 +5919,58 @@ body > map {
     
     .mobile-gauge-full-fill.pp {
       background: var(--kr-gauge-pp) !important;
+    }
+    
+    /* Caractéristiques */
+    .mobile-mini-profile-characteristics {
+      display: grid !important;
+      grid-template-columns: repeat(6, 1fr) !important;
+      gap: 0 !important;
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+    }
+    
+    .mobile-characteristic-badge {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      margin: 4px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .mobile-characteristic-badge:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* Compétences */
+    .mobile-mini-profile-skills {
+      max-height: 350px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)) !important;
+      gap: 8px !important;
+    }
+    
+    .mobile-skill-item {
+      min-height: 44px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .mobile-skill-item:active {
+      background: var(--kr-bg-hover) !important;
     }
     
     /* Masquer le profil original en mobile */
