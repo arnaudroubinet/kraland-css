@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768502834810
+// @version      1.0.1768504131088
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -8550,7 +8550,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
-      disableTooltips, modifyNavigationMenus, transformDashboardToFlexCards, 
+      disableTooltips, modifyNavigationMenus, window.updateForumRPMenu, 
+      window.updateForumHRPMenu, transformDashboardToFlexCards, 
       applyFooterQuoteOption, handleDualLapClock
     ];
 
@@ -9072,6 +9073,227 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     dashboard.innerHTML = '';
     dashboard.appendChild(flexContainer);
   }
+
+  // ============================================
+  // DYNAMIC FORUM RP MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-rp';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde'];
+
+    /**
+     * Extrait les forums de la page /forum/rp et les stocke dans localStorage
+     * Exclut Taverne, Marché et Monde
+     */
+    function extractAndStoreForumsRP() {
+      // Ne s'exécuter que sur /forum/rp
+      if (window.location.pathname !== '/forum/rp') {
+        return;
+      }
+
+      console.log('[Forums RP] Extraction des forums depuis la page...');
+
+      const forums = [];
+      
+      // Sélectionner toutes les lignes du tableau des forums
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+      
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+        
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+        
+        // Exclure les forums de la liste noire (insensible à la casse)
+        const isExcluded = EXCLUDED_FORUMS.some(excluded => 
+          forumName.toLowerCase().includes(excluded)
+        );
+        
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums RP] Ajouté: ${forumName} (${forumUrl})`);
+        } else {
+          console.log(`[Forums RP] Exclu: ${forumName}`);
+        }
+      });
+
+      // Stocker dans localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums RP] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums RP] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    /**
+     * Récupère les forums RP depuis le localStorage
+     */
+    function getStoredForumsRP() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums RP] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    /**
+     * Met à jour le menu Forum RP avec les forums stockés
+     */
+    window.updateForumRPMenu = function() {
+      const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
+      if (!forumRpDropdown) {
+        console.warn('[Forums RP] Menu Forum RP non trouvé');
+        return;
+      }
+
+      const forums = getStoredForumsRP();
+      console.log(`[Forums RP] Mise à jour du menu avec ${forums.length} forums`);
+
+      // Conserver les 3 premiers liens (Taverne, Marché, Monde) et le divider
+      const staticItems = Array.from(forumRpDropdown.children).slice(0, 4); // 3 liens + 1 divider
+      
+      // Vider le menu
+      forumRpDropdown.innerHTML = '';
+      
+      // Remettre les items statiques
+      staticItems.forEach(item => forumRpDropdown.appendChild(item));
+      
+      // Ajouter les forums dynamiques
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumRpDropdown.appendChild(li);
+        });
+      } else {
+        // Si aucun forum stocké, afficher un lien vers la page /forum/rp
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/rp';
+        a.textContent = 'Autre';
+        li.appendChild(a);
+        forumRpDropdown.appendChild(li);
+      }
+    };
+
+    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
+    InitQueue.register('ForumsRP:Extract', extractAndStoreForumsRP, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM HRP MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-hrp';
+
+    /**
+     * Extrait les forums de la page /forum/hrp et les stocke dans localStorage
+     */
+    function extractAndStoreForumsHRP() {
+      // Ne s'exécuter que sur /forum/hrp
+      if (window.location.pathname !== '/forum/hrp') {
+        return;
+      }
+
+      console.log('[Forums HRP] Extraction des forums depuis la page...');
+
+      const forums = [];
+      
+      // Sélectionner toutes les lignes du tableau des forums
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+      
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+        
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+        
+        if (forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums HRP] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      // Stocker dans localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums HRP] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums HRP] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    /**
+     * Récupère les forums HRP depuis le localStorage
+     */
+    function getStoredForumsHRP() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums HRP] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    /**
+     * Met à jour le menu Forum HRP avec les forums stockés
+     */
+    window.updateForumHRPMenu = function() {
+      const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
+      if (!forumHrpDropdown) {
+        console.warn('[Forums HRP] Menu Forum HRP non trouvé');
+        return;
+      }
+
+      const forums = getStoredForumsHRP();
+      console.log(`[Forums HRP] Mise à jour du menu avec ${forums.length} forums`);
+
+      // Vider le menu
+      forumHrpDropdown.innerHTML = '';
+      
+      // Ajouter tous les forums dynamiques
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumHrpDropdown.appendChild(li);
+        });
+      } else {
+        // Si aucun forum stocké, afficher un lien vers la page /forum/hrp
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/hrp';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumRpDropdown.appendChild(li);
+      }
+    };
+
+    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
+    InitQueue.register('ForumsHRP:Extract', extractAndStoreForumsHRP, 5);
+  })();
 
   function modifyNavigationMenus() {
     // Modification des liens des boutons principaux du menu
