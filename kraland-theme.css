@@ -7375,3 +7375,301 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     font-size: 12px !important;
     color: #999 !important;
 }
+
+/* ============================================================================
+   11. NOUVEAU SUJET - MOBILE OPTIMIZATION
+   Optimise la page "Poster un nouveau sujet" pour mobile
+   - Toolbar BBCode horizontale scrollable
+   - Inputs/buttons 44px minimum (touch target)
+   - Font 16px pour éviter zoom iOS
+   - Feedback visuel clair
+   ============================================================================ */
+
+@media (width <= 768px) {
+  /* 0. LAYOUT - Fix Bootstrap grid overflow */
+  
+  /* Ajouter padding latéral pour ne pas coller au bord */
+  .container,
+  .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  /* Réinitialiser les colonnes Bootstrap pour mobile */
+  .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6,
+  .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 {
+    float: none !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Réinitialiser les form-group qui contiennent les colonnes */
+  .form-group {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    margin-bottom: var(--mobile-spacing-lg);
+  }
+
+  /* Réinitialiser input-group */
+  .input-group {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* CRÍTICA: Contenir les débordements de la toolbar dans le form-group */
+  .form-group {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .form-group .col-md-10,
+  .form-group .col-sm-10 {
+    overflow: hidden;
+  }
+
+  /* 1. TOOLBAR BBCODE - Horizontal scrollable */
+  
+  .btn-toolbar {
+    display: flex !important;           /* Override Bootstrap */
+    flex-wrap: nowrap;                  /* Pas de wrapping */
+    overflow-x: auto;                   /* Scrollbar horizontale */
+    overflow-y: hidden;                 /* Pas de scrollbar verticale */
+    gap: 4px;
+    padding: 8px;
+    margin-bottom: var(--mobile-spacing-md);
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    -webkit-overflow-scrolling: touch;  /* iOS smooth scrolling */
+    white-space: nowrap;                /* Empêche wrap des groupes */
+  }
+
+  /* Scrollbar styling (webkit browsers) */
+  .btn-toolbar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .btn-toolbar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 2px;
+  }
+
+  .btn-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 2px;
+  }
+
+  /* Groupes de boutons - Layout horizontal */
+  .btn-toolbar .btn-group {
+    display: flex !important;           /* Override Bootstrap flex-column */
+    flex-direction: row !important;
+    flex-shrink: 0;                     /* Empêche compression */
+    gap: 0;
+    margin: 0 !important;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid var(--kr-border-default);
+  }
+
+  .btn-toolbar .btn-group:last-child {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: none;
+  }
+
+  /* Boutons BBCode - Touch targets 44px */
+  .btn-toolbar .btn {
+    min-width: var(--mobile-touch-target) !important;
+    width: var(--mobile-touch-target);
+    height: var(--mobile-touch-target);
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;                    /* Visible sur petit écran */
+    border-radius: 6px;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .btn-toolbar .btn:hover {
+    background: rgba(139, 15, 14, 0.1);
+    border-color: var(--kr-primary);
+    color: var(--kr-primary);
+  }
+
+  .btn-toolbar .btn:active {
+    background: rgba(139, 15, 14, 0.2);
+    transform: scale(0.95);
+  }
+
+  .btn-toolbar .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
+    border-color: var(--kr-primary);
+  }
+
+  /* 2. FORM CONTROLS - Inputs, textareas, selects */
+
+  .form-control {
+    font-size: 16px !important;         /* iOS zoom prevention - CRITIQUE */
+    min-height: var(--mobile-touch-target) !important;
+    padding: 12px var(--mobile-spacing-md) !important;
+    border-radius: var(--mobile-radius) !important;
+    line-height: 1.5;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--kr-primary);
+    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
+  }
+
+  /* Textarea - Priorité message */
+  textarea.form-control {
+    min-height: 150px !important;
+    font-family: monospace;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  /* Select - Styled au même niveau */
+  select.form-control {
+    height: auto;
+    min-height: var(--mobile-touch-target);
+  }
+
+  /* 3. FORM GROUPS - Stack vertical */
+
+  .form-group {
+    margin-bottom: var(--mobile-spacing-lg);
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: var(--mobile-spacing-sm);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--kr-text);
+  }
+
+  .form-group label .required {
+    color: var(--kr-primary);
+  }
+
+  /* 4. CHECKBOXES - Inline avec spacing tactile */
+
+  .form-group .checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mobile-spacing-md);
+    min-height: var(--mobile-touch-target);
+    margin-right: var(--mobile-spacing-lg);
+    margin-bottom: 0;
+    padding: 8px 0;
+  }
+
+  .form-group .checkbox input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    min-height: 20px;
+    margin: 0 !important;
+    cursor: pointer;
+    accent-color: var(--kr-primary);
+    flex-shrink: 0;
+  }
+
+  .form-group .checkbox label {
+    display: inline;
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 8px 0;
+  }
+
+  /* 5. BOUTON ENVOYER - Sticky footer */
+
+  button.btn-primary.pull-right {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 90;
+    width: 100% !important;
+    height: 56px !important;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    border-radius: 0 !important;
+    font-size: 16px;
+    font-weight: 600;
+    border: none !important;
+  }
+
+  button.btn-primary.pull-right:active {
+    background: var(--kr-primary-dark);
+    transform: scale(0.98);
+  }
+
+  /* Padding au dernier form-group pour éviter overlap avec footer */
+  .form-group:last-of-type {
+    padding-bottom: 60px;
+  }
+
+  /* 6. ACCORDION/COLLAPSE - Options & Sondage */
+
+  .panel-group {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .accordion-toggle,
+  a[data-toggle="collapse"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--mobile-spacing-md) var(--mobile-spacing-lg);
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: var(--mobile-touch-target);
+    text-decoration: none;
+    color: var(--kr-text);
+    font-weight: 500;
+  }
+
+  .accordion-toggle:hover,
+  a[data-toggle="collapse"]:hover {
+    background: rgba(139, 15, 14, 0.05);
+    border-color: var(--kr-primary);
+    color: var(--kr-primary);
+  }
+
+  .panel-collapse {
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    margin-top: -1px;
+  }
+
+  .panel-body {
+    padding: var(--mobile-spacing-lg);
+  }
+}
