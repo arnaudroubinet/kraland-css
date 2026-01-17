@@ -3720,6 +3720,71 @@
   })();
 
   // ============================================================================
+  // MODULE : ForumThread:HideTags
+  // Masque les tags dans la vue détail du fil (ils sont inutiles et gênent la mise en page)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function hideForumThreadTags() {
+      console.log('[Forum Thread:HideTags] Function called');
+      
+      // Vérifier qu'on est sur une page de thread détail
+      const pathname = window.location.pathname;
+      if (!pathname.includes('/forum/sujet/')) {
+        console.log('[Forum Thread:HideTags] Not on a forum thread page');
+        return;
+      }
+
+      console.log('[Forum Thread:HideTags] On forum thread page, hiding tags after delay');
+      
+      // Les tags sont ajoutés dynamiquement, donc on doit attendre un peu
+      // Utiliser un délai pour s'assurer qu'ils sont présents
+      setTimeout(() => {
+        console.log('[Forum Thread:HideTags] setTimeout fired');
+        
+        // Chercher tous les liens de tags (sans slash initial dans le href)
+        const tagLinks = Array.from(document.querySelectorAll('a[href*="forum/tags"]'));
+        console.log('[Forum Thread:HideTags] Found', tagLinks.length, 'tag links');
+        
+        if (tagLinks.length === 0) {
+          console.log('[Forum Thread:HideTags] No tag links found');
+          return;
+        }
+
+        // Chercher le conteneur parent qui contient TOUS les tags
+        let current = tagLinks[0];
+        while (current && current !== document.body) {
+          current = current.parentElement;
+          if (current && current.querySelectorAll('a[href*="forum/tags"]').length === tagLinks.length) {
+            // Vérifier que ce n'est pas trop large
+            const allLinks = current.querySelectorAll('a');
+            console.log('[Forum Thread:HideTags] Found container with', allLinks.length, 'total links');
+            if (allLinks.length < 50) { // Éviter de masquer la page entière
+              current.style.display = 'none';
+              console.log('[Forum Thread] Tags masqués (' + tagLinks.length + ' tag(s))');
+              return;
+            }
+          }
+        }
+
+        // Fallback: masquer les éléments parents directs des tags
+        tagLinks.forEach(link => {
+          const parent = link.parentElement;
+          if (parent && !parent.className.includes('forum')) {
+            parent.style.display = 'none';
+          }
+        });
+        
+        console.log('[Forum Thread] Tags masqués (fallback)');
+      }, 500); // 500ms devrait suffire
+    }
+
+    InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);
+
+  })();
+
+  // ============================================================================
   // MODULE : ForumPosts:Restructure
   // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
   // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)

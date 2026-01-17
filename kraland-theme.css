@@ -7673,3 +7673,21 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: var(--mobile-spacing-lg);
   }
 }
+/* ============================================================================
+   FORUM THREAD DETAIL - Hide tags
+   ============================================================================ */
+
+/* Masquer les tags dans la vue détail du fil (sujet) */
+.forum-thread-detail > div:nth-of-type(2) {
+  display: none;
+}
+
+/* Alternative: Cibler via la structure de la page forum */
+.page-forum-sujet [role="main"] > div > div:nth-of-type(2) > div:nth-of-type(3) {
+  display: none;
+}
+
+/* Fallback: Masquer les sections de tags générales dans les fils */
+.forum-thread-metadata + div:has(a[href*="/forum/tags/"]) {
+  display: none;
+}

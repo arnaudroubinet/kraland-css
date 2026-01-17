@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768677795006
+// @version      1.0.1768680319525
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768677795006';
+  const CURRENT_VERSION = '1.0.1768680319525';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -9545,7 +9545,24 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: var(--mobile-spacing-lg);
   }
 }
-`,
+/* ============================================================================
+   FORUM THREAD DETAIL - Hide tags
+   ============================================================================ */
+
+/* Masquer les tags dans la vue détail du fil (sujet) */
+.forum-thread-detail > div:nth-of-type(2) {
+  display: none;
+}
+
+/* Alternative: Cibler via la structure de la page forum */
+.page-forum-sujet [role="main"] > div > div:nth-of-type(2) > div:nth-of-type(3) {
+  display: none;
+}
+
+/* Fallback: Masquer les sections de tags générales dans les fils */
+.forum-thread-metadata + div:has(a[href*="/forum/tags/"]) {
+  display: none;
+}`,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
@@ -11408,6 +11425,71 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
 
     InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumThread:HideTags
+  // Masque les tags dans la vue détail du fil (ils sont inutiles et gênent la mise en page)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function hideForumThreadTags() {
+      console.log('[Forum Thread:HideTags] Function called');
+      
+      // Vérifier qu'on est sur une page de thread détail
+      const pathname = window.location.pathname;
+      if (!pathname.includes('/forum/sujet/')) {
+        console.log('[Forum Thread:HideTags] Not on a forum thread page');
+        return;
+      }
+
+      console.log('[Forum Thread:HideTags] On forum thread page, hiding tags after delay');
+      
+      // Les tags sont ajoutés dynamiquement, donc on doit attendre un peu
+      // Utiliser un délai pour s'assurer qu'ils sont présents
+      setTimeout(() => {
+        console.log('[Forum Thread:HideTags] setTimeout fired');
+        
+        // Chercher tous les liens de tags (sans slash initial dans le href)
+        const tagLinks = Array.from(document.querySelectorAll('a[href*="forum/tags"]'));
+        console.log('[Forum Thread:HideTags] Found', tagLinks.length, 'tag links');
+        
+        if (tagLinks.length === 0) {
+          console.log('[Forum Thread:HideTags] No tag links found');
+          return;
+        }
+
+        // Chercher le conteneur parent qui contient TOUS les tags
+        let current = tagLinks[0];
+        while (current && current !== document.body) {
+          current = current.parentElement;
+          if (current && current.querySelectorAll('a[href*="forum/tags"]').length === tagLinks.length) {
+            // Vérifier que ce n'est pas trop large
+            const allLinks = current.querySelectorAll('a');
+            console.log('[Forum Thread:HideTags] Found container with', allLinks.length, 'total links');
+            if (allLinks.length < 50) { // Éviter de masquer la page entière
+              current.style.display = 'none';
+              console.log('[Forum Thread] Tags masqués (' + tagLinks.length + ' tag(s))');
+              return;
+            }
+          }
+        }
+
+        // Fallback: masquer les éléments parents directs des tags
+        tagLinks.forEach(link => {
+          const parent = link.parentElement;
+          if (parent && !parent.className.includes('forum')) {
+            parent.style.display = 'none';
+          }
+        });
+        
+        console.log('[Forum Thread] Tags masqués (fallback)');
+      }, 500); // 500ms devrait suffire
+    }
+
+    InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);
 
   })();
 
