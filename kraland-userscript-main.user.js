@@ -1,11 +1,18 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768649398112
-// @description  Injects the Kraland CSS theme (bundled)
+// @version      1.0.1768677795006
+// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
 // @grant        none
+// @grant        GM.xmlHttpRequest
+// @connect      raw.githubusercontent.com
+// @compatible   chrome tampermonkey
+// @compatible   firefox tampermonkey
+// @compatible   edge tampermonkey
+// @compatible   firefox violentmonkey
+// @compatible   chrome violentmonkey
 // ==/UserScript==
 
 // Main script code - CSS bundled inline
@@ -13,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768649398112';
+  const CURRENT_VERSION = '1.0.1768677795006';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -11907,7 +11914,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     // Déterminer l'URL du fichier version.json (serveur local en dev, GitHub en prod)
     const versionUrl = currentVersion === 'dev'
       ? 'http://localhost:4848/version.json'
-      : 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/feature/mobile/kraland-userscript-main.js';
+      : 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
 
     // Récupérer la dernière version disponible
     fetch(versionUrl)

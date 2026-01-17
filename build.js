@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 // import { minify } from 'terser';
 // import { minify as minifyCSS } from 'csso';
 
@@ -10,13 +11,33 @@ const __dirname = path.dirname(__filename);
 
 const cssPath = path.join(__dirname, 'kraland-theme.css');
 const templatePath = path.join(__dirname, 'kraland-userscript-template.js');
-const outputPath = path.join(__dirname, 'kraland-userscript-main.js');
+const outputPath = path.join(__dirname, 'kraland-userscript-main.user.js');
 const userscriptPath = path.join(__dirname, 'kraland-userscript.user.js');
 const versionJsonPath = path.join(__dirname, 'version.json');
 
-console.log('Building kraland-userscript-main.js...');
+console.log('Building kraland-userscript-main.user.js...');
 
-// Read CSS
+// Get current git branch
+let currentBranch = 'main';
+try {
+  currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { 
+    cwd: __dirname,
+    encoding: 'utf-8'
+  }).trim();
+  console.log(`✓ Current git branch: ${currentBranch}`);
+} catch (e) {
+  console.warn('⚠ Could not determine git branch, using default: main');
+}
+
+// Determine CSS_URL based on git branch
+let cssUrl;
+if (currentBranch === 'main') {
+  cssUrl = 'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/kraland-theme.css';
+} else {
+  // For development branches, use localhost
+  cssUrl = 'http://localhost:4848/workspace/kraland-css/kraland-theme.css';
+}
+console.log(`✓ CSS URL: ${cssUrl}`);
 let css = fs.readFileSync(cssPath, 'utf8');
 console.log(`✓ Read CSS (${css.length} chars)`);
 
@@ -36,7 +57,8 @@ const version = `1.0.${timestamp}`;
 // Prepend a userscript metadata header to the generated file so it is
 // self-contained when installed directly. The timestamp is embedded in
 // the `@version` field to help with cache-busting/release tracking.
-const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled)\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// ==/UserScript==\n\n`;
+// Compatible with Tampermonkey and Violentmonkey
+const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// @grant        GM.xmlHttpRequest\n// @connect      raw.githubusercontent.com\n// @compatible   chrome tampermonkey\n// @compatible   firefox tampermonkey\n// @compatible   edge tampermonkey\n// @compatible   firefox violentmonkey\n// @compatible   chrome violentmonkey\n// ==/UserScript==\n\n`;
 
 // Replace placeholder and prepend header
 // Escape backticks and $ in CSS for template literal, then replace the placeholder
@@ -61,8 +83,8 @@ const updatedUserscript = userscript.replace(
   /@version\s+[\d.]+/,
   `@version      ${version}`
 ).replace(
-  /kraland-userscript-main\.js\?v=\d+/,
-  `kraland-userscript-main.js?v=${timestamp}`
+  /kraland-userscript-main\.user\.js\?v=\d+/,
+  `kraland-userscript-main.user.js?v=${timestamp}`
 );
 fs.writeFileSync(userscriptPath, updatedUserscript, 'utf8');
 console.log(`✓ Updated userscript version to ${version}`);

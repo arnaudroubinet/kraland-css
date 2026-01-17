@@ -5,6 +5,8 @@
   "description": "Kraland Red Theme",
   "scripts": {
     "build": "node build.js",
+    "validate": "node validate.js",
+    "postbuild": "npm run validate",
     "watch": "nodemon --watch kraland-theme.css --watch kraland-userscript-template.js --exec \"npm run build\"",
     "serve": "http-server -p 4848 --cors -c-1",
     "test:e2e": "npx playwright test --project=chromium",
@@ -25,6 +27,7 @@
     "playwright": "^1.51.0",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
-    "terser": "^5.44.1"
+    "terser": "^5.44.1",
+    "userscript-meta": "^1.0.1"
   }
 }
