@@ -3497,11 +3497,11 @@
         return;
       }
 
-      // Cibler le h1 et la div.forum-top qui contient les boutons
+      // Cibler le h1 et tous les div.forum-top qui contiennent les boutons
       const forumHeading = document.querySelector('.container h1.page-header');
-      const forumTop = document.querySelector('.forum-top');
+      const forumTops = document.querySelectorAll('.forum-top');
       
-      if (!forumHeading || !forumTop) {
+      if (!forumHeading || forumTops.length === 0) {
         console.warn('[Forum Thread Mobile] h1 ou .forum-top non trouvé');
         return;
       }
@@ -3517,9 +3517,10 @@
         return;
       }
 
-      // Trouver les liens dans .forum-top
-      const taverneLink = forumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
-      const newTopicLink = forumTop.querySelector('a[href*="nouveau-sujet"]');
+      // Trouver les liens dans le premier .forum-top
+      const firstForumTop = forumTops[0];
+      const taverneLink = firstForumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
+      const newTopicLink = firstForumTop.querySelector('a[href*="nouveau-sujet"]');
 
       if (!taverneLink || !newTopicLink) {
         console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
@@ -3540,131 +3541,135 @@
       }
 
       // ========================================
-      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // FONCTION HELPER : Créer un fil d'ariane
       // ========================================
-      const breadcrumbWrapper = document.createElement('div');
-      breadcrumbWrapper.className = 'forum-thread-mobile-breadcrumb';
-      breadcrumbWrapper.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 16px;
-        font-size: 13px;
-        color: var(--kr-text-secondary);
-      `;
+      function createBreadcrumb(isBottom = false) {
+        const breadcrumbWrapper = document.createElement('div');
+        breadcrumbWrapper.className = isBottom ? 'forum-thread-mobile-breadcrumb-bottom' : 'forum-thread-mobile-breadcrumb';
+        breadcrumbWrapper.style.cssText = `
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          ${isBottom ? 'margin-top: 16px; margin-bottom: 16px; padding: 12px 16px;' : 'margin-bottom: 16px;'}
+          font-size: 13px;
+          color: var(--kr-text-secondary);
+        `;
 
-      // Partie gauche : breadcrumb
-      const breadcrumbLeft = document.createElement('div');
-      breadcrumbLeft.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex: 1;
-        min-width: 0;
-      `;
+        // Partie gauche : breadcrumb
+        const breadcrumbLeft = document.createElement('div');
+        breadcrumbLeft.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex: 1;
+          min-width: 0;
+        `;
 
-      // Lien catégorie (Jeu RP)
-      const categoryLink = document.createElement('a');
-      categoryLink.href = categoryUrl;
-      categoryLink.textContent = categoryName;
-      categoryLink.style.cssText = `
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        color: var(--kr-text-secondary);
-        text-decoration: none;
-        font-weight: 400;
-        white-space: nowrap;
-      `;
+        // Lien catégorie (Jeu RP)
+        const categoryLink = document.createElement('a');
+        categoryLink.href = categoryUrl;
+        categoryLink.textContent = categoryName;
+        categoryLink.style.cssText = `
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--kr-text-secondary);
+          text-decoration: none;
+          font-weight: 400;
+          white-space: nowrap;
+        `;
 
-      // Séparateur 1
-      const separator1 = document.createElement('span');
-      separator1.textContent = '›';
-      separator1.style.cssText = `
-        color: var(--kr-text-secondary);
-        font-size: 13px;
-        margin: 0 2px;
-        flex-shrink: 0;
-      `;
+        // Séparateur 1
+        const separator1 = document.createElement('span');
+        separator1.textContent = '›';
+        separator1.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-size: 13px;
+          margin: 0 2px;
+          flex-shrink: 0;
+        `;
 
-      // Lien forum (Taverne)
-      const forumLink = document.createElement('a');
-      forumLink.href = taverneLink.href;
-      forumLink.textContent = forumName;
-      forumLink.style.cssText = `
-        color: var(--kr-text-secondary);
-        text-decoration: none;
-        font-weight: 400;
-        white-space: nowrap;
-      `;
+        // Lien forum (Taverne)
+        const forumLink = document.createElement('a');
+        forumLink.href = taverneLink.href;
+        forumLink.textContent = forumName;
+        forumLink.style.cssText = `
+          color: var(--kr-text-secondary);
+          text-decoration: none;
+          font-weight: 400;
+          white-space: nowrap;
+        `;
 
-      // Séparateur 2
-      const separator2 = document.createElement('span');
-      separator2.textContent = '›';
-      separator2.style.cssText = `
-        color: var(--kr-text-secondary);
-        font-size: 13px;
-        margin: 0 2px;
-        flex-shrink: 0;
-      `;
+        // Séparateur 2
+        const separator2 = document.createElement('span');
+        separator2.textContent = '›';
+        separator2.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-size: 13px;
+          margin: 0 2px;
+          flex-shrink: 0;
+        `;
 
-      // Titre du thread (tronqué si nécessaire)
-      const threadTitleSpan = document.createElement('span');
-      threadTitleSpan.textContent = threadTitle;
-      threadTitleSpan.style.cssText = `
-        color: var(--kr-text-secondary);
-        font-weight: 400;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        min-width: 0;
-      `;
+        // Titre du thread (tronqué si nécessaire)
+        const threadTitleSpan = document.createElement('span');
+        threadTitleSpan.textContent = threadTitle;
+        threadTitleSpan.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-weight: 400;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          min-width: 0;
+        `;
 
-      breadcrumbLeft.appendChild(categoryLink);
-      breadcrumbLeft.appendChild(separator1);
-      breadcrumbLeft.appendChild(forumLink);
-      breadcrumbLeft.appendChild(separator2);
-      breadcrumbLeft.appendChild(threadTitleSpan);
+        breadcrumbLeft.appendChild(categoryLink);
+        breadcrumbLeft.appendChild(separator1);
+        breadcrumbLeft.appendChild(forumLink);
+        breadcrumbLeft.appendChild(separator2);
+        breadcrumbLeft.appendChild(threadTitleSpan);
 
-      // Partie droite : bouton (+)
-      const fab = document.createElement('a');
-      fab.href = newTopicLink.href;
-      fab.className = 'forum-new-topic-fab';
-      fab.setAttribute('aria-label', 'Nouveau sujet');
-      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
-      fab.style.cssText = `
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        flex-shrink: 0;
-        border-radius: 50%;
-        background: var(--kr-primary);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        text-decoration: none;
-        transition: all 0.2s ease;
-      `;
+        // Partie droite : bouton (+)
+        const fab = document.createElement('a');
+        fab.href = newTopicLink.href;
+        fab.className = 'forum-new-topic-fab';
+        fab.setAttribute('aria-label', 'Nouveau sujet');
+        fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+        fab.style.cssText = `
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          background: var(--kr-primary);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          text-decoration: none;
+          transition: all 0.2s ease;
+        `;
 
-      // Feedback tactile
-      fab.addEventListener('touchstart', function() {
-        this.style.transform = 'scale(0.92)';
-        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
-      });
+        // Feedback tactile
+        fab.addEventListener('touchstart', function() {
+          this.style.transform = 'scale(0.92)';
+          this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+        });
 
-      fab.addEventListener('touchend', function() {
-        this.style.transform = 'scale(1)';
-        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-      });
+        fab.addEventListener('touchend', function() {
+          this.style.transform = 'scale(1)';
+          this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+        });
 
-      breadcrumbWrapper.appendChild(breadcrumbLeft);
-      breadcrumbWrapper.appendChild(fab);
+        breadcrumbWrapper.appendChild(breadcrumbLeft);
+        breadcrumbWrapper.appendChild(fab);
+
+        return breadcrumbWrapper;
+      }
 
       // ========================================
-      // 2. REMPLACER LE CONTENU DU H1
+      // 1. REMPLACER LE CONTENU DU H1
       // ========================================
       forumHeading.innerHTML = '';
       forumHeading.style.cssText = `
@@ -3672,15 +3677,24 @@
         padding: 0 !important;
         background: transparent !important;
       `;
-
-      forumHeading.appendChild(breadcrumbWrapper);
+      forumHeading.appendChild(createBreadcrumb(false));
 
       // ========================================
-      // 3. CACHER .forum-top (contient les anciens boutons)
+      // 2. TRANSFORMER SEULEMENT LE DERNIER .forum-top (EN BAS)
       // ========================================
-      forumTop.style.display = 'none';
+      if (forumTops.length > 1) {
+        const bottomForumTop = forumTops[forumTops.length - 1];
+        bottomForumTop.innerHTML = '';
+        bottomForumTop.style.cssText = `
+          margin: 0 !important;
+          padding: 0 !important;
+          background: transparent !important;
+          border: none !important;
+        `;
+        bottomForumTop.appendChild(createBreadcrumb(true));
+      }
 
-      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés');
+      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés (haut et bas)');
     }
 
     InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
