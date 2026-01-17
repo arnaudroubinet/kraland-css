@@ -2198,16 +2198,29 @@
       const nextSibling = parentDiv.nextElementSibling;
       if (nextSibling && nextSibling.hasAttribute('data-kr-rank-title')) {return;}
 
-      // Créer une nouvelle div soeur
-      const titleDiv = document.createElement('div');
-      titleDiv.setAttribute('data-kr-rank-title', 'true');
+      // Créer un conteneur flex pour l'icône + titre
+      const rankContainer = document.createElement('div');
+      rankContainer.setAttribute('data-kr-rank-title', 'true');
+      rankContainer.style.display = 'flex';
+      rankContainer.style.alignItems = 'center';
+      rankContainer.style.justifyContent = 'center';
+      rankContainer.style.gap = '4px';
+      rankContainer.style.marginTop = '4px';
+      
+      // Déplacer l'image dans ce conteneur
+      const rankImg = parentDiv.querySelector('img[src*="/rank/"]');
+      if (rankImg) {
+        rankContainer.appendChild(rankImg.cloneNode(true));
+      }
+      
+      // Ajouter le titre
       const strong = document.createElement('strong');
       strong.textContent = title;
-      titleDiv.appendChild(strong);
+      rankContainer.appendChild(strong);
 
-      // Insérer la div soeur juste après la div parente
+      // Remplacer la div parente par le nouveau conteneur
       if (parentDiv.parentElement) {
-        parentDiv.parentElement.insertBefore(titleDiv, parentDiv.nextSibling);
+        parentDiv.parentElement.replaceChild(rankContainer, parentDiv);
       }
     });
   }
@@ -3463,6 +3476,339 @@
     }
 
     InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumThread:MobileBreadcrumb
+  // Transforme le header des threads de forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumThreadHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread (pas la liste des topics)
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Cibler le h1 et la div.forum-top qui contient les boutons
+      const forumHeading = document.querySelector('.container h1.page-header');
+      const forumTop = document.querySelector('.forum-top');
+      
+      if (!forumHeading || !forumTop) {
+        console.warn('[Forum Thread Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      // Extraire le titre du thread (ignorer les nœuds texte vides)
+      const threadTitle = Array.from(forumHeading.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+        .map(node => node.textContent.trim())
+        [0];
+
+      if (!threadTitle) {
+        console.warn('[Forum Thread Mobile] Titre du thread non trouvé');
+        return;
+      }
+
+      // Trouver les liens dans .forum-top
+      const taverneLink = forumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
+      const newTopicLink = forumTop.querySelector('a[href*="nouveau-sujet"]');
+
+      if (!taverneLink || !newTopicLink) {
+        console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
+        return;
+      }
+
+      // Extraire le nom du forum parent (Taverne, etc.)
+      const forumName = taverneLink.textContent.trim();
+      
+      // Déterminer la catégorie parente (RP/HRP) depuis l'URL
+      const forumUrl = taverneLink.href;
+      let categoryName = 'Jeu (RP)';
+      let categoryUrl = 'forum/rp';
+      
+      if (forumUrl.includes('/forum/hrp/')) {
+        categoryName = 'Jeu (HRP)';
+        categoryUrl = 'forum/hrp';
+      }
+
+      // ========================================
+      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // ========================================
+      const breadcrumbWrapper = document.createElement('div');
+      breadcrumbWrapper.className = 'forum-thread-mobile-breadcrumb';
+      breadcrumbWrapper.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--kr-text-secondary);
+      `;
+
+      // Partie gauche : breadcrumb
+      const breadcrumbLeft = document.createElement('div');
+      breadcrumbLeft.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+      `;
+
+      // Lien catégorie (Jeu RP)
+      const categoryLink = document.createElement('a');
+      categoryLink.href = categoryUrl;
+      categoryLink.textContent = categoryName;
+      categoryLink.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        white-space: nowrap;
+      `;
+
+      // Séparateur 1
+      const separator1 = document.createElement('span');
+      separator1.textContent = '›';
+      separator1.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+        flex-shrink: 0;
+      `;
+
+      // Lien forum (Taverne)
+      const forumLink = document.createElement('a');
+      forumLink.href = taverneLink.href;
+      forumLink.textContent = forumName;
+      forumLink.style.cssText = `
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        white-space: nowrap;
+      `;
+
+      // Séparateur 2
+      const separator2 = document.createElement('span');
+      separator2.textContent = '›';
+      separator2.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+        flex-shrink: 0;
+      `;
+
+      // Titre du thread (tronqué si nécessaire)
+      const threadTitleSpan = document.createElement('span');
+      threadTitleSpan.textContent = threadTitle;
+      threadTitleSpan.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-weight: 400;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      `;
+
+      breadcrumbLeft.appendChild(categoryLink);
+      breadcrumbLeft.appendChild(separator1);
+      breadcrumbLeft.appendChild(forumLink);
+      breadcrumbLeft.appendChild(separator2);
+      breadcrumbLeft.appendChild(threadTitleSpan);
+
+      // Partie droite : bouton (+)
+      const fab = document.createElement('a');
+      fab.href = newTopicLink.href;
+      fab.className = 'forum-new-topic-fab';
+      fab.setAttribute('aria-label', 'Nouveau sujet');
+      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+      fab.style.cssText = `
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: var(--kr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        transition: all 0.2s ease;
+      `;
+
+      // Feedback tactile
+      fab.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.92)';
+        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+      });
+
+      fab.addEventListener('touchend', function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+      });
+
+      breadcrumbWrapper.appendChild(breadcrumbLeft);
+      breadcrumbWrapper.appendChild(fab);
+
+      // ========================================
+      // 2. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+
+      forumHeading.appendChild(breadcrumbWrapper);
+
+      // ========================================
+      // 3. CACHER .forum-top (contient les anciens boutons)
+      // ========================================
+      forumTop.style.display = 'none';
+
+      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés');
+    }
+
+    InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumPosts:Restructure
+  // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
+  // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
+  // Row 2: col-xs-12 (contenu message)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    const MOBILE_BREAKPOINT = 768;
+
+    function restructureForumPosts() {
+      // Uniquement en mode mobile (basé sur la largeur de l'écran)
+      if (window.innerWidth >= MOBILE_BREAKPOINT) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Sélectionner tous les posts non-restructurés
+      const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
+      
+      if (posts.length === 0) {
+        return;
+      }
+
+      posts.forEach(post => {
+        // 1. Récupérer les éléments existants
+        const userInfo = post.querySelector('.pull-left, .user-info');
+        const pullRight = post.querySelector('.pull-right');
+        const mediaBody = post.querySelector('.media-body');
+        
+        if (!userInfo || !mediaBody) {
+          return;
+        }
+        
+        // Sauvegarder TOUT le contenu de media-body avant modification
+        const originalMediaBodyHTML = mediaBody.innerHTML;
+        
+        // 2. Créer Row 1 (header: user + boutons)
+        const headerRow = document.createElement('div');
+        headerRow.className = 'row forum-header';
+        
+        // Colonne 1: User info
+        const userCol = document.createElement('div');
+        userCol.className = 'col-xs-8 forum-user-section';
+        
+        // Cloner le userInfo pour le déplacer
+        const userInfoClone = userInfo.cloneNode(true);
+        userCol.appendChild(userInfoClone);
+        
+        // Extraire et ajouter la date depuis le bouton de date
+        const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
+        if (dateButton) {
+          const dateText = dateButton.textContent.replace('posté', '').replace('modifié', '').trim();
+          const dateElement = document.createElement('div');
+          dateElement.className = 'post-date-mobile';
+          dateElement.textContent = dateText;
+          userCol.appendChild(dateElement);
+        }
+        
+        // Colonne 2: Boutons d'action
+        const actionsCol = document.createElement('div');
+        actionsCol.className = 'col-xs-4 forum-actions-section';
+        if (pullRight) {
+          const pullRightClone = pullRight.cloneNode(true);
+          actionsCol.appendChild(pullRightClone);
+        }
+        
+        headerRow.appendChild(userCol);
+        headerRow.appendChild(actionsCol);
+        
+        // 3. Créer Row 2 (contenu du message)
+        const contentRow = document.createElement('div');
+        contentRow.className = 'row forum-content-row';
+        
+        const contentCol = document.createElement('div');
+        contentCol.className = 'col-xs-12 forum-content-section';
+        
+        // Créer un nouveau mediaBody temporaire pour extraire le contenu
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = originalMediaBodyHTML;
+        
+        // Retirer userInfo, pullRight, dateButton du tempDiv
+        const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
+        const tempPullRight = tempDiv.querySelector('.pull-right');
+        const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
+        
+        if (tempUserInfo) tempUserInfo.remove();
+        if (tempPullRight) tempPullRight.remove();
+        if (tempDateButton) tempDateButton.remove();
+        
+        // Tout ce qui reste est le contenu du message
+        contentCol.innerHTML = tempDiv.innerHTML;
+        
+        contentRow.appendChild(contentCol);
+        
+        // 4. Vider le post et reconstruire
+        // Supprimer le .pull-left original (avatar dupliqué)
+        if (userInfo && userInfo.parentElement === post) {
+          userInfo.remove();
+        }
+        
+        // Vider le mediaBody complètement
+        mediaBody.innerHTML = '';
+        
+        // Insérer les nouvelles rows
+        mediaBody.appendChild(headerRow);
+        mediaBody.appendChild(contentRow);
+        
+        // 5. Marquer comme restructuré
+        post.setAttribute('data-restructured', 'true');
+        post.classList.add('forum-post-restructured');
+      });
+
+      console.log(`[Forum Restructure] ${posts.length} posts restructurés avec nouveau layout`);
+    }
+
+    InitQueue.register('ForumPosts:Restructure', restructureForumPosts, 26);
 
   })();
 

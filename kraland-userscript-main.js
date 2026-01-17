@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768515925249
+// @version      1.0.1768645072682
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768515925249';
+  const CURRENT_VERSION = '1.0.1768645072682';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -5155,6 +5155,46 @@ body > map {
     padding: 15px !important;
   }
   
+  /* Réduire l'espace entre pagination et messages sur les pages de forum */
+  .pagination {
+    margin: 10px 0 !important;
+  }
+  
+  /* Uniformiser la taille des boutons de pagination */
+  .pagination > li > a,
+  .pagination > li > span {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Réduire l'espace sous le h1 sur les pages de thread */
+  h1.page-header {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Ancres de messages ne doivent pas prendre d'espace */
+  a[name^="msg"] {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
   /* Wells plus compacts */
   .well {
     padding: 15px !important;
@@ -8967,6 +9007,238 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: var(--kr-text-primary) !important;
   }
   
+  /* ============================================================================
+     MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
+     Structure restructurée par JS:
+     - Row 1: col-xs-4 (user) + col-xs-8 (boutons)
+     - Row 2: col-xs-12 (contenu message)
+     ============================================================================ */
+  
+  /* === STRUCTURE PRINCIPALE === */
+  
+  /* Container du post restructuré */
+  ul.media-list.forum > li.media.forum-post-restructured {
+    display: block !important;
+    padding: 12px 8px !important;
+    margin-bottom: 24px !important;
+    list-style: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Row 1: Header (user + boutons) */
+  ul.media-list.forum > li.media .forum-header {
+    margin-bottom: 12px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Row 2: Contenu */
+  ul.media-list.forum > li.media .forum-content-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* === COLONNE 1: USER INFO === */
+  
+  .forum-user-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  /* Avatar */
+  .forum-user-section img.avatar,
+  .forum-user-section .user-info img:first-child {
+    max-width: 80px !important;
+    height: auto !important;
+    border-radius: 4px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Nom d'utilisateur - sans ellipsis, wrap autorisé */
+  .forum-user-section .cartouche strong,
+  .forum-user-section strong a {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    display: block !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+  
+  /* Conteneur icône de rang + titre (inline) */
+  .forum-user-section [data-kr-rank-title] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    margin-top: 4px !important;
+    max-width: 100% !important;
+  }
+  
+  .forum-user-section [data-kr-rank-title] img {
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+  }
+  
+  /* Titre de rang : inline sans ellipsis */
+  .forum-user-section [data-kr-rank-title] strong {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  
+  /* Date mobile ajoutée par JS */
+  .forum-user-section .post-date-mobile {
+    font-size: 11px !important;
+    color: #999 !important;
+    margin-top: 4px !important;
+    text-align: center !important;
+  }
+  
+  /* Titre/fonction - ellipsis */
+  .forum-user-section strong:not(.cartouche strong):not([data-kr-rank-title] strong) {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  
+  /* === COLONNE 2: BOUTONS D'ACTION === */
+  
+  .forum-actions-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+  }
+  
+  /* Container des boutons */
+  .forum-actions-section .pull-right {
+    float: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  /* Groupes de boutons inline */
+  .forum-actions-section .btn-group {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Boutons carrés 44x44px (WCAG touch target) */
+  .forum-actions-section .btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 44px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Override Bootstrap min-width */
+  .forum-actions-section .btn-group-xs > .btn,
+  .forum-actions-section .btn-group-xs .btn {
+    min-width: 44px !important;
+  }
+  
+  /* Icônes des boutons */
+  .forum-actions-section .btn i {
+    font-size: 11px !important;
+    line-height: 24px !important;
+  }
+  
+  /* === ROW 2: CONTENU DU MESSAGE === */
+  
+  .forum-content-row {
+    margin-top: 0 !important;
+  }
+  
+  .forum-content-section {
+    padding: 12px 8px !important;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    width: 100% !important;
+  }
+  
+  /* Contenu du message */
+  .forum-content-section .forum-msg,
+  .forum-content-section > div {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Citations et blockquotes */
+  .forum-content-section blockquote {
+    margin: 8px 0 !important;
+    padding: 8px 12px !important;
+    border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
+    font-size: 14px !important;
+  }
+  
+  /* Images dans le contenu */
+  .forum-content-section img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Spoilers */
+  .forum-content-section .spoiler {
+    margin: 8px 0 !important;
+  }
+  
+  /* Signature */
+  .forum-content-section hr,
+  .forum-content-section .signature {
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 12px !important;
+    color: #999 !important;
 }
 `,
     ENABLE_KEY: 'kr-theme-enabled',
@@ -9313,16 +9585,29 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       const nextSibling = parentDiv.nextElementSibling;
       if (nextSibling && nextSibling.hasAttribute('data-kr-rank-title')) {return;}
 
-      // Créer une nouvelle div soeur
-      const titleDiv = document.createElement('div');
-      titleDiv.setAttribute('data-kr-rank-title', 'true');
+      // Créer un conteneur flex pour l'icône + titre
+      const rankContainer = document.createElement('div');
+      rankContainer.setAttribute('data-kr-rank-title', 'true');
+      rankContainer.style.display = 'flex';
+      rankContainer.style.alignItems = 'center';
+      rankContainer.style.justifyContent = 'center';
+      rankContainer.style.gap = '4px';
+      rankContainer.style.marginTop = '4px';
+      
+      // Déplacer l'image dans ce conteneur
+      const rankImg = parentDiv.querySelector('img[src*="/rank/"]');
+      if (rankImg) {
+        rankContainer.appendChild(rankImg.cloneNode(true));
+      }
+      
+      // Ajouter le titre
       const strong = document.createElement('strong');
       strong.textContent = title;
-      titleDiv.appendChild(strong);
+      rankContainer.appendChild(strong);
 
-      // Insérer la div soeur juste après la div parente
+      // Remplacer la div parente par le nouveau conteneur
       if (parentDiv.parentElement) {
-        parentDiv.parentElement.insertBefore(titleDiv, parentDiv.nextSibling);
+        parentDiv.parentElement.replaceChild(rankContainer, parentDiv);
       }
     });
   }
@@ -10578,6 +10863,339 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     }
 
     InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumThread:MobileBreadcrumb
+  // Transforme le header des threads de forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumThreadHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread (pas la liste des topics)
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Cibler le h1 et la div.forum-top qui contient les boutons
+      const forumHeading = document.querySelector('.container h1.page-header');
+      const forumTop = document.querySelector('.forum-top');
+      
+      if (!forumHeading || !forumTop) {
+        console.warn('[Forum Thread Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      // Extraire le titre du thread (ignorer les nœuds texte vides)
+      const threadTitle = Array.from(forumHeading.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+        .map(node => node.textContent.trim())
+        [0];
+
+      if (!threadTitle) {
+        console.warn('[Forum Thread Mobile] Titre du thread non trouvé');
+        return;
+      }
+
+      // Trouver les liens dans .forum-top
+      const taverneLink = forumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
+      const newTopicLink = forumTop.querySelector('a[href*="nouveau-sujet"]');
+
+      if (!taverneLink || !newTopicLink) {
+        console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
+        return;
+      }
+
+      // Extraire le nom du forum parent (Taverne, etc.)
+      const forumName = taverneLink.textContent.trim();
+      
+      // Déterminer la catégorie parente (RP/HRP) depuis l'URL
+      const forumUrl = taverneLink.href;
+      let categoryName = 'Jeu (RP)';
+      let categoryUrl = 'forum/rp';
+      
+      if (forumUrl.includes('/forum/hrp/')) {
+        categoryName = 'Jeu (HRP)';
+        categoryUrl = 'forum/hrp';
+      }
+
+      // ========================================
+      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // ========================================
+      const breadcrumbWrapper = document.createElement('div');
+      breadcrumbWrapper.className = 'forum-thread-mobile-breadcrumb';
+      breadcrumbWrapper.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--kr-text-secondary);
+      `;
+
+      // Partie gauche : breadcrumb
+      const breadcrumbLeft = document.createElement('div');
+      breadcrumbLeft.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+      `;
+
+      // Lien catégorie (Jeu RP)
+      const categoryLink = document.createElement('a');
+      categoryLink.href = categoryUrl;
+      categoryLink.textContent = categoryName;
+      categoryLink.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        white-space: nowrap;
+      `;
+
+      // Séparateur 1
+      const separator1 = document.createElement('span');
+      separator1.textContent = '›';
+      separator1.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+        flex-shrink: 0;
+      `;
+
+      // Lien forum (Taverne)
+      const forumLink = document.createElement('a');
+      forumLink.href = taverneLink.href;
+      forumLink.textContent = forumName;
+      forumLink.style.cssText = `
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        white-space: nowrap;
+      `;
+
+      // Séparateur 2
+      const separator2 = document.createElement('span');
+      separator2.textContent = '›';
+      separator2.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+        flex-shrink: 0;
+      `;
+
+      // Titre du thread (tronqué si nécessaire)
+      const threadTitleSpan = document.createElement('span');
+      threadTitleSpan.textContent = threadTitle;
+      threadTitleSpan.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-weight: 400;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      `;
+
+      breadcrumbLeft.appendChild(categoryLink);
+      breadcrumbLeft.appendChild(separator1);
+      breadcrumbLeft.appendChild(forumLink);
+      breadcrumbLeft.appendChild(separator2);
+      breadcrumbLeft.appendChild(threadTitleSpan);
+
+      // Partie droite : bouton (+)
+      const fab = document.createElement('a');
+      fab.href = newTopicLink.href;
+      fab.className = 'forum-new-topic-fab';
+      fab.setAttribute('aria-label', 'Nouveau sujet');
+      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+      fab.style.cssText = `
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: var(--kr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        transition: all 0.2s ease;
+      `;
+
+      // Feedback tactile
+      fab.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.92)';
+        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+      });
+
+      fab.addEventListener('touchend', function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+      });
+
+      breadcrumbWrapper.appendChild(breadcrumbLeft);
+      breadcrumbWrapper.appendChild(fab);
+
+      // ========================================
+      // 2. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+
+      forumHeading.appendChild(breadcrumbWrapper);
+
+      // ========================================
+      // 3. CACHER .forum-top (contient les anciens boutons)
+      // ========================================
+      forumTop.style.display = 'none';
+
+      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés');
+    }
+
+    InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumPosts:Restructure
+  // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
+  // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
+  // Row 2: col-xs-12 (contenu message)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    const MOBILE_BREAKPOINT = 768;
+
+    function restructureForumPosts() {
+      // Uniquement en mode mobile (basé sur la largeur de l'écran)
+      if (window.innerWidth >= MOBILE_BREAKPOINT) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Sélectionner tous les posts non-restructurés
+      const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
+      
+      if (posts.length === 0) {
+        return;
+      }
+
+      posts.forEach(post => {
+        // 1. Récupérer les éléments existants
+        const userInfo = post.querySelector('.pull-left, .user-info');
+        const pullRight = post.querySelector('.pull-right');
+        const mediaBody = post.querySelector('.media-body');
+        
+        if (!userInfo || !mediaBody) {
+          return;
+        }
+        
+        // Sauvegarder TOUT le contenu de media-body avant modification
+        const originalMediaBodyHTML = mediaBody.innerHTML;
+        
+        // 2. Créer Row 1 (header: user + boutons)
+        const headerRow = document.createElement('div');
+        headerRow.className = 'row forum-header';
+        
+        // Colonne 1: User info
+        const userCol = document.createElement('div');
+        userCol.className = 'col-xs-8 forum-user-section';
+        
+        // Cloner le userInfo pour le déplacer
+        const userInfoClone = userInfo.cloneNode(true);
+        userCol.appendChild(userInfoClone);
+        
+        // Extraire et ajouter la date depuis le bouton de date
+        const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
+        if (dateButton) {
+          const dateText = dateButton.textContent.replace('posté', '').replace('modifié', '').trim();
+          const dateElement = document.createElement('div');
+          dateElement.className = 'post-date-mobile';
+          dateElement.textContent = dateText;
+          userCol.appendChild(dateElement);
+        }
+        
+        // Colonne 2: Boutons d'action
+        const actionsCol = document.createElement('div');
+        actionsCol.className = 'col-xs-4 forum-actions-section';
+        if (pullRight) {
+          const pullRightClone = pullRight.cloneNode(true);
+          actionsCol.appendChild(pullRightClone);
+        }
+        
+        headerRow.appendChild(userCol);
+        headerRow.appendChild(actionsCol);
+        
+        // 3. Créer Row 2 (contenu du message)
+        const contentRow = document.createElement('div');
+        contentRow.className = 'row forum-content-row';
+        
+        const contentCol = document.createElement('div');
+        contentCol.className = 'col-xs-12 forum-content-section';
+        
+        // Créer un nouveau mediaBody temporaire pour extraire le contenu
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = originalMediaBodyHTML;
+        
+        // Retirer userInfo, pullRight, dateButton du tempDiv
+        const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
+        const tempPullRight = tempDiv.querySelector('.pull-right');
+        const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
+        
+        if (tempUserInfo) tempUserInfo.remove();
+        if (tempPullRight) tempPullRight.remove();
+        if (tempDateButton) tempDateButton.remove();
+        
+        // Tout ce qui reste est le contenu du message
+        contentCol.innerHTML = tempDiv.innerHTML;
+        
+        contentRow.appendChild(contentCol);
+        
+        // 4. Vider le post et reconstruire
+        // Supprimer le .pull-left original (avatar dupliqué)
+        if (userInfo && userInfo.parentElement === post) {
+          userInfo.remove();
+        }
+        
+        // Vider le mediaBody complètement
+        mediaBody.innerHTML = '';
+        
+        // Insérer les nouvelles rows
+        mediaBody.appendChild(headerRow);
+        mediaBody.appendChild(contentRow);
+        
+        // 5. Marquer comme restructuré
+        post.setAttribute('data-restructured', 'true');
+        post.classList.add('forum-post-restructured');
+      });
+
+      console.log(`[Forum Restructure] ${posts.length} posts restructurés avec nouveau layout`);
+    }
+
+    InitQueue.register('ForumPosts:Restructure', restructureForumPosts, 26);
 
   })();
 

@@ -3290,6 +3290,46 @@ body > map {
     padding: 15px !important;
   }
   
+  /* Réduire l'espace entre pagination et messages sur les pages de forum */
+  .pagination {
+    margin: 10px 0 !important;
+  }
+  
+  /* Uniformiser la taille des boutons de pagination */
+  .pagination > li > a,
+  .pagination > li > span {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Réduire l'espace sous le h1 sur les pages de thread */
+  h1.page-header {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Ancres de messages ne doivent pas prendre d'espace */
+  a[name^="msg"] {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
   /* Wells plus compacts */
   .well {
     padding: 15px !important;
@@ -7102,4 +7142,236 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: var(--kr-text-primary) !important;
   }
   
+  /* ============================================================================
+     MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
+     Structure restructurée par JS:
+     - Row 1: col-xs-4 (user) + col-xs-8 (boutons)
+     - Row 2: col-xs-12 (contenu message)
+     ============================================================================ */
+  
+  /* === STRUCTURE PRINCIPALE === */
+  
+  /* Container du post restructuré */
+  ul.media-list.forum > li.media.forum-post-restructured {
+    display: block !important;
+    padding: 12px 8px !important;
+    margin-bottom: 24px !important;
+    list-style: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Row 1: Header (user + boutons) */
+  ul.media-list.forum > li.media .forum-header {
+    margin-bottom: 12px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Row 2: Contenu */
+  ul.media-list.forum > li.media .forum-content-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* === COLONNE 1: USER INFO === */
+  
+  .forum-user-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  /* Avatar */
+  .forum-user-section img.avatar,
+  .forum-user-section .user-info img:first-child {
+    max-width: 80px !important;
+    height: auto !important;
+    border-radius: 4px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Nom d'utilisateur - sans ellipsis, wrap autorisé */
+  .forum-user-section .cartouche strong,
+  .forum-user-section strong a {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    display: block !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+  
+  /* Conteneur icône de rang + titre (inline) */
+  .forum-user-section [data-kr-rank-title] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    margin-top: 4px !important;
+    max-width: 100% !important;
+  }
+  
+  .forum-user-section [data-kr-rank-title] img {
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+  }
+  
+  /* Titre de rang : inline sans ellipsis */
+  .forum-user-section [data-kr-rank-title] strong {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  
+  /* Date mobile ajoutée par JS */
+  .forum-user-section .post-date-mobile {
+    font-size: 11px !important;
+    color: #999 !important;
+    margin-top: 4px !important;
+    text-align: center !important;
+  }
+  
+  /* Titre/fonction - ellipsis */
+  .forum-user-section strong:not(.cartouche strong):not([data-kr-rank-title] strong) {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  
+  /* === COLONNE 2: BOUTONS D'ACTION === */
+  
+  .forum-actions-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+  }
+  
+  /* Container des boutons */
+  .forum-actions-section .pull-right {
+    float: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  /* Groupes de boutons inline */
+  .forum-actions-section .btn-group {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Boutons carrés 44x44px (WCAG touch target) */
+  .forum-actions-section .btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 44px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Override Bootstrap min-width */
+  .forum-actions-section .btn-group-xs > .btn,
+  .forum-actions-section .btn-group-xs .btn {
+    min-width: 44px !important;
+  }
+  
+  /* Icônes des boutons */
+  .forum-actions-section .btn i {
+    font-size: 11px !important;
+    line-height: 24px !important;
+  }
+  
+  /* === ROW 2: CONTENU DU MESSAGE === */
+  
+  .forum-content-row {
+    margin-top: 0 !important;
+  }
+  
+  .forum-content-section {
+    padding: 12px 8px !important;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    width: 100% !important;
+  }
+  
+  /* Contenu du message */
+  .forum-content-section .forum-msg,
+  .forum-content-section > div {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Citations et blockquotes */
+  .forum-content-section blockquote {
+    margin: 8px 0 !important;
+    padding: 8px 12px !important;
+    border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
+    font-size: 14px !important;
+  }
+  
+  /* Images dans le contenu */
+  .forum-content-section img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Spoilers */
+  .forum-content-section .spoiler {
+    margin: 8px 0 !important;
+  }
+  
+  /* Signature */
+  .forum-content-section hr,
+  .forum-content-section .signature {
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 12px !important;
+    color: #999 !important;
 }
