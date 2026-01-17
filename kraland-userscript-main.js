@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768646434636
+// @version      1.0.1768647163796
 // @description  Injects the Kraland CSS theme (bundled)
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -13,7 +13,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768646434636';
+  const CURRENT_VERSION = '1.0.1768647163796';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -11067,21 +11067,39 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       forumHeading.appendChild(createBreadcrumb(false));
 
       // ========================================
-      // 2. TRANSFORMER SEULEMENT LE DERNIER .forum-top (EN BAS)
+      // 2. TRANSFORMER LES .forum-top (sauf le premier si c'est le même que le h1)
       // ========================================
-      if (forumTops.length > 1) {
-        const bottomForumTop = forumTops[forumTops.length - 1];
-        bottomForumTop.innerHTML = '';
-        bottomForumTop.style.cssText = `
+      forumTops.forEach((forumTop, index) => {
+        // Sauter le premier si on a déjà modifié le h1
+        if (index === 0) {
+          return;
+        }
+        forumTop.innerHTML = '';
+        forumTop.style.cssText = `
           margin: 0 !important;
           padding: 0 !important;
           background: transparent !important;
           border: none !important;
         `;
-        bottomForumTop.appendChild(createBreadcrumb(true));
+        forumTop.appendChild(createBreadcrumb(true));
+      });
+
+      // ========================================
+      // 3. NETTOYER LES ÉLÉMENTS SUPERFLUS
+      // ========================================
+      // Masquer les vieux boutons Bootstrap du milieu (actions redondantes)
+      const actionButtons = document.querySelector('.container h1.page-header + .row + .row .btn-group');
+      if (actionButtons) {
+        actionButtons.style.display = 'none';
       }
 
-      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés (haut et bas)');
+      // Masquer les liens d'actions redondants (nouveau sujet, répondre, etc.)
+      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"], .forum-top a[href*="repondre"]');
+      forumTopActions.forEach(action => {
+        action.parentElement.style.display = 'none';
+      });
+
+      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés (haut et bas) - Éléments superflus masqués');
     }
 
     InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
