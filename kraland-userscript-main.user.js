@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768754292207
+// @version      1.0.1768756082432
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768754292207';
+  const CURRENT_VERSION = '1.0.1768756082432';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -10263,8 +10263,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
-      window.updateForumHRPMenu, transformDashboardToFlexCards,
-      applyFooterQuoteOption, handleDualLapClock
+      window.updateForumHRPMenu, window.updateForumCommunauteMenu,
+      window.updateForumDebatsMenu, window.updateForumStaffMenu,
+      transformDashboardToFlexCards, applyFooterQuoteOption, handleDualLapClock
     ];
 
     transforms.forEach(fn => safeCall(fn));
@@ -10815,11 +10816,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     'use strict';
 
     const STORAGE_KEY = 'kr-forums-rp';
-    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde'];
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
 
     /**
      * Extrait les forums de la page /forum/rp et les stocke dans localStorage
-     * Exclut Taverne, Marché et Monde
+     * Exclut Taverne, Marché, Monde, Communauté, Débats et Staff
      */
     function extractAndStoreForumsRP() {
       // Ne s'exécuter que sur /forum/rp
@@ -11027,6 +11028,276 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
     // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
     InitQueue.register('ForumsHRP:Extract', extractAndStoreForumsHRP, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM COMMUNAUTE MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-communaute';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsCommunaute() {
+      if (window.location.pathname !== '/forum/communaute') {
+        return;
+      }
+
+      console.log('[Forums Communauté] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Communauté] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Communauté] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Communauté] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsCommunaute() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Communauté] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumCommunauteMenu = function () {
+      const forumCommunauteDropdown = document.querySelector('[data-forums-added="forum-communaute"] .dropdown-menu');
+      if (!forumCommunauteDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsCommunaute();
+      console.log(`[Forums Communauté] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumCommunauteDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumCommunauteDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/communaute';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumCommunauteDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsCommunaute:Extract', extractAndStoreForumsCommunaute, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM DEBATS MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-debats';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsDebats() {
+      if (window.location.pathname !== '/forum/debats') {
+        return;
+      }
+
+      console.log('[Forums Débats] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Débats] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Débats] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Débats] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsDebats() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Débats] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumDebatsMenu = function () {
+      const forumDebatsDropdown = document.querySelector('[data-forums-added="forum-debats"] .dropdown-menu');
+      if (!forumDebatsDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsDebats();
+      console.log(`[Forums Débats] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumDebatsDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumDebatsDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/debats';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumDebatsDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsDebats:Extract', extractAndStoreForumsDebats, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM STAFF MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-staff';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsStaff() {
+      if (window.location.pathname !== '/forum/staff') {
+        return;
+      }
+
+      console.log('[Forums Staff] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Staff] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Staff] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Staff] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsStaff() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Staff] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumStaffMenu = function () {
+      const forumStaffDropdown = document.querySelector('[data-forums-added="forum-staff"] .dropdown-menu');
+      if (!forumStaffDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsStaff();
+      console.log(`[Forums Staff] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumStaffDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumStaffDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/staff';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumStaffDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsStaff:Extract', extractAndStoreForumsStaff, 5);
   })();
 
   /**
@@ -12199,11 +12470,102 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           forumHrpLink.setAttribute('data-toggle', 'dropdown');
         }
       }
+
+      // Créer les trois nouveaux menus : Forum Communauté, Forum Débats, Forum Staff
+      
+      const forumMenuParent = forumRpLi.parentElement;
+      if (forumMenuParent && !document.querySelector('[data-forums-added="forum-communaute"]')) {
+        // Vérifier si Staff existe dans le dropdown-menu original
+        let staffExists = false;
+        if (originalDropdown) {
+          const staffLink = Array.from(originalDropdown.querySelectorAll('li > a'))
+            .find(a => a.textContent.toLowerCase().includes('staff'));
+          staffExists = !!staffLink;
+        }
+
+        // Menu Forum Communauté
+        const forumCommunauteLi = document.createElement('li');
+        forumCommunauteLi.className = 'dropdown';
+        forumCommunauteLi.setAttribute('data-forums-added', 'forum-communaute');
+        forumCommunauteLi.innerHTML = `
+          <a href="forum/communaute" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+            Forum Communauté <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="forum/communaute">Voir tous les sujets</a></li>
+          </ul>
+        `;
+
+        // Menu Forum Débats
+        const forumDebatsLi = document.createElement('li');
+        forumDebatsLi.className = 'dropdown';
+        forumDebatsLi.setAttribute('data-forums-added', 'forum-debats');
+        forumDebatsLi.innerHTML = `
+          <a href="forum/debats" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+            Forum Débats <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="forum/debats">Voir tous les sujets</a></li>
+          </ul>
+        `;
+
+        // Menu Forum Staff (uniquement si Staff existe dans le menu original)
+        let forumStaffLi = null;
+        if (staffExists) {
+          forumStaffLi = document.createElement('li');
+          forumStaffLi.className = 'dropdown';
+          forumStaffLi.setAttribute('data-forums-added', 'forum-staff');
+          forumStaffLi.innerHTML = `
+            <a href="forum/staff" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+              Forum Staff <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="forum/staff">Voir tous les sujets</a></li>
+            </ul>
+          `;
+        }
+
+        // Insérer les nouveaux menus après Forum HRP
+        forumMenuParent.insertBefore(forumCommunauteLi, forumHrpLi.nextSibling);
+        forumMenuParent.insertBefore(forumDebatsLi, forumCommunauteLi.nextSibling);
+        if (forumStaffLi) {
+          forumMenuParent.insertBefore(forumStaffLi, forumDebatsLi.nextSibling);
+        }
+
+        // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
+        if (!isMobileMode) {
+          const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
+          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
+          
+          menusToUpdate.forEach(li => {
+            const link = li.querySelector('a.dropdown-toggle');
+            if (link) {
+              link.removeAttribute('data-toggle');
+              link.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = this.href;
+                return false;
+              });
+            }
+          });
+        } else {
+          // EN MOBILE : Garder data-toggle pour les dropdowns
+          const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
+          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
+          
+          menusToUpdate.forEach(li => {
+            const link = li.querySelector('a.dropdown-toggle');
+            if (link) {
+              link.setAttribute('data-toggle', 'dropdown');
+            }
+          });
+        }
+      }
     }
 
     // Ajout du menu Statistiques (une seule fois)
     const communauteItem = Array.from(document.querySelectorAll('.navbar-nav > li.dropdown'))
-      .find(li => li.querySelector('a.dropdown-toggle')?.textContent.includes('Communauté'));
+      .find(li => li.querySelector('a.dropdown-toggle')?.textContent.includes('Communauté') && !li.getAttribute('data-forums-added'));
 
     if (communauteItem && !document.querySelector('[data-stats-menu-added]')) {
       const statsLi = document.createElement('li');

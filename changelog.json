@@ -1,11 +1,12 @@
 {
   "versions": [
     {
-      "version": "1.0.1768754292207",
+      "version": "1.0.1768756082432",
       "releaseDate": "2026-01-18",
       "changes": [
         "Ajout du système de modale de changelog",
-        "Corrections des couleurs pour le dark mode (Remplacement de la palette par une plus compatible)"
+        "Corrections des couleurs pour le dark mode (Remplacement de la palette par une plus compatible)",
+        "Ajout des forums manquants"
       ]
     }
   ]
