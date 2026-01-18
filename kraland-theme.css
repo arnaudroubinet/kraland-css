@@ -2458,6 +2458,190 @@ html[class*="-dark"] .c8  { background-color: var(--kr-nation-bg-8); }
 html[class*="-dark"] .c9  { background-color: var(--kr-nation-bg-9); }
 html[class*="-dark"] .c10 { background-color: var(--kr-nation-bg-10); }
 
+/* === COULEURS HTML KRALAND (balises <font color="">) === */
+/* Surcharge des couleurs spécifiques utilisées par Kraland pour le dark mode */
+/* Ajustement minimal pour conserver les teintes d'origine */
+
+html[class*="-dark"] font[color="#f4ac00"],
+html[class*="-dark"] font[color="f4ac00"] {
+  color: #ffbe33 !important; /* yellow - Légèrement éclairci, garde la teinte or */
+}
+
+html[class*="-dark"] font[color="#f77400"],
+html[class*="-dark"] font[color="f77400"] {
+  color: #ff8833 !important; /* orange - Éclairci mais garde l'orange vif */
+}
+
+html[class*="-dark"] font[color="#ed6161"],
+html[class*="-dark"] font[color="ed6161"] {
+  color: #ff7a7a !important; /* fuchsia - Légèrement éclairci, garde le rose-rouge */
+}
+
+html[class*="-dark"] font[color="#d50000"],
+html[class*="-dark"] font[color="d50000"] {
+  color: #ff3333 !important; /* red - Rouge vif éclairci */
+}
+
+html[class*="-dark"] font[color="olive"] {
+  color: #b3b333 !important; /* olive - Éclairci mais garde le jaune-vert olive */
+}
+
+html[class*="-dark"] font[color="#219c5a"],
+html[class*="-dark"] font[color="219c5a"] {
+  color: #33cc77 !important; /* lightgreen - Éclairci, garde le vert vif */
+}
+
+html[class*="-dark"] font[color="#006f00"],
+html[class*="-dark"] font[color="006f00"] {
+  color: #00bb00 !important; /* green - Vert pur éclairci */
+}
+
+html[class*="-dark"] font[color="teal"] {
+  color: #33cccc !important; /* teal - Teal éclairci */
+}
+
+html[class*="-dark"] font[color="#5577bc"],
+html[class*="-dark"] font[color="5577bc"] {
+  color: #7799dd !important; /* lightblue - Légèrement éclairci, garde le bleu */
+}
+
+html[class*="-dark"] font[color="#2b2be4"],
+html[class*="-dark"] font[color="2b2be4"] {
+  color: #5555ff !important; /* blue - Bleu vif éclairci */
+}
+
+html[class*="-dark"] font[color="navy"] {
+  color: #5555cc !important; /* navy - Navy éclairci mais garde le bleu foncé */
+}
+
+html[class*="-dark"] font[color="purple"] {
+  color: #cc55cc !important; /* purple - Violet éclairci */
+}
+
+html[class*="-dark"] font[color="#4B0082"],
+html[class*="-dark"] font[color="4B0082"],
+html[class*="-dark"] font[color="4b0082"] {
+  color: #8855cc !important; /* indigo - Indigo éclairci, garde le violet-bleu */
+}
+
+html[class*="-dark"] font[color="maroon"] {
+  color: #cc5555 !important; /* maroon - Bordeaux éclairci */
+}
+
+html[class*="-dark"] font[color="#5e432d"],
+html[class*="-dark"] font[color="5e432d"] {
+  color: #aa7755 !important; /* brown - Marron éclairci, garde la teinte chaude */
+}
+
+html[class*="-dark"] font[color="gray"] {
+  color: #aaaaaa !important; /* gray - Gris éclairci */
+}
+
+html[class*="-dark"] font[color="#5a5a5a"],
+html[class*="-dark"] font[color="5a5a5a"] {
+  color: #999999 !important; /* darkgray - Éclairci mais garde le gris moyen */
+}
+
+html[class*="-dark"] font[color="#000000"],
+html[class*="-dark"] font[color="000000"] {
+  color: #cccccc !important; /* black - Gris clair (noir impossible en dark) */
+}
+
+/* === COULEURS PALETTE DE SÉLECTION (boutons background-color) === */
+/* Surcharge des background-color des boutons de la palette de couleurs */
+
+html[class*="-dark"] [style*="background-color:#f4ac00"],
+html[class*="-dark"] [style*="background-color: #f4ac00"] {
+  background-color: #ffbe33 !important; /* yellow */
+}
+
+html[class*="-dark"] [style*="background-color:#f77400"],
+html[class*="-dark"] [style*="background-color: #f77400"] {
+  background-color: #ff8833 !important; /* orange */
+}
+
+html[class*="-dark"] [style*="background-color:#ed6161"],
+html[class*="-dark"] [style*="background-color: #ed6161"] {
+  background-color: #ff7a7a !important; /* fuchsia */
+}
+
+html[class*="-dark"] [style*="background-color:#d50000"],
+html[class*="-dark"] [style*="background-color: #d50000"] {
+  background-color: #ff3333 !important; /* red */
+}
+
+html[class*="-dark"] [style*="background-color:#808000"],
+html[class*="-dark"] [style*="background-color: #808000"] {
+  background-color: #b3b333 !important; /* olive */
+}
+
+html[class*="-dark"] [style*="background-color:#219c5a"],
+html[class*="-dark"] [style*="background-color: #219c5a"] {
+  background-color: #33cc77 !important; /* lightgreen */
+}
+
+html[class*="-dark"] [style*="background-color:#006f00"],
+html[class*="-dark"] [style*="background-color: #006f00"] {
+  background-color: #00bb00 !important; /* green */
+}
+
+html[class*="-dark"] [style*="background-color:#008080"],
+html[class*="-dark"] [style*="background-color: #008080"] {
+  background-color: #33cccc !important; /* teal */
+}
+
+html[class*="-dark"] [style*="background-color:#5577bc"],
+html[class*="-dark"] [style*="background-color: #5577bc"] {
+  background-color: #7799dd !important; /* lightblue */
+}
+
+html[class*="-dark"] [style*="background-color:#2b2be4"],
+html[class*="-dark"] [style*="background-color: #2b2be4"] {
+  background-color: #5555ff !important; /* blue */
+}
+
+html[class*="-dark"] [style*="background-color:#000080"],
+html[class*="-dark"] [style*="background-color: #000080"] {
+  background-color: #5555cc !important; /* navy */
+}
+
+html[class*="-dark"] [style*="background-color:#800080"],
+html[class*="-dark"] [style*="background-color: #800080"] {
+  background-color: #cc55cc !important; /* purple */
+}
+
+html[class*="-dark"] [style*="background-color:#4B0082"],
+html[class*="-dark"] [style*="background-color: #4B0082"],
+html[class*="-dark"] [style*="background-color:#4b0082"],
+html[class*="-dark"] [style*="background-color: #4b0082"] {
+  background-color: #8855cc !important; /* indigo */
+}
+
+html[class*="-dark"] [style*="background-color:#800000"],
+html[class*="-dark"] [style*="background-color: #800000"] {
+  background-color: #cc5555 !important; /* maroon */
+}
+
+html[class*="-dark"] [style*="background-color:#5e432d"],
+html[class*="-dark"] [style*="background-color: #5e432d"] {
+  background-color: #aa7755 !important; /* brown */
+}
+
+html[class*="-dark"] [style*="background-color:#808080"],
+html[class*="-dark"] [style*="background-color: #808080"] {
+  background-color: #aaaaaa !important; /* gray */
+}
+
+html[class*="-dark"] [style*="background-color:#5a5a5a"],
+html[class*="-dark"] [style*="background-color: #5a5a5a"] {
+  background-color: #999999 !important; /* darkgray */
+}
+
+html[class*="-dark"] [style*="background-color:#000000"],
+html[class*="-dark"] [style*="background-color: #000000"] {
+  background-color: #cccccc !important; /* black */
+}
+
 /* === SCROLLBARS === */
 html[class*="-dark"] ::-webkit-scrollbar-track {
   background-color: var(--kr-bg-page);
