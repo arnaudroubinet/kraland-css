@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768748232538
+// @version      1.0.1768754292207
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768748232538';
+  const CURRENT_VERSION = '1.0.1768754292207';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -9764,6 +9764,248 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* Fallback: Masquer les sections de tags générales dans les fils */
 .forum-thread-metadata + div:has(a[href*="/forum/tags/"]) {
   display: none;
+}
+
+/* ============================================================================
+   CHANGELOG MODAL
+   ============================================================================ */
+
+.kr-changelog-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kr-changelog-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.kr-changelog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.kr-changelog-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--kr-surface);
+  border-radius: var(--kr-radius);
+  box-shadow: var(--kr-shadow-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  color: var(--kr-text);
+}
+
+.kr-changelog-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--kr-border-default);
+  position: relative;
+}
+
+.kr-changelog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--kr-primary);
+}
+
+.kr-changelog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kr-muted);
+  transition: color 0.2s;
+}
+
+.kr-changelog-close:hover {
+  color: var(--kr-primary);
+}
+
+.kr-changelog-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kr-changelog-subtitle {
+  margin: 0 0 16px 0;
+  color: var(--kr-muted);
+  font-size: 14px;
+}
+
+.kr-changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-list li {
+  padding: 8px 0 8px 24px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.kr-changelog-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--kr-primary);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.kr-changelog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--kr-border-default);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kr-changelog-footer button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius);
+  background: var(--kr-surface);
+  color: var(--kr-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.kr-changelog-view-all {
+  background: var(--kr-primary) !important;
+  color: white !important;
+  border-color: var(--kr-primary) !important;
+}
+
+.kr-changelog-view-all:hover {
+  background: var(--kr-primary-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
+}
+
+.kr-changelog-close-btn:hover {
+  background: var(--kr-bg-hover);
+}
+
+/* Modal complet - vue historique */
+.kr-changelog-modal.kr-changelog-full .kr-changelog-content-full {
+  max-width: 800px;
+}
+
+.kr-changelog-body-full {
+  max-height: 500px;
+}
+
+.kr-changelog-version {
+  margin-bottom: 24px;
+}
+
+.kr-changelog-version h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kr-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+.kr-changelog-version ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-version li {
+  padding: 6px 0 6px 20px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.kr-changelog-version li:before {
+  content: '•';
+  position: absolute;
+  left: 5px;
+  color: var(--kr-primary);
+  font-weight: bold;
+}
+
+/* Bouton sur la page profil */
+.kr-changelog-btn {
+  margin-bottom: 16px;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .kr-changelog-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .kr-changelog-header {
+    padding: 16px 16px 12px;
+  }
+
+  .kr-changelog-header h2 {
+    font-size: 18px;
+  }
+
+  .kr-changelog-body {
+    padding: 12px 16px;
+  }
+
+  .kr-changelog-list li {
+    padding: 6px 0 6px 20px;
+    font-size: 13px;
+  }
+
+  .kr-changelog-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .kr-changelog-footer button {
+    width: 100%;
+  }
+
+  .kr-changelog-content-full {
+    max-width: 95%;
+  }
 }`,
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
@@ -14160,6 +14402,381 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   // ============================================================================
+  // CHANGELOG MODAL
+  // Gère l'affichage de la modale de changelog au premier chargement
+  // ============================================================================
+
+  const ChangelogManager = {
+    STORAGE_KEY: 'kr-changelog-viewed',
+    CHANGELOG_URL: 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json',
+    changelog: null, // Sera chargé dynamiquement
+
+    /**
+     * Charge le changelog depuis le fichier JSON externe
+     */
+    async loadChangelog() {
+      if (this.changelog !== null) {
+        return this.changelog; // Déjà chargé
+      }
+
+      try {
+        // Utiliser GM.xmlHttpRequest ou fetch si disponible
+        return new Promise((resolve, reject) => {
+          if (typeof GM !== 'undefined' && GM.xmlHttpRequest) {
+            GM.xmlHttpRequest({
+              method: 'GET',
+              url: this.CHANGELOG_URL,
+              timeout: 5000,
+              onload: (response) => {
+                try {
+                  const data = JSON.parse(response.responseText);
+                  this.changelog = this.parseChangelogData(data);
+                  resolve(this.changelog);
+                } catch (e) {
+                  console.warn('[Changelog] Erreur parsing JSON:', e);
+                  resolve({}); // Fallback vide
+                }
+              },
+              onerror: (error) => {
+                console.warn('[Changelog] Erreur chargement:', error);
+                resolve({}); // Fallback vide
+              }
+            });
+          } else {
+            // Fallback: fetch ou pas de chargement
+            fetch(this.CHANGELOG_URL, { cache: 'no-store' })
+              .then(r => r.json())
+              .then(data => {
+                this.changelog = this.parseChangelogData(data);
+                resolve(this.changelog);
+              })
+              .catch(e => {
+                console.warn('[Changelog] Erreur fetch:', e);
+                resolve({}); // Fallback vide
+              });
+          }
+        });
+      } catch (e) {
+        console.warn('[Changelog] Erreur loadChangelog:', e);
+        return {};
+      }
+    },
+
+    /**
+     * Parse les données du changelog JSON
+     */
+    parseChangelogData(data) {
+      const result = {};
+      if (data.versions && Array.isArray(data.versions)) {
+        data.versions.forEach(v => {
+          if (v.version && Array.isArray(v.changes)) {
+            result[v.version] = v.changes;
+          }
+        });
+      }
+      return result;
+    },
+
+    /**
+     * Récupère la version actuelle du userscript
+     */
+    getCurrentVersion() {
+      return CURRENT_VERSION;
+    },
+
+    /**
+     * Récupère la dernière version visitée
+     */
+    getLastViewedVersion() {
+      try {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        console.warn('[Changelog] Erreur lecture localStorage:', e);
+        return null;
+      }
+    },
+
+    /**
+     * Enregistre qu'on a vu cette version
+     */
+    markVersionAsViewed(version) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(version));
+      } catch (e) {
+        console.warn('[Changelog] Erreur sauvegarde localStorage:', e);
+      }
+    },
+
+    /**
+     * Récupère les changements entre deux versions
+     */
+    getChangesBetweenVersions(oldVersion, newVersion) {
+      // Si c'est la première visite ou version inconnue, montrer la version actuelle
+      if (!oldVersion || !this.changelog[newVersion]) {
+        return this.changelog[newVersion] || [];
+      }
+
+      // Sinon, montrer uniquement le delta
+      const versionKeys = Object.keys(this.changelog)
+        .sort((a, b) => {
+          // Tri simplifié: considère que les versions sont décroissantes
+          return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+      const oldIndex = versionKeys.indexOf(oldVersion);
+      const newIndex = versionKeys.indexOf(newVersion);
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex <= newIndex) {
+        return this.changelog[newVersion] || [];
+      }
+
+      // Récupérer tous les changements entre oldVersion et newVersion (exclu)
+      const changes = [];
+      for (let i = newIndex; i < oldIndex; i++) {
+        const version = versionKeys[i];
+        if (this.changelog[version]) {
+          changes.push(...this.changelog[version]);
+        }
+      }
+      return changes;
+    },
+
+    /**
+     * Crée la modale HTML
+     */
+    createModal(changes) {
+      const modal = document.createElement('div');
+      modal.className = 'kr-changelog-modal';
+      modal.id = 'kr-changelog-modal';
+
+      const isFirstVisit = changes.length === 0 || changes === this.changelog[this.getCurrentVersion()];
+      const title = isFirstVisit ? 'Bienvenue dans Kraland Thème!' : 'Mise à jour disponible';
+      const subtitle = isFirstVisit ? 'Découvrez les améliorations' : 'Voici les changements de cette version';
+
+      modal.innerHTML = `
+        <div class="kr-changelog-overlay"></div>
+        <div class="kr-changelog-content">
+          <div class="kr-changelog-header">
+            <h2>${title}</h2>
+            <button class="kr-changelog-close" aria-label="Fermer">×</button>
+          </div>
+          <div class="kr-changelog-body">
+            <p class="kr-changelog-subtitle">${subtitle}</p>
+            <ul class="kr-changelog-list">
+              ${changes.map(change => `<li>${change}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="kr-changelog-footer">
+            <button class="kr-changelog-view-all">Voir tous les changements</button>
+            <button class="kr-changelog-close-btn">Fermer</button>
+          </div>
+        </div>
+      `;
+
+      return modal;
+    },
+
+    /**
+     * Affiche la modale de changelog
+     */
+    showModal(changes) {
+      // Supprimer une modale existante
+      const existing = document.getElementById('kr-changelog-modal');
+      if (existing) {
+        existing.remove();
+      }
+
+      const modal = this.createModal(changes);
+      document.body.appendChild(modal);
+
+      // Ajouter les event listeners
+      const closeBtn = modal.querySelector('.kr-changelog-close');
+      const closeBtnFooter = modal.querySelector('.kr-changelog-close-btn');
+      const overlay = modal.querySelector('.kr-changelog-overlay');
+      const viewAllBtn = modal.querySelector('.kr-changelog-view-all');
+
+      const closeModal = () => {
+        modal.remove();
+        this.markVersionAsViewed(this.getCurrentVersion());
+      };
+
+      closeBtn.addEventListener('click', closeModal);
+      closeBtnFooter.addEventListener('click', closeModal);
+      overlay.addEventListener('click', closeModal);
+
+      // Bouton pour voir tous les changements
+      viewAllBtn.addEventListener('click', () => {
+        this.showFullChangelog();
+      });
+
+      // Forcer le modal à être visible
+      setTimeout(() => {
+        modal.classList.add('active');
+      }, 50);
+    },
+
+    /**
+     * Affiche le changelog complet
+     */
+    showFullChangelog() {
+      // Fermer la modale d'alerte d'abord
+      const modal = document.getElementById('kr-changelog-modal');
+      if (modal) {
+        modal.remove();
+      }
+
+      // Créer une modale avec tous les changements
+      const fullModal = document.createElement('div');
+      fullModal.className = 'kr-changelog-modal kr-changelog-full';
+      fullModal.id = 'kr-changelog-full-modal';
+
+      const allChanges = Object.keys(this.changelog)
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+        .map(version => `
+          <div class="kr-changelog-version">
+            <h3>Version ${version}</h3>
+            <ul>
+              ${this.changelog[version].map(change => `<li>${change}</li>`).join('')}
+            </ul>
+          </div>
+        `)
+        .join('');
+
+      fullModal.innerHTML = `
+        <div class="kr-changelog-overlay"></div>
+        <div class="kr-changelog-content kr-changelog-content-full">
+          <div class="kr-changelog-header">
+            <h2>Historique complet des changements</h2>
+            <button class="kr-changelog-close" aria-label="Fermer">×</button>
+          </div>
+          <div class="kr-changelog-body kr-changelog-body-full">
+            ${allChanges}
+          </div>
+          <div class="kr-changelog-footer">
+            <button class="kr-changelog-close-btn">Fermer</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(fullModal);
+
+      // Event listeners
+      const closeBtn = fullModal.querySelector('.kr-changelog-close');
+      const closeBtnFooter = fullModal.querySelector('.kr-changelog-close-btn');
+      const overlay = fullModal.querySelector('.kr-changelog-overlay');
+
+      const closeFullModal = () => {
+        fullModal.remove();
+      };
+
+      closeBtn.addEventListener('click', closeFullModal);
+      closeBtnFooter.addEventListener('click', closeFullModal);
+      overlay.addEventListener('click', closeFullModal);
+
+      setTimeout(() => {
+        fullModal.classList.add('active');
+      }, 50);
+    },
+
+    /**
+     * Initialise le gestionnaire de changelog
+     */
+    async init() {
+      const currentVersion = this.getCurrentVersion();
+      const lastViewedVersion = this.getLastViewedVersion();
+
+      // Charger le changelog UNIQUEMENT si nouvelle version détectée
+      if (lastViewedVersion !== currentVersion) {
+        console.log('[Changelog] Nouvelle version détectée, chargement du changelog...');
+        await this.loadChangelog();
+
+        const changes = this.getChangesBetweenVersions(lastViewedVersion, currentVersion);
+        if (changes.length > 0) {
+          // Attendre que le DOM soit prêt
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+              setTimeout(() => this.showModal(changes), 1000);
+            });
+          } else {
+            setTimeout(() => this.showModal(changes), 1000);
+          }
+        }
+      } else {
+        console.log('[Changelog] Version identique, pas de chargement');
+      }
+
+      // Ajouter un bouton sur la page profil/interface
+      this.addChangelogButton();
+    },
+
+    /**
+     * Ajoute un bouton sur la page profil pour voir le changelog
+     */
+    addChangelogButton() {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          this.insertChangelogButton();
+        });
+      } else {
+        setTimeout(() => this.insertChangelogButton(), 500);
+      }
+    },
+
+    /**
+     * Insère le bouton dans la page profil
+     */
+    async insertChangelogButton() {
+      // Vérifier qu'on est sur la page interface du profil
+      if (!window.location.href.includes('/profil/interface')) {
+        return;
+      }
+
+      // Charger le changelog si pas encore chargé (pour l'historique complet)
+      if (this.changelog === null) {
+        console.log('[Changelog] Chargement changelog pour page profil...');
+        await this.loadChangelog();
+      }
+
+      // Chercher un endroit pour ajouter le bouton
+      // Généralement dans le panel de contenu
+      const container = document.querySelector('.panel-body') ||
+                       document.querySelector('.content') ||
+                       document.querySelector('main') ||
+                       document.querySelector('.container');
+
+      if (!container) {
+        console.log('[Changelog] Conteneur profil non trouvé');
+        return;
+      }
+
+      // Vérifier que le bouton n'existe pas déjà
+      if (document.getElementById('kr-changelog-btn')) {
+        return;
+      }
+
+      // Créer le bouton
+      const btn = document.createElement('button');
+      btn.id = 'kr-changelog-btn';
+      btn.className = 'btn btn-info kr-changelog-btn';
+      btn.innerHTML = '📝 Voir l\'historique des changements';
+      btn.addEventListener('click', () => {
+        this.showFullChangelog();
+      });
+
+      // Insérer le bouton au début du conteneur ou comme dernier élément
+      const insertPoint = container.querySelector('h1') || container.querySelector('h2');
+      if (insertPoint) {
+        insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+      } else {
+        container.insertBefore(btn, container.firstChild);
+      }
+
+      console.log('[Changelog] Bouton ajouté sur la page profil');
+    }
+  };
+
+  // ============================================================================
   // INITIALISATION
   // ============================================================================
 
@@ -14219,6 +14836,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 
       // Désactiver les tooltips périodiquement
       setInterval(disableTooltips, 2000);
+
+      // Initialiser le gestionnaire de changelog
+      safeCall(() => ChangelogManager.init());
 
     } catch(e) {
       console.error('Kraland theme init failed', e);

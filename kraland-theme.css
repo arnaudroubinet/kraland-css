@@ -7893,3 +7893,245 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 .forum-thread-metadata + div:has(a[href*="/forum/tags/"]) {
   display: none;
 }
+
+/* ============================================================================
+   CHANGELOG MODAL
+   ============================================================================ */
+
+.kr-changelog-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kr-changelog-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.kr-changelog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.kr-changelog-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--kr-surface);
+  border-radius: var(--kr-radius);
+  box-shadow: var(--kr-shadow-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
+  color: var(--kr-text);
+}
+
+.kr-changelog-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--kr-border-default);
+  position: relative;
+}
+
+.kr-changelog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--kr-primary);
+}
+
+.kr-changelog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kr-muted);
+  transition: color 0.2s;
+}
+
+.kr-changelog-close:hover {
+  color: var(--kr-primary);
+}
+
+.kr-changelog-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kr-changelog-subtitle {
+  margin: 0 0 16px 0;
+  color: var(--kr-muted);
+  font-size: 14px;
+}
+
+.kr-changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-list li {
+  padding: 8px 0 8px 24px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.kr-changelog-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--kr-primary);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.kr-changelog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--kr-border-default);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kr-changelog-footer button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius);
+  background: var(--kr-surface);
+  color: var(--kr-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.kr-changelog-view-all {
+  background: var(--kr-primary) !important;
+  color: white !important;
+  border-color: var(--kr-primary) !important;
+}
+
+.kr-changelog-view-all:hover {
+  background: var(--kr-primary-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
+}
+
+.kr-changelog-close-btn:hover {
+  background: var(--kr-bg-hover);
+}
+
+/* Modal complet - vue historique */
+.kr-changelog-modal.kr-changelog-full .kr-changelog-content-full {
+  max-width: 800px;
+}
+
+.kr-changelog-body-full {
+  max-height: 500px;
+}
+
+.kr-changelog-version {
+  margin-bottom: 24px;
+}
+
+.kr-changelog-version h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kr-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+.kr-changelog-version ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-version li {
+  padding: 6px 0 6px 20px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.kr-changelog-version li:before {
+  content: '•';
+  position: absolute;
+  left: 5px;
+  color: var(--kr-primary);
+  font-weight: bold;
+}
+
+/* Bouton sur la page profil */
+.kr-changelog-btn {
+  margin-bottom: 16px;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .kr-changelog-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .kr-changelog-header {
+    padding: 16px 16px 12px;
+  }
+
+  .kr-changelog-header h2 {
+    font-size: 18px;
+  }
+
+  .kr-changelog-body {
+    padding: 12px 16px;
+  }
+
+  .kr-changelog-list li {
+    padding: 6px 0 6px 20px;
+    font-size: 13px;
+  }
+
+  .kr-changelog-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .kr-changelog-footer button {
+    width: 100%;
+  }
+
+  .kr-changelog-content-full {
+    max-width: 95%;
+  }
+}

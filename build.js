@@ -31,13 +31,17 @@ try {
 
 // Determine CSS_URL based on git branch
 let cssUrl;
+let changelogUrl;
 if (currentBranch === 'main') {
-  cssUrl = 'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/kraland-theme.css';
+  cssUrl = 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/kraland-theme.css';
+  changelogUrl = 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json';
 } else {
   // For development branches, use localhost
   cssUrl = 'http://localhost:4848/workspace/kraland-css/kraland-theme.css';
+  changelogUrl = 'http://localhost:4848/workspace/kraland-css/changelog.json';
 }
 console.log(`✓ CSS URL: ${cssUrl}`);
+console.log(`✓ Changelog URL: ${changelogUrl}`);
 let css = fs.readFileSync(cssPath, 'utf8');
 console.log(`✓ Read CSS (${css.length} chars)`);
 
@@ -65,8 +69,9 @@ const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bun
 const escapedCss = css.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 let output = userscriptHeader + template.replace("'__CSS_CONTENT__'", '`' + escapedCss + '`');
 
-// Replace version placeholder in the template
+// Replace version and URLs placeholders in the template
 output = output.replace('__USERSCRIPT_VERSION__', version);
+output = output.replace("'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/changelog.json'", `'${changelogUrl}'`);
 
 // Minify JavaScript - DISABLED
 console.log('⚙ Skipping JavaScript minification (disabled for debugging)...');
