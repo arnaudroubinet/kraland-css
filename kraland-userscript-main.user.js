@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768731287784
+// @version      1.0.1768748232538
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768731287784';
+  const CURRENT_VERSION = '1.0.1768748232538';
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -4145,6 +4145,15 @@ html[class*="-dark"] .table-striped > tbody > tr:nth-of-type(odd) {
   background-color: var(--kr-bg-hover);
 }
 
+/* Override for tables with forum-like styling */
+html[class*="-dark"] .table.table-striped > tbody > tr {
+  background-color: var(--kr-bg-page);
+}
+
+html[class*="-dark"] .table.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--kr-bg-elevated);
+}
+
 html[class*="-dark"] .table-hover > tbody > tr:hover {
   background-color: var(--kr-bg-active);
 }
@@ -4417,6 +4426,15 @@ html[class*="-dark"] font[color="5a5a5a"] {
 html[class*="-dark"] font[color="#000000"],
 html[class*="-dark"] font[color="000000"] {
   color: #cccccc !important; /* black - Gris clair (noir impossible en dark) */
+}
+
+/* === CLASSES DE COULEURS === */
+html[class*="-dark"] .red {
+  color: #ff3333 !important; /* red - Rouge vif éclairci */
+}
+
+html[class*="-dark"] .blue {
+  color: #3388ff !important; /* blue - Bleu France, bon contraste */
 }
 
 /* === COULEURS PALETTE DE SÉLECTION (boutons background-color) === */
