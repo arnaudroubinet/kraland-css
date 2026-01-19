@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.0.1768823137361",
+      "releaseDate": "2026-01-19",
+      "changes": [
+        "Le script est maintenant fonctionnel sur Firefox"
+      ]
+    },
+    {
       "version": "1.0.1768756082432",
       "releaseDate": "2026-01-18",
       "changes": [

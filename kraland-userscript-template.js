@@ -6,6 +6,17 @@
   const CURRENT_VERSION = '__USERSCRIPT_VERSION__';
 
   // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+  /**
+   * Vérifie de manière sûre si le mode mobile est activé
+   * Protège contre l'accès à document.body avant son initialisation
+   */
+  function isMobileMode() {
+    return document.body && document.body.classList && document.body.classList.contains('mobile-mode');
+  }
+
+  // ============================================================================
   // INITIALIZATION ORCHESTRATOR
   // Garantit l'ordre d'exécution séquentiel de tous les modules
   // Chaque module décide lui-même s'il doit s'exécuter (mobile/desktop/page)
@@ -36,7 +47,7 @@
       // Trier par priorité (plus petit en premier)
       this._queue.sort((a, b) => a.priority - b.priority);
 
-      const isMobile = document.body.classList.contains('mobile-mode');
+      const isMobile = isMobileMode();
       // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
       // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
 
@@ -77,6 +88,12 @@
      */
     function initMobileMode() {
       const currentIsMobile = isMobileDevice();
+
+      // Vérifier que document.body existe avant d'y accéder
+      if (!document.body) {
+        console.warn('[Kraland Mobile] document.body n\'est pas disponible');
+        return;
+      }
 
       // Ne log et ne process que si l'état a changé
       if (previousMobileState === currentIsMobile) {
@@ -880,7 +897,7 @@
      */
     function removeHomepageCarousel() {
       // Ne s'exécute qu'en mode mobile
-      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (!isMobileMode()) {return;}
 
       // Ne s'exécute que sur la page d'accueil
       const isHomePage = window.location.pathname === '/' ||
@@ -903,12 +920,8 @@
       console.log('[Homepage Carousel] Carousel supprimé en mode mobile');
     }
 
-    // Attendre le chargement du DOM
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', removeHomepageCarousel);
-    } else {
-      removeHomepageCarousel();
-    }
+    // Enregistrer dans InitQueue avec priorité 5 (après initMobileMode à priorité 0)
+    InitQueue.register('removeHomepageCarousel', removeHomepageCarousel, 5);
 
     // Exposer pour debug
     if (window.KralandMobile) {
@@ -1471,8 +1484,9 @@
   // ============================================================================
   // TASK-2.5 : Commerce - Accordéon catégories
   // ============================================================================
-  (function initCommerceAccordion() {
-    if (!document.body.classList.contains('mobile-mode')) {return;}
+  // Enregistrer l'initialisation du Commerce Accordion dans la queue pour éviter l'accès à document.body avant DOMContentLoaded
+  InitQueue.register('Commerce Accordion', function initCommerceAccordion() {
+    if (!isMobileMode()) {return;}
     if (!window.location.href.includes('jouer/plateau')) {return;}
 
     const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
@@ -1579,13 +1593,13 @@
 
       console.log(`[Commerce Accordion] ${category.name}: ${products.length} produits, état initial: ${isExpanded ? 'ouvert' : 'fermé'}`);
     });
-  })();
+  });
 
   // ============================================================================
   // TASK-2.4 : Section bâtiment collapsible
   // ============================================================================
-  (function initBuildingCollapse() {
-    if (!document.body.classList.contains('mobile-mode')) {return;}
+  InitQueue.register('Building Collapse', function initBuildingCollapse() {
+    if (!isMobileMode()) {return;}
 
     const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h =>
       h.textContent.includes('Bâtiment')
@@ -1627,7 +1641,7 @@
     });
 
     console.log('[Building Section] Initialisé - section collapsible');
-  })();
+  });
 
   // ============================================================================
   // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
@@ -3159,11 +3173,6 @@
       return;
     }
 
-    if (!document.body.classList.contains('mobile-mode')) {
-      console.log('[Forum Cards] Mode desktop détecté, transformation annulée');
-      return;
-    }
-
     function transformTableToCards() {
       const forumTable = document.querySelector('table.table tbody');
       if (!forumTable) {
@@ -3333,6 +3342,12 @@
     // === ENREGISTREMENT DANS InitQueue ===
 
     function init() {
+      // Vérifier le mode mobile - doit être fait ici pour éviter d'accéder à document.body avant DOMContentLoaded
+      if (!document.body.classList.contains('mobile-mode')) {
+        console.log('[Forum Cards] Mode desktop détecté, transformation annulée');
+        return;
+      }
+
       // Attendre que le DOM soit prêt
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', transformTableToCards);
@@ -3353,9 +3368,8 @@
   (function initMiniChatFAB() {
     'use strict';
 
-    if (!document.body.classList.contains('mobile-mode')) {return;}
-
     function createChatFAB() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
       const miniChat = document.getElementById('flap');
       if (!miniChat) {return;}
 
@@ -4644,12 +4658,17 @@
 
     // Afficher la version actuelle
     const currentVersion = CURRENT_VERSION !== '__USERSCRIPT_VERSION__' ? CURRENT_VERSION : 'dev';
+    
+    // En mode dev, afficher simplement "dev" sans essayer de fetch
+    if (currentVersion === 'dev') {
+      versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong> <span style="color: #5bc0de;">ℹ️ (mode développement)</span></span>`;
+      return;
+    }
+    
     versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
 
-    // Déterminer l'URL du fichier version.json (serveur local en dev, GitHub en prod)
-    const versionUrl = currentVersion === 'dev'
-      ? 'http://localhost:4848/version.json'
-      : 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
+    // Déterminer l'URL du fichier version.json (GitHub en prod)
+    const versionUrl = 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
 
     // Récupérer la dernière version disponible
     fetch(versionUrl)
@@ -4663,10 +4682,8 @@
           latestSpan.innerHTML = `<strong>${data.version}</strong>`;
 
           // Comparer les versions et afficher un indicateur si mise à jour disponible
-          if (currentVersion !== 'dev' && data.version !== currentVersion) {
+          if (data.version !== currentVersion) {
             latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
-          } else if (currentVersion === 'dev') {
-            latestSpan.innerHTML += ' <span style="color: #5bc0de;">ℹ️ (mode développement)</span>';
           }
         }
       })
@@ -4674,11 +4691,7 @@
         console.error('[Version Info] Erreur lors de la récupération de la version:', error);
         const latestSpan = document.getElementById('latest-version');
         if (latestSpan) {
-          if (currentVersion === 'dev') {
-            latestSpan.innerHTML = '<em>serveur local requis (localhost:4848)</em>';
-          } else {
-            latestSpan.textContent = 'erreur';
-          }
+          latestSpan.textContent = 'erreur';
         }
       });
   }
@@ -5301,7 +5314,9 @@
       safeCall(insertToggleCSSButton);
     });
 
-    mo.observe(document.documentElement || document, { childList: true, subtree: true });
+    if (document.documentElement || document) {
+      mo.observe(document.documentElement || document, { childList: true, subtree: true });
+    }
 
     // SPA navigation
     const wrap = orig => function () {
@@ -5342,7 +5357,10 @@
       });
     });
 
-    modalObserver.observe(document.body, { childList: true, subtree: false });
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      modalObserver.observe(document.body, { childList: true, subtree: false });
+    }
   }
 
   /**
@@ -5382,12 +5400,15 @@
     });
 
     // Observer le body pour détecter les changements dans les modals
-    tabScrollObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class']
-    });
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      tabScrollObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
   }
 
   /**
@@ -6378,7 +6399,10 @@
     });
 
     // Observer le body pour détecter l'ajout de modals
-    modalObserver.observe(document.body, { childList: true, subtree: false });
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      modalObserver.observe(document.body, { childList: true, subtree: false });
+    }
   }
 
   // ============================================================================
@@ -6617,7 +6641,7 @@
 
   const ChangelogManager = {
     STORAGE_KEY: 'kr-changelog-viewed',
-    CHANGELOG_URL: 'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/changelog.json',
+    CHANGELOG_URL: 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json',
     changelog: null, // Sera chargé dynamiquement
 
     /**
@@ -6643,12 +6667,14 @@
                   resolve(this.changelog);
                 } catch (e) {
                   console.warn('[Changelog] Erreur parsing JSON:', e);
-                  resolve({}); // Fallback vide
+                  this.changelog = {}; // Fallback vide
+                  resolve(this.changelog);
                 }
               },
               onerror: (error) => {
                 console.warn('[Changelog] Erreur chargement:', error);
-                resolve({}); // Fallback vide
+                this.changelog = {}; // Fallback vide
+                resolve(this.changelog);
               }
             });
           } else {
@@ -6661,7 +6687,8 @@
               })
               .catch(e => {
                 console.warn('[Changelog] Erreur fetch:', e);
-                resolve({}); // Fallback vide
+                this.changelog = {}; // Fallback vide
+                resolve(this.changelog);
               });
           }
         });
@@ -6721,6 +6748,11 @@
      * Récupère les changements entre deux versions
      */
     getChangesBetweenVersions(oldVersion, newVersion) {
+      // Vérifier que le changelog a bien été chargé
+      if (!this.changelog || typeof this.changelog !== 'object') {
+        return [];
+      }
+
       // Si c'est la première visite ou version inconnue, montrer la version actuelle
       if (!oldVersion || !this.changelog[newVersion]) {
         return this.changelog[newVersion] || [];
