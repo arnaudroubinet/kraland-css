@@ -1256,7 +1256,10 @@
         // Créer le bouton de réinitialisation
         const resetBtn = document.createElement('button');
         resetBtn.type = 'button';
-        resetBtn.className = 'btn btn-warning btn-block';
+        // Taille réduite : 1/3 de largeur, affichage inline pour ne pas être full-width
+        resetBtn.className = 'btn btn-warning kr-reset-alerts-btn';
+        resetBtn.style.width = '33.333%';
+        resetBtn.style.display = 'inline-block';
 
         // Ajouter l'icône et le texte
         const icon = document.createElement('span');
@@ -1286,8 +1289,11 @@
             icon.className = 'glyphicon glyphicon-ok';
             resetBtn.textContent = '';
             resetBtn.appendChild(icon);
-            resetBtn.appendChild(document.createTextNode(` ${count} alerte(s) réinitialisée(s) !`));
-            resetBtn.className = 'btn btn-success btn-block';
+            resetBtn.appendChild(document.createTextNode(' ' + (count === 1 ? '1 alerte réinitialisée !' : `${count} alertes réinitialisées !`)));
+            // Conserver la classe utilitaire pour garder la largeur réduite
+            resetBtn.className = 'btn btn-success kr-reset-alerts-btn';
+            // Mettre à jour le texte d'aide pour refléter le nouvel état
+            updateHelpText();
 
             setTimeout(() => {
               icon.className = 'glyphicon glyphicon-refresh';
@@ -1299,13 +1305,30 @@
           }
         });
 
-        // Ajouter une description
+        // Ajouter une description (placée sur la même ligne que le bouton)
         const helpText = document.createElement('p');
         helpText.className = 'help-block';
-        helpText.style.marginTop = '10px';
+        // Afficher sur la même ligne que le bouton et aligner verticalement
+        helpText.style.display = 'inline-block';
+        helpText.style.marginTop = '0';
+        helpText.style.marginLeft = '10px';
+        helpText.style.verticalAlign = 'middle';
         helpText.style.fontSize = '12px';
         helpText.style.opacity = '0.7';
-        helpText.textContent = `${getDismissedAlerts().length} alerte(s) actuellement masquée(s)`;
+
+        // Helper pour la gestion du singulier/pluriel
+        function formatDismissedCount(n) {
+          if (n === 0) return 'Aucune alerte actuellement masquée';
+          if (n === 1) return '1 alerte actuellement masquée';
+          return `${n} alertes actuellement masquées`;
+        }
+
+        function updateHelpText() {
+          helpText.textContent = formatDismissedCount(getDismissedAlerts().length);
+        }
+
+        // Initialiser le texte
+        updateHelpText();
 
         // Assembler la section
         btnContainer.appendChild(resetBtn);
@@ -1896,7 +1919,55 @@
     MEDIEVAL_MAP_KEY: 'kr-medieval-map',
     MEDIEVAL_MAP_STYLE_ID: 'kr-medieval-map-style',
     // Exceptions où l'image de remplacement ne suit pas la règle /1/ -> /5/
-    MEDIEVAL_MAP_OVERRIDES: {},
+    MEDIEVAL_MAP_OVERRIDES: {
+      // remplacements spécifiques (source -> cible)
+      'http://img7.kraland.org/2/map/1/54.gif': 'https://i.imgur.com/yQaUb2q.png',
+      'http://img7.kraland.org/2/map/1/123.gif': 'https://i.imgur.com/zeD5Q3m.gif',
+      'http://img7.kraland.org/2/map/1/124.gif': 'https://i.imgur.com/kT1NcMR.gif',
+      'http://img7.kraland.org/2/map/1/125.gif': 'https://i.imgur.com/OZcbEpv.gif',
+      'http://img7.kraland.org/2/map/1/126.gif': 'https://i.imgur.com/pnNPvQa.gif',
+      'http://img7.kraland.org/2/map/1/127.gif': 'https://i.imgur.com/AWDyET8.gif',
+      'http://img7.kraland.org/2/map/1/128.gif': 'https://i.imgur.com/v9BUsFz.gif',
+      'http://img7.kraland.org/2/map/1/129.gif': 'https://i.imgur.com/F3hWy6L.gif',
+      'http://img7.kraland.org/2/map/1/130.gif': 'https://i.imgur.com/dQ1eAgR.gif',
+      'http://img7.kraland.org/2/map/1/131.gif': 'https://i.imgur.com/hQzJHvq.gif',
+      'http://img7.kraland.org/2/map/1/150.gif': 'https://i.imgur.com/b4gCbux.png',
+      'http://img7.kraland.org/2/map/1/160.gif': 'https://i.imgur.com/u3pxKOO.gif',
+      'http://img7.kraland.org/2/map/1/161.gif': 'https://i.imgur.com/SptXelD.gif',
+      'http://img7.kraland.org/2/map/1/162.gif': 'https://i.imgur.com/r9AajUr.gif',
+      'http://img7.kraland.org/2/map/1/163.gif': 'https://i.imgur.com/j0E8T1P.gif',
+      'http://img7.kraland.org/2/map/1/164.gif': 'https://i.imgur.com/ogaiUqe.gif',
+      'http://img7.kraland.org/2/map/1/165.gif': 'https://i.imgur.com/qe3sdQF.gif',
+      'http://img7.kraland.org/2/map/1/166.gif': 'https://i.imgur.com/Z6QHBzh.gif',
+      'http://img7.kraland.org/2/map/1/167.gif': 'https://i.imgur.com/DtNeOzd.gif',
+      'http://img7.kraland.org/2/map/1/168.gif': 'https://i.imgur.com/bowPMN6.gif',
+      'http://img7.kraland.org/2/map/1/169.gif': 'https://i.imgur.com/o7CILuq.gif',
+      'http://img7.kraland.org/2/map/1/170.gif': 'https://i.imgur.com/y9U0dYl.gif',
+
+      // variantes 1b
+      'http://img7.kraland.org/2/map/1b/54.gif': 'https://i.imgur.com/06sWizC.png',
+      'http://img7.kraland.org/2/map/1b/123.gif': 'https://i.imgur.com/AVfs5gP.gif',
+      'http://img7.kraland.org/2/map/1b/124.gif': 'https://i.imgur.com/5EXjAMq.gif',
+      'http://img7.kraland.org/2/map/1b/125.gif': 'https://i.imgur.com/2W8B2Dt.gif',
+      'http://img7.kraland.org/2/map/1b/126.gif': 'https://i.imgur.com/4bBE651.gif',
+      'http://img7.kraland.org/2/map/1b/127.gif': 'https://i.imgur.com/MlV4iYC.gif',
+      'http://img7.kraland.org/2/map/1b/128.gif': 'https://i.imgur.com/rmU5dY2.gif',
+      'http://img7.kraland.org/2/map/1b/129.gif': 'https://i.imgur.com/YeujdJG.gif',
+      'http://img7.kraland.org/2/map/1b/130.gif': 'https://i.imgur.com/PqDVOX3.gif',
+      'http://img7.kraland.org/2/map/1b/131.gif': 'https://i.imgur.com/W8FRpdH.gif',
+      'http://img7.kraland.org/2/map/1b/150.gif': 'https://i.imgur.com/w6yVuNX.png',
+      'http://img7.kraland.org/2/map/1b/160.gif': 'https://i.imgur.com/bHKR6EJ.gif',
+      'http://img7.kraland.org/2/map/1b/161.gif': 'https://i.imgur.com/yrfMXwl.gif',
+      'http://img7.kraland.org/2/map/1b/162.gif': 'https://i.imgur.com/qfSfUkX.gif',
+      'http://img7.kraland.org/2/map/1b/163.gif': 'https://i.imgur.com/MR7miUh.gif',
+      'http://img7.kraland.org/2/map/1b/164.gif': 'https://i.imgur.com/MMunrUy.gif',
+      'http://img7.kraland.org/2/map/1b/165.gif': 'https://i.imgur.com/Kqs7t39.gif',
+      'http://img7.kraland.org/2/map/1b/166.gif': 'https://i.imgur.com/6FoA0Hi.gif',
+      'http://img7.kraland.org/2/map/1b/167.gif': 'https://i.imgur.com/Jgu5rX9.gif',
+      'http://img7.kraland.org/2/map/1b/168.gif': 'https://i.imgur.com/KCPBL3T.gif',
+      'http://img7.kraland.org/2/map/1b/169.gif': 'https://i.imgur.com/uBJObWh.gif',
+      'http://img7.kraland.org/2/map/1b/170.gif': 'https://i.imgur.com/FfpTfLi.gif'
+    },
 
     MEDIEVAL_SEPIA: '85%'
   };
@@ -5380,6 +5451,7 @@
             <div class="col-sm-9">
               <div class="checkbox">
                 <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>
+                <p class="help-block" style="margin-top:6px">Merci <a href="http://www.kraland.org/communaute/membres/sylke-1-3335" target="_blank" rel="noopener noreferrer">Sylke</a></p>
               </div>
             </div>
           </div>
