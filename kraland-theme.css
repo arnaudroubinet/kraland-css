@@ -54,17 +54,35 @@
   --kr-nation-8: #0A6B2D;
   --kr-nation-9: #a70;
   
-  /* Couleurs nations fonds (.c1-.c10) */
-  --kr-nation-bg-1: rgb(255, 128, 128, 0.2);
-  --kr-nation-bg-2: rgb(170, 112, 0, 0.3);
-  --kr-nation-bg-3: rgb(255, 255, 128, 0.15);
-  --kr-nation-bg-4: rgb(128, 128, 255, 0.2);
-  --kr-nation-bg-5: rgb(128, 255, 128, 0.15);
-  --kr-nation-bg-6: rgb(204, 128, 255, 0.2);
-  --kr-nation-bg-7: rgb(170, 170, 170, 0.2);
-  --kr-nation-bg-8: rgb(115, 151, 115, 0.2);
-  --kr-nation-bg-9: rgb(170, 170, 68, 0.2);
-  --kr-nation-bg-10: rgb(204, 255, 255, 0.15);
+  /* Couleurs nations fonds (.c1-.c12) - reproduit depuis la feuille de style principale */
+  --kr-nation-bg-1: rgb(255, 128, 128);
+  --kr-nation-bg-2: rgb(170, 112, 0);
+  --kr-nation-bg-3: rgb(255, 255, 128);
+  --kr-nation-bg-4: rgb(128, 128, 255);
+  --kr-nation-bg-5: rgb(128, 255, 128);
+  --kr-nation-bg-6: rgb(204, 128, 255);
+  --kr-nation-bg-7: rgb(170, 170, 170);
+  --kr-nation-bg-8: rgb(115, 151, 115);
+  --kr-nation-bg-9: rgb(170, 170, 68);
+  --kr-nation-bg-10: rgb(204, 255, 255);
+
+  /* CLASSES KRALAND - Fonds nations (.c1-.c12) */
+  .c1  { background-color: var(--kr-nation-bg-1) !important; }
+  .c2  { background-color: var(--kr-nation-bg-2) !important; }
+  .c3  { background-color: var(--kr-nation-bg-3) !important; }
+  .c4  { background-color: var(--kr-nation-bg-4) !important; }
+  .c5  { background-color: var(--kr-nation-bg-5) !important; }
+  .c6  { background-color: var(--kr-nation-bg-6) !important; }
+  .c7  { background-color: var(--kr-nation-bg-7) !important; }
+  .c8  { background-color: var(--kr-nation-bg-8) !important; }
+  .c9  { background-color: var(--kr-nation-bg-9) !important; }
+  .c10 { background-color: var(--kr-nation-bg-10) !important; }
+  /* Forcer texte noir sur les labels nationaux (lisibilité) */
+  .mini.c1, .mini.c2, .mini.c3, .mini.c4, .mini.c5, .mini.c6, .mini.c7, .mini.c8, .mini.c9, .mini.c10 {
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
   
   /* ============================================
      MOBILE ADAPTATION - VARIABLES (TASK-1.1)
@@ -8134,4 +8152,31 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   .kr-changelog-content-full {
     max-width: 95%;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Corrections map : rendre les labels `.mini` lisibles en mode sombre
+   - le thème sombre utilise des fonds nationaux semi-transparents (alpha 0.15)
+     ce qui rend les chiffres difficiles à lire : on augmente l'opacité ici.
+   - on ajoute aussi un léger padding / bordure pour conserver la lisibilité
+   --------------------------------------------------------------------------- */
+html[class*='-dark'] .mini {
+  color: var(--kr-text-primary) !important; /* texte clair sur fond sombre */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  background-image: none !important;
+  background-color: rgba(0,0,0,0.6) !important; /* fond opaque pour lisibilité */
+}
+
+/* conserver la couleur nationale mais en opaque pour être lisible */
+html[class*='-dark'] .mini.c3 { background-color: rgba(255,255,128,0.92) !important; color: var(--kr-text-inverse) !important; }
+html[class*='-dark'] .mini.c5 { background-color: rgba(128,255,128,0.92) !important; color: var(--kr-text-inverse) !important; }
+
+/* mode clair : conserver l'apparence originale mais améliorer la lisibilité */
+html:not([class*='-dark']) .mini {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
 }
