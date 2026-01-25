@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1768823137361
+// @version      1.0.1769352536474
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1768823137361';
+  const CURRENT_VERSION = '1.0.1769352536474';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -10043,7 +10043,15 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     STAT_ICONS: {
       'FOR': '9402', 'VOL': '9415', 'CHA': '9416',
       'INT': '9412', 'GES': '9405', 'PER': '9413'
-    }
+    },
+
+    // Carte Médiévale
+    MEDIEVAL_MAP_KEY: 'kr-medieval-map',
+    MEDIEVAL_MAP_STYLE_ID: 'kr-medieval-map-style',
+    // Exceptions où l'image de remplacement ne suit pas la règle /1/ -> /5/
+    MEDIEVAL_MAP_OVERRIDES: {},
+
+    MEDIEVAL_SEPIA: '85%'
   };
 
   // ============================================================================
@@ -10068,6 +10076,151 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /** Récupère le mode d'affichage des caractéristiques ('icon' ou 'text') */
   function getStatsDisplayMode() {
     return localStorage.getItem(CONFIG.STATS_DISPLAY_KEY) || 'icon';
+  }
+
+  /** Vérifie si la carte médiévale est activée */
+  function isMedievalMapEnabled() {
+    return localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Carte médiévale (remplacement d'images via JS)
+  // - On n'utilise plus le CSS distant à la volée
+  // - Règle générale: /2/map/1/ ou /2/map/1b/ -> /2/map/5/
+  // - Exceptions: CONFIG.MEDIEVAL_MAP_OVERRIDES
+  // ---------------------------------------------------------------------------
+
+  function extractUrl(bg) {
+    if (!bg) return null;
+    const m = bg.match(/url\((?:'|")?(.*?)(?:'|")?\)/);
+    return m ? m[1] : null;
+  }
+
+  function computeReplacement(src) {
+    if (!src) return null;
+    const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
+    if (overrides[src]) { return overrides[src]; }
+    if (src.indexOf('/2/map/1b/') !== -1) {
+      return src.replace('/2/map/1b/', '/2/map/5/');
+    }
+    if (src.indexOf('/2/map/1/') !== -1) {
+      return src.replace('/2/map/1/', '/2/map/5/');
+    }
+    return null;
+  }
+
+  /** Applique ou retire le remplacement d'images pour la carte médiévale */
+  function applyMedievalMapOption() {
+    try {
+      const appliedAttr = 'data-kr-medieval-applied';
+      const originalBgAttr = 'data-kr-medieval-original-bg';
+      const originalFilterAttr = 'data-kr-medieval-original-filter';
+
+      function processElement(el) {
+        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true')) return;
+        let src = null;
+        if (el.tagName === 'IMG') {
+          src = el.src || el.getAttribute('src');
+        } else {
+          const inlineBg = el.style && el.style.getPropertyValue('background-image') || '';
+          const computedBg = inlineBg || (window.getComputedStyle && getComputedStyle(el).backgroundImage) || '';
+          src = extractUrl(inlineBg) || extractUrl(computedBg);
+        }
+        if (!src) return;
+        const target = computeReplacement(src);
+        if (!target) return;
+
+        // sauvegarde des valeurs originales
+        if (!el.hasAttribute || !el.hasAttribute(originalBgAttr)) {
+          el.setAttribute(originalBgAttr, src);
+        }
+        const origFilter = (el.style && el.style.getPropertyValue('filter')) || '';
+        if (!el.hasAttribute || !el.hasAttribute(originalFilterAttr)) {
+          el.setAttribute(originalFilterAttr, origFilter);
+        }
+
+        // application du remplacement (img ou div avec background)
+        if (el.tagName === 'IMG') {
+          try { el.src = target; } catch (e) { el.setAttribute('src', target); }
+        } else {
+          el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
+        }
+        if (src.indexOf('/2/map/1b/') !== -1) {
+          // appliquer le filtre sépia pour les tuiles 1b
+          el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+        }
+
+        el.setAttribute && el.setAttribute(appliedAttr, 'true');
+      }
+
+      function restoreAll() {
+        const els = document.querySelectorAll('[' + appliedAttr + '="true"]');
+        els.forEach(el => {
+          const origBg = el.getAttribute(originalBgAttr);
+          if (el.tagName === 'IMG') {
+            if (origBg) {
+              try { el.src = origBg; } catch (e) { el.setAttribute('src', origBg); }
+            } else {
+              el.removeAttribute && el.removeAttribute('src');
+            }
+          } else {
+            if (origBg) {
+              el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + origBg + '")', 'important');
+            } else {
+              el.style && el.style.removeProperty && el.style.removeProperty('background-image');
+            }
+          }
+          const origFilter = el.getAttribute(originalFilterAttr);
+          if (origFilter) {
+            el.style && el.style.setProperty && el.style.setProperty('filter', origFilter, 'important');
+          } else {
+            el.style && el.style.removeProperty && el.style.removeProperty('filter');
+          }
+          el.removeAttribute && el.removeAttribute(appliedAttr);
+          el.removeAttribute && el.removeAttribute(originalBgAttr);
+          el.removeAttribute && el.removeAttribute(originalFilterAttr);
+        });
+      }
+
+      if (isMedievalMapEnabled()) {
+        document.documentElement.classList.add('kr-medieval-map-enabled');
+        // traitement initial des tuiles existantes (div background-image et imgs)
+        const candidates = document.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]');
+        candidates.forEach(processElement);
+
+        // observer les modifications dynamiques (nouveaux éléments ou changement d'attribut style/src)
+        if (!applyMedievalMapOption._observer) {
+          const mo = new MutationObserver(mutations => {
+            mutations.forEach(m => {
+              if (m.type === 'attributes' && (m.attributeName === 'style' || m.attributeName === 'src') && m.target && m.target.nodeType === 1) {
+                processElement(m.target);
+              } else if (m.type === 'childList') {
+                m.addedNodes.forEach(n => {
+                  if (n.nodeType !== 1) return;
+                  if (n.matches && (n.matches('div[style*="/2/map/1/"]') || n.matches('div[style*="/2/map/1b/"]') || n.matches('img[src*="/2/map/1/"]') || n.matches('img[src*="/2/map/1b/"]'))) {
+                    processElement(n);
+                  }
+                  n.querySelectorAll && n.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]').forEach(processElement);
+                });
+              }
+            });
+          });
+          mo.observe(document.body || document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style','src'] });
+          applyMedievalMapOption._observer = mo;
+        }
+      } else {
+        document.documentElement.classList.remove('kr-medieval-map-enabled');
+        restoreAll();
+        if (applyMedievalMapOption._observer) {
+          applyMedievalMapOption._observer.disconnect();
+          applyMedievalMapOption._observer = null;
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error('applyMedievalMapOption error', e);
+      return false;
+    }
   }
 
   /** Vérifie si on est sur la page /jouer */
@@ -10165,6 +10318,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       }
     } catch(e) { console.error('CSS injection failed', e); }
   })();
+
+  // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
+  safeCall(() => applyMedievalMapOption());
 
   // ============================================================================
   // GESTION DU THÈME
@@ -13342,6 +13498,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
             <label class="col-sm-3 control-label">Options du footer</label>
             <div class="col-sm-9">${hideQuoteCheckbox}</div>
           </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Carte</label>
+            <div class="col-sm-9">
+              <div class="checkbox">
+                <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>
+              </div>
+            </div>
+          </div>
         </form>
       `;
 
@@ -13370,6 +13534,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
         const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
         const hideQuoteEl = form.querySelector('#kr-hide-quote');
         if (hideQuoteEl) {hideQuoteEl.checked = hideQuote;}
+
+        // Synchroniser l'option Carte médiévale
+        const medieval = localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+        const medievalEl = form.querySelector('#kr-medieval-map-checkbox');
+        if (medievalEl) { medievalEl.checked = medieval; }
       }
 
       form.addEventListener('change', (e) => {
@@ -13432,6 +13601,22 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
             feedback.remove();
           }, 3000);
         }
+
+        // Gestion de la Carte médiévale
+        if (e.target.name === 'kr-medieval-map') {
+          const isChecked = e.target.checked;
+          localStorage.setItem(CONFIG.MEDIEVAL_MAP_KEY, isChecked.toString());
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked ? 'Carte médiévale activée. Application...' : 'Carte médiévale désactivée.';
+          container.appendChild(feedback);
+
+          // Appliquer immédiatement
+          applyMedievalMapOption();
+          setTimeout(() => feedback.remove(), 3000);
+
+        }
       });
 
       syncUI();
@@ -13464,6 +13649,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           domTransformationsApplied = true;
         }
       }
+      // S'assurer que la carte médiévale est appliquée si l'option est active
+      safeCall(() => applyMedievalMapOption());
       safeCall(insertToggleCSSButton);
     });
 

@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.0.1769352134492",
+      "releaseDate": "2026-01-25",
+      "changes": [
+        "Option accessible sur /profil/interface : 'Carte médiévale' — remplace les icônes/tuiles classiques de la carte par les images médiévales de l'ancien thème v6."
+      ]
+    },
+    {
       "version": "1.0.1768823137361",
       "releaseDate": "2026-01-19",
       "changes": [
