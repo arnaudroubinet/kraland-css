@@ -10116,8 +10116,21 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       const originalBgAttr = 'data-kr-medieval-original-bg';
       const originalFilterAttr = 'data-kr-medieval-original-filter';
 
+      const _krTestCache = {};
+      function testImageExists(url) {
+        if (_krTestCache.hasOwnProperty(url)) return Promise.resolve(!!_krTestCache[url]);
+        return new Promise(resolve => {
+          try {
+            const img = new Image();
+            img.onload = () => { _krTestCache[url] = true; resolve(true); };
+            img.onerror = () => { _krTestCache[url] = false; resolve(false); };
+            img.src = url;
+          } catch (e) { _krTestCache[url] = false; resolve(false); }
+        });
+      }
+
       function processElement(el) {
-        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true')) return;
+        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true')) return;
         let src = null;
         if (el.tagName === 'IMG') {
           src = el.src || el.getAttribute('src');
@@ -10127,9 +10140,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           src = extractUrl(inlineBg) || extractUrl(computedBg);
         }
         if (!src) return;
+        // Ne pas remplacer les URLs explicitement exclues
+        if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) return;
         const target = computeReplacement(src);
         if (!target) return;
 
+        // Marquer comme pending pour éviter les re-tests simultanés
+        el.setAttribute && el.setAttribute('data-kr-medieval-pending', 'true');
         // sauvegarde des valeurs originales
         if (!el.hasAttribute || !el.hasAttribute(originalBgAttr)) {
           el.setAttribute(originalBgAttr, src);
@@ -10139,18 +10156,31 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
           el.setAttribute(originalFilterAttr, origFilter);
         }
 
-        // application du remplacement (img ou div avec background)
-        if (el.tagName === 'IMG') {
-          try { el.src = target; } catch (e) { el.setAttribute('src', target); }
-        } else {
-          el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
-        }
-        if (src.indexOf('/2/map/1b/') !== -1) {
-          // appliquer le filtre sépia pour les tuiles 1b
-          el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
-        }
-
-        el.setAttribute && el.setAttribute(appliedAttr, 'true');
+        // tester l'existence de la ressource cible avant d'appliquer
+        testImageExists(target).then(exists => {
+          if (exists) {
+            if (el.tagName === 'IMG') {
+              try { el.src = target; } catch (e) { el.setAttribute('src', target); }
+            } else {
+              el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
+            }
+            if (src.indexOf('/2/map/1b/') !== -1) {
+              el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+            }
+            el.setAttribute && el.setAttribute(appliedAttr, 'true');
+          } else {
+            // fallback: restaurer l'original si nécessaire (ne rien changer autrement)
+            const elemOrig = el.getAttribute(originalBgAttr);
+            if (el.tagName === 'IMG') {
+              if (elemOrig) { try { el.src = elemOrig; } catch (e) { el.setAttribute('src', elemOrig); } }
+            } else {
+              if (elemOrig) { el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + elemOrig + '")', 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('background-image'); }
+            }
+            const origFilterAttrVal = el.getAttribute(originalFilterAttr);
+            if (origFilterAttrVal) { el.style && el.style.setProperty && el.style.setProperty('filter', origFilterAttrVal, 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('filter'); }
+          }
+          el.removeAttribute && el.removeAttribute('data-kr-medieval-pending');
+        }).catch(_ => { el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); });
       }
 
       function restoreAll() {
