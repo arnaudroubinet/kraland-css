@@ -7939,25 +7939,35 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75) !important; /* Fond encore plus sombre pour la lisibilité */
   cursor: pointer;
 }
 
-.kr-changelog-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--kr-surface);
-  border-radius: var(--kr-radius);
-  box-shadow: var(--kr-shadow-lg);
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
+..kr-changelog-content {
+  /* Positionner par rapport à la fenêtre pour garantir un centrage stable */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: rgba(0, 0, 0, 0.95) !important; /* Fond noir opaque pour lisibilité */
+  border: 1px solid rgba(255,255,255,0.06) !important; /* bord subtil clair */
+  border-radius: var(--kr-radius) !important;
+  box-shadow: var(--kr-shadow-lg) !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 10001 !important;
+  color: #ffffff !important; /* texte blanc pour contraste */
+  overflow: hidden !important;
+} 
+
+/* Assurer le centrage parfait via flex du conteneur modal */
+.kr-changelog-modal.active {
   display: flex;
-  flex-direction: column;
-  z-index: 10001;
-  color: var(--kr-text);
+  align-items: center;
+  justify-content: center;
 }
 
 .kr-changelog-header {
@@ -7972,28 +7982,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   font-weight: 600;
   color: var(--kr-primary);
 }
-
-.kr-changelog-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--kr-muted);
-  transition: color 0.2s;
-}
-
-.kr-changelog-close:hover {
-  color: var(--kr-primary);
-}
+/* Le bouton croix n'est plus utilisé : masquer au cas où */
+.kr-changelog-close { display: none !important; }
 
 .kr-changelog-body {
   padding: 16px 24px;
@@ -8114,6 +8104,24 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* Bouton sur la page profil */
 .kr-changelog-btn {
   margin-bottom: 16px;
+}
+
+/* Style compact (inline) pour insertion avec le texte d'aide des alertes */
+.kr-changelog-inline {
+  color: var(--kr-primary);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  margin-left: 8px;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline;
+}
+.kr-changelog-inline:hover {
+  color: var(--kr-primary-dark);
+  text-decoration: underline;
 }
 
 /* Responsive mobile */

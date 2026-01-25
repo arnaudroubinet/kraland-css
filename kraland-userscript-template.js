@@ -7085,11 +7085,10 @@
       const subtitle = isFirstVisit ? 'Découvrez les améliorations' : 'Voici les changements de cette version';
 
       modal.innerHTML = `
-        <div class="kr-changelog-overlay"></div>
-        <div class="kr-changelog-content">
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content" role="dialog" aria-modal="true" aria-label="${title}">
           <div class="kr-changelog-header">
             <h2>${title}</h2>
-            <button class="kr-changelog-close" aria-label="Fermer">×</button>
           </div>
           <div class="kr-changelog-body">
             <p class="kr-changelog-subtitle">${subtitle}</p>
@@ -7103,6 +7102,33 @@
           </div>
         </div>
       `;
+
+      // Forcer au cas où une autre feuille de style neutraliserait les règles CSS
+      const content = modal.querySelector('.kr-changelog-content');
+      if (content) {
+        content.style.position = 'fixed';
+        content.style.top = '50%';
+        content.style.left = '50%';
+        content.style.transform = 'translate(-50%, -50%)';
+        content.style.width = '90%';
+        content.style.maxWidth = '600px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        content.style.background = 'rgba(0,0,0,0.95)';
+        content.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const overlay = modal.querySelector('.kr-changelog-overlay');
+      if (overlay) {
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.cursor = 'pointer';
+        overlay.tabIndex = -1;
+      }
 
       return modal;
     },
@@ -7120,18 +7146,25 @@
       const modal = this.createModal(changes);
       document.body.appendChild(modal);
 
-      // Ajouter les event listeners
-      const closeBtn = modal.querySelector('.kr-changelog-close');
+      // Ajouter les event listeners (utiliser uniquement le bouton footer comme contrôle principal)
       const closeBtnFooter = modal.querySelector('.kr-changelog-close-btn');
       const overlay = modal.querySelector('.kr-changelog-overlay');
       const viewAllBtn = modal.querySelector('.kr-changelog-view-all');
 
-      const closeModal = () => {
+      let closeModal = () => {
         modal.remove();
         this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
       };
 
-      closeBtn.addEventListener('click', closeModal);
+      // Fermer avec la touche Échap
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
+
       closeBtnFooter.addEventListener('click', closeModal);
       overlay.addEventListener('click', closeModal);
 
@@ -7140,10 +7173,22 @@
         this.showFullChangelog();
       });
 
-      // Forcer le modal à être visible
+      // Forcer le modal à être visible puis donner le focus au bouton Fermer (footer) pour l'accessibilité
       setTimeout(() => {
         modal.classList.add('active');
+        const footerClose = modal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
       }, 50);
+
+      // Nettoyage des listeners lors de la fermeture
+      const originalClose = closeModal;
+      closeModal = () => {
+        modal.remove();
+        this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
+      };
     },
 
     /**
@@ -7174,11 +7219,10 @@
         .join('');
 
       fullModal.innerHTML = `
-        <div class="kr-changelog-overlay"></div>
-        <div class="kr-changelog-content kr-changelog-content-full">
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content kr-changelog-content-full" role="dialog" aria-modal="true" aria-label="Historique complet des changements">
           <div class="kr-changelog-header">
             <h2>Historique complet des changements</h2>
-            <button class="kr-changelog-close" aria-label="Fermer">×</button>
           </div>
           <div class="kr-changelog-body kr-changelog-body-full">
             ${allChanges}
@@ -7189,23 +7233,61 @@
         </div>
       `;
 
+      // Forcer styles inline au cas où le CSS serait neutralisé
+      const fullContent = fullModal.querySelector('.kr-changelog-content');
+      if (fullContent) {
+        fullContent.style.position = 'fixed';
+        fullContent.style.top = '50%';
+        fullContent.style.left = '50%';
+        fullContent.style.transform = 'translate(-50%, -50%)';
+        fullContent.style.width = '90%';
+        fullContent.style.maxWidth = '800px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        fullContent.style.background = 'rgba(0,0,0,0.95)';
+        fullContent.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const fullOverlay = fullModal.querySelector('.kr-changelog-overlay');
+      if (fullOverlay) {
+        fullOverlay.style.position = 'fixed';
+        fullOverlay.style.top = '0';
+        fullOverlay.style.left = '0';
+        fullOverlay.style.width = '100%';
+        fullOverlay.style.height = '100%';
+        fullOverlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        fullOverlay.style.cursor = 'pointer';
+        fullOverlay.tabIndex = -1;
+      }
+
       document.body.appendChild(fullModal);
 
-      // Event listeners
-      const closeBtn = fullModal.querySelector('.kr-changelog-close');
+      // Event listeners (utiliser uniquement le bouton footer comme contrôle principal)
       const closeBtnFooter = fullModal.querySelector('.kr-changelog-close-btn');
       const overlay = fullModal.querySelector('.kr-changelog-overlay');
 
       const closeFullModal = () => {
         fullModal.remove();
+        document.removeEventListener('keydown', onFullKeyDown);
       };
 
-      closeBtn.addEventListener('click', closeFullModal);
       closeBtnFooter.addEventListener('click', closeFullModal);
       overlay.addEventListener('click', closeFullModal);
 
+      // Fermer avec Échap pour la modale complète
+      const onFullKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeFullModal();
+        }
+      };
+      document.addEventListener('keydown', onFullKeyDown);
+
       setTimeout(() => {
         fullModal.classList.add('active');
+        const footerClose = fullModal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
       }, 50);
     },
 
@@ -7290,16 +7372,39 @@
       btn.id = 'kr-changelog-btn';
       btn.className = 'btn btn-info kr-changelog-btn';
       btn.innerHTML = '📝 Voir l\'historique des changements';
+
+      // Si la section "Alertes" est présente, utiliser un style compact mais lisible (texte inline)
+      const krAlertsBtnLocal = document.querySelector('.kr-reset-alerts-btn');
+      const krAlertsHelpLocal = krAlertsBtnLocal && krAlertsBtnLocal.parentNode && krAlertsBtnLocal.parentNode.querySelector('.help-block');
+      if (krAlertsHelpLocal) {
+        btn.className = 'btn btn-link kr-changelog-btn kr-changelog-inline';
+        btn.innerHTML = '📝 Voir l\'historique des changements';
+        btn.setAttribute('title', 'Voir l\'historique des changements');
+        btn.setAttribute('aria-label', 'Voir l\'historique des changements');
+        // Styles minimaux pour rester inline et lisible
+        btn.style.display = 'inline';
+        btn.style.marginLeft = '8px';
+        btn.style.fontSize = '13px';
+        btn.style.padding = '0';
+        btn.style.verticalAlign = 'middle';
+      }
+
       btn.addEventListener('click', () => {
         this.showFullChangelog();
       });
 
-      // Insérer le bouton au début du conteneur ou comme dernier élément
-      const insertPoint = container.querySelector('h1') || container.querySelector('h2');
-      if (insertPoint) {
-        insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+      // Si la section "Alertes" est présente, insérer le bouton *dans* le paragraphe d'aide
+      if (krAlertsHelpLocal) {
+        // On l'ajoute à l'intérieur du <p> pour éviter qu'il soit poussé hors écran sur mobile
+        krAlertsHelpLocal.appendChild(btn);
       } else {
-        container.insertBefore(btn, container.firstChild);
+        // Insérer le bouton au début du conteneur ou comme dernier élément (fallback)
+        const insertPoint = container.querySelector('h1') || container.querySelector('h2');
+        if (insertPoint) {
+          insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+        } else {
+          container.insertBefore(btn, container.firstChild);
+        }
       }
 
       console.log('[Changelog] Bouton ajouté sur la page profil');

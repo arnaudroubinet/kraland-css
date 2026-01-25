@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1769373566821
+// @version      1.0.1769385003464
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1769373566821';
+  const CURRENT_VERSION = '1.0.1769385003464';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -9848,25 +9848,35 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75) !important; /* Fond encore plus sombre pour la lisibilité */
   cursor: pointer;
 }
 
-.kr-changelog-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--kr-surface);
-  border-radius: var(--kr-radius);
-  box-shadow: var(--kr-shadow-lg);
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
+..kr-changelog-content {
+  /* Positionner par rapport à la fenêtre pour garantir un centrage stable */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: rgba(0, 0, 0, 0.95) !important; /* Fond noir opaque pour lisibilité */
+  border: 1px solid rgba(255,255,255,0.06) !important; /* bord subtil clair */
+  border-radius: var(--kr-radius) !important;
+  box-shadow: var(--kr-shadow-lg) !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 10001 !important;
+  color: #ffffff !important; /* texte blanc pour contraste */
+  overflow: hidden !important;
+} 
+
+/* Assurer le centrage parfait via flex du conteneur modal */
+.kr-changelog-modal.active {
   display: flex;
-  flex-direction: column;
-  z-index: 10001;
-  color: var(--kr-text);
+  align-items: center;
+  justify-content: center;
 }
 
 .kr-changelog-header {
@@ -9881,28 +9891,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   font-weight: 600;
   color: var(--kr-primary);
 }
-
-.kr-changelog-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--kr-muted);
-  transition: color 0.2s;
-}
-
-.kr-changelog-close:hover {
-  color: var(--kr-primary);
-}
+/* Le bouton croix n'est plus utilisé : masquer au cas où */
+.kr-changelog-close { display: none !important; }
 
 .kr-changelog-body {
   padding: 16px 24px;
@@ -10023,6 +10013,24 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* Bouton sur la page profil */
 .kr-changelog-btn {
   margin-bottom: 16px;
+}
+
+/* Style compact (inline) pour insertion avec le texte d'aide des alertes */
+.kr-changelog-inline {
+  color: var(--kr-primary);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  margin-left: 8px;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline;
+}
+.kr-changelog-inline:hover {
+  color: var(--kr-primary-dark);
+  text-decoration: underline;
 }
 
 /* Responsive mobile */
@@ -15284,11 +15292,10 @@ html:not([class*='-dark']) .mini {
       const subtitle = isFirstVisit ? 'Découvrez les améliorations' : 'Voici les changements de cette version';
 
       modal.innerHTML = `
-        <div class="kr-changelog-overlay"></div>
-        <div class="kr-changelog-content">
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content" role="dialog" aria-modal="true" aria-label="${title}">
           <div class="kr-changelog-header">
             <h2>${title}</h2>
-            <button class="kr-changelog-close" aria-label="Fermer">×</button>
           </div>
           <div class="kr-changelog-body">
             <p class="kr-changelog-subtitle">${subtitle}</p>
@@ -15302,6 +15309,33 @@ html:not([class*='-dark']) .mini {
           </div>
         </div>
       `;
+
+      // Forcer au cas où une autre feuille de style neutraliserait les règles CSS
+      const content = modal.querySelector('.kr-changelog-content');
+      if (content) {
+        content.style.position = 'fixed';
+        content.style.top = '50%';
+        content.style.left = '50%';
+        content.style.transform = 'translate(-50%, -50%)';
+        content.style.width = '90%';
+        content.style.maxWidth = '600px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        content.style.background = 'rgba(0,0,0,0.95)';
+        content.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const overlay = modal.querySelector('.kr-changelog-overlay');
+      if (overlay) {
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.cursor = 'pointer';
+        overlay.tabIndex = -1;
+      }
 
       return modal;
     },
@@ -15319,18 +15353,25 @@ html:not([class*='-dark']) .mini {
       const modal = this.createModal(changes);
       document.body.appendChild(modal);
 
-      // Ajouter les event listeners
-      const closeBtn = modal.querySelector('.kr-changelog-close');
+      // Ajouter les event listeners (utiliser uniquement le bouton footer comme contrôle principal)
       const closeBtnFooter = modal.querySelector('.kr-changelog-close-btn');
       const overlay = modal.querySelector('.kr-changelog-overlay');
       const viewAllBtn = modal.querySelector('.kr-changelog-view-all');
 
-      const closeModal = () => {
+      let closeModal = () => {
         modal.remove();
         this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
       };
 
-      closeBtn.addEventListener('click', closeModal);
+      // Fermer avec la touche Échap
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
+
       closeBtnFooter.addEventListener('click', closeModal);
       overlay.addEventListener('click', closeModal);
 
@@ -15339,10 +15380,22 @@ html:not([class*='-dark']) .mini {
         this.showFullChangelog();
       });
 
-      // Forcer le modal à être visible
+      // Forcer le modal à être visible puis donner le focus au bouton Fermer (footer) pour l'accessibilité
       setTimeout(() => {
         modal.classList.add('active');
+        const footerClose = modal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
       }, 50);
+
+      // Nettoyage des listeners lors de la fermeture
+      const originalClose = closeModal;
+      closeModal = () => {
+        modal.remove();
+        this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
+      };
     },
 
     /**
@@ -15373,11 +15426,10 @@ html:not([class*='-dark']) .mini {
         .join('');
 
       fullModal.innerHTML = `
-        <div class="kr-changelog-overlay"></div>
-        <div class="kr-changelog-content kr-changelog-content-full">
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content kr-changelog-content-full" role="dialog" aria-modal="true" aria-label="Historique complet des changements">
           <div class="kr-changelog-header">
             <h2>Historique complet des changements</h2>
-            <button class="kr-changelog-close" aria-label="Fermer">×</button>
           </div>
           <div class="kr-changelog-body kr-changelog-body-full">
             ${allChanges}
@@ -15388,23 +15440,61 @@ html:not([class*='-dark']) .mini {
         </div>
       `;
 
+      // Forcer styles inline au cas où le CSS serait neutralisé
+      const fullContent = fullModal.querySelector('.kr-changelog-content');
+      if (fullContent) {
+        fullContent.style.position = 'fixed';
+        fullContent.style.top = '50%';
+        fullContent.style.left = '50%';
+        fullContent.style.transform = 'translate(-50%, -50%)';
+        fullContent.style.width = '90%';
+        fullContent.style.maxWidth = '800px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        fullContent.style.background = 'rgba(0,0,0,0.95)';
+        fullContent.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const fullOverlay = fullModal.querySelector('.kr-changelog-overlay');
+      if (fullOverlay) {
+        fullOverlay.style.position = 'fixed';
+        fullOverlay.style.top = '0';
+        fullOverlay.style.left = '0';
+        fullOverlay.style.width = '100%';
+        fullOverlay.style.height = '100%';
+        fullOverlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        fullOverlay.style.cursor = 'pointer';
+        fullOverlay.tabIndex = -1;
+      }
+
       document.body.appendChild(fullModal);
 
-      // Event listeners
-      const closeBtn = fullModal.querySelector('.kr-changelog-close');
+      // Event listeners (utiliser uniquement le bouton footer comme contrôle principal)
       const closeBtnFooter = fullModal.querySelector('.kr-changelog-close-btn');
       const overlay = fullModal.querySelector('.kr-changelog-overlay');
 
       const closeFullModal = () => {
         fullModal.remove();
+        document.removeEventListener('keydown', onFullKeyDown);
       };
 
-      closeBtn.addEventListener('click', closeFullModal);
       closeBtnFooter.addEventListener('click', closeFullModal);
       overlay.addEventListener('click', closeFullModal);
 
+      // Fermer avec Échap pour la modale complète
+      const onFullKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeFullModal();
+        }
+      };
+      document.addEventListener('keydown', onFullKeyDown);
+
       setTimeout(() => {
         fullModal.classList.add('active');
+        const footerClose = fullModal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
       }, 50);
     },
 
@@ -15489,16 +15579,39 @@ html:not([class*='-dark']) .mini {
       btn.id = 'kr-changelog-btn';
       btn.className = 'btn btn-info kr-changelog-btn';
       btn.innerHTML = '📝 Voir l\'historique des changements';
+
+      // Si la section "Alertes" est présente, utiliser un style compact mais lisible (texte inline)
+      const krAlertsBtnLocal = document.querySelector('.kr-reset-alerts-btn');
+      const krAlertsHelpLocal = krAlertsBtnLocal && krAlertsBtnLocal.parentNode && krAlertsBtnLocal.parentNode.querySelector('.help-block');
+      if (krAlertsHelpLocal) {
+        btn.className = 'btn btn-link kr-changelog-btn kr-changelog-inline';
+        btn.innerHTML = '📝 Voir l\'historique des changements';
+        btn.setAttribute('title', 'Voir l\'historique des changements');
+        btn.setAttribute('aria-label', 'Voir l\'historique des changements');
+        // Styles minimaux pour rester inline et lisible
+        btn.style.display = 'inline';
+        btn.style.marginLeft = '8px';
+        btn.style.fontSize = '13px';
+        btn.style.padding = '0';
+        btn.style.verticalAlign = 'middle';
+      }
+
       btn.addEventListener('click', () => {
         this.showFullChangelog();
       });
 
-      // Insérer le bouton au début du conteneur ou comme dernier élément
-      const insertPoint = container.querySelector('h1') || container.querySelector('h2');
-      if (insertPoint) {
-        insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+      // Si la section "Alertes" est présente, insérer le bouton *dans* le paragraphe d'aide
+      if (krAlertsHelpLocal) {
+        // On l'ajoute à l'intérieur du <p> pour éviter qu'il soit poussé hors écran sur mobile
+        krAlertsHelpLocal.appendChild(btn);
       } else {
-        container.insertBefore(btn, container.firstChild);
+        // Insérer le bouton au début du conteneur ou comme dernier élément (fallback)
+        const insertPoint = container.querySelector('h1') || container.querySelector('h2');
+        if (insertPoint) {
+          insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+        } else {
+          container.insertBefore(btn, container.firstChild);
+        }
       }
 
       console.log('[Changelog] Bouton ajouté sur la page profil');
