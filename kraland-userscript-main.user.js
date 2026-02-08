@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1769385003464
+// @version      1.0.1770570972969
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1769385003464';
+  const CURRENT_VERSION = '1.0.1770570972969';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -4234,6 +4234,20 @@ html[class*="-dark"] .dropdown-menu > .active > a:hover,
 html[class*="-dark"] .dropdown-menu > .active > a:focus {
   background-color: var(--kr-primary);
   color: var(--kr-text-inverse);
+}
+
+/* ============================================================================
+   SMILEYS DROPDOWN - NORMALISATION
+   ============================================================================ */
+
+/* Phase 1 : Normalisation des images à taille uniforme (32x32px) */
+.dropdown-menu table img,
+.btn-toolbar .dropdown-menu table img {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important; /* Préserve le ratio sans déformation */
+  display: block !important; /* Élimine l'espace inline */
+  flex-shrink: 0 !important; /* Empêche rétrécissement */
 }
 
 /* === NAVIGATION === */

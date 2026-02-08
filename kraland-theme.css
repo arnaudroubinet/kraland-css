@@ -2327,6 +2327,20 @@ html[class*="-dark"] .dropdown-menu > .active > a:focus {
   color: var(--kr-text-inverse);
 }
 
+/* ============================================================================
+   SMILEYS DROPDOWN - NORMALISATION
+   ============================================================================ */
+
+/* Phase 1 : Normalisation des images à taille uniforme (32x32px) */
+.dropdown-menu table img,
+.btn-toolbar .dropdown-menu table img {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important; /* Préserve le ratio sans déformation */
+  display: block !important; /* Élimine l'espace inline */
+  flex-shrink: 0 !important; /* Empêche rétrécissement */
+}
+
 /* === NAVIGATION === */
 html[class*="-dark"] .nav-tabs {
   border-color: var(--kr-border-default);
