@@ -4422,6 +4422,253 @@
   })();
 
   // ============================================================================
+  // MODULE : Kramail:PostMobileEnhancer
+  // Restructure la page de lecture d'un message kramail pour mobile :
+  //   - Déplace les boutons dans h1 .pull-right (harmonisation inbox)
+  //   - Crée un menu kebab pour les actions secondaires
+  //   - Restructure le message (header horizontal, corps pleine largeur)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailPostMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramail/post/*
+      if (!window.location.pathname.match(/\/kramail\/post\//)) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const forumTop = document.querySelector('.forum-top');
+      if (!h1 || !forumTop) {
+        console.warn('[Kramail Post Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      const originalPullRight = forumTop.querySelector('.pull-right');
+      if (!originalPullRight) {
+        console.warn('[Kramail Post Mobile] .pull-right non trouvé dans .forum-top');
+        return;
+      }
+
+      // --- 1. Déplacer les boutons dans h1 ---
+      const buttons = Array.from(originalPullRight.querySelectorAll('a.btn'));
+      if (buttons.length === 0) {
+        console.warn('[Kramail Post Mobile] Aucun bouton trouvé');
+        return;
+      }
+
+      // Créer un span.pull-right dans h1 (comme l'inbox)
+      const newPullRight = document.createElement('span');
+      newPullRight.className = 'pull-right';
+
+      // Boutons principaux (4 premiers) : Réception, Reply, Reply All, Forward
+      // Boutons secondaires (les 4 restants) : Report, Delete, New, Contacts
+      const primaryButtons = buttons.slice(0, 4); // backward, reply, reply-all, share
+      const secondaryButtons = buttons.slice(4);   // exclamation, times, envelope, user
+
+      // Ajouter les boutons principaux (icon-only)
+      primaryButtons.forEach(function(btn) {
+        // Masquer le texte (le bouton Réception a du texte "Réception")
+        var textNodes = Array.from(btn.childNodes).filter(function(n) { return n.nodeType === 3; });
+        textNodes.forEach(function(t) { t.textContent = ''; });
+        // Marquer le bouton Réception comme btn-primary (retour inbox = onglet actif)
+        if (btn.querySelector('.fa-backward')) {
+          btn.classList.add('btn-primary');
+        }
+        newPullRight.appendChild(btn);
+      });
+
+      // Créer le menu kebab pour les actions secondaires
+      var kebab = document.createElement('div');
+      kebab.className = 'btn-group kramail-post-kebab';
+
+      var kebabToggle = document.createElement('button');
+      kebabToggle.className = 'btn btn-default dropdown-toggle';
+      kebabToggle.type = 'button';
+      kebabToggle.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+
+      var kebabMenu = document.createElement('ul');
+      kebabMenu.className = 'dropdown-menu dropdown-menu-right';
+      kebabMenu.setAttribute('role', 'menu');
+
+      // Labels pour les icônes secondaires
+      var labels = {
+        'fa-exclamation-triangle': 'Signaler',
+        'fa-times': 'Supprimer',
+        'fa-envelope': 'Nouveau message',
+        'fa-user': 'Contacts'
+      };
+
+      secondaryButtons.forEach(function(btn) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = btn.getAttribute('href') || '#';
+
+        var icon = btn.querySelector('i');
+        var iconClass = icon ? icon.className : '';
+        var labelText = '';
+
+        // Récupérer le label via la map
+        Object.keys(labels).forEach(function(key) {
+          if (iconClass.indexOf(key) !== -1) {
+            labelText = labels[key];
+          }
+        });
+
+        a.innerHTML = '<i class="' + iconClass + '"></i> <span class="label-simple">' + labelText + '</span>';
+
+        // Copier les classes spéciales (alertdel)
+        if (btn.classList.contains('alertdel')) {
+          a.classList.add('alertdel');
+        }
+
+        // Copier le onclick si présent
+        var onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr) {
+          a.setAttribute('onclick', onclickAttr);
+        }
+
+        li.appendChild(a);
+        kebabMenu.appendChild(li);
+      });
+
+      kebab.appendChild(kebabToggle);
+      kebab.appendChild(kebabMenu);
+      newPullRight.appendChild(kebab);
+
+      h1.appendChild(newPullRight);
+
+      // Gérer le toggle dropdown manuellement
+      kebabToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        kebab.classList.toggle('open');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!kebab.contains(e.target)) {
+          kebab.classList.remove('open');
+        }
+      });
+
+      // Fermer le dropdown après action
+      kebabMenu.querySelectorAll('a').forEach(function(item) {
+        item.addEventListener('click', function() {
+          setTimeout(function() { kebab.classList.remove('open'); }, 200);
+        });
+      });
+
+      // Marquer forum-top comme déplacé (pour le cacher en CSS)
+      originalPullRight.classList.add('kramail-actions-moved');
+
+      // --- 2. Restructurer le message ---
+      var well = document.querySelector('ul.media-list.forum > li.media.well');
+      if (!well) {
+        console.warn('[Kramail Post Mobile] .media.well non trouvé');
+        return;
+      }
+
+      well.classList.add('kramail-post-restructured');
+
+      // Extraire les données depuis le DOM original
+      var pullLeft = well.querySelector('.pull-left');
+      var mediaBody = well.querySelector('.media-body');
+      if (!pullLeft || !mediaBody) {
+        console.warn('[Kramail Post Mobile] pull-left ou media-body manquant');
+        return;
+      }
+
+      // Avatar
+      var avatarImg = pullLeft.querySelector('img.avatar');
+      var avatarSrc = avatarImg ? avatarImg.src : '';
+      var avatarAlt = avatarImg ? avatarImg.alt : '';
+
+      // Nom de l'expéditeur
+      var senderLink = pullLeft.querySelector('.cartouche strong a');
+      var senderName = senderLink ? senderLink.textContent : avatarAlt;
+      var senderHref = senderLink ? senderLink.href : '#';
+
+      // Date
+      var dateSpan = mediaBody.querySelector('.btn-group-xs .btn');
+      var dateText = '';
+      if (dateSpan) {
+        dateText = dateSpan.textContent.replace('posté', '').trim();
+      }
+
+      // Destinataires (le paragraphe "Envoyé à :")
+      var recipientsP = mediaBody.querySelector('p');
+      var recipientsHTML = recipientsP ? recipientsP.innerHTML : '';
+
+      // Corps du message
+      var contentDiv = mediaBody.querySelector('.t');
+      var contentHTML = contentDiv ? contentDiv.innerHTML : '';
+
+      // Signature (tout ce qui est après .t dans media-body)
+      // C'est le texte après la div.t : <br>___<br><br> + font + texte
+      var signatureHTML = '';
+      if (contentDiv) {
+        var sibling = contentDiv.nextSibling;
+        var sigParts = [];
+        while (sibling) {
+          if (sibling.nodeType === 1) {
+            sigParts.push(sibling.outerHTML);
+          } else if (sibling.nodeType === 3 && sibling.textContent.trim()) {
+            sigParts.push(sibling.textContent);
+          }
+          sibling = sibling.nextSibling;
+        }
+        signatureHTML = sigParts.join('');
+        // Nettoyer le séparateur ___
+        signatureHTML = signatureHTML.replace(/^(<br\s*\/?>)*\s*___\s*(<br\s*\/?>)*/i, '').trim();
+      }
+
+      // --- 3. Construire la nouvelle structure ---
+      // Header : avatar + nom + date
+      var msgHeader = document.createElement('div');
+      msgHeader.className = 'kramail-msg-header';
+      msgHeader.innerHTML =
+        '<img class="kramail-msg-avatar" src="' + avatarSrc + '" alt="' + avatarAlt + '">' +
+        '<div class="kramail-msg-header-info">' +
+          '<div class="kramail-msg-sender"><a href="' + senderHref + '">' + senderName + '</a></div>' +
+          '<div class="kramail-msg-date"><i class="fa fa-clock-o"></i> ' + dateText + '</div>' +
+        '</div>';
+
+      // Destinataires
+      var msgRecipients = document.createElement('div');
+      msgRecipients.className = 'kramail-msg-recipients';
+      msgRecipients.innerHTML = recipientsHTML;
+
+      // Corps du message
+      var msgBody = document.createElement('div');
+      msgBody.className = 'kramail-msg-body';
+      msgBody.innerHTML = contentHTML;
+
+      // Signature (si non vide)
+      if (signatureHTML.length > 5) {
+        var msgSig = document.createElement('div');
+        msgSig.className = 'kramail-msg-signature';
+        msgSig.innerHTML = signatureHTML;
+        msgBody.appendChild(msgSig);
+      }
+
+      // Ajouter les nouveaux éléments au well
+      well.appendChild(msgHeader);
+      well.appendChild(msgRecipients);
+      well.appendChild(msgBody);
+
+      console.log('[Kramail Post Mobile] Page message restructurée');
+    }
+
+    InitQueue.register('Kramail:PostMobileEnhancer', initKramailPostMobileEnhancer, 33);
+
+  })();
+
+  // ============================================================================
   // MODULE : ForumThread:MobileBreadcrumb
   // Transforme le header des threads de forum en fil d'ariane + FAB button
   // ============================================================================

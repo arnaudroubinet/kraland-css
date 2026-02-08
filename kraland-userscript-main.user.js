@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770583616011
+// @version      1.0.1770585060112
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770583616011';
+  const CURRENT_VERSION = '1.0.1770585060112';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -9771,7 +9771,212 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: var(--kr-text-primary) !important;
     border-bottom-color: var(--kr-border-default) !important;
   }
-  
+
+  /* ============================================================================
+     MOBILE OPTIMISATION - PAGE MESSAGE KRAMAIL (kramail/post/*)
+     Structure originale :
+       - h1.page-header (titre seul)
+       - div.forum-top > span.pull-right > a.btn×8 (boutons)
+       - ul.media-list.forum > li.media.well (message)
+         - div.pull-left > div.user-info (avatar + cartouche)
+         - div.media-body (destinataires + date + contenu + signature)
+       - div.center > ul.pagination (prev/next)
+     Structure JS restructurée :
+       - h1.page-header contient les boutons (déplacés par JS)
+       - li.media.well.kramail-post-restructured (classe ajoutée par JS)
+       - .kramail-msg-header (avatar + nom + date — horizontal)
+       - .kramail-msg-recipients (envoyé à)
+       - .kramail-msg-body (contenu pleine largeur)
+     ============================================================================ */
+
+  /* === BOUTONS PAGE MESSAGE — harmonisés avec inbox === */
+  /* Le JS déplace les boutons dans h1 .pull-right, même sélecteurs que l'inbox */
+  /* (les styles existants h1.page-header .pull-right > a.btn s'appliquent) */
+
+  /* Masquer la barre forum-top originale (vidée par JS) */
+  .forum-top:has(.kramail-actions-moved) {
+    display: none !important;
+  }
+
+  /* === MESSAGE CARD — layout empilé mobile === */
+  body.mobile-mode ul.media-list.forum > li.media.well.kramail-post-restructured {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    margin: 0 16px 16px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    list-style: none !important;
+  }
+
+  /* Cacher le pull-left original (avatar+cartouche) — remplacé par header */
+  body.mobile-mode li.kramail-post-restructured > .pull-left {
+    display: none !important;
+  }
+
+  /* Cacher le media-body original — remplacé par la nouvelle structure */
+  body.mobile-mode li.kramail-post-restructured > .media-body {
+    display: none !important;
+  }
+
+  /* --- Header : avatar compact + nom + date (horizontal) --- */
+  .kramail-msg-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+  }
+
+  .kramail-msg-header .kramail-msg-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+  }
+
+  .kramail-msg-header-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .kramail-msg-sender {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--kr-text-primary) !important;
+    margin-bottom: 2px !important;
+  }
+
+  .kramail-msg-sender a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .kramail-msg-date {
+    font-size: 12px !important;
+    color: var(--kr-text-muted) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .kramail-msg-date i {
+    font-size: 11px !important;
+  }
+
+  /* --- Destinataires --- */
+  .kramail-msg-recipients {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    line-height: 1.5 !important;
+  }
+
+  .kramail-msg-recipients strong {
+    color: var(--kr-text-muted) !important;
+    font-weight: 500 !important;
+  }
+
+  .kramail-msg-recipients a {
+    color: var(--kr-primary) !important;
+    text-decoration: none !important;
+  }
+
+  /* --- Corps du message — pleine largeur --- */
+  .kramail-msg-body {
+    padding: 16px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: var(--kr-text-primary) !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Blockquote modernisée — barre cuivre + fond distinct */
+  .kramail-msg-body blockquote,
+  .kramail-msg-body .blockquote,
+  .kramail-msg-body .quote {
+    margin: 12px 0 !important;
+    padding: 12px 16px !important;
+    border-left: 3px solid var(--kr-primary) !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 0 8px 8px 0 !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.5 !important;
+  }
+
+  .kramail-msg-body blockquote .fa-quote-left,
+  .kramail-msg-body blockquote .text-warning {
+    color: var(--kr-primary) !important;
+    opacity: 0.6 !important;
+    margin-right: 6px !important;
+    font-size: 12px !important;
+  }
+
+  /* Signature — séparée visuellement */
+  .kramail-msg-signature {
+    margin-top: 16px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Images dans la signature (icons, smileys) */
+  .kramail-msg-signature img.icon {
+    max-height: 18px !important;
+    vertical-align: middle !important;
+  }
+
+  /* === PAGINATION KRAMAIL MESSAGE === */
+  body.mobile-mode .center:has(> ul.pagination) {
+    padding: 8px 16px 16px !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li {
+    list-style: none !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li > a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    font-size: 16px !important;
+    transition: all 0.15s !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li > a:active {
+    transform: scale(0.97) !important;
+    background: var(--kr-primary) !important;
+    border-color: var(--kr-primary) !important;
+    color: white !important;
+  }
+
   /* ============================================================================
      MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
      Structure restructurée par JS:
@@ -13126,6 +13331,253 @@ html:not([class*='-dark']) .mini {
     }
 
     InitQueue.register('Kramail:MobileEnhancer', initKramailMobileEnhancer, 32);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:PostMobileEnhancer
+  // Restructure la page de lecture d'un message kramail pour mobile :
+  //   - Déplace les boutons dans h1 .pull-right (harmonisation inbox)
+  //   - Crée un menu kebab pour les actions secondaires
+  //   - Restructure le message (header horizontal, corps pleine largeur)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailPostMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramail/post/*
+      if (!window.location.pathname.match(/\/kramail\/post\//)) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const forumTop = document.querySelector('.forum-top');
+      if (!h1 || !forumTop) {
+        console.warn('[Kramail Post Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      const originalPullRight = forumTop.querySelector('.pull-right');
+      if (!originalPullRight) {
+        console.warn('[Kramail Post Mobile] .pull-right non trouvé dans .forum-top');
+        return;
+      }
+
+      // --- 1. Déplacer les boutons dans h1 ---
+      const buttons = Array.from(originalPullRight.querySelectorAll('a.btn'));
+      if (buttons.length === 0) {
+        console.warn('[Kramail Post Mobile] Aucun bouton trouvé');
+        return;
+      }
+
+      // Créer un span.pull-right dans h1 (comme l'inbox)
+      const newPullRight = document.createElement('span');
+      newPullRight.className = 'pull-right';
+
+      // Boutons principaux (4 premiers) : Réception, Reply, Reply All, Forward
+      // Boutons secondaires (les 4 restants) : Report, Delete, New, Contacts
+      const primaryButtons = buttons.slice(0, 4); // backward, reply, reply-all, share
+      const secondaryButtons = buttons.slice(4);   // exclamation, times, envelope, user
+
+      // Ajouter les boutons principaux (icon-only)
+      primaryButtons.forEach(function(btn) {
+        // Masquer le texte (le bouton Réception a du texte "Réception")
+        var textNodes = Array.from(btn.childNodes).filter(function(n) { return n.nodeType === 3; });
+        textNodes.forEach(function(t) { t.textContent = ''; });
+        // Marquer le bouton Réception comme btn-primary (retour inbox = onglet actif)
+        if (btn.querySelector('.fa-backward')) {
+          btn.classList.add('btn-primary');
+        }
+        newPullRight.appendChild(btn);
+      });
+
+      // Créer le menu kebab pour les actions secondaires
+      var kebab = document.createElement('div');
+      kebab.className = 'btn-group kramail-post-kebab';
+
+      var kebabToggle = document.createElement('button');
+      kebabToggle.className = 'btn btn-default dropdown-toggle';
+      kebabToggle.type = 'button';
+      kebabToggle.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+
+      var kebabMenu = document.createElement('ul');
+      kebabMenu.className = 'dropdown-menu dropdown-menu-right';
+      kebabMenu.setAttribute('role', 'menu');
+
+      // Labels pour les icônes secondaires
+      var labels = {
+        'fa-exclamation-triangle': 'Signaler',
+        'fa-times': 'Supprimer',
+        'fa-envelope': 'Nouveau message',
+        'fa-user': 'Contacts'
+      };
+
+      secondaryButtons.forEach(function(btn) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = btn.getAttribute('href') || '#';
+
+        var icon = btn.querySelector('i');
+        var iconClass = icon ? icon.className : '';
+        var labelText = '';
+
+        // Récupérer le label via la map
+        Object.keys(labels).forEach(function(key) {
+          if (iconClass.indexOf(key) !== -1) {
+            labelText = labels[key];
+          }
+        });
+
+        a.innerHTML = '<i class="' + iconClass + '"></i> <span class="label-simple">' + labelText + '</span>';
+
+        // Copier les classes spéciales (alertdel)
+        if (btn.classList.contains('alertdel')) {
+          a.classList.add('alertdel');
+        }
+
+        // Copier le onclick si présent
+        var onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr) {
+          a.setAttribute('onclick', onclickAttr);
+        }
+
+        li.appendChild(a);
+        kebabMenu.appendChild(li);
+      });
+
+      kebab.appendChild(kebabToggle);
+      kebab.appendChild(kebabMenu);
+      newPullRight.appendChild(kebab);
+
+      h1.appendChild(newPullRight);
+
+      // Gérer le toggle dropdown manuellement
+      kebabToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        kebab.classList.toggle('open');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!kebab.contains(e.target)) {
+          kebab.classList.remove('open');
+        }
+      });
+
+      // Fermer le dropdown après action
+      kebabMenu.querySelectorAll('a').forEach(function(item) {
+        item.addEventListener('click', function() {
+          setTimeout(function() { kebab.classList.remove('open'); }, 200);
+        });
+      });
+
+      // Marquer forum-top comme déplacé (pour le cacher en CSS)
+      originalPullRight.classList.add('kramail-actions-moved');
+
+      // --- 2. Restructurer le message ---
+      var well = document.querySelector('ul.media-list.forum > li.media.well');
+      if (!well) {
+        console.warn('[Kramail Post Mobile] .media.well non trouvé');
+        return;
+      }
+
+      well.classList.add('kramail-post-restructured');
+
+      // Extraire les données depuis le DOM original
+      var pullLeft = well.querySelector('.pull-left');
+      var mediaBody = well.querySelector('.media-body');
+      if (!pullLeft || !mediaBody) {
+        console.warn('[Kramail Post Mobile] pull-left ou media-body manquant');
+        return;
+      }
+
+      // Avatar
+      var avatarImg = pullLeft.querySelector('img.avatar');
+      var avatarSrc = avatarImg ? avatarImg.src : '';
+      var avatarAlt = avatarImg ? avatarImg.alt : '';
+
+      // Nom de l'expéditeur
+      var senderLink = pullLeft.querySelector('.cartouche strong a');
+      var senderName = senderLink ? senderLink.textContent : avatarAlt;
+      var senderHref = senderLink ? senderLink.href : '#';
+
+      // Date
+      var dateSpan = mediaBody.querySelector('.btn-group-xs .btn');
+      var dateText = '';
+      if (dateSpan) {
+        dateText = dateSpan.textContent.replace('posté', '').trim();
+      }
+
+      // Destinataires (le paragraphe "Envoyé à :")
+      var recipientsP = mediaBody.querySelector('p');
+      var recipientsHTML = recipientsP ? recipientsP.innerHTML : '';
+
+      // Corps du message
+      var contentDiv = mediaBody.querySelector('.t');
+      var contentHTML = contentDiv ? contentDiv.innerHTML : '';
+
+      // Signature (tout ce qui est après .t dans media-body)
+      // C'est le texte après la div.t : <br>___<br><br> + font + texte
+      var signatureHTML = '';
+      if (contentDiv) {
+        var sibling = contentDiv.nextSibling;
+        var sigParts = [];
+        while (sibling) {
+          if (sibling.nodeType === 1) {
+            sigParts.push(sibling.outerHTML);
+          } else if (sibling.nodeType === 3 && sibling.textContent.trim()) {
+            sigParts.push(sibling.textContent);
+          }
+          sibling = sibling.nextSibling;
+        }
+        signatureHTML = sigParts.join('');
+        // Nettoyer le séparateur ___
+        signatureHTML = signatureHTML.replace(/^(<br\s*\/?>)*\s*___\s*(<br\s*\/?>)*/i, '').trim();
+      }
+
+      // --- 3. Construire la nouvelle structure ---
+      // Header : avatar + nom + date
+      var msgHeader = document.createElement('div');
+      msgHeader.className = 'kramail-msg-header';
+      msgHeader.innerHTML =
+        '<img class="kramail-msg-avatar" src="' + avatarSrc + '" alt="' + avatarAlt + '">' +
+        '<div class="kramail-msg-header-info">' +
+          '<div class="kramail-msg-sender"><a href="' + senderHref + '">' + senderName + '</a></div>' +
+          '<div class="kramail-msg-date"><i class="fa fa-clock-o"></i> ' + dateText + '</div>' +
+        '</div>';
+
+      // Destinataires
+      var msgRecipients = document.createElement('div');
+      msgRecipients.className = 'kramail-msg-recipients';
+      msgRecipients.innerHTML = recipientsHTML;
+
+      // Corps du message
+      var msgBody = document.createElement('div');
+      msgBody.className = 'kramail-msg-body';
+      msgBody.innerHTML = contentHTML;
+
+      // Signature (si non vide)
+      if (signatureHTML.length > 5) {
+        var msgSig = document.createElement('div');
+        msgSig.className = 'kramail-msg-signature';
+        msgSig.innerHTML = signatureHTML;
+        msgBody.appendChild(msgSig);
+      }
+
+      // Ajouter les nouveaux éléments au well
+      well.appendChild(msgHeader);
+      well.appendChild(msgRecipients);
+      well.appendChild(msgBody);
+
+      console.log('[Kramail Post Mobile] Page message restructurée');
+    }
+
+    InitQueue.register('Kramail:PostMobileEnhancer', initKramailPostMobileEnhancer, 33);
 
   })();
 
