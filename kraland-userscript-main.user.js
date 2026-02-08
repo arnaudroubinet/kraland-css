@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770570972969
+// @version      1.0.1770583616011
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770570972969';
+  const CURRENT_VERSION = '1.0.1770583616011';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -8966,22 +8966,24 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border-color: var(--kr-primary) !important;
   }
   
-  /* === TABLEAU → CARDS === */
+  /* ============================================================================
+     TABLEAU → CARDS (FORUMS UNIQUEMENT - exclut kramails)
+     ============================================================================ */
   
-  /* Masquer le header du tableau */
-  table.dataTable thead {
+  /* Masquer le header du tableau - Forums uniquement */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable thead {
     display: none !important;
   }
   
-  /* Transformer tbody en flex vertical */
-  table.dataTable tbody {
+  /* Transformer tbody en flex vertical - Forums uniquement */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody {
     display: flex !important;
     flex-direction: column !important;
     gap: var(--mobile-spacing-md) !important;
   }
   
-  /* Chaque <tr> devient une card */
-  table.dataTable tbody tr {
+  /* Chaque <tr> devient une card - Forums uniquement */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody tr {
     display: flex !important;
     flex-direction: column !important;
     background: var(--kr-bg-surface) !important;
@@ -8994,18 +8996,18 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     transition: box-shadow var(--transition-fast) !important;
   }
   
-  /* Hover effect sur card (optionnel, pas prioritaire sur tactile) */
-  table.dataTable tbody tr:hover {
+  /* Hover effect sur card - Forums uniquement */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody tr:hover {
     box-shadow: var(--kr-shadow-md) !important;
   }
   
-  /* === COLONNES VISIBLES === */
+  /* === COLONNES VISIBLES (FORUMS) === */
   
-  /* Masquer colonnes Msg, Vus, Auteur, Dernier Message (affichées autrement) */
-  table.dataTable tbody td:nth-child(2), /* Msg */
-  table.dataTable tbody td:nth-child(3), /* Vus */
-  table.dataTable tbody td:nth-child(4), /* Auteur */
-  table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
+  /* Masquer colonnes Msg, Vus, Auteur, Dernier Message - Forums uniquement */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(2), /* Msg */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(3), /* Vus */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(4), /* Auteur */
+  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
     display: none !important;
   }
   
@@ -9283,6 +9285,491 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     background: var(--kr-bg-surface) !important;
     border-color: var(--kr-border-default) !important;
     color: var(--kr-text-primary) !important;
+  }
+  
+  /* ============================================================================
+     KRAMAIL - REFONTE MOBILE
+     Redesign complet : tabs alignés, quick actions, DataTable → Cards
+     Sélecteurs réels du DOM kraland.org :
+       - h1.page-header > span.pull-right > a.btn (tabs + icons)
+       - #topics (DataTable), #topics_wrapper
+       - .panel.panel-default > .panel-heading + .panel-body
+     ============================================================================ */
+
+  /* === 1. H1 PAGE HEADER : layout vertical === */
+  h1.page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+  }
+
+  /* Le span.pull-right qui contient TOUS les boutons : annuler le float */
+  h1.page-header .pull-right {
+    float: none !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px === */
+  /* Style commun : tabs (a.btn) + bouton kebab (.btn-group > .btn) */
+  h1.page-header .pull-right > a.btn,
+  h1.page-header .pull-right > .btn-group > .btn {
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast) !important;
+  }
+
+  /* Icônes — taille et alignement uniformes */
+  h1.page-header .pull-right > a.btn > i,
+  h1.page-header .pull-right > .btn-group > .btn > i {
+    font-size: 18px !important;
+    line-height: 1 !important;
+  }
+
+  /* Tab actif (btn-primary = onglet sélectionné) */
+  h1.page-header .pull-right > a.btn.btn-primary {
+    background: var(--kr-primary) !important;
+    border-color: var(--kr-primary) !important;
+    color: white !important;
+  }
+
+  /* Feedback tactile */
+  h1.page-header .pull-right > a.btn:active,
+  h1.page-header .pull-right > .btn-group > .btn:active {
+    transform: scale(0.97) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Container du bouton kebab — taille contrainte */
+  h1.page-header .pull-right > .btn-group {
+    position: relative !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Dropdown menu du bouton "+" */
+  h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    min-width: 260px !important;
+    right: 0 !important;
+    left: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 10px !important;
+    padding: 8px 0 !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+  }
+
+  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+    font-size: 15px !important;
+    color: var(--kr-text-primary) !important;
+    white-space: nowrap !important;
+  }
+
+  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+    background: rgba(255,255,255,0.08) !important;
+  }
+
+  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a .label-simple {
+    font-size: 15px !important;
+    color: var(--kr-text-primary) !important;
+  }
+
+  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* === 4. PANEL BOÎTE DE RÉCEPTION (scopé kramail) === */
+  body:has(h1 a[href*="kramail"]) .panel.panel-default {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  body:has(h1 a[href*="kramail"]) .panel-heading {
+    padding: 12px 16px !important;
+    background: transparent !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+  }
+
+  body:has(h1 a[href*="kramail"]) .panel-heading h3.panel-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--kr-primary) !important;
+  }
+
+  /* Icône chevron collapse */
+  body:has(h1 a[href*="kramail"]) .panel-heading .glyphicon-chevron-up {
+    float: right !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  body:has(h1 a[href*="kramail"]) .panel-body {
+    padding: 0 !important;
+  }
+
+  /* === 5. DATATABLE CONTRÔLES === */
+  /* Cacher "Afficher X lignes" sur mobile - encombre inutilement */
+  #topics_wrapper .dataTables_length {
+    display: none !important;
+  }
+
+  /* Barre de recherche DataTable - optimisée tactile */
+  #topics_wrapper .dataTables_filter {
+    padding: 12px 16px !important;
+    text-align: left !important;
+    width: 100% !important;
+  }
+
+  #topics_wrapper .dataTables_filter label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  #topics_wrapper .dataTables_filter input[type="search"],
+  #topics_wrapper .dataTables_filter input {
+    flex: 1 !important;
+    height: 44px !important;
+    padding: 0 16px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border-radius: 22px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
+    -webkit-appearance: none !important;
+  }
+
+  #topics_wrapper .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: var(--kr-primary) !important;
+    box-shadow: 0 0 0 3px rgba(212, 134, 62, 0.15) !important;
+  }
+
+  /* Info "Affiche X à Y de Z lignes" */
+  #topics_wrapper .dataTables_info {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    text-align: center !important;
+  }
+
+  /* Pagination */
+  #topics_wrapper .dataTables_paginate {
+    padding: 8px 16px 16px !important;
+    text-align: center !important;
+  }
+
+  #topics_wrapper .dataTables_paginate .paginate_button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 10px 14px !important;
+    margin: 0 4px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+  }
+
+  /* === 6. TABLE #topics → CARDS LAYOUT === */
+  /* Cacher le thead de la table */
+  #topics thead {
+    display: none !important;
+  }
+
+  /* Table en layout bloc */
+  #topics {
+    display: block !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+  }
+
+  #topics tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px 16px !important;
+  }
+
+  /* Chaque TR devient une carte */
+  #topics tbody tr {
+    display: grid !important;
+    grid-template-columns: 36px 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 4px 10px !important;
+    padding: 12px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: background var(--transition-fast) !important;
+    min-height: 56px !important;
+    position: relative !important;
+  }
+
+  /* Feedback tactile carte */
+  #topics tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+
+  /* Cellule 1 : Checkbox */
+  #topics tbody td:first-child {
+    grid-row: 1 / -1 !important;
+    grid-column: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    width: auto !important;
+    border: none !important;
+  }
+
+  #topics tbody td:first-child input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    cursor: pointer !important;
+    accent-color: var(--kr-primary) !important;
+  }
+
+  /* Cellule 2 : Message (titre + icône) */
+  #topics tbody td:nth-child(2) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+
+  /* Le paragraphe wrapper */
+  #topics tbody td:nth-child(2) p.nomargin {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Le span#ajax-mXXX qui contient icône + titre */
+  #topics tbody td:nth-child(2) span[id^="ajax-m"] {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+  }
+
+  /* Icône du message (enveloppe, reply, etc.) */
+  #topics tbody td:nth-child(2) a:first-child i.fa,
+  #topics tbody td:nth-child(2) a:first-child i.far,
+  #topics tbody td:nth-child(2) a:first-child i.fas {
+    font-size: 16px !important;
+    color: var(--kr-text-secondary) !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Lien icône (ne doit pas prendre toute la largeur) */
+  #topics tbody td:nth-child(2) span[id^="ajax-m"] > a:first-child {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Lien titre du message */
+  #topics tbody td:nth-child(2) a:last-of-type {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 1.3 !important;
+    display: block !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Cacher le span.invisible (doublon du titre pour tri) */
+  #topics tbody td:nth-child(2) span.invisible {
+    display: none !important;
+  }
+
+  /* Cellule 3 : Auteur - sous le titre à gauche */
+  #topics tbody td:nth-child(3) {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    display: inline !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  #topics tbody td:nth-child(3) a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+  }
+
+  /* Cellule 4 : Date - sous le titre à droite (même ligne que auteur) */
+  #topics tbody td:nth-child(4) {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 12px !important;
+    color: var(--kr-text-muted) !important;
+    text-align: right !important;
+  }
+
+  /* Cacher le span.invisible (date ISO pour tri) dans la cellule date */
+  #topics tbody td:nth-child(4) span.invisible {
+    display: none !important;
+  }
+
+  /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) === */
+  /* Comme le thead est caché, on déplace le btn-group d'actions au-dessus */
+  #topics_wrapper .btn-group {
+    display: flex !important;
+    gap: 4px !important;
+    padding: 8px 16px !important;
+  }
+
+  #topics_wrapper .btn-group .btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 10px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+
+  /* === DROPDOWN CHANGEMENT DE PERSONNAGE === */
+
+  /* Wrapper titre cliquable */
+  .kramail-character-selector {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    padding: 8px 12px !important;
+    margin: -8px -12px !important;
+    border-radius: var(--mobile-radius) !important;
+    transition: background var(--transition-fast) !important;
+  }
+
+  .kramail-character-selector:active {
+    background: var(--kr-bg-active) !important;
+  }
+
+  /* Icône dropdown */
+  .kramail-dropdown-icon {
+    font-size: 12px !important;
+    transition: transform var(--transition-fast) !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  /* Container dropdown */
+  .kramail-character-dropdown {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+    min-width: calc(100vw - 48px) !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    box-shadow: var(--kr-shadow-lg) !important;
+    margin-top: 8px !important;
+    z-index: 1000 !important;
+    overflow: hidden !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    display: none;
+    flex-direction: column !important;
+  }
+
+  /* Quand ouvert : afficher en colonne */
+  .kramail-character-dropdown[style*="display: block"],
+  .kramail-character-dropdown[style*="display:block"] {
+    display: flex !important;
+  }
+
+  /* Options de personnage — centrées, une par ligne */
+  .kramail-character-option {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    min-height: var(--mobile-touch-target) !important;
+    text-decoration: none !important;
+    color: var(--kr-text-primary) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    transition: background var(--transition-fast) !important;
+  }
+
+  /* Nom du personnage centré (surcharge inline style) */
+  .kramail-character-option > div:first-child {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* Catégorie centrée */
+  .kramail-character-option > div:last-child {
+    text-align: center !important;
+  }
+
+  .kramail-character-option:last-child {
+    border-bottom: none !important;
+  }
+
+  .kramail-character-option:active {
+    background: var(--kr-bg-active) !important;
+  }
+
+  /* === DARK MODE KRAMAIL === */
+  html[class*="-dark"] .kramail-character-dropdown {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+  }
+
+  html[class*="-dark"] .kramail-character-option {
+    color: var(--kr-text-primary) !important;
+    border-bottom-color: var(--kr-border-default) !important;
   }
   
   /* ============================================================================
@@ -12104,6 +12591,11 @@ html:not([class*='-dark']) .mini {
         return;
       }
 
+      // Ne pas exécuter sur les pages kramails (structure différente)
+      if (window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
       // Cibler le h1 qui contient "Taverne" et les liens
       const forumHeading = document.querySelector('.container h1');
       if (!forumHeading) {
@@ -12239,6 +12731,401 @@ html:not([class*='-dark']) .mini {
     }
 
     InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:CharacterSwitcher
+  // Ajoute un dropdown pour changer de personnage dans les kramails (mobile)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailCharacterSwitcher() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const colLeft = document.getElementById('col-left');
+      
+      if (!h1 || !colLeft) {
+        console.warn('[Kramail Character Switcher] h1 ou col-left non trouvé');
+        return;
+      }
+
+      // Extraire le nom du personnage actuel depuis h1
+      const currentCharName = Array.from(h1.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!currentCharName) {
+        console.warn('[Kramail Character Switcher] Nom du personnage non trouvé');
+        return;
+      }
+
+      // Extraire les personnages depuis col-left
+      const characterLinks = Array.from(colLeft.querySelectorAll('a[href*="kramail/"]'))
+        .filter(a => {
+          // Filtrer uniquement les liens vers les kramails de personnages
+          const href = a.getAttribute('href');
+          return href && href.match(/kramail\/[^\/]+-\d+-\d+$/);
+        })
+        .map(a => {
+          // Trouver la catégorie (Compte Membre, Plateau, etc.)
+          let category = '';
+          let sibling = a.previousElementSibling;
+          while (sibling) {
+            if (sibling.classList && sibling.classList.contains('list-group-subtitle')) {
+              category = sibling.textContent.trim();
+              break;
+            }
+            sibling = sibling.previousElementSibling;
+          }
+          
+          return {
+            name: a.textContent.trim(),
+            href: a.href,
+            category: category,
+            isActive: a.textContent.trim() === currentCharName
+          };
+        });
+
+      if (characterLinks.length === 0) {
+        console.warn('[Kramail Character Switcher] Aucun personnage trouvé');
+        return;
+      }
+
+      // Si un seul personnage, pas besoin de dropdown
+      if (characterLinks.length === 1) {
+        return;
+      }
+
+      // Créer le dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'kramail-character-dropdown';
+      dropdown.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--kr-bg-surface);
+        border: 1px solid var(--kr-border-default);
+        border-radius: var(--mobile-radius);
+        box-shadow: var(--kr-shadow-lg);
+        margin-top: 8px;
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+      `;
+
+      // Créer les options
+      characterLinks.forEach(char => {
+        const option = document.createElement('a');
+        option.href = char.href;
+        option.className = 'kramail-character-option';
+        option.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          padding: 12px 16px;
+          min-height: 44px;
+          text-decoration: none;
+          color: var(--kr-text-primary);
+          border-bottom: 1px solid var(--kr-border-default);
+          transition: background var(--transition-fast);
+        `;
+
+        // Nom du personnage
+        const nameSpan = document.createElement('div');
+        nameSpan.style.cssText = `
+          font-size: 16px;
+          font-weight: ${char.isActive ? '600' : '400'};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        `;
+        nameSpan.textContent = char.name;
+
+        // Icône check si actif
+        if (char.isActive) {
+          const checkIcon = document.createElement('span');
+          checkIcon.textContent = '✓';
+          checkIcon.style.cssText = `
+            color: var(--kr-primary);
+            font-weight: 700;
+          `;
+          nameSpan.insertBefore(checkIcon, nameSpan.firstChild);
+        }
+
+        option.appendChild(nameSpan);
+
+        // Catégorie (si disponible)
+        if (char.category) {
+          const categorySpan = document.createElement('div');
+          categorySpan.style.cssText = `
+            font-size: 13px;
+            color: var(--kr-text-muted);
+            margin-top: 2px;
+          `;
+          categorySpan.textContent = `(${char.category})`;
+          option.appendChild(categorySpan);
+        }
+
+        // Feedback tactile
+        option.addEventListener('touchstart', () => {
+          option.style.background = 'var(--kr-bg-active)';
+        }, { passive: true });
+        
+        option.addEventListener('touchend', () => {
+          option.style.background = '';
+        }, { passive: true });
+
+        option.addEventListener('mouseenter', () => {
+          option.style.background = 'var(--kr-bg-hover)';
+        });
+        
+        option.addEventListener('mouseleave', () => {
+          option.style.background = '';
+        });
+
+        dropdown.appendChild(option);
+      });
+
+      // Wrapper pour le titre + icône
+      const titleWrapper = document.createElement('div');
+      titleWrapper.className = 'kramail-character-selector';
+      titleWrapper.style.cssText = `
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        padding: 8px 12px;
+        margin: -8px -12px;
+        border-radius: var(--mobile-radius);
+        transition: background var(--transition-fast);
+      `;
+
+      // Remplacer le texte du nom par le wrapper
+      const textNode = Array.from(h1.childNodes).find(node => 
+        node.nodeType === Node.TEXT_NODE && node.textContent.trim() === currentCharName
+      );
+
+      if (!textNode) {
+        console.warn('[Kramail Character Switcher] Nœud texte non trouvé');
+        return;
+      }
+
+      // Créer les éléments du titre
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = currentCharName;
+      nameSpan.style.fontWeight = '700';
+
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '▼';
+      iconSpan.className = 'kramail-dropdown-icon';
+      iconSpan.style.cssText = `
+        font-size: 12px;
+        transition: transform var(--transition-fast);
+        color: var(--kr-text-secondary);
+      `;
+
+      titleWrapper.appendChild(nameSpan);
+      titleWrapper.appendChild(iconSpan);
+      titleWrapper.appendChild(dropdown);
+
+      // Remplacer le texte par le wrapper
+      h1.insertBefore(titleWrapper, textNode);
+      textNode.remove();
+
+      // Gérer l'ouverture/fermeture du dropdown
+      let isOpen = false;
+
+      const toggleDropdown = () => {
+        isOpen = !isOpen;
+        dropdown.style.display = isOpen ? 'block' : 'none';
+        iconSpan.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        titleWrapper.style.background = isOpen ? 'var(--kr-bg-hover)' : '';
+      };
+
+      const closeDropdown = () => {
+        if (isOpen) {
+          isOpen = false;
+          dropdown.style.display = 'none';
+          iconSpan.style.transform = 'rotate(0deg)';
+          titleWrapper.style.background = '';
+        }
+      };
+
+      titleWrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+
+      // Fermer si on clique ailleurs
+      document.addEventListener('click', (e) => {
+        if (!titleWrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+
+      // Fermer lors de la navigation (au cas où)
+      dropdown.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          closeDropdown();
+        });
+      });
+
+      console.log('[Kramail Character Switcher] Dropdown créé avec', characterLinks.length, 'personnages');
+    }
+
+    // Observer les changements de mode mobile/desktop pour réinitialiser le dropdown
+    function observeMobileMode() {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const isMobile = document.body.classList.contains('mobile-mode');
+            const dropdownExists = document.querySelector('.kramail-character-selector');
+            
+            // Si on est en mobile ET que le dropdown n'existe pas, le créer
+            if (isMobile && !dropdownExists && window.location.pathname.includes('/kramail')) {
+              console.log('[Kramail Character Switcher] Réinitialisation du dropdown (changement de mode)');
+              initKramailCharacterSwitcher();
+            }
+          }
+        });
+      });
+
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+
+    InitQueue.register('Kramail:CharacterSwitcher', initKramailCharacterSwitcher, 30);
+    InitQueue.register('Kramail:CharacterSwitcher:Observer', observeMobileMode, 31);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:MobileEnhancer
+  // Clone le bouton d'actions "+" (sélection/suppression) du thead
+  // vers la barre de boutons pour accès mobile
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const pullRight = document.querySelector('h1.page-header .pull-right');
+      if (!pullRight) {
+        console.warn('[Kramail Mobile Enhancer] .pull-right non trouvé');
+        return;
+      }
+
+      // Cloner le .btn-group (bouton "+" avec dropdown) du thead
+      const originalBtnGroup = document.querySelector('#topics thead .btn-group');
+      if (!originalBtnGroup) {
+        console.warn('[Kramail Mobile Enhancer] .btn-group non trouvé dans le thead');
+        return;
+      }
+
+      const clone = originalBtnGroup.cloneNode(true);
+      clone.classList.add('kramail-actions-mobile');
+      pullRight.appendChild(clone);
+
+      // Remplacer l'icône "+" par un menu kebab (⋮)
+      const toggleBtn = clone.querySelector('.dropdown-toggle');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+      }
+
+      // Gérer le toggle dropdown manuellement (car les handlers Bootstrap ne sont pas clonés)
+      const dropdownMenu = clone.querySelector('.dropdown-menu');
+
+      if (toggleBtn && dropdownMenu) {
+        toggleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          clone.classList.toggle('open');
+        });
+
+        // Fermer le dropdown quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+          if (!clone.contains(e.target)) {
+            clone.classList.remove('open');
+          }
+        });
+
+        // Rebrancher les onclick des items du menu
+        // 1) "Tout sélectionner" — toggle toutes les checkboxes directement
+        const allboxClone = clone.querySelector('#allbox');
+        if (allboxClone) {
+          allboxClone.removeAttribute('id');
+          allboxClone.setAttribute('name', 'allbox-mobile');
+          allboxClone.removeAttribute('onclick');
+
+          function toggleAllMessages(checked) {
+            const boxes = document.querySelectorAll('input[type="checkbox"][name="c[]"]');
+            boxes.forEach(function(cb) { cb.checked = checked; });
+            // Synchroniser aussi la checkbox originale du thead
+            const original = document.querySelector('#allbox');
+            if (original) original.checked = checked;
+          }
+
+          allboxClone.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleAllMessages(allboxClone.checked);
+          });
+
+          // Rendre le label cliquable aussi
+          const label = allboxClone.closest('a');
+          if (label) {
+            label.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              allboxClone.checked = !allboxClone.checked;
+              toggleAllMessages(allboxClone.checked);
+            });
+          }
+        }
+
+        // 2) Marquer lu/non lu — inline onclick appelle flagKramail(...)
+        // 3) Marquer important — inline onclick appelle flagKramail(...)
+        // 4) Supprimer — classe .alertdel
+        // Ces handlers utilisent des fonctions globales, les inline onclick sont clonés
+        // mais il faut aussi fermer le dropdown après action
+        const menuItems = clone.querySelectorAll('.dropdown-menu li a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            // Fermer le dropdown après action
+            setTimeout(function() {
+              clone.classList.remove('open');
+            }, 200);
+          });
+        });
+      }
+
+      console.log('[Kramail Mobile Enhancer] Bouton "+" cloné dans la barre de navigation');
+    }
+
+    InitQueue.register('Kramail:MobileEnhancer', initKramailMobileEnhancer, 32);
 
   })();
 
@@ -13175,6 +14062,11 @@ html:not([class*='-dark']) .mini {
   }
 
   function relocateKramailToLeft() {
+    // Ne pas exécuter sur les pages kramails (préserver navigation Réception/Envoi/Corbeille)
+    if (window.location.pathname.includes('/kramail')) {
+      return;
+    }
+    
     const colT = document.getElementById('col-t');
     const colLeft = document.getElementById('col-left');
     if (!colT || !colLeft) {return;}

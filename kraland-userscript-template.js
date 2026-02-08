@@ -3883,6 +3883,11 @@
         return;
       }
 
+      // Ne pas exécuter sur les pages kramails (structure différente)
+      if (window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
       // Cibler le h1 qui contient "Taverne" et les liens
       const forumHeading = document.querySelector('.container h1');
       if (!forumHeading) {
@@ -4018,6 +4023,401 @@
     }
 
     InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:CharacterSwitcher
+  // Ajoute un dropdown pour changer de personnage dans les kramails (mobile)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailCharacterSwitcher() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const colLeft = document.getElementById('col-left');
+      
+      if (!h1 || !colLeft) {
+        console.warn('[Kramail Character Switcher] h1 ou col-left non trouvé');
+        return;
+      }
+
+      // Extraire le nom du personnage actuel depuis h1
+      const currentCharName = Array.from(h1.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!currentCharName) {
+        console.warn('[Kramail Character Switcher] Nom du personnage non trouvé');
+        return;
+      }
+
+      // Extraire les personnages depuis col-left
+      const characterLinks = Array.from(colLeft.querySelectorAll('a[href*="kramail/"]'))
+        .filter(a => {
+          // Filtrer uniquement les liens vers les kramails de personnages
+          const href = a.getAttribute('href');
+          return href && href.match(/kramail\/[^\/]+-\d+-\d+$/);
+        })
+        .map(a => {
+          // Trouver la catégorie (Compte Membre, Plateau, etc.)
+          let category = '';
+          let sibling = a.previousElementSibling;
+          while (sibling) {
+            if (sibling.classList && sibling.classList.contains('list-group-subtitle')) {
+              category = sibling.textContent.trim();
+              break;
+            }
+            sibling = sibling.previousElementSibling;
+          }
+          
+          return {
+            name: a.textContent.trim(),
+            href: a.href,
+            category: category,
+            isActive: a.textContent.trim() === currentCharName
+          };
+        });
+
+      if (characterLinks.length === 0) {
+        console.warn('[Kramail Character Switcher] Aucun personnage trouvé');
+        return;
+      }
+
+      // Si un seul personnage, pas besoin de dropdown
+      if (characterLinks.length === 1) {
+        return;
+      }
+
+      // Créer le dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'kramail-character-dropdown';
+      dropdown.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--kr-bg-surface);
+        border: 1px solid var(--kr-border-default);
+        border-radius: var(--mobile-radius);
+        box-shadow: var(--kr-shadow-lg);
+        margin-top: 8px;
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+      `;
+
+      // Créer les options
+      characterLinks.forEach(char => {
+        const option = document.createElement('a');
+        option.href = char.href;
+        option.className = 'kramail-character-option';
+        option.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          padding: 12px 16px;
+          min-height: 44px;
+          text-decoration: none;
+          color: var(--kr-text-primary);
+          border-bottom: 1px solid var(--kr-border-default);
+          transition: background var(--transition-fast);
+        `;
+
+        // Nom du personnage
+        const nameSpan = document.createElement('div');
+        nameSpan.style.cssText = `
+          font-size: 16px;
+          font-weight: ${char.isActive ? '600' : '400'};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        `;
+        nameSpan.textContent = char.name;
+
+        // Icône check si actif
+        if (char.isActive) {
+          const checkIcon = document.createElement('span');
+          checkIcon.textContent = '✓';
+          checkIcon.style.cssText = `
+            color: var(--kr-primary);
+            font-weight: 700;
+          `;
+          nameSpan.insertBefore(checkIcon, nameSpan.firstChild);
+        }
+
+        option.appendChild(nameSpan);
+
+        // Catégorie (si disponible)
+        if (char.category) {
+          const categorySpan = document.createElement('div');
+          categorySpan.style.cssText = `
+            font-size: 13px;
+            color: var(--kr-text-muted);
+            margin-top: 2px;
+          `;
+          categorySpan.textContent = `(${char.category})`;
+          option.appendChild(categorySpan);
+        }
+
+        // Feedback tactile
+        option.addEventListener('touchstart', () => {
+          option.style.background = 'var(--kr-bg-active)';
+        }, { passive: true });
+        
+        option.addEventListener('touchend', () => {
+          option.style.background = '';
+        }, { passive: true });
+
+        option.addEventListener('mouseenter', () => {
+          option.style.background = 'var(--kr-bg-hover)';
+        });
+        
+        option.addEventListener('mouseleave', () => {
+          option.style.background = '';
+        });
+
+        dropdown.appendChild(option);
+      });
+
+      // Wrapper pour le titre + icône
+      const titleWrapper = document.createElement('div');
+      titleWrapper.className = 'kramail-character-selector';
+      titleWrapper.style.cssText = `
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        padding: 8px 12px;
+        margin: -8px -12px;
+        border-radius: var(--mobile-radius);
+        transition: background var(--transition-fast);
+      `;
+
+      // Remplacer le texte du nom par le wrapper
+      const textNode = Array.from(h1.childNodes).find(node => 
+        node.nodeType === Node.TEXT_NODE && node.textContent.trim() === currentCharName
+      );
+
+      if (!textNode) {
+        console.warn('[Kramail Character Switcher] Nœud texte non trouvé');
+        return;
+      }
+
+      // Créer les éléments du titre
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = currentCharName;
+      nameSpan.style.fontWeight = '700';
+
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '▼';
+      iconSpan.className = 'kramail-dropdown-icon';
+      iconSpan.style.cssText = `
+        font-size: 12px;
+        transition: transform var(--transition-fast);
+        color: var(--kr-text-secondary);
+      `;
+
+      titleWrapper.appendChild(nameSpan);
+      titleWrapper.appendChild(iconSpan);
+      titleWrapper.appendChild(dropdown);
+
+      // Remplacer le texte par le wrapper
+      h1.insertBefore(titleWrapper, textNode);
+      textNode.remove();
+
+      // Gérer l'ouverture/fermeture du dropdown
+      let isOpen = false;
+
+      const toggleDropdown = () => {
+        isOpen = !isOpen;
+        dropdown.style.display = isOpen ? 'block' : 'none';
+        iconSpan.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        titleWrapper.style.background = isOpen ? 'var(--kr-bg-hover)' : '';
+      };
+
+      const closeDropdown = () => {
+        if (isOpen) {
+          isOpen = false;
+          dropdown.style.display = 'none';
+          iconSpan.style.transform = 'rotate(0deg)';
+          titleWrapper.style.background = '';
+        }
+      };
+
+      titleWrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+
+      // Fermer si on clique ailleurs
+      document.addEventListener('click', (e) => {
+        if (!titleWrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+
+      // Fermer lors de la navigation (au cas où)
+      dropdown.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          closeDropdown();
+        });
+      });
+
+      console.log('[Kramail Character Switcher] Dropdown créé avec', characterLinks.length, 'personnages');
+    }
+
+    // Observer les changements de mode mobile/desktop pour réinitialiser le dropdown
+    function observeMobileMode() {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const isMobile = document.body.classList.contains('mobile-mode');
+            const dropdownExists = document.querySelector('.kramail-character-selector');
+            
+            // Si on est en mobile ET que le dropdown n'existe pas, le créer
+            if (isMobile && !dropdownExists && window.location.pathname.includes('/kramail')) {
+              console.log('[Kramail Character Switcher] Réinitialisation du dropdown (changement de mode)');
+              initKramailCharacterSwitcher();
+            }
+          }
+        });
+      });
+
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+
+    InitQueue.register('Kramail:CharacterSwitcher', initKramailCharacterSwitcher, 30);
+    InitQueue.register('Kramail:CharacterSwitcher:Observer', observeMobileMode, 31);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:MobileEnhancer
+  // Clone le bouton d'actions "+" (sélection/suppression) du thead
+  // vers la barre de boutons pour accès mobile
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const pullRight = document.querySelector('h1.page-header .pull-right');
+      if (!pullRight) {
+        console.warn('[Kramail Mobile Enhancer] .pull-right non trouvé');
+        return;
+      }
+
+      // Cloner le .btn-group (bouton "+" avec dropdown) du thead
+      const originalBtnGroup = document.querySelector('#topics thead .btn-group');
+      if (!originalBtnGroup) {
+        console.warn('[Kramail Mobile Enhancer] .btn-group non trouvé dans le thead');
+        return;
+      }
+
+      const clone = originalBtnGroup.cloneNode(true);
+      clone.classList.add('kramail-actions-mobile');
+      pullRight.appendChild(clone);
+
+      // Remplacer l'icône "+" par un menu kebab (⋮)
+      const toggleBtn = clone.querySelector('.dropdown-toggle');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+      }
+
+      // Gérer le toggle dropdown manuellement (car les handlers Bootstrap ne sont pas clonés)
+      const dropdownMenu = clone.querySelector('.dropdown-menu');
+
+      if (toggleBtn && dropdownMenu) {
+        toggleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          clone.classList.toggle('open');
+        });
+
+        // Fermer le dropdown quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+          if (!clone.contains(e.target)) {
+            clone.classList.remove('open');
+          }
+        });
+
+        // Rebrancher les onclick des items du menu
+        // 1) "Tout sélectionner" — toggle toutes les checkboxes directement
+        const allboxClone = clone.querySelector('#allbox');
+        if (allboxClone) {
+          allboxClone.removeAttribute('id');
+          allboxClone.setAttribute('name', 'allbox-mobile');
+          allboxClone.removeAttribute('onclick');
+
+          function toggleAllMessages(checked) {
+            const boxes = document.querySelectorAll('input[type="checkbox"][name="c[]"]');
+            boxes.forEach(function(cb) { cb.checked = checked; });
+            // Synchroniser aussi la checkbox originale du thead
+            const original = document.querySelector('#allbox');
+            if (original) original.checked = checked;
+          }
+
+          allboxClone.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleAllMessages(allboxClone.checked);
+          });
+
+          // Rendre le label cliquable aussi
+          const label = allboxClone.closest('a');
+          if (label) {
+            label.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              allboxClone.checked = !allboxClone.checked;
+              toggleAllMessages(allboxClone.checked);
+            });
+          }
+        }
+
+        // 2) Marquer lu/non lu — inline onclick appelle flagKramail(...)
+        // 3) Marquer important — inline onclick appelle flagKramail(...)
+        // 4) Supprimer — classe .alertdel
+        // Ces handlers utilisent des fonctions globales, les inline onclick sont clonés
+        // mais il faut aussi fermer le dropdown après action
+        const menuItems = clone.querySelectorAll('.dropdown-menu li a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            // Fermer le dropdown après action
+            setTimeout(function() {
+              clone.classList.remove('open');
+            }, 200);
+          });
+        });
+      }
+
+      console.log('[Kramail Mobile Enhancer] Bouton "+" cloné dans la barre de navigation');
+    }
+
+    InitQueue.register('Kramail:MobileEnhancer', initKramailMobileEnhancer, 32);
 
   })();
 
@@ -4954,6 +5354,11 @@
   }
 
   function relocateKramailToLeft() {
+    // Ne pas exécuter sur les pages kramails (préserver navigation Réception/Envoi/Corbeille)
+    if (window.location.pathname.includes('/kramail')) {
+      return;
+    }
+    
     const colT = document.getElementById('col-t');
     const colLeft = document.getElementById('col-left');
     if (!colT || !colLeft) {return;}

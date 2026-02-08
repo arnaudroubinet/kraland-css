@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.0.1770583616011",
+      "releaseDate": "2026-02-08",
+      "changes": [
+        "Refonte de l'interface kramail."
+      ]
+    },
+    {
       "version": "1.0.1769352134492",
       "releaseDate": "2026-01-25",
       "changes": [
