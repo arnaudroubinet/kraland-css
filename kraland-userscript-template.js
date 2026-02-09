@@ -183,6 +183,26 @@
       isMobile: isMobileDevice,
       reinit: initMobileMode
     };
+
+    // === Classe page-type basée sur l'URL ===
+    // Utilisée en CSS pour scoper les règles kramail vs forum
+    function addPageTypeClass() {
+      if (!document.body) return;
+      const path = window.location.pathname;
+      if (path.includes('/kramail')) {
+        document.body.classList.add('page-kramail');
+        if (path.match(/\/kramail\/post\/nouveau/)) {
+          document.body.classList.add('page-kramail-compose');
+        }
+      } else if (path.startsWith('/forum/')) {
+        document.body.classList.add('page-forum');
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addPageTypeClass);
+    } else {
+      addPageTypeClass();
+    }
   })();
 
   // ============================================================================
@@ -3713,85 +3733,84 @@
   // ============================================================================
   (function () {
     function enrichForumTopicsCards() {
-      // N'exécuter qu'en mode mobile
+      // N'exécuter qu'en mode mobile et uniquement sur les pages forum
       if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (!document.body.classList.contains('page-forum')) {return;}
 
-      // Cibler uniquement les DataTables de forum (pas les "Sujets permanents")
-      const forumTable = document.querySelector('table.dataTable');
+      // Cibler la table #topics (DataTable)
+      const forumTable = document.getElementById('topics');
       if (!forumTable) {return;}
 
-      const rows = forumTable.querySelectorAll('tbody tr');
-      if (rows.length === 0) {return;}
+      function processRows() {
+        const rows = forumTable.querySelectorAll('tbody tr');
+        if (rows.length === 0) {return;}
 
-      rows.forEach(row => {
-        // Éviter le double traitement
-        if (row.hasAttribute('data-stats-added')) {return;}
-        row.setAttribute('data-stats-added', 'true');
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-stats-added')) {return;}
+          row.setAttribute('data-stats-added', 'true');
 
-        // Récupérer les cellules
-        const titleCell = row.querySelector('td:nth-child(1)');
-        const msgCell = row.querySelector('td:nth-child(2)');
-        const viewsCell = row.querySelector('td:nth-child(3)');
+          // Récupérer les cellules
+          const titleCell = row.querySelector('td:nth-child(1)');
+          const msgCell = row.querySelector('td:nth-child(2)');
+          const viewsCell = row.querySelector('td:nth-child(3)');
 
-        if (!titleCell || !msgCell || !viewsCell) {return;}
+          if (!titleCell || !msgCell || !viewsCell) {return;}
 
-        // === SMART NAVIGATION ===
-        // Détecter si l'icône "premier message non lu" existe
-        const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
-        const titleLink = titleCell.querySelector('p > a');
-        
-        if (unreadIconLink && titleLink) {
-          // Sujet NON LU : rediriger le titre vers le premier message non lu
-          titleLink.href = unreadIconLink.href;
-          titleLink.setAttribute('data-smart-redirect', 'first-unread');
-        }
-        // Si pas d'icône (sujet lu), le titre garde son URL d'origine (page 1)
-
-        // === CARD CLIQUABLE (comme Sujets permanents) ===
-        if (titleLink) {
-          row.style.cursor = 'pointer';
+          // === SMART NAVIGATION ===
+          // Détecter si l'icône "premier message non lu" existe
+          const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+          const titleLink = titleCell.querySelector('p > a');
           
-          row.addEventListener('click', (e) => {
-            // Ne pas intercepter les clics sur les liens de tags
-            if (e.target.tagName === 'A' || e.target.closest('a')) {
-              return;
-            }
-            // Simuler le clic sur le titre
-            titleLink.click();
-          });
-        }
+          if (unreadIconLink && titleLink) {
+            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            titleLink.href = unreadIconLink.href;
+            titleLink.setAttribute('data-smart-redirect', 'first-unread');
+          }
 
-        // === STATS SIMPLES (style "Sujets permanents") ===
-        
-        // Extraire les valeurs
-        const msgCount = msgCell.textContent.trim();
-        const viewsCount = viewsCell.textContent.trim();
+          // === CARD CLIQUABLE ===
+          if (titleLink) {
+            row.style.cursor = 'pointer';
+            
+            row.addEventListener('click', (e) => {
+              if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+              }
+              titleLink.click();
+            });
+          }
 
-        // Créer les stats avec icônes pour clarté
-        const statsContainer = document.createElement('div');
-        statsContainer.className = 'forum-topic-stats-mobile';
-        statsContainer.innerHTML = `
-          <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
-          <span style="margin: 0 4px;">·</span>
-          <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
-        `;
-        statsContainer.style.cssText = `
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 13px;
-          color: var(--kr-text-secondary);
-          margin-bottom: 8px;
-        `;
+          // === STATS SIMPLES ===
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
 
-        // Insérer après le titre
-        const titleParagraph = titleCell.querySelector('p');
-        if (titleParagraph) {
-          titleParagraph.after(statsContainer);
-        }
-      });
+          const statsContainer = document.createElement('div');
+          statsContainer.className = 'forum-topic-stats-mobile';
+          statsContainer.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span class="stats-sep">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
 
-      console.log(`[Forum Topics Mobile] ${rows.length} sujets enrichis`);
+          // Insérer après le titre
+          const titleParagraph = titleCell.querySelector('p');
+          if (titleParagraph) {
+            titleParagraph.after(statsContainer);
+          }
+        });
+
+        console.log(`[Forum Topics Mobile] Sujets enrichis`);
+      }
+
+      // Exécuter immédiatement
+      processRows();
+
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      if (typeof jQuery !== 'undefined') {
+        jQuery(forumTable).on('draw.dt', function() {
+          processRows();
+        });
+      }
     }
 
     InitQueue.register('ForumTopics:MobileStats', enrichForumTopicsCards, 25);

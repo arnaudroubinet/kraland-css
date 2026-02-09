@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770585060112
+// @version      1.0.1770674501632
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770585060112';
+  const CURRENT_VERSION = '1.0.1770674501632';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -200,6 +200,26 @@
       isMobile: isMobileDevice,
       reinit: initMobileMode
     };
+
+    // === Classe page-type basée sur l'URL ===
+    // Utilisée en CSS pour scoper les règles kramail vs forum
+    function addPageTypeClass() {
+      if (!document.body) return;
+      const path = window.location.pathname;
+      if (path.includes('/kramail')) {
+        document.body.classList.add('page-kramail');
+        if (path.match(/\/kramail\/post\/nouveau/)) {
+          document.body.classList.add('page-kramail-compose');
+        }
+      } else if (path.startsWith('/forum/')) {
+        document.body.classList.add('page-forum');
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addPageTypeClass);
+    } else {
+      addPageTypeClass();
+    }
   })();
 
   // ============================================================================
@@ -8676,8 +8696,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   background: var(--kr-bg-surface);
   border-radius: 12px;
   margin: 0 12px 12px;
-  box-shadow: var(--kr-shadow-sm);
-  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  transition: background 0.2s ease;
   overflow: hidden;
   border: 1px solid var(--kr-border-default);
 }
@@ -8691,8 +8710,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 }
 
 .forum-card:active {
-  transform: scale(0.98);
-  box-shadow: var(--kr-shadow-md);
+  background: var(--kr-bg-hover);
 }
 
 .forum-card-link {
@@ -8965,139 +8983,386 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     outline-offset: 2px !important;
     border-color: var(--kr-primary) !important;
   }
+
+  /* ============================================================================
+     FORUM RP - TRANSFORMATION EN CARDS STYLE REDDIT EXPLORE
+     Inspiré de la section "Recommandées pour toi" de Reddit
+     ============================================================================ */
+  
+  /* Conteneur principal du forum */
+  body.page-forum .panel-default {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Header du panel - harmonisé avec kramail (transparent + cuivre) */
+  body.page-forum .panel-default > .panel-heading {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    margin-bottom: 0 !important;
+    align-items: center !important;
+  }
+
+  /* Panel body - harmonisé kramail (pas de padding) */
+  body.page-forum .panel-default > .panel-body {
+    padding: 0 !important;
+  }
+  
+  body.page-forum .panel-default > .panel-heading h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Cacher le header du tableau (colonnes) */
+  body.page-forum .panel-default .table > thead {
+    display: none !important;
+  }
+  
+  /* Transformer le tbody en container flex vertical */
+  body.page-forum .panel-default .table > tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  /* Chaque ligne devient une card — harmonisé kramail (12px radius/padding, plat sans ombre) */
+  body.page-forum .panel-default .table > tbody > tr {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    transition: background var(--transition-fast) !important;
+    position: relative !important;
+    min-height: auto !important;
+  }
+  
+  /* Effet au tap sur la card */
+  body.page-forum .panel-default .table > tbody > tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+  
+  /* === RÉORGANISATION DES CELLULES AVEC GRID === */
+
+  body.page-forum .panel-default .table > tbody > tr > td {
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-row: 1 !important;
+  }
+  
+  /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3) {
+    grid-row: 2 !important;
+  }
+  
+  /* td:nth-child(4) (dernier message) à la ligne 4 */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) {
+    grid-row: 4 !important;
+  }
+  
+  /* === TITRE DU FORUM === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child {
+    order: 1 !important;
+    margin: 0 !important;
+    font-size: 0 !important; /* Masquer le texte brut "→" */
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    line-height: 1.1 !important;
+    display: block !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* === MODÉRATEURS === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+    order: 2 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+    display: none !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* === DESCRIPTION === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+    order: 999 !important;
+    font-size: 12px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  
+  /* Description wrapper */
+  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper {
+    margin: 0 0 6px !important;
+  }
+  
+  /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+    display: inline !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Stats wrapper */
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper {
+    margin: 0 0 2px !important;
+  }
+  
+  /* Ajouter "sujets · " après le premier nombre */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+    content: " sujets · " !important;
+  }
+  
+  /* Ajouter "messages" après le second nombre */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+    content: " messages" !important;
+  }
+  
+  /* === CELLULE 4 : Dernier message === */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4),
+  body.page-forum .panel-default .table > tbody > tr > td:last-child {
+    order: 5 !important;
+    padding-top: 3px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    margin-top: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    display: block !important;
+  }
+  
+  /* Préfixe "→" avant l'auteur */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child::before {
+    content: "→ " !important;
+    color: var(--kr-text-secondary) !important;
+    font-weight: 400 !important;
+    margin-right: 4px !important;
+  }
+  
+  /* Auteur du dernier message - inline */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* Séparateur avant le timestamp */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a::after {
+    content: " · " !important;
+    color: var(--kr-text-muted) !important;
+    font-weight: 400 !important;
+  }
+  
+  /* Timestamp et lien vers le message - inline, pas de bouton */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
+    display: inline !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Icône flèche dans le lien vers le message - 20x20px */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Badges/images dans les noms d'utilisateurs */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) img {
+    vertical-align: middle !important;
+    margin: 0 2px !important;
+    max-height: 16px !important;
+  }
   
   /* ============================================================================
      TABLEAU → CARDS (FORUMS UNIQUEMENT - exclut kramails)
      ============================================================================ */
   
   /* Masquer le header du tableau - Forums uniquement */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable thead {
+  body.page-forum table.dataTable thead {
     display: none !important;
   }
   
   /* Transformer tbody en flex vertical - Forums uniquement */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody {
+  body.page-forum table.dataTable tbody {
     display: flex !important;
     flex-direction: column !important;
     gap: var(--mobile-spacing-md) !important;
   }
   
-  /* Chaque <tr> devient une card - Forums uniquement */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody tr {
+  /* Chaque <tr> devient une card — harmonisé kramail (12px radius, 12px padding, plat sans ombre) */
+  body.page-forum table.dataTable tbody tr {
     display: flex !important;
     flex-direction: column !important;
     background: var(--kr-bg-surface) !important;
     border: 1px solid var(--kr-border-default) !important;
-    border-radius: var(--mobile-radius) !important;
-    padding: 0 !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
     margin: 0 !important;
-    box-shadow: var(--kr-shadow-sm) !important;
     overflow: hidden !important;
-    transition: box-shadow var(--transition-fast) !important;
+    transition: background var(--transition-fast) !important;
+    cursor: pointer !important;
   }
   
-  /* Hover effect sur card - Forums uniquement */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody tr:hover {
-    box-shadow: var(--kr-shadow-md) !important;
+  /* Feedback tactile card (mobile = pas de hover) */
+  body.page-forum table.dataTable tbody tr:active {
+    background: var(--kr-bg-hover) !important;
   }
   
   /* === COLONNES VISIBLES (FORUMS) === */
   
   /* Masquer colonnes Msg, Vus, Auteur, Dernier Message - Forums uniquement */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(2), /* Msg */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(3), /* Vus */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(4), /* Auteur */
-  body:not(:has(h1 a[href*="kramail"])) table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
+  body.page-forum table.dataTable tbody td:nth-child(2), /* Msg */
+  body.page-forum table.dataTable tbody td:nth-child(3), /* Vus */
+  body.page-forum table.dataTable tbody td:nth-child(4), /* Auteur */
+  body.page-forum table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
     display: none !important;
   }
   
-  /* Colonne Sujet (zone unique, comme Sujets permanents) */
-  table.dataTable tbody td:nth-child(1) {
+  /* Colonne Sujet (zone unique, comme Sujets permanents) — forums uniquement */
+  body.page-forum table.dataTable tbody td:nth-child(1) {
     display: flex !important;
     flex-direction: column !important;
-    padding: var(--mobile-spacing-md) !important;
+    padding: 0 !important;
     min-height: var(--mobile-touch-target) !important;
     gap: var(--mobile-spacing-sm) !important;
   }
   
-  /* === ZONE 1 : TITRE DU SUJET === */
+  /* === ZONE 1 : TITRE DU SUJET (FORUMS) === */
   
-  /* Conteneur titre + icône non-lu */
-  table.dataTable tbody td:nth-child(1) p {
+  /* Titre du sujet */
+  body.page-forum table.dataTable tbody td:nth-child(1) p {
+    margin: 0 0 4px 0 !important;
+    padding: 0 !important;
     display: flex !important;
     align-items: flex-start !important;
     gap: 8px !important;
-    margin: 0 !important;
   }
   
-  /* Titre du sujet (lien principal vers page 1) */
-  table.dataTable tbody td:nth-child(1) p a {
+  /* Lien titre */
+  body.page-forum table.dataTable tbody td:nth-child(1) p a {
     flex: 1 !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
     line-height: 1.4 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
     display: block !important;
-    padding: 4px 0 !important;
   }
   
   /* Feedback tactile sur titre */
-  table.dataTable tbody td:nth-child(1) p a:active {
+  body.page-forum table.dataTable tbody td:nth-child(1) p a:active {
     color: var(--kr-primary) !important;
-    background-color: rgba(139, 15, 14, 0.05) !important;
   }
   
   /* === ICÔNES ET PAGINATION : MASQUÉES === */
   
   /* Masquer l'icône folder-open (1ère UL) */
-  table.dataTable tbody td:nth-child(1) > ul:first-of-type {
+  body.page-forum table.dataTable tbody td:nth-child(1) > ul:first-of-type {
     display: none !important;
   }
   
   /* Masquer la pagination (2ème UL) */
-  table.dataTable tbody td:nth-child(1) > ul:nth-of-type(2) {
+  body.page-forum table.dataTable tbody td:nth-child(1) > ul:nth-of-type(2) {
     display: none !important;
   }
   
-  /* === ZONE 1 : TITRE DU SUJET === */
-  
-  /* Titre du sujet */
-  table.dataTable tbody td:nth-child(1) p {
-    margin: 0 0 8px 0 !important;
-    padding: 0 !important;
-  }
-  
-  /* Lien titre */
-  table.dataTable tbody td:nth-child(1) p a {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    line-height: 1.4 !important;
-    color: var(--kr-text-primary) !important;
-    text-decoration: none !important;
-    display: block !important;
-  }
-  
-  /* Feedback tactile sur titre */
-  table.dataTable tbody td:nth-child(1) p a:active {
-    color: var(--kr-primary) !important;
-    opacity: 0.7 !important;
-  }
-  
   /* Tags */
-  table.dataTable tbody td:nth-child(1) .forum-tags {
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 3px !important;
     margin-top: 6px !important;
   }
   
-  table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon {
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon {
     color: var(--kr-text-muted) !important;
     font-size: 8px !important;
   }
   
-  table.dataTable tbody td:nth-child(1) .forum-tags a {
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a {
     display: inline-flex !important;
     align-items: center !important;
     padding: 1px 4px !important;
@@ -9109,51 +9374,34 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     transition: all var(--transition-fast) !important;
   }
   
-  table.dataTable tbody td:nth-child(1) .forum-tags a:active {
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a:active {
     background: var(--kr-bg-active) !important;
   }
   
-  /* === BADGES STATS (Msg + Vus) === */
+  /* === STATS TOPICS MOBILE (injectées par JS) — style harmonisé kramail === */
   
   .forum-topic-stats-mobile {
     display: flex !important;
-    gap: 8px !important;
-    margin-top: 8px !important;
-    flex-wrap: wrap !important;
-  }
-  
-  .badge-stat {
-    display: inline-flex !important;
     align-items: center !important;
-    gap: 5px !important;
-    padding: 5px 10px !important;
+    gap: 4px !important;
+    margin-top: 4px !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
     color: var(--kr-text-secondary) !important;
-    border-radius: 6px !important;
-    transition: all var(--transition-fast) !important;
   }
-  
-  .badge-stat i {
+
+  .forum-topic-stats-mobile i {
     font-size: 12px !important;
   }
-  
-  .badge-messages {
-    background: rgba(33, 150, 243, 0.1) !important;
-    border: 1px solid rgba(33, 150, 243, 0.2) !important;
-    color: #1976d2 !important;
+
+  .forum-topic-stats-mobile .stats-sep {
+    margin: 0 4px !important;
+    color: var(--kr-text-muted) !important;
   }
   
-  .badge-views {
-    background: rgba(76, 175, 80, 0.1) !important;
-    border: 1px solid rgba(76, 175, 80, 0.2) !important;
-    color: #388e3c !important;
-  }
-  
-  /* === ZONE 2 : DERNIER MESSAGE === */
+  /* === ZONE 2 : DERNIER MESSAGE (forums thread) === */
   
   /* Lien auteur */
-  table.dataTable tbody td:nth-child(5) a:first-child {
+  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child {
     font-size: 14px !important;
     font-weight: 600 !important;
     color: var(--kr-text-primary) !important;
@@ -9164,14 +9412,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* Image nation dans auteur */
-  table.dataTable tbody td:nth-child(5) a:first-child img {
+  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child img {
     width: 16px !important;
     height: 16px !important;
     vertical-align: middle !important;
   }
   
   /* Paragraphe date/heure */
-  table.dataTable tbody td:nth-child(5) p {
+  body.page-forum table.dataTable tbody td:nth-child(5) p {
     font-size: 13px !important;
     color: var(--kr-text-muted) !important;
     margin: 0 !important;
@@ -9181,22 +9429,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* Icône lien vers message */
-  table.dataTable tbody td:nth-child(5) p a .glyphicon {
+  body.page-forum table.dataTable tbody td:nth-child(5) p a .glyphicon {
     font-size: 12px !important;
     color: var(--kr-primary) !important;
   }
   
   /* Feedback tactile zone dernier message */
-  table.dataTable tbody td:nth-child(5):active {
+  body.page-forum table.dataTable tbody td:nth-child(5):active {
     background: var(--kr-bg-active) !important;
-  }
-  
-  /* === AFFICHER STATS (Msg + Vus) EN BADGES === */
-  
-  /* Créer un conteneur pour stats après le titre */
-  table.dataTable tbody td:nth-child(1)::after {
-    content: '';
-    display: none; /* On va gérer ça avec JS si besoin */
   }
   
   /* === PAGINATION === */
@@ -9296,8 +9536,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
        - .panel.panel-default > .panel-heading + .panel-body
      ============================================================================ */
 
-  /* === 1. H1 PAGE HEADER : layout vertical === */
-  h1.page-header {
+  /* === 1. H1 PAGE HEADER : layout vertical (scopé kramail) === */
+  body.page-kramail h1.page-header {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
@@ -9308,7 +9548,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Le span.pull-right qui contient TOUS les boutons : annuler le float */
-  h1.page-header .pull-right {
+  body.page-kramail h1.page-header .pull-right {
     float: none !important;
     display: flex !important;
     flex-wrap: wrap !important;
@@ -9317,10 +9557,10 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     width: 100% !important;
   }
 
-  /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px === */
+  /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px (scopé kramail) === */
   /* Style commun : tabs (a.btn) + bouton kebab (.btn-group > .btn) */
-  h1.page-header .pull-right > a.btn,
-  h1.page-header .pull-right > .btn-group > .btn {
+  body.page-kramail h1.page-header .pull-right > a.btn,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
     width: 44px !important;
     height: 44px !important;
     display: flex !important;
@@ -9340,35 +9580,35 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Icônes — taille et alignement uniformes */
-  h1.page-header .pull-right > a.btn > i,
-  h1.page-header .pull-right > .btn-group > .btn > i {
+  body.page-kramail h1.page-header .pull-right > a.btn > i,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn > i {
     font-size: 18px !important;
     line-height: 1 !important;
   }
 
   /* Tab actif (btn-primary = onglet sélectionné) */
-  h1.page-header .pull-right > a.btn.btn-primary {
+  body.page-kramail h1.page-header .pull-right > a.btn.btn-primary {
     background: var(--kr-primary) !important;
     border-color: var(--kr-primary) !important;
     color: white !important;
   }
 
   /* Feedback tactile */
-  h1.page-header .pull-right > a.btn:active,
-  h1.page-header .pull-right > .btn-group > .btn:active {
+  body.page-kramail h1.page-header .pull-right > a.btn:active,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn:active {
     transform: scale(0.97) !important;
     opacity: 0.9 !important;
   }
 
   /* Container du bouton kebab — taille contrainte */
-  h1.page-header .pull-right > .btn-group {
+  body.page-kramail h1.page-header .pull-right > .btn-group {
     position: relative !important;
     width: 44px !important;
     height: 44px !important;
   }
 
-  /* Dropdown menu du bouton "+" */
-  h1.page-header .pull-right > .btn-group > .dropdown-menu {
+  /* Dropdown menu du bouton "+" (scopé kramail) */
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
     min-width: 260px !important;
     right: 0 !important;
     left: auto !important;
@@ -9379,7 +9619,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
   }
 
-  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
@@ -9390,64 +9630,64 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     white-space: nowrap !important;
   }
 
-  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
     background: rgba(255,255,255,0.08) !important;
   }
 
-  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a .label-simple {
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a .label-simple {
     font-size: 15px !important;
     color: var(--kr-text-primary) !important;
   }
 
-  h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a input[type="checkbox"] {
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a input[type="checkbox"] {
     width: 18px !important;
     height: 18px !important;
   }
 
   /* === 4. PANEL BOÎTE DE RÉCEPTION (scopé kramail) === */
-  body:has(h1 a[href*="kramail"]) .panel.panel-default {
+  body.page-kramail .panel.panel-default {
     border: none !important;
     box-shadow: none !important;
     margin: 0 !important;
     background: transparent !important;
   }
 
-  body:has(h1 a[href*="kramail"]) .panel-heading {
+  body.page-kramail .panel-heading {
     padding: 12px 16px !important;
     background: transparent !important;
     border-bottom: 1px solid var(--kr-border-default) !important;
   }
 
-  body:has(h1 a[href*="kramail"]) .panel-heading h3.panel-title {
+  body.page-kramail .panel-heading h3.panel-title {
     font-size: 16px !important;
     font-weight: 600 !important;
     color: var(--kr-primary) !important;
   }
 
   /* Icône chevron collapse */
-  body:has(h1 a[href*="kramail"]) .panel-heading .glyphicon-chevron-up {
+  body.page-kramail .panel-heading .glyphicon-chevron-up {
     float: right !important;
     color: var(--kr-text-secondary) !important;
   }
 
-  body:has(h1 a[href*="kramail"]) .panel-body {
+  body.page-kramail .panel-body {
     padding: 0 !important;
   }
 
-  /* === 5. DATATABLE CONTRÔLES === */
+  /* === 5. DATATABLE CONTRÔLES (scopé kramail) === */
   /* Cacher "Afficher X lignes" sur mobile - encombre inutilement */
-  #topics_wrapper .dataTables_length {
+  body.page-kramail #topics_wrapper .dataTables_length {
     display: none !important;
   }
 
   /* Barre de recherche DataTable - optimisée tactile */
-  #topics_wrapper .dataTables_filter {
+  body.page-kramail #topics_wrapper .dataTables_filter {
     padding: 12px 16px !important;
     text-align: left !important;
     width: 100% !important;
   }
 
-  #topics_wrapper .dataTables_filter label {
+  body.page-kramail #topics_wrapper .dataTables_filter label {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
@@ -9457,8 +9697,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: var(--kr-text-secondary) !important;
   }
 
-  #topics_wrapper .dataTables_filter input[type="search"],
-  #topics_wrapper .dataTables_filter input {
+  body.page-kramail #topics_wrapper .dataTables_filter input[type="search"],
+  body.page-kramail #topics_wrapper .dataTables_filter input {
     flex: 1 !important;
     height: 44px !important;
     padding: 0 16px !important;
@@ -9471,14 +9711,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     -webkit-appearance: none !important;
   }
 
-  #topics_wrapper .dataTables_filter input:focus {
+  body.page-kramail #topics_wrapper .dataTables_filter input:focus {
     outline: none !important;
     border-color: var(--kr-primary) !important;
     box-shadow: 0 0 0 3px rgba(212, 134, 62, 0.15) !important;
   }
 
   /* Info "Affiche X à Y de Z lignes" */
-  #topics_wrapper .dataTables_info {
+  body.page-kramail #topics_wrapper .dataTables_info {
     padding: 8px 16px !important;
     font-size: 13px !important;
     color: var(--kr-text-muted) !important;
@@ -9486,12 +9726,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Pagination */
-  #topics_wrapper .dataTables_paginate {
+  body.page-kramail #topics_wrapper .dataTables_paginate {
     padding: 8px 16px 16px !important;
     text-align: center !important;
   }
 
-  #topics_wrapper .dataTables_paginate .paginate_button {
+  body.page-kramail #topics_wrapper .dataTables_paginate .paginate_button {
     min-height: 44px !important;
     min-width: 44px !important;
     padding: 10px 14px !important;
@@ -9500,20 +9740,20 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     font-size: 14px !important;
   }
 
-  /* === 6. TABLE #topics → CARDS LAYOUT === */
+  /* === 6. TABLE #topics → CARDS LAYOUT (scopé kramail) === */
   /* Cacher le thead de la table */
-  #topics thead {
+  body.page-kramail #topics thead {
     display: none !important;
   }
 
   /* Table en layout bloc */
-  #topics {
+  body.page-kramail #topics {
     display: block !important;
     width: 100% !important;
     border-collapse: separate !important;
   }
 
-  #topics tbody {
+  body.page-kramail #topics tbody {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -9521,7 +9761,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Chaque TR devient une carte */
-  #topics tbody tr {
+  body.page-kramail #topics tbody tr {
     display: grid !important;
     grid-template-columns: 36px 1fr !important;
     grid-template-rows: auto auto !important;
@@ -9537,12 +9777,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Feedback tactile carte */
-  #topics tbody tr:active {
+  body.page-kramail #topics tbody tr:active {
     background: var(--kr-bg-hover) !important;
   }
 
   /* Cellule 1 : Checkbox */
-  #topics tbody td:first-child {
+  body.page-kramail #topics tbody td:first-child {
     grid-row: 1 / -1 !important;
     grid-column: 1 !important;
     display: flex !important;
@@ -9553,7 +9793,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border: none !important;
   }
 
-  #topics tbody td:first-child input[type="checkbox"] {
+  body.page-kramail #topics tbody td:first-child input[type="checkbox"] {
     width: 20px !important;
     height: 20px !important;
     cursor: pointer !important;
@@ -9561,7 +9801,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Cellule 2 : Message (titre + icône) */
-  #topics tbody td:nth-child(2) {
+  body.page-kramail #topics tbody td:nth-child(2) {
     grid-column: 2 !important;
     grid-row: 1 !important;
     display: block !important;
@@ -9571,13 +9811,13 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Le paragraphe wrapper */
-  #topics tbody td:nth-child(2) p.nomargin {
+  body.page-kramail #topics tbody td:nth-child(2) p.nomargin {
     margin: 0 !important;
     padding: 0 !important;
   }
 
   /* Le span#ajax-mXXX qui contient icône + titre */
-  #topics tbody td:nth-child(2) span[id^="ajax-m"] {
+  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
@@ -9585,16 +9825,16 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Icône du message (enveloppe, reply, etc.) */
-  #topics tbody td:nth-child(2) a:first-child i.fa,
-  #topics tbody td:nth-child(2) a:first-child i.far,
-  #topics tbody td:nth-child(2) a:first-child i.fas {
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fa,
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.far,
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fas {
     font-size: 16px !important;
     color: var(--kr-text-secondary) !important;
     flex-shrink: 0 !important;
   }
 
   /* Lien icône (ne doit pas prendre toute la largeur) */
-  #topics tbody td:nth-child(2) span[id^="ajax-m"] > a:first-child {
+  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] > a:first-child {
     flex-shrink: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -9603,7 +9843,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Lien titre du message */
-  #topics tbody td:nth-child(2) a:last-of-type {
+  body.page-kramail #topics tbody td:nth-child(2) a:last-of-type {
     font-size: 15px !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
@@ -9620,12 +9860,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Cacher le span.invisible (doublon du titre pour tri) */
-  #topics tbody td:nth-child(2) span.invisible {
+  body.page-kramail #topics tbody td:nth-child(2) span.invisible {
     display: none !important;
   }
 
   /* Cellule 3 : Auteur - sous le titre à gauche */
-  #topics tbody td:nth-child(3) {
+  body.page-kramail #topics tbody td:nth-child(3) {
     grid-column: 2 !important;
     grid-row: 2 !important;
     display: inline !important;
@@ -9635,14 +9875,14 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: var(--kr-text-secondary) !important;
   }
 
-  #topics tbody td:nth-child(3) a {
+  body.page-kramail #topics tbody td:nth-child(3) a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
     font-size: 13px !important;
   }
 
   /* Cellule 4 : Date - sous le titre à droite (même ligne que auteur) */
-  #topics tbody td:nth-child(4) {
+  body.page-kramail #topics tbody td:nth-child(4) {
     position: absolute !important;
     right: 12px !important;
     bottom: 12px !important;
@@ -9655,19 +9895,19 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* Cacher le span.invisible (date ISO pour tri) dans la cellule date */
-  #topics tbody td:nth-child(4) span.invisible {
+  body.page-kramail #topics tbody td:nth-child(4) span.invisible {
     display: none !important;
   }
 
-  /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) === */
+  /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) (scopé kramail) === */
   /* Comme le thead est caché, on déplace le btn-group d'actions au-dessus */
-  #topics_wrapper .btn-group {
+  body.page-kramail #topics_wrapper .btn-group {
     display: flex !important;
     gap: 4px !important;
     padding: 8px 16px !important;
   }
 
-  #topics_wrapper .btn-group .btn {
+  body.page-kramail #topics_wrapper .btn-group .btn {
     min-height: 44px !important;
     min-width: 44px !important;
     padding: 10px !important;
@@ -10508,6 +10748,590 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: var(--mobile-spacing-lg);
   }
 }
+/* ============================================================================
+   KRAMAIL - FORMULAIRE NOUVEAU MESSAGE
+   Page : /kramail/post/nouveau-*
+   Harmonise le formulaire avec le design de la boîte de réception parente
+   et améliore l'UX selon les heuristiques de Nielsen et la loi de Fitts
+   ============================================================================ */
+
+/* --- Styles universels (tous viewports) --- */
+
+/* HR inutiles — supprimer le bruit visuel */
+body.page-kramail .editeur-text .form-group hr {
+  display: none !important;
+}
+
+body.page-kramail .editeur-text .form-group + .form-group > .col-sm-2:empty + .col-sm-10 > hr {
+  display: none !important;
+}
+
+body.page-kramail .editeur-text .form-group:has(#results) {
+  margin-bottom: 0;
+  padding-top: 0;
+}
+
+body.page-kramail .editeur-text #results hr {
+  display: none !important;
+}
+
+/* Curseur pointer pour selects et checkboxes */
+body.page-kramail .editeur-text select.form-control {
+  cursor: pointer;
+}
+
+body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* Astérisque required en couleur primaire */
+body.page-kramail .editeur-text .form-group > label.control-label .required {
+  color: var(--kr-primary);
+  font-weight: 700;
+}
+
+/* Bouton retour Réception — style cohérent avec inbox */
+body.page-kramail h1.page-header .btn-default {
+  border-radius: var(--kr-radius);
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+body.page-kramail h1.page-header .btn-default:hover {
+  border-color: var(--kr-primary);
+  color: var(--kr-primary);
+}
+
+/* --- Styles desktop uniquement --- */
+@media (min-width: 769px) {
+
+  /* 1. CONTENEUR FORMULAIRE — carte visuelle cohérente avec inbox */
+  body.page-kramail form.form-horizontal.editeur-text {
+    background: var(--kr-bg-surface);
+    border: 1px solid var(--kr-border-strong);
+    border-radius: var(--kr-radius);
+    padding: 28px 32px;
+    margin-top: 8px;
+    box-shadow: var(--kr-shadow-md);
+  }
+
+  /* 2. PAGE HEADER — ligne de séparation cohérente avec inbox */
+  body.page-kramail h1.page-header {
+    border-bottom-color: var(--kr-primary) !important;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* 3. INPUT-GROUP-ADDON — meilleur contraste et cohérence */
+  body.page-kramail .editeur-text .input-group-addon {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-default);
+    color: var(--kr-text-secondary);
+    min-width: 42px;
+    text-align: center;
+  }
+
+  body.page-kramail .editeur-text .input-group-addon i.fa,
+  body.page-kramail .editeur-text .input-group-addon i.far,
+  body.page-kramail .editeur-text .input-group-addon i.fas {
+    color: var(--kr-primary);
+    font-size: 14px;
+  }
+
+  /* 4. BOUTON "+" CONTACTS — plus gros, plus accessible (Fitts) */
+  body.page-kramail .editeur-text .input-group-addon .btn.btn-primary {
+    min-width: 36px;
+    min-height: 32px;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 4px;
+  }
+
+  /* 5. SECTION DESTINATAIRE — meilleure lisibilité */
+  body.page-kramail .editeur-text .form-group label[for],
+  body.page-kramail .editeur-text .form-group > label.col-sm-1 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--kr-text-secondary);
+    font-weight: 600;
+  }
+
+  /* 6. SECTION OPTIONS — regroupement visuel */
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 16px 20px !important;
+    margin-top: 8px;
+  }
+
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) > label.col-md-2,
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) > label.col-sm-2 {
+    color: var(--kr-text-primary);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) .checkbox-inline {
+    margin-right: 24px;
+    padding: 6px 4px 6px 24px;
+    cursor: pointer;
+  }
+
+  /* 7. BOUTON ENVOYER — plus proéminent */
+  body.page-kramail .editeur-text > div:last-child {
+    text-align: right;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid var(--kr-border-default);
+    clear: both;
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right {
+    float: none !important;
+    min-width: 180px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: var(--kr-radius);
+    margin: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px var(--kr-btn-shadow);
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--kr-btn-shadow);
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px var(--kr-btn-shadow);
+  }
+
+  /* 8. TOOLBAR BBCODE — meilleure cohérence */
+  body.page-kramail .editeur-text .btn-toolbar {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn-group {
+    margin-right: 4px;
+    border-right: 1px solid var(--kr-border-default);
+    padding-right: 8px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn-group:last-child {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn {
+    min-width: 34px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn:hover {
+    background: var(--kr-bg-active) !important;
+    border-color: var(--kr-primary) !important;
+  }
+
+  /* 9. TEXTAREA MESSAGE — hauteur minimale + bloc uni avec toolbar */
+  body.page-kramail .editeur-text textarea[name="c[5]"],
+  body.page-kramail .editeur-text textarea[placeholder="Votre message"] {
+    min-height: 250px;
+    line-height: 1.6;
+  }
+
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar + textarea.form-control {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none !important;
+    margin-top: 0;
+  }
+
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default);
+  }
+
+  /* 10. LABELS — hiérarchie visuelle améliorée */
+  body.page-kramail .editeur-text .form-group > label.control-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--kr-text-secondary);
+  }
+
+  /* 11. FORM GROUPS — espacement vertical cohérent */
+  body.page-kramail .editeur-text .form-group {
+    margin-bottom: 20px;
+  }
+
+} /* fin @media (min-width: 769px) — Kramail formulaire desktop */
+
+/* --- Styles mobile uniquement --- */
+@media (max-width: 768px) {
+
+  /* =============================================
+     1. HEADER — masquer le character switcher
+     Le sélecteur de compte est redondant avec le
+     champ "Expéditeur" du formulaire.
+     Le bouton retour passe sur la même ligne.
+     ============================================= */
+
+  /* Masquer le dropdown du character selector (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-character-dropdown,
+  body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-dropdown-icon {
+    display: none !important;
+  }
+
+  /* Désactiver le curseur pointer et le comportement interactif (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector {
+    cursor: default !important;
+    pointer-events: none;
+  }
+
+  /* Header : flex row pour aligner titre + back sur une ligne (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  /* Le sélecteur prend l'espace restant (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Conteneur pull-right du bouton retour : pas de float, auto-width (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .pull-right {
+    float: none !important;
+    width: auto !important;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* Bouton retour Réception — taille tactile (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .pull-right .btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* =============================================
+     2. INPUT-GROUPS — unifiés et collés
+     Addon + input forment un bloc visuel cohérent :
+     même hauteur 44px, radius uniquement aux extrémités,
+     bordure partagée sans doublure.
+     ============================================= */
+
+  /* Le groupe flex inline */
+  body.page-kramail .editeur-text .input-group {
+    display: flex !important;
+    flex-wrap: nowrap;
+    border-radius: var(--mobile-radius);
+    overflow: hidden;
+  }
+
+  /* Addon : bloc icône uniforme */
+  body.page-kramail .editeur-text .input-group-addon {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 !important;
+    border-right: none !important;
+    padding: 0 !important;
+  }
+
+  /* Premier addon : radius gauche */
+  body.page-kramail .editeur-text .input-group-addon:first-child {
+    border-radius: var(--mobile-radius) 0 0 var(--mobile-radius) !important;
+  }
+
+  /* Input : colle à l'addon, pas de radius gauche */
+  body.page-kramail .editeur-text .input-group .form-control {
+    flex: 1;
+    min-width: 0;
+    height: 44px !important;
+    border-radius: 0 var(--mobile-radius) var(--mobile-radius) 0 !important;
+    border-left: none !important;
+  }
+
+  /* Bouton "+" contacts — même largeur 44px que les addons */
+  body.page-kramail .editeur-text .input-group-addon .btn {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    border: none !important;
+    background: transparent !important;
+    color: inherit;
+  }
+
+  /* =============================================
+     3. TOOLBAR BBCODE — barre continue
+     Supprime les gaps inter-groupes.
+     Radius uniquement aux extrémités de la barre.
+     Les boutons dropdown s'intègrent dans le flux.
+     ============================================= */
+
+  /* Toolbar conteneur : barre continue */
+  body.page-kramail .editeur-text .btn-toolbar {
+    display: flex !important;
+    flex-wrap: nowrap;
+    gap: 0 !important;
+    padding: 0 !important;
+    border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    margin-bottom: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background: var(--kr-bg-hover);
+  }
+
+  /* Groupes de boutons : inline, pas de gap, pas de bordure propre */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group {
+    flex-direction: row !important;
+    width: auto !important;
+    flex-shrink: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--kr-border-default) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Dernier groupe visible : pas de bordure droite */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:last-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type {
+    border-right: none !important;
+  }
+
+  /* Tous les boutons : 44px, sans radius, sans gap, icônes claires
+     IMPORTANT : > .btn-group cible UNIQUEMENT les groupes directs de la toolbar,
+     pas les .btn-group imbriqués dans les .dropdown-menu (ex: boutons couleur) */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > a.btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown > a > .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown .dropdown-toggle .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown > .dropdown-toggle {
+    width: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent !important;
+    color: var(--kr-text-primary, #f5f1ed) !important;
+  }
+
+  /* Icônes FontAwesome dans TOUS les boutons toolbar : couleur héritée */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > .btn i,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > a.btn i {
+    color: inherit !important;
+  }
+
+  /* Wrapper dropdown : pas de taille propre */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown {
+    display: flex !important;
+    flex-shrink: 0;
+  }
+
+  /* Bouton dans le dropdown toggle (le <button> dans <a>)
+     ATTENTION : cibler UNIQUEMENT le toggle, PAS les .btn du .dropdown-menu */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--kr-text-primary, #d4a574) !important;
+  }
+
+  /* Icônes FontAwesome dans les toggles dropdown : couleur lisible */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn i,
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .fa,
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .far {
+    color: inherit !important;
+  }
+
+  /* Boutons couleur dans le dropdown-menu — respecter leur background inline */
+  body.page-kramail .editeur-text .btn-toolbar .dropdown-menu .btn-group .btn {
+    width: auto !important;
+    height: auto !important;
+    min-width: 28px !important;
+    max-width: none !important;
+    min-height: 28px !important;
+    padding: 4px 6px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Premier bouton du premier groupe : radius haut-gauche */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:first-child > .btn:first-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:first-child > a.btn:first-child {
+    border-radius: var(--mobile-radius) 0 0 var(--mobile-radius) !important;
+  }
+
+  /* Dernier bouton du dernier groupe visible : radius haut-droite */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type > .btn:last-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type > a.btn:last-child {
+    border-radius: 0 var(--mobile-radius) var(--mobile-radius) 0 !important;
+    border-right: none !important;
+  }
+
+  /* Hover/Active feedback sur toolbar buttons */
+  body.page-kramail .editeur-text .btn-toolbar .btn:active {
+    background: rgba(139, 15, 14, 0.15) !important;
+  }
+
+  /* Scrollbar discrète */
+  body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
+
+  /* Textarea collé à la toolbar */
+  body.page-kramail .editeur-text .btn-toolbar + textarea.form-control,
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar + textarea.form-control {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none !important;
+    margin-top: 0;
+  }
+
+  /* =============================================
+     4. DROPDOWNS EMOJI/COULEUR — bottom-sheet
+     Les dropdown-menus se positionnent en bas de 
+     l'écran pour être accessibles au pouce.
+     ============================================= */
+
+  body.page-kramail .editeur-text .btn-toolbar .dropdown-menu {
+    position: fixed !important;
+    bottom: 60px !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 50vh;
+    overflow-y: auto;
+    border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1050 !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    padding: 12px !important;
+  }
+
+  /* =============================================
+     5. CHECKBOXES — layout non-tronqué
+     ============================================= */
+  body.page-kramail .editeur-text .checkbox-inline {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding-left: 0 !important;
+    margin-right: 16px;
+    margin-bottom: 8px;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  body.page-kramail .editeur-text .checkbox-inline input[type="checkbox"] {
+    position: static !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    flex-shrink: 0;
+  }
+
+  /* =============================================
+     6. OPTIONS — conteneur visuel
+     ============================================= */
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    padding: 12px 16px !important;
+    margin-top: 8px;
+  }
+
+  /* =============================================
+     7. LABELS — hiérarchie avec couleur secondaire  
+     ============================================= */
+  body.page-kramail .editeur-text .form-group > label.control-label {
+    color: var(--kr-text-secondary);
+  }
+
+  /* =============================================
+     8. PADDING BOTTOM — espace pour le bouton Envoyer fixe
+     ============================================= */
+  body.page-kramail .editeur-text .form-group:last-of-type {
+    padding-bottom: 70px !important;
+  }
+
+} /* fin @media (max-width: 768px) — Kramail formulaire mobile */
+
 /* ============================================================================
    FORUM THREAD DETAIL - Hide tags
    ============================================================================ */
@@ -12626,85 +13450,84 @@ html:not([class*='-dark']) .mini {
   // ============================================================================
   (function () {
     function enrichForumTopicsCards() {
-      // N'exécuter qu'en mode mobile
+      // N'exécuter qu'en mode mobile et uniquement sur les pages forum
       if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (!document.body.classList.contains('page-forum')) {return;}
 
-      // Cibler uniquement les DataTables de forum (pas les "Sujets permanents")
-      const forumTable = document.querySelector('table.dataTable');
+      // Cibler la table #topics (DataTable)
+      const forumTable = document.getElementById('topics');
       if (!forumTable) {return;}
 
-      const rows = forumTable.querySelectorAll('tbody tr');
-      if (rows.length === 0) {return;}
+      function processRows() {
+        const rows = forumTable.querySelectorAll('tbody tr');
+        if (rows.length === 0) {return;}
 
-      rows.forEach(row => {
-        // Éviter le double traitement
-        if (row.hasAttribute('data-stats-added')) {return;}
-        row.setAttribute('data-stats-added', 'true');
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-stats-added')) {return;}
+          row.setAttribute('data-stats-added', 'true');
 
-        // Récupérer les cellules
-        const titleCell = row.querySelector('td:nth-child(1)');
-        const msgCell = row.querySelector('td:nth-child(2)');
-        const viewsCell = row.querySelector('td:nth-child(3)');
+          // Récupérer les cellules
+          const titleCell = row.querySelector('td:nth-child(1)');
+          const msgCell = row.querySelector('td:nth-child(2)');
+          const viewsCell = row.querySelector('td:nth-child(3)');
 
-        if (!titleCell || !msgCell || !viewsCell) {return;}
+          if (!titleCell || !msgCell || !viewsCell) {return;}
 
-        // === SMART NAVIGATION ===
-        // Détecter si l'icône "premier message non lu" existe
-        const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
-        const titleLink = titleCell.querySelector('p > a');
-        
-        if (unreadIconLink && titleLink) {
-          // Sujet NON LU : rediriger le titre vers le premier message non lu
-          titleLink.href = unreadIconLink.href;
-          titleLink.setAttribute('data-smart-redirect', 'first-unread');
-        }
-        // Si pas d'icône (sujet lu), le titre garde son URL d'origine (page 1)
-
-        // === CARD CLIQUABLE (comme Sujets permanents) ===
-        if (titleLink) {
-          row.style.cursor = 'pointer';
+          // === SMART NAVIGATION ===
+          // Détecter si l'icône "premier message non lu" existe
+          const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+          const titleLink = titleCell.querySelector('p > a');
           
-          row.addEventListener('click', (e) => {
-            // Ne pas intercepter les clics sur les liens de tags
-            if (e.target.tagName === 'A' || e.target.closest('a')) {
-              return;
-            }
-            // Simuler le clic sur le titre
-            titleLink.click();
-          });
-        }
+          if (unreadIconLink && titleLink) {
+            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            titleLink.href = unreadIconLink.href;
+            titleLink.setAttribute('data-smart-redirect', 'first-unread');
+          }
 
-        // === STATS SIMPLES (style "Sujets permanents") ===
-        
-        // Extraire les valeurs
-        const msgCount = msgCell.textContent.trim();
-        const viewsCount = viewsCell.textContent.trim();
+          // === CARD CLIQUABLE ===
+          if (titleLink) {
+            row.style.cursor = 'pointer';
+            
+            row.addEventListener('click', (e) => {
+              if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+              }
+              titleLink.click();
+            });
+          }
 
-        // Créer les stats avec icônes pour clarté
-        const statsContainer = document.createElement('div');
-        statsContainer.className = 'forum-topic-stats-mobile';
-        statsContainer.innerHTML = `
-          <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
-          <span style="margin: 0 4px;">·</span>
-          <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
-        `;
-        statsContainer.style.cssText = `
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 13px;
-          color: var(--kr-text-secondary);
-          margin-bottom: 8px;
-        `;
+          // === STATS SIMPLES ===
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
 
-        // Insérer après le titre
-        const titleParagraph = titleCell.querySelector('p');
-        if (titleParagraph) {
-          titleParagraph.after(statsContainer);
-        }
-      });
+          const statsContainer = document.createElement('div');
+          statsContainer.className = 'forum-topic-stats-mobile';
+          statsContainer.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span class="stats-sep">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
 
-      console.log(`[Forum Topics Mobile] ${rows.length} sujets enrichis`);
+          // Insérer après le titre
+          const titleParagraph = titleCell.querySelector('p');
+          if (titleParagraph) {
+            titleParagraph.after(statsContainer);
+          }
+        });
+
+        console.log(`[Forum Topics Mobile] Sujets enrichis`);
+      }
+
+      // Exécuter immédiatement
+      processRows();
+
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      if (typeof jQuery !== 'undefined') {
+        jQuery(forumTable).on('draw.dt', function() {
+          processRows();
+        });
+      }
     }
 
     InitQueue.register('ForumTopics:MobileStats', enrichForumTopicsCards, 25);
