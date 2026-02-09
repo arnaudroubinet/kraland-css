@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770674501632
+// @version      1.0.1770674794805
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770674501632';
+  const CURRENT_VERSION = '1.0.1770674794805';
 
   // ============================================================================
   // UTILITY FUNCTIONS
