@@ -2268,22 +2268,15 @@
   }
 
   // ============================================================================
-  // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
-  // Masque la page pour éviter tout flash de contenu non-stylé (FOUC)
-  // Le cloak est retiré dans init() après applyDOMTransformations
+  // INJECTION CSS IMMÉDIATE
+  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
+  // avant l'IIFE. Ici on injecte uniquement le thème CSS.
+  // Le cloak est retiré dans init() après applyDOMTransformations.
   // ============================================================================
   (function injectCSSImmediately(){
     try {
       if (!isThemeEnabled()) {return;}
 
-      // 1. Masquer la page immédiatement pour bloquer le premier paint non-stylé
-      const cloak = document.createElement('style');
-      cloak.id = 'kr-cloak';
-      cloak.textContent = 'html.kr-cloaked{visibility:hidden!important}';
-      (document.head || document.documentElement).appendChild(cloak);
-      document.documentElement.classList.add('kr-cloaked');
-
-      // 2. Injecter le thème CSS complet
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
@@ -2294,10 +2287,7 @@
       if (variant === 'high-contrast') {
         document.documentElement.classList.add('kr-theme-high-contrast');
       }
-
-      // Le cloak reste actif — il sera retiré par uncloakPage() après les transformations DOM
     } catch(e) {
-      // En cas d'erreur, toujours révéler la page
       uncloakPage();
       console.error('CSS injection failed', e);
     }
