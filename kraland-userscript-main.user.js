@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1771755616044
+// @version      1.0.1771756406332
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1771755616044';
+  const CURRENT_VERSION = '1.0.1771756406332';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -11986,11 +11986,20 @@ html:not([class*='-dark']) .mini {
 
   // ============================================================================
   // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
+  // Masque la page pour éviter tout flash de contenu non-stylé (FOUC)
   // ============================================================================
   (function injectCSSImmediately(){
     try {
       if (!isThemeEnabled()) {return;}
 
+      // 1. Masquer la page immédiatement pour bloquer le premier paint non-stylé
+      const cloak = document.createElement('style');
+      cloak.id = 'kr-cloak';
+      cloak.textContent = 'html.kr-cloaked{visibility:hidden!important}';
+      (document.head || document.documentElement).appendChild(cloak);
+      document.documentElement.classList.add('kr-cloaked');
+
+      // 2. Injecter le thème CSS complet
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
@@ -12001,7 +12010,17 @@ html:not([class*='-dark']) .mini {
       if (variant === 'high-contrast') {
         document.documentElement.classList.add('kr-theme-high-contrast');
       }
-    } catch(e) { console.error('CSS injection failed', e); }
+
+      // 3. Révéler la page maintenant que le thème est en place
+      document.documentElement.classList.remove('kr-cloaked');
+      cloak.remove();
+    } catch(e) {
+      // En cas d'erreur, toujours révéler la page
+      document.documentElement.classList.remove('kr-cloaked');
+      const c = document.getElementById('kr-cloak');
+      if (c) c.remove();
+      console.error('CSS injection failed', e);
+    }
   })();
 
   // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
