@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770674794805
+// @version      1.0.1771757539179
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770674794805';
+  const CURRENT_VERSION = '1.0.1771757539179';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -11985,12 +11985,22 @@ html:not([class*='-dark']) .mini {
   }
 
   // ============================================================================
-  // INJECTION CSS IMMÉDIATE (avant tout code async)
+  // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
+  // Masque la page pour éviter tout flash de contenu non-stylé (FOUC)
+  // Le cloak est retiré dans init() après applyDOMTransformations
   // ============================================================================
   (function injectCSSImmediately(){
     try {
       if (!isThemeEnabled()) {return;}
 
+      // 1. Masquer la page immédiatement pour bloquer le premier paint non-stylé
+      const cloak = document.createElement('style');
+      cloak.id = 'kr-cloak';
+      cloak.textContent = 'html.kr-cloaked{visibility:hidden!important}';
+      (document.head || document.documentElement).appendChild(cloak);
+      document.documentElement.classList.add('kr-cloaked');
+
+      // 2. Injecter le thème CSS complet
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
@@ -12001,8 +12011,26 @@ html:not([class*='-dark']) .mini {
       if (variant === 'high-contrast') {
         document.documentElement.classList.add('kr-theme-high-contrast');
       }
-    } catch(e) { console.error('CSS injection failed', e); }
+
+      // Le cloak reste actif — il sera retiré par uncloakPage() après les transformations DOM
+    } catch(e) {
+      // En cas d'erreur, toujours révéler la page
+      uncloakPage();
+      console.error('CSS injection failed', e);
+    }
   })();
+
+  // Fonction pour révéler la page (retirer le cloak)
+  function uncloakPage() {
+    document.documentElement.classList.remove('kr-cloaked');
+    const c = document.getElementById('kr-cloak');
+    if (c) c.remove();
+  }
+
+  // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes
+  if (isThemeEnabled()) {
+    setTimeout(uncloakPage, 3000);
+  }
 
   // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
   safeCall(() => applyMedievalMapOption());
@@ -12011,7 +12039,7 @@ html:not([class*='-dark']) .mini {
   // GESTION DU THÈME
   // ============================================================================
 
-  async function applyThemeInline(cssText) {
+  function applyThemeInline(cssText) {
     if (!isThemeEnabled()) {return false;}
 
     try {
@@ -12050,9 +12078,9 @@ html:not([class*='-dark']) .mini {
     }
   }
 
-  async function ensureTheme() {
+  function ensureTheme() {
     if (!isThemeEnabled()) {return;}
-    await applyThemeInline(CONFIG.BUNDLED_CSS);
+    applyThemeInline(CONFIG.BUNDLED_CSS);
   }
 
   function applyThemeVariant(variant, skipReload = false) {
@@ -15979,7 +16007,7 @@ html:not([class*='-dark']) .mini {
     const mo = new MutationObserver(() => {
       if (isThemeEnabled()) {
         if (!document.getElementById(CONFIG.STYLE_ID)) {
-          applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
+          applyThemeInline(CONFIG.BUNDLED_CSS);
         }
         if (!domTransformationsApplied) {
           applyDOMTransformations();
@@ -17803,7 +17831,7 @@ html:not([class*='-dark']) .mini {
   // INITIALISATION
   // ============================================================================
 
-  (async function init() {
+  (function init() {
     try {
       const themeEnabled = getThemeState();
 
@@ -17819,12 +17847,16 @@ html:not([class*='-dark']) .mini {
 
       // Theme setup (si activé)
       if (themeEnabled) {
-        await ensureTheme();
+        ensureTheme();
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyDOMTransformations, { once: true });
+          document.addEventListener('DOMContentLoaded', () => {
+            applyDOMTransformations();
+            uncloakPage();
+          }, { once: true });
         } else {
           applyDOMTransformations();
+          uncloakPage();
         }
       }
 
