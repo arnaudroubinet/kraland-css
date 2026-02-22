@@ -2270,6 +2270,7 @@
   // ============================================================================
   // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
   // Masque la page pour éviter tout flash de contenu non-stylé (FOUC)
+  // Le cloak est retiré dans init() après applyDOMTransformations
   // ============================================================================
   (function injectCSSImmediately(){
     try {
@@ -2294,17 +2295,25 @@
         document.documentElement.classList.add('kr-theme-high-contrast');
       }
 
-      // 3. Révéler la page maintenant que le thème est en place
-      document.documentElement.classList.remove('kr-cloaked');
-      cloak.remove();
+      // Le cloak reste actif — il sera retiré par uncloakPage() après les transformations DOM
     } catch(e) {
       // En cas d'erreur, toujours révéler la page
-      document.documentElement.classList.remove('kr-cloaked');
-      const c = document.getElementById('kr-cloak');
-      if (c) c.remove();
+      uncloakPage();
       console.error('CSS injection failed', e);
     }
   })();
+
+  // Fonction pour révéler la page (retirer le cloak)
+  function uncloakPage() {
+    document.documentElement.classList.remove('kr-cloaked');
+    const c = document.getElementById('kr-cloak');
+    if (c) c.remove();
+  }
+
+  // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes
+  if (isThemeEnabled()) {
+    setTimeout(uncloakPage, 3000);
+  }
 
   // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
   safeCall(() => applyMedievalMapOption());
@@ -8124,9 +8133,13 @@
         ensureTheme();
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyDOMTransformations, { once: true });
+          document.addEventListener('DOMContentLoaded', () => {
+            applyDOMTransformations();
+            uncloakPage();
+          }, { once: true });
         } else {
           applyDOMTransformations();
+          uncloakPage();
         }
       }
 
