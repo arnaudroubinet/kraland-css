@@ -2001,9 +2001,9 @@
     try { fn(); } catch (_e) { /* ignore */ }
   }
 
-  /** Vérifie si le thème est activé */
+  /** Vérifie si le thème est activé (ON par défaut, OFF seulement si explicitement 'false') */
   function isThemeEnabled() {
-    return localStorage.getItem(CONFIG.ENABLE_KEY) === 'true';
+    return localStorage.getItem(CONFIG.ENABLE_KEY) !== 'false';
   }
 
   /** Récupère la variante de thème actuelle */
@@ -2393,7 +2393,7 @@
 
   function getThemeState() {
     if (localStorage.getItem(CONFIG.ENABLE_KEY) === null) {
-      localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
+      localStorage.setItem(CONFIG.ENABLE_KEY, 'true');
     }
     return isThemeEnabled();
   }
