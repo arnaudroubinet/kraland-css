@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-// import { minify } from 'terser';
-// import { minify as minifyCSS } from 'csso';
+import { minify } from 'terser';
+import { minify as minifyCSS } from 'csso';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,11 +45,12 @@ console.log(`✓ Changelog URL: ${changelogUrl}`);
 let css = fs.readFileSync(cssPath, 'utf8');
 console.log(`✓ Read CSS (${css.length} chars)`);
 
-// Minify CSS - DISABLED
-console.log('⚙ Skipping CSS minification (disabled for debugging)...');
-// const minifiedCSS = minifyCSS(css);
-// css = minifiedCSS.css;
-console.log(`✓ CSS not minified (${css.length} chars)`);
+// Minify CSS
+console.log('⚙ Minifying CSS...');
+const originalCssLen = css.length;
+const minifiedCSS = minifyCSS(css);
+css = minifiedCSS.css;
+console.log(`✓ CSS minified: ${originalCssLen} → ${css.length} chars (${Math.round((1 - css.length / originalCssLen) * 100)}% reduction)`);
 
 // Read template
 const template = fs.readFileSync(templatePath, 'utf8');
@@ -65,14 +66,13 @@ const version = `1.0.${timestamp}`;
 const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// @grant        GM.xmlHttpRequest\n// @connect      raw.githubusercontent.com\n// @compatible   chrome tampermonkey\n// @compatible   firefox tampermonkey\n// @compatible   edge tampermonkey\n// @compatible   firefox violentmonkey\n// @compatible   chrome violentmonkey\n// ==/UserScript==\n\n`;
 
 // Anti-FOUC: tiny self-contained script injected BEFORE the main IIFE.
-// It runs instantly (no large parse delay) and hides the page until the
-// main script finishes CSS injection + DOM transformations.
-const cloakScript = `// Anti-FOUC cloak — must execute before the main 580KB IIFE is parsed
-if(localStorage.getItem('kr-theme-enabled')==='true'){
-  document.documentElement.classList.add('kr-cloaked');
-  var s=document.createElement('style');s.id='kr-cloak';
-  s.textContent='html.kr-cloaked{visibility:hidden!important}';
-  (document.head||document.documentElement).appendChild(s);
+// Uses opacity:0 instead of visibility:hidden because visibility can be
+// overridden by child elements with explicit visibility:visible.
+// Inline style on <html> is the fastest way to hide — no extra DOM element.
+// The theme is ON by default (null or 'true'). Only skip cloak when explicitly 'false'.
+const cloakScript = `// Anti-FOUC cloak
+if(localStorage.getItem('kr-theme-enabled')!=='false'){
+  document.documentElement.style.setProperty('opacity','0','important');
 }
 `;
 
@@ -85,10 +85,17 @@ let output = userscriptHeader + cloakScript + template.replace("'__CSS_CONTENT__
 output = output.replace('__USERSCRIPT_VERSION__', version);
 output = output.replace("'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/changelog.json'", `'${changelogUrl}'`);
 
-// Minify JavaScript - DISABLED
-console.log('⚙ Skipping JavaScript minification (disabled for debugging)...');
+// Minify JavaScript (preserve the userscript header which must not be altered)
+console.log('⚙ Minifying JavaScript...');
 const jsCode = output.substring(userscriptHeader.length);
-console.log(`✓ JavaScript not minified (${jsCode.length} chars)`);
+const originalJsLen = jsCode.length;
+const minified = await minify(jsCode, {
+  compress: { drop_console: false, passes: 2 },
+  mangle: true,
+  format: { comments: false }
+});
+output = userscriptHeader + minified.code;
+console.log(`✓ JS minified: ${originalJsLen} → ${minified.code.length} chars (${Math.round((1 - minified.code.length / originalJsLen) * 100)}% reduction)`);
 
 // Write output
 fs.writeFileSync(outputPath, output, 'utf8');
