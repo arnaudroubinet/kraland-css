@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1771757539179
+// @version      1.0.1771761866072
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -15,12 +15,19 @@
 // @compatible   chrome violentmonkey
 // ==/UserScript==
 
+// Anti-FOUC cloak — must execute before the main 580KB IIFE is parsed
+if(localStorage.getItem('kr-theme-enabled')==='true'){
+  document.documentElement.classList.add('kr-cloaked');
+  var s=document.createElement('style');s.id='kr-cloak';
+  s.textContent='html.kr-cloaked{visibility:hidden!important}';
+  (document.head||document.documentElement).appendChild(s);
+}
 // Main script code - CSS bundled inline
 (function (){
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1771757539179';
+  const CURRENT_VERSION = '1.0.1771761866072';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -11985,22 +11992,15 @@ html:not([class*='-dark']) .mini {
   }
 
   // ============================================================================
-  // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
-  // Masque la page pour éviter tout flash de contenu non-stylé (FOUC)
-  // Le cloak est retiré dans init() après applyDOMTransformations
+  // INJECTION CSS IMMÉDIATE
+  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
+  // avant l'IIFE. Ici on injecte uniquement le thème CSS.
+  // Le cloak est retiré dans init() après applyDOMTransformations.
   // ============================================================================
   (function injectCSSImmediately(){
     try {
       if (!isThemeEnabled()) {return;}
 
-      // 1. Masquer la page immédiatement pour bloquer le premier paint non-stylé
-      const cloak = document.createElement('style');
-      cloak.id = 'kr-cloak';
-      cloak.textContent = 'html.kr-cloaked{visibility:hidden!important}';
-      (document.head || document.documentElement).appendChild(cloak);
-      document.documentElement.classList.add('kr-cloaked');
-
-      // 2. Injecter le thème CSS complet
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
@@ -12011,10 +12011,7 @@ html:not([class*='-dark']) .mini {
       if (variant === 'high-contrast') {
         document.documentElement.classList.add('kr-theme-high-contrast');
       }
-
-      // Le cloak reste actif — il sera retiré par uncloakPage() après les transformations DOM
     } catch(e) {
-      // En cas d'erreur, toujours révéler la page
       uncloakPage();
       console.error('CSS injection failed', e);
     }
