@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1771771384653
+// @version      1.0.1771761866072
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -15,4 +15,17885 @@
 // @compatible   chrome violentmonkey
 // ==/UserScript==
 
-"false"!==localStorage.getItem("kr-theme-enabled")&&document.documentElement.style.setProperty("opacity","0","important"),function(){"use strict";const t="1.0.1771771384653";function e(){return document.body&&document.body.classList&&document.body.classList.contains("mobile-mode")}const r={_queue:[],_initialized:!1,register(t,e,r=100){this._queue.push({name:t,fn:e,priority:r})},run(){this._initialized||(this._initialized=!0,this._queue.sort((t,e)=>t.priority-e.priority),e(),this._queue.forEach(({name:t,fn:e})=>{try{e()}catch(e){console.error(`[InitQueue] ✗ ${t}:`,e)}}))}};if(function(){let t,e=null;function r(){return window.innerWidth<768}function o(){const t=r();document.body?e!==t&&(e=t,t?(document.body.classList.add("mobile-mode"),console.log("[Kraland Mobile] Mode mobile activé"),function(){const t=()=>{document.querySelectorAll('[class*="col-"]').forEach(t=>{t.style.setProperty("padding-left","0px","important"),t.style.setProperty("padding-right","0px","important")}),document.querySelectorAll(".row").forEach(t=>{t.style.setProperty("margin-left","0px","important"),t.style.setProperty("margin-right","0px","important")}),document.querySelectorAll(".container, .container-fluid").forEach(t=>{t.style.setProperty("padding-left","0px","important"),t.style.setProperty("padding-right","0px","important")}),document.querySelectorAll(".dashboard").forEach(t=>{t.style.setProperty("margin-left","0px","important"),t.style.setProperty("margin-right","0px","important"),t.style.setProperty("width","100%","important"),t.style.setProperty("padding","0px","important")})};t(),setTimeout(t,100),setTimeout(t,500)}()):(document.body.classList.remove("mobile-mode"),console.log("[Kraland Mobile] Mode desktop"))):console.warn("[Kraland Mobile] document.body n'est pas disponible")}function a(){if(!document.body)return;const t=window.location.pathname;t.includes("/kramail")?(document.body.classList.add("page-kramail"),t.match(/\/kramail\/post\/nouveau/)&&document.body.classList.add("page-kramail-compose")):t.startsWith("/forum/")&&document.body.classList.add("page-forum")}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",o):o(),window.addEventListener("resize",function(){clearTimeout(t),t=setTimeout(()=>{o()},150)}),window.KralandMobile={isMobile:r,reinit:o},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",a):a()}(),function(){function t(){if(!document.body.classList.contains("mobile-mode"))return;if("undefined"==typeof jQuery||void 0===jQuery.fn.collapse)return console.warn("[Mobile Header] Bootstrap JS non chargé, utilisation du fallback"),void function(){const t=document.querySelector(".navbar-toggle"),e=document.querySelector(".navbar-collapse");t&&e&&(t.addEventListener("click",function(r){r.preventDefault(),e.classList.toggle("in");const o=e.classList.contains("in");t.setAttribute("aria-expanded",o),document.body.style.overflow=o?"hidden":""}),console.log("[Mobile Header] Fallback toggle initialisé"))}();const t=document.querySelector(".navbar-toggle"),e=document.querySelector(".navbar-collapse");if(t&&e){if(t.getAttribute("data-toggle")||t.setAttribute("data-toggle","collapse"),!t.getAttribute("data-target")){const r=e.id||"navbar-collapse-mobile";e.id=r,t.setAttribute("data-target","#"+r)}!function(){const t=document.querySelector(".navbar-collapse");if(!t)return;t.querySelectorAll("a:not(.dropdown-toggle)").forEach(e=>{e.addEventListener("click",function(){setTimeout(()=>{"undefined"!=typeof jQuery&&jQuery.fn.collapse?jQuery(t).collapse("hide"):(t.classList.remove("in"),document.body.style.overflow="")},150)})})}(),console.log("[Mobile Header] Header Bootstrap 3 initialisé")}else console.log("[Mobile Header] Éléments navbar-toggle ou navbar-collapse non trouvés")}r.register("initMobileHeader",t,10),window.KralandMobile&&(window.KralandMobile.reinitHeader=t)}(),r.register("moveHeaderButtons",function(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.querySelector(".navbar-header"),e=document.querySelector(".navbar-right");if(!t||!e)return void console.log("[Mobile Header Buttons] Éléments non trouvés");const r=Array.from(e.querySelectorAll("li")),o=r.find(t=>t.querySelector(".fa-bell")&&!t.querySelector(".dropdown-menu")),a=r.find(t=>t.querySelector(".fa-envelope")&&!t.querySelector(".dropdown-menu")),n=r.find(t=>t.querySelector(".fa-globe")&&!t.querySelector(".dropdown-menu"));if(!o&&!a&&!n)return void console.log("[Mobile Header Buttons] Aucun bouton trouvé");if(o&&o.hasAttribute("data-moved-to-header"))return;const i=document.createElement("div");i.className="navbar-header-buttons-left",o&&(o.setAttribute("data-moved-to-header","true"),i.appendChild(o.cloneNode(!0))),a&&(a.setAttribute("data-moved-to-header","true"),i.appendChild(a.cloneNode(!0))),n&&(n.setAttribute("data-moved-to-header","true"),i.appendChild(n.cloneNode(!0))),i.children.length>0&&t.insertBefore(i,t.firstChild);const l=document.querySelector(".navbar-brand");l&&(l.style.display="none"),console.log("[Mobile Header Buttons] Boutons déplacés (notification, kramail, map)")},20),function(){function t(){document.body.classList.contains("mobile-mode")&&function(){if(!document.body.classList.contains("mobile-mode"))return;if(document.querySelector(".mobile-mini-profile"))return;const t=function(){const t=document.getElementById("player-header-section"),e=document.getElementById("player-main-panel");if(!t||!e)return console.warn("[Mobile Mini-Profile] Sections profil non trouvées"),null;const r=t.querySelector(".list-group-item.active"),o=r?r.textContent.replace("×","").trim():"Joueur",a=e.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]'),n=a?a.src:null;let i=null;const l=document.querySelectorAll("div.mini.t");for(const t of l)if(t.querySelector("i.fa.fa-coins")&&t.textContent.includes("MØ")){i=t;break}const d=i?i.textContent.trim():"0 MØ",s=document.getElementById("player-vitals-section"),c=s?s.querySelector(".c100"):null,m=(t,e)=>{if(!t)return null;const r=Array.from(t.querySelectorAll("*")).find(t=>{const r=t.textContent.trim(),o=r.startsWith(e)||r.includes(` ${e} `),a=/\d+/.test(r);return o&&a&&t.children.length<=2});if(!r)return null;const o=r.textContent.trim();if(o.match(/(\d+)\s*\/\s*(\d+)/))return function(t,e){const r=t.textContent,o=r.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);if(!o){const t=r.match(/\d+/);if(t){const r=parseInt(t[0]);return{type:e,current:r,max:r,percent:100}}return{type:e,current:0,max:1,percent:0}}const a=parseInt(o[1]||o[3]),n=parseInt(o[2]||o[4]);return{type:e,current:a,max:n,percent:Math.min(100,a/n*100)}}(r,e.toLowerCase());{const t=o.match(/\d+/);if(!t)return null;const a=parseInt(t[0]),n=r.querySelector('.progress-bar, [class*="bar"]');let i=a;if(n){const t=n.style.width;if(t&&t.includes("%")){const e=parseInt(t);e>0&&(i=Math.round(100*a/e))}}const l=i>0?Math.min(100,a/i*100):0;return{type:e.toLowerCase(),current:a,max:i,percent:l}}};return{name:o,avatar:n,money:d,clock:c?c.textContent.trim():"--:--",gauges:{pv:m(s,"PV"),pm:m(s,"PM"),pp:m(s,"PP")}}}();if(!t)return void console.warn("[Mobile Mini-Profile] Données profil non trouvées");const e=document.createElement("div");e.className="mobile-mini-profile collapsed",e.setAttribute("data-task","1.4");const r=document.createElement("div");if(r.className="mobile-mini-profile-header",t.avatar){const e=document.createElement("img");e.src=t.avatar,e.className="avatar",e.alt="Avatar",r.appendChild(e)}const o=document.createElement("div");o.className="mobile-mini-profile-info";const a=document.createElement("div");a.className="mobile-mini-profile-name-row";const n=document.createElement("div");n.className="mobile-mini-profile-name",n.textContent=t.name,a.appendChild(n);const i=document.createElement("a");i.href="#",i.className="btn btn-default alert100 mobile-mini-profile-manage-btn",i.innerHTML="<span>⚙️</span>",i.setAttribute("data-toggle","tooltip"),i.setAttribute("data-placement","bottom"),i.setAttribute("title","Gestion du personnage"),a.appendChild(i),o.appendChild(a);const l=document.createElement("div");l.className="mobile-mini-profile-money",l.innerHTML=`\n        <span>${t.money}</span>\n        <span class="mobile-mini-profile-clock">⏱️ ${t.clock}</span>\n      `,o.appendChild(l),r.appendChild(o),e.appendChild(r);const d=document.createElement("div");d.className="mobile-mini-profile-gauges-compact",["pv","pm","pp"].forEach(e=>{const r=t.gauges[e];if(!r)return;const o=document.createElement("div");o.className="mobile-gauge-compact",o.innerHTML=`\n          <span class="mobile-gauge-compact-label">${e.toUpperCase()}</span>\n          <div class="mobile-gauge-compact-bar">\n            <div class="mobile-gauge-compact-fill ${e}" style="width: ${r.percent}%"></div>\n          </div>\n          <span class="mobile-gauge-compact-value">${r.current}</span>\n        `,d.appendChild(o)}),e.appendChild(d);const s=document.createElement("div");s.className="mobile-mini-profile-details";const c=document.createElement("div");c.className="mobile-mini-profile-gauges-full",["pv","pm","pp"].forEach(e=>{const r=t.gauges[e];if(!r)return;const o=document.createElement("div");o.className="mobile-gauge-full",o.innerHTML=`\n          <div class="mobile-gauge-full-header">\n            <span>${e.toUpperCase()}</span>\n            <span>${r.current}/${r.max}</span>\n          </div>\n          <div class="mobile-gauge-full-bar">\n            <div class="mobile-gauge-full-fill ${e}" style="width: ${r.percent}%"></div>\n          </div>\n        `,c.appendChild(o)}),s.appendChild(c);const m=document.createElement("div");m.className="mobile-mini-profile-characteristics";const p=document.getElementById("col-leftest-stats");if(p){const t=[];for(let e=121;e<=126;e++){const r=p.querySelector(`.alert${e}`);r&&t.push(r)}t.length>0&&(t.forEach(t=>{const e=t.cloneNode(!0);e.className=t.className+" mobile-characteristic-badge",e.style.cssText="min-width: 44px; min-height: 44px; margin: 4px;",m.appendChild(e)}),s.appendChild(m))}const u=document.createElement("div");u.className="mobile-mini-profile-skills";const g=document.getElementById("skills-panel");if(g){const t=g.querySelectorAll('.ds_game[class*="alert11"]');t.length>0&&(t.forEach(t=>{const e=t.cloneNode(!0);e.className=t.className+" mobile-skill-item",e.style.cssText="min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;",u.appendChild(e)}),s.appendChild(u))}e.appendChild(s),e.addEventListener("click",t=>{t.target.closest(".mobile-mini-profile-avatar-btn, .mobile-characteristic-badge, .mobile-skill-item")||(e.classList.toggle("collapsed"),e.classList.toggle("expanded"),console.log("[Mobile Mini-Profile] État:",e.classList.contains("expanded")?"déplié":"replié"))});const b=document.querySelector(".navbar"),h=document.getElementById("content")||document.body;b&&b.nextSibling?b.parentNode.insertBefore(e,b.nextSibling):h.insertBefore(e,h.firstChild),console.log("[Mobile Mini-Profile] Créé avec succès"),console.log("  - Nom:",t.name),console.log("  - Argent:",t.money),console.log("  - Horloge:",t.clock),console.log("  - PV:",t.gauges.pv?`${t.gauges.pv.current}/${t.gauges.pv.max}`:"N/A")}()}r.register("initMiniProfile",t,40),window.KralandMobile&&(window.KralandMobile.initMiniProfile=t)}(),function(){function t(){document.body.classList.contains("mobile-mode")&&function(){if(!document.body.classList.contains("mobile-mode"))return;if(document.querySelector(".mobile-quick-actions"))return;if(!window.location.pathname.startsWith("/jouer/"))return;const t=document.getElementById("player-actions-section");if(!t)return void console.warn("[Mobile Quick Actions] Section actions non trouvée");const e=t.querySelectorAll("a.btn, button.btn");if(0===e.length)return void console.warn("[Mobile Quick Actions] Aucun bouton trouvé");const r=document.createElement("div");r.className="btn-group btn-group-justified mobile-quick-actions",r.setAttribute("role","group"),r.setAttribute("data-task","1.5"),e.forEach(t=>{const e=document.createElement("div");e.className="btn-group",e.setAttribute("role","group");const o=t.cloneNode(!0);o.classList.add("mobile-quick-action");const a=o.querySelector("i"),n=o.textContent.trim();if(o.innerHTML="",a){const t=a.cloneNode(!0);t.classList.add("mobile-quick-action-icon"),o.appendChild(t)}const i=document.createElement("span");i.className="mobile-quick-action-label",i.textContent=n,o.appendChild(i),e.appendChild(o),r.appendChild(e)});const o=document.querySelector(".navbar");o&&o.nextSibling?o.parentNode.insertBefore(r,o.nextSibling):document.body.insertBefore(r,document.body.firstChild),console.log("[Mobile Quick Actions] Créées avec",e.length,"actions")}()}r.register("initQuickActions",t,50),window.KralandMobile&&(window.KralandMobile.initQuickActions=t)}(),function(){function t(){if(!e())return;if("/"!==window.location.pathname&&"/accueil"!==window.location.pathname&&!window.location.pathname.endsWith("/"))return;const t=document.querySelector(".carousel");t?(t.remove(),console.log("[Homepage Carousel] Carousel supprimé en mode mobile")):console.log("[Homepage Carousel] Carousel non trouvé sur la page")}r.register("removeHomepageCarousel",t,5),window.KralandMobile&&(window.KralandMobile.removeHomepageCarousel=t)}(),function(){function t(){document.body.classList.contains("mobile-mode")&&function(){if(!document.body.classList.contains("mobile-mode"))return;if(document.querySelector(".mobile-tab-bar"))return;if(!window.location.pathname.startsWith("/jouer/"))return;const t=function(){const t=[];return[{pattern:"/jouer/plateau",href:"/jouer/plateau",label:"Agir",icon:"fa-bolt"},{pattern:"/jouer/materiel",href:"/jouer/materiel",label:"Matériel",icon:"fa-cube"},{pattern:"/jouer/perso",href:"/jouer/perso",label:"Personnage",icon:"fa-user"},{pattern:"/jouer/bat",href:"/jouer/bat",label:"Bâtiments",icon:"fa-home"},{pattern:"/jouer/pnj",href:"/jouer/pnj",label:"Employés",icon:"fa-users"}].forEach(e=>{const r=document.querySelector(`a[href*="${e.pattern}"]`);t.push({href:r?r.getAttribute("href"):e.href,text:r&&r.textContent.trim()||e.label,pattern:e.pattern,icon:e.icon})}),t}();if(0===t.length)return void console.warn("[Mobile Tab Bar] Aucun lien de navigation disponible");const e=document.createElement("ul");e.className="nav nav-tabs mobile-tab-bar",e.setAttribute("role","tablist"),t.forEach(t=>{const r=document.createElement("li");r.setAttribute("role","presentation");const o=document.createElement("a");o.href=t.href,o.setAttribute("role","tab");const a=document.createElement("i");a.className=`fa ${t.icon} mobile-tab-icon`;const n=document.createElement("span");n.className="mobile-tab-label",n.textContent=t.text,o.appendChild(a),o.appendChild(n),window.location.pathname.includes(t.pattern)?(r.classList.add("active"),o.setAttribute("aria-selected","true")):o.setAttribute("aria-selected","false"),r.appendChild(o),e.appendChild(r)});const r=document.querySelector(".navbar")||document.querySelector("header")||document.body.firstElementChild;r&&r.nextSibling?r.parentNode.insertBefore(e,r.nextSibling):document.body.insertBefore(e,document.body.firstChild),function(t){const e=()=>{const e=t.scrollLeft+t.clientWidth>=t.scrollWidth-5;t.classList.toggle("scrolled-end",e)};t.addEventListener("scroll",e),setTimeout(e,100),window.addEventListener("resize",e)}(e),setTimeout(()=>function(t){const e=t.querySelector("li.active > a");if(!e)return;const r=t.getBoundingClientRect(),o=e.getBoundingClientRect(),a=o.left-r.left-r.width/2+o.width/2;t.scrollTo({left:t.scrollLeft+a,behavior:"smooth"})}(e),100),console.log("[Mobile Tab Bar] Créée avec",t.length,"onglets")}()}window.KralandMobile&&(window.KralandMobile.initTabBar=t),r.register("initTabBar",t,30)}(),function(){const t="kraland_dismissed_alerts";function e(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Alerts Memory] Erreur lecture localStorage:",t),[]}}function r(t){return t.id?t.id:"alert_"+function(t){let e=0;for(let r=0;r<t.length;r++)e=(e<<5)-e+t.charCodeAt(r),e&=e;return Math.abs(e).toString(36)}(t.textContent.trim().replace(/\s+/g," "))}function o(){!function(){const t=e();if(0===t.length)return;const o=document.querySelectorAll(".alert.alert-dismissible");let a=0;o.forEach(e=>{const o=r(e);t.includes(o)&&(e.style.display="none",a++)}),a>0&&console.log(`[Alerts Memory] ${a} alerte(s) masquée(s) automatiquement`)}(),function(){const o=document.querySelectorAll(".alert.alert-dismissible");o.forEach(o=>{const a=o.querySelector('.close, [data-dismiss="alert"]');a&&a.addEventListener("click",function(){!function(r){try{const o=e();o.includes(r)||(o.push(r),localStorage.setItem(t,JSON.stringify(o)),console.log("[Alerts Memory] Alerte mémorisée:",r))}catch(t){console.warn("[Alerts Memory] Erreur sauvegarde localStorage:",t)}}(r(o))})}),console.log(`[Alerts Memory] Surveillance activée pour ${o.length} alerte(s)`)}()}function a(){if(!window.location.pathname.includes("/profil/interface"))return;const r=setInterval(()=>{const o=document.querySelector("#kr-tamper-theme-form");if(!o)return;clearInterval(r);const a=document.createElement("div");a.className="form-group",a.style.marginTop="20px",a.style.paddingTop="15px",a.style.borderTop="1px solid rgba(255, 255, 255, 0.1)";const n=document.createElement("label");n.className="col-sm-3 control-label",n.style.paddingLeft="0px",n.style.paddingRight="0px",n.textContent="Alertes";const i=document.createElement("div");i.className="col-sm-9",i.style.paddingLeft="0px";const l=document.createElement("button");l.type="button",l.className="btn btn-warning kr-reset-alerts-btn",l.style.width="33.333%",l.style.display="inline-block";const d=document.createElement("span");d.className="glyphicon glyphicon-refresh",d.style.marginRight="5px";const s=document.createTextNode("Réinitialiser les alertes fermées");l.appendChild(d),l.appendChild(s),l.addEventListener("click",function(){const r=e().length;0!==r?confirm(`Voulez-vous vraiment réinitialiser ${r} alerte(s) fermée(s) ? Elles réapparaîtront lors du prochain chargement de page.`)&&(localStorage.removeItem(t),console.log("[Alerts Memory] Alertes mémorisées effacées"),d.className="glyphicon glyphicon-ok",l.textContent="",l.appendChild(d),l.appendChild(document.createTextNode(" "+(1===r?"1 alerte réinitialisée !":`${r} alertes réinitialisées !`))),l.className="btn btn-success kr-reset-alerts-btn",m(),setTimeout(()=>{d.className="glyphicon glyphicon-refresh",l.textContent="",l.appendChild(d),l.appendChild(document.createTextNode(" Réinitialiser les alertes fermées")),l.className="btn btn-warning btn-block"},3e3)):alert("Aucune alerte fermée à réinitialiser.")});const c=document.createElement("p");function m(){var t;c.textContent=0===(t=e().length)?"Aucune alerte actuellement masquée":1===t?"1 alerte actuellement masquée":`${t} alertes actuellement masquées`}c.className="help-block",c.style.display="inline-block",c.style.marginTop="0",c.style.marginLeft="10px",c.style.verticalAlign="middle",c.style.fontSize="12px",c.style.opacity="0.7",m(),i.appendChild(l),i.appendChild(c),a.appendChild(n),a.appendChild(i),o.parentNode.insertBefore(a,o.nextSibling),console.log("[Alerts Memory] Bouton de réinitialisation ajouté")},100)}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",o):o(),"loading"===document.readyState?(document.addEventListener("DOMContentLoaded",o),document.addEventListener("DOMContentLoaded",a)):(o(),a()),window.KralandMobile&&(window.KralandMobile.clearDismissedAlerts=function(){localStorage.removeItem(t),console.log("[Alerts Memory] Alertes mémorisées effacées")})}(),function(){function t(){const t=window.location.pathname;if("/"!==t&&"/accueil"!==t&&!t.startsWith("/accueil"))return;const e=Array.from(document.querySelectorAll("h4.list-group-item-heading.count")).find(t=>{const e=t.textContent.trim();return!/^\d+$/.test(e)&&e.length>0});if(!e)return void console.log("[Welcome Message] Nom d'utilisateur non trouvé");const r=e.textContent.trim();r.startsWith("Bienvenu")||(e.textContent="Bienvenu "+r,console.log("[Welcome Message] Message de bienvenue ajouté pour:",r))}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",t):t()}(),function(){function t(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.querySelectorAll(".dashboard-section");let e=0;t.forEach(t=>{const r=t.querySelector(".dashboard-section-header"),o=t.querySelector(".dashboard-group-title");if(r&&o){const r=t.classList.contains("dashboard-section-mygroup");!function(t,e){const r=t.querySelector(".dashboard-section-header"),o=t.querySelector(".dashboard-cards-grid");if(!r||!o)return;r.classList.add("dashboard-section-header-accordion");const a=e;o.classList.toggle("collapsed",!a),r.classList.toggle("expanded",a);const n=document.createElement("i");n.className="fa fa-chevron-down accordion-icon",r.appendChild(n),r.style.cursor="pointer",r.addEventListener("click",e=>{if(e.target.closest(".dashboard-group-buttons"))return;const a=!o.classList.contains("collapsed");o.classList.toggle("collapsed",a),r.classList.toggle("expanded",!a),console.log("[Group Accordion]",t.querySelector(".dashboard-group-title")?.textContent,a?"collapsed":"expanded")}),console.log("[Group Accordion] Groupe configuré:",t.querySelector(".dashboard-group-title")?.textContent,"état initial:",a?"ouvert":"fermé")}(t,r),e++}}),console.log("[Groups Accordion] Initialisé pour",e,"groupes")}window.KralandMobile&&(window.KralandMobile.initGroupsAccordion=t),r.register("initGroupsAccordion",t,70)}(),r.register("Commerce Accordion",function(){if(!e())return;if(!window.location.href.includes("jouer/plateau"))return;const t=["Nourriture","Repas","Boissons","Bons d'état / Loterie","Services"],r=[];document.querySelectorAll("h4.list-group-item-heading").forEach(e=>{const o=e.textContent.trim();if(t.includes(o)){const t=e.parentElement;t&&t.classList.contains("list-group-item")&&r.push({name:o,div:t,h4:e})}}),0!==r.length&&(console.log(`[Commerce Accordion] Trouvé ${r.length} catégories`),r.forEach((t,e)=>{const r=[];let o=t.div.nextElementSibling;for(;o;)if(o.classList){if(o.classList.contains("ds_forum")&&o.querySelector("h4.list-group-item-heading"))break;"A"===o.tagName&&o.classList.contains("ds_game")&&r.push(o),o=o.nextElementSibling}else o=o.nextElementSibling;const a=document.createElement("div");if(a.className="commerce-products-container",r.forEach(t=>{a.appendChild(t)}),!t.div||!t.div.parentElement||!t.h4)return void console.warn(`[Commerce Accordion] ${t.name}: éléments manquants`);t.div.parentElement.insertBefore(a,t.div.nextSibling),t.div.classList.add("commerce-category-header");const n=0===e;n?t.div.classList.add("expanded"):(a.classList.add("collapsed"),t.div.classList.add("collapsed"));const i=document.createElement("i");i.className="fa fa-chevron-down accordion-icon",t.h4&&t.h4.appendChild&&t.h4.appendChild(i),t.div.style.cursor="pointer",t.div.addEventListener("click",e=>{e.preventDefault(),e.stopPropagation();const r=!a.classList.contains("collapsed");a.classList.toggle("collapsed",r),t.div.classList.toggle("collapsed",r),t.div.classList.toggle("expanded",!r),console.log(`[Commerce Accordion] ${t.name}: ${r?"fermé":"ouvert"}`)}),console.log(`[Commerce Accordion] ${t.name}: ${r.length} produits, état initial: ${n?"ouvert":"fermé"}`)}))}),r.register("Building Collapse",function(){if(!e())return;const t=Array.from(document.querySelectorAll("h3.panel-title")).find(t=>t.textContent.includes("Bâtiment"));if(!t)return;const r=t.parentElement;if(!r)return;const o=r.nextElementSibling;if(!o||!o.classList.contains("panel-body"))return;r.classList.add("building-section-header"),o.classList.add("building-section-content");const a=document.createElement("i");a.className="fa fa-chevron-down accordion-icon",r.appendChild(a),r.classList.add("expanded"),r.style.cursor="pointer",r.addEventListener("click",t=>{t.preventDefault(),t.stopPropagation();const e=!o.classList.contains("collapsed");o.classList.toggle("collapsed",e),r.classList.toggle("collapsed",e),r.classList.toggle("expanded",!e),console.log("[Building Section] "+(e?"fermé":"ouvert"))}),console.log("[Building Section] Initialisé - section collapsible")}),r.register("initNavigationRow",function(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.querySelector(".navbar");if(!t)return;const e=document.querySelector('img[alt="Sortir"]');if(!e||!e.parentElement)return;const r=e.parentElement,o=r.querySelector('map[name="exitmap"]'),a=Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));if(0===a.length)return;const n=a.filter(t=>{let e=t;for(;e&&e!==document.body;){if(e.classList&&e.classList.contains("kr-navigation-row"))return!1;e=e.parentElement}return!0});if(n.sort((t,e)=>parseInt(t.src.match(/bat(\d+)\.gif/)?.[1]||"999")-parseInt(e.src.match(/bat(\d+)\.gif/)?.[1]||"999")),0===n.length)return;const i=r.closest(".row.center");i&&(i.style.display="none");const l=n.map(t=>t.closest("a")).filter(t=>null!==t);if(0===l.length)return;const d=document.createElement("div");if(d.className="kr-navigation-row",d.setAttribute("role","group"),e&&o){const t=document.createElement("div");t.className="btn-group kr-direction-cross",t.setAttribute("role","group");const r=document.createElement("div");r.className="btn btn-default alert11 mini kr-direction-link";const a=e.cloneNode(!0);a.style.width="60px",a.style.height="60px",a.style.display="block";const n=o.cloneNode(!0);r.addEventListener("click",t=>{const e=r.getBoundingClientRect(),o=t.clientX-e.left,a=t.clientY-e.top,i=n.querySelectorAll("area");for(const e of i)if("rect"===e.shape){const r=e.coords.split(",").map(t=>parseInt(t)),[n,i,l,d]=r;if(o>=n&&o<=l&&a>=i&&a<=d){t.preventDefault(),t.stopPropagation();const r=e.href;return void(r&&"#"!==r&&(window.location.href=r))}}}),r.appendChild(a),r.appendChild(n),t.appendChild(r),d.appendChild(t)}l.forEach(t=>{const e=document.createElement("div");e.className="btn-group kr-room-access-card",e.setAttribute("role","group");const r=t.cloneNode(!0);r.className="btn btn-default alert11 mini kr-room-link",r.addEventListener("click",t=>{t.stopPropagation();const e=r.href;e&&"#"!==e&&(window.location.href=e)}),e.appendChild(r),d.appendChild(e)}),t.parentNode.insertBefore(d,t.nextSibling),console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${l.length} accès aux pièces`)},60),window.innerWidth<768&&window.location.hash&&"#top"!==window.location.hash){const t=history.scrollRestoration;history.scrollRestoration="manual";const e=window.location.pathname+window.location.search;history.replaceState(null,"",e);const r=()=>window.scrollTo(0,0);r(),"loading"===document.readyState&&document.addEventListener("DOMContentLoaded",r),window.addEventListener("load",r),setTimeout(()=>{history.scrollRestoration=t},500)}r.register("initNewsToggle",function(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.getElementById("slide-submenu"),e=document.getElementById("player-header-section");if(t&&e){function r(e){t.innerHTML=e?"▼":"×",t.setAttribute("aria-label",e?"Déplier les nouvelles":"Replier les nouvelles"),t.setAttribute("title",e?"Déplier":"Replier")}const o="true"===localStorage.getItem("kr-news-collapsed");o&&e.classList.add("kr-news-collapsed"),r(o),t.addEventListener("click",function(t){t.preventDefault(),t.stopPropagation(),t.stopImmediatePropagation(),e.classList.toggle("kr-news-collapsed");const o=e.classList.contains("kr-news-collapsed");localStorage.setItem("kr-news-collapsed",o),r(o)},{capture:!0}),console.log("[News Toggle] Initialisé")}},80);const o={BUNDLED_CSS:':root{--kr-primary:#8b0f0e;--kr-primary-dark:#700b09;--kr-gold:#C69100;--kr-highlight:#c41e3a;--kr-highlight-reverse:#f9d9de;--kr-surface:#fff;--kr-text:#0f1724;--kr-muted:#6b7280;--kr-navbar-bg:#111315;--kr-radius:.5rem;--kr-avatar-size:120px;--kr-bg-page:#f5f5f5;--kr-bg-surface:#fff;--kr-bg-elevated:#fff;--kr-bg-hover:rgb(0,0,0,0.02);--kr-bg-active:rgb(0,0,0,0.05);--kr-text-primary:#0f1724;--kr-text-secondary:#6b7280;--kr-text-muted:#9ca3af;--kr-text-inverse:#fff;--kr-border-default:rgb(0,0,0,0.08);--kr-border-strong:rgb(0,0,0,0.15);--kr-shadow-sm:0 1px 2px rgb(0,0,0,0.05);--kr-shadow-md:0 4px 6px rgb(0,0,0,0.07);--kr-shadow-lg:0 10px 15px rgb(0,0,0,0.1);--kr-white:#fff;--kr-focus-ring:rgb(164,18,13,0.22);--kr-focus-ring-light:rgb(164,18,13,0.18);--kr-alert-info-bg:rgb(164,18,13,0.06);--kr-alert-info-border:rgb(164,18,13,0.14);--kr-btn-shadow:rgb(165,18,13,0.12);--kr-badge-danger:#dc3545;--kr-badge-danger-border:#bd2130;--kr-badge-pnj:#d9534f;--kr-bootstrap-blue:#337ab7;--kr-nation-1:#C41E3A;--kr-nation-2:#C69100;--kr-nation-3:#FF0;--kr-nation-4:#0033A0;--kr-nation-5:#0B6623;--kr-nation-6:#6A0DAD;--kr-nation-7:#6B7280;--kr-nation-8:#0A6B2D;--kr-nation-9:#a70;--kr-nation-bg-1:rgb(255, 128, 128);--kr-nation-bg-2:rgb(170, 112, 0);--kr-nation-bg-3:rgb(255, 255, 128);--kr-nation-bg-4:rgb(128, 128, 255);--kr-nation-bg-5:rgb(128, 255, 128);--kr-nation-bg-6:rgb(204, 128, 255);--kr-nation-bg-7:rgb(170, 170, 170);--kr-nation-bg-8:rgb(115, 151, 115);--kr-nation-bg-9:rgb(170, 170, 68);--kr-nation-bg-10:rgb(204, 255, 255);--mobile-tab-bar-height:48px;--mobile-touch-target:44px;--mobile-spacing-xs:4px;--mobile-spacing-sm:8px;--mobile-spacing-md:12px;--mobile-spacing-lg:16px;--mobile-spacing-xl:24px;--mobile-radius:8px;--mobile-radius-lg:16px;--z-header:1000;--z-tab-bar:999;--z-bottom-sheet:998;--z-drawer:1001;--transition-fast:0.15s ease;--transition-normal:0.3s ease;--transition-slow:0.5s ease;--kr-gauge-pv:#28a745;--kr-gauge-pm:#007bff;--kr-gauge-pp:#ffc107;--kr-overlay-light-10:rgba(255, 255, 255, 0.1);--kr-overlay-light-05:rgba(255, 255, 255, 0.05);--kr-overlay-light-20:rgba(255, 255, 255, 0.2);--kr-overlay-dark-20:rgba(0, 0, 0, 0.2);--kr-overlay-dark-30:rgba(0, 0, 0, 0.3);--kr-overlay-dark-125:rgba(0, 0, 0, 0.125)}html.kr-theme-variant-empire-brun{--kr-primary:#5E3B2D;--kr-highlight:#C69100}html.kr-theme-variant-paladium{--kr-primary:#D4AF37;--kr-highlight:#044c17}html.kr-theme-variant-theocratie-seelienne{--kr-primary:#0033A0;--kr-highlight:#2d5fcb}html.kr-theme-variant-paradigme-vert{--kr-primary:#0B6623;--kr-highlight:#063803}html.kr-theme-variant-khanat-elmerien{--kr-primary:#6A0DAD;--kr-highlight:#7b4c9c}html.kr-theme-variant-confederation-libre{--kr-primary:#6B7280;--kr-highlight:#475369}html.kr-theme-variant-royaume-ruthvenie{--kr-primary:#0A6B2D;--kr-highlight:#C41E3A}html.kr-theme-variant-empire-brun-dark{--kr-primary:#7a5240;--kr-primary-dark:#5E3B2D;--kr-highlight:#d4a574;--kr-highlight-reverse:#1a0f0a;--kr-bg-page:#12100d;--kr-bg-surface:#1e1a15;--kr-bg-elevated:#2a251f;--kr-text-primary:#f5f1ed;--kr-text-secondary:#b8a997;--kr-text-muted:#8a7968;--kr-text-inverse:#12100d;--kr-form-bg:#3a332b;--kr-form-bg-focus:#423a31;--kr-nation-2:#d4a574;--kr-nation-4:#74b9ff;--kr-nation-5:#55efc4;--kr-nation-6:#a29bfe;--kr-nation-7:#b2bec3;--kr-nation-8:#81c784}html.kr-theme-variant-confederation-libre-dark,html.kr-theme-variant-empire-brun-dark,html.kr-theme-variant-khanat-elmerien-dark,html.kr-theme-variant-paladium-dark,html.kr-theme-variant-paradigme-vert-dark,html.kr-theme-variant-royaume-ruthvenie-dark,html.kr-theme-variant-theocratie-seelienne-dark{--kr-bg-hover:rgba(255, 255, 255, 0.03);--kr-bg-active:rgba(255, 255, 255, 0.06);color-scheme:dark;--kr-border-default:rgb(255,255,255,0.08);--kr-border-strong:rgb(255,255,255,0.15);--kr-shadow-sm:0 1px 3px rgb(0,0,0,0.4);--kr-shadow-md:0 4px 8px rgb(0,0,0,0.5);--kr-shadow-lg:0 10px 20px rgb(0,0,0,0.6);--kr-nation-1:#ff8080;--kr-nation-3:#ffe066;--kr-nation-9:#c4b958}html.kr-theme-variant-paladium-dark{--kr-primary:#e6c76e;--kr-primary-dark:#D4AF37;--kr-highlight:#4a9d5f;--kr-highlight-reverse:#021a0a;--kr-bg-page:#0f0e0a;--kr-bg-surface:#1a1810;--kr-bg-elevated:#252015;--kr-text-primary:#f5f3e8;--kr-text-secondary:#c4b896;--kr-text-muted:#938567;--kr-text-inverse:#0f0e0a;--kr-form-bg:#3a3420;--kr-form-bg-focus:#43392a;--kr-nation-2:#e6c76e;--kr-nation-4:#74b9ff;--kr-nation-5:#55efc4;--kr-nation-6:#a29bfe;--kr-nation-7:#b2bec3;--kr-nation-8:#81c784}html.kr-theme-variant-confederation-libre-dark,html.kr-theme-variant-khanat-elmerien-dark,html.kr-theme-variant-paradigme-vert-dark,html.kr-theme-variant-royaume-ruthvenie-dark,html.kr-theme-variant-theocratie-seelienne-dark{--kr-nation-2:#d4a574}html.kr-theme-variant-theocratie-seelienne-dark{--kr-primary:#5a8fd9;--kr-primary-dark:#2d5fcb;--kr-highlight:#80b3ff;--kr-highlight-reverse:#000d1f;--kr-bg-page:#0a0e15;--kr-bg-surface:#12182a;--kr-bg-elevated:#1a2438;--kr-text-primary:#e8f0ff;--kr-text-secondary:#9db5d6;--kr-text-muted:#6b7f9e;--kr-text-inverse:#0a0e15;--kr-form-bg:#2a3447;--kr-form-bg-focus:#323d54;--kr-nation-4:#80b3ff;--kr-nation-5:#55efc4;--kr-nation-6:#a29bfe;--kr-nation-7:#b2bec3;--kr-nation-8:#81c784}html.kr-theme-variant-confederation-libre-dark,html.kr-theme-variant-khanat-elmerien-dark,html.kr-theme-variant-paradigme-vert-dark,html.kr-theme-variant-royaume-ruthvenie-dark{--kr-nation-4:#74b9ff}html.kr-theme-variant-paradigme-vert-dark{--kr-primary:#4d9c61;--kr-primary-dark:#2a7a3d;--kr-highlight:#70c784;--kr-highlight-reverse:#021508;--kr-bg-page:#0a120d;--kr-bg-surface:#0f1a13;--kr-bg-elevated:#1a2820;--kr-text-primary:#e8f5ed;--kr-text-secondary:#a0c4ab;--kr-text-muted:#6d8a75;--kr-text-inverse:#0a120d;--kr-form-bg:#2a3d30;--kr-form-bg-focus:#324539;--kr-nation-5:#70c784;--kr-nation-6:#a29bfe;--kr-nation-7:#b2bec3;--kr-nation-8:#81c784}html.kr-theme-variant-confederation-libre-dark,html.kr-theme-variant-khanat-elmerien-dark,html.kr-theme-variant-royaume-ruthvenie-dark{--kr-nation-5:#55efc4}html.kr-theme-variant-khanat-elmerien-dark{--kr-primary:#96c;--kr-primary-dark:#7b4c9c;--kr-highlight:#b794d9;--kr-highlight-reverse:#1a0425;--kr-bg-page:#0f0a15;--kr-bg-surface:#1a121f;--kr-bg-elevated:#251a2d;--kr-text-primary:#f0e8ff;--kr-text-secondary:#bba0d6;--kr-text-muted:#857299;--kr-text-inverse:#0f0a15;--kr-form-bg:#3a2f47;--kr-form-bg-focus:#443854;--kr-nation-6:#b794d9;--kr-nation-7:#b2bec3;--kr-nation-8:#81c784}html.kr-theme-variant-confederation-libre-dark,html.kr-theme-variant-royaume-ruthvenie-dark{--kr-nation-6:#a29bfe}html.kr-theme-variant-confederation-libre-dark{--kr-primary:#9ca3af;--kr-primary-dark:#6b7280;--kr-highlight:#c2c9d6;--kr-highlight-reverse:#0f1115;--kr-bg-page:#0e1013;--kr-bg-surface:#16181c;--kr-bg-elevated:#1f2228;--kr-text-primary:#e8eaed;--kr-text-secondary:#b8bcc4;--kr-text-muted:#7e8591;--kr-text-inverse:#0e1013;--kr-form-bg:#2d3139;--kr-form-bg-focus:#363a43;--kr-nation-7:#c2c9d6;--kr-nation-8:#81c784}html.kr-theme-variant-royaume-ruthvenie-dark{--kr-primary:#4a9d61;--kr-primary-dark:#2a7a3d;--kr-highlight:#ff6b85;--kr-highlight-reverse:#1a0408;--kr-bg-page:#0d1210;--kr-bg-surface:#141a16;--kr-bg-elevated:#1d2621;--kr-text-primary:#ecf5f0;--kr-text-secondary:#a5c4b0;--kr-text-muted:#708a79;--kr-text-inverse:#0d1210;--kr-form-bg:#2d3d33;--kr-form-bg-focus:#36463b;--kr-nation-7:#b2bec3;--kr-nation-8:#70c784}#top,hr[style*="border-top: 1px solid"][style*="337ab7"],html.kr-hide-footer-quote .footer-quote{display:none!important}body,html,nav.navbar{height:auto!important}body{min-height:100vh!important;display:flex;flex-direction:column;margin:0!important;padding-top:60px}nav.navbar{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:1030!important;max-height:60px!important}#content{flex:1 0 auto}footer{flex-shrink:0;width:100%}.container{max-width:1608px!important;width:1608px!important}#skills-panel{display:block!important;border:1px solid rgb(0,0,0,.06)!important;border-radius:5px!important;background-color:var(--kr-white)!important}.navbar-brand{display:flex!important;align-items:center!important;padding-top:0!important;padding-bottom:0!important}.navbar-brand img.kr-logo{height:28px;vertical-align:middle}.navbar-nav>li>a{color:var(--kr-white)!important}.form-control.form-control{border-radius:.4rem;border:1px solid rgb(0,0,0,.08);padding:.6rem .8rem;font-size:.95rem}.form-control:focus{box-shadow:0 0 0 .18rem var(--kr-focus-ring);border-color:var(--kr-primary);outline:0}textarea.form-control.form-control{font-size:1.4rem!important;line-height:1.6!important}.form-group label{color:var(--kr-text);font-weight:600}input[type=checkbox],input[type=radio]{accent-color:var(--kr-primary)!important}input[type=checkbox]:focus,input[type=radio]:focus{outline:0;box-shadow:0 0 0 .12rem var(--kr-focus-ring-light)!important}input[type=checkbox]:checked{border-color:var(--kr-primary)!important}.badge,.label{border-color:var(--kr-primary-dark)}.badge,.bg-info,.label{background-color:var(--kr-primary);color:var(--kr-white)}.badge-danger{background-color:var(--kr-badge-danger)!important;color:var(--kr-white)!important;border-color:var(--kr-badge-danger-border)!important}.alert.alert-info{background-color:var(--kr-alert-info-bg);border-color:var(--kr-alert-info-border)}.alert p,.alert strong,.alert.alert-info{color:var(--kr-text)}.list-group-item{border:0;padding:.6rem .75rem}.list-group-item.btn{border:0!important}.list-group-item.active,.list-group-item.active a,.list-group-item.active:focus,.list-group-item.active:hover{background-color:var(--kr-primary)!important;border-color:var(--kr-primary-dark)!important;color:var(--kr-surface)!important}.list-group-item:hover{color:var(--kr-primary-dark);background-color:rgb(0,0,0,.02)}.img-circle{width:var(--kr-avatar-size);height:var(--kr-avatar-size);min-width:var(--kr-avatar-size);min-height:var(--kr-avatar-size);object-fit:cover;display:inline-block;border-radius:50%}.img-circle.img-responsive,.img-circle.img-thumbnail{max-width:none!important;width:var(--kr-avatar-size);height:var(--kr-avatar-size)}.col-md-2.sidebar .avatar,.col-md-3.sidebar .avatar{margin-bottom:.5rem}.list-group a.list-group-item.ds_user,.list-group-item.ds_user{position:relative;min-height:var(--kr-avatar-size)!important;padding-right:calc(var(--kr-avatar-size) + 1rem)!important;display:flex!important;align-items:center!important}.list-group-item.ds_user .pull-right{position:absolute!important;right:.75rem!important;top:50%!important;transform:translateY(-50%)!important}#player-header-section .nopadding,#player-header-section .nopadding-right,#player-main-panel .nopadding,#player-main-panel .nopadding-right,#player-vitals-section .nopadding,#player-vitals-section .nopadding-right{padding-left:15px!important;padding-right:15px!important}#player-main-panel>.row>.nopadding:first-child{padding-left:10px!important;padding-right:10px!important}#player-vitals-section[style*=padding-left]{padding-left:0!important}#player-actions-section{display:flex;flex-wrap:wrap;gap:.5rem;padding:0 15px!important}.kr-quick-access-buttons .col-xs-6{margin-bottom:10px}#player-actions-section hr{width:100%;margin:.5rem 0}.carousel-caption{background:linear-gradient(180deg,rgb(0,0,0,.55),rgb(0,0,0,.35));padding:1.4rem;padding-bottom:56px;border-radius:.6rem;color:var(--kr-white)}.item img[class*=-slide]{display:block;margin:0 auto;max-width:100%;height:auto}a.carousel-control.left,a.carousel-control.right{background-image:none}.modal{display:flex!important;position:fixed!important;align-items:flex-start;justify-content:center;pointer-events:auto;padding-top:30px}.modal,.modal.in{overflow-y:hidden!important}.modal-content,.modal-dialog{display:flex;flex-direction:column}.modal-dialog{width:900px;max-width:90vw;margin:0 auto 30px;max-height:calc(100vh - 60px);pointer-events:auto;overflow-y:auto}.modal-content{max-height:100%;overflow:hidden}.modal-body{overflow-y:auto;flex:1 1 auto}.modal-footer,.modal-header{flex-shrink:0}.pagination>li.active>a{color:var(--kr-surface);background-color:var(--kr-primary-dark);border-color:var(--kr-primary-dark)}.pagination>li>a,.pagination>li>a:hover{color:var(--kr-primary)}.pagination>li.active>a:hover{color:var(--kr-surface);background-color:var(--kr-primary);border-color:var(--kr-primary)}.bg-primary{background-color:var(--kr-primary)!important;color:var(--kr-surface)!important}a:link,a:visited{color:var(--kr-highlight);text-decoration:none;transition:color .12s ease,opacity .12s ease}a:focus,a:hover{color:var(--kr-primary-dark);text-decoration:underline;outline:0}a.btn-primary,button.btn-primary{background-color:var(--kr-primary);border-color:var(--kr-primary-dark);color:var(--kr-highlight-reverse);box-shadow:0 6px 18px var(--kr-btn-shadow)}a.btn-primary:focus,a.btn-primary:hover,button.btn-primary:focus,button.btn-primary:hover{background-color:var(--kr-primary-dark)}footer .container.white{position:relative}.container.white .kraland-back-to-top{position:fixed;right:20px;bottom:20px;z-index:1000;transform:none}.dashboard-card-actions>div,.dashboard.dashboard-flex{display:flex;flex-direction:column;gap:15px}.dashboard-section{background:var(--kr-surface);border-radius:8px;overflow:hidden;box-shadow:0 2px 4px rgb(0,0,0,.08)}.dashboard-section-header{background:var(--kr-primary);color:var(--kr-white);padding:3px 8px;font-size:9px;font-weight:600;display:flex;align-items:center;gap:5px}.dashboard-group-buttons{display:flex;gap:6px}.dashboard-group-buttons .btn{background-color:rgb(255,255,255,.15);border:1px solid rgb(255,255,255,.25);color:var(--kr-white);padding:4px 8px;font-size:12px;border-radius:4px;transition:all .2s ease}.dashboard-group-buttons .btn:hover{background-color:rgb(255,255,255,.25);border-color:rgb(255,255,255,.4);transform:scale(1.05)}.dashboard-group-buttons .btn i{font-size:12px}.dashboard-group-title{flex:1;text-transform:uppercase;letter-spacing:.5px}.dashboard-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:12px}.dashboard-cards-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}.dashboard-card{background:var(--kr-white);border:1px solid rgb(0,0,0,.08);border-radius:6px;overflow:hidden;transition:all .2s ease;position:relative;display:flex;flex-direction:column}.dashboard-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgb(0,0,0,.12);border-color:var(--kr-primary)}.dashboard-card-large{min-height:90px}.dashboard-card-link{display:flex;flex-direction:column;text-decoration:none;color:inherit;flex:1}.dashboard-card-link:hover{text-decoration:none}.dashboard-card-header{display:flex;align-items:center;background:rgb(0,0,0,.02)}.dashboard-card-avatar-wrapper{position:relative;width:82px;height:82px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.dashboard-card-hp-circle{position:absolute;top:0;left:0;width:82px;height:82px;pointer-events:none;z-index:1}.dashboard-card-avatar{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--kr-primary);flex-shrink:0;position:relative;z-index:2}.dashboard-card-large .dashboard-card-avatar{width:70px;height:70px}.dashboard-card-name-container{display:flex;align-items:center;gap:6px;flex:1;min-width:0}.dashboard-card-world{width:20px;height:10px;object-fit:contain;flex-shrink:0}.dashboard-card-name{font-size:11px;font-weight:600;color:var(--kr-text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1}.dashboard-card-large .dashboard-card-name{font-size:13px}.dashboard-card-body{padding:0 8px 5px;display:flex;flex-direction:column;gap:3px;flex:1;min-height:0}.dashboard-card-status{font-size:9px;color:var(--kr-muted);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}.dashboard-card-large .dashboard-card-status{font-size:11px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.dashboard-card-hp{height:6px;background:rgb(0,0,0,.08);position:relative;margin:0}.dashboard-card-hp-fill{height:100%;transition:width .3s ease,background-color .3s ease;border-radius:0}.dashboard-card-pnj{position:absolute;top:8px;right:8px;background:var(--kr-badge-pnj);color:var(--kr-white);font-size:8px;font-weight:600;padding:2px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px;z-index:1}.dashboard-card-actions{position:absolute;bottom:4px;right:4px;display:flex;flex-direction:row;align-items:center;gap:4px;opacity:.7;transition:opacity .2s ease;z-index:2}.dashboard-card:hover .dashboard-card-actions{opacity:1}.dashboard-card-actions>div{gap:2px}.dashboard-card-actions>div,.dashboard-card-actions>div>div{margin:0!important;padding:0!important;height:auto!important}.dashboard-card-actions a{display:inline-flex;align-items:center;justify-content:center;padding:4px 6px!important;background-color:rgb(0,0,0,.6);border-radius:3px;transition:background-color .2s ease;min-width:24px;height:24px}.dashboard-card-actions a:hover{background-color:rgb(0,0,0,.8)}.dashboard-card-actions a i{color:var(--kr-white);font-size:12px;margin:0}.btn-toolbar .btn:not(.dropdown-menu *){background-color:var(--kr-surface)!important;background-image:none!important;color:var(--kr-primary)!important;border:1px solid rgb(0,0,0,.06)!important;box-shadow:none!important}.btn-toolbar .btn:not(.dropdown-menu *) .fa,.btn-toolbar .btn:not(.dropdown-menu *) .far,.btn-toolbar .btn:not(.dropdown-menu *) .fas,.btn-toolbar .btn:not(.dropdown-menu *) i{color:inherit!important}html[class*=-dark] body{background-color:var(--kr-bg-page);color:var(--kr-text-primary)}html[class*=-dark] .panel,html[class*=-dark] .panel-default,html[class*=-dark] .panel-heading{background-color:var(--kr-bg-surface);border-color:var(--kr-border-default)}html[class*=-dark] .panel-heading{background-color:var(--kr-bg-elevated);color:var(--kr-text-primary)}html[class*=-dark] .panel-body{background-color:var(--kr-bg-surface);color:var(--kr-text-primary)}html[class*=-dark] .panel-footer,html[class*=-dark] .well{background-color:var(--kr-bg-elevated);border-color:var(--kr-border-default)}html[class*=-dark] .form-group label,html[class*=-dark] .kr-tamper-theme h4,html[class*=-dark] .kr-tamper-theme label,html[class*=-dark] .well,html[class*=-dark] label{color:var(--kr-text-primary)}html[class*=-dark] .kr-tamper-theme .control-label{color:var(--kr-text-secondary)}html[class*=-dark] .modal-content{background-color:var(--kr-bg-surface);border-color:var(--kr-border-default)}html[class*=-dark] .form-control,html[class*=-dark] .modal-body,html[class*=-dark] .modal-footer,html[class*=-dark] .modal-header{background-color:var(--kr-bg-surface);color:var(--kr-text-primary);border-color:var(--kr-border-default)}html[class*=-dark] .form-control{background-color:var(--kr-form-bg)}html[class*=-dark] .form-control::placeholder{color:var(--kr-text-muted)}html[class*=-dark] .form-control:focus{background-color:var(--kr-form-bg-focus);border-color:var(--kr-primary);color:var(--kr-text-primary)}html[class*=-dark] .input-group-addon{background-color:var(--kr-bg-elevated);border-color:var(--kr-border-default);color:var(--kr-text-primary)}html[class*=-dark] .btn-primary{background-color:var(--kr-primary);border-color:var(--kr-primary-dark);color:var(--kr-text-primary)}html[class*=-dark] .btn-primary:active,html[class*=-dark] .btn-primary:focus,html[class*=-dark] .btn-primary:hover{background-color:var(--kr-primary-dark);border-color:var(--kr-primary-dark);color:var(--kr-text-primary)}html[class*=-dark] .btn-default,html[class*=-dark] .table>tbody>tr>th,html[class*=-dark] .table>tfoot>tr>th,html[class*=-dark] .table>thead>tr>th{background-color:var(--kr-bg-elevated);border-color:var(--kr-border-default);color:var(--kr-text-primary)}html[class*=-dark] .btn-default:hover{background-color:var(--kr-bg-active);border-color:var(--kr-border-strong)}html[class*=-dark] .btn-default:active,html[class*=-dark] .btn-default:focus{background-color:var(--kr-bg-hover);border-color:var(--kr-border-strong);color:var(--kr-text-primary)}html[class*=-dark] .list-group-item{background-color:var(--kr-bg-surface);border-color:var(--kr-border-default);color:var(--kr-text-primary)}html[class*=-dark] .list-group-item:hover{background-color:var(--kr-bg-hover)}html[class*=-dark] .list-group-item-heading{color:var(--kr-text-primary)}html[class*=-dark] .list-group-item-text{color:var(--kr-text-secondary)}html[class*=-dark] .dropdown-menu>li>a,html[class*=-dark] .nav-tabs>li>a,html[class*=-dark] .table{color:var(--kr-text-primary)}html[class*=-dark] .table>tbody>tr>td{border-color:var(--kr-border-default)}html[class*=-dark] .table-striped>tbody>tr:nth-of-type(odd){background-color:var(--kr-bg-hover)}html[class*=-dark] .table.table-striped>tbody>tr{background-color:var(--kr-bg-page)}html[class*=-dark] .table.table-striped>tbody>tr:nth-of-type(odd){background-color:var(--kr-bg-elevated)}html[class*=-dark] .table-hover>tbody>tr:hover{background-color:var(--kr-bg-active)}html[class*=-dark] .dropdown-menu{background-color:var(--kr-bg-elevated);border-color:var(--kr-border-strong)}html[class*=-dark] .dropdown-menu>li>a:focus,html[class*=-dark] .dropdown-menu>li>a:hover{background-color:var(--kr-bg-hover);color:var(--kr-text-primary)}html[class*=-dark] .dropdown-menu>.active>a,html[class*=-dark] .dropdown-menu>.active>a:focus,html[class*=-dark] .dropdown-menu>.active>a:hover{background-color:var(--kr-primary);color:var(--kr-text-inverse)}.btn-toolbar .dropdown-menu table img,.dropdown-menu table img{width:32px!important;height:32px!important;object-fit:contain!important;display:block!important;flex-shrink:0!important}html[class*=-dark] .nav-tabs{border-color:var(--kr-border-default)}html[class*=-dark] .nav-tabs>li>a:hover{background-color:var(--kr-bg-hover);border-color:var(--kr-border-default)}html[class*=-dark] .nav-tabs>li.active>a,html[class*=-dark] .nav-tabs>li.active>a:focus,html[class*=-dark] .nav-tabs>li.active>a:hover{background-color:var(--kr-bg-surface);border-color:var(--kr-border-default) var(--kr-border-default) transparent;color:var(--kr-text-primary)}html[class*=-dark] .alert{border-color:var(--kr-border-default);color:var(--kr-text-primary)!important}html[class*=-dark] .alert *{color:inherit!important}html[class*=-dark] .alert a{color:var(--kr-primary)!important;text-decoration:underline}html[class*=-dark] .alert-info{background-color:rgb(122,82,64,.15);border-color:rgb(122,82,64,.3);color:var(--kr-text-primary)}html[class*=-dark] .alert-success{background-color:rgb(34,197,94,.15);border-color:rgb(34,197,94,.3);color:var(--kr-text-primary)}html[class*=-dark] .alert-warning{background-color:rgb(245,158,11,.15);border-color:rgb(245,158,11,.3);color:var(--kr-text-primary)}html[class*=-dark] .alert-danger{background-color:rgb(239,68,68,.15);border-color:rgb(239,68,68,.3);color:var(--kr-text-primary)}html[class*=-dark] #flap,html[class*=-dark] .progress{background-color:var(--kr-bg-elevated)}html[class*=-dark] .dashboard-card{background:var(--kr-bg-surface);border-color:var(--kr-border-default)}html[class*=-dark] .dashboard-card:hover{box-shadow:var(--kr-shadow-md)}html[class*=-dark] .dashboard-card-header{background:var(--kr-bg-hover)}html[class*=-dark] .dashboard-card-name{color:var(--kr-text-primary)}html[class*=-dark] .dashboard-card-status{color:var(--kr-text-muted)}html[class*=-dark] .dashboard-section{background:var(--kr-bg-surface)}html[class*=-dark] .dashboard-card-hp{background:var(--kr-bg-elevated)}html[class*=-dark] .chat li{border-bottom-color:var(--kr-border-default)}html[class*=-dark] .map-box,html[class*=-dark] .panel-body-scroll{background-color:var(--kr-bg-surface)}html[class*=-dark] #flap a.closed,html[class*=-dark] #flap a.open{background:var(--kr-bg-elevated);color:var(--kr-text-primary)}html[class*=-dark] .map-box{border-color:var(--kr-border-default)}html[class*=-dark] .map-box-title{background-color:var(--kr-primary);color:var(--kr-text-inverse)}html[class*=-dark] .map-box-content{color:var(--kr-text-primary)}html[class*=-dark] .map-box-bottom{background-color:var(--kr-primary);color:var(--kr-text-inverse)}html[class*=-dark] .f1{color:var(--kr-nation-1)}html[class*=-dark] .f2{color:var(--kr-nation-2)}html[class*=-dark] .f3{color:var(--kr-nation-3)}html[class*=-dark] .f4{color:var(--kr-nation-4)}html[class*=-dark] .f5{color:var(--kr-nation-5)}html[class*=-dark] .f6{color:var(--kr-nation-6)}html[class*=-dark] .f7{color:var(--kr-nation-7)}html[class*=-dark] .f8{color:var(--kr-nation-8)}html[class*=-dark] .f9{color:var(--kr-nation-9)}html[class*=-dark] .c1{background-color:var(--kr-nation-bg-1)}html[class*=-dark] .c2{background-color:var(--kr-nation-bg-2)}html[class*=-dark] .c3{background-color:var(--kr-nation-bg-3)}html[class*=-dark] .c4{background-color:var(--kr-nation-bg-4)}html[class*=-dark] .c5{background-color:var(--kr-nation-bg-5)}html[class*=-dark] .c6{background-color:var(--kr-nation-bg-6)}html[class*=-dark] .c7{background-color:var(--kr-nation-bg-7)}html[class*=-dark] .c8{background-color:var(--kr-nation-bg-8)}html[class*=-dark] .c9{background-color:var(--kr-nation-bg-9)}html[class*=-dark] .c10{background-color:var(--kr-nation-bg-10)}html[class*=-dark] font[color="#f4ac00"],html[class*=-dark] font[color=f4ac00]{color:#ffbe33!important}html[class*=-dark] font[color="#f77400"],html[class*=-dark] font[color=f77400]{color:#f83!important}html[class*=-dark] font[color="#ed6161"],html[class*=-dark] font[color=ed6161]{color:#ff7a7a!important}html[class*=-dark] .red,html[class*=-dark] font[color="#d50000"],html[class*=-dark] font[color=d50000]{color:#f33!important}html[class*=-dark] font[color=olive]{color:#b3b333!important}html[class*=-dark] font[color="#219c5a"],html[class*=-dark] font[color="219c5a"]{color:#3c7!important}html[class*=-dark] font[color="#006f00"],html[class*=-dark] font[color="006f00"]{color:#0b0!important}html[class*=-dark] font[color=teal]{color:#3cc!important}html[class*=-dark] font[color="#5577bc"],html[class*=-dark] font[color="5577bc"]{color:#79d!important}html[class*=-dark] font[color="#2b2be4"],html[class*=-dark] font[color="2b2be4"]{color:#55f!important}html[class*=-dark] font[color=navy]{color:#55c!important}html[class*=-dark] font[color=purple]{color:#c5c!important}html[class*=-dark] font[color="#4B0082"],html[class*=-dark] font[color="4B0082"],html[class*=-dark] font[color="4b0082"]{color:#85c!important}html[class*=-dark] font[color=maroon]{color:#c55!important}html[class*=-dark] font[color="#5e432d"],html[class*=-dark] font[color="5e432d"]{color:#a75!important}html[class*=-dark] font[color=gray]{color:#aaa!important}html[class*=-dark] font[color="#5a5a5a"],html[class*=-dark] font[color="5a5a5a"]{color:#999!important}html[class*=-dark] font[color="#000000"],html[class*=-dark] font[color="000000"]{color:#ccc!important}html[class*=-dark] .blue{color:#38f!important}html[class*=-dark] [style*="background-color: #f4ac00"],html[class*=-dark] [style*="background-color:#f4ac00"]{background-color:#ffbe33!important}html[class*=-dark] [style*="background-color: #f77400"],html[class*=-dark] [style*="background-color:#f77400"]{background-color:#f83!important}html[class*=-dark] [style*="background-color: #ed6161"],html[class*=-dark] [style*="background-color:#ed6161"]{background-color:#ff7a7a!important}html[class*=-dark] [style*="background-color: #d50000"],html[class*=-dark] [style*="background-color:#d50000"]{background-color:#f33!important}html[class*=-dark] [style*="background-color: #808000"],html[class*=-dark] [style*="background-color:#808000"]{background-color:#b3b333!important}html[class*=-dark] [style*="background-color: #219c5a"],html[class*=-dark] [style*="background-color:#219c5a"]{background-color:#3c7!important}html[class*=-dark] [style*="background-color: #006f00"],html[class*=-dark] [style*="background-color:#006f00"]{background-color:#0b0!important}html[class*=-dark] [style*="background-color: #008080"],html[class*=-dark] [style*="background-color:#008080"]{background-color:#3cc!important}html[class*=-dark] [style*="background-color: #5577bc"],html[class*=-dark] [style*="background-color:#5577bc"]{background-color:#79d!important}html[class*=-dark] [style*="background-color: #2b2be4"],html[class*=-dark] [style*="background-color:#2b2be4"]{background-color:#55f!important}html[class*=-dark] [style*="background-color: #000080"],html[class*=-dark] [style*="background-color:#000080"]{background-color:#55c!important}html[class*=-dark] [style*="background-color: #800080"],html[class*=-dark] [style*="background-color:#800080"]{background-color:#c5c!important}html[class*=-dark] [style*="background-color: #4B0082"],html[class*=-dark] [style*="background-color: #4b0082"],html[class*=-dark] [style*="background-color:#4B0082"],html[class*=-dark] [style*="background-color:#4b0082"]{background-color:#85c!important}html[class*=-dark] [style*="background-color: #800000"],html[class*=-dark] [style*="background-color:#800000"]{background-color:#c55!important}html[class*=-dark] [style*="background-color: #5e432d"],html[class*=-dark] [style*="background-color:#5e432d"]{background-color:#a75!important}html[class*=-dark] [style*="background-color: #808080"],html[class*=-dark] [style*="background-color:#808080"]{background-color:#aaa!important}html[class*=-dark] [style*="background-color: #5a5a5a"],html[class*=-dark] [style*="background-color:#5a5a5a"]{background-color:#999!important}html[class*=-dark] [style*="background-color: #000000"],html[class*=-dark] [style*="background-color:#000000"]{background-color:#ccc!important}html[class*=-dark] ::-webkit-scrollbar-track{background-color:var(--kr-bg-page)}html[class*=-dark] ::-webkit-scrollbar-thumb{background-color:var(--kr-text-muted)}html[class*=-dark] ::-webkit-scrollbar-thumb:hover{background-color:var(--kr-text-secondary)}html[class*=-dark] ::selection{background-color:var(--kr-primary);color:var(--kr-text-inverse)}html[class*=-dark] footer{background-color:var(--kr-bg-elevated);border-top:1px solid var(--kr-border-default)}html[class*=-dark] .dataTables_filter label,html[class*=-dark] .dataTables_length label,html[class*=-dark] .footer-quote{color:var(--kr-text-secondary)}html[class*=-dark] #skills-panel{background-color:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important}body.mobile-mode .commerce-products-container>a.list-group-item p i,body>map,html[class*=-dark] hr{display:none}html[class*=-dark] .carousel-control{color:var(--kr-primary);opacity:.7}html[class*=-dark] .carousel-control:focus,html[class*=-dark] .carousel-control:hover{color:var(--kr-highlight);opacity:.9}html[class*=-dark] .carousel-indicators li{background-color:var(--kr-border-default);border-color:var(--kr-border-default)}html[class*=-dark] .carousel-indicators .active{background-color:var(--kr-primary);border-color:var(--kr-primary)}html[class*=-dark] a:link,html[class*=-dark] a:visited{color:var(--kr-highlight)}html[class*=-dark] a:focus,html[class*=-dark] a:hover{color:var(--kr-primary)}html[class*=-dark] a.next,html[class*=-dark] a.prev{background-color:var(--kr-bg-elevated)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-primary)!important}html[class*=-dark] a.next:hover,html[class*=-dark] a.prev:hover{background-color:var(--kr-bg-hover)!important;border-color:var(--kr-border-strong)!important;color:var(--kr-highlight)!important}html[class*=-dark] .btn-warning{background-color:var(--kr-primary)!important;border-color:var(--kr-primary-dark)!important;color:var(--kr-text-inverse)!important}html[class*=-dark] .btn-warning:hover{background-color:var(--kr-highlight)!important;border-color:var(--kr-primary)!important}html[class*=-dark] img[src*="/bat/bat"],html[class*=-dark] img[src*="/mat/94/"],html[class*=-dark] img[src*="/voc/"]{filter:none;opacity:.85}html[class*=-dark] img[src*="/bat/bat"]:hover,html[class*=-dark] img[src*="/mat/94/"]:hover,html[class*=-dark] img[src*="/voc/"]:hover{filter:none;opacity:1}.c100{width:80px!important;height:80px!important;border-radius:50%!important;background-color:var(--kr-bg-elevated, #f5f5f5)!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}.c100 .bar,.c100 .fill,.c100 .slice,.mobile-mode table[data-mobile-hidden=true]{display:none!important}.c100>span,html[class*=-dark] .c100>span{font-size:20px!important;font-weight:600!important}.c100,.c100>span{position:relative!important}.c100>span{z-index:10!important;color:var(--kr-text-primary, #333)!important;text-align:center!important}.c100::after,.c100::before{content:""!important;position:absolute!important;border-radius:50%!important}.c100::after{top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;width:68px!important;height:68px!important;background-color:var(--kr-bg-elevated, #f5f5f5)!important;z-index:5!important}.c100::before{top:0!important;left:0!important;width:100%!important;height:100%!important;background:conic-gradient(var(--clock-color, #8B0000) 0deg,var(--clock-color, #8B0000) calc(var(--clock-deg, 0)*1deg),transparent calc(var(--clock-deg, 0)*1deg),transparent 360deg)!important;z-index:1!important;transition:none!important}.c100[data-second-lap=true]::before{box-shadow:0 0 0 1px var(--kr-bg-elevated, #f5f5f5),0 0 0 5px var(--clock-color, #32CD32),inset 0 0 0 2px var(--clock-color, #32CD32)!important}.c100.p0{--clock-deg:0}.c100.p1{--clock-deg:3.6}.c100.p2{--clock-deg:7.2}.c100.p3{--clock-deg:10.8}.c100.p4{--clock-deg:14.4}.c100.p5{--clock-deg:18}.c100.p6{--clock-deg:21.6}.c100.p7{--clock-deg:25.2}.c100.p8{--clock-deg:28.8}.c100.p9{--clock-deg:32.4}.c100.p10{--clock-deg:36}.c100.p11{--clock-deg:39.6}.c100.p12{--clock-deg:43.2}.c100.p13{--clock-deg:46.8}.c100.p14{--clock-deg:50.4}.c100.p15{--clock-deg:54}.c100.p16{--clock-deg:57.6}.c100.p17{--clock-deg:61.2}.c100.p18{--clock-deg:64.8}.c100.p19{--clock-deg:68.4}.c100.p20{--clock-deg:72}.c100.p21{--clock-deg:75.6}.c100.p22{--clock-deg:79.2}.c100.p23{--clock-deg:82.8}.c100.p24{--clock-deg:86.4}.c100.p25{--clock-deg:90}.c100.p26{--clock-deg:93.6}.c100.p27{--clock-deg:97.2}.c100.p28{--clock-deg:100.8}.c100.p29{--clock-deg:104.4}.c100.p30{--clock-deg:108}.c100.p31{--clock-deg:111.6}.c100.p32{--clock-deg:115.2}.c100.p33{--clock-deg:118.8}.c100.p34{--clock-deg:122.4}.c100.p35{--clock-deg:126}.c100.p36{--clock-deg:129.6}.c100.p37{--clock-deg:133.2}.c100.p38{--clock-deg:136.8}.c100.p39{--clock-deg:140.4}.c100.p40{--clock-deg:144}.c100.p41{--clock-deg:147.6}.c100.p42{--clock-deg:151.2}.c100.p43{--clock-deg:154.8}.c100.p44{--clock-deg:158.4}.c100.p45{--clock-deg:162}.c100.p46{--clock-deg:165.6}.c100.p47{--clock-deg:169.2}.c100.p48{--clock-deg:172.8}.c100.p49{--clock-deg:176.4}.c100.p50{--clock-deg:180}.c100.p51{--clock-deg:183.6}.c100.p52{--clock-deg:187.2}.c100.p53{--clock-deg:190.8}.c100.p54{--clock-deg:194.4}.c100.p55{--clock-deg:198}.c100.p56{--clock-deg:201.6}.c100.p57{--clock-deg:205.2}.c100.p58{--clock-deg:208.8}.c100.p59{--clock-deg:212.4}.c100.p60{--clock-deg:216}.c100.p61{--clock-deg:219.6}.c100.p62{--clock-deg:223.2}.c100.p63{--clock-deg:226.8}.c100.p64{--clock-deg:230.4}.c100.p65{--clock-deg:234}.c100.p66{--clock-deg:237.6}.c100.p67{--clock-deg:241.2}.c100.p68{--clock-deg:244.8}.c100.p69{--clock-deg:248.4}.c100.p70{--clock-deg:252}.c100.p71{--clock-deg:255.6}.c100.p72{--clock-deg:259.2}.c100.p73{--clock-deg:262.8}.c100.p74{--clock-deg:266.4}.c100.p75{--clock-deg:270}.c100.p76{--clock-deg:273.6}.c100.p77{--clock-deg:277.2}.c100.p78{--clock-deg:280.8}.c100.p79{--clock-deg:284.4}.c100.p80{--clock-deg:288}.c100.p81{--clock-deg:291.6}.c100.p82{--clock-deg:295.2}.c100.p83{--clock-deg:298.8}.c100.p84{--clock-deg:302.4}.c100.p85{--clock-deg:306}.c100.p86{--clock-deg:309.6}.c100.p87{--clock-deg:313.2}.c100.p88{--clock-deg:316.8}.c100.p89{--clock-deg:320.4}.c100.p90{--clock-deg:324}.c100.p91{--clock-deg:327.6}.c100.p92{--clock-deg:331.2}.c100.p93{--clock-deg:334.8}.c100.p94{--clock-deg:338.4}.c100.p95{--clock-deg:342}.c100.p96{--clock-deg:345.6}.c100.p97{--clock-deg:349.2}.c100.p98{--clock-deg:352.8}.c100.p99{--clock-deg:356.4}.c100.p100{--clock-deg:360}html[class*=-dark] .c100,html[class*=-dark] .dataTables_filter input,html[class*=-dark] .dataTables_length select,html[class*=-dark] .pagination>li>a,html[class*=-dark] .pagination>li>span,html[class*=-dark] table.dataTable thead td,html[class*=-dark] table.dataTable thead th{background-color:var(--kr-bg-elevated)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-primary)!important}html[class*=-dark] .c100::after,html[class*=-dark] table.dataTable thead th.sorting,html[class*=-dark] table.dataTable thead th.sorting_asc,html[class*=-dark] table.dataTable thead th.sorting_desc{background-color:var(--kr-bg-elevated)!important}html[class*=-dark] .c100>span{color:var(--kr-text-primary)!important;line-height:80px!important;width:80px!important;height:80px!important}html[class*=-dark] .c100 .slice{border-color:var(--kr-bg-elevated)!important}html[class*=-dark] .c100 .bar{border-color:var(--kr-primary)!important}html[class*=-dark] .c100 .fill{border-color:var(--kr-bg-elevated)!important}html[class*=-dark] .dataTables_paginate,html[class*=-dark] .pagination{background-color:transparent!important}html[class*=-dark] .pagination>li.disabled>a,html[class*=-dark] .pagination>li.disabled>span{background-color:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-muted)!important;opacity:.6!important}html[class*=-dark] .pagination>li>a:hover,html[class*=-dark] .pagination>li>span:hover{background-color:var(--kr-bg-hover)!important;border-color:var(--kr-border-strong)!important;color:var(--kr-primary)!important}html[class*=-dark] .dataTables_paginate .paginate_button.current,html[class*=-dark] .pagination>.active>a,html[class*=-dark] .pagination>.active>a:hover,html[class*=-dark] .pagination>.active>span,html[class*=-dark] .pagination>.active>span:hover{background-color:var(--kr-primary)!important;border-color:var(--kr-primary)!important;color:var(--kr-text-inverse)!important}html[class*=-dark] .dataTables_paginate .paginate_button{background-color:var(--kr-bg-elevated)!important;border:1px solid var(--kr-border-default)!important;color:var(--kr-text-primary)!important;background-image:none!important;box-shadow:none!important}html[class*=-dark] .dataTables_paginate .paginate_button.disabled,html[class*=-dark] .dataTables_paginate .paginate_button.disabled:hover{background-color:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-muted)!important;opacity:.6!important;cursor:not-allowed!important}html[class*=-dark] .dataTables_paginate .paginate_button:not(.disabled):hover{background-color:var(--kr-bg-hover)!important;border-color:var(--kr-border-strong)!important;color:var(--kr-primary)!important}html[class*=-dark] .dataTables_paginate .paginate_button.current:hover{background-color:var(--kr-primary)!important;border-color:var(--kr-primary)!important;color:var(--kr-text-inverse)!important}html[class*=-dark] .dataTables_wrapper{color:var(--kr-text-primary)}html[class*=-dark] .dataTables_filter,html[class*=-dark] .dataTables_info,html[class*=-dark] .dataTables_length{color:var(--kr-text-secondary)!important}html[class*=-dark] .dataTables_filter input:focus,html[class*=-dark] .dataTables_length select:focus{background-color:var(--kr-bg-elevated)!important;border-color:var(--kr-primary)!important;outline:0!important}html[class*=-dark] table.dataTable{background-color:transparent!important;color:var(--kr-text-primary)!important}html[class*=-dark] table.dataTable tbody tr,html[class*=-dark] table.dataTable tbody tr.odd{background-color:var(--kr-bg-surface)!important}html[class*=-dark] table.dataTable tbody tr.even,html[class*=-dark] table.dataTable thead th.sorting:hover,html[class*=-dark] table.dataTable thead th.sorting_asc:hover,html[class*=-dark] table.dataTable thead th.sorting_desc:hover{background-color:var(--kr-bg-hover)!important}html[class*=-dark] table.dataTable tbody tr:hover{background-color:var(--kr-bg-active)!important}html[class*=-dark] table.dataTable tbody td{border-color:var(--kr-border-default)!important;color:var(--kr-text-primary)!important}html[class*=-dark] table.dataTable tbody td.dataTables_empty{background-color:var(--kr-bg-surface)!important;color:var(--kr-text-secondary)!important}html[class*=-dark] table.dataTable tfoot td,html[class*=-dark] table.dataTable tfoot th{background-color:var(--kr-bg-elevated)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-primary)!important}body>div:has([id^=c]){display:block;position:relative;min-height:550px}.kr-mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1040;opacity:0;transition:opacity .3s ease}.kr-mobile-overlay.active{display:block;opacity:1}.kr-mobile-close{position:absolute;top:10px;right:10px;width:40px;height:40px;background:var(--kr-primary);color:#fff;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;font-size:20px}.kr-mobile-close:hover{background:var(--kr-primary-dark)}.kr-mobile-skills-toggle{position:fixed!important;bottom:90px!important;right:20px!important;z-index:1000!important;width:56px!important;height:56px!important;border-radius:50%!important;padding:0!important;display:none!important;box-shadow:var(--kr-shadow-lg)!important}body.mobile-mode .commerce-category-header{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;transition:background-color var(--transition-fast)}body.mobile-mode .commerce-category-header:hover{background-color:var(--kr-bg-hover)}body.mobile-mode .commerce-category-header:active{background-color:var(--kr-bg-active)}body.mobile-mode .commerce-category-header .accordion-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);transition:transform var(--transition-normal);font-size:14px;color:var(--kr-text-secondary)}body.mobile-mode .building-section-header.expanded .accordion-icon,body.mobile-mode .commerce-category-header.expanded .accordion-icon{transform:translateY(-50%) rotate(-180deg)}body.mobile-mode .commerce-products-container{max-height:5000px;opacity:1;overflow:hidden;transition:max-height var(--transition-normal),opacity var(--transition-normal);display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:8px 0}body.mobile-mode .commerce-products-container.collapsed{max-height:0!important;opacity:0}body.mobile-mode .commerce-products-container>a.list-group-item{display:flex!important;flex-direction:column;padding:8px!important;min-height:120px;border-radius:8px;background-color:var(--kr-bg-surface);border:1px solid var(--kr-border-default);transition:transform var(--transition-fast),box-shadow var(--transition-fast)}body.mobile-mode .commerce-products-container>a.list-group-item:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.3)}body.mobile-mode .commerce-products-container>a.list-group-item .mention{position:absolute;top:4px;right:4px;float:none!important;font-size:10px;line-height:1.2;text-align:right;background-color:rgba(0,0,0,.6);padding:2px 4px;border-radius:4px}body.mobile-mode .commerce-products-container>a.list-group-item .mention .xmini{font-size:9px;opacity:.8}body.mobile-mode .commerce-products-container>a.list-group-item img{float:none!important;display:block;margin:0 auto 8px;width:40px;height:40px}body.mobile-mode .commerce-products-container>a.list-group-item h4{font-size:11px;line-height:1.3;margin:0 0 4px;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-all}body.mobile-mode .commerce-products-container>a.list-group-item p{font-size:9px;line-height:1.2;margin:0;text-align:center;color:var(--kr-text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}body.mobile-mode .building-section-header{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;transition:background-color var(--transition-fast)}body.mobile-mode .building-section-header:hover{background-color:var(--kr-bg-hover)}body.mobile-mode .building-section-header:active{background-color:var(--kr-bg-active)}body.mobile-mode .building-section-header .accordion-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);transition:transform var(--transition-normal);font-size:14px;color:var(--kr-text-secondary)}body.mobile-mode .building-section-content{max-height:5000px;opacity:1;overflow:hidden;transition:max-height var(--transition-normal),opacity var(--transition-normal)}body.mobile-mode .building-section-content.collapsed{max-height:0!important;opacity:0}body.mobile-mode .kr-navigation-row{display:table!important;width:100%;table-layout:fixed;margin-bottom:5px;border-collapse:separate;border-spacing:0}body.mobile-mode .kr-navigation-row+.container{padding-top:10px!important}body.mobile-mode .kr-navigation-row>.btn-group{display:table-cell!important;width:1%;vertical-align:middle;float:none!important}body.mobile-mode .kr-direction-link,body.mobile-mode .kr-room-link{display:flex!important;flex-direction:column;align-items:center;justify-content:center;width:100%;height:60px!important;padding:0!important;text-align:center}body.mobile-mode .kr-direction-link{position:relative}body.mobile-mode .kr-direction-link img,body.mobile-mode .kr-room-link img{width:60px;height:60px;display:block}body.mobile-mode .kr-direction-link map{position:absolute;top:0;left:0;width:100%;height:100%}body.mobile-mode .kr-room-link{font-size:10px;line-height:1.2}body.mobile-mode .kr-navigation-row>.btn-group:first-child .kr-direction-link,body.mobile-mode .kr-navigation-row>.btn-group:first-child .kr-room-link{border-radius:4px 0 0 4px}body.mobile-mode .kr-navigation-row>.btn-group:last-child .kr-room-link{border-radius:0 4px 4px 0}body.mobile-mode .kr-navigation-row>.btn-group:not(:first-child) .kr-direction-link,body.mobile-mode .kr-navigation-row>.btn-group:not(:first-child) .kr-room-link{border-left:none}body.mobile-mode .kr-navigation-row>.btn-group:only-child .kr-direction-link,body.mobile-mode .kr-navigation-row>.btn-group:only-child .kr-room-link{border-radius:4px}.forums-cards-container{display:none;padding:12px 8px;background:var(--kr-bg-page)}.mobile-mode .forums-cards-container{display:block}.forum-card{background:var(--kr-bg-surface);border-radius:12px;margin:0 12px 12px;transition:background .2s ease;overflow:hidden;border:1px solid var(--kr-border-default)}.forum-card *,.forum-card-header *,.forum-card-link *,.forum-footer *{text-align:left!important}.forum-card:active{background:var(--kr-bg-hover)}.forum-card-link{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;padding:16px;text-decoration:none;color:inherit;min-height:100px;-webkit-tap-highlight-color:rgba(139,15,14,.05)}.forum-card-link:focus,.forum-card-link:hover{text-decoration:none;color:inherit}.forum-card-header{margin-bottom:8px;text-align:left}.forum-title{font-size:18px;font-weight:700;color:var(--kr-text-primary);line-height:1.3;margin:0;padding:0;text-align:left!important}.forum-description{font-size:14px;color:var(--kr-text-secondary);line-height:1.5;margin:0 0 8px;text-align:left!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}.forum-moderators{font-size:12px;color:var(--kr-text-muted);margin:0 0 10px;font-style:normal;font-weight:400;text-align:left!important}.forum-footer{border-top:1px solid var(--kr-border-default);padding-top:10px;margin-top:auto;text-align:left!important}.forum-stats{font-size:13px;color:var(--kr-text-muted);margin-bottom:6px;white-space:nowrap;text-align:left!important}.forum-messages,.forum-topics{font-weight:600;color:var(--kr-text-secondary)}.forum-separator{margin:0 4px;color:var(--kr-text-muted)}.forum-last-activity{font-size:13px;color:var(--kr-text-secondary);line-height:1.5;text-align:left!important}.last-user{font-weight:600;color:var(--kr-text-primary)}.last-time{color:var(--kr-text-muted);font-size:12px}.forum-card:has(.forum-topics:empty){opacity:.6}.forum-card-link:focus{outline:2px solid #2196f3;outline-offset:2px}.mini-chat-fab{position:fixed;bottom:80px;right:16px;width:56px;height:56px;background:#2196f3;color:#fff;border:0;border-radius:50%;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:1000;cursor:pointer;font-size:14px;font-weight:700;transition:all .3s ease}.mini-chat-fab:active{transform:scale(.95);box-shadow:0 2px 8px rgba(0,0,0,.3)}.mini-chat-fab.active{background:#f44336}.mini-chat-fab .fab-text{display:block;line-height:1}.mobile-mode .mini-chat-overlay{position:fixed!important;inset:56px 0 0!important;width:100%!important;height:auto!important;z-index:999!important;background:#fff}@media (max-width:767px){.dataTables_wrapper{padding:0!important}.dataTables_filter,.dataTables_length{display:block!important;width:100%!important;margin:0 0 var(--mobile-spacing-md)!important;text-align:left!important;float:none!important}.dataTables_filter label,.dataTables_length label{display:flex!important;align-items:center!important;gap:8px!important;font-size:14px!important;margin:0!important}.dataTables_filter input,.dataTables_length select{min-height:var(--mobile-touch-target)!important;font-size:16px!important;border:1px solid var(--kr-border-default)!important;border-radius:var(--mobile-radius)!important;background-color:var(--kr-bg-surface)!important}.dataTables_length select{padding:10px 32px 10px 12px!important;flex:0 0 auto!important;min-width:80px!important}.dataTables_filter label{width:100%!important}.dataTables_filter input{flex:1!important;padding:10px 16px!important;width:100%!important}.dataTables_filter input:focus,.dataTables_length select:focus{outline:2px solid var(--kr-primary)!important;outline-offset:2px!important;border-color:var(--kr-primary)!important}body.page-forum .panel-default{background:0 0!important;border:0!important;box-shadow:none!important}body.page-forum .panel-default>.panel-heading{background:0 0!important;border:0!important;border-bottom:1px solid var(--kr-border-default)!important;border-radius:0!important;padding:12px 16px!important;margin-bottom:0!important;align-items:center!important}body.page-forum .panel-default>.panel-body{padding:0!important}body.page-forum .panel-default>.panel-heading h3{font-size:16px!important;font-weight:600!important;margin:0!important;color:var(--kr-primary)!important}body.page-forum .panel-default .table>thead,body.page-forum table.dataTable thead,body.page-kramail #topics thead,body.page-kramail #topics_wrapper .dataTables_length{display:none!important}body.page-forum .panel-default .table>tbody{display:flex!important;flex-direction:column!important;gap:8px!important}body.page-forum .panel-default .table>tbody>tr{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:auto!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:12px!important;padding:12px!important;transition:background var(--transition-fast)!important;position:relative!important;min-height:auto!important}body.page-forum .panel-default .table>tbody>tr:active,body.page-forum table.dataTable tbody tr:active,body.page-kramail #topics tbody tr:active{background:var(--kr-bg-hover)!important}body.page-forum .panel-default .table>tbody>tr>td{display:block!important;border:0!important;padding:0!important;width:100%!important}body.page-forum .panel-default .table>tbody>tr>td:first-child{display:flex!important;flex-direction:column!important;grid-row:1!important}body.page-forum .panel-default .table>tbody>tr>td:nth-child(2),body.page-forum .panel-default .table>tbody>tr>td:nth-child(3){grid-row:2!important}body.page-forum .panel-default .table>tbody>tr>td:nth-child(4){grid-row:4!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>p:first-child{order:1!important;margin:0!important;font-size:0!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>p:first-child>a{font-size:15px!important;font-weight:700!important;color:var(--kr-text-primary)!important;text-decoration:none!important;line-height:1.1!important;display:block!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>p:first-child>a:active{color:var(--kr-primary)!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>span.tagforum{order:2!important;margin:0!important;font-size:11px!important;color:var(--kr-text-secondary)!important;line-height:1.2!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>span.tagforum>.lefticon{display:none!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>span.tagforum a{color:var(--kr-text-secondary)!important;text-decoration:none!important;font-weight:500!important}body.page-forum .panel-default .table>tbody>tr>td:first-child>span.tagforum a:active{color:var(--kr-primary)!important;text-decoration:underline!important}body.page-forum .panel-default .table>tbody>tr>.forum-description-wrapper>p,body.page-forum .panel-default .table>tbody>tr>td:first-child>p:nth-child(2){order:999!important;font-size:12px!important;color:var(--kr-text-secondary)!important;line-height:1.2!important;margin:0!important}body.page-forum .panel-default .table>tbody>tr>.forum-description-wrapper{margin:0 0 6px!important}body.page-forum .panel-default .table>tbody>tr>.forum-stats-wrapper>td,body.page-forum .panel-default .table>tbody>tr>td:nth-child(2),body.page-forum .panel-default .table>tbody>tr>td:nth-child(3){display:inline!important;font-size:11px!important;color:var(--kr-text-secondary)!important;order:2!important;margin:0!important;padding:0!important}body.page-forum .panel-default .table>tbody>tr>.forum-stats-wrapper{margin:0 0 2px!important}body.page-forum .panel-default .table>tbody>tr>.forum-stats-wrapper>td:first-child::after,body.page-forum .panel-default .table>tbody>tr>td:nth-child(2)::after{content:" sujets · "!important}body.page-forum .panel-default .table>tbody>tr>.forum-stats-wrapper>td:nth-child(2)::after,body.page-forum .panel-default .table>tbody>tr>td:nth-child(3)::after{content:" messages"!important}body.page-forum .panel-default .table>tbody>tr>td:last-child,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4){order:5!important;padding-top:3px!important;border-top:1px solid var(--kr-border-default)!important;margin-top:0!important;font-size:11px!important;color:var(--kr-text-secondary)!important;display:block!important}body.page-forum .panel-default .table>tbody>tr>td:last-child::before,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)::before{content:"→ "!important;color:var(--kr-text-secondary)!important;font-weight:400!important;margin-right:4px!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>a,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>a{font-size:12px!important;font-weight:500!important;color:var(--kr-text-primary)!important;text-decoration:none!important;display:inline!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>a:active,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>a:active{color:var(--kr-primary)!important;text-decoration:underline!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>a::after,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>a::after{content:" · "!important;color:var(--kr-text-muted)!important;font-weight:400!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>p,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>p{display:inline!important;margin:0!important;font-size:13px!important;color:var(--kr-text-secondary)!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>p>a,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>p>a{color:var(--kr-text-secondary)!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;background:0 0!important;border:0!important;padding:0!important;box-shadow:none!important;min-width:20px!important;min-height:20px!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>p>a:active,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>p>a:active{color:var(--kr-primary)!important}body.page-forum .panel-default .table>tbody>tr>td:last-child>p>a .glyphicon,body.page-forum .panel-default .table>tbody>tr>td:nth-child(4)>p>a .glyphicon{display:inline-block!important;width:20px!important;height:20px!important;font-size:14px!important;line-height:20px!important;vertical-align:middle!important}body.page-forum .panel-default .table>tbody>tr>td:nth-child(4) img{vertical-align:middle!important;margin:0 2px!important;max-height:16px!important}body.page-forum table.dataTable tbody{display:flex!important;flex-direction:column!important;gap:var(--mobile-spacing-md)!important}body.page-forum table.dataTable tbody tr{display:flex!important;flex-direction:column!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:12px!important;padding:12px!important;margin:0!important;overflow:hidden!important;transition:background var(--transition-fast)!important;cursor:pointer!important}body.page-forum table.dataTable tbody td:nth-child(2),body.page-forum table.dataTable tbody td:nth-child(3),body.page-forum table.dataTable tbody td:nth-child(4),body.page-forum table.dataTable tbody td:nth-child(5){display:none!important}body.page-forum table.dataTable tbody td:nth-child(1){display:flex!important;flex-direction:column!important;padding:0!important;min-height:var(--mobile-touch-target)!important;gap:var(--mobile-spacing-sm)!important}body.page-forum table.dataTable tbody td:nth-child(1) p{margin:0 0 4px!important;padding:0!important;display:flex!important;align-items:flex-start!important;gap:8px!important}body.page-forum table.dataTable tbody td:nth-child(1) p a{flex:1!important;font-size:15px!important;font-weight:600!important;line-height:1.4!important;color:var(--kr-text-primary)!important;text-decoration:none!important;display:block!important}body.page-forum table.dataTable tbody td:nth-child(1) p a:active{color:var(--kr-primary)!important}body.page-forum table.dataTable tbody td:nth-child(1)>ul:first-of-type{display:none!important}body.page-forum table.dataTable tbody td:nth-child(1)>ul:nth-of-type(2){display:none!important}body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags{display:flex!important;flex-wrap:wrap!important;gap:3px!important;margin-top:6px!important}body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon{color:var(--kr-text-muted)!important;font-size:8px!important}body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a{display:inline-flex!important;align-items:center!important;padding:1px 4px!important;font-size:9px!important;color:var(--kr-text-secondary)!important;background:var(--kr-bg-hover)!important;border-radius:2px!important;text-decoration:none!important;transition:all var(--transition-fast)!important}body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a:active,body.page-forum table.dataTable tbody td:nth-child(5):active{background:var(--kr-bg-active)!important}.forum-topic-stats-mobile{display:flex!important;align-items:center!important;gap:4px!important;margin-top:4px!important;font-size:13px!important;color:var(--kr-text-secondary)!important}.forum-topic-stats-mobile i{font-size:12px!important}.forum-topic-stats-mobile .stats-sep{margin:0 4px!important;color:var(--kr-text-muted)!important}body.page-forum table.dataTable tbody td:nth-child(5) a:first-child{font-size:14px!important;font-weight:600!important;color:var(--kr-text-primary)!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;gap:4px!important}body.page-forum table.dataTable tbody td:nth-child(5) a:first-child img{width:16px!important;height:16px!important;vertical-align:middle!important}body.page-forum table.dataTable tbody td:nth-child(5) p{font-size:13px!important;color:var(--kr-text-muted)!important;margin:0!important;display:flex!important;align-items:center!important;gap:6px!important}body.page-forum table.dataTable tbody td:nth-child(5) p a .glyphicon{font-size:12px!important;color:var(--kr-primary)!important}.dataTables_paginate{display:flex!important;justify-content:center!important;gap:var(--mobile-spacing-sm)!important;margin-top:var(--mobile-spacing-lg)!important;padding:0!important}.dataTables_paginate .paginate_button{min-height:var(--mobile-touch-target)!important;min-width:var(--mobile-touch-target)!important;padding:10px 16px!important;font-size:16px!important;border:1px solid var(--kr-border-default)!important;border-radius:var(--mobile-radius)!important;background:var(--kr-bg-surface)!important;color:var(--kr-text-primary)!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;transition:all var(--transition-fast)!important}.dataTables_paginate .paginate_button.current{background:var(--kr-primary)!important;color:#fff!important;border-color:var(--kr-primary)!important;font-weight:600!important}.dataTables_paginate .paginate_button.disabled{opacity:.4!important;cursor:not-allowed!important;pointer-events:none!important}.dataTables_paginate .paginate_button:not(.disabled):not(.current):active{background:var(--kr-bg-active)!important;transform:scale(.95)!important}.dataTables_info{text-align:center!important;font-size:14px!important;color:var(--kr-text-secondary)!important;margin-top:var(--mobile-spacing-md)!important;padding:0 var(--mobile-spacing-md)!important}html[class*=-dark] table.dataTable tbody tr{background:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important}html[class*=-dark] table.dataTable tbody td:nth-child(1){border-bottom-color:var(--kr-border-default)!important}html[class*=-dark] table.dataTable tbody td:nth-child(5){background:rgba(255,255,255,.03)!important}html[class*=-dark] .dataTables_filter input,html[class*=-dark] .dataTables_length select,html[class*=-dark] .dataTables_paginate .paginate_button{background:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important;color:var(--kr-text-primary)!important}body.page-kramail h1.page-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;padding:12px 16px!important;margin:0!important;border-bottom:none!important}body.page-kramail h1.page-header .pull-right{float:none!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;width:100%!important}body.page-kramail h1.page-header .pull-right>.btn-group>.btn,body.page-kramail h1.page-header .pull-right>a.btn{width:44px!important;height:44px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;margin:0!important;font-size:0!important;line-height:0!important;box-sizing:border-box!important;border-radius:10px!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;color:var(--kr-text-primary)!important;text-decoration:none!important;transition:all var(--transition-fast)!important}body.page-kramail h1.page-header .pull-right>.btn-group>.btn>i,body.page-kramail h1.page-header .pull-right>a.btn>i{font-size:18px!important;line-height:1!important}body.page-kramail h1.page-header .pull-right>a.btn.btn-primary{background:var(--kr-primary)!important;border-color:var(--kr-primary)!important;color:#fff!important}body.page-kramail h1.page-header .pull-right>.btn-group>.btn:active,body.page-kramail h1.page-header .pull-right>a.btn:active{transform:scale(.97)!important;opacity:.9!important}body.page-kramail h1.page-header .pull-right>.btn-group{position:relative!important;width:44px!important;height:44px!important}body.page-kramail h1.page-header .pull-right>.btn-group>.dropdown-menu{min-width:260px!important;right:0!important;left:auto!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:10px!important;padding:8px 0!important;box-shadow:0 4px 16px rgba(0,0,0,.4)!important}body.page-kramail h1.page-header .pull-right>.btn-group>.dropdown-menu>li>a{display:flex!important;align-items:center!important;gap:8px!important;padding:12px 16px!important;min-height:44px!important;font-size:15px!important;color:var(--kr-text-primary)!important;white-space:nowrap!important}body.page-kramail h1.page-header .pull-right>.btn-group>.dropdown-menu>li>a:active{background:rgba(255,255,255,.08)!important}body.page-kramail h1.page-header .pull-right>.btn-group>.dropdown-menu>li>a .label-simple{font-size:15px!important;color:var(--kr-text-primary)!important}body.page-kramail h1.page-header .pull-right>.btn-group>.dropdown-menu>li>a input[type=checkbox]{width:18px!important;height:18px!important}body.page-kramail .panel.panel-default{border:0!important;box-shadow:none!important;margin:0!important;background:0 0!important}body.page-kramail .panel-heading{padding:12px 16px!important;background:0 0!important;border-bottom:1px solid var(--kr-border-default)!important}body.page-kramail .panel-heading h3.panel-title{font-size:16px!important;font-weight:600!important;color:var(--kr-primary)!important}body.page-kramail .panel-heading .glyphicon-chevron-up{float:right!important;color:var(--kr-text-secondary)!important}body.page-kramail .panel-body{padding:0!important}body.page-kramail #topics_wrapper .dataTables_filter{padding:12px 16px!important;text-align:left!important;width:100%!important}body.page-kramail #topics_wrapper .dataTables_filter label{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;margin:0!important;font-size:14px!important;color:var(--kr-text-secondary)!important}body.page-kramail #topics_wrapper .dataTables_filter input,body.page-kramail #topics_wrapper .dataTables_filter input[type=search]{flex:1!important;height:44px!important;padding:0 16px!important;font-size:16px!important;border-radius:22px!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;color:var(--kr-text-primary)!important;transition:border-color var(--transition-fast),box-shadow var(--transition-fast)!important;-webkit-appearance:none!important}body.page-kramail #topics_wrapper .dataTables_filter input:focus{outline:0!important;border-color:var(--kr-primary)!important;box-shadow:0 0 0 3px rgba(212,134,62,.15)!important}body.page-kramail #topics_wrapper .dataTables_info{padding:8px 16px!important;font-size:13px!important;color:var(--kr-text-muted)!important;text-align:center!important}body.page-kramail #topics_wrapper .dataTables_paginate{padding:8px 16px 16px!important;text-align:center!important}body.page-kramail #topics_wrapper .dataTables_paginate .paginate_button{min-height:44px!important;min-width:44px!important;padding:10px 14px!important;margin:0 4px!important;border-radius:8px!important;font-size:14px!important}body.page-kramail #topics{display:block!important;width:100%!important;border-collapse:separate!important}body.page-kramail #topics tbody{display:flex!important;flex-direction:column!important;gap:8px!important;padding:8px 16px!important}body.page-kramail #topics tbody tr{display:grid!important;grid-template-columns:36px 1fr!important;grid-template-rows:auto auto!important;gap:4px 10px!important;padding:12px!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:12px!important;cursor:pointer!important;transition:background var(--transition-fast)!important;min-height:56px!important;position:relative!important}body.page-kramail #topics tbody td:first-child{grid-row:1/-1!important;grid-column:1!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;width:auto!important;border:0!important}body.page-kramail #topics tbody td:first-child input[type=checkbox]{width:20px!important;height:20px!important;cursor:pointer!important;accent-color:var(--kr-primary)!important}body.page-kramail #topics tbody td:nth-child(2){grid-column:2!important;grid-row:1!important;display:block!important;padding:0!important;border:0!important;overflow:hidden!important}body.page-kramail #topics tbody td:nth-child(2) p.nomargin{margin:0!important;padding:0!important}body.page-kramail #topics tbody td:nth-child(2) span[id^=ajax-m]{display:flex!important;align-items:center!important;gap:8px!important;overflow:hidden!important}body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fa,body.page-kramail #topics tbody td:nth-child(2) a:first-child i.far,body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fas{font-size:16px!important;color:var(--kr-text-secondary)!important;flex-shrink:0!important}body.page-kramail #topics tbody td:nth-child(2) span[id^=ajax-m]>a:first-child{flex-shrink:0!important;display:flex!important;align-items:center!important;padding:0!important;min-height:0!important}body.page-kramail #topics tbody td:nth-child(2) a:last-of-type{font-size:15px!important;font-weight:500!important;color:var(--kr-text-primary)!important;text-decoration:none!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;line-height:1.3!important;display:block!important;padding:0!important;min-height:0!important;flex:1!important;min-width:0!important}body.page-kramail #topics tbody td:nth-child(2) span.invisible,body.page-kramail #topics tbody td:nth-child(4) span.invisible{display:none!important}body.page-kramail #topics tbody td:nth-child(3){grid-column:2!important;grid-row:2!important;display:inline!important;padding:0!important;border:0!important;font-size:13px!important;color:var(--kr-text-secondary)!important}body.page-kramail #topics tbody td:nth-child(3) a{color:var(--kr-text-secondary)!important;text-decoration:none!important;font-size:13px!important}body.page-kramail #topics tbody td:nth-child(4){position:absolute!important;right:12px!important;bottom:12px!important;display:block!important;padding:0!important;border:0!important;font-size:12px!important;color:var(--kr-text-muted)!important;text-align:right!important}body.page-kramail #topics_wrapper .btn-group{display:flex!important;gap:4px!important;padding:8px 16px!important}body.page-kramail #topics_wrapper .btn-group .btn{min-height:44px!important;min-width:44px!important;padding:10px!important;font-size:14px!important;border-radius:8px!important}.kramail-character-selector{position:relative!important;display:inline-flex!important;align-items:center!important;gap:8px!important;cursor:pointer!important;user-select:none!important;padding:8px 12px!important;margin:-8px -12px!important;border-radius:var(--mobile-radius)!important;transition:background var(--transition-fast)!important}.kramail-character-selector:active{background:var(--kr-bg-active)!important}.kramail-dropdown-icon{font-size:12px!important;transition:transform var(--transition-fast)!important;color:var(--kr-text-secondary)!important}.kramail-character-dropdown{position:absolute!important;top:100%!important;left:0!important;right:auto!important;min-width:calc(100vw - 48px)!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:var(--mobile-radius)!important;box-shadow:var(--kr-shadow-lg)!important;margin-top:8px!important;z-index:1000!important;overflow:hidden!important;max-height:70vh!important;overflow-y:auto!important;display:none;flex-direction:column!important}.kramail-character-dropdown[style*="display: block"],.kramail-character-dropdown[style*="display:block"]{display:flex!important}.kramail-character-option{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;padding:12px 16px!important;min-height:var(--mobile-touch-target)!important;text-decoration:none!important;color:var(--kr-text-primary)!important;border-bottom:1px solid var(--kr-border-default)!important;transition:background var(--transition-fast)!important}.kramail-character-option>div:first-child{justify-content:center!important;width:100%!important}.kramail-character-option>div:last-child{text-align:center!important}.kramail-character-option:last-child{border-bottom:none!important}.kramail-character-option:active{background:var(--kr-bg-active)!important}html[class*=-dark] .kramail-character-dropdown{background:var(--kr-bg-surface)!important;border-color:var(--kr-border-default)!important}html[class*=-dark] .kramail-character-option{color:var(--kr-text-primary)!important;border-bottom-color:var(--kr-border-default)!important}.forum-top:has(.kramail-actions-moved){display:none!important}body.mobile-mode ul.media-list.forum>li.media.well.kramail-post-restructured{display:flex!important;flex-direction:column!important;padding:0!important;margin:0 16px 16px!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;border-radius:12px!important;overflow:hidden!important;list-style:none!important}body.mobile-mode li.kramail-post-restructured>.media-body,body.mobile-mode li.kramail-post-restructured>.pull-left,body.page-kramail .editeur-text #results hr,body.page-kramail .editeur-text .form-group hr{display:none!important}.kramail-msg-header{display:flex!important;align-items:center!important;gap:12px!important;padding:12px 16px!important;border-bottom:1px solid var(--kr-border-default)!important}.kramail-msg-header .kramail-msg-avatar{width:48px!important;height:48px!important;border-radius:8px!important;object-fit:cover!important;flex-shrink:0!important}.kramail-msg-header-info{flex:1!important;min-width:0!important}.kramail-msg-sender{font-size:15px!important;font-weight:600!important;color:var(--kr-text-primary)!important;margin-bottom:2px!important}.kramail-msg-sender a{color:inherit!important;text-decoration:none!important}.kramail-msg-date{font-size:12px!important;color:var(--kr-text-muted)!important;display:flex!important;align-items:center!important;gap:4px!important}.kramail-msg-date i{font-size:11px!important}.kramail-msg-recipients{padding:8px 16px!important;font-size:13px!important;color:var(--kr-text-secondary)!important;border-bottom:1px solid var(--kr-border-default)!important;line-height:1.5!important}.kramail-msg-recipients strong{color:var(--kr-text-muted)!important;font-weight:500!important}.kramail-msg-recipients a{color:var(--kr-primary)!important;text-decoration:none!important}.kramail-msg-body{padding:16px!important;font-size:15px!important;line-height:1.6!important;color:var(--kr-text-primary)!important;word-wrap:break-word!important;overflow-wrap:break-word!important}.kramail-msg-body .blockquote,.kramail-msg-body .quote,.kramail-msg-body blockquote{margin:12px 0!important;padding:12px 16px!important;border-left:3px solid var(--kr-primary)!important;border-right:none!important;border-top:none!important;border-bottom:none!important;background:rgba(255,255,255,.03)!important;border-radius:0 8px 8px 0!important;font-size:14px!important;color:var(--kr-text-secondary)!important;line-height:1.5!important}.kramail-msg-body blockquote .fa-quote-left,.kramail-msg-body blockquote .text-warning{color:var(--kr-primary)!important;opacity:.6!important;margin-right:6px!important;font-size:12px!important}.kramail-msg-signature{margin-top:16px!important;padding-top:12px!important;border-top:1px solid var(--kr-border-default)!important;font-size:13px!important;color:var(--kr-text-muted)!important;line-height:1.5!important}.kramail-msg-signature img.icon{max-height:18px!important;vertical-align:middle!important}body.mobile-mode .center:has(>ul.pagination){padding:8px 16px 16px!important}body.mobile-mode .center>ul.pagination.t{display:flex!important;justify-content:center!important;gap:8px!important;padding:0!important;margin:0!important;list-style:none!important}body.mobile-mode .center>ul.pagination.t>li{list-style:none!important}body.mobile-mode .center>ul.pagination.t>li>a{display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;border-radius:10px!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;color:var(--kr-text-primary)!important;text-decoration:none!important;font-size:16px!important;transition:all .15s!important}body.mobile-mode .center>ul.pagination.t>li>a:active{transform:scale(.97)!important;background:var(--kr-primary)!important;border-color:var(--kr-primary)!important;color:#fff!important}ul.media-list.forum>li.media.forum-post-restructured{display:block!important;padding:12px 8px!important;margin-bottom:24px!important;list-style:none!important;border-bottom:1px solid rgba(255,255,255,.1)!important}ul.media-list.forum>li.media .forum-header{margin-bottom:12px!important;display:flex!important;flex-wrap:nowrap!important}ul.media-list.forum>li.media .forum-content-row,ul.media-list.forum>li.media .forum-header{margin-left:0!important;margin-right:0!important}.forum-user-section{padding:0 8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}.forum-user-section .user-info img:first-child,.forum-user-section img.avatar{max-width:80px!important;height:auto!important;border-radius:4px!important;margin-bottom:8px!important}.forum-user-section .cartouche strong,.forum-user-section [data-kr-rank-title] strong,.forum-user-section strong a{white-space:normal!important;word-wrap:break-word!important;overflow-wrap:break-word!important;hyphens:auto!important;overflow:visible!important;text-overflow:clip!important}.forum-user-section .cartouche strong,.forum-user-section strong a{font-size:13px!important;line-height:1.2!important;display:block!important;max-width:100%!important;min-height:0!important}.forum-user-section [data-kr-rank-title]{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;flex-wrap:nowrap!important;margin-top:4px!important;max-width:100%!important}.forum-user-section [data-kr-rank-title] img{flex-shrink:0!important;margin:0!important;max-width:24px!important;max-height:24px!important}.forum-user-section [data-kr-rank-title] strong{font-size:10px!important;color:#bbb!important;font-weight:400!important;max-width:none!important;line-height:1.3!important;text-align:center!important;flex:1 1 auto!important;min-width:0!important}.forum-user-section .post-date-mobile{font-size:11px!important;color:#999!important;margin-top:4px!important;text-align:center!important}.forum-user-section strong:not(.cartouche strong):not([data-kr-rank-title] strong){font-size:10px!important;color:#bbb!important;font-weight:400!important;margin-top:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important}.forum-actions-section{padding:0 8px!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:8px!important}.forum-actions-section .pull-right{float:none!important;display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:8px!important;width:100%!important}.forum-actions-section .btn-group{display:inline-flex!important;flex-direction:row!important;gap:0!important;flex-wrap:nowrap!important}.forum-actions-section .btn{width:44px!important;height:44px!important;min-width:44px!important;max-width:44px!important;padding:0!important;margin:0!important;font-size:14px!important;line-height:44px!important;border:0!important;border-radius:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.forum-actions-section .btn-group-xs .btn,.forum-actions-section .btn-group-xs>.btn{min-width:44px!important}.forum-actions-section .btn i{font-size:11px!important;line-height:24px!important}.forum-content-row{margin-top:0!important}.forum-content-section{padding:12px 8px!important;border-top:1px dashed rgba(255,255,255,.15)!important;font-size:15px!important;line-height:1.6!important;width:100%!important}.forum-content-section .forum-msg,.forum-content-section>div{width:100%!important;padding:0!important;margin:0!important}.forum-content-section blockquote{margin:8px 0!important;padding:8px 12px!important;border-left:3px solid rgba(255,255,255,.2)!important;font-size:14px!important}.forum-content-section img{max-width:100%!important;height:auto!important}.forum-content-section .spoiler{margin:8px 0!important}.forum-content-section .signature,.forum-content-section hr{margin-top:16px!important;padding-top:16px!important;border-top:1px solid rgba(255,255,255,.1)!important;font-size:12px!important;color:#999!important}body.page-kramail .editeur-text .form-group+.form-group>.col-sm-2:empty+.col-sm-10>hr{display:none!important}body.page-kramail .editeur-text .form-group:has(#results){margin-bottom:0;padding-top:0}body.page-kramail .editeur-text select.form-control{cursor:pointer}body.page-kramail .editeur-text .form-group:has(input[type=checkbox]) input[type=checkbox]{cursor:pointer}body.page-kramail .editeur-text .form-group>label.control-label .required{color:var(--kr-primary);font-weight:700}body.page-kramail h1.page-header .btn-default{border-radius:var(--kr-radius);font-weight:500;transition:all .15s ease}body.page-kramail h1.page-header .btn-default:hover{border-color:var(--kr-primary);color:var(--kr-primary)}@media (min-width:769px){body.page-kramail form.form-horizontal.editeur-text{background:var(--kr-bg-surface);border:1px solid var(--kr-border-strong);border-radius:var(--kr-radius);padding:28px 32px;margin-top:8px;box-shadow:var(--kr-shadow-md)}body.page-kramail h1.page-header{border-bottom-color:var(--kr-primary)!important;padding-bottom:12px;margin-bottom:16px}body.page-kramail .editeur-text .input-group-addon{background-color:var(--kr-bg-elevated);border-color:var(--kr-border-default);color:var(--kr-text-secondary);min-width:42px;text-align:center}body.page-kramail .editeur-text .input-group-addon i.fa,body.page-kramail .editeur-text .input-group-addon i.far,body.page-kramail .editeur-text .input-group-addon i.fas{color:var(--kr-primary);font-size:14px}body.page-kramail .editeur-text .input-group-addon .btn.btn-primary{min-width:36px;min-height:32px;font-size:16px;font-weight:700;padding:4px 12px;border-radius:4px}body.page-kramail .editeur-text .form-group label[for],body.page-kramail .editeur-text .form-group>label.col-sm-1{font-size:13px;text-transform:uppercase;letter-spacing:.3px;color:var(--kr-text-secondary);font-weight:600}body.page-kramail .editeur-text .form-group:has(input[type=checkbox]){background:var(--kr-bg-hover);border:1px solid var(--kr-border-default);border-radius:var(--kr-radius);padding:16px 20px!important;margin-top:8px}body.page-kramail .editeur-text .form-group:has(input[type=checkbox])>label.col-md-2,body.page-kramail .editeur-text .form-group:has(input[type=checkbox])>label.col-sm-2{color:var(--kr-text-primary);font-weight:700;font-size:14px}body.page-kramail .editeur-text .form-group:has(input[type=checkbox]) .checkbox-inline{margin-right:24px;padding:6px 4px 6px 24px;cursor:pointer}body.page-kramail .editeur-text>div:last-child{text-align:right;padding-top:16px;margin-top:8px;border-top:1px solid var(--kr-border-default);clear:both}body.page-kramail .editeur-text button.btn-primary.pull-right{float:none!important;min-width:180px;padding:12px 32px;font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--kr-radius);margin:0;transition:all .2s ease;box-shadow:0 4px 12px var(--kr-btn-shadow)}body.page-kramail .editeur-text button.btn-primary.pull-right:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--kr-btn-shadow)}body.page-kramail .editeur-text button.btn-primary.pull-right:active{transform:translateY(0);box-shadow:0 2px 8px var(--kr-btn-shadow)}body.page-kramail .editeur-text .btn-toolbar{background:var(--kr-bg-hover);border:1px solid var(--kr-border-default);border-radius:var(--kr-radius);padding:8px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px}body.page-kramail .editeur-text .btn-toolbar .btn-group{margin-right:4px;border-right:1px solid var(--kr-border-default);padding-right:8px}body.page-kramail .editeur-text .btn-toolbar .btn-group:last-child{border-right:none;margin-right:0;padding-right:0}body.page-kramail .editeur-text .btn-toolbar .btn{min-width:34px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;transition:all .15s ease}body.page-kramail .editeur-text .btn-toolbar .btn:hover{background:var(--kr-bg-active)!important;border-color:var(--kr-primary)!important}body.page-kramail .editeur-text textarea[name="c[5]"],body.page-kramail .editeur-text textarea[placeholder="Votre message"]{min-height:250px;line-height:1.6}body.page-kramail .editeur-text .col-sm-10>.btn-toolbar+textarea.form-control{border-top-left-radius:0!important;border-top-right-radius:0!important;border-top:none!important;margin-top:0}body.page-kramail .editeur-text .col-sm-10>.btn-toolbar{border-bottom-left-radius:0!important;border-bottom-right-radius:0!important;margin-bottom:0!important;border-bottom:1px solid var(--kr-border-default)}body.page-kramail .editeur-text .form-group>label.control-label{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--kr-text-secondary)}body.page-kramail .editeur-text .form-group{margin-bottom:20px}}@media (max-width:768px){body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-character-dropdown,body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-dropdown-icon{display:none!important}body.page-kramail-compose h1.page-header .kramail-character-selector{cursor:default!important;pointer-events:none;flex:1;min-width:0}body.page-kramail-compose h1.page-header{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;flex-wrap:nowrap}body.page-kramail-compose h1.page-header .pull-right{float:none!important;width:auto!important;flex-shrink:0;margin-left:auto}body.page-kramail-compose h1.page-header .pull-right .btn{min-width:44px;min-height:44px;display:inline-flex!important;align-items:center;justify-content:center;padding:8px 12px;font-size:14px;white-space:nowrap}body.page-kramail .editeur-text .input-group{display:flex!important;flex-wrap:nowrap;border-radius:var(--mobile-radius);overflow:hidden}body.page-kramail .editeur-text .input-group-addon{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;flex-shrink:0;display:flex!important;align-items:center;justify-content:center;border-radius:0!important;border-right:none!important;padding:0!important}body.page-kramail .editeur-text .input-group-addon:first-child{border-radius:var(--mobile-radius)0 0 var(--mobile-radius)!important}body.page-kramail .editeur-text .input-group .form-control{flex:1;min-width:0;height:44px!important;border-radius:0 var(--mobile-radius) var(--mobile-radius)0!important;border-left:none!important}body.page-kramail .editeur-text .input-group-addon .btn{width:44px!important;height:44px!important;max-width:44px!important;min-width:44px!important;padding:0!important;margin:0!important;display:flex!important;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:0!important;background:0 0!important;color:inherit}body.page-kramail .editeur-text .btn-toolbar{display:flex!important;flex-wrap:nowrap;gap:0!important;padding:0!important;border-radius:var(--mobile-radius) var(--mobile-radius)0 0!important;border:1px solid var(--kr-border-default)!important;border-bottom:1px solid var(--kr-border-default)!important;margin-bottom:0!important;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:var(--kr-bg-hover)}body.page-kramail .editeur-text .btn-toolbar .btn-group{flex-direction:row!important;width:auto!important;flex-shrink:0;margin:0!important;padding:0!important;border:0!important;border-right:1px solid var(--kr-border-default)!important;border-radius:0!important}body.page-kramail .editeur-text .btn-toolbar>.btn-group:last-child,body.page-kramail .editeur-text .btn-toolbar>.btn-group[aria-label]:last-of-type{border-right:none!important}body.page-kramail .editeur-text .btn-toolbar>.btn-group .dropdown .dropdown-toggle .btn,body.page-kramail .editeur-text .btn-toolbar>.btn-group .dropdown>.dropdown-toggle,body.page-kramail .editeur-text .btn-toolbar>.btn-group .dropdown>a>.btn,body.page-kramail .editeur-text .btn-toolbar>.btn-group>.btn,body.page-kramail .editeur-text .btn-toolbar>.btn-group>a.btn{width:44px!important;max-width:44px!important;min-width:44px!important;height:44px!important;margin:0!important;padding:0!important;border-radius:0!important;border:0!important;border-right:1px solid rgba(255,255,255,.05)!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0;background:0 0!important;color:var(--kr-text-primary, #f5f1ed)!important}body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown>.dropdown-toggle>.btn .fa,body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown>.dropdown-toggle>.btn .far,body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown>.dropdown-toggle>.btn i,body.page-kramail .editeur-text .btn-toolbar>.btn-group>.btn i,body.page-kramail .editeur-text .btn-toolbar>.btn-group>a.btn i{color:inherit!important}body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown{display:flex!important;flex-shrink:0}body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown>.dropdown-toggle>.btn{width:44px!important;height:44px!important;min-width:44px!important;max-width:44px!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:0 0!important;color:var(--kr-text-primary, #d4a574)!important}body.page-kramail .editeur-text .btn-toolbar .dropdown-menu .btn-group .btn{width:auto!important;height:auto!important;min-width:28px!important;max-width:none!important;min-height:28px!important;padding:4px 6px!important;margin:2px!important;border-radius:4px!important;border:1px solid rgba(255,255,255,.1)!important}body.page-kramail .editeur-text .btn-toolbar>.btn-group:first-child>.btn:first-child,body.page-kramail .editeur-text .btn-toolbar>.btn-group:first-child>a.btn:first-child{border-radius:var(--mobile-radius)0 0 var(--mobile-radius)!important}body.page-kramail .editeur-text .btn-toolbar>.btn-group[aria-label]:last-of-type>.btn:last-child,body.page-kramail .editeur-text .btn-toolbar>.btn-group[aria-label]:last-of-type>a.btn:last-child{border-radius:0 var(--mobile-radius) var(--mobile-radius)0!important;border-right:none!important}body.page-kramail .editeur-text .btn-toolbar .btn:active{background:rgba(139,15,14,.15)!important}body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar{height:3px}body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}body.page-kramail .editeur-text .btn-toolbar+textarea.form-control,body.page-kramail .editeur-text .col-sm-10>.btn-toolbar+textarea.form-control{border-top-left-radius:0!important;border-top-right-radius:0!important;border-top:none!important;margin-top:0}body.page-kramail .editeur-text .btn-toolbar .dropdown-menu{position:fixed!important;bottom:60px!important;left:8px!important;right:8px!important;top:auto!important;width:auto!important;max-width:calc(100vw - 16px)!important;max-height:50vh;overflow-y:auto;border-radius:var(--mobile-radius) var(--mobile-radius)0 0!important;box-shadow:0-4px 24px rgba(0,0,0,.4)!important;z-index:1050!important;background:var(--kr-bg-surface)!important;border:1px solid var(--kr-border-default)!important;padding:12px!important}body.page-kramail .editeur-text .checkbox-inline{display:flex!important;align-items:center;gap:8px;padding-left:0!important;margin-right:16px;margin-bottom:8px;min-height:44px;white-space:nowrap}body.page-kramail .editeur-text .checkbox-inline input[type=checkbox]{position:static!important;margin-left:0!important;margin-top:0!important;width:20px!important;height:20px!important;min-width:20px;flex-shrink:0}body.page-kramail .editeur-text .form-group:has(input[type=checkbox]){background:var(--kr-bg-hover);border:1px solid var(--kr-border-default);border-radius:var(--mobile-radius);padding:12px 16px!important;margin-top:8px}body.page-kramail .editeur-text .form-group>label.control-label{color:var(--kr-text-secondary)}body.page-kramail .editeur-text .form-group:last-of-type{padding-bottom:70px!important}}.forum-thread-detail>div:nth-of-type(2),.page-forum-sujet [role=main]>div>div:nth-of-type(2)>div:nth-of-type(3){display:none}.forum-thread-metadata+div:has(a[href*="/forum/tags/"]){display:none}.kr-changelog-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;opacity:0;transition:opacity .3s ease}.kr-changelog-modal.active{opacity:1;display:flex;align-items:center;justify-content:center}.kr-changelog-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75)!important;cursor:pointer}.kr-changelog-header{padding:24px 24px 16px;border-bottom:1px solid var(--kr-border-default);position:relative}.kr-changelog-header h2,.kr-changelog-version h3{margin:0;font-size:20px;font-weight:600;color:var(--kr-primary)}.kr-changelog-close{display:none!important}.kr-changelog-body{padding:16px 24px;overflow-y:auto;flex:1}.kr-changelog-subtitle{margin:0 0 16px;color:var(--kr-muted);font-size:14px}.kr-changelog-list,.kr-changelog-version ul{list-style:none;padding:0;margin:0}.kr-changelog-list li,.kr-changelog-version li{padding:8px 0 8px 24px;position:relative;color:var(--kr-text);line-height:1.5;font-size:14px}.kr-changelog-list li:before{content:"✓";position:absolute;left:0;color:var(--kr-primary);font-weight:700;font-size:16px}.kr-changelog-footer{padding:16px 24px;border-top:1px solid var(--kr-border-default);display:flex;gap:12px;flex-wrap:wrap}.kr-changelog-footer button{flex:1;min-width:120px;padding:10px 16px;border:1px solid var(--kr-border-strong);border-radius:var(--kr-radius);background:var(--kr-surface);color:var(--kr-text);cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}.kr-changelog-view-all{background:var(--kr-primary)!important;color:#fff!important;border-color:var(--kr-primary)!important}.kr-changelog-view-all:hover{background:var(--kr-primary-dark)!important;border-color:var(--kr-primary-dark)!important}.kr-changelog-close-btn:hover{background:var(--kr-bg-hover)}.kr-changelog-modal.kr-changelog-full .kr-changelog-content-full{max-width:800px}.kr-changelog-body-full{max-height:500px}.kr-changelog-version{margin-bottom:24px}.kr-changelog-version h3{margin:0 0 12px;font-size:16px;padding-bottom:8px;border-bottom:1px solid var(--kr-border-default)}.kr-changelog-version li{padding:6px 0 6px 20px;font-size:13px}.kr-changelog-version li:before{content:"•";position:absolute;left:5px;color:var(--kr-primary);font-weight:700}.kr-changelog-btn{margin-bottom:16px}.kr-changelog-inline{color:var(--kr-primary);text-decoration:none;border:0;background:0 0;padding:0;font-size:13px;margin-left:8px;vertical-align:middle;cursor:pointer;display:inline}.kr-changelog-inline:hover{color:var(--kr-primary-dark);text-decoration:underline}@media (max-width:768px){.kr-changelog-content{width:95%;max-height:85vh}.kr-changelog-header{padding:16px 16px 12px}.kr-changelog-header h2{font-size:18px}.kr-changelog-body{padding:12px 16px}.kr-changelog-list li{padding:6px 0 6px 20px;font-size:13px}.kr-changelog-footer{padding:12px 16px;flex-direction:column}.kr-changelog-footer button{width:100%}.kr-changelog-content-full{max-width:95%}}html[class*=-dark] .mini{color:var(--kr-text-primary)!important;text-shadow:0 1px 0 rgba(0,0,0,.6);padding:2px 6px;border-radius:3px;font-weight:700;background-image:none!important;background-color:rgba(0,0,0,.6)!important}html[class*=-dark] .mini.c3,html[class*=-dark] .mini.c5{background-color:rgba(255,255,128,.92)!important;color:var(--kr-text-inverse)!important}html[class*=-dark] .mini.c5{background-color:rgba(128,255,128,.92)!important}html:not([class*=-dark]) .mini{padding:2px 6px;border-radius:3px;font-weight:700}}',ENABLE_KEY:"kr-theme-enabled",VARIANT_KEY:"kr-theme-variant",STATS_DISPLAY_KEY:"kr-stats-display",STYLE_ID:"kraland-theme-style",THEME_VARIANTS:["kraland","empire-brun","paladium","theocratie-seelienne","paradigme-vert","khanat-elmerien","confederation-libre","royaume-ruthvenie","empire-brun-dark","paladium-dark","theocratie-seelienne-dark","paradigme-vert-dark","khanat-elmerien-dark","confederation-libre-dark","royaume-ruthvenie-dark","high-contrast"],LOGO_MAP:{kraland:1,"empire-brun":2,"empire-brun-dark":2,paladium:3,"paladium-dark":3,"theocratie-seelienne":4,"theocratie-seelienne-dark":4,"paradigme-vert":5,"paradigme-vert-dark":5,"khanat-elmerien":6,"khanat-elmerien-dark":6,"confederation-libre":7,"confederation-libre-dark":7,"royaume-ruthvenie":8,"royaume-ruthvenie-dark":8},SKILL_ICONS:{Baratin:"9401","Combat Mains Nues":"9402","Combat Contact":"9403","Combat Distance":"9404",Commerce:"9405","Démolition":"9406","Discrétion":"9407","Éloquence":"9408",Falsification:"9409",Foi:"9410",Informatique:"9411","Médecine":"9412",Observation:"9413",Organisation:"9414",Pouvoir:"9415","Séduction":"9416",Survie:"9417",Vol:"9418"},STAT_ICONS:{FOR:"9402",VOL:"9415",CHA:"9416",INT:"9412",GES:"9405",PER:"9413"},MEDIEVAL_MAP_KEY:"kr-medieval-map",MEDIEVAL_MAP_STYLE_ID:"kr-medieval-map-style",MEDIEVAL_MAP_OVERRIDES:{"http://img7.kraland.org/2/map/1/54.gif":"https://i.imgur.com/yQaUb2q.png","http://img7.kraland.org/2/map/1/123.gif":"https://i.imgur.com/zeD5Q3m.gif","http://img7.kraland.org/2/map/1/124.gif":"https://i.imgur.com/kT1NcMR.gif","http://img7.kraland.org/2/map/1/125.gif":"https://i.imgur.com/OZcbEpv.gif","http://img7.kraland.org/2/map/1/126.gif":"https://i.imgur.com/pnNPvQa.gif","http://img7.kraland.org/2/map/1/127.gif":"https://i.imgur.com/AWDyET8.gif","http://img7.kraland.org/2/map/1/128.gif":"https://i.imgur.com/v9BUsFz.gif","http://img7.kraland.org/2/map/1/129.gif":"https://i.imgur.com/F3hWy6L.gif","http://img7.kraland.org/2/map/1/130.gif":"https://i.imgur.com/dQ1eAgR.gif","http://img7.kraland.org/2/map/1/131.gif":"https://i.imgur.com/hQzJHvq.gif","http://img7.kraland.org/2/map/1/150.gif":"https://i.imgur.com/b4gCbux.png","http://img7.kraland.org/2/map/1/160.gif":"https://i.imgur.com/u3pxKOO.gif","http://img7.kraland.org/2/map/1/161.gif":"https://i.imgur.com/SptXelD.gif","http://img7.kraland.org/2/map/1/162.gif":"https://i.imgur.com/r9AajUr.gif","http://img7.kraland.org/2/map/1/163.gif":"https://i.imgur.com/j0E8T1P.gif","http://img7.kraland.org/2/map/1/164.gif":"https://i.imgur.com/ogaiUqe.gif","http://img7.kraland.org/2/map/1/165.gif":"https://i.imgur.com/qe3sdQF.gif","http://img7.kraland.org/2/map/1/166.gif":"https://i.imgur.com/Z6QHBzh.gif","http://img7.kraland.org/2/map/1/167.gif":"https://i.imgur.com/DtNeOzd.gif","http://img7.kraland.org/2/map/1/168.gif":"https://i.imgur.com/bowPMN6.gif","http://img7.kraland.org/2/map/1/169.gif":"https://i.imgur.com/o7CILuq.gif","http://img7.kraland.org/2/map/1/170.gif":"https://i.imgur.com/y9U0dYl.gif","http://img7.kraland.org/2/map/1b/54.gif":"https://i.imgur.com/06sWizC.png","http://img7.kraland.org/2/map/1b/123.gif":"https://i.imgur.com/AVfs5gP.gif","http://img7.kraland.org/2/map/1b/124.gif":"https://i.imgur.com/5EXjAMq.gif","http://img7.kraland.org/2/map/1b/125.gif":"https://i.imgur.com/2W8B2Dt.gif","http://img7.kraland.org/2/map/1b/126.gif":"https://i.imgur.com/4bBE651.gif","http://img7.kraland.org/2/map/1b/127.gif":"https://i.imgur.com/MlV4iYC.gif","http://img7.kraland.org/2/map/1b/128.gif":"https://i.imgur.com/rmU5dY2.gif","http://img7.kraland.org/2/map/1b/129.gif":"https://i.imgur.com/YeujdJG.gif","http://img7.kraland.org/2/map/1b/130.gif":"https://i.imgur.com/PqDVOX3.gif","http://img7.kraland.org/2/map/1b/131.gif":"https://i.imgur.com/W8FRpdH.gif","http://img7.kraland.org/2/map/1b/150.gif":"https://i.imgur.com/w6yVuNX.png","http://img7.kraland.org/2/map/1b/160.gif":"https://i.imgur.com/bHKR6EJ.gif","http://img7.kraland.org/2/map/1b/161.gif":"https://i.imgur.com/yrfMXwl.gif","http://img7.kraland.org/2/map/1b/162.gif":"https://i.imgur.com/qfSfUkX.gif","http://img7.kraland.org/2/map/1b/163.gif":"https://i.imgur.com/MR7miUh.gif","http://img7.kraland.org/2/map/1b/164.gif":"https://i.imgur.com/MMunrUy.gif","http://img7.kraland.org/2/map/1b/165.gif":"https://i.imgur.com/Kqs7t39.gif","http://img7.kraland.org/2/map/1b/166.gif":"https://i.imgur.com/6FoA0Hi.gif","http://img7.kraland.org/2/map/1b/167.gif":"https://i.imgur.com/Jgu5rX9.gif","http://img7.kraland.org/2/map/1b/168.gif":"https://i.imgur.com/KCPBL3T.gif","http://img7.kraland.org/2/map/1b/169.gif":"https://i.imgur.com/uBJObWh.gif","http://img7.kraland.org/2/map/1b/170.gif":"https://i.imgur.com/FfpTfLi.gif"},MEDIEVAL_SEPIA:"85%"};function a(t){try{t()}catch(t){}}function n(){return"false"!==localStorage.getItem(o.ENABLE_KEY)}function i(){return localStorage.getItem(o.VARIANT_KEY)||"kraland"}function l(){return localStorage.getItem(o.STATS_DISPLAY_KEY)||"icon"}function d(t){if(!t)return null;const e=t.match(/url\((?:'|")?(.*?)(?:'|")?\)/);return e?e[1]:null}function s(){try{const t="data-kr-medieval-applied",e="data-kr-medieval-original-bg",r="data-kr-medieval-original-filter",a={};function n(n){if(!n||n.getAttribute&&"true"===n.getAttribute(t)||n.getAttribute&&"true"===n.getAttribute("data-kr-medieval-pending"))return;let i=null;if("IMG"===n.tagName)i=n.src||n.getAttribute("src");else{const t=n.style&&n.style.getPropertyValue("background-image")||"",e=t||window.getComputedStyle&&getComputedStyle(n).backgroundImage||"";i=d(t)||d(e)}if(!i)return;if(o.MEDIEVAL_NO_REPLACE&&o.MEDIEVAL_NO_REPLACE[i])return;const l=function(t){if(!t)return null;const e=o.MEDIEVAL_MAP_OVERRIDES||{};return e[t]?e[t]:-1!==t.indexOf("/2/map/1b/")?t.replace("/2/map/1b/","/2/map/5/"):-1!==t.indexOf("/2/map/1/")?t.replace("/2/map/1/","/2/map/5/"):null}(i);if(!l)return;n.setAttribute&&n.setAttribute("data-kr-medieval-pending","true"),n.hasAttribute&&n.hasAttribute(e)||n.setAttribute(e,i);const s=n.style&&n.style.getPropertyValue("filter")||"";var c;n.hasAttribute&&n.hasAttribute(r)||n.setAttribute(r,s),(c=l,a.hasOwnProperty(c)?Promise.resolve(!!a[c]):new Promise(t=>{try{const e=new Image;e.onload=()=>{a[c]=!0,t(!0)},e.onerror=()=>{a[c]=!1,t(!1)},e.src=c}catch(e){a[c]=!1,t(!1)}})).then(a=>{if(a){if("IMG"===n.tagName)try{n.src=l}catch(t){n.setAttribute("src",l)}else n.style&&n.style.setProperty&&n.style.setProperty("background-image",'url("'+l+'")',"important");-1!==i.indexOf("/2/map/1b/")&&n.style&&n.style.setProperty&&n.style.setProperty("filter","sepia("+o.MEDIEVAL_SEPIA+")","important"),n.setAttribute&&n.setAttribute(t,"true")}else{const t=n.getAttribute(e);if("IMG"===n.tagName){if(t)try{n.src=t}catch(e){n.setAttribute("src",t)}}else t?n.style&&n.style.setProperty&&n.style.setProperty("background-image",'url("'+t+'")',"important"):n.style&&n.style.removeProperty&&n.style.removeProperty("background-image");const o=n.getAttribute(r);o?n.style&&n.style.setProperty&&n.style.setProperty("filter",o,"important"):n.style&&n.style.removeProperty&&n.style.removeProperty("filter")}n.removeAttribute&&n.removeAttribute("data-kr-medieval-pending")}).catch(t=>{n.removeAttribute&&n.removeAttribute("data-kr-medieval-pending")})}function i(){document.querySelectorAll("["+t+'="true"]').forEach(o=>{const a=o.getAttribute(e);if("IMG"===o.tagName)if(a)try{o.src=a}catch(t){o.setAttribute("src",a)}else o.removeAttribute&&o.removeAttribute("src");else a?o.style&&o.style.setProperty&&o.style.setProperty("background-image",'url("'+a+'")',"important"):o.style&&o.style.removeProperty&&o.style.removeProperty("background-image");const n=o.getAttribute(r);n?o.style&&o.style.setProperty&&o.style.setProperty("filter",n,"important"):o.style&&o.style.removeProperty&&o.style.removeProperty("filter"),o.removeAttribute&&o.removeAttribute(t),o.removeAttribute&&o.removeAttribute(e),o.removeAttribute&&o.removeAttribute(r)})}if("true"===localStorage.getItem(o.MEDIEVAL_MAP_KEY)){if(document.documentElement.classList.add("kr-medieval-map-enabled"),document.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]').forEach(n),!s._observer){const l=new MutationObserver(t=>{t.forEach(t=>{"attributes"!==t.type||"style"!==t.attributeName&&"src"!==t.attributeName||!t.target||1!==t.target.nodeType?"childList"===t.type&&t.addedNodes.forEach(t=>{1===t.nodeType&&(t.matches&&(t.matches('div[style*="/2/map/1/"]')||t.matches('div[style*="/2/map/1b/"]')||t.matches('img[src*="/2/map/1/"]')||t.matches('img[src*="/2/map/1b/"]'))&&n(t),t.querySelectorAll&&t.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]').forEach(n))}):n(t.target)})});l.observe(document.body||document.documentElement,{childList:!0,subtree:!0,attributes:!0,attributeFilter:["style","src"]}),s._observer=l}}else document.documentElement.classList.remove("kr-medieval-map-enabled"),i(),s._observer&&(s._observer.disconnect(),s._observer=null);return!0}catch(c){return console.error("applyMedievalMapOption error",c),!1}}function c(){const t=location?.pathname||"";return 0===t.indexOf("/jouer")&&"/jouer/communaute"!==t&&"/jouer/communaute/membres"!==t}function m(){const t=document.documentElement;t.style.setProperty("transition","opacity .18s ease-in"),t.style.setProperty("opacity","1"),setTimeout(()=>{t.style.removeProperty("transition"),t.style.removeProperty("opacity")},250)}function p(t){if(!n())return!1;try{let e=document.getElementById(o.STYLE_ID);e?e.textContent=t:(e=document.createElement("style"),e.id=o.STYLE_ID,e.textContent=t,document.head.appendChild(e)),document.documentElement.classList.add("kr-theme-enabled");const r=i();document.documentElement.classList.toggle("kr-theme-high-contrast","high-contrast"===r),o.THEME_VARIANTS.forEach(t=>document.documentElement.classList.remove("kr-theme-variant-"+t)),r&&"disable"!==r&&document.documentElement.classList.add("kr-theme-variant-"+r);const a=0===location?.pathname?.indexOf("/communaute/membres");return document.documentElement.classList.toggle("kr-page-members",a),!0}catch(t){return console.error("Theme apply failed",t),!1}}function u(){n()&&p(o.BUNDLED_CSS)}function g(t,e=!1){try{if(!t||"disable"===t)return localStorage.setItem(o.ENABLE_KEY,"false"),void(e||location.reload());const r=!n();if(localStorage.setItem(o.ENABLE_KEY,"true"),localStorage.setItem(o.VARIANT_KEY,t),r&&!e)return void location.reload();o.THEME_VARIANTS.forEach(t=>document.documentElement.classList.remove("kr-theme-variant-"+t)),document.documentElement.classList.add("kr-theme-variant-"+t),document.documentElement.classList.add("kr-theme-enabled"),a(()=>p(o.BUNDLED_CSS)),a(()=>E())}catch(t){console.error("applyThemeVariant error",t)}}function b(){"true"===localStorage.getItem("kr-hide-footer-quote")?document.documentElement.classList.add("kr-hide-footer-quote"):document.documentElement.classList.remove("kr-hide-footer-quote")}function h(){n()&&[x,w,S,E,C,A,L,q,T,N,M,I,P,z,_,B,j,F,D,H,k,f,v,window.updateForumRPMenu,window.updateForumHRPMenu,window.updateForumCommunauteMenu,window.updateForumDebatsMenu,window.updateForumStaffMenu,y,b,G].forEach(t=>a(t))}function f(){document.querySelectorAll('[data-toggle="tooltip"]').forEach(t=>{const e=document.body.classList.contains("mobile-mode"),r=t.closest(".col-leftest"),o=t.closest(".panel-body.grid-transformed");(e||r||o)&&(t.removeAttribute("data-toggle"),t.removeAttribute("data-placement"),t.removeAttribute("title"),t.removeAttribute("data-original-title"))}),window.$&&window.$.fn&&window.$.fn.tooltip&&(window.$.fn.tooltip=function(){return this})}function k(){window.location.pathname.startsWith("/forum/")&&document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(t=>{let e=t.getAttribute("data-original-title")||t.getAttribute("title");if(!e)return;let r=t.closest("div");if(!r||!r.parentElement)return;let o=r.closest(".cartouche")||r.closest('div[class="cartouche"]');o||(o=r.parentElement),o&&o.querySelector('strong a[href*="charlie-2-82045"]')&&"Empereur"===e&&(e="Emperatrice"),"Gouverneure Mystisie"===e?e="Sultane Eternelle de Mystisie":"Gouverneur Mystisie"===e&&(e="Sultan Eternel de Mystisie");const a=r.parentElement.querySelectorAll("div");let n=!1;for(let t of a)if(t.textContent.trim()===e&&t!==r){n=!0;break}if(n)return;const i=r.nextElementSibling;if(i&&i.hasAttribute("data-kr-rank-title"))return;const l=document.createElement("div");l.setAttribute("data-kr-rank-title","true"),l.style.display="flex",l.style.alignItems="center",l.style.justifyContent="center",l.style.gap="4px",l.style.marginTop="4px";const d=r.querySelector('img[src*="/rank/"]');d&&l.appendChild(d.cloneNode(!0));const s=document.createElement("strong");s.textContent=e,l.appendChild(s),r.parentElement&&r.parentElement.replaceChild(l,r)})}function y(){if(!c())return;const t=document.querySelector(".dashboard");if(!t)return;const e=t.querySelectorAll(":scope > .panel");if(!e.length)return;const r=document.createElement("div");r.className="dashboard-flex";const o=[];let a=!1;e.forEach(t=>{const e=t.querySelector(".panel-body");if(!e)return;if(!e.querySelector("table"))return;const r=t.querySelector(".panel-heading .panel-title"),n=r?r.textContent.trim():"";if(!n.toLowerCase().includes("groupe"))return;const i=function(t){const e={title:"",groupButtons:[],members:[]},r=t.querySelector(".panel-heading");if(r){const t=r.querySelector(".panel-title");t&&(e.title=t.textContent.trim(),t.querySelectorAll("a.btn").forEach(t=>{e.groupButtons.push(t.cloneNode(!0))}))}const o=t.querySelector(".panel-body");if(!o)return e;const a=o.querySelector("table");return a?(a.querySelectorAll("tr").forEach(t=>{const r=t.querySelector("td:first-child"),o=t.querySelector("td:last-child");if(!r||!o)return;const a=r.querySelectorAll("a.list-group-item.ds_game"),n=o.querySelectorAll('div[style*="height:59px"]');a.forEach((t,r)=>{const o=function(t,e){const r={originalLink:t,avatar:null,name:"",status:"",isPNJ:!1,worldImage:null,hpInfo:null,pvLevel:null,profileUrl:"",actionsDiv:null},o=t.querySelector("img.pull-left");o&&(r.avatar=o.src);const a=t.querySelector(".list-group-item-heading"),n=t.querySelector(".list-group-item-text");a&&(r.name=a.textContent.trim()),n&&(r.status=n.textContent.trim()),t.querySelector(".btn-danger.xmini")&&(r.isPNJ=!0);const i=t.querySelector(".mention.pull-right");if(i){const t=i.querySelector('img[src*="world"]');t&&(r.worldImage=t.src);const e=i.querySelector('img[src*="pdv"]');if(e){const t=e.src.match(/pdv(\d)\.png/);t&&(r.pvLevel=parseInt(t[1],10))}const o=i.querySelector('div[style*="background"]');if(o){const t=(o.getAttribute("style")||"").match(/width:\s*(\d+)%/);t&&(r.hpInfo=parseInt(t[1],10))}}return r.profileUrl=t.href,e&&(r.actionsDiv=e.cloneNode(!0)),r}(t,n[r]||null);e.members.push(o)})}),e):e}(t);if(0===i.members.length)return;const l=!a;n.toLowerCase().includes("groupe")&&(a=!0),o.push({isMyGroup:l,title:i.title,groupButtons:i.groupButtons,members:i.members})}),0!==o.length&&(o.forEach((t,e)=>{const o=document.createElement("div");o.className=t.isMyGroup?"dashboard-section dashboard-section-mygroup":"dashboard-section dashboard-section-others";const a=document.createElement("div");if(a.className="dashboard-section-header",t.groupButtons&&t.groupButtons.length>0){const e=document.createElement("div");e.className="dashboard-group-buttons",t.groupButtons.forEach(t=>{e.appendChild(t)}),a.appendChild(e)}const n=document.createElement("span");if(n.className="dashboard-group-title",t.isMyGroup){const e=t.title.replace(/\s*Groupe\s+/i,"");n.textContent=e||"Mon groupe"}else{const e=t.title.replace(/\s*Groupe\s+/i,"");n.textContent=e||`Groupe de ${t.members[0]?.name||"Inconnu"}`}a.appendChild(n),o.appendChild(a);const i=document.createElement("div");i.className=t.isMyGroup?"dashboard-cards-grid dashboard-cards-large":"dashboard-cards-grid",t.members.forEach(e=>{i.appendChild(function(t,e=!1){const r=document.createElement("div");r.className=e?"dashboard-card dashboard-card-large":"dashboard-card";const o=t.originalLink.cloneNode(!1);o.classList.add("dashboard-card-link");const a=document.createElement("div");if(a.className="dashboard-card-header",t.avatar){const e=document.createElement("div");if(e.className="dashboard-card-avatar-wrapper",t.pvLevel){const r=function(t){if(!t)return null;const e={1:{color:"#32CD32",percentage:100},2:{color:"#FFD700",percentage:80},3:{color:"#FF8C00",percentage:60},4:{color:"#DC143C",percentage:40},5:{color:"#8B0000",percentage:20}},r=e[t]||e[1],o=2*Math.PI*37,a=o-o*r.percentage/100,n=document.createElementNS("http://www.w3.org/2000/svg","svg");n.setAttribute("class","dashboard-card-hp-circle"),n.setAttribute("width","82"),n.setAttribute("height","82"),n.setAttribute("viewBox","0 0 82 82");const i=document.createElementNS("http://www.w3.org/2000/svg","circle");i.setAttribute("cx","41"),i.setAttribute("cy","41"),i.setAttribute("r",37),i.setAttribute("fill","none"),i.setAttribute("stroke","rgba(0,0,0,0.1)"),i.setAttribute("stroke-width","3");const l=document.createElementNS("http://www.w3.org/2000/svg","circle");return l.setAttribute("cx","41"),l.setAttribute("cy","41"),l.setAttribute("r",37),l.setAttribute("fill","none"),l.setAttribute("stroke",r.color),l.setAttribute("stroke-width","4"),l.setAttribute("stroke-linecap","round"),l.setAttribute("stroke-dasharray",o),l.setAttribute("stroke-dashoffset",a),l.setAttribute("transform","rotate(-90 41 41)"),n.appendChild(i),n.appendChild(l),n}(t.pvLevel);r&&e.appendChild(r)}const r=document.createElement("img");r.src=t.avatar,r.className="dashboard-card-avatar",r.alt=t.name,5===t.pvLevel&&(r.style.filter="grayscale(100%)",r.style.opacity="0.7"),e.appendChild(r),a.appendChild(e)}const n=document.createElement("div");if(n.className="dashboard-card-name-container",t.worldImage){const e=document.createElement("img");e.src=t.worldImage,e.className="dashboard-card-world",e.alt="World",n.appendChild(e)}const i=document.createElement("div");i.className="dashboard-card-name",i.textContent=t.name,n.appendChild(i),a.appendChild(n),o.appendChild(a);const l=document.createElement("div");if(l.className="dashboard-card-body",t.status){const e=document.createElement("div");e.className="dashboard-card-status",e.textContent=t.status,l.appendChild(e)}if(o.appendChild(l),r.appendChild(o),null!==t.hpInfo){const e=document.createElement("div");e.className="dashboard-card-hp";const o=document.createElement("div");o.className="dashboard-card-hp-fill",o.style.width=t.hpInfo+"%",t.hpInfo>70?o.style.backgroundColor="#5cb85c":t.hpInfo>30?o.style.backgroundColor="#f0ad4e":o.style.backgroundColor="#d9534f",e.appendChild(o),r.appendChild(e)}if(t.isPNJ){const t=document.createElement("span");t.className="dashboard-card-pnj",t.textContent="PNJ",r.appendChild(t)}if(t.actionsDiv){const e=document.createElement("div");e.className="dashboard-card-actions",t.actionsDiv.querySelectorAll("a").forEach(t=>{e.appendChild(t.cloneNode(!0))}),r.appendChild(e)}return r}(e,t.isMyGroup))}),o.appendChild(i),r.appendChild(o)}),t.innerHTML="",t.appendChild(r))}function v(){const t={Jouer:"jouer/plateau","Règles":"regles/avancees",Monde:"monde/evenements","Communauté":"communaute/membres"};let e=null;const r=document.body.classList.contains("mobile-mode");if(document.querySelectorAll(".navbar-nav .dropdown > a.dropdown-toggle").forEach(o=>{const a=o.textContent.trim().replace(/\s*\n.*$/,"");if(a.startsWith("Forum")&&!a.includes("HRP")&&!a.includes("RP"))return void(e=o.closest("li.dropdown"));const n=Object.keys(t).find(t=>a.includes(t));n&&t[n]&&(o.href=t[n],r?o.setAttribute("data-toggle","dropdown"):(o.removeAttribute("data-toggle"),o.hasAttribute("data-nav-modified")||(o.setAttribute("data-nav-modified","true"),o.addEventListener("click",function(t){return t.preventDefault(),window.location.href=this.href,!1}))))}),e&&!document.querySelector("[data-forums-added]")){const t=e.querySelector(".dropdown-menu"),o=document.createElement("li");o.className="dropdown",o.setAttribute("data-forums-added","rp"),o.innerHTML='\n        <a href="forum/rp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n          Forum RP <span class="caret"></span>\n        </a>\n        <ul class="dropdown-menu" role="menu">\n          <li><a href="forum/rp/taverne-10101">Taverne</a></li>\n          <li><a href="forum/rp/marche-10102">Marché</a></li>\n          <li><a href="forum/rp/monde-10103">Monde</a></li>\n          <li class="divider"></li>\n          <li><a href="forum/rp">Autre</a></li>\n        </ul>\n      ';const a=document.createElement("li");if(a.className="dropdown",a.setAttribute("data-forums-added","hrp"),a.innerHTML='\n        <a href="forum/hrp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n          Forum HRP <span class="caret"></span>\n        </a>\n      ',t){const e=t.cloneNode(!0),r=Array.from(e.querySelectorAll("li > a")).find(t=>t.textContent.includes("Jeu (RP)"));r&&r.parentElement&&r.parentElement.remove(),a.appendChild(e)}if(e.parentElement&&(e.parentElement.insertBefore(o,e),e.parentElement.insertBefore(a,e)),e.remove(),r){const t=o.querySelector("a.dropdown-toggle");t&&t.setAttribute("data-toggle","dropdown");const e=a.querySelector("a.dropdown-toggle");e&&e.setAttribute("data-toggle","dropdown")}else{const t=o.querySelector("a.dropdown-toggle");t&&(t.removeAttribute("data-toggle"),t.addEventListener("click",function(t){return t.preventDefault(),window.location.href=this.href,!1}));const e=a.querySelector("a.dropdown-toggle");e&&(e.removeAttribute("data-toggle"),e.addEventListener("click",function(t){return t.preventDefault(),window.location.href=this.href,!1}))}const n=o.parentElement;if(n&&!document.querySelector('[data-forums-added="forum-communaute"]')){let e=!1;t&&(e=!!Array.from(t.querySelectorAll("li > a")).find(t=>t.textContent.toLowerCase().includes("staff")));const o=document.createElement("li");o.className="dropdown",o.setAttribute("data-forums-added","forum-communaute"),o.innerHTML='\n          <a href="forum/communaute" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n            Forum Communauté <span class="caret"></span>\n          </a>\n          <ul class="dropdown-menu" role="menu">\n            <li><a href="forum/communaute">Voir tous les sujets</a></li>\n          </ul>\n        ';const i=document.createElement("li");i.className="dropdown",i.setAttribute("data-forums-added","forum-debats"),i.innerHTML='\n          <a href="forum/debats" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n            Forum Débats <span class="caret"></span>\n          </a>\n          <ul class="dropdown-menu" role="menu">\n            <li><a href="forum/debats">Voir tous les sujets</a></li>\n          </ul>\n        ';let l=null;if(e&&(l=document.createElement("li"),l.className="dropdown",l.setAttribute("data-forums-added","forum-staff"),l.innerHTML='\n            <a href="forum/staff" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n              Forum Staff <span class="caret"></span>\n            </a>\n            <ul class="dropdown-menu" role="menu">\n              <li><a href="forum/staff">Voir tous les sujets</a></li>\n            </ul>\n          '),n.insertBefore(o,a.nextSibling),n.insertBefore(i,o.nextSibling),l&&n.insertBefore(l,i.nextSibling),r){const t=[o,i];l&&t.push(l),t.forEach(t=>{const e=t.querySelector("a.dropdown-toggle");e&&e.setAttribute("data-toggle","dropdown")})}else{const t=[o,i];l&&t.push(l),t.forEach(t=>{const e=t.querySelector("a.dropdown-toggle");e&&(e.removeAttribute("data-toggle"),e.addEventListener("click",function(t){return t.preventDefault(),window.location.href=this.href,!1}))})}}}const o=Array.from(document.querySelectorAll(".navbar-nav > li.dropdown")).find(t=>t.querySelector("a.dropdown-toggle")?.textContent.includes("Communauté")&&!t.getAttribute("data-forums-added"));if(o&&!document.querySelector("[data-stats-menu-added]")){const t=document.createElement("li");if(t.className="dropdown",t.setAttribute("data-stats-menu-added","true"),t.innerHTML='\n        <a href="monde/citoyens" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">\n          Statistiques <span class="caret"></span>\n        </a>\n        <ul class="dropdown-menu" role="menu">\n          <li><a href="communaute/stats">Communautés</a></li>\n          <li><a href="monde/citoyens">Citoyens</a></li>\n        </ul>\n      ',o.parentElement&&o.parentElement.insertBefore(t,o.nextSibling),r){const e=t.querySelector("a.dropdown-toggle");e&&e.setAttribute("data-toggle","dropdown")}else{const e=t.querySelector("a.dropdown-toggle");e&&(e.removeAttribute("data-toggle"),e.addEventListener("click",function(t){return t.preventDefault(),window.location.href=this.href,!1}))}}}function x(){const t=[{text:"Membres actifs",cls:"kr-icon-members"},{text:"Personnages actifs",cls:"kr-icon-characters"},{text:"Personnes en ligne",cls:"kr-icon-online"},{text:"Présentation",cls:"kr-icon-presentation"},{text:"Médailles",cls:"kr-icon-medals"}];t.forEach(t=>document.querySelectorAll("."+t.cls).forEach(e=>e.classList.remove(t.cls)));const e=Array.from(document.querySelectorAll("*"));t.forEach(t=>{let r=null;for(const o of e){const e=(o.textContent||"").trim();if(!e.includes(t.text))continue;const a=(o.querySelector("i.fa, i.falarge, .glyphicon, svg")?100:0)+Math.max(0,200-Math.min(e.length,200));(!r||a>r.score)&&(r={el:o,score:a})}r?.el&&r.el.classList.add(t.cls)})}function w(){Array.from(document.querySelectorAll("a")).filter(t=>"MC"===(t.textContent||"").trim()).forEach(t=>{t.classList.add("kr-mc-icon");const e=t.getAttribute("data-original-title")||t.getAttribute("title")||(t.classList.contains("open")?"ouvrir le mini-chat":"fermer le mini-chat");e&&t.setAttribute("aria-label",e),t.removeAttribute("aria-hidden")})}function E(){const t=document.querySelector(".navbar-brand");if(!t)return;const e=i(),r=o.LOGO_MAP[e]||1,a=`http://img7.kraland.org/2/world/logo${r}.gif`,n=t.querySelector("img.kr-logo");if(n?.src?.includes(`logo${r}.gif`))return;t.innerHTML="";const l=document.createElement("img");l.className="kr-logo",l.src=a,l.alt="Kraland",l.style.height="28px",l.style.verticalAlign="middle",t.appendChild(l)}function S(){const t={"s1.gif":"♂","s2.gif":"♀","s3.gif":"⚧"};Array.from(document.querySelectorAll("img")).filter(t=>/img7\.kraland\.org\/.+\/(s[123]\.gif)$/.test(t.src)).forEach(e=>{const r=e.src.match(/(s[123]\.gif)$/),o=r?.[1],a=t[o]||"",n=document.createElement("span");if(n.className="kr-symbol kr-symbol-"+(o||"s"),n.setAttribute("aria-hidden","true"),n.textContent=a,e.alt){const t=document.createElement("span");t.className="kr-sr-only",t.textContent=e.alt,n.appendChild(t)}if(e.closest('[id*="sex"]')){const t=document.createElement("strong");t.appendChild(n),e.replaceWith(t)}else e.replaceWith(n)})}function C(){document.querySelectorAll("span.btn-group-xs").forEach(t=>{const e=t.parentElement;if(!e)return;const r=e.querySelector("strong");if(r&&r.parentElement===e&&t.nextElementSibling!==r)return void e.insertBefore(t,r);const o=Array.from(e.childNodes).find(t=>3===t.nodeType&&t.textContent?.trim().length>0);o&&t.nextSibling!==o&&e.insertBefore(t,o)})}function A(){document.querySelectorAll('[id*="ajax-sex"]').forEach(t=>{if(t.querySelector("strong"))return;const e=t.querySelector(".kr-symbol");if(e&&e.parentElement){const t=document.createElement("strong");return e.parentElement.replaceChild(t,e),void t.appendChild(e)}const r=Array.from(t.childNodes).find(t=>3===t.nodeType&&t.textContent?.trim().length>0);if(r&&r.parentElement){const t=r.textContent.trim(),e=document.createElement("strong");e.textContent=t,r.textContent=r.textContent.replace(t,""),r.parentElement.insertBefore(e,r.nextSibling)}})}function L(){const t=document.querySelector("footer, .footer, .contentinfo");if(!t)return;null!==t.nextSibling&&document.body.appendChild(t);const e=['a[href="#top"]',"a.to-top",".back-to-top",".scroll-top","a.well.well-sm"];let r=null;for(const t of e)if(r=document.querySelector(t),r)break;if(r){r.classList.add("kraland-back-to-top"),r.getAttribute("aria-label")||r.setAttribute("aria-label","Remonter en haut");const e=t.querySelector(".container.white");e?e.appendChild(r):r.parentElement!==t&&t.appendChild(r)}document.body.style.marginBottom||(document.body.style.marginBottom="60px")}function q(){const e=document.querySelector("footer, .footer, .contentinfo");if(!e)return;let r=e.querySelector(".kraland-css-version");r||(r=document.createElement("div"),r.className="kraland-css-version",r.style.cssText="text-align: center; padding: 10px; font-size: 12px; color: #666;",(e.querySelector(".container.white")||e).appendChild(r));const o=t;r.innerHTML=`<span>CSS : version courante <strong>${o}</strong>, dernière version <span id="latest-version">chargement...</span></span>`,fetch("https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json").then(t=>{if(!t.ok)throw new Error("Fetch failed");return t.json()}).then(t=>{const e=document.getElementById("latest-version");e&&(e.innerHTML=`<strong>${t.version}</strong>`,t.version!==o&&(e.innerHTML+=' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>'))}).catch(t=>{console.error("[Version Info] Erreur lors de la récupération de la version:",t);const e=document.getElementById("latest-version");e&&(e.textContent="erreur")})}function T(){if(window.location.pathname.includes("/kramail"))return;const t=document.getElementById("col-t"),e=document.getElementById("col-left");if(!t||!e)return;t.querySelectorAll('a[href*="kramail"]').forEach(e=>{const r=e.closest("div,section,li,article");r&&r!==t&&"col-t"!==r.id?r.remove():e.remove()});const r=[".ds_users",".ds_characters",".ds_online"].map(t=>`a${t}`);let o=[];if(r.forEach(e=>o.push(...t.querySelectorAll(e))),o.length<3&&["Membres actifs","Personnages actifs","Personnes en ligne"].forEach(e=>{const r=Array.from(t.querySelectorAll("a, li, div, p")).find(t=>t.textContent?.includes(e));r&&!o.includes(r)&&o.push(r)}),o=o.filter(t=>t&&!e.contains(t)),!o.length)return;let a=e.querySelector(".kraland-metrics");a||(a=document.createElement("div"),a.className="kraland-metrics list-group",e.appendChild(a)),o.forEach(t=>a.appendChild(t))}function N(){if(!c())return;const t=document.getElementById("col-left"),e=document.getElementById("col-right");if(!t||!e)return;const r=t.parentElement;if(!r||!r.classList.contains("row"))return;let o=document.getElementById("col-leftest");o||(o=document.createElement("div"),o.id="col-leftest",o.className="col-md-1",r.insertBefore(o,t)),e.classList.contains("col-md-9")&&(e.classList.remove("col-md-9"),e.classList.add("col-md-8"))}function M(){if(!c())return;const t=document.querySelector(".btn-group-xs.center"),e=document.getElementById("col-leftest");if(!t||!e||e.contains(t))return;let r=document.getElementById("col-leftest-stats");r||(r=document.createElement("div"),r.id="col-leftest-stats",r.className="panel panel-body",e.appendChild(r)),r.contains(t)||r.appendChild(t)}function P(){const t=document.getElementById("col-leftest-stats"),e=document.getElementById("skills-panel");if(t&&!t.classList.contains("grid-transformed")){const e=t.querySelector(".btn-group-xs");if(e){const r=Array.from(e.querySelectorAll("a.btn"));if(r.length>0){t.innerHTML="";const e=document.createElement("div");e.className="row",r.forEach(t=>{const r=document.createElement("div");r.className="col-md-6",r.style.display="flex",r.style.justifyContent="center",r.style.alignItems="center",r.style.marginBottom="8px",r.appendChild(t),e.appendChild(r)}),t.appendChild(e),t.classList.add("grid-transformed")}}}if(e&&!e.classList.contains("grid-transformed")){const t=Array.from(e.querySelectorAll("a.list-group-item"));if(t.length>0){e.innerHTML="";const r=document.createElement("div");r.className="row",t.forEach(t=>{const e=document.createElement("div");e.className="col-md-6",e.style.display="flex",e.style.justifyContent="center",e.style.alignItems="center",e.style.marginBottom="8px",e.appendChild(t),r.appendChild(e)}),e.appendChild(r),e.classList.add("grid-transformed")}}}function I(){const t=document.getElementById("col-left"),e=document.getElementById("col-leftest");if(!t||!e)return;const r=t.querySelector(".panel.panel-default");if(!r)return;const o=r.querySelector(".panel-body");o&&!o.id&&(o.id="skills-panel",e.appendChild(o),r.remove())}function z(){const t=document.getElementById("col-left");if(!t)return;const e=t.querySelector(".panel.panel-body");e&&!e.id&&(e.id="player-main-panel");const r=t.querySelector(".list-group");r&&!r.id&&(r.id="player-header-section");const o=t.querySelector("div.t.row");o&&!o.id&&(o.id="player-vitals-section");const a=Array.from(t.querySelectorAll("div.t"));if(a.length>0){const t=a[a.length-1];!t.id&&t.querySelector("a.btn-primary")&&(t.id="player-actions-section")}}function _(){const t=document.getElementById("skills-panel");t&&!t.dataset.iconsTransformed&&(t.querySelectorAll(".list-group-item").forEach(t=>{const e=t.querySelector(".list-group-item-heading"),r=e?.querySelector(".mini")?.textContent||"",a=t.querySelector(".mention")?.textContent||"0",n=o.SKILL_ICONS[r];if(!n)return;const i=`http://img7.kraland.org/2/mat/94/${n}.gif`,l=t.className;t.className=l+" btn btn-default mini",t.innerHTML="";const d=function(t,e,r){const o=document.createElement("div");Object.assign(o.style,{position:"relative",display:"inline-block",width:"32px",height:"32px"});const a=document.createElement("img");return a.src=t,a.alt=e,a.title=e,Object.assign(a.style,{width:"32px",height:"32px",display:"block"}),o.appendChild(a),o.appendChild(function(t){const e=document.createElement("span");return e.className="badge",e.textContent=t,Object.assign(e.style,{position:"absolute",top:"25px",right:"-8px",backgroundColor:"#d9534f",color:"#fff",borderRadius:"50%",width:"19px",height:"19px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:"bold",border:"2px solid #fff"}),e}(r)),o}(i,r,a);Object.assign(t.style,{display:"flex",alignItems:"center",justifyContent:"center",padding:"8px",width:"40px",height:"40px",minWidth:"40px",minHeight:"40px"}),t.appendChild(d)}),t.dataset.iconsTransformed="1")}function B(){const t=document.getElementById("col-leftest-stats");t&&!t.dataset.badgesTransformed&&(t.querySelectorAll(".col-md-6 > a.btn").forEach(t=>{const e=t.textContent.trim(),r=e.match(/^([A-Z]+)/),a=r?r[1]:e,n=e.match(/(\d+)$/),i=n?n[1]:"0";for(;t.firstChild;)t.removeChild(t.firstChild);const d=t.className;t.className=d+" list-group-item ds_game",Object.assign(t.style,{padding:"8px",display:"flex",alignItems:"center",justifyContent:"center",width:"40px",height:"40px",minWidth:"40px",minHeight:"40px"}),t.title=a;const s=l(),c=document.createElement("div");if(Object.assign(c.style,{position:"relative",display:"inline-block",width:"32px",height:"32px"}),"text"===s){const t=document.createElement("span");t.textContent=a.substring(0,3).toUpperCase(),Object.assign(t.style,{fontWeight:"bold",fontSize:"14px",display:"flex",alignItems:"center",justifyContent:"center",width:"32px",height:"32px"}),c.appendChild(t)}else{const t=o.STAT_ICONS[a];if(t){const e=`http://img7.kraland.org/2/mat/94/${t}.gif`,r=document.createElement("img");r.src=e,r.alt=a,r.title=a,Object.assign(r.style,{display:"block",width:"32px",height:"32px"}),c.appendChild(r)}else{const t=document.createElementNS("http://www.w3.org/2000/svg","svg");t.setAttribute("width","32"),t.setAttribute("height","32"),t.setAttribute("viewBox","0 0 32 32"),t.style.display="block";const e=document.createElementNS("http://www.w3.org/2000/svg","rect");e.setAttribute("width","32"),e.setAttribute("height","32"),e.setAttribute("fill","#f0f0f0"),e.setAttribute("stroke","#ccc"),t.appendChild(e);const r=document.createElementNS("http://www.w3.org/2000/svg","text");r.setAttribute("x","16"),r.setAttribute("y","20"),r.setAttribute("text-anchor","middle"),r.setAttribute("font-size","14"),r.setAttribute("font-weight","bold"),r.setAttribute("fill","#333"),r.textContent=a.substring(0,2).toUpperCase(),t.appendChild(r),c.appendChild(t)}}c.appendChild(function(t){const e=document.createElement("span");return e.className="badge",e.textContent=t,Object.assign(e.style,{position:"absolute",top:"25px",right:"-8px",backgroundColor:"#007bff",color:"#fff",borderRadius:"50%",width:"19px",height:"19px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:"bold",border:"2px solid #fff"}),e}(i)),t.appendChild(c)}),t.dataset.badgesTransformed="1")}function j(){document.querySelectorAll(['[id^="ajax-"] form#msg','[id^="ajax-"] textarea',".col-sm-10 form#msg",".col-sm-10 textarea#message",'form[name="post_msg"]',"textarea#message"].join(",")).forEach(t=>{const e="form"===t.tagName?.toLowerCase()?t:t.closest("form")||t.parentElement;e&&!e.classList.contains("editeur-text")&&e.classList.add("editeur-text")})}function F(){const t=0===location?.pathname?.indexOf("/communaute/membres");document.documentElement.classList.toggle("kr-page-members",t)}function D(){const t=document.getElementById("player-main-panel");t&&Array.from(t.children).filter(t=>"div"===t.tagName?.toLowerCase()).filter(t=>!t.classList.contains("kr-quick-access-buttons")).forEach(t=>{t.classList.contains("row")||t.classList.add("row")})}function H(){const t=document.getElementById("player-main-panel");if(!t)return;if(t.querySelector(".kr-quick-access-buttons"))return;const e=document.createElement("div");e.className="kr-quick-access-buttons",e.style.marginTop="10px";const r=document.createElement("div");r.className="row",[{label:"Agir",url:"/jouer/plateau",icon:"fa-map"},{label:"Matériel",url:"/jouer/materiel",icon:"fa-box"},{label:"Personnage",url:"/jouer/perso",icon:"fa-user"},{label:"Bâtiments",url:"/jouer/bat",icon:"fa-building"},{label:"Employés",url:"/jouer/pnj",icon:"fa-users"}].forEach(t=>{const e=document.createElement("div");e.className="col-xs-6 col-sm-6";const o=document.createElement("a");o.href=t.url,o.className="btn btn-default btn-block mini";const a=document.createElement("i");a.className=`fa ${t.icon}`,o.appendChild(a),o.appendChild(document.createTextNode(" "+t.label)),e.appendChild(o),r.appendChild(e)}),e.appendChild(r),t.appendChild(e)}function O(){if(document.getElementById("kr-toggle-css-btn"))return;const t=Array.from(document.querySelectorAll("a")).find(t=>t.getAttribute("onclick")?.includes("openMap"));if(!t)return;const e=t.closest("li");if(!e?.parentElement)return;const r=document.createElement("li"),o=document.createElement("a");o.href="",o.id="kr-toggle-css-btn",o.innerHTML='<i class="fa fa-palette"></i>',o.title=n()?"Désactiver la surcharge CSS":"Activer la surcharge CSS",o.addEventListener("click",t=>(t.preventDefault(),n()?g("disable"):g(i()),!1)),r.appendChild(o),e.parentElement&&e.parentElement.insertBefore(r,e)}function R(){if(location?.href?.includes("/profil/interface")&&!t()){let e=0;const r=setInterval(()=>{e++,(t()||e>25)&&clearInterval(r)},200)}function t(){const t=Array.from(document.querySelectorAll("h4, h3, h2")).find(t=>t.textContent?.trim().toLowerCase().includes("thème de base"));if(!t)return!1;if(document.getElementById("kr-tamper-theme"))return!0;const e=[{value:"disable",flag:"f0",label:"Désactiver la surcharge CSS"},{value:"kraland",flag:"f1",label:"République de Kraland"},{value:"empire-brun",flag:"f2",label:"Empire Brun"},{value:"empire-brun-dark",flag:"f2",label:"Empire Brun (Dark Mode)"},{value:"paladium",flag:"f3",label:"Paladium Corporation"},{value:"paladium-dark",flag:"f3",label:"Paladium Corporation (Dark Mode)"},{value:"theocratie-seelienne",flag:"f4",label:"Théocratie Seelienne"},{value:"theocratie-seelienne-dark",flag:"f4",label:"Théocratie Seelienne (Dark Mode)"},{value:"paradigme-vert",flag:"f5",label:"Paradigme Vert"},{value:"paradigme-vert-dark",flag:"f5",label:"Paradigme Vert (Dark Mode)"},{value:"khanat-elmerien",flag:"f6",label:"Khanat Elmérien"},{value:"khanat-elmerien-dark",flag:"f6",label:"Khanat Elmérien (Dark Mode)"},{value:"confederation-libre",flag:"f7",label:"Confédération Libre"},{value:"confederation-libre-dark",flag:"f7",label:"Confédération Libre (Dark Mode)"},{value:"royaume-ruthvenie",flag:"f8",label:"Royaume de Ruthvénie"},{value:"royaume-ruthvenie-dark",flag:"f8",label:"Royaume de Ruthvénie (Dark Mode)"}].map(t=>`\n        <div class="radio">\n          <span class="lefticon"><img src="http://img7.kraland.org/2/world/${t.flag}.png" width="15" height="10"></span>\n          <label><input type="radio" name="kr-theme" value="${t.value}"> ${t.label}</label>\n        </div>\n      `).join(""),r=document.createElement("div");r.id="kr-tamper-theme",r.className="well kr-tamper-theme",r.innerHTML=`\n        <h4>Thème Tampermonkey (Activez le thème de base officiel pour éviter les conflits)</h4>\n        <form id="kr-tamper-theme-form" class="form-horizontal">\n          <div class="form-group">\n            <label class="col-sm-3 control-label">Choix du thème</label>\n            <div class="col-sm-9">${e}</div>\n          </div>\n          <div class="form-group">\n            <label class="col-sm-3 control-label">Affichage des caractéristiques</label>\n            <div class="col-sm-9">\n        <div class="radio">\n          <label><input type="radio" name="kr-stats-display" value="icon"> Icônes</label>\n        </div>\n        <div class="radio">\n          <label><input type="radio" name="kr-stats-display" value="text"> Texte</label>\n        </div>\n      </div>\n          </div>\n          <div class="form-group">\n            <label class="col-sm-3 control-label">Options du footer</label>\n            <div class="col-sm-9">\n        <div class="checkbox">\n          <label><input type="checkbox" name="kr-hide-quote" id="kr-hide-quote"> Masquer la citation du footer</label>\n        </div>\n      </div>\n          </div>\n          <div class="form-group">\n            <label class="col-sm-3 control-label">Carte</label>\n            <div class="col-sm-9">\n              <div class="checkbox">\n                <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>\n                <p class="help-block" style="margin-top:6px">Merci <a href="http://www.kraland.org/communaute/membres/sylke-1-3335" target="_blank" rel="noopener noreferrer">Sylke</a></p>\n              </div>\n            </div>\n          </div>\n        </form>\n      `,t.parentElement&&t.parentElement.insertBefore(r,t);const a=r.querySelector("#kr-tamper-theme-form");return a.addEventListener("change",t=>{if("kr-theme"===t.target.name){const t=a.querySelector('input[name="kr-theme"]:checked');if(!t)return;const e=t.value,o=document.createElement("div");o.className="alert alert-success",o.textContent="disable"===e?"Désactivation du thème...":"Application du thème: "+e,r.appendChild(o),setTimeout(()=>g(e),300)}if("kr-stats-display"===t.target.name){const t=a.querySelector('input[name="kr-stats-display"]:checked');if(!t)return;const e=t.value;localStorage.setItem(o.STATS_DISPLAY_KEY,e);const n=document.createElement("div");n.className="alert alert-success",n.textContent="icon"===e?"Affichage en icônes activé. Rechargez la page pour voir les changements.":"Affichage en texte activé. Rechargez la page pour voir les changements.",r.appendChild(n),setTimeout(()=>{n.remove()},5e3)}if("kr-hide-quote"===t.target.name){const e=t.target.checked;localStorage.setItem("kr-hide-footer-quote",e.toString()),e?document.documentElement.classList.add("kr-hide-footer-quote"):document.documentElement.classList.remove("kr-hide-footer-quote");const o=document.createElement("div");o.className="alert alert-success",o.textContent=e?"Citation du footer masquée.":"Citation du footer affichée.",r.appendChild(o),setTimeout(()=>{o.remove()},3e3)}if("kr-medieval-map"===t.target.name){const e=t.target.checked;localStorage.setItem(o.MEDIEVAL_MAP_KEY,e.toString());const a=document.createElement("div");a.className="alert alert-success",a.textContent=e?"Carte médiévale activée. Application...":"Carte médiévale désactivée.",r.appendChild(a),s(),setTimeout(()=>a.remove(),3e3)}}),function(){if(n()){const t=i(),e=a.querySelector(`input[value="${t}"]`);e&&(e.checked=!0)}else{const t=a.querySelector('input[value="disable"]');t&&(t.checked=!0)}const t=l(),e=a.querySelector(`input[name="kr-stats-display"][value="${t}"]`);e&&(e.checked=!0);const r="true"===localStorage.getItem("kr-hide-footer-quote"),d=a.querySelector("#kr-hide-quote");d&&(d.checked=r);const s="true"===localStorage.getItem(o.MEDIEVAL_MAP_KEY),c=a.querySelector("#kr-medieval-map-checkbox");c&&(c.checked=s)}(),!0}}function K(){const t=new MutationObserver(t=>{t.forEach(t=>{t.addedNodes.forEach(t=>{1===t.nodeType&&t.classList?.contains("bootbox")&&setTimeout(()=>{!function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;(function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;if(t.dataset.structureTransformed)return;console.log("[Order Modal] Optimisation structure mobile");const e=t.querySelector(".bootbox-body, .modal-body");if(!e)return;const r=e.querySelector(".row"),o=e.querySelector("h3");r&&o&&(r.classList.add("kraland-modal-header"),o.classList.add("kraland-character-title"),console.log("[Order Modal] Header marqué"));const a=e.querySelector(".panel.with-nav-tabs");if(a){const t=a.querySelector(".panel-heading");t&&(t.classList.add("kraland-actions-zone"),console.log("[Order Modal] Zone actions identifiée"));const e=a.querySelector(".panel-body.panel-order");e&&(e.classList.add("kraland-form-zone"),console.log("[Order Modal] Zone formulaire identifiée"));const r=a.querySelector(".panel-footer");r&&(r.classList.add("kraland-action-footer"),console.log("[Order Modal] Footer action identifié"))}const n=t.querySelector(".modal-footer");n&&(n.classList.add("kraland-modal-footer"),console.log("[Order Modal] Footer modal identifié"));const i=e.querySelector(".panel-info");i&&(i.querySelectorAll(".row").forEach(t=>{t.style.marginLeft="",t.style.marginRight=""}),i.querySelectorAll('[class*="col-"]').forEach(t=>{t.style.paddingLeft="",t.style.paddingRight=""}),console.log("[Order Modal] Styles inline nettoyés du panel-info")),t.dataset.structureTransformed="true",console.log("[Order Modal] Structure optimisée pour mobile")})(t),function(t){if(!t)return;const e=new MutationObserver(t=>{t.forEach(t=>{if("attributes"===t.type&&"class"===t.attributeName){const e=t.target;if(e.classList.contains("dropdown")&&e.classList.contains("open")){const t=e.querySelector(".dropdown-menu");t&&(t.style.setProperty("position","absolute","important"),t.style.setProperty("bottom","100%","important"),t.style.setProperty("top","auto","important"),t.style.setProperty("left","0","important"),t.style.setProperty("margin-bottom","4px","important"),t.style.setProperty("z-index","10000","important"),console.log("[Order Modal] Dropdown position forcée à absolute"))}}})}),r=t.querySelector(".btn-toolbar");if(r){const t=r.querySelectorAll(".dropdown");t.forEach(t=>{e.observe(t,{attributes:!0,attributeFilter:["class"]})}),console.log(`[Order Modal] Observateur dropdown installé sur ${t.length} dropdowns`)}}(t),Y(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector(".alert");if(!e)return;const r=document.createElement("button");r.type="button",r.className="kr-alert-toggle",r.innerHTML='<i class="fas fa-question-circle"></i> Aide',r.setAttribute("aria-expanded","false"),r.setAttribute("aria-label","Afficher/masquer l'aide");const o=document.createElement("div");for(o.className="kr-alert-content",o.style.display="none";e.firstChild;)o.appendChild(e.firstChild);e.appendChild(r),e.appendChild(o),e.classList.add("kr-alert-collapsible"),r.addEventListener("click",function(){const t="none"!==o.style.display;o.style.display=t?"none":"block",r.setAttribute("aria-expanded",!t),r.innerHTML=t?'<i class="fas fa-question-circle"></i> Aide':'<i class="fas fa-times-circle"></i> Masquer l\'aide'}),console.log("[Order Modal] Alerte rendue repliable")}(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;t.querySelectorAll(".nav.nav-tabs li a").forEach(e=>{e.classList.add("kr-touch-feedback"),e.addEventListener("click",function(){t.querySelectorAll(".nav.nav-tabs li").forEach(t=>t.classList.remove("active")),this.parentElement.classList.add("active")})}),console.log("[Order Modal] Feedback tactile ajouté aux nav-tabs")}(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector("textarea#message");e&&(e.rows=8,e.addEventListener("input",function(){this.style.height="auto",this.style.height=this.scrollHeight+"px"}),console.log("[Order Modal] Textarea agrandi (8 rows + auto-resize)"))}(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector(".kraland-action-footer p");if(!e)return;const r=e.textContent,o=r.match(/Coût:\s*([^|]+)/),a=r.match(/Durée:\s*([^|]+)/),n=r.match(/Potentiel:\s*(.+)$/);if(!o&&!a&&!n)return;const i=`\n      <div class="kr-action-badges">\n        ${o?`<span class="kr-badge kr-badge-cost"><i class="fas fa-coins"></i> ${o[1].trim()}</span>`:""}\n        ${a?`<span class="kr-badge kr-badge-duration"><i class="far fa-clock"></i> ${a[1].trim()}</span>`:""}\n        ${n?`<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${n[1].trim()}</span>`:""}\n      </div>\n    `;e.innerHTML=i,console.log("[Order Modal] Footer formaté en badges")}(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector(".kraland-modal-footer");if(!e)return;const r=e.querySelector(".btn-primary"),o=e.querySelector(".btn-default");r&&r.classList.add("kr-btn-primary-enhanced"),o&&o.classList.add("kr-btn-secondary-subtle"),console.log("[Order Modal] Boutons OK/Cancel améliorés")}(t),function(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector(".kraland-modal-header select");if(!e)return;const r=Array.from(e.options);if(0===r.length)return;const o=[],a=[];if(r.forEach(t=>{const e=t.textContent;e.includes("PNJ")||e.includes("[")||e.match(/\d+ /)||e.includes("Garde")||e.includes("Esclave")?a.push(t):o.push(t)}),0!==o.length&&0!==a.length){if(e.innerHTML="",o.length>0){const t=document.createElement("optgroup");t.label="Personnages Joueurs",o.forEach(e=>t.appendChild(e)),e.appendChild(t)}if(a.length>0){const t=document.createElement("optgroup");t.label="Personnages Non-Joueurs",a.forEach(e=>t.appendChild(e)),e.appendChild(t)}console.log(`[Order Modal] Select groupé (${o.length} PJ, ${a.length} PNJ)`)}}(t),V(t);const e=t.querySelector(".bootbox-body, .modal-body");e&&(new MutationObserver(()=>{console.log("[Order Modal] Contenu Ajax détecté - réapplication du grid"),V(t),Y(t)}).observe(e,{childList:!0,subtree:!0}),console.log("[Order Modal] Observer Ajax installé sur modal body")),function(t){if(!t)return;t.querySelectorAll(".panel-info, .panel-primary, .panel-default").forEach(t=>{t.querySelectorAll(".panel-heading .row, .panel-body .row, .panel-actions .row, .panel-footer .row").forEach(t=>{const e=t.querySelectorAll('[class*="col-"]');if(e.length>0){const r=[];e.forEach(t=>{const e=t.textContent.trim(),o=t.innerHTML.trim();t.children.length>0?r.push(o):e&&r.push(e)});const o=document.createElement("div");o.className="col-xs-12 merged-columns",o.innerHTML=r.join(" "),e.forEach(t=>t.remove()),t.appendChild(o)}})})}(t);const r=t.querySelector('select[onchange*="perso"]');r&&function(t,e){const r=Array.from(e.options);if(r.length<=1)return;const o=e.selectedIndex,a=document.createElement("div");a.className="kr-char-selector";const n=document.createElement("button");n.type="button",n.className="kr-char-nav-btn",n.innerHTML="‹",n.disabled=0===o,n.setAttribute("aria-label","Personnage précédent");const i=document.createElement("div");i.className="kr-selector-current";const l=document.createElement("img");l.src=t.querySelector(".modal-header img")?.src||"",l.alt="Avatar";const d=document.createElement("span");d.className="kr-selector-current-name",d.textContent=r[o].text;const s=document.createElement("span");s.className="kr-selector-current-count",s.textContent=`${o+1}/${r.length}`,i.appendChild(l),i.appendChild(d),i.appendChild(s);const c=document.createElement("button");c.type="button",c.className="kr-char-nav-btn",c.innerHTML="›",c.disabled=o===r.length-1,c.setAttribute("aria-label","Personnage suivant"),a.appendChild(n),a.appendChild(i),a.appendChild(c),e.parentNode.insertBefore(a,e.nextSibling),n.addEventListener("click",()=>{e.selectedIndex>0&&(e.selectedIndex--,e.dispatchEvent(new Event("change")))}),c.addEventListener("click",()=>{e.selectedIndex<r.length-1&&(e.selectedIndex++,e.dispatchEvent(new Event("change")))})}(t,r),function(t){const e=t.querySelector(".modal-header");if(!e)return;const r=e.querySelector("div");if(!r)return;const o=Array.from(r.childNodes).filter(t=>t.nodeType===Node.TEXT_NODE&&t.textContent.trim());if(0===o.length)return;const a=document.createElement("div");if(a.className="kr-char-description collapsed",o.slice(1).forEach(t=>{a.appendChild(t.cloneNode(!0)),t.remove()}),a.textContent.trim()){r.appendChild(a);const t=document.createElement("button");t.type="button",t.className="kr-char-expand-btn",t.innerHTML="▼",t.setAttribute("aria-label","Afficher/masquer description"),t.setAttribute("aria-expanded","false"),e.appendChild(t),t.addEventListener("click",()=>{a.classList.contains("collapsed")?(a.classList.remove("collapsed"),a.classList.add("expanded"),t.classList.add("expanded"),t.setAttribute("aria-expanded","true")):(a.classList.remove("expanded"),a.classList.add("collapsed"),t.classList.remove("expanded"),t.setAttribute("aria-expanded","false"))})}}(t),function(t){const e=t.querySelector(".nav-tabs");if(!e)return;const r=Array.from(e.querySelectorAll("li"));if(0===r.length)return;const o=document.createElement("div");o.className="kr-tabs-indicator",r.forEach((t,e)=>{const r=document.createElement("span");r.className="kr-tab-dot",t.classList.contains("active")&&r.classList.add("active"),o.appendChild(r)}),e.parentNode.insertBefore(o,e.nextSibling);const a=new MutationObserver(()=>{const t=r.findIndex(t=>t.classList.contains("active"));o.querySelectorAll(".kr-tab-dot").forEach((e,r)=>{e.classList.toggle("active",r===t)})});r.forEach(t=>{a.observe(t,{attributes:!0,attributeFilter:["class"]})});let n=0,i=0;e.addEventListener("touchstart",t=>{n=t.changedTouches[0].screenX},{passive:!0}),e.addEventListener("touchend",t=>{i=t.changedTouches[0].screenX,function(){const t=n-i;if(Math.abs(t)<50)return;const e=r.findIndex(t=>t.classList.contains("active"));t>0&&e<r.length-1?r[e+1].querySelector("a")?.click():t<0&&e>0&&r[e-1].querySelector("a")?.click()}()},{passive:!0});const l=()=>{const t=e.closest(".bootbox.modal"),r=t?.querySelectorAll(".nav-tabs")||[e];let o=null;for(const t of r)if(o=t.querySelector("li.active"),o){o.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});break}};setTimeout(l,100);const d=e.closest(".bootbox.modal");(d?.querySelectorAll(".nav-tabs")||[e]).forEach(t=>{Array.from(t.querySelectorAll("li")).forEach(t=>{t.querySelector("a")?.addEventListener("click",()=>{setTimeout(l,100)})})})}(t),function(t){t.querySelectorAll("textarea").forEach(t=>{const e=t.getAttribute("maxlength");if(!e)return;const r=document.createElement("div");r.className="kr-char-counter";const o=()=>{const o=e-t.value.length;r.textContent=`${o} caractères restants`,r.classList.remove("warning","error"),o<=0?r.classList.add("error"):o<=20&&r.classList.add("warning")};t.parentNode.insertBefore(r,t.nextSibling),t.addEventListener("input",o),o()})}(t),function(t){t.querySelectorAll(".kr-char-nav-btn, .kr-char-expand-btn, .nav-tabs a, .btn, .radio label").forEach(t=>{t.classList.add("kr-touch-feedback"),t.addEventListener("touchstart",()=>{t.classList.add("active"),navigator.vibrate&&navigator.vibrate(10)},{passive:!0}),t.addEventListener("touchend",()=>{setTimeout(()=>{t.classList.remove("active")},600)},{passive:!0}),t.addEventListener("touchcancel",()=>{t.classList.remove("active")},{passive:!0})})}(t)}(t)},150)})})});document.body&&t.observe(document.body,{childList:!0,subtree:!1})}function V(t){if(!t)return;if(!t.classList.contains("bootbox-confirm"))return;const e=t.querySelector(".panel-heading");e&&e.style.setProperty("display","block","important");const r=t.querySelectorAll(".panel-heading ul.nav-tabs");0!==r.length&&(console.log("[Order Modal] Forçage du layout grid pour",r.length,"nav-tabs"),r.forEach((t,e)=>{t.style.setProperty("display","grid","important"),t.style.setProperty("grid-template-columns","repeat(2, 1fr)","important"),t.style.setProperty("gap","12px","important"),t.style.setProperty("padding-left","0","important"),t.style.setProperty("justify-items","start","important"),t.style.setProperty("align-items","stretch","important"),t.style.setProperty("margin-bottom","12px","important"),t.style.setProperty("border-bottom","none","important"),t.style.setProperty("border-top","none","important"),t.style.setProperty("padding-top","0","important");let r="grid-pseudo-fix-"+e,o=document.getElementById(r);o||(o=document.createElement("style"),o.id=r,document.head.appendChild(o)),t.id||(t.id="order-modal-nav-"+e),o.textContent=`\n        #${t.id}::before,\n        #${t.id}::after {\n          display: none !important;\n          content: none !important;\n        }\n      `;const a=t.querySelectorAll("li");a.forEach(t=>{t.style.setProperty("margin","0","important"),t.style.setProperty("padding","0","important"),t.style.setProperty("float","none","important"),t.style.setProperty("display","block","important"),t.style.setProperty("position","static","important"),t.style.setProperty("width","100%","important"),t.style.setProperty("grid-column","auto","important"),t.style.setProperty("grid-row","auto","important"),t.style.setProperty("justify-self","stretch","important"),t.style.setProperty("align-self","stretch","important");const e=t.querySelector("a");e&&(e.style.setProperty("display","block","important"),e.style.setProperty("width","100%","important"),e.style.setProperty("min-height","44px","important"),e.style.setProperty("padding","12px 16px","important"),e.style.setProperty("text-align","center","important"),e.style.setProperty("border-radius","8px","important"),e.style.setProperty("margin","0","important"),e.style.setProperty("box-sizing","border-box","important"))}),console.log(`[Order Modal] Grid appliqué sur nav-tabs #${e+1} (${a.length} items)`)}),setTimeout(()=>{r.forEach(t=>{t.style.setProperty("display","grid","important")})},100))}function Y(t){if(!t)return;if(!document.body.classList.contains("mobile-mode"))return;const e=t.querySelector(".btn-toolbar");e&&(Array.from(e.childNodes).forEach(t=>{t.nodeType===Node.TEXT_NODE&&/^\s*$/.test(t.textContent)&&e.removeChild(t)}),e.style.setProperty("display","grid","important"),e.style.setProperty("grid-template-columns","repeat(6, 1fr)","important"),e.style.setProperty("gap","4px","important"),e.querySelectorAll(".btn-group, .dropdown, span.dropdown").forEach(t=>{t.style.setProperty("display","contents","important")}),e.querySelectorAll(".btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button").forEach(t=>{t.style.setProperty("width","100%","important"),t.style.setProperty("min-width","0","important"),t.style.setProperty("max-width","none","important")}),console.log("[Order Modal] Toolbar grid forcé et whitespace nettoyé"))}function G(){const t=document.querySelector(".c100");if(!t)return;const e=t.querySelector("span");if(!e)return;const r=e.textContent.trim().match(/^(\d{1,2}):(\d{2})$/);if(!r)return;const o=parseInt(r[1],10),a=parseInt(r[2],10);let n;if(n=o>=24?"#32CD32":o>=18?"#90EE90":o>=12?"#FFD700":o>=6?"#FF8C00":"#8B0000",t.style.setProperty("--clock-color",n),o>=24){t.setAttribute("data-second-lap","true");const e=o-24,r=Math.floor((60*e+a)/1440*100);t.className=t.className.replace(/\bp\d{1,3}\b/g,""),t.className+=" p"+r}else t.removeAttribute("data-second-lap")}!function(){try{if(!n())return;const t=document.createElement("style");t.id=o.STYLE_ID,t.textContent=o.BUNDLED_CSS,(document.head||document.documentElement).appendChild(t);const e=i();document.documentElement.classList.add("kr-theme-enabled","kr-theme-variant-"+e),"high-contrast"===e&&document.documentElement.classList.add("kr-theme-high-contrast")}catch(t){m(),console.error("CSS injection failed",t)}}(),n()&&setTimeout(m,3e3),a(()=>s()),function(){const t="kr-forums-rp",e=["taverne","marché","monde","communauté","débats","staff"];window.updateForumRPMenu=function(){const e=document.querySelector('[data-forums-added="rp"] .dropdown-menu');if(!e)return;const r=function(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Forums RP] Erreur lecture localStorage:",t),[]}}();console.log(`[Forums RP] Mise à jour du menu avec ${r.length} forums`);const o=Array.from(e.children).slice(0,4);if(e.innerHTML="",o.forEach(t=>e.appendChild(t)),r.length>0)r.forEach(t=>{const r=document.createElement("li"),o=document.createElement("a");o.href=t.url,o.textContent=t.name,r.appendChild(o),e.appendChild(r)});else{const t=document.createElement("li"),r=document.createElement("a");r.href="forum/rp",r.textContent="Autre",t.appendChild(r),e.appendChild(t)}},r.register("ForumsRP:Extract",function(){if("/forum/rp"!==window.location.pathname)return;console.log("[Forums RP] Extraction des forums depuis la page...");const r=[];document.querySelectorAll("table.table tbody tr").forEach(t=>{const o=t.querySelector("td:first-child a");if(!o)return;const a=o.textContent.trim(),n=o.getAttribute("href");!e.some(t=>a.toLowerCase().includes(t))&&n?(r.push({name:a,url:n}),console.log(`[Forums RP] Ajouté: ${a} (${n})`)):console.log(`[Forums RP] Exclu: ${a}`)});try{localStorage.setItem(t,JSON.stringify(r)),console.log(`[Forums RP] ${r.length} forums stockés dans localStorage`)}catch(t){console.error("[Forums RP] Erreur sauvegarde localStorage:",t)}},5)}(),function(){const t="kr-forums-hrp";window.updateForumHRPMenu=function(){const e=document.querySelector('[data-forums-added="hrp"] .dropdown-menu');if(!e)return;const r=function(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Forums HRP] Erreur lecture localStorage:",t),[]}}();if(console.log(`[Forums HRP] Mise à jour du menu avec ${r.length} forums`),e.innerHTML="",r.length>0)r.forEach(t=>{const r=document.createElement("li"),o=document.createElement("a");o.href=t.url,o.textContent=t.name,r.appendChild(o),e.appendChild(r)});else{const t=document.createElement("li"),r=document.createElement("a");r.href="forum/hrp",r.textContent="Voir tous les forums",t.appendChild(r),e.appendChild(t)}},r.register("ForumsHRP:Extract",function(){if("/forum/hrp"!==window.location.pathname)return;console.log("[Forums HRP] Extraction des forums depuis la page...");const e=[];document.querySelectorAll("table.table tbody tr").forEach(t=>{const r=t.querySelector("td:first-child a");if(!r)return;const o=r.textContent.trim(),a=r.getAttribute("href");a&&(e.push({name:o,url:a}),console.log(`[Forums HRP] Ajouté: ${o} (${a})`))});try{localStorage.setItem(t,JSON.stringify(e)),console.log(`[Forums HRP] ${e.length} forums stockés dans localStorage`)}catch(t){console.error("[Forums HRP] Erreur sauvegarde localStorage:",t)}},5)}(),function(){const t="kr-forums-communaute",e=["taverne","marché","monde","communauté","débats","staff"];window.updateForumCommunauteMenu=function(){const e=document.querySelector('[data-forums-added="forum-communaute"] .dropdown-menu');if(!e)return;const r=function(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Forums Communauté] Erreur lecture localStorage:",t),[]}}();if(console.log(`[Forums Communauté] Mise à jour du menu avec ${r.length} forums`),e.innerHTML="",r.length>0)r.forEach(t=>{const r=document.createElement("li"),o=document.createElement("a");o.href=t.url,o.textContent=t.name,r.appendChild(o),e.appendChild(r)});else{const t=document.createElement("li"),r=document.createElement("a");r.href="forum/communaute",r.textContent="Voir tous les forums",t.appendChild(r),e.appendChild(t)}},r.register("ForumsCommunaute:Extract",function(){if("/forum/communaute"!==window.location.pathname)return;console.log("[Forums Communauté] Extraction des forums depuis la page...");const r=[];document.querySelectorAll("table.table tbody tr").forEach(t=>{const o=t.querySelector("td:first-child a");if(!o)return;const a=o.textContent.trim(),n=o.getAttribute("href");!e.some(t=>a.toLowerCase().includes(t))&&n&&(r.push({name:a,url:n}),console.log(`[Forums Communauté] Ajouté: ${a} (${n})`))});try{localStorage.setItem(t,JSON.stringify(r)),console.log(`[Forums Communauté] ${r.length} forums stockés dans localStorage`)}catch(t){console.error("[Forums Communauté] Erreur sauvegarde localStorage:",t)}},5)}(),function(){const t="kr-forums-debats",e=["taverne","marché","monde","communauté","débats","staff"];window.updateForumDebatsMenu=function(){const e=document.querySelector('[data-forums-added="forum-debats"] .dropdown-menu');if(!e)return;const r=function(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Forums Débats] Erreur lecture localStorage:",t),[]}}();if(console.log(`[Forums Débats] Mise à jour du menu avec ${r.length} forums`),e.innerHTML="",r.length>0)r.forEach(t=>{const r=document.createElement("li"),o=document.createElement("a");o.href=t.url,o.textContent=t.name,r.appendChild(o),e.appendChild(r)});else{const t=document.createElement("li"),r=document.createElement("a");r.href="forum/debats",r.textContent="Voir tous les forums",t.appendChild(r),e.appendChild(t)}},r.register("ForumsDebats:Extract",function(){if("/forum/debats"!==window.location.pathname)return;console.log("[Forums Débats] Extraction des forums depuis la page...");const r=[];document.querySelectorAll("table.table tbody tr").forEach(t=>{const o=t.querySelector("td:first-child a");if(!o)return;const a=o.textContent.trim(),n=o.getAttribute("href");!e.some(t=>a.toLowerCase().includes(t))&&n&&(r.push({name:a,url:n}),console.log(`[Forums Débats] Ajouté: ${a} (${n})`))});try{localStorage.setItem(t,JSON.stringify(r)),console.log(`[Forums Débats] ${r.length} forums stockés dans localStorage`)}catch(t){console.error("[Forums Débats] Erreur sauvegarde localStorage:",t)}},5)}(),function(){const t="kr-forums-staff",e=["taverne","marché","monde","communauté","débats","staff"];window.updateForumStaffMenu=function(){const e=document.querySelector('[data-forums-added="forum-staff"] .dropdown-menu');if(!e)return;const r=function(){try{const e=localStorage.getItem(t);return e?JSON.parse(e):[]}catch(t){return console.warn("[Forums Staff] Erreur lecture localStorage:",t),[]}}();if(console.log(`[Forums Staff] Mise à jour du menu avec ${r.length} forums`),e.innerHTML="",r.length>0)r.forEach(t=>{const r=document.createElement("li"),o=document.createElement("a");o.href=t.url,o.textContent=t.name,r.appendChild(o),e.appendChild(r)});else{const t=document.createElement("li"),r=document.createElement("a");r.href="forum/staff",r.textContent="Voir tous les forums",t.appendChild(r),e.appendChild(t)}},r.register("ForumsStaff:Extract",function(){if("/forum/staff"!==window.location.pathname)return;console.log("[Forums Staff] Extraction des forums depuis la page...");const r=[];document.querySelectorAll("table.table tbody tr").forEach(t=>{const o=t.querySelector("td:first-child a");if(!o)return;const a=o.textContent.trim(),n=o.getAttribute("href");!e.some(t=>a.toLowerCase().includes(t))&&n&&(r.push({name:a,url:n}),console.log(`[Forums Staff] Ajouté: ${a} (${n})`))});try{localStorage.setItem(t,JSON.stringify(r)),console.log(`[Forums Staff] ${r.length} forums stockés dans localStorage`)}catch(t){console.error("[Forums Staff] Erreur sauvegarde localStorage:",t)}},5)}(),function(){function t(){const t=document.querySelector("table.table tbody");if(!t)return void console.warn("[Forum Cards] Tableau forums introuvable");const e=Array.from(t.querySelectorAll("tr"));if(0===e.length)return void console.warn("[Forum Cards] Aucun forum trouvé");const r=document.createElement("div");r.className="forums-cards-container",r.setAttribute("role","list"),e.forEach((t,e)=>{try{const o=function(t,e){const r=t.querySelectorAll("td");if(r.length<3)return null;const o=r[0],a=o.querySelector("p:first-child a");if(!a)return null;const n=a.textContent.trim(),i=a.getAttribute("href"),l=o.querySelector("p:nth-child(2)"),d=l?l.textContent.trim():"",s=[];o.querySelectorAll("div, span").forEach(t=>{t.textContent.includes("Modérateur")&&t.querySelectorAll("a").forEach(t=>{const e=t.textContent.trim();e&&!e.includes("[mod]")&&s.push({name:e.replace(/\[.*?\]/g,"").trim(),url:t.getAttribute("href")})})});const c=r[1]?.textContent.trim().replace("·","").trim()||"0 sujets",m=r[2]?.textContent.trim()||"0 messages";let p="",u="",g="";if(r[3]){const t=r[3].textContent.trim(),e=r[3].querySelector("a");if(e){u=e.textContent.trim();const r=t.match(/(\w+.*?\(\d{2}:\d{2}\))/);g=r?r[1]:""}p=t.replace("→","").trim()}const b=document.createElement("article");b.className="forum-card",b.setAttribute("role","listitem"),b.setAttribute("data-forum-index",e);const h=document.createElement("a");h.href=i,h.className="forum-card-link",h.setAttribute("aria-label",`Accéder au forum ${n}`);let f=`\n        <div class="forum-card-header">\n          <h3 class="forum-title">${n}</h3>\n        </div>\n      `;return d&&(f+=`<p class="forum-description">${d}</p>`),s.length>0&&(f+=`<p class="forum-moderators">Mod: ${s.length>2?`${s[0].name}, ${s[1].name}...`:s.map(t=>t.name).join(", ")}</p>`),f+='<div class="forum-footer">',f+=`\n        <div class="forum-stats">\n          <span class="forum-topics">${c}</span>\n          <span class="forum-separator">·</span>\n          <span class="forum-messages">${m}</span>\n        </div>\n      `,p&&u&&(f+=`\n          <div class="forum-last-activity">\n            <span class="last-user">${u}</span>\n            <span class="last-time"> · ${g}</span>\n          </div>\n        `),f+="</div>",h.innerHTML=f,h.style.setProperty("display","flex","important"),h.style.setProperty("flex-direction","column","important"),h.style.setProperty("align-items","flex-start","important"),h.style.setProperty("justify-content","flex-start","important"),h.style.setProperty("width","100%","important"),b.appendChild(h),b}(t,e);o&&r.appendChild(o)}catch(t){console.error("[Forum Cards] Erreur création carte:",t)}});const o=t.closest("table");o&&o.parentNode&&(o.parentNode.insertBefore(r,o),o.style.display="none",o.setAttribute("data-mobile-hidden","true")),console.log(`[Forum Cards] ${e.length} forums transformés en cards`)}window.location.pathname.startsWith("/forum/")&&r.register("ForumCards:MobileTransform",function(){document.body.classList.contains("mobile-mode")?"loading"===document.readyState?document.addEventListener("DOMContentLoaded",t):t():console.log("[Forum Cards] Mode desktop détecté, transformation annulée")},15)}(),r.register("MiniChat:FAB",function(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.getElementById("flap");if(!t)return;t.style.display="none",t.classList.add("mini-chat-overlay");const e=document.createElement("button");e.className="mini-chat-fab",e.innerHTML='<span class="fab-text">MC</span>',e.setAttribute("aria-label","Ouvrir le mini-chat"),e.setAttribute("type","button"),e.addEventListener("click",r=>{r.preventDefault(),"block"===t.style.display?(t.style.display="none",e.classList.remove("active"),document.body.style.overflow=""):(t.style.display="block",e.classList.add("active"),document.body.style.overflow="hidden")});const r=t.querySelector(".close-btn");r&&r.addEventListener("click",()=>{t.style.display="none",e.classList.remove("active"),document.body.style.overflow=""}),document.body.appendChild(e),console.log("[Mini-Chat FAB] Initialisé")},20),r.register("ForumTopics:FullTitles",function(){document.querySelectorAll("p.nomargin").forEach(t=>{const e=t.querySelector("span.invisible"),r=t.querySelector("a");if(e&&r){const t=e.textContent.trim();r.textContent.trim().includes("(...)")&&t&&(r.textContent=t)}})},5),r.register("ForumTopics:MobileStats",function(){if(!document.body.classList.contains("mobile-mode"))return;if(!document.body.classList.contains("page-forum"))return;const t=document.getElementById("topics");function e(){const e=t.querySelectorAll("tbody tr");0!==e.length&&(e.forEach(t=>{if(t.hasAttribute("data-stats-added"))return;t.setAttribute("data-stats-added","true");const e=t.querySelector("td:nth-child(1)"),r=t.querySelector("td:nth-child(2)"),o=t.querySelector("td:nth-child(3)");if(!e||!r||!o)return;const a=e.querySelector("ul:first-of-type li a"),n=e.querySelector("p > a");a&&n&&(n.href=a.href,n.setAttribute("data-smart-redirect","first-unread")),n&&(t.style.cursor="pointer",t.addEventListener("click",t=>{"A"===t.target.tagName||t.target.closest("a")||n.click()}));const i=r.textContent.trim(),l=o.textContent.trim(),d=document.createElement("div");d.className="forum-topic-stats-mobile",d.innerHTML=`\n            <i class="fa fa-comment" aria-hidden="true"></i> ${i}\n            <span class="stats-sep">·</span>\n            <i class="fa fa-eye" aria-hidden="true"></i> ${l}\n          `;const s=e.querySelector("p");s&&s.after(d)}),console.log("[Forum Topics Mobile] Sujets enrichis"))}t&&(e(),"undefined"!=typeof jQuery&&jQuery(t).on("draw.dt",function(){e()}))},25),r.register("PermanentTopics:Icons",function(){if(!document.body.classList.contains("mobile-mode"))return;const t=document.querySelectorAll(".panel-default");0!==t.length&&(t.forEach(t=>{t.querySelectorAll(".table tbody tr").forEach(t=>{if(t.hasAttribute("data-permanent-icons-added"))return;t.setAttribute("data-permanent-icons-added","true");const e=t.querySelectorAll("td");if(e.length<2)return;const r=e[1],o=e[2];if(!r||!o)return;const a=r.textContent.trim(),n=o.textContent.trim(),i=document.createElement("div");i.className="permanent-topic-stats",i.innerHTML=`\n            <i class="fa fa-comment" aria-hidden="true"></i> ${a}\n            <span style="margin: 0 4px;">·</span>\n            <i class="fa fa-eye" aria-hidden="true"></i> ${n}\n          `,i.style.cssText="\n            display: flex;\n            align-items: center;\n            gap: 4px;\n            font-size: 11px;\n            color: var(--kr-text-secondary);\n            order: 2;\n            margin: 0 0 2px 0;\n          ",r.style.display="none",o.style.display="none";const l=e[0];l&&l.after(i)})}),console.log("[Permanent Topics Mobile] Icônes ajoutées"))},25),r.register("ForumHeader:MobileBreadcrumb",function(){if(!document.body.classList.contains("mobile-mode"))return;if(window.location.pathname.includes("/kramail"))return;const t=document.querySelector(".container h1");if(!t)return void console.warn("[Forum Header Mobile] h1 non trouvé");const e=Array.from(t.childNodes).find(t=>t.nodeType===Node.TEXT_NODE)?.textContent.trim();if(!e)return;const r=t.querySelectorAll("a");if(r.length<2)return;const o=r[0],a=r[1],n=document.createElement("div");n.className="forum-mobile-breadcrumb",n.style.cssText="\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        gap: 12px;\n        margin-bottom: 16px;\n        font-size: 13px;\n        color: var(--kr-text-secondary);\n      ";const i=document.createElement("div");i.style.cssText="\n        display: flex;\n        align-items: center;\n        gap: 6px;\n      ";const l=o.cloneNode(!0);l.style.cssText="\n        display: inline-flex;\n        align-items: center;\n        gap: 4px;\n        color: var(--kr-text-secondary);\n        text-decoration: none;\n        font-weight: 400;\n        background: none;\n        padding: 0;\n        border: none;\n        border-radius: 0;\n      ";const d=document.createElement("span");d.textContent="›",d.style.cssText="\n        color: var(--kr-text-secondary);\n        font-size: 13px;\n        margin: 0 2px;\n      ";const s=document.createElement("span");s.textContent=e,s.style.cssText="\n        color: var(--kr-text-secondary);\n        font-weight: 400;\n      ",i.appendChild(l),i.appendChild(d),i.appendChild(s);const c=document.createElement("a");c.href=a.href,c.className="forum-new-topic-fab",c.setAttribute("aria-label","Nouveau sujet"),c.innerHTML='<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>',c.style.cssText="\n        width: 44px;\n        height: 44px;\n        min-width: 44px;\n        border-radius: 50%;\n        background: var(--kr-primary);\n        color: white;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);\n        text-decoration: none;\n        transition: all 0.2s ease;\n      ",c.addEventListener("touchstart",function(){this.style.transform="scale(0.92)",this.style.boxShadow="0 1px 4px rgba(0, 0, 0, 0.3)"}),c.addEventListener("touchend",function(){this.style.transform="scale(1)",this.style.boxShadow="0 2px 8px rgba(0, 0, 0, 0.2)"}),n.appendChild(i),n.appendChild(c),t.innerHTML="",t.style.cssText="\n        margin: 12px 16px !important;\n        padding: 0 !important;\n        background: transparent !important;\n      ",t.appendChild(n),console.log("[Forum Header Mobile] Fil d'ariane + FAB créés")},25),function(){function t(){if(!document.body.classList.contains("mobile-mode"))return;if(!window.location.pathname.includes("/kramail"))return;const t=document.querySelector("h1.page-header"),e=document.getElementById("col-left");if(!t||!e)return void console.warn("[Kramail Character Switcher] h1 ou col-left non trouvé");const r=Array.from(t.childNodes).find(t=>t.nodeType===Node.TEXT_NODE)?.textContent.trim();if(!r)return void console.warn("[Kramail Character Switcher] Nom du personnage non trouvé");const o=Array.from(e.querySelectorAll('a[href*="kramail/"]')).filter(t=>{const e=t.getAttribute("href");return e&&e.match(/kramail\/[^\/]+-\d+-\d+$/)}).map(t=>{let e="",o=t.previousElementSibling;for(;o;){if(o.classList&&o.classList.contains("list-group-subtitle")){e=o.textContent.trim();break}o=o.previousElementSibling}return{name:t.textContent.trim(),href:t.href,category:e,isActive:t.textContent.trim()===r}});if(0===o.length)return void console.warn("[Kramail Character Switcher] Aucun personnage trouvé");if(1===o.length)return;const a=document.createElement("div");a.className="kramail-character-dropdown",a.style.cssText="\n        position: absolute;\n        top: 100%;\n        left: 0;\n        right: 0;\n        background: var(--kr-bg-surface);\n        border: 1px solid var(--kr-border-default);\n        border-radius: var(--mobile-radius);\n        box-shadow: var(--kr-shadow-lg);\n        margin-top: 8px;\n        z-index: 1000;\n        display: none;\n        overflow: hidden;\n      ",o.forEach(t=>{const e=document.createElement("a");e.href=t.href,e.className="kramail-character-option",e.style.cssText="\n          display: flex;\n          flex-direction: column;\n          padding: 12px 16px;\n          min-height: 44px;\n          text-decoration: none;\n          color: var(--kr-text-primary);\n          border-bottom: 1px solid var(--kr-border-default);\n          transition: background var(--transition-fast);\n        ";const r=document.createElement("div");if(r.style.cssText=`\n          font-size: 16px;\n          font-weight: ${t.isActive?"600":"400"};\n          display: flex;\n          align-items: center;\n          gap: 8px;\n        `,r.textContent=t.name,t.isActive){const t=document.createElement("span");t.textContent="✓",t.style.cssText="\n            color: var(--kr-primary);\n            font-weight: 700;\n          ",r.insertBefore(t,r.firstChild)}if(e.appendChild(r),t.category){const r=document.createElement("div");r.style.cssText="\n            font-size: 13px;\n            color: var(--kr-text-muted);\n            margin-top: 2px;\n          ",r.textContent=`(${t.category})`,e.appendChild(r)}e.addEventListener("touchstart",()=>{e.style.background="var(--kr-bg-active)"},{passive:!0}),e.addEventListener("touchend",()=>{e.style.background=""},{passive:!0}),e.addEventListener("mouseenter",()=>{e.style.background="var(--kr-bg-hover)"}),e.addEventListener("mouseleave",()=>{e.style.background=""}),a.appendChild(e)});const n=document.createElement("div");n.className="kramail-character-selector",n.style.cssText="\n        position: relative;\n        display: inline-flex;\n        align-items: center;\n        gap: 8px;\n        cursor: pointer;\n        user-select: none;\n        padding: 8px 12px;\n        margin: -8px -12px;\n        border-radius: var(--mobile-radius);\n        transition: background var(--transition-fast);\n      ";const i=Array.from(t.childNodes).find(t=>t.nodeType===Node.TEXT_NODE&&t.textContent.trim()===r);if(!i)return void console.warn("[Kramail Character Switcher] Nœud texte non trouvé");const l=document.createElement("span");l.textContent=r,l.style.fontWeight="700";const d=document.createElement("span");d.textContent="▼",d.className="kramail-dropdown-icon",d.style.cssText="\n        font-size: 12px;\n        transition: transform var(--transition-fast);\n        color: var(--kr-text-secondary);\n      ",n.appendChild(l),n.appendChild(d),n.appendChild(a),t.insertBefore(n,i),i.remove();let s=!1;const c=()=>{s&&(s=!1,a.style.display="none",d.style.transform="rotate(0deg)",n.style.background="")};n.addEventListener("click",t=>{t.stopPropagation(),s=!s,a.style.display=s?"block":"none",d.style.transform=s?"rotate(180deg)":"rotate(0deg)",n.style.background=s?"var(--kr-bg-hover)":""}),document.addEventListener("click",t=>{n.contains(t.target)||c()}),a.querySelectorAll("a").forEach(t=>{t.addEventListener("click",()=>{c()})}),console.log("[Kramail Character Switcher] Dropdown créé avec",o.length,"personnages")}r.register("Kramail:CharacterSwitcher",t,30),r.register("Kramail:CharacterSwitcher:Observer",function(){new MutationObserver(e=>{e.forEach(e=>{if("class"===e.attributeName){const e=document.body.classList.contains("mobile-mode"),r=document.querySelector(".kramail-character-selector");e&&!r&&window.location.pathname.includes("/kramail")&&(console.log("[Kramail Character Switcher] Réinitialisation du dropdown (changement de mode)"),t())}})}).observe(document.body,{attributes:!0,attributeFilter:["class"]})},31)}(),r.register("Kramail:MobileEnhancer",function(){if(!document.body.classList.contains("mobile-mode"))return;if(!window.location.pathname.includes("/kramail"))return;const t=document.querySelector("h1.page-header .pull-right");if(!t)return void console.warn("[Kramail Mobile Enhancer] .pull-right non trouvé");const e=document.querySelector("#topics thead .btn-group");if(!e)return void console.warn("[Kramail Mobile Enhancer] .btn-group non trouvé dans le thead");const r=e.cloneNode(!0);r.classList.add("kramail-actions-mobile"),t.appendChild(r);const o=r.querySelector(".dropdown-toggle");o&&(o.innerHTML='<i class="fas fa-ellipsis-v"></i>');const a=r.querySelector(".dropdown-menu");if(o&&a){o.addEventListener("click",function(t){t.preventDefault(),t.stopPropagation(),r.classList.toggle("open")}),document.addEventListener("click",function(t){r.contains(t.target)||r.classList.remove("open")});const n=r.querySelector("#allbox");if(n){function i(t){document.querySelectorAll('input[type="checkbox"][name="c[]"]').forEach(function(e){e.checked=t});const e=document.querySelector("#allbox");e&&(e.checked=t)}n.removeAttribute("id"),n.setAttribute("name","allbox-mobile"),n.removeAttribute("onclick"),n.addEventListener("click",function(t){t.stopPropagation(),i(n.checked)});const l=n.closest("a");l&&l.addEventListener("click",function(t){t.preventDefault(),t.stopPropagation(),n.checked=!n.checked,i(n.checked)})}r.querySelectorAll(".dropdown-menu li a").forEach(t=>{t.addEventListener("click",function(){setTimeout(function(){r.classList.remove("open")},200)})})}console.log('[Kramail Mobile Enhancer] Bouton "+" cloné dans la barre de navigation')},32),r.register("Kramail:PostMobileEnhancer",function(){if(!document.body.classList.contains("mobile-mode"))return;if(!window.location.pathname.match(/\/kramail\/post\//))return;const t=document.querySelector("h1.page-header"),e=document.querySelector(".forum-top");if(!t||!e)return void console.warn("[Kramail Post Mobile] h1 ou .forum-top non trouvé");const r=e.querySelector(".pull-right");if(!r)return void console.warn("[Kramail Post Mobile] .pull-right non trouvé dans .forum-top");const o=Array.from(r.querySelectorAll("a.btn"));if(0===o.length)return void console.warn("[Kramail Post Mobile] Aucun bouton trouvé");const a=document.createElement("span");a.className="pull-right";const n=o.slice(0,4),i=o.slice(4);n.forEach(function(t){Array.from(t.childNodes).filter(function(t){return 3===t.nodeType}).forEach(function(t){t.textContent=""}),t.querySelector(".fa-backward")&&t.classList.add("btn-primary"),a.appendChild(t)});var l=document.createElement("div");l.className="btn-group kramail-post-kebab";var d=document.createElement("button");d.className="btn btn-default dropdown-toggle",d.type="button",d.innerHTML='<i class="fas fa-ellipsis-v"></i>';var s=document.createElement("ul");s.className="dropdown-menu dropdown-menu-right",s.setAttribute("role","menu");var c={"fa-exclamation-triangle":"Signaler","fa-times":"Supprimer","fa-envelope":"Nouveau message","fa-user":"Contacts"};i.forEach(function(t){var e=document.createElement("li"),r=document.createElement("a");r.href=t.getAttribute("href")||"#";var o=t.querySelector("i"),a=o?o.className:"",n="";Object.keys(c).forEach(function(t){-1!==a.indexOf(t)&&(n=c[t])}),r.innerHTML='<i class="'+a+'"></i> <span class="label-simple">'+n+"</span>",t.classList.contains("alertdel")&&r.classList.add("alertdel");var i=t.getAttribute("onclick");i&&r.setAttribute("onclick",i),e.appendChild(r),s.appendChild(e)}),l.appendChild(d),l.appendChild(s),a.appendChild(l),t.appendChild(a),d.addEventListener("click",function(t){t.preventDefault(),t.stopPropagation(),l.classList.toggle("open")}),document.addEventListener("click",function(t){l.contains(t.target)||l.classList.remove("open")}),s.querySelectorAll("a").forEach(function(t){t.addEventListener("click",function(){setTimeout(function(){l.classList.remove("open")},200)})}),r.classList.add("kramail-actions-moved");var m=document.querySelector("ul.media-list.forum > li.media.well");if(m){m.classList.add("kramail-post-restructured");var p=m.querySelector(".pull-left"),u=m.querySelector(".media-body");if(p&&u){var g=p.querySelector("img.avatar"),b=g?g.src:"",h=g?g.alt:"",f=p.querySelector(".cartouche strong a"),k=f?f.textContent:h,y=f?f.href:"#",v=u.querySelector(".btn-group-xs .btn"),x="";v&&(x=v.textContent.replace("posté","").trim());var w=u.querySelector("p"),E=w?w.innerHTML:"",S=u.querySelector(".t"),C=S?S.innerHTML:"",A="";if(S){for(var L=S.nextSibling,q=[];L;)1===L.nodeType?q.push(L.outerHTML):3===L.nodeType&&L.textContent.trim()&&q.push(L.textContent),L=L.nextSibling;A=(A=q.join("")).replace(/^(<br\s*\/?>)*\s*___\s*(<br\s*\/?>)*/i,"").trim()}var T=document.createElement("div");T.className="kramail-msg-header",T.innerHTML='<img class="kramail-msg-avatar" src="'+b+'" alt="'+h+'"><div class="kramail-msg-header-info"><div class="kramail-msg-sender"><a href="'+y+'">'+k+'</a></div><div class="kramail-msg-date"><i class="fa fa-clock-o"></i> '+x+"</div></div>";var N=document.createElement("div");N.className="kramail-msg-recipients",N.innerHTML=E;var M=document.createElement("div");if(M.className="kramail-msg-body",M.innerHTML=C,A.length>5){var P=document.createElement("div");P.className="kramail-msg-signature",P.innerHTML=A,M.appendChild(P)}m.appendChild(T),m.appendChild(N),m.appendChild(M),console.log("[Kramail Post Mobile] Page message restructurée")}else console.warn("[Kramail Post Mobile] pull-left ou media-body manquant")}else console.warn("[Kramail Post Mobile] .media.well non trouvé")},33),r.register("ForumThread:MobileBreadcrumb",function(){if(!document.body.classList.contains("mobile-mode"))return;if(!window.location.pathname.includes("/forum/sujet/"))return;const t=document.querySelector(".container h1.page-header"),e=document.querySelectorAll(".forum-top");if(!t||0===e.length)return void console.warn("[Forum Thread Mobile] h1 ou .forum-top non trouvé");const r=Array.from(t.childNodes).filter(t=>t.nodeType===Node.TEXT_NODE&&t.textContent.trim()).map(t=>t.textContent.trim())[0];if(!r)return void console.warn("[Forum Thread Mobile] Titre du thread non trouvé");const o=e[0],a=o.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'),n=o.querySelector('a[href*="nouveau-sujet"]');if(!a||!n)return void console.warn("[Forum Thread Mobile] Liens non trouvés",{taverneLink:!!a,newTopicLink:!!n});const i=a.textContent.trim(),l=a.href;let d="Jeu (RP)",s="forum/rp";function c(t=!1){const e=document.createElement("div");e.className=t?"forum-thread-mobile-breadcrumb-bottom":"forum-thread-mobile-breadcrumb",e.style.cssText=`\n          display: flex;\n          align-items: center;\n          justify-content: space-between;\n          gap: 12px;\n          ${t?"margin-top: 16px; margin-bottom: 16px; padding: 12px 16px;":"margin-bottom: 16px;"}\n          font-size: 13px;\n          color: var(--kr-text-secondary);\n        `;const o=document.createElement("div");o.style.cssText="\n          display: flex;\n          align-items: center;\n          gap: 6px;\n          flex: 1;\n          min-width: 0;\n        ";const l=document.createElement("a");l.href=s,l.textContent=d,l.style.cssText="\n          display: inline-flex;\n          align-items: center;\n          gap: 4px;\n          color: var(--kr-text-secondary);\n          text-decoration: none;\n          font-weight: 400;\n          white-space: nowrap;\n        ";const c=document.createElement("span");c.textContent="›",c.style.cssText="\n          color: var(--kr-text-secondary);\n          font-size: 13px;\n          margin: 0 2px;\n          flex-shrink: 0;\n        ";const m=document.createElement("a");m.href=a.href,m.textContent=i,m.style.cssText="\n          color: var(--kr-text-secondary);\n          text-decoration: none;\n          font-weight: 400;\n          white-space: nowrap;\n        ";const p=document.createElement("span");p.textContent="›",p.style.cssText="\n          color: var(--kr-text-secondary);\n          font-size: 13px;\n          margin: 0 2px;\n          flex-shrink: 0;\n        ";const u=document.createElement("span");u.textContent=r,u.style.cssText="\n          color: var(--kr-text-secondary);\n          font-weight: 400;\n          overflow: hidden;\n          text-overflow: ellipsis;\n          white-space: nowrap;\n          min-width: 0;\n        ",o.appendChild(l),o.appendChild(c),o.appendChild(m),o.appendChild(p),o.appendChild(u);const g=document.createElement("a");return g.href=n.href,g.className="forum-new-topic-fab",g.setAttribute("aria-label","Nouveau sujet"),g.innerHTML='<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>',g.style.cssText="\n          width: 44px;\n          height: 44px;\n          min-width: 44px;\n          flex-shrink: 0;\n          border-radius: 50%;\n          background: var(--kr-primary);\n          color: white;\n          display: flex;\n          align-items: center;\n          justify-content: center;\n          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);\n          text-decoration: none;\n          transition: all 0.2s ease;\n        ",g.addEventListener("touchstart",function(){this.style.transform="scale(0.92)",this.style.boxShadow="0 1px 4px rgba(0, 0, 0, 0.3)"}),g.addEventListener("touchend",function(){this.style.transform="scale(1)",this.style.boxShadow="0 2px 8px rgba(0, 0, 0, 0.2)"}),e.appendChild(o),e.appendChild(g),e}l.includes("/forum/hrp/")&&(d="Jeu (HRP)",s="forum/hrp"),t.innerHTML="",t.style.cssText="\n        margin: 12px 16px !important;\n        padding: 0 !important;\n        background: transparent !important;\n      ",t.appendChild(c(!1)),e.forEach((t,e)=>{0!==e&&(t.innerHTML="",t.style.cssText="\n          margin: 0 !important;\n          padding: 0 !important;\n          background: transparent !important;\n          border: none !important;\n        ",t.appendChild(c(!0)))});const m=document.querySelector(".container h1.page-header + .row + .row .btn-group");m&&(m.style.display="none"),document.querySelectorAll('.forum-top a[href*="nouveau-sujet"], .forum-top a[href*="repondre"]').forEach(t=>{t.parentElement.style.display="none"}),console.log("[Forum Thread Mobile] Fil d'ariane + FAB créés (haut et bas) - Éléments superflus masqués")},25),r.register("ForumThread:HideTags",function(){console.log("[Forum Thread:HideTags] Function called"),window.location.pathname.includes("/forum/sujet/")?(console.log("[Forum Thread:HideTags] On forum thread page, hiding tags after delay"),setTimeout(()=>{console.log("[Forum Thread:HideTags] setTimeout fired");const t=Array.from(document.querySelectorAll('a[href*="forum/tags"]'));if(console.log("[Forum Thread:HideTags] Found",t.length,"tag links"),0===t.length)return void console.log("[Forum Thread:HideTags] No tag links found");let e=t[0];for(;e&&e!==document.body;)if(e=e.parentElement,e&&e.querySelectorAll('a[href*="forum/tags"]').length===t.length){const r=e.querySelectorAll("a");if(console.log("[Forum Thread:HideTags] Found container with",r.length,"total links"),r.length<50)return e.style.display="none",void console.log("[Forum Thread] Tags masqués ("+t.length+" tag(s))")}t.forEach(t=>{const e=t.parentElement;e&&!e.className.includes("forum")&&(e.style.display="none")}),console.log("[Forum Thread] Tags masqués (fallback)")},500)):console.log("[Forum Thread:HideTags] Not on a forum thread page")},26),r.register("ForumPosts:Restructure",function(){if(window.innerWidth>=768)return;if(!window.location.pathname.includes("/forum/sujet/"))return;const t=document.querySelectorAll("ul.media-list.forum > li.media:not([data-restructured])");0!==t.length&&(t.forEach(t=>{const e=t.querySelector(".pull-left, .user-info"),r=t.querySelector(".pull-right"),o=t.querySelector(".media-body");if(!e||!o)return;const a=o.innerHTML,n=document.createElement("div");n.className="row forum-header";const i=document.createElement("div");i.className="col-xs-8 forum-user-section";const l=e.cloneNode(!0);i.appendChild(l);const d=o.querySelector(".btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child");if(d){const t=d.textContent.replace("posté","").replace("modifié","").trim(),e=document.createElement("div");e.className="post-date-mobile",e.textContent=t,i.appendChild(e)}const s=document.createElement("div");if(s.className="col-xs-4 forum-actions-section",r){const t=r.cloneNode(!0);s.appendChild(t)}n.appendChild(i),n.appendChild(s);const c=document.createElement("div");c.className="row forum-content-row";const m=document.createElement("div");m.className="col-xs-12 forum-content-section";const p=document.createElement("div");p.innerHTML=a;const u=p.querySelector(".pull-left, .user-info"),g=p.querySelector(".pull-right"),b=p.querySelector(".btn-group.btn-group-xs:first-child");u&&u.remove(),g&&g.remove(),b&&b.remove(),m.innerHTML=p.innerHTML,c.appendChild(m),e&&e.parentElement===t&&e.remove(),o.innerHTML="",o.appendChild(n),o.appendChild(c),t.setAttribute("data-restructured","true"),t.classList.add("forum-post-restructured")}),console.log(`[Forum Restructure] ${t.length} posts restructurés avec nouveau layout`))},26);const W={STORAGE_KEY:"kr-changelog-viewed",CHANGELOG_URL:"https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json",changelog:null,async loadChangelog(){if(null!==this.changelog)return this.changelog;try{return new Promise((t,e)=>{"undefined"!=typeof GM&&GM.xmlHttpRequest?GM.xmlHttpRequest({method:"GET",url:this.CHANGELOG_URL,timeout:5e3,onload:e=>{try{const r=JSON.parse(e.responseText);this.changelog=this.parseChangelogData(r),t(this.changelog)}catch(e){console.warn("[Changelog] Erreur parsing JSON:",e),this.changelog={},t(this.changelog)}},onerror:e=>{console.warn("[Changelog] Erreur chargement:",e),this.changelog={},t(this.changelog)}}):fetch(this.CHANGELOG_URL,{cache:"no-store"}).then(t=>t.json()).then(e=>{this.changelog=this.parseChangelogData(e),t(this.changelog)}).catch(e=>{console.warn("[Changelog] Erreur fetch:",e),this.changelog={},t(this.changelog)})})}catch(t){return console.warn("[Changelog] Erreur loadChangelog:",t),{}}},parseChangelogData(t){const e={};return t.versions&&Array.isArray(t.versions)&&t.versions.forEach(t=>{t.version&&Array.isArray(t.changes)&&(e[t.version]=t.changes)}),e},getCurrentVersion:()=>t,getLastViewedVersion(){try{const t=localStorage.getItem(this.STORAGE_KEY);return t?JSON.parse(t):null}catch(t){return console.warn("[Changelog] Erreur lecture localStorage:",t),null}},markVersionAsViewed(t){try{localStorage.setItem(this.STORAGE_KEY,JSON.stringify(t))}catch(t){console.warn("[Changelog] Erreur sauvegarde localStorage:",t)}},getChangesBetweenVersions(t,e){if(!this.changelog||"object"!=typeof this.changelog)return[];if(!t||!this.changelog[e])return this.changelog[e]||[];const r=Object.keys(this.changelog).sort((t,e)=>e.localeCompare(t,void 0,{numeric:!0,sensitivity:"base"})),o=r.indexOf(t),a=r.indexOf(e);if(-1===o||-1===a||o<=a)return this.changelog[e]||[];const n=[];for(let t=a;t<o;t++){const e=r[t];this.changelog[e]&&n.push(...this.changelog[e])}return n},createModal(t){const e=document.createElement("div");e.className="kr-changelog-modal",e.id="kr-changelog-modal";const r=0===t.length||t===this.changelog[this.getCurrentVersion()],o=r?"Bienvenue dans Kraland Thème!":"Mise à jour disponible",a=r?"Découvrez les améliorations":"Voici les changements de cette version";e.innerHTML=`\n        <div class="kr-changelog-overlay" tabindex="-1"></div>\n        <div class="kr-changelog-content" role="dialog" aria-modal="true" aria-label="${o}">\n          <div class="kr-changelog-header">\n            <h2>${o}</h2>\n          </div>\n          <div class="kr-changelog-body">\n            <p class="kr-changelog-subtitle">${a}</p>\n            <ul class="kr-changelog-list">\n              ${t.map(t=>`<li>${t}</li>`).join("")}\n            </ul>\n          </div>\n          <div class="kr-changelog-footer">\n            <button class="kr-changelog-view-all">Voir tous les changements</button>\n            <button class="kr-changelog-close-btn">Fermer</button>\n          </div>\n        </div>\n      `;const n=e.querySelector(".kr-changelog-content");n&&(n.style.position="fixed",n.style.top="50%",n.style.left="50%",n.style.transform="translate(-50%, -50%)",n.style.width="90%",n.style.maxWidth="600px",n.style.background="rgba(0,0,0,0.95)",n.style.color="#ffffff");const i=e.querySelector(".kr-changelog-overlay");return i&&(i.style.position="fixed",i.style.top="0",i.style.left="0",i.style.width="100%",i.style.height="100%",i.style.background="rgba(0, 0, 0, 0.5)",i.style.cursor="pointer",i.tabIndex=-1),e},showModal(t){const e=document.getElementById("kr-changelog-modal");e&&e.remove();const r=this.createModal(t);document.body.appendChild(r);const o=r.querySelector(".kr-changelog-close-btn"),a=r.querySelector(".kr-changelog-overlay"),n=r.querySelector(".kr-changelog-view-all");let i=()=>{r.remove(),this.markVersionAsViewed(this.getCurrentVersion()),document.removeEventListener("keydown",l)};const l=t=>{"Escape"===t.key&&i()};document.addEventListener("keydown",l),o.addEventListener("click",i),a.addEventListener("click",i),n.addEventListener("click",()=>{this.showFullChangelog()}),setTimeout(()=>{r.classList.add("active");const t=r.querySelector(".kr-changelog-close-btn");t&&t.focus()},50),i=()=>{r.remove(),this.markVersionAsViewed(this.getCurrentVersion()),document.removeEventListener("keydown",l)}},showFullChangelog(){const t=document.getElementById("kr-changelog-modal");t&&t.remove();const e=document.createElement("div");e.className="kr-changelog-modal kr-changelog-full",e.id="kr-changelog-full-modal";const r=Object.keys(this.changelog).sort((t,e)=>e.localeCompare(t,void 0,{numeric:!0,sensitivity:"base"})).map(t=>`\n          <div class="kr-changelog-version">\n            <h3>Version ${t}</h3>\n            <ul>\n              ${this.changelog[t].map(t=>`<li>${t}</li>`).join("")}\n            </ul>\n          </div>\n        `).join("");e.innerHTML=`\n        <div class="kr-changelog-overlay" tabindex="-1"></div>\n        <div class="kr-changelog-content kr-changelog-content-full" role="dialog" aria-modal="true" aria-label="Historique complet des changements">\n          <div class="kr-changelog-header">\n            <h2>Historique complet des changements</h2>\n          </div>\n          <div class="kr-changelog-body kr-changelog-body-full">\n            ${r}\n          </div>\n          <div class="kr-changelog-footer">\n            <button class="kr-changelog-close-btn">Fermer</button>\n          </div>\n        </div>\n      `;const o=e.querySelector(".kr-changelog-content");o&&(o.style.position="fixed",o.style.top="50%",o.style.left="50%",o.style.transform="translate(-50%, -50%)",o.style.width="90%",o.style.maxWidth="800px",o.style.background="rgba(0,0,0,0.95)",o.style.color="#ffffff");const a=e.querySelector(".kr-changelog-overlay");a&&(a.style.position="fixed",a.style.top="0",a.style.left="0",a.style.width="100%",a.style.height="100%",a.style.background="rgba(0, 0, 0, 0.5)",a.style.cursor="pointer",a.tabIndex=-1),document.body.appendChild(e);const n=e.querySelector(".kr-changelog-close-btn"),i=e.querySelector(".kr-changelog-overlay"),l=()=>{e.remove(),document.removeEventListener("keydown",d)};n.addEventListener("click",l),i.addEventListener("click",l);const d=t=>{"Escape"===t.key&&l()};document.addEventListener("keydown",d),setTimeout(()=>{e.classList.add("active");const t=e.querySelector(".kr-changelog-close-btn");t&&t.focus()},50)},async init(){const t=this.getCurrentVersion(),e=this.getLastViewedVersion();if(e!==t){console.log("[Changelog] Nouvelle version détectée, chargement du changelog..."),await this.loadChangelog();const r=this.getChangesBetweenVersions(e,t);r.length>0&&("loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>this.showModal(r),1e3)}):setTimeout(()=>this.showModal(r),1e3))}else console.log("[Changelog] Version identique, pas de chargement");this.addChangelogButton()},addChangelogButton(){"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>{this.insertChangelogButton()}):setTimeout(()=>this.insertChangelogButton(),500)},async insertChangelogButton(){if(!window.location.href.includes("/profil/interface"))return;null===this.changelog&&(console.log("[Changelog] Chargement changelog pour page profil..."),await this.loadChangelog());const t=document.querySelector(".panel-body")||document.querySelector(".content")||document.querySelector("main")||document.querySelector(".container");if(!t)return void console.log("[Changelog] Conteneur profil non trouvé");if(document.getElementById("kr-changelog-btn"))return;const e=document.createElement("button");e.id="kr-changelog-btn",e.className="btn btn-info kr-changelog-btn",e.innerHTML="📝 Voir l'historique des changements";const r=document.querySelector(".kr-reset-alerts-btn"),o=r&&r.parentNode&&r.parentNode.querySelector(".help-block");if(o&&(e.className="btn btn-link kr-changelog-btn kr-changelog-inline",e.innerHTML="📝 Voir l'historique des changements",e.setAttribute("title","Voir l'historique des changements"),e.setAttribute("aria-label","Voir l'historique des changements"),e.style.display="inline",e.style.marginLeft="8px",e.style.fontSize="13px",e.style.padding="0",e.style.verticalAlign="middle"),e.addEventListener("click",()=>{this.showFullChangelog()}),o)o.appendChild(e);else{const r=t.querySelector("h1")||t.querySelector("h2");r?r.parentNode.insertBefore(e,r.nextSibling):t.insertBefore(e,t.firstChild)}console.log("[Changelog] Bouton ajouté sur la page profil")}};!function(){try{const t=(null===localStorage.getItem(o.ENABLE_KEY)&&localStorage.setItem(o.ENABLE_KEY,"true"),n()),e=document.getElementById(o.STYLE_ID);!t&&e?.parentElement&&e.parentElement.removeChild(e),a(O),a(R),t&&(u(),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>{h(),m()},{once:!0}):(h(),m())),function(){let t=!1;const e=new MutationObserver(()=>{n()&&(document.getElementById(o.STYLE_ID)||p(o.BUNDLED_CSS),t||(h(),t=!0)),a(()=>s()),a(O)});(document.documentElement||document)&&e.observe(document.documentElement||document,{childList:!0,subtree:!0});const r=t=>function(){const e=t.apply(this,arguments);return setTimeout(()=>u(),250),e};history.pushState=r(history.pushState),history.replaceState=r(history.replaceState),window.addEventListener("popstate",()=>setTimeout(()=>u(),250))}(),function(){let t={x:0,y:0};const e=new WeakMap,r=new MutationObserver(r=>{r.forEach(r=>{r.addedNodes.forEach(r=>{1===r.nodeType&&r.classList?.contains("bootbox")&&(t.x=window.scrollX,t.y=window.scrollY,setTimeout(()=>{const o=$(r).data("bs.modal");o&&"static"===o.options.backdrop&&(o.options.backdrop=!0,$(r).on("mousedown.backdrop.track",function(t){t.target===this&&e.set(this,{x:t.clientX,y:t.clientY})}),$(r).off("click.dismiss.bs.modal").on("click.dismiss.bs.modal",function(t){if(t.target!==this)return;const r=e.get(this);r&&(Math.sqrt(Math.pow(t.clientX-r.x,2)+Math.pow(t.clientY-r.y,2))>5||($(this).modal("hide"),e.delete(this)))}),$(r).one("hidden.bs.modal",function(){e.delete(this)})),window.scrollTo(t.x,t.y)},100),$(r).one("shown.bs.modal",function(){window.scrollTo(t.x,t.y)}))})})});document.body&&r.observe(document.body,{childList:!0,subtree:!1})}(),K(),function(){const t=window.innerWidth<768;if(!t)return;let e;!function(){if(document.querySelector(".kr-mobile-overlay"))return;const t=document.createElement("div");t.className="kr-mobile-overlay",t.addEventListener("click",()=>{const e=document.getElementById("skills-panel");e&&e.classList.remove("mobile-open");const r=document.getElementById("flap");r&&r.classList.remove("mobile-open"),t.classList.remove("active")}),document.body.appendChild(t)}(),function(){if(!c())return;const t=document.getElementById("skills-panel");if(!t)return;const e=document.createElement("button");e.className="kr-mobile-skills-toggle btn btn-primary",e.innerHTML='<i class="fa fa-chart-bar"></i>',e.setAttribute("aria-label","Afficher les compétences"),e.onclick=()=>{t.classList.toggle("mobile-open");const e=document.querySelector(".kr-mobile-overlay");e&&e.classList.toggle("active")},document.body.appendChild(e);const r=document.createElement("button");r.className="kr-mobile-close",r.innerHTML="×",r.setAttribute("aria-label","Fermer"),r.onclick=()=>{t.classList.remove("mobile-open");const e=document.querySelector(".kr-mobile-overlay");e&&e.classList.remove("active")},t.insertBefore(r,t.firstChild)}(),function(){const t=document.getElementById("flap");if(!t)return;const e=document.querySelector('a[href*="#flap"]');if(e&&e.addEventListener("click",e=>{e.preventDefault(),t.classList.toggle("mobile-open");const r=document.querySelector(".kr-mobile-overlay");r&&r.classList.toggle("active")}),!t.querySelector(".kr-mobile-close")){const e=document.createElement("button");e.className="kr-mobile-close",e.innerHTML="×",e.setAttribute("aria-label","Fermer le mini-chat"),e.onclick=()=>{t.classList.remove("mobile-open");const e=document.querySelector(".kr-mobile-overlay");e&&e.classList.remove("active")};const r=t.querySelector(".panel-heading")||t.querySelector(".modal-header")||t.firstElementChild;r?(r.style.position="relative",r.appendChild(e)):t.insertBefore(e,t.firstChild)}}(),K(),function(){const t=new MutationObserver(t=>{t.forEach(t=>{const e=t.target.closest(".bootbox.modal");if(!e)return;const r=e.querySelector(".panel.with-nav-tabs .panel-heading");if(!r)return;const o=r.querySelector(".nav-tabs > li.active");o&&setTimeout(()=>{const t=o.getBoundingClientRect(),e=r.getBoundingClientRect(),a=o.offsetLeft-e.width/2+t.width/2;r.scrollTo({left:Math.max(0,a),behavior:"smooth"})},100)})});document.body&&t.observe(document.body,{childList:!0,subtree:!0,attributes:!0,attributeFilter:["class"]})}(),window.addEventListener("resize",()=>{clearTimeout(e),e=setTimeout(()=>{window.innerWidth<768!==t&&location.reload()},250)})}(),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>r.run(),{once:!0}):r.run(),setTimeout(()=>{const t=document.getElementById(o.STYLE_ID);n()&&t?.parentElement?t.parentElement.appendChild(t):!n()&&t?.parentElement&&t.parentElement.removeChild(t)},1e3),setInterval(f,2e3),a(()=>W.init())}catch(t){console.error("Kraland theme init failed",t)}}()}();
+// Anti-FOUC cloak — must execute before the main 580KB IIFE is parsed
+if(localStorage.getItem('kr-theme-enabled')==='true'){
+  document.documentElement.classList.add('kr-cloaked');
+  var s=document.createElement('style');s.id='kr-cloak';
+  s.textContent='html.kr-cloaked{visibility:hidden!important}';
+  (document.head||document.documentElement).appendChild(s);
+}
+// Main script code - CSS bundled inline
+(function (){
+  'use strict';
+
+  // Version du userscript (sera remplacée par le build)
+  const CURRENT_VERSION = '1.0.1771761866072';
+
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+  /**
+   * Vérifie de manière sûre si le mode mobile est activé
+   * Protège contre l'accès à document.body avant son initialisation
+   */
+  function isMobileMode() {
+    return document.body && document.body.classList && document.body.classList.contains('mobile-mode');
+  }
+
+  // ============================================================================
+  // INITIALIZATION ORCHESTRATOR
+  // Garantit l'ordre d'exécution séquentiel de tous les modules
+  // Chaque module décide lui-même s'il doit s'exécuter (mobile/desktop/page)
+  // ============================================================================
+  const InitQueue = {
+    _queue: [],
+    _initialized: false,
+
+    /**
+     * Enregistre une fonction d'initialisation avec sa priorité
+     * @param {string} name - Nom du module (pour debug)
+     * @param {Function} fn - Fonction d'initialisation
+     * @param {number} priority - Priorité (plus petit = exécuté en premier)
+     */
+    register(name, fn, priority = 100) {
+      this._queue.push({ name, fn, priority });
+    },
+
+    /**
+     * Exécute toutes les fonctions enregistrées dans l'ordre de priorité
+     * Appelé une seule fois après le DOMContentLoaded
+     */
+    run() {
+      if (this._initialized) {return;}
+
+      this._initialized = true;
+
+      // Trier par priorité (plus petit en premier)
+      this._queue.sort((a, b) => a.priority - b.priority);
+
+      const isMobile = isMobileMode();
+      // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
+      // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
+
+      // Exécuter séquentiellement
+      this._queue.forEach(({ name, fn }) => {
+        try {
+          fn();
+          // console.log(`[InitQueue] ✓ ${name}`);
+        } catch (e) {
+          console.error(`[InitQueue] ✗ ${name}:`, e);
+        }
+      });
+
+      // console.log('[InitQueue] Initialisation terminée');
+    }
+  };
+
+  // ============================================================================
+  // TASK-1.1 - MOBILE DETECTION & INITIALIZATION
+  // ============================================================================
+  (function () {
+    // Configuration
+    const MOBILE_BREAKPOINT = 768; // px
+
+    // État mémorisé pour éviter les logs redondants lors des multiples appels
+    let previousMobileState = null;
+
+    /**
+     * Détecte si on est sur mobile
+     */
+    function isMobileDevice() {
+      return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+
+    /**
+     * Initialise le mode mobile avec détection intelligente
+     * Évite les logs redondants en mémorisant l'état précédent
+     */
+    function initMobileMode() {
+      const currentIsMobile = isMobileDevice();
+
+      // Vérifier que document.body existe avant d'y accéder
+      if (!document.body) {
+        console.warn('[Kraland Mobile] document.body n\'est pas disponible');
+        return;
+      }
+
+      // Ne log et ne process que si l'état a changé
+      if (previousMobileState === currentIsMobile) {
+        return; // État inchangé, pas besoin de retraiter
+      }
+
+      previousMobileState = currentIsMobile;
+
+      if (currentIsMobile) {
+        document.body.classList.add('mobile-mode');
+        console.log('[Kraland Mobile] Mode mobile activé');
+        // Applique les styles critiques via JavaScript (fix Bootstrap)
+        applyMobileCriticalStyles();
+      } else {
+        document.body.classList.remove('mobile-mode');
+        console.log('[Kraland Mobile] Mode desktop');
+      }
+    }
+
+    /**
+     * Applique les styles critiques qui doivent surcharger Bootstrap
+     * Cette fonction force les styles inline pour contrer la spécificité CSS de Bootstrap
+     */
+    function applyMobileCriticalStyles() {
+      // Attendre que le DOM soit prêt
+      const applyStyles = () => {
+        // Retrait padding de toutes les colonnes Bootstrap
+        const cols = document.querySelectorAll('[class*="col-"]');
+        cols.forEach(col => {
+          col.style.setProperty('padding-left', '0px', 'important');
+          col.style.setProperty('padding-right', '0px', 'important');
+        });
+
+        // Retrait margin des rows
+        const rows = document.querySelectorAll('.row');
+        rows.forEach(row => {
+          row.style.setProperty('margin-left', '0px', 'important');
+          row.style.setProperty('margin-right', '0px', 'important');
+        });
+
+        // Fix des containers
+        const containers = document.querySelectorAll('.container, .container-fluid');
+        containers.forEach(container => {
+          container.style.setProperty('padding-left', '0px', 'important');
+          container.style.setProperty('padding-right', '0px', 'important');
+        });
+
+        // Dashboard pleine largeur
+        const dashboards = document.querySelectorAll('.dashboard');
+        dashboards.forEach(dashboard => {
+          dashboard.style.setProperty('margin-left', '0px', 'important');
+          dashboard.style.setProperty('margin-right', '0px', 'important');
+          dashboard.style.setProperty('width', '100%', 'important');
+          dashboard.style.setProperty('padding', '0px', 'important');
+        });
+      };
+
+      // Applique immédiatement et après un court délai (pour le contenu chargé dynamiquement)
+      applyStyles();
+      setTimeout(applyStyles, 100);
+      setTimeout(applyStyles, 500);
+    }
+
+    /**
+     * Gère le resize de la fenêtre
+     */
+    let resizeTimeout;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        initMobileMode();
+      }, 150);
+    }
+
+    // Initialisation au chargement
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileMode);
+    } else {
+      initMobileMode();
+    }
+
+    // Écoute du resize
+    window.addEventListener('resize', handleResize);
+
+    // Export global pour debug
+    window.KralandMobile = {
+      isMobile: isMobileDevice,
+      reinit: initMobileMode
+    };
+
+    // === Classe page-type basée sur l'URL ===
+    // Utilisée en CSS pour scoper les règles kramail vs forum
+    function addPageTypeClass() {
+      if (!document.body) return;
+      const path = window.location.pathname;
+      if (path.includes('/kramail')) {
+        document.body.classList.add('page-kramail');
+        if (path.match(/\/kramail\/post\/nouveau/)) {
+          document.body.classList.add('page-kramail-compose');
+        }
+      } else if (path.startsWith('/forum/')) {
+        document.body.classList.add('page-forum');
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addPageTypeClass);
+    } else {
+      addPageTypeClass();
+    }
+  })();
+
+  // ============================================================================
+  // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
+  // ============================================================================
+  (function () {
+    /**
+     * Initialise le comportement mobile du header Bootstrap 3
+     * Utilise les composants natifs .navbar-toggle et .navbar-collapse
+     */
+    function initMobileHeader() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Vérifier que Bootstrap JS est chargé
+      if (typeof jQuery === 'undefined' || typeof jQuery.fn.collapse === 'undefined') {
+        console.warn('[Mobile Header] Bootstrap JS non chargé, utilisation du fallback');
+        initFallbackToggle();
+        return;
+      }
+
+      // Bootstrap 3 gère automatiquement le toggle via data-toggle="collapse"
+      // On s'assure juste que le markup est correct
+
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+
+      if (!toggle || !collapse) {
+        console.log('[Mobile Header] Éléments navbar-toggle ou navbar-collapse non trouvés');
+        return;
+      }
+
+      // Vérifier/ajouter les attributs data nécessaires pour BS3
+      if (!toggle.getAttribute('data-toggle')) {
+        toggle.setAttribute('data-toggle', 'collapse');
+      }
+      if (!toggle.getAttribute('data-target')) {
+        const collapseId = collapse.id || 'navbar-collapse-mobile';
+        collapse.id = collapseId;
+        toggle.setAttribute('data-target', '#' + collapseId);
+      }
+
+      // Auto-close menu au clic sur un lien
+      initMenuAutoClose();
+
+      console.log('[Mobile Header] Header Bootstrap 3 initialisé');
+    }
+
+    /**
+     * Fallback manuel si Bootstrap JS n'est pas disponible
+     */
+    function initFallbackToggle() {
+      const toggle = document.querySelector('.navbar-toggle');
+      const collapse = document.querySelector('.navbar-collapse');
+
+      if (!toggle || !collapse) {return;}
+
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        collapse.classList.toggle('in');
+
+        const expanded = collapse.classList.contains('in');
+        toggle.setAttribute('aria-expanded', expanded);
+
+        // Gestion du scroll
+        if (expanded) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      });
+
+      console.log('[Mobile Header] Fallback toggle initialisé');
+    }
+
+    /**
+     * Ferme le menu au clic sur un lien
+     */
+    function initMenuAutoClose() {
+      const collapse = document.querySelector('.navbar-collapse');
+      if (!collapse) {return;}
+
+      const links = collapse.querySelectorAll('a:not(.dropdown-toggle)');
+      links.forEach(link => {
+        link.addEventListener('click', function () {
+          // Fermer le menu après un court délai
+          setTimeout(() => {
+            if (typeof jQuery !== 'undefined' && jQuery.fn.collapse) {
+              jQuery(collapse).collapse('hide');
+            } else {
+              collapse.classList.remove('in');
+              document.body.style.overflow = '';
+            }
+          }, 150);
+        });
+      });
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 10)
+    InitQueue.register('initMobileHeader', initMobileHeader, 10);
+
+    // Export pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.reinitHeader = initMobileHeader;
+    }
+  })();
+
+
+  // ============================================================================
+  // TASK-2.4 - DÉPLACER BOUTONS DANS HEADER MOBILE
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    /**
+     * Déplace les boutons notification, kramail, palette, profil et carte dans le header mobile
+     * - Notification, Kramail et Palette à gauche du hamburger
+     * - Profil et Carte à droite du header
+     */
+    function moveHeaderButtons() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      const navbarHeader = document.querySelector('.navbar-header');
+      const navRight = document.querySelector('.navbar-right');
+
+      if (!navbarHeader || !navRight) {
+        console.log('[Mobile Header Buttons] Éléments non trouvés');
+        return;
+      }
+
+      // Identifier les boutons
+      const allButtons = Array.from(navRight.querySelectorAll('li'));
+
+      // Trouver les boutons spécifiques par leur icône
+      const notificationBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-bell');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+
+      const kramailBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-envelope');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+
+      const mapBtn = allButtons.find(li => {
+        const icon = li.querySelector('.fa-globe');
+        return icon && !li.querySelector('.dropdown-menu');
+      });
+
+      if (!notificationBtn && !kramailBtn && !mapBtn) {
+        console.log('[Mobile Header Buttons] Aucun bouton trouvé');
+        return;
+      }
+
+      // Vérifier si déjà déplacés
+      if (notificationBtn && notificationBtn.hasAttribute('data-moved-to-header')) {
+        return;
+      }
+
+      // Créer le conteneur pour tous les boutons (à gauche)
+      const leftButtonsContainer = document.createElement('div');
+      leftButtonsContainer.className = 'navbar-header-buttons-left';
+
+      if (notificationBtn) {
+        notificationBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(notificationBtn.cloneNode(true));
+      }
+
+      if (kramailBtn) {
+        kramailBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(kramailBtn.cloneNode(true));
+      }
+
+      if (mapBtn) {
+        mapBtn.setAttribute('data-moved-to-header', 'true');
+        leftButtonsContainer.appendChild(mapBtn.cloneNode(true));
+      }
+
+      // Insérer le conteneur dans le header
+      if (leftButtonsContainer.children.length > 0) {
+        navbarHeader.insertBefore(leftButtonsContainer, navbarHeader.firstChild);
+      }
+
+      // Cacher le logo en mobile
+      const navbarBrand = document.querySelector('.navbar-brand');
+      if (navbarBrand) {
+        navbarBrand.style.display = 'none';
+      }
+
+      console.log('[Mobile Header Buttons] Boutons déplacés (notification, kramail, map)');
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 20)
+    InitQueue.register('moveHeaderButtons', moveHeaderButtons, 20);
+  })();
+
+  // ============================================================================
+  // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC BIENVENU
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    /**
+     * [DÉSACTIVÉ] Le logo reste maintenant dans la navbar à gauche
+     * Ancienne fonction qui déplaçait le logo sous la navbar
+     */
+    /*
+    function moveLogoToWelcomeBlock() {
+      if (!document.body.classList.contains('mobile-mode')) return;
+
+      // Trouver le logo
+      const logo = document.querySelector('.navbar-brand');
+      if (!logo) {
+        console.log('[Mobile Logo] Logo non trouvé');
+        return;
+      }
+
+      // Vérifier si déjà déplacé
+      if (document.querySelector('[data-moved-below-navbar]')) {
+        return;
+      }
+
+      // Trouver la navbar
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) {
+        console.log('[Mobile Logo] Navbar non trouvée');
+        return;
+      }
+
+      // Cloner le logo et le rendre visible
+      const logoClone = logo.cloneNode(true);
+      logoClone.style.display = 'flex';
+      logoClone.setAttribute('data-moved-below-navbar', 'true');
+
+      // Insérer le logo juste après la navbar
+      if (navbar.parentElement) {
+        navbar.parentElement.insertBefore(logoClone, navbar.nextSibling);
+      }
+
+      console.log('[Mobile Logo] Logo déplacé sous la navbar');
+    }
+
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(moveLogoToWelcomeBlock, 200);
+      });
+    } else {
+      setTimeout(moveLogoToWelcomeBlock, 200);
+    }
+    */
+  })();
+
+  // ============================================
+  // TASK-1.4 - MINI-PROFIL COLLAPSIBLE
+  // ============================================
+
+  (function () {
+    'use strict';
+
+    /**
+     * Extrait les données d'une jauge (valeur/max)
+     */
+    function extractGaugeData(element, type) {
+      const text = element.textContent;
+      const match = text.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);
+
+      if (!match) {
+        // Chercher juste le nombre si pas de format complet
+        const numMatch = text.match(/\d+/);
+        if (numMatch) {
+          const val = parseInt(numMatch[0]);
+          return { type, current: val, max: val, percent: 100 };
+        }
+        return { type, current: 0, max: 1, percent: 0 };
+      }
+
+      const current = parseInt(match[1] || match[3]);
+      const max = parseInt(match[2] || match[4]);
+      const percent = Math.min(100, (current / max) * 100);
+
+      return { type, current, max, percent };
+    }
+
+    /**
+     * Trouve les données du profil joueur
+     */
+    function findProfileData() {
+      // Container principal
+      const profileSection = document.getElementById('player-header-section');
+      const mainPanel = document.getElementById('player-main-panel');
+
+      if (!profileSection || !mainPanel) {
+        console.warn('[Mobile Mini-Profile] Sections profil non trouvées');
+        return null;
+      }
+
+      // Nom du joueur (dans le header)
+      const nameElement = profileSection.querySelector('.list-group-item.active');
+      const playerName = nameElement ? nameElement.textContent.replace('×', '').trim() : 'Joueur';
+
+      // Avatar (dans la première row)
+      const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
+      const avatarSrc = avatarLink ? avatarLink.src : null;
+
+      // Argent (chercher div.mini.t avec icône fa-coins)
+      let moneyElement = null;
+      const moneyContainers = document.querySelectorAll('div.mini.t');
+      for (const container of moneyContainers) {
+        if (container.querySelector('i.fa.fa-coins') && container.textContent.includes('MØ')) {
+          moneyElement = container;
+          break;
+        }
+      }
+      const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
+
+      // Horloge (dans player-vitals-section)
+      const vitalsSection = document.getElementById('player-vitals-section');
+      const clockElement = vitalsSection ? vitalsSection.querySelector('.c100') : null;
+      const clock = clockElement ? clockElement.textContent.trim() : '--:--';
+
+      // Jauges PV/PM/PP - Nouvelle approche
+      // Chercher les éléments contenant "PV", "PM", "PP" avec leur valeur
+      const findGaugeInSection = (section, type) => {
+        if (!section) {return null;}
+
+        // Chercher l'élément contenant le type (PV, PM, PP)
+        const elements = Array.from(section.querySelectorAll('*'));
+        const gaugeEl = elements.find(el => {
+          const text = el.textContent.trim();
+          const hasType = text.startsWith(type) || text.includes(` ${type} `);
+          const hasNumber = /\d+/.test(text);
+          return hasType && hasNumber && el.children.length <= 2;
+        });
+
+        if (!gaugeEl) {return null;}
+
+        // Extraire la valeur actuelle et max
+        const text = gaugeEl.textContent.trim();
+        const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+
+        if (match) {
+          // Format "27 / 27"
+          return extractGaugeData(gaugeEl, type.toLowerCase());
+        } else {
+          // Format "PV 27" sans max - chercher la barre de progression pour le max
+          const valueMatch = text.match(/\d+/);
+          if (!valueMatch) {return null;}
+
+          const current = parseInt(valueMatch[0]);
+
+          // Chercher la barre de progression associée
+          const progressBar = gaugeEl.querySelector('.progress-bar, [class*="bar"]');
+          let max = current; // Par défaut, considérer que c'est plein
+
+          if (progressBar) {
+            const width = progressBar.style.width;
+            if (width && width.includes('%')) {
+              const percent = parseInt(width);
+              if (percent > 0) {
+                max = Math.round(current * 100 / percent);
+              }
+            }
+          }
+
+          const percent = max > 0 ? Math.min(100, (current / max) * 100) : 0;
+          return { type: type.toLowerCase(), current, max, percent };
+        }
+      };
+
+      const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
+      const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
+      const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
+
+      return {
+        name: playerName,
+        avatar: avatarSrc,
+        money: money,
+        clock: clock,
+        gauges: {
+          pv: gaugesPV,
+          pm: gaugesPM,
+          pp: gaugesPP
+        }
+      };
+    }
+
+    /**
+     * Crée le mini-profil mobile
+     */
+    function createMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-mini-profile')) {return;}
+
+      const profileData = findProfileData();
+      if (!profileData) {
+        console.warn('[Mobile Mini-Profile] Données profil non trouvées');
+        return;
+      }
+
+      // Container principal
+      const miniProfile = document.createElement('div');
+      miniProfile.className = 'mobile-mini-profile collapsed';
+      miniProfile.setAttribute('data-task', '1.4');
+
+      // Header (toujours visible)
+      const header = document.createElement('div');
+      header.className = 'mobile-mini-profile-header';
+
+      if (profileData.avatar) {
+        const avatar = document.createElement('img');
+        avatar.src = profileData.avatar;
+        avatar.className = 'avatar';
+        avatar.alt = 'Avatar';
+        header.appendChild(avatar);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'mobile-mini-profile-info';
+
+      const nameRow = document.createElement('div');
+      nameRow.className = 'mobile-mini-profile-name-row';
+
+      const name = document.createElement('div');
+      name.className = 'mobile-mini-profile-name';
+      name.textContent = profileData.name;
+      nameRow.appendChild(name);
+
+      // Bouton Gestion du personnage
+      const manageBtn = document.createElement('a');
+      manageBtn.href = '#';
+      manageBtn.className = 'btn btn-default alert100 mobile-mini-profile-manage-btn';
+      manageBtn.innerHTML = '<span>⚙️</span>';
+      manageBtn.setAttribute('data-toggle', 'tooltip');
+      manageBtn.setAttribute('data-placement', 'bottom');
+      manageBtn.setAttribute('title', 'Gestion du personnage');
+      nameRow.appendChild(manageBtn);
+
+      info.appendChild(nameRow);
+
+      const moneyRow = document.createElement('div');
+      moneyRow.className = 'mobile-mini-profile-money';
+      moneyRow.innerHTML = `
+        <span>${profileData.money}</span>
+        <span class="mobile-mini-profile-clock">⏱️ ${profileData.clock}</span>
+      `;
+      info.appendChild(moneyRow);
+
+      header.appendChild(info);
+      miniProfile.appendChild(header);
+
+      // Jauges compactes (toujours visibles)
+      const gaugesCompact = document.createElement('div');
+      gaugesCompact.className = 'mobile-mini-profile-gauges-compact';
+
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) {return;}
+
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-compact';
+        el.innerHTML = `
+          <span class="mobile-gauge-compact-label">${type.toUpperCase()}</span>
+          <div class="mobile-gauge-compact-bar">
+            <div class="mobile-gauge-compact-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+          <span class="mobile-gauge-compact-value">${gauge.current}</span>
+        `;
+        gaugesCompact.appendChild(el);
+      });
+
+      miniProfile.appendChild(gaugesCompact);
+
+      // Détails (masqués par défaut)
+      const details = document.createElement('div');
+      details.className = 'mobile-mini-profile-details';
+
+      // Jauges détaillées
+      const gaugesFull = document.createElement('div');
+      gaugesFull.className = 'mobile-mini-profile-gauges-full';
+
+      ['pv', 'pm', 'pp'].forEach(type => {
+        const gauge = profileData.gauges[type];
+        if (!gauge) {return;}
+
+        const el = document.createElement('div');
+        el.className = 'mobile-gauge-full';
+        el.innerHTML = `
+          <div class="mobile-gauge-full-header">
+            <span>${type.toUpperCase()}</span>
+            <span>${gauge.current}/${gauge.max}</span>
+          </div>
+          <div class="mobile-gauge-full-bar">
+            <div class="mobile-gauge-full-fill ${type}" style="width: ${gauge.percent}%"></div>
+          </div>
+        `;
+        gaugesFull.appendChild(el);
+      });
+
+      details.appendChild(gaugesFull);
+
+      // Caractéristiques (FOR, VOL, CHA, GES, INT, PER)
+      const characteristicsContainer = document.createElement('div');
+      characteristicsContainer.className = 'mobile-mini-profile-characteristics';
+
+      const statsSection = document.getElementById('col-leftest-stats');
+      if (statsSection) {
+        // Chercher les 6 premières caractéristiques (alert121 à alert126)
+        const charElements = [];
+        for (let i = 121; i <= 126; i++) {
+          const char = statsSection.querySelector(`.alert${i}`);
+          if (char) {
+            charElements.push(char);
+          }
+        }
+
+        if (charElements.length > 0) {
+          charElements.forEach(charEl => {
+            const charClone = charEl.cloneNode(true);
+            charClone.className = charEl.className + ' mobile-characteristic-badge';
+            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
+            characteristicsContainer.appendChild(charClone);
+          });
+
+          details.appendChild(characteristicsContainer);
+        }
+      }
+
+      // Compétences
+      const skillsContainer = document.createElement('div');
+      skillsContainer.className = 'mobile-mini-profile-skills';
+
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        // Récupérer toutes les compétences (alert111 à alert1118)
+        const skills = skillsPanel.querySelectorAll('.ds_game[class*="alert11"]');
+
+        if (skills.length > 0) {
+          skills.forEach(skillEl => {
+            const skillClone = skillEl.cloneNode(true);
+            skillClone.className = skillEl.className + ' mobile-skill-item';
+            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
+            skillsContainer.appendChild(skillClone);
+          });
+
+          details.appendChild(skillsContainer);
+        }
+      }
+
+      miniProfile.appendChild(details);
+
+      // Toggle expand/collapse
+      miniProfile.addEventListener('click', (e) => {
+        // Ne pas toggler si on clique sur un élément interactif (bouton, lien)
+        if (e.target.closest('.mobile-mini-profile-avatar-btn, .mobile-characteristic-badge, .mobile-skill-item')) {
+          return;
+        }
+
+        miniProfile.classList.toggle('collapsed');
+        miniProfile.classList.toggle('expanded');
+
+        console.log('[Mobile Mini-Profile] État:',
+          miniProfile.classList.contains('expanded') ? 'déplié' : 'replié'
+        );
+      });
+
+      // Insérer après la navbar (élément préexistant) ou au début du body
+      // Note: On utilise .navbar (DOM original) et non .mobile-tab-bar (créé par le script)
+      const navbar = document.querySelector('.navbar');
+      const container = document.getElementById('content') || document.body;
+
+      if (navbar && navbar.nextSibling) {
+        navbar.parentNode.insertBefore(miniProfile, navbar.nextSibling);
+      } else {
+        container.insertBefore(miniProfile, container.firstChild);
+      }
+
+      console.log('[Mobile Mini-Profile] Créé avec succès');
+      console.log('  - Nom:', profileData.name);
+      console.log('  - Argent:', profileData.money);
+      console.log('  - Horloge:', profileData.clock);
+      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current}/${profileData.gauges.pv.max}` : 'N/A');
+    }
+
+    /**
+     * Initialise le mini-profil
+     */
+    function initMiniProfile() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      createMiniProfile();
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 40 - après tab bar)
+    InitQueue.register('initMiniProfile', initMiniProfile, 40);
+
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initMiniProfile = initMiniProfile;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.5 - ACTIONS RAPIDES HORIZONTALES (Bootstrap 3)
+  // ============================================
+
+  (function () {
+    'use strict';
+
+    /**
+     * Crée la barre d'actions rapides mobile avec Bootstrap 3
+     */
+    function createQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-quick-actions')) {return;}
+
+      // Vérifier qu'on est bien sur une page /jouer/*
+      if (!window.location.pathname.startsWith('/jouer/')) {
+        return;
+      }
+
+      // Trouver la section actions originale
+      const actionsSection = document.getElementById('player-actions-section');
+      if (!actionsSection) {
+        console.warn('[Mobile Quick Actions] Section actions non trouvée');
+        return;
+      }
+
+      // Récupérer les boutons originaux
+      const originalButtons = actionsSection.querySelectorAll('a.btn, button.btn');
+      if (originalButtons.length === 0) {
+        console.warn('[Mobile Quick Actions] Aucun bouton trouvé');
+        return;
+      }
+
+      // Container avec btn-group-justified Bootstrap 3
+      const container = document.createElement('div');
+      container.className = 'btn-group btn-group-justified mobile-quick-actions';
+      container.setAttribute('role', 'group');
+      container.setAttribute('data-task', '1.5');
+
+      // Cloner chaque bouton avec structure Bootstrap 3 justified
+      originalButtons.forEach((originalBtn) => {
+        // Wrapper btn-group requis par BS3 justified
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group';
+        btnGroup.setAttribute('role', 'group');
+
+        // Cloner le bouton
+        const btn = originalBtn.cloneNode(true);
+        btn.classList.add('mobile-quick-action');
+
+        // Extraire l'icône et le label
+        const icon = btn.querySelector('i');
+        const label = btn.textContent.trim();
+
+        // Reconstruire le contenu avec structure mobile
+        btn.innerHTML = '';
+
+        if (icon) {
+          const iconClone = icon.cloneNode(true);
+          iconClone.classList.add('mobile-quick-action-icon');
+          btn.appendChild(iconClone);
+        }
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'mobile-quick-action-label';
+        labelSpan.textContent = label;
+        btn.appendChild(labelSpan);
+
+        btnGroup.appendChild(btn);
+        container.appendChild(btnGroup);
+      });
+
+      // Insérer après la navbar (élément préexistant)
+      // Note: On utilise .navbar (DOM original) et non .mobile-mini-profile/.mobile-tab-bar (créés par le script)
+      const navbar = document.querySelector('.navbar');
+
+      if (navbar && navbar.nextSibling) {
+        navbar.parentNode.insertBefore(container, navbar.nextSibling);
+      } else {
+        document.body.insertBefore(container, document.body.firstChild);
+      }
+
+      console.log('[Mobile Quick Actions] Créées avec', originalButtons.length, 'actions');
+    }
+
+    /**
+     * Initialise les actions rapides
+     */
+    function initQuickActions() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      createQuickActions();
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 50 - après mini-profil)
+    InitQueue.register('initQuickActions', initQuickActions, 50);
+
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.initQuickActions = initQuickActions;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.6 - HOMEPAGE CAROUSEL REMOVAL (Mobile)
+  // ============================================
+  (function () {
+    /**
+     * Supprime le carousel Bootstrap sur la page d'accueil en mode mobile
+     * Le carousel prend trop de place et n'est pas adapté aux petits écrans
+     */
+    function removeHomepageCarousel() {
+      // Ne s'exécute qu'en mode mobile
+      if (!isMobileMode()) {return;}
+
+      // Ne s'exécute que sur la page d'accueil
+      const isHomePage = window.location.pathname === '/' ||
+                         window.location.pathname === '/accueil' ||
+                         window.location.pathname.endsWith('/');
+
+      if (!isHomePage) {return;}
+
+      // Sélectionner le carousel Bootstrap (.carousel)
+      const carousel = document.querySelector('.carousel');
+
+      if (!carousel) {
+        console.log('[Homepage Carousel] Carousel non trouvé sur la page');
+        return;
+      }
+
+      // Supprimer le carousel du DOM
+      carousel.remove();
+
+      console.log('[Homepage Carousel] Carousel supprimé en mode mobile');
+    }
+
+    // Enregistrer dans InitQueue avec priorité 5 (après initMobileMode à priorité 0)
+    InitQueue.register('removeHomepageCarousel', removeHomepageCarousel, 5);
+
+    // Exposer pour debug
+    if (window.KralandMobile) {
+      window.KralandMobile.removeHomepageCarousel = removeHomepageCarousel;
+    }
+  })();
+
+  // ============================================
+  // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
+  // ============================================
+
+  (function () {
+    'use strict';
+
+    /**
+     * Trouve les liens du menu navigation jeu
+     */
+    function findNavigationLinks() {
+      // Patterns à chercher avec icônes Font Awesome
+      const patterns = [
+        { pattern: '/jouer/plateau', href: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
+        { pattern: '/jouer/materiel', href: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
+        { pattern: '/jouer/perso', href: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
+        { pattern: '/jouer/bat', href: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
+        { pattern: '/jouer/pnj', href: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
+      ];
+
+      const links = [];
+
+      patterns.forEach(item => {
+        const link = document.querySelector(`a[href*="${item.pattern}"]`);
+        // Créer le lien même s'il n'existe pas sur la page actuelle
+        links.push({
+          href: link ? link.getAttribute('href') : item.href,
+          text: link ? (link.textContent.trim() || item.label) : item.label,
+          pattern: item.pattern,
+          icon: item.icon
+        });
+      });
+
+      return links;
+    }
+
+    /**
+     * Crée la tab bar avec structure Bootstrap 3
+     */
+    function createTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (document.querySelector('.mobile-tab-bar')) {return;} // Déjà créé
+
+      // Vérifier qu'on est bien sur une page /jouer/*
+      if (!window.location.pathname.startsWith('/jouer/')) {
+        return;
+      }
+
+      // Trouver les liens
+      const navLinks = findNavigationLinks();
+
+      if (navLinks.length === 0) {
+        console.warn('[Mobile Tab Bar] Aucun lien de navigation disponible');
+        return;
+      }
+
+      // Créer la tab bar avec structure Bootstrap 3 (ul.nav.nav-tabs)
+      const tabBar = document.createElement('ul');
+      tabBar.className = 'nav nav-tabs mobile-tab-bar';
+      tabBar.setAttribute('role', 'tablist');
+
+      // Créer les tabs (li > a comme dans BS3) avec icônes + texte
+      navLinks.forEach(linkData => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'presentation');
+
+        const a = document.createElement('a');
+        a.href = linkData.href;
+        a.setAttribute('role', 'tab');
+
+        // Créer structure icône + texte
+        const icon = document.createElement('i');
+        icon.className = `fa ${linkData.icon} mobile-tab-icon`;
+
+        const label = document.createElement('span');
+        label.className = 'mobile-tab-label';
+        label.textContent = linkData.text;
+
+        a.appendChild(icon);
+        a.appendChild(label);
+
+        // Marquer l'onglet actif (classe sur le li comme dans BS3)
+        const currentPath = window.location.pathname;
+        if (currentPath.includes(linkData.pattern)) {
+          li.classList.add('active');
+          a.setAttribute('aria-selected', 'true');
+        } else {
+          a.setAttribute('aria-selected', 'false');
+        }
+
+        li.appendChild(a);
+        tabBar.appendChild(li);
+      });
+
+      // Insérer après le header
+      const header = document.querySelector('.navbar') ||
+                     document.querySelector('header') ||
+                     document.body.firstElementChild;
+
+      if (header && header.nextSibling) {
+        header.parentNode.insertBefore(tabBar, header.nextSibling);
+      } else {
+        document.body.insertBefore(tabBar, document.body.firstChild);
+      }
+
+      // Gérer l'indicateur de scroll
+      handleTabBarScroll(tabBar);
+
+      // Scroll automatique vers l'onglet actif
+      setTimeout(() => scrollToActiveTab(tabBar), 100);
+
+      console.log('[Mobile Tab Bar] Créée avec', navLinks.length, 'onglets');
+    }
+
+    /**
+     * Gère l'indicateur de scroll de la tab bar
+     */
+    function handleTabBarScroll(tabBar) {
+      const checkScroll = () => {
+        const isAtEnd = tabBar.scrollLeft + tabBar.clientWidth >= tabBar.scrollWidth - 5;
+        tabBar.classList.toggle('scrolled-end', isAtEnd);
+      };
+
+      tabBar.addEventListener('scroll', checkScroll);
+
+      // Check initial
+      setTimeout(checkScroll, 100);
+
+      // Re-check au resize
+      window.addEventListener('resize', checkScroll);
+    }
+
+    /**
+     * Scroll automatique vers l'onglet actif
+     */
+    function scrollToActiveTab(tabBar) {
+      const activeTab = tabBar.querySelector('li.active > a');
+      if (!activeTab) {return;}
+
+      // Scroll smooth vers l'onglet actif
+      const tabBarRect = tabBar.getBoundingClientRect();
+      const activeRect = activeTab.getBoundingClientRect();
+
+      const scrollLeft = activeRect.left - tabBarRect.left - (tabBarRect.width / 2) + (activeRect.width / 2);
+
+      tabBar.scrollTo({
+        left: tabBar.scrollLeft + scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+
+    /**
+     * Initialise la tab bar
+     */
+    function initTabBar() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      createTabBar();
+    }
+
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initTabBar = initTabBar;
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 30 - après header buttons)
+    InitQueue.register('initTabBar', initTabBar, 30);
+  })();
+
+  // ============================================================================
+  // TASK-2.1 - MÉMORISATION DES ALERTES FERMÉES
+  // ============================================================================
+  (function () {
+    const STORAGE_KEY = 'kraland_dismissed_alerts';
+
+    /**
+     * Génère un hash simple à partir d'une chaîne
+     */
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return Math.abs(hash).toString(36);
+    }
+
+    /**
+     * Récupère la liste des alertes fermées depuis le localStorage
+     */
+    function getDismissedAlerts() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Alerts Memory] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    /**
+     * Sauvegarde une alerte fermée dans le localStorage
+     */
+    function saveDismissedAlert(alertId) {
+      try {
+        const dismissed = getDismissedAlerts();
+        if (!dismissed.includes(alertId)) {
+          dismissed.push(alertId);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissed));
+          console.log('[Alerts Memory] Alerte mémorisée:', alertId);
+        }
+      } catch (e) {
+        console.warn('[Alerts Memory] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    /**
+     * Génère un identifiant unique pour une alerte basé sur son contenu
+     */
+    function getAlertId(alert) {
+      // Essayer d'utiliser un ID existant
+      if (alert.id) {return alert.id;}
+
+      // Sinon, créer un hash du contenu texte (sans les espaces multiples)
+      const text = alert.textContent.trim().replace(/\s+/g, ' ');
+      return 'alert_' + simpleHash(text);
+    }
+
+    /**
+     * Cache automatiquement les alertes déjà fermées
+     */
+    function hideRememberedAlerts() {
+      const dismissedAlerts = getDismissedAlerts();
+      if (dismissedAlerts.length === 0) {return;}
+
+      const alerts = document.querySelectorAll('.alert.alert-dismissible');
+      let hiddenCount = 0;
+
+      alerts.forEach(alert => {
+        const alertId = getAlertId(alert);
+        if (dismissedAlerts.includes(alertId)) {
+          alert.style.display = 'none';
+          hiddenCount++;
+        }
+      });
+
+      if (hiddenCount > 0) {
+        console.log(`[Alerts Memory] ${hiddenCount} alerte(s) masquée(s) automatiquement`);
+      }
+    }
+
+    /**
+     * Écoute les fermetures d'alertes et les mémorise
+     */
+    function watchAlertDismissal() {
+      const alerts = document.querySelectorAll('.alert.alert-dismissible');
+
+      alerts.forEach(alert => {
+        // Trouver le bouton de fermeture
+        const closeBtn = alert.querySelector('.close, [data-dismiss="alert"]');
+        if (!closeBtn) {return;}
+
+        // Écouter le clic sur le bouton de fermeture
+        closeBtn.addEventListener('click', function () {
+          const alertId = getAlertId(alert);
+          saveDismissedAlert(alertId);
+        });
+      });
+
+      console.log(`[Alerts Memory] Surveillance activée pour ${alerts.length} alerte(s)`);
+    }
+
+    /**
+     * Initialise la mémorisation des alertes
+     */
+    function initAlertsMemory() {
+      // D'abord cacher les alertes déjà fermées
+      hideRememberedAlerts();
+
+      // Puis surveiller les nouvelles fermetures
+      watchAlertDismissal();
+    }
+
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAlertsMemory);
+    } else {
+      initAlertsMemory();
+    }
+
+    /**
+     * Ajoute un bouton de réinitialisation dans la page profil/interface
+     */
+    function addResetButtonToInterfacePage() {
+      // Vérifier qu'on est sur la bonne page
+      if (!window.location.pathname.includes('/profil/interface')) {return;}
+
+      // Attendre que le formulaire Tampermonkey soit présent
+      const checkForm = setInterval(() => {
+        const tamperForm = document.querySelector('#kr-tamper-theme-form');
+        if (!tamperForm) {return;}
+
+        clearInterval(checkForm);
+
+        // Créer une section dédiée pour le bouton
+        const section = document.createElement('div');
+        section.className = 'form-group';
+        section.style.marginTop = '20px';
+        section.style.paddingTop = '15px';
+        section.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+
+        // Créer le label
+        const label = document.createElement('label');
+        label.className = 'col-sm-3 control-label';
+        label.style.paddingLeft = '0px';
+        label.style.paddingRight = '0px';
+        label.textContent = 'Alertes';
+
+        // Créer le conteneur du bouton
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'col-sm-9';
+        btnContainer.style.paddingLeft = '0px';
+
+        // Créer le bouton de réinitialisation
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        // Taille réduite : 1/3 de largeur, affichage inline pour ne pas être full-width
+        resetBtn.className = 'btn btn-warning kr-reset-alerts-btn';
+        resetBtn.style.width = '33.333%';
+        resetBtn.style.display = 'inline-block';
+
+        // Ajouter l'icône et le texte
+        const icon = document.createElement('span');
+        icon.className = 'glyphicon glyphicon-refresh';
+        icon.style.marginRight = '5px';
+
+        const text = document.createTextNode('Réinitialiser les alertes fermées');
+
+        resetBtn.appendChild(icon);
+        resetBtn.appendChild(text);
+
+        // Action au clic
+        resetBtn.addEventListener('click', function () {
+          const dismissed = getDismissedAlerts();
+          const count = dismissed.length;
+
+          if (count === 0) {
+            alert('Aucune alerte fermée à réinitialiser.');
+            return;
+          }
+
+          if (confirm(`Voulez-vous vraiment réinitialiser ${count} alerte(s) fermée(s) ? Elles réapparaîtront lors du prochain chargement de page.`)) {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log('[Alerts Memory] Alertes mémorisées effacées');
+
+            // Feedback visuel
+            icon.className = 'glyphicon glyphicon-ok';
+            resetBtn.textContent = '';
+            resetBtn.appendChild(icon);
+            resetBtn.appendChild(document.createTextNode(' ' + (count === 1 ? '1 alerte réinitialisée !' : `${count} alertes réinitialisées !`)));
+            // Conserver la classe utilitaire pour garder la largeur réduite
+            resetBtn.className = 'btn btn-success kr-reset-alerts-btn';
+            // Mettre à jour le texte d'aide pour refléter le nouvel état
+            updateHelpText();
+
+            setTimeout(() => {
+              icon.className = 'glyphicon glyphicon-refresh';
+              resetBtn.textContent = '';
+              resetBtn.appendChild(icon);
+              resetBtn.appendChild(document.createTextNode(' Réinitialiser les alertes fermées'));
+              resetBtn.className = 'btn btn-warning btn-block';
+            }, 3000);
+          }
+        });
+
+        // Ajouter une description (placée sur la même ligne que le bouton)
+        const helpText = document.createElement('p');
+        helpText.className = 'help-block';
+        // Afficher sur la même ligne que le bouton et aligner verticalement
+        helpText.style.display = 'inline-block';
+        helpText.style.marginTop = '0';
+        helpText.style.marginLeft = '10px';
+        helpText.style.verticalAlign = 'middle';
+        helpText.style.fontSize = '12px';
+        helpText.style.opacity = '0.7';
+
+        // Helper pour la gestion du singulier/pluriel
+        function formatDismissedCount(n) {
+          if (n === 0) return 'Aucune alerte actuellement masquée';
+          if (n === 1) return '1 alerte actuellement masquée';
+          return `${n} alertes actuellement masquées`;
+        }
+
+        function updateHelpText() {
+          helpText.textContent = formatDismissedCount(getDismissedAlerts().length);
+        }
+
+        // Initialiser le texte
+        updateHelpText();
+
+        // Assembler la section
+        btnContainer.appendChild(resetBtn);
+        btnContainer.appendChild(helpText);
+        section.appendChild(label);
+        section.appendChild(btnContainer);
+
+        // Insérer après le formulaire Tampermonkey
+        tamperForm.parentNode.insertBefore(section, tamperForm.nextSibling);
+
+        console.log('[Alerts Memory] Bouton de réinitialisation ajouté');
+      }, 100);
+    }
+
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAlertsMemory);
+      document.addEventListener('DOMContentLoaded', addResetButtonToInterfacePage);
+    } else {
+      initAlertsMemory();
+      addResetButtonToInterfacePage();
+    }
+
+    // Exposer une fonction pour réinitialiser (debug)
+    if (window.KralandMobile) {
+      window.KralandMobile.clearDismissedAlerts = function () {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('[Alerts Memory] Alertes mémorisées effacées');
+      };
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.3 - MESSAGE DE BIENVENUE SUR PAGE D'ACCUEIL
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    /**
+     * Ajoute "Bienvenu " avant le nom de l'utilisateur sur la page d'accueil
+     */
+    function addWelcomeMessage() {
+      // Vérifier qu'on est sur la page d'accueil
+      const path = window.location.pathname;
+      if (path !== '/' && path !== '/accueil' && !path.startsWith('/accueil')) {
+        return;
+      }
+
+      // Chercher le h4 qui contient le nom de l'utilisateur
+      // C'est un h4.list-group-item-heading.count qui n'est pas un nombre
+      const allH4 = Array.from(document.querySelectorAll('h4.list-group-item-heading.count'));
+      const userNameH4 = allH4.find(h4 => {
+        const text = h4.textContent.trim();
+        // Le nom d'utilisateur n'est pas un nombre
+        return !/^\d+$/.test(text) && text.length > 0;
+      });
+
+      if (!userNameH4) {
+        console.log('[Welcome Message] Nom d\'utilisateur non trouvé');
+        return;
+      }
+
+      const userName = userNameH4.textContent.trim();
+
+      // Vérifier que "Bienvenu" n'est pas déjà présent
+      if (userName.startsWith('Bienvenu')) {
+        return;
+      }
+
+      // Ajouter "Bienvenu " avant le nom
+      userNameH4.textContent = 'Bienvenu ' + userName;
+
+      console.log('[Welcome Message] Message de bienvenue ajouté pour:', userName);
+    }
+
+    // Initialiser au chargement du DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addWelcomeMessage);
+    } else {
+      addWelcomeMessage();
+    }
+  })();
+
+  // ============================================================================
+  // TASK-2.2 - ACCORDÉON GROUPES (Base)
+  // ============================================================================
+  (function () {
+    /**
+     * Transforme les sections de groupes en accordéon collapsible
+     * Structure DOM identifiée :
+     * - .dashboard-section : Container de chaque groupe
+     * - .dashboard-section-mygroup : Mon groupe (toujours visible)
+     * - .dashboard-section-header : Header avec titre du groupe
+     * - .dashboard-group-title : Nom du leader
+     * - .dashboard-cards-grid : Grille des membres (à masquer/afficher)
+     */
+
+    /**
+     * Rend un groupe collapsible
+     */
+    function makeGroupCollapsible(section, isMyGroup) {
+      const header = section.querySelector('.dashboard-section-header');
+      const cardsGrid = section.querySelector('.dashboard-cards-grid');
+
+      if (!header || !cardsGrid) {return;}
+
+      // Ajouter la classe accordion au header
+      header.classList.add('dashboard-section-header-accordion');
+
+      // État initial : mon groupe ouvert, autres fermés
+      const isExpanded = isMyGroup;
+      cardsGrid.classList.toggle('collapsed', !isExpanded);
+      header.classList.toggle('expanded', isExpanded);
+
+      // Ajouter l'icône d'expansion
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      header.appendChild(icon);
+
+      // Gérer le clic
+      header.style.cursor = 'pointer';
+      header.addEventListener('click', (e) => {
+        // Ne pas intercepter les clics sur les boutons d'action
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+
+        // Toggle l'état
+        const isNowExpanded = !cardsGrid.classList.contains('collapsed');
+        cardsGrid.classList.toggle('collapsed', isNowExpanded);
+        header.classList.toggle('expanded', !isNowExpanded);
+
+        console.log('[Group Accordion]',
+          section.querySelector('.dashboard-group-title')?.textContent,
+          isNowExpanded ? 'collapsed' : 'expanded'
+        );
+      });
+
+      console.log('[Group Accordion] Groupe configuré:',
+        section.querySelector('.dashboard-group-title')?.textContent,
+        'état initial:', isExpanded ? 'ouvert' : 'fermé'
+      );
+    }
+
+    /**
+     * Initialise l'accordéon pour tous les groupes
+     */
+    function initGroupsAccordion() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      const sections = document.querySelectorAll('.dashboard-section');
+      let count = 0;
+
+      sections.forEach(section => {
+        const header = section.querySelector('.dashboard-section-header');
+        const title = section.querySelector('.dashboard-group-title');
+
+        // Vérifier que c'est bien un groupe (a un header avec titre)
+        if (header && title) {
+          const isMyGroup = section.classList.contains('dashboard-section-mygroup');
+          makeGroupCollapsible(section, isMyGroup);
+          count++;
+        }
+      });
+
+      console.log('[Groups Accordion] Initialisé pour', count, 'groupes');
+    }
+
+    // Ajouter la fonction à l'API globale
+    if (window.KralandMobile) {
+      window.KralandMobile.initGroupsAccordion = initGroupsAccordion;
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 70)
+    InitQueue.register('initGroupsAccordion', initGroupsAccordion, 70);
+  })();
+
+  // ============================================================================
+  // TASK-2.5 : Commerce - Accordéon catégories
+  // ============================================================================
+  // Enregistrer l'initialisation du Commerce Accordion dans la queue pour éviter l'accès à document.body avant DOMContentLoaded
+  InitQueue.register('Commerce Accordion', function initCommerceAccordion() {
+    if (!isMobileMode()) {return;}
+    if (!window.location.href.includes('jouer/plateau')) {return;}
+
+    const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
+    const categoryDivs = [];
+
+    // Trouver tous les divs de catégorie
+    document.querySelectorAll('h4.list-group-item-heading').forEach(h4 => {
+      const categoryName = h4.textContent.trim();
+      if (categories.includes(categoryName)) {
+        const categoryDiv = h4.parentElement;
+        if (categoryDiv && categoryDiv.classList.contains('list-group-item')) {
+          categoryDivs.push({
+            name: categoryName,
+            div: categoryDiv,
+            h4: h4
+          });
+        }
+      }
+    });
+
+    if (categoryDivs.length === 0) {return;}
+
+    console.log(`[Commerce Accordion] Trouvé ${categoryDivs.length} catégories`);
+
+    // Pour chaque catégorie, trouver ses produits (les <a> qui suivent jusqu'à la prochaine catégorie)
+    categoryDivs.forEach((category, index) => {
+      const products = [];
+      let currentElement = category.div.nextElementSibling;
+
+      // Parcourir les éléments suivants jusqu'à la prochaine catégorie
+      while (currentElement) {
+        // Vérifier que l'élément a bien une propriété classList (éléments HTML uniquement)
+        if (!currentElement.classList) {
+          currentElement = currentElement.nextElementSibling;
+          continue;
+        }
+
+        // Si on trouve une autre catégorie, on s'arrête
+        if (currentElement.classList.contains('ds_forum') &&
+            currentElement.querySelector('h4.list-group-item-heading')) {
+          break;
+        }
+
+        // Si c'est un produit (lien avec classe ds_game)
+        if (currentElement.tagName === 'A' && currentElement.classList.contains('ds_game')) {
+          products.push(currentElement);
+        }
+
+        currentElement = currentElement.nextElementSibling;
+      }
+
+      // Créer un conteneur pour les produits
+      const productsContainer = document.createElement('div');
+      productsContainer.className = 'commerce-products-container';
+
+      // Déplacer les produits dans le conteneur
+      products.forEach(product => {
+        productsContainer.appendChild(product);
+      });
+
+      // Vérifier que le div de catégorie a bien un parent et que les éléments existent
+      if (!category.div || !category.div.parentElement || !category.h4) {
+        console.warn(`[Commerce Accordion] ${category.name}: éléments manquants`);
+        return;
+      }
+
+      // Insérer le conteneur après le div de catégorie
+      category.div.parentElement.insertBefore(productsContainer, category.div.nextSibling);
+
+      // Ajouter la classe accordion au div de catégorie
+      category.div.classList.add('commerce-category-header');
+
+      // État initial : première catégorie (Nourriture) ouverte
+      const isExpanded = index === 0;
+      if (!isExpanded) {
+        productsContainer.classList.add('collapsed');
+        category.div.classList.add('collapsed');
+      } else {
+        category.div.classList.add('expanded');
+      }
+
+      // Ajouter l'icône chevron
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+
+      // Vérification de sécurité avant d'ajouter l'icône
+      if (category.h4 && category.h4.appendChild) {
+        category.h4.appendChild(icon);
+      }
+
+      // Ajouter le gestionnaire de clic
+      category.div.style.cursor = 'pointer';
+      category.div.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isNowExpanded = !productsContainer.classList.contains('collapsed');
+        productsContainer.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('collapsed', isNowExpanded);
+        category.div.classList.toggle('expanded', !isNowExpanded);
+
+        console.log(`[Commerce Accordion] ${category.name}: ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+      });
+
+      console.log(`[Commerce Accordion] ${category.name}: ${products.length} produits, état initial: ${isExpanded ? 'ouvert' : 'fermé'}`);
+    });
+  });
+
+  // ============================================================================
+  // TASK-2.4 : Section bâtiment collapsible
+  // ============================================================================
+  InitQueue.register('Building Collapse', function initBuildingCollapse() {
+    if (!isMobileMode()) {return;}
+
+    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h =>
+      h.textContent.includes('Bâtiment')
+    );
+
+    if (!batimentHeader) {return;}
+
+    const panelHeading = batimentHeader.parentElement;
+    if (!panelHeading) {return;}
+
+    const panelBody = panelHeading.nextElementSibling;
+
+    if (!panelBody || !panelBody.classList.contains('panel-body')) {return;}
+
+    // Ajouter les classes
+    panelHeading.classList.add('building-section-header');
+    panelBody.classList.add('building-section-content');
+
+    // Ajouter l'icône chevron
+    const icon = document.createElement('i');
+    icon.className = 'fa fa-chevron-down accordion-icon';
+    panelHeading.appendChild(icon);
+
+    // État initial : ouvert
+    panelHeading.classList.add('expanded');
+
+    // Gestionnaire de clic
+    panelHeading.style.cursor = 'pointer';
+    panelHeading.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const isNowExpanded = !panelBody.classList.contains('collapsed');
+      panelBody.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('collapsed', isNowExpanded);
+      panelHeading.classList.toggle('expanded', !isNowExpanded);
+
+      console.log(`[Building Section] ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+    });
+
+    console.log('[Building Section] Initialisé - section collapsible');
+  });
+
+  // ============================================================================
+  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
+  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // ============================================================================
+  (function () {
+    function initNavigationRow() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Utiliser un élément DOM préexistant comme ancre (pas .mobile-quick-actions créé par le script)
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) {return;}
+
+      // Trouver l'image "Sortir" avec la croix directionnelle
+      const exitImg = document.querySelector('img[alt="Sortir"]');
+      if (!exitImg || !exitImg.parentElement) {return;}
+
+      const parent = exitImg.parentElement;
+      const map = parent.querySelector('map[name="exitmap"]');
+
+      // Trouver toutes les images bat*.gif (accès aux pièces)
+      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
+      if (allBatImages.length === 0) {return;}
+
+      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
+      const originalImages = allBatImages.filter(img => {
+        let current = img;
+        while (current && current !== document.body) {
+          if (current.classList && current.classList.contains('kr-navigation-row')) {
+            return false;
+          }
+          current = current.parentElement;
+        }
+        return true;
+      });
+
+      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
+      originalImages.sort((a, b) => {
+        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
+        return numA - numB;
+      });
+
+      if (originalImages.length === 0) {return;}
+
+      // Trouver et masquer le conteneur d'origine (div.row.center)
+      const originalContainer = parent.closest('.row.center');
+      if (originalContainer) {
+        originalContainer.style.display = 'none';
+      }
+
+      // Récupérer les liens parents des images
+      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
+      if (roomLinks.length === 0) {return;}
+
+      // Créer le conteneur de la ligne de navigation
+      const navRow = document.createElement('div');
+      navRow.className = 'kr-navigation-row';
+      navRow.setAttribute('role', 'group');
+
+      // Créer la croix directionnelle en premier
+      if (exitImg && map) {
+        const directionGroup = document.createElement('div');
+        directionGroup.className = 'btn-group kr-direction-cross';
+        directionGroup.setAttribute('role', 'group');
+
+        // Créer un lien style btn pour la croix
+        const directionLink = document.createElement('div');
+        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
+
+        // Cloner l'image et la map
+        const exitImgClone = exitImg.cloneNode(true);
+        exitImgClone.style.width = '60px';
+        exitImgClone.style.height = '60px';
+        exitImgClone.style.display = 'block';
+
+        const mapClone = map.cloneNode(true);
+
+        // En desktop, l'interaction se fait via les areas de la map
+        // En mobile, on doit intercepter les clics sur le conteneur et les rediriger vers les areas
+        directionLink.addEventListener('click', (e) => {
+          // Calculer les coordonnées relatives du clic
+          const rect = directionLink.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Trouver l'area qui correspond à ces coordonnées
+          const areas = mapClone.querySelectorAll('area');
+          for (const area of areas) {
+            if (area.shape === 'rect') {
+              const coords = area.coords.split(',').map(c => parseInt(c));
+              const [x1, y1, x2, y2] = coords;
+              if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+                e.preventDefault();
+                e.stopPropagation();
+                const url = area.href;
+                if (url && url !== '#') {
+                  window.location.href = url;
+                }
+                return;
+              }
+            }
+          }
+        });
+
+        directionLink.appendChild(exitImgClone);
+        directionLink.appendChild(mapClone);
+        directionGroup.appendChild(directionLink);
+        navRow.appendChild(directionGroup);
+      }
+
+      // Créer une carte pour chaque accès aux pièces
+      roomLinks.forEach(link => {
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group kr-room-access-card';
+        btnGroup.setAttribute('role', 'group');
+
+        // Cloner le lien pour ne pas modifier l'original
+        const linkClone = link.cloneNode(true);
+        // Utiliser les mêmes classes que les actions rapides
+        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
+
+        // Forcer la navigation pour éviter l'interception par Kraland
+        linkClone.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const url = linkClone.href;
+          if (url && url !== '#') {
+            window.location.href = url;
+          }
+        });
+
+        btnGroup.appendChild(linkClone);
+
+        navRow.appendChild(btnGroup);
+      });
+
+      // Insérer la nouvelle ligne après la navbar (élément préexistant)
+      // Note: On utilise .navbar (DOM original) et non .mobile-quick-actions (créé par le script)
+      navbar.parentNode.insertBefore(navRow, navbar.nextSibling);
+
+      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 60 - après quick actions)
+    InitQueue.register('initNavigationRow', initNavigationRow, 60);
+  })();
+
+  // ============================================================================
+  // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
+  // ============================================================================
+  if (window.innerWidth < 768 && window.location.hash && window.location.hash !== '#top') {
+    // Sauvegarder la position actuelle avant que le navigateur ne scrolle
+    const initialScrollRestoration = history.scrollRestoration;
+    history.scrollRestoration = 'manual';
+
+    // Supprimer l'ancre de l'URL
+    const cleanUrl = window.location.pathname + window.location.search;
+    history.replaceState(null, '', cleanUrl);
+
+    // Forcer le scroll en haut immédiatement et après le chargement
+    const forceScrollTop = () => window.scrollTo(0, 0);
+    forceScrollTop();
+
+    // S'assurer que le scroll reste en haut même après le chargement complet
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', forceScrollTop);
+    }
+    window.addEventListener('load', forceScrollTop);
+
+    // Restaurer le comportement par défaut après 500ms
+    setTimeout(() => {
+      history.scrollRestoration = initialScrollRestoration;
+    }, 500);
+  }
+
+  // ============================================================================
+  // NOUVELLES : Gestion du repliement/dépliement (mobile uniquement)
+  // ============================================================================
+  (function () {
+    function initNewsToggle() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      const newsToggle = document.getElementById('slide-submenu');
+      const newsContainer = document.getElementById('player-header-section');
+
+      if (newsToggle && newsContainer) {
+        // Fonction pour mettre à jour le bouton
+        function updateButton(isCollapsed) {
+          newsToggle.innerHTML = isCollapsed ? '▼' : '×';
+          newsToggle.setAttribute('aria-label', isCollapsed ? 'Déplier les nouvelles' : 'Replier les nouvelles');
+          newsToggle.setAttribute('title', isCollapsed ? 'Déplier' : 'Replier');
+        }
+
+        // Charger l'état depuis localStorage
+        const isCollapsed = localStorage.getItem('kr-news-collapsed') === 'true';
+        if (isCollapsed) {
+          newsContainer.classList.add('kr-news-collapsed');
+        }
+        updateButton(isCollapsed);
+
+        // Gérer le clic (capturer en premier pour empêcher Bootstrap)
+        newsToggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // Empêche les autres handlers Bootstrap
+          newsContainer.classList.toggle('kr-news-collapsed');
+
+          // Sauvegarder l'état et mettre à jour le bouton
+          const collapsed = newsContainer.classList.contains('kr-news-collapsed');
+          localStorage.setItem('kr-news-collapsed', collapsed);
+          updateButton(collapsed);
+        }, { capture: true }); // Capture phase pour intercepter avant Bootstrap
+
+        console.log('[News Toggle] Initialisé');
+      }
+    }
+
+    // Enregistrer dans la queue d'initialisation mobile (priorité 80)
+    InitQueue.register('initNewsToggle', initNewsToggle, 80);
+  })();
+
+  // ============================================================================
+  // CONFIGURATION
+  // ============================================================================
+  const CONFIG = {
+    BUNDLED_CSS: `/* ============================================================================
+   1. CSS VARIABLES
+   ============================================================================ */
+
+:root {
+  --kr-primary: #8b0f0e;
+  --kr-primary-dark: #700b09;
+  --kr-gold: #C69100;
+  --kr-highlight: #c41e3a;
+  --kr-highlight-reverse: #f9d9de;
+  --kr-surface: #fff;
+  --kr-text: #0f1724;
+  --kr-muted: #6b7280;
+  --kr-navbar-bg: #111315;
+  --kr-radius: .5rem;
+  --kr-avatar-size: 120px;
+
+  /* Variables pour le dark mode */
+  --kr-bg-page: #f5f5f5;
+  --kr-bg-surface: #fff;
+  --kr-bg-elevated: #fff;
+  --kr-bg-hover: rgb(0,0,0,0.02);
+  --kr-bg-active: rgb(0,0,0,0.05);
+  --kr-text-primary: #0f1724;
+  --kr-text-secondary: #6b7280;
+  --kr-text-muted: #9ca3af;
+  --kr-text-inverse: #fff;
+  --kr-border-default: rgb(0,0,0,0.08);
+  --kr-border-strong: rgb(0,0,0,0.15);
+  --kr-shadow-sm: 0 1px 2px rgb(0,0,0,0.05);
+  --kr-shadow-md: 0 4px 6px rgb(0,0,0,0.07);
+  --kr-shadow-lg: 0 10px 15px rgb(0,0,0,0.1);
+
+  /* Couleurs spécifiques */
+  --kr-white: #fff;
+  --kr-focus-ring: rgb(164,18,13,0.22);
+  --kr-focus-ring-light: rgb(164,18,13,0.18);
+  --kr-alert-info-bg: rgb(164,18,13,0.06);
+  --kr-alert-info-border: rgb(164,18,13,0.14);
+  --kr-btn-shadow: rgb(165,18,13,0.12);
+  --kr-badge-danger: #dc3545;
+  --kr-badge-danger-border: #bd2130;
+  --kr-badge-pnj: #d9534f;
+  --kr-bootstrap-blue: #337ab7;
+  
+  /* Couleurs nations (.f1-.f9) */
+  --kr-nation-1: #C41E3A;
+  --kr-nation-2: #C69100;
+  --kr-nation-3: #FF0;
+  --kr-nation-4: #0033A0;
+  --kr-nation-5: #0B6623;
+  --kr-nation-6: #6A0DAD;
+  --kr-nation-7: #6B7280;
+  --kr-nation-8: #0A6B2D;
+  --kr-nation-9: #a70;
+  
+  /* Couleurs nations fonds (.c1-.c12) - reproduit depuis la feuille de style principale */
+  --kr-nation-bg-1: rgb(255, 128, 128);
+  --kr-nation-bg-2: rgb(170, 112, 0);
+  --kr-nation-bg-3: rgb(255, 255, 128);
+  --kr-nation-bg-4: rgb(128, 128, 255);
+  --kr-nation-bg-5: rgb(128, 255, 128);
+  --kr-nation-bg-6: rgb(204, 128, 255);
+  --kr-nation-bg-7: rgb(170, 170, 170);
+  --kr-nation-bg-8: rgb(115, 151, 115);
+  --kr-nation-bg-9: rgb(170, 170, 68);
+  --kr-nation-bg-10: rgb(204, 255, 255);
+
+  /* CLASSES KRALAND - Fonds nations (.c1-.c12) */
+  .c1  { background-color: var(--kr-nation-bg-1) !important; }
+  .c2  { background-color: var(--kr-nation-bg-2) !important; }
+  .c3  { background-color: var(--kr-nation-bg-3) !important; }
+  .c4  { background-color: var(--kr-nation-bg-4) !important; }
+  .c5  { background-color: var(--kr-nation-bg-5) !important; }
+  .c6  { background-color: var(--kr-nation-bg-6) !important; }
+  .c7  { background-color: var(--kr-nation-bg-7) !important; }
+  .c8  { background-color: var(--kr-nation-bg-8) !important; }
+  .c9  { background-color: var(--kr-nation-bg-9) !important; }
+  .c10 { background-color: var(--kr-nation-bg-10) !important; }
+  /* Forcer texte noir sur les labels nationaux (lisibilité) */
+  .mini.c1, .mini.c2, .mini.c3, .mini.c4, .mini.c5, .mini.c6, .mini.c7, .mini.c8, .mini.c9, .mini.c10 {
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  
+  /* ============================================
+     MOBILE ADAPTATION - VARIABLES (TASK-1.1)
+     ============================================ */
+
+  /* Hauteurs fixes mobile */
+  --mobile-header-height: 56px;
+  --mobile-tab-bar-height: 48px;
+  --mobile-touch-target: 44px;
+  
+  /* Espacements */
+  --mobile-spacing-xs: 4px;
+  --mobile-spacing-sm: 8px;
+  --mobile-spacing-md: 12px;
+  --mobile-spacing-lg: 16px;
+  --mobile-spacing-xl: 24px;
+  
+  /* Bordures */
+  --mobile-radius: 8px;
+  --mobile-radius-lg: 16px;
+  
+  /* Z-index */
+  --z-header: 1000;
+  --z-tab-bar: 999;
+  --z-bottom-sheet: 998;
+  --z-drawer: 1001;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Couleurs des jauges (Bootstrap success/info/warning) */
+  --kr-gauge-pv: #28a745; /* Vert Bootstrap success */
+  --kr-gauge-pm: #007bff; /* Bleu Bootstrap info */
+  --kr-gauge-pp: #ffc107; /* Jaune Bootstrap warning */
+  
+  /* Overlays et transparence pour navbar sombre */
+  --kr-overlay-light-10: rgba(255, 255, 255, 0.1);
+  --kr-overlay-light-05: rgba(255, 255, 255, 0.05);
+  --kr-overlay-light-20: rgba(255, 255, 255, 0.2);
+  --kr-overlay-dark-20: rgba(0, 0, 0, 0.2);
+  --kr-overlay-dark-30: rgba(0, 0, 0, 0.3);
+  --kr-overlay-dark-125: rgba(0, 0, 0, 0.125);
+}
+
+html.kr-theme-variant-empire-brun {
+  --kr-primary: #5E3B2D;
+  --kr-highlight: #C69100;
+}
+
+html.kr-theme-variant-paladium {
+  --kr-primary: #D4AF37; 
+  --kr-highlight: #044c17; 
+}
+
+html.kr-theme-variant-theocratie-seelienne {
+  --kr-primary: #0033A0;
+  --kr-highlight: #2d5fcb;
+}
+
+html.kr-theme-variant-paradigme-vert {
+  --kr-primary: #0B6623;
+  --kr-highlight: #063803;
+}
+
+html.kr-theme-variant-khanat-elmerien {
+  --kr-primary: #6A0DAD;
+  --kr-highlight: #7b4c9c;
+}
+
+html.kr-theme-variant-confederation-libre {
+  --kr-primary: #6B7280;
+  --kr-highlight: #475369;
+}
+
+html.kr-theme-variant-royaume-ruthvenie {
+  --kr-primary: #0A6B2D;
+  --kr-highlight: #C41E3A; 
+}
+
+html.kr-theme-variant-empire-brun-dark {
+  --kr-primary: #7a5240;
+  --kr-primary-dark: #5E3B2D;
+  --kr-highlight: #d4a574;
+  --kr-highlight-reverse: #1a0f0a;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #12100d;
+  --kr-bg-surface: #1e1a15;
+  --kr-bg-elevated: #2a251f;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #f5f1ed;
+  --kr-text-secondary: #b8a997;
+  --kr-text-muted: #8a7968;
+  --kr-text-inverse: #12100d;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #3a332b;
+  --kr-form-bg-focus: #423a31;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-paladium-dark {
+  --kr-primary: #e6c76e;
+  --kr-primary-dark: #D4AF37;
+  --kr-highlight: #4a9d5f;
+  --kr-highlight-reverse: #021a0a;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0f0e0a;
+  --kr-bg-surface: #1a1810;
+  --kr-bg-elevated: #252015;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #f5f3e8;
+  --kr-text-secondary: #c4b896;
+  --kr-text-muted: #938567;
+  --kr-text-inverse: #0f0e0a;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #3a3420;
+  --kr-form-bg-focus: #43392a;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #e6c76e;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-theocratie-seelienne-dark {
+  --kr-primary: #5a8fd9;
+  --kr-primary-dark: #2d5fcb;
+  --kr-highlight: #80b3ff;
+  --kr-highlight-reverse: #000d1f;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0a0e15;
+  --kr-bg-surface: #12182a;
+  --kr-bg-elevated: #1a2438;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #e8f0ff;
+  --kr-text-secondary: #9db5d6;
+  --kr-text-muted: #6b7f9e;
+  --kr-text-inverse: #0a0e15;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #2a3447;
+  --kr-form-bg-focus: #323d54;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #80b3ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-paradigme-vert-dark {
+  --kr-primary: #4d9c61;
+  --kr-primary-dark: #2a7a3d;
+  --kr-highlight: #70c784;
+  --kr-highlight-reverse: #021508;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0a120d;
+  --kr-bg-surface: #0f1a13;
+  --kr-bg-elevated: #1a2820;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #e8f5ed;
+  --kr-text-secondary: #a0c4ab;
+  --kr-text-muted: #6d8a75;
+  --kr-text-inverse: #0a120d;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #2a3d30;
+  --kr-form-bg-focus: #324539;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #70c784;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-khanat-elmerien-dark {
+  --kr-primary: #96c;
+  --kr-primary-dark: #7b4c9c;
+  --kr-highlight: #b794d9;
+  --kr-highlight-reverse: #1a0425;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0f0a15;
+  --kr-bg-surface: #1a121f;
+  --kr-bg-elevated: #251a2d;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #f0e8ff;
+  --kr-text-secondary: #bba0d6;
+  --kr-text-muted: #857299;
+  --kr-text-inverse: #0f0a15;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #3a2f47;
+  --kr-form-bg-focus: #443854;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #b794d9;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-confederation-libre-dark {
+  --kr-primary: #9ca3af;
+  --kr-primary-dark: #6b7280;
+  --kr-highlight: #c2c9d6;
+  --kr-highlight-reverse: #0f1115;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0e1013;
+  --kr-bg-surface: #16181c;
+  --kr-bg-elevated: #1f2228;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #e8eaed;
+  --kr-text-secondary: #b8bcc4;
+  --kr-text-muted: #7e8591;
+  --kr-text-inverse: #0e1013;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #2d3139;
+  --kr-form-bg-focus: #363a43;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #c2c9d6;
+  --kr-nation-8: #81c784;
+  --kr-nation-9: #c4b958;
+}
+
+html.kr-theme-variant-royaume-ruthvenie-dark {
+  --kr-primary: #4a9d61;
+  --kr-primary-dark: #2a7a3d;
+  --kr-highlight: #ff6b85;
+  --kr-highlight-reverse: #1a0408;
+
+  /* Dark mode surfaces */
+  --kr-bg-page: #0d1210;
+  --kr-bg-surface: #141a16;
+  --kr-bg-elevated: #1d2621;
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  /* Color scheme */
+  color-scheme: dark;
+
+  /* Dark mode texte */
+  --kr-text-primary: #ecf5f0;
+  --kr-text-secondary: #a5c4b0;
+  --kr-text-muted: #708a79;
+  --kr-text-inverse: #0d1210;
+
+  /* Dark mode bordures */
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  /* Dark mode ombres */
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  
+  /* Dark mode form controls */
+  --kr-form-bg: #2d3d33;
+  --kr-form-bg-focus: #36463b;
+  
+  /* Couleurs nations mode sombre (.f1-.f9) */
+  --kr-nation-1: #ff8080;
+  --kr-nation-2: #d4a574;
+  --kr-nation-3: #ffe066;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #70c784;
+  --kr-nation-9: #c4b958;
+}
+
+
+/* ============================================================================
+   2. LAYOUT OVERRIDES
+   ============================================================================ */
+
+/* Hide top header with Kraland logo */
+#top {
+  display: none !important;
+}
+
+
+html {
+  height: auto !important; /* Force HTML à grandir avec le contenu */
+}
+
+body {
+  min-height: 100vh !important; /* Le body fait au moins la hauteur du viewport pour les pages courtes */
+  height: auto !important; /* Laisser le body grandir avec le contenu */
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important; /* Pas de margin pour éviter le décalage de 60px */
+  padding-top: 60px; /* Compenser la navigation fixe (60px) */
+}
+
+/* La navigation en haut est en position fixed, donc elle sort du flux */
+nav.navbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1030 !important; /* Au-dessus du contenu */
+  height: auto !important; /* Laisser la hauteur s'adapter au contenu */
+  max-height: 60px !important; /* Limiter la hauteur maximale */
+}
+
+/* Le contenu principal occupe l'espace disponible */
+#content {
+  flex: 1 0 auto;
+}
+
+footer {
+  /* Footer en position normale, collé en bas grâce au flexbox */
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Option pour masquer la citation du footer */
+html.kr-hide-footer-quote .footer-quote {
+  display: none !important;
+}
+
+/* Increase container width: remove 150px from each side */
+.container {
+  max-width: 1608px !important;
+  width: 1608px !important;
+}
+
+
+
+/* Show skills panel (no longer collapsed by default) */
+#skills-panel {
+  display: block !important;
+  border: 1px solid rgb(0, 0, 0, 0.06) !important;
+  border-radius: 5px !important;
+  background-color: var(--kr-white) !important;
+}
+
+
+/* ============================================================================
+   3. NAVIGATION
+   ============================================================================ */
+
+/* Navbar brand (logo) alignment */
+.navbar-brand {
+  display: flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.navbar-brand img.kr-logo {
+  height: 28px;
+  vertical-align: middle;
+}
+
+.navbar-nav > li > a{
+  color: var(--kr-white) !important;
+}
+
+
+/* ============================================================================
+   4. FORMS
+   ============================================================================ */
+
+.form-control.form-control {
+  border-radius: .4rem;
+  border: 1px solid rgb(0,0,0,0.08);
+  padding: .6rem .8rem;
+  font-size: .95rem;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 .18rem var(--kr-focus-ring);
+  border-color: var(--kr-primary);
+  outline: none;
+}
+
+textarea.form-control.form-control {
+  font-size: 1.4rem !important;
+  line-height: 1.6 !important;
+}
+
+.form-group label {
+  color: var(--kr-text);
+  font-weight: 600;
+}
+
+
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--kr-primary) !important;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 .12rem var(--kr-focus-ring-light) !important;
+}
+
+input[type="checkbox"]:checked {
+  border-color: var(--kr-primary) !important;
+}
+
+/* ============================================================================
+   5. BADGES, LABELS & ALERTS
+   Consolidated color remapping for theme
+   ============================================================================ */
+
+/* Badges & labels - info/primary variants use red */
+.label,
+.badge {
+  background-color: var(--kr-primary);
+  color: var(--kr-white);
+  border-color: var(--kr-primary-dark);
+}
+
+.bg-info {
+  background-color: var(--kr-primary);
+  color: var(--kr-white);
+}
+
+/* Badge danger - notification alert always red on all themes */
+.badge-danger {
+  background-color: var(--kr-badge-danger) !important;
+  color: var(--kr-white) !important;
+  border-color: var(--kr-badge-danger-border) !important;
+}
+
+/* Alerts - info variant */
+.alert.alert-info {
+  background-color: var(--kr-alert-info-bg);
+  border-color: var(--kr-alert-info-border);
+  color: var(--kr-text);
+}
+
+.alert strong,
+.alert p {
+  color: var(--kr-text);
+}
+
+
+/* ============================================================================
+   6. LIST GROUPS
+   ============================================================================ */
+
+.list-group-item {
+  border: none;
+  padding: .6rem .75rem;
+}
+
+.list-group-item.btn {
+  border: none !important;
+}
+
+.list-group-item.active,
+.list-group-item.active:focus,
+.list-group-item.active:hover,
+.list-group-item.active a {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
+  color: var(--kr-surface) !important;
+}
+
+/* Keep hover for non-active items subtle and themed */
+.list-group-item:hover {
+  color: var(--kr-primary-dark);
+  background-color: rgb(0,0,0,0.02);
+}
+
+/* ============================================================================
+   7. AVATARS
+   Ensure avatars are displayed at least the configured size and crop nicely
+   ============================================================================ */
+.img-circle {
+  width: var(--kr-avatar-size);
+  height: var(--kr-avatar-size);
+  min-width: var(--kr-avatar-size);
+  min-height: var(--kr-avatar-size);
+  object-fit: cover;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+/* Fix: Override Bootstrap .img-responsive on avatars to prevent stretching */
+.img-circle.img-responsive,
+.img-circle.img-thumbnail {
+  max-width: none !important;
+  width: var(--kr-avatar-size);
+  height: var(--kr-avatar-size);
+}
+
+
+/* Ensure layout doesn't break: allow the author column to accommodate larger avatars */
+.col-md-3.sidebar .avatar,
+.col-md-2.sidebar .avatar {
+  margin-bottom: 0.5rem;
+}
+
+/* Align list-group user items with their avatar to prevent overflow */
+.list-group a.list-group-item.ds_user,
+.list-group-item.ds_user {
+  position: relative;
+  min-height: var(--kr-avatar-size) !important;
+  padding-right: calc(var(--kr-avatar-size) + 1rem) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.list-group-item.ds_user .pull-right {
+  position: absolute !important;
+  right: .75rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+/* ============================================================================
+   7.1 PLAYER HEADER SECTION - FIX BOOTSTRAP GRID
+   
+   Le HTML utilise des classes .nopadding qui cassent le système de grille Bootstrap.
+   On restaure ici les paddings standards pour que les .row et .col- fonctionnent correctement.
+   ============================================================================ */
+
+/* Restaurer le padding Bootstrap standard (15px) pour toutes les colonnes dans le header */
+#player-header-section .nopadding,
+#player-header-section .nopadding-right,
+#player-main-panel .nopadding,
+#player-main-panel .nopadding-right,
+#player-vitals-section .nopadding,
+#player-vitals-section .nopadding-right {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}
+
+/* Exception : le bouton avatar peut avoir moins de padding pour rester centré */
+#player-main-panel > .row > .nopadding:first-child {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Corriger le padding-left inline sur player-vitals-section */
+#player-vitals-section[style*="padding-left"] {
+  padding-left: 0 !important;
+}
+
+/* Structurer correctement player-actions-section qui contient des boutons sans colonnes */
+#player-actions-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 15px !important;
+}
+
+/* Espacement entre les lignes de boutons d'accès rapide */
+.kr-quick-access-buttons .col-xs-6 {
+  margin-bottom: 10px;
+}
+
+#player-actions-section hr {
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+
+
+/* ============================================================================
+   8. CAROUSEL
+   ============================================================================ */
+
+.carousel-caption {
+  background: linear-gradient(180deg, rgb(0,0,0,0.55), rgb(0,0,0,0.35));
+  padding: 1.4rem;
+  padding-bottom: 56px;
+  border-radius: .6rem;
+  color: var(--kr-white);
+}
+
+.item img[class*="-slide"] {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+a.carousel-control.left,
+a.carousel-control.right{
+   background-image: none;
+}
+
+
+/* ============================================================================
+   9. MODALS
+   Fix modal overflow - prevent modals from extending beyond viewport
+   Allow clicking outside to close
+   ============================================================================ */
+
+/* Conteneur modal - empêcher le scroll du conteneur */
+.modal {
+  display: flex !important;
+  position: fixed !important; /* Nécessaire pour que la modal reste par-dessus le contenu */
+  align-items: flex-start; /* Évite le scroll automatique */
+  justify-content: center;
+  overflow-y: hidden !important; /* Pas de scroll sur le conteneur modal */
+  pointer-events: auto;
+  padding-top: 30px; /* Espacement du haut */
+}
+
+.modal.in {
+  /* Force le scroll à rester en haut lors de l'ouverture */
+  overflow-y: hidden !important;
+}
+
+/* Dialog avec contraintes de hauteur et son propre scroll */
+.modal-dialog {
+  width: 900px;
+  max-width: 90vw;
+  margin: 0 auto 30px; /* Pas de margin-top car géré par padding du parent */
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  overflow-y: auto; /* Le dialog peut scroller si nécessaire */
+}
+
+/* Content avec structure flex */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Body scrollable - le contenu peut scroller si trop grand */
+.modal-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+/* Header et footer restent fixes et toujours visibles */
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   9b. BOOTBOX ORDER MODAL - MOBILE UX OPTIMIZATION
+   Améliore l'utilisabilité mobile de la modale d'ordre
+   - Zones tactiles 44px minimum (WCAG 2.1)
+   - Grille responsive pour les actions
+   - Footer sticky
+   - Prévention zoom iOS (font-size 16px+)
+   
+   ⚠️ MOBILE ONLY - Ne s'applique QUE sur mobile (<768px)
+   ============================================================================ */
+
+@media (width <= 767px) {
+  /* 1. SELECT PERSONNAGE */
+  .bootbox-confirm .modal-body > select:first-of-type,
+  .bootbox-confirm select.form-control {
+  min-height: var(--mobile-touch-target);
+  font-size: 16px !important; /* Évite zoom iOS */
+  padding: 8px 12px;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-radius: var(--mobile-radius);
+}
+
+/* 2. ACTIONS PRIMAIRES/SECONDAIRES EN GRILLE */
+.bootbox-confirm .panel-heading ul.nav-tabs {
+  display: grid !important; /* Override Bootstrap flex */
+  grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+  gap: var(--mobile-spacing-md) !important;
+  padding-left: 0;
+  margin-bottom: var(--mobile-spacing-md);
+  border-bottom: none !important; /* Retire la bordure des nav-tabs Bootstrap */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li {
+  margin: 0 !important;
+  padding: 0;
+  display: block;
+  float: none !important; /* Override Bootstrap float */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--mobile-touch-target);
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--kr-bg-elevated);
+  border: 1px solid var(--kr-border-default) !important;
+  border-radius: var(--mobile-radius) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  margin: 0 !important; /* Override Bootstrap margin */
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li.active > a {
+  background: var(--kr-primary);
+  color: white;
+  border-color: var(--kr-primary) !important;
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:hover,
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:focus {
+  background: var(--kr-bg-hover);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--kr-shadow-sm);
+  border-color: var(--kr-primary) !important;
+}
+
+.bootbox-confirm .panel-heading ul.nav-tabs > li > a:active {
+  transform: translateY(0);
+  background: var(--kr-bg-active);
+}
+
+/* Icônes dans les actions (si présentes) */
+.bootbox-confirm .list-inline > li > a > .fa,
+.bootbox-confirm .list-inline > li > a > .glyphicon {
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+/* 3. TABLEAU RADIO BUTTONS */
+
+/* 3. PANEL ACTIONS - Layout Grid Compact */
+.bootbox-confirm .panel-actions {
+  padding: var(--mobile-spacing-md);
+  background: var(--kr-bg-surface);
+  border-radius: var(--mobile-radius);
+}
+
+/* Headers "Actions / Diff. / Jet" */
+.bootbox-confirm .panel-actions::before {
+  content: "Actions";
+  display: block;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--kr-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--mobile-spacing-sm);
+  padding-bottom: var(--mobile-spacing-sm);
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+/* ACTIONS GRID - Layout compact à 4 colonnes */
+.bootbox-confirm .panel-actions .row.form-group {
+  display: grid !important;
+  grid-template-columns: 44px 1fr 60px 70px;
+  gap: 0;
+  padding: 0 !important;
+  margin: 0 0 2px !important;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+/* Hover sur row */
+.bootbox-confirm .panel-actions .row.form-group:hover {
+  background: rgba(212, 165, 116, 0.05);
+  border-color: rgba(212, 165, 116, 0.3);
+  transform: translateX(2px);
+}
+
+/* Row checked - highlight fort */
+.bootbox-confirm .panel-actions .row.form-group:has(input[type="radio"]:checked) {
+  background: rgba(212, 165, 116, 0.12);
+  border-color: var(--kr-primary);
+  box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.2);
+}
+
+/* Cellules du grid */
+.bootbox-confirm .panel-actions .row.form-group > div {
+  padding: 8px 6px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center;
+  min-height: 44px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bootbox-confirm .panel-actions .row.form-group > div:last-child {
+  border-right: none;
+}
+
+/* Colonne 1 : Radio button (centré) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(1) {
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Colonne 2 : Label (aligné à gauche) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(2) {
+  padding-left: 12px !important;
+}
+
+/* Colonnes 3 & 4 : Diff et Jet (alignés à droite, font compact) */
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(3),
+.bootbox-confirm .panel-actions .row.form-group > div:nth-child(4) {
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--kr-text-secondary);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Radio buttons - Style custom */
+.bootbox-confirm .panel-actions input[type="radio"] {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  cursor: pointer;
+  accent-color: var(--kr-primary);
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Labels - Style clickable */
+.bootbox-confirm .panel-actions label {
+  cursor: pointer;
+  margin: 0 !important;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--kr-text-primary);
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.bootbox-confirm .panel-actions label:hover {
+  color: var(--kr-primary);
+}
+
+/* TABLE OBJETS - Style normal conservé */
+.bootbox-confirm table {
+  width: 100%;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bootbox-confirm table td,
+.bootbox-confirm table th {
+  padding: 12px 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+.bootbox-confirm table th {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--kr-text-secondary);
+  background: var(--kr-bg-elevated);
+}
+
+/* 4. CHECKBOXES & BONUS - Ligne horizontale unifiée */
+.bootbox-confirm input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  cursor: pointer;
+  accent-color: var(--kr-primary);
+  margin: 0;
+}
+
+/* Groupes de formulaire en ligne */
+.bootbox-confirm .form-group:has(input[type="checkbox"]),
+.bootbox-confirm .form-group:has(select[name="bonus"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  width: auto;
+  margin-right: var(--mobile-spacing-md);
+  margin-bottom: var(--mobile-spacing-md);
+}
+
+.bootbox-confirm .modal-body label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 0;
+  padding: 10px 0;
+}
+
+/* Select Bonus optimisé */
+.bootbox-confirm select[name="bonus"] {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--kr-border-default);
+  border-radius: 8px;
+  background: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+  cursor: pointer;
+}
+
+.bootbox-confirm .form-group {
+  margin-bottom: var(--mobile-spacing-lg);
+}
+
+/* 5. TOOLBAR BBCODE */
+.bootbox-confirm .btn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--mobile-spacing-md);
+}
+
+.bootbox-confirm .btn-toolbar .btn-group {
+  margin-right: 0;
+  margin-bottom: 4px;
+}
+
+.bootbox-confirm .btn-toolbar .btn {
+  min-height: var(--mobile-touch-target);
+  min-width: var(--mobile-touch-target);
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bootbox-confirm .btn-toolbar .btn:hover {
+  background: var(--kr-bg-hover);
+  border-color: var(--kr-primary);
+}
+
+/* 6. TEXTAREA MESSAGE */
+.bootbox-confirm textarea.form-control {
+  min-height: 120px;
+  font-size: 16px !important; /* Évite zoom iOS */
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* ============================================================================
+   9c. MODAL ORDRE - OPTIMISATION MOBILE (MOBILE ONLY)
+   Structure sticky, zones identifiées, grille d'actions (nav-tabs)
+   ============================================================================ */
+
+/* GARDE-FOU : Tous les styles dans media query mobile uniquement */
+@media (width <= 768px) {
+  /* === STRUCTURE FLEXBOX STICKY === */
+
+  /* IMPORTANT: Cibler uniquement .modal-content, pas .modal-dialog */
+  .bootbox-confirm > .modal-dialog {
+    display: block !important; /* Annuler tout flex sur modal-dialog */
+  }
+  
+  .bootbox-confirm .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
+  }
+  
+  /* Header zone (select + title) - sticky */
+  .bootbox-confirm .kraland-modal-header,
+  .bootbox-confirm .kraland-character-title {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 110 !important;
+    background: white !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-header {
+    padding: 12px 16px 8px !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+  
+  .bootbox-confirm .kraland-character-title {
+    padding: 8px 16px !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+  }
+  
+  /* Actions zone (panel-heading avec nav-tabs) - sticky */
+  .bootbox-confirm .kraland-actions-zone {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: white !important;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #f0f0f0 !important;
+  }
+  
+  /* Body scrollable */
+  .bootbox-confirm .modal-body {
+    flex: 1 !important;
+    overflow: hidden auto !important;
+    padding: 0 !important;
+  }
+  
+  /* Zone de formulaire (panel-body) - scrollable */
+  .bootbox-confirm .kraland-form-zone {
+    padding: 16px !important;
+  }
+  
+  /* Footer du panel (coût/durée) - sticky avant footer modal */
+  .bootbox-confirm .kraland-action-footer {
+    position: sticky !important;
+    bottom: 72px !important; /* Hauteur du footer modal */
+    z-index: 90 !important;
+    background: #f8f8f8 !important;
+    padding: 12px 16px !important;
+    border-top: 1px solid #e0e0e0 !important;
+  }
+  
+  .bootbox-confirm .kraland-action-footer p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: #666 !important;
+  }
+  
+  /* Footer modal sticky (boutons OK/Cancel) */
+  .bootbox-confirm .kraland-modal-footer {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 110 !important;
+    background: white !important;
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+    border-top: 2px solid #e0e0e0 !important;
+    display: flex !important;
+    gap: 12px !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-footer .btn {
+    flex: 1 !important;
+    min-height: 56px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* === OPTIMISATION DES NAV-TABS (déjà en grid par forceOrderModalGridLayout) === */
+
+  /* Les nav-tabs sont déjà stylés en grid 2 colonnes par le JS */
+
+  /* On améliore juste le spacing et les couleurs */
+  
+  .bootbox-confirm .nav.nav-tabs li a {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  /* Hover sur les nav-tabs */
+  .bootbox-confirm .nav.nav-tabs li a:hover {
+    background: #f0f8ff !important;
+    text-decoration: none !important;
+  }
+  
+  /* État actif des nav-tabs */
+  .bootbox-confirm .nav.nav-tabs li.active a {
+    background: #428bca !important;
+    border-color: #428bca !important;
+    color: white !important;
+  }
+  
+  /* === OPTIMISATIONS FORMULAIRE === */
+  
+  /* IMPORTANT: Annuler les flex indésirables sur certains éléments Bootstrap SAUF les panels avec tableau */
+  .bootbox-confirm .row,
+  .bootbox-confirm [class*="col-"],
+  .bootbox-confirm .form-group,
+  .bootbox-confirm .tab-content {
+    display: block !important;
+  }
+  
+  /* EXCEPTION CRITIQUE: Les panels de type info (tableaux Actions) doivent utiliser flexbox */
+  .bootbox-confirm .panel-info .panel-heading,
+  .bootbox-confirm .panel-info .panel-body,
+  .bootbox-confirm .panel-info .panel-footer {
+    display: block !important; /* Garder block pour le container */
+  }
+  
+  /* Les ROWS à l'intérieur des panels doivent être en flex pour l'alignement horizontal */
+  .bootbox-confirm .panel-info .panel-heading .row,
+  .bootbox-confirm .panel-info .panel-body .row,
+  .bootbox-confirm .panel-info .panel-footer .row {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Les colonnes dans ces rows doivent avoir leur largeur Bootstrap */
+  .bootbox-confirm .panel-info .row > [class*="col-"] {
+    flex-shrink: 0 !important;
+  }
+  
+  /* Largeurs spécifiques: Nouvelle répartition sm-0 / sm-7 / sm-3 / sm-3 */
+
+  /* IMPORTANT: Définir les largeurs AVANT les paddings pour éviter les écrasements */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-1,
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-1 {
+    flex: 0 0 0% !important;
+    max-width: 0% !important;
+    padding: 0 !important; /* Masquer complètement */
+    overflow: hidden !important;
+    width: 0 !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-7,
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-7 {
+    flex: 0 0 46% !important; /* 46% pour Actions */
+    max-width: 46% !important;
+  }
+  
+  /* Premier col-sm-2 (Diff.) devient col-sm-3 visuellement */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-2:nth-child(3),
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-2:nth-child(3) {
+    flex: 0 0 27% !important; /* 27% pour Diff. */
+    max-width: 27% !important;
+  }
+  
+  /* Deuxième col-sm-2 (Jet) devient col-sm-3 visuellement */
+  .bootbox-confirm .panel-info .panel-heading .row > .col-sm-2:nth-child(4),
+  .bootbox-confirm .panel-info .panel-body .row > .col-sm-2:nth-child(4) {
+    flex: 0 0 27% !important; /* 27% pour Jet */
+    max-width: 27% !important;
+  }
+  
+  /* ESPACEMENT: Padding pour éviter que les colonnes soient collées (APRÈS les largeurs) */
+  .bootbox-confirm .panel-info .panel-heading .row > [class*="col-"]:not(.col-sm-1),
+  .bootbox-confirm .panel-info .panel-body .row > [class*="col-"]:not(.col-sm-1) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  /* === FOOTER: Layout spécifique pour Maladresse + Bonus === */
+  
+  /* Footer: Groupement visuel avec widths fixes (proportions: 15% + 25% | 20% + 40%) */
+
+  /* Groupe 1: Checkbox (15%) + Maladresse (25%) = 40% */
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-1 {
+    flex: 0 0 15% !important;
+    max-width: 15% !important;
+    padding-left: 8px !important;
+    padding-right: 4px !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-7 {
+    flex: 0 0 25% !important;
+    max-width: 25% !important;
+    padding-left: 0 !important;
+    padding-right: 12px !important; /* Gap avant groupe 2 */
+  }
+  
+  /* Groupe 2: Bonus (20%) + Select (40%) = 60% */
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-2:nth-child(3) {
+    flex: 0 0 20% !important;
+    max-width: 20% !important;
+    padding-left: 12px !important; /* Gap après groupe 1 */
+    padding-right: 4px !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer .row > .col-sm-2:nth-child(4) {
+    flex: 0 0 40% !important;
+    max-width: 40% !important;
+    padding-left: 0 !important;
+    padding-right: 8px !important;
+  }
+  
+  /* === Alignement vertical des éléments du footer === */
+  .bootbox-confirm .panel-info .panel-footer .row {
+    align-items: center !important;
+  }
+  
+  .bootbox-confirm .panel-info .panel-footer input[type="checkbox"],
+  .bootbox-confirm .panel-info .panel-footer select,
+  .bootbox-confirm .panel-info .panel-footer label {
+    vertical-align: middle !important;
+  }
+  
+  /* IMPORTANT: Préserver le comportement normal des tableaux Bootstrap */
+  .bootbox-confirm table {
+    display: table !important;
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+  
+  .bootbox-confirm table tbody {
+    display: table-row-group !important;
+  }
+  
+  .bootbox-confirm table tr {
+    display: table-row !important;
+  }
+  
+  .bootbox-confirm table td,
+  .bootbox-confirm table th {
+    display: table-cell !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Select personnage */
+  .bootbox-confirm .kraland-modal-header select {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Image personnage dans title */
+  .bootbox-confirm .kraland-character-title img {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    margin-right: 12px !important;
+  }
+  
+  /* Panel formulaire */
+  .bootbox-confirm .kraland-form-zone .panel {
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  /* Inputs et textarea */
+  .bootbox-confirm .kraland-form-zone input[type="text"],
+  .bootbox-confirm .kraland-form-zone textarea,
+  .bootbox-confirm .kraland-form-zone select {
+    font-size: 16px !important; /* Évite zoom iOS */
+    border-radius: 6px !important;
+  }
+  
+  .bootbox-confirm .kraland-form-zone textarea {
+    min-height: 120px !important;
+  }
+  
+}
+
+.bootbox-confirm textarea.form-control:focus {
+  border-color: var(--kr-primary);
+  box-shadow: 0 0 0 3px var(--kr-focus-ring);
+  outline: none;
+}
+
+/* ============================================================================
+   9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
+   ============================================================================ */
+
+@media (width <= 768px) {
+  /* === UX #1: ALERTE REPLIABLE === */
+  .bootbox-confirm .kr-alert-collapsible {
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    background: #e3f2fd !important;
+    border: none !important;
+    color: #1565c0 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle:active {
+    background: #bbdefb !important;
+  }
+  
+  .bootbox-confirm .kr-alert-toggle i {
+    font-size: 18px !important;
+  }
+  
+  .bootbox-confirm .kr-alert-content {
+    padding: 12px 16px !important;
+    background: white !important;
+    border-top: 1px solid #e0e0e0 !important;
+    animation: slide-down 0.2s ease !important;
+  }
+  
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* === UX #2: NAV-TABS ÉTAT ACTIF RENFORCÉ === */
+  .bootbox-confirm .nav.nav-tabs li.active a {
+    background: linear-gradient(135deg, #428bca 0%, #3071a9 100%) !important;
+    border-color: #428bca !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(66, 139, 202, 0.4) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .bootbox-confirm .nav.nav-tabs li a:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  }
+  
+  /* === UX #3: TEXTAREA AGRANDI === */
+  .bootbox-confirm .kraland-form-zone textarea#message {
+    min-height: 160px !important;
+    resize: vertical !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    padding: 12px !important;
+  }
+  
+  /* === UX #4: FOOTER EN BADGES === */
+  .bootbox-confirm .kr-action-badges {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+  
+  .bootbox-confirm .kr-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 12px !important;
+    border-radius: 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+  }
+  
+  .bootbox-confirm .kr-badge i {
+    font-size: 14px !important;
+  }
+  
+  .bootbox-confirm .kr-badge-cost {
+    background: #fff3cd !important;
+    color: #856404 !important;
+    border: 1px solid #ffeaa7 !important;
+  }
+  
+  .bootbox-confirm .kr-badge-duration {
+    background: #d1ecf1 !important;
+    color: #0c5460 !important;
+    border: 1px solid #b8daff !important;
+  }
+  
+  .bootbox-confirm .kr-badge-potential {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    border: 1px solid #f5c6cb !important;
+  }
+  
+  /* === UX #5: BOUTON OK RENFORCÉ === */
+  .bootbox-confirm .kr-btn-primary-enhanced {
+    background: linear-gradient(135deg, #5cb85c 0%, #449d44 100%) !important;
+    border-color: #449d44 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    box-shadow: 0 4px 12px rgba(92, 184, 92, 0.4) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .bootbox-confirm .kr-btn-primary-enhanced:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 2px 6px rgba(92, 184, 92, 0.3) !important;
+  }
+  
+  .bootbox-confirm .kr-btn-secondary-subtle {
+    background: #f5f5f5 !important;
+    border-color: #ddd !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+  }
+  
+  .bootbox-confirm .kr-btn-secondary-subtle:active {
+    background: #e0e0e0 !important;
+  }
+  
+  /* === UX #6: SELECT GROUPÉ === */
+  .bootbox-confirm .kraland-modal-header select optgroup {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: #428bca !important;
+    padding: 8px 0 !important;
+  }
+  
+  .bootbox-confirm .kraland-modal-header select option {
+    padding: 8px 12px !important;
+    font-size: 15px !important;
+  }
+  
+}
+
+/* 7. ALERT D'AIDE */
+.bootbox-confirm .alert {
+  font-size: 0.875rem;
+  padding: 12px;
+  margin-bottom: var(--mobile-spacing-lg);
+  border-radius: var(--mobile-radius);
+  background: var(--kr-alert-info-bg);
+  border: 1px solid var(--kr-alert-info-border);
+}
+
+.bootbox-confirm .alert .close {
+  font-size: 1.5rem;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+/* 8. FOOTER STICKY */
+.bootbox-confirm .modal-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--kr-bg-surface);
+  border-top: 2px solid var(--kr-border-strong);
+  padding: var(--mobile-spacing-lg);
+  z-index: 100;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mobile-spacing-md);
+}
+
+/* Info coût/durée/potentiel */
+.bootbox-confirm .modal-footer p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--kr-text-primary);
+  margin-bottom: 0;
+  padding: var(--mobile-spacing-sm) var(--mobile-spacing-md);
+  background: var(--kr-bg-elevated);
+  border-radius: var(--mobile-radius);
+  border-left: 3px solid var(--kr-primary);
+}
+
+/* Boutons footer */
+.bootbox-confirm .modal-footer .btn {
+  min-height: var(--mobile-touch-target);
+  min-width: 100px;
+  font-size: 1rem;
+  padding: 10px 24px;
+  border-radius: var(--mobile-radius);
+  font-weight: 500;
+}
+
+.bootbox-confirm .modal-footer > div {
+  display: flex;
+  gap: var(--mobile-spacing-md);
+  justify-content: flex-end;
+}
+} /* Fin @media (width < 768px) pour BOOTBOX ORDER MODAL */
+
+/*
+  Pagination est utilisé dans les rapports
+*/
+.pagination > li.active > a{
+  color: var(--kr-surface);
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
+}
+
+.pagination > li > a{
+  color: var(--kr-primary);
+}
+
+.pagination > li.active > a:hover{
+  color: var(--kr-surface);
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary);
+}
+
+.pagination > li > a:hover{
+  color: var(--kr-primary);
+}
+
+/*
+  .bg-primary est utilisé dans les rapports
+*/
+.bg-primary {
+  background-color: var(--kr-primary) !important;
+  color: var(--kr-surface) !important;
+}
+
+a:link,
+a:visited {
+  color: var(--kr-highlight);
+  text-decoration: none;
+  transition: color .12s ease, opacity .12s ease;
+}
+
+a:hover,
+a:focus {
+  color: var(--kr-primary-dark);
+  text-decoration: underline;
+  outline: none;
+}
+
+button.btn-primary,
+a.btn-primary {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-highlight-reverse);
+  box-shadow: 0 6px 18px var(--kr-btn-shadow);
+}
+
+button.btn-primary:hover,
+button.btn-primary:focus,
+a.btn-primary:hover,
+a.btn-primary:focus {
+  background-color: var(--kr-primary-dark);
+}
+
+/* ============================================================================
+   HIDE UNWANTED HR ELEMENT
+   Supprime la ligne horizontale bleue dans le liste des ordres de la fiche de personnage
+   ============================================================================ */
+
+hr[style*="border-top: 1px solid"][style*="337ab7"] {
+  display: none !important;
+}
+
+/* ============================================================================
+   10. FOOTER - BACK TO TOP
+   Position the back-to-top button on the right side of the footer
+   ============================================================================ */
+
+footer .container.white {
+  position: relative;
+}
+
+.container.white .kraland-back-to-top {
+  position: fixed; /* Fixed au lieu d'absolute pour ne pas ajouter de hauteur au footer */
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  transform: none; /* Pas de transform nécessaire avec fixed */
+}
+
+/* ============================================================================
+   11. DASHBOARD FLEX CARDS - Groupes de joueurs
+   Système de cartes en grid avec toutes les informations visibles
+   ============================================================================ */
+
+.dashboard.dashboard-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Sections (Mon groupe / Autres personnages) */
+.dashboard-section {
+  background: var(--kr-surface);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgb(0,0,0,0.08);
+}
+
+.dashboard-section-header {
+  background: var(--kr-primary);
+  color: var(--kr-white);
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Boutons de groupe dans l'en-tête */
+.dashboard-group-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.dashboard-group-buttons .btn {
+  background-color: rgb(255, 255, 255, 0.15);
+  border: 1px solid rgb(255, 255, 255, 0.25);
+  color: var(--kr-white);
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.dashboard-group-buttons .btn:hover {
+  background-color: rgb(255, 255, 255, 0.25);
+  border-color: rgb(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.dashboard-group-buttons .btn i {
+  font-size: 12px;
+}
+
+/* Titre du groupe */
+.dashboard-group-title {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Grilles de cartes */
+.dashboard-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.dashboard-cards-large {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Cartes individuelles */
+.dashboard-card {
+  background: var(--kr-white);
+  border: 1px solid rgb(0,0,0,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgb(0,0,0,0.12);
+  border-color: var(--kr-primary);
+}
+
+.dashboard-card-large {
+  min-height: 90px;
+}
+
+/* Lien wrapper */
+.dashboard-card-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+}
+
+.dashboard-card-link:hover {
+  text-decoration: none;
+}
+
+/* Header avec avatar et nom */
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  background: rgb(0,0,0,0.02);
+}
+
+/* Wrapper pour l'avatar avec cercle de PV */
+.dashboard-card-avatar-wrapper {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cercle SVG de progression des PV */
+.dashboard-card-hp-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 82px;
+  height: 82px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dashboard-card-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--kr-primary);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-card-large .dashboard-card-avatar {
+  width: 70px;
+  height: 70px;
+}
+
+/* Conteneur pour le drapeau et le nom */
+.dashboard-card-name-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Drapeau de nationalité dans le header */
+.dashboard-card-world {
+  width: 20px;
+  height: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.dashboard-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kr-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  flex: 1;
+}
+
+.dashboard-card-large .dashboard-card-name {
+  font-size: 13px;
+}
+
+/* Body avec statut uniquement (monde dans les actions) */
+.dashboard-card-body {
+  padding: 0 8px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-card-status {
+  font-size: 9px;
+  color: var(--kr-muted);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.dashboard-card-large .dashboard-card-status {
+  font-size: 11px;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Barre de HP */
+.dashboard-card-hp {
+  height: 6px;
+  background: rgb(0,0,0,0.08);
+  position: relative;
+  margin: 0;
+}
+
+.dashboard-card-hp-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 0;
+}
+
+/* Badge PNJ */
+.dashboard-card-pnj {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--kr-badge-pnj);
+  color: var(--kr-white);
+  font-size: 8px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  z-index: 1;
+}
+
+/* Boutons d'actions individuelles par personnage */
+.dashboard-card-actions {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.dashboard-card:hover .dashboard-card-actions {
+  opacity: 1;
+}
+
+/* Adapter les divs internes pour qu'elles soient empilées verticalement */
+.dashboard-card-actions > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+.dashboard-card-actions > div > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+/* Liens d'action compacts */
+.dashboard-card-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px !important;
+  background-color: rgb(0, 0, 0, 0.6);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+  min-width: 24px;
+  height: 24px;
+}
+
+.dashboard-card-actions a:hover {
+  background-color: rgb(0, 0, 0, 0.8);
+}
+
+.dashboard-card-actions a i {
+  color: var(--kr-white);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (width <= 768px) {
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  
+  .dashboard-cards-large {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+
+/* ============================================================================
+   12. EDITEUR DE TEXTE
+   Styles pour les boutons de l'éditeur BBCode
+   ============================================================================ */
+
+/* Style de base pour tous les boutons de l'éditeur, sauf la palette de couleurs */
+.btn-toolbar .btn:not(.dropdown-menu *) {
+  background-color: var(--kr-surface) !important;
+  background-image: none !important;
+  color: var(--kr-primary) !important;
+  border: 1px solid rgb(0,0,0,0.06) !important;
+  box-shadow: none !important;
+}
+
+.btn-toolbar .btn:not(.dropdown-menu *) i,
+.btn-toolbar .btn:not(.dropdown-menu *) .fa,
+.btn-toolbar .btn:not(.dropdown-menu *) .fas,
+.btn-toolbar .btn:not(.dropdown-menu *) .far {
+  color: inherit !important;
+}
+
+/* ============================================================================
+   13. DARK MODE (Tous les thèmes)
+   Styles mutualisés pour tous les thèmes en mode sombre
+   ============================================================================ */
+
+/* === BODY & BACKGROUNDS === */
+html[class*="-dark"] body {
+  background-color: var(--kr-bg-page);
+  color: var(--kr-text-primary);
+}
+
+/* === PANELS === */
+html[class*="-dark"] .panel,
+html[class*="-dark"] .panel-default {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .panel-heading {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .panel-body {
+  background-color: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .panel-footer {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+}
+
+/* === WELLS === */
+html[class*="-dark"] .well {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+/* === THEME SELECTOR TAMPERMONKEY === */
+html[class*="-dark"] .kr-tamper-theme label {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .kr-tamper-theme .control-label {
+  color: var(--kr-text-secondary);
+}
+
+html[class*="-dark"] .kr-tamper-theme h4 {
+  color: var(--kr-text-primary);
+}
+
+/* === MODALS === */
+html[class*="-dark"] .modal-content {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .modal-header,
+html[class*="-dark"] .modal-body,
+html[class*="-dark"] .modal-footer {
+  background-color: var(--kr-bg-surface);
+  color: var(--kr-text-primary);
+  border-color: var(--kr-border-default);
+}
+
+/* === FORMS === */
+html[class*="-dark"] .form-control {
+  background-color: var(--kr-form-bg);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .form-control::placeholder {
+  color: var(--kr-text-muted);
+}
+
+html[class*="-dark"] .form-control:focus {
+  background-color: var(--kr-form-bg-focus);
+  border-color: var(--kr-primary);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .form-group label,
+html[class*="-dark"] label {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .input-group-addon {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+/* === BUTTONS === */
+html[class*="-dark"] .btn-primary {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .btn-primary:hover,
+html[class*="-dark"] .btn-primary:focus,
+html[class*="-dark"] .btn-primary:active {
+  background-color: var(--kr-primary-dark);
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .btn-default {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .btn-default:hover {
+  background-color: var(--kr-bg-active);
+  border-color: var(--kr-border-strong);
+}
+
+html[class*="-dark"] .btn-default:focus,
+html[class*="-dark"] .btn-default:active {
+  background-color: var(--kr-bg-hover);
+  border-color: var(--kr-border-strong);
+  color: var(--kr-text-primary);
+}
+
+/* === LIST GROUPS === */
+html[class*="-dark"] .list-group-item {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .list-group-item:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+html[class*="-dark"] .list-group-item-heading {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .list-group-item-text {
+  color: var(--kr-text-secondary);
+}
+
+/* === TABLES === */
+html[class*="-dark"] .table {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .table > thead > tr > th,
+html[class*="-dark"] .table > tbody > tr > th,
+html[class*="-dark"] .table > tfoot > tr > th {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .table > tbody > tr > td {
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--kr-bg-hover);
+}
+
+/* Override for tables with forum-like styling */
+html[class*="-dark"] .table.table-striped > tbody > tr {
+  background-color: var(--kr-bg-page);
+}
+
+html[class*="-dark"] .table.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--kr-bg-elevated);
+}
+
+html[class*="-dark"] .table-hover > tbody > tr:hover {
+  background-color: var(--kr-bg-active);
+}
+
+/* === DROPDOWNS === */
+html[class*="-dark"] .dropdown-menu {
+  background-color: var(--kr-bg-elevated);
+  border-color: var(--kr-border-strong);
+}
+
+html[class*="-dark"] .dropdown-menu > li > a {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .dropdown-menu > li > a:hover,
+html[class*="-dark"] .dropdown-menu > li > a:focus {
+  background-color: var(--kr-bg-hover);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .dropdown-menu > .active > a,
+html[class*="-dark"] .dropdown-menu > .active > a:hover,
+html[class*="-dark"] .dropdown-menu > .active > a:focus {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* ============================================================================
+   SMILEYS DROPDOWN - NORMALISATION
+   ============================================================================ */
+
+/* Phase 1 : Normalisation des images à taille uniforme (32x32px) */
+.dropdown-menu table img,
+.btn-toolbar .dropdown-menu table img {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important; /* Préserve le ratio sans déformation */
+  display: block !important; /* Élimine l'espace inline */
+  flex-shrink: 0 !important; /* Empêche rétrécissement */
+}
+
+/* === NAVIGATION === */
+html[class*="-dark"] .nav-tabs {
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .nav-tabs > li > a {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .nav-tabs > li > a:hover {
+  background-color: var(--kr-bg-hover);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .nav-tabs > li.active > a,
+html[class*="-dark"] .nav-tabs > li.active > a:hover,
+html[class*="-dark"] .nav-tabs > li.active > a:focus {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default) var(--kr-border-default) transparent;
+  color: var(--kr-text-primary);
+}
+
+/* === ALERTS === */
+html[class*="-dark"] .alert {
+  border-color: var(--kr-border-default);
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] .alert * {
+  color: inherit !important;
+}
+
+html[class*="-dark"] .alert a {
+  color: var(--kr-primary) !important;
+  text-decoration: underline;
+}
+
+html[class*="-dark"] .alert-info {
+  background-color: rgb(122, 82, 64, 0.15);
+  border-color: rgb(122, 82, 64, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .alert-success {
+  background-color: rgb(34, 197, 94, 0.15);
+  border-color: rgb(34, 197, 94, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .alert-warning {
+  background-color: rgb(245, 158, 11, 0.15);
+  border-color: rgb(245, 158, 11, 0.3);
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .alert-danger {
+  background-color: rgb(239, 68, 68, 0.15);
+  border-color: rgb(239, 68, 68, 0.3);
+  color: var(--kr-text-primary);
+}
+
+/* === PROGRESS === */
+html[class*="-dark"] .progress {
+  background-color: var(--kr-bg-elevated);
+}
+
+/* === DASHBOARD CARDS === */
+html[class*="-dark"] .dashboard-card {
+  background: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .dashboard-card:hover {
+  box-shadow: var(--kr-shadow-md);
+}
+
+html[class*="-dark"] .dashboard-card-header {
+  background: var(--kr-bg-hover);
+}
+
+html[class*="-dark"] .dashboard-card-name {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .dashboard-card-status {
+  color: var(--kr-text-muted);
+}
+
+html[class*="-dark"] .dashboard-section {
+  background: var(--kr-bg-surface);
+}
+
+html[class*="-dark"] .dashboard-card-hp {
+  background: var(--kr-bg-elevated);
+}
+
+/* === MINI-CHAT === */
+html[class*="-dark"] .chat li {
+  border-bottom-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .panel-body-scroll {
+  background-color: var(--kr-bg-surface);
+}
+
+html[class*="-dark"] #flap {
+  background-color: var(--kr-bg-elevated);
+}
+
+html[class*="-dark"] #flap a.open,
+html[class*="-dark"] #flap a.closed {
+  background: var(--kr-bg-elevated);
+  color: var(--kr-text-primary);
+}
+
+/* === MAP === */
+html[class*="-dark"] .map-box {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .map-box-title {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+html[class*="-dark"] .map-box-content {
+  color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .map-box-bottom {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* === CLASSES KRALAND .f1-.f9 (couleurs nations) === */
+html[class*="-dark"] .f1 { color: var(--kr-nation-1); }
+html[class*="-dark"] .f2 { color: var(--kr-nation-2); }
+html[class*="-dark"] .f3 { color: var(--kr-nation-3); }
+html[class*="-dark"] .f4 { color: var(--kr-nation-4); }
+html[class*="-dark"] .f5 { color: var(--kr-nation-5); }
+html[class*="-dark"] .f6 { color: var(--kr-nation-6); }
+html[class*="-dark"] .f7 { color: var(--kr-nation-7); }
+html[class*="-dark"] .f8 { color: var(--kr-nation-8); }
+html[class*="-dark"] .f9 { color: var(--kr-nation-9); }
+
+/* === CLASSES KRALAND .c1-.c10 (fonds nations) === */
+html[class*="-dark"] .c1  { background-color: var(--kr-nation-bg-1); }
+html[class*="-dark"] .c2  { background-color: var(--kr-nation-bg-2); }
+html[class*="-dark"] .c3  { background-color: var(--kr-nation-bg-3); }
+html[class*="-dark"] .c4  { background-color: var(--kr-nation-bg-4); }
+html[class*="-dark"] .c5  { background-color: var(--kr-nation-bg-5); }
+html[class*="-dark"] .c6  { background-color: var(--kr-nation-bg-6); }
+html[class*="-dark"] .c7  { background-color: var(--kr-nation-bg-7); }
+html[class*="-dark"] .c8  { background-color: var(--kr-nation-bg-8); }
+html[class*="-dark"] .c9  { background-color: var(--kr-nation-bg-9); }
+html[class*="-dark"] .c10 { background-color: var(--kr-nation-bg-10); }
+
+/* === COULEURS HTML KRALAND (balises <font color="">) === */
+/* Surcharge des couleurs spécifiques utilisées par Kraland pour le dark mode */
+/* Ajustement minimal pour conserver les teintes d'origine */
+
+html[class*="-dark"] font[color="#f4ac00"],
+html[class*="-dark"] font[color="f4ac00"] {
+  color: #ffbe33 !important; /* yellow - Légèrement éclairci, garde la teinte or */
+}
+
+html[class*="-dark"] font[color="#f77400"],
+html[class*="-dark"] font[color="f77400"] {
+  color: #ff8833 !important; /* orange - Éclairci mais garde l'orange vif */
+}
+
+html[class*="-dark"] font[color="#ed6161"],
+html[class*="-dark"] font[color="ed6161"] {
+  color: #ff7a7a !important; /* fuchsia - Légèrement éclairci, garde le rose-rouge */
+}
+
+html[class*="-dark"] font[color="#d50000"],
+html[class*="-dark"] font[color="d50000"] {
+  color: #ff3333 !important; /* red - Rouge vif éclairci */
+}
+
+html[class*="-dark"] font[color="olive"] {
+  color: #b3b333 !important; /* olive - Éclairci mais garde le jaune-vert olive */
+}
+
+html[class*="-dark"] font[color="#219c5a"],
+html[class*="-dark"] font[color="219c5a"] {
+  color: #33cc77 !important; /* lightgreen - Éclairci, garde le vert vif */
+}
+
+html[class*="-dark"] font[color="#006f00"],
+html[class*="-dark"] font[color="006f00"] {
+  color: #00bb00 !important; /* green - Vert pur éclairci */
+}
+
+html[class*="-dark"] font[color="teal"] {
+  color: #33cccc !important; /* teal - Teal éclairci */
+}
+
+html[class*="-dark"] font[color="#5577bc"],
+html[class*="-dark"] font[color="5577bc"] {
+  color: #7799dd !important; /* lightblue - Légèrement éclairci, garde le bleu */
+}
+
+html[class*="-dark"] font[color="#2b2be4"],
+html[class*="-dark"] font[color="2b2be4"] {
+  color: #5555ff !important; /* blue - Bleu vif éclairci */
+}
+
+html[class*="-dark"] font[color="navy"] {
+  color: #5555cc !important; /* navy - Navy éclairci mais garde le bleu foncé */
+}
+
+html[class*="-dark"] font[color="purple"] {
+  color: #cc55cc !important; /* purple - Violet éclairci */
+}
+
+html[class*="-dark"] font[color="#4B0082"],
+html[class*="-dark"] font[color="4B0082"],
+html[class*="-dark"] font[color="4b0082"] {
+  color: #8855cc !important; /* indigo - Indigo éclairci, garde le violet-bleu */
+}
+
+html[class*="-dark"] font[color="maroon"] {
+  color: #cc5555 !important; /* maroon - Bordeaux éclairci */
+}
+
+html[class*="-dark"] font[color="#5e432d"],
+html[class*="-dark"] font[color="5e432d"] {
+  color: #aa7755 !important; /* brown - Marron éclairci, garde la teinte chaude */
+}
+
+html[class*="-dark"] font[color="gray"] {
+  color: #aaaaaa !important; /* gray - Gris éclairci */
+}
+
+html[class*="-dark"] font[color="#5a5a5a"],
+html[class*="-dark"] font[color="5a5a5a"] {
+  color: #999999 !important; /* darkgray - Éclairci mais garde le gris moyen */
+}
+
+html[class*="-dark"] font[color="#000000"],
+html[class*="-dark"] font[color="000000"] {
+  color: #cccccc !important; /* black - Gris clair (noir impossible en dark) */
+}
+
+/* === CLASSES DE COULEURS === */
+html[class*="-dark"] .red {
+  color: #ff3333 !important; /* red - Rouge vif éclairci */
+}
+
+html[class*="-dark"] .blue {
+  color: #3388ff !important; /* blue - Bleu France, bon contraste */
+}
+
+/* === COULEURS PALETTE DE SÉLECTION (boutons background-color) === */
+/* Surcharge des background-color des boutons de la palette de couleurs */
+
+html[class*="-dark"] [style*="background-color:#f4ac00"],
+html[class*="-dark"] [style*="background-color: #f4ac00"] {
+  background-color: #ffbe33 !important; /* yellow */
+}
+
+html[class*="-dark"] [style*="background-color:#f77400"],
+html[class*="-dark"] [style*="background-color: #f77400"] {
+  background-color: #ff8833 !important; /* orange */
+}
+
+html[class*="-dark"] [style*="background-color:#ed6161"],
+html[class*="-dark"] [style*="background-color: #ed6161"] {
+  background-color: #ff7a7a !important; /* fuchsia */
+}
+
+html[class*="-dark"] [style*="background-color:#d50000"],
+html[class*="-dark"] [style*="background-color: #d50000"] {
+  background-color: #ff3333 !important; /* red */
+}
+
+html[class*="-dark"] [style*="background-color:#808000"],
+html[class*="-dark"] [style*="background-color: #808000"] {
+  background-color: #b3b333 !important; /* olive */
+}
+
+html[class*="-dark"] [style*="background-color:#219c5a"],
+html[class*="-dark"] [style*="background-color: #219c5a"] {
+  background-color: #33cc77 !important; /* lightgreen */
+}
+
+html[class*="-dark"] [style*="background-color:#006f00"],
+html[class*="-dark"] [style*="background-color: #006f00"] {
+  background-color: #00bb00 !important; /* green */
+}
+
+html[class*="-dark"] [style*="background-color:#008080"],
+html[class*="-dark"] [style*="background-color: #008080"] {
+  background-color: #33cccc !important; /* teal */
+}
+
+html[class*="-dark"] [style*="background-color:#5577bc"],
+html[class*="-dark"] [style*="background-color: #5577bc"] {
+  background-color: #7799dd !important; /* lightblue */
+}
+
+html[class*="-dark"] [style*="background-color:#2b2be4"],
+html[class*="-dark"] [style*="background-color: #2b2be4"] {
+  background-color: #5555ff !important; /* blue */
+}
+
+html[class*="-dark"] [style*="background-color:#000080"],
+html[class*="-dark"] [style*="background-color: #000080"] {
+  background-color: #5555cc !important; /* navy */
+}
+
+html[class*="-dark"] [style*="background-color:#800080"],
+html[class*="-dark"] [style*="background-color: #800080"] {
+  background-color: #cc55cc !important; /* purple */
+}
+
+html[class*="-dark"] [style*="background-color:#4B0082"],
+html[class*="-dark"] [style*="background-color: #4B0082"],
+html[class*="-dark"] [style*="background-color:#4b0082"],
+html[class*="-dark"] [style*="background-color: #4b0082"] {
+  background-color: #8855cc !important; /* indigo */
+}
+
+html[class*="-dark"] [style*="background-color:#800000"],
+html[class*="-dark"] [style*="background-color: #800000"] {
+  background-color: #cc5555 !important; /* maroon */
+}
+
+html[class*="-dark"] [style*="background-color:#5e432d"],
+html[class*="-dark"] [style*="background-color: #5e432d"] {
+  background-color: #aa7755 !important; /* brown */
+}
+
+html[class*="-dark"] [style*="background-color:#808080"],
+html[class*="-dark"] [style*="background-color: #808080"] {
+  background-color: #aaaaaa !important; /* gray */
+}
+
+html[class*="-dark"] [style*="background-color:#5a5a5a"],
+html[class*="-dark"] [style*="background-color: #5a5a5a"] {
+  background-color: #999999 !important; /* darkgray */
+}
+
+html[class*="-dark"] [style*="background-color:#000000"],
+html[class*="-dark"] [style*="background-color: #000000"] {
+  background-color: #cccccc !important; /* black */
+}
+
+/* === SCROLLBARS === */
+html[class*="-dark"] ::-webkit-scrollbar-track {
+  background-color: var(--kr-bg-page);
+}
+
+html[class*="-dark"] ::-webkit-scrollbar-thumb {
+  background-color: var(--kr-text-muted);
+}
+
+html[class*="-dark"] ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--kr-text-secondary);
+}
+
+/* === SELECTION === */
+html[class*="-dark"] ::selection {
+  background-color: var(--kr-primary);
+  color: var(--kr-text-inverse);
+}
+
+/* === FOOTER === */
+html[class*="-dark"] footer {
+  background-color: var(--kr-bg-elevated);
+  border-top: 1px solid var(--kr-border-default);
+}
+
+html[class*="-dark"] .footer-quote {
+  color: var(--kr-text-secondary);
+}
+
+/* === SKILLS PANEL === */
+html[class*="-dark"] #skills-panel {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+}
+
+/* === SEPARATORS === */
+html[class*="-dark"] hr {
+  display: none;
+}
+
+/* === CAROUSEL === */
+html[class*="-dark"] .carousel-control {
+  color: var(--kr-primary);
+  opacity: 0.7;
+}
+
+html[class*="-dark"] .carousel-control:hover,
+html[class*="-dark"] .carousel-control:focus {
+  color: var(--kr-highlight);
+  opacity: 0.9;
+}
+
+html[class*="-dark"] .carousel-indicators li {
+  background-color: var(--kr-border-default);
+  border-color: var(--kr-border-default);
+}
+
+html[class*="-dark"] .carousel-indicators .active {
+  background-color: var(--kr-primary);
+  border-color: var(--kr-primary);
+}
+
+/* === LIENS === */
+html[class*="-dark"] a:link,
+html[class*="-dark"] a:visited {
+  color: var(--kr-highlight);
+}
+
+html[class*="-dark"] a:hover,
+html[class*="-dark"] a:focus {
+  color: var(--kr-primary);
+}
+
+/* === BOUTONS DE NAVIGATION PREV/NEXT === */
+html[class*="-dark"] a.prev,
+html[class*="-dark"] a.next {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] a.prev:hover,
+html[class*="-dark"] a.next:hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-highlight) !important;
+}
+
+/* === BOUTONS WARNING === */
+
+/* Adaptation des boutons warning pour le thème sombre */
+html[class*="-dark"] .btn-warning {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary-dark) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+html[class*="-dark"] .btn-warning:hover {
+  background-color: var(--kr-highlight) !important;
+  border-color: var(--kr-primary) !important;
+}
+
+/* === ICÔNES DE COMPÉTENCES ET CARACTÉRISTIQUES === */
+
+/* Réduction du contraste des icônes blanches */
+html[class*="-dark"] img[src*="/mat/94/"] {
+  filter: none;
+  opacity: 0.85;
+}
+
+html[class*="-dark"] img[src*="/mat/94/"]:hover {
+  filter: none;
+  opacity: 1;
+}
+
+/* === ICÔNES DE BÂTIMENTS === */
+
+/* Réduction du contraste des icônes blanches */
+html[class*="-dark"] img[src*="/bat/bat"] {
+  filter: none;
+  opacity: 0.85;
+}
+
+html[class*="-dark"] img[src*="/bat/bat"]:hover {
+  filter: none;
+  opacity: 1;
+}
+
+/* === ICÔNES DE VOCATIONS === */
+
+/* Réduction du contraste des icônes blanches */
+html[class*="-dark"] img[src*="/voc/"] {
+  filter: none;
+  opacity: 0.85;
+}
+
+html[class*="-dark"] img[src*="/voc/"]:hover {
+  filter: none;
+  opacity: 1;
+}
+
+/* ============================================================================
+   HORLOGE À DOUBLE TOUR (0-48H)
+   ============================================================================ */
+
+/* Système d'horloge circulaire qui supporte jusqu'à 48 heures avec deux tours de cadran.
+   Le premier tour (0-24h) s'affiche sur le cercle principal.
+   Le deuxième tour (24-48h) s'affiche sur un cercle extérieur plus visible.
+*/
+
+/* Container de l'horloge */
+.c100 {
+  position: relative !important;
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  background-color: var(--kr-bg-elevated, #f5f5f5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+/* Masquer l'ancien système à base de .slice, .bar, .fill */
+.c100 .slice,
+.c100 .bar,
+.c100 .fill {
+  display: none !important;
+}
+
+/* Texte de l'heure au centre */
+.c100 > span {
+  position: relative !important;
+  z-index: 10 !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: var(--kr-text-primary, #333) !important;
+  text-align: center !important;
+}
+
+/* Fond circulaire après */
+.c100::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 50% !important;
+  background-color: var(--kr-bg-elevated, #f5f5f5) !important;
+  z-index: 5 !important;
+}
+
+/* Cercle de progression - Premier tour (0-24h) */
+.c100::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: conic-gradient(
+    var(--clock-color, #8B0000) 0deg,
+    var(--clock-color, #8B0000) calc(var(--clock-deg, 0) * 1deg),
+    transparent calc(var(--clock-deg, 0) * 1deg),
+    transparent 360deg
+  ) !important;
+  z-index: 1 !important;
+  transition: none !important;
+}
+
+/* Deuxième tour (24-48h) - Cercle extérieur avec bordure reprenant la couleur de l'horloge */
+.c100[data-second-lap="true"]::before {
+  box-shadow: 
+    0 0 0 1px var(--kr-bg-elevated, #f5f5f5),
+    0 0 0 5px var(--clock-color, #32CD32),
+    inset 0 0 0 2px var(--clock-color, #32CD32) !important;
+}
+
+/* Classes de pourcentage p0 à p100 pour la compatibilité */
+.c100.p0 { --clock-deg: 0; }
+.c100.p1 { --clock-deg: 3.6; }
+.c100.p2 { --clock-deg: 7.2; }
+.c100.p3 { --clock-deg: 10.8; }
+.c100.p4 { --clock-deg: 14.4; }
+.c100.p5 { --clock-deg: 18; }
+.c100.p6 { --clock-deg: 21.6; }
+.c100.p7 { --clock-deg: 25.2; }
+.c100.p8 { --clock-deg: 28.8; }
+.c100.p9 { --clock-deg: 32.4; }
+.c100.p10 { --clock-deg: 36; }
+.c100.p11 { --clock-deg: 39.6; }
+.c100.p12 { --clock-deg: 43.2; }
+.c100.p13 { --clock-deg: 46.8; }
+.c100.p14 { --clock-deg: 50.4; }
+.c100.p15 { --clock-deg: 54; }
+.c100.p16 { --clock-deg: 57.6; }
+.c100.p17 { --clock-deg: 61.2; }
+.c100.p18 { --clock-deg: 64.8; }
+.c100.p19 { --clock-deg: 68.4; }
+.c100.p20 { --clock-deg: 72; }
+.c100.p21 { --clock-deg: 75.6; }
+.c100.p22 { --clock-deg: 79.2; }
+.c100.p23 { --clock-deg: 82.8; }
+.c100.p24 { --clock-deg: 86.4; }
+.c100.p25 { --clock-deg: 90; }
+.c100.p26 { --clock-deg: 93.6; }
+.c100.p27 { --clock-deg: 97.2; }
+.c100.p28 { --clock-deg: 100.8; }
+.c100.p29 { --clock-deg: 104.4; }
+.c100.p30 { --clock-deg: 108; }
+.c100.p31 { --clock-deg: 111.6; }
+.c100.p32 { --clock-deg: 115.2; }
+.c100.p33 { --clock-deg: 118.8; }
+.c100.p34 { --clock-deg: 122.4; }
+.c100.p35 { --clock-deg: 126; }
+.c100.p36 { --clock-deg: 129.6; }
+.c100.p37 { --clock-deg: 133.2; }
+.c100.p38 { --clock-deg: 136.8; }
+.c100.p39 { --clock-deg: 140.4; }
+.c100.p40 { --clock-deg: 144; }
+.c100.p41 { --clock-deg: 147.6; }
+.c100.p42 { --clock-deg: 151.2; }
+.c100.p43 { --clock-deg: 154.8; }
+.c100.p44 { --clock-deg: 158.4; }
+.c100.p45 { --clock-deg: 162; }
+.c100.p46 { --clock-deg: 165.6; }
+.c100.p47 { --clock-deg: 169.2; }
+.c100.p48 { --clock-deg: 172.8; }
+.c100.p49 { --clock-deg: 176.4; }
+.c100.p50 { --clock-deg: 180; }
+.c100.p51 { --clock-deg: 183.6; }
+.c100.p52 { --clock-deg: 187.2; }
+.c100.p53 { --clock-deg: 190.8; }
+.c100.p54 { --clock-deg: 194.4; }
+.c100.p55 { --clock-deg: 198; }
+.c100.p56 { --clock-deg: 201.6; }
+.c100.p57 { --clock-deg: 205.2; }
+.c100.p58 { --clock-deg: 208.8; }
+.c100.p59 { --clock-deg: 212.4; }
+.c100.p60 { --clock-deg: 216; }
+.c100.p61 { --clock-deg: 219.6; }
+.c100.p62 { --clock-deg: 223.2; }
+.c100.p63 { --clock-deg: 226.8; }
+.c100.p64 { --clock-deg: 230.4; }
+.c100.p65 { --clock-deg: 234; }
+.c100.p66 { --clock-deg: 237.6; }
+.c100.p67 { --clock-deg: 241.2; }
+.c100.p68 { --clock-deg: 244.8; }
+.c100.p69 { --clock-deg: 248.4; }
+.c100.p70 { --clock-deg: 252; }
+.c100.p71 { --clock-deg: 255.6; }
+.c100.p72 { --clock-deg: 259.2; }
+.c100.p73 { --clock-deg: 262.8; }
+.c100.p74 { --clock-deg: 266.4; }
+.c100.p75 { --clock-deg: 270; }
+.c100.p76 { --clock-deg: 273.6; }
+.c100.p77 { --clock-deg: 277.2; }
+.c100.p78 { --clock-deg: 280.8; }
+.c100.p79 { --clock-deg: 284.4; }
+.c100.p80 { --clock-deg: 288; }
+.c100.p81 { --clock-deg: 291.6; }
+.c100.p82 { --clock-deg: 295.2; }
+.c100.p83 { --clock-deg: 298.8; }
+.c100.p84 { --clock-deg: 302.4; }
+.c100.p85 { --clock-deg: 306; }
+.c100.p86 { --clock-deg: 309.6; }
+.c100.p87 { --clock-deg: 313.2; }
+.c100.p88 { --clock-deg: 316.8; }
+.c100.p89 { --clock-deg: 320.4; }
+.c100.p90 { --clock-deg: 324; }
+.c100.p91 { --clock-deg: 327.6; }
+.c100.p92 { --clock-deg: 331.2; }
+.c100.p93 { --clock-deg: 334.8; }
+.c100.p94 { --clock-deg: 338.4; }
+.c100.p95 { --clock-deg: 342; }
+.c100.p96 { --clock-deg: 345.6; }
+.c100.p97 { --clock-deg: 349.2; }
+.c100.p98 { --clock-deg: 352.8; }
+.c100.p99 { --clock-deg: 356.4; }
+.c100.p100 { --clock-deg: 360; }
+
+/* === INDICATEUR CIRCULAIRE DE TEMPS === */
+
+/* Adaptation pour le thème sombre */
+html[class*="-dark"] .c100 {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] .c100::after {
+  background-color: var(--kr-bg-elevated) !important;
+}
+
+html[class*="-dark"] .c100 > span {
+  color: var(--kr-text-primary) !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 80px !important;
+  width: 80px !important;
+  height: 80px !important;
+}
+
+html[class*="-dark"] .c100 .slice {
+  border-color: var(--kr-bg-elevated) !important;
+}
+
+html[class*="-dark"] .c100 .bar {
+  border-color: var(--kr-primary) !important;
+}
+
+html[class*="-dark"] .c100 .fill {
+  border-color: var(--kr-bg-elevated) !important;
+}
+
+/* Pagination */
+html[class*="-dark"] .pagination {
+  background-color: transparent !important;
+}
+
+html[class*="-dark"] .pagination > li > a,
+html[class*="-dark"] .pagination > li > span {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] .pagination > li.disabled > a,
+html[class*="-dark"] .pagination > li.disabled > span {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-muted) !important;
+  opacity: 0.6 !important;
+}
+
+html[class*="-dark"] .pagination > li > a:hover,
+html[class*="-dark"] .pagination > li > span:hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-primary) !important;
+}
+
+html[class*="-dark"] .pagination > .active > a,
+html[class*="-dark"] .pagination > .active > span {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+html[class*="-dark"] .pagination > .active > a:hover,
+html[class*="-dark"] .pagination > .active > span:hover {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+/* DataTables Pagination */
+html[class*="-dark"] .dataTables_paginate {
+  background-color: transparent !important;
+}
+
+html[class*="-dark"] .dataTables_paginate .paginate_button {
+  background-color: var(--kr-bg-elevated) !important;
+  border: 1px solid var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[class*="-dark"] .dataTables_paginate .paginate_button.current {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+html[class*="-dark"] .dataTables_paginate .paginate_button.disabled,
+html[class*="-dark"] .dataTables_paginate .paginate_button.disabled:hover {
+  background-color: var(--kr-bg-surface) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-muted) !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+html[class*="-dark"] .dataTables_paginate .paginate_button:not(.disabled):hover {
+  background-color: var(--kr-bg-hover) !important;
+  border-color: var(--kr-border-strong) !important;
+  color: var(--kr-primary) !important;
+}
+
+html[class*="-dark"] .dataTables_paginate .paginate_button.current:hover {
+  background-color: var(--kr-primary) !important;
+  border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
+}
+
+/* DataTables - Wrapper et conteneur */
+html[class*="-dark"] .dataTables_wrapper {
+  color: var(--kr-text-primary);
+}
+
+/* DataTables - Info, Filter, Length */
+html[class*="-dark"] .dataTables_info,
+html[class*="-dark"] .dataTables_filter,
+html[class*="-dark"] .dataTables_length {
+  color: var(--kr-text-secondary) !important;
+}
+
+html[class*="-dark"] .dataTables_filter label,
+html[class*="-dark"] .dataTables_length label {
+  color: var(--kr-text-secondary);
+}
+
+/* DataTables - Inputs et Selects */
+html[class*="-dark"] .dataTables_filter input,
+html[class*="-dark"] .dataTables_length select {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] .dataTables_filter input:focus,
+html[class*="-dark"] .dataTables_length select:focus {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-primary) !important;
+  outline: none !important;
+}
+
+/* DataTables - Table principale */
+html[class*="-dark"] table.dataTable {
+  background-color: transparent !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* DataTables - En-têtes */
+html[class*="-dark"] table.dataTable thead th,
+html[class*="-dark"] table.dataTable thead td {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+html[class*="-dark"] table.dataTable thead th.sorting,
+html[class*="-dark"] table.dataTable thead th.sorting_asc,
+html[class*="-dark"] table.dataTable thead th.sorting_desc {
+  background-color: var(--kr-bg-elevated) !important;
+}
+
+html[class*="-dark"] table.dataTable thead th.sorting:hover,
+html[class*="-dark"] table.dataTable thead th.sorting_asc:hover,
+html[class*="-dark"] table.dataTable thead th.sorting_desc:hover {
+  background-color: var(--kr-bg-hover) !important;
+}
+
+/* DataTables - Corps de table (lignes) */
+html[class*="-dark"] table.dataTable tbody tr {
+  background-color: var(--kr-bg-surface) !important;
+}
+
+html[class*="-dark"] table.dataTable tbody tr.odd {
+  background-color: var(--kr-bg-surface) !important;
+}
+
+html[class*="-dark"] table.dataTable tbody tr.even {
+  background-color: var(--kr-bg-hover) !important;
+}
+
+html[class*="-dark"] table.dataTable tbody tr:hover {
+  background-color: var(--kr-bg-active) !important;
+}
+
+/* DataTables - Cellules */
+html[class*="-dark"] table.dataTable tbody td {
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* DataTables - Message "Aucune donnée" */
+html[class*="-dark"] table.dataTable tbody td.dataTables_empty {
+  background-color: var(--kr-bg-surface) !important;
+  color: var(--kr-text-secondary) !important;
+}
+
+/* DataTables - Footer */
+html[class*="-dark"] table.dataTable tfoot th,
+html[class*="-dark"] table.dataTable tfoot td {
+  background-color: var(--kr-bg-elevated) !important;
+  border-color: var(--kr-border-default) !important;
+  color: var(--kr-text-primary) !important;
+}
+
+
+
+
+/* ============================================================================
+   MAP PAGE FIX - Carte au dessus des tableaux
+   ============================================================================ */
+
+/* Donner une hauteur au conteneur de la carte pour que le contenu en dessous 
+   ne se superpose pas. La carte utilise des éléments en position absolue. */
+body > div:has([id^="c"]) {
+  display: block;
+  position: relative;
+  min-height: 550px; /* Hauteur de la carte + marge */
+}
+
+/* La balise MAP vide ne doit pas prendre de place */
+body > map {
+  display: none;
+}
+
+
+/* ============================================================================
+   MOBILE RESPONSIVE - Compatibilité mobile (<768px)
+   Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
+   ============================================================================ */
+
+@media (width <= 767px) {
+  /* ==========================================================================
+     FIX : Empêcher le scroll automatique vers les ancres au chargement
+     ========================================================================== */
+  
+  html {
+    overflow-anchor: none !important; /* Désactive l'ancrage automatique du scroll */
+  }
+  
+  /* ==========================================================================
+     PHASE 1 : CONTAINER RESPONSIVE
+     Supprime le débordement horizontal causé par la largeur fixe
+     ========================================================================== */
+  
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 2 : NAVBAR MOBILE AMÉLIORÉE
+     Améliore l'ergonomie du menu hamburger et des icônes
+     ========================================================================== */
+  
+  /* Fix du layout du header pour que logo et hamburger soient bien alignés */
+  .navbar-header {
+    display: flex !important;
+    justify-content: center !important; /* Logo au centre */
+    align-items: center !important;
+    width: 100vw !important; /* Prend toute la largeur du viewport */
+    position: relative !important; /* Pour positionner le toggle en absolu */
+    margin-left: calc(-50vw + 50%) !important; /* Centre par rapport au viewport */
+    margin-right: calc(-50vw + 50%) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    height: 60px !important; /* Hauteur fixe pour centrage vertical */
+  }
+  
+  .navbar-brand {
+    float: none !important;
+    margin: 0 !important; /* Centré par flexbox */
+    display: flex !important;
+    align-items: center !important;
+    padding: 15px !important; /* Ajout d'un padding pour ne pas coller aux bords */
+  }
+  
+  /* Boutons plus grands pour touch (minimum 44x44px recommandé) */
+  .navbar-toggle {
+    position: absolute !important; /* Position absolue pour le placer en haut à droite */
+    right: 15px !important; /* Aligné à droite avec espacement */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Centrage vertical parfait */
+    padding: 8px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    float: none !important;
+    margin: 0 !important;
+    border-radius: 12px !important; /* Coins plus arrondis, style moderne */
+    border: none !important; /* Pas de bordure pour un style épuré */
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important; /* Effet de flou moderne */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important; /* Espacement réduit entre les barres */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; /* Animation fluide */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* Ombre légère */
+  }
+  
+  .navbar-toggle:hover,
+  .navbar-toggle:focus {
+    background: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-50%) scale(1.05) !important; /* Léger effet de zoom */
+  }
+  
+  .navbar-toggle:active {
+    transform: translateY(-50%) scale(0.98) !important; /* Effet d'appui */
+  }
+  
+  /* Barres du hamburger plus stylées et modernes */
+  .navbar-toggle .icon-bar {
+    width: 22px !important;
+    height: 2px !important; /* Plus fines pour un look moderne */
+    border-radius: 2px !important;
+    background-color: #fff !important;
+    display: block !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  /* Animation subtile au hover - Les barres s'écartent légèrement */
+  .navbar-toggle:hover .icon-bar:nth-child(2) {
+    width: 18px !important;
+    margin-left: 4px !important;
+  }
+  
+  .navbar-toggle:hover .icon-bar:nth-child(4) {
+    width: 18px !important;
+  }
+  
+  /* Menu déroulant pleine largeur - Respecte le comportement Bootstrap */
+  .navbar-collapse {
+    width: 100% !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Quand le menu est ouvert (classe .in ajoutée par Bootstrap) */
+  .navbar-collapse.in {
+    overflow-y: auto !important;
+    max-height: calc(100vh - 60px) !important;
+  }
+  
+  /* Items de navigation plus espacés */
+  .navbar-nav > li > a {
+    padding: 15px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Icônes de la barre (notifications, messages) */
+  .navbar-nav.navbar-right > li > a {
+    padding: 15px 12px !important;
+  }
+  
+  /* Logo plus petit sur mobile */
+  .navbar-brand img.kr-logo {
+    height: 24px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 3 : PAGE D'ACCUEIL MOBILE
+     Réorganise les blocs pour une lecture verticale fluide
+     ========================================================================== */
+  
+  /* Empiler les colonnes verticalement (sauf dans les modales) */
+  body.mobile-mode > .container > .row > [class*="col-md-"],
+  body.mobile-mode > .container > .row > [class*="col-sm-"],
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-md-"],
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"] {
+    width: 100% !important;
+    float: none !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Carousel responsive */
+  .carousel {
+    margin-bottom: 20px !important;
+  }
+  
+  .carousel .carousel-caption {
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    padding: 15px !important;
+  }
+  
+  .carousel .carousel-caption h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .carousel .carousel-caption p {
+    font-size: 0.95rem !important;
+  }
+  
+  /* Images du carousel */
+  .carousel-inner > .item > img {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Masquer les statistiques (Membres actifs, Personnages actifs, etc.) en mobile */
+  a.list-group-item.ds_users,
+  a.list-group-item.ds_characters,
+  a.list-group-item.ds_online {
+    display: none !important;
+  }
+  
+  /* N'afficher qu'une seule nouvelle en mode mobile */
+  .panel-body.panel-news ul.demo li.news-item:nth-child(n+2) {
+    display: none !important;
+  }
+  
+  /* Réduire la taille des flèches de navigation dans la section nouvelles */
+  .panel-default ul.pagination.pull-right > li > a {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Header "Nouvelles" avec croix à droite */
+  .list-group-item.active {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 15px !important;
+  }
+  
+  #slide-submenu {
+    flex-shrink: 0 !important;
+    margin-left: 10px !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    padding: 4px 8px !important;
+    background: transparent !important;
+    border: none !important;
+    color: inherit !important;
+    transition: opacity 0.2s ease !important;
+  }
+  
+  #slide-submenu:hover {
+    opacity: 0.7 !important;
+  }
+  
+  /* Masquer le contenu quand replié */
+  #player-header-section.kr-news-collapsed .panel.panel-default {
+    display: none !important;
+  }
+  
+  /* Stats cards en grille 3 colonnes */
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  /* Cartes de dashboard plus compactes */
+  .dashboard-card {
+    padding: 10px !important;
+  }
+  
+  .dashboard-card h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  /* Panels responsive */
+  .panel {
+    margin-bottom: 15px !important;
+  }
+  
+  .panel-heading {
+    padding: 10px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  
+  .panel-heading .pull-right {
+    float: none !important;
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .panel-body {
+    padding: 15px !important;
+  }
+  
+  /* Réduire l'espace entre pagination et messages sur les pages de forum */
+  .pagination {
+    margin: 10px 0 !important;
+  }
+  
+  /* Uniformiser la taille des boutons de pagination */
+  .pagination > li > a,
+  .pagination > li > span {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Réduire l'espace sous le h1 sur les pages de thread */
+  h1.page-header {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Ancres de messages ne doivent pas prendre d'espace */
+  a[name^="msg"] {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
+  /* Wells plus compacts */
+  .well {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Alerts responsive */
+  .alert {
+    padding: 12px 15px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Mini-chat : masqué par défaut sur mobile, accessible via bouton flottant */
+  #flap {
+    position: fixed !important;
+    top: 0 !important;
+    right: -100% !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    height: 100vh !important;
+    z-index: 1050 !important;
+    transition: right 0.3s ease !important;
+    overflow-y: auto !important;
+    background: var(--kr-bg-surface) !important;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  #flap.mobile-open {
+    right: 0 !important;
+  }
+  
+  /* Bouton MC visible pour ouvrir le chat */
+  a[href*="#flap"] {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 1000 !important;
+    background: var(--kr-primary) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 56px !important;
+    height: 56px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    box-shadow: var(--kr-shadow-lg) !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 4 : PAGE PLATEAU DE JEU MOBILE
+     Réorganise l'interface de jeu pour le mobile
+     ========================================================================== */
+  
+  /* === PANNEAU DE COMPÉTENCES === */
+
+  /* Masquer le panneau latéral, accessible via bouton */
+  #skills-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    height: 100vh !important;
+    z-index: 1050 !important;
+    transition: left 0.3s ease !important;
+    overflow-y: auto !important;
+    background: var(--kr-bg-surface) !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+    padding: 15px !important;
+  }
+  
+  #skills-panel.mobile-open {
+    left: 0 !important;
+  }
+  
+  /* Conteneur parent du skills-panel */
+  .col-md-1:has(#skills-panel) {
+    position: static !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Grille des compétences plus compacte sur mobile */
+  #skills-panel .grid-transformed {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  /* === PANNEAU PERSONNAGE === */
+
+  /* Toutes les colonnes en pleine largeur (page principale uniquement, pas les modales) */
+  body.mobile-mode > .container > .row > .col-md-3,
+  body.mobile-mode > .container > .row > .col-md-6,
+  body.mobile-mode > .container > .row > .col-md-8,
+  body.mobile-mode > .container > .row > .col-md-1 {
+    width: 100% !important;
+    float: none !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  /* Avatar réduit */
+  .panel-heading img {
+    max-width: 60px !important;
+    max-height: 60px !important;
+  }
+  
+  /* Stats du personnage */
+  .panel-body > div {
+    margin-bottom: 10px !important;
+  }
+  
+  /* Barres de progression */
+  .progress {
+    height: 24px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .progress-bar {
+    font-size: 12px !important;
+    line-height: 24px !important;
+  }
+  
+  /* === CARTE DU JEU === */
+
+  /* Carte avec scroll horizontal si nécessaire */
+  .panel-body:has(map),
+  .panel-body:has([id^="c"]) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 10px !important;
+  }
+  
+  /* Conteneur de carte */
+  body > div:has([id^="c"]) {
+    min-height: 400px !important;
+  }
+  
+  /* Images de la carte */
+  map + img,
+  [id^="c"] img {
+    max-width: none !important;
+    height: auto !important;
+  }
+  
+  /* === LISTE DES PERSONNAGES === */
+
+  /* En liste verticale compacte */
+  .list-group {
+    margin-bottom: 15px !important;
+  }
+  
+  .list-group-item {
+    padding: 10px 12px !important;
+    min-height: 44px !important;
+    justify-content: space-between !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  
+  /* Avatars de la liste réduits */
+  .list-group-item img {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Texte des items */
+  .list-group-item-heading {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .list-group-item-text {
+    font-size: 12px !important;
+  }
+  
+  /* === PANNEAU COMMERCE === */
+
+  /* Items du commerce en liste compacte */
+  .panel-body h4 {
+    font-size: 1rem !important;
+    margin-top: 15px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  /* Items de commerce */
+  .panel-body a {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px !important;
+    gap: 10px !important;
+    font-size: 14px !important;
+    margin-bottom: 5px !important;
+    border-radius: 4px !important;
+  }
+  
+  .panel-body a:hover {
+    background-color: var(--kr-bg-hover) !important;
+  }
+  
+  .panel-body a img {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Tables responsive */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Tables plus compactes */
+  .table > thead > tr > th,
+  .table > tbody > tr > th,
+  .table > tfoot > tr > th,
+  .table > thead > tr > td,
+  .table > tbody > tr > td,
+  .table > tfoot > tr > td {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+  
+  
+  /* ==========================================================================
+     PHASE 5 : ÉLÉMENTS TOUCH-FRIENDLY
+     Assure que tous les éléments interactifs sont cliquables facilement
+     ========================================================================== */
+  
+  /* Taille minimale des zones cliquables (44x44px minimum recommandé) */
+  a:not(.list-group-item), 
+  button, 
+  .btn,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Boutons de formulaire */
+  .btn {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  .btn-xs {
+    min-height: 32px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  .btn-sm {
+    min-height: 38px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .btn-lg {
+    min-height: 50px !important;
+    padding: 14px 24px !important;
+    font-size: 18px !important;
+  }
+  
+  /* Formulaires */
+  .form-control {
+    height: 44px !important;
+    font-size: 16px !important; /* Évite le zoom iOS */
+    padding: 10px 12px !important;
+  }
+  
+  textarea.form-control {
+    height: auto !important;
+    min-height: 100px !important;
+  }
+  
+  select.form-control {
+    height: 44px !important;
+  }
+  
+  /* Checkboxes et radios plus grands */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 4px !important;
+  }
+  
+  /* Labels cliquables */
+  label {
+    display: inline-block !important;
+    padding: 5px 0 !important;
+    cursor: pointer !important;
+  }
+  
+  /* Espacement entre éléments cliquables */
+  .btn + .btn {
+    margin-top: 8px !important;
+    margin-left: 0 !important;
+  }
+  
+  .btn-group-vertical > .btn {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Boutons groupés en colonne sur mobile */
+  .btn-group {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  
+  .btn-group > .btn {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Pagination plus grande */
+  .pagination > li > a,
+  .pagination > li > span {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Breadcrumb responsive */
+  .breadcrumb {
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Tabs plus grandes */
+  .nav-tabs > li > a {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Dropdown menu */
+  .dropdown-menu > li > a {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Modal responsive */
+  .modal-dialog {
+    width: auto !important;
+    margin: 10px !important;
+  }
+  
+  .modal-content {
+    border-radius: 8px !important;
+  }
+  
+  .modal-header {
+    padding: 15px !important;
+  }
+  
+  .modal-body {
+    padding: 15px !important;
+  }
+  
+  .modal-footer {
+    padding: 15px !important;
+  }
+  
+  /* Popover et tooltip responsive */
+  .popover {
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  .tooltip {
+    font-size: 14px !important;
+  }
+  
+  /* Footer responsive */
+  .footer {
+    padding: 15px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Typographie mobile */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  h4 { font-size: 1.1rem !important; }
+  h5 { font-size: 1rem !important; }
+  h6 { font-size: 0.9rem !important; }
+  
+  /* Espacement vertical */
+  .row {
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+  }
+  
+  /* Masquer les éléments non essentiels sur mobile */
+  .hidden-xs {
+    display: none !important;
+  }
+  
+  /* Afficher les éléments mobile uniquement */
+  .visible-xs,
+  .visible-xs-block,
+  .visible-xs-inline,
+  .visible-xs-inline-block {
+    display: block !important;
+  }
+  
+  .visible-xs-inline {
+    display: inline !important;
+  }
+  
+  .visible-xs-inline-block {
+    display: inline-block !important;
+  }
+}
+
+
+/* ==========================================================================
+   OVERLAY MOBILE - Pour fermer les panneaux latéraux
+   ========================================================================== */
+
+.kr-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kr-mobile-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Bouton de fermeture dans les panneaux mobiles */
+.kr-mobile-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background: var(--kr-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 20px;
+}
+
+.kr-mobile-close:hover {
+  background: var(--kr-primary-dark);
+}
+
+/* Bouton pour ouvrir le panneau de compétences sur mobile */
+.kr-mobile-skills-toggle {
+  position: fixed !important;
+  bottom: 90px !important;
+  right: 20px !important;
+  z-index: 1000 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: none !important;
+  box-shadow: var(--kr-shadow-lg) !important;
+}
+
+@media (width <= 767px) {
+  .kr-mobile-skills-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* ============================================
+   TASK-1.1 - BREAKPOINTS (Bootstrap 3)
+   ============================================ */
+
+/* Bootstrap 3 utilise ces breakpoints précis :
+   - xs: < 768px (mobile)
+   - sm: >= 768px (tablet)
+   - md: >= 992px (desktop)
+   - lg: >= 1200px (large desktop)
+*/
+
+/* Mobile First approach */
+
+/* Default styles = mobile (< 768px) */
+
+/* Small devices (tablets, >= 768px) */
+@media (width >= 768px) {
+  /* Retour progressif au layout desktop */
+  body.mobile-mode {
+    /* Désactiver progressivement les adaptations mobiles */
+  }
+}
+
+/* Medium devices (desktops, >= 992px) */
+@media (width >= 992px) {
+  /* Layout desktop complet */
+  body.mobile-mode {
+    /* Annuler complètement les adaptations mobiles */
+  }
+}
+
+/* Large devices (large desktops, >= 1200px) */
+@media (width >= 1200px) {
+  /* Layout large desktop si nécessaire */
+}
+
+/* ============================================
+   TASK-1.1 - CLASSES UTILITAIRES MOBILE
+   ============================================ */
+
+/* Masquer certains éléments en mode mobile */
+@media (width <= 767px) {
+  body.mobile-mode .desktop-only,
+  body.mobile-mode .mobile-hidden {
+    display: none;
+  }
+}
+
+/* Masquer certains éléments en mode desktop */
+@media (width >= 768px) {
+  body.mobile-mode .mobile-only {
+    display: none;
+  }
+}
+
+/* Classes utilitaires supplémentaires compatibles BS3 */
+@media (width < 768px) {
+  .visible-xs-block { display: block; }
+  .visible-xs-inline { display: inline; }
+  .visible-xs-inline-block { display: inline-block; }
+  .hidden-xs { display: none; }
+}
+
+/* ============================================
+   TASK-1.4 - MINI-PROFIL COLLAPSIBLE
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Container du mini-profil */
+    .mobile-mini-profile {
+      position: relative;
+      background: var(--kr-bg-surface) !important;
+      border-bottom: 1px solid var(--kr-border-default) !important;
+      padding: 12px;
+      cursor: pointer;
+      transition: all var(--transition-normal);
+    }
+    
+    .mobile-mini-profile:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* État replié (défaut) */
+    .mobile-mini-profile.collapsed {
+      min-height: 72px;
+    }
+    
+    /* État déplié */
+    .mobile-mini-profile.expanded {
+      min-height: 200px;
+    }
+    
+    /* Header toujours visible */
+    .mobile-mini-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    /* Avatar */
+    .mobile-mini-profile .avatar {
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: all var(--transition-normal);
+      object-fit: cover;
+    }
+    
+    .mobile-mini-profile.expanded .avatar {
+      width: 64px !important;
+      height: 64px !important;
+    }
+    
+    /* Info principale */
+    .mobile-mini-profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .mobile-mini-profile-name-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      margin-bottom: 2px !important;
+    }
+    
+    .mobile-mini-profile-name {
+      font-weight: 600 !important;
+      font-size: 14px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      color: var(--kr-text-primary) !important;
+      flex: 1 !important;
+    }
+    
+    .mobile-mini-profile-manage-btn {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 20px !important;
+      flex-shrink: 0 !important;
+      border: none !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    .mobile-mini-profile-manage-btn:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    .mobile-mini-profile-money {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      font-size: 13px !important;
+      color: var(--kr-text-secondary) !important;
+    }
+    
+    .mobile-mini-profile-clock {
+      font-size: 12px !important;
+      color: var(--kr-text-muted) !important;
+      margin-left: 8px !important;
+    }
+    
+    /* Bouton settings */
+    .mobile-mini-profile-settings {
+      position: absolute !important;
+      top: 12px !important;
+      right: 12px !important;
+      width: 32px !important;
+      height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: var(--kr-bg-hover) !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      font-size: 16px !important;
+      z-index: 10 !important;
+      text-decoration: none !important;
+    }
+    
+    .mobile-mini-profile-settings:hover {
+      background: var(--kr-bg-active) !important;
+    }
+    
+    /* Jauges compactes (toujours visibles) */
+    .mobile-mini-profile-gauges-compact {
+      display: flex !important;
+      gap: 8px !important;
+      font-size: 11px !important;
+      margin-top: 4px !important;
+    }
+    
+    .mobile-gauge-compact {
+      flex: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+    }
+    
+    .mobile-gauge-compact-label {
+      font-weight: 600 !important;
+      min-width: 20px !important;
+      font-size: 10px !important;
+    }
+    
+    .mobile-gauge-compact-bar {
+      flex: 1 !important;
+      height: 6px !important;
+      background: var(--kr-border-default) !important;
+      border-radius: 3px !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+    
+    .mobile-gauge-compact-fill {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      height: 100% !important;
+      transition: width var(--transition-normal) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pv {
+      background: var(--kr-gauge-pv) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pm {
+      background: var(--kr-gauge-pm) !important;
+    }
+    
+    .mobile-gauge-compact-fill.pp {
+      background: var(--kr-gauge-pp) !important;
+    }
+    
+    .mobile-gauge-compact-value {
+      font-size: 10px !important;
+      color: var(--kr-text-secondary) !important;
+      white-space: nowrap !important;
+      min-width: 20px !important;
+      text-align: right !important;
+    }
+    
+    /* Détails (visibles uniquement si déplié) */
+    .mobile-mini-profile-details {
+      max-height: 0 !important;
+      overflow: hidden !important;
+      transition: max-height var(--transition-normal) !important;
+    }
+    
+    .mobile-mini-profile.expanded .mobile-mini-profile-details {
+      max-height: 1200px !important;
+    }
+    
+    /* Jauges détaillées */
+    .mobile-mini-profile-gauges-full {
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+    }
+    
+    .mobile-gauge-full {
+      margin-bottom: 8px !important;
+    }
+    
+    .mobile-gauge-full:last-child {
+      margin-bottom: 0 !important;
+    }
+    
+    .mobile-gauge-full-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      margin-bottom: 4px !important;
+    }
+    
+    .mobile-gauge-full-bar {
+      height: 12px !important;
+      background: var(--kr-border-default) !important;
+      border-radius: 6px !important;
+      overflow: hidden !important;
+      position: relative !important;
+    }
+    
+    .mobile-gauge-full-fill {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      height: 100% !important;
+      transition: width var(--transition-normal) !important;
+    }
+    
+    .mobile-gauge-full-fill.pv {
+      background: var(--kr-gauge-pv) !important;
+    }
+    
+    .mobile-gauge-full-fill.pm {
+      background: var(--kr-gauge-pm) !important;
+    }
+    
+    .mobile-gauge-full-fill.pp {
+      background: var(--kr-gauge-pp) !important;
+    }
+    
+    /* Caractéristiques */
+    .mobile-mini-profile-characteristics {
+      display: grid !important;
+      grid-template-columns: repeat(6, 1fr) !important;
+      gap: 0 !important;
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+    }
+    
+    .mobile-characteristic-badge {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      margin: 4px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .mobile-characteristic-badge:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* Compétences */
+    .mobile-mini-profile-skills {
+      max-height: 350px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      margin: 12px 0 !important;
+      padding: 12px !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 4px !important;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)) !important;
+      gap: 8px !important;
+    }
+    
+    .mobile-skill-item {
+      min-height: 44px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .mobile-skill-item:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* Masquer le profil original en mobile */
+    #player-header-section {
+      display: none !important;
+    }
+    
+    /* Masquer la section actions originale en mobile */
+    #player-actions-section {
+      display: none !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.6 - MASQUER 18 COMPÉTENCES
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Masquer le panel des 18 compétences */
+
+    /* Les compétences sont accessibles via l'onglet "Personnage" (/jouer/perso) */
+    .panel-body.grid-transformed {
+      display: none !important;
+    }
+    
+    /* Masquer le bouton "Afficher les compétences" */
+    .kr-mobile-skills-toggle {
+      display: none !important;
+    }
+    
+    /* Masquer l'overlay des compétences si présent */
+    .kr-mobile-overlay {
+      display: none !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Container actions - Utilise btn-group-justified BS3 */
+    .mobile-quick-actions.btn-group-justified {
+      display: flex !important;
+      flex-direction: row !important;
+      width: 100% !important;
+      border-bottom: 1px solid var(--kr-border-default) !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    /* Wrapper btn-group requis par BS3 justified */
+    .mobile-quick-actions .btn-group {
+      flex: 1 1 0 !important;
+      display: flex !important;
+    }
+    
+    /* Bouton d'action individuel - Réutilise btn BS3 */
+    .mobile-quick-action.btn {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 1 !important;
+      width: 100% !important;
+      min-height: 60px !important;
+      padding: 8px 4px !important;
+      background: var(--kr-bg-surface) !important;
+      color: var(--kr-text-primary) !important;
+      border-radius: 0 !important;
+      border-left: none !important;
+      border-right: 1px solid var(--kr-border-default) !important;
+      border-top: none !important;
+      border-bottom: none !important;
+      transition: all var(--transition-fast) !important;
+    }
+    
+    .mobile-quick-action.btn:first-child {
+      border-left: 1px solid var(--kr-border-default) !important;
+    }
+    
+    .mobile-quick-action.btn:last-child {
+      border-right: 1px solid var(--kr-border-default) !important;
+    }
+    
+    .mobile-quick-action.btn:active {
+      box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125) !important;
+      transform: scale(0.95) !important;
+    }
+    
+    .mobile-quick-action.btn.disabled,
+    .mobile-quick-action.btn[disabled] {
+      opacity: 0.65 !important;
+      cursor: not-allowed !important;
+    }
+    
+    /* Icône */
+    .mobile-quick-action-icon {
+      font-size: 20px !important;
+      margin-bottom: 2px !important;
+      display: block !important;
+    }
+    
+    .mobile-quick-action.btn i {
+      font-size: 20px !important;
+      margin-bottom: 2px !important;
+      display: block !important;
+    }
+    
+    /* Label */
+    .mobile-quick-action-label {
+      font-size: 11px !important;
+      display: block !important;
+      line-height: 1.2 !important;
+      margin-top: 2px !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Tab bar container - Utilise nav-tabs BS3 */
+    .mobile-tab-bar.nav-tabs {
+      position: sticky;
+      top: var(--mobile-header-height);
+      z-index: calc(var(--z-header) - 1);
+      background: var(--kr-bg-surface) !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      margin-bottom: 0;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      
+      /* Masquer scrollbar */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .mobile-tab-bar.nav-tabs::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+    
+    /* Tabs individuels - Utilise les styles BS3 */
+    .mobile-tab-bar.nav-tabs > li {
+      flex: 1 1 0; /* Répartition égale */
+      float: none;
+      min-width: 0; /* Permet le shrink */
+    }
+    
+    .mobile-tab-bar.nav-tabs > li > a {
+      min-height: var(--mobile-touch-target);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      margin-right: 0;
+      border-radius: 0;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: all var(--transition-fast);
+      color: var(--kr-text-primary) !important;
+      background: transparent !important;
+    }
+    
+    /* Icône de tab */
+    .mobile-tab-icon {
+      font-size: 18px !important;
+      margin-bottom: 4px !important;
+      display: block !important;
+    }
+    
+    /* Label de tab */
+    .mobile-tab-label {
+      font-size: 10px !important;
+      display: block !important;
+      line-height: 1.2 !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 100% !important;
+    }
+    
+    .mobile-tab-bar.nav-tabs > li > a:hover {
+      background: var(--kr-bg-hover) !important;
+      border-color: transparent;
+    }
+    
+    .mobile-tab-bar.nav-tabs > li.active > a,
+    .mobile-tab-bar.nav-tabs > li.active > a:hover,
+    .mobile-tab-bar.nav-tabs > li.active > a:focus {
+      color: var(--kr-primary);
+      background: transparent;
+      border-bottom-color: var(--kr-primary);
+      font-weight: 600;
+    }
+    
+    /* Badge notifications (utilise badge BS3) */
+    .mobile-tab-bar.nav-tabs .badge {
+      margin-left: var(--mobile-spacing-xs);
+    }
+    
+    /* Indicateur de scroll (optionnel) */
+    .mobile-tab-bar.nav-tabs::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(to right, transparent, var(--kr-bg-surface));
+      pointer-events: none;
+    }
+    
+    .mobile-tab-bar.nav-tabs.scrolled-end::after {
+      display: none;
+    }
+  }
+}
+
+/* ============================================
+   TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Header principal - Utilise les classes BS3 */
+    .navbar,
+    .navbar-default,
+    .navbar-inverse {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-header);
+      background: var(--kr-navbar-bg);
+      border-bottom: 1px solid var(--kr-overlay-light-10);
+      box-shadow: 0 2px 4px var(--kr-overlay-dark-30);
+      margin-bottom: 0;
+      min-height: var(--mobile-header-height);
+    }
+    
+    .navbar .container {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    /* Zone gauche - Hamburger (réutilise navbar-toggle BS3) */
+    .navbar-toggle {
+      display: block;
+      margin: 8px 10px;
+      padding: 9px 10px;
+      border: 1px solid var(--kr-overlay-light-20);
+      order: 1;
+      margin-right: 0;
+      margin-left: auto;
+      border-radius: 4px;
+      background: transparent;
+    }
+    
+    .navbar-toggle:hover,
+    .navbar-toggle:focus {
+      background: var(--kr-overlay-light-10);
+    }
+    
+    .navbar-toggle .icon-bar {
+      background-color: var(--kr-white);
+    }
+    
+    /* Logo visible dans la navbar à gauche */
+    .navbar-header .navbar-brand {
+      display: flex !important;
+      align-items: center;
+      padding: 8px 12px !important;
+      margin-right: auto !important;
+      height: var(--mobile-header-height);
+      min-width: 44px; /* Zone tactile minimum WCAG 2.5.5 */
+    }
+    
+    .navbar-header .navbar-brand img {
+      max-height: 32px;
+      width: auto;
+    }
+    
+    /* Feedback tactile */
+    .navbar-header .navbar-brand:active {
+      background: var(--kr-overlay-dark-20);
+      transform: scale(0.95);
+    }
+    
+    /* Cacher le logo déplacé sous la navbar */
+    .navbar-brand[data-moved-below-navbar] {
+      display: none !important;
+    }
+    
+    /* Boutons déplacés dans le header */
+    .navbar-header-buttons-left,
+    .navbar-header-buttons-right {
+      display: flex;
+      align-items: center;
+      height: var(--mobile-header-height);
+    }
+    
+    .navbar-header-buttons-left {
+      order: -1; /* Place à gauche avant le toggle */
+      padding-left: 8px;
+    }
+    
+    .navbar-header-buttons-right {
+      order: 2; /* Avant le logo */
+      margin-left: auto; /* Pousse à droite */
+      padding-right: 8px;
+    }
+    
+    .navbar-header-buttons-left li,
+    .navbar-header-buttons-right li {
+      list-style: none;
+      display: inline-block;
+      margin: 0 2px;
+    }
+    
+    .navbar-header-buttons-left li a,
+    .navbar-header-buttons-right li a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 10px !important;
+      font-size: 18px;
+      color: var(--kr-white) !important;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 150ms ease;
+      position: relative;
+    }
+    
+    .navbar-header-buttons-left li a:active,
+    .navbar-header-buttons-right li a:active {
+      background-color: var(--kr-overlay-light-10);
+    }
+    
+    /* Badge dans le header */
+    .navbar-header-buttons-left .badge,
+    .navbar-header-buttons-right .badge {
+      position: absolute !important;
+      top: 6px !important;
+      right: 6px !important;
+      min-width: 16px !important;
+      height: 16px !important;
+      padding: 2px 4px !important;
+      font-size: 10px !important;
+      line-height: 12px !important;
+      border-radius: 8px !important;
+    }
+    
+    /* Réorganiser l'ordre des éléments du header */
+    .navbar-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    
+    /* Zone droite - Icônes (conservées telles quelles) */
+    .navbar-right {
+      margin: 0 !important;
+      padding: 8px 0 !important;
+      border-top: 1px solid var(--kr-overlay-light-10) !important;
+    }
+    
+    .navbar-right > li > a {
+      padding: 15px 10px;
+    }
+    
+    /* Menu mobile - Utilise navbar-collapse BS3 */
+    .navbar-collapse {
+      border-top: 1px solid var(--kr-overlay-light-10);
+      box-shadow: inset 0 1px 0 var(--kr-overlay-light-05);
+      max-height: calc(100vh - var(--mobile-header-height));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .navbar-collapse.in,
+    .navbar-collapse.collapsing {
+      overflow-y: auto;
+      height: auto !important; /* Force hauteur auto pour éviter les problèmes de collapse.js */
+    }
+    
+    /* Navigation dans le collapse */
+    .navbar-nav {
+      margin: 0;
+      padding: 8px 0;
+    }
+    
+    /* Liens principaux du menu - optimisés pour le tactile */
+    .navbar-nav > li > a {
+      min-height: 44px !important; /* WCAG 2.5.5 - zone tactile minimum */
+      padding: 14px 20px !important;
+      font-size: 16px !important; /* Évite le zoom automatique iOS */
+      line-height: 1.5 !important;
+      display: flex !important;
+      align-items: center !important;
+      border-bottom: 1px solid var(--kr-overlay-light-05) !important;
+      transition: background-color 150ms ease !important;
+    }
+    
+    /* Feedback tactile au toucher */
+    .navbar-nav > li > a:active {
+      background: var(--kr-overlay-light-10) !important;
+      transition: none !important;
+    }
+    
+    /* Masquer les carets (chevrons) en mobile - navigation directe */
+    .navbar-nav > li > a .caret {
+      display: none !important;
+    }
+    
+    /* Dropdowns dans le menu mobile - masqués par défaut car navigation directe */
+    .navbar-nav .dropdown-menu {
+      display: none !important; /* Masquer les sous-menus en mobile */
+    }
+    
+    .navbar-right > li {
+      display: inline-block !important;
+    }
+    
+    .navbar-right > li > a,
+    .navbar-right > li > button {
+      min-width: 44px !important; /* Zone tactile minimum */
+      min-height: 44px !important;
+      padding: 12px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 18px !important; /* Icônes plus grandes */
+      border-radius: 4px !important;
+      margin: 0 4px !important;
+    }
+    
+    .navbar-right > li > a:active,
+    .navbar-right > li > button:active {
+      background: var(--kr-overlay-light-10) !important;
+    }
+    
+    /* Badge de notification */
+    .navbar-right .badge {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      min-width: 18px !important;
+      height: 18px !important;
+      padding: 2px 5px !important;
+      font-size: 11px !important;
+      line-height: 14px !important;
+    }
+  }
+}
+
+/* ============================================
+   TASK-2.2 - ACCORDÉON GROUPES (Base)
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Header de groupe avec accordéon */
+    .dashboard-section-header-accordion {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color var(--transition-fast);
+    }
+    
+    .dashboard-section-header-accordion:active {
+      background-color: var(--kr-overlay-light-05);
+    }
+    
+    /* Icône chevron pour l'accordéon */
+    .dashboard-section-header-accordion .accordion-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%) rotate(0deg);
+      transition: transform var(--transition-normal);
+      color: var(--kr-text-secondary);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    
+    /* Rotation de l'icône quand le groupe est ouvert */
+    .dashboard-section-header-accordion.expanded .accordion-icon {
+      transform: translateY(-50%) rotate(-180deg);
+    }
+    
+    /* Grille de membres collapsible */
+    .dashboard-cards-grid {
+      overflow: hidden;
+      transition: max-height var(--transition-normal) ease-in-out,
+                  opacity var(--transition-normal) ease-in-out,
+                  margin var(--transition-fast);
+      max-height: 5000px; /* Grande valeur pour le contenu étendu */
+      opacity: 1;
+    }
+    
+    /* État collapsed */
+    .dashboard-cards-grid.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin: 0;
+      pointer-events: none;
+    }
+    
+    /* Espacement pour les groupes */
+    .dashboard-section {
+      margin-bottom: 10px;
+    }
+    
+    /* Mon groupe - style spécial */
+    .dashboard-section-mygroup .dashboard-section-header {
+      background: var(--kr-bg-hover);
+      border-left: 3px solid var(--kr-primary);
+    }
+  }
+}
+
+/* ============================================
+   TASK-2.3 - CARDS PERSOS (Mobile Optimized)
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Grille de cartes compacte */
+    .dashboard-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      padding: 10px;
+      background: var(--kr-bg-surface);
+    }
+    
+    /* Carte de personnage compacte */
+    .dashboard-card {
+      position: relative;
+      width: 100%;
+      min-height: 140px;
+      margin: 0;
+    }
+    
+    /* Lien principal de la carte */
+    .dashboard-card-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      background: var(--kr-bg-hover);
+      border: 1px solid var(--kr-border-default);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    
+    .dashboard-card-link:hover,
+    .dashboard-card-link:active {
+      background: var(--kr-bg-active);
+      border-color: var(--kr-primary);
+      transform: translateY(-1px);
+    }
+    
+    /* Header avec avatar */
+    .dashboard-card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+    
+    /* Wrapper d'avatar avec cercle HP */
+    .dashboard-card-avatar-wrapper {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin-bottom: 4px;
+    }
+    
+    /* Cercle de vie (HP) */
+    .dashboard-card-hp-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px !important;
+      height: 60px !important;
+    }
+    
+    .dashboard-card-hp-circle circle {
+      stroke-width: 2 !important;
+    }
+    
+    /* Avatar du personnage */
+    .dashboard-card-avatar {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 5px;
+      z-index: 1;
+    }
+    
+    /* Container du nom */
+    .dashboard-card-name-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      gap: 2px;
+    }
+    
+    /* Icône du monde */
+    .dashboard-card-world {
+      width: 14px;
+      height: 14px;
+      opacity: 0.6;
+    }
+    
+    /* Nom du personnage */
+    .dashboard-card-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--kr-text-primary);
+      text-align: center;
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-all;
+    }
+    
+    /* Body avec statut */
+    .dashboard-card-body {
+      width: 100%;
+      padding: 0 2px;
+    }
+    
+    /* Statut du personnage */
+    .dashboard-card-status {
+      font-size: 9px;
+      color: var(--kr-text-secondary);
+      text-align: center;
+      font-style: italic;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Badge PNJ */
+    .dashboard-card-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: var(--kr-primary);
+      color: var(--kr-text-primary);
+      font-size: 8px;
+      font-weight: 600;
+      padding: 2px 4px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+    
+    /* Actions (profil, message) */
+    .dashboard-card-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      padding: 6px 4px 4px;
+      border-top: 1px solid var(--kr-border-default);
+      margin-top: 6px;
+    }
+    
+    .dashboard-card-actions a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--kr-bg-surface);
+      border: 1px solid var(--kr-border-default);
+      border-radius: 6px;
+      color: var(--kr-text-secondary);
+      transition: all var(--transition-fast);
+      text-decoration: none;
+    }
+    
+    .dashboard-card-actions a:hover {
+      background: var(--kr-primary);
+      border-color: var(--kr-primary);
+      color: var(--kr-text-primary);
+      transform: scale(1.1);
+    }
+    
+    .dashboard-card-actions i {
+      font-size: 13px;
+    }
+  }
+}
+
+/* ============================================================================
+ * TASK-2.5 : Commerce - Accordéon catégories
+ * ============================================================================
+ */
+
+/* Header de catégorie cliquable */
+body.mobile-mode .commerce-category-header {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+body.mobile-mode .commerce-category-header:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+body.mobile-mode .commerce-category-header:active {
+  background-color: var(--kr-bg-active);
+}
+
+/* Icône chevron */
+body.mobile-mode .commerce-category-header .accordion-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform var(--transition-normal);
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+}
+
+body.mobile-mode .commerce-category-header.expanded .accordion-icon {
+  transform: translateY(-50%) rotate(-180deg);
+}
+
+/* Conteneur de produits collapsible */
+body.mobile-mode .commerce-products-container {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height var(--transition-normal), opacity var(--transition-normal);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  padding: 8px 0;
+}
+
+body.mobile-mode .commerce-products-container.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* ============================================================================
+ * TASK-2.6 : Commerce - Cards produits compactes
+ * ============================================================================
+ */
+
+/* Carte produit compacte */
+body.mobile-mode .commerce-products-container > a.list-group-item {
+  display: flex !important;
+  flex-direction: column;
+  padding: 8px !important;
+  min-height: 120px;
+  border-radius: 8px;
+  background-color: var(--kr-bg-surface);
+  border: 1px solid var(--kr-border-default);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+body.mobile-mode .commerce-products-container > a.list-group-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Prix en haut à droite */
+body.mobile-mode .commerce-products-container > a.list-group-item .mention {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  float: none !important;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: right;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
+  font-size: 9px;
+  opacity: 0.8;
+}
+
+/* Image centrée */
+body.mobile-mode .commerce-products-container > a.list-group-item img {
+  float: none !important;
+  display: block;
+  margin: 0 auto 8px;
+  width: 40px;
+  height: 40px;
+}
+
+/* Titre du produit */
+body.mobile-mode .commerce-products-container > a.list-group-item h4 {
+  font-size: 11px;
+  line-height: 1.3;
+  margin: 0 0 4px;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+/* Description (optionnel, peut être masquée sur mobile) */
+body.mobile-mode .commerce-products-container > a.list-group-item p {
+  font-size: 9px;
+  line-height: 1.2;
+  margin: 0;
+  text-align: center;
+  color: var(--kr-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Masquer l'icône carré de la description */
+body.mobile-mode .commerce-products-container > a.list-group-item p i {
+  display: none;
+}
+
+/* ============================================================================
+ * TASK-2.4 : Section bâtiment collapsible
+ * ============================================================================
+ */
+
+/* Header de section bâtiment cliquable */
+body.mobile-mode .building-section-header {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+body.mobile-mode .building-section-header:hover {
+  background-color: var(--kr-bg-hover);
+}
+
+body.mobile-mode .building-section-header:active {
+  background-color: var(--kr-bg-active);
+}
+
+/* Icône chevron */
+body.mobile-mode .building-section-header .accordion-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform var(--transition-normal);
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+}
+
+body.mobile-mode .building-section-header.expanded .accordion-icon {
+  transform: translateY(-50%) rotate(-180deg);
+}
+
+/* Contenu collapsible */
+body.mobile-mode .building-section-content {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height var(--transition-normal), opacity var(--transition-normal);
+}
+
+body.mobile-mode .building-section-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* ============================================================================
+ * TASK-2.1 : Accès aux pièces en ligne horizontale avec croix directionnelle
+ * Style identique aux actions rapides (Dormir, Prier, etc.)
+ * ============================================================================ */
+
+/* Conteneur principal : table layout comme mobile-quick-actions */
+body.mobile-mode .kr-navigation-row {
+  display: table !important;
+  width: 100%;
+  table-layout: fixed;
+  margin-bottom: 5px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Réduire l'espacement du container suivant */
+body.mobile-mode .kr-navigation-row + .container {
+  padding-top: 10px !important;
+}
+
+/* Groupes (croix + cartes) - affichage en cellules de table */
+body.mobile-mode .kr-navigation-row > .btn-group {
+  display: table-cell !important;
+  width: 1%;
+  vertical-align: middle;
+  float: none !important;
+}
+
+/* Croix directionnelle - même style que les actions rapides */
+body.mobile-mode .kr-direction-link {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px !important;
+  padding: 0 !important;
+  text-align: center;
+  position: relative;
+}
+
+body.mobile-mode .kr-direction-link img {
+  width: 60px;
+  height: 60px;
+  display: block;
+}
+
+body.mobile-mode .kr-direction-link map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Cases des accès aux pièces - même style que mobile-quick-action */
+body.mobile-mode .kr-room-link {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px !important;
+  padding: 0 !important;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+body.mobile-mode .kr-room-link img {
+  width: 60px;
+  height: 60px;
+  display: block;
+}
+
+/* Premier élément : bordures arrondies à gauche */
+body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-room-link {
+  border-radius: 4px 0 0 4px;
+}
+
+/* Dernier élément : bordures arrondies à droite */
+body.mobile-mode .kr-navigation-row > .btn-group:last-child .kr-room-link {
+  border-radius: 0 4px 4px 0;
+}
+
+/* Éléments du milieu : pas de bordure gauche pour éviter le doublon */
+body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-room-link {
+  border-left: none;
+}
+
+/* Si un seul élément : bordures arrondies partout */
+body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-direction-link,
+body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
+  border-radius: 4px;
+}
+
+/* ============================================
+   GROUPES DE PERSONNAGES - STYLE BARRE
+   ============================================ */
+
+@media (width <= 767px) {
+  body.mobile-mode {
+    /* Mode mobile activé */
+  }
+  
+  /* Retrait padding conteneurs et colonnes Bootstrap en mobile */
+  body.mobile-mode .container,
+  body.mobile-mode .container-fluid,
+  body.mobile-mode [class*="col-"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  body.mobile-mode .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Conteneur dashboard pleine largeur */
+  body.mobile-mode .dashboard {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+    
+    /* Style du panel-group pour ressembler aux barres du dessus */
+    .panel-group {
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-radius: 0 !important;
+      margin-bottom: 5px !important;
+      margin-left: -15px !important;
+      margin-right: -15px !important;
+      width: calc(100% + 30px) !important;
+    }
+    
+    /* Panel individuel */
+    .panel-group .panel {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      margin-bottom: 0 !important;
+      box-shadow: none !important;
+    }
+    
+    /* Séparateur entre les panels */
+    .panel-group .panel + .panel {
+      border-top: 1px solid var(--kr-border-default) !important;
+    }
+    
+    /* Header du groupe - style barre */
+    .panel-group .panel-heading {
+      background: var(--kr-bg-surface) !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 12px 0 !important;
+      margin: 0 !important;
+      align-items: center !important;
+      transition: background-color var(--transition-fast) !important;
+    }
+    
+    .panel-group .panel-heading:active {
+      background: var(--kr-bg-hover) !important;
+    }
+    
+    /* Contenu du groupe */
+    .panel-group .panel-collapse {
+      border: none !important;
+    }
+    
+    .panel-group .panel-body {
+      background: var(--kr-bg-surface) !important;
+      border: none !important;
+      padding: 10px 0 !important;
+    }
+    
+    /* Titre du groupe */
+    .panel-group .panel-title {
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: var(--kr-text-primary) !important;
+    }
+    
+    .panel-group .panel-title a {
+      display: block !important;
+      color: var(--kr-text-primary) !important;
+      text-decoration: none !important;
+    }
+    
+    .panel-group .panel-title a:hover {
+      color: var(--kr-text-primary) !important;
+    }
+    
+    /* ========================================================================
+       MODAL / DIALOG MOBILE OPTIMIZATIONS
+       ======================================================================== */
+    
+    /* Modal backdrop - assombrir légèrement */
+    body.mobile-mode .modal-backdrop {
+      background-color: rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    /* Modal dialog - pleine largeur avec marges minimales */
+    body.mobile-mode .modal-dialog {
+      width: 100% !important;
+      max-width: calc(100vw - 20px) !important;
+      margin: 10px !important;
+      max-height: calc(100vh - 20px) !important;
+    }
+    
+    /* Modal content - optimiser l'espace */
+    body.mobile-mode .modal-content {
+      border-radius: 8px !important;
+    }
+    
+    /* Modal header - plus compact */
+    body.mobile-mode .modal-header {
+      padding: 15px !important;
+    }
+    
+    body.mobile-mode .modal-header h3 {
+      font-size: 18px !important;
+      margin: 0 !important;
+    }
+    
+    /* Close button - plus grand pour touch */
+    body.mobile-mode .modal-header .close,
+    body.mobile-mode .bootbox-close-button {
+      width: 44px !important;
+      height: 44px !important;
+      padding: 10px !important;
+      font-size: 28px !important;
+      line-height: 24px !important;
+      opacity: 0.7 !important;
+    }
+    
+    /* Modal body - plus de padding */
+    body.mobile-mode .modal-body {
+      padding: 15px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Select dropdown - pleine largeur et plus grand */
+    body.mobile-mode .modal-body select {
+      width: 100% !important;
+      height: 44px !important;
+      font-size: 16px !important;
+      padding: 10px !important;
+      margin-bottom: 15px !important;
+      border-radius: 6px !important;
+    }
+    
+    /* Nav tabs (actions buttons) - layout vertical pour mobile */
+    body.mobile-mode .modal-body .nav-tabs {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 10px !important;
+      border: none !important;
+      margin-bottom: 20px !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li {
+      flex: 1 1 calc(50% - 5px) !important;
+      min-width: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li > a {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 44px !important;
+      padding: 12px 10px !important;
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-radius: 6px !important;
+      background: var(--kr-bg-secondary) !important;
+      color: var(--kr-text-primary) !important;
+      text-align: center !important;
+      overflow-wrap: break-word !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    body.mobile-mode .modal-body .nav-tabs > li.active > a,
+    body.mobile-mode .modal-body .nav-tabs > li > a:hover,
+    body.mobile-mode .modal-body .nav-tabs > li > a:focus {
+      background: var(--kr-primary) !important;
+      color: var(--kr-surface) !important;
+      border-color: var(--kr-primary) !important;
+    }
+    
+    /* Form groups - meilleur espacement */
+    body.mobile-mode .modal-body .form-group {
+      margin-bottom: 20px !important;
+    }
+    
+    body.mobile-mode .modal-body label {
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      margin-bottom: 8px !important;
+      display: block !important;
+    }
+    
+    /* Inputs et textareas - plus grands */
+    body.mobile-mode .modal-body input[type="text"],
+    body.mobile-mode .modal-body input[type="number"],
+    body.mobile-mode .modal-body textarea {
+      width: 100% !important;
+      min-height: 44px !important;
+      font-size: 16px !important;
+      padding: 10px !important;
+      border-radius: 6px !important;
+    }
+    
+    body.mobile-mode .modal-body textarea {
+      min-height: 120px !important;
+      resize: vertical !important;
+    }
+    
+    /* Checkboxes et radios - plus grands touch targets */
+    body.mobile-mode .modal-body input[type="checkbox"],
+    body.mobile-mode .modal-body input[type="radio"] {
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 10px !important;
+    }
+    
+    body.mobile-mode .modal-body .checkbox label,
+    body.mobile-mode .modal-body .radio label {
+      display: flex !important;
+      align-items: center !important;
+      min-height: 44px !important;
+      padding: 8px 0 !important;
+      cursor: pointer !important;
+    }
+    
+    /* Tables - améliorer lisibilité */
+    body.mobile-mode .modal-body table {
+      font-size: 14px !important;
+    }
+    
+    body.mobile-mode .modal-body table td,
+    body.mobile-mode .modal-body table th {
+      padding: 10px 8px !important;
+    }
+    
+    body.mobile-mode .modal-body table th {
+      text-align: center !important;
+    }
+    
+    /* Modal footer - sticky en bas avec boutons pleine largeur */
+    body.mobile-mode .modal-footer {
+      padding: 15px !important;
+      display: flex !important;
+      gap: 10px !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn {
+      flex: 1 !important;
+      min-height: 48px !important;
+      max-height: 48px !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      border-radius: 6px !important;
+      padding: 12px 20px !important;
+      box-sizing: border-box !important;
+      line-height: 1.2 !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn-primary {
+      order: 2 !important;
+    }
+    
+    body.mobile-mode .modal-footer .btn-default {
+      order: 1 !important;
+    }
+    
+    /* Alert dans modal - meilleur affichage */
+    body.mobile-mode .modal-body .alert {
+      padding: 12px !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      margin-bottom: 15px !important;
+      border-radius: 6px !important;
+    }
+    
+    /* Avatar/Image dans header - optimiser */
+    body.mobile-mode .modal-header img {
+      max-width: 60px !important;
+      max-height: 60px !important;
+      border-radius: 4px !important;
+    }
+  }
+
+  /* ========================================================================
+     MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
+     ======================================================================== */
+  @media (width <= 767px) {
+    /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
+    body.mobile-mode .bootbox.modal select[name="top"].form-control {
+      min-height: 56px !important;
+      font-size: 16px !important;
+      padding: 12px 16px !important;
+      border-radius: 8px !important;
+      border: 2px solid var(--kr-border-default) !important;
+      background-color: var(--kr-bg-elevated) !important;
+      transition: border-color 0.2s ease !important;
+    }
+    
+    body.mobile-mode .bootbox.modal select[name="top"].form-control:focus {
+      border-color: var(--kr-primary) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Conteneur du select avec marges */
+    body.mobile-mode .bootbox.modal select[name="top"].form-control + br,
+    body.mobile-mode .bootbox.modal .row:has(> .col-md-6 > select[name="top"]) {
+      margin-bottom: 16px !important;
+    }
+    
+    /* ===== 2. HEADER H3 - avatar + nom compact ===== */
+    body.mobile-mode .bootbox.modal h3 {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 12px 16px !important;
+      margin: 0 0 16px !important;
+      background: var(--kr-bg-surface) !important;
+      border-radius: 8px !important;
+      font-size: 18px !important;
+      line-height: 1.3 !important;
+    }
+    
+    /* Avatar 48px */
+    body.mobile-mode .bootbox.modal h3 img[width="80"] {
+      width: 48px !important;
+      height: 48px !important;
+      max-width: 48px !important;
+      max-height: 48px !important;
+      border-radius: 6px !important;
+      flex-shrink: 0 !important;
+      order: -1 !important;
+    }
+    
+    /* Wrapper pull-right dans h3 */
+    body.mobile-mode .bootbox.modal h3 .pull-right {
+      float: none !important;
+      order: -1 !important;
+      margin: 0 !important;
+    }
+    
+    /* Liens mini (profil + kramail) */
+    body.mobile-mode .bootbox.modal h3 .mini.center {
+      display: flex !important;
+      gap: 8px !important;
+      margin: 0 !important;
+      justify-content: flex-start !important;
+    }
+    
+    body.mobile-mode .bootbox.modal h3 .mini.center a {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Bouton groupe (user-friends) */
+    body.mobile-mode .bootbox.modal h3 .btn.btn-xs {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      padding: 8px !important;
+      margin-left: auto !important;
+    }
+    
+    /* ===== 3. NAVIGATION TABS - fusionner les deux listes en une seule ===== */
+
+    /* Conteneur des listes */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .panel-heading {
+      display: flex !important;
+      flex-flow: row nowrap !important;
+      overflow: hidden auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: var(--kr-bg-surface) !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .panel-heading::-webkit-scrollbar {
+      display: none !important;
+    }
+    
+    /* Chaque liste .nav-tabs inline */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      flex-shrink: 0 !important;
+      border: none !important;
+      padding: 0 !important;
+      gap: 0 !important;
+      margin: 0 !important;
+      background: transparent !important;
+      position: relative !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs::-webkit-scrollbar {
+      display: none !important;
+    }
+    
+    /* Tabs individuels - min 88px tactiles */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li {
+      flex: 0 0 auto !important;
+      min-width: 88px !important;
+      width: auto !important;
+      height: 44px !important;
+      margin: 0 !important;
+      border: none !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li > a {
+      padding: 10px 16px !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      border-radius: 0 !important;
+      border: none !important;
+      border-bottom: 3px solid transparent !important;
+      background: transparent !important;
+      color: var(--kr-text-secondary) !important;
+      transition: all 0.2s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      margin: 0 !important;
+    }
+    
+    /* Tab active */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a,
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:hover,
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:focus {
+      background: var(--kr-bg-elevated) !important;
+      color: var(--kr-primary) !important;
+      border: none !important;
+      border-bottom: 3px solid var(--kr-primary) !important;
+      font-weight: 600 !important;
+      height: 44px !important;
+    }
+    
+    /* Feedback tactile tabs */
+    body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li > a:active {
+      transform: scale(0.96) !important;
+      background: var(--kr-bg-active) !important;
+    }
+    
+    /* ===== 4. PANEL BODY - padding optimisé ===== */
+    body.mobile-mode .bootbox.modal .panel-body.panel-order {
+      padding: 16px !important;
+    }
+    
+    /* ===== 5. COLONNES FUSIONNÉES EN MODE MOBILE ===== */
+
+    /* Les colonnes sont fusionnées en une seule div par JavaScript */
+    body.mobile-mode .bootbox.modal .merged-columns {
+      padding: 12px !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+    }
+    
+    /* Styles pour l'en-tête du tableau */
+    body.mobile-mode .bootbox.modal .panel-heading {
+      background: var(--kr-bg-elevated) !important;
+      border-bottom: 2px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+      font-weight: 600 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-heading .merged-columns {
+      font-size: 13px !important;
+      color: var(--kr-text-secondary) !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+    }
+    
+    /* Footer (ligne Maladresse/Bonus) et Boutons */
+    body.mobile-mode .bootbox.modal .panel-footer {
+      background: var(--kr-bg-elevated) !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      padding: 0 !important;
+      display: flex !important;
+      gap: 6px !important;
+      border: none !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-footer label {
+      margin: 0 !important;
+      font-size: 14px !important;
+    }
+
+    
+    body.mobile-mode .bootbox.modal .panel-footer select {
+      padding: 6px 8px !important;
+      border-radius: 6px !important;
+      border: 1px solid var(--kr-border-default) !important;
+      font-size: 14px !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group {
+      margin: 0 0 8px !important;
+      background: var(--kr-bg-elevated) !important;
+      border: 2px solid var(--kr-border-default) !important;
+      border-radius: 8px !important;
+      min-height: 56px !important;
+      transition: all 0.2s ease !important;
+    }
+    
+    /* Row checked */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:has(input[type="radio"]:checked) {
+      border-color: var(--kr-primary) !important;
+      background: var(--kr-alert-info-bg) !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Feedback tactile sur la row */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:active {
+      transform: scale(0.98) !important;
+      background: var(--kr-bg-active) !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div {
+      padding: 0 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Colonne du radio button - aligné à gauche */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-1 {
+      justify-content: flex-start !important;
+    }
+    
+    /* Colonne du label - aligné à gauche */
+    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-7 {
+      justify-content: flex-start !important;
+    }
+    
+    /* Radio inputs cachés */
+    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"] {
+      position: absolute !important;
+      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    
+    /* Labels comme boutons */
+    body.mobile-mode .bootbox.modal .panel-actions label {
+      cursor: pointer !important;
+      font-weight: normal !important;
+      font-size: 15px !important;
+      margin: 0 !important;
+      padding: 14px 0 !important;
+      display: block !important;
+      width: 100% !important;
+    }
+    
+    /* Label checked */
+    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"]:checked + label {
+      font-weight: 600 !important;
+    }
+    
+    /* Colonnes diff/jet plus compactes */
+    body.mobile-mode .bootbox.modal .panel-actions .center {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+    }
+    
+    /* ===== 6. TOOLBAR - boutons tactiles optimisés ===== */
+    body.mobile-mode .bootbox.modal .btn-toolbar {
+      display: grid !important;
+      grid-template-columns: repeat(6, 1fr) !important;
+      gap: 4px !important;
+      margin: 0 0 16px !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group {
+      display: contents !important;
+    }
+    
+    /* Supprimer COMPLÈTEMENT les pseudo-éléments clearfix de Bootstrap 3 */
+    body.mobile-mode .bootbox.modal .btn-toolbar::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::after,
+    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::before,
+    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::after {
+      content: none !important;
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Tous les boutons directs et liens dans la toolbar */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > button.btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > .dropdown {
+      min-width: 44px !important;
+      max-width: none !important;
+      width: 100% !important;
+      min-height: 44px !important;
+      max-height: 44px !important;
+      height: 44px !important;
+      padding: 8px !important;
+      margin: 0 !important;
+      font-size: 18px !important;
+      line-height: 1 !important;
+      border-radius: 4px !important;
+      border-width: 1px !important;
+      display: grid !important;
+      place-items: center !important;
+      transition: all 0.2s ease !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Dropdown wrapper - ne pas appliquer de style sur le span dropdown */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown {
+      display: contents !important;
+      position: relative !important;
+    }
+    
+    /* Le lien dropdown-toggle à l'intérieur du span dropdown */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle {
+      min-width: 44px !important;
+      width: 100% !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: none !important;
+      background: transparent !important;
+      text-decoration: none !important;
+    }
+    
+    /* Le bouton à l'intérieur du dropdown-toggle */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn {
+      min-width: 44px !important;
+      width: 100% !important;
+      min-height: 44px !important;
+      height: 44px !important;
+      padding: 8px !important;
+      margin: 0 !important;
+      font-size: 18px !important;
+      line-height: 1 !important;
+      border-radius: 4px !important;
+      border-width: 1px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Feedback tactile sur tous les boutons */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle:active,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn:active {
+      transform: scale(0.95) !important;
+      background: var(--kr-bg-active) !important;
+      opacity: 0.8 !important;
+    }
+    
+    /* Dropdown smiley/couleurs - doit apparaître PAR-DESSUS la modal */
+
+    /* NOTE CRITIQUE: Bootstrap JS force position:fixed dynamiquement */
+
+    /* Solution: Sélecteur ultra-spécifique + !important pour override Bootstrap */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown .dropdown-menu,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
+      max-width: 90vw !important;
+      max-height: 50vh !important;
+      overflow-y: auto !important;
+      padding: 12px !important;
+
+      /* CRITIQUE: Garder position: absolute pour le positionnement relatif Bootstrap */
+
+      /* Bootstrap JS essaie de forcer position:fixed - on l'override ici */
+      position: absolute !important;
+
+      /* z-index élevé pour passer au-dessus du footer modal */
+      z-index: 10000 !important;
+
+      /* Forcer l'affichage VERS LE HAUT (dropup behavior) */
+      bottom: 100% !important;
+      top: auto !important;
+
+      /* Petit espace entre le bouton et le dropdown */
+      margin-bottom: 4px !important;
+    }
+    
+    /* CRITIQUE: Forcer display: block quand le dropdown est ouvert */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown.open .dropdown-menu,
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown:has([aria-expanded="true"]) .dropdown-menu {
+      display: block !important;
+    }
+    
+    /* SOLUTION: Forcer tous les parents à ne PAS créer de contexte d'empilement */
+
+    /* Cela permet au dropdown avec z-index: 10000 de passer au-dessus du footer */
+    body.mobile-mode .bootbox.modal .modal-dialog,
+    body.mobile-mode .bootbox.modal .modal-content,
+    body.mobile-mode .bootbox.modal .modal-body,
+    body.mobile-mode .bootbox.modal .modal-footer,
+    body.mobile-mode .bootbox.modal .btn-toolbar,
+    body.mobile-mode .bootbox.modal .dropdown {
+      /* Enlever TOUTES les propriétés qui créent un nouveau contexte d'empilement */
+      transform: none !important;
+      filter: none !important;
+      perspective: none !important;
+      will-change: auto !important;
+      contain: none !important;
+
+      /* NE PAS mettre de z-index ici, sinon ça crée un nouveau contexte */
+      z-index: auto !important;
+    }
+    
+    /* CRITIQUE: Forcer overflow: visible sur les parents pour ne PAS couper le dropdown */
+    body.mobile-mode .bootbox.modal .modal-content,
+    body.mobile-mode .bootbox.modal .modal-body,
+    body.mobile-mode .bootbox.modal .panel-body {
+      overflow: visible !important;
+    }
+    
+    /* La modal racine doit garder son z-index pour le backdrop */
+    body.mobile-mode .bootbox.modal {
+      z-index: 1050 !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table {
+      width: 100% !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table td a {
+      min-width: 44px !important;
+      min-height: 44px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Backdrop du dropdown sous le dropdown lui-même */
+    body.mobile-mode .bootbox.modal .dropdown-backdrop {
+      z-index: 1049 !important;
+    }
+    
+    /* ===== 7. TEXTAREA - 120px min + compteur visible ===== */
+    body.mobile-mode .bootbox.modal textarea#message,
+    body.mobile-mode .bootbox.modal textarea.form-control {
+      font-size: 16px !important;
+      line-height: 1.5 !important;
+      padding: 12px !important;
+      border-radius: 8px !important;
+      min-height: 120px !important;
+      border: 2px solid var(--kr-border-default) !important;
+      transition: border-color 0.2s ease !important;
+    }
+    
+    body.mobile-mode .bootbox.modal textarea#message:focus,
+    body.mobile-mode .bootbox.modal textarea.form-control:focus {
+      border-color: var(--kr-primary) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+    }
+    
+    /* Compteur */
+    body.mobile-mode .bootbox.modal .pull-right:has(#car),
+    body.mobile-mode .bootbox.modal #car {
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: var(--kr-text-secondary) !important;
+      margin-top: 4px !important;
+    }
+    
+    /* ===== 8. FOOTER - sticky avec bouton OK 2x ===== */
+    body.mobile-mode .bootbox.modal .modal-footer {
+      position: sticky !important;
+      bottom: 0 !important;
+      display: flex !important;
+      gap: 10px !important;
+      padding: 12px 16px !important;
+      padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+      background: var(--kr-bg-surface) !important;
+      border-top: 1px solid var(--kr-border-default) !important;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08) !important;
+      flex-shrink: 0 !important;
+      margin: 0 !important;
+      z-index: 100 !important; /* Sous le dropdown (z-index: 1050) */
+    }
+    
+    body.mobile-mode .bootbox.modal .modal-footer .btn {
+      margin: 0 !important;
+      min-height: 50px !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+      border: none !important;
+    }
+    
+    /* Bouton Cancel - 1x */
+    body.mobile-mode .bootbox.modal .modal-footer .btn-default {
+      flex: 1 !important;
+      order: 1 !important;
+    }
+    
+    /* Bouton OK - 2x plus large */
+    body.mobile-mode .bootbox.modal .modal-footer .btn-primary {
+      flex: 2 !important;
+      order: 2 !important;
+      min-height: 52px !important;
+    }
+    
+    body.mobile-mode .bootbox.modal .modal-footer .btn:active {
+      transform: scale(0.97) !important;
+    }
+  }
+
+/* ============================================================================
+   MOBILE - PAGE PROFIL/INTERFACE
+   ============================================================================ */
+@media (width <= 767px) {
+  /* Correction de l'affichage des sélecteurs de thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* Grid pour les options de thème avec images */
+  body.mobile-mode #kr-tamper-theme-form .form-group > div[style*="padding-left"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+  
+  /* Chaque option de thème (conteneur label + image) */
+  body.mobile-mode #kr-tamper-theme-form .form-group > div > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Cacher l'icône float left qui crée un conflit */
+  body.mobile-mode #kr-tamper-theme-form .form-group .lefticon {
+    display: none !important;
+  }
+  
+  /* Image de prévisualisation du thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    border-radius: 4px !important;
+    margin: 0 !important;
+  }
+  
+  /* Label du thème */
+  body.mobile-mode #kr-tamper-theme-form .form-group label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Radio button */
+  body.mobile-mode #kr-tamper-theme-form .form-group input[type="radio"] {
+    position: static !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Checkbox */
+  body.mobile-mode #kr-tamper-theme-form .form-group input[type="checkbox"] {
+    position: static !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Label principal de la section */
+  body.mobile-mode #kr-tamper-theme-form .form-group > label.control-label {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin-bottom: 12px !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* ============================================================================
+     FORUM RP - TRANSFORMATION EN CARDS STYLE REDDIT EXPLORE
+     Inspiré de la section "Recommandées pour toi" de Reddit
+     ============================================================================ */
+  
+  /* Conteneur principal du forum */
+  body.mobile-mode .panel-default {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Header du panel - titre "Jeu (RP)" */
+  body.mobile-mode .panel-default > .panel-heading {
+    background: var(--kr-bg-surface) !important;
+    border: none !important;
+    border-radius: var(--mobile-radius) !important;
+    padding: var(--mobile-spacing-lg) !important;
+    margin-bottom: var(--mobile-spacing-md) !important;
+    align-items: center !important;
+  }
+  
+  body.mobile-mode .panel-default > .panel-heading h3 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  /* Cacher le header du tableau (colonnes) */
+  body.mobile-mode .panel-default .table > thead {
+    display: none !important;
+  }
+  
+  /* Transformer le tbody en container flex vertical */
+  body.mobile-mode .panel-default .table > tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  
+  /* Chaque ligne devient une card avec CSS Grid pour contrôler l'ordre d'affichage */
+  body.mobile-mode .panel-default .table > tbody > tr {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    box-shadow: var(--kr-shadow-sm) !important;
+    transition: all var(--transition-fast) !important;
+    position: relative !important;
+    min-height: auto !important;
+  }
+  
+  /* Effet au tap sur la card */
+  body.mobile-mode .panel-default .table > tbody > tr:active {
+    background: var(--kr-bg-hover) !important;
+    transform: scale(0.98) !important;
+  }
+  
+  /* === RÉORGANISATION DES CELLULES AVEC GRID === */
+
+  /* Utiliser grid-row pour contrôler l'ordre d'affichage */
+  body.mobile-mode .panel-default .table > tbody > tr > td {
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* td:first-child à la ligne 1 (contient titre, mods, description) */
+
+  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
+
+  /* Cette cellule contient 3 éléments dont on doit cacher la description pour la réafficher plus tard */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-row: 1 !important;
+  }
+  
+  /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3) {
+    grid-row: 2 !important;
+  }
+  
+  /* td:nth-child(4) (dernier message) à la ligne 4 */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) {
+    grid-row: 4 !important;
+  }
+  
+  /* === TITRE DU FORUM === */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child {
+    order: 1 !important;
+    margin: 0 !important;
+    font-size: 0 !important; /* Masquer le texte brut "→" */
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    line-height: 1.1 !important;
+    display: block !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* === MODÉRATEURS === */
+
+  /* Afficher les modérateurs juste après le titre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+    order: 2 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+    display: none !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* === DESCRIPTION === */
+
+  /* La description est maintenant dans un wrapper créé par JavaScript */
+  body.mobile-mode .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+    order: 999 !important;
+    font-size: 12px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  
+  /* Description wrapper */
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-description-wrapper {
+    margin: 0 0 6px !important;
+  }
+  
+  /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
+
+  /* Les stats sont maintenant dans un wrapper créé par JavaScript */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2),
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3),
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+    display: inline !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Stats wrapper */
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper {
+    margin: 0 0 2px !important;
+  }
+  
+  /* Ajouter "sujets · " après le premier nombre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+    content: " sujets · " !important;
+  }
+  
+  /* Ajouter "messages" après le second nombre */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  body.mobile-mode .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+    content: " messages" !important;
+  }
+  
+  /* === CELLULE 4 : Dernier message === */
+
+  /* Maintenant que le DOM est réorganisé, la cellule du dernier message est à la fin */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4),
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child {
+    order: 5 !important;
+    padding-top: 3px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    margin-top: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    display: block !important;
+  }
+  
+  /* Préfixe "→" avant l'auteur */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child::before {
+    content: "→ " !important;
+    color: var(--kr-text-secondary) !important;
+    font-weight: 400 !important;
+    margin-right: 4px !important;
+  }
+  
+  /* Auteur du dernier message - inline */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* Séparateur avant le timestamp */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > a::after {
+    content: " · " !important;
+    color: var(--kr-text-muted) !important;
+    font-weight: 400 !important;
+  }
+  
+  /* Timestamp et lien vers le message - inline, pas de bouton */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p {
+    display: inline !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+  }
+  
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Icône flèche dans le lien vers le message - 20x20px */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  body.mobile-mode .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Badges/images dans les noms d'utilisateurs */
+  body.mobile-mode .panel-default .table > tbody > tr > td:nth-child(4) img {
+    vertical-align: middle !important;
+    margin: 0 2px !important;
+    max-height: 16px !important;
+  }
+}
+
+/* ============================================================================
+   MOBILE MENU DROPDOWNS - Bootstrap 3 native handling
+   ============================================================================ */
+@media (width <= 767px) {
+  /* EN MOBILE : Afficher les dropdown-menu avec la structure Bootstrap 3 */
+  
+  /* Les dropdown-menu doivent être visibles quand le parent a la classe 'open' */
+  .navbar-collapse .dropdown.open > .dropdown-menu {
+    display: block !important;
+    position: static !important;
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+  }
+  
+  /* Styling des items dans le dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a {
+    display: block !important;
+    padding: 10px 15px 10px 25px !important;
+    clear: both !important;
+    font-weight: 400 !important;
+    line-height: 1.4286 !important;
+    color: var(--kr-text-primary) !important;
+    white-space: nowrap !important;
+    background-color: transparent !important;
+    border-left: 4px solid transparent !important;
+  }
+  
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:hover,
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:focus {
+    color: var(--kr-text-primary) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  .navbar-collapse .dropdown.open > .dropdown-menu > li > a:active {
+    color: var(--kr-primary) !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  /* Dividers dans le dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .divider {
+    height: 1px !important;
+    margin: 9px 0 !important;
+    background-color: var(--kr-border-default) !important;
+  }
+  
+  /* Dropdown headers */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .dropdown-header {
+    display: block !important;
+    padding: 3px 15px 3px 25px !important;
+    font-size: 12px !important;
+    line-height: 1.4286 !important;
+    color: var(--kr-text-muted) !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Active items in dropdown */
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a,
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:hover,
+  .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:focus {
+    color: var(--kr-primary) !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border-left-color: var(--kr-primary) !important;
+  }
+  
+  /* Bootstrap 3 collapse pour les items principaux du menu */
+  .navbar-collapse .navbar-nav > li > a {
+    padding: 15px !important;
+  }
+  
+  /* Assurer que le caret du dropdown-toggle est visible */
+  .navbar-collapse .dropdown > a.dropdown-toggle .caret {
+    border-top-color: currentcolor !important;
+    border-bottom-color: transparent !important;
+  }
+  
+  /* Quand ouvert, inverser le caret */
+  .navbar-collapse .dropdown.open > a.dropdown-toggle .caret {
+    border-top-color: transparent !important;
+    border-bottom-color: currentcolor !important;
+    transform: rotate(180deg) !important;
+  }
+}
+
+
+/* ========================================
+   FORUM CARDS MOBILE
+   Design cards-based pour liste des forums
+   ======================================== */
+
+/* Container des cards */
+.forums-cards-container {
+  display: none; /* Caché par défaut (desktop) */
+  padding: 12px 8px;
+  background: var(--kr-bg-page);
+}
+
+/* Affichage mobile uniquement */
+.mobile-mode .forums-cards-container {
+  display: block;
+}
+
+/* Masquer le tableau sur mobile */
+.mobile-mode table[data-mobile-hidden="true"] {
+  display: none !important;
+}
+
+/* === CARD COMPONENT === */
+
+.forum-card {
+  background: var(--kr-bg-surface);
+  border-radius: 12px;
+  margin: 0 12px 12px;
+  transition: background 0.2s ease;
+  overflow: hidden;
+  border: 1px solid var(--kr-border-default);
+}
+
+/* Forcer l'alignement à gauche pour TOUS les descendants */
+.forum-card *,
+.forum-card-link *,
+.forum-card-header *,
+.forum-footer * {
+  text-align: left !important;
+}
+
+.forum-card:active {
+  background: var(--kr-bg-hover);
+}
+
+.forum-card-link {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  
+  /* Touch target minimum 44px */
+  min-height: 100px;
+  
+  /* Active state feedback */
+  -webkit-tap-highlight-color: rgba(139, 15, 14, 0.05);
+}
+
+.forum-card-link:hover,
+.forum-card-link:focus {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* === HEADER === */
+
+.forum-card-header {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.forum-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kr-text-primary);
+  line-height: 1.3;
+  margin: 0;
+  padding: 0;
+  text-align: left !important;
+}
+
+/* === DESCRIPTION === */
+
+.forum-description {
+  font-size: 14px;
+  color: var(--kr-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 8px;
+  text-align: left !important;
+  
+  /* Limitation à 2 lignes */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === MODERATEURS === */
+
+.forum-moderators {
+  font-size: 12px;
+  color: var(--kr-text-muted);
+  margin: 0 0 10px;
+  font-style: normal;
+  font-weight: 400;
+  text-align: left !important;
+}
+
+/* === FOOTER (Stats + Dernière activité) === */
+
+.forum-footer {
+  border-top: 1px solid var(--kr-border-default);
+  padding-top: 10px;
+  margin-top: auto;
+  text-align: left !important;
+}
+
+.forum-stats {
+  font-size: 13px;
+  color: var(--kr-text-muted);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  text-align: left !important;
+}
+
+.forum-topics,
+.forum-messages {
+  font-weight: 600;
+  color: var(--kr-text-secondary);
+}
+
+.forum-separator {
+  margin: 0 4px;
+  color: var(--kr-text-muted);
+}
+
+.forum-last-activity {
+  font-size: 13px;
+  color: var(--kr-text-secondary);
+  line-height: 1.5;
+  text-align: left !important;
+}
+
+.last-user {
+  font-weight: 600;
+  color: var(--kr-text-primary);
+}
+
+.last-time {
+  color: var(--kr-text-muted);
+  font-size: 12px;
+}
+
+/* === ÉTATS SPÉCIAUX === */
+
+/* Forum sans activité */
+.forum-card:has(.forum-topics:empty) {
+  opacity: 0.6;
+}
+
+/* Accessibilité: focus visible */
+.forum-card-link:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+/* === MINI-CHAT FAB === */
+
+.mini-chat-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.mini-chat-fab:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mini-chat-fab.active {
+  background: #f44336;
+}
+
+.mini-chat-fab .fab-text {
+  display: block;
+  line-height: 1;
+}
+
+/* Mini-chat en overlay fullscreen */
+.mobile-mode .mini-chat-overlay {
+  position: fixed !important;
+  inset: 56px 0 0 !important; /* Sous le header */
+  width: 100% !important;
+  height: auto !important;
+  z-index: 999 !important;
+  background: white;
+}
+
+/* === RESPONSIVE === */
+
+/* Tablettes en mode portrait */
+@media (width >= 768px) and (width <= 1024px) and (orientation: portrait) {
+  .forum-card {
+    margin: 12px 24px;
+  }
+  
+  .forum-card-link {
+    padding: 20px;
+  }
+}
+
+/* Desktop: désactiver les cards */
+@media (width >= 768px) {
+  .forums-cards-container {
+    display: none !important;
+  }
+  
+  table[data-mobile-hidden="true"] {
+    display: table !important;
+  }
+  
+  .mini-chat-fab {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   MOBILE OPTIMISATION - FORUM SUJETS (DataTables)
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  
+  /* === CONTRÔLES DATATABLE (Recherche, Affichage, Pagination) === */
+  
+  /* Wrapper général */
+  .dataTables_wrapper {
+    padding: 0 !important;
+  }
+  
+  /* Section contrôles haut (Afficher X lignes + Recherche) */
+  .dataTables_length,
+  .dataTables_filter {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 var(--mobile-spacing-md) !important;
+    text-align: left !important;
+    float: none !important;
+  }
+  
+  /* Label "Afficher lignes" */
+  .dataTables_length label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+  }
+  
+  /* Dropdown "Afficher X lignes" - WCAG 2.5.5 (44px min) */
+  .dataTables_length select {
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 32px 10px 12px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    flex: 0 0 auto !important;
+    min-width: 80px !important;
+  }
+  
+  /* Label recherche */
+  .dataTables_filter label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+  }
+  
+  /* Input recherche - WCAG 2.5.5 (44px min) */
+  .dataTables_filter input {
+    flex: 1 !important;
+    min-height: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background-color: var(--kr-bg-surface) !important;
+    width: 100% !important;
+  }
+  
+  /* Focus sur inputs */
+  .dataTables_filter input:focus,
+  .dataTables_length select:focus {
+    outline: 2px solid var(--kr-primary) !important;
+    outline-offset: 2px !important;
+    border-color: var(--kr-primary) !important;
+  }
+
+  /* ============================================================================
+     FORUM RP - TRANSFORMATION EN CARDS STYLE REDDIT EXPLORE
+     Inspiré de la section "Recommandées pour toi" de Reddit
+     ============================================================================ */
+  
+  /* Conteneur principal du forum */
+  body.page-forum .panel-default {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Header du panel - harmonisé avec kramail (transparent + cuivre) */
+  body.page-forum .panel-default > .panel-heading {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    margin-bottom: 0 !important;
+    align-items: center !important;
+  }
+
+  /* Panel body - harmonisé kramail (pas de padding) */
+  body.page-forum .panel-default > .panel-body {
+    padding: 0 !important;
+  }
+  
+  body.page-forum .panel-default > .panel-heading h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Cacher le header du tableau (colonnes) */
+  body.page-forum .panel-default .table > thead {
+    display: none !important;
+  }
+  
+  /* Transformer le tbody en container flex vertical */
+  body.page-forum .panel-default .table > tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  /* Chaque ligne devient une card — harmonisé kramail (12px radius/padding, plat sans ombre) */
+  body.page-forum .panel-default .table > tbody > tr {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    transition: background var(--transition-fast) !important;
+    position: relative !important;
+    min-height: auto !important;
+  }
+  
+  /* Effet au tap sur la card */
+  body.page-forum .panel-default .table > tbody > tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+  
+  /* === RÉORGANISATION DES CELLULES AVEC GRID === */
+
+  body.page-forum .panel-default .table > tbody > tr > td {
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-row: 1 !important;
+  }
+  
+  /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3) {
+    grid-row: 2 !important;
+  }
+  
+  /* td:nth-child(4) (dernier message) à la ligne 4 */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) {
+    grid-row: 4 !important;
+  }
+  
+  /* === TITRE DU FORUM === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child {
+    order: 1 !important;
+    margin: 0 !important;
+    font-size: 0 !important; /* Masquer le texte brut "→" */
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    line-height: 1.1 !important;
+    display: block !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* === MODÉRATEURS === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+    order: 2 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+    display: none !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* === DESCRIPTION === */
+  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+    order: 999 !important;
+    font-size: 12px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  
+  /* Description wrapper */
+  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper {
+    margin: 0 0 6px !important;
+  }
+  
+  /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+    display: inline !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Stats wrapper */
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper {
+    margin: 0 0 2px !important;
+  }
+  
+  /* Ajouter "sujets · " après le premier nombre */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+    content: " sujets · " !important;
+  }
+  
+  /* Ajouter "messages" après le second nombre */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+    content: " messages" !important;
+  }
+  
+  /* === CELLULE 4 : Dernier message === */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4),
+  body.page-forum .panel-default .table > tbody > tr > td:last-child {
+    order: 5 !important;
+    padding-top: 3px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    margin-top: 0 !important;
+    font-size: 11px !important;
+    color: var(--kr-text-secondary) !important;
+    display: block !important;
+  }
+  
+  /* Préfixe "→" avant l'auteur */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child::before {
+    content: "→ " !important;
+    color: var(--kr-text-secondary) !important;
+    font-weight: 400 !important;
+    margin-right: 4px !important;
+  }
+  
+  /* Auteur du dernier message - inline */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a:active {
+    color: var(--kr-primary) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* Séparateur avant le timestamp */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > a::after {
+    content: " · " !important;
+    color: var(--kr-text-muted) !important;
+    font-weight: 400 !important;
+  }
+  
+  /* Timestamp et lien vers le message - inline, pas de bouton */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
+    display: inline !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+  }
+  
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Icône flèche dans le lien vers le message - 20x20px */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+    display: inline-block !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Badges/images dans les noms d'utilisateurs */
+  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) img {
+    vertical-align: middle !important;
+    margin: 0 2px !important;
+    max-height: 16px !important;
+  }
+  
+  /* ============================================================================
+     TABLEAU → CARDS (FORUMS UNIQUEMENT - exclut kramails)
+     ============================================================================ */
+  
+  /* Masquer le header du tableau - Forums uniquement */
+  body.page-forum table.dataTable thead {
+    display: none !important;
+  }
+  
+  /* Transformer tbody en flex vertical - Forums uniquement */
+  body.page-forum table.dataTable tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--mobile-spacing-md) !important;
+  }
+  
+  /* Chaque <tr> devient une card — harmonisé kramail (12px radius, 12px padding, plat sans ombre) */
+  body.page-forum table.dataTable tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    transition: background var(--transition-fast) !important;
+    cursor: pointer !important;
+  }
+  
+  /* Feedback tactile card (mobile = pas de hover) */
+  body.page-forum table.dataTable tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+  
+  /* === COLONNES VISIBLES (FORUMS) === */
+  
+  /* Masquer colonnes Msg, Vus, Auteur, Dernier Message - Forums uniquement */
+  body.page-forum table.dataTable tbody td:nth-child(2), /* Msg */
+  body.page-forum table.dataTable tbody td:nth-child(3), /* Vus */
+  body.page-forum table.dataTable tbody td:nth-child(4), /* Auteur */
+  body.page-forum table.dataTable tbody td:nth-child(5) /* Dernier Message */ {
+    display: none !important;
+  }
+  
+  /* Colonne Sujet (zone unique, comme Sujets permanents) — forums uniquement */
+  body.page-forum table.dataTable tbody td:nth-child(1) {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    min-height: var(--mobile-touch-target) !important;
+    gap: var(--mobile-spacing-sm) !important;
+  }
+  
+  /* === ZONE 1 : TITRE DU SUJET (FORUMS) === */
+  
+  /* Titre du sujet */
+  body.page-forum table.dataTable tbody td:nth-child(1) p {
+    margin: 0 0 4px 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  /* Lien titre */
+  body.page-forum table.dataTable tbody td:nth-child(1) p a {
+    flex: 1 !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: block !important;
+  }
+  
+  /* Feedback tactile sur titre */
+  body.page-forum table.dataTable tbody td:nth-child(1) p a:active {
+    color: var(--kr-primary) !important;
+  }
+  
+  /* === ICÔNES ET PAGINATION : MASQUÉES === */
+  
+  /* Masquer l'icône folder-open (1ère UL) */
+  body.page-forum table.dataTable tbody td:nth-child(1) > ul:first-of-type {
+    display: none !important;
+  }
+  
+  /* Masquer la pagination (2ème UL) */
+  body.page-forum table.dataTable tbody td:nth-child(1) > ul:nth-of-type(2) {
+    display: none !important;
+  }
+  
+  /* Tags */
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    margin-top: 6px !important;
+  }
+  
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags .glyphicon {
+    color: var(--kr-text-muted) !important;
+    font-size: 8px !important;
+  }
+  
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    color: var(--kr-text-secondary) !important;
+    background: var(--kr-bg-hover) !important;
+    border-radius: 2px !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a:active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === STATS TOPICS MOBILE (injectées par JS) — style harmonisé kramail === */
+  
+  .forum-topic-stats-mobile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-top: 4px !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  .forum-topic-stats-mobile i {
+    font-size: 12px !important;
+  }
+
+  .forum-topic-stats-mobile .stats-sep {
+    margin: 0 4px !important;
+    color: var(--kr-text-muted) !important;
+  }
+  
+  /* === ZONE 2 : DERNIER MESSAGE (forums thread) === */
+  
+  /* Lien auteur */
+  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  
+  /* Image nation dans auteur */
+  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child img {
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Paragraphe date/heure */
+  body.page-forum table.dataTable tbody td:nth-child(5) p {
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  
+  /* Icône lien vers message */
+  body.page-forum table.dataTable tbody td:nth-child(5) p a .glyphicon {
+    font-size: 12px !important;
+    color: var(--kr-primary) !important;
+  }
+  
+  /* Feedback tactile zone dernier message */
+  body.page-forum table.dataTable tbody td:nth-child(5):active {
+    background: var(--kr-bg-active) !important;
+  }
+  
+  /* === PAGINATION === */
+  
+  /* Wrapper pagination */
+  .dataTables_paginate {
+    display: flex !important;
+    justify-content: center !important;
+    gap: var(--mobile-spacing-sm) !important;
+    margin-top: var(--mobile-spacing-lg) !important;
+    padding: 0 !important;
+  }
+  
+  /* Boutons Précédent/Suivant - WCAG 2.5.5 (44px min) */
+  .dataTables_paginate .paginate_button {
+    min-height: var(--mobile-touch-target) !important;
+    min-width: var(--mobile-touch-target) !important;
+    padding: 10px 16px !important;
+    font-size: 16px !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+  }
+  
+  /* État actif */
+  .dataTables_paginate .paginate_button.current {
+    background: var(--kr-primary) !important;
+    color: white !important;
+    border-color: var(--kr-primary) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* État désactivé */
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+  
+  /* Feedback tactile */
+  .dataTables_paginate .paginate_button:not(.disabled):not(.current):active {
+    background: var(--kr-bg-active) !important;
+    transform: scale(0.95) !important;
+  }
+  
+  /* === INFO PAGINATION (Affiche X à Y de Z lignes) === */
+  
+  .dataTables_info {
+    text-align: center !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+    margin-top: var(--mobile-spacing-md) !important;
+    padding: 0 var(--mobile-spacing-md) !important;
+  }
+  
+  /* === DARK MODE === */
+  
+  html[class*="-dark"] table.dataTable tbody tr {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(1) {
+    border-bottom-color: var(--kr-border-default) !important;
+  }
+  
+  html[class*="-dark"] table.dataTable tbody td:nth-child(5) {
+    background: rgba(255, 255, 255, 0.03) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_filter input,
+  html[class*="-dark"] .dataTables_length select {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  html[class*="-dark"] .dataTables_paginate .paginate_button {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  /* ============================================================================
+     KRAMAIL - REFONTE MOBILE
+     Redesign complet : tabs alignés, quick actions, DataTable → Cards
+     Sélecteurs réels du DOM kraland.org :
+       - h1.page-header > span.pull-right > a.btn (tabs + icons)
+       - #topics (DataTable), #topics_wrapper
+       - .panel.panel-default > .panel-heading + .panel-body
+     ============================================================================ */
+
+  /* === 1. H1 PAGE HEADER : layout vertical (scopé kramail) === */
+  body.page-kramail h1.page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    border-bottom: none !important;
+  }
+
+  /* Le span.pull-right qui contient TOUS les boutons : annuler le float */
+  body.page-kramail h1.page-header .pull-right {
+    float: none !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px (scopé kramail) === */
+  /* Style commun : tabs (a.btn) + bouton kebab (.btn-group > .btn) */
+  body.page-kramail h1.page-header .pull-right > a.btn,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast) !important;
+  }
+
+  /* Icônes — taille et alignement uniformes */
+  body.page-kramail h1.page-header .pull-right > a.btn > i,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn > i {
+    font-size: 18px !important;
+    line-height: 1 !important;
+  }
+
+  /* Tab actif (btn-primary = onglet sélectionné) */
+  body.page-kramail h1.page-header .pull-right > a.btn.btn-primary {
+    background: var(--kr-primary) !important;
+    border-color: var(--kr-primary) !important;
+    color: white !important;
+  }
+
+  /* Feedback tactile */
+  body.page-kramail h1.page-header .pull-right > a.btn:active,
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn:active {
+    transform: scale(0.97) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Container du bouton kebab — taille contrainte */
+  body.page-kramail h1.page-header .pull-right > .btn-group {
+    position: relative !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Dropdown menu du bouton "+" (scopé kramail) */
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    min-width: 260px !important;
+    right: 0 !important;
+    left: auto !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 10px !important;
+    padding: 8px 0 !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+  }
+
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+    min-height: 44px !important;
+    font-size: 15px !important;
+    color: var(--kr-text-primary) !important;
+    white-space: nowrap !important;
+  }
+
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+    background: rgba(255,255,255,0.08) !important;
+  }
+
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a .label-simple {
+    font-size: 15px !important;
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* === 4. PANEL BOÎTE DE RÉCEPTION (scopé kramail) === */
+  body.page-kramail .panel.panel-default {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  body.page-kramail .panel-heading {
+    padding: 12px 16px !important;
+    background: transparent !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+  }
+
+  body.page-kramail .panel-heading h3.panel-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--kr-primary) !important;
+  }
+
+  /* Icône chevron collapse */
+  body.page-kramail .panel-heading .glyphicon-chevron-up {
+    float: right !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  body.page-kramail .panel-body {
+    padding: 0 !important;
+  }
+
+  /* === 5. DATATABLE CONTRÔLES (scopé kramail) === */
+  /* Cacher "Afficher X lignes" sur mobile - encombre inutilement */
+  body.page-kramail #topics_wrapper .dataTables_length {
+    display: none !important;
+  }
+
+  /* Barre de recherche DataTable - optimisée tactile */
+  body.page-kramail #topics_wrapper .dataTables_filter {
+    padding: 12px 16px !important;
+    text-align: left !important;
+    width: 100% !important;
+  }
+
+  body.page-kramail #topics_wrapper .dataTables_filter label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  body.page-kramail #topics_wrapper .dataTables_filter input[type="search"],
+  body.page-kramail #topics_wrapper .dataTables_filter input {
+    flex: 1 !important;
+    height: 44px !important;
+    padding: 0 16px !important;
+    font-size: 16px !important; /* Évite zoom iOS */
+    border-radius: 22px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
+    -webkit-appearance: none !important;
+  }
+
+  body.page-kramail #topics_wrapper .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: var(--kr-primary) !important;
+    box-shadow: 0 0 0 3px rgba(212, 134, 62, 0.15) !important;
+  }
+
+  /* Info "Affiche X à Y de Z lignes" */
+  body.page-kramail #topics_wrapper .dataTables_info {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    text-align: center !important;
+  }
+
+  /* Pagination */
+  body.page-kramail #topics_wrapper .dataTables_paginate {
+    padding: 8px 16px 16px !important;
+    text-align: center !important;
+  }
+
+  body.page-kramail #topics_wrapper .dataTables_paginate .paginate_button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 10px 14px !important;
+    margin: 0 4px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+  }
+
+  /* === 6. TABLE #topics → CARDS LAYOUT (scopé kramail) === */
+  /* Cacher le thead de la table */
+  body.page-kramail #topics thead {
+    display: none !important;
+  }
+
+  /* Table en layout bloc */
+  body.page-kramail #topics {
+    display: block !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+  }
+
+  body.page-kramail #topics tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px 16px !important;
+  }
+
+  /* Chaque TR devient une carte */
+  body.page-kramail #topics tbody tr {
+    display: grid !important;
+    grid-template-columns: 36px 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 4px 10px !important;
+    padding: 12px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: background var(--transition-fast) !important;
+    min-height: 56px !important;
+    position: relative !important;
+  }
+
+  /* Feedback tactile carte */
+  body.page-kramail #topics tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+
+  /* Cellule 1 : Checkbox */
+  body.page-kramail #topics tbody td:first-child {
+    grid-row: 1 / -1 !important;
+    grid-column: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    width: auto !important;
+    border: none !important;
+  }
+
+  body.page-kramail #topics tbody td:first-child input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    cursor: pointer !important;
+    accent-color: var(--kr-primary) !important;
+  }
+
+  /* Cellule 2 : Message (titre + icône) */
+  body.page-kramail #topics tbody td:nth-child(2) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+
+  /* Le paragraphe wrapper */
+  body.page-kramail #topics tbody td:nth-child(2) p.nomargin {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Le span#ajax-mXXX qui contient icône + titre */
+  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+  }
+
+  /* Icône du message (enveloppe, reply, etc.) */
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fa,
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.far,
+  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fas {
+    font-size: 16px !important;
+    color: var(--kr-text-secondary) !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Lien icône (ne doit pas prendre toute la largeur) */
+  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] > a:first-child {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Lien titre du message */
+  body.page-kramail #topics tbody td:nth-child(2) a:last-of-type {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 1.3 !important;
+    display: block !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Cacher le span.invisible (doublon du titre pour tri) */
+  body.page-kramail #topics tbody td:nth-child(2) span.invisible {
+    display: none !important;
+  }
+
+  /* Cellule 3 : Auteur - sous le titre à gauche */
+  body.page-kramail #topics tbody td:nth-child(3) {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    display: inline !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  body.page-kramail #topics tbody td:nth-child(3) a {
+    color: var(--kr-text-secondary) !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+  }
+
+  /* Cellule 4 : Date - sous le titre à droite (même ligne que auteur) */
+  body.page-kramail #topics tbody td:nth-child(4) {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 12px !important;
+    color: var(--kr-text-muted) !important;
+    text-align: right !important;
+  }
+
+  /* Cacher le span.invisible (date ISO pour tri) dans la cellule date */
+  body.page-kramail #topics tbody td:nth-child(4) span.invisible {
+    display: none !important;
+  }
+
+  /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) (scopé kramail) === */
+  /* Comme le thead est caché, on déplace le btn-group d'actions au-dessus */
+  body.page-kramail #topics_wrapper .btn-group {
+    display: flex !important;
+    gap: 4px !important;
+    padding: 8px 16px !important;
+  }
+
+  body.page-kramail #topics_wrapper .btn-group .btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 10px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+
+  /* === DROPDOWN CHANGEMENT DE PERSONNAGE === */
+
+  /* Wrapper titre cliquable */
+  .kramail-character-selector {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    padding: 8px 12px !important;
+    margin: -8px -12px !important;
+    border-radius: var(--mobile-radius) !important;
+    transition: background var(--transition-fast) !important;
+  }
+
+  .kramail-character-selector:active {
+    background: var(--kr-bg-active) !important;
+  }
+
+  /* Icône dropdown */
+  .kramail-dropdown-icon {
+    font-size: 12px !important;
+    transition: transform var(--transition-fast) !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  /* Container dropdown */
+  .kramail-character-dropdown {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+    min-width: calc(100vw - 48px) !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--mobile-radius) !important;
+    box-shadow: var(--kr-shadow-lg) !important;
+    margin-top: 8px !important;
+    z-index: 1000 !important;
+    overflow: hidden !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    display: none;
+    flex-direction: column !important;
+  }
+
+  /* Quand ouvert : afficher en colonne */
+  .kramail-character-dropdown[style*="display: block"],
+  .kramail-character-dropdown[style*="display:block"] {
+    display: flex !important;
+  }
+
+  /* Options de personnage — centrées, une par ligne */
+  .kramail-character-option {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    min-height: var(--mobile-touch-target) !important;
+    text-decoration: none !important;
+    color: var(--kr-text-primary) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    transition: background var(--transition-fast) !important;
+  }
+
+  /* Nom du personnage centré (surcharge inline style) */
+  .kramail-character-option > div:first-child {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* Catégorie centrée */
+  .kramail-character-option > div:last-child {
+    text-align: center !important;
+  }
+
+  .kramail-character-option:last-child {
+    border-bottom: none !important;
+  }
+
+  .kramail-character-option:active {
+    background: var(--kr-bg-active) !important;
+  }
+
+  /* === DARK MODE KRAMAIL === */
+  html[class*="-dark"] .kramail-character-dropdown {
+    background: var(--kr-bg-surface) !important;
+    border-color: var(--kr-border-default) !important;
+  }
+
+  html[class*="-dark"] .kramail-character-option {
+    color: var(--kr-text-primary) !important;
+    border-bottom-color: var(--kr-border-default) !important;
+  }
+
+  /* ============================================================================
+     MOBILE OPTIMISATION - PAGE MESSAGE KRAMAIL (kramail/post/*)
+     Structure originale :
+       - h1.page-header (titre seul)
+       - div.forum-top > span.pull-right > a.btn×8 (boutons)
+       - ul.media-list.forum > li.media.well (message)
+         - div.pull-left > div.user-info (avatar + cartouche)
+         - div.media-body (destinataires + date + contenu + signature)
+       - div.center > ul.pagination (prev/next)
+     Structure JS restructurée :
+       - h1.page-header contient les boutons (déplacés par JS)
+       - li.media.well.kramail-post-restructured (classe ajoutée par JS)
+       - .kramail-msg-header (avatar + nom + date — horizontal)
+       - .kramail-msg-recipients (envoyé à)
+       - .kramail-msg-body (contenu pleine largeur)
+     ============================================================================ */
+
+  /* === BOUTONS PAGE MESSAGE — harmonisés avec inbox === */
+  /* Le JS déplace les boutons dans h1 .pull-right, même sélecteurs que l'inbox */
+  /* (les styles existants h1.page-header .pull-right > a.btn s'appliquent) */
+
+  /* Masquer la barre forum-top originale (vidée par JS) */
+  .forum-top:has(.kramail-actions-moved) {
+    display: none !important;
+  }
+
+  /* === MESSAGE CARD — layout empilé mobile === */
+  body.mobile-mode ul.media-list.forum > li.media.well.kramail-post-restructured {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    margin: 0 16px 16px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    list-style: none !important;
+  }
+
+  /* Cacher le pull-left original (avatar+cartouche) — remplacé par header */
+  body.mobile-mode li.kramail-post-restructured > .pull-left {
+    display: none !important;
+  }
+
+  /* Cacher le media-body original — remplacé par la nouvelle structure */
+  body.mobile-mode li.kramail-post-restructured > .media-body {
+    display: none !important;
+  }
+
+  /* --- Header : avatar compact + nom + date (horizontal) --- */
+  .kramail-msg-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+  }
+
+  .kramail-msg-header .kramail-msg-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+  }
+
+  .kramail-msg-header-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .kramail-msg-sender {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--kr-text-primary) !important;
+    margin-bottom: 2px !important;
+  }
+
+  .kramail-msg-sender a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .kramail-msg-date {
+    font-size: 12px !important;
+    color: var(--kr-text-muted) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .kramail-msg-date i {
+    font-size: 11px !important;
+  }
+
+  /* --- Destinataires --- */
+  .kramail-msg-recipients {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    color: var(--kr-text-secondary) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    line-height: 1.5 !important;
+  }
+
+  .kramail-msg-recipients strong {
+    color: var(--kr-text-muted) !important;
+    font-weight: 500 !important;
+  }
+
+  .kramail-msg-recipients a {
+    color: var(--kr-primary) !important;
+    text-decoration: none !important;
+  }
+
+  /* --- Corps du message — pleine largeur --- */
+  .kramail-msg-body {
+    padding: 16px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: var(--kr-text-primary) !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Blockquote modernisée — barre cuivre + fond distinct */
+  .kramail-msg-body blockquote,
+  .kramail-msg-body .blockquote,
+  .kramail-msg-body .quote {
+    margin: 12px 0 !important;
+    padding: 12px 16px !important;
+    border-left: 3px solid var(--kr-primary) !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 0 8px 8px 0 !important;
+    font-size: 14px !important;
+    color: var(--kr-text-secondary) !important;
+    line-height: 1.5 !important;
+  }
+
+  .kramail-msg-body blockquote .fa-quote-left,
+  .kramail-msg-body blockquote .text-warning {
+    color: var(--kr-primary) !important;
+    opacity: 0.6 !important;
+    margin-right: 6px !important;
+    font-size: 12px !important;
+  }
+
+  /* Signature — séparée visuellement */
+  .kramail-msg-signature {
+    margin-top: 16px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--kr-border-default) !important;
+    font-size: 13px !important;
+    color: var(--kr-text-muted) !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Images dans la signature (icons, smileys) */
+  .kramail-msg-signature img.icon {
+    max-height: 18px !important;
+    vertical-align: middle !important;
+  }
+
+  /* === PAGINATION KRAMAIL MESSAGE === */
+  body.mobile-mode .center:has(> ul.pagination) {
+    padding: 8px 16px 16px !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li {
+    list-style: none !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li > a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    color: var(--kr-text-primary) !important;
+    text-decoration: none !important;
+    font-size: 16px !important;
+    transition: all 0.15s !important;
+  }
+
+  body.mobile-mode .center > ul.pagination.t > li > a:active {
+    transform: scale(0.97) !important;
+    background: var(--kr-primary) !important;
+    border-color: var(--kr-primary) !important;
+    color: white !important;
+  }
+
+  /* ============================================================================
+     MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
+     Structure restructurée par JS:
+     - Row 1: col-xs-4 (user) + col-xs-8 (boutons)
+     - Row 2: col-xs-12 (contenu message)
+     ============================================================================ */
+  
+  /* === STRUCTURE PRINCIPALE === */
+  
+  /* Container du post restructuré */
+  ul.media-list.forum > li.media.forum-post-restructured {
+    display: block !important;
+    padding: 12px 8px !important;
+    margin-bottom: 24px !important;
+    list-style: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Row 1: Header (user + boutons) */
+  ul.media-list.forum > li.media .forum-header {
+    margin-bottom: 12px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Row 2: Contenu */
+  ul.media-list.forum > li.media .forum-content-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* === COLONNE 1: USER INFO === */
+  
+  .forum-user-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  /* Avatar */
+  .forum-user-section img.avatar,
+  .forum-user-section .user-info img:first-child {
+    max-width: 80px !important;
+    height: auto !important;
+    border-radius: 4px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Nom d'utilisateur - sans ellipsis, wrap autorisé */
+  .forum-user-section .cartouche strong,
+  .forum-user-section strong a {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    display: block !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+  
+  /* Conteneur icône de rang + titre (inline) */
+  .forum-user-section [data-kr-rank-title] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    margin-top: 4px !important;
+    max-width: 100% !important;
+  }
+  
+  .forum-user-section [data-kr-rank-title] img {
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+  }
+  
+  /* Titre de rang : inline sans ellipsis */
+  .forum-user-section [data-kr-rank-title] strong {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  
+  /* Date mobile ajoutée par JS */
+  .forum-user-section .post-date-mobile {
+    font-size: 11px !important;
+    color: #999 !important;
+    margin-top: 4px !important;
+    text-align: center !important;
+  }
+  
+  /* Titre/fonction - ellipsis */
+  .forum-user-section strong:not(.cartouche strong):not([data-kr-rank-title] strong) {
+    font-size: 10px !important;
+    color: #bbb !important;
+    font-weight: normal !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  
+  /* === COLONNE 2: BOUTONS D'ACTION === */
+  
+  .forum-actions-section {
+    padding: 0 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+  }
+  
+  /* Container des boutons */
+  .forum-actions-section .pull-right {
+    float: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  /* Groupes de boutons inline */
+  .forum-actions-section .btn-group {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Boutons carrés 44x44px (WCAG touch target) */
+  .forum-actions-section .btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 44px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  /* Override Bootstrap min-width */
+  .forum-actions-section .btn-group-xs > .btn,
+  .forum-actions-section .btn-group-xs .btn {
+    min-width: 44px !important;
+  }
+  
+  /* Icônes des boutons */
+  .forum-actions-section .btn i {
+    font-size: 11px !important;
+    line-height: 24px !important;
+  }
+  
+  /* === ROW 2: CONTENU DU MESSAGE === */
+  
+  .forum-content-row {
+    margin-top: 0 !important;
+  }
+  
+  .forum-content-section {
+    padding: 12px 8px !important;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    width: 100% !important;
+  }
+  
+  /* Contenu du message */
+  .forum-content-section .forum-msg,
+  .forum-content-section > div {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Citations et blockquotes */
+  .forum-content-section blockquote {
+    margin: 8px 0 !important;
+    padding: 8px 12px !important;
+    border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
+    font-size: 14px !important;
+  }
+  
+  /* Images dans le contenu */
+  .forum-content-section img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Spoilers */
+  .forum-content-section .spoiler {
+    margin: 8px 0 !important;
+  }
+  
+  /* Signature */
+  .forum-content-section hr,
+  .forum-content-section .signature {
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 12px !important;
+    color: #999 !important;
+}
+
+/* ============================================================================
+   11. NOUVEAU SUJET - MOBILE OPTIMIZATION
+   Optimise la page "Poster un nouveau sujet" pour mobile
+   - Toolbar BBCode horizontale scrollable
+   - Inputs/buttons 44px minimum (touch target)
+   - Font 16px pour éviter zoom iOS
+   - Feedback visuel clair
+   ============================================================================ */
+
+@media (width <= 768px) {
+  /* 0. LAYOUT - Fix Bootstrap grid overflow */
+  
+  /* Ajouter padding latéral pour ne pas coller au bord */
+  .container,
+  .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  /* Réinitialiser les colonnes Bootstrap pour mobile */
+  .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6,
+  .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 {
+    float: none !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Réinitialiser les form-group qui contiennent les colonnes */
+  .form-group {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    margin-bottom: var(--mobile-spacing-lg);
+  }
+
+  /* Réinitialiser input-group */
+  .input-group {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* CRÍTICA: Contenir les débordements de la toolbar dans le form-group */
+  .form-group {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .form-group .col-md-10,
+  .form-group .col-sm-10 {
+    overflow: hidden;
+  }
+
+  /* 1. TOOLBAR BBCODE - Horizontal scrollable */
+  
+  .btn-toolbar {
+    display: flex !important;           /* Override Bootstrap */
+    flex-wrap: nowrap;                  /* Pas de wrapping */
+    overflow-x: auto;                   /* Scrollbar horizontale */
+    overflow-y: hidden;                 /* Pas de scrollbar verticale */
+    gap: 4px;
+    padding: 8px;
+    margin-bottom: var(--mobile-spacing-md);
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    -webkit-overflow-scrolling: touch;  /* iOS smooth scrolling */
+    white-space: nowrap;                /* Empêche wrap des groupes */
+  }
+
+  /* Scrollbar styling (webkit browsers) */
+  .btn-toolbar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .btn-toolbar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 2px;
+  }
+
+  .btn-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 2px;
+  }
+
+  /* Groupes de boutons - Layout horizontal */
+  .btn-toolbar .btn-group {
+    display: flex !important;           /* Override Bootstrap flex-column */
+    flex-direction: row !important;
+    flex-shrink: 0;                     /* Empêche compression */
+    gap: 0;
+    margin: 0 !important;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid var(--kr-border-default);
+  }
+
+  .btn-toolbar .btn-group:last-child {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: none;
+  }
+
+  /* Boutons BBCode - Touch targets 44px */
+  .btn-toolbar .btn {
+    min-width: var(--mobile-touch-target) !important;
+    width: var(--mobile-touch-target);
+    height: var(--mobile-touch-target);
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;                    /* Visible sur petit écran */
+    border-radius: 6px;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .btn-toolbar .btn:hover {
+    background: rgba(139, 15, 14, 0.1);
+    border-color: var(--kr-primary);
+    color: var(--kr-primary);
+  }
+
+  .btn-toolbar .btn:active {
+    background: rgba(139, 15, 14, 0.2);
+    transform: scale(0.95);
+  }
+
+  .btn-toolbar .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
+    border-color: var(--kr-primary);
+  }
+
+  /* 2. FORM CONTROLS - Inputs, textareas, selects */
+
+  .form-control {
+    font-size: 16px !important;         /* iOS zoom prevention - CRITIQUE */
+    min-height: var(--mobile-touch-target) !important;
+    padding: 12px var(--mobile-spacing-md) !important;
+    border-radius: var(--mobile-radius) !important;
+    line-height: 1.5;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--kr-primary);
+    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
+  }
+
+  /* Textarea - Priorité message */
+  textarea.form-control {
+    min-height: 150px !important;
+    font-family: monospace;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  /* Select - Styled au même niveau */
+  select.form-control {
+    height: auto;
+    min-height: var(--mobile-touch-target);
+  }
+
+  /* 3. FORM GROUPS - Stack vertical */
+
+  .form-group {
+    margin-bottom: var(--mobile-spacing-lg);
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: var(--mobile-spacing-sm);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--kr-text);
+  }
+
+  .form-group label .required {
+    color: var(--kr-primary);
+  }
+
+  /* 4. CHECKBOXES - Inline avec spacing tactile */
+
+  .form-group .checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mobile-spacing-md);
+    min-height: var(--mobile-touch-target);
+    margin-right: var(--mobile-spacing-lg);
+    margin-bottom: 0;
+    padding: 8px 0;
+  }
+
+  .form-group .checkbox input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    min-height: 20px;
+    margin: 0 !important;
+    cursor: pointer;
+    accent-color: var(--kr-primary);
+    flex-shrink: 0;
+  }
+
+  .form-group .checkbox label {
+    display: inline;
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 8px 0;
+  }
+
+  /* 5. BOUTON ENVOYER - Sticky footer */
+
+  button.btn-primary.pull-right {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 90;
+    width: 100% !important;
+    height: 56px !important;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    border-radius: 0 !important;
+    font-size: 16px;
+    font-weight: 600;
+    border: none !important;
+  }
+
+  button.btn-primary.pull-right:active {
+    background: var(--kr-primary-dark);
+    transform: scale(0.98);
+  }
+
+  /* Padding au dernier form-group pour éviter overlap avec footer */
+  .form-group:last-of-type {
+    padding-bottom: 60px;
+  }
+
+  /* 6. ACCORDION/COLLAPSE - Options & Sondage */
+
+  .panel-group {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .accordion-toggle,
+  a[data-toggle="collapse"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--mobile-spacing-md) var(--mobile-spacing-lg);
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: var(--mobile-touch-target);
+    text-decoration: none;
+    color: var(--kr-text);
+    font-weight: 500;
+  }
+
+  .accordion-toggle:hover,
+  a[data-toggle="collapse"]:hover {
+    background: rgba(139, 15, 14, 0.05);
+    border-color: var(--kr-primary);
+    color: var(--kr-primary);
+  }
+
+  .panel-collapse {
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    margin-top: -1px;
+  }
+
+  .panel-body {
+    padding: var(--mobile-spacing-lg);
+  }
+}
+/* ============================================================================
+   KRAMAIL - FORMULAIRE NOUVEAU MESSAGE
+   Page : /kramail/post/nouveau-*
+   Harmonise le formulaire avec le design de la boîte de réception parente
+   et améliore l'UX selon les heuristiques de Nielsen et la loi de Fitts
+   ============================================================================ */
+
+/* --- Styles universels (tous viewports) --- */
+
+/* HR inutiles — supprimer le bruit visuel */
+body.page-kramail .editeur-text .form-group hr {
+  display: none !important;
+}
+
+body.page-kramail .editeur-text .form-group + .form-group > .col-sm-2:empty + .col-sm-10 > hr {
+  display: none !important;
+}
+
+body.page-kramail .editeur-text .form-group:has(#results) {
+  margin-bottom: 0;
+  padding-top: 0;
+}
+
+body.page-kramail .editeur-text #results hr {
+  display: none !important;
+}
+
+/* Curseur pointer pour selects et checkboxes */
+body.page-kramail .editeur-text select.form-control {
+  cursor: pointer;
+}
+
+body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* Astérisque required en couleur primaire */
+body.page-kramail .editeur-text .form-group > label.control-label .required {
+  color: var(--kr-primary);
+  font-weight: 700;
+}
+
+/* Bouton retour Réception — style cohérent avec inbox */
+body.page-kramail h1.page-header .btn-default {
+  border-radius: var(--kr-radius);
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+body.page-kramail h1.page-header .btn-default:hover {
+  border-color: var(--kr-primary);
+  color: var(--kr-primary);
+}
+
+/* --- Styles desktop uniquement --- */
+@media (min-width: 769px) {
+
+  /* 1. CONTENEUR FORMULAIRE — carte visuelle cohérente avec inbox */
+  body.page-kramail form.form-horizontal.editeur-text {
+    background: var(--kr-bg-surface);
+    border: 1px solid var(--kr-border-strong);
+    border-radius: var(--kr-radius);
+    padding: 28px 32px;
+    margin-top: 8px;
+    box-shadow: var(--kr-shadow-md);
+  }
+
+  /* 2. PAGE HEADER — ligne de séparation cohérente avec inbox */
+  body.page-kramail h1.page-header {
+    border-bottom-color: var(--kr-primary) !important;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* 3. INPUT-GROUP-ADDON — meilleur contraste et cohérence */
+  body.page-kramail .editeur-text .input-group-addon {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-default);
+    color: var(--kr-text-secondary);
+    min-width: 42px;
+    text-align: center;
+  }
+
+  body.page-kramail .editeur-text .input-group-addon i.fa,
+  body.page-kramail .editeur-text .input-group-addon i.far,
+  body.page-kramail .editeur-text .input-group-addon i.fas {
+    color: var(--kr-primary);
+    font-size: 14px;
+  }
+
+  /* 4. BOUTON "+" CONTACTS — plus gros, plus accessible (Fitts) */
+  body.page-kramail .editeur-text .input-group-addon .btn.btn-primary {
+    min-width: 36px;
+    min-height: 32px;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 4px;
+  }
+
+  /* 5. SECTION DESTINATAIRE — meilleure lisibilité */
+  body.page-kramail .editeur-text .form-group label[for],
+  body.page-kramail .editeur-text .form-group > label.col-sm-1 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--kr-text-secondary);
+    font-weight: 600;
+  }
+
+  /* 6. SECTION OPTIONS — regroupement visuel */
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 16px 20px !important;
+    margin-top: 8px;
+  }
+
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) > label.col-md-2,
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) > label.col-sm-2 {
+    color: var(--kr-text-primary);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) .checkbox-inline {
+    margin-right: 24px;
+    padding: 6px 4px 6px 24px;
+    cursor: pointer;
+  }
+
+  /* 7. BOUTON ENVOYER — plus proéminent */
+  body.page-kramail .editeur-text > div:last-child {
+    text-align: right;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px solid var(--kr-border-default);
+    clear: both;
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right {
+    float: none !important;
+    min-width: 180px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: var(--kr-radius);
+    margin: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px var(--kr-btn-shadow);
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--kr-btn-shadow);
+  }
+
+  body.page-kramail .editeur-text button.btn-primary.pull-right:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px var(--kr-btn-shadow);
+  }
+
+  /* 8. TOOLBAR BBCODE — meilleure cohérence */
+  body.page-kramail .editeur-text .btn-toolbar {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn-group {
+    margin-right: 4px;
+    border-right: 1px solid var(--kr-border-default);
+    padding-right: 8px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn-group:last-child {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn {
+    min-width: 34px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar .btn:hover {
+    background: var(--kr-bg-active) !important;
+    border-color: var(--kr-primary) !important;
+  }
+
+  /* 9. TEXTAREA MESSAGE — hauteur minimale + bloc uni avec toolbar */
+  body.page-kramail .editeur-text textarea[name="c[5]"],
+  body.page-kramail .editeur-text textarea[placeholder="Votre message"] {
+    min-height: 250px;
+    line-height: 1.6;
+  }
+
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar + textarea.form-control {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none !important;
+    margin-top: 0;
+  }
+
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default);
+  }
+
+  /* 10. LABELS — hiérarchie visuelle améliorée */
+  body.page-kramail .editeur-text .form-group > label.control-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--kr-text-secondary);
+  }
+
+  /* 11. FORM GROUPS — espacement vertical cohérent */
+  body.page-kramail .editeur-text .form-group {
+    margin-bottom: 20px;
+  }
+
+} /* fin @media (min-width: 769px) — Kramail formulaire desktop */
+
+/* --- Styles mobile uniquement --- */
+@media (max-width: 768px) {
+
+  /* =============================================
+     1. HEADER — masquer le character switcher
+     Le sélecteur de compte est redondant avec le
+     champ "Expéditeur" du formulaire.
+     Le bouton retour passe sur la même ligne.
+     ============================================= */
+
+  /* Masquer le dropdown du character selector (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-character-dropdown,
+  body.page-kramail-compose h1.page-header .kramail-character-selector .kramail-dropdown-icon {
+    display: none !important;
+  }
+
+  /* Désactiver le curseur pointer et le comportement interactif (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector {
+    cursor: default !important;
+    pointer-events: none;
+  }
+
+  /* Header : flex row pour aligner titre + back sur une ligne (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  /* Le sélecteur prend l'espace restant (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-selector {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Conteneur pull-right du bouton retour : pas de float, auto-width (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .pull-right {
+    float: none !important;
+    width: auto !important;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* Bouton retour Réception — taille tactile (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .pull-right .btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* =============================================
+     2. INPUT-GROUPS — unifiés et collés
+     Addon + input forment un bloc visuel cohérent :
+     même hauteur 44px, radius uniquement aux extrémités,
+     bordure partagée sans doublure.
+     ============================================= */
+
+  /* Le groupe flex inline */
+  body.page-kramail .editeur-text .input-group {
+    display: flex !important;
+    flex-wrap: nowrap;
+    border-radius: var(--mobile-radius);
+    overflow: hidden;
+  }
+
+  /* Addon : bloc icône uniforme */
+  body.page-kramail .editeur-text .input-group-addon {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 !important;
+    border-right: none !important;
+    padding: 0 !important;
+  }
+
+  /* Premier addon : radius gauche */
+  body.page-kramail .editeur-text .input-group-addon:first-child {
+    border-radius: var(--mobile-radius) 0 0 var(--mobile-radius) !important;
+  }
+
+  /* Input : colle à l'addon, pas de radius gauche */
+  body.page-kramail .editeur-text .input-group .form-control {
+    flex: 1;
+    min-width: 0;
+    height: 44px !important;
+    border-radius: 0 var(--mobile-radius) var(--mobile-radius) 0 !important;
+    border-left: none !important;
+  }
+
+  /* Bouton "+" contacts — même largeur 44px que les addons */
+  body.page-kramail .editeur-text .input-group-addon .btn {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    border: none !important;
+    background: transparent !important;
+    color: inherit;
+  }
+
+  /* =============================================
+     3. TOOLBAR BBCODE — barre continue
+     Supprime les gaps inter-groupes.
+     Radius uniquement aux extrémités de la barre.
+     Les boutons dropdown s'intègrent dans le flux.
+     ============================================= */
+
+  /* Toolbar conteneur : barre continue */
+  body.page-kramail .editeur-text .btn-toolbar {
+    display: flex !important;
+    flex-wrap: nowrap;
+    gap: 0 !important;
+    padding: 0 !important;
+    border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    margin-bottom: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background: var(--kr-bg-hover);
+  }
+
+  /* Groupes de boutons : inline, pas de gap, pas de bordure propre */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group {
+    flex-direction: row !important;
+    width: auto !important;
+    flex-shrink: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--kr-border-default) !important;
+    border-radius: 0 !important;
+  }
+
+  /* Dernier groupe visible : pas de bordure droite */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:last-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type {
+    border-right: none !important;
+  }
+
+  /* Tous les boutons : 44px, sans radius, sans gap, icônes claires
+     IMPORTANT : > .btn-group cible UNIQUEMENT les groupes directs de la toolbar,
+     pas les .btn-group imbriqués dans les .dropdown-menu (ex: boutons couleur) */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > a.btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown > a > .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown .dropdown-toggle .btn,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group .dropdown > .dropdown-toggle {
+    width: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent !important;
+    color: var(--kr-text-primary, #f5f1ed) !important;
+  }
+
+  /* Icônes FontAwesome dans TOUS les boutons toolbar : couleur héritée */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > .btn i,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group > a.btn i {
+    color: inherit !important;
+  }
+
+  /* Wrapper dropdown : pas de taille propre */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown {
+    display: flex !important;
+    flex-shrink: 0;
+  }
+
+  /* Bouton dans le dropdown toggle (le <button> dans <a>)
+     ATTENTION : cibler UNIQUEMENT le toggle, PAS les .btn du .dropdown-menu */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--kr-text-primary, #d4a574) !important;
+  }
+
+  /* Icônes FontAwesome dans les toggles dropdown : couleur lisible */
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn i,
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .fa,
+  body.page-kramail .editeur-text .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .far {
+    color: inherit !important;
+  }
+
+  /* Boutons couleur dans le dropdown-menu — respecter leur background inline */
+  body.page-kramail .editeur-text .btn-toolbar .dropdown-menu .btn-group .btn {
+    width: auto !important;
+    height: auto !important;
+    min-width: 28px !important;
+    max-width: none !important;
+    min-height: 28px !important;
+    padding: 4px 6px !important;
+    margin: 2px !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Premier bouton du premier groupe : radius haut-gauche */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:first-child > .btn:first-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group:first-child > a.btn:first-child {
+    border-radius: var(--mobile-radius) 0 0 var(--mobile-radius) !important;
+  }
+
+  /* Dernier bouton du dernier groupe visible : radius haut-droite */
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type > .btn:last-child,
+  body.page-kramail .editeur-text .btn-toolbar > .btn-group[aria-label]:last-of-type > a.btn:last-child {
+    border-radius: 0 var(--mobile-radius) var(--mobile-radius) 0 !important;
+    border-right: none !important;
+  }
+
+  /* Hover/Active feedback sur toolbar buttons */
+  body.page-kramail .editeur-text .btn-toolbar .btn:active {
+    background: rgba(139, 15, 14, 0.15) !important;
+  }
+
+  /* Scrollbar discrète */
+  body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  body.page-kramail .editeur-text .btn-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
+
+  /* Textarea collé à la toolbar */
+  body.page-kramail .editeur-text .btn-toolbar + textarea.form-control,
+  body.page-kramail .editeur-text .col-sm-10 > .btn-toolbar + textarea.form-control {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none !important;
+    margin-top: 0;
+  }
+
+  /* =============================================
+     4. DROPDOWNS EMOJI/COULEUR — bottom-sheet
+     Les dropdown-menus se positionnent en bas de 
+     l'écran pour être accessibles au pouce.
+     ============================================= */
+
+  body.page-kramail .editeur-text .btn-toolbar .dropdown-menu {
+    position: fixed !important;
+    bottom: 60px !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 50vh;
+    overflow-y: auto;
+    border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1050 !important;
+    background: var(--kr-bg-surface) !important;
+    border: 1px solid var(--kr-border-default) !important;
+    padding: 12px !important;
+  }
+
+  /* =============================================
+     5. CHECKBOXES — layout non-tronqué
+     ============================================= */
+  body.page-kramail .editeur-text .checkbox-inline {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding-left: 0 !important;
+    margin-right: 16px;
+    margin-bottom: 8px;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  body.page-kramail .editeur-text .checkbox-inline input[type="checkbox"] {
+    position: static !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    flex-shrink: 0;
+  }
+
+  /* =============================================
+     6. OPTIONS — conteneur visuel
+     ============================================= */
+  body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) {
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--mobile-radius);
+    padding: 12px 16px !important;
+    margin-top: 8px;
+  }
+
+  /* =============================================
+     7. LABELS — hiérarchie avec couleur secondaire  
+     ============================================= */
+  body.page-kramail .editeur-text .form-group > label.control-label {
+    color: var(--kr-text-secondary);
+  }
+
+  /* =============================================
+     8. PADDING BOTTOM — espace pour le bouton Envoyer fixe
+     ============================================= */
+  body.page-kramail .editeur-text .form-group:last-of-type {
+    padding-bottom: 70px !important;
+  }
+
+} /* fin @media (max-width: 768px) — Kramail formulaire mobile */
+
+/* ============================================================================
+   FORUM THREAD DETAIL - Hide tags
+   ============================================================================ */
+
+/* Masquer les tags dans la vue détail du fil (sujet) */
+.forum-thread-detail > div:nth-of-type(2) {
+  display: none;
+}
+
+/* Alternative: Cibler via la structure de la page forum */
+.page-forum-sujet [role="main"] > div > div:nth-of-type(2) > div:nth-of-type(3) {
+  display: none;
+}
+
+/* Fallback: Masquer les sections de tags générales dans les fils */
+.forum-thread-metadata + div:has(a[href*="/forum/tags/"]) {
+  display: none;
+}
+
+/* ============================================================================
+   CHANGELOG MODAL
+   ============================================================================ */
+
+.kr-changelog-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kr-changelog-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.kr-changelog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75) !important; /* Fond encore plus sombre pour la lisibilité */
+  cursor: pointer;
+}
+
+..kr-changelog-content {
+  /* Positionner par rapport à la fenêtre pour garantir un centrage stable */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: rgba(0, 0, 0, 0.95) !important; /* Fond noir opaque pour lisibilité */
+  border: 1px solid rgba(255,255,255,0.06) !important; /* bord subtil clair */
+  border-radius: var(--kr-radius) !important;
+  box-shadow: var(--kr-shadow-lg) !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 10001 !important;
+  color: #ffffff !important; /* texte blanc pour contraste */
+  overflow: hidden !important;
+} 
+
+/* Assurer le centrage parfait via flex du conteneur modal */
+.kr-changelog-modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kr-changelog-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--kr-border-default);
+  position: relative;
+}
+
+.kr-changelog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--kr-primary);
+}
+/* Le bouton croix n'est plus utilisé : masquer au cas où */
+.kr-changelog-close { display: none !important; }
+
+.kr-changelog-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kr-changelog-subtitle {
+  margin: 0 0 16px 0;
+  color: var(--kr-muted);
+  font-size: 14px;
+}
+
+.kr-changelog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-list li {
+  padding: 8px 0 8px 24px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.kr-changelog-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--kr-primary);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.kr-changelog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--kr-border-default);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kr-changelog-footer button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 1px solid var(--kr-border-strong);
+  border-radius: var(--kr-radius);
+  background: var(--kr-surface);
+  color: var(--kr-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.kr-changelog-view-all {
+  background: var(--kr-primary) !important;
+  color: white !important;
+  border-color: var(--kr-primary) !important;
+}
+
+.kr-changelog-view-all:hover {
+  background: var(--kr-primary-dark) !important;
+  border-color: var(--kr-primary-dark) !important;
+}
+
+.kr-changelog-close-btn:hover {
+  background: var(--kr-bg-hover);
+}
+
+/* Modal complet - vue historique */
+.kr-changelog-modal.kr-changelog-full .kr-changelog-content-full {
+  max-width: 800px;
+}
+
+.kr-changelog-body-full {
+  max-height: 500px;
+}
+
+.kr-changelog-version {
+  margin-bottom: 24px;
+}
+
+.kr-changelog-version h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kr-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--kr-border-default);
+}
+
+.kr-changelog-version ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kr-changelog-version li {
+  padding: 6px 0 6px 20px;
+  position: relative;
+  color: var(--kr-text);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.kr-changelog-version li:before {
+  content: '•';
+  position: absolute;
+  left: 5px;
+  color: var(--kr-primary);
+  font-weight: bold;
+}
+
+/* Bouton sur la page profil */
+.kr-changelog-btn {
+  margin-bottom: 16px;
+}
+
+/* Style compact (inline) pour insertion avec le texte d'aide des alertes */
+.kr-changelog-inline {
+  color: var(--kr-primary);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  margin-left: 8px;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline;
+}
+.kr-changelog-inline:hover {
+  color: var(--kr-primary-dark);
+  text-decoration: underline;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .kr-changelog-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .kr-changelog-header {
+    padding: 16px 16px 12px;
+  }
+
+  .kr-changelog-header h2 {
+    font-size: 18px;
+  }
+
+  .kr-changelog-body {
+    padding: 12px 16px;
+  }
+
+  .kr-changelog-list li {
+    padding: 6px 0 6px 20px;
+    font-size: 13px;
+  }
+
+  .kr-changelog-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+
+  .kr-changelog-footer button {
+    width: 100%;
+  }
+
+  .kr-changelog-content-full {
+    max-width: 95%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Corrections map : rendre les labels \`.mini\` lisibles en mode sombre
+   - le thème sombre utilise des fonds nationaux semi-transparents (alpha 0.15)
+     ce qui rend les chiffres difficiles à lire : on augmente l'opacité ici.
+   - on ajoute aussi un léger padding / bordure pour conserver la lisibilité
+   --------------------------------------------------------------------------- */
+html[class*='-dark'] .mini {
+  color: var(--kr-text-primary) !important; /* texte clair sur fond sombre */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  background-image: none !important;
+  background-color: rgba(0,0,0,0.6) !important; /* fond opaque pour lisibilité */
+}
+
+/* conserver la couleur nationale mais en opaque pour être lisible */
+html[class*='-dark'] .mini.c3 { background-color: rgba(255,255,128,0.92) !important; color: var(--kr-text-inverse) !important; }
+html[class*='-dark'] .mini.c5 { background-color: rgba(128,255,128,0.92) !important; color: var(--kr-text-inverse) !important; }
+
+/* mode clair : conserver l'apparence originale mais améliorer la lisibilité */
+html:not([class*='-dark']) .mini {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+`,
+    ENABLE_KEY: 'kr-theme-enabled',
+    VARIANT_KEY: 'kr-theme-variant',
+    STATS_DISPLAY_KEY: 'kr-stats-display',
+    STYLE_ID: 'kraland-theme-style',
+    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
+    LOGO_MAP: {
+      'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'paladium-dark': 3,
+      'theocratie-seelienne': 4, 'theocratie-seelienne-dark': 4, 'paradigme-vert': 5, 'paradigme-vert-dark': 5,
+      'khanat-elmerien': 6, 'khanat-elmerien-dark': 6, 'confederation-libre': 7, 'confederation-libre-dark': 7,
+      'royaume-ruthvenie': 8, 'royaume-ruthvenie-dark': 8
+    },
+    SKILL_ICONS: {
+      'Baratin': '9401', 'Combat Mains Nues': '9402', 'Combat Contact': '9403',
+      'Combat Distance': '9404', 'Commerce': '9405', 'Démolition': '9406',
+      'Discrétion': '9407', 'Éloquence': '9408', 'Falsification': '9409',
+      'Foi': '9410', 'Informatique': '9411', 'Médecine': '9412',
+      'Observation': '9413', 'Organisation': '9414', 'Pouvoir': '9415',
+      'Séduction': '9416', 'Survie': '9417', 'Vol': '9418'
+    },
+    STAT_ICONS: {
+      'FOR': '9402', 'VOL': '9415', 'CHA': '9416',
+      'INT': '9412', 'GES': '9405', 'PER': '9413'
+    },
+
+    // Carte Médiévale
+    MEDIEVAL_MAP_KEY: 'kr-medieval-map',
+    MEDIEVAL_MAP_STYLE_ID: 'kr-medieval-map-style',
+    // Exceptions où l'image de remplacement ne suit pas la règle /1/ -> /5/
+    MEDIEVAL_MAP_OVERRIDES: {
+      // remplacements spécifiques (source -> cible)
+      'http://img7.kraland.org/2/map/1/54.gif': 'https://i.imgur.com/yQaUb2q.png',
+      'http://img7.kraland.org/2/map/1/123.gif': 'https://i.imgur.com/zeD5Q3m.gif',
+      'http://img7.kraland.org/2/map/1/124.gif': 'https://i.imgur.com/kT1NcMR.gif',
+      'http://img7.kraland.org/2/map/1/125.gif': 'https://i.imgur.com/OZcbEpv.gif',
+      'http://img7.kraland.org/2/map/1/126.gif': 'https://i.imgur.com/pnNPvQa.gif',
+      'http://img7.kraland.org/2/map/1/127.gif': 'https://i.imgur.com/AWDyET8.gif',
+      'http://img7.kraland.org/2/map/1/128.gif': 'https://i.imgur.com/v9BUsFz.gif',
+      'http://img7.kraland.org/2/map/1/129.gif': 'https://i.imgur.com/F3hWy6L.gif',
+      'http://img7.kraland.org/2/map/1/130.gif': 'https://i.imgur.com/dQ1eAgR.gif',
+      'http://img7.kraland.org/2/map/1/131.gif': 'https://i.imgur.com/hQzJHvq.gif',
+      'http://img7.kraland.org/2/map/1/150.gif': 'https://i.imgur.com/b4gCbux.png',
+      'http://img7.kraland.org/2/map/1/160.gif': 'https://i.imgur.com/u3pxKOO.gif',
+      'http://img7.kraland.org/2/map/1/161.gif': 'https://i.imgur.com/SptXelD.gif',
+      'http://img7.kraland.org/2/map/1/162.gif': 'https://i.imgur.com/r9AajUr.gif',
+      'http://img7.kraland.org/2/map/1/163.gif': 'https://i.imgur.com/j0E8T1P.gif',
+      'http://img7.kraland.org/2/map/1/164.gif': 'https://i.imgur.com/ogaiUqe.gif',
+      'http://img7.kraland.org/2/map/1/165.gif': 'https://i.imgur.com/qe3sdQF.gif',
+      'http://img7.kraland.org/2/map/1/166.gif': 'https://i.imgur.com/Z6QHBzh.gif',
+      'http://img7.kraland.org/2/map/1/167.gif': 'https://i.imgur.com/DtNeOzd.gif',
+      'http://img7.kraland.org/2/map/1/168.gif': 'https://i.imgur.com/bowPMN6.gif',
+      'http://img7.kraland.org/2/map/1/169.gif': 'https://i.imgur.com/o7CILuq.gif',
+      'http://img7.kraland.org/2/map/1/170.gif': 'https://i.imgur.com/y9U0dYl.gif',
+
+      // variantes 1b
+      'http://img7.kraland.org/2/map/1b/54.gif': 'https://i.imgur.com/06sWizC.png',
+      'http://img7.kraland.org/2/map/1b/123.gif': 'https://i.imgur.com/AVfs5gP.gif',
+      'http://img7.kraland.org/2/map/1b/124.gif': 'https://i.imgur.com/5EXjAMq.gif',
+      'http://img7.kraland.org/2/map/1b/125.gif': 'https://i.imgur.com/2W8B2Dt.gif',
+      'http://img7.kraland.org/2/map/1b/126.gif': 'https://i.imgur.com/4bBE651.gif',
+      'http://img7.kraland.org/2/map/1b/127.gif': 'https://i.imgur.com/MlV4iYC.gif',
+      'http://img7.kraland.org/2/map/1b/128.gif': 'https://i.imgur.com/rmU5dY2.gif',
+      'http://img7.kraland.org/2/map/1b/129.gif': 'https://i.imgur.com/YeujdJG.gif',
+      'http://img7.kraland.org/2/map/1b/130.gif': 'https://i.imgur.com/PqDVOX3.gif',
+      'http://img7.kraland.org/2/map/1b/131.gif': 'https://i.imgur.com/W8FRpdH.gif',
+      'http://img7.kraland.org/2/map/1b/150.gif': 'https://i.imgur.com/w6yVuNX.png',
+      'http://img7.kraland.org/2/map/1b/160.gif': 'https://i.imgur.com/bHKR6EJ.gif',
+      'http://img7.kraland.org/2/map/1b/161.gif': 'https://i.imgur.com/yrfMXwl.gif',
+      'http://img7.kraland.org/2/map/1b/162.gif': 'https://i.imgur.com/qfSfUkX.gif',
+      'http://img7.kraland.org/2/map/1b/163.gif': 'https://i.imgur.com/MR7miUh.gif',
+      'http://img7.kraland.org/2/map/1b/164.gif': 'https://i.imgur.com/MMunrUy.gif',
+      'http://img7.kraland.org/2/map/1b/165.gif': 'https://i.imgur.com/Kqs7t39.gif',
+      'http://img7.kraland.org/2/map/1b/166.gif': 'https://i.imgur.com/6FoA0Hi.gif',
+      'http://img7.kraland.org/2/map/1b/167.gif': 'https://i.imgur.com/Jgu5rX9.gif',
+      'http://img7.kraland.org/2/map/1b/168.gif': 'https://i.imgur.com/KCPBL3T.gif',
+      'http://img7.kraland.org/2/map/1b/169.gif': 'https://i.imgur.com/uBJObWh.gif',
+      'http://img7.kraland.org/2/map/1b/170.gif': 'https://i.imgur.com/FfpTfLi.gif'
+    },
+
+    MEDIEVAL_SEPIA: '85%'
+  };
+
+  // ============================================================================
+  // UTILITAIRES
+  // ============================================================================
+
+  /** Exécute une fonction en silence (catch les erreurs) */
+  function safeCall(fn) {
+    try { fn(); } catch (_e) { /* ignore */ }
+  }
+
+  /** Vérifie si le thème est activé */
+  function isThemeEnabled() {
+    return localStorage.getItem(CONFIG.ENABLE_KEY) === 'true';
+  }
+
+  /** Récupère la variante de thème actuelle */
+  function getVariant() {
+    return localStorage.getItem(CONFIG.VARIANT_KEY) || 'kraland';
+  }
+
+  /** Récupère le mode d'affichage des caractéristiques ('icon' ou 'text') */
+  function getStatsDisplayMode() {
+    return localStorage.getItem(CONFIG.STATS_DISPLAY_KEY) || 'icon';
+  }
+
+  /** Vérifie si la carte médiévale est activée */
+  function isMedievalMapEnabled() {
+    return localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Carte médiévale (remplacement d'images via JS)
+  // - On n'utilise plus le CSS distant à la volée
+  // - Règle générale: /2/map/1/ ou /2/map/1b/ -> /2/map/5/
+  // - Exceptions: CONFIG.MEDIEVAL_MAP_OVERRIDES
+  // ---------------------------------------------------------------------------
+
+  function extractUrl(bg) {
+    if (!bg) return null;
+    const m = bg.match(/url\((?:'|")?(.*?)(?:'|")?\)/);
+    return m ? m[1] : null;
+  }
+
+  function computeReplacement(src) {
+    if (!src) return null;
+    const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
+    if (overrides[src]) { return overrides[src]; }
+    if (src.indexOf('/2/map/1b/') !== -1) {
+      return src.replace('/2/map/1b/', '/2/map/5/');
+    }
+    if (src.indexOf('/2/map/1/') !== -1) {
+      return src.replace('/2/map/1/', '/2/map/5/');
+    }
+    return null;
+  }
+
+  /** Applique ou retire le remplacement d'images pour la carte médiévale */
+  function applyMedievalMapOption() {
+    try {
+      const appliedAttr = 'data-kr-medieval-applied';
+      const originalBgAttr = 'data-kr-medieval-original-bg';
+      const originalFilterAttr = 'data-kr-medieval-original-filter';
+
+      const _krTestCache = {};
+      function testImageExists(url) {
+        if (_krTestCache.hasOwnProperty(url)) return Promise.resolve(!!_krTestCache[url]);
+        return new Promise(resolve => {
+          try {
+            const img = new Image();
+            img.onload = () => { _krTestCache[url] = true; resolve(true); };
+            img.onerror = () => { _krTestCache[url] = false; resolve(false); };
+            img.src = url;
+          } catch (e) { _krTestCache[url] = false; resolve(false); }
+        });
+      }
+
+      function processElement(el) {
+        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true')) return;
+        let src = null;
+        if (el.tagName === 'IMG') {
+          src = el.src || el.getAttribute('src');
+        } else {
+          const inlineBg = el.style && el.style.getPropertyValue('background-image') || '';
+          const computedBg = inlineBg || (window.getComputedStyle && getComputedStyle(el).backgroundImage) || '';
+          src = extractUrl(inlineBg) || extractUrl(computedBg);
+        }
+        if (!src) return;
+        // Ne pas remplacer les URLs explicitement exclues
+        if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) return;
+        const target = computeReplacement(src);
+        if (!target) return;
+
+        // Marquer comme pending pour éviter les re-tests simultanés
+        el.setAttribute && el.setAttribute('data-kr-medieval-pending', 'true');
+        // sauvegarde des valeurs originales
+        if (!el.hasAttribute || !el.hasAttribute(originalBgAttr)) {
+          el.setAttribute(originalBgAttr, src);
+        }
+        const origFilter = (el.style && el.style.getPropertyValue('filter')) || '';
+        if (!el.hasAttribute || !el.hasAttribute(originalFilterAttr)) {
+          el.setAttribute(originalFilterAttr, origFilter);
+        }
+
+        // tester l'existence de la ressource cible avant d'appliquer
+        testImageExists(target).then(exists => {
+          if (exists) {
+            if (el.tagName === 'IMG') {
+              try { el.src = target; } catch (e) { el.setAttribute('src', target); }
+            } else {
+              el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
+            }
+            if (src.indexOf('/2/map/1b/') !== -1) {
+              el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+            }
+            el.setAttribute && el.setAttribute(appliedAttr, 'true');
+          } else {
+            // fallback: restaurer l'original si nécessaire (ne rien changer autrement)
+            const elemOrig = el.getAttribute(originalBgAttr);
+            if (el.tagName === 'IMG') {
+              if (elemOrig) { try { el.src = elemOrig; } catch (e) { el.setAttribute('src', elemOrig); } }
+            } else {
+              if (elemOrig) { el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + elemOrig + '")', 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('background-image'); }
+            }
+            const origFilterAttrVal = el.getAttribute(originalFilterAttr);
+            if (origFilterAttrVal) { el.style && el.style.setProperty && el.style.setProperty('filter', origFilterAttrVal, 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('filter'); }
+          }
+          el.removeAttribute && el.removeAttribute('data-kr-medieval-pending');
+        }).catch(_ => { el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); });
+      }
+
+      function restoreAll() {
+        const els = document.querySelectorAll('[' + appliedAttr + '="true"]');
+        els.forEach(el => {
+          const origBg = el.getAttribute(originalBgAttr);
+          if (el.tagName === 'IMG') {
+            if (origBg) {
+              try { el.src = origBg; } catch (e) { el.setAttribute('src', origBg); }
+            } else {
+              el.removeAttribute && el.removeAttribute('src');
+            }
+          } else {
+            if (origBg) {
+              el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + origBg + '")', 'important');
+            } else {
+              el.style && el.style.removeProperty && el.style.removeProperty('background-image');
+            }
+          }
+          const origFilter = el.getAttribute(originalFilterAttr);
+          if (origFilter) {
+            el.style && el.style.setProperty && el.style.setProperty('filter', origFilter, 'important');
+          } else {
+            el.style && el.style.removeProperty && el.style.removeProperty('filter');
+          }
+          el.removeAttribute && el.removeAttribute(appliedAttr);
+          el.removeAttribute && el.removeAttribute(originalBgAttr);
+          el.removeAttribute && el.removeAttribute(originalFilterAttr);
+        });
+      }
+
+      if (isMedievalMapEnabled()) {
+        document.documentElement.classList.add('kr-medieval-map-enabled');
+        // traitement initial des tuiles existantes (div background-image et imgs)
+        const candidates = document.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]');
+        candidates.forEach(processElement);
+
+        // observer les modifications dynamiques (nouveaux éléments ou changement d'attribut style/src)
+        if (!applyMedievalMapOption._observer) {
+          const mo = new MutationObserver(mutations => {
+            mutations.forEach(m => {
+              if (m.type === 'attributes' && (m.attributeName === 'style' || m.attributeName === 'src') && m.target && m.target.nodeType === 1) {
+                processElement(m.target);
+              } else if (m.type === 'childList') {
+                m.addedNodes.forEach(n => {
+                  if (n.nodeType !== 1) return;
+                  if (n.matches && (n.matches('div[style*="/2/map/1/"]') || n.matches('div[style*="/2/map/1b/"]') || n.matches('img[src*="/2/map/1/"]') || n.matches('img[src*="/2/map/1b/"]'))) {
+                    processElement(n);
+                  }
+                  n.querySelectorAll && n.querySelectorAll('div[style*="/2/map/1/"], div[style*="/2/map/1b/"], img[src*="/2/map/1/"], img[src*="/2/map/1b/"]').forEach(processElement);
+                });
+              }
+            });
+          });
+          mo.observe(document.body || document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style','src'] });
+          applyMedievalMapOption._observer = mo;
+        }
+      } else {
+        document.documentElement.classList.remove('kr-medieval-map-enabled');
+        restoreAll();
+        if (applyMedievalMapOption._observer) {
+          applyMedievalMapOption._observer.disconnect();
+          applyMedievalMapOption._observer = null;
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error('applyMedievalMapOption error', e);
+      return false;
+    }
+  }
+
+  /** Vérifie si on est sur la page /jouer */
+  function isPlatoPage() {
+    const path = location?.pathname || '';
+    return path.indexOf('/jouer') === 0 &&
+           path !== '/jouer/communaute' &&
+           path !== '/jouer/communaute/membres';
+  }
+
+  /** Crée un badge numérique pour les icônes de compétences (rouge, à droite) */
+  function createBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = text;
+    Object.assign(badge.style, {
+      position: 'absolute', top: '25px', right: '-8px',
+      backgroundColor: '#d9534f', color: '#fff',
+      borderRadius: '50%', width: '19px', height: '19px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
+    });
+    return badge;
+  }
+
+  /** Crée un badge numérique pour les caractéristiques (bleu, en haut à gauche) */
+  function createStatBadge(text) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = text;
+    Object.assign(badge.style, {
+      position: 'absolute', top: '25px', right: '-8px',
+      backgroundColor: '#007bff', color: '#fff',
+      borderRadius: '50%', width: '19px', height: '19px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
+    });
+    return badge;
+  }
+
+  /** Crée un conteneur d'icône avec badge */
+  function createIconContainer(iconUrl, altText, badgeText) {
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'relative', display: 'inline-block',
+      width: '32px', height: '32px'
+    });
+
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.alt = altText;
+    img.title = altText;
+    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    container.appendChild(img);
+
+    container.appendChild(createBadge(badgeText));
+    return container;
+  }
+
+  /** Crée un conteneur d'icône avec badge pour caractéristiques */
+  function _createStatIconContainer(iconUrl, altText, badgeText) {
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'relative', display: 'inline-block',
+      width: '32px', height: '32px'
+    });
+
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.alt = altText;
+    img.title = altText;
+    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    container.appendChild(img);
+
+    container.appendChild(createStatBadge(badgeText));
+    return container;
+  }
+
+  // ============================================================================
+  // INJECTION CSS IMMÉDIATE
+  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
+  // avant l'IIFE. Ici on injecte uniquement le thème CSS.
+  // Le cloak est retiré dans init() après applyDOMTransformations.
+  // ============================================================================
+  (function injectCSSImmediately(){
+    try {
+      if (!isThemeEnabled()) {return;}
+
+      const st = document.createElement('style');
+      st.id = CONFIG.STYLE_ID;
+      st.textContent = CONFIG.BUNDLED_CSS;
+      (document.head || document.documentElement).appendChild(st);
+
+      const variant = getVariant();
+      document.documentElement.classList.add('kr-theme-enabled', 'kr-theme-variant-' + variant);
+      if (variant === 'high-contrast') {
+        document.documentElement.classList.add('kr-theme-high-contrast');
+      }
+    } catch(e) {
+      uncloakPage();
+      console.error('CSS injection failed', e);
+    }
+  })();
+
+  // Fonction pour révéler la page (retirer le cloak)
+  function uncloakPage() {
+    document.documentElement.classList.remove('kr-cloaked');
+    const c = document.getElementById('kr-cloak');
+    if (c) c.remove();
+  }
+
+  // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes
+  if (isThemeEnabled()) {
+    setTimeout(uncloakPage, 3000);
+  }
+
+  // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
+  safeCall(() => applyMedievalMapOption());
+
+  // ============================================================================
+  // GESTION DU THÈME
+  // ============================================================================
+
+  function applyThemeInline(cssText) {
+    if (!isThemeEnabled()) {return false;}
+
+    try {
+      let st = document.getElementById(CONFIG.STYLE_ID);
+      if (st) {
+        st.textContent = cssText;
+      } else {
+        st = document.createElement('style');
+        st.id = CONFIG.STYLE_ID;
+        st.textContent = cssText;
+        document.head.appendChild(st);
+      }
+
+      document.documentElement.classList.add('kr-theme-enabled');
+      const variant = getVariant();
+
+      // High contrast
+      document.documentElement.classList.toggle('kr-theme-high-contrast', variant === 'high-contrast');
+
+      // Variant classes
+      CONFIG.THEME_VARIANTS.forEach(v =>
+        document.documentElement.classList.remove('kr-theme-variant-' + v)
+      );
+      if (variant && variant !== 'disable') {
+        document.documentElement.classList.add('kr-theme-variant-' + variant);
+      }
+
+      // Page members
+      const isMembers = location?.pathname?.indexOf('/communaute/membres') === 0;
+      document.documentElement.classList.toggle('kr-page-members', isMembers);
+
+      return true;
+    } catch(e) {
+      console.error('Theme apply failed', e);
+      return false;
+    }
+  }
+
+  function ensureTheme() {
+    if (!isThemeEnabled()) {return;}
+    applyThemeInline(CONFIG.BUNDLED_CSS);
+  }
+
+  function applyThemeVariant(variant, skipReload = false) {
+    try {
+      if (!variant || variant === 'disable') {
+        localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
+        if (!skipReload) {location.reload();}
+        return;
+      }
+
+      const wasDisabled = !isThemeEnabled();
+      localStorage.setItem(CONFIG.ENABLE_KEY, 'true');
+      localStorage.setItem(CONFIG.VARIANT_KEY, variant);
+
+      if (wasDisabled && !skipReload) {
+        location.reload();
+        return;
+      }
+
+      // Switch variant sans reload
+      CONFIG.THEME_VARIANTS.forEach(v =>
+        document.documentElement.classList.remove('kr-theme-variant-' + v)
+      );
+      document.documentElement.classList.add('kr-theme-variant-' + variant);
+      document.documentElement.classList.add('kr-theme-enabled');
+
+      safeCall(() => applyThemeInline(CONFIG.BUNDLED_CSS));
+      safeCall(() => replaceNavbarBrand());
+    } catch(e) { console.error('applyThemeVariant error', e); }
+  }
+
+  function getThemeState() {
+    if (localStorage.getItem(CONFIG.ENABLE_KEY) === null) {
+      localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
+    }
+    return isThemeEnabled();
+  }
+
+  // ============================================================================
+  // TRANSFORMATIONS DOM
+  // ============================================================================
+
+  /**
+   * Applique l'option de masquage de la citation du footer
+   */
+  function applyFooterQuoteOption() {
+    const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
+    if (hideQuote) {
+      document.documentElement.classList.add('kr-hide-footer-quote');
+    } else {
+      document.documentElement.classList.remove('kr-hide-footer-quote');
+    }
+  }
+
+  function applyDOMTransformations() {
+    if (!isThemeEnabled()) {return;}
+
+    const transforms = [
+      markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
+      reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, displayVersionInfo,
+      relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
+      transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
+      transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
+      ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
+      disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
+      window.updateForumHRPMenu, window.updateForumCommunauteMenu,
+      window.updateForumDebatsMenu, window.updateForumStaffMenu,
+      transformDashboardToFlexCards, applyFooterQuoteOption, handleDualLapClock
+    ];
+
+    transforms.forEach(fn => safeCall(fn));
+  }
+
+  function disableTooltips() {
+    // Désactiver les tooltips:
+    // 1. Sur mobile
+    // 2. Si enfant de col-leftest ou panel-body grid-transformed
+
+    document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
+      const isMobile = document.body.classList.contains('mobile-mode');
+      const isInColLeftest = el.closest('.col-leftest');
+      const isInGridTransformed = el.closest('.panel-body.grid-transformed');
+
+      if (isMobile || isInColLeftest || isInGridTransformed) {
+        el.removeAttribute('data-toggle');
+        el.removeAttribute('data-placement');
+        el.removeAttribute('title');
+        el.removeAttribute('data-original-title');
+      }
+    });
+
+    if (window.$ && window.$.fn && window.$.fn.tooltip) {
+      window.$.fn.tooltip = function () { return this; };
+    }
+  }
+
+  /**
+   * Ajoute les titres des rangs du forum dans des divs soeurs
+   */
+  function addRankTitles() {
+    // Ne s'exécuter que sur les pages du forum
+    if (!window.location.pathname.startsWith('/forum/')) {return;}
+
+    // Trouver toutes les images de rang
+    document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
+      // Récupérer le contenu de data-original-title ou title
+      let title = img.getAttribute('data-original-title') || img.getAttribute('title');
+      if (!title) {return;}
+
+      // Trouver la div parente contenant l'image
+      let parentDiv = img.closest('div');
+      if (!parentDiv || !parentDiv.parentElement) {return;}
+
+      // Chercher une <strong> qui contient un lien avec "charlie-2-82045"
+      // La strong devrait être dans le même cartouche (div parente du parent)
+      let cartouche = parentDiv.closest('.cartouche') || parentDiv.closest('div[class="cartouche"]');
+      if (!cartouche) {
+        cartouche = parentDiv.parentElement;
+      }
+
+      if (cartouche) {
+        const strongWithLink = cartouche.querySelector('strong a[href*="charlie-2-82045"]');
+        if (strongWithLink) {
+          // C'est Charlie (ou un compte avec charlie-2-82045), remplacer "Empereur" par "Emperatrice"
+          if (title === 'Empereur') {
+            title = 'Emperatrice';
+          }
+        }
+      }
+
+      // Remplacements pour Mystisie
+      if (title === 'Gouverneure Mystisie') {
+        title = 'Sultane Eternelle de Mystisie';
+      } else if (title === 'Gouverneur Mystisie') {
+        title = 'Sultan Eternel de Mystisie';
+      }
+
+      // Vérifier si une div soeur avec ce titre existe déjà (pour éviter les doublons)
+      const nextSiblings = parentDiv.parentElement.querySelectorAll('div');
+      let titleAlreadyExists = false;
+      for (let sibling of nextSiblings) {
+        if (sibling.textContent.trim() === title && sibling !== parentDiv) {
+          titleAlreadyExists = true;
+          break;
+        }
+      }
+
+      // Si le titre existe déjà, ne rien faire
+      if (titleAlreadyExists) {return;}
+
+      // Vérifier aussi si on a déjà créé cette div (avec le data-kr-rank-title)
+      const nextSibling = parentDiv.nextElementSibling;
+      if (nextSibling && nextSibling.hasAttribute('data-kr-rank-title')) {return;}
+
+      // Créer un conteneur flex pour l'icône + titre
+      const rankContainer = document.createElement('div');
+      rankContainer.setAttribute('data-kr-rank-title', 'true');
+      rankContainer.style.display = 'flex';
+      rankContainer.style.alignItems = 'center';
+      rankContainer.style.justifyContent = 'center';
+      rankContainer.style.gap = '4px';
+      rankContainer.style.marginTop = '4px';
+      
+      // Déplacer l'image dans ce conteneur
+      const rankImg = parentDiv.querySelector('img[src*="/rank/"]');
+      if (rankImg) {
+        rankContainer.appendChild(rankImg.cloneNode(true));
+      }
+      
+      // Ajouter le titre
+      const strong = document.createElement('strong');
+      strong.textContent = title;
+      rankContainer.appendChild(strong);
+
+      // Remplacer la div parente par le nouveau conteneur
+      if (parentDiv.parentElement) {
+        parentDiv.parentElement.replaceChild(rankContainer, parentDiv);
+      }
+    });
+  }
+
+  /**
+   * Extrait les données d'un membre depuis son élément DOM
+   */
+  /**
+   * Extrait les données d'un groupe complet (boutons de groupe + membres avec actions)
+   */
+  function extractGroupData(panel) {
+    const groupData = {
+      title: '',
+      groupButtons: [],
+      members: []
+    };
+
+    // Extraire le titre et les boutons du panel-heading
+    const panelHeading = panel.querySelector('.panel-heading');
+    if (panelHeading) {
+      const panelTitle = panelHeading.querySelector('.panel-title');
+      if (panelTitle) {
+        // Extraire le texte du titre (sans les boutons)
+        groupData.title = panelTitle.textContent.trim();
+
+        // Extraire les boutons de groupe (avec cloneNode pour préserver événements)
+        const buttons = panelTitle.querySelectorAll('a.btn');
+        buttons.forEach(btn => {
+          groupData.groupButtons.push(btn.cloneNode(true));
+        });
+      }
+    }
+
+    // Extraire les membres et leurs actions individuelles
+    const panelBody = panel.querySelector('.panel-body');
+    if (!panelBody) {return groupData;}
+
+    const table = panelBody.querySelector('table');
+    if (!table) {return groupData;}
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+      const td1 = row.querySelector('td:first-child');
+      const td2 = row.querySelector('td:last-child');
+
+      if (!td1 || !td2) {return;}
+
+      // Récupérer les liens membres (TD1)
+      const memberLinks = td1.querySelectorAll('a.list-group-item.ds_game');
+
+      // Récupérer les divs d'actions (TD2) - une div de 59px par personnage
+      const actionsDivs = td2.querySelectorAll('div[style*="height:59px"]');
+
+      // Associer chaque membre à sa div d'actions par index
+      memberLinks.forEach((memberLink, index) => {
+        const actionsDiv = actionsDivs[index] || null;
+        const memberData = extractMemberData(memberLink, actionsDiv);
+        groupData.members.push(memberData);
+      });
+    });
+
+    return groupData;
+  }
+
+  /**
+   * Extrait les données d'un membre individuel
+   */
+  function extractMemberData(memberLink, actionsDiv) {
+    const data = {
+      originalLink: memberLink, // Garder le lien original pour préserver classes et événements
+      avatar: null,
+      name: '',
+      status: '',
+      isPNJ: false,
+      worldImage: null,
+      hpInfo: null,
+      pvLevel: null, // Niveau de PV de 1 à 5 (pdv1.png à pdv5.png)
+      profileUrl: '',
+      actionsDiv: null // Div contenant les actions de CE personnage uniquement
+    };
+
+    // Avatar
+    const avatar = memberLink.querySelector('img.pull-left');
+    if (avatar) {
+      data.avatar = avatar.src;
+    }
+
+    // Nom et statut
+    const heading = memberLink.querySelector('.list-group-item-heading');
+    const text = memberLink.querySelector('.list-group-item-text');
+    if (heading) {
+      data.name = heading.textContent.trim();
+    }
+    if (text) {
+      data.status = text.textContent.trim();
+    }
+
+    // PNJ button
+    const pnjButton = memberLink.querySelector('.btn-danger.xmini');
+    if (pnjButton) {
+      data.isPNJ = true;
+    }
+
+    // Icône de monde et HP
+    const mention = memberLink.querySelector('.mention.pull-right');
+    if (mention) {
+      const worldImg = mention.querySelector('img[src*="world"]');
+      if (worldImg) {
+        data.worldImage = worldImg.src;
+      }
+
+      // Extraire le niveau de PV depuis l'image pdv1.png à pdv5.png
+      const pvImg = mention.querySelector('img[src*="pdv"]');
+      if (pvImg) {
+        const match = pvImg.src.match(/pdv(\d)\.png/);
+        if (match) {
+          data.pvLevel = parseInt(match[1], 10); // 1 à 5
+        }
+      }
+
+      // Extraire les HP depuis l'image de barre (fallback)
+      const hpDiv = mention.querySelector('div[style*="background"]');
+      if (hpDiv) {
+        const style = hpDiv.getAttribute('style') || '';
+        const match = style.match(/width:\s*(\d+)%/);
+        if (match) {
+          data.hpInfo = parseInt(match[1], 10);
+        }
+      }
+    }
+
+    // URL du profil
+    data.profileUrl = memberLink.href;
+
+    // Cloner la div d'actions de CE personnage uniquement
+    if (actionsDiv) {
+      data.actionsDiv = actionsDiv.cloneNode(true);
+    }
+
+    return data;
+  }
+
+  /**
+   * Crée un cercle SVG de progression pour les PV
+   */
+  function createHPCircle(pvLevel) {
+    if (!pvLevel) {return null;}
+
+    // Correspondance niveau PV -> couleur et pourcentage
+    // pdv1 = 100% (pleine santé), pdv5 = 20% (presque mort)
+    const pvConfig = {
+      1: { color: '#32CD32', percentage: 100 },  // Vert lime - Pleine santé
+      2: { color: '#FFD700', percentage: 80 },   // Jaune/or
+      3: { color: '#FF8C00', percentage: 60 },   // Orange foncé
+      4: { color: '#DC143C', percentage: 40 },   // Rouge crimson
+      5: { color: '#8B0000', percentage: 20 }    // Rouge foncé - Presque mort
+    };
+
+    const config = pvConfig[pvLevel] || pvConfig[1];
+    const radius = 37; // Rayon pour un avatar de 70px (35px) + bordure
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (circumference * config.percentage / 100);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'dashboard-card-hp-circle');
+    svg.setAttribute('width', '82');
+    svg.setAttribute('height', '82');
+    svg.setAttribute('viewBox', '0 0 82 82');
+
+    // Cercle de fond (gris)
+    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('cx', '41');
+    bgCircle.setAttribute('cy', '41');
+    bgCircle.setAttribute('r', radius);
+    bgCircle.setAttribute('fill', 'none');
+    bgCircle.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+    bgCircle.setAttribute('stroke-width', '3');
+
+    // Cercle de progression (coloré)
+    const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('cx', '41');
+    progressCircle.setAttribute('cy', '41');
+    progressCircle.setAttribute('r', radius);
+    progressCircle.setAttribute('fill', 'none');
+    progressCircle.setAttribute('stroke', config.color);
+    progressCircle.setAttribute('stroke-width', '4');
+    progressCircle.setAttribute('stroke-linecap', 'round');
+    progressCircle.setAttribute('stroke-dasharray', circumference);
+    progressCircle.setAttribute('stroke-dashoffset', strokeDashoffset);
+    progressCircle.setAttribute('transform', 'rotate(-90 41 41)');
+
+    svg.appendChild(bgCircle);
+    svg.appendChild(progressCircle);
+
+    return svg;
+  }
+
+  /**
+   * Crée une card pour un membre
+   */
+  function buildCard(memberData, isLargeCard = false) {
+    const card = document.createElement('div');
+    card.className = isLargeCard ? 'dashboard-card dashboard-card-large' : 'dashboard-card';
+
+    // Cloner le lien original pour préserver toutes les classes et événements
+    const cardLink = memberData.originalLink.cloneNode(false);
+    cardLink.classList.add('dashboard-card-link');
+    // Vider le contenu pour reconstruire
+
+    // Header avec avatar, drapeau et nom
+    const header = document.createElement('div');
+    header.className = 'dashboard-card-header';
+
+    if (memberData.avatar) {
+      // Créer un wrapper pour l'avatar avec le cercle de PV
+      const avatarWrapper = document.createElement('div');
+      avatarWrapper.className = 'dashboard-card-avatar-wrapper';
+
+      // Ajouter le cercle SVG si on a l'info des PV
+      if (memberData.pvLevel) {
+        const hpCircle = createHPCircle(memberData.pvLevel);
+        if (hpCircle) {
+          avatarWrapper.appendChild(hpCircle);
+        }
+      }
+
+      // Ajouter l'avatar
+      const avatarImg = document.createElement('img');
+      avatarImg.src = memberData.avatar;
+      avatarImg.className = 'dashboard-card-avatar';
+      avatarImg.alt = memberData.name;
+
+      // Appliquer un filtre gris si le personnage est KO (pdv5)
+      if (memberData.pvLevel === 5) {
+        avatarImg.style.filter = 'grayscale(100%)';
+        avatarImg.style.opacity = '0.7';
+      }
+
+      avatarWrapper.appendChild(avatarImg);
+
+      header.appendChild(avatarWrapper);
+    }
+
+    // Conteneur pour le drapeau et le nom
+    const nameContainer = document.createElement('div');
+    nameContainer.className = 'dashboard-card-name-container';
+
+    if (memberData.worldImage) {
+      const worldImg = document.createElement('img');
+      worldImg.src = memberData.worldImage;
+      worldImg.className = 'dashboard-card-world';
+      worldImg.alt = 'World';
+      nameContainer.appendChild(worldImg);
+    }
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'dashboard-card-name';
+    nameDiv.textContent = memberData.name;
+    nameContainer.appendChild(nameDiv);
+
+    header.appendChild(nameContainer);
+    cardLink.appendChild(header);
+
+    // Body avec statut uniquement (pas de monde, il sera dans les actions)
+    const body = document.createElement('div');
+    body.className = 'dashboard-card-body';
+
+    if (memberData.status) {
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'dashboard-card-status';
+      statusDiv.textContent = memberData.status;
+      body.appendChild(statusDiv);
+    }
+
+    cardLink.appendChild(body);
+    card.appendChild(cardLink);
+
+    // Barre de HP
+    if (memberData.hpInfo !== null) {
+      const hpBar = document.createElement('div');
+      hpBar.className = 'dashboard-card-hp';
+
+      const hpFill = document.createElement('div');
+      hpFill.className = 'dashboard-card-hp-fill';
+      hpFill.style.width = memberData.hpInfo + '%';
+
+      // Couleur selon le pourcentage
+      if (memberData.hpInfo > 70) {
+        hpFill.style.backgroundColor = '#5cb85c'; // vert
+      } else if (memberData.hpInfo > 30) {
+        hpFill.style.backgroundColor = '#f0ad4e'; // jaune
+      } else {
+        hpFill.style.backgroundColor = '#d9534f'; // rouge
+      }
+
+      hpBar.appendChild(hpFill);
+      card.appendChild(hpBar);
+    }
+
+    // Bouton PNJ
+    if (memberData.isPNJ) {
+      const pnjBadge = document.createElement('span');
+      pnjBadge.className = 'dashboard-card-pnj';
+      pnjBadge.textContent = 'PNJ';
+      card.appendChild(pnjBadge);
+    }
+
+    // Actions individuelles de CE personnage
+    if (memberData.actionsDiv) {
+      const actionsWrapper = document.createElement('div');
+      actionsWrapper.className = 'dashboard-card-actions';
+
+      // Extraire les liens d'action individuels (ignorer les divs conteneurs)
+      const actionLinks = memberData.actionsDiv.querySelectorAll('a');
+      actionLinks.forEach(link => {
+        actionsWrapper.appendChild(link.cloneNode(true));
+      });
+
+      card.appendChild(actionsWrapper);
+    }
+
+    return card;
+  }
+
+  /**
+   * Transforme le dashboard en système de flex cards
+   */
+  function transformDashboardToFlexCards() {
+    if (!isPlatoPage()) {return;}
+
+    const dashboard = document.querySelector('.dashboard');
+    if (!dashboard) {return;}
+
+    const panels = dashboard.querySelectorAll(':scope > .panel');
+    if (!panels.length) {return;}
+
+    // Créer le nouveau conteneur flex
+    const flexContainer = document.createElement('div');
+    flexContainer.className = 'dashboard-flex';
+
+    // Tableau de groupes avec leurs données complètes
+    const groups = [];
+    let firstPlayerPanelFound = false;
+
+    // Extraire toutes les données par groupe
+    panels.forEach(panel => {
+      const panelBody = panel.querySelector('.panel-body');
+      if (!panelBody) {return;}
+
+      const table = panelBody.querySelector('table');
+      if (!table) {return;}
+
+      // Vérifier si c'est un panel de groupe de personnages (titre contient "Groupe")
+      const panelTitle = panel.querySelector('.panel-heading .panel-title');
+      const titleText = panelTitle ? panelTitle.textContent.trim() : '';
+      if (!titleText.toLowerCase().includes('groupe')) {return;}
+
+      // Extraire toutes les données du groupe (titre, boutons, membres)
+      const groupData = extractGroupData(panel);
+
+      if (groupData.members.length === 0) {return;}
+
+      // Le premier panel avec des personnages = Mon groupe
+      const isMyGroup = !firstPlayerPanelFound;
+      if (titleText.toLowerCase().includes('groupe')) {firstPlayerPanelFound = true;}
+
+      groups.push({
+        isMyGroup: isMyGroup,
+        title: groupData.title,
+        groupButtons: groupData.groupButtons,
+        members: groupData.members
+      });
+    });
+
+    // Ne transformer que si on a trouvé au moins un groupe
+    if (groups.length === 0) {return;}
+
+    // Construire les sections pour chaque groupe
+    groups.forEach((group, _index) => {
+      const groupSection = document.createElement('div');
+      groupSection.className = group.isMyGroup
+        ? 'dashboard-section dashboard-section-mygroup'
+        : 'dashboard-section dashboard-section-others';
+
+      // En-tête de section avec titre et boutons de groupe
+      const header = document.createElement('div');
+      header.className = 'dashboard-section-header';
+
+      // Ajouter les boutons de groupe en premier
+      if (group.groupButtons && group.groupButtons.length > 0) {
+        const buttonsWrapper = document.createElement('div');
+        buttonsWrapper.className = 'dashboard-group-buttons';
+        group.groupButtons.forEach(btn => {
+          buttonsWrapper.appendChild(btn);
+        });
+        header.appendChild(buttonsWrapper);
+      }
+
+      // Ajouter le titre du groupe
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'dashboard-group-title';
+
+      if (group.isMyGroup) {
+        // Extraire le nom sans les icônes
+        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
+        titleSpan.textContent = titleText || 'Mon groupe';
+      } else {
+        // Extraire le nom du groupe
+        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
+        titleSpan.textContent = titleText || `Groupe de ${group.members[0]?.name || 'Inconnu'}`;
+      }
+
+      header.appendChild(titleSpan);
+      groupSection.appendChild(header);
+
+      // Grille des cartes
+      const cardsContainer = document.createElement('div');
+      cardsContainer.className = group.isMyGroup
+        ? 'dashboard-cards-grid dashboard-cards-large'
+        : 'dashboard-cards-grid';
+
+      group.members.forEach(member => {
+        cardsContainer.appendChild(buildCard(member, group.isMyGroup));
+      });
+
+      groupSection.appendChild(cardsContainer);
+      flexContainer.appendChild(groupSection);
+    });
+
+    // Remplacer le contenu du dashboard
+    dashboard.innerHTML = '';
+    dashboard.appendChild(flexContainer);
+  }
+
+  // ============================================
+  // DYNAMIC FORUM RP MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-rp';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    /**
+     * Extrait les forums de la page /forum/rp et les stocke dans localStorage
+     * Exclut Taverne, Marché, Monde, Communauté, Débats et Staff
+     */
+    function extractAndStoreForumsRP() {
+      // Ne s'exécuter que sur /forum/rp
+      if (window.location.pathname !== '/forum/rp') {
+        return;
+      }
+
+      console.log('[Forums RP] Extraction des forums depuis la page...');
+
+      const forums = [];
+
+      // Sélectionner toutes les lignes du tableau des forums
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        // Exclure les forums de la liste noire (insensible à la casse)
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums RP] Ajouté: ${forumName} (${forumUrl})`);
+        } else {
+          console.log(`[Forums RP] Exclu: ${forumName}`);
+        }
+      });
+
+      // Stocker dans localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums RP] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums RP] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    /**
+     * Récupère les forums RP depuis le localStorage
+     */
+    function getStoredForumsRP() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums RP] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    /**
+     * Met à jour le menu Forum RP avec les forums stockés
+     */
+    window.updateForumRPMenu = function () {
+      const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
+      if (!forumRpDropdown) {
+        // Menu pas encore créé ou page sans navigation - normal
+        return;
+      }
+
+      const forums = getStoredForumsRP();
+      console.log(`[Forums RP] Mise à jour du menu avec ${forums.length} forums`);
+
+      // Conserver les 3 premiers liens (Taverne, Marché, Monde) et le divider
+      const staticItems = Array.from(forumRpDropdown.children).slice(0, 4); // 3 liens + 1 divider
+
+      // Vider le menu
+      forumRpDropdown.innerHTML = '';
+
+      // Remettre les items statiques
+      staticItems.forEach(item => forumRpDropdown.appendChild(item));
+
+      // Ajouter les forums dynamiques
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumRpDropdown.appendChild(li);
+        });
+      } else {
+        // Si aucun forum stocké, afficher un lien vers la page /forum/rp
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/rp';
+        a.textContent = 'Autre';
+        li.appendChild(a);
+        forumRpDropdown.appendChild(li);
+      }
+    };
+
+    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
+    InitQueue.register('ForumsRP:Extract', extractAndStoreForumsRP, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM HRP MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-hrp';
+
+    /**
+     * Extrait les forums de la page /forum/hrp et les stocke dans localStorage
+     */
+    function extractAndStoreForumsHRP() {
+      // Ne s'exécuter que sur /forum/hrp
+      if (window.location.pathname !== '/forum/hrp') {
+        return;
+      }
+
+      console.log('[Forums HRP] Extraction des forums depuis la page...');
+
+      const forums = [];
+
+      // Sélectionner toutes les lignes du tableau des forums
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        if (forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums HRP] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      // Stocker dans localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums HRP] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums HRP] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    /**
+     * Récupère les forums HRP depuis le localStorage
+     */
+    function getStoredForumsHRP() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums HRP] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    /**
+     * Met à jour le menu Forum HRP avec les forums stockés
+     */
+    window.updateForumHRPMenu = function () {
+      const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
+      if (!forumHrpDropdown) {
+        // Menu pas encore créé ou page sans navigation - normal
+        return;
+      }
+
+      const forums = getStoredForumsHRP();
+      console.log(`[Forums HRP] Mise à jour du menu avec ${forums.length} forums`);
+
+      // Vider le menu
+      forumHrpDropdown.innerHTML = '';
+
+      // Ajouter tous les forums dynamiques
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumHrpDropdown.appendChild(li);
+        });
+      } else {
+        // Si aucun forum stocké, afficher un lien vers la page /forum/hrp
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/hrp';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumHrpDropdown.appendChild(li);
+      }
+    };
+
+    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
+    InitQueue.register('ForumsHRP:Extract', extractAndStoreForumsHRP, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM COMMUNAUTE MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-communaute';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsCommunaute() {
+      if (window.location.pathname !== '/forum/communaute') {
+        return;
+      }
+
+      console.log('[Forums Communauté] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Communauté] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Communauté] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Communauté] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsCommunaute() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Communauté] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumCommunauteMenu = function () {
+      const forumCommunauteDropdown = document.querySelector('[data-forums-added="forum-communaute"] .dropdown-menu');
+      if (!forumCommunauteDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsCommunaute();
+      console.log(`[Forums Communauté] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumCommunauteDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumCommunauteDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/communaute';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumCommunauteDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsCommunaute:Extract', extractAndStoreForumsCommunaute, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM DEBATS MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-debats';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsDebats() {
+      if (window.location.pathname !== '/forum/debats') {
+        return;
+      }
+
+      console.log('[Forums Débats] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Débats] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Débats] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Débats] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsDebats() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Débats] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumDebatsMenu = function () {
+      const forumDebatsDropdown = document.querySelector('[data-forums-added="forum-debats"] .dropdown-menu');
+      if (!forumDebatsDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsDebats();
+      console.log(`[Forums Débats] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumDebatsDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumDebatsDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/debats';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumDebatsDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsDebats:Extract', extractAndStoreForumsDebats, 5);
+  })();
+
+  // ============================================
+  // DYNAMIC FORUM STAFF MENU FROM PAGE CONTENT
+  // ============================================
+  (function () {
+    'use strict';
+
+    const STORAGE_KEY = 'kr-forums-staff';
+    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    function extractAndStoreForumsStaff() {
+      if (window.location.pathname !== '/forum/staff') {
+        return;
+      }
+
+      console.log('[Forums Staff] Extraction des forums depuis la page...');
+
+      const forums = [];
+      const forumRows = document.querySelectorAll('table.table tbody tr');
+
+      forumRows.forEach(row => {
+        const linkCell = row.querySelector('td:first-child a');
+        if (!linkCell) {return;}
+
+        const forumName = linkCell.textContent.trim();
+        const forumUrl = linkCell.getAttribute('href');
+
+        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
+          forumName.toLowerCase().includes(excluded)
+        );
+
+        if (!isExcluded && forumUrl) {
+          forums.push({
+            name: forumName,
+            url: forumUrl
+          });
+          console.log(`[Forums Staff] Ajouté: ${forumName} (${forumUrl})`);
+        }
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
+        console.log(`[Forums Staff] ${forums.length} forums stockés dans localStorage`);
+      } catch (e) {
+        console.error('[Forums Staff] Erreur sauvegarde localStorage:', e);
+      }
+    }
+
+    function getStoredForumsStaff() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('[Forums Staff] Erreur lecture localStorage:', e);
+        return [];
+      }
+    }
+
+    window.updateForumStaffMenu = function () {
+      const forumStaffDropdown = document.querySelector('[data-forums-added="forum-staff"] .dropdown-menu');
+      if (!forumStaffDropdown) {
+        return;
+      }
+
+      const forums = getStoredForumsStaff();
+      console.log(`[Forums Staff] Mise à jour du menu avec ${forums.length} forums`);
+
+      forumStaffDropdown.innerHTML = '';
+
+      if (forums.length > 0) {
+        forums.forEach(forum => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = forum.url;
+          a.textContent = forum.name;
+          li.appendChild(a);
+          forumStaffDropdown.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = 'forum/staff';
+        a.textContent = 'Voir tous les forums';
+        li.appendChild(a);
+        forumStaffDropdown.appendChild(li);
+      }
+    };
+
+    InitQueue.register('ForumsStaff:Extract', extractAndStoreForumsStaff, 5);
+  })();
+
+  /**
+   * MODULE: Forum Cards Mobile
+   * Transforme le tableau des forums en cards tactiles sur mobile
+   */
+  (function initForumCardsMobile() {
+    'use strict';
+
+    // Ne s'exécuter que sur les pages du forum
+    if (!window.location.pathname.startsWith('/forum/')) {
+      return;
+    }
+
+    function transformTableToCards() {
+      const forumTable = document.querySelector('table.table tbody');
+      if (!forumTable) {
+        console.warn('[Forum Cards] Tableau forums introuvable');
+        return;
+      }
+
+      const rows = Array.from(forumTable.querySelectorAll('tr'));
+      if (rows.length === 0) {
+        console.warn('[Forum Cards] Aucun forum trouvé');
+        return;
+      }
+
+      const cardsContainer = document.createElement('div');
+      cardsContainer.className = 'forums-cards-container';
+      cardsContainer.setAttribute('role', 'list');
+
+      rows.forEach((row, index) => {
+        try {
+          const card = createForumCard(row, index);
+          if (card) {
+            cardsContainer.appendChild(card);
+          }
+        } catch (error) {
+          console.error('[Forum Cards] Erreur création carte:', error);
+        }
+      });
+
+      // Remplacement du tableau par les cards
+      const tableElement = forumTable.closest('table');
+      if (tableElement && tableElement.parentNode) {
+        tableElement.parentNode.insertBefore(cardsContainer, tableElement);
+        tableElement.style.display = 'none';
+        tableElement.setAttribute('data-mobile-hidden', 'true');
+      }
+
+      console.log(`[Forum Cards] ${rows.length} forums transformés en cards`);
+    }
+
+    function createForumCard(row, index) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 3) {return null;}
+
+      // === EXTRACTION DES DONNÉES ===
+
+      // Cellule 1: Titre, description, modérateurs
+      const titleCell = cells[0];
+      const titleLink = titleCell.querySelector('p:first-child a');
+      if (!titleLink) {return null;}
+
+      const title = titleLink.textContent.trim();
+      const forumUrl = titleLink.getAttribute('href');
+
+      // Description (2e paragraphe)
+      const descriptionP = titleCell.querySelector('p:nth-child(2)');
+      const description = descriptionP ? descriptionP.textContent.trim() : '';
+
+      // Modérateurs (div avec classe contenant "mod" ou texte "Modérateurs")
+      const moderators = [];
+      const modElements = titleCell.querySelectorAll('div, span');
+      modElements.forEach(el => {
+        const text = el.textContent;
+        if (text.includes('Modérateur')) {
+          const links = el.querySelectorAll('a');
+          links.forEach(link => {
+            const name = link.textContent.trim();
+            if (name && !name.includes('[mod]')) {
+              moderators.push({
+                name: name.replace(/\[.*?\]/g, '').trim(),
+                url: link.getAttribute('href')
+              });
+            }
+          });
+        }
+      });
+
+      // Cellule 2: Nombre de sujets
+      const topicsText = cells[1]?.textContent.trim().replace('·', '').trim() || '0 sujets';
+
+      // Cellule 3: Nombre de messages
+      const messagesText = cells[2]?.textContent.trim() || '0 messages';
+
+      // Cellule 4: Dernière activité
+      let lastActivity = '';
+      let lastUser = '';
+      let lastTime = '';
+      if (cells[3]) {
+        const activityText = cells[3].textContent.trim();
+        const userLink = cells[3].querySelector('a');
+        if (userLink) {
+          lastUser = userLink.textContent.trim();
+          // Extraire le timestamp (format "Aujourd'hui (HH:MM)")
+          const timeMatch = activityText.match(/(\w+.*?\(\d{2}:\d{2}\))/);
+          lastTime = timeMatch ? timeMatch[1] : '';
+        }
+        lastActivity = activityText.replace('→', '').trim();
+      }
+
+      // === CRÉATION DE LA CARTE ===
+
+      const card = document.createElement('article');
+      card.className = 'forum-card';
+      card.setAttribute('role', 'listitem');
+      card.setAttribute('data-forum-index', index);
+
+      // Lien englobant (accessibility)
+      const cardLink = document.createElement('a');
+      cardLink.href = forumUrl;
+      cardLink.className = 'forum-card-link';
+      cardLink.setAttribute('aria-label', `Accéder au forum ${title}`);
+
+      // Contenu de la carte
+      let cardHTML = `
+        <div class="forum-card-header">
+          <h3 class="forum-title">${title}</h3>
+        </div>
+      `;
+
+      if (description) {
+        cardHTML += `<p class="forum-description">${description}</p>`;
+      }
+
+      if (moderators.length > 0) {
+        const modText = moderators.length > 2
+          ? `${moderators[0].name}, ${moderators[1].name}...`
+          : moderators.map(m => m.name).join(', ');
+        cardHTML += `<p class="forum-moderators">Mod: ${modText}</p>`;
+      }
+
+      cardHTML += '<div class="forum-footer">';
+
+      // Stats
+      cardHTML += `
+        <div class="forum-stats">
+          <span class="forum-topics">${topicsText}</span>
+          <span class="forum-separator">·</span>
+          <span class="forum-messages">${messagesText}</span>
+        </div>
+      `;
+
+      // Dernière activité
+      if (lastActivity && lastUser) {
+        cardHTML += `
+          <div class="forum-last-activity">
+            <span class="last-user">${lastUser}</span>
+            <span class="last-time"> · ${lastTime}</span>
+          </div>
+        `;
+      }
+
+      cardHTML += '</div>'; // Fermeture forum-footer
+
+      cardLink.innerHTML = cardHTML;
+
+      // FORCER les styles inline avec !important pour contourner Bootstrap
+      cardLink.style.setProperty('display', 'flex', 'important');
+      cardLink.style.setProperty('flex-direction', 'column', 'important');
+      cardLink.style.setProperty('align-items', 'flex-start', 'important');
+      cardLink.style.setProperty('justify-content', 'flex-start', 'important');
+      cardLink.style.setProperty('width', '100%', 'important');
+
+      card.appendChild(cardLink);
+
+      return card;
+    }
+
+    // === ENREGISTREMENT DANS InitQueue ===
+
+    function init() {
+      // Vérifier le mode mobile - doit être fait ici pour éviter d'accéder à document.body avant DOMContentLoaded
+      if (!document.body.classList.contains('mobile-mode')) {
+        console.log('[Forum Cards] Mode desktop détecté, transformation annulée');
+        return;
+      }
+
+      // Attendre que le DOM soit prêt
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', transformTableToCards);
+      } else {
+        transformTableToCards();
+      }
+    }
+
+    // Priorité 15: après navigation menus (10) mais avant autres transformations
+    InitQueue.register('ForumCards:MobileTransform', init, 15);
+
+  })();
+
+  /**
+   * MODULE: Mini-Chat FAB (Floating Action Button)
+   * Transforme le mini-chat latéral en overlay fullscreen sur mobile
+   */
+  (function initMiniChatFAB() {
+    'use strict';
+
+    function createChatFAB() {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      const miniChat = document.getElementById('flap');
+      if (!miniChat) {return;}
+
+      // Masquer le mini-chat par défaut sur mobile
+      miniChat.style.display = 'none';
+      miniChat.classList.add('mini-chat-overlay');
+
+      // Créer le bouton flottant
+      const fab = document.createElement('button');
+      fab.className = 'mini-chat-fab';
+      fab.innerHTML = '<span class="fab-text">MC</span>';
+      fab.setAttribute('aria-label', 'Ouvrir le mini-chat');
+      fab.setAttribute('type', 'button');
+
+      // Toggle du mini-chat
+      fab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isOpen = miniChat.style.display === 'block';
+
+        if (isOpen) {
+          miniChat.style.display = 'none';
+          fab.classList.remove('active');
+          document.body.style.overflow = '';
+        } else {
+          miniChat.style.display = 'block';
+          fab.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+
+      // Bouton fermeture dans le chat
+      const closeBtn = miniChat.querySelector('.close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          miniChat.style.display = 'none';
+          fab.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+
+      document.body.appendChild(fab);
+      console.log('[Mini-Chat FAB] Initialisé');
+    }
+
+    InitQueue.register('MiniChat:FAB', createChatFAB, 20);
+
+  })();
+
+  // ============================================================================
+  // FORUM TOPICS - Afficher les titres complets
+  // Remplace les titres abrégés (...) par le texte complet du span invisible
+  // ============================================================================
+  (function () {
+    function useFullTopicTitles() {
+      // Cibler tous les sujets avec span.invisible
+      const topics = document.querySelectorAll('p.nomargin');
+      
+      topics.forEach(topic => {
+        const invisibleSpan = topic.querySelector('span.invisible');
+        const link = topic.querySelector('a');
+        
+        if (invisibleSpan && link) {
+          const fullTitle = invisibleSpan.textContent.trim();
+          const currentTitle = link.textContent.trim();
+          
+          // Remplacer seulement si le titre est abrégé (contient ...)
+          if (currentTitle.includes('(...)') && fullTitle) {
+            link.textContent = fullTitle;
+          }
+        }
+      });
+    }
+
+    InitQueue.register('ForumTopics:FullTitles', useFullTopicTitles, 5);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM TOPICS - Stats + Smart Navigation
+  // Layout identique aux "Sujets permanents" (simple et épuré)
+  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
+  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
+  // Rend toute la card cliquable (comme les Sujets permanents)
+  // ============================================================================
+  (function () {
+    function enrichForumTopicsCards() {
+      // N'exécuter qu'en mode mobile et uniquement sur les pages forum
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      if (!document.body.classList.contains('page-forum')) {return;}
+
+      // Cibler la table #topics (DataTable)
+      const forumTable = document.getElementById('topics');
+      if (!forumTable) {return;}
+
+      function processRows() {
+        const rows = forumTable.querySelectorAll('tbody tr');
+        if (rows.length === 0) {return;}
+
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-stats-added')) {return;}
+          row.setAttribute('data-stats-added', 'true');
+
+          // Récupérer les cellules
+          const titleCell = row.querySelector('td:nth-child(1)');
+          const msgCell = row.querySelector('td:nth-child(2)');
+          const viewsCell = row.querySelector('td:nth-child(3)');
+
+          if (!titleCell || !msgCell || !viewsCell) {return;}
+
+          // === SMART NAVIGATION ===
+          // Détecter si l'icône "premier message non lu" existe
+          const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+          const titleLink = titleCell.querySelector('p > a');
+          
+          if (unreadIconLink && titleLink) {
+            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            titleLink.href = unreadIconLink.href;
+            titleLink.setAttribute('data-smart-redirect', 'first-unread');
+          }
+
+          // === CARD CLIQUABLE ===
+          if (titleLink) {
+            row.style.cursor = 'pointer';
+            
+            row.addEventListener('click', (e) => {
+              if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+              }
+              titleLink.click();
+            });
+          }
+
+          // === STATS SIMPLES ===
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
+
+          const statsContainer = document.createElement('div');
+          statsContainer.className = 'forum-topic-stats-mobile';
+          statsContainer.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span class="stats-sep">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
+
+          // Insérer après le titre
+          const titleParagraph = titleCell.querySelector('p');
+          if (titleParagraph) {
+            titleParagraph.after(statsContainer);
+          }
+        });
+
+        console.log(`[Forum Topics Mobile] Sujets enrichis`);
+      }
+
+      // Exécuter immédiatement
+      processRows();
+
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      if (typeof jQuery !== 'undefined') {
+        jQuery(forumTable).on('draw.dt', function() {
+          processRows();
+        });
+      }
+    }
+
+    InitQueue.register('ForumTopics:MobileStats', enrichForumTopicsCards, 25);
+
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM PERMANENT TOPICS - Stats avec icônes
+  // Ajoute les icônes aux stats des "Sujets permanents"
+  // ============================================================================
+  (function () {
+    function enrichPermanentTopicsStats() {
+      // N'exécuter qu'en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+
+      // Cibler les panel-default (Sujets permanents)
+      const panels = document.querySelectorAll('.panel-default');
+      if (panels.length === 0) {return;}
+
+      panels.forEach(panel => {
+        const rows = panel.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+          // Éviter le double traitement
+          if (row.hasAttribute('data-permanent-icons-added')) {return;}
+          row.setAttribute('data-permanent-icons-added', 'true');
+
+          // Chercher les cellules de stats
+          const cells = row.querySelectorAll('td');
+          if (cells.length < 2) {return;}
+
+          // Les stats sont dans les cellules 2 et 3 (index 1 et 2)
+          const msgCell = cells[1];
+          const viewsCell = cells[2];
+
+          if (!msgCell || !viewsCell) {return;}
+
+          // Extraire les valeurs
+          const msgCount = msgCell.textContent.trim();
+          const viewsCount = viewsCell.textContent.trim();
+
+          // Créer un wrapper pour les stats avec icônes
+          const statsWrapper = document.createElement('div');
+          statsWrapper.className = 'permanent-topic-stats';
+          statsWrapper.innerHTML = `
+            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
+            <span style="margin: 0 4px;">·</span>
+            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
+          `;
+          statsWrapper.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--kr-text-secondary);
+            order: 2;
+            margin: 0 0 2px 0;
+          `;
+
+          // Remplacer les cellules originales par le wrapper
+          msgCell.style.display = 'none';
+          viewsCell.style.display = 'none';
+          
+          // Insérer le wrapper après la première cellule
+          const firstCell = cells[0];
+          if (firstCell) {
+            firstCell.after(statsWrapper);
+          }
+        });
+      });
+
+      console.log(`[Permanent Topics Mobile] Icônes ajoutées`);
+    }
+
+    InitQueue.register('PermanentTopics:Icons', enrichPermanentTopicsStats, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumHeader:MobileBreadcrumb
+  // Transforme le header forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Ne pas exécuter sur les pages kramails (structure différente)
+      if (window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      // Cibler le h1 qui contient "Taverne" et les liens
+      const forumHeading = document.querySelector('.container h1');
+      if (!forumHeading) {
+        console.warn('[Forum Header Mobile] h1 non trouvé');
+        return;
+      }
+
+      // Extraire le titre du forum (texte direct du h1)
+      const titleText = Array.from(forumHeading.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!titleText) {
+        return;
+      }
+
+      // Trouver les liens "Jeu (RP)" et "nouveau sujet"
+      const links = forumHeading.querySelectorAll('a');
+      if (links.length < 2) {
+        return;
+      }
+
+      const backLink = links[0]; // Lien "Jeu (RP)"
+      const newTopicLink = links[1]; // Lien "nouveau sujet"
+
+      // ========================================
+      // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
+      // ========================================
+      const breadcrumbWrapper = document.createElement('div');
+      breadcrumbWrapper.className = 'forum-mobile-breadcrumb';
+      breadcrumbWrapper.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--kr-text-secondary);
+      `;
+
+      // Partie gauche : breadcrumb
+      const breadcrumbLeft = document.createElement('div');
+      breadcrumbLeft.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      `;
+
+      // Cloner le lien "Jeu (RP)"
+      const breadcrumbLink = backLink.cloneNode(true);
+      breadcrumbLink.style.cssText = `
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--kr-text-secondary);
+        text-decoration: none;
+        font-weight: 400;
+        background: none;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+      `;
+
+      // Ajouter le séparateur ">"
+      const separator = document.createElement('span');
+      separator.textContent = '›';
+      separator.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-size: 13px;
+        margin: 0 2px;
+      `;
+
+      // Titre actuel (Taverne)
+      const currentTitle = document.createElement('span');
+      currentTitle.textContent = titleText;
+      currentTitle.style.cssText = `
+        color: var(--kr-text-secondary);
+        font-weight: 400;
+      `;
+
+      breadcrumbLeft.appendChild(breadcrumbLink);
+      breadcrumbLeft.appendChild(separator);
+      breadcrumbLeft.appendChild(currentTitle);
+
+      // Partie droite : bouton (+)
+      const fab = document.createElement('a');
+      fab.href = newTopicLink.href;
+      fab.className = 'forum-new-topic-fab';
+      fab.setAttribute('aria-label', 'Nouveau sujet');
+      fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+      fab.style.cssText = `
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: var(--kr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        transition: all 0.2s ease;
+      `;
+
+      // Feedback tactile
+      fab.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.92)';
+        this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+      });
+
+      fab.addEventListener('touchend', function() {
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+      });
+
+      breadcrumbWrapper.appendChild(breadcrumbLeft);
+      breadcrumbWrapper.appendChild(fab);
+
+      // ========================================
+      // 2. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+
+      forumHeading.appendChild(breadcrumbWrapper);
+
+      console.log('[Forum Header Mobile] Fil d\'ariane + FAB créés');
+    }
+
+    InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:CharacterSwitcher
+  // Ajoute un dropdown pour changer de personnage dans les kramails (mobile)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailCharacterSwitcher() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const colLeft = document.getElementById('col-left');
+      
+      if (!h1 || !colLeft) {
+        console.warn('[Kramail Character Switcher] h1 ou col-left non trouvé');
+        return;
+      }
+
+      // Extraire le nom du personnage actuel depuis h1
+      const currentCharName = Array.from(h1.childNodes)
+        .find(node => node.nodeType === Node.TEXT_NODE)
+        ?.textContent.trim();
+
+      if (!currentCharName) {
+        console.warn('[Kramail Character Switcher] Nom du personnage non trouvé');
+        return;
+      }
+
+      // Extraire les personnages depuis col-left
+      const characterLinks = Array.from(colLeft.querySelectorAll('a[href*="kramail/"]'))
+        .filter(a => {
+          // Filtrer uniquement les liens vers les kramails de personnages
+          const href = a.getAttribute('href');
+          return href && href.match(/kramail\/[^\/]+-\d+-\d+$/);
+        })
+        .map(a => {
+          // Trouver la catégorie (Compte Membre, Plateau, etc.)
+          let category = '';
+          let sibling = a.previousElementSibling;
+          while (sibling) {
+            if (sibling.classList && sibling.classList.contains('list-group-subtitle')) {
+              category = sibling.textContent.trim();
+              break;
+            }
+            sibling = sibling.previousElementSibling;
+          }
+          
+          return {
+            name: a.textContent.trim(),
+            href: a.href,
+            category: category,
+            isActive: a.textContent.trim() === currentCharName
+          };
+        });
+
+      if (characterLinks.length === 0) {
+        console.warn('[Kramail Character Switcher] Aucun personnage trouvé');
+        return;
+      }
+
+      // Si un seul personnage, pas besoin de dropdown
+      if (characterLinks.length === 1) {
+        return;
+      }
+
+      // Créer le dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'kramail-character-dropdown';
+      dropdown.style.cssText = `
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--kr-bg-surface);
+        border: 1px solid var(--kr-border-default);
+        border-radius: var(--mobile-radius);
+        box-shadow: var(--kr-shadow-lg);
+        margin-top: 8px;
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+      `;
+
+      // Créer les options
+      characterLinks.forEach(char => {
+        const option = document.createElement('a');
+        option.href = char.href;
+        option.className = 'kramail-character-option';
+        option.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          padding: 12px 16px;
+          min-height: 44px;
+          text-decoration: none;
+          color: var(--kr-text-primary);
+          border-bottom: 1px solid var(--kr-border-default);
+          transition: background var(--transition-fast);
+        `;
+
+        // Nom du personnage
+        const nameSpan = document.createElement('div');
+        nameSpan.style.cssText = `
+          font-size: 16px;
+          font-weight: ${char.isActive ? '600' : '400'};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        `;
+        nameSpan.textContent = char.name;
+
+        // Icône check si actif
+        if (char.isActive) {
+          const checkIcon = document.createElement('span');
+          checkIcon.textContent = '✓';
+          checkIcon.style.cssText = `
+            color: var(--kr-primary);
+            font-weight: 700;
+          `;
+          nameSpan.insertBefore(checkIcon, nameSpan.firstChild);
+        }
+
+        option.appendChild(nameSpan);
+
+        // Catégorie (si disponible)
+        if (char.category) {
+          const categorySpan = document.createElement('div');
+          categorySpan.style.cssText = `
+            font-size: 13px;
+            color: var(--kr-text-muted);
+            margin-top: 2px;
+          `;
+          categorySpan.textContent = `(${char.category})`;
+          option.appendChild(categorySpan);
+        }
+
+        // Feedback tactile
+        option.addEventListener('touchstart', () => {
+          option.style.background = 'var(--kr-bg-active)';
+        }, { passive: true });
+        
+        option.addEventListener('touchend', () => {
+          option.style.background = '';
+        }, { passive: true });
+
+        option.addEventListener('mouseenter', () => {
+          option.style.background = 'var(--kr-bg-hover)';
+        });
+        
+        option.addEventListener('mouseleave', () => {
+          option.style.background = '';
+        });
+
+        dropdown.appendChild(option);
+      });
+
+      // Wrapper pour le titre + icône
+      const titleWrapper = document.createElement('div');
+      titleWrapper.className = 'kramail-character-selector';
+      titleWrapper.style.cssText = `
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        padding: 8px 12px;
+        margin: -8px -12px;
+        border-radius: var(--mobile-radius);
+        transition: background var(--transition-fast);
+      `;
+
+      // Remplacer le texte du nom par le wrapper
+      const textNode = Array.from(h1.childNodes).find(node => 
+        node.nodeType === Node.TEXT_NODE && node.textContent.trim() === currentCharName
+      );
+
+      if (!textNode) {
+        console.warn('[Kramail Character Switcher] Nœud texte non trouvé');
+        return;
+      }
+
+      // Créer les éléments du titre
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = currentCharName;
+      nameSpan.style.fontWeight = '700';
+
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '▼';
+      iconSpan.className = 'kramail-dropdown-icon';
+      iconSpan.style.cssText = `
+        font-size: 12px;
+        transition: transform var(--transition-fast);
+        color: var(--kr-text-secondary);
+      `;
+
+      titleWrapper.appendChild(nameSpan);
+      titleWrapper.appendChild(iconSpan);
+      titleWrapper.appendChild(dropdown);
+
+      // Remplacer le texte par le wrapper
+      h1.insertBefore(titleWrapper, textNode);
+      textNode.remove();
+
+      // Gérer l'ouverture/fermeture du dropdown
+      let isOpen = false;
+
+      const toggleDropdown = () => {
+        isOpen = !isOpen;
+        dropdown.style.display = isOpen ? 'block' : 'none';
+        iconSpan.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        titleWrapper.style.background = isOpen ? 'var(--kr-bg-hover)' : '';
+      };
+
+      const closeDropdown = () => {
+        if (isOpen) {
+          isOpen = false;
+          dropdown.style.display = 'none';
+          iconSpan.style.transform = 'rotate(0deg)';
+          titleWrapper.style.background = '';
+        }
+      };
+
+      titleWrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+
+      // Fermer si on clique ailleurs
+      document.addEventListener('click', (e) => {
+        if (!titleWrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+
+      // Fermer lors de la navigation (au cas où)
+      dropdown.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          closeDropdown();
+        });
+      });
+
+      console.log('[Kramail Character Switcher] Dropdown créé avec', characterLinks.length, 'personnages');
+    }
+
+    // Observer les changements de mode mobile/desktop pour réinitialiser le dropdown
+    function observeMobileMode() {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const isMobile = document.body.classList.contains('mobile-mode');
+            const dropdownExists = document.querySelector('.kramail-character-selector');
+            
+            // Si on est en mobile ET que le dropdown n'existe pas, le créer
+            if (isMobile && !dropdownExists && window.location.pathname.includes('/kramail')) {
+              console.log('[Kramail Character Switcher] Réinitialisation du dropdown (changement de mode)');
+              initKramailCharacterSwitcher();
+            }
+          }
+        });
+      });
+
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+
+    InitQueue.register('Kramail:CharacterSwitcher', initKramailCharacterSwitcher, 30);
+    InitQueue.register('Kramail:CharacterSwitcher:Observer', observeMobileMode, 31);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:MobileEnhancer
+  // Clone le bouton d'actions "+" (sélection/suppression) du thead
+  // vers la barre de boutons pour accès mobile
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramails
+      if (!window.location.pathname.includes('/kramail')) {
+        return;
+      }
+
+      const pullRight = document.querySelector('h1.page-header .pull-right');
+      if (!pullRight) {
+        console.warn('[Kramail Mobile Enhancer] .pull-right non trouvé');
+        return;
+      }
+
+      // Cloner le .btn-group (bouton "+" avec dropdown) du thead
+      const originalBtnGroup = document.querySelector('#topics thead .btn-group');
+      if (!originalBtnGroup) {
+        console.warn('[Kramail Mobile Enhancer] .btn-group non trouvé dans le thead');
+        return;
+      }
+
+      const clone = originalBtnGroup.cloneNode(true);
+      clone.classList.add('kramail-actions-mobile');
+      pullRight.appendChild(clone);
+
+      // Remplacer l'icône "+" par un menu kebab (⋮)
+      const toggleBtn = clone.querySelector('.dropdown-toggle');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+      }
+
+      // Gérer le toggle dropdown manuellement (car les handlers Bootstrap ne sont pas clonés)
+      const dropdownMenu = clone.querySelector('.dropdown-menu');
+
+      if (toggleBtn && dropdownMenu) {
+        toggleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          clone.classList.toggle('open');
+        });
+
+        // Fermer le dropdown quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+          if (!clone.contains(e.target)) {
+            clone.classList.remove('open');
+          }
+        });
+
+        // Rebrancher les onclick des items du menu
+        // 1) "Tout sélectionner" — toggle toutes les checkboxes directement
+        const allboxClone = clone.querySelector('#allbox');
+        if (allboxClone) {
+          allboxClone.removeAttribute('id');
+          allboxClone.setAttribute('name', 'allbox-mobile');
+          allboxClone.removeAttribute('onclick');
+
+          function toggleAllMessages(checked) {
+            const boxes = document.querySelectorAll('input[type="checkbox"][name="c[]"]');
+            boxes.forEach(function(cb) { cb.checked = checked; });
+            // Synchroniser aussi la checkbox originale du thead
+            const original = document.querySelector('#allbox');
+            if (original) original.checked = checked;
+          }
+
+          allboxClone.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleAllMessages(allboxClone.checked);
+          });
+
+          // Rendre le label cliquable aussi
+          const label = allboxClone.closest('a');
+          if (label) {
+            label.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              allboxClone.checked = !allboxClone.checked;
+              toggleAllMessages(allboxClone.checked);
+            });
+          }
+        }
+
+        // 2) Marquer lu/non lu — inline onclick appelle flagKramail(...)
+        // 3) Marquer important — inline onclick appelle flagKramail(...)
+        // 4) Supprimer — classe .alertdel
+        // Ces handlers utilisent des fonctions globales, les inline onclick sont clonés
+        // mais il faut aussi fermer le dropdown après action
+        const menuItems = clone.querySelectorAll('.dropdown-menu li a');
+        menuItems.forEach(item => {
+          item.addEventListener('click', function() {
+            // Fermer le dropdown après action
+            setTimeout(function() {
+              clone.classList.remove('open');
+            }, 200);
+          });
+        });
+      }
+
+      console.log('[Kramail Mobile Enhancer] Bouton "+" cloné dans la barre de navigation');
+    }
+
+    InitQueue.register('Kramail:MobileEnhancer', initKramailMobileEnhancer, 32);
+
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:PostMobileEnhancer
+  // Restructure la page de lecture d'un message kramail pour mobile :
+  //   - Déplace les boutons dans h1 .pull-right (harmonisation inbox)
+  //   - Crée un menu kebab pour les actions secondaires
+  //   - Restructure le message (header horizontal, corps pleine largeur)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function initKramailPostMobileEnhancer() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Uniquement sur les pages kramail/post/*
+      if (!window.location.pathname.match(/\/kramail\/post\//)) {
+        return;
+      }
+
+      const h1 = document.querySelector('h1.page-header');
+      const forumTop = document.querySelector('.forum-top');
+      if (!h1 || !forumTop) {
+        console.warn('[Kramail Post Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      const originalPullRight = forumTop.querySelector('.pull-right');
+      if (!originalPullRight) {
+        console.warn('[Kramail Post Mobile] .pull-right non trouvé dans .forum-top');
+        return;
+      }
+
+      // --- 1. Déplacer les boutons dans h1 ---
+      const buttons = Array.from(originalPullRight.querySelectorAll('a.btn'));
+      if (buttons.length === 0) {
+        console.warn('[Kramail Post Mobile] Aucun bouton trouvé');
+        return;
+      }
+
+      // Créer un span.pull-right dans h1 (comme l'inbox)
+      const newPullRight = document.createElement('span');
+      newPullRight.className = 'pull-right';
+
+      // Boutons principaux (4 premiers) : Réception, Reply, Reply All, Forward
+      // Boutons secondaires (les 4 restants) : Report, Delete, New, Contacts
+      const primaryButtons = buttons.slice(0, 4); // backward, reply, reply-all, share
+      const secondaryButtons = buttons.slice(4);   // exclamation, times, envelope, user
+
+      // Ajouter les boutons principaux (icon-only)
+      primaryButtons.forEach(function(btn) {
+        // Masquer le texte (le bouton Réception a du texte "Réception")
+        var textNodes = Array.from(btn.childNodes).filter(function(n) { return n.nodeType === 3; });
+        textNodes.forEach(function(t) { t.textContent = ''; });
+        // Marquer le bouton Réception comme btn-primary (retour inbox = onglet actif)
+        if (btn.querySelector('.fa-backward')) {
+          btn.classList.add('btn-primary');
+        }
+        newPullRight.appendChild(btn);
+      });
+
+      // Créer le menu kebab pour les actions secondaires
+      var kebab = document.createElement('div');
+      kebab.className = 'btn-group kramail-post-kebab';
+
+      var kebabToggle = document.createElement('button');
+      kebabToggle.className = 'btn btn-default dropdown-toggle';
+      kebabToggle.type = 'button';
+      kebabToggle.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+
+      var kebabMenu = document.createElement('ul');
+      kebabMenu.className = 'dropdown-menu dropdown-menu-right';
+      kebabMenu.setAttribute('role', 'menu');
+
+      // Labels pour les icônes secondaires
+      var labels = {
+        'fa-exclamation-triangle': 'Signaler',
+        'fa-times': 'Supprimer',
+        'fa-envelope': 'Nouveau message',
+        'fa-user': 'Contacts'
+      };
+
+      secondaryButtons.forEach(function(btn) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = btn.getAttribute('href') || '#';
+
+        var icon = btn.querySelector('i');
+        var iconClass = icon ? icon.className : '';
+        var labelText = '';
+
+        // Récupérer le label via la map
+        Object.keys(labels).forEach(function(key) {
+          if (iconClass.indexOf(key) !== -1) {
+            labelText = labels[key];
+          }
+        });
+
+        a.innerHTML = '<i class="' + iconClass + '"></i> <span class="label-simple">' + labelText + '</span>';
+
+        // Copier les classes spéciales (alertdel)
+        if (btn.classList.contains('alertdel')) {
+          a.classList.add('alertdel');
+        }
+
+        // Copier le onclick si présent
+        var onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr) {
+          a.setAttribute('onclick', onclickAttr);
+        }
+
+        li.appendChild(a);
+        kebabMenu.appendChild(li);
+      });
+
+      kebab.appendChild(kebabToggle);
+      kebab.appendChild(kebabMenu);
+      newPullRight.appendChild(kebab);
+
+      h1.appendChild(newPullRight);
+
+      // Gérer le toggle dropdown manuellement
+      kebabToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        kebab.classList.toggle('open');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!kebab.contains(e.target)) {
+          kebab.classList.remove('open');
+        }
+      });
+
+      // Fermer le dropdown après action
+      kebabMenu.querySelectorAll('a').forEach(function(item) {
+        item.addEventListener('click', function() {
+          setTimeout(function() { kebab.classList.remove('open'); }, 200);
+        });
+      });
+
+      // Marquer forum-top comme déplacé (pour le cacher en CSS)
+      originalPullRight.classList.add('kramail-actions-moved');
+
+      // --- 2. Restructurer le message ---
+      var well = document.querySelector('ul.media-list.forum > li.media.well');
+      if (!well) {
+        console.warn('[Kramail Post Mobile] .media.well non trouvé');
+        return;
+      }
+
+      well.classList.add('kramail-post-restructured');
+
+      // Extraire les données depuis le DOM original
+      var pullLeft = well.querySelector('.pull-left');
+      var mediaBody = well.querySelector('.media-body');
+      if (!pullLeft || !mediaBody) {
+        console.warn('[Kramail Post Mobile] pull-left ou media-body manquant');
+        return;
+      }
+
+      // Avatar
+      var avatarImg = pullLeft.querySelector('img.avatar');
+      var avatarSrc = avatarImg ? avatarImg.src : '';
+      var avatarAlt = avatarImg ? avatarImg.alt : '';
+
+      // Nom de l'expéditeur
+      var senderLink = pullLeft.querySelector('.cartouche strong a');
+      var senderName = senderLink ? senderLink.textContent : avatarAlt;
+      var senderHref = senderLink ? senderLink.href : '#';
+
+      // Date
+      var dateSpan = mediaBody.querySelector('.btn-group-xs .btn');
+      var dateText = '';
+      if (dateSpan) {
+        dateText = dateSpan.textContent.replace('posté', '').trim();
+      }
+
+      // Destinataires (le paragraphe "Envoyé à :")
+      var recipientsP = mediaBody.querySelector('p');
+      var recipientsHTML = recipientsP ? recipientsP.innerHTML : '';
+
+      // Corps du message
+      var contentDiv = mediaBody.querySelector('.t');
+      var contentHTML = contentDiv ? contentDiv.innerHTML : '';
+
+      // Signature (tout ce qui est après .t dans media-body)
+      // C'est le texte après la div.t : <br>___<br><br> + font + texte
+      var signatureHTML = '';
+      if (contentDiv) {
+        var sibling = contentDiv.nextSibling;
+        var sigParts = [];
+        while (sibling) {
+          if (sibling.nodeType === 1) {
+            sigParts.push(sibling.outerHTML);
+          } else if (sibling.nodeType === 3 && sibling.textContent.trim()) {
+            sigParts.push(sibling.textContent);
+          }
+          sibling = sibling.nextSibling;
+        }
+        signatureHTML = sigParts.join('');
+        // Nettoyer le séparateur ___
+        signatureHTML = signatureHTML.replace(/^(<br\s*\/?>)*\s*___\s*(<br\s*\/?>)*/i, '').trim();
+      }
+
+      // --- 3. Construire la nouvelle structure ---
+      // Header : avatar + nom + date
+      var msgHeader = document.createElement('div');
+      msgHeader.className = 'kramail-msg-header';
+      msgHeader.innerHTML =
+        '<img class="kramail-msg-avatar" src="' + avatarSrc + '" alt="' + avatarAlt + '">' +
+        '<div class="kramail-msg-header-info">' +
+          '<div class="kramail-msg-sender"><a href="' + senderHref + '">' + senderName + '</a></div>' +
+          '<div class="kramail-msg-date"><i class="fa fa-clock-o"></i> ' + dateText + '</div>' +
+        '</div>';
+
+      // Destinataires
+      var msgRecipients = document.createElement('div');
+      msgRecipients.className = 'kramail-msg-recipients';
+      msgRecipients.innerHTML = recipientsHTML;
+
+      // Corps du message
+      var msgBody = document.createElement('div');
+      msgBody.className = 'kramail-msg-body';
+      msgBody.innerHTML = contentHTML;
+
+      // Signature (si non vide)
+      if (signatureHTML.length > 5) {
+        var msgSig = document.createElement('div');
+        msgSig.className = 'kramail-msg-signature';
+        msgSig.innerHTML = signatureHTML;
+        msgBody.appendChild(msgSig);
+      }
+
+      // Ajouter les nouveaux éléments au well
+      well.appendChild(msgHeader);
+      well.appendChild(msgRecipients);
+      well.appendChild(msgBody);
+
+      console.log('[Kramail Post Mobile] Page message restructurée');
+    }
+
+    InitQueue.register('Kramail:PostMobileEnhancer', initKramailPostMobileEnhancer, 33);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumThread:MobileBreadcrumb
+  // Transforme le header des threads de forum en fil d'ariane + FAB button
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function transformForumThreadHeader() {
+      // Uniquement en mode mobile
+      if (!document.body.classList.contains('mobile-mode')) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread (pas la liste des topics)
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Cibler le h1 et tous les div.forum-top qui contiennent les boutons
+      const forumHeading = document.querySelector('.container h1.page-header');
+      const forumTops = document.querySelectorAll('.forum-top');
+      
+      if (!forumHeading || forumTops.length === 0) {
+        console.warn('[Forum Thread Mobile] h1 ou .forum-top non trouvé');
+        return;
+      }
+
+      // Extraire le titre du thread (ignorer les nœuds texte vides)
+      const threadTitle = Array.from(forumHeading.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+        .map(node => node.textContent.trim())
+        [0];
+
+      if (!threadTitle) {
+        console.warn('[Forum Thread Mobile] Titre du thread non trouvé');
+        return;
+      }
+
+      // Trouver les liens dans le premier .forum-top
+      const firstForumTop = forumTops[0];
+      const taverneLink = firstForumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
+      const newTopicLink = firstForumTop.querySelector('a[href*="nouveau-sujet"]');
+
+      if (!taverneLink || !newTopicLink) {
+        console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
+        return;
+      }
+
+      // Extraire le nom du forum parent (Taverne, etc.)
+      const forumName = taverneLink.textContent.trim();
+      
+      // Déterminer la catégorie parente (RP/HRP) depuis l'URL
+      const forumUrl = taverneLink.href;
+      let categoryName = 'Jeu (RP)';
+      let categoryUrl = 'forum/rp';
+      
+      if (forumUrl.includes('/forum/hrp/')) {
+        categoryName = 'Jeu (HRP)';
+        categoryUrl = 'forum/hrp';
+      }
+
+      // ========================================
+      // FONCTION HELPER : Créer un fil d'ariane
+      // ========================================
+      function createBreadcrumb(isBottom = false) {
+        const breadcrumbWrapper = document.createElement('div');
+        breadcrumbWrapper.className = isBottom ? 'forum-thread-mobile-breadcrumb-bottom' : 'forum-thread-mobile-breadcrumb';
+        breadcrumbWrapper.style.cssText = `
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          ${isBottom ? 'margin-top: 16px; margin-bottom: 16px; padding: 12px 16px;' : 'margin-bottom: 16px;'}
+          font-size: 13px;
+          color: var(--kr-text-secondary);
+        `;
+
+        // Partie gauche : breadcrumb
+        const breadcrumbLeft = document.createElement('div');
+        breadcrumbLeft.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex: 1;
+          min-width: 0;
+        `;
+
+        // Lien catégorie (Jeu RP)
+        const categoryLink = document.createElement('a');
+        categoryLink.href = categoryUrl;
+        categoryLink.textContent = categoryName;
+        categoryLink.style.cssText = `
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--kr-text-secondary);
+          text-decoration: none;
+          font-weight: 400;
+          white-space: nowrap;
+        `;
+
+        // Séparateur 1
+        const separator1 = document.createElement('span');
+        separator1.textContent = '›';
+        separator1.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-size: 13px;
+          margin: 0 2px;
+          flex-shrink: 0;
+        `;
+
+        // Lien forum (Taverne)
+        const forumLink = document.createElement('a');
+        forumLink.href = taverneLink.href;
+        forumLink.textContent = forumName;
+        forumLink.style.cssText = `
+          color: var(--kr-text-secondary);
+          text-decoration: none;
+          font-weight: 400;
+          white-space: nowrap;
+        `;
+
+        // Séparateur 2
+        const separator2 = document.createElement('span');
+        separator2.textContent = '›';
+        separator2.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-size: 13px;
+          margin: 0 2px;
+          flex-shrink: 0;
+        `;
+
+        // Titre du thread (tronqué si nécessaire)
+        const threadTitleSpan = document.createElement('span');
+        threadTitleSpan.textContent = threadTitle;
+        threadTitleSpan.style.cssText = `
+          color: var(--kr-text-secondary);
+          font-weight: 400;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          min-width: 0;
+        `;
+
+        breadcrumbLeft.appendChild(categoryLink);
+        breadcrumbLeft.appendChild(separator1);
+        breadcrumbLeft.appendChild(forumLink);
+        breadcrumbLeft.appendChild(separator2);
+        breadcrumbLeft.appendChild(threadTitleSpan);
+
+        // Partie droite : bouton (+)
+        const fab = document.createElement('a');
+        fab.href = newTopicLink.href;
+        fab.className = 'forum-new-topic-fab';
+        fab.setAttribute('aria-label', 'Nouveau sujet');
+        fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
+        fab.style.cssText = `
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          background: var(--kr-primary);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          text-decoration: none;
+          transition: all 0.2s ease;
+        `;
+
+        // Feedback tactile
+        fab.addEventListener('touchstart', function() {
+          this.style.transform = 'scale(0.92)';
+          this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
+        });
+
+        fab.addEventListener('touchend', function() {
+          this.style.transform = 'scale(1)';
+          this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+        });
+
+        breadcrumbWrapper.appendChild(breadcrumbLeft);
+        breadcrumbWrapper.appendChild(fab);
+
+        return breadcrumbWrapper;
+      }
+
+      // ========================================
+      // 1. REMPLACER LE CONTENU DU H1
+      // ========================================
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+      forumHeading.appendChild(createBreadcrumb(false));
+
+      // ========================================
+      // 2. TRANSFORMER LES .forum-top (sauf le premier si c'est le même que le h1)
+      // ========================================
+      forumTops.forEach((forumTop, index) => {
+        // Sauter le premier si on a déjà modifié le h1
+        if (index === 0) {
+          return;
+        }
+        forumTop.innerHTML = '';
+        forumTop.style.cssText = `
+          margin: 0 !important;
+          padding: 0 !important;
+          background: transparent !important;
+          border: none !important;
+        `;
+        forumTop.appendChild(createBreadcrumb(true));
+      });
+
+      // ========================================
+      // 3. NETTOYER LES ÉLÉMENTS SUPERFLUS
+      // ========================================
+      // Masquer les vieux boutons Bootstrap du milieu (actions redondantes)
+      const actionButtons = document.querySelector('.container h1.page-header + .row + .row .btn-group');
+      if (actionButtons) {
+        actionButtons.style.display = 'none';
+      }
+
+      // Masquer les liens d'actions redondants (nouveau sujet, répondre, etc.)
+      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"], .forum-top a[href*="repondre"]');
+      forumTopActions.forEach(action => {
+        action.parentElement.style.display = 'none';
+      });
+
+      console.log('[Forum Thread Mobile] Fil d\'ariane + FAB créés (haut et bas) - Éléments superflus masqués');
+    }
+
+    InitQueue.register('ForumThread:MobileBreadcrumb', transformForumThreadHeader, 25);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumThread:HideTags
+  // Masque les tags dans la vue détail du fil (ils sont inutiles et gênent la mise en page)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    function hideForumThreadTags() {
+      console.log('[Forum Thread:HideTags] Function called');
+      
+      // Vérifier qu'on est sur une page de thread détail
+      const pathname = window.location.pathname;
+      if (!pathname.includes('/forum/sujet/')) {
+        console.log('[Forum Thread:HideTags] Not on a forum thread page');
+        return;
+      }
+
+      console.log('[Forum Thread:HideTags] On forum thread page, hiding tags after delay');
+      
+      // Les tags sont ajoutés dynamiquement, donc on doit attendre un peu
+      // Utiliser un délai pour s'assurer qu'ils sont présents
+      setTimeout(() => {
+        console.log('[Forum Thread:HideTags] setTimeout fired');
+        
+        // Chercher tous les liens de tags (sans slash initial dans le href)
+        const tagLinks = Array.from(document.querySelectorAll('a[href*="forum/tags"]'));
+        console.log('[Forum Thread:HideTags] Found', tagLinks.length, 'tag links');
+        
+        if (tagLinks.length === 0) {
+          console.log('[Forum Thread:HideTags] No tag links found');
+          return;
+        }
+
+        // Chercher le conteneur parent qui contient TOUS les tags
+        let current = tagLinks[0];
+        while (current && current !== document.body) {
+          current = current.parentElement;
+          if (current && current.querySelectorAll('a[href*="forum/tags"]').length === tagLinks.length) {
+            // Vérifier que ce n'est pas trop large
+            const allLinks = current.querySelectorAll('a');
+            console.log('[Forum Thread:HideTags] Found container with', allLinks.length, 'total links');
+            if (allLinks.length < 50) { // Éviter de masquer la page entière
+              current.style.display = 'none';
+              console.log('[Forum Thread] Tags masqués (' + tagLinks.length + ' tag(s))');
+              return;
+            }
+          }
+        }
+
+        // Fallback: masquer les éléments parents directs des tags
+        tagLinks.forEach(link => {
+          const parent = link.parentElement;
+          if (parent && !parent.className.includes('forum')) {
+            parent.style.display = 'none';
+          }
+        });
+        
+        console.log('[Forum Thread] Tags masqués (fallback)');
+      }, 500); // 500ms devrait suffire
+    }
+
+    InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);
+
+  })();
+
+  // ============================================================================
+  // MODULE : ForumPosts:Restructure
+  // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
+  // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
+  // Row 2: col-xs-12 (contenu message)
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    const MOBILE_BREAKPOINT = 768;
+
+    function restructureForumPosts() {
+      // Uniquement en mode mobile (basé sur la largeur de l'écran)
+      if (window.innerWidth >= MOBILE_BREAKPOINT) {
+        return;
+      }
+
+      // Vérifier qu'on est sur une page de thread
+      if (!window.location.pathname.includes('/forum/sujet/')) {
+        return;
+      }
+
+      // Sélectionner tous les posts non-restructurés
+      const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
+      
+      if (posts.length === 0) {
+        return;
+      }
+
+      posts.forEach(post => {
+        // 1. Récupérer les éléments existants
+        const userInfo = post.querySelector('.pull-left, .user-info');
+        const pullRight = post.querySelector('.pull-right');
+        const mediaBody = post.querySelector('.media-body');
+        
+        if (!userInfo || !mediaBody) {
+          return;
+        }
+        
+        // Sauvegarder TOUT le contenu de media-body avant modification
+        const originalMediaBodyHTML = mediaBody.innerHTML;
+        
+        // 2. Créer Row 1 (header: user + boutons)
+        const headerRow = document.createElement('div');
+        headerRow.className = 'row forum-header';
+        
+        // Colonne 1: User info
+        const userCol = document.createElement('div');
+        userCol.className = 'col-xs-8 forum-user-section';
+        
+        // Cloner le userInfo pour le déplacer
+        const userInfoClone = userInfo.cloneNode(true);
+        userCol.appendChild(userInfoClone);
+        
+        // Extraire et ajouter la date depuis le bouton de date
+        const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
+        if (dateButton) {
+          const dateText = dateButton.textContent.replace('posté', '').replace('modifié', '').trim();
+          const dateElement = document.createElement('div');
+          dateElement.className = 'post-date-mobile';
+          dateElement.textContent = dateText;
+          userCol.appendChild(dateElement);
+        }
+        
+        // Colonne 2: Boutons d'action
+        const actionsCol = document.createElement('div');
+        actionsCol.className = 'col-xs-4 forum-actions-section';
+        if (pullRight) {
+          const pullRightClone = pullRight.cloneNode(true);
+          actionsCol.appendChild(pullRightClone);
+        }
+        
+        headerRow.appendChild(userCol);
+        headerRow.appendChild(actionsCol);
+        
+        // 3. Créer Row 2 (contenu du message)
+        const contentRow = document.createElement('div');
+        contentRow.className = 'row forum-content-row';
+        
+        const contentCol = document.createElement('div');
+        contentCol.className = 'col-xs-12 forum-content-section';
+        
+        // Créer un nouveau mediaBody temporaire pour extraire le contenu
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = originalMediaBodyHTML;
+        
+        // Retirer userInfo, pullRight, dateButton du tempDiv
+        const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
+        const tempPullRight = tempDiv.querySelector('.pull-right');
+        const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
+        
+        if (tempUserInfo) tempUserInfo.remove();
+        if (tempPullRight) tempPullRight.remove();
+        if (tempDateButton) tempDateButton.remove();
+        
+        // Tout ce qui reste est le contenu du message
+        contentCol.innerHTML = tempDiv.innerHTML;
+        
+        contentRow.appendChild(contentCol);
+        
+        // 4. Vider le post et reconstruire
+        // Supprimer le .pull-left original (avatar dupliqué)
+        if (userInfo && userInfo.parentElement === post) {
+          userInfo.remove();
+        }
+        
+        // Vider le mediaBody complètement
+        mediaBody.innerHTML = '';
+        
+        // Insérer les nouvelles rows
+        mediaBody.appendChild(headerRow);
+        mediaBody.appendChild(contentRow);
+        
+        // 5. Marquer comme restructuré
+        post.setAttribute('data-restructured', 'true');
+        post.classList.add('forum-post-restructured');
+      });
+
+      console.log(`[Forum Restructure] ${posts.length} posts restructurés avec nouveau layout`);
+    }
+
+    InitQueue.register('ForumPosts:Restructure', restructureForumPosts, 26);
+
+  })();
+
+  function modifyNavigationMenus() {
+    // Modification des liens des boutons principaux du menu
+    const menuLinks = {
+      'Jouer': 'jouer/plateau',
+      'Règles': 'regles/avancees',
+      'Monde': 'monde/evenements',
+      'Communauté': 'communaute/membres'
+    };
+
+    let forumOriginalItem = null;
+
+    // Vérifier si on est en mode mobile
+    const isMobileMode = document.body.classList.contains('mobile-mode');
+
+    // Modification des liens existants et ajout du comportement de redirection
+    document.querySelectorAll('.navbar-nav .dropdown > a.dropdown-toggle').forEach(link => {
+      const text = link.textContent.trim().replace(/\s*\n.*$/, '');
+
+      // Traiter le menu Forum séparément (le menu original avant transformation)
+      if (text.startsWith('Forum') && !text.includes('HRP') && !text.includes('RP')) {
+        forumOriginalItem = link.closest('li.dropdown');
+        return;
+      }
+
+      const menuKey = Object.keys(menuLinks).find(key => text.includes(key));
+      if (menuKey && menuLinks[menuKey]) {
+        link.href = menuLinks[menuKey];
+
+        // EN DESKTOP UNIQUEMENT : Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
+        // EN MOBILE : Garder data-toggle pour permettre l'affichage du sous-menu
+        if (!isMobileMode) {
+          link.removeAttribute('data-toggle');
+
+          // Marquer comme modifié pour éviter de ré-ajouter l'événement
+          if (!link.hasAttribute('data-nav-modified')) {
+            link.setAttribute('data-nav-modified', 'true');
+
+            // S'assurer que le clic navigue vers la nouvelle URL
+            link.addEventListener('click', function (e) {
+              e.preventDefault();
+              window.location.href = this.href;
+              return false;
+            });
+          }
+        } else {
+          // EN MOBILE : Conserver/restaurer data-toggle="dropdown" pour Bootstrap 3
+          link.setAttribute('data-toggle', 'dropdown');
+        }
+      }
+    });
+
+    // Remplacer le menu Forum original par Forum RP et Forum HRP
+    if (forumOriginalItem && !document.querySelector('[data-forums-added]')) {
+      // Récupérer le dropdown menu original pour le cloner
+      const originalDropdown = forumOriginalItem.querySelector('.dropdown-menu');
+
+      // Créer Forum RP
+      const forumRpLi = document.createElement('li');
+      forumRpLi.className = 'dropdown';
+      forumRpLi.setAttribute('data-forums-added', 'rp');
+      forumRpLi.innerHTML = `
+        <a href="forum/rp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Forum RP <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="forum/rp/taverne-10101">Taverne</a></li>
+          <li><a href="forum/rp/marche-10102">Marché</a></li>
+          <li><a href="forum/rp/monde-10103">Monde</a></li>
+          <li class="divider"></li>
+          <li><a href="forum/rp">Autre</a></li>
+        </ul>
+      `;
+
+      // Créer Forum HRP en clonant le dropdown original
+      const forumHrpLi = document.createElement('li');
+      forumHrpLi.className = 'dropdown';
+      forumHrpLi.setAttribute('data-forums-added', 'hrp');
+      forumHrpLi.innerHTML = `
+        <a href="forum/hrp" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Forum HRP <span class="caret"></span>
+        </a>
+      `;
+
+      // Cloner le dropdown original et supprimer uniquement le lien "Jeu (RP)"
+      if (originalDropdown) {
+        const clonedDropdown = originalDropdown.cloneNode(true);
+        // Supprimer le lien "Jeu (RP)" du dropdown cloné
+        const rpLink = Array.from(clonedDropdown.querySelectorAll('li > a'))
+          .find(a => a.textContent.includes('Jeu (RP)'));
+        if (rpLink && rpLink.parentElement) {
+          rpLink.parentElement.remove();
+        }
+        forumHrpLi.appendChild(clonedDropdown);
+      }
+
+      // Insérer Forum RP avant le Forum original
+      if (forumOriginalItem.parentElement) {
+        forumOriginalItem.parentElement.insertBefore(forumRpLi, forumOriginalItem);
+        // Insérer Forum HRP après Forum RP (donc avant l'original aussi)
+        forumOriginalItem.parentElement.insertBefore(forumHrpLi, forumOriginalItem);
+      }
+      // Supprimer le menu Forum original
+      forumOriginalItem.remove();
+
+      // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
+      if (!isMobileMode) {
+        const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
+        if (forumRpLink) {
+          forumRpLink.removeAttribute('data-toggle');
+          forumRpLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+
+        const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
+        if (forumHrpLink) {
+          forumHrpLink.removeAttribute('data-toggle');
+          forumHrpLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+      } else {
+        // EN MOBILE : Garder data-toggle pour les dropdowns
+        const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
+        if (forumRpLink) {
+          forumRpLink.setAttribute('data-toggle', 'dropdown');
+        }
+
+        const forumHrpLink = forumHrpLi.querySelector('a.dropdown-toggle');
+        if (forumHrpLink) {
+          forumHrpLink.setAttribute('data-toggle', 'dropdown');
+        }
+      }
+
+      // Créer les trois nouveaux menus : Forum Communauté, Forum Débats, Forum Staff
+      
+      const forumMenuParent = forumRpLi.parentElement;
+      if (forumMenuParent && !document.querySelector('[data-forums-added="forum-communaute"]')) {
+        // Vérifier si Staff existe dans le dropdown-menu original
+        let staffExists = false;
+        if (originalDropdown) {
+          const staffLink = Array.from(originalDropdown.querySelectorAll('li > a'))
+            .find(a => a.textContent.toLowerCase().includes('staff'));
+          staffExists = !!staffLink;
+        }
+
+        // Menu Forum Communauté
+        const forumCommunauteLi = document.createElement('li');
+        forumCommunauteLi.className = 'dropdown';
+        forumCommunauteLi.setAttribute('data-forums-added', 'forum-communaute');
+        forumCommunauteLi.innerHTML = `
+          <a href="forum/communaute" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+            Forum Communauté <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="forum/communaute">Voir tous les sujets</a></li>
+          </ul>
+        `;
+
+        // Menu Forum Débats
+        const forumDebatsLi = document.createElement('li');
+        forumDebatsLi.className = 'dropdown';
+        forumDebatsLi.setAttribute('data-forums-added', 'forum-debats');
+        forumDebatsLi.innerHTML = `
+          <a href="forum/debats" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+            Forum Débats <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="forum/debats">Voir tous les sujets</a></li>
+          </ul>
+        `;
+
+        // Menu Forum Staff (uniquement si Staff existe dans le menu original)
+        let forumStaffLi = null;
+        if (staffExists) {
+          forumStaffLi = document.createElement('li');
+          forumStaffLi.className = 'dropdown';
+          forumStaffLi.setAttribute('data-forums-added', 'forum-staff');
+          forumStaffLi.innerHTML = `
+            <a href="forum/staff" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+              Forum Staff <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="forum/staff">Voir tous les sujets</a></li>
+            </ul>
+          `;
+        }
+
+        // Insérer les nouveaux menus après Forum HRP
+        forumMenuParent.insertBefore(forumCommunauteLi, forumHrpLi.nextSibling);
+        forumMenuParent.insertBefore(forumDebatsLi, forumCommunauteLi.nextSibling);
+        if (forumStaffLi) {
+          forumMenuParent.insertBefore(forumStaffLi, forumDebatsLi.nextSibling);
+        }
+
+        // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
+        if (!isMobileMode) {
+          const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
+          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
+          
+          menusToUpdate.forEach(li => {
+            const link = li.querySelector('a.dropdown-toggle');
+            if (link) {
+              link.removeAttribute('data-toggle');
+              link.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = this.href;
+                return false;
+              });
+            }
+          });
+        } else {
+          // EN MOBILE : Garder data-toggle pour les dropdowns
+          const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
+          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
+          
+          menusToUpdate.forEach(li => {
+            const link = li.querySelector('a.dropdown-toggle');
+            if (link) {
+              link.setAttribute('data-toggle', 'dropdown');
+            }
+          });
+        }
+      }
+    }
+
+    // Ajout du menu Statistiques (une seule fois)
+    const communauteItem = Array.from(document.querySelectorAll('.navbar-nav > li.dropdown'))
+      .find(li => li.querySelector('a.dropdown-toggle')?.textContent.includes('Communauté') && !li.getAttribute('data-forums-added'));
+
+    if (communauteItem && !document.querySelector('[data-stats-menu-added]')) {
+      const statsLi = document.createElement('li');
+      statsLi.className = 'dropdown';
+      statsLi.setAttribute('data-stats-menu-added', 'true');
+      statsLi.innerHTML = `
+        <a href="monde/citoyens" class="dropdown-toggle" role="button" aria-expanded="false" data-nav-modified="true">
+          Statistiques <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="communaute/stats">Communautés</a></li>
+          <li><a href="monde/citoyens">Citoyens</a></li>
+        </ul>
+      `;
+
+      if (communauteItem.parentElement) {
+        communauteItem.parentElement.insertBefore(statsLi, communauteItem.nextSibling);
+      }
+
+      // EN DESKTOP UNIQUEMENT : Ajouter le comportement de navigation directe
+      if (!isMobileMode) {
+        const statsLink = statsLi.querySelector('a.dropdown-toggle');
+        if (statsLink) {
+          statsLink.removeAttribute('data-toggle');
+          statsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+            return false;
+          });
+        }
+      } else {
+        // EN MOBILE : Garder data-toggle pour le dropdown
+        const statsLink = statsLi.querySelector('a.dropdown-toggle');
+        if (statsLink) {
+          statsLink.setAttribute('data-toggle', 'dropdown');
+        }
+      }
+    }
+  }
+
+  function markActiveIcons() {
+    const markers = [
+      { text: 'Membres actifs', cls: 'kr-icon-members' },
+      { text: 'Personnages actifs', cls: 'kr-icon-characters' },
+      { text: 'Personnes en ligne', cls: 'kr-icon-online' },
+      { text: 'Présentation', cls: 'kr-icon-presentation' },
+      { text: 'Médailles', cls: 'kr-icon-medals' }
+    ];
+
+    markers.forEach(m =>
+      document.querySelectorAll('.' + m.cls).forEach(n => n.classList.remove(m.cls))
+    );
+
+    const all = Array.from(document.querySelectorAll('*'));
+    markers.forEach(m => {
+      let best = null;
+      for (const el of all) {
+        const txt = (el.textContent || '').trim();
+        if (!txt.includes(m.text)) {continue;}
+        const hasIcon = !!el.querySelector('i.fa, i.falarge, .glyphicon, svg');
+        const score = (hasIcon ? 100 : 0) + Math.max(0, 200 - Math.min(txt.length, 200));
+        if (!best || score > best.score) {best = { el, score };}
+      }
+      if (best?.el) {best.el.classList.add(m.cls);}
+    });
+  }
+
+  function replaceMcAnchors() {
+    Array.from(document.querySelectorAll('a'))
+      .filter(a => (a.textContent || '').trim() === 'MC')
+      .forEach(a => {
+        a.classList.add('kr-mc-icon');
+        const title = a.getAttribute('data-original-title') || a.getAttribute('title') ||
+                      (a.classList.contains('open') ? 'ouvrir le mini-chat' : 'fermer le mini-chat');
+        if (title) {a.setAttribute('aria-label', title);}
+        a.removeAttribute('aria-hidden');
+      });
+  }
+
+  function replaceNavbarBrand() {
+    const brand = document.querySelector('.navbar-brand');
+    if (!brand) {return;}
+
+    const variant = getVariant();
+    const idx = CONFIG.LOGO_MAP[variant] || 1;
+    const url = `http://img7.kraland.org/2/world/logo${idx}.gif`;
+
+    const existing = brand.querySelector('img.kr-logo');
+    if (existing?.src?.includes(`logo${idx}.gif`)) {return;}
+
+    brand.innerHTML = '';
+    const img = document.createElement('img');
+    img.className = 'kr-logo';
+    img.src = url;
+    img.alt = 'Kraland';
+    img.style.height = '28px';
+    img.style.verticalAlign = 'middle';
+    brand.appendChild(img);
+  }
+
+  function replaceSImages() {
+    const map = { 's1.gif': '♂', 's2.gif': '♀', 's3.gif': '⚧' };
+    const imgs = Array.from(document.querySelectorAll('img'))
+      .filter(i => /img7\.kraland\.org\/.+\/(s[123]\.gif)$/.test(i.src));
+
+    imgs.forEach(img => {
+      const m = img.src.match(/(s[123]\.gif)$/);
+      const key = m?.[1];
+      const ch = map[key] || '';
+
+      const span = document.createElement('span');
+      span.className = 'kr-symbol kr-symbol-' + (key || 's');
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = ch;
+
+      if (img.alt) {
+        const sr = document.createElement('span');
+        sr.className = 'kr-sr-only';
+        sr.textContent = img.alt;
+        span.appendChild(sr);
+      }
+
+      const sexAncestor = img.closest('[id*="sex"]');
+      if (sexAncestor) {
+        const strong = document.createElement('strong');
+        strong.appendChild(span);
+        img.replaceWith(strong);
+      } else {
+        img.replaceWith(span);
+      }
+    });
+  }
+
+  function reorderBtnGroupXs() {
+    document.querySelectorAll('span.btn-group-xs').forEach(btn => {
+      const parent = btn.parentElement;
+      if (!parent) {return;}
+
+      const strong = parent.querySelector('strong');
+      if (strong && strong.parentElement === parent && btn.nextElementSibling !== strong) {
+        parent.insertBefore(btn, strong);
+        return;
+      }
+
+      const textNode = Array.from(parent.childNodes)
+        .find(n => n.nodeType === 3 && n.textContent?.trim().length > 0);
+      if (textNode && btn.nextSibling !== textNode) {
+        parent.insertBefore(btn, textNode);
+      }
+    });
+  }
+
+  function ensureSexStrong() {
+    document.querySelectorAll('[id*="ajax-sex"]').forEach(el => {
+      if (el.querySelector('strong')) {return;}
+
+      const sym = el.querySelector('.kr-symbol');
+      if (sym && sym.parentElement) {
+        const strong = document.createElement('strong');
+        sym.parentElement.replaceChild(strong, sym);
+        strong.appendChild(sym);
+        return;
+      }
+
+      const tn = Array.from(el.childNodes)
+        .find(n => n.nodeType === 3 && n.textContent?.trim().length > 0);
+      if (tn && tn.parentElement) {
+        const txt = tn.textContent.trim();
+        const strong = document.createElement('strong');
+        strong.textContent = txt;
+        tn.textContent = tn.textContent.replace(txt, '');
+        tn.parentElement.insertBefore(strong, tn.nextSibling);
+      }
+    });
+  }
+
+  function ensureFooterSticky() {
+    const footer = document.querySelector('footer, .footer, .contentinfo');
+    if (!footer) {return;}
+
+    // Déplacer le footer à la fin du body pour que le flexbox fonctionne correctement
+    if (footer.nextSibling !== null) {
+      document.body.appendChild(footer);
+    }
+
+    const selectors = ['a[href="#top"]', 'a.to-top', '.back-to-top', '.scroll-top', 'a.well.well-sm'];
+    let back = null;
+    for (const s of selectors) {
+      back = document.querySelector(s);
+      if (back) {break;}
+    }
+
+    if (back) {
+      back.classList.add('kraland-back-to-top');
+      if (!back.getAttribute('aria-label')) {back.setAttribute('aria-label', 'Remonter en haut');}
+      const whiteContainer = footer.querySelector('.container.white');
+      if (whiteContainer) {
+        whiteContainer.appendChild(back);
+      } else if (back.parentElement !== footer) {
+        footer.appendChild(back);
+      }
+    }
+
+    // Bootstrap 3.3 sticky footer: use margin-bottom on body
+    if (!document.body.style.marginBottom) {
+      document.body.style.marginBottom = '60px';
+    }
+  }
+
+  /**
+   * Affiche les informations de version du CSS dans le footer
+   * - Version actuelle du userscript chargé
+   * - Dernière version disponible sur GitHub (ou serveur local en dev)
+   */
+  function displayVersionInfo() {
+    const footer = document.querySelector('footer, .footer, .contentinfo');
+    if (!footer) {return;}
+
+    // Créer l'élément de version s'il n'existe pas
+    let versionDiv = footer.querySelector('.kraland-css-version');
+    if (!versionDiv) {
+      versionDiv = document.createElement('div');
+      versionDiv.className = 'kraland-css-version';
+      versionDiv.style.cssText = 'text-align: center; padding: 10px; font-size: 12px; color: #666;';
+
+      const container = footer.querySelector('.container.white') || footer;
+      container.appendChild(versionDiv);
+    }
+
+    // Afficher la version actuelle
+    const currentVersion = CURRENT_VERSION !== '__USERSCRIPT_VERSION__' ? CURRENT_VERSION : 'dev';
+    
+    // En mode dev, afficher simplement "dev" sans essayer de fetch
+    if (currentVersion === 'dev') {
+      versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong> <span style="color: #5bc0de;">ℹ️ (mode développement)</span></span>`;
+      return;
+    }
+    
+    versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
+
+    // Déterminer l'URL du fichier version.json (GitHub en prod)
+    const versionUrl = 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
+
+    // Récupérer la dernière version disponible
+    fetch(versionUrl)
+      .then(response => {
+        if (!response.ok) {throw new Error('Fetch failed');}
+        return response.json();
+      })
+      .then(data => {
+        const latestSpan = document.getElementById('latest-version');
+        if (latestSpan) {
+          latestSpan.innerHTML = `<strong>${data.version}</strong>`;
+
+          // Comparer les versions et afficher un indicateur si mise à jour disponible
+          if (data.version !== currentVersion) {
+            latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('[Version Info] Erreur lors de la récupération de la version:', error);
+        const latestSpan = document.getElementById('latest-version');
+        if (latestSpan) {
+          latestSpan.textContent = 'erreur';
+        }
+      });
+  }
+
+  function relocateKramailToLeft() {
+    // Ne pas exécuter sur les pages kramails (préserver navigation Réception/Envoi/Corbeille)
+    if (window.location.pathname.includes('/kramail')) {
+      return;
+    }
+    
+    const colT = document.getElementById('col-t');
+    const colLeft = document.getElementById('col-left');
+    if (!colT || !colLeft) {return;}
+
+    // Supprimer les blocs Kramail
+    colT.querySelectorAll('a[href*="kramail"]').forEach(a => {
+      const container = a.closest('div,section,li,article');
+      if (container && container !== colT && container.id !== 'col-t') {
+        container.remove();
+      } else {
+        a.remove();
+      }
+    });
+
+    // Sélectionner les éléments à déplacer
+    const selectors = ['.ds_users', '.ds_characters', '.ds_online'].map(c => `a${c}`);
+    let toMove = [];
+    selectors.forEach(sel => toMove.push(...colT.querySelectorAll(sel)));
+
+    if (toMove.length < 3) {
+      const texts = ['Membres actifs', 'Personnages actifs', 'Personnes en ligne'];
+      texts.forEach(txt => {
+        const el = Array.from(colT.querySelectorAll('a, li, div, p'))
+          .find(n => n.textContent?.includes(txt));
+        if (el && !toMove.includes(el)) {toMove.push(el);}
+      });
+    }
+
+    toMove = toMove.filter(el => el && !colLeft.contains(el));
+    if (!toMove.length) {return;}
+
+    let container = colLeft.querySelector('.kraland-metrics');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'kraland-metrics list-group';
+      colLeft.appendChild(container);
+    }
+
+    toMove.forEach(el => container.appendChild(el));
+  }
+
+  function restructurePlatoColumns() {
+    if (!isPlatoPage()) {return;}
+
+    const colLeft = document.getElementById('col-left');
+    const colRight = document.getElementById('col-right');
+    if (!colLeft || !colRight) {return;}
+
+    const parent = colLeft.parentElement;
+    if (!parent || !parent.classList.contains('row')) {return;}
+
+    let colLeftest = document.getElementById('col-leftest');
+    if (!colLeftest) {
+      colLeftest = document.createElement('div');
+      colLeftest.id = 'col-leftest';
+      colLeftest.className = 'col-md-1';
+      parent.insertBefore(colLeftest, colLeft);
+    }
+
+    if (colRight.classList.contains('col-md-9')) {
+      colRight.classList.remove('col-md-9');
+      colRight.classList.add('col-md-8');
+    }
+  }
+
+  function moveBtnGroupToCols() {
+    if (!isPlatoPage()) {return;}
+
+    const btnGroupXs = document.querySelector('.btn-group-xs.center');
+    const colLeftest = document.getElementById('col-leftest');
+    if (!btnGroupXs || !colLeftest || colLeftest.contains(btnGroupXs)) {return;}
+
+    let wrapper = document.getElementById('col-leftest-stats');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.id = 'col-leftest-stats';
+      wrapper.className = 'panel panel-body';
+      colLeftest.appendChild(wrapper);
+    }
+
+    if (!wrapper.contains(btnGroupXs)) {
+      wrapper.appendChild(btnGroupXs);
+    }
+  }
+
+  function transformToBootstrapGrid() {
+    const colLeftestStats = document.getElementById('col-leftest-stats');
+    const skillsPanel = document.getElementById('skills-panel');
+
+    if (colLeftestStats && !colLeftestStats.classList.contains('grid-transformed')) {
+      const btnGroup = colLeftestStats.querySelector('.btn-group-xs');
+      if (btnGroup) {
+        const buttons = Array.from(btnGroup.querySelectorAll('a.btn'));
+        if (buttons.length > 0) {
+          colLeftestStats.innerHTML = '';
+          const row = document.createElement('div');
+          row.className = 'row';
+          buttons.forEach(btn => {
+            const col = document.createElement('div');
+            col.className = 'col-md-6';
+            col.style.display = 'flex';
+            col.style.justifyContent = 'center';
+            col.style.alignItems = 'center';
+            col.style.marginBottom = '8px';
+            col.appendChild(btn);
+            row.appendChild(col);
+          });
+          colLeftestStats.appendChild(row);
+          colLeftestStats.classList.add('grid-transformed');
+        }
+      }
+    }
+
+    if (skillsPanel && !skillsPanel.classList.contains('grid-transformed')) {
+      const items = Array.from(skillsPanel.querySelectorAll('a.list-group-item'));
+      if (items.length > 0) {
+        skillsPanel.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'row';
+        items.forEach(item => {
+          const col = document.createElement('div');
+          col.className = 'col-md-6';
+          col.style.display = 'flex';
+          col.style.justifyContent = 'center';
+          col.style.alignItems = 'center';
+          col.style.marginBottom = '8px';
+          col.appendChild(item);
+          row.appendChild(col);
+        });
+        skillsPanel.appendChild(row);
+        skillsPanel.classList.add('grid-transformed');
+      }
+    }
+  }
+
+  function moveSkillsPanelToCols() {
+    const colLeft = document.getElementById('col-left');
+    const colLeftest = document.getElementById('col-leftest');
+    if (!colLeft || !colLeftest) {return;}
+
+    const skillsPanelOld = colLeft.querySelector('.panel.panel-default');
+    if (!skillsPanelOld) {return;}
+
+    const panelBody = skillsPanelOld.querySelector('.panel-body');
+    if (!panelBody || panelBody.id) {return;}
+
+    panelBody.id = 'skills-panel';
+    colLeftest.appendChild(panelBody);
+    skillsPanelOld.remove();
+  }
+
+  function nameLeftSidebarDivs() {
+    const colLeft = document.getElementById('col-left');
+    if (!colLeft) {return;}
+
+    const mainPanel = colLeft.querySelector('.panel.panel-body');
+    if (mainPanel && !mainPanel.id) {mainPanel.id = 'player-main-panel';}
+
+    const headerSection = colLeft.querySelector('.list-group');
+    if (headerSection && !headerSection.id) {headerSection.id = 'player-header-section';}
+
+    const vitalsSection = colLeft.querySelector('div.t.row');
+    if (vitalsSection && !vitalsSection.id) {vitalsSection.id = 'player-vitals-section';}
+
+    const allTDivs = Array.from(colLeft.querySelectorAll('div.t'));
+    if (allTDivs.length > 0) {
+      const actionsSection = allTDivs[allTDivs.length - 1];
+      if (!actionsSection.id && actionsSection.querySelector('a.btn-primary')) {
+        actionsSection.id = 'player-actions-section';
+      }
+    }
+  }
+
+  function transformSkillsToIcons() {
+    const skillsPanel = document.getElementById('skills-panel');
+    if (!skillsPanel || skillsPanel.dataset.iconsTransformed) {return;}
+
+    skillsPanel.querySelectorAll('.list-group-item').forEach(item => {
+      const heading = item.querySelector('.list-group-item-heading');
+      const skillName = heading?.querySelector('.mini')?.textContent || '';
+      const level = item.querySelector('.mention')?.textContent || '0';
+      const iconCode = CONFIG.SKILL_ICONS[skillName];
+      if (!iconCode) {return;}
+
+      const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
+      const originalClasses = item.className;
+      item.className = originalClasses + ' btn btn-default mini';
+      item.innerHTML = '';
+
+      const iconContainer = createIconContainer(iconUrl, skillName, level);
+      Object.assign(item.style, {
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'center', padding: '8px',
+        width: '40px', height: '40px',
+        minWidth: '40px', minHeight: '40px'
+      });
+      item.appendChild(iconContainer);
+    });
+
+    skillsPanel.dataset.iconsTransformed = '1';
+  }
+
+  function transformStatsToNotifications() {
+    const colLeftestStats = document.getElementById('col-leftest-stats');
+    if (!colLeftestStats || colLeftestStats.dataset.badgesTransformed) {return;}
+
+    colLeftestStats.querySelectorAll('.col-md-6 > a.btn').forEach(statBtn => {
+      const text = statBtn.textContent.trim();
+      const match = text.match(/^([A-Z]+)/);
+      const cleanStatName = match ? match[1] : text;
+      const levelMatch = text.match(/(\d+)$/);
+      const number = levelMatch ? levelMatch[1] : '0';
+
+      while (statBtn.firstChild) {statBtn.removeChild(statBtn.firstChild);}
+
+      const originalClasses = statBtn.className;
+      statBtn.className = originalClasses + ' list-group-item ds_game';
+      Object.assign(statBtn.style, {
+        padding: '8px', display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        width: '40px', height: '40px',
+        minWidth: '40px', minHeight: '40px'
+      });
+      statBtn.title = cleanStatName;
+
+      const displayMode = getStatsDisplayMode();
+
+      // Créer le conteneur principal (toujours avec badge)
+      const container = document.createElement('div');
+      Object.assign(container.style, {
+        position: 'relative', display: 'inline-block',
+        width: '32px', height: '32px'
+      });
+
+      if (displayMode === 'text') {
+        // Mode texte : afficher uniquement l'abréviation (3 lettres)
+        const textSpan = document.createElement('span');
+        textSpan.textContent = cleanStatName.substring(0, 3).toUpperCase();
+        Object.assign(textSpan.style, {
+          fontWeight: 'bold',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '32px',
+          height: '32px'
+        });
+        container.appendChild(textSpan);
+      } else {
+        // Mode icône (par défaut)
+        const iconCode = CONFIG.STAT_ICONS[cleanStatName];
+        if (iconCode) {
+          const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
+          const img = document.createElement('img');
+          img.src = iconUrl;
+          img.alt = cleanStatName;
+          img.title = cleanStatName;
+          Object.assign(img.style, {
+            display: 'block', width: '32px', height: '32px'
+          });
+          container.appendChild(img);
+        } else {
+          // Fallback SVG
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '32');
+          svg.setAttribute('height', '32');
+          svg.setAttribute('viewBox', '0 0 32 32');
+          svg.style.display = 'block';
+
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('width', '32');
+          rect.setAttribute('height', '32');
+          rect.setAttribute('fill', '#f0f0f0');
+          rect.setAttribute('stroke', '#ccc');
+          svg.appendChild(rect);
+
+          const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          svgText.setAttribute('x', '16');
+          svgText.setAttribute('y', '20');
+          svgText.setAttribute('text-anchor', 'middle');
+          svgText.setAttribute('font-size', '14');
+          svgText.setAttribute('font-weight', 'bold');
+          svgText.setAttribute('fill', '#333');
+          svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
+          svg.appendChild(svgText);
+
+          container.appendChild(svg);
+        }
+      }
+
+      // Toujours ajouter le badge de notification
+      container.appendChild(createStatBadge(number));
+      statBtn.appendChild(container);
+    });
+
+    colLeftestStats.dataset.badgesTransformed = '1';
+  }
+
+  function ensureEditorClasses() {
+    const selectors = [
+      '[id^="ajax-"] form#msg', '[id^="ajax-"] textarea',
+      '.col-sm-10 form#msg', '.col-sm-10 textarea#message',
+      'form[name="post_msg"]', 'textarea#message'
+    ];
+
+    document.querySelectorAll(selectors.join(',')).forEach(el => {
+      const root = el.tagName?.toLowerCase() === 'form' ? el : (el.closest('form') || el.parentElement);
+      if (root && !root.classList.contains('editeur-text')) {
+        root.classList.add('editeur-text');
+      }
+    });
+  }
+
+  function ensurePageScoping() {
+    const isMembers = location?.pathname?.indexOf('/communaute/membres') === 0;
+    document.documentElement.classList.toggle('kr-page-members', isMembers);
+  }
+
+  function ensurePlayerMainPanelRows() {
+    const panel = document.getElementById('player-main-panel');
+    if (!panel) {return;}
+
+    Array.from(panel.children)
+      .filter(child => child.tagName?.toLowerCase() === 'div')
+      .filter(div => !div.classList.contains('kr-quick-access-buttons'))
+      .forEach(div => {
+        if (!div.classList.contains('row')) {div.classList.add('row');}
+      });
+  }
+
+  function addQuickAccessButtons() {
+    const panel = document.getElementById('player-main-panel');
+    if (!panel) {return;}
+
+    // Vérifier si les boutons ont déjà été ajoutés
+    if (panel.querySelector('.kr-quick-access-buttons')) {return;}
+
+    // Définir les boutons
+    const buttons = [
+      { label: 'Agir', url: '/jouer/plateau', icon: 'fa-map' },
+      { label: 'Matériel', url: '/jouer/materiel', icon: 'fa-box' },
+      { label: 'Personnage', url: '/jouer/perso', icon: 'fa-user' },
+      { label: 'Bâtiments', url: '/jouer/bat', icon: 'fa-building' },
+      { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
+    ];
+
+    // Créer le conteneur principal avec le système de grille Bootstrap
+    const container = document.createElement('div');
+    container.className = 'kr-quick-access-buttons';
+    container.style.marginTop = '10px';
+
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    // Créer chaque bouton avec une colonne Bootstrap (2 par ligne)
+    buttons.forEach(btn => {
+      const col = document.createElement('div');
+      col.className = 'col-xs-6 col-sm-6';
+
+      const link = document.createElement('a');
+      link.href = btn.url;
+      link.className = 'btn btn-default btn-block mini';
+
+      const icon = document.createElement('i');
+      icon.className = `fa ${btn.icon}`;
+
+      link.appendChild(icon);
+      link.appendChild(document.createTextNode(' ' + btn.label));
+
+      col.appendChild(link);
+      row.appendChild(col);
+    });
+
+    container.appendChild(row);
+
+    // Ajouter les boutons à la fin du panneau
+    panel.appendChild(container);
+  }
+
+  // ============================================================================
+  // UI CONTROLS
+  // ============================================================================
+
+  function insertToggleCSSButton() {
+    if (document.getElementById('kr-toggle-css-btn')) {return;}
+
+    const mapBtn = Array.from(document.querySelectorAll('a'))
+      .find(a => a.getAttribute('onclick')?.includes('openMap'));
+    if (!mapBtn) {return;}
+
+    const mapLi = mapBtn.closest('li');
+    if (!mapLi?.parentElement) {return;}
+
+    const newLi = document.createElement('li');
+    const toggleBtn = document.createElement('a');
+    toggleBtn.href = '';
+    toggleBtn.id = 'kr-toggle-css-btn';
+    toggleBtn.innerHTML = '<i class="fa fa-palette"></i>';
+
+    function updateTitle() {
+      toggleBtn.title = isThemeEnabled()
+        ? 'Désactiver la surcharge CSS'
+        : 'Activer la surcharge CSS';
+    }
+    updateTitle();
+
+    toggleBtn.addEventListener('click', e => {
+      e.preventDefault();
+      if (isThemeEnabled()) {
+        applyThemeVariant('disable');
+      } else {
+        applyThemeVariant(getVariant());
+      }
+      return false;
+    });
+
+    newLi.appendChild(toggleBtn);
+    if (mapLi.parentElement) {
+      mapLi.parentElement.insertBefore(newLi, mapLi);
+    }
+  }
+
+  function insertTampermonkeyThemeUI() {
+    if (!location?.href?.includes('/profil/interface')) {return;}
+
+    function tryInsert() {
+      const headings = Array.from(document.querySelectorAll('h4, h3, h2'));
+      const target = headings.find(h =>
+        h.textContent?.trim().toLowerCase().includes('thème de base')
+      );
+      if (!target) {return false;}
+      if (document.getElementById('kr-tamper-theme')) {return true;}
+
+      const themeOptions = [
+        { value: 'disable', flag: 'f0', label: 'Désactiver la surcharge CSS' },
+        { value: 'kraland', flag: 'f1', label: 'République de Kraland' },
+        { value: 'empire-brun', flag: 'f2', label: 'Empire Brun' },
+        { value: 'empire-brun-dark', flag: 'f2', label: 'Empire Brun (Dark Mode)' },
+        { value: 'paladium', flag: 'f3', label: 'Paladium Corporation' },
+        { value: 'paladium-dark', flag: 'f3', label: 'Paladium Corporation (Dark Mode)' },
+        { value: 'theocratie-seelienne', flag: 'f4', label: 'Théocratie Seelienne' },
+        { value: 'theocratie-seelienne-dark', flag: 'f4', label: 'Théocratie Seelienne (Dark Mode)' },
+        { value: 'paradigme-vert', flag: 'f5', label: 'Paradigme Vert' },
+        { value: 'paradigme-vert-dark', flag: 'f5', label: 'Paradigme Vert (Dark Mode)' },
+        { value: 'khanat-elmerien', flag: 'f6', label: 'Khanat Elmérien' },
+        { value: 'khanat-elmerien-dark', flag: 'f6', label: 'Khanat Elmérien (Dark Mode)' },
+        { value: 'confederation-libre', flag: 'f7', label: 'Confédération Libre' },
+        { value: 'confederation-libre-dark', flag: 'f7', label: 'Confédération Libre (Dark Mode)' },
+        { value: 'royaume-ruthvenie', flag: 'f8', label: 'Royaume de Ruthvénie' },
+        { value: 'royaume-ruthvenie-dark', flag: 'f8', label: 'Royaume de Ruthvénie (Dark Mode)' }
+      ];
+
+      const radios = themeOptions.map(opt => `
+        <div class="radio">
+          <span class="lefticon"><img src="http://img7.kraland.org/2/world/${opt.flag}.png" width="15" height="10"></span>
+          <label><input type="radio" name="kr-theme" value="${opt.value}"> ${opt.label}</label>
+        </div>
+      `).join('');
+
+      const statsDisplayRadios = `
+        <div class="radio">
+          <label><input type="radio" name="kr-stats-display" value="icon"> Icônes</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="kr-stats-display" value="text"> Texte</label>
+        </div>
+      `;
+
+      const hideQuoteCheckbox = `
+        <div class="checkbox">
+          <label><input type="checkbox" name="kr-hide-quote" id="kr-hide-quote"> Masquer la citation du footer</label>
+        </div>
+      `;
+
+      const container = document.createElement('div');
+      container.id = 'kr-tamper-theme';
+      container.className = 'well kr-tamper-theme';
+      container.innerHTML = `
+        <h4>Thème Tampermonkey (Activez le thème de base officiel pour éviter les conflits)</h4>
+        <form id="kr-tamper-theme-form" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Choix du thème</label>
+            <div class="col-sm-9">${radios}</div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Affichage des caractéristiques</label>
+            <div class="col-sm-9">${statsDisplayRadios}</div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Options du footer</label>
+            <div class="col-sm-9">${hideQuoteCheckbox}</div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Carte</label>
+            <div class="col-sm-9">
+              <div class="checkbox">
+                <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>
+                <p class="help-block" style="margin-top:6px">Merci <a href="http://www.kraland.org/communaute/membres/sylke-1-3335" target="_blank" rel="noopener noreferrer">Sylke</a></p>
+              </div>
+            </div>
+          </div>
+        </form>
+      `;
+
+      if (target.parentElement) {
+        target.parentElement.insertBefore(container, target);
+      }
+
+      const form = container.querySelector('#kr-tamper-theme-form');
+
+      function syncUI() {
+        if (!isThemeEnabled()) {
+          const d = form.querySelector('input[value="disable"]');
+          if (d) {d.checked = true;}
+        } else {
+          const v = getVariant();
+          const el = form.querySelector(`input[value="${v}"]`);
+          if (el) {el.checked = true;}
+        }
+
+        // Synchroniser l'affichage des caractéristiques
+        const statsMode = getStatsDisplayMode();
+        const statsEl = form.querySelector(`input[name="kr-stats-display"][value="${statsMode}"]`);
+        if (statsEl) {statsEl.checked = true;}
+
+        // Synchroniser l'option de masquage de la citation
+        const hideQuote = localStorage.getItem('kr-hide-footer-quote') === 'true';
+        const hideQuoteEl = form.querySelector('#kr-hide-quote');
+        if (hideQuoteEl) {hideQuoteEl.checked = hideQuote;}
+
+        // Synchroniser l'option Carte médiévale
+        const medieval = localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+        const medievalEl = form.querySelector('#kr-medieval-map-checkbox');
+        if (medievalEl) { medievalEl.checked = medieval; }
+      }
+
+      form.addEventListener('change', (e) => {
+        // Gestion du changement de thème
+        if (e.target.name === 'kr-theme') {
+          const sel = form.querySelector('input[name="kr-theme"]:checked');
+          if (!sel) {return;}
+          const val = sel.value;
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = val === 'disable'
+            ? 'Désactivation du thème...'
+            : 'Application du thème: ' + val;
+          container.appendChild(feedback);
+
+          setTimeout(() => applyThemeVariant(val), 300);
+        }
+
+        // Gestion du changement d'affichage des caractéristiques
+        if (e.target.name === 'kr-stats-display') {
+          const sel = form.querySelector('input[name="kr-stats-display"]:checked');
+          if (!sel) {return;}
+          const val = sel.value;
+
+          localStorage.setItem(CONFIG.STATS_DISPLAY_KEY, val);
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = val === 'icon'
+            ? 'Affichage en icônes activé. Rechargez la page pour voir les changements.'
+            : 'Affichage en texte activé. Rechargez la page pour voir les changements.';
+          container.appendChild(feedback);
+
+          setTimeout(() => {
+            feedback.remove();
+          }, 5000);
+        }
+
+        // Gestion du masquage de la citation
+        if (e.target.name === 'kr-hide-quote') {
+          const isChecked = e.target.checked;
+          localStorage.setItem('kr-hide-footer-quote', isChecked.toString());
+
+          // Appliquer immédiatement le changement
+          if (isChecked) {
+            document.documentElement.classList.add('kr-hide-footer-quote');
+          } else {
+            document.documentElement.classList.remove('kr-hide-footer-quote');
+          }
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked
+            ? 'Citation du footer masquée.'
+            : 'Citation du footer affichée.';
+          container.appendChild(feedback);
+
+          setTimeout(() => {
+            feedback.remove();
+          }, 3000);
+        }
+
+        // Gestion de la Carte médiévale
+        if (e.target.name === 'kr-medieval-map') {
+          const isChecked = e.target.checked;
+          localStorage.setItem(CONFIG.MEDIEVAL_MAP_KEY, isChecked.toString());
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked ? 'Carte médiévale activée. Application...' : 'Carte médiévale désactivée.';
+          container.appendChild(feedback);
+
+          // Appliquer immédiatement
+          applyMedievalMapOption();
+          setTimeout(() => feedback.remove(), 3000);
+
+        }
+      });
+
+      syncUI();
+      return true;
+    }
+
+    if (!tryInsert()) {
+      let attempts = 0;
+      const id = setInterval(() => {
+        attempts++;
+        if (tryInsert() || attempts > 25) {clearInterval(id);}
+      }, 200);
+    }
+  }
+
+  // ============================================================================
+  // OBSERVERS
+  // ============================================================================
+
+  function startObservers() {
+    let domTransformationsApplied = false;
+
+    const mo = new MutationObserver(() => {
+      if (isThemeEnabled()) {
+        if (!document.getElementById(CONFIG.STYLE_ID)) {
+          applyThemeInline(CONFIG.BUNDLED_CSS);
+        }
+        if (!domTransformationsApplied) {
+          applyDOMTransformations();
+          domTransformationsApplied = true;
+        }
+      }
+      // S'assurer que la carte médiévale est appliquée si l'option est active
+      safeCall(() => applyMedievalMapOption());
+      safeCall(insertToggleCSSButton);
+    });
+
+    if (document.documentElement || document) {
+      mo.observe(document.documentElement || document, { childList: true, subtree: true });
+    }
+
+    // SPA navigation
+    const wrap = orig => function () {
+      const ret = orig.apply(this, arguments);
+      setTimeout(() => ensureTheme(), 250);
+      return ret;
+    };
+    history.pushState = wrap(history.pushState);
+    history.replaceState = wrap(history.replaceState);
+    window.addEventListener('popstate', () => setTimeout(() => ensureTheme(), 250));
+  }
+
+  // ============================================================================
+  // MODAL PERSONNAGE MOBILE - INTERACTIONS UX/UI
+  // ============================================================================
+
+  /**
+   * Améliore l'UX mobile du modal de sélection personnage
+   * - Navigation carousel pour sélecteur personnages (prev/next)
+   * - Description collapsible dans le header
+   * - Tabs swipeable avec détection de geste
+   * - Indicateurs de navigation (dots)
+   * - Compteur de caractères pour textarea
+   * - Feedback tactile sur les interactions
+   */
+  function initCharacterModalMobile() {
+    // Observer l'apparition des modals Bootbox
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            setTimeout(() => {
+              enhanceCharacterModal(node);
+            }, 150);
+          }
+        });
+      });
+    });
+
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      modalObserver.observe(document.body, { childList: true, subtree: false });
+    }
+  }
+
+  /**
+   * Scroll automatiquement vers l'onglet actif dans les modals personnage
+   * Surveille les mises à jour AJAX et maintient le scroll sur le bon onglet
+   */
+  function initModalTabScroll() {
+    // Observer les changements dans les modals pour détecter les mises à jour AJAX
+    const tabScrollObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Vérifier si c'est un changement de contenu dans une modal
+        const modal = mutation.target.closest('.bootbox.modal');
+        if (!modal) {return;}
+
+        // Chercher le panel-heading avec les tabs
+        const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
+        if (!panelHeading) {return;}
+
+        // Chercher l'onglet actif
+        const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
+        if (!activeTab) {return;}
+
+        // Scroller vers l'onglet actif
+        setTimeout(() => {
+          const tabRect = activeTab.getBoundingClientRect();
+          const containerRect = panelHeading.getBoundingClientRect();
+
+          // Calculer la position de scroll pour centrer l'onglet
+          const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
+
+          panelHeading.scrollTo({
+            left: Math.max(0, scrollLeft),
+            behavior: 'smooth'
+          });
+        }, 100);
+      });
+    });
+
+    // Observer le body pour détecter les changements dans les modals
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      tabScrollObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+  }
+
+  /**
+   * Fusionne les colonnes d'une row en une seule div pour le mode mobile
+   * Remplace les changements de div par des espaces
+   */
+  function mergeColumnsInMobile(modal) {
+    if (!modal) {return;}
+
+    // Trouver tous les panneaux avec des colonnes Bootstrap
+    const panels = modal.querySelectorAll('.panel-info, .panel-primary, .panel-default');
+
+    panels.forEach(panel => {
+      // Cibler les lignes dans panel-heading, panel-body, panel-footer
+      const rows = panel.querySelectorAll('.panel-heading .row, .panel-body .row, .panel-actions .row, .panel-footer .row');
+
+      rows.forEach(row => {
+        // Récupérer toutes les colonnes de cette row
+        const columns = row.querySelectorAll('[class*="col-"]');
+
+        if (columns.length > 0) {
+          // Collecter le contenu de toutes les colonnes avec des espaces entre elles
+          const contents = [];
+          columns.forEach(col => {
+            const text = col.textContent.trim();
+            const html = col.innerHTML.trim();
+
+            // Si la colonne contient des éléments (pas juste du texte), garder le HTML
+            if (col.children.length > 0) {
+              contents.push(html);
+            } else if (text) {
+              contents.push(text);
+            }
+          });
+
+          // Créer une nouvelle div unique avec tout le contenu
+          const mergedDiv = document.createElement('div');
+          mergedDiv.className = 'col-xs-12 merged-columns';
+          mergedDiv.innerHTML = contents.join(' ');
+
+          // Supprimer toutes les colonnes existantes
+          columns.forEach(col => col.remove());
+
+          // Ajouter la div fusionnée
+          row.appendChild(mergedDiv);
+        }
+      });
+    });
+  }
+
+  /**
+   * Force le layout grid pour les actions de la modal d'ordre
+   * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
+   */
+  function forceOrderModalGridLayout(modal) {
+    if (!modal) {return;}
+
+    // Vérifier si c'est une modal d'ordre (avec .bootbox-confirm)
+    if (!modal.classList.contains('bootbox-confirm')) {return;}
+
+    // Forcer le .panel-heading en colonne pour empiler les grilles verticalement
+    const panelHeading = modal.querySelector('.panel-heading');
+    if (panelHeading) {
+      panelHeading.style.setProperty('display', 'block', 'important');
+    }
+
+    // Chercher tous les ul.nav-tabs dans .panel-heading
+    const navTabsElements = modal.querySelectorAll('.panel-heading ul.nav-tabs');
+    if (navTabsElements.length === 0) {return;}
+
+    console.log('[Order Modal] Forçage du layout grid pour', navTabsElements.length, 'nav-tabs');
+
+    // Appliquer les styles grid via JavaScript (contourne Bootstrap)
+    navTabsElements.forEach((ul, index) => {
+      // Force display grid avec !important via setProperty
+      ul.style.setProperty('display', 'grid', 'important');
+
+      // Tous les groupes en 2 colonnes - grille homogène continue
+      ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+
+      ul.style.setProperty('gap', '12px', 'important');
+      ul.style.setProperty('padding-left', '0', 'important');
+
+      // Force l'alignement des grid items au début (gauche)
+      ul.style.setProperty('justify-items', 'start', 'important');
+      ul.style.setProperty('align-items', 'stretch', 'important');
+
+      // Grille continue - même espacement partout (pas de séparation visuelle)
+      ul.style.setProperty('margin-bottom', '12px', 'important');
+      ul.style.setProperty('border-bottom', 'none', 'important');
+      ul.style.setProperty('border-top', 'none', 'important');
+      ul.style.setProperty('padding-top', '0', 'important');
+
+      // Désactiver les pseudo-éléments clearfix de Bootstrap qui deviennent grid items
+      // Créer/mettre à jour un élément <style> pour cibler les pseudo-éléments
+      let styleId = 'grid-pseudo-fix-' + index;
+      let styleEl = document.getElementById(styleId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      // Générer un ID unique pour ce UL
+      if (!ul.id) {ul.id = 'order-modal-nav-' + index;}
+      styleEl.textContent = `
+        #${ul.id}::before,
+        #${ul.id}::after {
+          display: none !important;
+          content: none !important;
+        }
+      `;
+
+      // Force les li à être des grid items
+      const listItems = ul.querySelectorAll('li');
+      listItems.forEach(li => {
+        li.style.setProperty('margin', '0', 'important');
+        li.style.setProperty('padding', '0', 'important');
+        li.style.setProperty('float', 'none', 'important');
+        li.style.setProperty('display', 'block', 'important');
+        li.style.setProperty('position', 'static', 'important');
+        li.style.setProperty('width', '100%', 'important'); // Force largeur complète de la colonne
+        li.style.setProperty('grid-column', 'auto', 'important');
+        li.style.setProperty('grid-row', 'auto', 'important');
+        li.style.setProperty('justify-self', 'stretch', 'important');
+        li.style.setProperty('align-self', 'stretch', 'important');
+
+        // Style les liens
+        const link = li.querySelector('a');
+        if (link) {
+          link.style.setProperty('display', 'block', 'important');
+          link.style.setProperty('width', '100%', 'important');
+          link.style.setProperty('min-height', '44px', 'important');
+          link.style.setProperty('padding', '12px 16px', 'important');
+          link.style.setProperty('text-align', 'center', 'important');
+          link.style.setProperty('border-radius', '8px', 'important');
+          link.style.setProperty('margin', '0', 'important');
+          link.style.setProperty('box-sizing', 'border-box', 'important');
+        }
+      });
+
+      console.log(`[Order Modal] Grid appliqué sur nav-tabs #${index + 1} (${listItems.length} items)`);
+    });
+
+    // Appliquer un second coup après un délai pour contrer les réinitialisations Bootstrap
+    setTimeout(() => {
+      navTabsElements.forEach(ul => {
+        ul.style.setProperty('display', 'grid', 'important');
+      });
+    }, 100);
+  }
+
+  /**
+   * NOUVELLE FONCTION - Optimise la structure de la modal pour mobile
+   */
+  function transformOrderModalStructure(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+    if (modal.dataset.structureTransformed) {return;}
+
+    console.log('[Order Modal] Optimisation structure mobile');
+
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (!modalBody) {return;}
+
+    // === 1. Optimiser le header (select + h3) ===
+    const selectRow = modalBody.querySelector('.row');
+    const h3Title = modalBody.querySelector('h3');
+
+    if (selectRow && h3Title) {
+      // Marquer pour styling sticky
+      selectRow.classList.add('kraland-modal-header');
+      h3Title.classList.add('kraland-character-title');
+      console.log('[Order Modal] Header marqué');
+    }
+
+    // === 2. Identifier la zone d'actions (panel-heading avec nav-tabs) ===
+    const panelWithTabs = modalBody.querySelector('.panel.with-nav-tabs');
+    if (panelWithTabs) {
+      const panelHeading = panelWithTabs.querySelector('.panel-heading');
+      if (panelHeading) {
+        panelHeading.classList.add('kraland-actions-zone');
+        console.log('[Order Modal] Zone actions identifiée');
+      }
+
+      // === 3. Identifier la zone de formulaire (panel-body) ===
+      const panelBody = panelWithTabs.querySelector('.panel-body.panel-order');
+      if (panelBody) {
+        panelBody.classList.add('kraland-form-zone');
+        console.log('[Order Modal] Zone formulaire identifiée');
+      }
+
+      // === 4. Identifier le footer du panel ===
+      const panelFooter = panelWithTabs.querySelector('.panel-footer');
+      if (panelFooter) {
+        panelFooter.classList.add('kraland-action-footer');
+        console.log('[Order Modal] Footer action identifié');
+      }
+    }
+
+    // === 5. Marquer le footer de la modal (boutons OK/Cancel) ===
+    const modalFooter = modal.querySelector('.modal-footer');
+    if (modalFooter) {
+      modalFooter.classList.add('kraland-modal-footer');
+      console.log('[Order Modal] Footer modal identifié');
+    }
+
+    // === 6. Nettoyer les styles inline du panel-info (tableau Actions) ===
+    const panelInfo = modalBody.querySelector('.panel-info');
+    if (panelInfo) {
+      // Retirer les styles inline sur les rows et colonnes
+      const rows = panelInfo.querySelectorAll('.row');
+      rows.forEach(row => {
+        row.style.marginLeft = '';
+        row.style.marginRight = '';
+      });
+
+      const cols = panelInfo.querySelectorAll('[class*="col-"]');
+      cols.forEach(col => {
+        col.style.paddingLeft = '';
+        col.style.paddingRight = '';
+      });
+
+      console.log('[Order Modal] Styles inline nettoyés du panel-info');
+    }
+
+    modal.dataset.structureTransformed = 'true';
+    console.log('[Order Modal] Structure optimisée pour mobile');
+  }
+
+  /**
+   * Nettoie les whitespace text nodes de la toolbar et force le grid layout
+   */
+  function cleanToolbarWhitespace(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const toolbar = modal.querySelector('.btn-toolbar');
+    if (!toolbar) {return;}
+
+    // Supprimer tous les text nodes qui ne contiennent que des espaces
+    const childNodes = Array.from(toolbar.childNodes);
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && /^\s*$/.test(node.textContent)) {
+        toolbar.removeChild(node);
+      }
+    });
+
+    // Forcer le grid layout inline (contourner les règles Bootstrap)
+    toolbar.style.setProperty('display', 'grid', 'important');
+    toolbar.style.setProperty('grid-template-columns', 'repeat(6, 1fr)', 'important');
+    toolbar.style.setProperty('gap', '4px', 'important');
+
+    // Forcer display: contents sur TOUS les wrappers (.btn-group ET .dropdown)
+    toolbar.querySelectorAll('.btn-group, .dropdown, span.dropdown').forEach(wrapper => {
+      wrapper.style.setProperty('display', 'contents', 'important');
+    });
+
+    // Forcer les boutons (y compris ceux dans les dropdowns) à remplir leur cellule
+    toolbar.querySelectorAll('.btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button').forEach(btn => {
+      btn.style.setProperty('width', '100%', 'important');
+      btn.style.setProperty('min-width', '0', 'important');
+      btn.style.setProperty('max-width', 'none', 'important');
+    });
+
+    console.log('[Order Modal] Toolbar grid forcé et whitespace nettoyé');
+  }
+
+  /**
+   * Améliore le feedback visuel des nav-tabs
+   */
+  function enhanceNavTabsFeedback(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    // Ajouter un meilleur feedback au clic sur les nav-tabs
+    const navTabs = modal.querySelectorAll('.nav.nav-tabs li a');
+    navTabs.forEach(link => {
+      // Ajouter classe pour feedback tactile
+      link.classList.add('kr-touch-feedback');
+
+      // UX AMÉLIORATION #2: Meilleur feedback visuel sur l'état actif
+      link.addEventListener('click', function () {
+        // Retirer classe active de tous les onglets
+        modal.querySelectorAll('.nav.nav-tabs li').forEach(li => li.classList.remove('active'));
+        // Ajouter à l'onglet cliqué
+        this.parentElement.classList.add('active');
+      });
+    });
+
+    console.log('[Order Modal] Feedback tactile ajouté aux nav-tabs');
+  }
+
+  /**
+   * UX AMÉLIORATION #1: Rend l'alerte d'aide repliable
+   */
+  function makeAlertCollapsible(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const alert = modal.querySelector('.alert');
+    if (!alert) {return;}
+
+    // Créer le bouton toggle
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'kr-alert-toggle';
+    toggleBtn.innerHTML = '<i class="fas fa-question-circle"></i> Aide';
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.setAttribute('aria-label', 'Afficher/masquer l\'aide');
+
+    // Wrapper pour le contenu de l'alerte
+    const alertContent = document.createElement('div');
+    alertContent.className = 'kr-alert-content';
+    alertContent.style.display = 'none';
+
+    // Déplacer le contenu dans le wrapper
+    while (alert.firstChild) {
+      alertContent.appendChild(alert.firstChild);
+    }
+
+    // Ajouter le bouton et le contenu
+    alert.appendChild(toggleBtn);
+    alert.appendChild(alertContent);
+    alert.classList.add('kr-alert-collapsible');
+
+    // Gérer le toggle
+    toggleBtn.addEventListener('click', function () {
+      const isExpanded = alertContent.style.display !== 'none';
+      alertContent.style.display = isExpanded ? 'none' : 'block';
+      toggleBtn.setAttribute('aria-expanded', !isExpanded);
+      toggleBtn.innerHTML = isExpanded ?
+        '<i class="fas fa-question-circle"></i> Aide' :
+        '<i class="fas fa-times-circle"></i> Masquer l\'aide';
+    });
+
+    console.log('[Order Modal] Alerte rendue repliable');
+  }
+
+  /**
+   * UX AMÉLIORATION #3: Agrandit le textarea pour meilleur confort
+   */
+  function enlargeTextarea(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const textarea = modal.querySelector('textarea#message');
+    if (!textarea) {return;}
+
+    // Passer de 5 à 8 rows minimum
+    textarea.rows = 8;
+
+    // Ajouter auto-resize
+    textarea.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    console.log('[Order Modal] Textarea agrandi (8 rows + auto-resize)');
+  }
+
+  /**
+   * UX AMÉLIORATION #4: Formate le footer en badges visuels
+   */
+  function formatFooterAsBadges(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const actionFooter = modal.querySelector('.kraland-action-footer p');
+    if (!actionFooter) {return;}
+
+    const text = actionFooter.textContent;
+
+    // Parser le texte: "Coût: 0 MØ | Durée: 00:00 | Potentiel: PER + Discrétion = 1"
+    const costMatch = text.match(/Coût:\s*([^|]+)/);
+    const durationMatch = text.match(/Durée:\s*([^|]+)/);
+    const potentialMatch = text.match(/Potentiel:\s*(.+)$/);
+
+    if (!costMatch && !durationMatch && !potentialMatch) {return;}
+
+    // Créer les badges
+    const badgesHTML = `
+      <div class="kr-action-badges">
+        ${costMatch ? `<span class="kr-badge kr-badge-cost"><i class="fas fa-coins"></i> ${costMatch[1].trim()}</span>` : ''}
+        ${durationMatch ? `<span class="kr-badge kr-badge-duration"><i class="far fa-clock"></i> ${durationMatch[1].trim()}</span>` : ''}
+        ${potentialMatch ? `<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${potentialMatch[1].trim()}</span>` : ''}
+      </div>
+    `;
+
+    actionFooter.innerHTML = badgesHTML;
+    console.log('[Order Modal] Footer formaté en badges');
+  }
+
+  /**
+   * UX AMÉLIORATION #5: Renforce visuellement le bouton OK
+   */
+  function enhanceOkButton(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const modalFooter = modal.querySelector('.kraland-modal-footer');
+    if (!modalFooter) {return;}
+
+    const okButton = modalFooter.querySelector('.btn-primary');
+    const cancelButton = modalFooter.querySelector('.btn-default');
+
+    if (okButton) {
+      okButton.classList.add('kr-btn-primary-enhanced');
+    }
+
+    if (cancelButton) {
+      cancelButton.classList.add('kr-btn-secondary-subtle');
+    }
+
+    console.log('[Order Modal] Boutons OK/Cancel améliorés');
+  }
+
+  /**
+   * UX AMÉLIORATION #6: Groupe les options du select par type (PJ/PNJ)
+   */
+  function groupSelectOptions(modal) {
+    if (!modal) {return;}
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    const select = modal.querySelector('.kraland-modal-header select');
+    if (!select) {return;}
+
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length === 0) {return;}
+
+    // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
+    const pjOptions = [];
+    const pnjOptions = [];
+
+    options.forEach(option => {
+      const text = option.textContent;
+      // Détecter PNJ par patterns communs
+      if (text.includes('PNJ') || text.includes('[') || text.match(/\d+ /) || text.includes('Garde') || text.includes('Esclave')) {
+        pnjOptions.push(option);
+      } else {
+        pjOptions.push(option);
+      }
+    });
+
+    // Ne grouper que s'il y a les deux types
+    if (pjOptions.length === 0 || pnjOptions.length === 0) {return;}
+
+    // Vider le select
+    select.innerHTML = '';
+
+    // Créer les optgroups
+    if (pjOptions.length > 0) {
+      const pjGroup = document.createElement('optgroup');
+      pjGroup.label = 'Personnages Joueurs';
+      pjOptions.forEach(opt => pjGroup.appendChild(opt));
+      select.appendChild(pjGroup);
+    }
+
+    if (pnjOptions.length > 0) {
+      const pnjGroup = document.createElement('optgroup');
+      pnjGroup.label = 'Personnages Non-Joueurs';
+      pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
+      select.appendChild(pnjGroup);
+    }
+
+    console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
+  }
+
+  /**
+   * CRITIQUE: Force position:absolute sur les dropdowns pour contrer Bootstrap JS
+   * Bootstrap 3 applique dynamiquement position:fixed sur les dropdowns, ce qui les
+   * positionne en dehors du contexte de la modal. On force position:absolute pour
+   * qu'ils restent relatifs à leur parent .dropdown et apparaissent au bon endroit.
+   */
+  function fixDropdownPosition(modal) {
+    if (!modal) {return;}
+
+    // Observer les dropdowns qui s'ouvrent
+    const dropdownObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        // Vérifier si un dropdown a été ouvert (classe .open ajoutée)
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const dropdown = mutation.target;
+          if (dropdown.classList.contains('dropdown') && dropdown.classList.contains('open')) {
+            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+            if (dropdownMenu) {
+              // FORCE position:absolute pour override Bootstrap JS
+              dropdownMenu.style.setProperty('position', 'absolute', 'important');
+              dropdownMenu.style.setProperty('bottom', '100%', 'important');
+              dropdownMenu.style.setProperty('top', 'auto', 'important');
+              dropdownMenu.style.setProperty('left', '0', 'important');
+              dropdownMenu.style.setProperty('margin-bottom', '4px', 'important');
+              dropdownMenu.style.setProperty('z-index', '10000', 'important');
+              console.log('[Order Modal] Dropdown position forcée à absolute');
+            }
+          }
+        }
+      });
+    });
+
+    // Observer tous les dropdowns dans la toolbar
+    const toolbar = modal.querySelector('.btn-toolbar');
+    if (toolbar) {
+      const dropdowns = toolbar.querySelectorAll('.dropdown');
+      dropdowns.forEach(dropdown => {
+        dropdownObserver.observe(dropdown, {
+          attributes: true,
+          attributeFilter: ['class']
+        });
+      });
+      console.log(`[Order Modal] Observateur dropdown installé sur ${dropdowns.length} dropdowns`);
+    }
+  }
+
+  /**
+   * Applique toutes les améliorations mobiles à une modal de personnage
+   */
+  function enhanceCharacterModal(modal) {
+    if (!modal) {return;}
+
+    // Vérifier qu'on est bien en mode mobile
+    if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
+    transformOrderModalStructure(modal);
+
+    // CRITIQUE: Fixer la position des dropdowns (couleurs/smileys)
+    fixDropdownPosition(modal);
+
+    // Nettoyer les whitespace nodes de la toolbar pour le grid
+    cleanToolbarWhitespace(modal);
+
+    // === AMÉLIORATIONS UX ===
+    // #1: Alerte repliable
+    makeAlertCollapsible(modal);
+
+    // #2: Améliorer le feedback des nav-tabs (avec état actif)
+    enhanceNavTabsFeedback(modal);
+
+    // #3: Agrandir le textarea
+    enlargeTextarea(modal);
+
+    // #4: Footer en badges
+    formatFooterAsBadges(modal);
+
+    // #5: Bouton OK renforcé
+    enhanceOkButton(modal);
+
+    // #6: Select groupé
+    groupSelectOptions(modal);
+
+    // Force le layout grid pour les modals d'ordre (initial)
+    forceOrderModalGridLayout(modal);
+
+    // Observer les changements dans le body de la modal pour réappliquer le grid après Ajax
+    const modalBody = modal.querySelector('.bootbox-body, .modal-body');
+    if (modalBody) {
+      const contentObserver = new MutationObserver(() => {
+        console.log('[Order Modal] Contenu Ajax détecté - réapplication du grid');
+        forceOrderModalGridLayout(modal);
+        cleanToolbarWhitespace(modal);
+      });
+
+      contentObserver.observe(modalBody, {
+        childList: true,
+        subtree: true
+      });
+
+      console.log('[Order Modal] Observer Ajax installé sur modal body');
+    }
+
+    // Fusionner les colonnes en une seule div pour simplifier le layout mobile
+    mergeColumnsInMobile(modal);
+
+    // Chercher le select de personnages
+    const charSelect = modal.querySelector('select[onchange*="perso"]');
+    if (charSelect) {
+      createCharacterCarousel(modal, charSelect);
+    }
+
+    // Rendre la description collapsible
+    makeDescriptionCollapsible(modal);
+
+    // Améliorer les tabs avec swipe
+    enhanceTabsWithSwipe(modal);
+
+    // Ajouter compteur de caractères aux textarea
+    addCharCounterToTextareas(modal);
+
+    // Ajouter feedback tactile
+    addTouchFeedback(modal);
+  }
+
+  /**
+   * Crée un carousel de navigation pour le sélecteur de personnages
+   */
+  function createCharacterCarousel(modal, select) {
+    // Récupérer toutes les options
+    const options = Array.from(select.options);
+    if (options.length <= 1) {return;} // Pas besoin de carousel avec 1 seul perso
+
+    const currentIndex = select.selectedIndex;
+
+    // Créer le wrapper carousel
+    const carouselWrapper = document.createElement('div');
+    carouselWrapper.className = 'kr-char-selector';
+
+    // Bouton précédent
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'kr-char-nav-btn';
+    prevBtn.innerHTML = '‹';
+    prevBtn.disabled = currentIndex === 0;
+    prevBtn.setAttribute('aria-label', 'Personnage précédent');
+
+    // Affichage du personnage actuel
+    const currentDisplay = document.createElement('div');
+    currentDisplay.className = 'kr-selector-current';
+
+    const currentAvatar = document.createElement('img');
+    currentAvatar.src = modal.querySelector('.modal-header img')?.src || '';
+    currentAvatar.alt = 'Avatar';
+
+    const currentName = document.createElement('span');
+    currentName.className = 'kr-selector-current-name';
+    currentName.textContent = options[currentIndex].text;
+
+    const currentCount = document.createElement('span');
+    currentCount.className = 'kr-selector-current-count';
+    currentCount.textContent = `${currentIndex + 1}/${options.length}`;
+
+    currentDisplay.appendChild(currentAvatar);
+    currentDisplay.appendChild(currentName);
+    currentDisplay.appendChild(currentCount);
+
+    // Bouton suivant
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'kr-char-nav-btn';
+    nextBtn.innerHTML = '›';
+    nextBtn.disabled = currentIndex === options.length - 1;
+    nextBtn.setAttribute('aria-label', 'Personnage suivant');
+
+    // Assembler
+    carouselWrapper.appendChild(prevBtn);
+    carouselWrapper.appendChild(currentDisplay);
+    carouselWrapper.appendChild(nextBtn);
+
+    // Insérer après le select (ou à la place visuellement)
+    select.parentNode.insertBefore(carouselWrapper, select.nextSibling);
+
+    // Handlers de navigation
+    prevBtn.addEventListener('click', () => {
+      if (select.selectedIndex > 0) {
+        select.selectedIndex--;
+        select.dispatchEvent(new Event('change'));
+        // Modal va se recharger, pas besoin de mettre à jour manuellement
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (select.selectedIndex < options.length - 1) {
+        select.selectedIndex++;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  /**
+   * Rend la description du personnage collapsible dans le header
+   */
+  function makeDescriptionCollapsible(modal) {
+    const header = modal.querySelector('.modal-header');
+    if (!header) {return;}
+
+    // Chercher le texte de description (souvent après le nom)
+    const headerDiv = header.querySelector('div');
+    if (!headerDiv) {return;}
+
+    // Séparer le nom et la description
+    const contentNodes = Array.from(headerDiv.childNodes);
+    const textNodes = contentNodes.filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+
+    if (textNodes.length === 0) {return;}
+
+    // Wrapper pour la description
+    const descWrapper = document.createElement('div');
+    descWrapper.className = 'kr-char-description collapsed';
+
+    // Mettre les nœuds texte dans le wrapper (sauf le premier qui est le nom)
+    textNodes.slice(1).forEach(node => {
+      descWrapper.appendChild(node.cloneNode(true));
+      node.remove();
+    });
+
+    if (descWrapper.textContent.trim()) {
+      headerDiv.appendChild(descWrapper);
+
+      // Bouton toggle
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'kr-char-expand-btn';
+      toggleBtn.innerHTML = '▼';
+      toggleBtn.setAttribute('aria-label', 'Afficher/masquer description');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+
+      header.appendChild(toggleBtn);
+
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = descWrapper.classList.contains('collapsed');
+
+        if (isCollapsed) {
+          descWrapper.classList.remove('collapsed');
+          descWrapper.classList.add('expanded');
+          toggleBtn.classList.add('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          descWrapper.classList.remove('expanded');
+          descWrapper.classList.add('collapsed');
+          toggleBtn.classList.remove('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  }
+
+  /**
+   * Améliore les tabs avec swipe et indicateurs
+   */
+  function enhanceTabsWithSwipe(modal) {
+    const tabsContainer = modal.querySelector('.nav-tabs');
+    if (!tabsContainer) {return;}
+
+    const tabs = Array.from(tabsContainer.querySelectorAll('li'));
+    if (tabs.length === 0) {return;}
+
+    // Créer indicateurs de navigation (dots)
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'kr-tabs-indicator';
+
+    tabs.forEach((tab, _index) => {
+      const dot = document.createElement('span');
+      dot.className = 'kr-tab-dot';
+      if (tab.classList.contains('active')) {
+        dot.classList.add('active');
+      }
+      dotsContainer.appendChild(dot);
+    });
+
+    // Insérer les dots après les tabs
+    tabsContainer.parentNode.insertBefore(dotsContainer, tabsContainer.nextSibling);
+
+    // Observer les changements d'onglet actif pour mettre à jour les dots
+    const updateDots = () => {
+      const activeDot = tabs.findIndex(tab => tab.classList.contains('active'));
+      dotsContainer.querySelectorAll('.kr-tab-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === activeDot);
+      });
+    };
+
+    // Observer avec MutationObserver
+    const tabObserver = new MutationObserver(updateDots);
+    tabs.forEach(tab => {
+      tabObserver.observe(tab, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // Détecter le swipe horizontal sur les tabs
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    tabsContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    tabsContainer.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const swipeThreshold = 50; // pixels minimum pour détecter un swipe
+      const diff = touchStartX - touchEndX;
+
+      if (Math.abs(diff) < swipeThreshold) {return;}
+
+      const activeIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+
+      if (diff > 0 && activeIndex < tabs.length - 1) {
+        // Swipe left → onglet suivant
+        tabs[activeIndex + 1].querySelector('a')?.click();
+      } else if (diff < 0 && activeIndex > 0) {
+        // Swipe right → onglet précédent
+        tabs[activeIndex - 1].querySelector('a')?.click();
+      }
+    }
+
+    // Scroll automatique vers l'onglet actif
+    const scrollToActiveTab = () => {
+      // Chercher l'onglet actif dans TOUTES les listes .nav-tabs du modal
+      const currentModal = tabsContainer.closest('.bootbox.modal');
+      const allNavTabs = currentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+      let activeTab = null;
+
+      for (const navTab of allNavTabs) {
+        activeTab = navTab.querySelector('li.active');
+        if (activeTab) {
+          activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          break;
+        }
+      }
+    };
+
+    // Scroll initial
+    setTimeout(scrollToActiveTab, 100);
+
+    // Scroll lors des changements d'onglet - pour TOUTES les listes de tabs du modal
+    const parentModal = tabsContainer.closest('.bootbox.modal');
+    const allNavTabsLists = parentModal?.querySelectorAll('.nav-tabs') || [tabsContainer];
+
+    allNavTabsLists.forEach(navTab => {
+      const allTabs = Array.from(navTab.querySelectorAll('li'));
+      allTabs.forEach(tab => {
+        tab.querySelector('a')?.addEventListener('click', () => {
+          setTimeout(scrollToActiveTab, 100);
+        });
+      });
+    });
+  }
+
+  /**
+   * Ajoute un compteur de caractères aux textarea
+   */
+  function addCharCounterToTextareas(modal) {
+    const textareas = modal.querySelectorAll('textarea');
+
+    textareas.forEach(textarea => {
+      const maxLength = textarea.getAttribute('maxlength');
+      if (!maxLength) {return;}
+
+      const counter = document.createElement('div');
+      counter.className = 'kr-char-counter';
+
+      const updateCounter = () => {
+        const remaining = maxLength - textarea.value.length;
+        counter.textContent = `${remaining} caractères restants`;
+
+        // Code couleur selon le seuil
+        counter.classList.remove('warning', 'error');
+        if (remaining <= 0) {
+          counter.classList.add('error');
+        } else if (remaining <= 20) {
+          counter.classList.add('warning');
+        }
+      };
+
+      textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+      textarea.addEventListener('input', updateCounter);
+      updateCounter();
+    });
+  }
+
+  /**
+   * Ajoute un feedback tactile (ripple effect) sur les éléments interactifs
+   */
+  function addTouchFeedback(modal) {
+    const interactiveElements = modal.querySelectorAll(
+      '.kr-char-nav-btn, .kr-char-expand-btn, .nav-tabs a, .btn, .radio label'
+    );
+
+    interactiveElements.forEach(el => {
+      el.classList.add('kr-touch-feedback');
+
+      el.addEventListener('touchstart', () => {
+        el.classList.add('active');
+
+        // Vibration haptique si disponible
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+      }, { passive: true });
+
+      el.addEventListener('touchend', () => {
+        setTimeout(() => {
+          el.classList.remove('active');
+        }, 600);
+      }, { passive: true });
+
+      el.addEventListener('touchcancel', () => {
+        el.classList.remove('active');
+      }, { passive: true });
+    });
+  }
+
+  // ============================================================================
+  // MODAL BACKDROP CLICK TO CLOSE
+  // ============================================================================
+
+  /**
+   * Active la fermeture des modals Bootbox en cliquant à l'extérieur
+   * Par défaut, Kraland configure Bootbox avec backdrop: "static"
+   * qui empêche la fermeture par clic extérieur
+   *
+   * AMÉLIORATION: Détecte un vrai clic (mousedown + mouseup au même endroit)
+   * et non pas juste un relâchement de bouton (redimensionnement fenêtre)
+   *
+   * Empêche également le scroll automatique de la page lors de l'ouverture
+   */
+  function enableModalBackdropClick() {
+    // Sauvegarder la position avant chaque modal
+    let scrollBeforeModal = { x: 0, y: 0 };
+
+    // Map pour tracker les position mousedown par modal
+    const mousedownPositions = new WeakMap();
+
+    const modalObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          // Vérifier si c'est une modal Bootbox
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            // Sauvegarder immédiatement la position actuelle
+            scrollBeforeModal.x = window.scrollX;
+            scrollBeforeModal.y = window.scrollY;
+
+            setTimeout(() => {
+              // Récupérer les données Bootstrap de la modal
+              const modalData = $(node).data('bs.modal');
+              if (modalData && modalData.options.backdrop === 'static') {
+                // Changer backdrop de "static" à true pour permettre fermeture par clic
+                modalData.options.backdrop = true;
+
+                // Handler pour tracker le mousedown sur le backdrop
+                $(node).on('mousedown.backdrop.track', function (e) {
+                  // Ne tracker que si on clique sur le backdrop lui-même (pas sur la modal)
+                  if (e.target === this) {
+                    mousedownPositions.set(this, { x: e.clientX, y: e.clientY });
+                  }
+                });
+
+                // Réattacher le handler de clic sur backdrop avec détection de vrai clic
+                $(node).off('click.dismiss.bs.modal').on('click.dismiss.bs.modal', function (e) {
+                  // Vérifier que c'est un clic sur le backdrop lui-même
+                  if (e.target !== this) {
+                    return;
+                  }
+
+                  // Vérifier qu'il y a eu un mousedown au même endroit
+                  // Cela élimine les faux clics dus au relâchement du bouton lors du redimensionnement
+                  const downPos = mousedownPositions.get(this);
+                  if (!downPos) {
+                    // Pas de mousedown préalable = pas de vrai clic, ignorer
+                    return;
+                  }
+
+                  // Vérifier que le mousedown et mouseup sont au même endroit (tolérance 5px)
+                  const tolerance = 5;
+                  const distance = Math.sqrt(
+                    Math.pow(e.clientX - downPos.x, 2) + Math.pow(e.clientY - downPos.y, 2)
+                  );
+                  if (distance > tolerance) {
+                    // Le curseur a bougé significativement = action de redimensionnement
+                    return;
+                  }
+
+                  // Vrai clic détecté: fermer la modal
+                  $(this).modal('hide');
+
+                  // Nettoyer la position trackée
+                  mousedownPositions.delete(this);
+                });
+
+                // Nettoyer la position trackée quand la modal se ferme
+                $(node).one('hidden.bs.modal', function () {
+                  mousedownPositions.delete(this);
+                });
+              }
+
+              // Restaurer la position de scroll
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            }, 100); // Augmenter le délai à 100ms pour laisser Bootstrap terminer
+
+            // Ajouter aussi un handler sur l'événement 'shown.bs.modal' pour être sûr
+            $(node).one('shown.bs.modal', function () {
+              window.scrollTo(scrollBeforeModal.x, scrollBeforeModal.y);
+            });
+          }
+        });
+      });
+    });
+
+    // Observer le body pour détecter l'ajout de modals
+    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    if (document.body) {
+      modalObserver.observe(document.body, { childList: true, subtree: false });
+    }
+  }
+
+  // ============================================================================
+  // HORLOGE À DOUBLE TOUR
+  // ============================================================================
+
+  /**
+   * Gère l'affichage de l'horloge à double tour (0-48h)
+   * Le HTML contient une classe .c100 avec .pXX (pourcentage 0-100) et <span>HH:MM</span>
+   * Pour les heures >24h, on ajoute data-second-lap="true" et on ajuste la classe
+   * Applique également un code couleur selon les paliers d'heures (comme les PV)
+   */
+  function handleDualLapClock() {
+    const clockEl = document.querySelector('.c100');
+    if (!clockEl) {return;}
+
+    const timeSpan = clockEl.querySelector('span');
+    if (!timeSpan) {return;}
+
+    // Extraire l'heure du format "HH:MM"
+    const timeText = timeSpan.textContent.trim();
+    const match = timeText.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) {return;}
+
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+
+    // Calculer le total en minutes depuis le début de la journée Kraland
+    const _totalMinutes = hours * 60 + minutes;
+
+    // Système de couleurs par palier d'heures (inspiré des PV)
+    // 0-6h   → Rouge foncé (#8B0000) - "Critique"
+    // 6-12h  → Orange (#FF8C00) - "Attention"
+    // 12-18h → Jaune/or (#FFD700) - "Moyen"
+    // 18-24h → Vert clair (#90EE90) - "Bon"
+    // 24-48h → Vert lime (#32CD32) - "Excellent" (second tour)
+    let clockColor;
+    if (hours >= 24) {
+      clockColor = '#32CD32'; // Vert lime - Second tour
+    } else if (hours >= 18) {
+      clockColor = '#90EE90'; // Vert clair
+    } else if (hours >= 12) {
+      clockColor = '#FFD700'; // Jaune/or
+    } else if (hours >= 6) {
+      clockColor = '#FF8C00'; // Orange
+    } else {
+      clockColor = '#8B0000'; // Rouge foncé
+    }
+
+    // Appliquer la couleur via CSS custom property
+    clockEl.style.setProperty('--clock-color', clockColor);
+
+    // Une journée Kraland = 24h = 1440 minutes
+    // Si on dépasse 24h, on est sur le deuxième tour
+    if (hours >= 24) {
+      clockEl.setAttribute('data-second-lap', 'true');
+
+      // Calculer le nouveau pourcentage pour 24-48h
+      // On mappe 24-48h sur 0-100% du deuxième tour
+      const hoursInSecondLap = hours - 24;
+      const percentInSecondLap = Math.floor(((hoursInSecondLap * 60 + minutes) / 1440) * 100);
+
+      // Retirer l'ancienne classe pXX
+      clockEl.className = clockEl.className.replace(/\bp\d{1,3}\b/g, '');
+      // Ajouter la nouvelle classe
+      clockEl.className += ' p' + percentInSecondLap;
+    } else {
+      // Premier tour (0-24h) - rien à changer, le serveur fournit déjà le bon pourcentage
+      clockEl.removeAttribute('data-second-lap');
+    }
+  }
+
+  // ============================================================================
+  // MOBILE FEATURES
+  // Fonctionnalités spécifiques au mobile (Phase 6)
+  // ============================================================================
+
+  /**
+   * Initialise les fonctionnalités mobiles
+   * - Overlay pour fermer les panneaux latéraux
+   * - Bouton pour ouvrir le panneau de compétences
+   * - Gestion du mini-chat mobile
+   */
+  function initMobileFeatures() {
+    const isMobile = window.innerWidth < 768;
+    if (!isMobile) {return;}
+
+    // Créer l'overlay pour fermer les panneaux
+    createMobileOverlay();
+
+    // Initialiser le panneau de compétences mobile
+    initMobileSkillsPanel();
+
+    // Initialiser le mini-chat mobile
+    initMobileMiniChat();
+
+    // Initialiser les améliorations UX pour les modals personnages
+    initCharacterModalMobile();
+
+    // Initialiser le scroll automatique des tabs dans les modals
+    initModalTabScroll();
+
+    // Gérer le redimensionnement de la fenêtre
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const nowMobile = window.innerWidth < 768;
+        if (nowMobile !== isMobile) {
+          location.reload(); // Recharger si on passe desktop <-> mobile
+        }
+      }, 250);
+    });
+  }
+
+  /**
+   * Crée l'overlay mobile pour fermer les panneaux latéraux
+   */
+  function createMobileOverlay() {
+    if (document.querySelector('.kr-mobile-overlay')) {return;}
+
+    const overlay = document.createElement('div');
+    overlay.className = 'kr-mobile-overlay';
+    overlay.addEventListener('click', () => {
+      // Fermer le panneau de compétences
+      const skillsPanel = document.getElementById('skills-panel');
+      if (skillsPanel) {
+        skillsPanel.classList.remove('mobile-open');
+      }
+
+      // Fermer le mini-chat
+      const miniChat = document.getElementById('flap');
+      if (miniChat) {
+        miniChat.classList.remove('mobile-open');
+      }
+
+      // Masquer l'overlay
+      overlay.classList.remove('active');
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  /**
+   * Initialise le panneau de compétences pour mobile
+   */
+  function initMobileSkillsPanel() {
+    if (!isPlatoPage()) {return;}
+
+    const skillsPanel = document.getElementById('skills-panel');
+    if (!skillsPanel) {return;}
+
+    // Créer le bouton pour ouvrir le panneau de compétences
+    const skillsToggle = document.createElement('button');
+    skillsToggle.className = 'kr-mobile-skills-toggle btn btn-primary';
+    skillsToggle.innerHTML = '<i class="fa fa-chart-bar"></i>';
+    skillsToggle.setAttribute('aria-label', 'Afficher les compétences');
+    skillsToggle.onclick = () => {
+      skillsPanel.classList.toggle('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.toggle('active');
+      }
+    };
+
+    document.body.appendChild(skillsToggle);
+
+    // Créer le bouton de fermeture dans le panneau
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'kr-mobile-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Fermer');
+    closeBtn.onclick = () => {
+      skillsPanel.classList.remove('mobile-open');
+      const overlay = document.querySelector('.kr-mobile-overlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+      }
+    };
+
+    skillsPanel.insertBefore(closeBtn, skillsPanel.firstChild);
+  }
+
+  /**
+   * Initialise le mini-chat pour mobile
+   */
+  function initMobileMiniChat() {
+    const miniChat = document.getElementById('flap');
+    if (!miniChat) {return;}
+
+    // Bouton pour ouvrir le mini-chat
+    const chatButton = document.querySelector('a[href*="#flap"]');
+    if (chatButton) {
+      chatButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        miniChat.classList.toggle('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.toggle('active');
+        }
+      });
+    }
+
+    // Créer le bouton de fermeture dans le mini-chat
+    if (!miniChat.querySelector('.kr-mobile-close')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'kr-mobile-close';
+      closeBtn.innerHTML = '×';
+      closeBtn.setAttribute('aria-label', 'Fermer le mini-chat');
+      closeBtn.onclick = () => {
+        miniChat.classList.remove('mobile-open');
+        const overlay = document.querySelector('.kr-mobile-overlay');
+        if (overlay) {
+          overlay.classList.remove('active');
+        }
+      };
+
+      // Trouver le header du mini-chat pour y insérer le bouton
+      const chatHeader = miniChat.querySelector('.panel-heading') ||
+                        miniChat.querySelector('.modal-header') ||
+                        miniChat.firstElementChild;
+
+      if (chatHeader) {
+        chatHeader.style.position = 'relative';
+        chatHeader.appendChild(closeBtn);
+      } else {
+        miniChat.insertBefore(closeBtn, miniChat.firstChild);
+      }
+    }
+  }
+
+  // ============================================================================
+  // CHANGELOG MODAL
+  // Gère l'affichage de la modale de changelog au premier chargement
+  // ============================================================================
+
+  const ChangelogManager = {
+    STORAGE_KEY: 'kr-changelog-viewed',
+    CHANGELOG_URL: 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json',
+    changelog: null, // Sera chargé dynamiquement
+
+    /**
+     * Charge le changelog depuis le fichier JSON externe
+     */
+    async loadChangelog() {
+      if (this.changelog !== null) {
+        return this.changelog; // Déjà chargé
+      }
+
+      try {
+        // Utiliser GM.xmlHttpRequest ou fetch si disponible
+        return new Promise((resolve, reject) => {
+          if (typeof GM !== 'undefined' && GM.xmlHttpRequest) {
+            GM.xmlHttpRequest({
+              method: 'GET',
+              url: this.CHANGELOG_URL,
+              timeout: 5000,
+              onload: (response) => {
+                try {
+                  const data = JSON.parse(response.responseText);
+                  this.changelog = this.parseChangelogData(data);
+                  resolve(this.changelog);
+                } catch (e) {
+                  console.warn('[Changelog] Erreur parsing JSON:', e);
+                  this.changelog = {}; // Fallback vide
+                  resolve(this.changelog);
+                }
+              },
+              onerror: (error) => {
+                console.warn('[Changelog] Erreur chargement:', error);
+                this.changelog = {}; // Fallback vide
+                resolve(this.changelog);
+              }
+            });
+          } else {
+            // Fallback: fetch ou pas de chargement
+            fetch(this.CHANGELOG_URL, { cache: 'no-store' })
+              .then(r => r.json())
+              .then(data => {
+                this.changelog = this.parseChangelogData(data);
+                resolve(this.changelog);
+              })
+              .catch(e => {
+                console.warn('[Changelog] Erreur fetch:', e);
+                this.changelog = {}; // Fallback vide
+                resolve(this.changelog);
+              });
+          }
+        });
+      } catch (e) {
+        console.warn('[Changelog] Erreur loadChangelog:', e);
+        return {};
+      }
+    },
+
+    /**
+     * Parse les données du changelog JSON
+     */
+    parseChangelogData(data) {
+      const result = {};
+      if (data.versions && Array.isArray(data.versions)) {
+        data.versions.forEach(v => {
+          if (v.version && Array.isArray(v.changes)) {
+            result[v.version] = v.changes;
+          }
+        });
+      }
+      return result;
+    },
+
+    /**
+     * Récupère la version actuelle du userscript
+     */
+    getCurrentVersion() {
+      return CURRENT_VERSION;
+    },
+
+    /**
+     * Récupère la dernière version visitée
+     */
+    getLastViewedVersion() {
+      try {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        console.warn('[Changelog] Erreur lecture localStorage:', e);
+        return null;
+      }
+    },
+
+    /**
+     * Enregistre qu'on a vu cette version
+     */
+    markVersionAsViewed(version) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(version));
+      } catch (e) {
+        console.warn('[Changelog] Erreur sauvegarde localStorage:', e);
+      }
+    },
+
+    /**
+     * Récupère les changements entre deux versions
+     */
+    getChangesBetweenVersions(oldVersion, newVersion) {
+      // Vérifier que le changelog a bien été chargé
+      if (!this.changelog || typeof this.changelog !== 'object') {
+        return [];
+      }
+
+      // Si c'est la première visite ou version inconnue, montrer la version actuelle
+      if (!oldVersion || !this.changelog[newVersion]) {
+        return this.changelog[newVersion] || [];
+      }
+
+      // Sinon, montrer uniquement le delta
+      const versionKeys = Object.keys(this.changelog)
+        .sort((a, b) => {
+          // Tri simplifié: considère que les versions sont décroissantes
+          return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+      const oldIndex = versionKeys.indexOf(oldVersion);
+      const newIndex = versionKeys.indexOf(newVersion);
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex <= newIndex) {
+        return this.changelog[newVersion] || [];
+      }
+
+      // Récupérer tous les changements entre oldVersion et newVersion (exclu)
+      const changes = [];
+      for (let i = newIndex; i < oldIndex; i++) {
+        const version = versionKeys[i];
+        if (this.changelog[version]) {
+          changes.push(...this.changelog[version]);
+        }
+      }
+      return changes;
+    },
+
+    /**
+     * Crée la modale HTML
+     */
+    createModal(changes) {
+      const modal = document.createElement('div');
+      modal.className = 'kr-changelog-modal';
+      modal.id = 'kr-changelog-modal';
+
+      const isFirstVisit = changes.length === 0 || changes === this.changelog[this.getCurrentVersion()];
+      const title = isFirstVisit ? 'Bienvenue dans Kraland Thème!' : 'Mise à jour disponible';
+      const subtitle = isFirstVisit ? 'Découvrez les améliorations' : 'Voici les changements de cette version';
+
+      modal.innerHTML = `
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content" role="dialog" aria-modal="true" aria-label="${title}">
+          <div class="kr-changelog-header">
+            <h2>${title}</h2>
+          </div>
+          <div class="kr-changelog-body">
+            <p class="kr-changelog-subtitle">${subtitle}</p>
+            <ul class="kr-changelog-list">
+              ${changes.map(change => `<li>${change}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="kr-changelog-footer">
+            <button class="kr-changelog-view-all">Voir tous les changements</button>
+            <button class="kr-changelog-close-btn">Fermer</button>
+          </div>
+        </div>
+      `;
+
+      // Forcer au cas où une autre feuille de style neutraliserait les règles CSS
+      const content = modal.querySelector('.kr-changelog-content');
+      if (content) {
+        content.style.position = 'fixed';
+        content.style.top = '50%';
+        content.style.left = '50%';
+        content.style.transform = 'translate(-50%, -50%)';
+        content.style.width = '90%';
+        content.style.maxWidth = '600px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        content.style.background = 'rgba(0,0,0,0.95)';
+        content.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const overlay = modal.querySelector('.kr-changelog-overlay');
+      if (overlay) {
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.cursor = 'pointer';
+        overlay.tabIndex = -1;
+      }
+
+      return modal;
+    },
+
+    /**
+     * Affiche la modale de changelog
+     */
+    showModal(changes) {
+      // Supprimer une modale existante
+      const existing = document.getElementById('kr-changelog-modal');
+      if (existing) {
+        existing.remove();
+      }
+
+      const modal = this.createModal(changes);
+      document.body.appendChild(modal);
+
+      // Ajouter les event listeners (utiliser uniquement le bouton footer comme contrôle principal)
+      const closeBtnFooter = modal.querySelector('.kr-changelog-close-btn');
+      const overlay = modal.querySelector('.kr-changelog-overlay');
+      const viewAllBtn = modal.querySelector('.kr-changelog-view-all');
+
+      let closeModal = () => {
+        modal.remove();
+        this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
+      };
+
+      // Fermer avec la touche Échap
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
+
+      closeBtnFooter.addEventListener('click', closeModal);
+      overlay.addEventListener('click', closeModal);
+
+      // Bouton pour voir tous les changements
+      viewAllBtn.addEventListener('click', () => {
+        this.showFullChangelog();
+      });
+
+      // Forcer le modal à être visible puis donner le focus au bouton Fermer (footer) pour l'accessibilité
+      setTimeout(() => {
+        modal.classList.add('active');
+        const footerClose = modal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
+      }, 50);
+
+      // Nettoyage des listeners lors de la fermeture
+      const originalClose = closeModal;
+      closeModal = () => {
+        modal.remove();
+        this.markVersionAsViewed(this.getCurrentVersion());
+        document.removeEventListener('keydown', onKeyDown);
+      };
+    },
+
+    /**
+     * Affiche le changelog complet
+     */
+    showFullChangelog() {
+      // Fermer la modale d'alerte d'abord
+      const modal = document.getElementById('kr-changelog-modal');
+      if (modal) {
+        modal.remove();
+      }
+
+      // Créer une modale avec tous les changements
+      const fullModal = document.createElement('div');
+      fullModal.className = 'kr-changelog-modal kr-changelog-full';
+      fullModal.id = 'kr-changelog-full-modal';
+
+      const allChanges = Object.keys(this.changelog)
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+        .map(version => `
+          <div class="kr-changelog-version">
+            <h3>Version ${version}</h3>
+            <ul>
+              ${this.changelog[version].map(change => `<li>${change}</li>`).join('')}
+            </ul>
+          </div>
+        `)
+        .join('');
+
+      fullModal.innerHTML = `
+        <div class="kr-changelog-overlay" tabindex="-1"></div>
+        <div class="kr-changelog-content kr-changelog-content-full" role="dialog" aria-modal="true" aria-label="Historique complet des changements">
+          <div class="kr-changelog-header">
+            <h2>Historique complet des changements</h2>
+          </div>
+          <div class="kr-changelog-body kr-changelog-body-full">
+            ${allChanges}
+          </div>
+          <div class="kr-changelog-footer">
+            <button class="kr-changelog-close-btn">Fermer</button>
+          </div>
+        </div>
+      `;
+
+      // Forcer styles inline au cas où le CSS serait neutralisé
+      const fullContent = fullModal.querySelector('.kr-changelog-content');
+      if (fullContent) {
+        fullContent.style.position = 'fixed';
+        fullContent.style.top = '50%';
+        fullContent.style.left = '50%';
+        fullContent.style.transform = 'translate(-50%, -50%)';
+        fullContent.style.width = '90%';
+        fullContent.style.maxWidth = '800px';
+        // Forcer le fond noir et le texte blanc pour garantir la lisibilité
+        fullContent.style.background = 'rgba(0,0,0,0.95)';
+        fullContent.style.color = '#ffffff';
+      }
+
+      // S'assurer que l'overlay couvre bien l'écran et est cliquable
+      const fullOverlay = fullModal.querySelector('.kr-changelog-overlay');
+      if (fullOverlay) {
+        fullOverlay.style.position = 'fixed';
+        fullOverlay.style.top = '0';
+        fullOverlay.style.left = '0';
+        fullOverlay.style.width = '100%';
+        fullOverlay.style.height = '100%';
+        fullOverlay.style.background = 'rgba(0, 0, 0, 0.5)';
+        fullOverlay.style.cursor = 'pointer';
+        fullOverlay.tabIndex = -1;
+      }
+
+      document.body.appendChild(fullModal);
+
+      // Event listeners (utiliser uniquement le bouton footer comme contrôle principal)
+      const closeBtnFooter = fullModal.querySelector('.kr-changelog-close-btn');
+      const overlay = fullModal.querySelector('.kr-changelog-overlay');
+
+      const closeFullModal = () => {
+        fullModal.remove();
+        document.removeEventListener('keydown', onFullKeyDown);
+      };
+
+      closeBtnFooter.addEventListener('click', closeFullModal);
+      overlay.addEventListener('click', closeFullModal);
+
+      // Fermer avec Échap pour la modale complète
+      const onFullKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          closeFullModal();
+        }
+      };
+      document.addEventListener('keydown', onFullKeyDown);
+
+      setTimeout(() => {
+        fullModal.classList.add('active');
+        const footerClose = fullModal.querySelector('.kr-changelog-close-btn');
+        if (footerClose) {
+          footerClose.focus();
+        }
+      }, 50);
+    },
+
+    /**
+     * Initialise le gestionnaire de changelog
+     */
+    async init() {
+      const currentVersion = this.getCurrentVersion();
+      const lastViewedVersion = this.getLastViewedVersion();
+
+      // Charger le changelog UNIQUEMENT si nouvelle version détectée
+      if (lastViewedVersion !== currentVersion) {
+        console.log('[Changelog] Nouvelle version détectée, chargement du changelog...');
+        await this.loadChangelog();
+
+        const changes = this.getChangesBetweenVersions(lastViewedVersion, currentVersion);
+        if (changes.length > 0) {
+          // Attendre que le DOM soit prêt
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+              setTimeout(() => this.showModal(changes), 1000);
+            });
+          } else {
+            setTimeout(() => this.showModal(changes), 1000);
+          }
+        }
+      } else {
+        console.log('[Changelog] Version identique, pas de chargement');
+      }
+
+      // Ajouter un bouton sur la page profil/interface
+      this.addChangelogButton();
+    },
+
+    /**
+     * Ajoute un bouton sur la page profil pour voir le changelog
+     */
+    addChangelogButton() {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          this.insertChangelogButton();
+        });
+      } else {
+        setTimeout(() => this.insertChangelogButton(), 500);
+      }
+    },
+
+    /**
+     * Insère le bouton dans la page profil
+     */
+    async insertChangelogButton() {
+      // Vérifier qu'on est sur la page interface du profil
+      if (!window.location.href.includes('/profil/interface')) {
+        return;
+      }
+
+      // Charger le changelog si pas encore chargé (pour l'historique complet)
+      if (this.changelog === null) {
+        console.log('[Changelog] Chargement changelog pour page profil...');
+        await this.loadChangelog();
+      }
+
+      // Chercher un endroit pour ajouter le bouton
+      // Généralement dans le panel de contenu
+      const container = document.querySelector('.panel-body') ||
+                       document.querySelector('.content') ||
+                       document.querySelector('main') ||
+                       document.querySelector('.container');
+
+      if (!container) {
+        console.log('[Changelog] Conteneur profil non trouvé');
+        return;
+      }
+
+      // Vérifier que le bouton n'existe pas déjà
+      if (document.getElementById('kr-changelog-btn')) {
+        return;
+      }
+
+      // Créer le bouton
+      const btn = document.createElement('button');
+      btn.id = 'kr-changelog-btn';
+      btn.className = 'btn btn-info kr-changelog-btn';
+      btn.innerHTML = '📝 Voir l\'historique des changements';
+
+      // Si la section "Alertes" est présente, utiliser un style compact mais lisible (texte inline)
+      const krAlertsBtnLocal = document.querySelector('.kr-reset-alerts-btn');
+      const krAlertsHelpLocal = krAlertsBtnLocal && krAlertsBtnLocal.parentNode && krAlertsBtnLocal.parentNode.querySelector('.help-block');
+      if (krAlertsHelpLocal) {
+        btn.className = 'btn btn-link kr-changelog-btn kr-changelog-inline';
+        btn.innerHTML = '📝 Voir l\'historique des changements';
+        btn.setAttribute('title', 'Voir l\'historique des changements');
+        btn.setAttribute('aria-label', 'Voir l\'historique des changements');
+        // Styles minimaux pour rester inline et lisible
+        btn.style.display = 'inline';
+        btn.style.marginLeft = '8px';
+        btn.style.fontSize = '13px';
+        btn.style.padding = '0';
+        btn.style.verticalAlign = 'middle';
+      }
+
+      btn.addEventListener('click', () => {
+        this.showFullChangelog();
+      });
+
+      // Si la section "Alertes" est présente, insérer le bouton *dans* le paragraphe d'aide
+      if (krAlertsHelpLocal) {
+        // On l'ajoute à l'intérieur du <p> pour éviter qu'il soit poussé hors écran sur mobile
+        krAlertsHelpLocal.appendChild(btn);
+      } else {
+        // Insérer le bouton au début du conteneur ou comme dernier élément (fallback)
+        const insertPoint = container.querySelector('h1') || container.querySelector('h2');
+        if (insertPoint) {
+          insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
+        } else {
+          container.insertBefore(btn, container.firstChild);
+        }
+      }
+
+      console.log('[Changelog] Bouton ajouté sur la page profil');
+    }
+  };
+
+  // ============================================================================
+  // INITIALISATION
+  // ============================================================================
+
+  (function init() {
+    try {
+      const themeEnabled = getThemeState();
+
+      // Nettoyage CSS orphelin
+      const existingStyle = document.getElementById(CONFIG.STYLE_ID);
+      if (!themeEnabled && existingStyle?.parentElement) {
+        existingStyle.parentElement.removeChild(existingStyle);
+      }
+
+      // UI Controls (toujours)
+      safeCall(insertToggleCSSButton);
+      safeCall(insertTampermonkeyThemeUI);
+
+      // Theme setup (si activé)
+      if (themeEnabled) {
+        ensureTheme();
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            applyDOMTransformations();
+            uncloakPage();
+          }, { once: true });
+        } else {
+          applyDOMTransformations();
+          uncloakPage();
+        }
+      }
+
+      startObservers();
+
+      // Activer le clic sur backdrop pour fermer les modals
+      enableModalBackdropClick();
+
+      // Initialiser les améliorations mobiles des modals personnage
+      initCharacterModalMobile();
+
+      // Gestion mobile : détection et fonctionnalités spécifiques
+      initMobileFeatures();
+
+      // Exécuter la queue d'initialisation mobile (ordre garanti)
+      // Doit être appelé après DOMContentLoaded et après que mobile-mode soit défini
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => InitQueue.run(), { once: true });
+      } else {
+        InitQueue.run();
+      }
+
+      // Déplacer le style à la fin du head pour la priorité
+      setTimeout(() => {
+        const st = document.getElementById(CONFIG.STYLE_ID);
+        if (isThemeEnabled() && st?.parentElement) {
+          st.parentElement.appendChild(st);
+        } else if (!isThemeEnabled() && st?.parentElement) {
+          st.parentElement.removeChild(st);
+        }
+      }, 1000);
+
+      // Désactiver les tooltips périodiquement
+      setInterval(disableTooltips, 2000);
+
+      // Initialiser le gestionnaire de changelog
+      safeCall(() => ChangelogManager.init());
+
+    } catch(e) {
+      console.error('Kraland theme init failed', e);
+    }
+  })();
+})();

@@ -2001,9 +2001,9 @@
     try { fn(); } catch (_e) { /* ignore */ }
   }
 
-  /** Vérifie si le thème est activé (ON par défaut, OFF seulement si explicitement 'false') */
+  /** Vérifie si le thème est activé */
   function isThemeEnabled() {
-    return localStorage.getItem(CONFIG.ENABLE_KEY) !== 'false';
+    return localStorage.getItem(CONFIG.ENABLE_KEY) === 'true';
   }
 
   /** Récupère la variante de thème actuelle */
@@ -2269,7 +2269,7 @@
 
   // ============================================================================
   // INJECTION CSS IMMÉDIATE
-  // Le cloak (opacity:0) est déjà actif — injecté par le micro-script
+  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
   // avant l'IIFE. Ici on injecte uniquement le thème CSS.
   // Le cloak est retiré dans init() après applyDOMTransformations.
   // ============================================================================
@@ -2293,17 +2293,11 @@
     }
   })();
 
-  // Fonction pour révéler la page (retirer le cloak opacity:0)
+  // Fonction pour révéler la page (retirer le cloak)
   function uncloakPage() {
-    const el = document.documentElement;
-    // Transition douce pour éviter un snap brutal
-    el.style.setProperty('transition', 'opacity .18s ease-in');
-    el.style.setProperty('opacity', '1');
-    // Nettoyer les styles inline après la transition
-    setTimeout(() => {
-      el.style.removeProperty('transition');
-      el.style.removeProperty('opacity');
-    }, 250);
+    document.documentElement.classList.remove('kr-cloaked');
+    const c = document.getElementById('kr-cloak');
+    if (c) c.remove();
   }
 
   // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes
@@ -2393,7 +2387,7 @@
 
   function getThemeState() {
     if (localStorage.getItem(CONFIG.ENABLE_KEY) === null) {
-      localStorage.setItem(CONFIG.ENABLE_KEY, 'true');
+      localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
     }
     return isThemeEnabled();
   }
