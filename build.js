@@ -65,14 +65,12 @@ const version = `1.0.${timestamp}`;
 const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// @grant        GM.xmlHttpRequest\n// @connect      raw.githubusercontent.com\n// @compatible   chrome tampermonkey\n// @compatible   firefox tampermonkey\n// @compatible   edge tampermonkey\n// @compatible   firefox violentmonkey\n// @compatible   chrome violentmonkey\n// ==/UserScript==\n\n`;
 
 // Anti-FOUC: tiny self-contained script injected BEFORE the main IIFE.
-// It runs instantly (no large parse delay) and hides the page until the
-// main script finishes CSS injection + DOM transformations.
-const cloakScript = `// Anti-FOUC cloak — must execute before the main 580KB IIFE is parsed
+// Uses opacity:0 instead of visibility:hidden because visibility can be
+// overridden by child elements with explicit visibility:visible.
+// Inline style on <html> is the fastest way to hide — no extra DOM element.
+const cloakScript = `// Anti-FOUC cloak
 if(localStorage.getItem('kr-theme-enabled')==='true'){
-  document.documentElement.classList.add('kr-cloaked');
-  var s=document.createElement('style');s.id='kr-cloak';
-  s.textContent='html.kr-cloaked{visibility:hidden!important}';
-  (document.head||document.documentElement).appendChild(s);
+  document.documentElement.style.setProperty('opacity','0','important');
 }
 `;
 

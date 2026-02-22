@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1771761866072
+// @version      1.0.1771770861730
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -15,19 +15,16 @@
 // @compatible   chrome violentmonkey
 // ==/UserScript==
 
-// Anti-FOUC cloak — must execute before the main 580KB IIFE is parsed
+// Anti-FOUC cloak
 if(localStorage.getItem('kr-theme-enabled')==='true'){
-  document.documentElement.classList.add('kr-cloaked');
-  var s=document.createElement('style');s.id='kr-cloak';
-  s.textContent='html.kr-cloaked{visibility:hidden!important}';
-  (document.head||document.documentElement).appendChild(s);
+  document.documentElement.style.setProperty('opacity','0','important');
 }
 // Main script code - CSS bundled inline
 (function (){
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1771761866072';
+  const CURRENT_VERSION = '1.0.1771770861730';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -11993,7 +11990,7 @@ html:not([class*='-dark']) .mini {
 
   // ============================================================================
   // INJECTION CSS IMMÉDIATE
-  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
+  // Le cloak (opacity:0) est déjà actif — injecté par le micro-script
   // avant l'IIFE. Ici on injecte uniquement le thème CSS.
   // Le cloak est retiré dans init() après applyDOMTransformations.
   // ============================================================================
@@ -12017,11 +12014,17 @@ html:not([class*='-dark']) .mini {
     }
   })();
 
-  // Fonction pour révéler la page (retirer le cloak)
+  // Fonction pour révéler la page (retirer le cloak opacity:0)
   function uncloakPage() {
-    document.documentElement.classList.remove('kr-cloaked');
-    const c = document.getElementById('kr-cloak');
-    if (c) c.remove();
+    const el = document.documentElement;
+    // Transition douce pour éviter un snap brutal
+    el.style.setProperty('transition', 'opacity .18s ease-in');
+    el.style.setProperty('opacity', '1');
+    // Nettoyer les styles inline après la transition
+    setTimeout(() => {
+      el.style.removeProperty('transition');
+      el.style.removeProperty('opacity');
+    }, 250);
   }
 
   // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes

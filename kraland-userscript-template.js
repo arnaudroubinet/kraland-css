@@ -2269,7 +2269,7 @@
 
   // ============================================================================
   // INJECTION CSS IMMÉDIATE
-  // Le cloak (visibility:hidden) est déjà actif — injecté par le micro-script
+  // Le cloak (opacity:0) est déjà actif — injecté par le micro-script
   // avant l'IIFE. Ici on injecte uniquement le thème CSS.
   // Le cloak est retiré dans init() après applyDOMTransformations.
   // ============================================================================
@@ -2293,11 +2293,17 @@
     }
   })();
 
-  // Fonction pour révéler la page (retirer le cloak)
+  // Fonction pour révéler la page (retirer le cloak opacity:0)
   function uncloakPage() {
-    document.documentElement.classList.remove('kr-cloaked');
-    const c = document.getElementById('kr-cloak');
-    if (c) c.remove();
+    const el = document.documentElement;
+    // Transition douce pour éviter un snap brutal
+    el.style.setProperty('transition', 'opacity .18s ease-in');
+    el.style.setProperty('opacity', '1');
+    // Nettoyer les styles inline après la transition
+    setTimeout(() => {
+      el.style.removeProperty('transition');
+      el.style.removeProperty('opacity');
+    }, 250);
   }
 
   // Timeout de sécurité : ne jamais laisser la page masquée plus de 3 secondes
