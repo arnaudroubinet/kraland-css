@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraland Theme (Bundled)
 // @namespace    http://www.kraland.org/
-// @version      1.0.1770674794805
+// @version      1.0.1771755616044
 // @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey
 // @match        http://www.kraland.org/*
 // @run-at       document-start
@@ -20,7 +20,7 @@
   'use strict';
 
   // Version du userscript (sera remplacée par le build)
-  const CURRENT_VERSION = '1.0.1770674794805';
+  const CURRENT_VERSION = '1.0.1771755616044';
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -11985,7 +11985,7 @@ html:not([class*='-dark']) .mini {
   }
 
   // ============================================================================
-  // INJECTION CSS IMMÉDIATE (avant tout code async)
+  // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
   // ============================================================================
   (function injectCSSImmediately(){
     try {
@@ -12011,7 +12011,7 @@ html:not([class*='-dark']) .mini {
   // GESTION DU THÈME
   // ============================================================================
 
-  async function applyThemeInline(cssText) {
+  function applyThemeInline(cssText) {
     if (!isThemeEnabled()) {return false;}
 
     try {
@@ -12050,9 +12050,9 @@ html:not([class*='-dark']) .mini {
     }
   }
 
-  async function ensureTheme() {
+  function ensureTheme() {
     if (!isThemeEnabled()) {return;}
-    await applyThemeInline(CONFIG.BUNDLED_CSS);
+    applyThemeInline(CONFIG.BUNDLED_CSS);
   }
 
   function applyThemeVariant(variant, skipReload = false) {
@@ -15979,7 +15979,7 @@ html:not([class*='-dark']) .mini {
     const mo = new MutationObserver(() => {
       if (isThemeEnabled()) {
         if (!document.getElementById(CONFIG.STYLE_ID)) {
-          applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
+          applyThemeInline(CONFIG.BUNDLED_CSS);
         }
         if (!domTransformationsApplied) {
           applyDOMTransformations();
@@ -17803,7 +17803,7 @@ html:not([class*='-dark']) .mini {
   // INITIALISATION
   // ============================================================================
 
-  (async function init() {
+  (function init() {
     try {
       const themeEnabled = getThemeState();
 
@@ -17819,7 +17819,7 @@ html:not([class*='-dark']) .mini {
 
       // Theme setup (si activé)
       if (themeEnabled) {
-        await ensureTheme();
+        ensureTheme();
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', applyDOMTransformations, { once: true });

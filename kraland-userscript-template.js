@@ -2268,7 +2268,7 @@
   }
 
   // ============================================================================
-  // INJECTION CSS IMMÉDIATE (avant tout code async)
+  // INJECTION CSS IMMÉDIATE (avant le parsing du DOM)
   // ============================================================================
   (function injectCSSImmediately(){
     try {
@@ -2294,7 +2294,7 @@
   // GESTION DU THÈME
   // ============================================================================
 
-  async function applyThemeInline(cssText) {
+  function applyThemeInline(cssText) {
     if (!isThemeEnabled()) {return false;}
 
     try {
@@ -2333,9 +2333,9 @@
     }
   }
 
-  async function ensureTheme() {
+  function ensureTheme() {
     if (!isThemeEnabled()) {return;}
-    await applyThemeInline(CONFIG.BUNDLED_CSS);
+    applyThemeInline(CONFIG.BUNDLED_CSS);
   }
 
   function applyThemeVariant(variant, skipReload = false) {
@@ -6262,7 +6262,7 @@
     const mo = new MutationObserver(() => {
       if (isThemeEnabled()) {
         if (!document.getElementById(CONFIG.STYLE_ID)) {
-          applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
+          applyThemeInline(CONFIG.BUNDLED_CSS);
         }
         if (!domTransformationsApplied) {
           applyDOMTransformations();
@@ -8086,7 +8086,7 @@
   // INITIALISATION
   // ============================================================================
 
-  (async function init() {
+  (function init() {
     try {
       const themeEnabled = getThemeState();
 
@@ -8102,7 +8102,7 @@
 
       // Theme setup (si activé)
       if (themeEnabled) {
-        await ensureTheme();
+        ensureTheme();
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', applyDOMTransformations, { once: true });
