@@ -496,6 +496,29 @@ input[type="checkbox"]:checked {
   border-color: var(--kr-badge-danger-border) !important;
 }
 
+/* Animation cloche de notification */
+@keyframes kr-bell-swing {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-12deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-8deg); }
+  50% { transform: rotate(5deg); }
+  60% { transform: rotate(-3deg); }
+  70% { transform: rotate(1deg); }
+  80% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.navbar-right .fa-bell {
+  display: inline-block;
+  transform-origin: 50% 0;
+}
+
+.navbar-right a:has(.badge-danger:not(:empty)) .fa-bell {
+  animation: kr-bell-swing 1.5s ease-in-out infinite;
+}
+
 /* Alerts - info variant */
 .alert.alert-info {
   background-color: var(--kr-alert-info-bg);
