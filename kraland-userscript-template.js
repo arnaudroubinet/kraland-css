@@ -1624,7 +1624,6 @@
   // ============================================================================
   // Enregistrer l'initialisation du Commerce Accordion dans la queue pour éviter l'accès à document.body avant DOMContentLoaded
   InitQueue.register('Commerce Accordion', function initCommerceAccordion() {
-    if (!isMobileMode()) {return;}
     if (!window.location.href.includes('jouer/plateau')) {return;}
 
     const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];

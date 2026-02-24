@@ -388,13 +388,102 @@ html.kr-hide-footer-quote .footer-quote {
   display: none !important;
 }
 
-/* Increase container width: remove 150px from each side */
+/* Container responsive par breakpoint desktop */
 .container {
   max-width: 1608px !important;
-  width: 1608px !important;
+  width: 100% !important;
 }
 
+@media (width >= 1920px) {
+  .container {
+    max-width: 1860px !important;
+  }
+}
 
+@media (width >= 2560px) {
+  .container {
+    max-width: 2400px !important;
+  }
+}
+
+@media (width >= 3840px) {
+  .container {
+    max-width: 3200px !important;
+  }
+}
+
+/* Proportions des colonnes principales sur la page plateau - grandes résolutions */
+@media (width >= 2560px) {
+  #col-leftest {
+    width: 6% !important;
+  }
+
+  #col-left {
+    width: 20% !important;
+  }
+
+  #col-right {
+    width: 74% !important;
+  }
+}
+
+@media (width >= 3840px) {
+  #col-leftest {
+    width: 4% !important;
+  }
+
+  #col-left {
+    width: 16% !important;
+  }
+
+  #col-right {
+    width: 80% !important;
+  }
+}
+
+/* Image illustrative du bâtiment : limiter la hauteur sur desktop */
+@media (width >= 768px) {
+  #col-right .container-fluid center > img.img-responsive {
+    max-height: 200px;
+    width: auto;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
+  }
+}
+
+/* Scaling typographique pour 4K */
+@media (width >= 3840px) {
+  /* Panels headers (Commerce, Bâtiment, Matériel) */
+  .panel-heading h3 {
+    font-size: 16px;
+  }
+
+  /* Items commerce - titres et descriptions */
+  .panel-body .list-group-item h4 {
+    font-size: 15px;
+  }
+
+  .panel-body .list-group-item p {
+    font-size: 12px;
+  }
+
+  /* Profil joueur */
+  #player-main-panel {
+    font-size: 14px;
+  }
+
+  /* Boutons actions */
+  #player-actions-section .btn {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+
+  /* Navigation tabs (Agir, Matériel, etc.) */
+  #player-main-panel .btn-group .btn {
+    font-size: 13px;
+  }
+}
 
 /* Show skills panel (no longer collapsed by default) */
 #skills-panel {
@@ -1958,15 +2047,81 @@ footer .container.white {
   margin: 0;
 }
 
-/* Responsive */
+/* Responsive mobile */
 @media (width <= 768px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
   }
-  
+
   .dashboard-cards-large {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* Responsive desktop - grandes résolutions */
+@media (width >= 1920px) {
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 14px;
+  }
+}
+
+@media (width >= 2560px) {
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .dashboard-card-avatar {
+    width: 76px;
+    height: 76px;
+  }
+
+  .dashboard-card-hp-circle {
+    width: 88px;
+    height: 88px;
+  }
+
+  .dashboard-card-avatar-wrapper {
+    width: 88px;
+    height: 88px;
+  }
+
+  .dashboard-card-name {
+    font-size: 12px;
+  }
+}
+
+@media (width >= 3840px) {
+  .dashboard-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .dashboard-card-avatar {
+    width: 84px;
+    height: 84px;
+  }
+
+  .dashboard-card-hp-circle {
+    width: 96px;
+    height: 96px;
+  }
+
+  .dashboard-card-avatar-wrapper {
+    width: 96px;
+    height: 96px;
+  }
+
+  .dashboard-card-name {
+    font-size: 14px;
+  }
+
+  .dashboard-section-header {
+    font-size: 11px;
+    padding: 5px 10px;
   }
 }
 
@@ -4993,12 +5148,12 @@ body > map {
 }
 
 /* ============================================================================
- * TASK-2.5 : Commerce - Accordéon catégories
+ * TASK-2.5 : Commerce - Accordéon catégories (desktop + mobile)
  * ============================================================================
  */
 
-/* Header de catégorie cliquable */
-body.mobile-mode .commerce-category-header {
+/* Header de catégorie cliquable - générique */
+.commerce-category-header {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -5006,16 +5161,16 @@ body.mobile-mode .commerce-category-header {
   transition: background-color var(--transition-fast);
 }
 
-body.mobile-mode .commerce-category-header:hover {
+.commerce-category-header:hover {
   background-color: var(--kr-bg-hover);
 }
 
-body.mobile-mode .commerce-category-header:active {
+.commerce-category-header:active {
   background-color: var(--kr-bg-active);
 }
 
-/* Icône chevron */
-body.mobile-mode .commerce-category-header .accordion-icon {
+/* Icône chevron - générique */
+.commerce-category-header .accordion-icon {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -5025,25 +5180,29 @@ body.mobile-mode .commerce-category-header .accordion-icon {
   color: var(--kr-text-secondary);
 }
 
-body.mobile-mode .commerce-category-header.expanded .accordion-icon {
+.commerce-category-header.expanded .accordion-icon {
   transform: translateY(-50%) rotate(-180deg);
 }
 
-/* Conteneur de produits collapsible */
-body.mobile-mode .commerce-products-container {
+/* Conteneur de produits collapsible - générique */
+.commerce-products-container {
   max-height: 5000px;
   opacity: 1;
   overflow: hidden;
   transition: max-height var(--transition-normal), opacity var(--transition-normal);
+}
+
+.commerce-products-container.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* Mobile : produits en grille de cartes */
+body.mobile-mode .commerce-products-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 8px;
   padding: 8px 0;
-}
-
-body.mobile-mode .commerce-products-container.collapsed {
-  max-height: 0 !important;
-  opacity: 0;
 }
 
 /* ============================================================================
@@ -8370,6 +8529,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     font-size: 12px !important;
     color: #999 !important;
+  }
 }
 
 /* ============================================================================
