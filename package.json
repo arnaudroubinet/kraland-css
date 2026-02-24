@@ -5,6 +5,7 @@
   "description": "Kraland Red Theme",
   "scripts": {
     "build": "node build.js",
+    "build:dev": "node build.js --dev",
     "validate": "node validate.js",
     "postbuild": "npm run validate",
     "watch": "nodemon --watch kraland-theme.css --watch kraland-userscript-template.js --exec \"npm run build\"",

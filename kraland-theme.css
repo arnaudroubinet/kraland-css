@@ -164,51 +164,45 @@ html.kr-theme-variant-royaume-ruthvenie {
   --kr-highlight: #C41E3A; 
 }
 
+/* Variables communes à tous les thèmes dark */
+html[class*="-dark"] {
+  color-scheme: dark;
+
+  --kr-bg-hover: rgba(255, 255, 255, 0.03);
+  --kr-bg-active: rgba(255, 255, 255, 0.06);
+
+  --kr-border-default: rgb(255,255,255,0.08);
+  --kr-border-strong: rgb(255,255,255,0.15);
+
+  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
+  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
+  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+
+  --kr-nation-1: #ff8080;
+  --kr-nation-3: #ffe066;
+  --kr-nation-9: #c4b958;
+}
+
 html.kr-theme-variant-empire-brun-dark {
   --kr-primary: #7a5240;
   --kr-primary-dark: #5E3B2D;
   --kr-highlight: #d4a574;
   --kr-highlight-reverse: #1a0f0a;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #12100d;
   --kr-bg-surface: #1e1a15;
   --kr-bg-elevated: #2a251f;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #f5f1ed;
   --kr-text-secondary: #b8a997;
   --kr-text-muted: #8a7968;
   --kr-text-inverse: #12100d;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #3a332b;
   --kr-form-bg-focus: #423a31;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-paladium-dark {
@@ -216,46 +210,21 @@ html.kr-theme-variant-paladium-dark {
   --kr-primary-dark: #D4AF37;
   --kr-highlight: #4a9d5f;
   --kr-highlight-reverse: #021a0a;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0f0e0a;
   --kr-bg-surface: #1a1810;
   --kr-bg-elevated: #252015;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #f5f3e8;
   --kr-text-secondary: #c4b896;
   --kr-text-muted: #938567;
   --kr-text-inverse: #0f0e0a;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #3a3420;
   --kr-form-bg-focus: #43392a;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #e6c76e;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-theocratie-seelienne-dark {
@@ -263,46 +232,21 @@ html.kr-theme-variant-theocratie-seelienne-dark {
   --kr-primary-dark: #2d5fcb;
   --kr-highlight: #80b3ff;
   --kr-highlight-reverse: #000d1f;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0a0e15;
   --kr-bg-surface: #12182a;
   --kr-bg-elevated: #1a2438;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #e8f0ff;
   --kr-text-secondary: #9db5d6;
   --kr-text-muted: #6b7f9e;
   --kr-text-inverse: #0a0e15;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #2a3447;
   --kr-form-bg-focus: #323d54;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #80b3ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-paradigme-vert-dark {
@@ -310,46 +254,21 @@ html.kr-theme-variant-paradigme-vert-dark {
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #70c784;
   --kr-highlight-reverse: #021508;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0a120d;
   --kr-bg-surface: #0f1a13;
   --kr-bg-elevated: #1a2820;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #e8f5ed;
   --kr-text-secondary: #a0c4ab;
   --kr-text-muted: #6d8a75;
   --kr-text-inverse: #0a120d;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #2a3d30;
   --kr-form-bg-focus: #324539;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #70c784;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-khanat-elmerien-dark {
@@ -357,46 +276,21 @@ html.kr-theme-variant-khanat-elmerien-dark {
   --kr-primary-dark: #7b4c9c;
   --kr-highlight: #b794d9;
   --kr-highlight-reverse: #1a0425;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0f0a15;
   --kr-bg-surface: #1a121f;
   --kr-bg-elevated: #251a2d;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #f0e8ff;
   --kr-text-secondary: #bba0d6;
   --kr-text-muted: #857299;
   --kr-text-inverse: #0f0a15;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #3a2f47;
   --kr-form-bg-focus: #443854;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #b794d9;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-confederation-libre-dark {
@@ -404,46 +298,21 @@ html.kr-theme-variant-confederation-libre-dark {
   --kr-primary-dark: #6b7280;
   --kr-highlight: #c2c9d6;
   --kr-highlight-reverse: #0f1115;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0e1013;
   --kr-bg-surface: #16181c;
   --kr-bg-elevated: #1f2228;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #e8eaed;
   --kr-text-secondary: #b8bcc4;
   --kr-text-muted: #7e8591;
   --kr-text-inverse: #0e1013;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #2d3139;
   --kr-form-bg-focus: #363a43;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #c2c9d6;
   --kr-nation-8: #81c784;
-  --kr-nation-9: #c4b958;
 }
 
 html.kr-theme-variant-royaume-ruthvenie-dark {
@@ -451,46 +320,21 @@ html.kr-theme-variant-royaume-ruthvenie-dark {
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #ff6b85;
   --kr-highlight-reverse: #1a0408;
-
-  /* Dark mode surfaces */
   --kr-bg-page: #0d1210;
   --kr-bg-surface: #141a16;
   --kr-bg-elevated: #1d2621;
-  --kr-bg-hover: rgba(255, 255, 255, 0.03);
-  --kr-bg-active: rgba(255, 255, 255, 0.06);
-
-  /* Color scheme */
-  color-scheme: dark;
-
-  /* Dark mode texte */
   --kr-text-primary: #ecf5f0;
   --kr-text-secondary: #a5c4b0;
   --kr-text-muted: #708a79;
   --kr-text-inverse: #0d1210;
-
-  /* Dark mode bordures */
-  --kr-border-default: rgb(255,255,255,0.08);
-  --kr-border-strong: rgb(255,255,255,0.15);
-
-  /* Dark mode ombres */
-  --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
-  --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
-  --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-  
-  /* Dark mode form controls */
   --kr-form-bg: #2d3d33;
   --kr-form-bg-focus: #36463b;
-  
-  /* Couleurs nations mode sombre (.f1-.f9) */
-  --kr-nation-1: #ff8080;
   --kr-nation-2: #d4a574;
-  --kr-nation-3: #ffe066;
   --kr-nation-4: #74b9ff;
   --kr-nation-5: #55efc4;
   --kr-nation-6: #a29bfe;
   --kr-nation-7: #b2bec3;
   --kr-nation-8: #70c784;
-  --kr-nation-9: #c4b958;
 }
 
 
@@ -4072,26 +3916,6 @@ body > map {
 
 /* Default styles = mobile (< 768px) */
 
-/* Small devices (tablets, >= 768px) */
-@media (width >= 768px) {
-  /* Retour progressif au layout desktop */
-  body.mobile-mode {
-    /* Désactiver progressivement les adaptations mobiles */
-  }
-}
-
-/* Medium devices (desktops, >= 992px) */
-@media (width >= 992px) {
-  /* Layout desktop complet */
-  body.mobile-mode {
-    /* Annuler complètement les adaptations mobiles */
-  }
-}
-
-/* Large devices (large desktops, >= 1200px) */
-@media (width >= 1200px) {
-  /* Layout large desktop si nécessaire */
-}
 
 /* ============================================
    TASK-1.1 - CLASSES UTILITAIRES MOBILE

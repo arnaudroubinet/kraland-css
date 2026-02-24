@@ -28,6 +28,7 @@ export default [
         Node: 'readonly',
         Event: 'readonly',
         getComputedStyle: 'readonly',
+        performance: 'readonly',
         // Tampermonkey/Greasemonkey globals
         GM_addStyle: 'readonly',
         GM_setValue: 'readonly',

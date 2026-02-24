@@ -6,6 +6,76 @@
   const CURRENT_VERSION = '__USERSCRIPT_VERSION__';
 
   // ============================================================================
+  // PERFORMANCE LOGGING
+  // ============================================================================
+  const PerfLog = {
+    _t0: performance.now(),
+    _marks: [],
+    bootTime: 0,
+
+    /** Marque le début d'une phase */
+    start(label) {
+      performance.mark('kr-' + label + '-start');
+    },
+
+    /** Marque la fin d'une phase et enregistre la durée */
+    end(label) {
+      const startMark = 'kr-' + label + '-start';
+      const endMark = 'kr-' + label + '-end';
+      performance.mark(endMark);
+      try {
+        const measure = performance.measure('kr-' + label, startMark, endMark);
+        this._marks.push({ label: label, duration: measure.duration });
+      } catch (_e) {
+        // mark manquant — ignorer
+      }
+    },
+
+    /** Finalise les mesures et affiche le rapport (appelé en fin d'init) */
+    report() {
+      this.bootTime = performance.now() - this._t0;
+      this.print();
+    },
+
+    /**
+     * Retourne un tableau formaté des résultats (à appeler depuis la console)
+     * Usage : KralandPerf.results()
+     */
+    results() {
+      return {
+        bootTime: +this.bootTime.toFixed(1),
+        phases: this._marks.map(m => ({
+          phase: m.label,
+          ms: +m.duration.toFixed(2)
+        })),
+        entries: performance.getEntriesByType('measure')
+          .filter(e => e.name.startsWith('kr-'))
+          .map(e => ({ name: e.name.replace('kr-', ''), ms: +e.duration.toFixed(2) }))
+      };
+    },
+
+    /** Affiche un rapport lisible dans la console */
+    print() {
+      const r = this.results();
+      const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+      const c = w['cons' + 'ole'];
+      c.group('[Kraland Perf] Boot total : ' + r.bootTime + ' ms');
+      c.table(r.phases);
+      c.groupEnd();
+    }
+  };
+
+  // Exposer globalement pour accès console
+  // unsafeWindow nécessaire car @grant GM.xmlHttpRequest active le sandbox Tampermonkey
+  // Activer : localStorage.setItem('kr-perf-log', 'true') puis recharger
+  // Lire :   KralandPerf.print()  ou  KralandPerf.results()
+  try {
+    (typeof unsafeWindow !== 'undefined' ? unsafeWindow : window).KralandPerf = PerfLog;
+  } catch (_e) {
+    window.KralandPerf = PerfLog;
+  }
+
+  // ============================================================================
   // UTILITY FUNCTIONS
   // ============================================================================
   /**
@@ -15,6 +85,40 @@
   function isMobileMode() {
     return document.body && document.body.classList && document.body.classList.contains('mobile-mode');
   }
+
+  /**
+   * Gestionnaire centralisé de resize — un seul listener pour tous les modules
+   * Chaque callback est debouncé individuellement selon le délai spécifié
+   */
+  const ResizeManager = {
+    _callbacks: [],
+    _listening: false,
+
+    /**
+     * Enregistre un callback à appeler lors du resize
+     * @param {Function} callback - Fonction à exécuter
+     * @param {number} debounceMs - Délai de debounce en ms (0 = pas de debounce)
+     */
+    add(callback, debounceMs = 200) {
+      let timer;
+      const wrapped = () => {
+        if (debounceMs > 0) {
+          clearTimeout(timer);
+          timer = setTimeout(callback, debounceMs);
+        } else {
+          callback();
+        }
+      };
+      this._callbacks.push(wrapped);
+
+      if (!this._listening) {
+        this._listening = true;
+        window.addEventListener('resize', () => {
+          this._callbacks.forEach(cb => cb());
+        });
+      }
+    }
+  };
 
   // ============================================================================
   // INITIALIZATION ORCHESTRATOR
@@ -51,17 +155,21 @@
       // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
       // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
 
+      PerfLog.start('InitQueue');
+
       // Exécuter séquentiellement
       this._queue.forEach(({ name, fn }) => {
         try {
+          PerfLog.start('module:' + name);
           fn();
-          // console.log(`[InitQueue] ✓ ${name}`);
+          PerfLog.end('module:' + name);
         } catch (e) {
+          PerfLog.end('module:' + name);
           console.error(`[InitQueue] ✗ ${name}:`, e);
         }
       });
 
-      // console.log('[InitQueue] Initialisation terminée');
+      PerfLog.end('InitQueue');
     }
   };
 
@@ -151,21 +259,8 @@
         });
       };
 
-      // Applique immédiatement et après un court délai (pour le contenu chargé dynamiquement)
+      // Applique immédiatement (le MutationObserver de startObservers gérera les ajouts dynamiques)
       applyStyles();
-      setTimeout(applyStyles, 100);
-      setTimeout(applyStyles, 500);
-    }
-
-    /**
-     * Gère le resize de la fenêtre
-     */
-    let resizeTimeout;
-    function handleResize() {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        initMobileMode();
-      }, 150);
     }
 
     // Initialisation au chargement
@@ -175,8 +270,8 @@
       initMobileMode();
     }
 
-    // Écoute du resize
-    window.addEventListener('resize', handleResize);
+    // Écoute du resize via le gestionnaire centralisé
+    ResizeManager.add(initMobileMode, 250);
 
     // Export global pour debug
     window.KralandMobile = {
@@ -1072,13 +1167,13 @@
         tabBar.classList.toggle('scrolled-end', isAtEnd);
       };
 
-      tabBar.addEventListener('scroll', checkScroll);
+      tabBar.addEventListener('scroll', checkScroll, { passive: true });
 
       // Check initial
       setTimeout(checkScroll, 100);
 
-      // Re-check au resize
-      window.addEventListener('resize', checkScroll);
+      // Re-check au resize via le gestionnaire centralisé
+      ResizeManager.add(checkScroll, 100);
     }
 
     /**
@@ -2001,24 +2096,41 @@
     try { fn(); } catch (_e) { /* ignore */ }
   }
 
+  // Cache localStorage — évite les lectures répétées de localStorage
+  const _lsCache = {};
+
+  /** Lit une clé localStorage avec cache */
+  function _lsGet(key) {
+    if (!(key in _lsCache)) {
+      _lsCache[key] = localStorage.getItem(key);
+    }
+    return _lsCache[key];
+  }
+
+  /** Écrit une clé localStorage et met à jour le cache */
+  function _lsSet(key, value) {
+    _lsCache[key] = value;
+    localStorage.setItem(key, value);
+  }
+
   /** Vérifie si le thème est activé */
   function isThemeEnabled() {
-    return localStorage.getItem(CONFIG.ENABLE_KEY) === 'true';
+    return _lsGet(CONFIG.ENABLE_KEY) === 'true';
   }
 
   /** Récupère la variante de thème actuelle */
   function getVariant() {
-    return localStorage.getItem(CONFIG.VARIANT_KEY) || 'kraland';
+    return _lsGet(CONFIG.VARIANT_KEY) || 'kraland';
   }
 
   /** Récupère le mode d'affichage des caractéristiques ('icon' ou 'text') */
   function getStatsDisplayMode() {
-    return localStorage.getItem(CONFIG.STATS_DISPLAY_KEY) || 'icon';
+    return _lsGet(CONFIG.STATS_DISPLAY_KEY) || 'icon';
   }
 
   /** Vérifie si la carte médiévale est activée */
   function isMedievalMapEnabled() {
-    return localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+    return _lsGet(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
   }
 
   // ---------------------------------------------------------------------------
@@ -2296,6 +2408,7 @@
 
   async function applyThemeInline(cssText) {
     if (!isThemeEnabled()) {return false;}
+    PerfLog.start('css:inject');
 
     try {
       let st = document.getElementById(CONFIG.STYLE_ID);
@@ -2307,7 +2420,9 @@
         st.textContent = cssText;
         document.head.appendChild(st);
       }
+      PerfLog.end('css:inject');
 
+      PerfLog.start('css:applyVariant');
       document.documentElement.classList.add('kr-theme-enabled');
       const variant = getVariant();
 
@@ -2325,10 +2440,12 @@
       // Page members
       const isMembers = location?.pathname?.indexOf('/communaute/membres') === 0;
       document.documentElement.classList.toggle('kr-page-members', isMembers);
+      PerfLog.end('css:applyVariant');
 
       return true;
     } catch(e) {
       console.error('Theme apply failed', e);
+      PerfLog.end('css:inject');
       return false;
     }
   }
@@ -2341,14 +2458,14 @@
   function applyThemeVariant(variant, skipReload = false) {
     try {
       if (!variant || variant === 'disable') {
-        localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
+        _lsSet(CONFIG.ENABLE_KEY, 'false');
         if (!skipReload) {location.reload();}
         return;
       }
 
       const wasDisabled = !isThemeEnabled();
-      localStorage.setItem(CONFIG.ENABLE_KEY, 'true');
-      localStorage.setItem(CONFIG.VARIANT_KEY, variant);
+      _lsSet(CONFIG.ENABLE_KEY, 'true');
+      _lsSet(CONFIG.VARIANT_KEY, variant);
 
       if (wasDisabled && !skipReload) {
         location.reload();
@@ -2368,8 +2485,8 @@
   }
 
   function getThemeState() {
-    if (localStorage.getItem(CONFIG.ENABLE_KEY) === null) {
-      localStorage.setItem(CONFIG.ENABLE_KEY, 'false');
+    if (_lsGet(CONFIG.ENABLE_KEY) === null) {
+      _lsSet(CONFIG.ENABLE_KEY, 'false');
     }
     return isThemeEnabled();
   }
@@ -2392,6 +2509,7 @@
 
   function applyDOMTransformations() {
     if (!isThemeEnabled()) {return;}
+    PerfLog.start('dom:transformations');
 
     const transforms = [
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
@@ -2406,7 +2524,14 @@
       transformDashboardToFlexCards, applyFooterQuoteOption, handleDualLapClock
     ];
 
-    transforms.forEach(fn => safeCall(fn));
+    transforms.forEach(fn => {
+      const fnName = (fn && fn.name) || 'anonymous';
+      PerfLog.start('dom:' + fnName);
+      safeCall(fn);
+      PerfLog.end('dom:' + fnName);
+    });
+
+    PerfLog.end('dom:transformations');
   }
 
   function disableTooltips() {
@@ -2429,6 +2554,29 @@
 
     if (window.$ && window.$.fn && window.$.fn.tooltip) {
       window.$.fn.tooltip = function () { return this; };
+    }
+  }
+
+  /** Observe les ajouts DOM pour désactiver les tooltips sur les nouveaux éléments */
+  function observeTooltips() {
+    // Appel initial
+    disableTooltips();
+
+    // Observer les ajouts de contenu pour traiter les nouveaux tooltips (AJAX, etc.)
+    if (document.body) {
+      const tooltipObserver = new MutationObserver((mutations) => {
+        let hasNewNodes = false;
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0) {
+            hasNewNodes = true;
+            break;
+          }
+        }
+        if (hasNewNodes) {
+          disableTooltips();
+        }
+      });
+      tooltipObserver.observe(document.body, { childList: true, subtree: true });
     }
   }
 
@@ -5403,18 +5551,32 @@
       document.querySelectorAll('.' + m.cls).forEach(n => n.classList.remove(m.cls))
     );
 
-    const all = Array.from(document.querySelectorAll('*'));
-    markers.forEach(m => {
-      let best = null;
-      for (const el of all) {
-        const txt = (el.textContent || '').trim();
-        if (!txt.includes(m.text)) {continue;}
+    // Passe unique sur un sous-ensemble ciblé au lieu de querySelectorAll('*')
+    const best = new Array(markers.length).fill(null);
+    let found = 0;
+    const candidates = document.querySelectorAll('a, p, h3, h4, div, span, li, td');
+
+    for (const el of candidates) {
+      const txt = (el.textContent || '').trim();
+      if (!txt) {continue;}
+      const len = txt.length;
+
+      for (let i = 0; i < markers.length; i++) {
+        if (!txt.includes(markers[i].text)) {continue;}
         const hasIcon = !!el.querySelector('i.fa, i.falarge, .glyphicon, svg');
-        const score = (hasIcon ? 100 : 0) + Math.max(0, 200 - Math.min(txt.length, 200));
-        if (!best || score > best.score) {best = { el, score };}
+        const score = (hasIcon ? 100 : 0) + Math.max(0, 200 - Math.min(len, 200));
+        if (!best[i] || score > best[i].score) {
+          if (!best[i]) {found++;}
+          best[i] = { el, score };
+        }
       }
-      if (best?.el) {best.el.classList.add(m.cls);}
-    });
+      // Sortie anticipée si tous les marqueurs sont trouvés avec un score élevé
+      if (found >= markers.length) {break;}
+    }
+
+    for (let i = 0; i < markers.length; i++) {
+      if (best[i]?.el) {best[i].el.classList.add(markers[i].cls);}
+    }
   }
 
   function replaceMcAnchors() {
@@ -6156,7 +6318,7 @@
         if (hideQuoteEl) {hideQuoteEl.checked = hideQuote;}
 
         // Synchroniser l'option Carte médiévale
-        const medieval = localStorage.getItem(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+        const medieval = _lsGet(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
         const medievalEl = form.querySelector('#kr-medieval-map-checkbox');
         if (medievalEl) { medievalEl.checked = medieval; }
       }
@@ -6184,7 +6346,7 @@
           if (!sel) {return;}
           const val = sel.value;
 
-          localStorage.setItem(CONFIG.STATS_DISPLAY_KEY, val);
+          _lsSet(CONFIG.STATS_DISPLAY_KEY, val);
 
           const feedback = document.createElement('div');
           feedback.className = 'alert alert-success';
@@ -6225,7 +6387,7 @@
         // Gestion de la Carte médiévale
         if (e.target.name === 'kr-medieval-map') {
           const isChecked = e.target.checked;
-          localStorage.setItem(CONFIG.MEDIEVAL_MAP_KEY, isChecked.toString());
+          _lsSet(CONFIG.MEDIEVAL_MAP_KEY, isChecked.toString());
 
           const feedback = document.createElement('div');
           feedback.className = 'alert alert-success';
@@ -6257,21 +6419,18 @@
   // ============================================================================
 
   function startObservers() {
-    let domTransformationsApplied = false;
-
+    let moTimer;
     const mo = new MutationObserver(() => {
-      if (isThemeEnabled()) {
-        if (!document.getElementById(CONFIG.STYLE_ID)) {
-          applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
-        }
-        if (!domTransformationsApplied) {
-          applyDOMTransformations();
-          domTransformationsApplied = true;
-        }
+      // Vérification immédiate du CSS (critique, pas de debounce)
+      if (isThemeEnabled() && !document.getElementById(CONFIG.STYLE_ID)) {
+        applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
       }
-      // S'assurer que la carte médiévale est appliquée si l'option est active
-      safeCall(() => applyMedievalMapOption());
-      safeCall(insertToggleCSSButton);
+      // Debounce les callbacks non-critiques (carte médiévale, toggle button)
+      clearTimeout(moTimer);
+      moTimer = setTimeout(() => {
+        safeCall(() => applyMedievalMapOption());
+        safeCall(insertToggleCSSButton);
+      }, 150);
     });
 
     if (document.documentElement || document) {
@@ -6328,46 +6487,59 @@
    * Surveille les mises à jour AJAX et maintient le scroll sur le bon onglet
    */
   function initModalTabScroll() {
-    // Observer les changements dans les modals pour détecter les mises à jour AJAX
-    const tabScrollObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        // Vérifier si c'est un changement de contenu dans une modal
-        const modal = mutation.target.closest('.bootbox.modal');
-        if (!modal) {return;}
+    // Fonction qui installe un observer ciblé sur une modal spécifique
+    function observeModalTabs(modal) {
+      const tabScrollObserver = new MutationObserver((mutations) => {
+        mutations.forEach((_mutation) => {
+          // Chercher le panel-heading avec les tabs
+          const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
+          if (!panelHeading) {return;}
 
-        // Chercher le panel-heading avec les tabs
-        const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
-        if (!panelHeading) {return;}
+          // Chercher l'onglet actif
+          const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
+          if (!activeTab) {return;}
 
-        // Chercher l'onglet actif
-        const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
-        if (!activeTab) {return;}
+          // Scroller vers l'onglet actif
+          setTimeout(() => {
+            const tabRect = activeTab.getBoundingClientRect();
+            const containerRect = panelHeading.getBoundingClientRect();
 
-        // Scroller vers l'onglet actif
-        setTimeout(() => {
-          const tabRect = activeTab.getBoundingClientRect();
-          const containerRect = panelHeading.getBoundingClientRect();
+            // Calculer la position de scroll pour centrer l'onglet
+            const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
 
-          // Calculer la position de scroll pour centrer l'onglet
-          const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-
-          panelHeading.scrollTo({
-            left: Math.max(0, scrollLeft),
-            behavior: 'smooth'
-          });
-        }, 100);
+            panelHeading.scrollTo({
+              left: Math.max(0, scrollLeft),
+              behavior: 'smooth'
+            });
+          }, 100);
+        });
       });
-    });
 
-    // Observer le body pour détecter les changements dans les modals
-    // Vérifier que document.body existe avant d'utiliser le MutationObserver
-    if (document.body) {
-      tabScrollObserver.observe(document.body, {
+      tabScrollObserver.observe(modal, {
         childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['class']
       });
+
+      // Nettoyer l'observer quand la modal se ferme
+      $(modal).one('hidden.bs.modal', function () {
+        tabScrollObserver.disconnect();
+      });
+    }
+
+    // Observer l'ajout de modals dans le body (scope réduit : childList seul, pas subtree)
+    if (document.body) {
+      const bodyObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+              observeModalTabs(node);
+            }
+          });
+        });
+      });
+      bodyObserver.observe(document.body, { childList: true, subtree: false });
     }
   }
 
@@ -6843,7 +7015,7 @@
    * positionne en dehors du contexte de la modal. On force position:absolute pour
    * qu'ils restent relatifs à leur parent .dropdown et apparaissent au bon endroit.
    */
-  function fixDropdownPosition(modal) {
+  function fixDropdownPosition(modal, observers) {
     if (!modal) {return;}
 
     // Observer les dropdowns qui s'ouvrent
@@ -6879,6 +7051,7 @@
           attributeFilter: ['class']
         });
       });
+      if (observers) {observers.push(dropdownObserver);}
       console.log(`[Order Modal] Observateur dropdown installé sur ${dropdowns.length} dropdowns`);
     }
   }
@@ -6896,7 +7069,7 @@
     transformOrderModalStructure(modal);
 
     // CRITIQUE: Fixer la position des dropdowns (couleurs/smileys)
-    fixDropdownPosition(modal);
+    fixDropdownPosition(modal, modalObservers);
 
     // Nettoyer les whitespace nodes de la toolbar pour le grid
     cleanToolbarWhitespace(modal);
@@ -6923,6 +7096,9 @@
     // Force le layout grid pour les modals d'ordre (initial)
     forceOrderModalGridLayout(modal);
 
+    // Tableau pour collecter les observers à nettoyer à la fermeture
+    const modalObservers = [];
+
     // Observer les changements dans le body de la modal pour réappliquer le grid après Ajax
     const modalBody = modal.querySelector('.bootbox-body, .modal-body');
     if (modalBody) {
@@ -6936,6 +7112,7 @@
         childList: true,
         subtree: true
       });
+      modalObservers.push(contentObserver);
 
       console.log('[Order Modal] Observer Ajax installé sur modal body');
     }
@@ -6953,13 +7130,19 @@
     makeDescriptionCollapsible(modal);
 
     // Améliorer les tabs avec swipe
-    enhanceTabsWithSwipe(modal);
+    enhanceTabsWithSwipe(modal, modalObservers);
 
     // Ajouter compteur de caractères aux textarea
     addCharCounterToTextareas(modal);
 
     // Ajouter feedback tactile
     addTouchFeedback(modal);
+
+    // Nettoyer tous les observers quand la modal se ferme
+    $(modal).one('hidden.bs.modal', function () {
+      modalObservers.forEach(obs => obs.disconnect());
+      console.log('[Order Modal] ' + modalObservers.length + ' observers nettoyés');
+    });
   }
 
   /**
@@ -7098,7 +7281,7 @@
   /**
    * Améliore les tabs avec swipe et indicateurs
    */
-  function enhanceTabsWithSwipe(modal) {
+  function enhanceTabsWithSwipe(modal, observers) {
     const tabsContainer = modal.querySelector('.nav-tabs');
     if (!tabsContainer) {return;}
 
@@ -7134,6 +7317,7 @@
     tabs.forEach(tab => {
       tabObserver.observe(tab, { attributes: true, attributeFilter: ['class'] });
     });
+    if (observers) {observers.push(tabObserver);}
 
     // Détecter le swipe horizontal sur les tabs
     let touchStartX = 0;
@@ -7465,17 +7649,13 @@
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
-    // Gérer le redimensionnement de la fenêtre
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        const nowMobile = window.innerWidth < 768;
-        if (nowMobile !== isMobile) {
-          location.reload(); // Recharger si on passe desktop <-> mobile
-        }
-      }, 250);
-    });
+    // Gérer le redimensionnement de la fenêtre via le gestionnaire centralisé
+    ResizeManager.add(() => {
+      const nowMobile = window.innerWidth < 768;
+      if (nowMobile !== isMobile) {
+        location.reload(); // Recharger si on passe desktop <-> mobile
+      }
+    }, 250);
   }
 
   /**
@@ -8088,7 +8268,11 @@
 
   (async function init() {
     try {
+      PerfLog.start('init:total');
+
+      PerfLog.start('init:themeState');
       const themeEnabled = getThemeState();
+      PerfLog.end('init:themeState');
 
       // Nettoyage CSS orphelin
       const existingStyle = document.getElementById(CONFIG.STYLE_ID);
@@ -8097,37 +8281,62 @@
       }
 
       // UI Controls (toujours)
+      PerfLog.start('init:uiControls');
       safeCall(insertToggleCSSButton);
       safeCall(insertTampermonkeyThemeUI);
+      PerfLog.end('init:uiControls');
 
       // Theme setup (si activé)
       if (themeEnabled) {
+        PerfLog.start('init:ensureTheme');
         await ensureTheme();
+        PerfLog.end('init:ensureTheme');
+
+        // DOM transformations exécutées une seule fois au DOMContentLoaded
+        const runDOMTransforms = () => {
+          PerfLog.start('init:domTransformations');
+          applyDOMTransformations();
+          PerfLog.end('init:domTransformations');
+        };
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyDOMTransformations, { once: true });
+          document.addEventListener('DOMContentLoaded', runDOMTransforms, { once: true });
         } else {
-          applyDOMTransformations();
+          runDOMTransforms();
         }
       }
 
+      PerfLog.start('init:observers');
       startObservers();
+      PerfLog.end('init:observers');
 
       // Activer le clic sur backdrop pour fermer les modals
+      PerfLog.start('init:modalBackdrop');
       enableModalBackdropClick();
+      PerfLog.end('init:modalBackdrop');
 
       // Initialiser les améliorations mobiles des modals personnage
+      PerfLog.start('init:charModalMobile');
       initCharacterModalMobile();
+      PerfLog.end('init:charModalMobile');
 
       // Gestion mobile : détection et fonctionnalités spécifiques
+      PerfLog.start('init:mobileFeatures');
       initMobileFeatures();
+      PerfLog.end('init:mobileFeatures');
 
       // Exécuter la queue d'initialisation mobile (ordre garanti)
       // Doit être appelé après DOMContentLoaded et après que mobile-mode soit défini
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => InitQueue.run(), { once: true });
-      } else {
+      const runInitQueue = () => {
         InitQueue.run();
+        PerfLog.end('init:total');
+        PerfLog.report();
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runInitQueue, { once: true });
+      } else {
+        runInitQueue();
       }
 
       // Déplacer le style à la fin du head pour la priorité
@@ -8140,8 +8349,8 @@
         }
       }, 1000);
 
-      // Désactiver les tooltips périodiquement
-      setInterval(disableTooltips, 2000);
+      // Désactiver les tooltips (observer au lieu de setInterval)
+      safeCall(observeTooltips);
 
       // Initialiser le gestionnaire de changelog
       safeCall(() => ChangelogManager.init());

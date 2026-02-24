@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-// import { minify } from 'terser';
-// import { minify as minifyCSS } from 'csso';
+import { minify } from 'terser';
+import { minify as minifyCSS } from 'csso';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,17 +15,23 @@ const outputPath = path.join(__dirname, 'kraland-userscript-main.user.js');
 const userscriptPath = path.join(__dirname, 'kraland-userscript.user.js');
 const versionJsonPath = path.join(__dirname, 'version.json');
 
+// Mode dev : --dev désactive la minification
+const isDev = process.argv.includes('--dev');
+
 console.log('Building kraland-userscript-main.user.js...');
+if (isDev) {
+  console.log('⚙ Mode développement (--dev) : minification désactivée');
+}
 
 // Get current git branch
 let currentBranch = 'main';
 try {
-  currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { 
+  currentBranch = execSync('git rev-parse --abbrev-ref HEAD', {
     cwd: __dirname,
     encoding: 'utf-8'
   }).trim();
   console.log(`✓ Current git branch: ${currentBranch}`);
-} catch (e) {
+} catch (_e) {
   console.warn('⚠ Could not determine git branch, using default: main');
 }
 
@@ -45,11 +51,14 @@ console.log(`✓ Changelog URL: ${changelogUrl}`);
 let css = fs.readFileSync(cssPath, 'utf8');
 console.log(`✓ Read CSS (${css.length} chars)`);
 
-// Minify CSS - DISABLED
-console.log('⚙ Skipping CSS minification (disabled for debugging)...');
-// const minifiedCSS = minifyCSS(css);
-// css = minifiedCSS.css;
-console.log(`✓ CSS not minified (${css.length} chars)`);
+// Minify CSS
+if (!isDev) {
+  const minifiedCSS = minifyCSS(css);
+  css = minifiedCSS.css;
+  console.log(`✓ CSS minified (${css.length} chars)`);
+} else {
+  console.log(`⚙ CSS non minifié (${css.length} chars)`);
+}
 
 // Read template
 const template = fs.readFileSync(templatePath, 'utf8');
@@ -73,10 +82,25 @@ let output = userscriptHeader + template.replace("'__CSS_CONTENT__'", '`' + esca
 output = output.replace('__USERSCRIPT_VERSION__', version);
 output = output.replace("'https://raw.githubusercontent.com/YOUR_USERNAME/kraland-css/main/changelog.json'", `'${changelogUrl}'`);
 
-// Minify JavaScript - DISABLED
-console.log('⚙ Skipping JavaScript minification (disabled for debugging)...');
-const jsCode = output.substring(userscriptHeader.length);
-console.log(`✓ JavaScript not minified (${jsCode.length} chars)`);
+// Minify JavaScript
+if (!isDev) {
+  const jsCode = output.substring(userscriptHeader.length);
+  const minified = await minify(jsCode, {
+    compress: {
+      drop_console: true,
+      passes: 2
+    },
+    mangle: true,
+    output: {
+      comments: false
+    }
+  });
+  output = userscriptHeader + minified.code;
+  console.log(`✓ JS minified (${minified.code.length} chars)`);
+} else {
+  const jsCode = output.substring(userscriptHeader.length);
+  console.log(`⚙ JS non minifié (${jsCode.length} chars)`);
+}
 
 // Write output
 fs.writeFileSync(outputPath, output, 'utf8');
