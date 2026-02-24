@@ -2386,6 +2386,12 @@
     try {
       if (!isThemeEnabled()) {return;}
 
+      // Masquer la page immédiatement pour éviter le FOUC
+      // Seulement si on est assez tôt (document encore en cours de parsing)
+      if (document.readyState === 'loading') {
+        document.documentElement.style.opacity = '0';
+      }
+
       const st = document.createElement('style');
       st.id = CONFIG.STYLE_ID;
       st.textContent = CONFIG.BUNDLED_CSS;
@@ -2398,6 +2404,115 @@
       }
     } catch(e) { console.error('CSS injection failed', e); }
   })();
+
+  // ============================================================================
+  // OBSERVATION DE LA POSITION DU <style> DANS <head> (anti-FOUC)
+  // ============================================================================
+  // Le navigateur ajoute les <link> du site APRÈS notre <style> injecté à document-start.
+  // À spécificité égale, les feuilles plus tardives dans le DOM gagnent → flash du thème original.
+  // L'observer déplace notre <style> à la fin de <head> dès qu'un nouveau stylesheet apparaît.
+
+  function startHeadPositionObserver() {
+    if (!isThemeEnabled()) { return; }
+
+    const styleId = CONFIG.STYLE_ID;
+    let observer = null;
+
+    function moveStyleToEnd() {
+      const head = document.head;
+      if (!head) { return; }
+      const st = document.getElementById(styleId);
+      if (st && head.lastElementChild !== st) {
+        head.appendChild(st);
+      }
+    }
+
+    function revealPage() {
+      const docEl = document.documentElement;
+      // Rien à révéler si on n'a pas masqué
+      if (docEl.style.opacity !== '0') { return; }
+      // Dernière passe : s'assurer que notre style est bien en fin de <head>
+      moveStyleToEnd();
+      // Double rAF pour garantir que les styles sont calculés avant le paint
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          docEl.style.transition = 'opacity 0.15s ease-in';
+          docEl.style.opacity = '1';
+          // Nettoyer les styles inline après la transition
+          setTimeout(function () {
+            docEl.style.transition = '';
+            docEl.style.opacity = '';
+          }, 200);
+        });
+      });
+    }
+
+    function observeHead() {
+      const head = document.head;
+      if (!head) { return; }
+
+      observer = new MutationObserver(function (mutations) {
+        for (let i = 0; i < mutations.length; i++) {
+          const added = mutations[i].addedNodes;
+          for (let j = 0; j < added.length; j++) {
+            const node = added[j];
+            // Ignorer notre propre <style> pour éviter les boucles
+            if (node.id === styleId) { continue; }
+            // Réagir uniquement aux <link> et <style> (stylesheets du site)
+            if (node.nodeName === 'LINK' || node.nodeName === 'STYLE') {
+              moveStyleToEnd();
+              return;
+            }
+          }
+        }
+      });
+
+      observer.observe(head, { childList: true });
+      // Positionnement initial au cas où des stylesheets sont déjà présents
+      moveStyleToEnd();
+    }
+
+    // Si <head> existe déjà, observer directement
+    if (document.head) {
+      observeHead();
+    } else {
+      // Sinon, attendre que <head> apparaisse (cas document-start très précoce)
+      const docObserver = new MutationObserver(function () {
+        if (document.head) {
+          docObserver.disconnect();
+          observeHead();
+        }
+      });
+      docObserver.observe(document.documentElement, { childList: true });
+    }
+
+    // Révéler la page et déconnecter l'observer après DOMContentLoaded
+    function cleanup() {
+      revealPage();
+      setTimeout(function () {
+        if (observer) {
+          observer.disconnect();
+          observer = null;
+        }
+      }, 2000);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cleanup, { once: true });
+    } else {
+      cleanup();
+    }
+
+    // Sécurité : révéler la page après 3s max quoi qu'il arrive
+    setTimeout(function () {
+      if (document.documentElement.style.opacity === '0') {
+        document.documentElement.style.opacity = '';
+        document.documentElement.style.transition = '';
+      }
+    }, 3000);
+  }
+
+  safeCall(startHeadPositionObserver);
 
   // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
   safeCall(() => applyMedievalMapOption());
@@ -8338,16 +8453,6 @@
       } else {
         runInitQueue();
       }
-
-      // Déplacer le style à la fin du head pour la priorité
-      setTimeout(() => {
-        const st = document.getElementById(CONFIG.STYLE_ID);
-        if (isThemeEnabled() && st?.parentElement) {
-          st.parentElement.appendChild(st);
-        } else if (!isThemeEnabled() && st?.parentElement) {
-          st.parentElement.removeChild(st);
-        }
-      }, 1000);
 
       // Désactiver les tooltips (observer au lieu de setInterval)
       safeCall(observeTooltips);
