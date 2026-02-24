@@ -291,6 +291,8 @@
         }
       } else if (path.startsWith('/forum/')) {
         document.body.classList.add('page-forum');
+      } else if (path === '/accueil') {
+        document.body.classList.add('page-accueil');
       }
     }
     if (document.readyState === 'loading') {
@@ -1526,6 +1528,49 @@
       addWelcomeMessage();
     }
   })();
+
+  // ============================================================================
+  // ACCUEIL - AMÉLIORATION COLONNE DROITE
+  // Supprime les <hr>, ajoute un bouton "Jouer", et wrappe la section Forum
+  // ============================================================================
+  InitQueue.register('Homepage:RightColumn', function enhanceHomeRightColumn() {
+    if (!document.body.classList.contains('page-accueil')) return;
+
+    var rightCol = document.querySelector('.container > .row > .col-md-3:last-child');
+    if (!rightCol) return;
+
+    // Supprimer les <hr> superflus
+    var hrs = rightCol.querySelectorAll('hr');
+    for (var i = 0; i < hrs.length; i++) {
+      hrs[i].remove();
+    }
+
+    // Ajouter bouton "Jouer" après .ds_user
+    var dsUser = rightCol.querySelector('.ds_user');
+    if (dsUser) {
+      var playBtn = document.createElement('a');
+      playBtn.href = '/jouer/plateau';
+      playBtn.className = 'accueil-play-btn';
+      playBtn.innerHTML = '<i class="fa fa-play"></i> Jouer';
+      dsUser.insertAdjacentElement('afterend', playBtn);
+    }
+
+    // Wrapper les éléments forum dans un conteneur
+    // Cibler le h4 "Forum" (enfant direct) et non le h4 du nom d'utilisateur (dans .ds_user)
+    var forumTitle = rightCol.querySelector(':scope > h4');
+    var forumLinks = rightCol.querySelectorAll(':scope > .ds_forum');
+    if (forumTitle && forumLinks.length) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'accueil-forum-section';
+      forumTitle.parentNode.insertBefore(wrapper, forumTitle);
+      wrapper.appendChild(forumTitle);
+      for (var j = 0; j < forumLinks.length; j++) {
+        wrapper.appendChild(forumLinks[j]);
+      }
+    }
+
+    console.log('[Homepage:RightColumn] Colonne droite améliorée');
+  }, 85);
 
   // ============================================================================
   // TASK-2.2 - ACCORDÉON GROUPES (Base)

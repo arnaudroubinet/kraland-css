@@ -394,26 +394,29 @@ html.kr-hide-footer-quote .footer-quote {
   width: 100% !important;
 }
 
-@media (width >= 1920px) {
+@media (min-width: 1920px) {
   .container {
     max-width: 1860px !important;
   }
 }
 
-@media (width >= 2560px) {
+@media (min-width: 2560px) {
   .container {
     max-width: 2400px !important;
   }
 }
 
-@media (width >= 3840px) {
+@media (min-width: 3840px) {
   .container {
     max-width: 3200px !important;
   }
 }
 
-/* Proportions des colonnes principales sur la page plateau - grandes résolutions */
-@media (width >= 2560px) {
+/* Proportions des colonnes principales sur la page plateau - grandes résolutions.
+   Note : ces règles ciblent le plateau via les IDs #col-leftest/#col-left/#col-right.
+   Sur les pages sans #col-leftest (ex: accueil), les overrides .page-accueil rétablissent
+   les largeurs Bootstrap par défaut (voir section ACCUEIL plus bas). */
+@media (min-width: 2560px) {
   #col-leftest {
     width: 6% !important;
   }
@@ -427,7 +430,7 @@ html.kr-hide-footer-quote .footer-quote {
   }
 }
 
-@media (width >= 3840px) {
+@media (min-width: 3840px) {
   #col-leftest {
     width: 4% !important;
   }
@@ -442,7 +445,7 @@ html.kr-hide-footer-quote .footer-quote {
 }
 
 /* Image illustrative du bâtiment : limiter la hauteur sur desktop */
-@media (width >= 768px) {
+@media (min-width: 768px) {
   #col-right .container-fluid center > img.img-responsive {
     max-height: 200px;
     width: auto;
@@ -453,7 +456,7 @@ html.kr-hide-footer-quote .footer-quote {
 }
 
 /* Scaling typographique pour 4K */
-@media (width >= 3840px) {
+@media (min-width: 3840px) {
   /* Panels headers (Commerce, Bâtiment, Matériel) */
   .panel-heading h3 {
     font-size: 16px;
@@ -580,7 +583,9 @@ input[type="checkbox"]:checked {
 
 /* Badge danger - notification alert always red on all themes */
 .badge-danger,
-.navbar-right a[href="kramail"] .badge:not(:empty) {
+.navbar-right a[href="kramail"] .badge:not(:empty),
+.navbar-header-buttons-left a[href="kramail"] .badge:not(:empty),
+.navbar-header-buttons-left a[href*="kramail"] .badge:not(:empty) {
   background-color: var(--kr-badge-danger) !important;
   color: var(--kr-white) !important;
   border-color: var(--kr-badge-danger-border) !important;
@@ -609,6 +614,20 @@ input[type="checkbox"]:checked {
 .navbar-right a:has(.badge-danger:not(:empty)) .fa-bell,
 .navbar-right a:has(.badge:not(:empty)) .fa-envelope {
   animation: kr-bell-swing 1.5s ease-in-out infinite;
+}
+
+/* Animation cloche et kramail dans le header mobile (clones de .navbar-right) */
+@media (max-width: 767px) {
+  .navbar-header-buttons-left .fa-bell,
+  .navbar-header-buttons-left .fa-envelope {
+    display: inline-block;
+    transform-origin: 50% 0;
+  }
+
+  .navbar-header-buttons-left a:has(.badge-danger:not(:empty)) .fa-bell,
+  .navbar-header-buttons-left a:has(.badge:not(:empty)) .fa-envelope {
+    animation: kr-bell-swing 1.5s ease-in-out infinite;
+  }
 }
 
 /* Alerts - info variant */
@@ -837,7 +856,7 @@ a.carousel-control.right{
    ⚠️ MOBILE ONLY - Ne s'applique QUE sur mobile (<768px)
    ============================================================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   /* 1. SELECT PERSONNAGE */
   .bootbox-confirm .modal-body > select:first-of-type,
   .bootbox-confirm select.form-control {
@@ -1135,7 +1154,7 @@ a.carousel-control.right{
    ============================================================================ */
 
 /* GARDE-FOU : Tous les styles dans media query mobile uniquement */
-@media (width <= 768px) {
+@media (max-width: 768px) {
   /* === STRUCTURE FLEXBOX STICKY === */
 
   /* IMPORTANT: Cibler uniquement .modal-content, pas .modal-dialog */
@@ -1439,7 +1458,7 @@ a.carousel-control.right{
    9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
    ============================================================================ */
 
-@media (width <= 768px) {
+@media (max-width: 768px) {
   /* === UX #1: ALERTE REPLIABLE === */
   .bootbox-confirm .kr-alert-collapsible {
     padding: 0 !important;
@@ -1655,7 +1674,7 @@ a.carousel-control.right{
   gap: var(--mobile-spacing-md);
   justify-content: flex-end;
 }
-} /* Fin @media (width < 768px) pour BOOTBOX ORDER MODAL */
+} /* Fin @media (max-width: 767px) pour BOOTBOX ORDER MODAL */
 
 /*
   Pagination est utilisé dans les rapports
@@ -2048,7 +2067,7 @@ footer .container.white {
 }
 
 /* Responsive mobile */
-@media (width <= 768px) {
+@media (max-width: 768px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
@@ -2060,7 +2079,7 @@ footer .container.white {
 }
 
 /* Responsive desktop - grandes résolutions */
-@media (width >= 1920px) {
+@media (min-width: 1920px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 12px;
@@ -2068,7 +2087,7 @@ footer .container.white {
   }
 }
 
-@media (width >= 2560px) {
+@media (min-width: 2560px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 14px;
@@ -2094,7 +2113,7 @@ footer .container.white {
   }
 }
 
-@media (width >= 3840px) {
+@media (min-width: 3840px) {
   .dashboard-cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
@@ -3277,7 +3296,7 @@ body > map {
    Ces styles ne s'appliquent QUE sur mobile et ne modifient PAS le desktop
    ============================================================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   /* ==========================================================================
      FIX : Empêcher le scroll automatique vers les ancres au chargement
      ========================================================================== */
@@ -4074,7 +4093,7 @@ body > map {
   box-shadow: var(--kr-shadow-lg) !important;
 }
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   .kr-mobile-skills-toggle {
     display: flex !important;
     align-items: center !important;
@@ -4103,7 +4122,7 @@ body > map {
    ============================================ */
 
 /* Masquer certains éléments en mode mobile */
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode .desktop-only,
   body.mobile-mode .mobile-hidden {
     display: none;
@@ -4111,14 +4130,14 @@ body > map {
 }
 
 /* Masquer certains éléments en mode desktop */
-@media (width >= 768px) {
+@media (min-width: 768px) {
   body.mobile-mode .mobile-only {
     display: none;
   }
 }
 
 /* Classes utilitaires supplémentaires compatibles BS3 */
-@media (width < 768px) {
+@media (max-width: 767px) {
   .visible-xs-block { display: block; }
   .visible-xs-inline { display: inline; }
   .visible-xs-inline-block { display: inline-block; }
@@ -4129,7 +4148,7 @@ body > map {
    TASK-1.4 - MINI-PROFIL COLLAPSIBLE
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Container du mini-profil */
     .mobile-mini-profile {
@@ -4445,7 +4464,7 @@ body > map {
    TASK-1.6 - MASQUER 18 COMPÉTENCES
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Masquer le panel des 18 compétences */
 
@@ -4470,7 +4489,7 @@ body > map {
    TASK-1.5 - ACTIONS RAPIDES (Bootstrap 3)
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Container actions - Utilise btn-group-justified BS3 */
     .mobile-quick-actions.btn-group-justified {
@@ -4553,7 +4572,7 @@ body > map {
    TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Tab bar container - Utilise nav-tabs BS3 */
     .mobile-tab-bar.nav-tabs {
@@ -4661,7 +4680,7 @@ body > map {
    TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Header principal - Utilise les classes BS3 */
     .navbar,
@@ -4790,7 +4809,7 @@ body > map {
       line-height: 12px !important;
       border-radius: 8px !important;
     }
-    
+
     /* Réorganiser l'ordre des éléments du header */
     .navbar-header {
       display: flex;
@@ -4898,7 +4917,7 @@ body > map {
    TASK-2.2 - ACCORDÉON GROUPES (Base)
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Header de groupe avec accordéon */
     .dashboard-section-header-accordion {
@@ -4965,7 +4984,7 @@ body > map {
    TASK-2.3 - CARDS PERSOS (Mobile Optimized)
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Grille de cartes compacte */
     .dashboard-cards-grid {
@@ -5440,7 +5459,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    GROUPES DE PERSONNAGES - STYLE BARRE
    ============================================ */
 
-@media (width <= 767px) {
+@media (max-width: 767px) {
   body.mobile-mode {
     /* Mode mobile activé */
   }
@@ -5745,7 +5764,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* ========================================================================
      MODAL PERSONNAGE MOBILE - UX/UI OPTIMISÉE POUR STRUCTURE RÉELLE
      ======================================================================== */
-  @media (width <= 767px) {
+  @media (max-width: 767px) {
     /* ===== 1. SELECT PERSONNAGE - visible, zone tactile agrandie ===== */
     body.mobile-mode .bootbox.modal select[name="top"].form-control {
       min-height: 56px !important;
@@ -6294,7 +6313,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* ============================================================================
    MOBILE - PAGE PROFIL/INTERFACE
    ============================================================================ */
-@media (width <= 767px) {
+@media (max-width: 767px) {
   /* Correction de l'affichage des sélecteurs de thème */
   body.mobile-mode #kr-tamper-theme-form .form-group {
     margin-bottom: 20px;
@@ -6658,7 +6677,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* ============================================================================
    MOBILE MENU DROPDOWNS - Bootstrap 3 native handling
    ============================================================================ */
-@media (width <= 767px) {
+@media (max-width: 767px) {
   /* EN MOBILE : Afficher les dropdown-menu avec la structure Bootstrap 3 */
   
   /* Les dropdown-menu doivent être visibles quand le parent a la classe 'open' */
@@ -6965,7 +6984,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 /* === RESPONSIVE === */
 
 /* Tablettes en mode portrait */
-@media (width >= 768px) and (width <= 1024px) and (orientation: portrait) {
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
   .forum-card {
     margin: 12px 24px;
   }
@@ -6976,7 +6995,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
 }
 
 /* Desktop: désactiver les cards */
-@media (width >= 768px) {
+@media (min-width: 768px) {
   .forums-cards-container {
     display: none !important;
   }
@@ -8541,7 +8560,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    - Feedback visuel clair
    ============================================================================ */
 
-@media (width <= 768px) {
+@media (max-width: 768px) {
   /* 0. LAYOUT - Fix Bootstrap grid overflow */
   
   /* Ajouter padding latéral pour ne pas coller au bord */
@@ -9707,4 +9726,573 @@ html:not([class*='-dark']) .mini {
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 700;
+}
+
+/* ============================================================================
+   PAGE ACCUEIL - DESKTOP
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  /* --- Alerte stylisée --- */
+  .page-accueil .alert-info {
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-left: 4px solid var(--kr-primary);
+    color: var(--kr-text-primary);
+    border-radius: var(--kr-radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .page-accueil .alert-info .close {
+    color: var(--kr-text-muted);
+    opacity: 0.7;
+    text-shadow: none;
+  }
+
+  /* --- Panel news modernisé --- */
+  .page-accueil #player-header-section {
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    overflow: hidden;
+  }
+
+  .page-accueil #player-header-section > .list-group-item.active {
+    background: var(--kr-primary);
+    border-color: var(--kr-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 0;
+  }
+
+  .page-accueil #player-header-section .panel {
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+  }
+
+  .page-accueil #player-header-section .panel-body {
+    background: var(--kr-bg-surface);
+    padding: 0;
+  }
+
+  .page-accueil #player-header-section .panel-body .news-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--kr-border-default);
+  }
+
+  .page-accueil #player-header-section .panel-body .news-item:last-child {
+    border-bottom: none;
+  }
+
+  .page-accueil #player-header-section .pagination {
+    background: var(--kr-bg-surface);
+    margin: 0;
+    padding: 4px 10px;
+    border-top: 1px solid var(--kr-border-default);
+  }
+
+  /* --- Métriques en stat cards --- */
+  .page-accueil .kraland-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+    padding: 0;
+    border: none;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item {
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 10px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item .pull-right {
+    position: static !important;
+    transform: none !important;
+    order: -1;
+    margin-bottom: 4px;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item .pull-right .fa {
+    font-size: 20px;
+    color: var(--kr-primary);
+  }
+
+  .page-accueil .kraland-metrics .list-group-item h4.count {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--kr-primary);
+    margin: 0;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item p {
+    font-size: 10px;
+    color: var(--kr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 2px 0 0;
+  }
+
+  /* --- Colonne droite : bienvenue --- */
+  .page-accueil .ds_user {
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--kr-radius);
+    padding: 12px !important;
+    text-align: center;
+    display: block !important;
+    margin-bottom: 10px;
+  }
+
+  .page-accueil .ds_user h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--kr-text-primary);
+    margin: 8px 0 0;
+  }
+
+  .page-accueil .ds_user .pull-right {
+    position: static !important;
+    transform: none !important;
+    float: none !important;
+    margin-bottom: 8px;
+  }
+
+  .page-accueil .ds_user .pull-right img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+  }
+
+  /* --- Bouton Jouer --- */
+  .accueil-play-btn {
+    display: block;
+    background: var(--kr-primary);
+    color: #fff !important;
+    text-align: center;
+    padding: 10px;
+    border-radius: var(--kr-radius);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none !important;
+    margin-bottom: 10px;
+    transition: opacity 0.15s;
+  }
+
+  .accueil-play-btn:hover {
+    opacity: 0.85;
+    color: #fff !important;
+  }
+
+  .accueil-play-btn .fa {
+    margin-right: 6px;
+  }
+
+  /* --- Section Forum --- */
+  .accueil-forum-section {
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    overflow: hidden;
+  }
+
+  .accueil-forum-section h4 {
+    background: var(--kr-bg-active);
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--kr-text-primary);
+    border-bottom: 1px solid var(--kr-border-default);
+    text-align: center;
+  }
+
+  .accueil-forum-section .ds_forum {
+    display: block;
+    padding: 8px 12px !important;
+    border-bottom: 1px solid var(--kr-border-default);
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    transition: background 0.15s;
+  }
+
+  .accueil-forum-section .ds_forum:last-child {
+    border-bottom: none;
+  }
+
+  .accueil-forum-section .ds_forum:hover {
+    background: var(--kr-bg-hover) !important;
+  }
+
+  .accueil-forum-section .ds_forum h4 {
+    background: none;
+    border-bottom: none;
+    padding: 0;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--kr-primary);
+    margin: 0 0 2px;
+  }
+
+  .accueil-forum-section .ds_forum p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--kr-text-primary);
+  }
+
+  /* --- Carousel amélioré --- */
+  .page-accueil #myCarousel {
+    border-radius: var(--kr-radius);
+    overflow: hidden;
+    box-shadow: var(--kr-shadow-md);
+  }
+
+  .page-accueil #myCarousel .carousel-caption {
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+    padding: 30px 20px 14px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  .page-accueil #myCarousel .carousel-caption h1,
+  .page-accueil #myCarousel .carousel-caption h3 {
+    font-size: 16px;
+    margin: 0 0 4px;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .page-accueil #myCarousel .carousel-caption p {
+    font-size: 12px;
+    margin: 0 0 8px;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* --- Accueil : reset des largeurs colonnes sur grands écrans ---
+   Les règles plateau (#col-left: 20%, #col-right: 74%) s'appliquent globalement via les IDs.
+   Sur l'accueil (3 colonnes au lieu de 4), on rétablit les largeurs Bootstrap. */
+@media (min-width: 2560px) {
+  .page-accueil #col-left {
+    width: 25% !important;
+  }
+
+  .page-accueil #col-right {
+    width: 50% !important;
+  }
+}
+
+@media (min-width: 3840px) {
+  .page-accueil #col-left {
+    width: 25% !important;
+  }
+
+  .page-accueil #col-right {
+    width: 50% !important;
+  }
+}
+
+/* ============================================================================
+   PAGE ACCUEIL - MOBILE
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  /* ==========================================================================
+     A. CONTENEUR + ORDRE DES COLONNES
+     Réorganisation mobile-first : Jouer → Welcome → Forum → Métriques → News
+     ========================================================================== */
+
+  /* Conteneur principal en flex column */
+  .page-accueil .row {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* #col-t en premier (contient Jouer + Welcome + Forum) */
+  .page-accueil #col-t {
+    order: -1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* #col-left en second (contient métriques + news) */
+  .page-accueil #col-left {
+    order: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* #col-right caché (carousel supprimé) */
+  .page-accueil #col-right {
+    display: none !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ==========================================================================
+     B. COMPOSANTS
+     Chaque composant inclut sa propriété order pour le réordonnancement.
+     Dans #col-t : play (-2) → welcome (-1) → forum (0)
+     Dans #col-left : métriques (-1) → news (0)
+     ========================================================================== */
+
+  /* --- Alerte stylisée --- */
+  .page-accueil .alert-info {
+    background: var(--kr-bg-elevated);
+    border: none;
+    border-left: 3px solid var(--kr-primary);
+    color: var(--kr-text-primary);
+    border-radius: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    margin: 0;
+  }
+
+  .page-accueil .alert-info .close {
+    color: var(--kr-text-muted);
+    opacity: 0.7;
+    text-shadow: none;
+  }
+
+  /* --- 1. Bouton Jouer — Hero CTA (above the fold) --- */
+  .page-accueil .accueil-play-btn {
+    order: -2;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--kr-primary);
+    color: #fff !important;
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    width: 100%;
+  }
+
+  .page-accueil .accueil-play-btn .fa {
+    font-size: 16px;
+  }
+
+  /* --- 2. Welcome — Barre horizontale compacte --- */
+  .page-accueil .ds_user {
+    order: -1;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left;
+    background: var(--kr-bg-elevated);
+    padding: 8px 12px !important;
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--kr-border-default);
+    gap: 10px;
+  }
+
+  .page-accueil .ds_user .pull-right {
+    float: none !important;
+    position: static !important;
+    transform: none !important;
+    order: -1;
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .page-accueil .ds_user .pull-right img {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    border-radius: 50%;
+    display: block;
+  }
+
+  .page-accueil .ds_user h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--kr-text-primary);
+  }
+
+  .page-accueil .ds_user p {
+    font-size: 11px;
+    color: var(--kr-text-muted);
+    margin: 2px 0 0;
+  }
+
+  /* --- 3. Forum — Liste compacte --- */
+  .page-accueil .accueil-forum-section {
+    margin: 0;
+  }
+
+  .page-accueil .accueil-forum-section h4.center {
+    background: var(--kr-bg-active);
+    margin: 0;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--kr-text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+  }
+
+  .page-accueil .accueil-forum-section .ds_forum {
+    display: block;
+    padding: 8px 12px !important;
+    border-bottom: 1px solid var(--kr-border-default);
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-radius: 0 !important;
+    font-size: 12px;
+    background: var(--kr-bg-surface);
+  }
+
+  .page-accueil .accueil-forum-section .ds_forum h4 {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--kr-highlight);
+    margin: 0 0 2px;
+    background: none;
+    padding: 0;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .page-accueil .accueil-forum-section .ds_forum p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--kr-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-accueil .accueil-forum-section .ds_forum p img {
+    width: auto !important;
+    height: 12px !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    vertical-align: middle;
+  }
+
+  /* --- 4. Métriques — Strip inline --- */
+  .page-accueil .kraland-metrics {
+    order: -1;
+    display: flex !important;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    border-bottom: 1px solid var(--kr-border-default);
+    background: var(--kr-bg-elevated);
+  }
+
+  .page-accueil .kraland-metrics .list-group-item {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--kr-border-default);
+    border-radius: 0;
+    padding: 8px 4px;
+    text-align: center;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item:last-child {
+    border-right: none;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item .pull-right {
+    display: none !important;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item h4.count {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--kr-primary);
+    margin: 0;
+    line-height: 1;
+  }
+
+  .page-accueil .kraland-metrics .list-group-item p {
+    font-size: 8px;
+    color: var(--kr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 2px 0 0;
+    line-height: 1;
+  }
+
+  /* --- 5. News — Compacte, en dernier --- */
+  body.mobile-mode.page-accueil #player-header-section {
+    display: block !important;
+  }
+
+  .page-accueil #player-header-section > .list-group-item.active {
+    background: var(--kr-bg-active);
+    border-color: var(--kr-bg-active);
+    color: var(--kr-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    margin: 0;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .page-accueil #player-header-section .panel {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .page-accueil #player-header-section .panel-body {
+    padding: 0 !important;
+  }
+
+  .page-accueil #player-header-section .panel-body .news-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--kr-border-default);
+    font-size: 12px;
+  }
+
+  .page-accueil #player-header-section .pagination {
+    display: none;
+  }
 }
