@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "1.0.1771954743371",
+      "releaseDate": "2026-02-24",
+      "changes": [
+        "Animation de la cloche et de l'enveloppe dans la navbar quand une notification est active",
+        "L'icône kramail redirige maintenant vers la boîte du personnage plateau (capturée au premier passage sur /kramail)"
+      ]
+    },
+    {
       "version": "1.0.1770585060112",
       "releaseDate": "2026-02-08",
       "changes": [

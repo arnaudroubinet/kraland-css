@@ -490,7 +490,8 @@ input[type="checkbox"]:checked {
 }
 
 /* Badge danger - notification alert always red on all themes */
-.badge-danger {
+.badge-danger,
+.navbar-right a[href="kramail"] .badge:not(:empty) {
   background-color: var(--kr-badge-danger) !important;
   color: var(--kr-white) !important;
   border-color: var(--kr-badge-danger-border) !important;
@@ -510,12 +511,14 @@ input[type="checkbox"]:checked {
   100% { transform: rotate(0deg); }
 }
 
-.navbar-right .fa-bell {
+.navbar-right .fa-bell,
+.navbar-right .fa-envelope {
   display: inline-block;
   transform-origin: 50% 0;
 }
 
-.navbar-right a:has(.badge-danger:not(:empty)) .fa-bell {
+.navbar-right a:has(.badge-danger:not(:empty)) .fa-bell,
+.navbar-right a:has(.badge:not(:empty)) .fa-envelope {
   animation: kr-bell-swing 1.5s ease-in-out infinite;
 }
 

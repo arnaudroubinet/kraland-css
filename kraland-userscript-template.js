@@ -4951,6 +4951,64 @@
   })();
 
   // ============================================================================
+  // MODULE : Kramail:DefaultPlateau
+  // Redirige l'icône kramail de la navbar vers la boîte du personnage plateau.
+  // Au premier passage sur /kramail, récupère le premier lien de la section
+  // « Plateau » du sidebar et le stocke dans localStorage. Sur toutes les pages,
+  // l'icône envelope de la navbar pointe ensuite vers cette URL.
+  // ============================================================================
+  (function() {
+    'use strict';
+
+    var STORAGE_KEY = 'kr-kramail-plateau-url';
+
+    function captureKramailPlateauUrl() {
+      // Sur la page kramail, capturer l'URL plateau si pas encore stockée
+      if (window.location.pathname.includes('/kramail')) {
+        var stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) {
+          // Trouver la section "Plateau" dans le sidebar
+          var listItems = document.querySelectorAll('.list-group-item');
+          var inPlateau = false;
+          for (var i = 0; i < listItems.length; i++) {
+            var item = listItems[i];
+            var text = item.textContent.trim();
+            if (item.tagName === 'LI' && text === 'Plateau') {
+              inPlateau = true;
+              continue;
+            }
+            if (item.tagName === 'LI' && text === 'Compte Membre') {
+              inPlateau = false;
+              continue;
+            }
+            if (inPlateau && item.tagName === 'A' && item.getAttribute('href')) {
+              var href = item.getAttribute('href');
+              if (href.match(/kramail\/[^/]+-\d+-\d+$/)) {
+                localStorage.setItem(STORAGE_KEY, href);
+                console.log('[Kramail DefaultPlateau] URL plateau sauvegardée:', href);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Sur toutes les pages, mettre à jour le lien kramail de la navbar
+      var plateauUrl = localStorage.getItem(STORAGE_KEY);
+      if (plateauUrl) {
+        var kramailLink = document.querySelector('.navbar-right a[href="kramail"]');
+        if (kramailLink) {
+          kramailLink.setAttribute('href', plateauUrl);
+          console.log('[Kramail DefaultPlateau] Lien navbar mis à jour:', plateauUrl);
+        }
+      }
+    }
+
+    InitQueue.register('Kramail:DefaultPlateau', captureKramailPlateauUrl, 34);
+
+  })();
+
+  // ============================================================================
   // MODULE : ForumThread:MobileBreadcrumb
   // Transforme le header des threads de forum en fil d'ariane + FAB button
   // ============================================================================
