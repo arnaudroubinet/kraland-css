@@ -303,6 +303,45 @@
   })();
 
   // ============================================================================
+  // FIX - NAVBAR PADDING (pages avec sous-navigation map)
+  // ============================================================================
+  // Sur les pages /map/*, la navbar a 2 lignes (logo + sous-nav) qui débordent
+  // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
+  (function () {
+    function fixNavbarPadding() {
+      if (isMobileMode()) return;
+
+      // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          var nav = document.querySelector('nav.navbar');
+          if (!nav) return;
+
+          // Trouver la position basse réelle des éléments visibles de la navbar
+          var items = nav.querySelectorAll('.navbar-nav > li');
+          var maxBottom = 0;
+          for (var i = 0; i < items.length; i++) {
+            var rect = items[i].getBoundingClientRect();
+            if (rect.height > 0 && rect.bottom > maxBottom) {
+              maxBottom = rect.bottom;
+            }
+          }
+
+          // Si les éléments débordent du navbar, ajuster la hauteur et le padding
+          var navHeight = nav.offsetHeight;
+          if (maxBottom > navHeight + 5) {
+            var newHeight = Math.ceil(maxBottom) + 5;
+            nav.style.setProperty('max-height', newHeight + 'px', 'important');
+            document.body.style.setProperty('padding-top', newHeight + 'px', 'important');
+          }
+        }, 200);
+      });
+    }
+
+    InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
+  })();
+
+  // ============================================================================
   // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
   // ============================================================================
   (function () {
