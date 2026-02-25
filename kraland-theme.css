@@ -9769,21 +9769,9 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 /* ---------------------------------------------------------------------------
    Corrections map : rendre les labels `.mini` lisibles en mode sombre
-   - le thème sombre utilise des fonds nationaux semi-transparents (alpha 0.15)
-     ce qui rend les chiffres difficiles à lire : on augmente l'opacité ici.
-   - on ajoute aussi un léger padding / bordure pour conserver la lisibilité
+   - les labels carte utilisent les classes c1-c10 pour les couleurs nationales
+   - on force un fond opaque pour garantir la lisibilité sur la carte
    --------------------------------------------------------------------------- */
-html[class*='-dark'] .mini {
-  color: var(--kr-text-primary) !important; /* texte clair sur fond sombre */
-  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 700;
-  background-image: none !important;
-  background-color: rgba(0,0,0,0.6) !important; /* fond opaque pour lisibilité */
-}
-
-/* conserver la couleur de ressource mais en opaque pour être lisible (c1-c10) */
 html[class*='-dark'] .mini.c1  { background-color: rgba(255,128,128,0.92) !important; color: #000 !important; text-shadow: none !important; }
 html[class*='-dark'] .mini.c2  { background-color: rgba(170,112,0,0.92) !important; color: #000 !important; text-shadow: none !important; }
 html[class*='-dark'] .mini.c3  { background-color: rgba(255,255,128,0.92) !important; color: #000 !important; text-shadow: none !important; }
@@ -9794,13 +9782,6 @@ html[class*='-dark'] .mini.c7  { background-color: rgba(170,170,170,0.92) !impor
 html[class*='-dark'] .mini.c8  { background-color: rgba(115,151,115,0.92) !important; color: #000 !important; text-shadow: none !important; }
 html[class*='-dark'] .mini.c9  { background-color: rgba(170,170,68,0.92) !important; color: #000 !important; text-shadow: none !important; }
 html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !important; color: #000 !important; text-shadow: none !important; }
-
-/* mode clair : conserver l'apparence originale mais améliorer la lisibilité */
-html:not([class*='-dark']) .mini {
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 700;
-}
 
 /* ============================================================================
    PAGE ACCUEIL - DESKTOP
