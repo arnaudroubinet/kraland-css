@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwright-firefox": {
+      "command": "cmd",
+      "args": ["/c", "npx", "@playwright/mcp@latest", "--browser", "firefox"]
+    }
+  }
+}
