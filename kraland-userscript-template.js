@@ -59,8 +59,8 @@
       const r = this.results();
       const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
       const c = w['cons' + 'ole'];
-      c.group('[Kraland Perf] Boot total : ' + r.bootTime + ' ms');
-      c.table(r.phases);
+      c.groupCollapsed('[Kraland Perf] Boot total : ' + r.bootTime + ' ms');
+      c.debug(r.phases);
       c.groupEnd();
     }
   };
@@ -291,7 +291,7 @@
         }
       } else if (path.startsWith('/forum/')) {
         document.body.classList.add('page-forum');
-      } else if (path === '/accueil') {
+      } else if (path === '/' || path === '/accueil') {
         document.body.classList.add('page-accueil');
       }
     }
