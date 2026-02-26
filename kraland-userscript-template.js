@@ -151,8 +151,7 @@
       // Trier par priorité (plus petit en premier)
       this._queue.sort((a, b) => a.priority - b.priority);
 
-      const isMobile = isMobileMode();
-      // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobile ? 'mobile' : 'desktop'})`);
+      // console.log(`[InitQueue] Démarrage initialisation séquentielle (${isMobileMode() ? 'mobile' : 'desktop'})`);
       // console.log('[InitQueue] Ordre:', this._queue.map(m => `${m.name}(${m.priority})`).join(' → '));
 
       PerfLog.start('InitQueue');
@@ -282,7 +281,7 @@
     // === Classe page-type basée sur l'URL ===
     // Utilisée en CSS pour scoper les règles kramail vs forum
     function addPageTypeClass() {
-      if (!document.body) return;
+      if (!document.body) {return;}
       const path = window.location.pathname;
       if (path.includes('/kramail')) {
         document.body.classList.add('page-kramail');
@@ -293,6 +292,8 @@
         document.body.classList.add('page-forum');
       } else if (path === '/' || path === '/accueil') {
         document.body.classList.add('page-accueil');
+      } else if (path.startsWith('/monde/evenements')) {
+        document.body.classList.add('page-evenements');
       }
     }
     if (document.readyState === 'loading') {
@@ -321,13 +322,13 @@
   // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
   (function () {
     function fixNavbarPadding() {
-      if (isMobileMode()) return;
+      if (isMobileMode()) {return;}
 
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
       requestAnimationFrame(function () {
         setTimeout(function () {
           var nav = document.querySelector('nav.navbar');
-          if (!nav) return;
+          if (!nav) {return;}
 
           // Trouver la position basse réelle des éléments visibles de la navbar
           var items = nav.querySelectorAll('.navbar-nav > li');
@@ -799,6 +800,12 @@
       info.appendChild(moneyRow);
 
       header.appendChild(info);
+
+      // Chevron indicateur expand/collapse
+      const chevron = document.createElement('i');
+      chevron.className = 'fa fa-chevron-down mobile-mini-profile-chevron';
+      header.appendChild(chevron);
+
       miniProfile.appendChild(header);
 
       // Jauges compactes (toujours visibles)
@@ -1486,8 +1493,8 @@
 
         // Helper pour la gestion du singulier/pluriel
         function formatDismissedCount(n) {
-          if (n === 0) return 'Aucune alerte actuellement masquée';
-          if (n === 1) return '1 alerte actuellement masquée';
+          if (n === 0) {return 'Aucune alerte actuellement masquée';}
+          if (n === 1) {return '1 alerte actuellement masquée';}
           return `${n} alertes actuellement masquées`;
         }
 
@@ -1585,10 +1592,10 @@
   // Supprime les <hr>, ajoute un bouton "Jouer", et wrappe la section Forum
   // ============================================================================
   InitQueue.register('Homepage:RightColumn', function enhanceHomeRightColumn() {
-    if (!document.body.classList.contains('page-accueil')) return;
+    if (!document.body.classList.contains('page-accueil')) {return;}
 
     var rightCol = document.querySelector('.container > .row > .col-md-3:last-child');
-    if (!rightCol) return;
+    if (!rightCol) {return;}
 
     // Supprimer les <hr> superflus
     var hrs = rightCol.querySelectorAll('hr');
@@ -1775,8 +1782,27 @@
       const productsContainer = document.createElement('div');
       productsContainer.className = 'commerce-products-container';
 
-      // Déplacer les produits dans le conteneur
+      // Déplacer les produits dans le conteneur + détection statuts
       products.forEach(product => {
+        // Détection des statuts via l'attribut alt de l'image
+        const img = product.querySelector('img');
+        const altText = img ? (img.alt || '') : '';
+        if (altText.includes('composants manquants')) {
+          product.classList.add('commerce-status-missing');
+        }
+        if (altText.includes('stock max')) {
+          product.classList.add('commerce-status-full');
+        }
+        if (/Production \d/.test(altText)) {
+          product.classList.add('commerce-status-producing');
+        }
+
+        // Détection stock à 0 via le titre h4 (ex: "(0/50)")
+        const h4 = product.querySelector('h4');
+        if (h4 && /\(0\/\d+\)/.test(h4.textContent)) {
+          product.classList.add('commerce-status-empty');
+        }
+
         productsContainer.appendChild(product);
       });
 
@@ -1831,49 +1857,59 @@
   // ============================================================================
   // TASK-2.4 : Section bâtiment collapsible
   // ============================================================================
-  InitQueue.register('Building Collapse', function initBuildingCollapse() {
+  InitQueue.register('Panel Sections Collapse', function initPanelSectionsCollapse() {
     if (!isMobileMode()) {return;}
 
-    const batimentHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(h =>
-      h.textContent.includes('Bâtiment')
-    );
+    var sectionNames = ['Bâtiment', 'Commerce', 'Matériel'];
 
-    if (!batimentHeader) {return;}
+    sectionNames.forEach(function(sectionName) {
+      var sectionHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+        return h.textContent.includes(sectionName);
+      });
 
-    const panelHeading = batimentHeader.parentElement;
-    if (!panelHeading) {return;}
+      if (!sectionHeader) {return;}
 
-    const panelBody = panelHeading.nextElementSibling;
+      var panelHeading = sectionHeader.parentElement;
+      if (!panelHeading) {return;}
 
-    if (!panelBody || !panelBody.classList.contains('panel-body')) {return;}
+      var panelBody = panelHeading.nextElementSibling;
 
-    // Ajouter les classes
-    panelHeading.classList.add('building-section-header');
-    panelBody.classList.add('building-section-content');
+      if (!panelBody || !panelBody.classList.contains('panel-body')) {return;}
 
-    // Ajouter l'icône chevron
-    const icon = document.createElement('i');
-    icon.className = 'fa fa-chevron-down accordion-icon';
-    panelHeading.appendChild(icon);
+      // Ajouter les classes
+      panelHeading.classList.add('building-section-header');
+      panelBody.classList.add('building-section-content');
 
-    // État initial : ouvert
-    panelHeading.classList.add('expanded');
+      // Masquer le chevron original s'il existe
+      var originalChevron = panelHeading.querySelector('span.pull-right.clickable');
+      if (originalChevron) {
+        originalChevron.style.display = 'none';
+      }
 
-    // Gestionnaire de clic
-    panelHeading.style.cursor = 'pointer';
-    panelHeading.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      // Ajouter l'icône chevron FA
+      var icon = document.createElement('i');
+      icon.className = 'fa fa-chevron-down accordion-icon';
+      panelHeading.appendChild(icon);
 
-      const isNowExpanded = !panelBody.classList.contains('collapsed');
-      panelBody.classList.toggle('collapsed', isNowExpanded);
-      panelHeading.classList.toggle('collapsed', isNowExpanded);
-      panelHeading.classList.toggle('expanded', !isNowExpanded);
+      // État initial : ouvert
+      panelHeading.classList.add('expanded');
 
-      console.log(`[Building Section] ${isNowExpanded ? 'fermé' : 'ouvert'}`);
+      // Gestionnaire de clic
+      panelHeading.style.cursor = 'pointer';
+      panelHeading.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var isNowExpanded = !panelBody.classList.contains('collapsed');
+        panelBody.classList.toggle('collapsed', isNowExpanded);
+        panelHeading.classList.toggle('collapsed', isNowExpanded);
+        panelHeading.classList.toggle('expanded', !isNowExpanded);
+
+        console.log('[Panel Section] ' + sectionName + ': ' + (isNowExpanded ? 'fermé' : 'ouvert'));
+      });
+
+      console.log('[Panel Section] ' + sectionName + ' initialisé - section collapsible');
     });
-
-    console.log('[Building Section] Initialisé - section collapsible');
   });
 
   // ============================================================================
@@ -2236,13 +2272,13 @@
   // ---------------------------------------------------------------------------
 
   function extractUrl(bg) {
-    if (!bg) return null;
+    if (!bg) {return null;}
     const m = bg.match(/url\((?:'|")?(.*?)(?:'|")?\)/);
     return m ? m[1] : null;
   }
 
   function computeReplacement(src) {
-    if (!src) return null;
+    if (!src) {return null;}
     const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
     if (overrides[src]) { return overrides[src]; }
     if (src.indexOf('/2/map/1b/') !== -1) {
@@ -2263,19 +2299,19 @@
 
       const _krTestCache = {};
       function testImageExists(url) {
-        if (_krTestCache.hasOwnProperty(url)) return Promise.resolve(!!_krTestCache[url]);
+        if (Object.hasOwn(_krTestCache, url)) {return Promise.resolve(!!_krTestCache[url]);}
         return new Promise(resolve => {
           try {
             const img = new Image();
             img.onload = () => { _krTestCache[url] = true; resolve(true); };
             img.onerror = () => { _krTestCache[url] = false; resolve(false); };
             img.src = url;
-          } catch (e) { _krTestCache[url] = false; resolve(false); }
+          } catch (_e) { _krTestCache[url] = false; resolve(false); }
         });
       }
 
       function processElement(el) {
-        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true')) return;
+        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true')) {return;}
         let src = null;
         if (el.tagName === 'IMG') {
           src = el.src || el.getAttribute('src');
@@ -2284,11 +2320,11 @@
           const computedBg = inlineBg || (window.getComputedStyle && getComputedStyle(el).backgroundImage) || '';
           src = extractUrl(inlineBg) || extractUrl(computedBg);
         }
-        if (!src) return;
+        if (!src) {return;}
         // Ne pas remplacer les URLs explicitement exclues
-        if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) return;
+        if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
         const target = computeReplacement(src);
-        if (!target) return;
+        if (!target) {return;}
 
         // Marquer comme pending pour éviter les re-tests simultanés
         el.setAttribute && el.setAttribute('data-kr-medieval-pending', 'true');
@@ -2305,7 +2341,7 @@
         testImageExists(target).then(exists => {
           if (exists) {
             if (el.tagName === 'IMG') {
-              try { el.src = target; } catch (e) { el.setAttribute('src', target); }
+              try { el.src = target; } catch (_e) { el.setAttribute('src', target); }
             } else {
               el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
             }
@@ -2317,7 +2353,7 @@
             // fallback: restaurer l'original si nécessaire (ne rien changer autrement)
             const elemOrig = el.getAttribute(originalBgAttr);
             if (el.tagName === 'IMG') {
-              if (elemOrig) { try { el.src = elemOrig; } catch (e) { el.setAttribute('src', elemOrig); } }
+              if (elemOrig) { try { el.src = elemOrig; } catch (_e) { el.setAttribute('src', elemOrig); } }
             } else {
               if (elemOrig) { el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + elemOrig + '")', 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('background-image'); }
             }
@@ -2334,7 +2370,7 @@
           const origBg = el.getAttribute(originalBgAttr);
           if (el.tagName === 'IMG') {
             if (origBg) {
-              try { el.src = origBg; } catch (e) { el.setAttribute('src', origBg); }
+              try { el.src = origBg; } catch (_e) { el.setAttribute('src', origBg); }
             } else {
               el.removeAttribute && el.removeAttribute('src');
             }
@@ -2371,7 +2407,7 @@
                 processElement(m.target);
               } else if (m.type === 'childList') {
                 m.addedNodes.forEach(n => {
-                  if (n.nodeType !== 1) return;
+                  if (n.nodeType !== 1) {return;}
                   if (n.matches && (n.matches('div[style*="/2/map/1/"]') || n.matches('div[style*="/2/map/1b/"]') || n.matches('img[src*="/2/map/1/"]') || n.matches('img[src*="/2/map/1b/"]'))) {
                     processElement(n);
                   }
@@ -2856,13 +2892,13 @@
       rankContainer.style.justifyContent = 'center';
       rankContainer.style.gap = '4px';
       rankContainer.style.marginTop = '4px';
-      
+
       // Déplacer l'image dans ce conteneur
       const rankImg = parentDiv.querySelector('img[src*="/rank/"]');
       if (rankImg) {
         rankContainer.appendChild(rankImg.cloneNode(true));
       }
-      
+
       // Ajouter le titre
       const strong = document.createElement('strong');
       strong.textContent = title;
@@ -4069,15 +4105,15 @@
     function useFullTopicTitles() {
       // Cibler tous les sujets avec span.invisible
       const topics = document.querySelectorAll('p.nomargin');
-      
+
       topics.forEach(topic => {
         const invisibleSpan = topic.querySelector('span.invisible');
         const link = topic.querySelector('a');
-        
+
         if (invisibleSpan && link) {
           const fullTitle = invisibleSpan.textContent.trim();
           const currentTitle = link.textContent.trim();
-          
+
           // Remplacer seulement si le titre est abrégé (contient ...)
           if (currentTitle.includes('(...)') && fullTitle) {
             link.textContent = fullTitle;
@@ -4127,7 +4163,7 @@
           // Détecter si l'icône "premier message non lu" existe
           const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
           const titleLink = titleCell.querySelector('p > a');
-          
+
           if (unreadIconLink && titleLink) {
             // Sujet NON LU : rediriger le titre vers le premier message non lu
             titleLink.href = unreadIconLink.href;
@@ -4137,7 +4173,7 @@
           // === CARD CLIQUABLE ===
           if (titleLink) {
             row.style.cursor = 'pointer';
-            
+
             row.addEventListener('click', (e) => {
               if (e.target.tagName === 'A' || e.target.closest('a')) {
                 return;
@@ -4165,7 +4201,7 @@
           }
         });
 
-        console.log(`[Forum Topics Mobile] Sujets enrichis`);
+        console.log('[Forum Topics Mobile] Sujets enrichis');
       }
 
       // Exécuter immédiatement
@@ -4173,7 +4209,7 @@
 
       // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
       if (typeof jQuery !== 'undefined') {
-        jQuery(forumTable).on('draw.dt', function() {
+        jQuery(forumTable).on('draw.dt', function () {
           processRows();
         });
       }
@@ -4198,7 +4234,7 @@
 
       panels.forEach(panel => {
         const rows = panel.querySelectorAll('.table tbody tr');
-        
+
         rows.forEach(row => {
           // Éviter le double traitement
           if (row.hasAttribute('data-permanent-icons-added')) {return;}
@@ -4239,7 +4275,7 @@
           // Remplacer les cellules originales par le wrapper
           msgCell.style.display = 'none';
           viewsCell.style.display = 'none';
-          
+
           // Insérer le wrapper après la première cellule
           const firstCell = cells[0];
           if (firstCell) {
@@ -4248,7 +4284,7 @@
         });
       });
 
-      console.log(`[Permanent Topics Mobile] Icônes ajoutées`);
+      console.log('[Permanent Topics Mobile] Icônes ajoutées');
     }
 
     InitQueue.register('PermanentTopics:Icons', enrichPermanentTopicsStats, 25);
@@ -4259,7 +4295,7 @@
   // MODULE : ForumHeader:MobileBreadcrumb
   // Transforme le header forum en fil d'ariane + FAB button
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function transformForumHeader() {
@@ -4379,12 +4415,12 @@
       `;
 
       // Feedback tactile
-      fab.addEventListener('touchstart', function() {
+      fab.addEventListener('touchstart', function () {
         this.style.transform = 'scale(0.92)';
         this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
       });
 
-      fab.addEventListener('touchend', function() {
+      fab.addEventListener('touchend', function () {
         this.style.transform = 'scale(1)';
         this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
       });
@@ -4415,7 +4451,7 @@
   // MODULE : Kramail:CharacterSwitcher
   // Ajoute un dropdown pour changer de personnage dans les kramails (mobile)
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function initKramailCharacterSwitcher() {
@@ -4431,7 +4467,7 @@
 
       const h1 = document.querySelector('h1.page-header');
       const colLeft = document.getElementById('col-left');
-      
+
       if (!h1 || !colLeft) {
         console.warn('[Kramail Character Switcher] h1 ou col-left non trouvé');
         return;
@@ -4452,7 +4488,7 @@
         .filter(a => {
           // Filtrer uniquement les liens vers les kramails de personnages
           const href = a.getAttribute('href');
-          return href && href.match(/kramail\/[^\/]+-\d+-\d+$/);
+          return href && href.match(/kramail\/[^/]+-\d+-\d+$/);
         })
         .map(a => {
           // Trouver la catégorie (Compte Membre, Plateau, etc.)
@@ -4465,7 +4501,7 @@
             }
             sibling = sibling.previousElementSibling;
           }
-          
+
           return {
             name: a.textContent.trim(),
             href: a.href,
@@ -4558,7 +4594,7 @@
         option.addEventListener('touchstart', () => {
           option.style.background = 'var(--kr-bg-active)';
         }, { passive: true });
-        
+
         option.addEventListener('touchend', () => {
           option.style.background = '';
         }, { passive: true });
@@ -4566,7 +4602,7 @@
         option.addEventListener('mouseenter', () => {
           option.style.background = 'var(--kr-bg-hover)';
         });
-        
+
         option.addEventListener('mouseleave', () => {
           option.style.background = '';
         });
@@ -4591,7 +4627,7 @@
       `;
 
       // Remplacer le texte du nom par le wrapper
-      const textNode = Array.from(h1.childNodes).find(node => 
+      const textNode = Array.from(h1.childNodes).find(node =>
         node.nodeType === Node.TEXT_NODE && node.textContent.trim() === currentCharName
       );
 
@@ -4670,7 +4706,7 @@
           if (mutation.attributeName === 'class') {
             const isMobile = document.body.classList.contains('mobile-mode');
             const dropdownExists = document.querySelector('.kramail-character-selector');
-            
+
             // Si on est en mobile ET que le dropdown n'existe pas, le créer
             if (isMobile && !dropdownExists && window.location.pathname.includes('/kramail')) {
               console.log('[Kramail Character Switcher] Réinitialisation du dropdown (changement de mode)');
@@ -4696,7 +4732,7 @@
   // Clone le bouton d'actions "+" (sélection/suppression) du thead
   // vers la barre de boutons pour accès mobile
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function initKramailMobileEnhancer() {
@@ -4737,14 +4773,14 @@
       const dropdownMenu = clone.querySelector('.dropdown-menu');
 
       if (toggleBtn && dropdownMenu) {
-        toggleBtn.addEventListener('click', function(e) {
+        toggleBtn.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
           clone.classList.toggle('open');
         });
 
         // Fermer le dropdown quand on clique ailleurs
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
           if (!clone.contains(e.target)) {
             clone.classList.remove('open');
           }
@@ -4760,13 +4796,13 @@
 
           function toggleAllMessages(checked) {
             const boxes = document.querySelectorAll('input[type="checkbox"][name="c[]"]');
-            boxes.forEach(function(cb) { cb.checked = checked; });
+            boxes.forEach(function (cb) { cb.checked = checked; });
             // Synchroniser aussi la checkbox originale du thead
             const original = document.querySelector('#allbox');
-            if (original) original.checked = checked;
+            if (original) {original.checked = checked;}
           }
 
-          allboxClone.addEventListener('click', function(e) {
+          allboxClone.addEventListener('click', function (e) {
             e.stopPropagation();
             toggleAllMessages(allboxClone.checked);
           });
@@ -4774,7 +4810,7 @@
           // Rendre le label cliquable aussi
           const label = allboxClone.closest('a');
           if (label) {
-            label.addEventListener('click', function(e) {
+            label.addEventListener('click', function (e) {
               e.preventDefault();
               e.stopPropagation();
               allboxClone.checked = !allboxClone.checked;
@@ -4790,9 +4826,9 @@
         // mais il faut aussi fermer le dropdown après action
         const menuItems = clone.querySelectorAll('.dropdown-menu li a');
         menuItems.forEach(item => {
-          item.addEventListener('click', function() {
+          item.addEventListener('click', function () {
             // Fermer le dropdown après action
-            setTimeout(function() {
+            setTimeout(function () {
               clone.classList.remove('open');
             }, 200);
           });
@@ -4813,7 +4849,7 @@
   //   - Crée un menu kebab pour les actions secondaires
   //   - Restructure le message (header horizontal, corps pleine largeur)
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function initKramailPostMobileEnhancer() {
@@ -4857,10 +4893,10 @@
       const secondaryButtons = buttons.slice(4);   // exclamation, times, envelope, user
 
       // Ajouter les boutons principaux (icon-only)
-      primaryButtons.forEach(function(btn) {
+      primaryButtons.forEach(function (btn) {
         // Masquer le texte (le bouton Réception a du texte "Réception")
-        var textNodes = Array.from(btn.childNodes).filter(function(n) { return n.nodeType === 3; });
-        textNodes.forEach(function(t) { t.textContent = ''; });
+        var textNodes = Array.from(btn.childNodes).filter(function (n) { return n.nodeType === 3; });
+        textNodes.forEach(function (t) { t.textContent = ''; });
         // Marquer le bouton Réception comme btn-primary (retour inbox = onglet actif)
         if (btn.querySelector('.fa-backward')) {
           btn.classList.add('btn-primary');
@@ -4889,7 +4925,7 @@
         'fa-user': 'Contacts'
       };
 
-      secondaryButtons.forEach(function(btn) {
+      secondaryButtons.forEach(function (btn) {
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.href = btn.getAttribute('href') || '#';
@@ -4899,7 +4935,7 @@
         var labelText = '';
 
         // Récupérer le label via la map
-        Object.keys(labels).forEach(function(key) {
+        Object.keys(labels).forEach(function (key) {
           if (iconClass.indexOf(key) !== -1) {
             labelText = labels[key];
           }
@@ -4929,22 +4965,22 @@
       h1.appendChild(newPullRight);
 
       // Gérer le toggle dropdown manuellement
-      kebabToggle.addEventListener('click', function(e) {
+      kebabToggle.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         kebab.classList.toggle('open');
       });
 
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         if (!kebab.contains(e.target)) {
           kebab.classList.remove('open');
         }
       });
 
       // Fermer le dropdown après action
-      kebabMenu.querySelectorAll('a').forEach(function(item) {
-        item.addEventListener('click', function() {
-          setTimeout(function() { kebab.classList.remove('open'); }, 200);
+      kebabMenu.querySelectorAll('a').forEach(function (item) {
+        item.addEventListener('click', function () {
+          setTimeout(function () { kebab.classList.remove('open'); }, 200);
         });
       });
 
@@ -5057,7 +5093,7 @@
   // MODULE : ForumThread:MobileBreadcrumb
   // Transforme le header des threads de forum en fil d'ariane + FAB button
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function transformForumThreadHeader() {
@@ -5074,7 +5110,7 @@
       // Cibler le h1 et tous les div.forum-top qui contiennent les boutons
       const forumHeading = document.querySelector('.container h1.page-header');
       const forumTops = document.querySelectorAll('.forum-top');
-      
+
       if (!forumHeading || forumTops.length === 0) {
         console.warn('[Forum Thread Mobile] h1 ou .forum-top non trouvé');
         return;
@@ -5083,8 +5119,7 @@
       // Extraire le titre du thread (ignorer les nœuds texte vides)
       const threadTitle = Array.from(forumHeading.childNodes)
         .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-        .map(node => node.textContent.trim())
-        [0];
+        .map(node => node.textContent.trim())[0];
 
       if (!threadTitle) {
         console.warn('[Forum Thread Mobile] Titre du thread non trouvé');
@@ -5103,12 +5138,12 @@
 
       // Extraire le nom du forum parent (Taverne, etc.)
       const forumName = taverneLink.textContent.trim();
-      
+
       // Déterminer la catégorie parente (RP/HRP) depuis l'URL
       const forumUrl = taverneLink.href;
       let categoryName = 'Jeu (RP)';
       let categoryUrl = 'forum/rp';
-      
+
       if (forumUrl.includes('/forum/hrp/')) {
         categoryName = 'Jeu (HRP)';
         categoryUrl = 'forum/hrp';
@@ -5226,12 +5261,12 @@
         `;
 
         // Feedback tactile
-        fab.addEventListener('touchstart', function() {
+        fab.addEventListener('touchstart', function () {
           this.style.transform = 'scale(0.92)';
           this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
         });
 
-        fab.addEventListener('touchend', function() {
+        fab.addEventListener('touchend', function () {
           this.style.transform = 'scale(1)';
           this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
         });
@@ -5297,12 +5332,12 @@
   // MODULE : ForumThread:HideTags
   // Masque les tags dans la vue détail du fil (ils sont inutiles et gênent la mise en page)
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     function hideForumThreadTags() {
       console.log('[Forum Thread:HideTags] Function called');
-      
+
       // Vérifier qu'on est sur une page de thread détail
       const pathname = window.location.pathname;
       if (!pathname.includes('/forum/sujet/')) {
@@ -5311,16 +5346,16 @@
       }
 
       console.log('[Forum Thread:HideTags] On forum thread page, hiding tags after delay');
-      
+
       // Les tags sont ajoutés dynamiquement, donc on doit attendre un peu
       // Utiliser un délai pour s'assurer qu'ils sont présents
       setTimeout(() => {
         console.log('[Forum Thread:HideTags] setTimeout fired');
-        
+
         // Chercher tous les liens de tags (sans slash initial dans le href)
         const tagLinks = Array.from(document.querySelectorAll('a[href*="forum/tags"]'));
         console.log('[Forum Thread:HideTags] Found', tagLinks.length, 'tag links');
-        
+
         if (tagLinks.length === 0) {
           console.log('[Forum Thread:HideTags] No tag links found');
           return;
@@ -5349,7 +5384,7 @@
             parent.style.display = 'none';
           }
         });
-        
+
         console.log('[Forum Thread] Tags masqués (fallback)');
       }, 500); // 500ms devrait suffire
     }
@@ -5364,7 +5399,7 @@
   // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
   // Row 2: col-xs-12 (contenu message)
   // ============================================================================
-  (function() {
+  (function () {
     'use strict';
 
     const MOBILE_BREAKPOINT = 768;
@@ -5382,7 +5417,7 @@
 
       // Sélectionner tous les posts non-restructurés
       const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
-      
+
       if (posts.length === 0) {
         return;
       }
@@ -5392,26 +5427,26 @@
         const userInfo = post.querySelector('.pull-left, .user-info');
         const pullRight = post.querySelector('.pull-right');
         const mediaBody = post.querySelector('.media-body');
-        
+
         if (!userInfo || !mediaBody) {
           return;
         }
-        
+
         // Sauvegarder TOUT le contenu de media-body avant modification
         const originalMediaBodyHTML = mediaBody.innerHTML;
-        
+
         // 2. Créer Row 1 (header: user + boutons)
         const headerRow = document.createElement('div');
         headerRow.className = 'row forum-header';
-        
+
         // Colonne 1: User info
         const userCol = document.createElement('div');
         userCol.className = 'col-xs-8 forum-user-section';
-        
+
         // Cloner le userInfo pour le déplacer
         const userInfoClone = userInfo.cloneNode(true);
         userCol.appendChild(userInfoClone);
-        
+
         // Extraire et ajouter la date depuis le bouton de date
         const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
         if (dateButton) {
@@ -5421,7 +5456,7 @@
           dateElement.textContent = dateText;
           userCol.appendChild(dateElement);
         }
-        
+
         // Colonne 2: Boutons d'action
         const actionsCol = document.createElement('div');
         actionsCol.className = 'col-xs-4 forum-actions-section';
@@ -5429,48 +5464,48 @@
           const pullRightClone = pullRight.cloneNode(true);
           actionsCol.appendChild(pullRightClone);
         }
-        
+
         headerRow.appendChild(userCol);
         headerRow.appendChild(actionsCol);
-        
+
         // 3. Créer Row 2 (contenu du message)
         const contentRow = document.createElement('div');
         contentRow.className = 'row forum-content-row';
-        
+
         const contentCol = document.createElement('div');
         contentCol.className = 'col-xs-12 forum-content-section';
-        
+
         // Créer un nouveau mediaBody temporaire pour extraire le contenu
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = originalMediaBodyHTML;
-        
+
         // Retirer userInfo, pullRight, dateButton du tempDiv
         const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
         const tempPullRight = tempDiv.querySelector('.pull-right');
         const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
-        
-        if (tempUserInfo) tempUserInfo.remove();
-        if (tempPullRight) tempPullRight.remove();
-        if (tempDateButton) tempDateButton.remove();
-        
+
+        if (tempUserInfo) {tempUserInfo.remove();}
+        if (tempPullRight) {tempPullRight.remove();}
+        if (tempDateButton) {tempDateButton.remove();}
+
         // Tout ce qui reste est le contenu du message
         contentCol.innerHTML = tempDiv.innerHTML;
-        
+
         contentRow.appendChild(contentCol);
-        
+
         // 4. Vider le post et reconstruire
         // Supprimer le .pull-left original (avatar dupliqué)
         if (userInfo && userInfo.parentElement === post) {
           userInfo.remove();
         }
-        
+
         // Vider le mediaBody complètement
         mediaBody.innerHTML = '';
-        
+
         // Insérer les nouvelles rows
         mediaBody.appendChild(headerRow);
         mediaBody.appendChild(contentRow);
-        
+
         // 5. Marquer comme restructuré
         post.setAttribute('data-restructured', 'true');
         post.classList.add('forum-post-restructured');
@@ -5495,7 +5530,7 @@
     let forumOriginalItem = null;
 
     // Vérifier si on est en mode mobile
-    const isMobileMode = document.body.classList.contains('mobile-mode');
+    const isMobile = document.body.classList.contains('mobile-mode');
 
     // Modification des liens existants et ajout du comportement de redirection
     document.querySelectorAll('.navbar-nav .dropdown > a.dropdown-toggle').forEach(link => {
@@ -5513,7 +5548,7 @@
 
         // EN DESKTOP UNIQUEMENT : Supprimer data-toggle pour empêcher le dropdown et forcer la navigation
         // EN MOBILE : Garder data-toggle pour permettre l'affichage du sous-menu
-        if (!isMobileMode) {
+        if (!isMobile) {
           link.removeAttribute('data-toggle');
 
           // Marquer comme modifié pour éviter de ré-ajouter l'événement
@@ -5588,7 +5623,7 @@
       forumOriginalItem.remove();
 
       // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
-      if (!isMobileMode) {
+      if (!isMobile) {
         const forumRpLink = forumRpLi.querySelector('a.dropdown-toggle');
         if (forumRpLink) {
           forumRpLink.removeAttribute('data-toggle');
@@ -5622,7 +5657,7 @@
       }
 
       // Créer les trois nouveaux menus : Forum Communauté, Forum Débats, Forum Staff
-      
+
       const forumMenuParent = forumRpLi.parentElement;
       if (forumMenuParent && !document.querySelector('[data-forums-added="forum-communaute"]')) {
         // Vérifier si Staff existe dans le dropdown-menu original
@@ -5683,10 +5718,10 @@
         }
 
         // EN DESKTOP UNIQUEMENT : Ajouter les comportements de navigation directe
-        if (!isMobileMode) {
+        if (!isMobile) {
           const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
-          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
-          
+          if (forumStaffLi) {menusToUpdate.push(forumStaffLi);}
+
           menusToUpdate.forEach(li => {
             const link = li.querySelector('a.dropdown-toggle');
             if (link) {
@@ -5701,8 +5736,8 @@
         } else {
           // EN MOBILE : Garder data-toggle pour les dropdowns
           const menusToUpdate = [forumCommunauteLi, forumDebatsLi];
-          if (forumStaffLi) menusToUpdate.push(forumStaffLi);
-          
+          if (forumStaffLi) {menusToUpdate.push(forumStaffLi);}
+
           menusToUpdate.forEach(li => {
             const link = li.querySelector('a.dropdown-toggle');
             if (link) {
@@ -5736,7 +5771,7 @@
       }
 
       // EN DESKTOP UNIQUEMENT : Ajouter le comportement de navigation directe
-      if (!isMobileMode) {
+      if (!isMobile) {
         const statsLink = statsLi.querySelector('a.dropdown-toggle');
         if (statsLink) {
           statsLink.removeAttribute('data-toggle');
@@ -5961,13 +5996,13 @@
 
     // Afficher la version actuelle
     const currentVersion = CURRENT_VERSION !== '__USERSCRIPT_VERSION__' ? CURRENT_VERSION : 'dev';
-    
+
     // En mode dev, afficher simplement "dev" sans essayer de fetch
     if (currentVersion === 'dev') {
       versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong> <span style="color: #5bc0de;">ℹ️ (mode développement)</span></span>`;
       return;
     }
-    
+
     versionDiv.innerHTML = `<span>CSS : version courante <strong>${currentVersion}</strong>, dernière version <span id="latest-version">chargement...</span></span>`;
 
     // Déterminer l'URL du fichier version.json (GitHub en prod)
@@ -6004,7 +6039,7 @@
     if (window.location.pathname.includes('/kramail')) {
       return;
     }
-    
+
     const colT = document.getElementById('col-t');
     const colLeft = document.getElementById('col-left');
     if (!colT || !colLeft) {return;}
@@ -6164,7 +6199,7 @@
     if (mainPanel && !mainPanel.id) {mainPanel.id = 'player-main-panel';}
 
     const headerSection = colLeft.querySelector('.list-group');
-    if (headerSection && !headerSection.id) {headerSection.id = 'player-header-section';}
+    if (headerSection && !headerSection.id && !headerSection.querySelector('form')) {headerSection.id = 'player-header-section';}
 
     const vitalsSection = colLeft.querySelector('div.t.row');
     if (vitalsSection && !vitalsSection.id) {vitalsSection.id = 'player-vitals-section';}
@@ -8252,7 +8287,6 @@
       }, 50);
 
       // Nettoyage des listeners lors de la fermeture
-      const originalClose = closeModal;
       closeModal = () => {
         modal.remove();
         this.markVersionAsViewed(this.getCurrentVersion());

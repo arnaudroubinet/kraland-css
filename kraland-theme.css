@@ -77,6 +77,7 @@
   .c8  { background-color: var(--kr-nation-bg-8) !important; }
   .c9  { background-color: var(--kr-nation-bg-9) !important; }
   .c10 { background-color: var(--kr-nation-bg-10) !important; }
+
   /* Forcer texte noir sur les labels nationaux (lisibilité) */
   .mini.c1, .mini.c2, .mini.c3, .mini.c4, .mini.c5, .mini.c6, .mini.c7, .mini.c8, .mini.c9, .mini.c10 {
     color: #000 !important;
@@ -170,14 +171,11 @@ html[class*="-dark"] {
 
   --kr-bg-hover: rgba(255, 255, 255, 0.03);
   --kr-bg-active: rgba(255, 255, 255, 0.06);
-
   --kr-border-default: rgb(255,255,255,0.08);
   --kr-border-strong: rgb(255,255,255,0.15);
-
   --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
   --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
   --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
-
   --kr-nation-1: #ff8080;
   --kr-nation-3: #ffe066;
   --kr-nation-9: #c4b958;
@@ -2544,7 +2542,9 @@ html[class*="-dark"] .c9  { background-color: var(--kr-nation-bg-9); }
 html[class*="-dark"] .c10 { background-color: var(--kr-nation-bg-10); }
 
 /* === COULEURS HTML KRALAND (balises <font color="">) === */
+
 /* Surcharge des couleurs spécifiques utilisées par Kraland pour le dark mode */
+
 /* Ajustement minimal pour conserver les teintes d'origine */
 
 html[class*="-dark"] font[color="#f4ac00"],
@@ -2554,7 +2554,7 @@ html[class*="-dark"] font[color="f4ac00"] {
 
 html[class*="-dark"] font[color="#f77400"],
 html[class*="-dark"] font[color="f77400"] {
-  color: #ff8833 !important; /* orange - Éclairci mais garde l'orange vif */
+  color: #f83 !important; /* orange - Éclairci mais garde l'orange vif */
 }
 
 html[class*="-dark"] font[color="#ed6161"],
@@ -2564,7 +2564,7 @@ html[class*="-dark"] font[color="ed6161"] {
 
 html[class*="-dark"] font[color="#d50000"],
 html[class*="-dark"] font[color="d50000"] {
-  color: #ff3333 !important; /* red - Rouge vif éclairci */
+  color: #f33 !important; /* red - Rouge vif éclairci */
 }
 
 html[class*="-dark"] font[color="olive"] {
@@ -2573,75 +2573,76 @@ html[class*="-dark"] font[color="olive"] {
 
 html[class*="-dark"] font[color="#219c5a"],
 html[class*="-dark"] font[color="219c5a"] {
-  color: #33cc77 !important; /* lightgreen - Éclairci, garde le vert vif */
+  color: #3c7 !important; /* lightgreen - Éclairci, garde le vert vif */
 }
 
 html[class*="-dark"] font[color="#006f00"],
 html[class*="-dark"] font[color="006f00"] {
-  color: #00bb00 !important; /* green - Vert pur éclairci */
+  color: #0b0 !important; /* green - Vert pur éclairci */
 }
 
 html[class*="-dark"] font[color="teal"] {
-  color: #33cccc !important; /* teal - Teal éclairci */
+  color: #3cc !important; /* teal - Teal éclairci */
 }
 
 html[class*="-dark"] font[color="#5577bc"],
 html[class*="-dark"] font[color="5577bc"] {
-  color: #7799dd !important; /* lightblue - Légèrement éclairci, garde le bleu */
+  color: #79d !important; /* lightblue - Légèrement éclairci, garde le bleu */
 }
 
 html[class*="-dark"] font[color="#2b2be4"],
 html[class*="-dark"] font[color="2b2be4"] {
-  color: #5555ff !important; /* blue - Bleu vif éclairci */
+  color: #55f !important; /* blue - Bleu vif éclairci */
 }
 
 html[class*="-dark"] font[color="navy"] {
-  color: #5555cc !important; /* navy - Navy éclairci mais garde le bleu foncé */
+  color: #55c !important; /* navy - Navy éclairci mais garde le bleu foncé */
 }
 
 html[class*="-dark"] font[color="purple"] {
-  color: #cc55cc !important; /* purple - Violet éclairci */
+  color: #c5c !important; /* purple - Violet éclairci */
 }
 
 html[class*="-dark"] font[color="#4B0082"],
 html[class*="-dark"] font[color="4B0082"],
 html[class*="-dark"] font[color="4b0082"] {
-  color: #8855cc !important; /* indigo - Indigo éclairci, garde le violet-bleu */
+  color: #85c !important; /* indigo - Indigo éclairci, garde le violet-bleu */
 }
 
 html[class*="-dark"] font[color="maroon"] {
-  color: #cc5555 !important; /* maroon - Bordeaux éclairci */
+  color: #c55 !important; /* maroon - Bordeaux éclairci */
 }
 
 html[class*="-dark"] font[color="#5e432d"],
 html[class*="-dark"] font[color="5e432d"] {
-  color: #aa7755 !important; /* brown - Marron éclairci, garde la teinte chaude */
+  color: #a75 !important; /* brown - Marron éclairci, garde la teinte chaude */
 }
 
 html[class*="-dark"] font[color="gray"] {
-  color: #aaaaaa !important; /* gray - Gris éclairci */
+  color: #aaa !important; /* gray - Gris éclairci */
 }
 
 html[class*="-dark"] font[color="#5a5a5a"],
 html[class*="-dark"] font[color="5a5a5a"] {
-  color: #999999 !important; /* darkgray - Éclairci mais garde le gris moyen */
+  color: #999 !important; /* darkgray - Éclairci mais garde le gris moyen */
 }
 
 html[class*="-dark"] font[color="#000000"],
 html[class*="-dark"] font[color="000000"] {
-  color: #cccccc !important; /* black - Gris clair (noir impossible en dark) */
+  color: #ccc !important; /* black - Gris clair (noir impossible en dark) */
 }
 
 /* === CLASSES DE COULEURS === */
 html[class*="-dark"] .red {
-  color: #ff3333 !important; /* red - Rouge vif éclairci */
+  color: #f33 !important; /* red - Rouge vif éclairci */
 }
 
 html[class*="-dark"] .blue {
-  color: #3388ff !important; /* blue - Bleu France, bon contraste */
+  color: #38f !important; /* blue - Bleu France, bon contraste */
 }
 
 /* === COULEURS PALETTE DE SÉLECTION (boutons background-color) === */
+
 /* Surcharge des background-color des boutons de la palette de couleurs */
 
 html[class*="-dark"] [style*="background-color:#f4ac00"],
@@ -2651,7 +2652,7 @@ html[class*="-dark"] [style*="background-color: #f4ac00"] {
 
 html[class*="-dark"] [style*="background-color:#f77400"],
 html[class*="-dark"] [style*="background-color: #f77400"] {
-  background-color: #ff8833 !important; /* orange */
+  background-color: #f83 !important; /* orange */
 }
 
 html[class*="-dark"] [style*="background-color:#ed6161"],
@@ -2661,7 +2662,7 @@ html[class*="-dark"] [style*="background-color: #ed6161"] {
 
 html[class*="-dark"] [style*="background-color:#d50000"],
 html[class*="-dark"] [style*="background-color: #d50000"] {
-  background-color: #ff3333 !important; /* red */
+  background-color: #f33 !important; /* red */
 }
 
 html[class*="-dark"] [style*="background-color:#808000"],
@@ -2671,69 +2672,69 @@ html[class*="-dark"] [style*="background-color: #808000"] {
 
 html[class*="-dark"] [style*="background-color:#219c5a"],
 html[class*="-dark"] [style*="background-color: #219c5a"] {
-  background-color: #33cc77 !important; /* lightgreen */
+  background-color: #3c7 !important; /* lightgreen */
 }
 
 html[class*="-dark"] [style*="background-color:#006f00"],
 html[class*="-dark"] [style*="background-color: #006f00"] {
-  background-color: #00bb00 !important; /* green */
+  background-color: #0b0 !important; /* green */
 }
 
 html[class*="-dark"] [style*="background-color:#008080"],
 html[class*="-dark"] [style*="background-color: #008080"] {
-  background-color: #33cccc !important; /* teal */
+  background-color: #3cc !important; /* teal */
 }
 
 html[class*="-dark"] [style*="background-color:#5577bc"],
 html[class*="-dark"] [style*="background-color: #5577bc"] {
-  background-color: #7799dd !important; /* lightblue */
+  background-color: #79d !important; /* lightblue */
 }
 
 html[class*="-dark"] [style*="background-color:#2b2be4"],
 html[class*="-dark"] [style*="background-color: #2b2be4"] {
-  background-color: #5555ff !important; /* blue */
+  background-color: #55f !important; /* blue */
 }
 
 html[class*="-dark"] [style*="background-color:#000080"],
 html[class*="-dark"] [style*="background-color: #000080"] {
-  background-color: #5555cc !important; /* navy */
+  background-color: #55c !important; /* navy */
 }
 
 html[class*="-dark"] [style*="background-color:#800080"],
 html[class*="-dark"] [style*="background-color: #800080"] {
-  background-color: #cc55cc !important; /* purple */
+  background-color: #c5c !important; /* purple */
 }
 
 html[class*="-dark"] [style*="background-color:#4B0082"],
 html[class*="-dark"] [style*="background-color: #4B0082"],
 html[class*="-dark"] [style*="background-color:#4b0082"],
 html[class*="-dark"] [style*="background-color: #4b0082"] {
-  background-color: #8855cc !important; /* indigo */
+  background-color: #85c !important; /* indigo */
 }
 
 html[class*="-dark"] [style*="background-color:#800000"],
 html[class*="-dark"] [style*="background-color: #800000"] {
-  background-color: #cc5555 !important; /* maroon */
+  background-color: #c55 !important; /* maroon */
 }
 
 html[class*="-dark"] [style*="background-color:#5e432d"],
 html[class*="-dark"] [style*="background-color: #5e432d"] {
-  background-color: #aa7755 !important; /* brown */
+  background-color: #a75 !important; /* brown */
 }
 
 html[class*="-dark"] [style*="background-color:#808080"],
 html[class*="-dark"] [style*="background-color: #808080"] {
-  background-color: #aaaaaa !important; /* gray */
+  background-color: #aaa !important; /* gray */
 }
 
 html[class*="-dark"] [style*="background-color:#5a5a5a"],
 html[class*="-dark"] [style*="background-color: #5a5a5a"] {
-  background-color: #999999 !important; /* darkgray */
+  background-color: #999 !important; /* darkgray */
 }
 
 html[class*="-dark"] [style*="background-color:#000000"],
 html[class*="-dark"] [style*="background-color: #000000"] {
-  background-color: #cccccc !important; /* black */
+  background-color: #ccc !important; /* black */
 }
 
 /* === SCROLLBARS === */
@@ -3585,7 +3586,8 @@ body > map {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 0 !important;
+    padding: 12px 16px !important;
+    font-size: 16px !important;
     line-height: 1 !important;
     box-sizing: border-box !important;
   }
@@ -3603,7 +3605,7 @@ body > map {
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
+    clip-path: inset(50%) !important;
     white-space: nowrap !important;
     border: 0 !important;
   }
@@ -3777,7 +3779,7 @@ body > map {
   }
   
   /* Avatars de la liste réduits (exclut les images du dashboard) */
-  .list-group-item img:not(.dashboard-card-avatar):not(.dashboard-card-world) {
+  .list-group-item img:not(.dashboard-card-avatar, .dashboard-card-world) {
     width: 40px !important;
     height: 40px !important;
     flex-shrink: 0 !important;
@@ -3943,13 +3945,6 @@ body > map {
   .btn-group > .btn {
     width: 100% !important;
     margin-bottom: 8px !important;
-  }
-  
-  /* Pagination plus grande */
-  .pagination > li > a,
-  .pagination > li > span {
-    padding: 12px 16px !important;
-    font-size: 16px !important;
   }
   
   /* Breadcrumb responsive */
@@ -4454,7 +4449,22 @@ body > map {
     .mobile-skill-item:active {
       background: var(--kr-bg-hover) !important;
     }
-    
+
+    /* Chevron expand/collapse */
+    .mobile-mini-profile-chevron {
+      position: absolute !important;
+      right: 12px !important;
+      bottom: 12px !important;
+      font-size: 14px !important;
+      color: var(--kr-text-secondary) !important;
+      transition: transform var(--transition-normal) !important;
+      pointer-events: none !important;
+    }
+
+    .mobile-mini-profile.expanded .mobile-mini-profile-chevron {
+      transform: rotate(-180deg) !important;
+    }
+
     /* Masquer le profil original en mobile */
     #player-header-section {
       display: none !important;
@@ -4489,6 +4499,15 @@ body > map {
     .kr-mobile-overlay {
       display: none !important;
     }
+
+    /* Masquer le panel flottant des compétences (doublon du mini-profil) */
+    #skills-panel {
+      display: none !important;
+    }
+
+    .col-md-1:has(#skills-panel) {
+      display: none !important;
+    }
   }
 }
 
@@ -4521,7 +4540,7 @@ body > map {
       justify-content: center !important;
       flex: 1 !important;
       width: 100% !important;
-      min-height: 60px !important;
+      min-height: 64px !important;
       padding: 8px 4px !important;
       background: var(--kr-bg-surface) !important;
       color: var(--kr-text-primary) !important;
@@ -4554,20 +4573,20 @@ body > map {
     
     /* Icône */
     .mobile-quick-action-icon {
-      font-size: 20px !important;
+      font-size: 24px !important;
       margin-bottom: 2px !important;
       display: block !important;
     }
-    
+
     .mobile-quick-action.btn i {
-      font-size: 20px !important;
+      font-size: 24px !important;
       margin-bottom: 2px !important;
       display: block !important;
     }
-    
+
     /* Label */
     .mobile-quick-action-label {
-      font-size: 11px !important;
+      font-size: 12px !important;
       display: block !important;
       line-height: 1.2 !important;
       margin-top: 2px !important;
@@ -5007,8 +5026,8 @@ body > map {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    padding: 10px;
-    background: var(--kr-bg-surface);
+    padding: 8px 6px;
+    background: transparent;
   }
 }
 
@@ -5017,8 +5036,12 @@ body > map {
   body.mobile-mode .dashboard-card {
     position: relative;
     width: 100%;
-    min-height: 140px;
+    min-height: auto;
     margin: 0;
+    background: var(--kr-bg-hover);
+    border: 1px solid var(--kr-border-default);
+    border-radius: 8px;
+    overflow: hidden;
   }
 }
 
@@ -5028,10 +5051,10 @@ body > map {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 4px;
-    background: var(--kr-bg-hover);
-    border: 1px solid var(--kr-border-default);
-    border-radius: 8px;
+    padding: 6px 4px 2px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     text-decoration: none;
     transition: all var(--transition-fast);
   }
@@ -5041,8 +5064,6 @@ body > map {
   body.mobile-mode .dashboard-card-link:hover,
   body.mobile-mode .dashboard-card-link:active {
     background: var(--kr-bg-active);
-    border-color: var(--kr-primary);
-    transform: translateY(-1px);
   }
 }
 
@@ -5053,7 +5074,7 @@ body > map {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
   }
 }
 
@@ -5063,7 +5084,7 @@ body > map {
     position: relative;
     width: 60px;
     height: 60px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 }
 
@@ -5131,7 +5152,6 @@ body > map {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    word-break: break-word;
     overflow-wrap: break-word;
   }
 }
@@ -5142,6 +5162,12 @@ body > map {
     width: 100%;
     padding: 2px 4px 0;
     min-height: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  body.mobile-mode .dashboard-card-body:empty {
+    display: none;
   }
 }
 
@@ -5182,9 +5208,9 @@ body > map {
     position: static;
     gap: 8px;
     justify-content: center;
-    padding: 6px 4px 4px;
+    padding: 4px 4px 2px;
     border-top: 1px solid var(--kr-border-default);
-    margin-top: 6px;
+    margin-top: 2px;
     opacity: 1;
   }
 }
@@ -5194,15 +5220,16 @@ body > map {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+    min-height: 26px !important;
     background: var(--kr-bg-surface);
     border: 1px solid var(--kr-border-default);
     border-radius: 6px;
     color: var(--kr-text-secondary);
     transition: all var(--transition-fast);
     text-decoration: none;
-    padding: 0;
+    padding: 0 !important;
   }
 }
 
@@ -5221,13 +5248,39 @@ body > map {
   }
 }
 
+@media (max-width: 767px) {
+  body.mobile-mode .dashboard-card-actions:empty {
+    display: none !important;
+  }
+}
+
 /* --- 4r. Boutons groupe/véhicule (intègre fix ex-ligne 5193) --- */
+@media (max-width: 767px) {
+  body.mobile-mode .dashboard-group-buttons {
+    align-items: center;
+  }
+
+  body.mobile-mode .dashboard-group-buttons .btn + .btn {
+    margin-top: 0 !important;
+  }
+}
+
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-group-buttons .btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 44px !important;
+    width: 28px;
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+  }
+}
+
+/* --- 4s. Masquer les chevrons originaux (remplacés par accordion-icon) --- */
+@media (max-width: 767px) {
+  body.mobile-mode .building-section-header > span.pull-right.clickable {
+    display: none !important;
   }
 }
 
@@ -5281,95 +5334,129 @@ body > map {
   opacity: 0;
 }
 
-/* Mobile : produits en grille de cartes */
-body.mobile-mode .commerce-products-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
-  padding: 8px 0;
-}
-
 /* ============================================================================
- * TASK-2.6 : Commerce - Cards produits compactes
+ * TASK-2.6 : Commerce - Layout produits
  * ============================================================================
  */
 
-/* Carte produit compacte */
-body.mobile-mode .commerce-products-container > a.list-group-item {
-  display: flex !important;
-  flex-direction: column;
-  padding: 8px !important;
-  min-height: 120px;
-  border-radius: 8px;
-  background-color: var(--kr-bg-surface);
-  border: 1px solid var(--kr-border-default);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+/* Mobile : produits en liste */
+@media (max-width: 767px) {
+  body.mobile-mode .commerce-products-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  /* Produit en ligne : [image] [nom + description] [prix] */
+  body.mobile-mode .commerce-products-container > a.list-group-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    min-height: 56px;
+    gap: 10px;
+    border-radius: 0;
+    background-color: var(--kr-bg-surface);
+    border: none;
+    border-bottom: 1px solid var(--kr-border-default);
+    transition: background-color var(--transition-fast);
+  }
+
+  body.mobile-mode .commerce-products-container > a.list-group-item:active {
+    background-color: var(--kr-bg-hover);
+  }
+
+  /* Image à gauche */
+  body.mobile-mode .commerce-products-container > a.list-group-item img {
+    float: none !important;
+    display: block;
+    margin: 0;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  /* Titre du produit */
+  body.mobile-mode .commerce-products-container > a.list-group-item h4 {
+    font-size: 13px;
+    line-height: 1.3;
+    margin: 0;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+  }
+
+  /* Description */
+  body.mobile-mode .commerce-products-container > a.list-group-item p {
+    font-size: 11px;
+    line-height: 1.2;
+    margin: 2px 0 0;
+    text-align: left;
+    color: var(--kr-text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Masquer l'icône carré de la description */
+  body.mobile-mode .commerce-products-container > a.list-group-item p i {
+    display: none;
+  }
+
+  /* Prix à droite (plus en overlay) */
+  body.mobile-mode .commerce-products-container > a.list-group-item .mention {
+    position: static;
+    float: none !important;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: right;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
+    font-size: 10px;
+    opacity: 0.7;
+  }
+
+  /* Statuts visuels */
+  body.mobile-mode .commerce-products-container > a.commerce-status-empty {
+    opacity: 0.5;
+  }
+
+  body.mobile-mode .commerce-products-container > a.commerce-status-full {
+    border-left: 3px solid #4caf50 !important;
+  }
+
+  body.mobile-mode .commerce-products-container > a.commerce-status-missing {
+    border-left: 3px solid #f44336 !important;
+  }
+
+  body.mobile-mode .commerce-products-container > a.commerce-status-producing {
+    border-left: 3px solid var(--kr-primary) !important;
+  }
 }
 
-body.mobile-mode .commerce-products-container > a.list-group-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Prix en haut à droite */
-body.mobile-mode .commerce-products-container > a.list-group-item .mention {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  float: none !important;
-  font-size: 10px;
-  line-height: 1.2;
-  text-align: right;
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
-  font-size: 9px;
-  opacity: 0.8;
-}
-
-/* Image centrée */
-body.mobile-mode .commerce-products-container > a.list-group-item img {
-  float: none !important;
-  display: block;
-  margin: 0 auto 8px;
-  width: 40px;
-  height: 40px;
-}
-
-/* Titre du produit */
-body.mobile-mode .commerce-products-container > a.list-group-item h4 {
-  font-size: 11px;
-  line-height: 1.3;
-  margin: 0 0 4px;
-  text-align: center;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: break-all;
-}
-
-/* Description (optionnel, peut être masquée sur mobile) */
-body.mobile-mode .commerce-products-container > a.list-group-item p {
-  font-size: 9px;
-  line-height: 1.2;
-  margin: 0;
-  text-align: center;
-  color: var(--kr-text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Masquer l'icône carré de la description */
-body.mobile-mode .commerce-products-container > a.list-group-item p i {
-  display: none;
+/* Desktop : conserver le grid existant */
+@media (min-width: 768px) {
+  .commerce-products-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    padding: 8px 0;
+  }
 }
 
 /* ============================================================================
@@ -7087,7 +7174,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    ============================================================================ */
 
 @media (max-width: 767px) {
-  
   /* === CONTRÔLES DATATABLE (Recherche, Affichage, Pagination) === */
   
   /* Wrapper général */
@@ -7488,7 +7574,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   
   /* Titre du sujet */
   body.page-forum table.dataTable tbody td:nth-child(1) p {
-    margin: 0 0 4px 0 !important;
+    margin: 0 0 4px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: flex-start !important;
@@ -7658,7 +7744,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* Feedback tactile */
-  .dataTables_paginate .paginate_button:not(.disabled):not(.current):active {
+  .dataTables_paginate .paginate_button:not(.disabled, .current):active {
     background: var(--kr-bg-active) !important;
     transform: scale(0.95) !important;
   }
@@ -7732,6 +7818,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px (scopé kramail) === */
+
   /* Style commun : tabs (a.btn) + bouton kebab (.btn-group > .btn) */
   body.page-kramail h1.page-header .pull-right > a.btn,
   body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
@@ -7849,6 +7936,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* === 5. DATATABLE CONTRÔLES (scopé kramail) === */
+
   /* Cacher "Afficher X lignes" sur mobile - encombre inutilement */
   body.page-kramail #topics_wrapper .dataTables_length {
     display: none !important;
@@ -7882,7 +7970,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border: 1px solid var(--kr-border-default) !important;
     color: var(--kr-text-primary) !important;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
-    -webkit-appearance: none !important;
+    appearance: none !important;
   }
 
   body.page-kramail #topics_wrapper .dataTables_filter input:focus {
@@ -7915,6 +8003,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* === 6. TABLE #topics → CARDS LAYOUT (scopé kramail) === */
+
   /* Cacher le thead de la table */
   body.page-kramail #topics thead {
     display: none !important;
@@ -8074,6 +8163,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) (scopé kramail) === */
+
   /* Comme le thead est caché, on déplace le btn-group d'actions au-dessus */
   body.page-kramail #topics_wrapper .btn-group {
     display: flex !important;
@@ -8204,7 +8294,9 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
      ============================================================================ */
 
   /* === BOUTONS PAGE MESSAGE — harmonisés avec inbox === */
+
   /* Le JS déplace les boutons dans h1 .pull-right, même sélecteurs que l'inbox */
+
   /* (les styles existants h1.page-header .pull-right > a.btn s'appliquent) */
 
   /* Masquer la barre forum-top originale (vidée par JS) */
@@ -8306,7 +8398,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     font-size: 15px !important;
     line-height: 1.6 !important;
     color: var(--kr-text-primary) !important;
-    word-wrap: break-word !important;
     overflow-wrap: break-word !important;
   }
 
@@ -8450,7 +8541,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     line-height: 1.2 !important;
     display: block !important;
     white-space: normal !important;
-    word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     hyphens: auto !important;
     overflow: visible !important;
@@ -8483,7 +8573,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     color: #bbb !important;
     font-weight: normal !important;
     white-space: normal !important;
-    word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     hyphens: auto !important;
     overflow: visible !important;
@@ -8504,7 +8593,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
   
   /* Titre/fonction - ellipsis */
-  .forum-user-section strong:not(.cartouche strong):not([data-kr-rank-title] strong) {
+  .forum-user-section strong:not(.cartouche strong, [data-kr-rank-title] strong) {
     font-size: 10px !important;
     color: #bbb !important;
     font-weight: normal !important;
@@ -8529,8 +8618,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   .forum-actions-section .pull-right {
     float: none !important;
     display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
+    flex-flow: row wrap !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 8px !important;
@@ -8540,9 +8628,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* Groupes de boutons inline */
   .forum-actions-section .btn-group {
     display: inline-flex !important;
-    flex-direction: row !important;
+    flex-flow: row nowrap !important;
     gap: 0 !important;
-    flex-wrap: nowrap !important;
   }
   
   /* Boutons carrés 44x44px (WCAG touch target) */
@@ -8656,25 +8743,21 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding-right: 0 !important;
   }
 
-  /* Réinitialiser les form-group qui contiennent les colonnes */
+  /* Réinitialiser les form-group + contenir les débordements de la toolbar */
   .form-group {
     margin-left: 0 !important;
     margin-right: 0 !important;
     padding-left: 12px !important;
     padding-right: 12px !important;
     margin-bottom: var(--mobile-spacing-lg);
+    overflow: hidden;
+    width: 100%;
   }
 
   /* Réinitialiser input-group */
   .input-group {
     display: block !important;
     width: 100% !important;
-  }
-
-  /* CRÍTICA: Contenir les débordements de la toolbar dans le form-group */
-  .form-group {
-    overflow: hidden;
-    width: 100%;
   }
 
   .form-group .col-md-10,
@@ -8687,8 +8770,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   .btn-toolbar {
     display: flex !important;           /* Override Bootstrap */
     flex-wrap: nowrap;                  /* Pas de wrapping */
-    overflow-x: auto;                   /* Scrollbar horizontale */
-    overflow-y: hidden;                 /* Pas de scrollbar verticale */
+    overflow: auto hidden;                   /* Scrollbar horizontale */                 /* Pas de scrollbar verticale */
     gap: 4px;
     padding: 8px;
     margin-bottom: var(--mobile-spacing-md);
@@ -8796,10 +8878,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   }
 
   /* 3. FORM GROUPS - Stack vertical */
-
-  .form-group {
-    margin-bottom: var(--mobile-spacing-lg);
-  }
 
   .form-group label {
     display: block;
@@ -8923,6 +9001,7 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     padding: var(--mobile-spacing-lg);
   }
 }
+
 /* ============================================================================
    KRAMAIL - FORMULAIRE NOUVEAU MESSAGE
    Page : /kramail/post/nouveau-*
@@ -8979,7 +9058,6 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 /* --- Styles desktop uniquement --- */
 @media (min-width: 769px) {
-
   /* 1. CONTENEUR FORMULAIRE — carte visuelle cohérente avec inbox */
   body.page-kramail form.form-horizontal.editeur-text {
     background: var(--kr-bg-surface);
@@ -9165,7 +9243,6 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 /* --- Styles mobile uniquement --- */
 @media (max-width: 768px) {
-
   /* =============================================
      1. HEADER — masquer le character switcher
      Le sélecteur de compte est redondant avec le
@@ -9179,10 +9256,12 @@ body.page-kramail h1.page-header .btn-default:hover {
     display: none !important;
   }
 
-  /* Désactiver le curseur pointer et le comportement interactif (formulaire uniquement) */
+  /* Désactiver le curseur pointer, comportement interactif + flex (formulaire uniquement) */
   body.page-kramail-compose h1.page-header .kramail-character-selector {
     cursor: default !important;
     pointer-events: none;
+    flex: 1;
+    min-width: 0;
   }
 
   /* Header : flex row pour aligner titre + back sur une ligne (formulaire uniquement) */
@@ -9192,12 +9271,6 @@ body.page-kramail h1.page-header .btn-default:hover {
     align-items: center;
     gap: 10px;
     flex-wrap: nowrap;
-  }
-
-  /* Le sélecteur prend l'espace restant (formulaire uniquement) */
-  body.page-kramail-compose h1.page-header .kramail-character-selector {
-    flex: 1;
-    min-width: 0;
   }
 
   /* Conteneur pull-right du bouton retour : pas de float, auto-width (formulaire uniquement) */
@@ -9299,8 +9372,7 @@ body.page-kramail h1.page-header .btn-default:hover {
     border: 1px solid var(--kr-border-default) !important;
     border-bottom: 1px solid var(--kr-border-default) !important;
     margin-bottom: 0 !important;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto hidden;
     -webkit-overflow-scrolling: touch;
     background: var(--kr-bg-hover);
   }
@@ -9440,10 +9512,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
   body.page-kramail .editeur-text .btn-toolbar .dropdown-menu {
     position: fixed !important;
-    bottom: 60px !important;
-    left: 8px !important;
-    right: 8px !important;
-    top: auto !important;
+    inset: auto 8px 60px !important;
     width: auto !important;
     max-width: calc(100vw - 16px) !important;
     max-height: 50vh;
@@ -9508,6 +9577,82 @@ body.page-kramail h1.page-header .btn-default:hover {
 } /* fin @media (max-width: 768px) — Kramail formulaire mobile */
 
 /* ============================================================================
+   PAGE ÉVÉNEMENTS - Filtres sidebar desktop
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  /* Form-groups : clearfix + espacement régulier */
+  body.page-evenements #col-left .form-group {
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  /* Labels : pleine largeur au-dessus du select */
+  body.page-evenements #col-left .form-group > label.control-label {
+    float: none;
+    width: 100%;
+    text-align: left;
+    padding: 0 0 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--kr-text-secondary);
+  }
+
+  /* Colonnes select : pleine largeur */
+  body.page-evenements #col-left .form-group > .col-sm-10 {
+    float: none;
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Input-group-addon : cohérent avec le thème */
+  body.page-evenements #col-left .input-group-addon {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-default);
+    color: var(--kr-text-secondary);
+    min-width: 36px;
+    text-align: center;
+  }
+
+  /* Masquer les <br> parasites entre form-groups */
+  body.page-evenements #col-left form > br {
+    display: none;
+  }
+
+  /* Boutons position/domicile/fonction : centrage */
+  body.page-evenements #col-left .center {
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  /* Boutons pagination (25/50/100) */
+  body.page-evenements #col-left input[name="n[4]"] {
+    margin: 2px;
+  }
+
+  /* Ligne map-markers : flex */
+  body.page-evenements #col-left .form-group.row.center {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  body.page-evenements #col-left .form-group.row.center > div {
+    width: auto;
+    float: none;
+    padding: 0;
+  }
+
+  /* Séparateurs hr */
+  body.page-evenements #col-left form hr {
+    border-top-color: var(--kr-border-default);
+    margin: 10px 0;
+  }
+} /* fin @media (min-width: 768px) — Événements filtres desktop */
+
+/* ============================================================================
    FORUM THREAD DETAIL - Hide tags
    ============================================================================ */
 
@@ -9544,6 +9689,8 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 .kr-changelog-modal.active {
   display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 1;
 }
 
@@ -9573,16 +9720,9 @@ body.page-kramail h1.page-header .btn-default:hover {
   display: flex !important;
   flex-direction: column !important;
   z-index: 10001 !important;
-  color: #ffffff !important; /* texte blanc pour contraste */
+  color: #fff !important; /* texte blanc pour contraste */
   overflow: hidden !important;
 } 
-
-/* Assurer le centrage parfait via flex du conteneur modal */
-.kr-changelog-modal.active {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .kr-changelog-header {
   padding: 24px 24px 16px;
@@ -9596,6 +9736,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   font-weight: 600;
   color: var(--kr-primary);
 }
+
 /* Le bouton croix n'est plus utilisé : masquer au cas où */
 .kr-changelog-close { display: none !important; }
 
@@ -9606,7 +9747,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 }
 
 .kr-changelog-subtitle {
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
   color: var(--kr-muted);
   font-size: 14px;
 }
@@ -9625,7 +9766,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   font-size: 14px;
 }
 
-.kr-changelog-list li:before {
+.kr-changelog-list li::before {
   content: '✓';
   position: absolute;
   left: 0;
@@ -9685,7 +9826,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 }
 
 .kr-changelog-version h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 12px;
   font-size: 16px;
   font-weight: 600;
   color: var(--kr-primary);
@@ -9707,7 +9848,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   font-size: 13px;
 }
 
-.kr-changelog-version li:before {
+.kr-changelog-version li::before {
   content: '•';
   position: absolute;
   left: 5px;
@@ -9733,6 +9874,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   cursor: pointer;
   display: inline;
 }
+
 .kr-changelog-inline:hover {
   color: var(--kr-primary-dark);
   text-decoration: underline;

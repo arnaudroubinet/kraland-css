@@ -27,9 +27,11 @@ export default [
         requestAnimationFrame: 'readonly',
         Node: 'readonly',
         Event: 'readonly',
+        Image: 'readonly',
         getComputedStyle: 'readonly',
         performance: 'readonly',
         // Tampermonkey/Greasemonkey globals
+        GM: 'readonly',
         GM_addStyle: 'readonly',
         GM_setValue: 'readonly',
         GM_getValue: 'readonly',
@@ -91,6 +93,7 @@ export default [
       sourceType: 'module',
       globals: {
         process: 'readonly',
+        Buffer: 'readonly',
         __dirname: 'readonly',
         require: 'readonly',
         module: 'readonly'
@@ -116,7 +119,7 @@ export default [
   {
     ignores: [
       'node_modules/**',
-      'kraland-userscript-main.js', // Fichier généré
+      'kraland-userscript-main.user.js', // Fichier généré
       'eslint.config.js', // Fichier de config ESLint lui-même
       'screenshots/**',
       'images/**',
