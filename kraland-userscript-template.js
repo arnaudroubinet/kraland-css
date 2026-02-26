@@ -302,6 +302,18 @@
     }
   })();
 
+  // Redirection : pages index vides (/regles, /monde)
+  (function () {
+    'use strict';
+    var redirects = {
+      '/regles': '/regles/avancees',
+      '/monde': '/monde/evenements'
+    };
+    if (redirects[window.location.pathname]) {
+      window.location.replace(redirects[window.location.pathname]);
+    }
+  })();
+
   // ============================================================================
   // FIX - NAVBAR PADDING (pages avec sous-navigation map)
   // ============================================================================
@@ -635,9 +647,9 @@
         return null;
       }
 
-      // Nom du joueur (dans le header)
-      const nameElement = profileSection.querySelector('.list-group-item.active');
-      const playerName = nameElement ? nameElement.textContent.replace('×', '').trim() : 'Joueur';
+      // Nom du joueur — valeur fixe car le sélecteur .list-group-item.active
+      // retourne l'onglet de navigation actif (ex: "Employés") au lieu du nom
+      const playerName = 'Personnage';
 
       // Avatar (dans la première row)
       const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
@@ -3996,8 +4008,11 @@
       const miniChat = document.getElementById('flap');
       if (!miniChat) {return;}
 
-      // Masquer le mini-chat par défaut sur mobile
-      miniChat.style.display = 'none';
+      // Masquer le mini-chat par défaut sur mobile (visibility au lieu de display
+      // pour que le code AJAX natif du site puisse toujours accéder aux enfants du #flap)
+      miniChat.style.visibility = 'hidden';
+      miniChat.style.position = 'fixed';
+      miniChat.style.left = '-9999px';
       miniChat.classList.add('mini-chat-overlay');
 
       // Créer le bouton flottant
@@ -4010,13 +4025,17 @@
       // Toggle du mini-chat
       fab.addEventListener('click', (e) => {
         e.preventDefault();
-        const isOpen = miniChat.style.display === 'block';
+        const isOpen = miniChat.style.visibility === 'visible';
 
         if (isOpen) {
-          miniChat.style.display = 'none';
+          miniChat.style.visibility = 'hidden';
+          miniChat.style.left = '-9999px';
           fab.classList.remove('active');
           document.body.style.overflow = '';
         } else {
+          miniChat.style.visibility = 'visible';
+          miniChat.style.position = '';
+          miniChat.style.left = '';
           miniChat.style.display = 'block';
           fab.classList.add('active');
           document.body.style.overflow = 'hidden';
@@ -4027,7 +4046,8 @@
       const closeBtn = miniChat.querySelector('.close-btn');
       if (closeBtn) {
         closeBtn.addEventListener('click', () => {
-          miniChat.style.display = 'none';
+          miniChat.style.visibility = 'hidden';
+          miniChat.style.left = '-9999px';
           fab.classList.remove('active');
           document.body.style.overflow = '';
         });
@@ -5030,64 +5050,6 @@
     }
 
     InitQueue.register('Kramail:PostMobileEnhancer', initKramailPostMobileEnhancer, 33);
-
-  })();
-
-  // ============================================================================
-  // MODULE : Kramail:DefaultPlateau
-  // Redirige l'icône kramail de la navbar vers la boîte du personnage plateau.
-  // Au premier passage sur /kramail, récupère le premier lien de la section
-  // « Plateau » du sidebar et le stocke dans localStorage. Sur toutes les pages,
-  // l'icône envelope de la navbar pointe ensuite vers cette URL.
-  // ============================================================================
-  (function() {
-    'use strict';
-
-    var STORAGE_KEY = 'kr-kramail-plateau-url';
-
-    function captureKramailPlateauUrl() {
-      // Sur la page kramail, capturer l'URL plateau si pas encore stockée
-      if (window.location.pathname.includes('/kramail')) {
-        var stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) {
-          // Trouver la section "Plateau" dans le sidebar
-          var listItems = document.querySelectorAll('.list-group-item');
-          var inPlateau = false;
-          for (var i = 0; i < listItems.length; i++) {
-            var item = listItems[i];
-            var text = item.textContent.trim();
-            if (item.tagName === 'LI' && text === 'Plateau') {
-              inPlateau = true;
-              continue;
-            }
-            if (item.tagName === 'LI' && text === 'Compte Membre') {
-              inPlateau = false;
-              continue;
-            }
-            if (inPlateau && item.tagName === 'A' && item.getAttribute('href')) {
-              var href = item.getAttribute('href');
-              if (href.match(/kramail\/[^/]+-\d+-\d+$/)) {
-                localStorage.setItem(STORAGE_KEY, href);
-                console.log('[Kramail DefaultPlateau] URL plateau sauvegardée:', href);
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      // Sur toutes les pages, mettre à jour le lien kramail de la navbar
-      var plateauUrl = localStorage.getItem(STORAGE_KEY);
-      if (plateauUrl) {
-        var kramailLink = document.querySelector('.navbar-right a[href="kramail"]');
-        if (kramailLink) {
-          kramailLink.setAttribute('href', plateauUrl);
-          console.log('[Kramail DefaultPlateau] Lien navbar mis à jour:', plateauUrl);
-        }
-      }
-    }
-
-    InitQueue.register('Kramail:DefaultPlateau', captureKramailPlateauUrl, 34);
 
   })();
 

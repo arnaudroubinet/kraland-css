@@ -3829,7 +3829,14 @@ body > map {
     -webkit-overflow-scrolling: touch !important;
     margin-bottom: 15px !important;
   }
-  
+
+  /* Tables standard dans col-right (ex: Avis de Recherche sur /jouer/perso) */
+  body.mobile-mode #col-right table:not(.dataTable) {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   /* Tables plus compactes */
   .table > thead > tr > th,
   .table > tbody > tr > th,
@@ -7086,6 +7093,8 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
   /* Wrapper général */
   .dataTables_wrapper {
     padding: 0 !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   /* Section contrôles haut (Afficher X lignes + Recherche) */
@@ -9548,7 +9557,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   cursor: pointer;
 }
 
-..kr-changelog-content {
+.kr-changelog-content {
   /* Positionner par rapport à la fenêtre pour garantir un centrage stable */
   position: fixed !important;
   top: 50% !important;

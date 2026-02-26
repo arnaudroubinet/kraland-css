@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { minify } from 'terser';
-import { minify as minifyCSS } from 'csso';
+import { transform as transformCSS, Features } from 'lightningcss';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,8 +53,13 @@ console.log(`✓ Read CSS (${css.length} chars)`);
 
 // Minify CSS
 if (!isDev) {
-  const minifiedCSS = minifyCSS(css);
-  css = minifiedCSS.css;
+  const { code: minifiedCode } = transformCSS({
+    filename: 'kraland-theme.css',
+    code: Buffer.from(css),
+    minify: true,
+    exclude: Features.Nesting
+  });
+  css = minifiedCode.toString();
   console.log(`✓ CSS minified (${css.length} chars)`);
 } else {
   console.log(`⚙ CSS non minifié (${css.length} chars)`);
