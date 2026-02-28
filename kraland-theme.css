@@ -1146,6 +1146,207 @@ a.carousel-control.right{
   resize: vertical;
 }
 
+/* 7. FIX SÉLECTEUR PERSONNAGE - fond cohérent avec le thème */
+.bootbox-confirm select[name="top"],
+.bootbox-confirm select.form-control {
+  background-color: var(--kr-bg-surface) !important;
+  color: var(--kr-text-primary) !important;
+  border: 1px solid var(--kr-border-default) !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* 8. FIX CHECKBOXES OPTIONS - Bootstrap 3 force position: absolute dans .checkbox */
+.bootbox-confirm .checkbox input[type="checkbox"] {
+  position: static !important;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.bootbox-confirm .checkbox label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 0;
+  min-height: var(--mobile-touch-target);
+  cursor: pointer;
+}
+
+/* 9. TOOLBAR BBCODE — barre continue (calqué sur kramail) */
+
+/* Toolbar conteneur : barre continue */
+.bootbox-confirm .btn-toolbar {
+  display: flex !important;
+  flex-wrap: nowrap;
+  gap: 0 !important;
+  padding: 0 !important;
+  border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+  border: 1px solid var(--kr-border-default) !important;
+  border-bottom: 1px solid var(--kr-border-default) !important;
+  margin-bottom: 0 !important;
+  overflow: auto hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--kr-bg-hover);
+}
+
+/* Groupes de boutons : inline, pas de gap, pas de bordure propre */
+.bootbox-confirm .btn-toolbar .btn-group {
+  flex-direction: row !important;
+  width: auto !important;
+  flex-shrink: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-right: 1px solid var(--kr-border-default) !important;
+  border-radius: 0 !important;
+}
+
+/* Dernier groupe visible : pas de bordure droite */
+.bootbox-confirm .btn-toolbar > .btn-group:last-child,
+.bootbox-confirm .btn-toolbar > .btn-group[aria-label]:last-of-type {
+  border-right: none !important;
+}
+
+/* Tous les boutons : 44px, sans radius, sans gap, icônes claires */
+.bootbox-confirm .btn-toolbar > .btn-group > .btn,
+.bootbox-confirm .btn-toolbar > .btn-group > a.btn,
+.bootbox-confirm .btn-toolbar > .btn-group .dropdown > a > .btn,
+.bootbox-confirm .btn-toolbar > .btn-group .dropdown .dropdown-toggle .btn,
+.bootbox-confirm .btn-toolbar > .btn-group .dropdown > .dropdown-toggle {
+  width: 44px !important;
+  max-width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: transparent !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* Icônes FontAwesome : couleur héritée */
+.bootbox-confirm .btn-toolbar > .btn-group > .btn i,
+.bootbox-confirm .btn-toolbar > .btn-group > a.btn i {
+  color: inherit !important;
+}
+
+/* Wrapper dropdown : pas de taille propre */
+.bootbox-confirm .btn-toolbar .btn-group .dropdown {
+  display: flex !important;
+  flex-shrink: 0;
+}
+
+/* Bouton dans le dropdown toggle */
+.bootbox-confirm .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--kr-text-primary) !important;
+}
+
+/* Icônes dans les toggles dropdown */
+.bootbox-confirm .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn i,
+.bootbox-confirm .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .fa,
+.bootbox-confirm .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .far {
+  color: inherit !important;
+}
+
+/* Boutons couleur dans le dropdown-menu — respecter leur background inline */
+.bootbox-confirm .btn-toolbar .dropdown-menu .btn-group .btn {
+  width: auto !important;
+  height: auto !important;
+  min-width: 28px !important;
+  max-width: none !important;
+  min-height: 28px !important;
+  padding: 4px 6px !important;
+  margin: 2px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Premier bouton du premier groupe : radius haut-gauche */
+.bootbox-confirm .btn-toolbar > .btn-group:first-child > .btn:first-child,
+.bootbox-confirm .btn-toolbar > .btn-group:first-child > a.btn:first-child {
+  border-radius: var(--mobile-radius) 0 0 0 !important;
+}
+
+/* Dernier bouton du dernier groupe visible : radius haut-droite */
+.bootbox-confirm .btn-toolbar > .btn-group[aria-label]:last-of-type > .btn:last-child,
+.bootbox-confirm .btn-toolbar > .btn-group[aria-label]:last-of-type > a.btn:last-child {
+  border-radius: 0 var(--mobile-radius) 0 0 !important;
+  border-right: none !important;
+}
+
+/* Hover/Active feedback */
+.bootbox-confirm .btn-toolbar .btn:active {
+  background: rgba(139, 15, 14, 0.15) !important;
+}
+
+/* Scrollbar discrète */
+.bootbox-confirm .btn-toolbar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.bootbox-confirm .btn-toolbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Textarea collé à la toolbar */
+.bootbox-confirm .btn-toolbar + textarea.form-control,
+.bootbox-confirm .col-sm-10 > .btn-toolbar + textarea.form-control {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-top: none !important;
+  margin-top: 0;
+}
+
+/* Dropdowns emoji/couleur — bottom-sheet */
+.bootbox-confirm .btn-toolbar .dropdown-menu {
+  position: fixed !important;
+  inset: auto 8px 60px !important;
+  width: auto !important;
+  max-width: calc(100vw - 16px) !important;
+  max-height: 50vh;
+  overflow-y: auto;
+  border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4) !important;
+  z-index: 1050 !important;
+  background: var(--kr-bg-surface) !important;
+  border: 1px solid var(--kr-border-default) !important;
+  padding: 12px !important;
+}
+
+/* 10. FIX ZONE MALADRESSE/BONUS - alignement horizontal */
+.bootbox-confirm .panel-actions > .row:last-of-type {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.bootbox-confirm .panel-actions > .row:last-of-type [class*="col-"] {
+  width: auto !important;
+  flex: none;
+  padding: 0;
+}
+
 /* ============================================================================
    9c. MODAL ORDRE - OPTIMISATION MOBILE (MOBILE ONLY)
    Structure sticky, zones identifiées, grille d'actions (nav-tabs)
@@ -1172,13 +1373,13 @@ a.carousel-control.right{
     position: sticky !important;
     top: 0 !important;
     z-index: 110 !important;
-    background: white !important;
+    background: var(--kr-bg-surface) !important;
     flex-shrink: 0 !important;
   }
-  
+
   .bootbox-confirm .kraland-modal-header {
     padding: 12px 16px 8px !important;
-    border-bottom: 1px solid #e0e0e0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
   }
   
   .bootbox-confirm .kraland-character-title {
@@ -1192,48 +1393,48 @@ a.carousel-control.right{
     position: sticky !important;
     top: 0 !important;
     z-index: 100 !important;
-    background: white !important;
+    background: var(--kr-bg-surface) !important;
     padding: 12px 16px !important;
-    border-bottom: 2px solid #f0f0f0 !important;
+    border-bottom: 2px solid var(--kr-border-default) !important;
   }
-  
+
   /* Body scrollable */
   .bootbox-confirm .modal-body {
     flex: 1 !important;
     overflow: hidden auto !important;
     padding: 0 !important;
   }
-  
+
   /* Zone de formulaire (panel-body) - scrollable */
   .bootbox-confirm .kraland-form-zone {
     padding: 16px !important;
   }
-  
+
   /* Footer du panel (coût/durée) - sticky avant footer modal */
   .bootbox-confirm .kraland-action-footer {
     position: sticky !important;
     bottom: 72px !important; /* Hauteur du footer modal */
     z-index: 90 !important;
-    background: #f8f8f8 !important;
+    background: var(--kr-bg-elevated) !important;
     padding: 12px 16px !important;
-    border-top: 1px solid #e0e0e0 !important;
+    border-top: 1px solid var(--kr-border-default) !important;
   }
-  
+
   .bootbox-confirm .kraland-action-footer p {
     margin: 0 !important;
     font-size: 13px !important;
-    color: #666 !important;
+    color: var(--kr-text-secondary) !important;
   }
-  
+
   /* Footer modal sticky (boutons OK/Cancel) */
   .bootbox-confirm .kraland-modal-footer {
     position: sticky !important;
     bottom: 0 !important;
     z-index: 110 !important;
-    background: white !important;
+    background: var(--kr-bg-surface) !important;
     flex-shrink: 0 !important;
     padding: 12px 16px !important;
-    border-top: 2px solid #e0e0e0 !important;
+    border-top: 2px solid var(--kr-border-default) !important;
     display: flex !important;
     gap: 12px !important;
   }
@@ -1491,8 +1692,8 @@ a.carousel-control.right{
   
   .bootbox-confirm .kr-alert-content {
     padding: 12px 16px !important;
-    background: white !important;
-    border-top: 1px solid #e0e0e0 !important;
+    background: var(--kr-bg-elevated) !important;
+    border-top: 1px solid var(--kr-border-default) !important;
     animation: slide-down 0.2s ease !important;
   }
   
@@ -1590,14 +1791,14 @@ a.carousel-control.right{
   }
   
   .bootbox-confirm .kr-btn-secondary-subtle {
-    background: #f5f5f5 !important;
-    border-color: #ddd !important;
-    color: #666 !important;
+    background: var(--kr-bg-elevated) !important;
+    border-color: var(--kr-border-default) !important;
+    color: var(--kr-text-secondary) !important;
     font-weight: 500 !important;
   }
-  
+
   .bootbox-confirm .kr-btn-secondary-subtle:active {
-    background: #e0e0e0 !important;
+    background: var(--kr-bg-hover) !important;
   }
   
   /* === UX #6: SELECT GROUPÉ === */
@@ -5020,12 +5221,12 @@ body > map {
   }
 }
 
-/* --- 4e. Grid : 2 colonnes au lieu de 3 pour lisibilité --- */
+/* --- 4e. Grid : 2 colonnes pour lisibilité --- */
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-cards-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
     padding: 8px 6px;
     background: transparent;
   }
@@ -5082,8 +5283,8 @@ body > map {
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-card-avatar-wrapper {
     position: relative;
-    width: 60px;
-    height: 60px;
+    width: 75px;
+    height: 75px;
     margin-bottom: 2px;
   }
 }
@@ -5094,8 +5295,8 @@ body > map {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px !important;
-    height: 60px !important;
+    width: 75px !important;
+    height: 75px !important;
   }
 }
 
@@ -5109,8 +5310,8 @@ body > map {
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-card-avatar {
     position: relative;
-    width: 50px !important;
-    height: 50px !important;
+    width: 65px !important;
+    height: 65px !important;
     border-radius: 50%;
     object-fit: cover;
     margin: 5px;
@@ -5747,9 +5948,12 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       margin: 0 !important;
     }
     
-    /* Close button - plus grand pour touch */
+    /* Close button - plus grand pour touch
+       z-index 120 nécessaire pour passer au-dessus du .kraland-modal-header (z-index: 110, position: sticky) */
     body.mobile-mode .modal-header .close,
     body.mobile-mode .bootbox-close-button {
+      position: relative !important;
+      z-index: 120 !important;
       width: 44px !important;
       height: 44px !important;
       padding: 10px !important;
@@ -6118,273 +6322,361 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       letter-spacing: 0.5px !important;
     }
     
-    /* Footer (ligne Maladresse/Bonus) et Boutons */
-    body.mobile-mode .bootbox.modal .panel-footer {
-      background: var(--kr-bg-elevated) !important;
-      border-top: 1px solid var(--kr-border-default) !important;
-      padding: 0 !important;
-      display: flex !important;
-      gap: 6px !important;
-      border: none !important;
+    /* Header panel-info masqué (redondant avec pseudo-élément ACTIONS)
+       Spécificité (0,7,1) nécessaire pour battre .panel.with-nav-tabs .panel-heading (0,6,1) */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel.panel-info > .panel-heading {
+      display: none !important;
     }
-    
-    body.mobile-mode .bootbox.modal .panel-footer label {
+
+    /* Footer (ligne Maladresse/Bonus) */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer {
+      background: var(--kr-bg-elevated) !important;
+      border: none !important;
+      padding: 12px !important;
+    }
+
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer .row {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px 0 !important;
+      align-items: center !important;
+      margin: 0 !important;
+    }
+
+    /* Checkbox */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer .row > .col-sm-1 {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 8px 0 0 !important;
+    }
+
+    /* Maladresse - remplit le reste de la ligne 1, force retour avant Bonus */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer .row > .col-sm-7 {
+      flex: 1 0 calc(100% - 60px) !important;
+      max-width: none !important;
+      padding: 0 !important;
+    }
+
+    /* Bonus label */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer .row > .col-sm-2:nth-child(3) {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 8px 0 0 !important;
+    }
+
+    /* Select bonus */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer .row > .col-sm-2:nth-child(4) {
+      flex: 1 1 auto !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 !important;
+    }
+
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer label {
       margin: 0 !important;
       font-size: 14px !important;
     }
 
-    
-    body.mobile-mode .bootbox.modal .panel-footer select {
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-footer select {
       padding: 6px 8px !important;
       border-radius: 6px !important;
       border: 1px solid var(--kr-border-default) !important;
       font-size: 14px !important;
+      width: 100% !important;
     }
-    
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group {
+
+    /* ===== Actions - cartes empilées pleine largeur ===== */
+
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      padding: 12px !important;
       margin: 0 0 8px !important;
       background: var(--kr-bg-elevated) !important;
       border: 2px solid var(--kr-border-default) !important;
       border-radius: 8px !important;
-      min-height: 56px !important;
+      min-height: 48px !important;
       transition: all 0.2s ease !important;
     }
-    
+
     /* Row checked */
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:has(input[type="radio"]:checked) {
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group:has(input[type="radio"]:checked) {
       border-color: var(--kr-primary) !important;
       background: var(--kr-alert-info-bg) !important;
       box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
     }
-    
-    /* Feedback tactile sur la row */
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group:active {
+
+    /* Feedback tactile */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group:active {
       transform: scale(0.98) !important;
       background: var(--kr-bg-active) !important;
     }
-    
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div {
+
+    /* Colonne radio (col-sm-1) */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group > div.col-sm-1 {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 8px 0 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      overflow: visible !important;
+      border-right: none !important;
+      background: transparent !important;
+      min-height: auto !important;
+    }
+
+    /* Radio inputs visibles et stylés */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions input[type="radio"] {
+      position: static !important;
+      opacity: 1 !important;
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      cursor: pointer !important;
+      accent-color: var(--kr-primary) !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Colonne label (col-sm-7) */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group > div.col-sm-7 {
+      flex: 1 1 auto !important;
+      width: auto !important;
+      max-width: none !important;
       padding: 0 8px !important;
       display: flex !important;
       align-items: center !important;
-      justify-content: center !important;
-    }
-    
-    /* Colonne du radio button - aligné à gauche */
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-1 {
       justify-content: flex-start !important;
+      border-right: none !important;
+      background: transparent !important;
+      min-height: auto !important;
     }
-    
-    /* Colonne du label - aligné à gauche */
-    body.mobile-mode .bootbox.modal .panel-actions .row.form-group > div.col-sm-7 {
-      justify-content: flex-start !important;
-    }
-    
-    /* Radio inputs cachés */
-    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"] {
-      position: absolute !important;
-      opacity: 0 !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
-    
-    /* Labels comme boutons */
-    body.mobile-mode .bootbox.modal .panel-actions label {
+
+    /* Labels */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions label {
       cursor: pointer !important;
       font-weight: normal !important;
       font-size: 15px !important;
       margin: 0 !important;
-      padding: 14px 0 !important;
+      padding: 0 !important;
       display: block !important;
       width: 100% !important;
+      text-transform: none !important;
     }
-    
+
     /* Label checked */
-    body.mobile-mode .bootbox.modal .panel-actions input[type="radio"]:checked + label {
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions input[type="radio"]:checked + label {
       font-weight: 600 !important;
     }
-    
-    /* Colonnes diff/jet plus compactes */
-    body.mobile-mode .bootbox.modal .panel-actions .center {
-      font-size: 14px !important;
+
+    /* Colonnes diff et jet (col-sm-2) - badges compacts */
+    body.mobile-mode .bootbox.modal.bootbox-confirm .panel-actions .row.form-group > div.col-sm-2 {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 0 0 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 13px !important;
       font-weight: 600 !important;
+      color: var(--kr-text-secondary) !important;
+      border-right: none !important;
+      background: transparent !important;
+      min-height: auto !important;
     }
     
-    /* ===== 6. TOOLBAR - boutons tactiles optimisés ===== */
+    /* ===== 6. TOOLBAR - barre continue scrollable (alignée sur kramail) ===== */
+
+    /* Toolbar conteneur : barre continue horizontale scrollable */
     body.mobile-mode .bootbox.modal .btn-toolbar {
-      display: grid !important;
-      grid-template-columns: repeat(6, 1fr) !important;
-      gap: 4px !important;
-      margin: 0 0 16px !important;
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      gap: 0 !important;
       padding: 0 !important;
+      margin: 0 !important;
       width: 100% !important;
       max-width: 100% !important;
+      border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+      border: 1px solid var(--kr-border-default) !important;
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+      overflow: auto hidden !important;
+      -webkit-overflow-scrolling: touch;
+      background: var(--kr-bg-hover) !important;
     }
-    
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group {
-      display: contents !important;
-    }
-    
-    /* Supprimer COMPLÈTEMENT les pseudo-éléments clearfix de Bootstrap 3 */
+
+    /* Supprimer les pseudo-éléments clearfix de Bootstrap 3 */
     body.mobile-mode .bootbox.modal .btn-toolbar::before,
     body.mobile-mode .bootbox.modal .btn-toolbar::after,
     body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::before,
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::after,
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::before,
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown::after,
-    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::before,
-    body.mobile-mode .bootbox.modal .btn-toolbar span.dropdown::after {
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group::after {
       content: none !important;
       display: none !important;
-      width: 0 !important;
-      height: 0 !important;
+    }
+
+    /* Groupes de boutons : inline, séparés par bordure */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group {
+      flex-direction: row !important;
+      width: auto !important;
+      flex-shrink: 0;
       margin: 0 !important;
       padding: 0 !important;
+      display: flex !important;
+      border-right: 1px solid var(--kr-border-default) !important;
+      border-radius: 0 !important;
     }
-    
-    /* Tous les boutons directs et liens dans la toolbar */
-    body.mobile-mode .bootbox.modal .btn-toolbar > .btn,
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn,
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > button.btn,
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > .dropdown {
+
+    /* Dernier groupe : pas de bordure droite */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:last-child {
+      border-right: none !important;
+    }
+
+    /* Tous les boutons directs de la toolbar : 44×44px, barre continue
+       IMPORTANT : > .btn-group cible UNIQUEMENT les groupes directs,
+       pas les .btn-group imbriqués dans les .dropdown-menu (boutons couleur) */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group > .btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group > a.btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group .dropdown > a > .btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group .dropdown .dropdown-toggle .btn,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group .dropdown > .dropdown-toggle {
+      width: 44px !important;
+      max-width: 44px !important;
       min-width: 44px !important;
-      max-width: none !important;
-      width: 100% !important;
-      min-height: 44px !important;
-      max-height: 44px !important;
       height: 44px !important;
-      padding: 8px !important;
       margin: 0 !important;
+      padding: 0 !important;
       font-size: 18px !important;
       line-height: 1 !important;
-      border-radius: 4px !important;
-      border-width: 1px !important;
-      display: grid !important;
-      place-items: center !important;
-      transition: all 0.2s ease !important;
-      box-sizing: border-box !important;
-    }
-    
-    /* Dropdown wrapper - ne pas appliquer de style sur le span dropdown */
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown {
-      display: contents !important;
-      position: relative !important;
-    }
-    
-    /* Le lien dropdown-toggle à l'intérieur du span dropdown */
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle {
-      min-width: 44px !important;
-      width: 100% !important;
-      min-height: 44px !important;
-      height: 44px !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
       border: none !important;
-      background: transparent !important;
-      text-decoration: none !important;
-    }
-    
-    /* Le bouton à l'intérieur du dropdown-toggle */
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn {
-      min-width: 44px !important;
-      width: 100% !important;
-      min-height: 44px !important;
-      height: 44px !important;
-      padding: 8px !important;
-      margin: 0 !important;
-      font-size: 18px !important;
-      line-height: 1 !important;
-      border-radius: 4px !important;
-      border-width: 1px !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+      border-radius: 0 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
+      background: transparent !important;
+      color: var(--kr-text-primary, #f5f1ed) !important;
       box-sizing: border-box !important;
     }
-    
-    /* Feedback tactile sur tous les boutons */
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active,
-    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group > a.btn:active,
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle:active,
-    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown > a.dropdown-toggle > .btn:active {
-      transform: scale(0.95) !important;
-      background: var(--kr-bg-active) !important;
-      opacity: 0.8 !important;
+
+    /* Icônes FontAwesome dans les boutons toolbar : couleur héritée */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group > .btn i,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group > a.btn i {
+      color: inherit !important;
     }
-    
-    /* Dropdown smiley/couleurs - doit apparaître PAR-DESSUS la modal */
 
-    /* NOTE CRITIQUE: Bootstrap JS force position:fixed dynamiquement */
+    /* Wrapper dropdown : structure préservée (pas display: contents) */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown {
+      display: flex !important;
+      flex-shrink: 0;
+    }
 
-    /* Solution: Sélecteur ultra-spécifique + !important pour override Bootstrap */
+    /* Bouton dans le dropdown toggle */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn {
+      width: 44px !important;
+      height: 44px !important;
+      min-width: 44px !important;
+      max-width: 44px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: var(--kr-text-primary, #f5f1ed) !important;
+    }
+
+    /* Icônes FontAwesome dans les toggles dropdown */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn i,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .fa,
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn-group .dropdown > .dropdown-toggle > .btn .far {
+      color: inherit !important;
+    }
+
+    /* Premier bouton du premier groupe : radius haut-gauche */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:first-child > .btn:first-child,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:first-child > a.btn:first-child {
+      border-radius: var(--mobile-radius) 0 0 0 !important;
+    }
+
+    /* Dernier bouton du dernier groupe : radius haut-droite */
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:last-child > .btn:last-child,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:last-child > a.btn:last-child,
+    body.mobile-mode .bootbox.modal .btn-toolbar > .btn-group:last-child .dropdown:last-child > .dropdown-toggle > .btn {
+      border-radius: 0 var(--mobile-radius) 0 0 !important;
+      border-right: none !important;
+    }
+
+    /* Feedback tactile */
+    body.mobile-mode .bootbox.modal .btn-toolbar .btn:active {
+      background: rgba(139, 15, 14, 0.15) !important;
+    }
+
+    /* Scrollbar discrète */
+    body.mobile-mode .bootbox.modal .btn-toolbar::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    body.mobile-mode .bootbox.modal .btn-toolbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    /* Textarea collé sous la toolbar */
+    body.mobile-mode .bootbox.modal .btn-toolbar + textarea,
+    body.mobile-mode .bootbox.modal .btn-toolbar + textarea.form-control {
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+      border-top: none !important;
+      margin-top: 0 !important;
+    }
+
+    /* ===== 6b. DROPDOWN BOTTOM-SHEET (aligné sur kramail) ===== */
+
+    /* Dropdown smiley/couleurs — bottom-sheet fixe en bas de l'écran */
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown .dropdown-menu,
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu {
-      max-width: 90vw !important;
+      position: fixed !important;
+      inset: auto 8px 60px !important;
+      width: auto !important;
+      max-width: calc(100vw - 16px) !important;
       max-height: 50vh !important;
       overflow-y: auto !important;
+      border-radius: var(--mobile-radius) var(--mobile-radius) 0 0 !important;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4) !important;
+      z-index: 1050 !important;
+      background: var(--kr-bg-surface) !important;
+      border: 1px solid var(--kr-border-default) !important;
       padding: 12px !important;
-
-      /* CRITIQUE: Garder position: absolute pour le positionnement relatif Bootstrap */
-
-      /* Bootstrap JS essaie de forcer position:fixed - on l'override ici */
-      position: absolute !important;
-
-      /* z-index élevé pour passer au-dessus du footer modal */
-      z-index: 10000 !important;
-
-      /* Forcer l'affichage VERS LE HAUT (dropup behavior) */
-      bottom: 100% !important;
-      top: auto !important;
-
-      /* Petit espace entre le bouton et le dropdown */
-      margin-bottom: 4px !important;
     }
-    
-    /* CRITIQUE: Forcer display: block quand le dropdown est ouvert */
+
+    /* Forcer display: block quand le dropdown est ouvert */
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown.open .dropdown-menu,
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown:has([aria-expanded="true"]) .dropdown-menu {
       display: block !important;
     }
-    
-    /* SOLUTION: Forcer tous les parents à ne PAS créer de contexte d'empilement */
 
-    /* Cela permet au dropdown avec z-index: 10000 de passer au-dessus du footer */
-    body.mobile-mode .bootbox.modal .modal-dialog,
-    body.mobile-mode .bootbox.modal .modal-content,
-    body.mobile-mode .bootbox.modal .modal-body,
-    body.mobile-mode .bootbox.modal .modal-footer,
-    body.mobile-mode .bootbox.modal .btn-toolbar,
-    body.mobile-mode .bootbox.modal .dropdown {
-      /* Enlever TOUTES les propriétés qui créent un nouveau contexte d'empilement */
-      transform: none !important;
-      filter: none !important;
-      perspective: none !important;
-      will-change: auto !important;
-      contain: none !important;
+    /* Boutons couleur dans le dropdown-menu — respecter leur background inline */
+    body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu .btn-group .btn {
+      width: auto !important;
+      height: auto !important;
+      min-width: 28px !important;
+      max-width: none !important;
+      min-height: 28px !important;
+      padding: 4px 8px !important;
+      border-radius: 4px !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
 
-      /* NE PAS mettre de z-index ici, sinon ça crée un nouveau contexte */
-      z-index: auto !important;
-    }
-    
-    /* CRITIQUE: Forcer overflow: visible sur les parents pour ne PAS couper le dropdown */
-    body.mobile-mode .bootbox.modal .modal-content,
-    body.mobile-mode .bootbox.modal .modal-body,
-    body.mobile-mode .bootbox.modal .panel-body {
-      overflow: visible !important;
-    }
-    
-    /* La modal racine doit garder son z-index pour le backdrop */
-    body.mobile-mode .bootbox.modal {
-      z-index: 1050 !important;
-    }
-    
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table {
       width: 100% !important;
     }
-    
+
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table td a {
       min-width: 44px !important;
       min-height: 44px !important;
@@ -6392,20 +6684,20 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
       align-items: center !important;
       justify-content: center !important;
     }
-    
-    /* Backdrop du dropdown sous le dropdown lui-même */
+
+    /* Backdrop du dropdown */
     body.mobile-mode .bootbox.modal .dropdown-backdrop {
       z-index: 1049 !important;
     }
     
-    /* ===== 7. TEXTAREA - 120px min + compteur visible ===== */
+    /* ===== 7. TEXTAREA - 250px min + compteur visible ===== */
     body.mobile-mode .bootbox.modal textarea#message,
     body.mobile-mode .bootbox.modal textarea.form-control {
       font-size: 16px !important;
       line-height: 1.5 !important;
       padding: 12px !important;
       border-radius: 8px !important;
-      min-height: 120px !important;
+      min-height: 250px !important;
       border: 2px solid var(--kr-border-default) !important;
       transition: border-color 0.2s ease !important;
     }

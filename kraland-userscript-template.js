@@ -7041,24 +7041,7 @@
       }
     });
 
-    // Forcer le grid layout inline (contourner les règles Bootstrap)
-    toolbar.style.setProperty('display', 'grid', 'important');
-    toolbar.style.setProperty('grid-template-columns', 'repeat(6, 1fr)', 'important');
-    toolbar.style.setProperty('gap', '4px', 'important');
-
-    // Forcer display: contents sur TOUS les wrappers (.btn-group ET .dropdown)
-    toolbar.querySelectorAll('.btn-group, .dropdown, span.dropdown').forEach(wrapper => {
-      wrapper.style.setProperty('display', 'contents', 'important');
-    });
-
-    // Forcer les boutons (y compris ceux dans les dropdowns) à remplir leur cellule
-    toolbar.querySelectorAll('.btn, span.dropdown > a > .btn, .dropdown > a > .btn, span.dropdown button, .dropdown button').forEach(btn => {
-      btn.style.setProperty('width', '100%', 'important');
-      btn.style.setProperty('min-width', '0', 'important');
-      btn.style.setProperty('max-width', 'none', 'important');
-    });
-
-    console.log('[Order Modal] Toolbar grid forcé et whitespace nettoyé');
+    console.log('[Order Modal] Toolbar whitespace nettoyé');
   }
 
   /**
@@ -7263,10 +7246,9 @@
   }
 
   /**
-   * CRITIQUE: Force position:absolute sur les dropdowns pour contrer Bootstrap JS
-   * Bootstrap 3 applique dynamiquement position:fixed sur les dropdowns, ce qui les
-   * positionne en dehors du contexte de la modal. On force position:absolute pour
-   * qu'ils restent relatifs à leur parent .dropdown et apparaissent au bon endroit.
+   * Force position:fixed bottom-sheet sur les dropdowns pour contrer Bootstrap JS.
+   * Bootstrap 3 applique dynamiquement position:fixed avec des coordonnées calculées.
+   * On force le bottom-sheet (position:fixed en bas de l'écran) comme sur kramail.
    */
   function fixDropdownPosition(modal, observers) {
     if (!modal) {return;}
@@ -7274,20 +7256,23 @@
     // Observer les dropdowns qui s'ouvrent
     const dropdownObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        // Vérifier si un dropdown a été ouvert (classe .open ajoutée)
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
           const dropdown = mutation.target;
           if (dropdown.classList.contains('dropdown') && dropdown.classList.contains('open')) {
             const dropdownMenu = dropdown.querySelector('.dropdown-menu');
             if (dropdownMenu) {
-              // FORCE position:absolute pour override Bootstrap JS
-              dropdownMenu.style.setProperty('position', 'absolute', 'important');
-              dropdownMenu.style.setProperty('bottom', '100%', 'important');
+              // Bottom-sheet fixe en bas de l'écran
+              dropdownMenu.style.setProperty('position', 'fixed', 'important');
+              dropdownMenu.style.setProperty('inset', 'auto 8px 60px', 'important');
               dropdownMenu.style.setProperty('top', 'auto', 'important');
-              dropdownMenu.style.setProperty('left', '0', 'important');
-              dropdownMenu.style.setProperty('margin-bottom', '4px', 'important');
-              dropdownMenu.style.setProperty('z-index', '10000', 'important');
-              console.log('[Order Modal] Dropdown position forcée à absolute');
+              dropdownMenu.style.setProperty('left', '8px', 'important');
+              dropdownMenu.style.setProperty('right', '8px', 'important');
+              dropdownMenu.style.setProperty('bottom', '60px', 'important');
+              dropdownMenu.style.setProperty('border-radius', 'var(--mobile-radius) var(--mobile-radius) 0 0', 'important');
+              dropdownMenu.style.setProperty('box-shadow', '0 -4px 24px rgba(0,0,0,0.4)', 'important');
+              dropdownMenu.style.setProperty('z-index', '1050', 'important');
+              dropdownMenu.style.setProperty('background', 'var(--kr-bg-surface)', 'important');
+              console.log('[Order Modal] Dropdown positionné en bottom-sheet');
             }
           }
         }
@@ -7317,6 +7302,9 @@
 
     // Vérifier qu'on est bien en mode mobile
     if (!document.body.classList.contains('mobile-mode')) {return;}
+
+    // Tableau pour collecter les observers à nettoyer à la fermeture
+    const modalObservers = [];
 
     // NOUVELLE TRANSFORMATION : Optimiser la structure pour mobile
     transformOrderModalStructure(modal);
@@ -7348,9 +7336,6 @@
 
     // Force le layout grid pour les modals d'ordre (initial)
     forceOrderModalGridLayout(modal);
-
-    // Tableau pour collecter les observers à nettoyer à la fermeture
-    const modalObservers = [];
 
     // Observer les changements dans le body de la modal pour réappliquer le grid après Ajax
     const modalBody = modal.querySelector('.bootbox-body, .modal-body');
