@@ -1855,6 +1855,60 @@
   });
 
   // ============================================================================
+  // Commerce Name Swap : nom personnalisé en titre, type+stock en sous-titre
+  // ============================================================================
+  InitQueue.register('Commerce Name Swap', function initCommerceNameSwap() {
+    // Trouver le panel Commerce
+    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+      return h.textContent.trim() === 'Commerce';
+    });
+    if (!commerceHeader) {return;}
+
+    var commercePanel = commerceHeader.closest('.panel');
+    if (!commercePanel) {return;}
+
+    var items = commercePanel.querySelectorAll('a.list-group-item');
+    var swapCount = 0;
+
+    items.forEach(function(item) {
+      var h4 = item.querySelector('h4.list-group-item-heading');
+      var p = item.querySelector('p.list-group-item-text');
+      if (!h4 || !p) {return;}
+
+      // Vérifier que le h4 contient un pattern stock (X/Y) → exclut la Caisse
+      var stockPattern = /\(\d+\/\d+\)/;
+      if (!stockPattern.test(h4.textContent)) {return;}
+
+      // Extraire le texte du p sans l'icône <i>
+      var pClone = p.cloneNode(true);
+      var icon = pClone.querySelector('i');
+      if (icon) {icon.remove();}
+      var customName = pClone.textContent.trim();
+
+      // Vérifier que le sous-titre est significatif (pas vide, pas &nbsp;)
+      if (!customName || customName === '\u00A0') {return;}
+
+      // Swap : h4 reçoit le nom personnalisé, p conserve l'icône + reçoit le type+stock
+      var oldH4Text = h4.textContent;
+      h4.textContent = customName;
+
+      // Conserver l'icône <i> existante, remplacer uniquement le texte
+      var existingIcon = p.querySelector('i');
+      p.textContent = '';
+      if (existingIcon) {
+        p.appendChild(existingIcon);
+        p.appendChild(document.createTextNode(' '));
+      }
+      p.appendChild(document.createTextNode(oldH4Text));
+
+      item.classList.add('kr-commerce-name-swapped');
+      swapCount++;
+    });
+
+    console.log('[Commerce Name Swap] ' + swapCount + ' produits inversés');
+  }, 101);
+
+  // ============================================================================
   // TASK-2.4 : Section bâtiment collapsible
   // ============================================================================
   InitQueue.register('Panel Sections Collapse', function initPanelSectionsCollapse() {
@@ -2763,7 +2817,7 @@
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, addRankTitles,
+      ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
@@ -6417,6 +6471,35 @@
 
     // Ajouter les boutons à la fin du panneau
     panel.appendChild(container);
+  }
+
+  // ============================================================================
+  // Déplacement Matériel vers col-left (desktop uniquement)
+  // ============================================================================
+
+  function moveMaterielToColLeft() {
+    if (!isPlatoPage()) {return;}
+
+    var materielHeader = Array.from(document.querySelectorAll('#col-right h3.panel-title')).find(function(h) {
+      return h.textContent.trim() === 'Matériel';
+    });
+    if (!materielHeader) {return;}
+
+    var materielPanel = materielHeader.closest('.panel.panel-default');
+    if (!materielPanel) {return;}
+
+    materielPanel.classList.add('kr-materiel-moved');
+
+    // Déplacer dans col-left uniquement en desktop
+    if (!isMobileMode()) {
+      var colLeft = document.getElementById('col-left');
+      if (colLeft) {
+        colLeft.appendChild(materielPanel);
+        console.log('[moveMaterielToColLeft] Panel Matériel déplacé dans col-left');
+      }
+    } else {
+      console.log('[moveMaterielToColLeft] Panel Matériel marqué (mobile, pas déplacé)');
+    }
   }
 
   // ============================================================================
