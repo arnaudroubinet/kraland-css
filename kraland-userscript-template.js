@@ -2817,7 +2817,7 @@
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, addRankTitles,
+      ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
@@ -6500,6 +6500,48 @@
     } else {
       console.log('[moveMaterielToColLeft] Panel Matériel marqué (mobile, pas déplacé)');
     }
+  }
+
+  /**
+   * Déplace la section Clefs au-dessus de Fabriquer sur /jouer/materiel
+   */
+  function moveClefsSectionAboveFabriquer() {
+    if (location.pathname !== '/jouer/materiel') {return;}
+
+    var colRight = document.getElementById('col-right');
+    if (!colRight) {return;}
+
+    var dashboards = colRight.querySelectorAll('.dashboard');
+    if (dashboards.length < 2) {return;}
+
+    // Trouver le panel Clefs dans le premier dashboard
+    var clefsPanel = null;
+    var panels = dashboards[0].querySelectorAll(':scope > .panel');
+    for (var i = 0; i < panels.length; i++) {
+      var title = panels[i].querySelector('h3.panel-title');
+      if (title && title.textContent.trim() === 'Clefs') {
+        clefsPanel = panels[i];
+        break;
+      }
+    }
+    if (!clefsPanel) {return;}
+
+    // Trouver le panel Fabriquer dans le second dashboard
+    var fabriquerPanel = null;
+    var panels2 = dashboards[1].querySelectorAll(':scope > .panel');
+    for (var j = 0; j < panels2.length; j++) {
+      var title2 = panels2[j].querySelector('h3.panel-title');
+      if (title2 && title2.textContent.trim() === 'Fabriquer') {
+        fabriquerPanel = panels2[j];
+        break;
+      }
+    }
+    if (!fabriquerPanel) {return;}
+
+    // Insérer Clefs avant Fabriquer dans le second dashboard
+    dashboards[1].insertBefore(clefsPanel, fabriquerPanel);
+
+    console.log('[moveClefsSectionAboveFabriquer] Section Clefs déplacée au-dessus de Fabriquer');
   }
 
   // ============================================================================
