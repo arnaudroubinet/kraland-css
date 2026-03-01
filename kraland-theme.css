@@ -181,6 +181,28 @@ html[class*="-dark"] {
   --kr-nation-9: #c4b958;
 }
 
+html.kr-theme-variant-kraland-dark {
+  --kr-primary: #c45252;
+  --kr-primary-dark: #8b0f0e;
+  --kr-highlight: #e07070;
+  --kr-highlight-reverse: #1a0505;
+  --kr-bg-page: #120d0d;
+  --kr-bg-surface: #1e1515;
+  --kr-bg-elevated: #2a1f1f;
+  --kr-text-primary: #f5eded;
+  --kr-text-secondary: #b8a0a0;
+  --kr-text-muted: #8a6868;
+  --kr-text-inverse: #120d0d;
+  --kr-form-bg: #3a2b2b;
+  --kr-form-bg-focus: #423131;
+  --kr-nation-2: #d4a574;
+  --kr-nation-4: #74b9ff;
+  --kr-nation-5: #55efc4;
+  --kr-nation-6: #a29bfe;
+  --kr-nation-7: #b2bec3;
+  --kr-nation-8: #81c784;
+}
+
 html.kr-theme-variant-empire-brun-dark {
   --kr-primary: #7a5240;
   --kr-primary-dark: #5E3B2D;
@@ -2417,6 +2439,60 @@ html[class*="-dark"] .kr-tamper-theme .control-label {
 
 html[class*="-dark"] .kr-tamper-theme h4 {
   color: var(--kr-text-primary);
+}
+
+html[class*="-dark"] .kr-tamper-theme h5 {
+  color: var(--kr-text-primary);
+}
+
+/* Titres de section dans le panneau d'options Tampermonkey */
+.kr-options-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  padding: 10px 0 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+  opacity: 0.7;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: opacity 0.2s ease;
+}
+
+.kr-options-section-title:first-child {
+  border-top: none;
+}
+
+.kr-options-section-title:hover {
+  opacity: 1;
+}
+
+.kr-options-section-title .kr-section-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.kr-options-section-title.expanded .kr-section-icon {
+  transform: translateY(-50%) rotate(-180deg);
+}
+
+/* Contenu pliable des sections */
+.kr-options-section-content {
+  max-height: 5000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.kr-options-section-content.collapsed {
+  max-height: 0;
+  opacity: 0;
 }
 
 /* === MODALS === */

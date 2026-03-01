@@ -1402,31 +1402,25 @@
       // Vérifier qu'on est sur la bonne page
       if (!window.location.pathname.includes('/profil/interface')) {return;}
 
-      // Attendre que le formulaire Tampermonkey soit présent
+      // Attendre que le placeholder Alertes soit présent
       const checkForm = setInterval(() => {
-        const tamperForm = document.querySelector('#kr-tamper-theme-form');
-        if (!tamperForm) {return;}
+        const alertsSection = document.querySelector('#kr-alerts-section');
+        if (!alertsSection) {return;}
 
         clearInterval(checkForm);
 
         // Créer une section dédiée pour le bouton
         const section = document.createElement('div');
         section.className = 'form-group';
-        section.style.marginTop = '20px';
-        section.style.paddingTop = '15px';
-        section.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
 
         // Créer le label
         const label = document.createElement('label');
         label.className = 'col-sm-3 control-label';
-        label.style.paddingLeft = '0px';
-        label.style.paddingRight = '0px';
-        label.textContent = 'Alertes';
+        label.textContent = 'Mémorisation';
 
         // Créer le conteneur du bouton
         const btnContainer = document.createElement('div');
         btnContainer.className = 'col-sm-9';
-        btnContainer.style.paddingLeft = '0px';
 
         // Créer le bouton de réinitialisation
         const resetBtn = document.createElement('button');
@@ -1511,8 +1505,8 @@
         section.appendChild(label);
         section.appendChild(btnContainer);
 
-        // Insérer après le formulaire Tampermonkey
-        tamperForm.parentNode.insertBefore(section, tamperForm.nextSibling);
+        // Insérer dans le placeholder Alertes
+        alertsSection.appendChild(section);
 
         console.log('[Alerts Memory] Bouton de réinitialisation ajouté');
       }, 100);
@@ -1818,8 +1812,8 @@
       // Ajouter la classe accordion au div de catégorie
       category.div.classList.add('commerce-category-header');
 
-      // État initial : première catégorie (Nourriture) ouverte
-      const isExpanded = index === 0;
+      // État initial : tout ouvert si l'option est activée, sinon première catégorie seulement
+      const isExpanded = isCommerceExpandedEnabled() || index === 0;
       if (!isExpanded) {
         productsContainer.classList.add('collapsed');
         category.div.classList.add('collapsed');
@@ -2195,7 +2189,7 @@
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
     STYLE_ID: 'kraland-theme-style',
-    THEME_VARIANTS: ['kraland','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
+    THEME_VARIANTS: ['kraland','kraland-dark','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
     LOGO_MAP: {
       'kraland': 1, 'empire-brun': 2, 'empire-brun-dark': 2, 'paladium': 3, 'paladium-dark': 3,
       'theocratie-seelienne': 4, 'theocratie-seelienne-dark': 4, 'paradigme-vert': 5, 'paradigme-vert-dark': 5,
@@ -2272,7 +2266,13 @@
     MEDIEVAL_SEPIA: '85%',
 
     // Commerce - affichage liste/tuiles
-    COMMERCE_LIST_KEY: 'kr-commerce-list-mode'
+    COMMERCE_LIST_KEY: 'kr-commerce-list-mode',
+
+    // Commerce - accordéons ouverts par défaut
+    COMMERCE_EXPANDED_KEY: 'kr-commerce-expanded',
+
+    // Matériel - déplacement dans la colonne gauche
+    MATERIEL_MOVE_KEY: 'kr-materiel-move'
   };
 
   // ============================================================================
@@ -2324,6 +2324,17 @@
   /** Vérifie si le commerce est en mode liste (desktop) */
   function isCommerceListEnabled() {
     return _lsGet(CONFIG.COMMERCE_LIST_KEY) === 'true';
+  }
+
+  /** Vérifie si les accordéons commerce sont ouverts par défaut */
+  function isCommerceExpandedEnabled() {
+    return _lsGet(CONFIG.COMMERCE_EXPANDED_KEY) === 'true';
+  }
+
+  /** Vérifie si le déplacement du matériel dans col-left est activé (activé par défaut) */
+  function isMaterielMoveEnabled() {
+    var val = _lsGet(CONFIG.MATERIEL_MOVE_KEY);
+    return val === null || val === 'true';
   }
 
   // ---------------------------------------------------------------------------
@@ -6498,6 +6509,7 @@
 
   function moveMaterielToColLeft() {
     if (!isPlatoPage()) {return;}
+    if (!isMaterielMoveEnabled()) {return;}
 
     var materielHeader = Array.from(document.querySelectorAll('#col-right h3.panel-title')).find(function(h) {
       return h.textContent.trim() === 'Matériel';
@@ -6620,6 +6632,7 @@
       const themeOptions = [
         { value: 'disable', flag: 'f0', label: 'Désactiver la surcharge CSS' },
         { value: 'kraland', flag: 'f1', label: 'République de Kraland' },
+        { value: 'kraland-dark', flag: 'f1', label: 'République de Kraland (Dark Mode)' },
         { value: 'empire-brun', flag: 'f2', label: 'Empire Brun' },
         { value: 'empire-brun-dark', flag: 'f2', label: 'Empire Brun (Dark Mode)' },
         { value: 'paladium', flag: 'f3', label: 'Paladium Corporation' },
@@ -6662,38 +6675,62 @@
       container.id = 'kr-tamper-theme';
       container.className = 'well kr-tamper-theme';
       container.innerHTML = `
-        <h4>Thème Tampermonkey (Activez le thème de base officiel pour éviter les conflits)</h4>
+        <h4>Configuration du thème</h4>
         <form id="kr-tamper-theme-form" class="form-horizontal">
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Choix du thème</label>
-            <div class="col-sm-9">${radios}</div>
+          <h5 class="kr-options-section-title"><span>Thème</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div class="kr-options-section-content collapsed">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Choix du thème</label>
+              <div class="col-sm-9">${radios}</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Affichage des caractéristiques</label>
-            <div class="col-sm-9">${statsDisplayRadios}</div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Options du footer</label>
-            <div class="col-sm-9">${hideQuoteCheckbox}</div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Carte</label>
-            <div class="col-sm-9">
-              <div class="checkbox">
-                <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>
-                <p class="help-block" style="margin-top:6px">Merci <a href="http://www.kraland.org/communaute/membres/sylke-1-3335" target="_blank" rel="noopener noreferrer">Sylke</a></p>
+          <h5 class="kr-options-section-title"><span>Plateau</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div class="kr-options-section-content collapsed">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Carte</label>
+              <div class="col-sm-9">
+                <div class="checkbox">
+                  <label><input type="checkbox" name="kr-medieval-map" id="kr-medieval-map-checkbox"> Carte médiévale — remplace les tuiles de la carte</label>
+                  <p class="help-block" style="margin-top:6px">Merci <a href="http://www.kraland.org/communaute/membres/sylke-1-3335" target="_blank" rel="noopener noreferrer">Sylke</a></p>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Commerce</label>
+              <div class="col-sm-9">
+                <div class="checkbox">
+                  <label><input type="checkbox" name="kr-commerce-list" id="kr-commerce-list-checkbox"> Affichage en liste — affiche les produits en lignes au lieu de tuiles</label>
+                  <p class="help-block" style="margin-top:6px">Desktop uniquement. Sur mobile, l'affichage en liste est toujours actif.</p>
+                </div>
+                <div class="checkbox">
+                  <label><input type="checkbox" name="kr-commerce-expanded" id="kr-commerce-expanded-checkbox"> Catégories ouvertes par défaut — ouvre tous les accordéons au chargement</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Matériel</label>
+              <div class="col-sm-9">
+                <div class="checkbox">
+                  <label><input type="checkbox" name="kr-materiel-move" id="kr-materiel-move-checkbox"> Déplacer dans la colonne gauche — déplace le panneau Matériel à gauche sur le plateau</label>
+                </div>
               </div>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Commerce (plateau)</label>
-            <div class="col-sm-9">
-              <div class="checkbox">
-                <label><input type="checkbox" name="kr-commerce-list" id="kr-commerce-list-checkbox"> Affichage en liste — affiche les produits en lignes au lieu de tuiles</label>
-                <p class="help-block" style="margin-top:6px">Desktop uniquement. Sur mobile, l'affichage en liste est toujours actif.</p>
-              </div>
+          <h5 class="kr-options-section-title"><span>Affichage</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div class="kr-options-section-content collapsed">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Caractéristiques</label>
+              <div class="col-sm-9">${statsDisplayRadios}</div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Footer</label>
+              <div class="col-sm-9">${hideQuoteCheckbox}</div>
             </div>
           </div>
+          <h5 class="kr-options-section-title"><span>Alertes</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div id="kr-alerts-section" class="kr-options-section-content collapsed"></div>
+          <h5 class="kr-options-section-title"><span>Historique</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div id="kr-changelog-section" class="kr-options-section-content collapsed"></div>
         </form>
       `;
 
@@ -6702,6 +6739,17 @@
       }
 
       const form = container.querySelector('#kr-tamper-theme-form');
+
+      // Toggle des sections pliables
+      container.querySelectorAll('.kr-options-section-title').forEach(title => {
+        title.addEventListener('click', () => {
+          const content = title.nextElementSibling;
+          if (!content) {return;}
+          const isExpanded = !content.classList.contains('collapsed');
+          content.classList.toggle('collapsed', isExpanded);
+          title.classList.toggle('expanded', !isExpanded);
+        });
+      });
 
       function syncUI() {
         if (!isThemeEnabled()) {
@@ -6732,6 +6780,16 @@
         const commerceList = _lsGet(CONFIG.COMMERCE_LIST_KEY) === 'true';
         const commerceListEl = form.querySelector('#kr-commerce-list-checkbox');
         if (commerceListEl) { commerceListEl.checked = commerceList; }
+
+        // Synchroniser l'option Commerce accordéons ouverts
+        const commerceExpanded = _lsGet(CONFIG.COMMERCE_EXPANDED_KEY) === 'true';
+        const commerceExpandedEl = form.querySelector('#kr-commerce-expanded-checkbox');
+        if (commerceExpandedEl) { commerceExpandedEl.checked = commerceExpanded; }
+
+        // Synchroniser l'option Matériel déplacement
+        const materielMove = isMaterielMoveEnabled();
+        const materielMoveEl = form.querySelector('#kr-materiel-move-checkbox');
+        if (materielMoveEl) { materielMoveEl.checked = materielMove; }
       }
 
       form.addEventListener('change', (e) => {
@@ -6821,6 +6879,34 @@
           feedback.textContent = isChecked
             ? 'Commerce en mode liste activé.'
             : 'Commerce en mode tuiles rétabli.';
+          container.appendChild(feedback);
+          setTimeout(() => feedback.remove(), 3000);
+        }
+
+        // Gestion des accordéons commerce ouverts par défaut
+        if (e.target.name === 'kr-commerce-expanded') {
+          const isChecked = e.target.checked;
+          _lsSet(CONFIG.COMMERCE_EXPANDED_KEY, isChecked.toString());
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked
+            ? 'Catégories commerce ouvertes par défaut.'
+            : 'Catégories commerce fermées par défaut (sauf Nourriture).';
+          container.appendChild(feedback);
+          setTimeout(() => feedback.remove(), 3000);
+        }
+
+        // Gestion du déplacement du matériel
+        if (e.target.name === 'kr-materiel-move') {
+          const isChecked = e.target.checked;
+          _lsSet(CONFIG.MATERIEL_MOVE_KEY, isChecked.toString());
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked
+            ? 'Matériel déplacé à gauche (rechargement nécessaire).'
+            : 'Matériel laissé à droite (rechargement nécessaire).';
           container.appendChild(feedback);
           setTimeout(() => feedback.remove(), 3000);
         }
@@ -8610,62 +8696,45 @@
         await this.loadChangelog();
       }
 
-      // Chercher un endroit pour ajouter le bouton
-      // Généralement dans le panel de contenu
-      const container = document.querySelector('.panel-body') ||
-                       document.querySelector('.content') ||
-                       document.querySelector('main') ||
-                       document.querySelector('.container');
-
-      if (!container) {
-        console.log('[Changelog] Conteneur profil non trouvé');
-        return;
-      }
-
       // Vérifier que le bouton n'existe pas déjà
       if (document.getElementById('kr-changelog-btn')) {
         return;
       }
 
+      // Chercher le placeholder dédié dans le formulaire
+      const changelogSection = document.querySelector('#kr-changelog-section');
+      if (!changelogSection) {
+        console.log('[Changelog] Placeholder #kr-changelog-section non trouvé');
+        return;
+      }
+
+      // Créer le form-group
+      const section = document.createElement('div');
+      section.className = 'form-group';
+
+      const label = document.createElement('label');
+      label.className = 'col-sm-3 control-label';
+      label.textContent = 'Changements';
+
+      const btnContainer = document.createElement('div');
+      btnContainer.className = 'col-sm-9';
+
       // Créer le bouton
       const btn = document.createElement('button');
       btn.id = 'kr-changelog-btn';
+      btn.type = 'button';
       btn.className = 'btn btn-info kr-changelog-btn';
+      btn.style.display = 'inline-block';
       btn.innerHTML = '📝 Voir l\'historique des changements';
-
-      // Si la section "Alertes" est présente, utiliser un style compact mais lisible (texte inline)
-      const krAlertsBtnLocal = document.querySelector('.kr-reset-alerts-btn');
-      const krAlertsHelpLocal = krAlertsBtnLocal && krAlertsBtnLocal.parentNode && krAlertsBtnLocal.parentNode.querySelector('.help-block');
-      if (krAlertsHelpLocal) {
-        btn.className = 'btn btn-link kr-changelog-btn kr-changelog-inline';
-        btn.innerHTML = '📝 Voir l\'historique des changements';
-        btn.setAttribute('title', 'Voir l\'historique des changements');
-        btn.setAttribute('aria-label', 'Voir l\'historique des changements');
-        // Styles minimaux pour rester inline et lisible
-        btn.style.display = 'inline';
-        btn.style.marginLeft = '8px';
-        btn.style.fontSize = '13px';
-        btn.style.padding = '0';
-        btn.style.verticalAlign = 'middle';
-      }
 
       btn.addEventListener('click', () => {
         this.showFullChangelog();
       });
 
-      // Si la section "Alertes" est présente, insérer le bouton *dans* le paragraphe d'aide
-      if (krAlertsHelpLocal) {
-        // On l'ajoute à l'intérieur du <p> pour éviter qu'il soit poussé hors écran sur mobile
-        krAlertsHelpLocal.appendChild(btn);
-      } else {
-        // Insérer le bouton au début du conteneur ou comme dernier élément (fallback)
-        const insertPoint = container.querySelector('h1') || container.querySelector('h2');
-        if (insertPoint) {
-          insertPoint.parentNode.insertBefore(btn, insertPoint.nextSibling);
-        } else {
-          container.insertBefore(btn, container.firstChild);
-        }
-      }
+      btnContainer.appendChild(btn);
+      section.appendChild(label);
+      section.appendChild(btnContainer);
+      changelogSection.appendChild(section);
 
       console.log('[Changelog] Bouton ajouté sur la page profil');
     }
