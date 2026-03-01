@@ -2269,7 +2269,10 @@
       'http://img7.kraland.org/2/map/1b/170.gif': 'https://i.imgur.com/FfpTfLi.gif'
     },
 
-    MEDIEVAL_SEPIA: '85%'
+    MEDIEVAL_SEPIA: '85%',
+
+    // Commerce - affichage liste/tuiles
+    COMMERCE_LIST_KEY: 'kr-commerce-list-mode'
   };
 
   // ============================================================================
@@ -2316,6 +2319,11 @@
   /** Vérifie si la carte médiévale est activée */
   function isMedievalMapEnabled() {
     return _lsGet(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
+  }
+
+  /** Vérifie si le commerce est en mode liste (desktop) */
+  function isCommerceListEnabled() {
+    return _lsGet(CONFIG.COMMERCE_LIST_KEY) === 'true';
   }
 
   // ---------------------------------------------------------------------------
@@ -2807,6 +2815,17 @@
     }
   }
 
+  /**
+   * Applique l'option de mode liste commerce (desktop)
+   */
+  function applyCommerceListOption() {
+    if (isCommerceListEnabled()) {
+      document.documentElement.classList.add('kr-commerce-list-mode');
+    } else {
+      document.documentElement.classList.remove('kr-commerce-list-mode');
+    }
+  }
+
   function applyDOMTransformations() {
     if (!isThemeEnabled()) {return;}
     PerfLog.start('dom:transformations');
@@ -2821,7 +2840,7 @@
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
-      transformDashboardToFlexCards, applyFooterQuoteOption, handleDualLapClock
+      transformDashboardToFlexCards, applyFooterQuoteOption, applyCommerceListOption, handleDualLapClock
     ];
 
     transforms.forEach(fn => {
@@ -6666,6 +6685,15 @@
               </div>
             </div>
           </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Commerce (plateau)</label>
+            <div class="col-sm-9">
+              <div class="checkbox">
+                <label><input type="checkbox" name="kr-commerce-list" id="kr-commerce-list-checkbox"> Affichage en liste — affiche les produits en lignes au lieu de tuiles</label>
+                <p class="help-block" style="margin-top:6px">Desktop uniquement. Sur mobile, l'affichage en liste est toujours actif.</p>
+              </div>
+            </div>
+          </div>
         </form>
       `;
 
@@ -6699,6 +6727,11 @@
         const medieval = _lsGet(CONFIG.MEDIEVAL_MAP_KEY) === 'true';
         const medievalEl = form.querySelector('#kr-medieval-map-checkbox');
         if (medievalEl) { medievalEl.checked = medieval; }
+
+        // Synchroniser l'option Commerce mode liste
+        const commerceList = _lsGet(CONFIG.COMMERCE_LIST_KEY) === 'true';
+        const commerceListEl = form.querySelector('#kr-commerce-list-checkbox');
+        if (commerceListEl) { commerceListEl.checked = commerceList; }
       }
 
       form.addEventListener('change', (e) => {
@@ -6775,7 +6808,21 @@
           // Appliquer immédiatement
           applyMedievalMapOption();
           setTimeout(() => feedback.remove(), 3000);
+        }
 
+        // Gestion du mode liste commerce
+        if (e.target.name === 'kr-commerce-list') {
+          const isChecked = e.target.checked;
+          _lsSet(CONFIG.COMMERCE_LIST_KEY, isChecked.toString());
+          applyCommerceListOption();
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked
+            ? 'Commerce en mode liste activé.'
+            : 'Commerce en mode tuiles rétabli.';
+          container.appendChild(feedback);
+          setTimeout(() => feedback.remove(), 3000);
         }
       });
 
