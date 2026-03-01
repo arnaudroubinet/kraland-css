@@ -1723,21 +1723,25 @@
   InitQueue.register('Commerce Accordion', function initCommerceAccordion() {
     if (!window.location.href.includes('jouer/plateau')) {return;}
 
-    const categories = ['Nourriture', 'Repas', 'Boissons', 'Bons d\'état / Loterie', 'Services'];
-    const categoryDivs = [];
+    // Trouver le panel Commerce
+    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+      return h.textContent.trim() === 'Commerce';
+    });
+    if (!commerceHeader) {return;}
 
-    // Trouver tous les divs de catégorie
-    document.querySelectorAll('h4.list-group-item-heading').forEach(h4 => {
-      const categoryName = h4.textContent.trim();
-      if (categories.includes(categoryName)) {
-        const categoryDiv = h4.parentElement;
-        if (categoryDiv && categoryDiv.classList.contains('list-group-item')) {
-          categoryDivs.push({
-            name: categoryName,
-            div: categoryDiv,
-            h4: h4
-          });
-        }
+    var commercePanel = commerceHeader.closest('.panel');
+    if (!commercePanel) {return;}
+
+    // Détecter dynamiquement les catégories : div.list-group-item.ds_forum avec un h4
+    const categoryDivs = [];
+    commercePanel.querySelectorAll('div.list-group-item.ds_forum').forEach(div => {
+      const h4 = div.querySelector('h4.list-group-item-heading');
+      if (h4) {
+        categoryDivs.push({
+          name: h4.textContent.trim(),
+          div: div,
+          h4: h4
+        });
       }
     });
 
@@ -1776,27 +1780,8 @@
       const productsContainer = document.createElement('div');
       productsContainer.className = 'commerce-products-container';
 
-      // Déplacer les produits dans le conteneur + détection statuts
+      // Déplacer les produits dans le conteneur
       products.forEach(product => {
-        // Détection des statuts via l'attribut alt de l'image
-        const img = product.querySelector('img');
-        const altText = img ? (img.alt || '') : '';
-        if (altText.includes('composants manquants')) {
-          product.classList.add('commerce-status-missing');
-        }
-        if (altText.includes('stock max')) {
-          product.classList.add('commerce-status-full');
-        }
-        if (/Production \d/.test(altText)) {
-          product.classList.add('commerce-status-producing');
-        }
-
-        // Détection stock à 0 via le titre h4 (ex: "(0/50)")
-        const h4 = product.querySelector('h4');
-        if (h4 && /\(0\/\d+\)/.test(h4.textContent)) {
-          product.classList.add('commerce-status-empty');
-        }
-
         productsContainer.appendChild(product);
       });
 
