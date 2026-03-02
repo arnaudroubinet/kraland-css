@@ -1747,8 +1747,8 @@
       // Ajouter la classe accordion au div de catégorie
       category.div.classList.add('commerce-category-header');
 
-      // État initial : tout ouvert si l'option est activée, sinon première catégorie seulement
-      const isExpanded = isCommerceExpandedEnabled() || index === 0;
+      // État initial : sur desktop toujours ouvert, sur mobile plié sauf option ou 1ère catégorie
+      const isExpanded = !isMobileMode() || isCommerceExpandedEnabled() || index === 0;
       if (!isExpanded) {
         productsContainer.classList.add('collapsed');
         category.div.classList.add('collapsed');
