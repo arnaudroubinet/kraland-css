@@ -9016,6 +9016,10 @@
       const currentVersion = this.getCurrentVersion();
       const lastViewedVersion = this.getLastViewedVersion();
 
+      // Ajouter le bouton sur la page profil/interface immédiatement
+      // (avant tout await pour ne pas bloquer si le réseau est lent)
+      this.addChangelogButton();
+
       // Charger le changelog UNIQUEMENT si nouvelle version détectée
       if (lastViewedVersion !== currentVersion) {
         console.log('[Changelog] Nouvelle version détectée, chargement du changelog...');
@@ -9035,9 +9039,6 @@
       } else {
         console.log('[Changelog] Version identique, pas de chargement');
       }
-
-      // Ajouter un bouton sur la page profil/interface
-      this.addChangelogButton();
     },
 
     /**
