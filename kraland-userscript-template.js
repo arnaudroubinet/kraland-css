@@ -6724,6 +6724,25 @@
               <div class="col-sm-9">${hideQuoteCheckbox}</div>
             </div>
           </div>
+          <h5 class="kr-options-section-title"><span>Sauvegarde</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
+          <div id="kr-sync-section" class="kr-options-section-content collapsed">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Configuration</label>
+              <div class="col-sm-9">
+                <p class="help-block" style="margin-top:0;margin-bottom:8px">
+                  Sauvegardez votre configuration dans vos notes Kraland
+                  pour la retrouver sur un autre navigateur.
+                </p>
+                <button type="button" class="btn btn-primary btn-sm" id="kr-config-export-btn">
+                  <i class="fa fa-cloud-upload-alt"></i> Sauvegarder
+                </button>
+                <button type="button" class="btn btn-default btn-sm" id="kr-config-import-btn" style="margin-left:6px">
+                  <i class="fa fa-cloud-download-alt"></i> Importer
+                </button>
+                <div id="kr-sync-feedback" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
           <h5 class="kr-options-section-title"><span>Alertes</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
           <div id="kr-alerts-section" class="kr-options-section-content collapsed"></div>
           <h5 class="kr-options-section-title"><span>Historique</span> <i class="fa fa-chevron-down kr-section-icon"></i></h5>
@@ -8293,6 +8312,263 @@
   }
 
   // ============================================================================
+  // SAUVEGARDE CLOUD DE LA CONFIGURATION (via Notes Kraland)
+  // Permet de sauvegarder/importer la config du thème dans les notes du profil
+  // ============================================================================
+
+  const ConfigCloudSync = {
+    MARKER_START: '[KR-CONFIG-V1]',
+    MARKER_END: '[/KR-CONFIG-V1]',
+    NOTES_URL: '/profil/notes',
+    NOTES_ADD_URL: '/profil/notes/ajouter',
+
+    CONFIG_KEYS: [
+      CONFIG.ENABLE_KEY,
+      CONFIG.VARIANT_KEY,
+      CONFIG.STATS_DISPLAY_KEY,
+      'kr-hide-footer-quote',
+      CONFIG.MEDIEVAL_MAP_KEY,
+      CONFIG.COMMERCE_LIST_KEY,
+      CONFIG.COMMERCE_EXPANDED_KEY,
+      CONFIG.MATERIEL_MOVE_KEY,
+      CONFIG.CAROUSEL_HIDE_KEY
+    ],
+
+    /** Sérialise la config localStorage en texte avec marqueurs */
+    exportConfig() {
+      var config = {};
+      this.CONFIG_KEYS.forEach(function (key) {
+        var value = localStorage.getItem(key);
+        if (value !== null) {
+          config[key] = value;
+        }
+      });
+      config._exportDate = new Date().toISOString();
+      config._version = CURRENT_VERSION;
+      return this.MARKER_START + '\n' + JSON.stringify(config) + '\n' + this.MARKER_END;
+    },
+
+    /** Extrait et parse le JSON de config depuis un texte */
+    parseConfigFromText(text) {
+      var startIdx = text.indexOf(this.MARKER_START);
+      var endIdx = text.indexOf(this.MARKER_END);
+      if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+        return null;
+      }
+      var jsonStr = text.substring(startIdx + this.MARKER_START.length, endIdx).trim();
+      try {
+        var data = JSON.parse(jsonStr);
+        var hasValidKey = this.CONFIG_KEYS.some(function (key) { return key in data; });
+        return hasValidKey ? data : null;
+      } catch (_e) {
+        return null;
+      }
+    },
+
+    /** Récupère le token CSRF depuis la page d'ajout de notes */
+    async fetchCsrfToken() {
+      var response = await fetch(this.NOTES_ADD_URL, {
+        credentials: 'same-origin'
+      });
+      if (!response.ok) {
+        throw new Error('Impossible d\'accéder à la page d\'ajout de notes');
+      }
+      var html = await response.text();
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var form = doc.querySelector('form[action*="profil/notes"]');
+      if (!form) {
+        throw new Error('Formulaire de notes non trouvé');
+      }
+      var tokenInput = form.querySelector('input[name="t"]');
+      if (!tokenInput) {
+        throw new Error('Token CSRF non trouvé');
+      }
+      return tokenInput.value;
+    },
+
+    /** Crée une note avec le contenu donné */
+    async createNote(content) {
+      var csrfToken = await this.fetchCsrfToken();
+
+      var body = new URLSearchParams();
+      body.append('a', '1');
+      body.append('t', csrfToken);
+      body.append('n[1]', '0');
+      body.append('message', content);
+
+      var response = await fetch(this.NOTES_URL, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création de la note (HTTP ' + response.status + ')');
+      }
+      return true;
+    },
+
+    /** Récupère le HTML de la page des notes */
+    async fetchNotes() {
+      var response = await fetch(this.NOTES_URL, {
+        credentials: 'same-origin'
+      });
+      if (!response.ok) {
+        throw new Error('Impossible d\'accéder à la page des notes');
+      }
+      return response.text();
+    },
+
+    /** Cherche la config la plus récente dans le HTML des notes */
+    findLatestConfig(notesHtml) {
+      var doc = new DOMParser().parseFromString(notesHtml, 'text/html');
+      var allText = doc.body.textContent || '';
+
+      var configs = [];
+      var searchFrom = 0;
+      while (true) {
+        var startIdx = allText.indexOf(this.MARKER_START, searchFrom);
+        if (startIdx === -1) { break; }
+        var endIdx = allText.indexOf(this.MARKER_END, startIdx);
+        if (endIdx === -1) { break; }
+        var parsed = this.parseConfigFromText(
+          allText.substring(startIdx, endIdx + this.MARKER_END.length)
+        );
+        if (parsed) {
+          configs.push(parsed);
+        }
+        searchFrom = endIdx + this.MARKER_END.length;
+      }
+
+      if (configs.length === 0) {
+        return null;
+      }
+
+      // Retourner la plus récente
+      configs.sort(function (a, b) {
+        var dateA = a._exportDate || '';
+        var dateB = b._exportDate || '';
+        return dateB.localeCompare(dateA);
+      });
+
+      return configs[0];
+    },
+
+    /** Applique la config importée dans localStorage */
+    applyImportedConfig(configData) {
+      var appliedCount = 0;
+      this.CONFIG_KEYS.forEach(function (key) {
+        if (key in configData) {
+          localStorage.setItem(key, configData[key]);
+          _lsCache[key] = configData[key];
+          appliedCount++;
+        }
+      });
+      return appliedCount;
+    },
+
+    /** Sauvegarde la config dans une note */
+    async saveConfigToCloud() {
+      var noteContent = this.exportConfig();
+      await this.createNote(noteContent);
+    },
+
+    /** Importe la config depuis les notes */
+    async loadConfigFromCloud() {
+      var notesHtml = await this.fetchNotes();
+      var config = this.findLatestConfig(notesHtml);
+      if (!config) {
+        throw new Error('Aucune configuration sauvegardée trouvée dans vos notes');
+      }
+      return config;
+    },
+
+    /** Affiche un message de feedback */
+    showFeedback(container, message, type) {
+      var div = document.createElement('div');
+      div.className = 'alert alert-' + type;
+      div.style.cssText = 'margin-bottom:0;padding:8px 12px;font-size:13px;';
+      div.textContent = message;
+      container.innerHTML = '';
+      container.appendChild(div);
+      if (type === 'success') {
+        setTimeout(function () { div.remove(); }, 8000);
+      }
+    },
+
+    /** Branche les event listeners sur les boutons de la section Sauvegarde */
+    insertSyncSection() {
+      if (!window.location.href.includes('/profil/interface')) { return; }
+
+      var self = this;
+      var checkSection = setInterval(function () {
+        var syncSection = document.querySelector('#kr-sync-section');
+        if (!syncSection) { return; }
+        clearInterval(checkSection);
+
+        var exportBtn = document.getElementById('kr-config-export-btn');
+        var importBtn = document.getElementById('kr-config-import-btn');
+        var feedbackDiv = document.getElementById('kr-sync-feedback');
+
+        if (exportBtn) {
+          exportBtn.addEventListener('click', async function () {
+            exportBtn.disabled = true;
+            exportBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sauvegarde...';
+            feedbackDiv.innerHTML = '';
+
+            try {
+              await self.saveConfigToCloud();
+              self.showFeedback(feedbackDiv, 'Configuration sauvegardée dans vos notes !', 'success');
+            } catch (e) {
+              console.error('[ConfigSync] Erreur export:', e);
+              self.showFeedback(feedbackDiv, 'Erreur : ' + e.message, 'danger');
+            } finally {
+              exportBtn.disabled = false;
+              exportBtn.innerHTML = '<i class="fa fa-cloud-upload-alt"></i> Sauvegarder';
+            }
+          });
+        }
+
+        if (importBtn) {
+          importBtn.addEventListener('click', async function () {
+            importBtn.disabled = true;
+            importBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Importation...';
+            feedbackDiv.innerHTML = '';
+
+            try {
+              var config = await self.loadConfigFromCloud();
+              var count = self.applyImportedConfig(config);
+              var dateStr = config._exportDate
+                ? new Date(config._exportDate).toLocaleString('fr-FR')
+                : 'inconnue';
+              self.showFeedback(
+                feedbackDiv,
+                count + ' paramètre(s) importé(s) (sauvegarde du ' + dateStr + '). Rechargement...',
+                'success'
+              );
+              setTimeout(function () { location.reload(); }, 2000);
+            } catch (e) {
+              console.error('[ConfigSync] Erreur import:', e);
+              self.showFeedback(feedbackDiv, 'Erreur : ' + e.message, 'danger');
+            } finally {
+              importBtn.disabled = false;
+              importBtn.innerHTML = '<i class="fa fa-cloud-download-alt"></i> Importer';
+            }
+          });
+        }
+      }, 100);
+    },
+
+    /** Initialise le module */
+    init() {
+      this.insertSyncSection();
+    }
+  };
+
+  // ============================================================================
   // CHANGELOG MODAL
   // Gère l'affichage de la modale de changelog au premier chargement
   // ============================================================================
@@ -8844,6 +9120,9 @@
 
       // Initialiser le gestionnaire de changelog
       safeCall(() => ChangelogManager.init());
+
+      // Initialiser la sauvegarde cloud de la configuration
+      safeCall(() => ConfigCloudSync.init());
 
     } catch(e) {
       console.error('Kraland theme init failed', e);

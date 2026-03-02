@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.0.1772474054408",
+      "releaseDate": "2026-03-02",
+      "changes": [
+        "Nouvelle section 'Sauvegarde' dans la configuration du thème (/profil/interface) : permet de sauvegarder sa configuration dans les notes Kraland et de l'importer sur un autre navigateur"
+      ]
+    },
+    {
       "version": "1.0.1771954743371",
       "releaseDate": "2026-02-24",
       "changes": [

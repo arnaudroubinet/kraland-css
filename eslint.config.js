@@ -28,6 +28,8 @@ export default [
         Node: 'readonly',
         Event: 'readonly',
         Image: 'readonly',
+        DOMParser: 'readonly',
+        URLSearchParams: 'readonly',
         getComputedStyle: 'readonly',
         performance: 'readonly',
         // Tampermonkey/Greasemonkey globals
