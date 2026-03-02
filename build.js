@@ -76,7 +76,7 @@ const version = `1.0.${timestamp}`;
 // self-contained when installed directly. The timestamp is embedded in
 // the `@version` field to help with cache-busting/release tracking.
 // Compatible with Tampermonkey and Violentmonkey
-const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        none\n// @grant        GM.xmlHttpRequest\n// @connect      raw.githubusercontent.com\n// @compatible   chrome tampermonkey\n// @compatible   firefox tampermonkey\n// @compatible   edge tampermonkey\n// @compatible   firefox violentmonkey\n// @compatible   chrome violentmonkey\n// ==/UserScript==\n\n`;
+const userscriptHeader = `// ==UserScript==\n// @name         Kraland Theme (Bundled)\n// @namespace    http://www.kraland.org/\n// @version      ${version}\n// @description  Injects the Kraland CSS theme (bundled) - Works with Tampermonkey & Violentmonkey\n// @match        http://www.kraland.org/*\n// @run-at       document-start\n// @grant        GM.xmlHttpRequest\n// @connect      raw.githubusercontent.com\n// @compatible   chrome tampermonkey\n// @compatible   firefox tampermonkey\n// @compatible   edge tampermonkey\n// @compatible   firefox violentmonkey\n// @compatible   chrome violentmonkey\n// ==/UserScript==\n\n`;
 
 // Replace placeholder and prepend header
 // Escape backticks and $ in CSS for template literal, then replace the placeholder
