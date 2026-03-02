@@ -662,6 +662,11 @@ input[type="checkbox"]:checked {
   color: var(--kr-text);
 }
 
+/* Masquage du carrousel d'accueil via option */
+html.kr-hide-carousel .carousel {
+  display: none !important;
+}
+
 
 /* ============================================================================
    6. LIST GROUPS
@@ -10683,6 +10688,29 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
     display: none !important;
   }
 
+  /* --- Carte ministérielle stylisée --- */
+  .page-accueil .kr-ministerial-card {
+    border-radius: var(--kr-radius);
+    overflow: hidden;
+    box-shadow: var(--kr-shadow-md);
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    max-width: 570px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .page-accueil .kr-ministerial-card strong {
+    color: var(--kr-primary);
+  }
+
+  .page-accueil .kr-ministerial-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: calc(var(--kr-radius) / 2);
+  }
 
 }
 
@@ -10772,6 +10800,26 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
     color: var(--kr-text-muted);
     opacity: 0.7;
     text-shadow: none;
+  }
+
+  /* --- Carte ministérielle stylisée --- */
+  .page-accueil .kr-ministerial-card {
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius);
+    padding: 12px 14px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    box-shadow: var(--kr-shadow-sm);
+  }
+
+  .page-accueil .kr-ministerial-card strong {
+    color: var(--kr-primary);
+  }
+
+  .page-accueil .kr-ministerial-card img {
+    max-width: 100%;
+    height: auto;
   }
 
   /* --- 1. Bouton Jouer — Hero CTA (above the fold) --- */

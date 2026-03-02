@@ -1063,48 +1063,6 @@
   })();
 
   // ============================================
-  // TASK-1.6 - HOMEPAGE CAROUSEL REMOVAL (Mobile)
-  // ============================================
-  (function () {
-    /**
-     * Supprime le carousel Bootstrap sur la page d'accueil en mode mobile
-     * Le carousel prend trop de place et n'est pas adapté aux petits écrans
-     */
-    function removeHomepageCarousel() {
-      // Ne s'exécute qu'en mode mobile
-      if (!isMobileMode()) {return;}
-
-      // Ne s'exécute que sur la page d'accueil
-      const isHomePage = window.location.pathname === '/' ||
-                         window.location.pathname === '/accueil' ||
-                         window.location.pathname.endsWith('/');
-
-      if (!isHomePage) {return;}
-
-      // Sélectionner le carousel Bootstrap (.carousel)
-      const carousel = document.querySelector('.carousel');
-
-      if (!carousel) {
-        console.log('[Homepage Carousel] Carousel non trouvé sur la page');
-        return;
-      }
-
-      // Supprimer le carousel du DOM
-      carousel.remove();
-
-      console.log('[Homepage Carousel] Carousel supprimé en mode mobile');
-    }
-
-    // Enregistrer dans InitQueue avec priorité 5 (après initMobileMode à priorité 0)
-    InitQueue.register('removeHomepageCarousel', removeHomepageCarousel, 5);
-
-    // Exposer pour debug
-    if (window.KralandMobile) {
-      window.KralandMobile.removeHomepageCarousel = removeHomepageCarousel;
-    }
-  })();
-
-  // ============================================
   // TASK-1.3 - TAB BAR NAVIGATION (Bootstrap 3)
   // ============================================
 
@@ -1294,11 +1252,20 @@
 
     /**
      * Récupère la liste des alertes fermées depuis le localStorage
+     * Format : [{id, preview}] — rétrocompatible avec l'ancien format [string]
      */
     function getDismissedAlerts() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
+        if (!stored) {return [];}
+        const parsed = JSON.parse(stored);
+        // Migration : ancien format (tableau de strings) → nouveau format (tableau d'objets)
+        return parsed.map(function (entry) {
+          if (typeof entry === 'string') {
+            return {id: entry, preview: ''};
+          }
+          return entry;
+        });
       } catch (e) {
         console.warn('[Alerts Memory] Erreur lecture localStorage:', e);
         return [];
@@ -1306,13 +1273,29 @@
     }
 
     /**
+     * Récupère la liste des IDs d'alertes fermées (pour les comparaisons)
+     */
+    function getDismissedAlertIds() {
+      return getDismissedAlerts().map(function (entry) { return entry.id; });
+    }
+
+    /**
+     * Extrait un aperçu textuel d'une alerte (80 caractères max)
+     */
+    function getAlertPreview(alert) {
+      var text = alert.textContent.trim().replace(/\s+/g, ' ').replace(/^×\s*/, '');
+      return text.length > 80 ? text.substring(0, 80) + '…' : text;
+    }
+
+    /**
      * Sauvegarde une alerte fermée dans le localStorage
      */
-    function saveDismissedAlert(alertId) {
+    function saveDismissedAlert(alertId, preview) {
       try {
-        const dismissed = getDismissedAlerts();
-        if (!dismissed.includes(alertId)) {
-          dismissed.push(alertId);
+        var dismissed = getDismissedAlerts();
+        var exists = dismissed.some(function (entry) { return entry.id === alertId; });
+        if (!exists) {
+          dismissed.push({id: alertId, preview: preview || ''});
           localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissed));
           console.log('[Alerts Memory] Alerte mémorisée:', alertId);
         }
@@ -1337,15 +1320,15 @@
      * Cache automatiquement les alertes déjà fermées
      */
     function hideRememberedAlerts() {
-      const dismissedAlerts = getDismissedAlerts();
-      if (dismissedAlerts.length === 0) {return;}
+      const dismissedIds = getDismissedAlertIds();
+      if (dismissedIds.length === 0) {return;}
 
       const alerts = document.querySelectorAll('.alert.alert-dismissible');
       let hiddenCount = 0;
 
       alerts.forEach(alert => {
         const alertId = getAlertId(alert);
-        if (dismissedAlerts.includes(alertId)) {
+        if (dismissedIds.includes(alertId)) {
           alert.style.display = 'none';
           hiddenCount++;
         }
@@ -1370,7 +1353,8 @@
         // Écouter le clic sur le bouton de fermeture
         closeBtn.addEventListener('click', function () {
           const alertId = getAlertId(alert);
-          saveDismissedAlert(alertId);
+          const preview = getAlertPreview(alert);
+          saveDismissedAlert(alertId, preview);
         });
       });
 
@@ -1409,7 +1393,7 @@
 
         clearInterval(checkForm);
 
-        // Créer une section dédiée pour le bouton
+        // Créer une section dédiée
         const section = document.createElement('div');
         section.className = 'form-group';
 
@@ -1418,97 +1402,63 @@
         label.className = 'col-sm-3 control-label';
         label.textContent = 'Mémorisation';
 
-        // Créer le conteneur du bouton
+        // Créer le conteneur
         const btnContainer = document.createElement('div');
         btnContainer.className = 'col-sm-9';
 
-        // Créer le bouton de réinitialisation
-        const resetBtn = document.createElement('button');
-        resetBtn.type = 'button';
-        // Taille réduite : 1/3 de largeur, affichage inline pour ne pas être full-width
-        resetBtn.className = 'btn btn-warning kr-reset-alerts-btn';
-        resetBtn.style.width = '33.333%';
-        resetBtn.style.display = 'inline-block';
-
-        // Ajouter l'icône et le texte
-        const icon = document.createElement('span');
-        icon.className = 'glyphicon glyphicon-refresh';
-        icon.style.marginRight = '5px';
-
-        const text = document.createTextNode('Réinitialiser les alertes fermées');
-
-        resetBtn.appendChild(icon);
-        resetBtn.appendChild(text);
-
-        // Action au clic
-        resetBtn.addEventListener('click', function () {
-          const dismissed = getDismissedAlerts();
-          const count = dismissed.length;
-
-          if (count === 0) {
-            alert('Aucune alerte fermée à réinitialiser.');
-            return;
-          }
-
-          if (confirm(`Voulez-vous vraiment réinitialiser ${count} alerte(s) fermée(s) ? Elles réapparaîtront lors du prochain chargement de page.`)) {
-            localStorage.removeItem(STORAGE_KEY);
-            console.log('[Alerts Memory] Alertes mémorisées effacées');
-
-            // Feedback visuel
-            icon.className = 'glyphicon glyphicon-ok';
-            resetBtn.textContent = '';
-            resetBtn.appendChild(icon);
-            resetBtn.appendChild(document.createTextNode(' ' + (count === 1 ? '1 alerte réinitialisée !' : `${count} alertes réinitialisées !`)));
-            // Conserver la classe utilitaire pour garder la largeur réduite
-            resetBtn.className = 'btn btn-success kr-reset-alerts-btn';
-            // Mettre à jour le texte d'aide pour refléter le nouvel état
-            updateHelpText();
-
-            setTimeout(() => {
-              icon.className = 'glyphicon glyphicon-refresh';
-              resetBtn.textContent = '';
-              resetBtn.appendChild(icon);
-              resetBtn.appendChild(document.createTextNode(' Réinitialiser les alertes fermées'));
-              resetBtn.className = 'btn btn-warning btn-block';
-            }, 3000);
-          }
-        });
-
-        // Ajouter une description (placée sur la même ligne que le bouton)
-        const helpText = document.createElement('p');
-        helpText.className = 'help-block';
-        // Afficher sur la même ligne que le bouton et aligner verticalement
-        helpText.style.display = 'inline-block';
-        helpText.style.marginTop = '0';
-        helpText.style.marginLeft = '10px';
-        helpText.style.verticalAlign = 'middle';
-        helpText.style.fontSize = '12px';
-        helpText.style.opacity = '0.7';
-
-        // Helper pour la gestion du singulier/pluriel
-        function formatDismissedCount(n) {
-          if (n === 0) {return 'Aucune alerte actuellement masquée';}
-          if (n === 1) {return '1 alerte actuellement masquée';}
-          return `${n} alertes actuellement masquées`;
-        }
+        // Conteneur de la liste des alertes masquées
+        var alertsList = document.createElement('div');
+        alertsList.className = 'kr-dismissed-alerts-list';
+        alertsList.style.marginTop = '4px';
 
         function updateHelpText() {
-          helpText.textContent = formatDismissedCount(getDismissedAlerts().length);
+          var dismissed = getDismissedAlerts();
+
+          // Mettre à jour la liste des alertes masquées
+          alertsList.innerHTML = '';
+          if (dismissed.length === 0) {return;}
+
+          var list = document.createElement('ul');
+          list.style.cssText = 'list-style:none;padding:0;margin:0;font-size:12px;opacity:0.8;';
+          dismissed.forEach(function (entry) {
+            var li = document.createElement('li');
+            li.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(128,128,128,0.15);display:flex;align-items:center;gap:6px;';
+
+            var restoreBtn = document.createElement('button');
+            restoreBtn.type = 'button';
+            restoreBtn.className = 'btn btn-xs btn-default';
+            restoreBtn.style.cssText = 'padding:1px 5px;font-size:11px;line-height:1.4;flex-shrink:0;';
+            restoreBtn.innerHTML = '<span class="glyphicon glyphicon-eye-open"></span>';
+            restoreBtn.title = 'Réafficher cette alerte';
+            restoreBtn.addEventListener('click', function () {
+              var current = getDismissedAlerts();
+              var filtered = current.filter(function (e) { return e.id !== entry.id; });
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+              updateHelpText();
+            });
+
+            var text = document.createElement('span');
+            text.textContent = '- ' + (entry.preview || '(aperçu non disponible)');
+
+            li.appendChild(restoreBtn);
+            li.appendChild(text);
+            list.appendChild(li);
+          });
+          alertsList.appendChild(list);
         }
 
-        // Initialiser le texte
+        // Initialiser la liste
         updateHelpText();
 
         // Assembler la section
-        btnContainer.appendChild(resetBtn);
-        btnContainer.appendChild(helpText);
+        btnContainer.appendChild(alertsList);
         section.appendChild(label);
         section.appendChild(btnContainer);
 
         // Insérer dans le placeholder Alertes
         alertsSection.appendChild(section);
 
-        console.log('[Alerts Memory] Bouton de réinitialisation ajouté');
+        console.log('[Alerts Memory] Section mémorisation ajoutée');
       }, 100);
     }
 
@@ -2257,7 +2207,10 @@
     COMMERCE_EXPANDED_KEY: 'kr-commerce-expanded',
 
     // Matériel - déplacement dans la colonne gauche
-    MATERIEL_MOVE_KEY: 'kr-materiel-move'
+    MATERIEL_MOVE_KEY: 'kr-materiel-move',
+
+    // Carrousel d'accueil - masquage
+    CAROUSEL_HIDE_KEY: 'kr-carousel-hide'
   };
 
   // ============================================================================
@@ -2319,6 +2272,12 @@
   /** Vérifie si le déplacement du matériel dans col-left est activé (activé par défaut) */
   function isMaterielMoveEnabled() {
     var val = _lsGet(CONFIG.MATERIEL_MOVE_KEY);
+    return val === null || val === 'true';
+  }
+
+  /** Vérifie si le carrousel d'accueil est masqué (masqué par défaut) */
+  function isCarouselHidden() {
+    var val = _lsGet(CONFIG.CAROUSEL_HIDE_KEY);
     return val === null || val === 'true';
   }
 
@@ -2812,6 +2771,50 @@
   }
 
   /**
+   * Applique l'option de masquage du carrousel d'accueil
+   */
+  function applyCarouselOption() {
+    if (isCarouselHidden()) {
+      document.documentElement.classList.add('kr-hide-carousel');
+    } else {
+      document.documentElement.classList.remove('kr-hide-carousel');
+    }
+  }
+
+  /**
+   * Transforme l'alerte ministérielle en carte stylisée
+   * - Remplace "Ce message a été modifié le" par "Dernière publication du ministère le"
+   * - Retire le bouton de fermeture et les classes alert
+   * - Ajoute la classe kr-ministerial-card
+   */
+  function transformMinisterialAlert() {
+    var alerts = document.querySelectorAll('.page-accueil .alert.alert-dismissible');
+    alerts.forEach(function (alert) {
+      if (alert.textContent.indexOf('Ministre') === -1) {return;}
+
+      // Retirer le bouton de fermeture
+      var closeBtn = alert.querySelector('.close, [data-dismiss="alert"]');
+      if (closeBtn) {closeBtn.remove();}
+
+      // Remplacer le texte "Ce message a été modifié le"
+      var walker = document.createTreeWalker(alert, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        var node = walker.currentNode;
+        if (node.nodeValue.indexOf('Ce message a été modifié le') !== -1) {
+          node.nodeValue = node.nodeValue.replace(
+            'Ce message a été modifié le',
+            'Dernière publication du ministère le'
+          );
+        }
+      }
+
+      // Remplacer les classes alert par la classe dédiée
+      alert.classList.remove('alert', 'alert-info', 'alert-dismissible');
+      alert.classList.add('kr-ministerial-card');
+    });
+  }
+
+  /**
    * Applique l'option de mode liste commerce (desktop)
    */
   function applyCommerceListOption() {
@@ -2836,7 +2839,8 @@
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
-      transformDashboardToFlexCards, applyFooterQuoteOption, applyCommerceListOption, handleDualLapClock
+      transformDashboardToFlexCards, applyFooterQuoteOption, applyCarouselOption,
+      transformMinisterialAlert, applyCommerceListOption, handleDualLapClock
     ];
 
     transforms.forEach(fn => {
@@ -6708,6 +6712,14 @@
               <div class="col-sm-9">${statsDisplayRadios}</div>
             </div>
             <div class="form-group">
+              <label class="col-sm-3 control-label">Accueil</label>
+              <div class="col-sm-9">
+                <div class="checkbox">
+                  <label><input type="checkbox" name="kr-carousel-hide" id="kr-carousel-hide-checkbox"> Masquer le carrousel — désactive le diaporama de la page d'accueil</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
               <label class="col-sm-3 control-label">Footer</label>
               <div class="col-sm-9">${hideQuoteCheckbox}</div>
             </div>
@@ -6775,6 +6787,11 @@
         const materielMove = isMaterielMoveEnabled();
         const materielMoveEl = form.querySelector('#kr-materiel-move-checkbox');
         if (materielMoveEl) { materielMoveEl.checked = materielMove; }
+
+        // Synchroniser l'option Masquer le carrousel
+        const carouselHide = isCarouselHidden();
+        const carouselHideEl = form.querySelector('#kr-carousel-hide-checkbox');
+        if (carouselHideEl) { carouselHideEl.checked = carouselHide; }
       }
 
       form.addEventListener('change', (e) => {
@@ -6892,6 +6909,26 @@
           feedback.textContent = isChecked
             ? 'Matériel déplacé à gauche (rechargement nécessaire).'
             : 'Matériel laissé à droite (rechargement nécessaire).';
+          container.appendChild(feedback);
+          setTimeout(() => feedback.remove(), 3000);
+        }
+
+        // Gestion du masquage du carrousel
+        if (e.target.name === 'kr-carousel-hide') {
+          const isChecked = e.target.checked;
+          _lsSet(CONFIG.CAROUSEL_HIDE_KEY, isChecked.toString());
+
+          if (isChecked) {
+            document.documentElement.classList.add('kr-hide-carousel');
+          } else {
+            document.documentElement.classList.remove('kr-hide-carousel');
+          }
+
+          const feedback = document.createElement('div');
+          feedback.className = 'alert alert-success';
+          feedback.textContent = isChecked
+            ? 'Carrousel masqué.'
+            : 'Carrousel affiché.';
           container.appendChild(feedback);
           setTimeout(() => feedback.remove(), 3000);
         }
