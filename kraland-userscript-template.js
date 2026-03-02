@@ -548,7 +548,7 @@
   })();
 
   // ============================================================================
-  // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC BIENVENU
+  // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC Bienvenue
   // ============================================================================
   (function () {
     'use strict';
@@ -1537,7 +1537,7 @@
     'use strict';
 
     /**
-     * Ajoute "Bienvenu " avant le nom de l'utilisateur sur la page d'accueil
+     * Ajoute "Bienvenue " avant le nom de l'utilisateur sur la page d'accueil
      */
     function addWelcomeMessage() {
       // Vérifier qu'on est sur la page d'accueil
@@ -1562,15 +1562,15 @@
 
       const userName = userNameH4.textContent.trim();
 
-      // Vérifier que "Bienvenu" n'est pas déjà présent
-      if (userName.startsWith('Bienvenu')) {
+      // Vérifier que "Bienvenue" n'est pas déjà présent
+      if (userName.startsWith('Bienvenue')) {
         return;
       }
 
-      // Ajouter "Bienvenu " avant le nom
-      userNameH4.textContent = 'Bienvenu ' + userName;
+      // Ajouter "Bienvenue " avant le nom
+      userNameH4.textContent = 'Bienvenue ' + userName;
 
-      console.log('[Welcome Message] Message de bienvenue ajouté pour:', userName);
+      console.log('[Welcome Message] Message de Bienvenue ajouté pour:', userName);
     }
 
     // Initialiser au chargement du DOM
