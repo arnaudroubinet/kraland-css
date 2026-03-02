@@ -8411,6 +8411,47 @@
       return true;
     },
 
+    /** Met à jour une note existante par son ID */
+    async updateNote(noteId, content) {
+      var editUrl = '/profil/notes/modifier-' + noteId;
+      var response = await fetch(editUrl, {
+        credentials: 'same-origin'
+      });
+      if (!response.ok) {
+        throw new Error('Impossible d\'accéder à la page de modification de la note');
+      }
+      var html = await response.text();
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var form = doc.querySelector('form[action*="profil/notes"]');
+      if (!form) {
+        throw new Error('Formulaire de modification non trouvé');
+      }
+      var tokenInput = form.querySelector('input[name="t"]');
+      if (!tokenInput) {
+        throw new Error('Token CSRF non trouvé sur la page de modification');
+      }
+
+      var body = new URLSearchParams();
+      body.append('a', '1');
+      body.append('t', tokenInput.value);
+      body.append('n[1]', noteId);
+      body.append('message', content);
+
+      var postResponse = await fetch(this.NOTES_URL, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      });
+
+      if (!postResponse.ok) {
+        throw new Error('Erreur lors de la modification de la note (HTTP ' + postResponse.status + ')');
+      }
+      return true;
+    },
+
     /** Récupère le HTML de la page des notes */
     async fetchNotes() {
       var response = await fetch(this.NOTES_URL, {
@@ -8420,6 +8461,30 @@
         throw new Error('Impossible d\'accéder à la page des notes');
       }
       return response.text();
+    },
+
+    /** Cherche l'ID d'une note existante contenant la config, ou null */
+    findExistingConfigNoteId(notesHtml) {
+      var doc = new DOMParser().parseFromString(notesHtml, 'text/html');
+      var editLinks = doc.querySelectorAll('a[href*="profil/notes/modifier-"]');
+
+      for (var i = 0; i < editLinks.length; i++) {
+        var link = editLinks[i];
+        var row = link.closest('tr');
+        if (!row) { continue; }
+        var cells = row.querySelectorAll('td');
+        // Le contenu de la note est dans la 2e cellule
+        var contentCell = cells.length >= 2 ? cells[1] : null;
+        var text = contentCell ? contentCell.textContent : '';
+        if (text.indexOf(this.MARKER_START) !== -1) {
+          var href = link.getAttribute('href') || '';
+          var match = href.match(/modifier-(\d+)/);
+          if (match) {
+            return match[1];
+          }
+        }
+      }
+      return null;
     },
 
     /** Cherche la config la plus récente dans le HTML des notes */
@@ -8470,10 +8535,19 @@
       return appliedCount;
     },
 
-    /** Sauvegarde la config dans une note */
+    /** Sauvegarde la config dans une note (crée ou met à jour) */
     async saveConfigToCloud() {
       var noteContent = this.exportConfig();
-      await this.createNote(noteContent);
+
+      // Chercher si une note de config existe déjà
+      var notesHtml = await this.fetchNotes();
+      var existingNoteId = this.findExistingConfigNoteId(notesHtml);
+
+      if (existingNoteId) {
+        await this.updateNote(existingNoteId, noteContent);
+      } else {
+        await this.createNote(noteContent);
+      }
     },
 
     /** Importe la config depuis les notes */

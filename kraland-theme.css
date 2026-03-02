@@ -10211,7 +10211,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 .kr-changelog-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid var(--kr-border-default);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
 }
 
@@ -10233,7 +10233,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 .kr-changelog-subtitle {
   margin: 0 0 16px;
-  color: var(--kr-muted);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
 }
 
@@ -10246,7 +10246,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 .kr-changelog-list li {
   padding: 8px 0 8px 24px;
   position: relative;
-  color: var(--kr-text);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
   font-size: 14px;
 }
@@ -10262,7 +10262,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 .kr-changelog-footer {
   padding: 16px 24px;
-  border-top: 1px solid var(--kr-border-default);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -10272,10 +10272,10 @@ body.page-kramail h1.page-header .btn-default:hover {
   flex: 1;
   min-width: 120px;
   padding: 10px 16px;
-  border: 1px solid var(--kr-border-strong);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--kr-radius);
-  background: var(--kr-surface);
-  color: var(--kr-text);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -10294,7 +10294,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 }
 
 .kr-changelog-close-btn:hover {
-  background: var(--kr-bg-hover);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Modal complet - vue historique */
@@ -10316,7 +10316,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   font-weight: 600;
   color: var(--kr-primary);
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--kr-border-default);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .kr-changelog-version ul {
@@ -10328,7 +10328,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 .kr-changelog-version li {
   padding: 6px 0 6px 20px;
   position: relative;
-  color: var(--kr-text);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
   font-size: 13px;
 }
