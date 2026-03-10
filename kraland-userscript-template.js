@@ -3441,8 +3441,13 @@
         setRichContent(titleSpan, richFragment);
       } else if (group.isMyGroup) {
         titleSpan.textContent = titleText || 'Mon groupe';
+      } else if (titleText) {
+        titleSpan.textContent = titleText;
+      } else if (group.members[0] && group.members[0].nameFragment) {
+        titleSpan.appendChild(document.createTextNode('Groupe de '));
+        titleSpan.appendChild(group.members[0].nameFragment.cloneNode(true));
       } else {
-        titleSpan.textContent = titleText || 'Groupe de ' + (group.members[0] && group.members[0].name || 'Inconnu');
+        titleSpan.textContent = 'Groupe de ' + (group.members[0] && group.members[0].name || 'Inconnu');
       }
 
       header.appendChild(titleSpan);
