@@ -87,6 +87,30 @@
   }
 
   /**
+   * Clone le contenu visible d'un élément en préservant les <img> (smileys).
+   * Retourne un DocumentFragment contenant les nœuds texte et <img> clonés.
+   */
+  function cloneVisibleContent(el) {
+    var fragment = document.createDocumentFragment();
+    el.childNodes.forEach(function (node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        fragment.appendChild(node.cloneNode(false));
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+        fragment.appendChild(node.cloneNode(true));
+      }
+    });
+    return fragment;
+  }
+
+  /**
+   * Remplace le contenu d'un élément par un fragment riche (texte + <img>).
+   */
+  function setRichContent(el, fragment) {
+    el.textContent = '';
+    el.appendChild(fragment);
+  }
+
+  /**
    * Gestionnaire centralisé de resize — un seul listener pour tous les modules
    * Chaque callback est debouncé individuellement selon le délai spécifié
    */
@@ -1517,8 +1541,11 @@
         return;
       }
 
-      // Ajouter "Bienvenue " avant le nom
-      userNameH4.textContent = 'Bienvenue ' + userName;
+      // Ajouter "Bienvenue " avant le nom en préservant les smileys <img>
+      var nameFragment = cloneVisibleContent(userNameH4);
+      userNameH4.textContent = '';
+      userNameH4.appendChild(document.createTextNode('Bienvenue '));
+      userNameH4.appendChild(nameFragment);
 
       console.log('[Welcome Message] Message de Bienvenue ajouté pour:', userName);
     }
@@ -3072,6 +3099,7 @@
     const text = memberLink.querySelector('.list-group-item-text');
     if (heading) {
       data.name = heading.textContent.trim();
+      data.nameFragment = cloneVisibleContent(heading);
     }
     if (text) {
       data.status = text.textContent.trim();
@@ -3237,7 +3265,11 @@
 
     const nameDiv = document.createElement('div');
     nameDiv.className = 'dashboard-card-name';
-    nameDiv.textContent = memberData.name;
+    if (memberData.nameFragment) {
+      setRichContent(nameDiv, memberData.nameFragment);
+    } else {
+      nameDiv.textContent = memberData.name;
+    }
     nameContainer.appendChild(nameDiv);
 
     header.appendChild(nameContainer);
@@ -4546,7 +4578,7 @@
         return;
       }
 
-      // Extraire le nom du personnage actuel depuis h1
+      // Extraire le nom du personnage actuel depuis h1 (texte pour comparaisons)
       const currentCharName = Array.from(h1.childNodes)
         .find(node => node.nodeType === Node.TEXT_NODE)
         ?.textContent.trim();
@@ -4555,6 +4587,9 @@
         console.warn('[Kramail Character Switcher] Nom du personnage non trouvé');
         return;
       }
+
+      // Fragment riche du nom (préserve les smileys <img>)
+      const currentCharFragment = cloneVisibleContent(h1);
 
       // Extraire les personnages depuis col-left
       const characterLinks = Array.from(colLeft.querySelectorAll('a[href*="kramail/"]'))
@@ -4577,6 +4612,7 @@
 
           return {
             name: a.textContent.trim(),
+            nameFragment: cloneVisibleContent(a),
             href: a.href,
             category: category,
             isActive: a.textContent.trim() === currentCharName
@@ -4636,7 +4672,7 @@
           align-items: center;
           gap: 8px;
         `;
-        nameSpan.textContent = char.name;
+        setRichContent(nameSpan, char.nameFragment);
 
         // Icône check si actif
         if (char.isActive) {
@@ -4711,7 +4747,7 @@
 
       // Créer les éléments du titre
       const nameSpan = document.createElement('span');
-      nameSpan.textContent = currentCharName;
+      setRichContent(nameSpan, currentCharFragment);
       nameSpan.style.fontWeight = '700';
 
       const iconSpan = document.createElement('span');
@@ -5085,6 +5121,7 @@
       // Nom de l'expéditeur
       var senderLink = pullLeft.querySelector('.cartouche strong a');
       var senderName = senderLink ? senderLink.textContent : avatarAlt;
+      var senderNameFragment = senderLink ? cloneVisibleContent(senderLink) : null;
       var senderHref = senderLink ? senderLink.href : '#';
 
       // Date
@@ -5125,12 +5162,36 @@
       // Header : avatar + nom + date
       var msgHeader = document.createElement('div');
       msgHeader.className = 'kramail-msg-header';
-      msgHeader.innerHTML =
-        '<img class="kramail-msg-avatar" src="' + avatarSrc + '" alt="' + avatarAlt + '">' +
-        '<div class="kramail-msg-header-info">' +
-          '<div class="kramail-msg-sender"><a href="' + senderHref + '">' + senderName + '</a></div>' +
-          '<div class="kramail-msg-date"><i class="fa fa-clock-o"></i> ' + dateText + '</div>' +
-        '</div>';
+      var avatarImgEl = document.createElement('img');
+      avatarImgEl.className = 'kramail-msg-avatar';
+      avatarImgEl.src = avatarSrc;
+      avatarImgEl.alt = avatarAlt;
+
+      var headerInfo = document.createElement('div');
+      headerInfo.className = 'kramail-msg-header-info';
+
+      var senderDiv = document.createElement('div');
+      senderDiv.className = 'kramail-msg-sender';
+      var senderA = document.createElement('a');
+      senderA.href = senderHref;
+      if (senderNameFragment) {
+        senderA.appendChild(senderNameFragment);
+      } else {
+        senderA.textContent = senderName;
+      }
+      senderDiv.appendChild(senderA);
+
+      var dateDiv = document.createElement('div');
+      dateDiv.className = 'kramail-msg-date';
+      var clockIcon = document.createElement('i');
+      clockIcon.className = 'fa fa-clock-o';
+      dateDiv.appendChild(clockIcon);
+      dateDiv.appendChild(document.createTextNode(' ' + dateText));
+
+      headerInfo.appendChild(senderDiv);
+      headerInfo.appendChild(dateDiv);
+      msgHeader.appendChild(avatarImgEl);
+      msgHeader.appendChild(headerInfo);
 
       // Destinataires
       var msgRecipients = document.createElement('div');
@@ -5189,7 +5250,7 @@
         return;
       }
 
-      // Extraire le titre du thread (ignorer les nœuds texte vides)
+      // Extraire le titre du thread (texte pour vérification, fragment pour affichage)
       const threadTitle = Array.from(forumHeading.childNodes)
         .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
         .map(node => node.textContent.trim())[0];
@@ -5198,6 +5259,9 @@
         console.warn('[Forum Thread Mobile] Titre du thread non trouvé');
         return;
       }
+
+      // Fragment riche du titre (préserve les smileys <img>)
+      const threadTitleFragment = cloneVisibleContent(forumHeading);
 
       // Trouver les liens dans le premier .forum-top
       const firstForumTop = forumTops[0];
@@ -5295,7 +5359,7 @@
 
         // Titre du thread (tronqué si nécessaire)
         const threadTitleSpan = document.createElement('span');
-        threadTitleSpan.textContent = threadTitle;
+        setRichContent(threadTitleSpan, threadTitleFragment);
         threadTitleSpan.style.cssText = `
           color: var(--kr-text-secondary);
           font-weight: 400;
