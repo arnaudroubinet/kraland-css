@@ -3032,6 +3032,17 @@
         // Extraire le texte du titre (sans les boutons)
         groupData.title = panelTitle.textContent.trim();
 
+        // Cloner le contenu riche du titre (texte + <img>) sans les boutons
+        var titleFragment = document.createDocumentFragment();
+        panelTitle.childNodes.forEach(function (node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            titleFragment.appendChild(node.cloneNode(false));
+          } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+            titleFragment.appendChild(node.cloneNode(true));
+          }
+        });
+        groupData.titleFragment = titleFragment;
+
         // Extraire les boutons de groupe (avec cloneNode pour préserver événements)
         const buttons = panelTitle.querySelectorAll('a.btn');
         buttons.forEach(btn => {
@@ -3381,6 +3392,7 @@
       groups.push({
         isMyGroup: isMyGroup,
         title: groupData.title,
+        titleFragment: groupData.titleFragment,
         groupButtons: groupData.groupButtons,
         members: groupData.members
       });
@@ -3414,14 +3426,23 @@
       const titleSpan = document.createElement('span');
       titleSpan.className = 'dashboard-group-title';
 
-      if (group.isMyGroup) {
-        // Extraire le nom sans les icônes
-        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
+      var titleText = group.title.replace(/\s*Groupe\s+/i, '');
+      if (group.titleFragment && titleText) {
+        // Utiliser le fragment riche pour préserver les smileys <img>
+        // Retirer le préfixe "Groupe " du premier nœud texte
+        var richFragment = group.titleFragment.cloneNode(true);
+        var firstText = richFragment.firstChild;
+        if (firstText && firstText.nodeType === Node.TEXT_NODE) {
+          firstText.textContent = firstText.textContent.replace(/\s*Groupe\s+/i, '');
+          if (!firstText.textContent) {
+            richFragment.removeChild(firstText);
+          }
+        }
+        setRichContent(titleSpan, richFragment);
+      } else if (group.isMyGroup) {
         titleSpan.textContent = titleText || 'Mon groupe';
       } else {
-        // Extraire le nom du groupe
-        const titleText = group.title.replace(/\s*Groupe\s+/i, '');
-        titleSpan.textContent = titleText || `Groupe de ${group.members[0]?.name || 'Inconnu'}`;
+        titleSpan.textContent = titleText || 'Groupe de ' + (group.members[0] && group.members[0].name || 'Inconnu');
       }
 
       header.appendChild(titleSpan);
