@@ -2200,6 +2200,38 @@
 
     MEDIEVAL_SEPIA: '85%',
 
+    // Images sans équivalent /5/ ni override — ne pas tenter le remplacement
+    MEDIEVAL_NO_REPLACE: {
+      'http://img7.kraland.org/2/map/1/109.gif': true,
+      'http://img7.kraland.org/2/map/1/134.gif': true,
+      'http://img7.kraland.org/2/map/1/197.gif': true,
+      'http://img7.kraland.org/2/map/1/198.gif': true,
+      'http://img7.kraland.org/2/map/1/199.gif': true,
+      'http://img7.kraland.org/2/map/1/5015.gif': true,
+      'http://img7.kraland.org/2/map/1/5021.gif': true,
+      'http://img7.kraland.org/2/map/1/5022.gif': true,
+      'http://img7.kraland.org/2/map/1/5023.gif': true,
+      'http://img7.kraland.org/2/map/1/5024.gif': true,
+      'http://img7.kraland.org/2/map/1/231129.gif': true,
+      'http://img7.kraland.org/2/map/1/231229.gif': true,
+      'http://img7.kraland.org/2/map/1/231329.gif': true,
+      'http://img7.kraland.org/2/map/1/231429.gif': true,
+      'http://img7.kraland.org/2/map/1b/109.gif': true,
+      'http://img7.kraland.org/2/map/1b/134.gif': true,
+      'http://img7.kraland.org/2/map/1b/197.gif': true,
+      'http://img7.kraland.org/2/map/1b/198.gif': true,
+      'http://img7.kraland.org/2/map/1b/199.gif': true,
+      'http://img7.kraland.org/2/map/1b/5015.gif': true,
+      'http://img7.kraland.org/2/map/1b/5021.gif': true,
+      'http://img7.kraland.org/2/map/1b/5022.gif': true,
+      'http://img7.kraland.org/2/map/1b/5023.gif': true,
+      'http://img7.kraland.org/2/map/1b/5024.gif': true,
+      'http://img7.kraland.org/2/map/1b/231129.gif': true,
+      'http://img7.kraland.org/2/map/1b/231229.gif': true,
+      'http://img7.kraland.org/2/map/1b/231329.gif': true,
+      'http://img7.kraland.org/2/map/1b/231429.gif': true
+    },
+
     // Commerce - affichage liste/tuiles
     COMMERCE_LIST_KEY: 'kr-commerce-list-mode',
 
@@ -2319,9 +2351,32 @@
         if (Object.hasOwn(_krTestCache, url)) {return Promise.resolve(!!_krTestCache[url]);}
         return new Promise(resolve => {
           try {
-            const img = new Image();
-            img.onload = () => { _krTestCache[url] = true; resolve(true); };
-            img.onerror = () => { _krTestCache[url] = false; resolve(false); };
+            var settled = false;
+            var img = new Image();
+            var timeout = setTimeout(function() {
+              if (!settled) {
+                settled = true;
+                img.src = '';
+                _krTestCache[url] = false;
+                resolve(false);
+              }
+            }, 500);
+            img.onload = function() {
+              if (!settled) {
+                settled = true;
+                clearTimeout(timeout);
+                _krTestCache[url] = true;
+                resolve(true);
+              }
+            };
+            img.onerror = function() {
+              if (!settled) {
+                settled = true;
+                clearTimeout(timeout);
+                _krTestCache[url] = false;
+                resolve(false);
+              }
+            };
             img.src = url;
           } catch (_e) { _krTestCache[url] = false; resolve(false); }
         });
