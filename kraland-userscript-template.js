@@ -1701,7 +1701,7 @@
     if (!window.location.href.includes('jouer/plateau')) {return;}
 
     // Trouver le panel Commerce
-    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function (h) {
       return h.textContent.trim() === 'Commerce';
     });
     if (!commerceHeader) {return;}
@@ -1815,7 +1815,7 @@
   // ============================================================================
   InitQueue.register('Commerce Name Swap', function initCommerceNameSwap() {
     // Trouver le panel Commerce
-    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+    var commerceHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function (h) {
       return h.textContent.trim() === 'Commerce';
     });
     if (!commerceHeader) {return;}
@@ -1826,7 +1826,7 @@
     var items = commercePanel.querySelectorAll('a.list-group-item');
     var swapCount = 0;
 
-    items.forEach(function(item) {
+    items.forEach(function (item) {
       var h4 = item.querySelector('h4.list-group-item-heading');
       var p = item.querySelector('p.list-group-item-text');
       if (!h4 || !p) {return;}
@@ -1872,8 +1872,8 @@
 
     var sectionNames = ['Bâtiment', 'Commerce', 'Matériel'];
 
-    sectionNames.forEach(function(sectionName) {
-      var sectionHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function(h) {
+    sectionNames.forEach(function (sectionName) {
+      var sectionHeader = Array.from(document.querySelectorAll('h3.panel-title')).find(function (h) {
         return h.textContent.includes(sectionName);
       });
 
@@ -1906,7 +1906,7 @@
 
       // Gestionnaire de clic
       panelHeading.style.cursor = 'pointer';
-      panelHeading.addEventListener('click', function(e) {
+      panelHeading.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -2380,7 +2380,7 @@
           try {
             var settled = false;
             var img = new Image();
-            var timeout = setTimeout(function() {
+            var timeout = setTimeout(function () {
               if (!settled) {
                 settled = true;
                 img.src = '';
@@ -2388,7 +2388,7 @@
                 resolve(false);
               }
             }, 500);
-            img.onload = function() {
+            img.onload = function () {
               if (!settled) {
                 settled = true;
                 clearTimeout(timeout);
@@ -2396,7 +2396,7 @@
                 resolve(true);
               }
             };
-            img.onerror = function() {
+            img.onerror = function () {
               if (!settled) {
                 settled = true;
                 clearTimeout(timeout);
@@ -2410,7 +2410,7 @@
       }
 
       function processElement(el) {
-        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true')) {return;}
+        if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-failed') === 'true')) {return;}
         let src = null;
         if (el.tagName === 'IMG') {
           src = el.src || el.getAttribute('src');
@@ -2458,13 +2458,14 @@
             }
             const origFilterAttrVal = el.getAttribute(originalFilterAttr);
             if (origFilterAttrVal) { el.style && el.style.setProperty && el.style.setProperty('filter', origFilterAttrVal, 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('filter'); }
+            el.setAttribute && el.setAttribute('data-kr-medieval-failed', 'true');
           }
           el.removeAttribute && el.removeAttribute('data-kr-medieval-pending');
-        }).catch(_ => { el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); });
+        }).catch(_ => { el.setAttribute && el.setAttribute('data-kr-medieval-failed', 'true'); el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); });
       }
 
       function restoreAll() {
-        const els = document.querySelectorAll('[' + appliedAttr + '="true"]');
+        const els = document.querySelectorAll('[' + appliedAttr + '="true"], [data-kr-medieval-failed="true"]');
         els.forEach(el => {
           const origBg = el.getAttribute(originalBgAttr);
           if (el.tagName === 'IMG') {
@@ -2487,6 +2488,7 @@
             el.style && el.style.removeProperty && el.style.removeProperty('filter');
           }
           el.removeAttribute && el.removeAttribute(appliedAttr);
+          el.removeAttribute && el.removeAttribute('data-kr-medieval-failed');
           el.removeAttribute && el.removeAttribute(originalBgAttr);
           el.removeAttribute && el.removeAttribute(originalFilterAttr);
         });
@@ -2743,6 +2745,61 @@
   }
 
   safeCall(startHeadPositionObserver);
+
+  // Interception précoce des images de la carte médiévale (document-start)
+  // Remplace les src synchroniquement avant que le navigateur charge les originales
+  function startEarlyMedievalInterception() {
+    if (!isMedievalMapEnabled()) {return;}
+
+    var earlyObserver = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          var node = added[j];
+          if (node.nodeType !== 1) {continue;}
+          if (node.tagName === 'IMG') {
+            processImgEarly(node);
+          }
+          if (node.querySelectorAll) {
+            var imgs = node.querySelectorAll('img[src*="/2/map/1/"], img[src*="/2/map/1b/"]');
+            for (var k = 0; k < imgs.length; k++) {
+              processImgEarly(imgs[k]);
+            }
+          }
+        }
+      }
+    });
+
+    function processImgEarly(img) {
+      if (img.getAttribute('data-kr-medieval-applied') === 'true') {return;}
+      var src = img.getAttribute('src');
+      if (!src) {return;}
+      if (src.indexOf('/2/map/1/') === -1 && src.indexOf('/2/map/1b/') === -1) {return;}
+      if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
+      var target = computeReplacement(src);
+      if (!target) {return;}
+      img.setAttribute('data-kr-medieval-original-bg', src);
+      img.setAttribute('data-kr-medieval-applied', 'true');
+      img.setAttribute('src', target);
+      if (src.indexOf('/2/map/1b/') !== -1) {
+        img.setAttribute('data-kr-medieval-original-filter', img.style ? img.style.getPropertyValue('filter') || '' : '');
+        img.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+      }
+    }
+
+    earlyObserver.observe(document.documentElement, { childList: true, subtree: true });
+
+    function cleanupEarly() {
+      earlyObserver.disconnect();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cleanupEarly, { once: true });
+    } else {
+      cleanupEarly();
+    }
+  }
+
+  safeCall(startEarlyMedievalInterception);
 
   // Appliquer la carte médiévale si activée (asynchrone, non bloquant)
   safeCall(() => applyMedievalMapOption());
@@ -6645,7 +6702,7 @@
     if (!isPlatoPage()) {return;}
     if (!isMaterielMoveEnabled()) {return;}
 
-    var materielHeader = Array.from(document.querySelectorAll('#col-right h3.panel-title')).find(function(h) {
+    var materielHeader = Array.from(document.querySelectorAll('#col-right h3.panel-title')).find(function (h) {
       return h.textContent.trim() === 'Matériel';
     });
     if (!materielHeader) {return;}
@@ -8807,7 +8864,7 @@
 
       try {
         // Utiliser GM.xmlHttpRequest ou fetch si disponible
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
           if (typeof GM !== 'undefined' && GM.xmlHttpRequest) {
             GM.xmlHttpRequest({
               method: 'GET',

@@ -26,6 +26,7 @@ export default [
         MutationObserver: 'readonly',
         requestAnimationFrame: 'readonly',
         Node: 'readonly',
+        NodeFilter: 'readonly',
         Event: 'readonly',
         Image: 'readonly',
         DOMParser: 'readonly',
