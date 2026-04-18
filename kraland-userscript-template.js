@@ -684,12 +684,12 @@
       let moneyElement = null;
       const moneyContainers = document.querySelectorAll('div.mini.t');
       for (const container of moneyContainers) {
-        if (container.querySelector('i.fa.fa-coins') && container.textContent.includes('MØ')) {
+        if (container.querySelector('i.fa.fa-coins')) {
           moneyElement = container;
           break;
         }
       }
-      const money = moneyElement ? moneyElement.textContent.trim() : '0 MØ';
+      const money = moneyElement ? moneyElement.textContent.trim() : '0 FK';
 
       // Horloge (dans player-vitals-section)
       const vitalsSection = document.getElementById('player-vitals-section');
