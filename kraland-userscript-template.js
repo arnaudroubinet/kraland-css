@@ -3151,6 +3151,8 @@
             titleFragment.appendChild(node.cloneNode(false));
           } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
             titleFragment.appendChild(node.cloneNode(true));
+          } else if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('badge')) {
+            titleFragment.appendChild(node.cloneNode(true));
           }
         });
         groupData.titleFragment = titleFragment;

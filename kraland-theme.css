@@ -2051,6 +2051,20 @@ footer .container.white {
   letter-spacing: 0.5px;
 }
 
+.dashboard-section-header .badge {
+  vertical-align: middle;
+  margin-left: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: 10rem;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--kr-text);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
 /* Grilles de cartes */
 .dashboard-cards-grid {
   display: grid;
