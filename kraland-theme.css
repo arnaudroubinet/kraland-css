@@ -12369,10 +12369,20 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     text-decoration: none;
   }
 
+  /* M1 : encre et fond dédiés (mêmes variables que les touches de la croix CX2 : --kr-arm-*),
+     garantis >= 4,5:1 dans les 16 thèmes en état normal, survol et actif.
+     Le blanc sur --kr-primary tombait à 1,65:1 (paladium-dark). */
   .forum-thread-action-reply {
     flex-grow: 2;
-    background: var(--kr-primary);
-    color: #fff !important;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+  }
+
+  .forum-thread-action-reply:hover,
+  .forum-thread-action-reply:active {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+    text-decoration: none;
   }
 
   .forum-thread-action-new {
@@ -12432,6 +12442,38 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Menus (smileys, couleurs) : ancrés à la barre, sur toute sa largeur disponible */
   .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu {
     max-width: calc(100vw - 24px);
+  }
+
+  /* M2 : palette « Couleurs » = grille de pastilles 44×44 dans le menu (6 colonnes). Sans cela, la règle
+     mobile générique « .btn-group > .btn { width: 100% !important } » étirait chaque pastille à 168 px
+     et 17 sur 18 sortaient du menu. La couleur (style en ligne), le href et l'onclick natifs ne sont pas touchés. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    display: grid !important;
+    grid-template-columns: repeat(6, 44px);
+    gap: 6px;
+    width: auto !important;
+    max-width: 100%;
+    padding: 8px;
+    float: none !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group > .btn {
+    display: block !important;
+    float: none !important;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+}
+
+@media (max-width: 339px) {
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    grid-template-columns: repeat(5, 44px);
   }
 }
 

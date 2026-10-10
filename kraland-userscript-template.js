@@ -335,7 +335,16 @@
       } catch (_e) { return []; }
     }
 
+    // Sans sessionStorage le plafond ne peut pas être suivi : aucun rechargement automatique (bandeau manuel)
+    function reloadStorageAvailable() {
+      try {
+        sessionStorage.getItem(RELOAD_LOG_KEY);
+        return true;
+      } catch (_e) { return false; }
+    }
+
     function reloadAllowed() {
+      if (!reloadStorageAvailable()) {return false;}
       const log = readReloadLog();
       if (log.length >= RELOAD_MAX_COUNT) {return false;}
       return !log.length || Date.now() - log[log.length - 1] >= RELOAD_MIN_GAP_MS;
@@ -358,13 +367,25 @@
       });
     }
 
-    function showReloadBanner() {
-      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+    const RELOAD_BANNER_TEXT = {
+      input: 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ',
+      guard: 'La mise en page s\'adaptera au prochain rechargement. Rechargez la page quand vous le souhaitez. '
+    };
+
+    function showReloadBanner(reason) {
+      const message = RELOAD_BANNER_TEXT[reason] || RELOAD_BANNER_TEXT.guard;
+      const existing = document.getElementById('kr-resize-banner');
+      if (existing) {
+        const label = existing.querySelector('span');
+        if (label && label.textContent !== message) {label.textContent = message;}
+        return;
+      }
+      if (!document.body) {return;}
       const banner = document.createElement('div');
       banner.id = 'kr-resize-banner';
       banner.setAttribute('role', 'status');
       const text = document.createElement('span');
-      text.textContent = 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ';
+      text.textContent = message;
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Recharger';
@@ -400,12 +421,12 @@
         return;
       }
       if (hasPendingInput()) {
-        showReloadBanner();
+        showReloadBanner('input');
         return;
       }
       if (!reloadAllowed()) {
-        // Garde-fou atteint : pas de rechargement automatique, le joueur décide
-        showReloadBanner();
+        // Garde-fou atteint (ou stockage inaccessible) : pas de rechargement automatique, le joueur décide
+        showReloadBanner('guard');
         return;
       }
       reloadKeepingScroll();
