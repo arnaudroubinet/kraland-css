@@ -1013,7 +1013,6 @@
           charElements.forEach(charEl => {
             const charClone = charEl.cloneNode(true);
             charClone.className = charEl.className + ' mobile-characteristic-badge';
-            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
             characteristicsContainer.appendChild(charClone);
           });
 
@@ -1034,7 +1033,6 @@
           skills.forEach(skillEl => {
             const skillClone = skillEl.cloneNode(true);
             skillClone.className = skillEl.className + ' mobile-skill-item';
-            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
             skillsContainer.appendChild(skillClone);
           });
 
