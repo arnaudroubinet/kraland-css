@@ -293,8 +293,98 @@
       initMobileMode();
     }
 
-    // Écoute du resize via le gestionnaire centralisé
-    ResizeManager.add(initMobileMode, 250);
+    // E2 : le mode mobile n'est plus (ré)appliqué au redimensionnement. Le rechargement
+    // (checkBreakpointCrossing) s'en charge ; sans lui, des styles inline mobiles resteraient
+    // après un aller-retour avec une saisie en cours.
+
+    // === Bascule mobile/desktop : règle unique et symétrique (PLT-01/02/03) ===
+    // Les modules (barre d'onglets, mini-profil, styles inline...) ne se construisent
+    // qu'au chargement : au franchissement du seuil, dans un sens comme dans l'autre,
+    // on recharge la page (défilement restauré), sauf si une saisie est en cours.
+    const RELOAD_KEY = 'kr-breakpoint-reload';
+    const RELOAD_MAX_AGE_MS = 15000;
+    const RESIZE_SETTLE_MS = 400;
+    const loadedAsMobile = isMobileDevice();
+
+    function hasPendingInput() {
+      const active = document.activeElement;
+      if (active && (active.isContentEditable || (active.matches && active.matches('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"])')))) {
+        return true;
+      }
+      const fields = document.querySelectorAll('textarea, input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="url"], input[type="tel"]');
+      return Array.prototype.some.call(fields, function (field) {
+        return field.value !== field.defaultValue;
+      });
+    }
+
+    function showReloadBanner() {
+      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+      const banner = document.createElement('div');
+      banner.id = 'kr-resize-banner';
+      banner.setAttribute('role', 'status');
+      const text = document.createElement('span');
+      text.textContent = 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Recharger';
+      button.addEventListener('click', function () {
+        reloadKeepingScroll();
+      });
+      banner.appendChild(text);
+      banner.appendChild(button);
+      document.body.appendChild(banner);
+    }
+
+    function hideReloadBanner() {
+      const banner = document.getElementById('kr-resize-banner');
+      if (banner) {banner.remove();}
+    }
+
+    function reloadKeepingScroll() {
+      try {
+        sessionStorage.setItem(RELOAD_KEY, JSON.stringify({
+          y: window.scrollY,
+          url: location.pathname + location.search,
+          at: Date.now()
+        }));
+      } catch (_e) { /* sessionStorage indisponible : rechargement sans restauration */ }
+      location.reload();
+    }
+
+    function checkBreakpointCrossing() {
+      if (!document.body) {return;}
+      if (isMobileDevice() === loadedAsMobile) {
+        hideReloadBanner();
+        return;
+      }
+      if (hasPendingInput()) {
+        showReloadBanner();
+        return;
+      }
+      reloadKeepingScroll();
+    }
+
+    function restoreScrollAfterReload() {
+      let saved = null;
+      try {
+        saved = JSON.parse(sessionStorage.getItem(RELOAD_KEY) || 'null');
+        sessionStorage.removeItem(RELOAD_KEY);
+      } catch (_e) { return; }
+      if (!saved || Date.now() - saved.at > RELOAD_MAX_AGE_MS || saved.url !== location.pathname + location.search) {return;}
+      // Le contenu s'allonge pendant l'initialisation des modules : plusieurs tentatives
+      [0, 150, 400, 900, 1800].forEach(function (delay) {
+        setTimeout(function () {
+          window.scrollTo(0, saved.y);
+        }, delay);
+      });
+    }
+
+    ResizeManager.add(checkBreakpointCrossing, RESIZE_SETTLE_MS);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restoreScrollAfterReload);
+    } else {
+      restoreScrollAfterReload();
+    }
 
     // Export global pour debug
     window.KralandMobile = {
@@ -345,37 +435,59 @@
   // Sur les pages /map/*, la navbar a 2 lignes (logo + sous-nav) qui débordent
   // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
   (function () {
-    function fixNavbarPadding() {
-      if (isMobileMode()) {return;}
+    // E1 : recalculé au chargement ET à chaque redimensionnement (anti-rebond), car la
+    // hauteur de barre dépend de la largeur (60 px < 992, 106 à 206 px de 992 à 1359).
+    function applyNavbarPadding() {
+      var nav = document.querySelector('nav.navbar');
+      if (!nav || !document.body) {return;}
 
+      // 1. Repartir de la hauteur déterminée par la feuille de style
+      nav.style.removeProperty('max-height');
+      document.body.style.removeProperty('padding-top');
+
+      // 2. Mode compact / burger (< 992 px) : la feuille de style fixe la barre à 60 px
+      if (isMobileMode() || window.innerWidth < 992) {return;}
+
+      // 3. Remesurer la position basse réelle des éléments visibles de la navbar
+      var items = nav.querySelectorAll('.navbar-nav > li');
+      var maxBottom = 0;
+      for (var i = 0; i < items.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        if (rect.height > 0 && rect.bottom > maxBottom) {
+          maxBottom = rect.bottom;
+        }
+      }
+
+      // Si les éléments débordent du navbar, ajuster la hauteur et le padding
+      var navHeight = nav.offsetHeight;
+      if (maxBottom > navHeight + 5) {
+        var newHeight = Math.ceil(maxBottom) + 5;
+        nav.style.setProperty('max-height', newHeight + 'px', 'important');
+        // Le body réserve exactement la hauteur réelle de la barre
+        document.body.style.setProperty('padding-top', Math.ceil(nav.getBoundingClientRect().height) + 'px', 'important');
+      }
+    }
+
+    function fixNavbarPadding() {
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
       requestAnimationFrame(function () {
-        setTimeout(function () {
-          var nav = document.querySelector('nav.navbar');
-          if (!nav) {return;}
-
-          // Trouver la position basse réelle des éléments visibles de la navbar
-          var items = nav.querySelectorAll('.navbar-nav > li');
-          var maxBottom = 0;
-          for (var i = 0; i < items.length; i++) {
-            var rect = items[i].getBoundingClientRect();
-            if (rect.height > 0 && rect.bottom > maxBottom) {
-              maxBottom = rect.bottom;
-            }
-          }
-
-          // Si les éléments débordent du navbar, ajuster la hauteur et le padding
-          var navHeight = nav.offsetHeight;
-          if (maxBottom > navHeight + 5) {
-            var newHeight = Math.ceil(maxBottom) + 5;
-            nav.style.setProperty('max-height', newHeight + 'px', 'important');
-            document.body.style.setProperty('padding-top', newHeight + 'px', 'important');
-          }
-        }, 200);
+        setTimeout(applyNavbarPadding, 200);
       });
     }
 
     InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
+    ResizeManager.add(applyNavbarPadding, 150);
+
+    // E6 : Échap referme le panneau du menu (burger)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') {return;}
+      var panel = document.querySelector('nav.navbar .navbar-collapse.in');
+      var toggle = document.querySelector('nav.navbar .navbar-toggle');
+      if (panel && toggle) {
+        toggle.click();
+        toggle.focus();
+      }
+    });
   })();
 
   // ============================================================================
@@ -2550,7 +2662,7 @@
     badge.textContent = text;
     Object.assign(badge.style, {
       position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#d9534f', color: '#fff',
+      backgroundColor: '#c9302c', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -2565,7 +2677,7 @@
     badge.textContent = text;
     Object.assign(badge.style, {
       position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#007bff', color: '#fff',
+      backgroundColor: '#0069d9', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -6243,6 +6355,13 @@
       } else if (back.parentElement !== footer) {
         footer.appendChild(back);
       }
+
+      // PLT-09 : le bouton n'apparaît qu'une fois la page défilée (il ne masque plus le haut de page)
+      const updateBackVisibility = () => {
+        back.classList.toggle('kr-btt-visible', window.scrollY > 400);
+      };
+      window.addEventListener('scroll', updateBackVisibility, { passive: true });
+      updateBackVisibility();
     }
 
     // Bootstrap 3.3 sticky footer: use margin-bottom on body
@@ -8390,13 +8509,8 @@
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
-    // Gérer le redimensionnement de la fenêtre via le gestionnaire centralisé
-    ResizeManager.add(() => {
-      const nowMobile = window.innerWidth < 768;
-      if (nowMobile !== isMobile) {
-        location.reload(); // Recharger si on passe desktop <-> mobile
-      }
-    }, 250);
+    // Le franchissement du seuil mobile/desktop est géré dans les deux sens
+    // par checkBreakpointCrossing (voir TASK-1.1).
   }
 
   /**

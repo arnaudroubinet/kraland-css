@@ -11,6 +11,7 @@
     "watch": "nodemon --watch kraland-theme.css --watch kraland-userscript-template.js --exec \"npm run build\"",
     "serve": "http-server -p 4848 --cors -c-1",
     "test:e2e": "npx playwright test --project=chromium",
+    "test:transitions": "node tests/e2e/breakpoint-switch.mjs",
     "lint:css": "stylelint \"**/*.css\"",
     "lint:css:fix": "stylelint \"**/*.css\" --fix",
     "lint:js": "eslint .",
