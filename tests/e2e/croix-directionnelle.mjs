@@ -24,11 +24,11 @@ const LONG_NOSPACE = 'Entrepot-de-stockage-souterrain-principal-ouest';
 // Aires natives : l'image 60×60 du jeu a une seule zone (Sud). Les autres directions sont des FIXTURES.
 const AREA_COORDS = { Nord: '24,0,48,16', Ouest: '0,22,16,44', Est: '44,22,60,44', Sud: '0,31,28,52' };
 
-function fixtureHtml({ dirs = ['Nord', 'Ouest', 'Est', 'Sud'], rooms, areaOverride, noMap = false }) {
+function fixtureHtml({ dirs = ['Nord', 'Ouest', 'Est', 'Sud'], rooms, areaOverride, noMap = false, noRow = false }) {
   const areas = areaOverride || dirs.map(d => `<area shape="rect" coords="${AREA_COORDS[d]}" alt="${d}" href="/jouer/plateau/FIXTURE-dir-${d.toLowerCase()}"${d === 'Nord' ? ' onclick="window.__clicks.push(\'nord\')"' : ''}>`).join('');
   // Structure RÉELLE mesurée sur le site (10/10) : <a class="btn btn-primary|btn-warning"><img src=".../bat/batN.gif"></a>, sans texte, alt ni title ;
   // le nom et le cadenas sont dessinés dans le GIF (batNlock.gif). Un texte n'est ajouté que pour les fixtures « noms texte » (hypothétiques).
-  const roomsHtml = rooms.map((r, i) => `<a class="btn ${r.current ? 'btn-warning' : 'btn-primary'}" href="/jouer/plateau/FIXTURE-room-${i + 1}"${r.onclick ? ` onclick="window.__clicks.push('room${i + 1}')"` : ''}><img src="http://img7.kraland.org/2/bat/bat${i}${r.locked && !r.name ? 'lock' : ''}.gif" width="60" height="60">${r.name || ''}${r.locked && r.name ? '<img src="http://img7.kraland.org/2/cadenas.gif" width="11" height="12" alt="verrouillé">' : ''}</a>`).join('\n');
+  const roomsHtml = rooms.map((r, i) => `<a class="btn ${r.current ? 'btn-warning' : 'btn-primary'}" href="/jouer/plateau/FIXTURE-room-${i + 1}"${r.onclick ? ` onclick="window.__clicks.push('room${i + 1}')"` : ''}><img src="http://img7.kraland.org/2/bat/bat${r.bat ?? i}${r.locked && !r.name ? 'lock' : ''}.gif" width="60" height="60">${r.name || ''}${r.locked && r.name ? '<img src="http://img7.kraland.org/2/cadenas.gif" width="11" height="12" alt="verrouillé">' : ''}</a>`).join('\n');
   return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FIXTURE croix directionnelle (aucune donnée réelle)</title>
 <style>
@@ -39,7 +39,7 @@ function fixtureHtml({ dirs = ['Nord', 'Ouest', 'Est', 'Sud'], rooms, areaOverri
 </style></head><body>
 <nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div>
 <div id="navbar" class="navbar-collapse collapse"><ul class="nav navbar-nav"><li><a href="/jouer/plateau">Jouer</a></li></ul></div></div></nav>
-<div id="content" class="container"><div class="row center" id="zone-native">
+<div id="content" class="container"><div class="${noRow ? 'row' : 'row center'}" id="zone-native">
   <div class="col-xs-12"><img alt="Sortir" src="http://img7.kraland.org/2/bat/exit3.gif" width="60" height="60"${noMap ? '' : ' usemap="#exitmap"'}>${noMap ? '' : `<map name="exitmap">${areas}</map>`}</div>
   ${roomsHtml}
 </div>
@@ -63,7 +63,11 @@ const IMPOSSIBLE = {
   'FIXTURE area ambiguë (alt inconnu, centre en diagonale)': { areaOverride: '<area shape="rect" coords="40,40,52,52" alt="Sortir" href="/jouer/plateau/FIXTURE-dir-x">', rooms: [room('Extérieur'), room('Commerce', { current: true })] },
   'FIXTURE deux areas pour une même direction': { areaOverride: '<area shape="rect" coords="0,31,28,52" alt="Sud" href="/jouer/plateau/FIXTURE-a"><area shape="rect" coords="30,31,58,52" alt="Sortir Sud" href="/jouer/plateau/FIXTURE-b">', rooms: [room('Extérieur')] },
   'FIXTURE area non rectangulaire': { areaOverride: '<area shape="poly" coords="0,0,10,10,0,10" alt="Sud" href="/jouer/plateau/FIXTURE-poly">', rooms: [room('Extérieur')] },
-  'FIXTURE map absente': { noMap: true, rooms: [room('Extérieur'), room('Commerce', { current: true })] }
+  'FIXTURE map absente': { noMap: true, rooms: [room('Extérieur'), room('Commerce', { current: true })] },
+  // s2 : sans .row.center le natif ne peut pas être masqué ; ne rien insérer (sinon deux commandes visibles)
+  'FIXTURE conteneur .row.center absent': { noRow: true, rooms: [room('Extérieur'), room('Commerce', { current: true })] },
+  // s1 : area sans alt, géométrie de la vraie area Sud (0,31,28,52) : aucun quadrant net → natif conservé
+  'FIXTURE area sans alt, géométrie ambiguë (area Sud réelle)': { areaOverride: '<area shape="rect" coords="0,31,28,52" href="/jouer/plateau/FIXTURE-dir-x">', rooms: [room('Extérieur'), room('Commerce', { current: true })] }
 };
 
 let failures = 0;
@@ -237,7 +241,7 @@ for (const w of WIDTHS) {
     await load(page, 375, fixtureHtml(st), false);
     const m = await measure(page);
     check('aucun bloc, natif visible et intact', () => { assert.ok(m.mobile); assert.equal(m.nBlocks, 0); assert.notEqual(m.native.display, 'none'); assert.equal(m.native.inline, ''); });
-    check('image map native intacte', () => { if (!st.noMap) { assert.equal(m.native.imgUsemap, '#exitmap'); assert.ok(m.native.mapInDoc); } assert.equal(m.native.areas.length, st.noMap ? 0 : (st.areaOverride.match(/<area/g) || []).length); });
+    check('image map native intacte', () => { if (!st.noMap) { assert.equal(m.native.imgUsemap, '#exitmap'); assert.ok(m.native.mapInDoc); } assert.equal(m.native.areas.length, st.noMap ? 0 : (st.areaOverride ? (st.areaOverride.match(/<area/g) || []).length : 4)); });
   }
   await context.close();
 }
@@ -337,6 +341,71 @@ for (const variant of ['empire-brun-dark', 'empire-brun', 'kraland-dark', 'palad
   if (SHOTS) { await page.screenshot({ path: path.join(SHOTS, `fixture-theme-${variant}-375.png`) }); }
   await context.close();
 }
+// ---------- Décision d'Arnaud : ordre des pièces = ordre natif du DOM (pas de tri, cadenas au milieu) ----------
+{
+  const { page, context } = await newPage();
+  console.log('Ordre natif des pièces (réel : bat0, bat1, bat3lock, bat2, bat2lock) — FIXTURE');
+  const rooms = [img({ bat: 0 }), img({ bat: 1, current: true }), img({ bat: 3, locked: true }), img({ bat: 2 }), img({ bat: 2, locked: true })];
+  await load(page, 375, fixtureHtml({ rooms }));
+  const m = await measure(page);
+  check('pièces dans l\'ordre du DOM natif, cadenas et pièce courante aux bons rangs', () => {
+    assert.equal(m.nBlocks, 1);
+    assert.deepEqual(m.block.rooms.map(r => r.imgSrc.replace(/^.*\/bat\//, '')), ['bat0.gif', 'bat1.gif', 'bat3lock.gif', 'bat2.gif', 'bat2lock.gif']);
+    assert.deepEqual(m.block.rooms.map(r => r.href.replace(/^.*FIXTURE-room-/, '')), ['1', '2', '3', '4', '5']);
+    assert.deepEqual(m.block.rooms.map(r => r.current === 'true'), [false, true, false, false, false]);
+    assert.deepEqual(m.block.rooms.map(r => /verrouill/.test(r.label || '')), [false, false, true, false, true]);
+  });
+  await context.close();
+}
+
+// ---------- s1 : repli géométrique (area sans alt, rect net au nord) ----------
+{
+  const { page, context } = await newPage();
+  console.log('s1 repli géométrique : area sans alt, rectangle net au nord (24,0,48,16)');
+  await load(page, 375, fixtureHtml({ areaOverride: '<area shape="rect" coords="24,0,48,16" href="/jouer/plateau/FIXTURE-dir-geo-nord">', rooms: [room('Extérieur'), room('Commerce', { current: true })] }));
+  const m = await measure(page);
+  check('bloc présent, seule la touche Nord est disponible avec le href natif', () => {
+    assert.equal(m.nBlocks, 1);
+    assert.deepEqual(m.block.arms.filter(a => !a.disabled).map(a => [a.dir, a.href]), [['Nord', '/jouer/plateau/FIXTURE-dir-geo-nord']]);
+  });
+  await context.close();
+}
+
+// ---------- M1 : contraste du texte des touches, 16 thèmes × normal/survol/actif ----------
+const VARIANTS = ['kraland', 'empire-brun', 'paladium', 'theocratie-seelienne', 'paradigme-vert', 'khanat-elmerien', 'confederation-libre', 'royaume-ruthvenie',
+  'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark', 'paradigme-vert-dark', 'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
+const parseRgb = (s) => { const v = s.match(/[\d.]+/g).map(Number); return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 }; };
+const luminance = ({ r, g, b }) => { const [R, G, B] = [r, g, b].map(v => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * R + 0.7152 * G + 0.0722 * B; };
+const contrast = (fg, bg) => { const a = luminance(parseRgb(fg)); const b = luminance(parseRgb(bg)); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
+const armColors = (page, dir) => page.evaluate((d) => { const a = document.querySelector(`.kr-arm[data-dir="${d}"]`); const cs = getComputedStyle(a); const r = a.getBoundingClientRect(); return { color: cs.color, bg: cs.backgroundColor, x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, dir);
+console.log('M1 contraste texte/fond des touches (AA 4,5:1 pour 12 px gras) — 16 thèmes');
+for (const variant of VARIANTS) {
+  const { page, context } = await newPage(variant);
+  await load(page, 375, fixtureHtml(STATES['FIXTURE Sud seul, 3 pièces']));
+  const light = !variant.endsWith('-dark');
+  const normal = await armColors(page, 'Sud');
+  await page.mouse.move(normal.x, normal.y);
+  await page.waitForTimeout(150);
+  const hover = await armColors(page, 'Sud');
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  const active = await armColors(page, 'Sud');
+  await page.mouse.move(2, 2); // relâché hors de la touche : aucun clic
+  await page.mouse.up();
+  const off = await armColors(page, 'Nord');
+  check(`${variant} : touche disponible normale ${contrast(normal.color, normal.bg).toFixed(2)}, survol ${contrast(hover.color, hover.bg).toFixed(2)}, actif ${contrast(active.color, active.bg).toFixed(2)} (>= 4,5)`, () => {
+    assert.ok(contrast(normal.color, normal.bg) >= 4.5, `normal ${normal.color} sur ${normal.bg}`);
+    assert.ok(contrast(hover.color, hover.bg) >= 4.5, `survol ${hover.color} sur ${hover.bg}`);
+    assert.ok(contrast(active.color, active.bg) >= 4.5, `actif ${active.color} sur ${active.bg}`);
+  });
+  check(`${variant} : touche atténuée ${contrast(off.color, off.bg).toFixed(2)} (>= ${light ? '4,4 en clair' : '3'}) et distincte d'une touche disponible`, () => {
+    assert.ok(contrast(off.color, off.bg) >= (light ? 4.4 : 3), `${off.color} sur ${off.bg}`);
+    assert.notEqual(off.bg, normal.bg);
+    assert.notEqual(off.color, normal.color);
+  });
+  await context.close();
+}
+
 {
   const { page, context } = await newPage('empire-brun-dark', false);
   console.log('Mode natif (skin désactivé) — 375 px');

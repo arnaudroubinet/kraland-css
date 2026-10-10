@@ -141,6 +141,8 @@ html.kr-theme-variant-empire-brun {
 }
 
 html.kr-theme-variant-paladium {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
   --kr-primary: #D4AF37; 
   --kr-highlight: #044c17; 
 }
@@ -188,6 +190,10 @@ html[class*="-dark"] {
 }
 
 html.kr-theme-variant-kraland-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-bg: #b64c4c;
+  --kr-arm-ink: #f5f1ed;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #c45252;
   --kr-primary-dark: #8b0f0e;
   --kr-highlight: #e07070;
@@ -232,6 +238,9 @@ html.kr-theme-variant-empire-brun-dark {
 }
 
 html.kr-theme-variant-paladium-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #1e1a15;
   --kr-primary: #e6c76e;
   --kr-primary-dark: #D4AF37;
   --kr-highlight: #4a9d5f;
@@ -254,6 +263,9 @@ html.kr-theme-variant-paladium-dark {
 }
 
 html.kr-theme-variant-theocratie-seelienne-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #5a8fd9;
   --kr-primary-dark: #2d5fcb;
   --kr-highlight: #80b3ff;
@@ -276,6 +288,9 @@ html.kr-theme-variant-theocratie-seelienne-dark {
 }
 
 html.kr-theme-variant-paradigme-vert-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4d9c61;
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #70c784;
@@ -298,6 +313,10 @@ html.kr-theme-variant-paradigme-vert-dark {
 }
 
 html.kr-theme-variant-khanat-elmerien-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-bg: #8659b3;
+  --kr-arm-ink: #f5f1ed;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #96c;
   --kr-primary-dark: #7b4c9c;
   --kr-highlight: #b794d9;
@@ -320,6 +339,10 @@ html.kr-theme-variant-khanat-elmerien-dark {
 }
 
 html.kr-theme-variant-confederation-libre-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-bg-hover: #5f6673;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #9ca3af;
   --kr-primary-dark: #6b7280;
   --kr-highlight: #c2c9d6;
@@ -342,6 +365,9 @@ html.kr-theme-variant-confederation-libre-dark {
 }
 
 html.kr-theme-variant-royaume-ruthvenie-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4a9d61;
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #ff6b85;
@@ -6083,8 +6109,8 @@ body.mobile-mode .building-section-content img.img-responsive {
     margin: 0;
     padding: 0;
     border: 1px solid var(--kr-primary-dark);
-    background: var(--kr-primary);
-    color: var(--kr-white);
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
@@ -6126,8 +6152,8 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   body.mobile-mode .kr-nav-v2 a.kr-arm:hover,
   body.mobile-mode .kr-nav-v2 a.kr-arm:active {
-    background: var(--kr-primary-dark);
-    color: var(--kr-white);
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white));
     text-decoration: none;
   }
 
@@ -6151,6 +6177,13 @@ body.mobile-mode .building-section-content img.img-responsive {
     font-weight: 600;
     cursor: not-allowed;
     box-shadow: none;
+  }
+
+  /* Thèmes clairs : --kr-text-muted ne donne que 2,33:1 ; le pointillé et le fond creux marquent déjà l'inactivité */
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"],
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:hover,
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:active {
+    color: var(--kr-text-secondary);
   }
 
   /* Centre neutre : ni lien, ni focus, ni action */
