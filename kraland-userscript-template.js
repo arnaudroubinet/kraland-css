@@ -293,8 +293,9 @@
       initMobileMode();
     }
 
-    // Écoute du resize via le gestionnaire centralisé
-    ResizeManager.add(initMobileMode, 250);
+    // E2 : le mode mobile n'est plus (ré)appliqué au redimensionnement. Le rechargement
+    // (checkBreakpointCrossing) s'en charge ; sans lui, des styles inline mobiles resteraient
+    // après un aller-retour avec une saisie en cours.
 
     // === Bascule mobile/desktop : règle unique et symétrique (PLT-01/02/03) ===
     // Les modules (barre d'onglets, mini-profil, styles inline...) ne se construisent
@@ -322,7 +323,7 @@
       banner.id = 'kr-resize-banner';
       banner.setAttribute('role', 'status');
       const text = document.createElement('span');
-      text.textContent = 'Affichage à adapter à cette taille de fenêtre. ';
+      text.textContent = 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ';
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Recharger';
@@ -434,37 +435,59 @@
   // Sur les pages /map/*, la navbar a 2 lignes (logo + sous-nav) qui débordent
   // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
   (function () {
-    function fixNavbarPadding() {
-      if (isMobileMode()) {return;}
+    // E1 : recalculé au chargement ET à chaque redimensionnement (anti-rebond), car la
+    // hauteur de barre dépend de la largeur (60 px < 992, 106 à 206 px de 992 à 1359).
+    function applyNavbarPadding() {
+      var nav = document.querySelector('nav.navbar');
+      if (!nav || !document.body) {return;}
 
+      // 1. Repartir de la hauteur déterminée par la feuille de style
+      nav.style.removeProperty('max-height');
+      document.body.style.removeProperty('padding-top');
+
+      // 2. Mode compact / burger (< 992 px) : la feuille de style fixe la barre à 60 px
+      if (isMobileMode() || window.innerWidth < 992) {return;}
+
+      // 3. Remesurer la position basse réelle des éléments visibles de la navbar
+      var items = nav.querySelectorAll('.navbar-nav > li');
+      var maxBottom = 0;
+      for (var i = 0; i < items.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        if (rect.height > 0 && rect.bottom > maxBottom) {
+          maxBottom = rect.bottom;
+        }
+      }
+
+      // Si les éléments débordent du navbar, ajuster la hauteur et le padding
+      var navHeight = nav.offsetHeight;
+      if (maxBottom > navHeight + 5) {
+        var newHeight = Math.ceil(maxBottom) + 5;
+        nav.style.setProperty('max-height', newHeight + 'px', 'important');
+        // Le body réserve exactement la hauteur réelle de la barre
+        document.body.style.setProperty('padding-top', Math.ceil(nav.getBoundingClientRect().height) + 'px', 'important');
+      }
+    }
+
+    function fixNavbarPadding() {
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
       requestAnimationFrame(function () {
-        setTimeout(function () {
-          var nav = document.querySelector('nav.navbar');
-          if (!nav) {return;}
-
-          // Trouver la position basse réelle des éléments visibles de la navbar
-          var items = nav.querySelectorAll('.navbar-nav > li');
-          var maxBottom = 0;
-          for (var i = 0; i < items.length; i++) {
-            var rect = items[i].getBoundingClientRect();
-            if (rect.height > 0 && rect.bottom > maxBottom) {
-              maxBottom = rect.bottom;
-            }
-          }
-
-          // Si les éléments débordent du navbar, ajuster la hauteur et le padding
-          var navHeight = nav.offsetHeight;
-          if (maxBottom > navHeight + 5) {
-            var newHeight = Math.ceil(maxBottom) + 5;
-            nav.style.setProperty('max-height', newHeight + 'px', 'important');
-            document.body.style.setProperty('padding-top', newHeight + 'px', 'important');
-          }
-        }, 200);
+        setTimeout(applyNavbarPadding, 200);
       });
     }
 
     InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
+    ResizeManager.add(applyNavbarPadding, 150);
+
+    // E6 : Échap referme le panneau du menu (burger)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') {return;}
+      var panel = document.querySelector('nav.navbar .navbar-collapse.in');
+      var toggle = document.querySelector('nav.navbar .navbar-toggle');
+      if (panel && toggle) {
+        toggle.click();
+        toggle.focus();
+      }
+    });
   })();
 
   // ============================================================================

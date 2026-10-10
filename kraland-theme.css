@@ -11124,6 +11124,13 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
   }
 }
 
+/* E4 : le bouton « retour en haut » (36 px + 8 px) ne cache plus la fin de la ligne du pied de page */
+@media (min-width: 768px) {
+  footer .container.white {
+    padding-right: 64px;
+  }
+}
+
 /* PLT-01 : bandeau proposé quand le rechargement est différé (saisie en cours) */
 #kr-resize-banner {
   position: fixed;
@@ -11182,6 +11189,83 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
 /* PLT-10 : textes sous le ratio WCAG AA 4,5:1 (thèmes sombres) */
 html[class*="-dark"] a.btn-primary,
 html[class*="-dark"] button.btn-primary {
+  color: #f5f1ed;
+}
+
+/* E3 : texte des boutons primaires par variante sombre (WCAG AA 4,5:1).
+   Fonds clairs : texte foncé ; fonds moyens : fond légèrement assombri + texte clair.
+   Survol/focus/actif : fond --kr-primary-dark, texte choisi pour garder >= 4,5:1. */
+html.kr-theme-variant-paladium-dark a.btn-primary,
+html.kr-theme-variant-paladium-dark button.btn-primary,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary,
+html.kr-theme-variant-paladium-dark a.btn-primary:hover,
+html.kr-theme-variant-paladium-dark a.btn-primary:focus,
+html.kr-theme-variant-paladium-dark a.btn-primary:active,
+html.kr-theme-variant-paladium-dark button.btn-primary:hover,
+html.kr-theme-variant-paladium-dark button.btn-primary:focus,
+html.kr-theme-variant-paladium-dark button.btn-primary:active {
+  color: #1e1a15;
+}
+
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary {
+  background-color: #8659b3;
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-kraland-dark a.btn-primary,
+html.kr-theme-variant-kraland-dark button.btn-primary {
+  background-color: #b64c4c;
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:hover,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:focus,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:active,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:hover,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:focus,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:active,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:hover,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:focus,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:active,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:hover,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:focus,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:active,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:hover,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:focus,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:active,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:hover,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:focus,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:active,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:hover,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:focus,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:active,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:hover,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:focus,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:active,
+html.kr-theme-variant-kraland-dark a.btn-primary:hover,
+html.kr-theme-variant-kraland-dark a.btn-primary:focus,
+html.kr-theme-variant-kraland-dark a.btn-primary:active,
+html.kr-theme-variant-kraland-dark button.btn-primary:hover,
+html.kr-theme-variant-kraland-dark button.btn-primary:focus,
+html.kr-theme-variant-kraland-dark button.btn-primary:active {
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:hover,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:focus,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:active,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:hover,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:focus,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:active {
+  background-color: #5f6673;
   color: #f5f1ed;
 }
 
@@ -11279,17 +11363,22 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: none !important;
   }
 
-  nav.navbar .navbar-collapse.collapse.in {
+  /* E5 : .collapsing reçoit le même positionnement que .collapse.in (pas de saut en fin d'animation) */
+  nav.navbar .navbar-collapse.collapse.in,
+  nav.navbar .navbar-collapse.collapsing {
     display: block !important;
     position: absolute;
     top: 60px;
     left: 0;
     right: 0;
-    height: auto !important;
     max-height: calc(100vh - 60px) !important;
     overflow-y: auto !important;
     background: var(--kr-navbar-bg);
     border-top: 1px solid rgb(255,255,255,0.1);
+  }
+
+  nav.navbar .navbar-collapse.collapse.in {
+    height: auto !important;
   }
 
   nav.navbar .navbar-nav,
