@@ -11641,6 +11641,25 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
+/* Largeur desktop 768-991 : la cellule 40 px des paliers étroits ne s'applique pas à la rangée horizontale.
+   Paliers min-width successifs (768 puis 992) : les règles de 992 plus bas reprennent la main sans max-width. */
+@media (min-width: 768px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 44px;
+  }
+}
+
+@media (min-width: 768px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 72px;
+  }
+}
+
 /* Largeur desktop intermédiaire : colonne étroite, icônes réduites (28 px minimum) */
 @media (min-width: 992px) {
   #col-leftest {
@@ -11678,24 +11697,6 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 @media (min-width: 1360px) and (hover: none) {
   #col-leftest .grid-transformed > .row {
     --kr-track: 64px;
-  }
-}
-
-/* La cellule 40 px des paliers étroits ne s'applique pas à la rangée horizontale 768-991 */
-@media (min-width: 768px) and (max-width: 991px) {
-  #col-leftest .kr-icon-cell.btn {
-    --kr-cell: 40px;
-    --kr-icon: 32px;
-  }
-
-  #col-leftest .grid-transformed > .row {
-    --kr-track: 44px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 991px) and (hover: none) {
-  #col-leftest .grid-transformed > .row {
-    --kr-track: 72px;
   }
 }
 

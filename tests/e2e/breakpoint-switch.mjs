@@ -118,91 +118,105 @@ check('E2 : body.mobile-mode jamais posé sans rechargement', () => assert.equal
 
 // 4. E1 : hauteur de barre recalculée au redimensionnement (barre à 14 entrées, sans rechargement)
 console.log('Barre de navigation au redimensionnement');
-const navHtml = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-navbar-large.html'), 'utf8');
-const navContext = await browser.newContext({ viewport: { width: 1512, height: 800 } });
-await navContext.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: navHtml }));
-await navContext.addInitScript(({ src }) => {
-  window.GM = { xmlHttpRequest: () => {} };
-  // Thème actif (sinon la feuille de style n'est pas injectée et la barre n'est pas fixe)
-  localStorage.setItem('kr-theme-enabled', 'true');
-  localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
-  // eslint-disable-next-line no-eval
-  const go = () => (0, eval)(src);
-  if (document.body) { go(); return; }
-  new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-}, { src: userscript });
-const navPage = await navContext.newPage();
+// Deux fixtures de barre, les deux conservées :
+//  - plateau-navbar-large.html : reproduit Bootstrap 3 tel que le site le livre (`.navbar-nav > li > a { line-height: 20px }`,
+//    padding 20 px) → barre = 60 px, comme MESURÉ sur le vrai site à 1512, 1280 et 1180 ; contrôle strict (±1 px) ;
+//  - plateau-navbar-large-origine.html : fixture d'origine (bb4fc09), SANS line-height Bootstrap : la hauteur de ligne
+//    « normal » dépend de la police, donc la barre fait 57 à 58 px au lieu de 60 dès que la police passe à 13 px. Ce
+//    n'est pas une barre réelle ; on garde le cas pour prouver que le script ne casse rien dans ce cas (14 entrées dans la
+//    barre, barre = chargement direct, jamais de chevauchement : padding du body ≥ barre, écart ≤ 3 px).
+async function navSuite(fixtureFile, strict) {
+  console.log('Barre de navigation au redimensionnement — ' + fixtureFile + (strict ? ' (Bootstrap réaliste, strict ±1 px)' : ' (fixture d\'origine, tolérance 0 à +3 px)'));
+  const navHtml = fs.readFileSync(path.join(root, 'tests/e2e/fixtures', fixtureFile), 'utf8');
+  const paddingOk = (m) => strict ? Math.abs(m.paddingTop - m.barHeight) <= 1 : (m.paddingTop - m.barHeight >= 0 && m.paddingTop - m.barHeight <= 3);
+  const navContext = await browser.newContext({ viewport: { width: 1512, height: 800 } });
+  await navContext.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: navHtml }));
+  await navContext.addInitScript(({ src }) => {
+    window.GM = { xmlHttpRequest: () => {} };
+    // Thème actif (sinon la feuille de style n'est pas injectée et la barre n'est pas fixe)
+    localStorage.setItem('kr-theme-enabled', 'true');
+    localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
+    // eslint-disable-next-line no-eval
+    const go = () => (0, eval)(src);
+    if (document.body) { go(); return; }
+    new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
+  }, { src: userscript });
+  const navPage = await navContext.newPage();
 
-const measureNav = () => navPage.evaluate(() => {
-  const nav = document.querySelector('nav.navbar');
-  const navRect = nav.getBoundingClientRect();
-  const items = Array.from(nav.querySelectorAll('.navbar-nav > li')).filter(li => li.getBoundingClientRect().height > 0);
-  return {
-    w: window.innerWidth,
-    barHeight: Math.round(navRect.height),
-    paddingTop: Math.round(parseFloat(getComputedStyle(document.body).paddingTop)),
-    visible: items.length,
-    outside: items.filter(li => li.getBoundingClientRect().bottom > navRect.bottom + 1).length
-  };
-});
-
-async function navResize(width, height = 800) {
-  await navPage.setViewportSize({ width, height });
-  await navPage.waitForTimeout(SETTLE_MS);
-  return measureNav();
-}
-
-const direct = {};
-async function directLoad(width, height = 800) {
-  if (direct[width]) { return direct[width]; }
-  const p = await navContext.newPage();
-  await p.setViewportSize({ width, height });
-  await p.goto(TARGET, { waitUntil: 'load' });
-  await p.waitForTimeout(1500);
-  await p.evaluate(() => { document.title = 'direct'; });
-  direct[width] = await p.evaluate(() => {
+  const measureNav = () => navPage.evaluate(() => {
     const nav = document.querySelector('nav.navbar');
-    return { barHeight: Math.round(nav.getBoundingClientRect().height) };
+    const navRect = nav.getBoundingClientRect();
+    const items = Array.from(nav.querySelectorAll('.navbar-nav > li')).filter(li => li.getBoundingClientRect().height > 0);
+    return {
+      w: window.innerWidth,
+      barHeight: Math.round(navRect.height),
+      paddingTop: Math.round(parseFloat(getComputedStyle(document.body).paddingTop)),
+      visible: items.length,
+      outside: items.filter(li => li.getBoundingClientRect().bottom > navRect.bottom + 1).length
+    };
   });
-  await p.close();
-  return direct[width];
-}
 
-async function runNavSequence(label, start, steps) {
-  await navPage.setViewportSize({ width: start, height: 800 });
-  await navPage.goto(TARGET, { waitUntil: 'load' });
-  await navPage.waitForTimeout(1500);
-  await navPage.evaluate(() => { window.__krMarker = 1; });
-  for (const width of steps) {
-    const m = await navResize(width);
-    const ref = await directLoad(width);
-    const reloaded = await navPage.evaluate(() => window.__krMarker !== 1);
-    if (reloaded) {
-      // Un rechargement (seuil 768) remet le marqueur à zéro : on le repose
-      await navPage.evaluate(() => { window.__krMarker = 1; });
-    }
-    if (width >= 768) {
-      check(`${label} : ${width}px barre = chargement direct (${m.barHeight} vs ${ref.barHeight} px, ±1)`, () => assert.ok(Math.abs(m.barHeight - ref.barHeight) <= 1));
-      check(`${label} : ${width}px entrées toutes dans la barre (${m.visible} visibles)`, () => assert.equal(m.outside, 0));
-      check(`${label} : ${width}px padding-top du body = hauteur de barre (${m.paddingTop} vs ${m.barHeight})`, () => assert.ok(Math.abs(m.paddingTop - m.barHeight) <= 1));
+  async function navResize(width, height = 800) {
+    await navPage.setViewportSize({ width, height });
+    await navPage.waitForTimeout(SETTLE_MS);
+    return measureNav();
+  }
+
+  const direct = {};
+  async function directLoad(width, height = 800) {
+    if (direct[width]) { return direct[width]; }
+    const p = await navContext.newPage();
+    await p.setViewportSize({ width, height });
+    await p.goto(TARGET, { waitUntil: 'load' });
+    await p.waitForTimeout(1500);
+    await p.evaluate(() => { document.title = 'direct'; });
+    direct[width] = await p.evaluate(() => {
+      const nav = document.querySelector('nav.navbar');
+      return { barHeight: Math.round(nav.getBoundingClientRect().height) };
+    });
+    await p.close();
+    return direct[width];
+  }
+
+  async function runNavSequence(label, start, steps) {
+    await navPage.setViewportSize({ width: start, height: 800 });
+    await navPage.goto(TARGET, { waitUntil: 'load' });
+    await navPage.waitForTimeout(1500);
+    await navPage.evaluate(() => { window.__krMarker = 1; });
+    for (const width of steps) {
+      const m = await navResize(width);
+      const ref = await directLoad(width);
+      const reloaded = await navPage.evaluate(() => window.__krMarker !== 1);
+      if (reloaded) {
+        // Un rechargement (seuil 768) remet le marqueur à zéro : on le repose
+        await navPage.evaluate(() => { window.__krMarker = 1; });
+      }
+      if (width >= 768) {
+        check(`${label} : ${width}px barre = chargement direct (${m.barHeight} vs ${ref.barHeight} px, ±1)`, () => assert.ok(Math.abs(m.barHeight - ref.barHeight) <= 1));
+        check(`${label} : ${width}px entrées toutes dans la barre (${m.visible} visibles)`, () => assert.equal(m.outside, 0));
+        check(`${label} : ${width}px padding-top du body = hauteur de barre (${m.paddingTop} vs ${m.barHeight})`, () => assert.ok(paddingOk(m)));
+      }
     }
   }
+
+  await runNavSequence('900 -> 1280 -> 1100', 900, [1280, 1100]);
+  await runNavSequence('991 -> 992', 991, [992, 991, 992]);
+  await runNavSequence('1100 -> 900 -> 1512', 1100, [900, 1512]);
+  await runNavSequence('1512 -> 1100 -> 1360 -> 1000', 1512, [1100, 1360, 1000]);
+
+  // iPad : rotation 820x1180 -> 1180x820 (émulation)
+  await navPage.setViewportSize({ width: 820, height: 1180 });
+  await navPage.goto(TARGET, { waitUntil: 'load' });
+  await navPage.waitForTimeout(1500);
+  const landscape = await navResize(1180, 820);
+  const landscapeRef = await directLoad(1180, 820);
+  check(`rotation 820x1180 -> 1180x820 : barre = chargement direct (${landscape.barHeight} vs ${landscapeRef.barHeight} px)`, () => assert.ok(Math.abs(landscape.barHeight - landscapeRef.barHeight) <= 1));
+  check('rotation 820x1180 -> 1180x820 : 14 entrées sur 14 dans la barre', () => assert.ok(landscape.visible === 14 && landscape.outside === 0, `${landscape.visible} visibles, ${landscape.outside} hors barre`));
+  check(`rotation : padding-top du body = hauteur de barre (${landscape.paddingTop} vs ${landscape.barHeight})`, () => assert.ok(paddingOk(landscape)));
+  await navContext.close();
 }
-
-await runNavSequence('900 -> 1280 -> 1100', 900, [1280, 1100]);
-await runNavSequence('991 -> 992', 991, [992, 991, 992]);
-await runNavSequence('1100 -> 900 -> 1512', 1100, [900, 1512]);
-await runNavSequence('1512 -> 1100 -> 1360 -> 1000', 1512, [1100, 1360, 1000]);
-
-// iPad : rotation 820x1180 -> 1180x820 (émulation)
-await navPage.setViewportSize({ width: 820, height: 1180 });
-await navPage.goto(TARGET, { waitUntil: 'load' });
-await navPage.waitForTimeout(1500);
-const landscape = await navResize(1180, 820);
-const landscapeRef = await directLoad(1180, 820);
-check(`rotation 820x1180 -> 1180x820 : barre = chargement direct (${landscape.barHeight} vs ${landscapeRef.barHeight} px)`, () => assert.ok(Math.abs(landscape.barHeight - landscapeRef.barHeight) <= 1));
-check('rotation 820x1180 -> 1180x820 : 14 entrées sur 14 dans la barre', () => assert.ok(landscape.visible === 14 && landscape.outside === 0, `${landscape.visible} visibles, ${landscape.outside} hors barre`));
-check(`rotation : padding-top du body = hauteur de barre (${landscape.paddingTop} vs ${landscape.barHeight})`, () => assert.ok(Math.abs(landscape.paddingTop - landscape.barHeight) <= 1));
+await navSuite('plateau-navbar-large.html', true);
+await navSuite('plateau-navbar-large-origine.html', false);
 
 await browser.close();
 console.log(failures === 0 ? '\nTous les contrôles passent.' : `\n${failures} contrôle(s) en échec.`);

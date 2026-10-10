@@ -27,8 +27,11 @@ const EXISTING = new Set([
   `${BASE}/1/55_2.gif`, // fond CSS dont la cible n'existe pas
   `${BASE}/1/104.gif`, `${BASE}/5/104.gif`, // cible valide mais illisible (corps invalide)
   `${BASE}/1/105.gif`, `${BASE}/5/105.gif`, // changement de source par le site
-  `${BASE}/1/106.gif`, `${BASE}/5/106.gif`
+  `${BASE}/1/106.gif`, `${BASE}/5/106.gif`,
+  `${BASE}/1/200.gif`, `${BASE}/5/200.gif`, // cible valide mais lente (pré-test dépassé)
+  `${BASE}/1/201.gif`, `${BASE}/5/201.gif` // fond CSS dont la cible est lente
 ]);
+const SLOW = new Set([`${BASE}/5/200.gif`, `${BASE}/5/201.gif`]);
 // 77.gif : absente partout. 104 : /5/ répond 200 avec un corps qui n'est pas une image.
 const requests = {};
 
@@ -62,9 +65,11 @@ function check(name, fn) {
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
-await context.route('http://img7.kraland.org/**', route => {
+await context.route('http://img7.kraland.org/**', async route => {
   const url = route.request().url();
   requests[url] = (requests[url] || 0) + 1;
+  // cibles valides mais lentes (réseau lent) : plus longues que le délai du pré-test (3 s)
+  if (SLOW.delete(url)) { await new Promise(r => setTimeout(r, 3800)); }
   if (url === `${BASE}/5/104.gif`) { return route.fulfill({ status: 200, contentType: 'image/gif', body: 'ceci n est pas une image' }); }
   if (EXISTING.has(url)) { return route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }); }
   return route.fulfill({ status: 404, contentType: 'text/html', body: 'not found' });
@@ -113,7 +118,8 @@ console.log('Cible absente (cas exact 55_1.gif)');
 const exact = await state('exact');
 check('retour à l\'URL originale /1/55_1.gif', () => assert.equal(exact.src, `${BASE}/1/55_1.gif`));
 check('l\'image originale s\'affiche', () => assert.ok(exact.width > 0));
-check('pas appliquée (exclusion connue : aucune requête vers /5/ ; sinon marquée en échec après repli)', () => { assert.notEqual(exact.applied, 'true'); assert.ok(exact.failed === 'true' || !exact.failed); });
+check('exclusion connue : AUCUNE requête n\'est partie vers /5/55_1.gif (comptage, pas de repli subi)', () => { assert.equal(count(`${BASE}/5/55_1.gif`), 0, 'requêtes vers /5/55_1.gif : ' + count(`${BASE}/5/55_1.gif`)); assert.ok(count(`${BASE}/1/55_1.gif`) >= 1); });
+check('pas appliquée : ni remplacée ni marquée en échec (jamais tentée)', () => { assert.notEqual(exact.applied, 'true'); assert.notEqual(exact.failed, 'true'); });
 
 console.log('Cible et original absents : pas de boucle');
 const both = await state('both');
@@ -158,7 +164,7 @@ check('états inchangés après mutations répétées', () => { assert.equal(exa
 const snap0 = JSON.parse(snapshot);
 const grew = Object.keys(requests).filter(k => requests[k] - (snap0[k] || 0) > 1);
 check(`au plus 1 requête de plus par URL (rechargement natif d'un src identique) : ${grew.length} dépassement`, () => assert.deepEqual(grew, []));
-check('cibles absentes jamais retentées', () => { assert.equal(count(`${BASE}/5/77.gif`), before.a); assert.ok(count(`${BASE}/5/55_1.gif`) <= 2, String(count(`${BASE}/5/55_1.gif`))); });
+check('cibles absentes jamais retentées', () => { assert.equal(count(`${BASE}/5/77.gif`), before.a); assert.equal(count(`${BASE}/5/55_1.gif`), 0); });
 
 console.log('Source changée par le site');
 await page.evaluate((b) => { document.getElementById('resync').setAttribute('src', b + '/1/106.gif'); }, BASE);
@@ -182,6 +188,23 @@ check('image dynamique absente partout : original, sans boucle', () => assert.eq
 const dyn1 = count(`${BASE}/1/88.gif`) + count(`${BASE}/5/88.gif`);
 await page.waitForTimeout(1500);
 check('aucune requête supplémentaire pour l\'image dynamique absente', () => assert.equal(count(`${BASE}/1/88.gif`) + count(`${BASE}/5/88.gif`), dyn1));
+check('55_1.gif (précoce, initiale, dynamique) : toujours zéro requête vers /5/55_1.gif', () => assert.equal(count(`${BASE}/5/55_1.gif`), 0));
+
+console.log('Pré-test trop lent (réseau lent) : une cible valide n\'est pas bannie');
+await page.evaluate((b) => {
+  const zone = document.getElementById('zone');
+  const i = document.createElement('img'); i.id = 'slow'; i.width = 16; i.height = 16; i.src = b + '/1/200.gif'; zone.appendChild(i);
+  const d = document.createElement('div'); d.id = 'bgslow'; d.style.cssText = `width:20px;height:20px;background-image:url('${b}/1/201.gif')`; zone.appendChild(d);
+}, BASE);
+await page.waitForTimeout(6000);
+const slow = await state('slow'); const bgslow = await state('bgslow');
+check('image lente : pas de bannissement (jamais marquée en échec), la cible /5/ finit par s\'afficher', () => { assert.notEqual(slow.failed, 'true'); assert.equal(slow.src, `${BASE}/5/200.gif`); assert.ok(slow.width > 0); });
+check('fond lent : original conservé sans marque d\'échec après le délai', () => { assert.notEqual(bgslow.failed, 'true'); });
+await page.evaluate((b) => { const d = document.getElementById('bgslow'); d.style.setProperty('background-image', `url('${b}/1/201.gif')`); d.style.setProperty('opacity', '0.99'); }, BASE);
+await page.waitForTimeout(1500);
+const bgslow2 = await state('bgslow');
+check('fond lent : nouvelle tentative possible, la cible (désormais en cache navigateur) est appliquée', () => assert.ok(bgslow2.bg.includes('/5/201.gif'), bgslow2.bg));
+check('la cible lente n\'a pas été relue en boucle', () => assert.ok(count(`${BASE}/5/200.gif`) <= 3, String(count(`${BASE}/5/200.gif`))));
 
 await browser.close();
 console.log(failures === 0 ? '\nTous les contrôles passent.' : `\n${failures} contrôle(s) en échec.`);

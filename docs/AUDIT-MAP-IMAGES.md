@@ -1,21 +1,21 @@
 # Audit réseau des images de carte (map/1, map/1b → map/5)
 
-Généré par `node tests/e2e/audit-map-images.mjs --online` le 2026-10-10T14:39:56.020Z. Ne pas éditer à la main.
+Généré par `node tests/e2e/audit-map-images.mjs --online` le 2026-10-10T15:13:41.388Z. Ne pas éditer à la main.
 
 ## Source d'inventaire
 
 Index Apache officiels du serveur d'images, accessibles en GET sans authentification :
 
 - `http://img7.kraland.org/2/map/` (liste des variantes) puis un index par variante (`http://img7.kraland.org/2/map/<variante>/`).
-- Aucune plage numérique devinée ; aucun nom relevé sur le plateau. `robots.txt` absent (404) : rien n'interdit la lecture, la concurrence reste faible (3 requêtes, pause 120 ms) et un cache évite les relectures.
+- Aucune plage numérique devinée ; aucun nom relevé sur le plateau. `robots.txt` absent (404) : rien n'interdit la lecture, la concurrence reste faible (3 requêtes, pause 120 ms).
 
 ## Couverture
 
 Variantes présentes dans l'index racine (16) : `0` (82 fichiers), `1` (558 fichiers), `2` (481 fichiers), `3` (478 fichiers), `4` (481 fichiers), `5` (478 fichiers), `1b` (548 fichiers), `1c` (470 fichiers), `1d` (462 fichiers), `2b` (481 fichiers), `3b` (478 fichiers), `4b` (481 fichiers), `5b` (478 fichiers), `_3` (478 fichiers), `_3b` (478 fichiers), `_back` (6 fichiers).
 
-- **Matrice de présence** (d'après les index, toutes variantes) : `1` 558 noms, `1b` 548 noms. Détail dans `tests/e2e/fixtures/map-inventory.json` (clé `matrix`).
-- **Vérification réseau (GET + décodage)** : chaque nom de `map/1` et de `map/1b`, dans sa variante source ET dans la variante cible `map/5` (noms exacts, suffixes compris : `55_1.gif`…). Ce sont les seules variantes concernées par les règles de remplacement (`/2/map/1/` et `/2/map/1b/` → `/2/map/5/`).
-- Les autres variantes (`0`, `2`, `3`, `4`, `1c`, `1d`, `2b`, `3b`, `4b`, `5b`, `_3`, `_3b`, `_back`) ne sont comparées que par les index (non lues image par image : aucune règle ne les remplace). `--deep` les lit.
+- **Par les index seulement (toutes variantes)** : la matrice de présence compare les NOMS de `map/1` (558) et `map/1b` (548) aux 16 variantes. Détail dans `tests/e2e/fixtures/map-inventory.json` (clé `matrix`). C'est un inventaire de noms, pas une lecture d'images.
+- **Lecture réelle image par image (GET + affichage par le moteur Chromium)** : chaque nom de `map/1` et de `map/1b` dans sa variante source ET dans la variante cible `map/5` (noms exacts, suffixes compris : `55_1.gif`…), soit 1106 sources et autant de cibles. Ce sont les seules variantes concernées par les règles de remplacement (`/2/map/1/` et `/2/map/1b/` → `/2/map/5/`). Les images de `map/5` qui n'ont pas de homologue dans `map/1` ou `map/1b` ne sont pas lues.
+- Les 13 autres variantes (`0`, `2`, `3`, `4`, `1c`, `1d`, `2b`, `3b`, `4b`, `5b`, `_3`, `_3b`, `_back`) NE SONT PAS lues image par image (aucune règle ne les remplace) : elles ne sont connues que par les index. `--deep` les lit.
 
 
 ### Matrice map/1 → toutes les variantes (d'après les index)
@@ -54,11 +54,11 @@ Erreurs temporaires non résolues (jamais exclues) : aucune.
 
 44 mappings : cibles {"present":44}. Sources présentes dans l'index officiel : 44/44.
 
-Toutes les cibles se décodent.
+Toutes les cibles s'affichent dans le moteur.
 
 Les mappings explicites gardent la priorité sur la règle générale ; une cible externe en échec reste couverte par le repli d'exécution.
 
-## Exclusions déterministes (cible map/5 absente ou invalide)
+## Exclusions déterministes (source valide, cible map/5 absente ou invalide)
 
 ### map/1 (80)
 
@@ -70,9 +70,14 @@ Les mappings explicites gardent la priorité sur la règle générale ; une cibl
 
 Ces listes sont reprises dans `kraland-userscript-template.js` (`CONFIG.MEDIEVAL_ABSENT_IN_TARGET`) : plus de requête voué à l'échec vers `map/5`. Le repli d'exécution (retour à l'URL d'origine si le chargement échoue) est conservé : une image qui disparaîtrait plus tard reste protégée.
 
+## Méthode de validation et cache
+
+- Validité d'une image : affichage réel par le moteur d'image de Chromium (Playwright, `Image()` sur un blob de l'octet reçu). La signature, les dimensions et l'octet de fin ne sont qu'un diagnostic affiché dans le détail ; ils ne décident jamais (régressions forgées dans `tests/e2e/map-exclusions.mjs`).
+- Absence : HTTP 404 lu deux fois. Une erreur réseau, un 403, 429, 5xx ou un délai dépassé donne « inconnu » et ne produit jamais d'exclusion.
+- Cache : aucun cache disque par défaut ; chaque exécution relit le serveur. `--cache FICHIER` active un cache daté (TTL `--cache-ttl`, 24 h par défaut), `--refresh` l'ignore. Les tests `tests/e2e/map-exclusions.mjs` prouvent qu'un changement serveur est pris en compte à la relance.
+
 ## Limites
 
 - L'inventaire est celui des index Apache à la date ci-dessus ; une image ajoutée ensuite au serveur n'est pas dans la liste d'exclusions (elle est donc simplement tentée, avec repli).
-- Une exclusion signifie « absente ou invalide à la date de l'audit » : relancer `--online` pour la mettre à jour ; les erreurs réseau, 403, 429 et 5xx ne produisent jamais d'exclusion.
-- Le décodage est vérifié sans dépendance (signature, dimensions, fin de fichier GIF/PNG/JPEG), pas par un moteur de rendu complet.
+- Une exclusion signifie « absente ou invalide à la date de l'audit » : relancer `--online` pour la mettre à jour.
 - Les arrière-plans CSS : la feuille du thème ne contient aucun `url()` distant (uniquement des `data:`) ; les arrière-plans posés en ligne par le site passent par la même règle `computeReplacement` + pré-test avant remplacement.

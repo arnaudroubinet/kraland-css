@@ -10,7 +10,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { parseIndex, checkImageBytes, computeExclusions, exclusionsInTemplate, INVENTORY_PATH } from './audit-map-images.mjs';
+import http from 'node:http';
+import { execFile } from 'node:child_process';
+import { parseIndex, signatureInfo, computeExclusions, exclusionsInTemplate, probe, engine, closeEngine, decodeWithEngine, scratchDir, INVENTORY_PATH } from './audit-map-images.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const inv = JSON.parse(fs.readFileSync(INVENTORY_PATH, 'utf8'));
@@ -20,8 +22,8 @@ const BASE = 'http://img7.kraland.org/2/map';
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
 
 let failures = 0;
-function check(name, fn) {
-  try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
+async function check(name, fn) {
+  try { await fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
 }
 
 console.log('Outils de l\'audit (fonctions pures)');
@@ -31,13 +33,117 @@ check('parseIndex lit un index Apache (fichiers avec suffixe, dossiers)', () => 
   assert.deepEqual(r.dirs, ['1b']);
   assert.deepEqual(r.files.map(f => f.name), ['55_1.gif']);
 });
-check('checkImageBytes accepte un GIF valide', () => assert.equal(checkImageBytes(GIF).ok, true));
-check('checkImageBytes refuse une page d\'erreur servie en HTTP 200', () => assert.equal(checkImageBytes(Buffer.from('<html><body>Erreur 404 personnalisée</body></html>')).ok, false));
-check('checkImageBytes refuse un GIF tronqué', () => assert.equal(checkImageBytes(GIF.subarray(0, GIF.length - 3)).ok, false));
-check('une erreur temporaire n\'est JAMAIS une exclusion', () => {
-  const ex = computeExclusions({ 1: { 'a.gif': { target: { status: 'inconnu' } }, 'b.gif': { target: { status: 'absent' } }, 'c.gif': { target: { status: 'present' } }, 'd.gif': { target: { status: 'invalide' } } }, '1b': {} });
+check('signatureInfo (diagnostic) lit un GIF valide et refuse une page HTML', () => {
+  assert.equal(signatureInfo(GIF).ok, true);
+  assert.equal(signatureInfo(Buffer.from('<html><body>Erreur 404 personnalisée</body></html>')).ok, false);
+});
+const P = { status: 'present' }; const A = { status: 'absent' }; const I = { status: 'invalide' }; const U = { status: 'inconnu' };
+check('une erreur temporaire n\'est JAMAIS une exclusion ; une source non valide non plus', () => {
+  const ex = computeExclusions({ 1: {
+    'a.gif': { source: P, target: U }, 'b.gif': { source: P, target: A }, 'c.gif': { source: P, target: P }, 'd.gif': { source: P, target: I },
+    'e.gif': { source: U, target: A }, 'f.gif': { source: I, target: A }, 'g.gif': { source: A, target: A }
+  }, '1b': {} });
   assert.deepEqual(ex['1'], ['b.gif', 'd.gif']);
 });
+
+// Moteur d'image réel : les fichiers forgés relevés par la QA (t_3f4ceebf) servent de régressions.
+// La signature / dimensions / octet de fin NE DÉCIDENT PAS : seul Chromium décide.
+console.log('Validation par le moteur d\'image (fichiers forgés)');
+const crc0 = Buffer.alloc(4);
+const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); return Buffer.concat([len, Buffer.from(type), data, crc0]); };
+const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(1, 0); ihdr.writeUInt32BE(1, 4); ihdr[8] = 8; ihdr[9] = 2;
+const PNG_VIDE = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IEND', Buffer.alloc(0))]);
+const GIF_SANS_FIN = GIF.subarray(0, GIF.length - 1);
+const eng = await engine();
+const dec = (buf, mime) => decodeWithEngine(eng.page, buf, mime);
+check('moteur disponible', () => assert.ok(eng && eng.page));
+{
+  const sigPng = signatureInfo(PNG_VIDE); const dPng = await dec(PNG_VIDE, 'image/png');
+  check('PNG vide : signatureInfo le croit valide (piège connu)', () => assert.equal(sigPng.ok, true));
+  check('PNG vide : le moteur refuse → invalide', () => assert.equal(dPng.ok, false));
+  const sigGif = signatureInfo(GIF_SANS_FIN); const dGif = await dec(GIF_SANS_FIN, 'image/gif');
+  check('GIF sans octet de fin : signatureInfo le croit invalide (piège connu)', () => assert.equal(sigGif.ok, false));
+  check('GIF sans octet de fin : le moteur l\'affiche → valide, pas de fausse exclusion', () => { assert.equal(dGif.ok, true); assert.ok(dGif.w > 0); });
+  await check('GIF valide : le moteur l\'affiche', async () => assert.equal((await dec(GIF, 'image/gif')).ok, true));
+  const dHtml = await dec(Buffer.from('<html>erreur</html>'), 'image/gif');
+  check('page HTML étiquetée image/gif : le moteur refuse', () => assert.equal(dHtml.ok, false));
+}
+
+// probe() : classification, jamais d'« absent » sur une erreur réseau ou serveur
+console.log('Classification réseau (serveur local)');
+const fixtures = { 1: {}, '1b': {}, 5: {} };
+const apache = (dir, names) => '<html><body><pre>' + (dir ? '<img src="/icons/back.gif" alt="[DIR]"> <a href="/2/map/">Parent Directory</a>   -\n' : names.dirs.map(d => '<img src="/icons/folder.gif" alt="[DIR]"> <a href="' + d + '/">' + d + '/</a>   04-Mar-2012 13:31  -\n').join('')) + (dir ? Object.keys(names).map(n => '<img src="/icons/image2.gif" alt="[IMG]"> <a href="' + n + '">' + n + '</a>                  04-Mar-2012 13:31  845   \n').join('') : '') + '</pre></body></html>';
+const server = http.createServer((req, res) => {
+  const u = req.url.split('?')[0];
+  if (u === '/') { res.setHeader('content-type', 'text/html'); return res.end(apache(null, { dirs: ['1', '1b', '5'] })); }
+  const dm = u.match(/^\/([^/]+)\/$/);
+  if (dm && fixtures[dm[1]]) { res.setHeader('content-type', 'text/html'); return res.end(apache(dm[1], fixtures[dm[1]])); }
+  if (u === '/err503.gif') { res.statusCode = 503; return res.end('indispo'); }
+  if (u === '/ok.gif') { res.setHeader('content-type', 'image/gif'); return res.end(GIF); }
+  if (u === '/absent.gif') { res.statusCode = 404; return res.end('nf'); }
+  const fm = u.match(/^\/([^/]+)\/([^/]+)$/);
+  if (fm && fixtures[fm[1]] && fixtures[fm[1]][fm[2]]) { const f = fixtures[fm[1]][fm[2]]; res.setHeader('content-type', f.type); return res.end(f.body); }
+  res.statusCode = 404; res.end('nf');
+});
+await new Promise(r => server.listen(0, '127.0.0.1', r));
+const origin = 'http://127.0.0.1:' + server.address().port;
+{
+  const quick = { retryDelay: 1, ttlMs: 0, refreshAll: false };
+  const pAbsent = await probe(origin + '/absent.gif', {}, quick);
+  check('404 confirmé → absent', () => assert.equal(pAbsent.status, 'absent'));
+  const p503 = await probe(origin + '/err503.gif', {}, quick);
+  check('503 → inconnu, jamais absent', () => assert.equal(p503.status, 'inconnu'));
+  const pDown = await probe('http://127.0.0.1:1/x.gif', {}, quick);
+  check('connexion refusée (réseau) → inconnu, jamais absent', () => assert.equal(pDown.status, 'inconnu'));
+  const pOk = await probe(origin + '/ok.gif', {}, quick);
+  check('GIF servi : présent (affiché par le moteur)', () => { assert.equal(pOk.status, 'present'); assert.ok(pOk.w > 0); });
+  await check('inconnu n\'est jamais servi depuis un cache', async () => {
+    const c = {}; await probe(origin + '/err503.gif', c, { retryDelay: 1, ttlMs: 3600e3, refreshAll: false });
+    fixtures.live = { 'z.gif': { type: 'image/gif', body: GIF } };
+    const again = await probe(origin + '/live/z.gif', c, { retryDelay: 1, ttlMs: 3600e3, refreshAll: false });
+    assert.equal(again.status, 'present');
+  });
+}
+
+// Relance de l'audit complet (CLI) : un changement serveur doit être pris en compte
+console.log('Relance de l\'audit : cache limité à l\'exécution, cache explicite avec TTL et --refresh');
+const scratch = fs.mkdtempSync(path.join(scratchDir(), 'kr-audit-test-'));
+const setServer = (v) => {
+  const png = { type: 'image/png', body: PNG_VIDE };
+  const gif = { type: 'image/gif', body: GIF };
+  fixtures['1'] = { 'a.gif': gif, 'b.gif': gif, 'c.gif': gif };
+  fixtures['1b'] = { 'a.gif': gif };
+  // v1 : a absent de map/5, c forgé (PNG vide) ; v2 : a est apparu, c corrigé
+  fixtures['5'] = v === 1 ? { 'b.gif': gif, 'c.gif': png } : { 'a.gif': gif, 'b.gif': gif, 'c.gif': gif };
+};
+const runAudit = (extra) => new Promise((resolve) => {
+  execFile(process.execPath, [path.join(root, 'tests/e2e/audit-map-images.mjs'), '--online', '--base', origin, '--no-write', '--skip-overrides', '--delay', '0', ...extra], { env: { ...process.env, TMPDIR: scratch }, timeout: 120000 }, (err, stdout) => {
+    const m = stdout.match(/\{\n[\s\S]*?\n\}/);
+    resolve({ code: err ? err.code : 0, totals: m ? JSON.parse(m[0]) : null, stdout });
+  });
+});
+setServer(1);
+const r1 = await runAudit([]);
+check('exécution 1 : exclusions map/1 = a (404) + c (PNG vide refusé par le moteur) ; map/1b = a', () => { assert.equal(r1.totals['1'].exclusions, 2); assert.equal(r1.totals['1b'].exclusions, 1); assert.equal(r1.totals['1'].cibleStatuts.invalide, 1); });
+setServer(2);
+const r2 = await runAudit([]);
+check('relance sans cache : le changement serveur est pris en compte (0 exclusion)', () => { assert.equal(r2.totals['1'].exclusions, 0); assert.equal(r2.totals['1b'].exclusions, 0); });
+check('aucun fichier de cache créé par défaut dans le scratch', () => assert.deepEqual(fs.readdirSync(scratch), []));
+const cacheFile = path.join(scratch, 'cache.json');
+setServer(1);
+await runAudit(['--cache', cacheFile]);
+check('--cache explicite : fichier écrit dans le scratch, entrées datées', () => { const c = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); assert.ok(Object.values(c).every(e => typeof e.at === 'number')); });
+setServer(2);
+const r4 = await runAudit(['--cache', cacheFile]);
+check('--cache dans son TTL : relit le cache (périmé par construction, documenté)', () => assert.equal(r4.totals['1'].exclusions, 2));
+const r5 = await runAudit(['--cache', cacheFile, '--refresh']);
+check('--cache --refresh : relit le serveur, changement pris en compte', () => assert.equal(r5.totals['1'].exclusions, 0));
+setServer(1);
+const r6 = await runAudit(['--cache', cacheFile, '--cache-ttl', '0']);
+check('--cache-ttl 0 : entrées expirées, serveur relu', () => assert.equal(r6.totals['1'].exclusions, 2));
+fs.rmSync(scratch, { recursive: true, force: true });
+server.close();
+await closeEngine();
 
 console.log('Inventaire figé');
 const names1 = inv.variants['1'].files; const names1b = inv.variants['1b'].files; const files5 = new Set(inv.variants['5'].files);

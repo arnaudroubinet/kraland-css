@@ -2353,6 +2353,7 @@
     },
 
     MEDIEVAL_SEPIA: '85%',
+    MEDIEVAL_PRETEST_TIMEOUT_MS: 3000,
 
     // Images sans équivalent /5/ ni override — ne pas tenter le remplacement
     MEDIEVAL_NO_REPLACE: {
@@ -2611,6 +2612,9 @@
       const originalFilterAttr = 'data-kr-medieval-original-filter';
 
       const _krTestCache = {};
+      // Résout true (chargée), false (échec confirmé par le navigateur) ou null (délai dépassé : INCONNU).
+      // Un délai sur réseau lent ne prouve rien : la cible n'est ni mémorisée ni bannie, le repli d'exécution
+      // (krSwapImg → retour à l'original si le chargement échoue vraiment) protège les <img>.
       function testImageExists(url) {
         if (Object.hasOwn(_krTestCache, url)) {return Promise.resolve(!!_krTestCache[url]);}
         return new Promise(resolve => {
@@ -2620,11 +2624,11 @@
             var timeout = setTimeout(function () {
               if (!settled) {
                 settled = true;
-                img.src = '';
-                _krTestCache[url] = false;
-                resolve(false);
+                img.onload = null;
+                img.onerror = null;
+                resolve(null);
               }
-            }, 500);
+            }, CONFIG.MEDIEVAL_PRETEST_TIMEOUT_MS);
             img.onload = function () {
               if (!settled) {
                 settled = true;
@@ -2676,7 +2680,13 @@
 
         // tester l'existence de la ressource cible avant d'appliquer
         testImageExists(target).then(exists => {
-          if (exists) {
+          if (exists === null) {
+            // Délai dépassé : cible inconnue (ni bannie ni marquée en échec). <img> : remplacement gardé par le repli
+            // d'exécution ; fond CSS : original conservé, nouvel essai possible à la prochaine mutation.
+            if (el.tagName === 'IMG') {
+              krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
+            }
+          } else if (exists) {
             if (el.tagName === 'IMG') {
               // Remplacement gardé : repli sur l'original si la cible échoue après coup
               krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
