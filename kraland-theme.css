@@ -12300,3 +12300,105 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding-left: 15px;
   }
 }
+
+/* ============================================================================
+   FORUM MOBILE : actions « Répondre » / « Nouveau sujet » (F-01) et barre BBCode (F-06)
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* F-01 : barre d'actions du sujet, en haut (sous le fil d'Ariane) et en bas (sous la pagination).
+     « Répondre » = action principale pleine ; « Nouveau sujet » = action secondaire cerclée. */
+  .forum-thread-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+
+  .forum-thread-actions-bottom {
+    margin: 12px 16px 16px;
+  }
+
+  .forum-thread-action {
+    display: flex;
+    flex: 1 1 140px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 2px solid var(--kr-primary);
+    border-radius: var(--mobile-radius, 8px);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .forum-thread-action-reply {
+    flex-grow: 2;
+    background: var(--kr-primary);
+    color: #fff !important;
+  }
+
+  .forum-thread-action-new {
+    background: transparent;
+    color: var(--kr-text-primary, var(--kr-primary)) !important;
+  }
+
+  /* F-06 : barre BBCode de l'éditeur (réponse, nouveau sujet, Kramail) = grille de cibles 44 px qui
+     passe à la ligne, au lieu d'une bande à défilement où chaque bouton faisait 329 à 338 px
+     (cause : « .btn-group > .btn { width: 100% !important } » générique). Pas dans les fenêtres bootbox. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) {
+    position: relative;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    overflow: visible !important;
+    white-space: normal;
+  }
+
+  /* Le clearfix Bootstrap (::before/::after) deviendrait un élément de la grille et décalerait la 1re rangée */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::before,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::after {
+    display: none !important;
+  }
+
+  /* Les groupes et menus déroulants s'effacent : les boutons s'enchaînent en une seule grille */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown {
+    display: contents !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > a.btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    display: flex !important;
+    flex: 0 0 44px !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* L'ancre « dropdown-toggle » n'est qu'un conteneur : pas de double cadre autour du bouton qu'elle porte */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Menus (smileys, couleurs) : ancrés à la barre, sur toute sa largeur disponible */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu {
+    max-width: calc(100vw - 24px);
+  }
+}
+
