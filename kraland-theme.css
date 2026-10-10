@@ -120,6 +120,7 @@
   --kr-gauge-pv: #28a745; /* Vert Bootstrap success */
   --kr-gauge-pm: #007bff; /* Bleu Bootstrap info */
   --kr-gauge-pp: #ffc107; /* Jaune Bootstrap warning */
+  --kr-gauge-rest: #e0791a; /* Reste jusqu'au maximum (segment natif « warning »), rendu hachuré */
   
   /* Overlays et transparence pour navbar sombre */
   --kr-overlay-light-10: rgba(255, 255, 255, 0.1);
@@ -4655,6 +4656,74 @@ body > map {
     
     .mobile-gauge-compact-fill.pp {
       background: var(--kr-gauge-pp) !important;
+    }
+
+    .mobile-gauge-compact-rest,
+    .mobile-gauge-full-rest {
+      position: absolute !important;
+      top: 0 !important;
+      height: 100% !important;
+      background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
+      transition: width var(--transition-normal), left var(--transition-normal) !important;
+    }
+
+    .kr-gauge-legend {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 4px 12px !important;
+      margin-top: 6px !important;
+      font-size: 11px !important;
+      line-height: 1.3 !important;
+      color: var(--kr-text-secondary) !important;
+    }
+
+    .kr-gauge-legend-item {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+
+    .kr-gauge-legend-swatch {
+      display: inline-block !important;
+      width: 14px !important;
+      height: 8px !important;
+      border-radius: 2px !important;
+    }
+
+    .kr-gauge-legend-swatch.value {
+      background: linear-gradient(90deg, var(--kr-gauge-pv) 0 33%, var(--kr-gauge-pm) 33% 66%, var(--kr-gauge-pp) 66%) !important;
+    }
+
+    .kr-gauge-legend-swatch.rest {
+      background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
+      border: 1px solid var(--kr-gauge-rest) !important;
+    }
+
+    /* Jauges natives du plateau (PLT-07) : mêmes couleurs que le mini-profil */
+    .progress[data-kr-gauge] {
+      background: var(--kr-border-default) !important;
+      box-shadow: none !important;
+      overflow: hidden !important;
+    }
+
+    .progress[data-kr-gauge] > .progress-bar {
+      box-shadow: none !important;
+    }
+
+    .progress[data-kr-gauge="pv"] > .progress-bar-success {
+      background: var(--kr-gauge-pv) !important;
+    }
+
+    .progress[data-kr-gauge="pm"] > .progress-bar-success {
+      background: var(--kr-gauge-pm) !important;
+    }
+
+    .progress[data-kr-gauge="pp"] > .progress-bar-success {
+      background: var(--kr-gauge-pp) !important;
+    }
+
+    .progress[data-kr-gauge] > .progress-bar-warning {
+      background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
     }
     
     .mobile-gauge-compact-value {
@@ -11347,5 +11416,69 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     width: auto;
     padding: 0 4px;
     margin-bottom: 4px !important;
+  }
+}
+
+/* === PLT-07 — Jauges PV/PM/PP du plateau (desktop) ===
+   Choix A (Arnaud) : les deux segments natifs sont conservés. Segment coloré = valeur
+   (couleur de thème par jauge), segment hachuré = reste jusqu'au maximum (couleur unique).
+   Même représentation que le mini-profil mobile. */
+@media (min-width: 768px) {
+  .progress[data-kr-gauge] {
+    background: var(--kr-border-default) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  .progress[data-kr-gauge] > .progress-bar {
+    box-shadow: none !important;
+  }
+
+  .progress[data-kr-gauge="pv"] > .progress-bar-success {
+    background: var(--kr-gauge-pv) !important;
+  }
+
+  .progress[data-kr-gauge="pm"] > .progress-bar-success {
+    background: var(--kr-gauge-pm) !important;
+  }
+
+  .progress[data-kr-gauge="pp"] > .progress-bar-success {
+    background: var(--kr-gauge-pp) !important;
+  }
+
+  .progress[data-kr-gauge] > .progress-bar-warning {
+    background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
+  }
+
+  .kr-gauge-legend {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2px 10px !important;
+    margin-top: 4px !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  .kr-gauge-legend-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .kr-gauge-legend-swatch {
+    display: inline-block !important;
+    width: 14px !important;
+    height: 8px !important;
+    border-radius: 2px !important;
+  }
+
+  .kr-gauge-legend-swatch.value {
+    background: linear-gradient(90deg, var(--kr-gauge-pv) 0 33%, var(--kr-gauge-pm) 33% 66%, var(--kr-gauge-pp) 66%) !important;
+  }
+
+  .kr-gauge-legend-swatch.rest {
+    background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
+    border: 1px solid var(--kr-gauge-rest) !important;
   }
 }

@@ -87,6 +87,90 @@ for (const width of [1512, 2560, 375, 1512, 767, 768, 767, 1280, 1024, 800]) {
   previousMobile = expectMobile;
 }
 
+// 1 bis. Jauges PV/PM/PP (PLT-07, choix A) : les deux segments natifs sont conservés, même rendu desktop et mobile.
+// Valeurs de la fixture : PV 20 (reste 7, SYNTHÉTIQUE), PM 25 (reste 0), PP 0 (reste 150) — voir le commentaire de la fixture.
+console.log('Jauges PV/PM/PP');
+const gaugeSnap = gaugePage => gaugePage.evaluate(() => {
+  const out = {};
+  document.querySelectorAll('.progress[data-kr-gauge]').forEach(p => {
+    const ok = p.querySelector('.progress-bar-success');
+    const warn = p.querySelector('.progress-bar-warning');
+    const track = p.getBoundingClientRect().width;
+    out[p.dataset.krGauge] = {
+      ratio: track ? ok.getBoundingClientRect().width / track : 0,
+      restRatio: track ? warn.getBoundingClientRect().width / track : 0,
+      restShown: getComputedStyle(warn).display !== 'none' && warn.getBoundingClientRect().height > 0,
+      restBg: getComputedStyle(warn).backgroundImage,
+      color: getComputedStyle(ok).backgroundColor,
+      title: p.getAttribute('title')
+    };
+  });
+  const mini = {};
+  document.querySelectorAll('.mobile-gauge-compact').forEach(g => {
+    const f = g.querySelector('.mobile-gauge-compact-fill');
+    const r = g.querySelector('.mobile-gauge-compact-rest');
+    const bar = g.querySelector('.mobile-gauge-compact-bar').getBoundingClientRect().width;
+    const type = ['pv', 'pm', 'pp'].find(t => f.classList.contains(t));
+    mini[type] = {
+      fill: f.getBoundingClientRect().width / bar,
+      rest: r.getBoundingClientRect().width / bar,
+      color: getComputedStyle(f).backgroundColor,
+      value: g.querySelector('.mobile-gauge-compact-value').textContent.trim()
+    };
+  });
+  const fullHeaders = Array.from(document.querySelectorAll('.mobile-gauge-full-header')).map(h => h.textContent.replace(/\s+/g, ' ').trim());
+  return { native: out, mini, fullHeaders, legend: document.querySelectorAll('.kr-gauge-legend').length };
+});
+const expectedGauge = { pv: [20 / 27, 7 / 27], pm: [1, 0], pp: [0, 1] };
+const gaugeResults = {};
+for (const width of [1512, 375]) {
+  // Contexte dédié, thème activé (le reste de la suite tourne avec le thème désactivé par défaut)
+  const gaugeContext = await browser.newContext({ viewport: { width, height: 772 } });
+  await gaugeContext.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
+  await gaugeContext.addInitScript(({ src }) => {
+    window.localStorage.setItem('kr-theme-enabled', 'true');
+    window.GM = { xmlHttpRequest: () => {} };
+    // eslint-disable-next-line no-eval
+    const go = () => (0, eval)(src);
+    if (document.body) { go(); return; }
+    new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
+  }, { src: userscript });
+  const gaugePage = await gaugeContext.newPage();
+  await gaugePage.goto(TARGET, { waitUntil: 'load' });
+  await gaugePage.waitForTimeout(SETTLE_MS);
+  const g = await gaugeSnap(gaugePage);
+  if (process.env.KR_SHOTS) {
+    await gaugePage.screenshot({ path: path.join(process.env.KR_SHOTS, `jauges-${width}.png`) });
+  }
+  await gaugeContext.close();
+  gaugeResults[width] = g;
+  for (const type of ['pv', 'pm', 'pp']) {
+    const [v, r] = expectedGauge[type];
+    check(`${width}px : jauge ${type.toUpperCase()} segment valeur = ${v.toFixed(2)}`, () => assert.ok(g.native[type] && Math.abs(g.native[type].ratio - v) < 0.01, JSON.stringify(g.native[type])));
+    check(`${width}px : jauge ${type.toUpperCase()} segment reste conservé = ${r.toFixed(2)}`, () => assert.ok(g.native[type].restShown && Math.abs(g.native[type].restRatio - r) < 0.01, JSON.stringify(g.native[type])));
+    check(`${width}px : jauge ${type.toUpperCase()} reste hachuré (couleur unique)`, () => assert.match(g.native[type].restBg, /repeating-linear-gradient/));
+  }
+  check(`${width}px : PP à 0 garde son segment restant plein (natif)`, () => assert.ok(g.native.pp.ratio === 0 && g.native.pp.restRatio > 0.99));
+  check(`${width}px : trois couleurs de thème distinctes pour la valeur`, () => assert.equal(new Set([g.native.pv.color, g.native.pm.color, g.native.pp.color]).size, 3));
+  check(`${width}px : infobulle valeur / reste`, () => assert.match(g.native.pv.title, /PV : 20 .*reste jusqu'au maximum : 7/));
+  check(`${width}px : légende visible`, () => assert.ok(g.legend >= 1));
+}
+{
+  const d = gaugeResults[1512];
+  const m = gaugeResults[375];
+  check('mêmes couleurs de valeur en desktop et en mobile', () => assert.deepEqual(['pv', 'pm', 'pp'].map(t => d.native[t].color), ['pv', 'pm', 'pp'].map(t => m.native[t].color)));
+  check('375px : mini-profil, proportions natives (PV 74 % + reste 26 %, PM 100 %, PP 0 % + reste 100 %)', () => {
+    assert.ok(Math.abs(m.mini.pv.fill - 20 / 27) < 0.02 && Math.abs(m.mini.pv.rest - 7 / 27) < 0.02, JSON.stringify(m.mini.pv));
+    assert.ok(m.mini.pm.fill > 0.98 && m.mini.pm.rest < 0.02, JSON.stringify(m.mini.pm));
+    assert.ok(m.mini.pp.fill === 0 && m.mini.pp.rest > 0.98, JSON.stringify(m.mini.pp));
+  });
+  check('375px : mini-profil, mêmes couleurs de valeur que les jauges natives', () => assert.deepEqual(['pv', 'pm', 'pp'].map(t => m.mini[t].color), ['pv', 'pm', 'pp'].map(t => m.native[t].color)));
+  check('375px : mini-profil, valeur affichée et aucun maximum inventé', () => {
+    assert.equal(m.mini.pv.value, '20');
+    assert.equal(m.fullHeaders.join('|'), 'PV 20 · reste 7|PM 25 · reste 0|PP 0 · reste 150');
+  });
+}
+
 // 2. Défilement restauré après rechargement
 console.log('Défilement');
 await resizeTo(1512);

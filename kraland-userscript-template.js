@@ -86,6 +86,91 @@
     return document.body && document.body.classList && document.body.classList.contains('mobile-mode');
   }
 
+  // PLT-07 — Jauges PV/PM/PP : lecture du DOM natif (Bootstrap 3).
+  // Natif : .progress contient deux segments empilés.
+  //   - progress-bar-success : largeur = part de la valeur, texte caché = valeur ;
+  //   - progress-bar-warning : texte caché = maximum - valeur (reste jusqu'au maximum).
+  // Décision d'Arnaud (choix A) : on conserve les DEUX segments natifs en desktop et en mobile
+  // (même sens, mêmes variables --kr-gauge-pv/pm/pp pour la valeur, une couleur unique pour le reste).
+  // Aucun maximum n'est affiché : celui de PP (150 ?) n'est confirmé nulle part, seul le reste l'est.
+  var GAUGE_BUTTONS = { pv: 'alert141', pm: 'alert142', pp: 'alert143' };
+  var GAUGE_LABELS = { pv: 'PV', pm: 'PM', pp: 'PP' };
+
+  function findNativeGaugeProgress(type) {
+    var button = document.querySelector('#col-left a.' + GAUGE_BUTTONS[type] + ', a.btn.' + GAUGE_BUTTONS[type]);
+    if (!button) {return null;}
+    var node = button;
+    for (var depth = 0; node && depth < 4; depth++, node = node.parentElement) {
+      var sibling = node.nextElementSibling;
+      while (sibling) {
+        if (sibling.matches('.progress')) {return sibling;}
+        var inner = sibling.querySelector(':scope > .progress');
+        if (inner) {return inner;}
+        if (sibling.querySelector('[class*="alert14"]')) {break;}
+        sibling = sibling.nextElementSibling;
+      }
+    }
+    return null;
+  }
+
+  function readNativeGauge(type) {
+    var progress = findNativeGaugeProgress(type);
+    if (!progress) {return null;}
+    var success = progress.querySelector('.progress-bar-success');
+    var warning = progress.querySelector('.progress-bar-warning');
+    if (!success) {return null;}
+    var hiddenNumber = function (el) {
+      var hidden = el ? el.querySelector('.sr-only') : null;
+      var value = hidden ? parseInt(hidden.textContent, 10) : NaN;
+      return isNaN(value) ? null : value;
+    };
+    var clamp = function (n) {return Math.min(100, Math.max(0, n));};
+    var current = hiddenNumber(success);
+    var rest = hiddenNumber(warning);
+    var fillWidth = parseFloat(success.style.width);
+    var restWidth = warning ? parseFloat(warning.style.width) : NaN;
+    var percent = !isNaN(fillWidth) ? clamp(fillWidth) : 0;
+    var restPercent = !isNaN(restWidth) ? clamp(restWidth) : clamp(100 - percent);
+    return {
+      type: type,
+      current: current === null ? 0 : current,
+      rest: rest,
+      percent: percent,
+      restPercent: restPercent,
+      progress: progress
+    };
+  }
+
+  function describeGauge(gauge) {
+    var name = GAUGE_LABELS[gauge.type];
+    var text = name + ' : ' + gauge.current + ' (valeur, segment coloré)';
+    if (gauge.rest !== null) {
+      text += ' · reste jusqu\'au maximum : ' + gauge.rest + ' (segment hachuré)';
+    }
+    return text;
+  }
+
+  function normalizeNativeGauges() {
+    var last = null;
+    Object.keys(GAUGE_BUTTONS).forEach(function (type) {
+      var gauge = readNativeGauge(type);
+      if (!gauge) {return;}
+      var text = describeGauge(gauge);
+      gauge.progress.setAttribute('data-kr-gauge', type);
+      gauge.progress.setAttribute('title', text);
+      gauge.progress.setAttribute('aria-label', text);
+      last = gauge.progress;
+    });
+    // Légende visible unique (le sens des segments ne dépend pas de l'infobulle)
+    if (last && !document.querySelector('.kr-gauge-legend')) {
+      var legend = document.createElement('div');
+      legend.className = 'kr-gauge-legend';
+      legend.innerHTML = '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch value"></i>valeur</span>' +
+        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>reste jusqu\'au maximum</span>';
+      last.insertAdjacentElement('afterend', legend);
+    }
+  }
+
   /**
    * Clone le contenu visible d'un élément en préservant les <img> (smileys).
    * Retourne un DocumentFragment contenant les nœuds texte et <img> clonés.
@@ -834,9 +919,15 @@
         }
       };
 
-      const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
-      const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
-      const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
+      // PLT-07 : le DOM natif fait foi (valeur + reste). L'ancienne lecture (qui confondait
+      // maximum et valeur) ne sert que de secours, sans segment « reste » (rest: null).
+      const legacyGauge = (section, type) => {
+        const g = findGaugeInSection(section, type);
+        return g ? { type: g.type, current: g.current, rest: null, percent: g.percent, restPercent: 0 } : null;
+      };
+      const gaugesPV = readNativeGauge('pv') || legacyGauge(vitalsSection, 'PV');
+      const gaugesPM = readNativeGauge('pm') || legacyGauge(vitalsSection, 'PM');
+      const gaugesPP = readNativeGauge('pp') || legacyGauge(vitalsSection, 'PP');
 
       return {
         name: playerName,
@@ -931,10 +1022,12 @@
 
         const el = document.createElement('div');
         el.className = 'mobile-gauge-compact';
+        el.title = describeGauge(gauge);
         el.innerHTML = `
           <span class="mobile-gauge-compact-label">${type.toUpperCase()}</span>
           <div class="mobile-gauge-compact-bar">
             <div class="mobile-gauge-compact-fill ${type}" style="width: ${gauge.percent}%"></div>
+            <div class="mobile-gauge-compact-rest" style="left: ${gauge.percent}%; width: ${gauge.restPercent}%"></div>
           </div>
           <span class="mobile-gauge-compact-value">${gauge.current}</span>
         `;
@@ -957,17 +1050,26 @@
 
         const el = document.createElement('div');
         el.className = 'mobile-gauge-full';
+        el.title = describeGauge(gauge);
+        const restText = gauge.rest !== null ? ` · reste ${gauge.rest}` : '';
         el.innerHTML = `
           <div class="mobile-gauge-full-header">
             <span>${type.toUpperCase()}</span>
-            <span>${gauge.current}/${gauge.max}</span>
+            <span>${gauge.current}${restText}</span>
           </div>
           <div class="mobile-gauge-full-bar">
             <div class="mobile-gauge-full-fill ${type}" style="width: ${gauge.percent}%"></div>
+            <div class="mobile-gauge-full-rest" style="left: ${gauge.percent}%; width: ${gauge.restPercent}%"></div>
           </div>
         `;
         gaugesFull.appendChild(el);
       });
+
+      const gaugesLegend = document.createElement('div');
+      gaugesLegend.className = 'kr-gauge-legend';
+      gaugesLegend.innerHTML = '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch value"></i>valeur</span>' +
+        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>reste jusqu\'au maximum</span>';
+      gaugesFull.appendChild(gaugesLegend);
 
       details.appendChild(gaugesFull);
 
@@ -1051,7 +1153,7 @@
       console.log('  - Nom:', profileData.name);
       console.log('  - Argent:', profileData.money);
       console.log('  - Horloge:', profileData.clock);
-      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current}/${profileData.gauges.pv.max}` : 'N/A');
+      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current} (reste ${profileData.gauges.pv.rest})` : 'N/A');
     }
 
     /**
@@ -3061,7 +3163,7 @@
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
       reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, displayVersionInfo,
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
-      transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
+      transformToBootstrapGrid, nameLeftSidebarDivs, normalizeNativeGauges, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
       ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
