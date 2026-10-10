@@ -2125,9 +2125,8 @@
         areas[dir] = area;
       }
 
+      // Ordre natif du DOM conservé tel quel (décision d'Arnaud) : pas de tri, les pièces verrouillées restent à leur place
       const batImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]')).filter(img => !img.closest('.' + BLOCK_CLASS));
-      const number = img => parseInt((img.getAttribute('src') || '').match(/bat(\d+)\.gif/)?.[1] || '999', 10);
-      batImages.sort((x, y) => number(x) - number(y));
       const links = [];
       batImages.forEach(img => {
         const link = img.closest('a');
@@ -2144,7 +2143,10 @@
         const locked = Array.from(link.querySelectorAll('img')).some(im => /lock/i.test(im.getAttribute('src') || ''));
         return { link, rank: i + 1, total: links.length, name: nativeName.trim(), named: nativeName.trim() !== '', locked, current: link.classList.contains('btn-warning') };
       });
-      return { container: exitImg.parentElement.closest('.row.center'), areas, rooms, tiles: rooms.every(r => !r.named) };
+      // Sans conteneur .row.center, on ne saurait pas masquer le natif : deux commandes seraient visibles → repli natif sûr (rien ajouté)
+      const container = exitImg.parentElement.closest('.row.center');
+      if (!container) { warnOnce('conteneur .row.center introuvable'); return null; }
+      return { container, areas, rooms, tiles: rooms.every(r => !r.named) };
     }
 
     function signature(model) {
