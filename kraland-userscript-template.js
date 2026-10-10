@@ -2048,148 +2048,309 @@
   });
 
   // ============================================================================
-  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
-  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // CX2 : CROIX DIRECTIONNELLE V2 ET ACCÈS TACTILE AUX PIÈCES (mobile, < 768 px)
+  // Remplace la ligne « image map clonée » : une vraie croix de 4 liens (50×50) et une liste
+  // de pièces (>= 44 px de haut). Destinations, onclick et états viennent strictement du DOM natif.
+  // Si la transformation est impossible ou ambiguë, le natif reste visible et fonctionnel.
   // ============================================================================
   (function () {
-    function initNavigationRow() {
-      if (!document.body.classList.contains('mobile-mode')) {return;}
+    const BLOCK_CLASS = 'kr-nav-v2';
+    const DIRECTIONS = ['Nord', 'Ouest', 'Est', 'Sud'];
+    const ARM_CLASS = { Nord: 'kr-n', Ouest: 'kr-w', Est: 'kr-e', Sud: 'kr-s' };
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SKIPPED_ATTRS = ['class', 'style', 'id', 'name', 'usemap', 'alt', 'shape', 'coords'];
+    let lastWarning = '';
 
-      // Utiliser un élément DOM préexistant comme ancre (pas .mobile-quick-actions créé par le script)
-      const navbar = document.querySelector('.navbar');
-      if (!navbar) {return;}
-
-      // Trouver l'image "Sortir" avec la croix directionnelle
-      const exitImg = document.querySelector('img[alt="Sortir"]');
-      if (!exitImg || !exitImg.parentElement) {return;}
-
-      const parent = exitImg.parentElement;
-      const map = parent.querySelector('map[name="exitmap"]');
-
-      // Trouver toutes les images bat*.gif (accès aux pièces)
-      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
-      if (allBatImages.length === 0) {return;}
-
-      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
-      const originalImages = allBatImages.filter(img => {
-        let current = img;
-        while (current && current !== document.body) {
-          if (current.classList && current.classList.contains('kr-navigation-row')) {
-            return false;
-          }
-          current = current.parentElement;
-        }
-        return true;
-      });
-
-      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
-      originalImages.sort((a, b) => {
-        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        return numA - numB;
-      });
-
-      if (originalImages.length === 0) {return;}
-
-      // Trouver et masquer le conteneur d'origine (div.row.center)
-      const originalContainer = parent.closest('.row.center');
-      if (originalContainer) {
-        originalContainer.style.display = 'none';
+    function warnOnce(msg) {
+      if (msg !== lastWarning) {
+        lastWarning = msg;
+        console.warn('[Navigation Croix] ' + msg + ' : croix native conservée');
       }
-
-      // Récupérer les liens parents des images
-      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
-      if (roomLinks.length === 0) {return;}
-
-      // Créer le conteneur de la ligne de navigation
-      const navRow = document.createElement('div');
-      navRow.className = 'kr-navigation-row';
-      navRow.setAttribute('role', 'group');
-
-      // Créer la croix directionnelle en premier
-      if (exitImg && map) {
-        const directionGroup = document.createElement('div');
-        directionGroup.className = 'btn-group kr-direction-cross';
-        directionGroup.setAttribute('role', 'group');
-
-        // Créer un lien style btn pour la croix
-        const directionLink = document.createElement('div');
-        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
-
-        // Cloner l'image et la map
-        const exitImgClone = exitImg.cloneNode(true);
-        exitImgClone.style.width = '60px';
-        exitImgClone.style.height = '60px';
-        exitImgClone.style.display = 'block';
-
-        const mapClone = map.cloneNode(true);
-
-        // En desktop, l'interaction se fait via les areas de la map
-        // En mobile, on doit intercepter les clics sur le conteneur et les rediriger vers les areas
-        directionLink.addEventListener('click', (e) => {
-          // Calculer les coordonnées relatives du clic
-          const rect = directionLink.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          // Trouver l'area qui correspond à ces coordonnées
-          const areas = mapClone.querySelectorAll('area');
-          for (const area of areas) {
-            if (area.shape === 'rect') {
-              const coords = area.coords.split(',').map(c => parseInt(c));
-              const [x1, y1, x2, y2] = coords;
-              if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-                e.preventDefault();
-                e.stopPropagation();
-                const url = area.href;
-                if (url && url !== '#') {
-                  window.location.href = url;
-                }
-                return;
-              }
-            }
-          }
-        });
-
-        directionLink.appendChild(exitImgClone);
-        directionLink.appendChild(mapClone);
-        directionGroup.appendChild(directionLink);
-        navRow.appendChild(directionGroup);
-      }
-
-      // Créer une carte pour chaque accès aux pièces
-      roomLinks.forEach(link => {
-        const btnGroup = document.createElement('div');
-        btnGroup.className = 'btn-group kr-room-access-card';
-        btnGroup.setAttribute('role', 'group');
-
-        // Cloner le lien pour ne pas modifier l'original
-        const linkClone = link.cloneNode(true);
-        // Utiliser les mêmes classes que les actions rapides
-        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
-
-        // Forcer la navigation pour éviter l'interception par Kraland
-        linkClone.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const url = linkClone.href;
-          if (url && url !== '#') {
-            window.location.href = url;
-          }
-        });
-
-        btnGroup.appendChild(linkClone);
-
-        navRow.appendChild(btnGroup);
-      });
-
-      // Insérer la nouvelle ligne après la navbar (élément préexistant)
-      // Note: On utilise .navbar (DOM original) et non .mobile-quick-actions (créé par le script)
-      navbar.parentNode.insertBefore(navRow, navbar.nextSibling);
-
-      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
     }
 
-    // Enregistrer dans la queue d'initialisation mobile (priorité 60 - après quick actions)
+    function normalise(text) {
+      return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    // Direction d'après le texte natif (alt/title) ; null si absent, 'ambigu' si plusieurs directions
+    function directionFromText(area) {
+      const found = new Set();
+      [area.getAttribute('alt'), area.getAttribute('title')].forEach(txt => {
+        const words = normalise(txt).match(/[a-z]+/g) || [];
+        words.forEach(w => {
+          if (w === 'nord') { found.add('Nord'); }
+          else if (w === 'sud') { found.add('Sud'); }
+          else if (w === 'est') { found.add('Est'); }
+          else if (w === 'ouest') { found.add('Ouest'); }
+        });
+      });
+      if (found.size === 0) { return null; }
+      return found.size === 1 ? Array.from(found)[0] : 'ambigu';
+    }
+
+    // Direction d'après la géométrie (image 60×60) : quadrant dominant net, sinon null
+    function directionFromGeometry(area) {
+      const c = (area.getAttribute('coords') || '').split(',').map(v => parseFloat(v));
+      if (c.length !== 4 || c.some(v => Number.isNaN(v))) { return null; }
+      const dx = (c[0] + c[2]) / 2 - 30;
+      const dy = (c[1] + c[3]) / 2 - 30;
+      const ax = Math.abs(dx);
+      const ay = Math.abs(dy);
+      if (Math.max(ax, ay) < 8) { return null; }
+      if (ax > ay * 1.5) { return dx < 0 ? 'Ouest' : 'Est'; }
+      if (ay > ax * 1.5) { return dy < 0 ? 'Nord' : 'Sud'; }
+      return null;
+    }
+
+    function usableHref(el) {
+      const href = (el.getAttribute('href') || '').trim();
+      return href !== '' && href !== '#';
+    }
+
+    // Lit le DOM natif. Retourne { container, areas: {dir: area|null}, rooms: [...] } ou null (+ journal)
+    function readNative() {
+      const exitImg = Array.from(document.querySelectorAll('img[alt="Sortir"]')).find(i => !i.closest('.' + BLOCK_CLASS));
+      if (!exitImg || !exitImg.parentElement) { return null; }
+      const map = exitImg.parentElement.querySelector('map[name="exitmap"]') || document.querySelector('map[name="exitmap"]');
+      if (!map) { warnOnce('map exitmap absente'); return null; }
+
+      const areas = { Nord: null, Ouest: null, Est: null, Sud: null };
+      for (const area of Array.from(map.querySelectorAll('area'))) {
+        if ((area.getAttribute('shape') || 'rect').toLowerCase() !== 'rect') { warnOnce('area non rectangulaire'); return null; }
+        let dir = directionFromText(area);
+        if (dir === 'ambigu') { warnOnce('area à plusieurs directions'); return null; }
+        if (!dir) { dir = directionFromGeometry(area); }
+        if (!dir) { warnOnce('direction d\'une area indéterminée (alt=' + area.getAttribute('alt') + ')'); return null; }
+        if (areas[dir]) { warnOnce('deux areas pour la direction ' + dir); return null; }
+        areas[dir] = area;
+      }
+
+      const batImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]')).filter(img => !img.closest('.' + BLOCK_CLASS));
+      const number = img => parseInt((img.getAttribute('src') || '').match(/bat(\d+)\.gif/)?.[1] || '999', 10);
+      batImages.sort((x, y) => number(x) - number(y));
+      const links = [];
+      batImages.forEach(img => {
+        const link = img.closest('a');
+        if (link && !links.includes(link)) { links.push(link); }
+      });
+      if (links.length === 0) { return null; }
+
+      // Sur le site réel, le lien de pièce ne contient QUE l'image (le nom et le cadenas sont dessinés dans le GIF, ni texte ni alt ni title) :
+      // sans nom natif, on montre l'image entière (tuile) et on ne fabrique aucun nom ; l'étiquette accessible n'est qu'un rang (« Pièce 2 sur 5 »)
+      const rooms = links.map((link, i) => {
+        const text = (link.textContent || '').replace(/\s+/g, ' ').trim();
+        const img = link.querySelector('img[src*="/bat/bat"]');
+        const nativeName = text || (img && (img.getAttribute('title') || img.getAttribute('alt'))) || link.getAttribute('title') || '';
+        const locked = Array.from(link.querySelectorAll('img')).some(im => /lock/i.test(im.getAttribute('src') || ''));
+        return { link, rank: i + 1, total: links.length, name: nativeName.trim(), named: nativeName.trim() !== '', locked, current: link.classList.contains('btn-warning') };
+      });
+      return { container: exitImg.parentElement.closest('.row.center'), areas, rooms, tiles: rooms.every(r => !r.named) };
+    }
+
+    function signature(model) {
+      const attr = (el, n) => el ? el.getAttribute(n) : null;
+      return JSON.stringify({
+        d: DIRECTIONS.map(d => model.areas[d] ? [attr(model.areas[d], 'href'), attr(model.areas[d], 'target'), attr(model.areas[d], 'onclick')] : null),
+        r: model.rooms.map(r => [attr(r.link, 'href'), attr(r.link, 'onclick'), r.name, r.current, r.locked, r.link.querySelectorAll('img').length]),
+        t: model.tiles
+      });
+    }
+
+    // Copie les attributs natifs utiles (href, target, onclick, title, rel...) sur le nouveau lien
+    function copyNativeAttributes(from, to) {
+      Array.from(from.attributes).forEach(a => {
+        if (!SKIPPED_ATTRS.includes(a.name)) { to.setAttribute(a.name, a.value); }
+      });
+    }
+
+    function makeArrow() {
+      const svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 14');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', 'M8 1.5 15 12.5H1z');
+      path.setAttribute('fill', 'currentColor');
+      svg.appendChild(path);
+      return svg;
+    }
+
+    function buildArm(dir, area) {
+      const arm = document.createElement('a');
+      arm.className = 'kr-arm ' + ARM_CLASS[dir];
+      arm.setAttribute('data-dir', dir);
+      if (area && usableHref(area)) {
+        copyNativeAttributes(area, arm);
+        arm.setAttribute('aria-label', dir);
+        // Même chemin que le natif : le lien navigue lui-même ; on évite seulement l'interception par les délégués du site
+        arm.addEventListener('click', e => { e.stopPropagation(); });
+      } else {
+        arm.setAttribute('aria-disabled', 'true');
+        arm.setAttribute('aria-label', dir + ' (indisponible)');
+        arm.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+      }
+      arm.appendChild(makeArrow());
+      const label = document.createElement('span');
+      label.textContent = dir;
+      arm.appendChild(label);
+      return arm;
+    }
+
+    function buildRoom(room, tile) {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'listitem');
+      const a = document.createElement('a');
+      a.className = 'kr-room' + (tile ? ' kr-room-tile' : '');
+      copyNativeAttributes(room.link, a);
+      a.addEventListener('click', e => { e.stopPropagation(); });
+
+      const thumb = document.createElement('span');
+      thumb.className = 'kr-room-thumb';
+      Array.from(room.link.querySelectorAll('img')).forEach((img, idx) => {
+        const clone = img.cloneNode(true);
+        clone.removeAttribute('style');
+        clone.removeAttribute('width');
+        clone.removeAttribute('height');
+        if (idx === 0) { clone.setAttribute('alt', ''); }
+        thumb.appendChild(clone);
+      });
+      a.appendChild(thumb);
+
+      let here = null;
+      if (room.current) {
+        a.setAttribute('aria-current', 'true');
+        a.classList.add('kr-room-current');
+        here = document.createElement('span');
+        here.className = 'kr-room-here';
+        here.setAttribute('aria-hidden', 'true');
+        here.textContent = 'ici';
+      }
+
+      if (tile) {
+        // Image seule (nom dessiné dans le GIF) : étiquette accessible = rang, sans nom inventé
+        a.setAttribute('aria-label', 'Pièce ' + room.rank + ' sur ' + room.total + (room.locked ? ', verrouillée' : ''));
+        if (here) { a.appendChild(here); }
+      } else {
+        const text = document.createElement('span');
+        text.className = 'kr-room-text';
+        const name = document.createElement('span');
+        name.className = 'kr-room-name';
+        name.textContent = room.named ? room.name : 'Pièce ' + room.rank;
+        text.appendChild(name);
+        if (here) { text.appendChild(here); }
+        a.appendChild(text);
+      }
+      li.appendChild(a);
+      return li;
+    }
+
+    function buildBlock(model, sig) {
+      const block = document.createElement('section');
+      block.className = BLOCK_CLASS + (model.tiles ? ' kr-nav-tiles' : ' kr-nav-rows');
+      block.setAttribute('aria-labelledby', 'kr-nav-v2-title');
+      block.setAttribute('data-sig', sig);
+
+      const title = document.createElement('h2');
+      title.id = 'kr-nav-v2-title';
+      title.className = 'kr-nav-v2-title';
+      title.textContent = 'Se déplacer';
+      block.appendChild(title);
+
+      const pad = document.createElement('div');
+      pad.className = 'kr-pad';
+      pad.setAttribute('role', 'group');
+      pad.setAttribute('aria-label', 'Directions');
+      DIRECTIONS.forEach(dir => { pad.appendChild(buildArm(dir, model.areas[dir])); });
+      const hub = document.createElement('span');
+      hub.className = 'kr-hub';
+      hub.setAttribute('aria-hidden', 'true');
+      pad.appendChild(hub);
+      block.appendChild(pad);
+
+      const list = document.createElement('ul');
+      list.className = 'kr-rooms';
+      list.setAttribute('role', 'list');
+      list.setAttribute('aria-label', 'Pièces');
+      model.rooms.forEach(room => { list.appendChild(buildRoom(room, model.tiles)); });
+      block.appendChild(list);
+      return block;
+    }
+
+    // L'état de masquage vit sur l'élément (data-*) : plusieurs instances du script (réinjection) restent cohérentes
+    function restoreNative(except) {
+      document.querySelectorAll('[data-kr-nav-hidden]').forEach(el => {
+        if (el === except) { return; }
+        const prev = el.getAttribute('data-kr-nav-prev') || '';
+        const priority = el.getAttribute('data-kr-nav-prio') || '';
+        if (prev === '') { el.style.removeProperty('display'); } else { el.style.setProperty('display', prev, priority); }
+        el.removeAttribute('data-kr-nav-hidden');
+        el.removeAttribute('data-kr-nav-prev');
+        el.removeAttribute('data-kr-nav-prio');
+      });
+    }
+
+    function hideNative(container) {
+      restoreNative(container);
+      if (!container) { return; }
+      if (!container.hasAttribute('data-kr-nav-hidden')) {
+        container.setAttribute('data-kr-nav-prev', container.style.getPropertyValue('display'));
+        container.setAttribute('data-kr-nav-prio', container.style.getPropertyPriority('display'));
+        container.setAttribute('data-kr-nav-hidden', '1');
+      }
+      if (container.style.getPropertyValue('display') !== 'none') { container.style.setProperty('display', 'none'); }
+    }
+
+    function removeBlocks() {
+      document.querySelectorAll('.' + BLOCK_CLASS).forEach(b => b.remove());
+      restoreNative();
+    }
+
+    // Idempotent : appelé à l'init, à chaque mutation, au changement de classe du body et au redimensionnement
+    function syncNavigation() {
+      if (!document.body || !isThemeEnabled() || !document.body.classList.contains('mobile-mode') || window.innerWidth >= 768) {
+        removeBlocks();
+        return;
+      }
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) { return; }
+      const model = readNative();
+      if (!model) {
+        removeBlocks();
+        return;
+      }
+      const sig = signature(model);
+      const existing = Array.from(document.querySelectorAll('.' + BLOCK_CLASS));
+      if (existing.length === 1 && existing[0].getAttribute('data-sig') === sig) {
+        hideNative(model.container);
+        return;
+      }
+      existing.forEach(b => b.remove());
+      lastWarning = '';
+      navbar.parentNode.insertBefore(buildBlock(model, sig), navbar.nextSibling);
+      hideNative(model.container);
+      console.log('[Navigation Croix] Bloc initialisé : ' + DIRECTIONS.filter(d => model.areas[d]).length + ' direction(s), ' + model.rooms.length + ' pièce(s)');
+    }
+
+    function initNavigationRow() {
+      if (!document.body) { return; }
+      syncNavigation();
+      let timer = null;
+      const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(syncNavigation, 120);
+      };
+      // Mutations utiles : classe du body (mobile-mode), ajout/retrait de nœuds, href/onclick/target des liens et areas natifs
+      const relevant = m => {
+        if (m.target.closest && m.target.closest('.' + BLOCK_CLASS)) { return false; }
+        if (m.type === 'childList') { return true; }
+        return m.target === document.body || (m.target.matches && m.target.matches('area, a'));
+      };
+      new MutationObserver(records => { if (records.some(relevant)) { schedule(); } })
+        .observe(document.body, { attributes: true, attributeFilter: ['class', 'href', 'onclick', 'target'], childList: true, subtree: true });
+      window.addEventListener('resize', schedule);
+    }
+
+    // Enregistrer dans la queue d'initialisation (priorité 60 - après quick actions)
     InitQueue.register('initNavigationRow', initNavigationRow, 60);
   })();
 

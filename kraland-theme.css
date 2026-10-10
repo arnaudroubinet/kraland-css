@@ -6009,101 +6009,354 @@ body.mobile-mode .building-section-content img.img-responsive {
 }
 
 /* ============================================================================
- * TASK-2.1 : Accès aux pièces en ligne horizontale avec croix directionnelle
- * Style identique aux actions rapides (Dormir, Prier, etc.)
+ * CX2 : croix directionnelle V2 et accès tactile aux pièces (mobile uniquement)
+ * Bloc unique non flottant : croix 154×154 à gauche (4 touches 50×50, centre neutre),
+ * pièces à droite (3 premières, alignées sur les 3 rangées de la croix), pièces en excès dessous.
+ * Couleurs : variables du thème (aucune valeur en dur propre à un thème).
  * ============================================================================ */
+@media (max-width: 767px) {
+  body.mobile-mode .kr-nav-v2 {
+    display: grid;
+    grid-template-columns: 154px minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(50px, auto));
+    grid-auto-rows: minmax(50px, auto);
+    gap: 2px 12px;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 5px;
+    padding: 8px 12px;
+    background: var(--kr-bg-surface);
+    border-bottom: 1px solid var(--kr-border-default);
+  }
 
-/* Conteneur principal : table layout comme mobile-quick-actions */
-body.mobile-mode .kr-navigation-row {
-  display: table !important;
-  width: 100%;
-  table-layout: fixed;
-  margin-bottom: 5px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
+  /* Réduire l'espacement du container suivant */
+  body.mobile-mode .kr-nav-v2 + .container {
+    padding-top: 10px !important;
+  }
 
-/* Réduire l'espacement du container suivant */
-body.mobile-mode .kr-navigation-row + .container {
-  padding-top: 10px !important;
-}
+  /* En-tête de groupe lu par les lecteurs d'écran, sans coût en hauteur */
+  body.mobile-mode .kr-nav-v2-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 
-/* Groupes (croix + cartes) - affichage en cellules de table */
-body.mobile-mode .kr-navigation-row > .btn-group {
-  display: table-cell !important;
-  width: 1%;
-  vertical-align: middle;
-  float: none !important;
-}
+  /* Pavé en croix : 3 × 50 px, toujours en haut à gauche, quelle que soit la hauteur des pièces */
+  body.mobile-mode .kr-nav-v2 .kr-pad {
+    position: relative;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    align-self: start;
+    display: grid;
+    grid-template: ". n ." 50px "w c e" 50px ". s ." 50px / 50px 50px 50px;
+    gap: 2px;
+    width: 154px;
+    height: 154px;
+  }
 
-/* Croix directionnelle - même style que les actions rapides */
-body.mobile-mode .kr-direction-link {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 60px !important;
-  padding: 0 !important;
-  text-align: center;
-  position: relative;
-}
+  body.mobile-mode .kr-nav-v2 .kr-pad::before {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1.5px solid var(--kr-border-strong);
+    border-radius: 50%;
+    pointer-events: none;
+  }
 
-body.mobile-mode .kr-direction-link img {
-  width: 60px;
-  height: 60px;
-  display: block;
-}
+  body.mobile-mode .kr-nav-v2 a.kr-arm {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    min-width: 50px;
+    min-height: 50px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--kr-primary-dark);
+    background: var(--kr-primary);
+    color: var(--kr-white);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-body.mobile-mode .kr-direction-link map {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+  body.mobile-mode .kr-nav-v2 a.kr-arm svg {
+    flex: none;
+    width: 16px;
+    height: 14px;
+  }
 
-/* Cases des accès aux pièces - même style que mobile-quick-action */
-body.mobile-mode .kr-room-link {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 60px !important;
-  padding: 0 !important;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1.2;
-}
+  body.mobile-mode .kr-nav-v2 .kr-n {
+    grid-area: n;
+    border-radius: 10px 10px 2px 2px;
+  }
 
-body.mobile-mode .kr-room-link img {
-  width: 60px;
-  height: 60px;
-  display: block;
-}
+  body.mobile-mode .kr-nav-v2 .kr-s {
+    grid-area: s;
+    flex-direction: column-reverse;
+    border-radius: 2px 2px 10px 10px;
+  }
 
-/* Premier élément : bordures arrondies à gauche */
-body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-room-link {
-  border-radius: 4px 0 0 4px;
-}
+  body.mobile-mode .kr-nav-v2 .kr-w {
+    grid-area: w;
+    border-radius: 10px 2px 2px 10px;
+  }
 
-/* Dernier élément : bordures arrondies à droite */
-body.mobile-mode .kr-navigation-row > .btn-group:last-child .kr-room-link {
-  border-radius: 0 4px 4px 0;
-}
+  body.mobile-mode .kr-nav-v2 .kr-e {
+    grid-area: e;
+    border-radius: 2px 10px 10px 2px;
+  }
 
-/* Éléments du milieu : pas de bordure gauche pour éviter le doublon */
-body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-room-link {
-  border-left: none;
-}
+  body.mobile-mode .kr-nav-v2 .kr-s svg { transform: rotate(180deg); }
+  body.mobile-mode .kr-nav-v2 .kr-w svg { transform: rotate(-90deg); }
+  body.mobile-mode .kr-nav-v2 .kr-e svg { transform: rotate(90deg); }
 
-/* Si un seul élément : bordures arrondies partout */
-body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
-  border-radius: 4px;
+  body.mobile-mode .kr-nav-v2 a.kr-arm:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-arm:active {
+    background: var(--kr-primary-dark);
+    color: var(--kr-white);
+    text-decoration: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-arm:active {
+    box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125);
+  }
+
+  body.mobile-mode .kr-nav-v2 a:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: 1px;
+    z-index: 2;
+  }
+
+  /* Touche indisponible : creux en pointillé, nom lisible, clairement inactive */
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"],
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:active {
+    border: 1px dashed var(--kr-border-strong);
+    background: var(--kr-bg-page);
+    color: var(--kr-text-muted);
+    font-weight: 600;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Centre neutre : ni lien, ni focus, ni action */
+  body.mobile-mode .kr-nav-v2 .kr-hub {
+    position: relative;
+    z-index: 1;
+    grid-area: c;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--kr-border-default);
+    border-radius: 2px;
+    background: var(--kr-bg-page);
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-hub::before {
+    content: "";
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--kr-text-muted);
+    transform: rotate(45deg);
+  }
+
+  /* Pièces : une rangée de 50 px minimum par lien (cible tactile >= 44 px), 3 premières à droite de la croix */
+  body.mobile-mode .kr-nav-v2 .kr-rooms {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-rooms > li {
+    display: flex;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Mode « lignes » (le site fournit un nom de pièce en texte) : 3 premières rangées à droite de la croix */
+  body.mobile-mode .kr-nav-rows .kr-rooms {
+    display: contents;
+  }
+
+  body.mobile-mode .kr-nav-rows .kr-rooms > li {
+    grid-column: 2;
+  }
+
+  /* Pièces en excès : sous la croix, pleine largeur, dans l'ordre natif (aucune interaction masquée) */
+  body.mobile-mode .kr-nav-rows .kr-rooms > li:nth-child(n+4) {
+    grid-column: 1 / -1;
+  }
+
+  /* Mode « tuiles » (cas réel : le lien ne contient que l'image 60×60 qui porte le nom et le cadenas) :
+     image entière, non réduite, en grille à droite de la croix ; aucune interaction masquée */
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-rooms {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    grid-auto-rows: 60px;
+    align-content: start;
+    gap: 2px;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-thumb img {
+    width: 60px;
+    height: 60px;
+    border-radius: 0;
+  }
+
+  /* Pièce courante : cadre épais dans les couleurs du thème + pastille « ici » (repère indépendant de la couleur) */
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile[aria-current="true"] {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile[aria-current="true"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--kr-highlight);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-here {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    z-index: 1;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-room {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 50px;
+    margin: 0;
+    padding: 4px 8px 4px 4px;
+    border: 1px solid var(--kr-border-default);
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    text-decoration: none;
+    white-space: normal;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-room:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-room:active {
+    background: var(--kr-bg-hover);
+    color: var(--kr-text-primary);
+    text-decoration: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    background: var(--kr-bg-page);
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    max-width: none;
+    margin: 0;
+    border-radius: 3px;
+    object-fit: contain;
+  }
+
+  /* Cadenas et autres images natives en surimpression de la vignette */
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb img + img {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 12px;
+    height: 13px;
+    border-radius: 0;
+  }
+
+  /* Nom entier : retour à la ligne, même sans espace ; jamais d'ellipse ni de coupure */
+  body.mobile-mode .kr-nav-v2 .kr-room-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  /* Pièce courante : repère indépendant de la couleur (bordure marquée + liseré + pastille « ici ») */
+  body.mobile-mode .kr-nav-v2 a.kr-room[aria-current="true"] {
+    border: 2px solid var(--kr-highlight);
+    padding-left: 3px;
+    box-shadow: inset 4px 0 0 var(--kr-highlight);
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-here {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 6px;
+    border-radius: 9px;
+    background: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    line-height: 1;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
 }
 
 /* ============================================

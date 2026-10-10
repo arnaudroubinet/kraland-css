@@ -15,6 +15,7 @@
     "test:map-exclusions": "node tests/e2e/map-exclusions.mjs",
     "test:qualite-usage": "node tests/e2e/plateau-qualite-usage.mjs",
     "test:profil-mobile": "node tests/e2e/plateau-profil-mobile.mjs",
+    "test:croix": "node tests/e2e/croix-directionnelle.mjs",
     "test:image-fallback": "node tests/e2e/image-fallback.mjs",
     "audit:map-images": "node tests/e2e/audit-map-images.mjs --online",
     "lint:css": "stylelint \"**/*.css\"",
