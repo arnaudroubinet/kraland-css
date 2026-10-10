@@ -2238,9 +2238,9 @@ footer .container.white {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: var(--kr-badge-pnj);
+  background: #c9302c; /* PLT-10 : blanc sur #c9302c = 5,9:1 */
   color: var(--kr-white);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   padding: 2px 5px;
   border-radius: 3px;
@@ -2764,7 +2764,7 @@ html[class*="-dark"] .dashboard-card-name {
 }
 
 html[class*="-dark"] .dashboard-card-status {
-  color: var(--kr-text-muted);
+  color: var(--kr-text-secondary); /* PLT-10 : --kr-text-muted passait sous 4,5:1 */
 }
 
 html[class*="-dark"] .dashboard-section {
@@ -4581,7 +4581,7 @@ body > map {
     
     .mobile-mini-profile-clock {
       font-size: 12px !important;
-      color: var(--kr-text-muted) !important;
+      color: var(--kr-text-secondary) !important;
       margin-left: 8px !important;
     }
     
@@ -11090,5 +11090,262 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
 
   .page-accueil #player-header-section .pagination {
     display: none;
+  }
+}
+
+/* ============================================================================
+   PLATEAU - CORRECTIONS TRANCHE 1 (audit UX PLT-04, 06, 08 à 12)
+   ============================================================================ */
+
+/* PLT-06 : la marge négative des .row dépassait du conteneur #content (sans
+   padding) et créait 15 px de défilement horizontal en desktop. */
+@media (min-width: 768px) {
+  #content.container > .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* PLT-09 : le bouton « retour en haut » ne recouvre plus le contenu :
+     une gouttière lui est réservée tant que la fenêtre n'en offre pas une. */
+  .container.white .kraland-back-to-top {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 8px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1699px) {
+  #content.container {
+    padding-right: 48px;
+  }
+}
+
+/* PLT-01 : bandeau proposé quand le rechargement est différé (saisie en cours) */
+#kr-resize-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  max-width: calc(100vw - 24px);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--kr-navbar-bg);
+  border: 1px solid var(--kr-border-strong);
+  color: var(--kr-white);
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgb(0,0,0,0.4);
+}
+
+#kr-resize-banner button {
+  margin-left: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--kr-highlight);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kr-highlight);
+  font-size: 14px;
+}
+
+#kr-resize-banner button:focus-visible {
+  outline: 2px solid var(--kr-highlight);
+  outline-offset: 2px;
+}
+
+/* PLT-09 : bouton « retour en haut » masqué en haut de page, et réserve en bas de page en mobile */
+.container.white .kraland-back-to-top:not(.kr-btt-visible) {
+  visibility: hidden;
+  opacity: 0;
+}
+
+@media (max-width: 767px) {
+  .container.white .kraland-back-to-top {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  body.mobile-mode {
+    padding-bottom: 52px;
+  }
+}
+
+/* PLT-10 : textes sous le ratio WCAG AA 4,5:1 (thèmes sombres) */
+html[class*="-dark"] a.btn-primary,
+html[class*="-dark"] button.btn-primary {
+  color: #f5f1ed;
+}
+
+.kraland-css-version span span {
+  color: var(--kr-highlight) !important;
+}
+
+.kraland-css-version {
+  color: var(--kr-text-secondary) !important;
+}
+
+/* PLT-11 : le survol ne doit jamais baisser le contraste du texte */
+html[class*="-dark"] .btn-default:hover,
+html[class*="-dark"] .list-group-item.btn:hover,
+html[class*="-dark"] a.list-group-item.btn-default:hover {
+  color: var(--kr-highlight);
+  background-color: var(--kr-bg-active);
+}
+
+@media (min-width: 768px) {
+  .navbar-nav > li > a:hover,
+  .navbar-nav > li.open > a,
+  .navbar-nav > li > a:focus {
+    background-color: rgb(255,255,255,0.08) !important;
+    color: var(--kr-white) !important;
+  }
+}
+
+/* PLT-12 : focus clavier visible dans la barre de navigation */
+.navbar a:focus-visible,
+.navbar button:focus-visible,
+.navbar-toggle:focus-visible {
+  outline: 2px solid var(--kr-highlight) !important;
+  outline-offset: -2px !important;
+}
+
+/* PLT-08 : le chevron du mini-profil mobile ne recouvre plus la valeur PP */
+@media (max-width: 767px) {
+  .mobile-mini-profile-gauges-compact {
+    padding-right: 28px !important;
+  }
+}
+
+/* PLT-04 : desktop compact de 768 à 991 px (convention 767/768 conservée).
+   Barre fixe sur une ligne avec menu repliable, panneau joueur en tête,
+   colonne d'icônes en grille horizontale. */
+@media (min-width: 768px) and (max-width: 991px) {
+  nav.navbar {
+    height: 60px !important;
+    max-height: 60px !important;
+  }
+
+  nav.navbar > .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  nav.navbar .navbar-header {
+    float: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+  }
+
+  nav.navbar .navbar-header .navbar-brand {
+    order: -1;
+  }
+
+  nav.navbar .navbar-toggle {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 44px;
+    height: 44px;
+    margin: 0 0 0 auto;
+    padding: 0;
+    float: none;
+    border-color: var(--kr-border-strong);
+  }
+
+  nav.navbar .navbar-toggle .icon-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    margin: 0;
+    background-color: var(--kr-white);
+  }
+
+  nav.navbar .navbar-collapse.collapse {
+    display: none !important;
+  }
+
+  nav.navbar .navbar-collapse.collapse.in {
+    display: block !important;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    height: auto !important;
+    max-height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+    background: var(--kr-navbar-bg);
+    border-top: 1px solid rgb(255,255,255,0.1);
+  }
+
+  nav.navbar .navbar-nav,
+  nav.navbar .navbar-nav.navbar-right {
+    float: none !important;
+    margin: 0;
+  }
+
+  nav.navbar .navbar-nav > li {
+    float: none;
+  }
+
+  nav.navbar .navbar-nav.navbar-right {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  /* Panneau joueur, puis grille d'icônes, puis le reste */
+  #content.container > .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  #content.container > .row > #col-left {
+    order: 1;
+    width: 100%;
+  }
+
+  #content.container > .row > #col-leftest {
+    order: 2;
+    width: 100%;
+  }
+
+  #content.container > .row > #col-right {
+    order: 3;
+    width: 100%;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 8px;
+    margin: 0;
+  }
+
+  #col-leftest .grid-transformed > .row::before,
+  #col-leftest .grid-transformed > .row::after {
+    display: none;
+  }
+
+  #col-leftest .grid-transformed > .row > [class*="col-"] {
+    float: none;
+    width: auto;
+    padding: 0 4px;
+    margin-bottom: 4px !important;
   }
 }

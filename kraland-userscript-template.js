@@ -296,6 +296,95 @@
     // Écoute du resize via le gestionnaire centralisé
     ResizeManager.add(initMobileMode, 250);
 
+    // === Bascule mobile/desktop : règle unique et symétrique (PLT-01/02/03) ===
+    // Les modules (barre d'onglets, mini-profil, styles inline...) ne se construisent
+    // qu'au chargement : au franchissement du seuil, dans un sens comme dans l'autre,
+    // on recharge la page (défilement restauré), sauf si une saisie est en cours.
+    const RELOAD_KEY = 'kr-breakpoint-reload';
+    const RELOAD_MAX_AGE_MS = 15000;
+    const RESIZE_SETTLE_MS = 400;
+    const loadedAsMobile = isMobileDevice();
+
+    function hasPendingInput() {
+      const active = document.activeElement;
+      if (active && (active.isContentEditable || (active.matches && active.matches('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"])')))) {
+        return true;
+      }
+      const fields = document.querySelectorAll('textarea, input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="url"], input[type="tel"]');
+      return Array.prototype.some.call(fields, function (field) {
+        return field.value !== field.defaultValue;
+      });
+    }
+
+    function showReloadBanner() {
+      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+      const banner = document.createElement('div');
+      banner.id = 'kr-resize-banner';
+      banner.setAttribute('role', 'status');
+      const text = document.createElement('span');
+      text.textContent = 'Affichage à adapter à cette taille de fenêtre. ';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Recharger';
+      button.addEventListener('click', function () {
+        reloadKeepingScroll();
+      });
+      banner.appendChild(text);
+      banner.appendChild(button);
+      document.body.appendChild(banner);
+    }
+
+    function hideReloadBanner() {
+      const banner = document.getElementById('kr-resize-banner');
+      if (banner) {banner.remove();}
+    }
+
+    function reloadKeepingScroll() {
+      try {
+        sessionStorage.setItem(RELOAD_KEY, JSON.stringify({
+          y: window.scrollY,
+          url: location.pathname + location.search,
+          at: Date.now()
+        }));
+      } catch (_e) { /* sessionStorage indisponible : rechargement sans restauration */ }
+      location.reload();
+    }
+
+    function checkBreakpointCrossing() {
+      if (!document.body) {return;}
+      if (isMobileDevice() === loadedAsMobile) {
+        hideReloadBanner();
+        return;
+      }
+      if (hasPendingInput()) {
+        showReloadBanner();
+        return;
+      }
+      reloadKeepingScroll();
+    }
+
+    function restoreScrollAfterReload() {
+      let saved = null;
+      try {
+        saved = JSON.parse(sessionStorage.getItem(RELOAD_KEY) || 'null');
+        sessionStorage.removeItem(RELOAD_KEY);
+      } catch (_e) { return; }
+      if (!saved || Date.now() - saved.at > RELOAD_MAX_AGE_MS || saved.url !== location.pathname + location.search) {return;}
+      // Le contenu s'allonge pendant l'initialisation des modules : plusieurs tentatives
+      [0, 150, 400, 900, 1800].forEach(function (delay) {
+        setTimeout(function () {
+          window.scrollTo(0, saved.y);
+        }, delay);
+      });
+    }
+
+    ResizeManager.add(checkBreakpointCrossing, RESIZE_SETTLE_MS);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restoreScrollAfterReload);
+    } else {
+      restoreScrollAfterReload();
+    }
+
     // Export global pour debug
     window.KralandMobile = {
       isMobile: isMobileDevice,
@@ -2550,7 +2639,7 @@
     badge.textContent = text;
     Object.assign(badge.style, {
       position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#d9534f', color: '#fff',
+      backgroundColor: '#c9302c', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -2565,7 +2654,7 @@
     badge.textContent = text;
     Object.assign(badge.style, {
       position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#007bff', color: '#fff',
+      backgroundColor: '#0069d9', color: '#fff',
       borderRadius: '50%', width: '19px', height: '19px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
@@ -6243,6 +6332,13 @@
       } else if (back.parentElement !== footer) {
         footer.appendChild(back);
       }
+
+      // PLT-09 : le bouton n'apparaît qu'une fois la page défilée (il ne masque plus le haut de page)
+      const updateBackVisibility = () => {
+        back.classList.toggle('kr-btt-visible', window.scrollY > 400);
+      };
+      window.addEventListener('scroll', updateBackVisibility, { passive: true });
+      updateBackVisibility();
     }
 
     // Bootstrap 3.3 sticky footer: use margin-bottom on body
@@ -8390,13 +8486,8 @@
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
-    // Gérer le redimensionnement de la fenêtre via le gestionnaire centralisé
-    ResizeManager.add(() => {
-      const nowMobile = window.innerWidth < 768;
-      if (nowMobile !== isMobile) {
-        location.reload(); // Recharger si on passe desktop <-> mobile
-      }
-    }, 250);
+    // Le franchissement du seuil mobile/desktop est géré dans les deux sens
+    // par checkBreakpointCrossing (voir TASK-1.1).
   }
 
   /**
