@@ -128,11 +128,16 @@
   --kr-overlay-dark-20: rgba(0, 0, 0, 0.2);
   --kr-overlay-dark-30: rgba(0, 0, 0, 0.3);
   --kr-overlay-dark-125: rgba(0, 0, 0, 0.125);
+
+  /* PLT-QU : pastille de niveau = accent du thème ; le rouge reste réservé aux alertes */
+  --kr-level-bg: var(--kr-highlight);
+  --kr-level-fg: var(--kr-white);
 }
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
+  --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
 }
 
 html.kr-theme-variant-paladium {
@@ -173,6 +178,7 @@ html[class*="-dark"] {
   --kr-bg-active: rgba(255, 255, 255, 0.06);
   --kr-border-default: rgb(255,255,255,0.08);
   --kr-border-strong: rgb(255,255,255,0.15);
+  --kr-level-fg: var(--kr-highlight-reverse); /* PLT-QU : texte de pastille sur l'accent sombre */
   --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
   --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
   --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
@@ -11436,5 +11442,565 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     width: auto;
     padding: 0 4px;
     margin-bottom: 4px !important;
+  }
+}
+
+/* ============================================================================
+   PLT-QU : qualité d'usage du plateau
+   Compétences nommées et lisibles, commandes en grilles alignées, texte utile
+   d'au moins 11 px, en-têtes de groupe calmes, barre de navigation compactée.
+   Mobile : max-width 767px ; desktop : min-width 768px (puis paliers 992 / 1360 / 1440).
+   Les couleurs passent par les jetons du thème : les 15 variantes en héritent.
+   ============================================================================ */
+
+/* Pastilles de niveau : jetons --kr-level-bg / --kr-level-fg définis en tête de feuille (section 1). */
+
+/* --- Pastilles et cellules d'icônes : desktop et tablette (>= 768 px) --- */
+@media (min-width: 768px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--kr-cell);
+    height: var(--kr-cell);
+    min-width: var(--kr-cell);
+    min-height: var(--kr-cell);
+    margin: 0;
+    padding: 0;
+  }
+
+  #col-leftest .kr-skill-icon {
+    position: relative;
+    display: block;
+    width: var(--kr-icon);
+    height: var(--kr-icon);
+    color: var(--kr-text-secondary);
+  }
+
+  #col-leftest .kr-skill-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Repli quand l'image d'icône ne charge pas : trois lettres du nom */
+  #col-leftest .kr-icon-fallback,
+  #col-leftest .kr-stat-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--kr-text-primary);
+  }
+
+  /* La pastille reste DANS la boîte de la cellule : coin bas-droit de l'icône */
+  #col-leftest .kr-skill-badge,
+  #col-leftest .kr-stat-badge {
+    position: absolute;
+    top: auto; /* neutralise .btn .badge { top: -1px } de Bootstrap */
+    right: calc((var(--kr-icon) - var(--kr-cell)) / 2);
+    bottom: calc((var(--kr-icon) - var(--kr-cell)) / 2);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border: 1px solid var(--kr-bg-surface);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  #col-leftest .kr-skill-badge.is-level,
+  #col-leftest .kr-stat-badge.is-level {
+    background-color: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+  }
+
+  #col-leftest .kr-skill-badge.is-zero,
+  #col-leftest .kr-stat-badge.is-zero {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-strong);
+    color: var(--kr-text-secondary);
+  }
+
+  /* Légende masquée par défaut (pointeur précis) : l'étiquette de survol la remplace */
+  #col-leftest .kr-skill-caption {
+    display: none;
+  }
+
+  /* Étiquette « Nom · N » au survol et au focus clavier, sans décaler la grille */
+  #col-leftest .kr-icon-cell::after {
+    content: attr(data-kr-label);
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 40;
+    padding: 3px 8px;
+    border: 1px solid var(--kr-border-strong);
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+    box-shadow: var(--kr-shadow-md);
+    color: var(--kr-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+
+    /* display:none (et non visibility) : une étiquette cachée ne doit pas agrandir la zone de défilement */
+    display: none;
+  }
+
+  #col-leftest .kr-icon-cell:focus-visible::after {
+    display: block;
+  }
+
+  #col-leftest .kr-icon-cell:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: 1px;
+  }
+
+  /* Grille : le nombre de colonnes suit la largeur réellement disponible */
+  #col-leftest .panel-body.grid-transformed {
+    padding: 8px 3px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--kr-track, 40px), 1fr));
+    gap: 6px 2px;
+    justify-items: center;
+    margin: 0;
+  }
+
+  #col-leftest .grid-transformed > .row::before,
+  #col-leftest .grid-transformed > .row::after {
+    display: none;
+  }
+
+  #col-leftest .grid-transformed > .row > [class*="col-"] {
+    display: flex;
+    float: none;
+    justify-content: center;
+    width: auto;
+    margin: 0 !important;
+    padding: 0;
+  }
+}
+
+/* Survol : seulement avec un pointeur qui sait survoler (un toucher ne laisse pas l'étiquette collée) */
+@media (min-width: 768px) and (hover: hover) {
+  #col-leftest .kr-icon-cell:hover::after {
+    display: block;
+  }
+}
+
+/* Tactile et tablette large : aucune information ne dépend du survol.
+   Le nom s'affiche en légende sous l'icône (11 px, sur 2 lignes si besoin). */
+@media (min-width: 768px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 64px;
+  }
+
+  #col-leftest .kr-icon-cell.btn {
+    width: 100%;
+    height: auto;
+    min-height: 48px;
+    padding: 4px 2px;
+  }
+
+  #col-leftest .kr-skill-caption {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 11px;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal; /* neutralise .btn { white-space: nowrap } */
+  }
+
+  #col-leftest .kr-icon-cell::after,
+  #col-leftest .kr-icon-cell:focus-visible::after {
+    display: none;
+  }
+}
+
+/* Largeur desktop intermédiaire : colonne étroite, icônes réduites (28 px minimum) */
+@media (min-width: 992px) {
+  #col-leftest {
+    padding-right: 4px;
+    padding-left: 10px;
+  }
+
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 34px;
+    --kr-icon: 28px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 33px;
+  }
+}
+
+@media (min-width: 992px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 60px;
+  }
+}
+
+@media (min-width: 1360px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 40px;
+  }
+}
+
+@media (min-width: 1360px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 64px;
+  }
+}
+
+/* La cellule 40 px des paliers étroits ne s'applique pas à la rangée horizontale 768-991 */
+@media (min-width: 768px) and (max-width: 991px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 44px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 72px;
+  }
+}
+
+/* --- Pastilles et légendes : mobile (le panneau reste masqué dans le mode mobile actuel) --- */
+@media (max-width: 767px) {
+  .kr-skill-icon {
+    position: relative;
+    display: block;
+    width: 32px;
+    height: 32px;
+  }
+
+  .kr-skill-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .kr-skill-badge,
+  .kr-stat-badge {
+    position: absolute;
+    top: auto;
+    right: -4px;
+    bottom: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border: 1px solid var(--kr-bg-surface);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .kr-skill-badge.is-level,
+  .kr-stat-badge.is-level {
+    background-color: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+  }
+
+  .kr-skill-badge.is-zero,
+  .kr-stat-badge.is-zero {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-strong);
+    color: var(--kr-text-secondary);
+  }
+
+  .kr-icon-cell.btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    min-height: 56px;
+    padding: 4px 2px;
+  }
+
+  .kr-skill-caption {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 11px;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal; /* neutralise .btn { white-space: nowrap } */
+  }
+}
+
+/* --- Commandes : deux grilles à 2 colonnes égales, même gouttière et même bord gauche --- */
+@media (min-width: 768px) {
+  /* Même bord gauche que les accès rapides, sans dépendre des marges négatives de .row */
+  #player-actions-section {
+    margin-right: 0;
+    margin-left: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  #player-actions-section .kr-action-grid {
+    flex: 1 1 100%;
+  }
+
+  /* Le séparateur d'origine n'a plus de groupe à séparer */
+  #player-actions-section .kr-action-grid ~ hr {
+    display: none;
+  }
+
+  .kr-action-grid,
+  .kr-quick-access-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kr-quick-access-buttons {
+    margin-top: 10px;
+  }
+
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 34px;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 768px) and (pointer: coarse) {
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  .kr-action-grid,
+  .kr-quick-access-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kr-quick-access-buttons {
+    margin-top: 10px;
+  }
+
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+/* --- Texte utile : plancher de 11 px (statuts et noms à 12 px quand la place le permet) --- */
+@media (min-width: 768px) {
+  .dashboard-section-header {
+    font-size: 12px;
+  }
+
+  .dashboard-section-header .badge {
+    font-size: 11px;
+  }
+
+  .dashboard-card-status {
+    font-size: 12px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .dashboard-card-pnj {
+    font-size: 11px;
+  }
+
+  /* Les boutons d'action de la carte (profil, message) ne recouvrent plus la ligne de statut */
+  .dashboard-card:has(.dashboard-card-actions) .dashboard-card-body {
+    padding-bottom: 30px;
+  }
+
+  .xmini,
+  footer a {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-section-header {
+    font-size: 12px;
+  }
+
+  .dashboard-section-header .badge {
+    font-size: 11px;
+  }
+
+  body.mobile-mode .dashboard-card-status {
+    font-size: 12px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .dashboard-card-pnj {
+    font-size: 11px;
+  }
+
+  footer a,
+  .xmini,
+  body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
+    font-size: 11px;
+  }
+
+  /* Mini-profil mobile et barre d'onglets : 10 px -> 11 px (règles d'origine en !important) */
+  body.mobile-mode .mobile-gauge-compact-label,
+  body.mobile-mode .mobile-gauge-compact-value,
+  body.mobile-mode .mobile-tab-label {
+    font-size: 11px !important;
+  }
+
+  /* Noms de bâtiment et de produits : 10 px -> 12 px */
+  body.mobile-mode .building-section-content h4.list-group-item-heading {
+    font-size: 12px !important;
+  }
+}
+
+/* --- En-têtes de groupe calmes : surface du thème + filet d'accent, au lieu de l'aplat plein --- */
+@media (min-width: 768px) {
+  .dashboard-section-header {
+    border-left: 4px solid var(--kr-primary);
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn:hover {
+    border-color: var(--kr-highlight);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-highlight);
+  }
+
+  .dashboard-section-header .badge {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-section-header,
+  .dashboard-section-header-accordion {
+    border-left: 4px solid var(--kr-primary);
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .badge {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  /* L'accordéon se manipule aussi au clavier : focus visible */
+  .dashboard-section-header-accordion:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: -2px;
+  }
+}
+
+/* --- Barre de navigation compactée de 992 à 1439 px, SANS burger plus tôt (seuil 992 inchangé) --- */
+@media (min-width: 992px) {
+  nav.navbar .navbar-nav > li > a {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 13px;
+  }
+
+  nav.navbar .navbar-nav.navbar-right > li > a {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}
+
+/* Retour à l'existant dès que la barre tient d'origine sur une rangée */
+@media (min-width: 1440px) {
+  nav.navbar .navbar-nav > li > a {
+    padding-right: 15px;
+    padding-left: 15px;
+    font-size: 14px;
+  }
+
+  nav.navbar .navbar-nav.navbar-right > li > a {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 }
