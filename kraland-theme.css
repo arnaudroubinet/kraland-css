@@ -4805,6 +4805,30 @@ body > map {
       text-wrap: balance;
     }
 
+    /* Icône : cadre et image alignés sur les 32 px naturels des GIF. Le thème force 40 px sur
+       .list-group-item img (0,2,1) !important : on le dépasse ici pour ne pas déborder du cadre ni agrandir le GIF */
+    .mobile-mini-profile .kr-skill-icon {
+      position: relative !important;
+      display: block !important;
+      flex: none !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    .mobile-mini-profile .kr-skill-icon .kr-skill-img {
+      display: block !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    /* Pastille : coin bas-droit de l'icône. Bootstrap .btn .badge (0,2,0) la passait en relative avec top -1px,
+       sous l'icône et sur la légende : on neutralise position et les 4 côtés hérités */
+    .mobile-mini-profile .kr-skill-icon .kr-skill-badge,
+    .mobile-mini-profile .kr-skill-icon .kr-stat-badge {
+      position: absolute !important;
+      inset: auto -4px -4px auto !important;
+    }
+
     /* Chevron expand/collapse */
     .mobile-mini-profile-chevron {
       position: absolute !important;

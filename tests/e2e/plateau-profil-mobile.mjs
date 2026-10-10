@@ -26,9 +26,19 @@ const STATS = ['FOR', 'VOL', 'CHA', 'GES', 'INT', 'PER'];
 
 // Fixture : on remplace les 4 compétences et 2 caractéristiques de la fixture par les 18 + 6 du jeu réel
 const base = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-qualite-usage.html'), 'utf8');
-const skillsHtml = SKILLS.map((n, i) => `<a class="list-group-item ds_game alert11${i + 1}" href="#"><h4 class="list-group-item-heading"><span class="mini">${n}</span> <span class="mention">${LEVELS[i]}</span></h4></a>`).join('\n');
+const skillsHtml = SKILLS.map((n, i) => `<a class="list-group-item ds_game alert11${i + 1}" href="#" style="padding:5px"><h4 class="list-group-item-heading"><span class="mini">${n}</span> <span class="mention">${LEVELS[i]}</span></h4></a>`).join('\n');
 const statsHtml = STATS.map((n, i) => `<div class="col-md-6"><a class="btn btn-success alert12${i + 1} mini" href="#">${n} ${i + 2}</a></div>`).join('\n');
+// Règles Bootstrap 3.3.7 du site en jeu (copiées de bootstrap.css 3.3.7) : sans elles la cascade testée n'est pas celle du site
+// (.btn .badge en (0,2,0) l'emporte sur .kr-skill-badge ; l'image de .list-group-item est forcée à 40 px par le thème)
+const BOOTSTRAP = `
+    .btn { display: inline-block; padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: 400; line-height: 1.42857143; text-align: center; white-space: nowrap; vertical-align: middle; cursor: pointer; border: 1px solid transparent; border-radius: 4px; }
+    .badge { display: inline-block; min-width: 10px; padding: 3px 7px; font-size: 12px; font-weight: 700; line-height: 1; color: #fff; text-align: center; white-space: nowrap; vertical-align: middle; background-color: #777; border-radius: 10px; }
+    .btn .badge { position: relative; top: -1px; }
+    .btn-xs .badge, .btn-group-xs > .btn .badge { top: 0; padding: 1px 5px; }
+    .list-group-item { position: relative; display: block; padding: 10px 15px; margin-bottom: -1px; background-color: #fff; border: 1px solid #ddd; }
+`;
 const html = base
+  .replace('</style>', BOOTSTRAP + '  </style>')
   .replace(/<a class="list-group-item ds_game alert111"[\s\S]*?alert114[\s\S]*?<\/a>/, skillsHtml)
   .replace(/<div class="btn-group-xs">[\s\S]*?<\/div><\/div>/, `<div class="row">${statsHtml}</div></div>`);
 
@@ -85,7 +95,9 @@ const measure = () => page.evaluate(() => {
         cap: cap ? { text: cap.textContent, font: parseFloat(capCs.fontSize), rect: R(cap), lines: Math.round(R(cap).h / parseFloat(capCs.lineHeight)), scrollW: cap.scrollWidth, clientW: cap.clientWidth, display: capCs.display } : null,
         img: img ? R(img) : null,
         badge: badge ? R(badge) : null,
-        badgePos: badge ? getComputedStyle(badge).position : null
+        badgePos: badge ? getComputedStyle(badge).position : null,
+        badgeTop: badge ? getComputedStyle(badge).top : null,
+        frame: c.querySelector('.kr-skill-icon') ? R(c.querySelector('.kr-skill-icon')) : null
       };
     }),
     clicks: window.__clicks
@@ -128,7 +140,7 @@ async function runWidth(width, expectedSkillCols) {
   check(`${expectedSkillCols} colonnes de compétences`, () => assert.equal(s.skillsBox.cols, expectedSkillCols));
   check('6 colonnes de caractéristiques, sans débordement', () => { assert.equal(s.statsBox.cols, 6); assert.ok(s.statsBox.scrollW <= s.statsBox.clientW + 1); });
   check('padding .btn 12px 20px et min-width 64 px neutralisés sur les clones', () => assert.ok(s.cells.every((c) => c.padL <= 4 && c.padR <= 4 && c.minW === '0px'), JSON.stringify(s.cells.map((c) => [c.padL, c.minW]).slice(0, 3))));
-  check('plus de style inline sur les clones', () => assert.ok(s.cells.every((c) => !c.inline), JSON.stringify(s.cells.map((c) => c.inline).filter(Boolean).slice(0, 2))));
+  check('seul le style natif padding:5px du site subsiste sur les clones (neutralisé par le thème)', () => assert.ok(s.cells.every((c) => !c.inline || c.inline === 'padding:5px'), JSON.stringify(s.cells.map((c) => c.inline).filter((x) => x && x !== 'padding:5px').slice(0, 2))));
   check('aucun chevauchement entre les 24 cellules', () => assert.deepEqual(overlaps(s.cells), []));
   check('aucune cellule ne déborde du conteneur ni de l\'écran', () => assert.ok(s.cells.every((c) => c.rect.x >= 0 && c.rect.r <= width + 0.5)));
   check('contenu de chaque cellule dans sa boîte (pas de débordement)', () => assert.ok(s.cells.every((c) => c.scrollW <= c.clientW + 1), JSON.stringify(s.cells.filter((c) => c.scrollW > c.clientW + 1).map((c) => c.cap.text))));
@@ -139,6 +151,9 @@ async function runWidth(width, expectedSkillCols) {
   check('nom complet accessible (aria-label) sur les 24 cellules', () => assert.ok(s.cells.every((c) => c.label && c.label.length > 3), JSON.stringify(s.cells.map((c) => c.label).slice(0, 8))));
   check('icônes intégrales (32 px) dans leur cellule', () => assert.ok(s.cells.every((c) => c.img && c.img.w >= 31.5 && c.img.h >= 31.5 && c.img.x >= c.rect.x - 0.5 && c.img.r <= c.rect.r + 0.5 && c.img.y >= c.rect.y - 0.5 && c.img.b <= c.rect.b + 0.5)));
   check('pastille au coin bas-droit de l\'icône, dans la cellule', () => assert.ok(s.cells.every((c) => c.badge && c.badgePos === 'absolute' && c.badge.x >= c.rect.x - 0.5 && c.badge.r <= c.rect.r + 0.5 && c.badge.y >= c.rect.y - 0.5 && c.badge.b <= c.rect.b + 0.5 && c.badge.x + c.badge.w / 2 >= c.img.x + c.img.w / 2 && c.badge.y + c.badge.h / 2 >= c.img.y + c.img.h / 2), JSON.stringify(s.cells.filter((c) => !(c.badge.r <= c.rect.r + 0.5)).map((c) => c.cap.text))));
+  check('pastille : position calculée absolute (cascade Bootstrap .btn .badge dépassée)', () => assert.ok(s.cells.every((c) => c.badgePos === 'absolute'), JSON.stringify(s.cells.filter((c) => c.badgePos !== 'absolute').map((c) => [c.cap.text, c.badgePos, c.badgeTop]))));
+  check('image et cadre d\'icône alignés (même rectangle, 32 px naturels, aucune coupe)', () => assert.ok(s.cells.every((c) => c.frame && Math.abs(c.img.w - c.frame.w) < 0.5 && Math.abs(c.img.h - c.frame.h) < 0.5 && Math.abs(c.img.x - c.frame.x) < 0.5 && Math.abs(c.img.y - c.frame.y) < 0.5 && c.img.w === 32), JSON.stringify(s.cells.filter((c) => !c.frame || c.img.w !== c.frame.w).map((c) => [c.cap.text, c.img.w, c.frame && c.frame.w]))));
+  check('pastille dans le quart bas-droit de l\'image visible, hors légende (0 px de recouvrement)', () => assert.ok(s.cells.every((c) => c.badge.x + c.badge.w / 2 >= c.img.x + c.img.w / 2 && c.badge.y + c.badge.h / 2 >= c.img.y + c.img.h / 2 && c.badge.y + c.badge.h / 2 <= c.img.b + 4 && c.badge.b <= c.cap.rect.y + 0.5), JSON.stringify(s.cells.filter((c) => c.badge.b > c.cap.rect.y + 0.5).map((c) => [c.cap.text, c.badge.b, c.cap.rect.y]))));
   check('pastille hors de la légende', () => assert.ok(s.cells.every((c) => c.badge.b <= c.cap.rect.y + 0.5 || c.badge.r <= c.cap.rect.x + 0.5 || c.badge.x >= c.cap.rect.r - 0.5), JSON.stringify(s.cells.filter((c) => c.badge.b > c.cap.rect.y + 0.5).map((c) => c.cap.text))));
   check('toutes les rangées visibles : panneau à la hauteur de son contenu', () => {
     assert.ok(s.skillsBox.scrollH <= s.skillsBox.clientH + 1, `${s.skillsBox.scrollH} > ${s.skillsBox.clientH}`);
@@ -177,7 +192,7 @@ console.log('Profil à 768 px (desktop inchangé)');
 const d = await measure();
 check('768 : mode desktop, pas de mini-profil', () => { assert.ok(!d.mobile); assert.ok(!d.exists); });
 const desk = await page.evaluate(() => [...document.querySelectorAll('#skills-panel a.kr-skill')].map((a) => a.getAttribute('style')));
-check('768 : 18 compétences du panneau latéral sans style inline', () => { assert.equal(desk.length, 18); assert.ok(desk.every((x) => !x)); });
+check('768 : 18 compétences du panneau latéral sans style inline ajouté (padding:5px natif toléré)', () => { assert.equal(desk.length, 18); assert.ok(desk.every((x) => !x || x === 'padding:5px')); });
 
 await browser.close();
 console.log(failures === 0 ? '\nTous les contrôles passent.' : `\n${failures} contrôle(s) en échec.`);
