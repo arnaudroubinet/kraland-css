@@ -9590,7 +9590,11 @@ body.mobile-mode .building-section-content img.img-responsive {
    - Feedback visuel clair
    ============================================================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
+  /* Seuil unique (carte t_f4fad4a5) : 767 px comme le mode mobile JS (< 768) et Bootstrap 3 natif (xs < 768 <= sm).
+     À 768 px exactement, ce bloc s'appliquait seul (barre « Envoyer » fixe, grille réinitialisée) sans le mode mobile JS ni les
+     correctifs PR12 (max-width: 767px) : Signature masquée, smileys 0/126, outils débordants. 768 est désormais en mise en page bureau. */
+
   /* 0. LAYOUT - Fix Bootstrap grid overflow */
   
   /* Ajouter padding latéral pour ne pas coller au bord */

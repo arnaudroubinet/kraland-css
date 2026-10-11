@@ -145,9 +145,10 @@ function check(name, fn) {
 
 const browser = await chromium.launch({ headless: true });
 
-async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false, height = 800 }) {
+async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false, height = 800, touch = false }) {
   const mobile = width < 768;
-  const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
+  // touch : écran tactile à une largeur de bureau (tablette en portrait à 768 px) ; isMobile reste réservé aux largeurs < 768
+  const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: 2 });
   const state = { documents: 0, other: [] };
   const urlFor = kind === 'sujet' ? '/forum/sujet/fixture-1-2' : '/forum/post/repondre-2-FIXTURE';
   await context.route(BASE + '/**', r => {
@@ -657,6 +658,78 @@ console.log('Desktop 1280 : inchangé');
   const me = await e.page.evaluate(MEASURE);
   check('barre d\'outils native : outils de petite taille, non agrandis', () => assert.ok(me.tools.length === 18 && me.tools.every(t => t.h < 40), JSON.stringify(me.tools.map(t => t.h))));
   await e.context.close();
+}
+
+// ---------- SEUIL 768 (carte t_f4fad4a5) : un seul seuil pour le formulaire, CSS comme JS, aligné sur Bootstrap 3 natif (xs < 768 <= sm) ----------
+// Avant correctif, à 768 px exactement : mode mobile JS inactif (< 768) mais barre « Envoyer » fixe (CSS max-width: 768px) et correctifs PR12 inactifs (max-width: 767px).
+console.log('SEUIL 768 : 767 = mobile, 768 et 769 = bureau (comme Bootstrap natif), 768 tactile compris, éditeur et sujet utilisables');
+const THRESHOLD_CASES = [[767, false], [768, false], [768, true], [769, false], [769, true]];
+for (const mode of paletteModes) {
+  for (const variant of ['empire-brun-dark', 'empire-brun']) {
+    for (const [width, touch] of THRESHOLD_CASES) {
+      const mobile = width < 768;
+      const tag = `${width} px${touch && !mobile ? ' tactile' : ''} ${variant} (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
+      const shot = name => `seuil-${name}-${width}${touch && !mobile ? 't' : ''}-${variant}-${mode.realBs ? 'bs' : 'fx'}.png`;
+      const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant, touch, height: 800 });
+      const m = await p.evaluate(MEASURE);
+      const bar0 = await p.evaluate(() => getComputedStyle(document.querySelector('button.btn-primary.pull-right')).position);
+      check(`${tag} : mode mobile JS ${mobile ? 'actif' : 'inactif'} ET barre « Envoyer » ${mobile ? 'fixe' : 'dans le flux'} (même seuil CSS / JS)`, () => { assert.equal(m.mobileMode, mobile); assert.equal(bar0 === 'fixed', mobile, bar0); });
+      check(`${tag} : aucun débordement horizontal de la page ni de la barre d'outils, 18 outils dans l'écran`, () => {
+        const bad = m.tools.filter(t => !(t.ok && t.x >= -0.5 && t.x + t.w <= m.iw + 0.5));
+        assert.ok(m.overflowX <= 0, `${m.overflowX}`); assert.ok(m.toolbarScroll <= 0, `${m.toolbarScroll}`);
+        assert.equal(m.tools.length, 18); assert.equal(bad.length, 0, JSON.stringify(bad));
+      });
+      // Signature : atteignable à sa position finale, jamais sous la barre
+      await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      const end = await p.evaluate(SIGNATURE_SCROLL, 'end'); const max = await p.evaluate(SIGNATURE_SCROLL, 'max'); const foc = await p.evaluate(SIGNATURE_SCROLL, 'focus');
+      check(`${tag} : Signature atteignable (fin de page, bas d'écran, focus) sans masque`, () => {
+        for (const x of [end, max, foc]) { assert.equal(x.covered, false, JSON.stringify(x)); assert.ok(!x.barFixed || x.bottom <= x.barTop + 0.5, JSON.stringify(x)); }
+      });
+      // Smileys : 126 atteignables au défilement normal de la page (panneau dans le flux < 768, menu natif superposé >= 768)
+      await openSmileys(p, mode.realBs);
+      const sm = await p.evaluate(SMILEYS);
+      check(`${tag} : 126 smileys, 126 atteignables et touchables (défilement de la page), menu dans l'écran, pas de débordement`, () => {
+        assert.equal(sm.shown, true); assert.equal(sm.cells.length, 126);
+        assert.equal(sm.cells.filter(c => c.ok).length, 126, `${sm.cells.filter(c => c.ok).length}/126`);
+        assert.ok(inScreenX(sm.menu, sm.vw), JSON.stringify(sm.menu)); assert.ok(sm.cells.every(c => c.inX)); assert.ok(sm.overflowX <= 0, `${sm.overflowX}`);
+        assert.ok(sm.cells.every((c, i) => c.href === '#' && c.onclick === `window.__clicks.push('smiley-${i}');return false;`));
+      });
+      check(`${tag} : menu smileys ${mobile ? 'panneau dans le flux, cibles >= 44 px, sans recouvrir outils ni texte' : 'natif 320 px absolu inchangé'}`, () => {
+        if (mobile) {
+          assert.notEqual(sm.position, 'absolute'); assert.ok(sm.cells.every(c => c.w >= 44 - 0.5 && c.h >= 44 - 0.5));
+          for (const t of sm.tools) { assert.equal(overlap(sm.menu, t), false); }
+          assert.equal(overlap(sm.menu, sm.area), false);
+        } else {
+          assert.equal(sm.position, 'absolute'); assert.match(sm.style, /width:\s*320px/); assert.ok(Math.abs(sm.menu.w - 320) <= 1, JSON.stringify(sm.menu));
+        }
+      });
+      if (SHOTS) { await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await p.screenshot({ path: path.join(SHOTS, shot('smileys')) }); }
+      if (mode.realBs) { await closeNative(p); }
+      await p.evaluate(() => { document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open')); document.querySelectorAll('.dropdown-backdrop').forEach(b => b.remove()); });
+      // Envoyer : jamais recouvert ; le bouton fixe « Remonter en haut » ne le masque pas
+      {
+        const sw = await sweep(p, 40);
+        check(`${tag} : « Envoyer » toujours touchable (${sw.sendSteps} positions), « Remonter en haut » ne le recouvre pas et reste touchable`, () => { assert.equal(sw.sendInter, 0, JSON.stringify(sw.first)); assert.equal(sw.sendBad, 0, JSON.stringify(sw.first)); assert.equal(sw.backUnreachable, 0); assert.ok(sw.sendSteps > 0, `${sw.sendSteps}`); });
+      }
+      const clicks = await p.evaluate(() => window.__clicks.length);
+      check(`${tag} : rien envoyé, aucun smiley activé, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+      if (SHOTS) { await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await p.screenshot({ path: path.join(SHOTS, shot('editeur')) }); await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' })); await p.waitForTimeout(200); await p.screenshot({ path: path.join(SHOTS, shot('editeur-fin')) }); }
+      await context.close();
+      // Page du sujet : Répondre, Nouveau sujet, Remonter sans recouvrement
+      const sj = await open({ width, kind: 'sujet', realBs: mode.realBs, variant, touch, height: 800 });
+      const ms = await sj.page.evaluate(MEASURE);
+      const swS = await sweep(sj.page, 40);
+      check(`${tag} : sujet : ${mobile ? 'Répondre / Nouveau sujet en barres mobiles, >= 44 px' : 'liens natifs répondre / nouveau sujet, aucune barre ajoutée'}`, () => {
+        assert.equal(ms.mobileMode, mobile); assert.ok(ms.overflowX <= 0, `${ms.overflowX}`);
+        if (mobile) { assert.equal(ms.reponds.filter(a => a.text === 'Répondre').length, 2); assert.ok(ms.reponds.concat(ms.nouveau).every(a => a.w >= 44 && a.h >= 44)); } else { assert.equal(ms.actionBars, 0); assert.equal(ms.reponds.length, 2); assert.equal(ms.nouveau.length, 2); }
+      });
+      check(`${tag} : sujet : « Remonter en haut » ne recouvre jamais Répondre / Nouveau sujet, reste touchable`, () => { assert.equal(swS.actionInter, 0, JSON.stringify(swS.first)); assert.equal(swS.backUnreachable, 0); });
+      const clicksS = await sj.page.evaluate(() => window.__clicks.length);
+      check(`${tag} : sujet : rien cliqué, aucune navigation`, () => assert.equal(clicksS + sj.state.other.length, 0, sj.state.other.join(',')));
+      if (SHOTS) { await sj.page.screenshot({ path: path.join(SHOTS, shot('sujet')) }); }
+      await sj.context.close();
+    }
+  }
 }
 
 await browser.close();
