@@ -6,9 +6,10 @@
 // Usage : npm run build && npm run test:forum-mobile
 // Option : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal).
 // Option : KR_SHOTS=/dossier pour enregistrer des captures de fixtures.
-// Option : KR_BOOTSTRAP_DIR=/dossier contenant bootstrap.min.css, bootstrap.min.js et jquery.min.js (copies des fichiers publics du site :
-//   lib/bootstrap-3.3.7 et lib/jquery-3.3.1) : active en plus la passe « vrai Bootstrap » de la palette Couleurs (menu ouvert par le vrai
-//   gestionnaire data-toggle="dropdown"). Sans cette option, le menu est ouvert en posant la classe .open et la passe est signalée « non jouée ».
+// Passe « vrai Bootstrap » de la palette Couleurs (menu ouvert par le vrai gestionnaire data-toggle="dropdown") : jouée avec les fichiers embarqués
+//   dans tests/e2e/vendor/ (bootstrap.min.css, bootstrap.min.js, jquery.min.js : Bootstrap 3.3.7 et jQuery 3.3.1, voir vendor/README.md).
+// Option : KR_BOOTSTRAP_DIR=/dossier pour pointer vers d'autres copies. Si le dossier (par défaut ou indiqué) est incomplet, la passe est signalée
+//   « non jouée » (le menu est alors ouvert en posant la classe .open) ; le lanceur run.mjs, lui, sort en exit 2 : jamais un faux vert.
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
@@ -56,7 +57,9 @@ const BOOTSTRAP = `
   @media (min-width: 992px) { .col-md-2, .col-md-10 { float: left; position: relative; min-height: 1px; padding: 0 15px; } .col-md-2 { width: 16.66666667%; } .col-md-10 { width: 83.33333333%; } }
   @media (min-width: 768px) { .col-sm-10 { float: left; width: 83.33%; } .col-sm-2 { float: left; width: 16.66%; } .col-md-9 { width: 75%; } }
 `;
-const BS_DIR = process.env.KR_BOOTSTRAP_DIR || '';
+const BS_FILES = ['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'];
+const BS_CANDIDATE = process.env.KR_BOOTSTRAP_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
+const BS_DIR = BS_FILES.every(f => fs.existsSync(path.join(BS_CANDIDATE, f))) ? BS_CANDIDATE : '';
 // 18 couleurs de la palette (style en ligne, href javascript:addtag natif) ; la 1re porte un onclick pour vérifier qu'il est préservé
 const COLORS = ['#000000', '#7f7f7f', '#d50000', '#ff6d00', '#ffd600', '#64dd17', '#00c853', '#00bfa5', '#00b8d4', '#0091ea', '#2962ff', '#6200ea', '#aa00ff', '#c51162', '#795548', '#9e9e9e', '#ffffff', '#ffcdd2'];
 const colorHref = i => `javascript:addtag('color${i}',1);`;
@@ -365,7 +368,7 @@ async function openPalette(p, realBs) {
 }
 const overlap = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
 const paletteModes = [{ id: 'fake', name: 'fixture Bootstrap minimal (.open posé)', realBs: false }];
-if (BS_DIR) { paletteModes.push({ id: 'real', name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (KR_BOOTSTRAP_DIR absent)'); }
+if (BS_DIR) { paletteModes.push({ id: 'real', name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (fichiers Bootstrap/jQuery absents de ' + BS_CANDIDATE + ')'); }
 for (const mode of paletteModes.filter(m => frag('m2-' + m.id))) {
   console.log(`M2 : palette Couleurs — ${mode.name}`);
   // 375/390/430/700 en thème clair ET sombre ; 320 (viewport plus étroit que le menu élargi) en sombre : le menu reste borné à l'écran

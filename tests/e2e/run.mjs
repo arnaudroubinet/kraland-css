@@ -7,7 +7,9 @@
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
 // Variables : KR_CONCURRENCY (défaut min(8, CPU/2)), KR_LOGDIR (défaut $TMPDIR/kraland-e2e/<horodatage>, jamais dans le dépôt),
-//             KR_SCRIPT (bundle testé), KR_BOOTSTRAP_DIR (vrai Bootstrap 3.3.7 + jQuery : sans lui les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
+//             KR_SCRIPT (bundle testé), KR_BOOTSTRAP_DIR
+//             (dossier du vrai Bootstrap 3.3.7 + jQuery 3.3.1 ; défaut : tests/e2e/vendor/, embarqué dans le dépôt. Si le dossier, par défaut ou indiqué,
+//             est incomplet, les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
 // Chaque fragment a son journal, son dossier de captures (KR_SHOTS) et son TMPDIR : aucune ressource partagée, aucun port fixe.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -17,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const E2E = 'tests/e2e';
+const DEFAULT_BOOTSTRAP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 
 import { SUITES, ZONES, zonesFromDiff } from './lib/router.mjs';
 
@@ -27,7 +30,8 @@ function buildUnits(zones, env) {
     for (const frag of s.frags) {
       const real = frag.some(f => /(^|-)real($|-)/.test(f));
       const unit = { suite: s.name, id: `${s.name}#${frag.join('+')}`, file: s.file, env: { KR_FRAG: frag.join(',') } };
-      if (real && (!env.KR_BOOTSTRAP_DIR || !['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(env.KR_BOOTSTRAP_DIR, f))))) { unit.missingBootstrap = true; }
+      const bsDir = env.KR_BOOTSTRAP_DIR || DEFAULT_BOOTSTRAP_DIR;
+      if (real && !['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(bsDir, f)))) { unit.missingBootstrap = true; }
       units.push(unit);
     }
   }

@@ -5,7 +5,7 @@ description: Use when modifying Kraland CSS, userscript or fixture tests and cho
 
 # Tests e2e sur fixtures
 
-Depuis le dépôt, avec les dépendances déjà présentes : `KR_BOOTSTRAP_DIR` doit pointer vers le dossier contenant `bootstrap.min.css`, `bootstrap.min.js`, `jquery.min.js` (Bootstrap 3.3.7 et jQuery). Sans ce dossier, `test:all` et la zone forum refusent de prétendre à un vert incomplet. `KR_SCRIPT` permet de tester une copie jetable du bundle ; `KR_CONCURRENCY=6` plafonne le parallélisme (défaut min(8, CPU/2)). `KR_SHOTS=1` active les captures, isolées par fragment sous les journaux ; `KR_LOGDIR` permet de choisir un dossier hors dépôt, sinon un dossier temporaire unique est créé.
+Depuis le dépôt, avec les dépendances déjà présentes : aucun prérequis machine pour Bootstrap, les fichiers `bootstrap.min.css`, `bootstrap.min.js`, `jquery.min.js` (Bootstrap 3.3.7 et jQuery 3.3.1) sont embarqués dans `tests/e2e/vendor/` (voir son README) et utilisés par défaut. `KR_BOOTSTRAP_DIR=/dossier` permet de pointer ailleurs ; si le dossier (par défaut ou indiqué) est incomplet, `test:all` et la zone forum sortent en exit 2 au lieu de prétendre à un vert incomplet. `KR_SCRIPT` permet de tester une copie jetable du bundle ; `KR_CONCURRENCY=6` plafonne le parallélisme (défaut min(8, CPU/2)). `KR_SHOTS=1` active les captures, isolées par fragment sous les journaux ; `KR_LOGDIR` permet de choisir un dossier hors dépôt, sinon un dossier temporaire unique est créé.
 
 | Fichier ou zone touchée | Commande ciblée |
 |---|---|
