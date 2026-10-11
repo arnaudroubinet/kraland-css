@@ -275,6 +275,92 @@ if (frag('l1-themes')) {
   }
 }
 
+// ---------- L2 : en-tête mobile (fil d'Ariane, titre 24 px, « + Nouveau sujet » libellé en haut et sous la pagination) ----------
+const HEADER = () => {
+  const t = window.__krColorTools();
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height) }; };
+  const ratio = e => t.round(t.ratio(t.fgOn(e, t.bgOf(e)), t.bgOf(e)));
+  const h1 = document.querySelector('.container h1');
+  const crumb = h1 ? h1.querySelector('.forum-mobile-breadcrumb') : null;
+  const title = h1 ? h1.querySelector('.forum-subforum-title') : null;
+  const buttons = [...document.querySelectorAll('a[href^="forum/post/nouveau-sujet-"]')].filter(vis);
+  const pag = document.querySelector('.dataTables_paginate');
+  const crumbLinks = crumb ? [...crumb.querySelectorAll('a')] : [];
+  const current = crumb ? [...crumb.querySelectorAll('span')].find(s => s.textContent.trim() === 'Débuter') : null;
+  return {
+    iw: window.innerWidth,
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    h1Links: h1 ? h1.querySelectorAll('a').length : 0,
+    head: document.querySelectorAll('.forum-subforum-head').length,
+    titles: document.querySelectorAll('.forum-subforum-title').length,
+    titleText: title ? title.textContent.trim() : null,
+    titleVisible: title ? vis(title) : false,
+    titleFs: title ? parseFloat(getComputedStyle(title).fontSize) : 0,
+    titleRect: title ? rect(title) : null,
+    titleRatio: title && vis(title) ? ratio(title) : null,
+    crumbBack: crumbLinks.map(a => ({ text: a.textContent.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href'), vis: vis(a), ratio: vis(a) ? ratio(a) : null })),
+    crumbCurrent: current ? { text: current.textContent.trim(), vis: vis(current), ratio: vis(current) ? ratio(current) : null } : null,
+    fabs: document.querySelectorAll('.forum-new-topic-fab').length,
+    plusOnly: [...document.querySelectorAll('a')].filter(a => vis(a) && a.textContent.trim() === '+').length,
+    buttons: buttons.map(b => ({ text: b.textContent.replace(/\s+/g, ' ').trim(), href: b.getAttribute('href'), cls: b.className, ...rect(b), ratio: ratio(b) })),
+    pag: pag ? rect(pag) : null
+  };
+};
+
+const checkHeader = (label, m) => {
+  check(`${label} : fil d'Ariane « Jeu (HRP) › Débuter » (lien natif forum/hrp et titre courant)`, () => { const back = m.crumbBack.find(a => a.href === 'forum/hrp'); assert.ok(back && back.vis && /Jeu \(HRP\)/.test(back.text), JSON.stringify(m.crumbBack)); assert.ok(m.crumbCurrent && m.crumbCurrent.vis); });
+  check(`${label} : titre « Débuter » en 24 px, visible dans le premier écran`, () => { assert.equal(m.titles, 1); assert.equal(m.titleText, 'Débuter'); assert.equal(m.titleFs, 24); assert.ok(m.titleVisible && m.titleRect.y < 300); });
+  check(`${label} : deux boutons « Nouveau sujet » libellés (en-tête et sous la pagination), href recopié`, () => { assert.equal(m.buttons.length, 2, JSON.stringify(m.buttons.map(b => b.text))); assert.ok(m.buttons.every(b => /Nouveau sujet/.test(b.text) && b.href === 'forum/post/nouveau-sujet-1-20102' && /forum-thread-action-new/.test(b.cls))); });
+  check(`${label} : bouton d'en-tête à droite du titre, au moins 44 px de haut, sans prendre toute la largeur`, () => { const b = m.buttons[0]; assert.ok(b.h >= 44, 'h ' + b.h); assert.ok(b.w >= 140 && b.w <= 260, 'w ' + b.w); assert.ok(b.x + b.w >= m.iw - 24, 'bord droit ' + (b.x + b.w)); assert.ok(b.x > m.titleRect.x + m.titleRect.w - 4, 'à droite du titre'); });
+  check(`${label} : second bouton sous la pagination, au moins 44 px de haut`, () => { const b = m.buttons[1]; assert.ok(m.pag && b.y >= m.pag.y + m.pag.h - 1, `bouton y=${b.y}, pagination ${JSON.stringify(m.pag)}`); assert.ok(b.h >= 44); });
+  check(`${label} : plus de « + » sans libellé (FAB retiré du sous-forum)`, () => { assert.equal(m.fabs, 0); assert.equal(m.plusOnly, 0); });
+  check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
+};
+
+if (frag('l2-entete')) {
+  console.log('L2 : en-tête mobile du sous-forum (fil d\'Ariane, titre, « + Nouveau sujet » libellé en haut et en bas)');
+  for (const width of [375, 700]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const m = await p.evaluate(HEADER);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-entete-${width}.png`) }); }
+    checkHeader(`${width}`, m);
+    await context.close();
+    for (const [name, act] of REDRAWS) {
+      const c = await open({ width });
+      await withTools(c.page);
+      await act(c.page);
+      await settleRedraw(c.page);
+      const r = await c.page.evaluate(HEADER);
+      check(`${width} après ${name} : toujours 1 titre et 2 boutons « Nouveau sujet » (aucun double traitement)`, () => { assert.equal(r.titles, 1); assert.equal(r.head, 1); assert.equal(r.buttons.length, 2); });
+      await c.context.close();
+    }
+  }
+  for (const width of [1280, 1440]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const m = await p.evaluate(HEADER);
+    check(`${width} : en-tête natif conservé au bureau (aucun en-tête mobile, 2 liens natifs dans le h1)`, () => { assert.equal(m.head, 0); assert.equal(m.titles, 0); assert.equal(m.h1Links, 2); assert.equal(m.buttons.length, 1); assert.equal(m.fabs, 0); });
+    await context.close();
+  }
+}
+
+if (frag('l2-themes')) {
+  console.log('L2 : contrastes >= 4,5:1 de l\'en-tête mobile sur les 16 thèmes');
+  for (const variant of THEMES) {
+    const { context, page: p } = await open({ width: 375, variant });
+    await withTools(p);
+    const m = await p.evaluate(HEADER);
+    check(`375 ${variant} : titre, fil d'Ariane et boutons >= 4,5:1`, () => {
+      const v = [m.titleRatio, m.crumbCurrent && m.crumbCurrent.ratio, ...m.crumbBack.map(a => a.ratio), ...m.buttons.map(b => b.ratio)];
+      assert.ok(v.length >= 5 && v.every(x => typeof x === 'number'), JSON.stringify(v));
+      assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v));
+    });
+    await context.close();
+  }
+}
+
 await browser.close();
 console.log(failures ? `${failures} échec(s)` : 'Tous les contrôles passent');
 process.exit(failures ? 1 : 0);

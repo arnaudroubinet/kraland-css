@@ -5078,6 +5078,61 @@
   (function () {
     'use strict';
 
+    // L2 : action « + Nouveau sujet » libellée (composant PR12 : .forum-thread-action-new). Le href est recopié tel quel du lien natif du h1.
+    function createNewTopicAction(newTopicLink, extraClass) {
+      const bar = document.createElement('div');
+      bar.className = 'forum-thread-actions ' + extraClass;
+      const action = document.createElement('a');
+      action.setAttribute('href', newTopicLink.getAttribute('href'));
+      action.className = 'forum-thread-action forum-thread-action-new';
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-plus';
+      icon.setAttribute('aria-hidden', 'true');
+      action.appendChild(icon);
+      action.appendChild(document.createTextNode(' Nouveau sujet'));
+      bar.appendChild(action);
+      return bar;
+    }
+
+    // L2 : en-tête du sous-forum (mobile). Fil d'Ariane « ◀◀ Jeu (HRP) › Débuter », titre en 24 px et « + Nouveau sujet » à droite ;
+    // le même bouton est répété sous la pagination DataTables (hors du wrapper : DataTables ne le redessine pas).
+    function transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText) {
+      const crumb = document.createElement('div');
+      crumb.className = 'forum-mobile-breadcrumb';
+      const back = backLink.cloneNode(true);
+      back.className = 'forum-mobile-breadcrumb-link';
+      ['data-toggle', 'data-placement', 'data-original-title', 'title', 'style'].forEach(attr => back.removeAttribute(attr));
+      const separator = document.createElement('span');
+      separator.className = 'forum-mobile-breadcrumb-sep';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '›';
+      const current = document.createElement('span');
+      current.className = 'forum-mobile-breadcrumb-current';
+      current.textContent = titleText;
+      crumb.append(back, separator, current);
+
+      const head = document.createElement('div');
+      head.className = 'forum-subforum-head';
+      const title = document.createElement('span');
+      title.className = 'forum-subforum-title';
+      title.textContent = titleText;
+      head.append(title, createNewTopicAction(newTopicLink, 'forum-subforum-actions-top'));
+
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+      forumHeading.append(crumb, head);
+
+      if (!document.querySelector('.forum-subforum-actions-bottom')) {
+        const anchor = document.getElementById('topics_wrapper') || document.getElementById('topics');
+        anchor.insertAdjacentElement('afterend', createNewTopicAction(newTopicLink, 'forum-thread-actions-bottom forum-subforum-actions-bottom'));
+      }
+      console.log('[Forum Header Mobile] En-tête du sous-forum créé');
+    }
+
     function transformForumHeader() {
       // Uniquement en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {
@@ -5114,6 +5169,11 @@
       const backLink = links[0]; // Lien "Jeu (RP)"
       const newTopicLink = links[1]; // Lien "nouveau sujet"
 
+      // L2 (sous-forum) : la page de liste des sujets (table#topics) a son propre en-tête : fil d'Ariane, titre, « + Nouveau sujet » libellé
+      if (document.getElementById('topics') && !/\/forum\/post\//.test(window.location.pathname)) {
+        transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText);
+        return;
+      }
       // ========================================
       // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
       // ========================================

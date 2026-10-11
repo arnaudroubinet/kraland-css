@@ -12686,3 +12686,69 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
+/* L2 — en-tête mobile : fil d'Ariane, titre en 24 px, « + Nouveau sujet » (composant PR12 .forum-thread-action-new) en haut et sous la pagination. */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .container h1.page-header {
+    border-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    color: var(--kr-text-secondary);
+    font-size: 14px;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--kr-text-primary) !important;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-sep,
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-current {
+    color: var(--kr-text-secondary);
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-title {
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top .forum-thread-action,
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom .forum-thread-action {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 16px;
+    white-space: nowrap;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom {
+    justify-content: center;
+  }
+}
+
