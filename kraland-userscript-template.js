@@ -4924,6 +4924,11 @@
       const numbered = Array.from(pag.querySelectorAll('a.paginate_button')).filter(a => /^\d+$/.test(a.textContent.trim()));
       if (numbered.length === 0) {return;}
       const mobile = document.body.classList.contains('mobile-mode');
+      if (!mobile) {
+        // Bureau : pagination native conservée telle quelle (un seul « … » natif par saut) ; on retire ce que le mode mobile aurait posé.
+        pag.querySelectorAll('.kr-page-hidden').forEach(a => a.classList.remove('kr-page-hidden'));
+        return;
+      }
       const nums = numbered.map(a => Number(a.textContent.trim()));
       const first = nums[0] === 1 ? nums[0] : 1;
       const last = nums[nums.length - 1];

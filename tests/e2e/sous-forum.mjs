@@ -745,6 +745,56 @@ if (frag('l5-pagination')) {
     check(`${width} : bureau inchangé (pagination native : « Précédent » et « Suivant » en toutes lettres)`, () => assert.ok(m.items[0].name === 'Précédent' && m.seq.includes('5') && m.seq.includes('…')));
     await context.close();
   }
+  // M-1 (QA PR14) : au bureau (>= 768 px), séquences EXACTES de la pagination native (une seule « … » par saut, aucun marqueur ni classe ajoutés),
+  // identiques à celles de la base 880a3f0 ; sombre et clair ; frontière 767 / 768 / 769 ; transitions mobile-mode <-> bureau.
+  const NATIVE_P1 = ['prev', '1', '2', '3', '4', '5', '…', '15', 'next'];
+  const NATIVE_P7 = ['prev', '1', '…', '6', '7', '8', '…', '15', 'next'];
+  const NATIVE_P15 = ['prev', '1', '…', '11', '12', '13', '14', '15', 'next'];
+  const MARKS = () => ({ gaps: document.querySelectorAll('#topics_wrapper .kr-page-gap').length, hidden: document.querySelectorAll('#topics_wrapper .kr-page-hidden').length, ellipsis: document.querySelectorAll('#topics_wrapper span.ellipsis').length });
+  const goNext = async (p, times) => { for (let i = 0; i < times; i += 1) { await p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button.next').click()); await settleRedraw(p); } };
+  const checkNative = (label, m, marks, expectedSeq) => {
+    check(`${label} : séquence de pagination native exacte = ${expectedSeq.join(' ')}`, () => assert.deepEqual(m.seq, expectedSeq));
+    check(`${label} : aucun marqueur .kr-page-gap ni classe .kr-page-hidden ajouté, ${expectedSeq.filter(x => x === '…').length} « … » natif(s)`, () => assert.deepEqual(marks, { gaps: 0, hidden: 0, ellipsis: expectedSeq.filter(x => x === '…').length }));
+  };
+  for (const variant of ['empire-brun-dark', 'empire-brun']) {
+    for (const width of [768, 769, 1280, 1440]) {
+      const { context, page: p } = await open({ width, variant });
+      await withTools(p);
+      const tag = `${width} ${variant === 'empire-brun' ? 'clair' : 'sombre'}`;
+      checkNative(`${tag} page 1`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P1);
+      await goNext(p, 6);
+      checkNative(`${tag} page 7`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P7);
+      await goNext(p, 8);
+      checkNative(`${tag} page 15`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P15);
+      await context.close();
+    }
+  }
+  {
+    // Frontière : 767 reste en pagination compacte (mobile), 768 et 769 en pagination native
+    const { context, page: p } = await open({ width: 767 });
+    await withTools(p);
+    const m = await p.evaluate(PAGINATION);
+    check('767 : pagination mobile compacte conservée (‹ 1 2 3 … 15 ›)', () => assert.deepEqual(m.seq, ['prev', '1', '2', '3', '…', '15', 'next']));
+    await context.close();
+  }
+  {
+    // Transitions : le bureau sort sans rien insérer et retire ce que le mobile avait posé (mobile-mode ôté sans rechargement, puis redessin)
+    const { context, page: p } = await open({ width: 375 });
+    await withTools(p);
+    const start = await p.evaluate(PAGINATION); const startMarks = await p.evaluate(MARKS);
+    check('transition : à 375 la pagination est compacte avec marqueur .kr-page-gap', () => { assert.deepEqual(start.seq, ['prev', '1', '2', '3', '…', '15', 'next']); assert.ok(startMarks.gaps >= 1 && startMarks.hidden >= 1, JSON.stringify(startMarks)); });
+    await p.evaluate(() => document.body.classList.remove('mobile-mode'));
+    await p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button[data-dt-idx="1"]').click());
+    await settleRedraw(p);
+    const toDesk = await p.evaluate(MARKS);
+    check('transition mobile -> bureau (page 2) : marqueurs et classes de masquage retirés, « … » natif conservé (DOM ; le CSS mobile suit la largeur)', () => assert.deepEqual(toDesk, { gaps: 0, hidden: 0, ellipsis: 1 }));
+    await p.evaluate(() => document.body.classList.add('mobile-mode'));
+    await p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button.next').click());
+    await settleRedraw(p);
+    const back = await p.evaluate(MARKS);
+    check('transition bureau -> mobile : marqueurs et masquage reposés', () => assert.ok(back.gaps >= 1 && back.hidden >= 1, JSON.stringify(back)));
+    await context.close();
+  }
 }
 
 if (frag('l5-themes')) {
