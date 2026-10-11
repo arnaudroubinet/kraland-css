@@ -10,6 +10,7 @@
 //   lib/bootstrap-3.3.7 et lib/jquery-3.3.1) : active en plus la passe « vrai Bootstrap » de la palette Couleurs (menu ouvert par le vrai
 //   gestionnaire data-toggle="dropdown"). Sans cette option, le menu est ouvert en posant la classe .open et la passe est signalée « non jouée ».
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
@@ -41,6 +42,17 @@ const BOOTSTRAP = `
   .pagination { display: inline-block; padding-left: 0; margin: 20px 0; list-style: none; } .pagination > li { display: inline; } .pagination > li > a { float: left; padding: 6px 12px; border: 1px solid #ddd; }
   .center { text-align: center; } .fa { font-style: normal; } .navbar { min-height: 50px; } .collapse:not(.in) { display: none; }
   .open > .dropdown-menu { display: block; }
+  .checkbox-inline { position: relative; display: inline-block; padding-left: 20px; margin-bottom: 0; font-weight: 400; vertical-align: middle; cursor: pointer; }
+  .checkbox-inline input[type="checkbox"] { position: absolute; margin-top: 4px; margin-left: -20px; }
+  .control-label { margin-bottom: 0; padding-top: 7px; font-weight: 700; }
+  .img-thumbnail { display: inline-block; max-width: 100%; height: auto; padding: 4px; line-height: 1.42857143; background-color: #fff; border: 1px solid #ddd; border-radius: 4px; }
+  .dropdown-backdrop { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 990; }
+  .well { min-height: 20px; padding: 19px; margin-bottom: 20px; border: 1px solid #e3e3e3; border-radius: 4px; } .well-sm { padding: 9px; border-radius: 3px; }
+  .btn-primary { color: #fff; background-color: #337ab7; border-color: #2e6da4; }
+  .glyphicon { display: inline-block; width: 1em; height: 1em; } table { border-collapse: collapse; border-spacing: 0; } td { padding: 0; }
+  .form-horizontal .form-group { margin-right: -15px; margin-left: -15px; } .form-group:before, .form-group:after { display: table; content: " "; } .form-group:after { clear: both; }
+  @media (min-width: 768px) { .col-sm-12 { float: left; width: 100%; position: relative; min-height: 1px; padding: 0 15px; } }
+  @media (min-width: 992px) { .col-md-2, .col-md-10 { float: left; position: relative; min-height: 1px; padding: 0 15px; } .col-md-2 { width: 16.66666667%; } .col-md-10 { width: 83.33333333%; } }
   @media (min-width: 768px) { .col-sm-10 { float: left; width: 83.33%; } .col-sm-2 { float: left; width: 16.66%; } .col-md-9 { width: 75%; } }
 `;
 const BS_DIR = process.env.KR_BOOTSTRAP_DIR || '';
@@ -55,11 +67,24 @@ const TOOLS = [
   ['left', 'fa-align-left'], ['center', 'fa-align-center'], ['right', 'fa-align-right'], ['fleft', 'fa-outdent'], ['fright', 'fa-indent'], 'PREV'
 ];
 const GROUPS = [TOOLS.slice(0, 4), TOOLS.slice(4, 8), TOOLS.slice(8, 12), TOOLS.slice(12)];
+// Menu smileys NATIF (capturé sur le vrai site) : <div class="dropdown-menu" style="padding:10px;width:320px;"> (et non 190 px comme la palette Couleurs),
+// <table> de 14 rangées × 9 cellules <td><a href="#" onclick="…return false;"><img class="img-thumbnail"></a></td> = 126 smileys.
+// Les images natives font de 13×12 à 30×24 px (surtout 15×15 et 20×20) : SVG en ligne de mêmes tailles, aucun réseau.
+const SMILEY_SIZES = [[15, 15], [15, 15], [20, 20], [13, 12], [20, 23], [15, 15], [25, 25], [20, 20], [30, 24], [15, 15], [23, 18], [16, 16], [21, 27], [15, 15]];
+const SMILEY_ROWS = 14;
+const SMILEY_COLS = 9;
+const smileyImg = i => {
+  const [w, h] = SMILEY_SIZES[i % SMILEY_SIZES.length];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" rx="4" fill="#d9a400"/></svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+};
+const smileyCell = i => `<td><a href="#" onclick="window.__clicks.push('smiley-${i}');return false;"><img src="${smileyImg(i)}" data-toggle="tooltip" data-placement="bottom" alt="[s${i}]" title="" class="img-thumbnail"></a></td>`;
+const smileyTable = () => `<table><tbody>${Array.from({ length: SMILEY_ROWS }, (_r, r) => `<tr>${Array.from({ length: SMILEY_COLS }, (_c, c) => smileyCell(r * SMILEY_COLS + c)).join('')}</tr>`).join('')}</tbody></table>`;
 function toolHtml(t) {
   if (t === 'PREV') { return '<a href="" onclick="window.__clicks.push(\'prev\');return false;" title="Prévisualisation" class="btn btn-default"><i class="fa">P</i></a>'; }
   if (typeof t === 'string') {
-    const menu = t === 'DROP-couleurs' ? `<div class="btn-group btn-group-xs" role="group">${COLORS.map((c, i) => `<a href="${colorHref(i)}"${colorOnclick(i) ? ` onclick="${colorOnclick(i)}"` : ''} class="btn btn-default" style="background:none;background-color:${c}" title="[color${i}]x[/color${i}]">&nbsp;&nbsp;</a>`).join('')}</div>` : '<table><tr><td><a href="#">:)</a></td></tr></table>';
-    return `<span class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" title="${t}"><i class="fa">☺</i></button></a><div class="dropdown-menu" role="menu" style="padding:10px;width:190px;">${menu}</div></span>`;
+    const menu = t === 'DROP-couleurs' ? `<div class="btn-group btn-group-xs" role="group">${COLORS.map((c, i) => `<a href="${colorHref(i)}"${colorOnclick(i) ? ` onclick="${colorOnclick(i)}"` : ''} class="btn btn-default" style="background:none;background-color:${c}" title="[color${i}]x[/color${i}]">&nbsp;&nbsp;</a>`).join('')}</div>` : smileyTable();
+    return `<span class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" title="${t}"><i class="fa">☺</i></button></a><div class="dropdown-menu" role="menu" style="padding:10px;width:${t === 'DROP-couleurs' ? 190 : 320}px;">${menu}</div></span>`;
   }
   return `<a href="javascript:addtag('${t[0]}',1);" class="btn btn-default" title="Outil ${t[0]}"><i class="fa ${t[1]}">${t[0][0].toUpperCase()}</i></a>`;
 }
@@ -80,7 +105,10 @@ function page({ kind, locked = false, realBs = false }) {
 <title>FIXTURE forum (aucune donnée réelle)</title>${realBs ? '<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">' : `<style>${BOOTSTRAP}</style>`}</head><body>
 <nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div><div id="navbar" class="navbar-collapse collapse"><ul class="nav navbar-nav"><li><a href="/jouer/plateau">Jouer</a></li></ul></div></div></nav>
 <div id="content" class="container"><div class="row"><div id="col-left" class="col-md-3"></div><div id="col-right" class="col-md-9">`;
-  const foot = `</div></div></div>${realBs ? '<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>' : ''}</body></html>`;
+  // Pied de page et lien « Remonter en haut » NATIFS (le script déplace le lien dans footer .container.white) ; onclick natif (jQuery animate) remplacé par un compteur
+  const back = '<a href="#top" class="well well-sm" onclick="window.__clicks.push(\'haut\');return false;"><i class="glyphicon glyphicon-chevron-up"></i></a>';
+  const footer = '<footer class="navbar-inverse"><div class="container white"><div class="footer-quote">« FIXTURE citation du pied de page »</div><div style="margin-top:5px;text-align:right;font-size:10px;"><a href="" onclick="window.__clicks.push(\'legal\');return false;" style="color:inherit;">Mentions légales</a> | Généré en 0.03 sec.</div></div></footer>';
+  const foot = `</div></div></div>${back}${footer}${realBs ? '<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>' : ''}</body></html>`;
   if (kind === 'sujet') {
     const post = n => `<div class="row forum-post" style="margin-top:12px"><div class="col-xs-4">Auteur ${n}</div><div class="col-xs-8"><p>FIXTURE message ${n}</p><p style="height:600px">suite</p></div></div>`;
     return head + `<h1 class="page-header"><i class="far fa-comments"></i>
@@ -95,10 +123,13 @@ ${forumTop(false, locked)}` + foot;
 <span class="pull-right"><a href="forum/hrp/site-annonces-20101" class="btn btn-default"><i class="fa fa-backward"></i> Site &amp; Annonces</a>
 <a href="forum/sujet/fixture-1-1" class="btn btn-default"><i class="fa fa-backward"></i> sujet</a></span></h1>
 <form name="post_msg" method="post" action="forum/sujet/fixture-1-1" class="form-horizontal" onsubmit="window.__clicks.push('submit');return false;">
-<div class="form-group"><label class="col-sm-2 control-label">Message</label><div class="col-sm-10">
+<div class="well" style="height:420px">FIXTURE : message cité / derniers messages du sujet (hauteur de page proche du vrai site)</div>
+<div class="form-group"><label class="col-sm-2 control-label">Expéditeur <span class="required">*</span></label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-user"></i></span><select name="n[1]" class="form-control" required><option value="1">FIXTURE</option></select></div></div></div>
+<div class="form-group"><label class="col-sm-2 control-label">Message <span class="required">*</span></label><div class="col-sm-10">
 ${TOOLBAR}
-<textarea name="message" id="message" rows="14" class="form-control" placeholder="Votre message"></textarea></div></div>
-<div class="form-group"><button type="submit" class="btn btn-primary">Envoyer</button></div></form>` + foot;
+<textarea name="message" id="message" rows="14" class="form-control" placeholder="Votre message" required></textarea></div></div>
+<div class="form-group"><label class="col-md-2 control-label">Options</label><div class="col-md-10"><label class="checkbox-inline"><input type="checkbox" name="f[0]" value="1" checked> Signature</label></div></div>
+<div><div class="col-sm-12"><button class="btn btn-primary pull-right">Envoyer</button></div></div></form>` + foot;
 }
 
 let failures = 0;
@@ -114,9 +145,9 @@ function check(name, fn) {
 
 const browser = await chromium.launch({ headless: true });
 
-async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false }) {
+async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false, height = 800 }) {
   const mobile = width < 768;
-  const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
+  const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
   const state = { documents: 0, other: [] };
   const urlFor = kind === 'sujet' ? '/forum/sujet/fixture-1-2' : '/forum/post/repondre-2-FIXTURE';
   await context.route(BASE + '/**', r => {
@@ -274,13 +305,30 @@ for (const variant of VARIANTS) {
       assert.ok(cA >= 4.5, `actif ${active.color} sur ${active.bg}`);
     });
   }
+  // s4 : page active de la pagination (accent rouge kraland des thèmes clairs signalé par Sally) : normal et survol >= 4,5:1 dans les 8 thèmes clairs
+  const pagColors = () => p.evaluate(() => { const a = document.querySelector('.pagination > li.active > a'); a.scrollIntoView({ block: 'center' }); const cs = getComputedStyle(a); const r = a.getBoundingClientRect(); return { color: cs.color, bg: cs.backgroundColor, x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  const pagN = await pagColors();
+  await p.mouse.move(pagN.x, pagN.y);
+  await p.waitForTimeout(250);
+  const pagH = await pagColors();
+  await p.mouse.move(1, 1);
+  if (variant === 'empire-brun') {
+    check(`${variant} : page active de la pagination : normal ${contrast(pagN.color, pagN.bg).toFixed(2)}, survol ${contrast(pagH.color, pagH.bg).toFixed(2)} (>= 4,5)`, () => {
+      assert.ok(parseRgb(pagN.bg).a === 1 && parseRgb(pagH.bg).a === 1, `fond non opaque ${pagN.bg} / ${pagH.bg}`);
+      assert.ok(contrast(pagN.color, pagN.bg) >= 4.5, `normal ${pagN.color} sur ${pagN.bg}`);
+      assert.ok(contrast(pagH.color, pagH.bg) >= 4.5, `survol ${pagH.color} sur ${pagH.bg}`);
+    });
+  } else {
+    // Hors périmètre de la carte (EB clair) : mesuré et signalé, sans assertion (paladium clair : survol 2,10:1 ; thèmes sombres : voir rapport)
+    console.log(`  --   ${variant} : page active de la pagination (information, hors périmètre) : normal ${contrast(pagN.color, pagN.bg).toFixed(2)}, survol ${contrast(pagH.color, pagH.bg).toFixed(2)}`);
+  }
   check(`${variant} : aucune navigation déclenchée`, () => assert.equal(state.other.length, 0, state.other.join(',')));
   await context.close();
 }
 
 // ---------- M2 : palette « Couleurs » = grille de pastilles 44×44 dans le menu, 18 couleurs, comportements natifs préservés ----------
 const PALETTE = () => {
-  const dd = Array.from(document.querySelectorAll('.btn-toolbar .dropdown')).find(d => d.querySelector('button[title="DROP-couleurs"]'));
+  const dd = document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group)');
   const menu = dd.querySelector('.dropdown-menu');
   const mr = menu.getBoundingClientRect();
   const cs = getComputedStyle(menu);
@@ -297,9 +345,9 @@ const PALETTE = () => {
 };
 const hexToRgb = h => { const n = parseInt(h.slice(1), 16); return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`; };
 async function openPalette(p, realBs) {
-  const btn = await p.evaluate(() => { const b = document.querySelector('button[title="DROP-couleurs"]'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) }; });
+  const btn = await p.evaluate(() => { const b = document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) }; });
   if (!btn.ok) { throw new Error('bouton Couleurs recouvert ou hors écran au point visé'); }
-  if (realBs) { await p.mouse.click(btn.x, btn.y); } else { await p.evaluate(() => document.querySelector('button[title="DROP-couleurs"]').closest('.dropdown').classList.add('open')); }
+  if (realBs) { await p.mouse.click(btn.x, btn.y); } else { await p.evaluate(() => document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button').closest('.dropdown').classList.add('open')); }
   await p.waitForTimeout(300);
 }
 const overlap = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
@@ -338,19 +386,259 @@ for (const mode of paletteModes) {
     check(`${tag} : href et onclick natifs préservés`, () => { assert.deepEqual(m.dots.map(d => d.href), COLORS.map((_c, i) => colorHref(i))); assert.deepEqual(m.dots.map(d => d.onclick), COLORS.map((_c, i) => colorOnclick(i))); });
     check(`${tag} : pas de débordement horizontal de la page`, () => assert.ok(m.overflowX <= 0, `${m.overflowX}`));
     if (mode.realBs) {
-      // Même bouton : un second clic referme le menu (comportement Bootstrap natif intact)
-      const btn = await p.evaluate(() => { const b = document.querySelector('button[title="DROP-couleurs"]'); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: b === document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) }; });
-      assert.equal(btn.ok, true);
-      await p.mouse.click(btn.x, btn.y);
-      await p.waitForTimeout(250);
+      // Fermeture native : sur écran tactile, Bootstrap pose un fond .dropdown-backdrop qui recouvre la page (donc aussi le bouton) ; le toucher du fond referme le menu
+      await closeNative(p);
       const closed = await p.evaluate(PALETTE);
-      check(`${tag} : le même bouton referme le menu`, () => assert.equal(closed.shown, false));
+      check(`${tag} : un toucher hors du menu (fond Bootstrap natif, ou le bouton sans tactile) referme le menu`, () => assert.equal(closed.shown, false));
     }
     const clicks = await p.evaluate(() => window.__clicks.length);
     check(`${tag} : aucune pastille activée, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
     if (SHOTS) { await p.evaluate(PALETTE); await p.screenshot({ path: path.join(SHOTS, `forum-palette-couleurs-${mode.realBs ? 'bootstrap' : 'minimal'}-${width}.png`) }); }
     await context.close();
   }
+}
+
+// ======================================================================================================================
+// Réserves PR12 (carte t_af0a30d9) : smileys (s3), Signature, « Remonter en haut » (N-1), barre « Envoyer » (pied collant)
+// ======================================================================================================================
+async function closeNative(p) {
+  // Sur écran tactile, Bootstrap pose un .dropdown-backdrop plein écran : on le touche à l'extrême droite, au milieu de l'écran (cible vérifiée) ;
+  // sans fond (desktop), on touche le bouton d'ouverture du menu ouvert.
+  const pt = await p.evaluate(() => {
+    const x = window.innerWidth - 3; const y = Math.round(window.innerHeight / 2);
+    const el = document.elementFromPoint(x, y);
+    if (el && el.classList.contains('dropdown-backdrop')) { return { x, y }; }
+    const b = document.querySelector('.dropdown.open > a.dropdown-toggle > button');
+    if (!b) { return null; }
+    const r = b.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  if (pt) { await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(300); }
+}
+async function openSmileys(p, realBs) {
+  const btn = await p.evaluate(() => {
+    const b = document.querySelector('.btn-toolbar .dropdown:has(table img) > a.dropdown-toggle > button');
+    b.scrollIntoView({ block: 'center' });
+    const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) };
+  });
+  if (!btn.ok) { throw new Error('bouton Smileys recouvert ou hors écran au point visé'); }
+  if (realBs) {
+    await p.mouse.click(btn.x, btn.y);
+  } else {
+    // Sans Bootstrap réel : .open posé, et fond .dropdown-backdrop comme le fait Bootstrap 3.3.7 sur écran tactile (insertAfter du bouton d'ouverture)
+    await p.evaluate(() => {
+      const dd = document.querySelector('.btn-toolbar .dropdown:has(table img)'); dd.classList.add('open');
+      if ('ontouchstart' in document.documentElement) { const bd = document.createElement('div'); bd.className = 'dropdown-backdrop'; dd.querySelector('a.dropdown-toggle').after(bd); }
+    });
+  }
+  await p.waitForTimeout(300);
+}
+const SMILEYS = () => {
+  const dd = document.querySelector('.btn-toolbar .dropdown:has(table img)');
+  const menu = dd.querySelector('.dropdown-menu');
+  const vw = document.documentElement.clientWidth;
+  const docRect = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top + window.scrollY, w: r.width, h: r.height }; };
+  const cs = getComputedStyle(menu);
+  const tools = Array.from(document.querySelectorAll('.btn-toolbar > .btn-group > a.btn, .btn-toolbar > .btn-group > .dropdown > a.dropdown-toggle > button')).map(docRect);
+  const area = docRect(document.querySelector('textarea'));
+  const toolbar = docRect(document.querySelector('.btn-toolbar'));
+  const m = docRect(menu);
+  const sx = window.scrollX; const sy = window.scrollY;
+  const cells = Array.from(menu.querySelectorAll('td > a')).map(a => {
+    const r0 = a.getBoundingClientRect();
+    // Défilement de la PAGE seulement (jamais d'un conteneur à overflow masqué, que le doigt ne peut pas faire défiler)
+    window.scrollTo({ top: Math.max(0, r0.top + window.scrollY + r0.height / 2 - window.innerHeight / 2), behavior: 'instant' });
+    const r = a.getBoundingClientRect(); const ir = a.querySelector('img').getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { x: r.left, w: r.width, h: r.height, iw: ir.width, ih: ir.height, ok: !!hit && (hit === a || a.contains(hit)), inX: r.left >= -0.5 && r.right <= vw + 0.5, href: a.getAttribute('href'), onclick: a.getAttribute('onclick') };
+  });
+  window.scrollTo({ left: sx, top: sy, behavior: 'instant' });
+  return { open: dd.classList.contains('open'), shown: cs.display !== 'none' && m.w > 0, position: cs.position, style: menu.getAttribute('style'), menu: m, vw, tools, area, toolbar, cells, overflowX: document.documentElement.scrollWidth - vw };
+};
+const inScreenX = (r, vw) => r.x >= -0.5 && r.x + r.w <= vw + 0.5;
+
+console.log('S3 : menu smileys mobile — 126 smileys atteignables, cibles >= 44 px, menu contenu dans l\'écran, voisins non recouverts');
+for (const mode of paletteModes) {
+  for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+    const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant, height: width === 375 ? 667 : 800 });
+    await openSmileys(p, mode.realBs);
+    const m = await p.evaluate(SMILEYS);
+    const tag = `${width} px ${variant} (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
+    check(`${tag} : menu smileys ouvert, natif en ligne 320 px / padding 10 px préservé`, () => { assert.equal(m.open, true); assert.equal(m.shown, true); assert.match(m.style, /width:\s*320px/); assert.match(m.style, /padding:\s*10px/); });
+    check(`${tag} : 126 smileys`, () => assert.equal(m.cells.length, 126, `${m.cells.length}`));
+    check(`${tag} : 126 sur 126 atteignables et touchables (elementFromPoint après défilement de la page)`, () => assert.equal(m.cells.filter(c => c.ok).length, 126, `${m.cells.filter(c => c.ok).length}/126`));
+    check(`${tag} : chaque cible >= 44×44`, () => assert.ok(m.cells.every(c => c.w >= 44 - 0.5 && c.h >= 44 - 0.5), JSON.stringify([...new Set(m.cells.map(c => `${Math.round(c.w)}x${Math.round(c.h)}`))])));
+    check(`${tag} : menu et 126 cibles dans l'écran (pas de débordement horizontal)`, () => { assert.ok(inScreenX(m.menu, m.vw), JSON.stringify(m.menu)); assert.ok(m.cells.every(c => c.inX), `${m.cells.filter(c => !c.inX).length} dehors`); assert.ok(m.overflowX <= 0, `${m.overflowX}`); });
+    check(`${tag} : le menu ne recouvre ni les 18 outils ni la zone de texte`, () => {
+      assert.equal(m.tools.length, 18);
+      for (const t of m.tools) { assert.equal(overlap(m.menu, t), false, `outil ${JSON.stringify(t)} / menu ${JSON.stringify(m.menu)}`); }
+      assert.equal(overlap(m.menu, m.area), false, `zone de texte ${JSON.stringify(m.area)} / menu ${JSON.stringify(m.menu)}`);
+    });
+    check(`${tag} : href et onclick natifs des 126 smileys préservés`, () => assert.ok(m.cells.every((c, i) => c.href === '#' && c.onclick === `window.__clicks.push('smiley-${i}');return false;`)));
+    if (mode.realBs) {
+      await closeNative(p);
+      const closed = await p.evaluate(SMILEYS);
+      check(`${tag} : un toucher hors du menu referme le menu`, () => assert.equal(closed.shown, false));
+    }
+    const clicks = await p.evaluate(() => window.__clicks.length);
+    check(`${tag} : aucun smiley activé, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+    if (SHOTS) { await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await p.screenshot({ path: path.join(SHOTS, `forum-smileys-${mode.realBs ? 'bootstrap' : 'minimal'}-${width}-${variant}.png`) }); }
+    await context.close();
+  }
+}
+
+console.log('S3 desktop : menu smileys natif inchangé (320 px, absolu, superposé), palette Couleurs 190 px');
+for (const mode of paletteModes) {
+  const { context, page: p } = await open({ width: 1280, kind: 'editeur', realBs: mode.realBs, height: 720 });
+  const before = await p.evaluate(() => document.querySelector('.btn-toolbar').getBoundingClientRect().height);
+  await openSmileys(p, mode.realBs);
+  const m = await p.evaluate(SMILEYS);
+  const tag = `1280 px (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
+  check(`${tag} : menu smileys 320×470 px, position absolue, style natif préservé`, () => {
+    assert.equal(m.shown, true); assert.equal(m.position, 'absolute'); assert.match(m.style, /width:\s*320px/);
+    assert.ok(Math.abs(m.menu.w - 320) <= 1 && Math.abs(m.menu.h - 470) <= 2, JSON.stringify(m.menu));
+  });
+  check(`${tag} : 126 smileys, 126 touchables, images 32×32 (règle desktop existante)`, () => { assert.equal(m.cells.length, 126); assert.equal(m.cells.filter(c => c.ok).length, 126); assert.ok(m.cells.every(c => Math.round(c.iw) === 32 && Math.round(c.ih) === 32), JSON.stringify([...new Set(m.cells.map(c => `${Math.round(c.iw)}x${Math.round(c.ih)}`))])); });
+  check(`${tag} : le menu s'ouvre sans agrandir la barre d'outils (superposé, pas dans le flux)`, () => assert.ok(Math.abs(m.toolbar.h - before) <= 1, `${before} -> ${m.toolbar.h}`));
+  check(`${tag} : barre d'outils desktop : 18 outils < 40 px`, () => assert.ok(m.tools.length === 18 && m.tools.every(t => t.h < 40), JSON.stringify(m.tools.map(t => t.h))));
+  if (mode.realBs) { await closeNative(p); }
+  await p.evaluate(() => document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open')));
+  await openPalette(p, mode.realBs);
+  const pal = await p.evaluate(PALETTE);
+  check(`${tag} : palette Couleurs inchangée : menu 190 px, 18 pastilles dans le menu`, () => { assert.ok(Math.abs(pal.menu.w - 190) <= 1, JSON.stringify(pal.menu)); assert.equal(pal.dots.length, 18); assert.ok(pal.dots.every(d => d.hit)); });
+  await context.close();
+}
+
+// ---------- Signature : libellé lisible, case non chevauchante, cible tactile, ligne jamais masquée par la barre fixe ----------
+const SIGNATURE = () => {
+  const cb = document.querySelector('input[type="checkbox"][name="f[0]"]'); const l = cb.closest('label');
+  l.scrollIntoView({ block: 'center', behavior: 'instant' });
+  const tn = Array.from(l.childNodes).find(n => n.nodeType === 3 && /Signature/.test(n.textContent));
+  const rg = document.createRange(); rg.setStart(tn, tn.textContent.search(/\S/)); rg.setEnd(tn, tn.textContent.length);
+  const t = rg.getBoundingClientRect(); const c = cb.getBoundingClientRect(); const lr = l.getBoundingClientRect();
+  const ox = Math.max(0, Math.min(t.right, c.right) - Math.max(t.left, c.left)); const oy = Math.max(0, Math.min(t.bottom, c.bottom) - Math.max(t.top, c.top));
+  const hc = document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2); const ht = document.elementFromPoint(t.left + t.width / 2, t.top + t.height / 2);
+  return { overlap: Math.round(ox * oy), cb: { w: c.width, h: c.height, right: c.right }, label: { w: lr.width, h: lr.height }, text: { left: t.left, w: t.width }, checked: cb.checked, hitCb: hc === cb, hitText: !!ht && l.contains(ht) };
+};
+const SIGNATURE_SCROLL = how => {
+  const cb = document.querySelector('input[type="checkbox"][name="f[0]"]'); const l = cb.closest('label');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (how === 'end') { l.scrollIntoView({ block: 'end', behavior: 'instant' }); } else if (how === 'focus') { cb.focus(); } else { window.scrollTo({ top: 1e6, behavior: 'instant' }); }
+  const r = l.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  const bar = document.querySelector('button.btn-primary.pull-right'); const br = bar.getBoundingClientRect();
+  return { how, covered: !(hit && l.contains(hit)), hit: hit ? hit.tagName + '.' + String(hit.className).slice(0, 30) : null, bottom: Math.round(r.bottom), barTop: Math.round(br.top), barFixed: getComputedStyle(bar).position === 'fixed', gapBelowDoc: Math.round(document.documentElement.scrollHeight - (r.bottom + window.scrollY)), vh: window.innerHeight };
+};
+console.log('Signature : libellé lisible, case non chevauchante, ligne jamais masquée par la barre « Envoyer » fixe');
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+  const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
+  await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  const s = await p.evaluate(SIGNATURE);
+  const tag = `${width} px ${variant}`;
+  check(`${tag} : la case ne recouvre pas le libellé « Signature » (${s.overlap} px²)`, () => { assert.equal(s.overlap, 0, JSON.stringify(s)); assert.ok(s.text.left >= s.cb.right + 4 - 0.5, `texte à ${s.text.left}, case jusqu'à ${s.cb.right}`); });
+  check(`${tag} : cible tactile >= 44 px de haut (libellé entier), case 20 px conservée, cochée, libellé touchable`, () => { assert.ok(s.label.h >= 44 - 0.5 && s.label.w >= 44, JSON.stringify(s.label)); assert.ok(s.cb.w >= 20 && s.cb.h >= 20); assert.equal(s.checked, true); assert.equal(s.hitCb, true); assert.equal(s.hitText, true); });
+  const end = await p.evaluate(SIGNATURE_SCROLL, 'end');
+  const max = await p.evaluate(SIGNATURE_SCROLL, 'max');
+  const foc = await p.evaluate(SIGNATURE_SCROLL, 'focus');
+  check(`${tag} : barre « Envoyer » fixe conservée (position: fixed)`, () => assert.equal(end.barFixed, true));
+  check(`${tag} : ligne Signature ramenée en bas de l'écran (scrollIntoView) : non masquée par la barre (${end.hit})`, () => { assert.equal(end.covered, false, JSON.stringify(end)); assert.ok(end.bottom <= end.barTop + 0.5, JSON.stringify(end)); });
+  check(`${tag} : ligne Signature au focus clavier : non masquée par la barre`, () => { assert.equal(foc.covered, false, JSON.stringify(foc)); assert.ok(foc.bottom <= foc.barTop + 0.5, JSON.stringify(foc)); });
+  check(`${tag} : fin de page : Signature visible au-dessus de la barre, et >= 56 px de page réservés sous la ligne`, () => { assert.equal(max.covered, false, JSON.stringify(max)); assert.ok(max.bottom <= max.barTop + 0.5, JSON.stringify(max)); assert.ok(max.gapBelowDoc >= 56, `${max.gapBelowDoc}`); });
+  const clicks = await p.evaluate(() => window.__clicks.length);
+  check(`${tag} : rien envoyé, rien coché/décoché`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+  await context.close();
+}
+{
+  const { context, page: p } = await open({ width: 1280, kind: 'editeur', height: 720 });
+  const s = await p.evaluate(SIGNATURE);
+  check('1280 px : Signature desktop inchangée (case native 13 px séparée du libellé, libellé < 40 px de haut)', () => { assert.equal(s.overlap, 0, JSON.stringify(s)); assert.ok(s.cb.w <= 16 && s.label.h < 40, JSON.stringify([s.cb, s.label])); });
+  const bar = await p.evaluate(() => getComputedStyle(document.querySelector('button.btn-primary.pull-right')).position);
+  check('1280 px : « Envoyer » desktop non fixé (dans le flux)', () => assert.notEqual(bar, 'fixed'));
+  await context.close();
+}
+
+// ---------- N-1 (« Remonter en haut » ne recouvre jamais Répondre / Nouveau sujet) et pied collant vs « Envoyer » ----------
+const FIXED_STATE = () => {
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+  const inter = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const back = document.querySelector('.kraland-back-to-top');
+  const bcs = back ? getComputedStyle(back) : null;
+  const backShown = !!back && bcs.visibility !== 'hidden' && bcs.opacity !== '0';
+  const br = back ? rect(back) : null;
+  const hitBack = (x, y) => { const el = document.elementFromPoint(x, y); return !!el && !!back && (el === back || back.contains(el)); };
+  const actions = Array.from(document.querySelectorAll('a.forum-thread-action')).filter(vis).map(a => {
+    const r = rect(a); const pts = [[0.1, 0.5], [0.5, 0.5], [0.9, 0.5], [0.97, 0.5], [0.97, 0.9], [0.5, 0.95]].map(([fx, fy]) => hitBack(r.x + r.w * fx, r.y + r.h * fy));
+    return { t: a.textContent.replace(/\s+/g, ' ').trim(), ...r, inter: backShown ? Math.round(inter(r, br)) : 0, bandY: backShown && r.y < br.y + br.h && br.y < r.y + r.h, coveredPts: backShown ? pts.filter(Boolean).length : 0 };
+  });
+  const bar = document.querySelector('button.btn-primary.pull-right');
+  let send = null;
+  if (bar) {
+    const r = rect(bar); const hits = [0.03, 0.25, 0.5, 0.75, 0.9, 0.97].map(f => { const el = document.elementFromPoint(r.x + r.w * f, r.y + r.h / 2); return el === bar || bar.contains(el); });
+    const cover = document.elementFromPoint(r.x + r.w * 0.5, r.y + r.h / 2);
+    send = { ...r, fixed: getComputedStyle(bar).position === 'fixed', z: getComputedStyle(bar).zIndex, hits, hitsOk: hits.filter(Boolean).length, cover: cover && cover !== bar ? cover.tagName + '.' + String(cover.className).slice(0, 40) : null, inter: backShown ? Math.round(inter(r, br)) : 0 };
+  }
+  const backHitSelf = back && backShown ? hitBack(br.x + br.w / 2, br.y + br.h / 2) : null;
+  return { sy: Math.round(window.scrollY), backShown, back: br, backBottom: back ? bcs.bottom : null, backRight: back ? bcs.right : null, backZ: back ? bcs.zIndex : null, actions, send, backHitSelf };
+};
+async function sweep(p, step) {
+  const docH = await p.evaluate(() => document.documentElement.scrollHeight);
+  const vh = await p.evaluate(() => window.innerHeight);
+  const out = { docH, steps: 0, backSteps: 0, actionInter: 0, actionMaxInter: 0, actionCovered: 0, bandSteps: 0, sendInter: 0, sendBad: 0, sendSteps: 0, backUnreachable: 0, first: null };
+  for (let y = 0; y <= docH; y += step) {
+    await p.evaluate(top => window.scrollTo({ top, behavior: 'instant' }), y);
+    await p.waitForTimeout(40);
+    const s = await p.evaluate(FIXED_STATE);
+    out.steps += 1;
+    if (s.backShown) { out.backSteps += 1; if (s.backHitSelf === false) { out.backUnreachable += 1; } }
+    for (const a of s.actions) {
+      if (a.bandY) { out.bandSteps += 1; }
+      if (a.inter > 0 || a.coveredPts > 0) { out.actionInter += 1; out.actionMaxInter = Math.max(out.actionMaxInter, a.inter); out.actionCovered += a.coveredPts; if (!out.first) { out.first = { sy: s.sy, a: a.t, inter: a.inter, back: s.back, action: { x: a.x, y: a.y, w: a.w, h: a.h } }; } }
+    }
+    if (s.send && s.send.y < vh && s.send.y + s.send.h > 0) {
+      out.sendSteps += 1;
+      if (s.send.inter > 0) { out.sendInter += 1; }
+      if (s.send.hitsOk < s.send.hits.length) { out.sendBad += 1; if (!out.first) { out.first = { sy: s.sy, send: s.send, back: s.back }; } }
+    }
+  }
+  return out;
+}
+
+console.log('N-1 : « Remonter en haut » ne recouvre jamais « Répondre » ni « Nouveau sujet » (balayage du défilement)');
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+  const { context, page: p, state } = await open({ width, kind: 'sujet', variant, height: width === 375 ? 667 : 800 });
+  const top = await p.evaluate(FIXED_STATE);
+  const sw = await sweep(p, 20);
+  const tag = `${width} px ${variant}`;
+  check(`${tag} : lien « Remonter en haut » masqué en haut de page, visible ensuite (PLT-09 conservé), sur ${sw.backSteps}/${sw.steps} positions`, () => { assert.equal(top.backShown, false); assert.ok(sw.backSteps > 5, `${sw.backSteps}`); });
+  check(`${tag} : la barre du bas traverse la zone du bouton (le test n'est pas vide : ${sw.bandSteps} positions)`, () => assert.ok(sw.bandSteps > 0, `${sw.bandSteps}`));
+  check(`${tag} : aucun recouvrement du bouton fixe avec Répondre / Nouveau sujet (aire et points touchés) sur toutes les positions`, () => assert.equal(sw.actionInter, 0, JSON.stringify(sw.first)));
+  check(`${tag} : le lien « Remonter en haut » reste lui-même touchable (jamais recouvert par autre chose)`, () => assert.equal(sw.backUnreachable, 0, `${sw.backUnreachable}`));
+  const clicks = await p.evaluate(() => window.__clicks.length);
+  check(`${tag} : rien cliqué, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+  await context.close();
+}
+{
+  const { context, page: p } = await open({ width: 1280, kind: 'sujet', height: 720 });
+  await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' }));
+  await p.waitForTimeout(300);
+  const s = await p.evaluate(FIXED_STATE);
+  check('1280 px : « Remonter en haut » desktop inchangé (36 px, bas 20 px, droite 8 px)', () => { assert.equal(s.backShown, true); assert.equal(Math.round(s.back.w), 36); assert.equal(s.backBottom, '20px'); assert.equal(s.backRight, '8px'); });
+  await context.close();
+}
+
+console.log('Pied collant (z-index 1000) vs « Envoyer » (z-index 90) : le bouton fixe ne masque jamais la barre');
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+  const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
+  const sw = await sweep(p, 20);
+  const tag = `${width} px ${variant}`;
+  check(`${tag} : barre « Envoyer » fixe (56 px, z 90) et lien « Remonter en haut » visible sur ${sw.backSteps}/${sw.steps} positions`, () => { assert.ok(sw.sendSteps > 0 && sw.backSteps > 3, JSON.stringify([sw.sendSteps, sw.backSteps])); });
+  check(`${tag} : le bouton fixe ne chevauche jamais la barre « Envoyer » (aire)`, () => assert.equal(sw.sendInter, 0, JSON.stringify(sw.first)));
+  check(`${tag} : 6 points de la barre « Envoyer » toujours reçus par le bouton (elementFromPoint), sur toutes les positions`, () => assert.equal(sw.sendBad, 0, JSON.stringify(sw.first)));
+  check(`${tag} : le lien « Remonter en haut » reste touchable`, () => assert.equal(sw.backUnreachable, 0, `${sw.backUnreachable}`));
+  const clicks = await p.evaluate(() => window.__clicks.length);
+  check(`${tag} : rien envoyé, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+  await context.close();
 }
 
 console.log('Desktop 1280 : inchangé');

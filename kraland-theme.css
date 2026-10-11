@@ -12348,8 +12348,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0;
   }
 
+  /* N-1 : le bouton fixe « Remonter en haut » (36 px, à 8 px du bord droit, visible dès 400 px de défilement) passait sur la fin de
+     « Nouveau sujet » quand la barre du bas traversait le bas de l'écran. On réserve donc à droite de cette barre la place du bouton
+     (8 + 36 + 8 = 52 px) : le bouton ne la recouvre plus, à aucune position de défilement. */
   .forum-thread-actions-bottom {
-    margin: 12px 16px 16px;
+    margin: 12px 52px 16px 16px;
   }
 
   .forum-thread-action {
@@ -12488,6 +12491,108 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 @media (max-width: 339px) {
   .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
     grid-template-columns: repeat(5, 44px);
+  }
+}
+
+/* ============================================================================
+   FORUM MOBILE : réserves PR12 (smileys, Signature, barre « Envoyer », « Remonter en haut »)
+   Dépendance :has — navigateurs sans :has (Firefox < 121, Safari < 15.4) : les règles qui en dépendent sont ignorées
+   et on retrouve le comportement d'avant (page jamais cassée) : menu smileys absolu rogné, bouton « Remonter en haut »
+   qui déborde sur la barre « Envoyer ». Les règles sans :has (Signature, gouttière N-1) s'appliquent partout.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* S3 : le menu smileys natif (320 px × 638 px, position absolue) était rogné à y = 554 par « .form-group .col-sm-10 { overflow: hidden } » :
+     54 smileys sur 126 inatteignables. Il devient un panneau DANS LE FLUX, sous la barre d'outils (order: la dernière rangée), sur toute la
+     largeur : la page défile jusqu'au dernier smiley, rien n'est rogné ni superposé. position: relative + z-index conservent le menu
+     au-dessus du fond .dropdown-backdrop (z-index 990) que Bootstrap pose sur écran tactile ; la palette Couleurs (menu sans table) n'est pas touchée. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 1000;
+    order: 100;
+    flex: 0 0 100%;
+    float: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Les 126 smileys en grille de cibles 44×44 qui passe à la ligne (le menu natif les alignait 9 par rangée en 32 × 44 px) */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table {
+    display: block;
+    width: 100%;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody > tr {
+    display: contents;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td {
+    display: block;
+    padding: 0;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Signature : la règle mobile générique « label { padding: 5px 0 !important } » annulait le retrait Bootstrap alors que la case
+     reste en position absolue : elle recouvrait « Si » de « Signature » (280 px²). Le libellé devient une ligne flex : case 20 px,
+     espace, texte, sans chevauchement, et tout le libellé (44 px de haut) sert de cible tactile (le toucher du texte coche la case). */
+  body.page-forum form label.checkbox-inline {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px 0 0 !important;
+  }
+
+  body.page-forum form label.checkbox-inline > input[type="checkbox"] {
+    position: static !important;
+    flex: 0 0 20px;
+    margin: 0 !important;
+  }
+
+  /* La barre « Envoyer » est fixe (56 px, en bas de l'écran) : le défilement vers un champ (scrollIntoView, focus au clavier, ancre) laisse
+     donc 72 px libres sous lui, et le formulaire garde 64 px de page sous sa dernière ligne (l'ancienne réserve
+     « .form-group:last-of-type » ne visait aucun élément : le dernier <div> du formulaire n'a pas la classe .form-group). */
+  body.page-forum form :is(input, select, textarea, label) {
+    scroll-margin-bottom: 72px;
+  }
+
+  body.page-forum form[name="post_msg"] {
+    padding-bottom: 64px;
+  }
+
+  /* Pied collant : la règle d'en-tête mobile « body.mobile-mode .navbar-inverse { position: sticky; top: 0; z-index: var(--z-header) } » (1000)
+     atteint aussi le <footer class="navbar-inverse"> natif : il devenait un contexte d'empilement de 1000 qui se peignait SUR la barre « Envoyer »
+     fixe (z-index 90) dès que le pied de page passait dessous (la barre disparaissait et le toucher allait à la citation du pied de page : 44 positions
+     de défilement sur 62 à 375 px). Sur une page qui porte cette barre, le pied de page revient dans le flux normal ; le bouton « Remonter en haut »
+     (position: fixed) garde son z-index 1000 dans le contexte racine. */
+  body.mobile-mode:has(button.btn-primary.pull-right) footer.navbar-inverse {
+    position: relative;
+    top: auto;
+    z-index: auto;
+  }
+
+  /* Le bouton fixe « Remonter en haut » (z-index 1000, bas 8 px) se peignait aussi sur la fin de la barre « Envoyer » (56 px, pleine largeur) :
+     33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
+  body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
+    bottom: 64px;
   }
 }
 
