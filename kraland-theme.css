@@ -12796,20 +12796,25 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: flex !important;
     gap: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
     font-size: 0 !important;
   }
 
   body.page-forum.kr-subforum #topics_wrapper .dataTables_filter input {
     flex: 1 1 auto;
     width: 100% !important;
+    height: 44px !important;
     min-height: 44px !important;
+    box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
   }
 
   body.page-forum.kr-subforum #topics_wrapper .dataTables_length select {
     min-width: 72px !important;
+    height: 44px !important;
     min-height: 44px !important;
+    box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
   }
@@ -13150,6 +13155,135 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.page-forum.kr-subforum #topics tbody tr:active {
     background: var(--kr-bg-hover) !important;
+  }
+}
+
+/* L4 — sujets permanents mobile (variante A) : une ligne de 44 px par sujet = cadenas, titre coupé par « … », NON LU, date du dernier message ; toute la ligne
+   mène au sujet (lien du titre étiré). Compteurs, auteur et pages restent dans le sujet : leurs cellules natives sont masquées, pas déplacées.
+   Spécificité volontairement haute : les anciennes règles « cartes » des permanents (body.mobile-mode / body.page-forum .panel-default .table …) sont en !important. */
+@media (max-width: 767px) {
+  /* Chevrons de repli natifs (span.clickable, mécanisme du site) : cible de 44 x 44 ; en-tête de panneau de 44 px. */
+  body.page-forum.kr-subforum .panel-default > .panel-heading {
+    min-height: 44px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .panel-heading span.clickable {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0 -12px 0 auto !important;
+    cursor: pointer;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(1),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) {
+    display: contents !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(2),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Les anciens préfixes « → » et séparateurs des cartes ne s'appliquent plus. */
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::before,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::after {
+    content: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > ul,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > span.tagforum,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > a.nomargin,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini .btn-group {
+    display: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p {
+    display: contents !important;
+    margin: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > i.fa-lock {
+    order: 0;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a {
+    display: block !important;
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    text-decoration: none !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 -1px;
+    z-index: 1;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > .kr-topic-badge {
+    order: 2;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
   }
 }
 

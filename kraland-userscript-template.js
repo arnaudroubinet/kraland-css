@@ -5030,6 +5030,9 @@
       // N'exécuter qu'en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {return;}
 
+      // L4 (sous-forum) : sur la page de liste des sujets (table#topics), les permanents tiennent sur une ligne (titre, non lu, date) :
+      // compteurs, auteur et pages restent dans le sujet. Aucun bloc de statistiques n'est ajouté, les cellules natives ne sont pas masquées en JS.
+      if (document.getElementById('topics')) {return;}
       // Cibler les panel-default (Sujets permanents)
       const panels = document.querySelectorAll('.panel-default');
       if (panels.length === 0) {return;}

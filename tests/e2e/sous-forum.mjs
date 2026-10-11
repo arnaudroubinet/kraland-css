@@ -213,10 +213,10 @@ const VISIBLE_TEXT = () => {
 // par élément interactif le plus proche et on mesure la boîte qu'ils couvrent (tolérance = pas de la grille). Une cible couverte par un autre élément
 // ou rendue inerte (pointer-events: none) n'est pas comptée ; un lien étiré (::after absolu) compte pour toute sa surface.
 const SMALL_TARGETS = () => async (rootSel, skipSel) => {
-  const root = document.querySelector(rootSel);
+  const zone = document.querySelector(rootSel);
   const step = 2;
   const boxes = new Map();
-  const rr = root.getBoundingClientRect();
+  const rr = zone.getBoundingClientRect();
   const top = rr.top + window.scrollY; const bottom = rr.bottom + window.scrollY;
   const band = window.innerHeight - 160;
   for (let y0 = Math.max(0, top - 80); y0 < bottom; y0 += band) {
@@ -227,8 +227,8 @@ const SMALL_TARGETS = () => async (rootSel, skipSel) => {
       if (docY < top || docY > bottom) { continue; }
       for (let x = 1; x < window.innerWidth; x += step) {
         const el = document.elementFromPoint(x, y);
-        const t = el && el.closest('a, button, input, select, textarea, th, summary, [role="button"]');
-        if (!t || !root.contains(t) || (skipSel && t.closest(skipSel))) { continue; }
+        const t = el && el.closest('a, button, input, select, textarea, th, summary, [role="button"], .clickable');
+        if (!t || !zone.contains(t) || (skipSel && t.closest(skipSel))) { continue; }
         const b = boxes.get(t) || { x0: x, x1: x, y0: docY, y1: docY };
         b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, docY); b.y1 = Math.max(b.y1, docY);
         boxes.set(t, b);
@@ -568,6 +568,98 @@ if (frag('l3-themes')) {
     const min = a => Math.min(...a.filter(x => typeof x === 'number'));
     check(`375 ${variant} : titres, dernier message, dates, compteurs, auteurs, étiquettes et flèches >= 4,5:1`, () => { const all = rows.flatMap(r => Object.values(r.colors)).filter(x => x !== null); assert.ok(all.length >= 60); assert.ok(min(all) >= 4.5, 'min ' + min(all)); });
     check(`375 ${variant} : puces de tri, « Trier : », recherche et « Afficher » >= 4,5:1`, () => { const v = [...tb.chips.map(c => c.ratio), tb.triRatio, tb.inputRatio, tb.selectRatio]; assert.ok(v.every(x => typeof x === 'number'), JSON.stringify(v)); assert.ok(min(v) >= 4.5, 'min ' + min(v)); });
+    await context.close();
+  }
+}
+
+// ---------- L4 : sujets permanents mobile (1 ligne de 44 px : cadenas, titre, NON LU, date du dernier message ; toute la ligne mène au sujet) ----------
+const PERM_ROWS = () => {
+  const t = window.__krColorTools(); const vt = window.__krVisibleText;
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), b: Math.round(r.bottom + window.scrollY) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const hitHref = (x, y) => { const el = document.elementFromPoint(x, y); const a = el && el.closest('a'); return a ? a.getAttribute('href') : null; };
+  const table = document.querySelector('#fx-permanents table');
+  const rows = [...document.querySelectorAll('#fx-permanents tbody tr')];
+  const heads = [...document.querySelectorAll('.panel-heading span.clickable')].map(e => ({ ...rect(e), vis: vis(e) }));
+  return {
+    iw: window.innerWidth, ih: window.innerHeight,
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    tableH: table ? rect(table).h : 0, heads,
+    statsWrappers: document.querySelectorAll('.permanent-topic-stats').length,
+    firstRegularY: Math.round(document.querySelector('#topics tbody tr').getBoundingClientRect().top + window.scrollY),
+    rows: rows.map(tr => {
+      const title = tr.querySelector('td:first-child p a'); const lock = tr.querySelector('td:first-child p i.fa-lock'); const badge = tr.querySelector('.kr-topic-badge');
+      const date = tr.querySelector('td:nth-child(5) p.mini');
+      const r = rect(tr); const bg = t.bgOf(tr);
+      const href = title.getAttribute('href');
+      const hit = (fx) => { const rr = tr.getBoundingClientRect(); return hitHref(rr.left + rr.width * fx, rr.top + rr.height / 2); };
+      return {
+        title: title.textContent.trim(), href, unread: tr.classList.contains('kr-topic-unread'), locked: !!lock,
+        text: vt(tr), row: r, titleRect: rect(title), titleVisible: vis(title), titleOverflow: getComputedStyle(title).textOverflow, titleNowrap: getComputedStyle(title).whiteSpace,
+        lockRect: lock && vis(lock) ? rect(lock) : null, badgeRect: badge && vis(badge) ? rect(badge) : null, dateRect: vis(date) ? rect(date) : null,
+        dateText: date.textContent.replace(/\s+/g, ' ').trim(),
+        hits: [hit(0.15), hit(0.5), hit(0.8)],
+        colors: { title: t.round(t.ratio(t.fgOn(title, bg), bg)), date: vis(date) ? t.round(t.ratio(t.fgOn(date, bg), bg)) : null, lock: lock && vis(lock) ? t.round(t.ratio(t.fgOn(lock, bg), bg)) : null }
+      };
+    })
+  };
+};
+
+const checkPerm = (label, m) => {
+  const bad = pred => JSON.stringify(m.rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
+  check(`${label} : 5 sujets permanents visibles`, () => assert.equal(m.rows.length, 5));
+  check(`${label} : une ligne de 44 à 48 px par permanent, tableau de 5 lignes <= 240 px`, () => { assert.ok(m.rows.every(r => r.row.h >= 44 && r.row.h <= 48), JSON.stringify(m.rows.map(r => r.row.h))); assert.ok(m.tableH <= 240, 'tableau ' + m.tableH); });
+  check(`${label} : titre sur une seule ligne, coupé par « … » s'il est trop long`, () => assert.ok(m.rows.every(r => r.titleVisible && r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis' && r.titleNowrap === 'nowrap'), bad(r => r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis')));
+  check(`${label} : cadenas visible si verrouillé, pastille NON LU si non lu, date du dernier message toujours`, () => assert.ok(m.rows.every(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === r.unread) && r.dateRect && r.text.includes(r.dateText) && (!r.unread || r.text.includes('NON LU'))), bad(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === r.unread) && r.dateRect)));
+  check(`${label} : ordre sur la ligne = cadenas, titre, NON LU, date (de gauche à droite, sans retour à la ligne)`, () => assert.ok(m.rows.every(r => {
+    const seq = [r.lockRect, r.titleRect, r.badgeRect, r.dateRect].filter(Boolean);
+    return seq.every((a, i) => i === 0 || seq[i - 1].r <= a.x + 1) && seq.every(a => a.y >= r.row.y - 1 && a.b <= r.row.b + 1);
+  }), bad(r => r.titleRect.r <= (r.dateRect || {}).x + 1)));
+  check(`${label} : compteurs, auteur et pages ne sont pas affichés dans les permanents (ils sont dans le sujet)`, () => assert.ok(m.rows.every(r => !/messages?|vues?|pages? ·|par KraDesk/.test(r.text)), bad(r => !/messages?|vues?/.test(r.text))));
+  check(`${label} : toute la ligne mène au sujet (le toucher à gauche, au centre et à droite atteint le lien du titre)`, () => assert.ok(m.rows.every(r => r.hits.every(h => h === r.href)), JSON.stringify(m.rows.map(r => r.hits.map(h => h === r.href)))));
+  check(`${label} : pas de bloc de statistiques ajouté par l'ancien module des permanents`, () => assert.equal(m.statsWrappers, 0));
+  check(`${label} : chevrons de repli (les 2 panneaux) de 44 x 44`, () => assert.ok(m.heads.length === 2 && m.heads.every(h => h.vis && h.w >= 44 && h.h >= 44), JSON.stringify(m.heads)));
+  check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
+};
+
+if (frag('l4-perm')) {
+  console.log('L4 : sujets permanents mobile (1 ligne de 44 px)');
+  for (const [width, height] of [[375, 667], [700, 800]]) {
+    const { context, page: p } = await open({ width, height });
+    await withTools(p);
+    const m = await p.evaluate(PERM_ROWS);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-permanents-${width}.png`), fullPage: true }); }
+    checkPerm(`${width}`, m);
+    check(`${width} : le 1er sujet réel commence à 0,95 écran ou moins (écran de ${height} px)`, () => assert.ok(m.firstRegularY <= 0.95 * height, `${m.firstRegularY} px sur ${height} (${(m.firstRegularY / height).toFixed(2)})`));
+    const small = await p.evaluate(() => window.__krSmallTargets('#fx-permanents', null));
+    check(`${width} : toutes les cibles du panneau des permanents font au moins 44 x 44 (grille elementFromPoint)`, () => { const bad = small.filter(s => s.w < 44 || s.h < 44); assert.ok(small.length >= 6 && bad.length === 0, JSON.stringify(bad.slice(0, 5))); });
+    // Repli natif : un toucher sur le chevron replie le panneau (mécanisme du site)
+    await p.locator('.panel-heading span.clickable').first().click();
+    const collapsed = await p.evaluate(() => getComputedStyle(document.querySelector('#fx-permanents .panel-body')).display);
+    check(`${width} : le chevron natif replie toujours le panneau des permanents`, () => assert.equal(collapsed, 'none'));
+    await context.close();
+    const c = await open({ width, height });
+    await withTools(c.page);
+    await REDRAWS[0][1](c.page);
+    await settleRedraw(c.page);
+    checkPerm(`${width} après page 2`, await c.page.evaluate(PERM_ROWS));
+    await c.context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 375, late: true });
+    await withTools(p);
+    checkPerm('375 (DataTables initialisé après le userscript)', await p.evaluate(PERM_ROWS));
+    await context.close();
+  }
+}
+
+if (frag('l4-themes')) {
+  console.log('L4 : contrastes >= 4,5:1 des sujets permanents sur les 16 thèmes');
+  for (const variant of THEMES) {
+    const { context, page: p } = await open({ width: 375, variant });
+    await withTools(p);
+    const m = await p.evaluate(PERM_ROWS);
+    check(`375 ${variant} : titres, cadenas et dates des permanents >= 4,5:1`, () => { const v = m.rows.flatMap(r => Object.values(r.colors)).filter(x => x !== null); assert.ok(v.length >= 13, 'mesures ' + v.length); assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v)); });
     await context.close();
   }
 }
