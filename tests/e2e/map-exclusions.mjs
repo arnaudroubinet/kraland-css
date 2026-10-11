@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { domQuiet, probeQuiet } from './lib/settle.mjs';
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { parseIndex, signatureInfo, computeExclusions, exclusionsInTemplate, probe, engine, closeEngine, decodeWithEngine, scratchDir, INVENTORY_PATH } from './audit-map-images.mjs';
@@ -182,7 +183,7 @@ await context.addInitScript(({ src }) => {
 }, { src: userscript });
 const page = await context.newPage();
 await page.goto('http://www.kraland.org/jouer/plateau', { waitUntil: 'load' });
-await page.waitForTimeout(800);
+await domQuiet(page, { quietMs: 500, label: 'chargement plateau' });
 
 // Échantillons : toutes les exclusions, 40 noms remplaçables par variante (dont suffixes), 3 noms inconnus de l'inventaire
 const overrideMap = Object.fromEntries([...fs.readFileSync(path.join(root, 'kraland-userscript-template.js'), 'utf8').match(/MEDIEVAL_MAP_OVERRIDES: \{([\s\S]*?)\n {4}\},/)[1].matchAll(/'([^']+)': '([^']+)'/g)].map(m => [m[1], m[2]]));
@@ -199,7 +200,9 @@ await page.evaluate(({ items, base }) => {
   const zone = document.getElementById('zone');
   items.forEach((it, i) => { const img = document.createElement('img'); img.id = 'i' + i; img.width = 8; img.height = 8; img.src = `${base}/${it.s}/${it.n}`; zone.appendChild(img); });
 }, { items: sample, base: BASE });
-await page.waitForTimeout(6000);
+// Plus d'attente fixe de 6 s : l'état de toutes les images (src, complete, largeur) et le nombre de requêtes restent identiques 1,5 s
+// (les replis réseau du script se résolvent en quelques centaines de ms) ; expiration explicite à 30 s.
+await probeQuiet(async () => ({ imgs: await page.evaluate((n) => Array.from({ length: n }, (_, i) => { const e = document.getElementById('i' + i); return [e.getAttribute('src'), e.complete, e.naturalWidth]; }), sample.length), req: Object.values(requests).reduce((a, b) => a + b, 0) }), { quietMs: 1500, maxMs: 30000, label: 'images de la carte' });
 const finals = await page.evaluate((n) => Array.from({ length: n }, (_, i) => { const e = document.getElementById('i' + i); return { src: e.getAttribute('src'), w: e.naturalWidth }; }), sample.length);
 const bad = (kind, f) => sample.map((it, i) => ({ it, r: finals[i] })).filter(x => x.it.kind === kind && !f(x.it, x.r)).map(x => `${x.it.s}/${x.it.n} → ${x.r.src}`);
 check(`exclus (${sample.filter(x => x.kind === 'exclu').length}) : URL d'origine conservée et affichée`, () => assert.deepEqual(bad('exclu', (it, r) => r.src === `${BASE}/${it.s}/${it.n}` && r.w > 0), []));

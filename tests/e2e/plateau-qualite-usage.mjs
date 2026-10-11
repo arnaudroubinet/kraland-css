@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -16,7 +17,6 @@ const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScri
 const html = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-qualite-usage.html'), 'utf8');
 const TARGET = 'http://www.kraland.org/jouer/plateau';
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
-const SETTLE_MS = 3600; // la page est masquée jusqu'à 3 s (anti-FOUC) puis le thème est posé
 
 let failures = 0;
 function check(name, fn) {
@@ -68,7 +68,7 @@ const snapshot = () => page.evaluate(() => {
 });
 
 await page.goto(TARGET, { waitUntil: 'load' });
-await page.waitForTimeout(SETTLE_MS);
+await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
 let s = await snapshot();
 
 console.log('Compétences nommées (desktop 1512)');

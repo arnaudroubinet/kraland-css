@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
+import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -143,6 +144,17 @@ function check(name, fn) {
   }
 }
 
+// Fragmentation (exécution parallèle) : KR_FRAG = identifiants séparés par des virgules ; vide = tout jouer.
+// Un identifiant est joué si KR_FRAG le contient, contient l'un de ses préfixes (« seuil » couvre « seuil-real-sombre ») ou l'un de ses descendants.
+// Identifiants : f01, m1-clair, m1-sombre, m2-fake, m2-real, s3-fake, s3-real, s3d-fake, s3d-real, signature, n1, pied, desktop,
+// seuil-{fake,real}-{clair,sombre}.
+const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
+const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
+
+// Remplace l'ancienne attente fixe de 1,5 s : le script a posé sa classe sur <html>, puis le DOM est calme (aucune mutation pendant
+// 500 ms) et deux images ont été peintes (tests/e2e/lib/settle.mjs). Expiration explicite à 15 s.
+const settlePage = (pg, theme) => domQuiet(pg, { ready: theme ? THEME_READY : null, label: 'forum-mobile' });
+
 const browser = await chromium.launch({ headless: true });
 
 async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false, height = 800, touch = false }) {
@@ -176,7 +188,7 @@ async function open({ width, kind, locked = false, theme = true, variant = 'empi
   }, { src: userscript, enabled: theme, variant });
   const page_ = await context.newPage();
   await page_.goto(BASE + urlFor, { waitUntil: 'load' });
-  await page_.waitForTimeout(1500);
+  await settlePage(page_, theme);
   return { context, page: page_, state };
 }
 
@@ -201,7 +213,7 @@ const MEASURE = () => {
 };
 
 console.log('F-01 : sujet mobile, « Répondre » en haut ET en bas');
-for (const width of [375, 700]) {
+for (const width of [375, 700].filter(() => frag('f01'))) {
   const { context, page: p, state } = await open({ width, kind: 'sujet' });
   const m = await p.evaluate(MEASURE);
   const replies = m.reponds.filter(a => a.text === 'Répondre');
@@ -235,7 +247,7 @@ for (const width of [375, 700]) {
 }
 
 console.log('F-01 : sujet fermé (aucun lien « répondre » natif)');
-{
+if (frag('f01')) {
   const { context, page: p } = await open({ width: 375, kind: 'sujet', locked: true });
   const m = await p.evaluate(MEASURE);
   check('aucun « Répondre » inventé', () => assert.equal(m.reponds.length, 0, JSON.stringify(m.reponds)));
@@ -244,7 +256,7 @@ console.log('F-01 : sujet fermé (aucun lien « répondre » natif)');
 }
 
 console.log('F-01 : page d\'édition mobile');
-{
+if (frag('f01')) {
   const { context, page: p } = await open({ width: 375, kind: 'editeur' });
   const m = await p.evaluate(MEASURE);
   check('aucun « + » (ni lien nouveau sujet sans libellé) dans l\'éditeur', () => assert.equal(m.plus.length, 0, JSON.stringify(m.plus)));
@@ -252,7 +264,7 @@ console.log('F-01 : page d\'édition mobile');
 }
 
 console.log('F-06 : éditeur mobile, barre d\'outils BBCode');
-for (const width of [375, 700]) {
+for (const width of [375, 700].filter(() => frag('f01'))) {
   const { context, page: p, state } = await open({ width, kind: 'editeur' });
   const m = await p.evaluate(MEASURE);
   const visibleNow = m.tools.filter(t => t.ok && t.x >= 0 && t.x + t.w <= m.iw);
@@ -282,7 +294,7 @@ const replyColors = (p, index) => p.evaluate(i => {
 }, index);
 
 console.log('M1 : contraste « Répondre » (AA 4,5:1) — 16 thèmes, haut et bas, normal / survol / actif');
-for (const variant of VARIANTS) {
+for (const variant of VARIANTS.filter(v => frag(v.endsWith('-dark') ? 'm1-sombre' : 'm1-clair'))) {
   const { context, page: p, state } = await open({ width: 375, kind: 'sujet', variant });
   for (const [index, place] of [[0, 'haut'], [1, 'bas']]) {
     await p.evaluate(i => Array.from(document.querySelectorAll('a.forum-thread-action-reply'))[i].scrollIntoView({ block: 'center' }), index);
@@ -352,9 +364,9 @@ async function openPalette(p, realBs) {
   await p.waitForTimeout(300);
 }
 const overlap = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
-const paletteModes = [{ name: 'fixture Bootstrap minimal (.open posé)', realBs: false }];
-if (BS_DIR) { paletteModes.push({ name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (KR_BOOTSTRAP_DIR absent)'); }
-for (const mode of paletteModes) {
+const paletteModes = [{ id: 'fake', name: 'fixture Bootstrap minimal (.open posé)', realBs: false }];
+if (BS_DIR) { paletteModes.push({ id: 'real', name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (KR_BOOTSTRAP_DIR absent)'); }
+for (const mode of paletteModes.filter(m => frag('m2-' + m.id))) {
   console.log(`M2 : palette Couleurs — ${mode.name}`);
   // 375/390/430/700 en thème clair ET sombre ; 320 (viewport plus étroit que le menu élargi) en sombre : le menu reste borné à l'écran
   const cases = [375, 390, 430, 700].flatMap(w => [[w, 'empire-brun'], [w, 'empire-brun-dark']]).concat([[320, 'empire-brun-dark']]);
@@ -460,7 +472,7 @@ const SMILEYS = () => {
 const inScreenX = (r, vw) => r.x >= -0.5 && r.x + r.w <= vw + 0.5;
 
 console.log('S3 : menu smileys mobile — 126 smileys atteignables, cibles >= 44 px, menu contenu dans l\'écran, voisins non recouverts');
-for (const mode of paletteModes) {
+for (const mode of paletteModes.filter(m => frag('s3-' + m.id))) {
   for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
     const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant, height: width === 375 ? 667 : 800 });
     await openSmileys(p, mode.realBs);
@@ -490,7 +502,7 @@ for (const mode of paletteModes) {
 }
 
 console.log('S3 desktop : menu smileys natif inchangé (320 px, absolu, superposé), palette Couleurs 190 px');
-for (const mode of paletteModes) {
+for (const mode of paletteModes.filter(m => frag('s3d-' + m.id))) {
   const { context, page: p } = await open({ width: 1280, kind: 'editeur', realBs: mode.realBs, height: 720 });
   const before = await p.evaluate(() => document.querySelector('.btn-toolbar').getBoundingClientRect().height);
   await openSmileys(p, mode.realBs);
@@ -531,7 +543,7 @@ const SIGNATURE_SCROLL = how => {
   return { how, covered: !(hit && l.contains(hit)), hit: hit ? hit.tagName + '.' + String(hit.className).slice(0, 30) : null, bottom: Math.round(r.bottom), barTop: Math.round(br.top), barFixed: getComputedStyle(bar).position === 'fixed', gapBelowDoc: Math.round(document.documentElement.scrollHeight - (r.bottom + window.scrollY)), vh: window.innerHeight };
 };
 console.log('Signature : libellé lisible, case non chevauchante, ligne jamais masquée par la barre « Envoyer » fixe');
-for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']].filter(() => frag('signature'))) {
   const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
   await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   const s = await p.evaluate(SIGNATURE);
@@ -549,7 +561,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
   check(`${tag} : rien envoyé, rien coché/décoché`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
   await context.close();
 }
-{
+if (frag('signature')) {
   const { context, page: p } = await open({ width: 1280, kind: 'editeur', height: 720 });
   const s = await p.evaluate(SIGNATURE);
   check('1280 px : Signature desktop inchangée (case native 13 px séparée du libellé, libellé < 40 px de haut)', () => { assert.equal(s.overlap, 0, JSON.stringify(s)); assert.ok(s.cb.w <= 16 && s.label.h < 40, JSON.stringify([s.cb, s.label])); });
@@ -606,7 +618,7 @@ async function sweep(p, step) {
 }
 
 console.log('N-1 : « Remonter en haut » ne recouvre jamais « Répondre » ni « Nouveau sujet » (balayage du défilement)');
-for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']].filter(() => frag('n1'))) {
   const { context, page: p, state } = await open({ width, kind: 'sujet', variant, height: width === 375 ? 667 : 800 });
   const top = await p.evaluate(FIXED_STATE);
   const sw = await sweep(p, 20);
@@ -619,7 +631,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
   check(`${tag} : rien cliqué, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
   await context.close();
 }
-{
+if (frag('n1')) {
   const { context, page: p } = await open({ width: 1280, kind: 'sujet', height: 720 });
   await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' }));
   await p.waitForTimeout(300);
@@ -629,7 +641,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
 }
 
 console.log('Pied collant (z-index 1000) vs « Envoyer » (z-index 90) : le bouton fixe ne masque jamais la barre');
-for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
+for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']].filter(() => frag('pied'))) {
   const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
   const sw = await sweep(p, 20);
   const tag = `${width} px ${variant}`;
@@ -643,7 +655,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
 }
 
 console.log('Desktop 1280 : inchangé');
-{
+if (frag('desktop')) {
   const { context, page: p } = await open({ width: 1280, kind: 'sujet' });
   const m = await p.evaluate(MEASURE);
   check('boutons natifs « répondre » et « nouveau sujet » visibles, aucune barre ajoutée', () => {
@@ -664,8 +676,8 @@ console.log('Desktop 1280 : inchangé');
 // Avant correctif, à 768 px exactement : mode mobile JS inactif (< 768) mais barre « Envoyer » fixe (CSS max-width: 768px) et correctifs PR12 inactifs (max-width: 767px).
 console.log('SEUIL 768 : 767 = mobile, 768 et 769 = bureau (comme Bootstrap natif), 768 tactile compris, éditeur et sujet utilisables');
 const THRESHOLD_CASES = [[767, false], [768, false], [768, true], [769, false], [769, true]];
-for (const mode of paletteModes) {
-  for (const variant of ['empire-brun-dark', 'empire-brun']) {
+for (const mode of paletteModes.filter(m => frag('seuil-' + m.id))) {
+  for (const variant of ['empire-brun-dark', 'empire-brun'].filter(v => frag(`seuil-${mode.id}-${v === 'empire-brun' ? 'clair' : 'sombre'}`))) {
     for (const [width, touch] of THRESHOLD_CASES) {
       const mobile = width < 768;
       const tag = `${width} px${touch && !mobile ? ' tactile' : ''} ${variant} (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
