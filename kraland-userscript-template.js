@@ -336,9 +336,14 @@
     }
 
     // Sans sessionStorage le plafond ne peut pas être suivi : aucun rechargement automatique (bandeau manuel)
+    // (lecture ET écriture : un stockage lisible mais en écriture refusée, QuotaExceededError, ne tiendrait pas le journal)
+    const RELOAD_PROBE_KEY = 'kr-breakpoint-probe';
     function reloadStorageAvailable() {
       try {
         sessionStorage.getItem(RELOAD_LOG_KEY);
+        // Sonde d'écriture sur une clé dédiée, aussitôt retirée : aucune autre donnée n'est touchée
+        sessionStorage.setItem(RELOAD_PROBE_KEY, '1');
+        sessionStorage.removeItem(RELOAD_PROBE_KEY);
         return true;
       } catch (_e) { return false; }
     }

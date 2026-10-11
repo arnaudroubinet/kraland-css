@@ -42,7 +42,7 @@ const browser = await chromium.launch({ headless: true });
 
 // moment : 'start' (document-start), 'dcl' (DOMContentLoaded), 'load' (après load), 'later' (différé 600 ms, chargeur asynchrone)
 // lateViewport : simule le pire cas où la largeur reste fausse (980) jusqu'après le chargement -> la garde doit plafonner.
-async function scenario({ moment, width, route, lateViewport = false, blockStorage = false }) {
+async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false }) {
   const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   let documents = 0;
   await context.route('http://www.kraland.org/**', r => {
@@ -51,8 +51,25 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     if (r.request().resourceType() === 'document') { documents += 1; }
     return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: HTML(PAGES[u.pathname]) });
   });
-  await context.addInitScript(({ src, when, late, blocked }) => {
+  await context.addInitScript(({ src, when, late, blocked, readOnly }) => {
     window.GM = { xmlHttpRequest: () => {} };
+    window.__krWrites = { set: 0, removed: [], keys: [] };
+    if (readOnly) {
+      // Stockage lisible mais écriture refusée (ancien Safari privé, quota nul) : getItem répond, setItem lève QuotaExceededError
+      const proto = Object.getPrototypeOf(window.sessionStorage);
+      const realRemove = proto.removeItem;
+      const realSet = proto.setItem;
+      // Storage.prototype est partagé avec localStorage : on ne refuse / ne compte que sessionStorage
+      proto.setItem = function (key) {
+        if (this !== window.sessionStorage) { return realSet.apply(this, arguments); }
+        window.__krWrites.set += 1; window.__krWrites.keys.push(String(key));
+        throw new window.DOMException('quota', 'QuotaExceededError');
+      };
+      proto.removeItem = function (key) {
+        if (this === window.sessionStorage) { window.__krWrites.removed.push(String(key)); }
+        return realRemove.apply(this, arguments);
+      };
+    }
     if (blocked) {
       // Stockage inaccessible (navigation privée stricte, cookies bloqués) : tout accès à sessionStorage lève SecurityError
       Object.defineProperty(window, 'sessionStorage', { configurable: true, get() { throw new window.DOMException('denied', 'SecurityError'); } });
@@ -71,7 +88,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     else if (when === 'dcl') { document.addEventListener('DOMContentLoaded', go); }
     else if (when === 'load') { window.addEventListener('load', go); }
     else { window.addEventListener('load', () => setTimeout(go, 600)); }
-  }, { src: userscript, when: moment, late: lateViewport, blocked: blockStorage });
+  }, { src: userscript, when: moment, late: lateViewport, blocked: blockStorage, readOnly: readOnlyStorage });
   const page = await context.newPage();
   await page.goto('http://www.kraland.org' + route, { waitUntil: 'load' });
   await page.waitForTimeout(6000);
@@ -82,8 +99,10 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     mobile: document.body.classList.contains('mobile-mode'),
     w: window.innerWidth,
     seen: window.__krSeenWidth,
-    banner: document.getElementById('kr-resize-banner') ? document.getElementById('kr-resize-banner').textContent : null
-  })).catch(() => ({ mobile: false, w: 0, seen: 'page encore en rechargement', banner: null }));
+    banner: document.getElementById('kr-resize-banner') ? document.getElementById('kr-resize-banner').textContent : null,
+    writes: window.__krWrites,
+    probeLeft: (() => { try { return window.sessionStorage.getItem('kr-breakpoint-probe'); } catch (_e) { return null; } })()
+  })).catch(() => ({ mobile: false, w: 0, seen: 'page encore en rechargement', banner: null, writes: null }));
   await context.close();
   return { documents: after6, stable: documents === after6, ...state };
 }
@@ -122,6 +141,22 @@ for (const route of ['/forum', '/kramail']) {
 {
   const s = await scenario({ moment: 'start', width: 375, route: '/forum', blockStorage: true });
   check('stockage inaccessible, démarrage normal : 1 document, mode mobile, aucun bandeau', () => { assert.equal(s.documents, 1); assert.equal(s.mobile, true); assert.equal(s.banner, null); });
+}
+
+console.log('m-1 : sessionStorage lisible mais écriture refusée (QuotaExceededError) -> aucune boucle, bandeau manuel');
+for (const route of ['/forum', '/kramail']) {
+  const s = await scenario({ moment: 'start', width: 375, route, lateViewport: true, readOnlyStorage: true });
+  check(`${route} : 1 seul document, stable (largeur tardive avant la meta, écriture refusée)`, () => { assert.equal(s.documents, 1, `${s.documents} documents`); assert.equal(s.stable, true); });
+  check(`${route} : bandeau manuel « Recharger » affiché, sans parler de saisie`, () => { assert.ok(s.banner && s.banner.includes('Recharger') && !/saisie/i.test(s.banner), String(s.banner)); });
+  check(`${route} : seule la clé de sonde dédiée est écrite (aucune autre donnée touchée)`, () => { assert.ok(s.writes, 'pas de relevé'); assert.deepEqual([...new Set(s.writes.keys)], ['kr-breakpoint-probe']); });
+}
+{
+  const s = await scenario({ moment: 'start', width: 375, route: '/forum', readOnlyStorage: true });
+  check('écriture refusée, démarrage normal : 1 document, mode mobile, aucun bandeau', () => { assert.equal(s.documents, 1); assert.equal(s.mobile, true); assert.equal(s.banner, null); });
+}
+{
+  const s = await scenario({ moment: 'start', width: 375, route: '/forum', lateViewport: true });
+  check('stockage normal : la clé de sonde est retirée (rien ne reste)', () => assert.equal(s.probeLeft, null));
 }
 
 console.log('s1 : texte du bandeau selon le motif réel');

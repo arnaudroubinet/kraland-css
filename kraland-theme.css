@@ -12457,6 +12457,20 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     float: none !important;
   }
 
+  /* MA-1 : le menu natif porte « padding:10px; width:190px » en ligne, trop étroit pour la grille 6×44. On élargit
+     SEULEMENT le menu qui contient la palette (le menu smileys n'a pas de .btn-group), borné à l'écran ;
+     6 colonnes de 44 + 5 écarts + 2×8 de marge + 2×10 de marge du menu + bordures = 334 px. Écran plus étroit : moins de colonnes. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) {
+    box-sizing: border-box !important;
+    width: min(334px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) > .btn-group {
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
   .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group > .btn {
     display: block !important;
     float: none !important;

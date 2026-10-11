@@ -34,7 +34,7 @@ const BOOTSTRAP = `
   .btn-group-xs > .btn, .btn-xs { padding: 1px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; }
   .btn-toolbar { margin-left: -5px; } .btn-toolbar > .btn-group { float: left; margin-left: 5px; }
   .btn-toolbar:before, .btn-toolbar:after { display: table; content: " "; } .btn-toolbar:after { clear: both; }
-  .dropdown { position: relative; } .dropdown-menu { position: absolute; top: 100%; left: 0; z-index: 1000; display: none; float: left; min-width: 160px; background: #fff; }
+  .dropdown { position: relative; } .dropdown-menu { position: absolute; top: 100%; left: 0; z-index: 1000; display: none; float: left; min-width: 160px; padding: 5px 0; margin: 2px 0 0; list-style: none; font-size: 14px; text-align: left; background-color: #fff; background-clip: padding-box; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; }
   .pull-right { float: right !important; } .container { padding: 0 15px; }
   .form-group { margin-bottom: 15px; } .form-control { display: block; width: 100%; height: 34px; padding: 6px 12px; }
   .col-sm-10, .col-sm-2, .col-md-9 { position: relative; min-height: 1px; padding: 0 15px; }
@@ -59,7 +59,7 @@ function toolHtml(t) {
   if (t === 'PREV') { return '<a href="" onclick="window.__clicks.push(\'prev\');return false;" title="Prévisualisation" class="btn btn-default"><i class="fa">P</i></a>'; }
   if (typeof t === 'string') {
     const menu = t === 'DROP-couleurs' ? `<div class="btn-group btn-group-xs" role="group">${COLORS.map((c, i) => `<a href="${colorHref(i)}"${colorOnclick(i) ? ` onclick="${colorOnclick(i)}"` : ''} class="btn btn-default" style="background:none;background-color:${c}" title="[color${i}]x[/color${i}]">&nbsp;&nbsp;</a>`).join('')}</div>` : '<table><tr><td><a href="#">:)</a></td></tr></table>';
-    return `<span class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" title="${t}"><i class="fa">☺</i></button></a><div class="dropdown-menu" role="menu" style="padding:10px;width:320px;">${menu}</div></span>`;
+    return `<span class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" title="${t}"><i class="fa">☺</i></button></a><div class="dropdown-menu" role="menu" style="padding:10px;width:190px;">${menu}</div></span>`;
   }
   return `<a href="javascript:addtag('${t[0]}',1);" class="btn btn-default" title="Outil ${t[0]}"><i class="fa ${t[1]}">${t[0][0].toUpperCase()}</i></a>`;
 }
@@ -291,7 +291,7 @@ const PALETTE = () => {
   });
   return {
     shown: cs.display !== 'none' && mr.width > 0, open: dd.classList.contains('open'),
-    menu: { x: mr.left, y: mr.top, w: mr.width, h: mr.height }, dots, vw: document.documentElement.clientWidth,
+    menu: { x: mr.left, y: mr.top, w: mr.width, h: mr.height }, inline: { width: menu.style.width, padding: menu.style.padding }, computed: { padding: cs.paddingTop, width: cs.width }, dots, vw: document.documentElement.clientWidth,
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth
   };
 };
@@ -307,11 +307,20 @@ const paletteModes = [{ name: 'fixture Bootstrap minimal (.open posé)', realBs:
 if (BS_DIR) { paletteModes.push({ name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (KR_BOOTSTRAP_DIR absent)'); }
 for (const mode of paletteModes) {
   console.log(`M2 : palette Couleurs — ${mode.name}`);
-  for (const width of [375, 390, 430, 700]) {
-    const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs });
+  // 375/390/430/700 en thème clair ET sombre ; 320 (viewport plus étroit que le menu élargi) en sombre : le menu reste borné à l'écran
+  const cases = [375, 390, 430, 700].flatMap(w => [[w, 'empire-brun'], [w, 'empire-brun-dark']]).concat([[320, 'empire-brun-dark']]);
+  for (const [width, variant] of cases) {
+    const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant });
     await openPalette(p, mode.realBs);
     const m = await p.evaluate(PALETTE);
-    const tag = `${width} px`;
+    const tag = `${width} px ${variant}`;
+    check(`${tag} : menu natif en ligne 190 px / padding 10 px, élargi par F06 (largeur calculée = min(334, écran - 24)), borné à l'écran`, () => {
+      assert.equal(m.inline.width, '190px'); assert.equal(m.inline.padding, '10px');
+      const expected = Math.min(334, m.vw - 24);
+      assert.ok(Math.abs(m.menu.w - expected) <= 1, `largeur ${m.menu.w} attendue ${expected}`);
+      assert.equal(m.computed.padding, '10px');
+      assert.ok(m.menu.x >= -0.5 && m.menu.x + m.menu.w <= m.vw + 0.5, `menu x=${m.menu.x} w=${m.menu.w} écran ${m.vw}`);
+    });
     check(`${tag} : menu ouvert${mode.realBs ? ' par le gestionnaire Bootstrap' : ''}`, () => { assert.equal(m.shown, true); assert.equal(m.open, true); });
     check(`${tag} : 18 pastilles`, () => assert.equal(m.dots.length, 18, `${m.dots.length}`));
     check(`${tag} : chaque pastille >= 44×44 (et <= 60)`, () => assert.ok(m.dots.every(d => d.w >= 44 && d.h >= 44 && d.w <= 60 && d.h <= 60), JSON.stringify(m.dots.filter(d => !(d.w >= 44 && d.h >= 44 && d.w <= 60 && d.h <= 60)).map(d => [d.w, d.h]))));
