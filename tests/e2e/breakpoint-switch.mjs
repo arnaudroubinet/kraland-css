@@ -114,7 +114,10 @@ if (frag('widths')) {
     assert.ok(Math.abs(afterScroll.y - 600) <= 40, `scrollY = ${afterScroll.y}`);
   });
   const backScroll = await resizeTo(1512);
-  check('défilement restauré après mobile -> desktop (±40 px)', () => assert.ok(Math.abs(backScroll.y - 600) <= 40, `scrollY = ${backScroll.y}`));
+  check('défilement restauré après mobile -> desktop (±40 px)', () => {
+    assert.equal(backScroll.marker, false, 'la page aurait dû se recharger');
+    assert.ok(Math.abs(backScroll.y - 600) <= 40, `scrollY = ${backScroll.y}`);
+  });
 
   // 3. Saisie en cours : pas de rechargement, bandeau proposé, texte conservé
   console.log('Saisie en cours');

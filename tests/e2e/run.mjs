@@ -137,7 +137,7 @@ const logDir = process.env.KR_LOGDIR || fs.mkdtempSync(path.join(process.env.TMP
 if (path.resolve(logDir).startsWith(root + path.sep)) { console.error('KR_LOGDIR ne doit pas être dans le dépôt : ' + logDir); process.exit(2); }
 fs.mkdirSync(logDir, { recursive: true });
 const units = buildUnits(zones, process.env);
-if (units.some(u => u.missingBootstrap)) { console.error('KR_BOOTSTRAP_DIR doit contenir les fichiers Bootstrap 3.3.7 et jQuery pour les tests forum avec vraie cascade. Aucun fragment ignoré silencieusement.'); process.exit(2); }
+if (units.some(u => u.missingBootstrap)) { console.error('Fichiers Bootstrap 3.3.7 et jQuery introuvables ou incomplets dans ' + (process.env.KR_BOOTSTRAP_DIR || DEFAULT_BOOTSTRAP_DIR) + ' (attendus : bootstrap.min.css, bootstrap.min.js, jquery.min.js ; défaut tests/e2e/vendor, surcharge KR_BOOTSTRAP_DIR). Aucun fragment ignoré silencieusement.'); process.exit(2); }
 console.log(`${units.length} fragment(s), concurrence ${concurrency}, journaux dans ${logDir}`);
 const t0 = Date.now();
 const results = await runAll(units, concurrency, logDir);

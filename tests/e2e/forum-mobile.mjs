@@ -8,8 +8,9 @@
 // Option : KR_SHOTS=/dossier pour enregistrer des captures de fixtures.
 // Passe « vrai Bootstrap » de la palette Couleurs (menu ouvert par le vrai gestionnaire data-toggle="dropdown") : jouée avec les fichiers embarqués
 //   dans tests/e2e/vendor/ (bootstrap.min.css, bootstrap.min.js, jquery.min.js : Bootstrap 3.3.7 et jQuery 3.3.1, voir vendor/README.md).
-// Option : KR_BOOTSTRAP_DIR=/dossier pour pointer vers d'autres copies. Si le dossier (par défaut ou indiqué) est incomplet, la passe est signalée
-//   « non jouée » (le menu est alors ouvert en posant la classe .open) ; le lanceur run.mjs, lui, sort en exit 2 : jamais un faux vert.
+// Option : KR_BOOTSTRAP_DIR=/dossier pour pointer vers d'autres copies. Si ce dossier est indiqué mais incomplet : exit 2 (jamais un faux vert, ce
+//   qu'on soit lancé par run.mjs ou directement en série). Si seul le dossier par défaut est incomplet, la passe est signalée « non jouée »
+//   (le menu est alors ouvert en posant la classe .open) ; le lanceur run.mjs, lui, sort alors en exit 2.
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
@@ -60,6 +61,7 @@ const BOOTSTRAP = `
 const BS_FILES = ['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'];
 const BS_CANDIDATE = process.env.KR_BOOTSTRAP_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 const BS_DIR = BS_FILES.every(f => fs.existsSync(path.join(BS_CANDIDATE, f))) ? BS_CANDIDATE : '';
+if (!BS_DIR && process.env.KR_BOOTSTRAP_DIR) { console.error('KR_BOOTSTRAP_DIR=' + process.env.KR_BOOTSTRAP_DIR + ' est incomplet (attendus : ' + BS_FILES.join(', ') + '). Une passe « vrai Bootstrap » demandée mais impossible ne doit pas donner un faux vert.'); process.exit(2); }
 // 18 couleurs de la palette (style en ligne, href javascript:addtag natif) ; la 1re porte un onclick pour vérifier qu'il est préservé
 const COLORS = ['#000000', '#7f7f7f', '#d50000', '#ff6d00', '#ffd600', '#64dd17', '#00c853', '#00bfa5', '#00b8d4', '#0091ea', '#2962ff', '#6200ea', '#aa00ff', '#c51162', '#795548', '#9e9e9e', '#ffffff', '#ffcdd2'];
 const colorHref = i => `javascript:addtag('color${i}',1);`;
