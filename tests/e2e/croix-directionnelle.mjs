@@ -75,6 +75,11 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.replace(/\s*\n\s*/g, ' ').slice(0, 400)); }
 }
 
+// Fragmentation (exécution parallèle) : KR_FRAG = etats, impossibles, clics, transitions, themes, ordre, m1, natif ; vide = tout jouer.
+// (CA6 et CA16 dépendent des mesures de « etats » : ils sont joués avec lui.)
+const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
+const frag = id => FRAG.length === 0 || FRAG.includes(id);
+
 const browser = await chromium.launch({ headless: true });
 let currentHtml = '';
 const requests = []; // navigations vers les FIXTURE-* : interceptées et comptées
@@ -162,7 +167,7 @@ const expectedDirs = (st) => st.dirs || ['Nord', 'Ouest', 'Est', 'Sud'];
 const costs = [];
 const padPositions = {}; // largeur -> [positions de la croix] pour 3, 5 et 8 pièces
 
-for (const [label, st] of Object.entries(STATES)) {
+for (const [label, st] of Object.entries(STATES).filter(() => frag('etats'))) {
   const { page, context } = await newPage();
   for (const width of WIDTHS) {
     console.log(`${label} — ${width} px`);
@@ -226,7 +231,7 @@ for (const [label, st] of Object.entries(STATES)) {
 }
 
 console.log('CA6 croix à la même position (±1 px) avec 3, 5 et 8 pièces');
-for (const w of WIDTHS) {
+for (const w of WIDTHS.filter(() => frag('etats'))) {
   check(`${w} px : ${padPositions[w] ? padPositions[w].length : 0} états, même position`, () => {
     const p = padPositions[w]; assert.ok(p && p.length === Object.keys(STATES).length);
     assert.ok(p.every(q => Math.abs(q.x - p[0].x) <= 1 && Math.abs(q.y - p[0].y) <= 1), JSON.stringify(p));
@@ -234,7 +239,7 @@ for (const w of WIDTHS) {
 }
 
 // ---------- CA10 : cas impossibles ----------
-{
+if (frag('impossibles')) {
   const { page, context } = await newPage();
   for (const [label, st] of Object.entries(IMPOSSIBLE)) {
     console.log(`CA10 ${label}`);
@@ -247,7 +252,7 @@ for (const w of WIDTHS) {
 }
 
 // ---------- CA3 / CA8 : clics sur fixtures, idempotence ----------
-{
+if (frag('clics')) {
   const st = STATES['FIXTURE 4 directions, 5 pièces'];
   const { page, context } = await newPage();
   await load(page, 375, fixtureHtml(st));
@@ -316,7 +321,7 @@ for (const w of WIDTHS) {
 }
 
 // ---------- CA9 : transitions avec rechargement (comportement normal du skin) ----------
-{
+if (frag('transitions')) {
   const { page, context } = await newPage();
   console.log('CA9 transitions 375 → 768 → 375 → 1280 → 700 (le skin recharge au franchissement du seuil)');
   for (const [w, expectBlocks] of [[375, 1], [768, 0], [375, 1], [1280, 0], [700, 1]]) {
@@ -332,7 +337,7 @@ for (const w of WIDTHS) {
 }
 
 // ---------- Autres thèmes + mode natif ----------
-for (const variant of ['empire-brun-dark', 'empire-brun', 'kraland-dark', 'paladium']) {
+for (const variant of ['empire-brun-dark', 'empire-brun', 'kraland-dark', 'paladium'].filter(() => frag('themes'))) {
   const { page, context } = await newPage(variant);
   console.log(`Thème ${variant} — 375 px`);
   await load(page, 375, fixtureHtml(STATES['FIXTURE 4 directions, 5 pièces']));
@@ -342,7 +347,7 @@ for (const variant of ['empire-brun-dark', 'empire-brun', 'kraland-dark', 'palad
   await context.close();
 }
 // ---------- Décision d'Arnaud : ordre des pièces = ordre natif du DOM (pas de tri, cadenas au milieu) ----------
-{
+if (frag('ordre')) {
   const { page, context } = await newPage();
   console.log('Ordre natif des pièces (réel : bat0, bat1, bat3lock, bat2, bat2lock) — FIXTURE');
   const rooms = [img({ bat: 0 }), img({ bat: 1, current: true }), img({ bat: 3, locked: true }), img({ bat: 2 }), img({ bat: 2, locked: true })];
@@ -359,7 +364,7 @@ for (const variant of ['empire-brun-dark', 'empire-brun', 'kraland-dark', 'palad
 }
 
 // ---------- s1 : repli géométrique (area sans alt, rect net au nord) ----------
-{
+if (frag('ordre')) {
   const { page, context } = await newPage();
   console.log('s1 repli géométrique : area sans alt, rectangle net au nord (24,0,48,16)');
   await load(page, 375, fixtureHtml({ areaOverride: '<area shape="rect" coords="24,0,48,16" href="/jouer/plateau/FIXTURE-dir-geo-nord">', rooms: [room('Extérieur'), room('Commerce', { current: true })] }));
@@ -379,7 +384,7 @@ const luminance = ({ r, g, b }) => { const [R, G, B] = [r, g, b].map(v => { cons
 const contrast = (fg, bg) => { const a = luminance(parseRgb(fg)); const b = luminance(parseRgb(bg)); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
 const armColors = (page, dir) => page.evaluate((d) => { const a = document.querySelector(`.kr-arm[data-dir="${d}"]`); const cs = getComputedStyle(a); const r = a.getBoundingClientRect(); return { color: cs.color, bg: cs.backgroundColor, x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, dir);
 console.log('M1 contraste texte/fond des touches (AA 4,5:1 pour 12 px gras) — 16 thèmes');
-for (const variant of VARIANTS) {
+for (const variant of VARIANTS.filter(() => frag('m1'))) {
   const { page, context } = await newPage(variant);
   await load(page, 375, fixtureHtml(STATES['FIXTURE Sud seul, 3 pièces']));
   const light = !variant.endsWith('-dark');
@@ -406,7 +411,7 @@ for (const variant of VARIANTS) {
   await context.close();
 }
 
-{
+if (frag('natif')) {
   const { page, context } = await newPage('empire-brun-dark', false);
   console.log('Mode natif (skin désactivé) — 375 px');
   await load(page, 375, fixtureHtml(STATES['FIXTURE 4 directions, 5 pièces']), false);
@@ -416,7 +421,7 @@ for (const variant of VARIANTS) {
 }
 
 console.log('\nCA16 coût en hauteur du bloc (px) — FIXTURES');
-for (const w of [375]) {
+for (const w of [375].filter(() => frag('etats'))) {
   costs.filter(c => c.width === w).forEach(c => console.log(`  ${w} px  ${c.etat.padEnd(38)} ${String(c.pieces).padStart(2)} pièces : ${c.blocH} px`));
 }
 if (process.env.KR_COSTS) { fs.writeFileSync(process.env.KR_COSTS, JSON.stringify(costs, null, 1)); }

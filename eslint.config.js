@@ -127,7 +127,8 @@ export default [
       'screenshots/**',
       'images/**',
       'demos/**',
-      'docs/**'
+      'docs/**',
+      'tests/e2e/vendor/**' // Bootstrap et jQuery tiers, non modifiés
     ]
   }
 ];

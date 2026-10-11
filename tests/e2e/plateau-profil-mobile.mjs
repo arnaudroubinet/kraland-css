@@ -10,13 +10,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
 const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const TARGET = 'http://www.kraland.org/jouer/plateau';
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
-const SETTLE_MS = 3600;
 
 const SKILLS = ['Baratin', 'Combat Mains Nues', 'Combat Contact', 'Combat Distance', 'Commerce', 'Démolition',
   'Discrétion', 'Éloquence', 'Falsification', 'Foi', 'Informatique', 'Médecine',
@@ -119,7 +119,7 @@ const overlaps = (cells) => {
 async function runWidth(width, expectedSkillCols) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(TARGET, { waitUntil: 'load' });
-  await page.waitForTimeout(SETTLE_MS);
+  await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
   console.log(`Profil mobile ${width} px`);
 
   // --- replié ---
@@ -187,7 +187,7 @@ await runWidth(700, 6);
 // >= 768 : le mini-profil n'existe pas (mode desktop), compétences du panneau latéral inchangées
 await page.setViewportSize({ width: 768, height: 900 });
 await page.goto(TARGET, { waitUntil: 'load' });
-await page.waitForTimeout(SETTLE_MS);
+await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
 console.log('Profil à 768 px (desktop inchangé)');
 const d = await measure();
 check('768 : mode desktop, pas de mini-profil', () => { assert.ok(!d.mobile); assert.ok(!d.exists); });
