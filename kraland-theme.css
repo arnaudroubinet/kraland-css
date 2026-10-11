@@ -13287,3 +13287,71 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
+/* L5 — pagination mobile : « ‹ 1 2 3 … 15 › » sur une ligne, cibles de 44 px. Les boutons natifs masqués par ForumTopics:Pagination (.kr-page-hidden) restent dans le DOM ;
+   « Précédent » et « Suivant » gardent leur texte (nom accessible) mais s'affichent en ‹ et › (taille de police à 0, signe en ::before). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin: 8px 0 0 !important;
+    overflow: visible;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate > span {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button {
+    flex: 0 0 auto;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    box-sizing: border-box;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.kr-page-hidden,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate span.ellipsis {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-gap {
+    flex: 0 0 auto;
+    min-width: 16px;
+    color: var(--kr-text-secondary);
+    font-size: 16px;
+    text-align: center;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next {
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
+    content: "\2039";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next::before {
+    content: "\203A";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  /* Page courante : bordure de 2 px + gras + fond relevé, texte du thème (le blanc sur --kr-primary n'est pas lisible sur les accents clairs des thèmes sombres). */
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.current {
+    border: 2px solid var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+

@@ -25,7 +25,7 @@ export const SUITES = [
   { name: 'image-fallback', file: 'image-fallback.mjs', zones: ['images'] },
   { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] },
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
-  { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l3-liste'], ['l4-perm'], ['l0'], ['l1-statuts'], ['l2-entete']] }
+  { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination'], ['l0'], ['l1-statuts'], ['l2-entete']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 

@@ -4909,6 +4909,56 @@
   })();
 
   // ============================================================================
+  // SOUS-FORUM — pagination mobile (refonte variante A, lot L5)
+  // DataTables affiche « Précédent 1 2 3 4 5 … 15 Suivant » (9 éléments) : trop large pour 375 px. On garde la première page, la dernière, la page
+  // courante et, près des bords, les pages voisines ; les autres boutons natifs reçoivent .kr-page-hidden (masqués en CSS, jamais retirés) et un
+  // « … » .kr-page-gap est inséré à chaque saut. Les boutons natifs (clics, aria-controls) ne sont pas touchés. Relancé à chaque draw.dt.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    function compactPagination(topics) {
+      const pag = document.querySelector('#' + topics.id + '_wrapper .dataTables_paginate');
+      if (!pag) {return;}
+      pag.querySelectorAll('.kr-page-gap').forEach(gap => gap.remove());
+      const numbered = Array.from(pag.querySelectorAll('a.paginate_button')).filter(a => /^\d+$/.test(a.textContent.trim()));
+      if (numbered.length === 0) {return;}
+      const mobile = document.body.classList.contains('mobile-mode');
+      const nums = numbered.map(a => Number(a.textContent.trim()));
+      const first = nums[0] === 1 ? nums[0] : 1;
+      const last = nums[nums.length - 1];
+      const currentButton = numbered.find(a => a.classList.contains('current'));
+      const current = currentButton ? Number(currentButton.textContent.trim()) : first;
+      const keep = new Set([first, last, current]);
+      if (current <= 2) { [1, 2, 3].forEach(n => keep.add(n)); }
+      if (current >= last - 1) { [last - 2, last - 1, last].forEach(n => keep.add(n)); }
+      let previousShown = null;
+      numbered.forEach((a, i) => {
+        const hide = mobile && !keep.has(nums[i]);
+        a.classList.toggle('kr-page-hidden', hide);
+        if (hide) {return;}
+        if (previousShown !== null && nums[i] - previousShown > 1) {
+          const gap = document.createElement('span');
+          gap.className = 'kr-page-gap';
+          gap.setAttribute('aria-hidden', 'true');
+          gap.textContent = '…';
+          a.parentNode.insertBefore(gap, a);
+        }
+        previousShown = nums[i];
+      });
+    }
+
+    function initPagination() {
+      const topics = document.getElementById('topics');
+      if (!topics || !document.body.classList.contains('page-forum') || typeof jQuery === 'undefined') {return;}
+      compactPagination(topics);
+      jQuery(topics).on('draw.dt', () => compactPagination(topics));
+    }
+
+    InitQueue.register('ForumTopics:Pagination', initPagination, 26);
+  })();
+
+  // ============================================================================
   // MOBILE FORUM TOPICS - libellés, navigation et ligne cliquable (sous-forum, lot L3)
   // - Chaque chiffre a son mot : « 13 messages · 75 vues · 2 pages ». Le mot est posé en attribut (data-kr-unit sur les cellules Msg et Vus,
   //   data-kr-pages-label sur la 1re cellule) et affiché par CSS (::after) : le texte des cellules reste celui du site (DataTables s'en sert

@@ -664,6 +664,100 @@ if (frag('l4-themes')) {
   }
 }
 
+// ---------- L5 : pagination mobile (une ligne « ‹ 1 2 3 … 15 › » de cibles de 44 px) ----------
+const PAGINATION = () => {
+  const t = window.__krColorTools();
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const pag = document.querySelector('#topics_wrapper .dataTables_paginate');
+  const nodes = [...pag.querySelectorAll('a.paginate_button, span.ellipsis, .kr-page-gap')].filter(vis);
+  const label = n => (n.classList.contains('previous') ? 'prev' : n.classList.contains('next') ? 'next' : (n.matches('a.paginate_button:not(.kr-page-gap)') ? n.textContent.trim() : '…'));
+  const ratioOf = n => { const bg = t.bgOf(n); return t.round(t.ratio(t.fgOn(n, bg), bg)); };
+  return {
+    iw: window.innerWidth,
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    pag: rect(pag), paginateScroll: pag.scrollWidth - pag.clientWidth,
+    seq: nodes.map(label),
+    items: nodes.map(n => ({ l: label(n), ...rect(n), tap: n.tagName === 'A' && !n.classList.contains('kr-page-gap'), disabled: n.classList.contains('disabled'), current: n.classList.contains('current'), ratio: vis(n) && !n.classList.contains('disabled') ? ratioOf(n) : null, name: n.textContent.trim() })),
+    info: document.querySelector('#topics_wrapper .dataTables_info').textContent.trim(),
+    infoRatio: (() => { const e = document.querySelector('#topics_wrapper .dataTables_info'); return t.round(t.ratio(t.fgOn(e, t.bgOf(e)), t.bgOf(e))); })()
+  };
+};
+
+const checkPagination = (label, m, expectedSeq) => {
+  check(`${label} : pagination sur une seule ligne (tous les boutons à la même hauteur, pas de défilement)`, () => { const ys = m.items.map(i => i.y + i.h / 2); assert.ok(Math.max(...ys) - Math.min(...ys) <= 4, JSON.stringify(m.items.map(i => [i.l, i.y]))); assert.ok(m.pag.h <= 48, 'hauteur ' + m.pag.h); assert.ok(m.paginateScroll <= 0, 'défilement ' + m.paginateScroll); });
+  check(`${label} : boutons de 44 x 44 au moins, précédent et suivant présents`, () => { const taps = m.items.filter(i => i.tap); assert.ok(taps.length >= 3 && taps.every(i => i.w >= 44 && i.h >= 44), JSON.stringify(taps.map(i => [i.l, i.w, i.h]))); assert.ok(m.seq[0] === 'prev' && m.seq[m.seq.length - 1] === 'next', m.seq.join(' ')); });
+  check(`${label} : « Précédent » et « Suivant » gardent leur nom accessible (texte natif), affichés en ‹ et ›`, () => { const p = m.items[0]; const n = m.items[m.items.length - 1]; assert.equal(p.name, 'Précédent'); assert.equal(n.name, 'Suivant'); });
+  check(`${label} : tout reste dans l'écran (0 débordement, boutons dans la largeur)`, () => { assert.equal(m.overflowX, 0); assert.ok(m.items.every(i => i.x >= 0 && i.r <= m.iw), JSON.stringify(m.items.filter(i => i.r > m.iw))); });
+  if (expectedSeq) { check(`${label} : séquence affichée = ${expectedSeq.join(' ')}`, () => assert.deepEqual(m.seq, expectedSeq)); }
+  check(`${label} : la page courante est repérée (classe native current) et son numéro est affiché`, () => assert.equal(m.items.filter(i => i.current).length, 1));
+};
+
+if (frag('l5-pagination')) {
+  console.log('L5 : pagination mobile sur une ligne');
+  for (const width of [375, 700]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const m = await p.evaluate(PAGINATION);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-pagination-${width}.png`), fullPage: true }); }
+    checkPagination(`${width} page 1`, m, ['prev', '1', '2', '3', '…', '15', 'next']);
+    check(`${width} : « Précédent » désactivé à la page 1 (natif)`, () => assert.ok(m.items[0].disabled));
+    // Navigation au toucher : page 2, puis dernière page, puis page précédente ; la pagination reste sur une ligne à chaque étape
+    const tapPage = async text => { await p.locator('#topics_wrapper .dataTables_paginate a.paginate_button', { hasText: new RegExp('^' + text + '$') }).first().click(); await settleRedraw(p); return p.evaluate(PAGINATION); };
+    const m2 = await tapPage('2');
+    checkPagination(`${width} page 2`, m2, ['prev', '1', '2', '3', '…', '15', 'next']);
+    check(`${width} : toucher « 2 » affiche la page 2 de DataTables`, () => assert.ok(/Affiche 11 à 20 de 145/.test(m2.info), m2.info));
+    const m3 = await tapPage('15');
+    checkPagination(`${width} dernière page`, m3, null);
+    check(`${width} : « Suivant » désactivé à la dernière page (natif)`, () => assert.ok(m3.items[m3.items.length - 1].disabled));
+    const m4 = await tapPage('Précédent');
+    checkPagination(`${width} page 14`, m4, null);
+    check(`${width} : toucher « Précédent » revient à la page 14`, () => assert.ok(/Affiche 131 à 140 de 145/.test(m4.info), m4.info));
+    await context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 375, late: true });
+    await withTools(p);
+    checkPagination('375 (DataTables initialisé après le userscript)', await p.evaluate(PAGINATION), ['prev', '1', '2', '3', '…', '15', 'next']);
+    await context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 375 });
+    await withTools(p);
+    await REDRAWS[3][1](p);
+    await settleRedraw(p);
+    checkPagination('375 après « Afficher 25 »', await p.evaluate(PAGINATION), ['prev', '1', '2', '3', '…', '6', 'next']);
+    await context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 375 });
+    await withTools(p);
+    await p.fill('.dataTables_filter input', 'zzzz-aucun');
+    await settleRedraw(p);
+    const m = await p.evaluate(PAGINATION);
+    check('375 après une recherche sans résultat : pagination sur une ligne, sans débordement', () => { assert.equal(m.overflowX, 0); assert.ok(m.pag.h <= 48); });
+    await context.close();
+  }
+  for (const width of [1280, 1440]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const m = await p.evaluate(PAGINATION);
+    check(`${width} : bureau inchangé (pagination native : « Précédent » et « Suivant » en toutes lettres)`, () => assert.ok(m.items[0].name === 'Précédent' && m.seq.includes('5') && m.seq.includes('…')));
+    await context.close();
+  }
+}
+
+if (frag('l5-themes')) {
+  console.log('L5 : contrastes >= 4,5:1 de la pagination mobile sur les 16 thèmes');
+  for (const variant of THEMES) {
+    const { context, page: p } = await open({ width: 375, variant });
+    await withTools(p);
+    const m = await p.evaluate(PAGINATION);
+    check(`375 ${variant} : boutons de pagination, page courante et ligne d'information >= 4,5:1`, () => { const v = [...m.items.filter(i => i.tap).map(i => i.ratio).filter(x => x !== null), m.infoRatio]; assert.ok(v.length >= 4, JSON.stringify(v)); assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v) + ' ' + JSON.stringify(m.items.map(i => [i.l, i.ratio]))); });
+    await context.close();
+  }
+}
+
 await browser.close();
 console.log(failures ? `${failures} échec(s)` : 'Tous les contrôles passent');
 process.exit(failures ? 1 : 0);
