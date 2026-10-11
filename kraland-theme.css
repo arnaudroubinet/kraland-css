@@ -13315,7 +13315,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     box-sizing: border-box;
   }
 
-  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.kr-page-hidden,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-hidden,
   body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate span.ellipsis {
     display: none !important;
   }

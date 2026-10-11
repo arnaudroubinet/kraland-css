@@ -670,7 +670,7 @@ const PAGINATION = () => {
   const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right) }; };
   const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
   const pag = document.querySelector('#topics_wrapper .dataTables_paginate');
-  const nodes = [...pag.querySelectorAll('a.paginate_button, span.ellipsis, .kr-page-gap')].filter(vis);
+  const nodes = [...pag.querySelectorAll('a.paginate_button, span')].filter(n => n.matches('a.paginate_button, .kr-page-gap') || (n.children.length === 0 && n.textContent.trim() === '…')).filter(vis); // « … » repérés par leur contenu, avec ou sans classe (DataTables 1.10.5 : aucune)
   const label = n => (n.classList.contains('previous') ? 'prev' : n.classList.contains('next') ? 'next' : (n.matches('a.paginate_button:not(.kr-page-gap)') ? n.textContent.trim() : '…'));
   const ratioOf = n => { const bg = t.bgOf(n); return t.round(t.ratio(t.fgOn(n, bg), bg)); };
   return {
@@ -678,6 +678,7 @@ const PAGINATION = () => {
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     pag: rect(pag), paginateScroll: pag.scrollWidth - pag.clientWidth,
     seq: nodes.map(label),
+    nativeEllipsisVisible: nodes.filter(n => n.tagName === 'SPAN' && !n.classList.contains('kr-page-gap')).length,
     items: nodes.map(n => ({ l: label(n), ...rect(n), tap: n.tagName === 'A' && !n.classList.contains('kr-page-gap'), disabled: n.classList.contains('disabled'), current: n.classList.contains('current'), ratio: vis(n) && !n.classList.contains('disabled') ? ratioOf(n) : null, name: n.textContent.trim() })),
     info: document.querySelector('#topics_wrapper .dataTables_info').textContent.trim(),
     infoRatio: (() => { const e = document.querySelector('#topics_wrapper .dataTables_info'); return t.round(t.ratio(t.fgOn(e, t.bgOf(e)), t.bgOf(e))); })()
@@ -750,7 +751,7 @@ if (frag('l5-pagination')) {
   const NATIVE_P1 = ['prev', '1', '2', '3', '4', '5', '…', '15', 'next'];
   const NATIVE_P7 = ['prev', '1', '…', '6', '7', '8', '…', '15', 'next'];
   const NATIVE_P15 = ['prev', '1', '…', '11', '12', '13', '14', '15', 'next'];
-  const MARKS = () => ({ gaps: document.querySelectorAll('#topics_wrapper .kr-page-gap').length, hidden: document.querySelectorAll('#topics_wrapper .kr-page-hidden').length, ellipsis: document.querySelectorAll('#topics_wrapper span.ellipsis').length });
+  const MARKS = () => ({ gaps: document.querySelectorAll('#topics_wrapper .kr-page-gap').length, hidden: document.querySelectorAll('#topics_wrapper .kr-page-hidden').length, ellipsis: [...document.querySelectorAll('#topics_wrapper .dataTables_paginate span')].filter(s => s.children.length === 0 && !s.classList.contains('kr-page-gap') && s.textContent.trim() === '…').length });
   const goNext = async (p, times) => { for (let i = 0; i < times; i += 1) { await p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button.next').click()); await settleRedraw(p); } };
   const checkNative = (label, m, marks, expectedSeq) => {
     check(`${label} : séquence de pagination native exacte = ${expectedSeq.join(' ')}`, () => assert.deepEqual(m.seq, expectedSeq));
@@ -778,7 +779,9 @@ if (frag('l5-pagination')) {
     await context.close();
   }
   {
-    // Transitions : le bureau sort sans rien insérer et retire ce que le mobile avait posé (mobile-mode ôté sans rechargement, puis redessin)
+    // Transitions : le bureau sort sans rien insérer et retire ce que le mobile avait posé (mobile-mode ôté sans rechargement, puis redessin).
+    // PORTÉE : simple GARDE DOM (bascule de classe, ni setViewportSize ni rechargement), qui prouve seulement que compactPagination défait ce qu'il a posé ;
+    // le libellé « transition » est conservé tel quel. Les vraies transitions de viewport (rechargement) sont testées plus bas, libellés « M-2 vraie transition de viewport ».
     const { context, page: p } = await open({ width: 375 });
     await withTools(p);
     const start = await p.evaluate(PAGINATION); const startMarks = await p.evaluate(MARKS);
@@ -794,6 +797,74 @@ if (frag('l5-pagination')) {
     const back = await p.evaluate(MARKS);
     check('transition bureau -> mobile : marqueurs et masquage reposés', () => assert.ok(back.gaps >= 1 && back.hidden >= 1, JSON.stringify(back)));
     await context.close();
+  }
+  // M-2 (QA PR14 revalidation) : « … » natif de DataTables 1.10.5 = <span> SANS classe (fixture par défaut) ; variante récente <span class="ellipsis"> en plus.
+  // Libellés ajoutés « M-2 », distincts des existants. Les « … » visibles sont comptés par leur contenu (nativeEllipsisVisible), jamais par la classe.
+  const FIXTURE_CLASSED = FIXTURE.split('<span>…</span>').join('<span class="ellipsis">…</span>');
+  assert.notEqual(FIXTURE_CLASSED, FIXTURE, 'variante class="ellipsis" non produite');
+  const MOBILE_P1 = ['prev', '1', '2', '3', '…', '15', 'next'];
+  const MOBILE_P5 = ['prev', '1', '…', '5', '…', '15', 'next'];
+  const MOBILE_P7 = ['prev', '1', '…', '7', '…', '15', 'next'];
+  const MOBILE_P15 = ['prev', '1', '…', '13', '14', '15', 'next'];
+  for (const [kind, html] of [['span sans classe (DataTables 1.10.5)', FIXTURE], ['span.ellipsis (variante récente)', FIXTURE_CLASSED]]) {
+    for (const variant of ['empire-brun-dark', 'empire-brun']) {
+      for (const width of [320, 375, 700]) {
+        const { context, page: p } = await open({ width, variant, html });
+        await withTools(p);
+        const tag = `M-2 ${kind}, ${width} ${variant === 'empire-brun' ? 'clair' : 'sombre'}`;
+        for (const [pageName, times, seq] of [['page 1', 0, MOBILE_P1], ['page 5', 4, MOBILE_P5], ['page 7', 2, MOBILE_P7], ['page 15', 8, MOBILE_P15]]) {
+          if (times) { await goNext(p, times); }
+          const m = await p.evaluate(PAGINATION);
+          checkPagination(`${tag} ${pageName}`, m, seq);
+          check(`${tag} ${pageName} : aucun « … » natif visible (un seul « … » par saut : celui du projet)`, () => { assert.equal(m.nativeEllipsisVisible, 0); assert.equal(m.seq.filter(x => x === '…').length, seq.filter(x => x === '…').length); });
+        }
+        await context.close();
+      }
+    }
+    for (const variant of ['empire-brun-dark', 'empire-brun']) {
+      for (const width of [768, 769, 1280, 1440]) {
+        const { context, page: p } = await open({ width, variant, html });
+        await withTools(p);
+        const tag = `M-2 ${kind}, ${width} ${variant === 'empire-brun' ? 'clair' : 'sombre'}`;
+        checkNative(`${tag} page 1`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P1);
+        await goNext(p, 6);
+        checkNative(`${tag} page 7`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P7);
+        await goNext(p, 8);
+        checkNative(`${tag} page 15`, await p.evaluate(PAGINATION), await p.evaluate(MARKS), NATIVE_P15);
+        await context.close();
+      }
+    }
+  }
+  {
+    // Vraies transitions de viewport (setViewportSize) : le projet recharge la page au franchissement de 768 px (2 documents servis attendus).
+    const reloaded = async (p, state, docs) => {
+      const t0 = Date.now();
+      while (state.documents < docs && Date.now() - t0 < 10000) { await p.waitForTimeout(100); }
+      await p.waitForLoadState('load');
+      await domQuiet(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
+      await withTools(p);
+      return state.documents;
+    };
+    for (const [kind, html] of [['span sans classe', FIXTURE], ['span.ellipsis', FIXTURE_CLASSED]]) {
+      for (const variant of ['empire-brun-dark', 'empire-brun']) {
+        const tag = `M-2 vraie transition de viewport, ${kind}, ${variant === 'empire-brun' ? 'clair' : 'sombre'}`;
+        const { context, page: p, state } = await open({ width: 375, variant, html });
+        await withTools(p);
+        await p.setViewportSize({ width: 1280, height: 800 });
+        const docs1 = await reloaded(p, state, 2);
+        const desk = await p.evaluate(PAGINATION);
+        const deskMarks = await p.evaluate(MARKS);
+        check(`${tag} : 375 -> 1280 recharge la page (2 documents) et affiche la pagination native exacte`, () => { assert.equal(docs1, 2); assert.deepEqual(desk.seq, NATIVE_P1); assert.deepEqual(deskMarks, { gaps: 0, hidden: 0, ellipsis: 1 }); assert.equal(desk.overflowX, 0); });
+        await goNext(p, 6);
+        const desk7 = await p.evaluate(PAGINATION);
+        check(`${tag} : 1280 page 7 = séquence native exacte`, () => assert.deepEqual(desk7.seq, NATIVE_P7));
+        await p.setViewportSize({ width: 320, height: 640 });
+        const docs2 = await reloaded(p, state, 3);
+        const mob = await p.evaluate(PAGINATION);
+        check(`${tag} : 1280 -> 320 recharge la page (3 documents) et affiche la pagination compacte exacte, sans « … » natif ni débordement`, () => { assert.equal(docs2, 3); assert.deepEqual(mob.seq, MOBILE_P1); assert.equal(mob.nativeEllipsisVisible, 0); assert.equal(mob.overflowX, 0); });
+        await context.close();
+      }
+    }
   }
 }
 

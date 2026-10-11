@@ -11,6 +11,8 @@
   - Balisage des lignes, des en-têtes, du h1 et des panneaux : copie du DOM vivant (jQuery 3.3.1, Bootstrap 3.3.7, DataTables 1.10.5).
   - 5 sujets permanents (3 verrouillés, 2 non lus, 1 sur 2 pages, 1 étiquette) ; #topics = 145 lignes (10 réelles + 135 générées à
     l'identique, sans donnée personnelle), tri initial colonne 5 décroissante, 10 par page, stateSave faux.
+  - Le « … » de la pagination est un <span> SANS classe, comme DataTables 1.10.5 (jquery.dataTables.js, ligne 14151 : container.append('<span>&hellip;</span>')).
+    Les tests couvrent aussi la variante récente <span class="ellipsis"> en remplaçant ce balisage à la volée.
   - DataTables : le plug-in n'est pas embarqué, un émulateur minimal reproduit son DOM (dom « lfrtip », classes sorting*, paginate_button,
     événement draw.dt, nœuds <tr> conservés d'un dessin à l'autre) et ses réglages (tri, recherche, « Afficher », pagination).
   - Les icônes Font Awesome sont remplacées par des carrés de leur taille approximative (la police n'est pas chargée hors ligne).
@@ -158,7 +160,7 @@
     var from = shown.length ? st.page * st.length + 1 : 0;
     infoDiv.textContent = shown.length ? 'Affiche ' + from + ' à ' + (from + slice.length - 1) + ' de ' + shown.length + ' lignes' + (term ? ' (filtré de ' + rows.length + ' lignes au total)' : '') : 'Affiche 0 à 0 de 0 lignes';
     var h = '<a class="paginate_button previous' + (st.page === 0 ? ' disabled' : '') + '" aria-controls="topics" data-dt-idx="previous" tabindex="0" id="topics_previous">Précédent</a><span>';
-    pagesWindow(st.page, pages).forEach(function (p) { h += p === 'ellipsis' ? '<span class="ellipsis">…</span>' : '<a class="paginate_button' + (p === st.page ? ' current' : '') + '" aria-controls="topics" data-dt-idx="' + p + '" tabindex="0">' + (p + 1) + '</a>'; });
+    pagesWindow(st.page, pages).forEach(function (p) { h += p === 'ellipsis' ? '<span>…</span>' : '<a class="paginate_button' + (p === st.page ? ' current' : '') + '" aria-controls="topics" data-dt-idx="' + p + '" tabindex="0">' + (p + 1) + '</a>'; });
     h += '</span><a class="paginate_button next' + (st.page >= pages - 1 ? ' disabled' : '') + '" aria-controls="topics" data-dt-idx="next" tabindex="0" id="topics_next">Suivant</a>';
     pagDiv.innerHTML = h;
     $(table).trigger('draw.dt');

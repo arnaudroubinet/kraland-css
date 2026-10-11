@@ -4929,6 +4929,12 @@
         pag.querySelectorAll('.kr-page-hidden').forEach(a => a.classList.remove('kr-page-hidden'));
         return;
       }
+      // M-2 : le « … » natif de DataTables 1.10.5 est un <span> SANS classe (la classe .ellipsis n'existe que dans les versions récentes). On le repère
+      // donc par son contenu (span feuille « … », hors .kr-page-gap) et on le masque comme les boutons : un seul « … » (le .kr-page-gap) par saut.
+      // Le bureau retire tous les .kr-page-hidden ci-dessus, donc le « … » natif y est rétabli.
+      pag.querySelectorAll('span').forEach(s => {
+        if (s.children.length === 0 && !s.classList.contains('kr-page-gap') && s.textContent.trim() === '…') { s.classList.add('kr-page-hidden'); }
+      });
       const nums = numbered.map(a => Number(a.textContent.trim()));
       const first = nums[0] === 1 ? nums[0] : 1;
       const last = nums[nums.length - 1];
