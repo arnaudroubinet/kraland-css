@@ -758,6 +758,109 @@ if (frag('l5-themes')) {
   }
 }
 
+// ---------- L6 : desktop (tableau natif conservé, restylé : hiérarchie des titres, chiffres alignés, nom + date, flèche de 32 px, permanents compacts) ----------
+const DESK = () => {
+  const t = window.__krColorTools(); const vt = window.__krVisibleText;
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), b: Math.round(r.bottom + window.scrollY) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const ratio = e => { const bg = t.bgOf(e); return t.round(t.ratio(t.fgOn(e, bg), bg)); };
+  const rowInfo = tr => {
+    const title = tr.querySelector('td:first-child p a'); const lock = tr.querySelector('td:first-child p i.fa-lock');
+    const folderBox = tr.querySelector('td:first-child > ul.pagination:first-of-type');
+    const msg = tr.querySelector('td:nth-child(2)'); const views = tr.querySelector('td:nth-child(3)');
+    const au = tr.querySelector('td:nth-child(4) > a.nomargin'); const auDate = tr.querySelector('td:nth-child(4) > p');
+    const la = tr.querySelector('td:nth-child(5) > a.nomargin'); const laDate = tr.querySelector('td:nth-child(5) > p.mini'); const arrow = tr.querySelector('td:nth-child(5) .btn-group > a.btn');
+    const r = rect(tr);
+    return {
+      title: title.textContent.trim(), unread: tr.classList.contains('kr-topic-unread'), locked: !!lock, lockVisible: !!lock && vis(lock),
+      row: r, folderHidden: !folderBox || !vis(folderBox),
+      titleWeight: Number(getComputedStyle(title).fontWeight), titleSize: parseFloat(getComputedStyle(title).fontSize),
+      titleRgb: getComputedStyle(title).color,
+      numAlign: [getComputedStyle(msg).textAlign, getComputedStyle(views).textAlign], numRight: [rect(msg).r, rect(views).r], numTabular: getComputedStyle(msg).fontVariantNumeric.includes('tabular'),
+      auWeight: Number(getComputedStyle(au).fontWeight), laWeight: Number(getComputedStyle(la).fontWeight),
+      auRatio: ratio(au), laRatio: ratio(la), auDateRatio: ratio(auDate), laDateRatio: ratio(laDate),
+      auBelow: rect(auDate).y >= rect(au).b - 2, laBelow: rect(laDate).y >= rect(la).b - 2,
+      arrow: rect(arrow), arrowInRow: rect(arrow).y >= r.y && rect(arrow).b <= r.b, arrowRatio: ratio(arrow.querySelector('i') || arrow), arrowHref: arrow.getAttribute('href'),
+      arrowHit: (() => { const ar = arrow.getBoundingClientRect(); window.scrollTo(0, Math.max(0, ar.top + window.scrollY - window.innerHeight / 2)); const rr = arrow.getBoundingClientRect(); const el = document.elementFromPoint(rr.left + rr.width / 2, rr.top + rr.height / 2); return el && el.closest('a') && el.closest('a').getAttribute('href'); })(),
+      titleRatio: ratio(title), lockRatio: lock && vis(lock) ? ratio(lock) : null,
+      badgeVisible: !!tr.querySelector('.kr-topic-badge') && vis(tr.querySelector('.kr-topic-badge')), text: vt(tr)
+    };
+  };
+  const perm = [...document.querySelectorAll('#fx-permanents tbody tr')].map(rowInfo);
+  const reg = [...document.querySelectorAll('#topics tbody tr')].slice(0, 10).map(rowInfo);
+  window.scrollTo(0, 0);
+  return {
+    iw: window.innerWidth, ih: window.innerHeight, overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    perm, reg, firstRegularY: reg[0].row.y,
+    heads: [...document.querySelectorAll('#topics thead th')].map(th => ({ text: th.textContent.trim(), ...rect(th), vis: vis(th), cls: th.className })),
+    bodyBg: t.bgOf(document.body)
+  };
+};
+
+const checkDesk = (label, m, strict) => {
+  const all = [...m.perm, ...m.reg];
+  const bad = pred => JSON.stringify(all.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
+  check(`${label} : 5 permanents et 10 lignes de la liste, tableau natif conservé, 5 en-têtes de tri visibles`, () => { assert.equal(m.perm.length, 5); assert.equal(m.reg.length, 10); assert.equal(m.heads.length, 5); assert.ok(m.heads.every(h => h.vis && h.h >= 30), JSON.stringify(m.heads)); });
+  check(`${label} : titres de 15 px, en gras s'ils sont non lus et en normal sinon`, () => assert.ok(all.every(r => r.titleSize === 15 && (r.unread ? r.titleWeight >= 700 : r.titleWeight <= 500)), bad(r => r.titleSize === 15 && (r.unread ? r.titleWeight >= 700 : r.titleWeight <= 500))));
+  check(`${label} : titres en couleur de texte du thème (plus en couleur de lien), contraste >= 4,5:1`, () => assert.ok(all.every(r => r.titleRatio >= 4.5), bad(r => r.titleRatio >= 4.5)));
+  check(`${label} : pastille NON LU si et seulement si non lu, cadenas visible si verrouillé, icône dossier native masquée`, () => assert.ok(all.every(r => r.badgeVisible === r.unread && r.lockVisible === r.locked && r.folderHidden && (!r.unread || r.text.includes('NON LU'))), bad(r => r.badgeVisible === r.unread && r.lockVisible === r.locked && r.folderHidden)));
+  check(`${label} : chiffres (Msg, Vus) alignés à droite, chiffres tabulaires, mêmes bords droits sur toutes les lignes d'un tableau`, () => { assert.ok(all.every(r => r.numAlign[0] === 'right' && r.numAlign[1] === 'right' && r.numTabular)); const R = rows => new Set(rows.map(r => r.numRight.join(','))).size; assert.equal(R(m.perm), 1); assert.equal(R(m.reg), 1); });
+  check(`${label} : auteur et dernier message = nom en gras, date secondaire en dessous (>= 4,5:1)`, () => assert.ok(all.every(r => r.auWeight >= 600 && r.laWeight >= 600 && r.auBelow && r.laBelow && Math.min(r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio) >= 4.5), bad(r => r.auWeight >= 600 && r.auBelow && r.laBelow && Math.min(r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio) >= 4.5)));
+  check(`${label} : flèche « dernier message » de 32 x 32, dans la ligne, mène au dernier message, icône >= 4,5:1`, () => assert.ok(all.every(r => r.arrow.w === 32 && r.arrow.h === 32 && r.arrowInRow && r.arrowHit === r.arrowHref && r.arrowRatio >= 4.5), bad(r => r.arrow.w === 32 && r.arrow.h === 32 && r.arrowHit === r.arrowHref && r.arrowRatio >= 4.5)));
+  if (strict) {
+    check(`${label} : permanents compacts (chaque ligne <= 60 px, tableau des 5 <= 300 px)`, () => { assert.ok(m.perm.every(r => r.row.h <= 60), JSON.stringify(m.perm.map(r => r.row.h))); assert.ok(m.perm[4].row.b - m.perm[0].row.y <= 300, 'tableau ' + (m.perm[4].row.b - m.perm[0].row.y)); });
+    check(`${label} : 1er sujet réel dans le premier écran (<= 0,95 de ${m.ih} px)`, () => assert.ok(m.firstRegularY <= 0.95 * m.ih, `${m.firstRegularY} px`));
+  }
+  check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
+};
+
+if (frag('l6-desktop')) {
+  console.log('L6 : desktop (tableau natif restylé)');
+  for (const [width, height] of [[1280, 720], [1440, 900]]) {
+    const { context, page: p } = await open({ width, height });
+    await withTools(p);
+    const m = await p.evaluate(DESK);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-bureau-${width}.png`), fullPage: true }); }
+    checkDesk(`${width}`, m, true);
+    await context.close();
+    const c = await open({ width, height });
+    await withTools(c.page);
+    await REDRAWS[0][1](c.page);
+    await settleRedraw(c.page);
+    const m2 = await c.page.evaluate(DESK);
+    checkDesk(`${width} après page 2`, m2, false);
+    await c.context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 1280, height: 720, late: true });
+    await withTools(p);
+    checkDesk('1280 (DataTables initialisé après le userscript)', await p.evaluate(DESK), true);
+    await context.close();
+  }
+  {
+    // Tri au clic sur un en-tête natif : « Vus » trie bien, la flèche reste à 32 px
+    const { context, page: p } = await open({ width: 1280, height: 720 });
+    await withTools(p);
+    await p.locator('#topics thead th', { hasText: 'Vus' }).click();
+    await settleRedraw(p);
+    const m = await p.evaluate(DESK);
+    check('1280 : clic sur « Vus » : tri natif, première ligne = plus de vues, mise en forme conservée', () => { assert.ok(m.heads.some(h => /sorting_(asc|desc)/.test(h.cls) && /Vus/.test(h.text)), JSON.stringify(m.heads.map(h => [h.text, h.cls]))); });
+    checkDesk('1280 après tri « Vus »', m, false);
+    await context.close();
+  }
+}
+
+if (frag('l6-themes')) {
+  console.log('L6 : contrastes >= 4,5:1 du tableau desktop sur les 16 thèmes');
+  for (const variant of THEMES) {
+    const { context, page: p } = await open({ width: 1280, height: 720, variant });
+    await withTools(p);
+    const m = await p.evaluate(DESK);
+    check(`1280 ${variant} : titres, noms, dates, cadenas et flèches >= 4,5:1`, () => { const v = [...m.perm, ...m.reg].flatMap(r => [r.titleRatio, r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio, r.arrowRatio, r.lockRatio]).filter(x => x !== null); assert.ok(v.length >= 90, 'mesures ' + v.length); assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v)); });
+    await context.close();
+  }
+}
+
 await browser.close();
 console.log(failures ? `${failures} échec(s)` : 'Tous les contrôles passent');
 process.exit(failures ? 1 : 0);
