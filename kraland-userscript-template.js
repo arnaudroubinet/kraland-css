@@ -4553,8 +4553,16 @@
       return;
     }
 
+    // L0 (sous-forum) : un tableau dont la 1re colonne contient des liens vers des sujets (forum/sujet/) est une liste de sujets, pas un
+    // index de forums (l'index peut, lui, porter des liens « dernier message » vers des sujets dans une autre colonne).
+    // Sans ce garde-fou, le 1er tableau de la page (les sujets permanents) était doublé par des cartes forum aux chiffres faux.
+    const isTopicsTable = table => table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+    function findForumsTable() {
+      return Array.from(document.querySelectorAll('table.table')).find(table => table.querySelector('tbody') && !isTopicsTable(table)) || null;
+    }
+
     function transformTableToCards() {
-      const forumTable = document.querySelector('table.table tbody');
+      const forumTable = findForumsTable()?.querySelector('tbody');
       if (!forumTable) {
         console.warn('[Forum Cards] Tableau forums introuvable');
         return;

@@ -64,6 +64,30 @@ check('mot-clé forum : forum seul (pas d\'élargissement inutile)', () => {
   assert.deepEqual(r.zones.length ? sorted(r.zones) : [], ['forum']);
   assert.equal(r.widened, false);
 });
+check('sous-forum (#topics, kr-topic-unread, dataTable) : zone sous-forum seule, pas d\'élargissement', () => {
+  const r = route('kraland-theme.css', hunk('.x {', 'body.kr-subforum #topics tr.kr-topic-unread { border-left: 4px solid; }'));
+  assert.equal(r.widened, false);
+  assert.deepEqual(sorted(r.zones), ['sous-forum']);
+});
+check('index des forums (ForumCards, forums-cards-container) : zone sous-forum (les cartes y sont testées)', () => {
+  const r = route(T, hunk('function findForumsTable() {', "return Array.from(document.querySelectorAll('table.table')); // forums-cards-container"));
+  assert.equal(r.widened, false);
+  assert.ok(r.zones.includes('sous-forum'));
+});
+check('hunk commun forum + sous-forum : les deux zones', () => {
+  const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
+  assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
+});
+check('fixture du sous-forum modifiée : zone sous-forum', () => {
+  const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/sous-forum-debuter.html': [] }));
+  assert.equal(r.widened, false);
+  assert.deepEqual(sorted(r.zones), ['sous-forum']);
+});
+check('suite sous-forum.mjs modifiée : zone sous-forum', () => {
+  const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/sous-forum.mjs': [] }));
+  assert.equal(r.widened, false);
+  assert.deepEqual(sorted(r.zones), ['sous-forum']);
+});
 check('hunk sans mot-clé reconnu : élargi au total', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.rien-de-connu { margin: 0; }'));
   assert.equal(r.widened, true);
