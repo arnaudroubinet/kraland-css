@@ -132,12 +132,16 @@
   /* PLT-QU : pastille de niveau = accent du thème ; le rouge reste réservé aux alertes */
   --kr-level-bg: var(--kr-highlight);
   --kr-level-fg: var(--kr-white);
+
+  /* Sous-forum (L1) : couleur du statut « non lu » (barre, pastille). Suit l'accent du thème, sauf EB clair (voir plus bas). */
+  --kr-status-unread: var(--kr-highlight);
 }
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
   --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
+  --kr-status-unread: #8a5a00; /* sous-forum : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
 }
 
 html.kr-theme-variant-paladium {
@@ -12597,6 +12601,88 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
      33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
   body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
     bottom: 64px;
+  }
+}
+
+/* ============================================================================
+   SOUS-FORUM (refonte variante A) — rapport UX t_d123c7f6
+   Portée : pages /forum/<categorie>/<sous-forum> (body.page-forum.kr-subforum, posée par le module ForumTopics:Status).
+   Les classes kr-topic-unread / kr-topic-locked / kr-topic-pages et la pastille .kr-topic-badge sont posées en JS à l'init et à chaque
+   draw.dt : le CSS ne s'écrit que sur ces classes (une classe sans son CSS ne casse rien).
+   ============================================================================ */
+
+/* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (texte = fond de ligne, fond = jeton --kr-status-unread). */
+@media (max-width: 767px), (min-width: 768px) {
+  body.page-forum.kr-subforum .kr-topic-badge {
+    display: inline-block;
+    flex: 0 0 auto;
+    margin: 0 0 0 8px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--kr-status-unread);
+    color: var(--kr-bg-surface);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+}
+
+/* L1 — mobile. Barre de 4 px à gauche (réservée sur toutes les lignes pour ne pas décaler le contenu), titre en gras si non lu, cadenas visible,
+   en-têtes de section en texte principal (D-11 : 3 thèmes sur 16 sous 4,5:1 avec la couleur primaire). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .panel-default > .panel-heading h3 {
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr,
+  body.page-forum.kr-subforum table.dataTable tbody tr {
+    border-left: 4px solid transparent !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr.kr-topic-unread,
+  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr:not(.kr-topic-unread) td:first-child p > a {
+    font-weight: 400 !important;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    display: inline-block !important;
+    flex: 0 0 auto;
+    margin: 0 6px 0 0;
+    color: var(--kr-text-secondary);
+    font-size: 14px !important;
+    line-height: 1.4;
+  }
+
+  body.page-forum.kr-subforum td:first-child p > .kr-topic-badge {
+    align-self: center;
+    font-size: 11px !important;
+  }
+}
+
+/* L1 — bureau. Barre de 4 px à l'intérieur de la 1re cellule (le tableau natif est conservé), titre en gras si non lu, cadenas lisible. */
+@media (min-width: 768px) {
+  body.page-forum.kr-subforum tr.kr-topic-unread > td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--kr-status-unread);
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    margin-right: 6px;
+    color: var(--kr-text-secondary);
   }
 }
 

@@ -129,6 +129,152 @@ if (frag('l0')) {
     await context.close();
   }
 }
+
+// Les 16 thèmes (8 clairs + 8 sombres), tels que posés dans kr-theme-variant.
+const THEMES = ['kraland', 'empire-brun', 'paladium', 'theocratie-seelienne', 'paradigme-vert', 'khanat-elmerien', 'confederation-libre', 'royaume-ruthvenie']
+  .flatMap(v => [v, v + '-dark']);
+
+// Outils de couleur (évalués dans la page) : fond effectif (calques translucides composés), ratio WCAG, lisibilité d'un élément.
+const COLOR_TOOLS = () => {
+  const parse = c => { const m = String(c).match(/rgba?\(([^)]+)\)/); if (!m) { return [0, 0, 0, 0]; } const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+  const over = (top, under) => { const a = top[3]; return [top[0] * a + under[0] * (1 - a), top[1] * a + under[1] * (1 - a), top[2] * a + under[2] * (1 - a), 1]; };
+  const lum = c => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const ratio = (a, b) => { const l1 = lum(a); const l2 = lum(b); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); };
+  const bgOf = el => {
+    const layers = [];
+    for (let e = el; e; e = e.parentElement) { const c = parse(getComputedStyle(e).backgroundColor); if (c[3] > 0) { layers.push(c); if (c[3] === 1) { break; } } }
+    let acc = [255, 255, 255, 1];
+    for (let i = layers.length - 1; i >= 0; i--) { acc = over(layers[i], acc); }
+    return acc;
+  };
+  const fgOn = (el, bg) => over(parse(getComputedStyle(el).color), bg);
+  return { parse, ratio, bgOf, fgOn, round: n => Math.round(n * 100) / 100 };
+};
+
+// Statuts des lignes (permanents + #topics) : classes JS, pastille, barre, verrou.
+const STATUS = () => {
+  const tools = (0, window.__krColorTools)();
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const rows = [...document.querySelectorAll('#fx-permanents tbody tr, #topics tbody tr')].filter(tr => tr.querySelector('td:first-child a[href*="forum/sujet/"]'));
+  const barOf = tr => {
+    const cs = getComputedStyle(tr); const td = tr.cells[0]; const sh = getComputedStyle(td).boxShadow;
+    const trW = cs.borderLeftStyle !== 'none' && tools.parse(cs.borderLeftColor)[3] > 0 ? parseFloat(cs.borderLeftWidth) : 0;
+    const trColor = tools.parse(cs.borderLeftColor);
+    const m = sh && sh !== 'none' ? sh.match(/(rgba?\([^)]+\))\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px(\s+inset)?/) : null;
+    const shW = m && m[6] ? parseFloat(m[2]) : 0;
+    return { w: Math.max(trW, shW), color: shW >= trW && m ? tools.parse(m[1]) : trColor };
+  };
+  return rows.map(tr => {
+    const ul2 = tr.querySelectorAll('td:first-child ul.pagination')[1];
+    const title = tr.querySelector('td:first-child p a');
+    const lock = tr.querySelector('td:first-child p i.fa-lock');
+    const badge = tr.querySelector('.kr-topic-badge');
+    const bg = tools.bgOf(tr);
+    const bar = barOf(tr);
+    return {
+      perm: !!tr.closest('#fx-permanents'),
+      title: title.textContent.trim(),
+      unreadIcon: !!tr.querySelector('td:first-child i.fa.fa-folder'),
+      unread: tr.classList.contains('kr-topic-unread'),
+      lockIcon: !!lock,
+      locked: tr.classList.contains('kr-topic-locked'),
+      pagesIcons: ul2 ? ul2.querySelectorAll('li').length : 0,
+      pagesCls: tr.classList.contains('kr-topic-pages'),
+      pagesAttr: tr.getAttribute('data-kr-pages'),
+      badges: tr.querySelectorAll('.kr-topic-badge').length,
+      badgeText: badge ? badge.textContent.trim() : null,
+      badgeVisible: badge ? vis(badge) : false,
+      badgeRatio: badge ? tools.round(tools.ratio(tools.fgOn(badge, tools.parse(getComputedStyle(badge).backgroundColor)), tools.parse(getComputedStyle(badge).backgroundColor))) : null,
+      barW: bar.w,
+      barRatio: bar.w > 0 ? tools.round(tools.ratio(bar.color, bg)) : null,
+      weight: parseInt(getComputedStyle(title).fontWeight, 10),
+      lockVisible: lock ? vis(lock) : false,
+      lockRatio: lock && vis(lock) ? tools.round(tools.ratio(tools.fgOn(lock, bg), bg)) : null,
+      dateRatio: (() => { const p = tr.querySelector('td:last-child p.mini'); return p && vis(p) ? tools.round(tools.ratio(tools.fgOn(p, bg), bg)) : null; })()
+    };
+  });
+};
+
+// Installe les outils de couleur dans la page (une fonction nommée, pour les appels répétés).
+const withTools = page => page.evaluate(`(window.__krColorTools = ${COLOR_TOOLS.toString()}, true)`);
+
+// Redessins DataTables : page 2, tri « Vus », recherche « PA », « Afficher 25 » (le même déclencheur que DataTables : clic, saisie, changement).
+const REDRAWS = [
+  ['page 2', p => p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button[data-dt-idx="1"]').click())],
+  ['tri « Vus »', p => p.evaluate(() => document.querySelector('#topics thead th:nth-child(3)').click())],
+  ['recherche « PA »', p => p.fill('.dataTables_filter input', 'PA')],
+  ['« Afficher 25 »', p => p.selectOption('.dataTables_length select', '25')]
+];
+const settleRedraw = p => domQuiet(p, { quietMs: 300, label: 'redessin DataTables' });
+
+// ---------- L1 : statuts (non lu, verrouillé, pages) en classes JS, pastille, barre, jeton de couleur ----------
+const checkStatus = (label, rows, { badgeExpected = true } = {}) => {
+  check(`${label} : des lignes sont présentes`, () => assert.ok(rows.length >= 5));
+  check(`${label} : kr-topic-unread si et seulement si l'icône dossier (i.fa.fa-folder)`, () => assert.ok(rows.every(r => r.unread === r.unreadIcon), JSON.stringify(rows.filter(r => r.unread !== r.unreadIcon).map(r => r.title))));
+  check(`${label} : kr-topic-locked si et seulement si le cadenas (i.fa-lock)`, () => assert.ok(rows.every(r => r.locked === r.lockIcon)));
+  check(`${label} : kr-topic-pages si et seulement si 2e liste de pages, avec data-kr-pages = nombre de pages`, () => assert.ok(rows.every(r => r.pagesCls === (r.pagesIcons > 0) && (r.pagesIcons === 0 ? r.pagesAttr === null : Number(r.pagesAttr) === r.pagesIcons))));
+  if (badgeExpected) {
+    check(`${label} : pastille « NON LU » en toutes lettres, une seule, si et seulement si non lu`, () => assert.ok(rows.every(r => r.badges === (r.unreadIcon ? 1 : 0) && (!r.unreadIcon || r.badgeText === 'NON LU')), JSON.stringify(rows.filter(r => r.badges !== (r.unreadIcon ? 1 : 0)).map(r => [r.title, r.badges]))));
+    check(`${label} : pastille visible sur chaque ligne non lue`, () => assert.ok(rows.filter(r => r.unreadIcon).every(r => r.badgeVisible)));
+  }
+  check(`${label} : barre de statut d'au moins 4 px si et seulement si non lu`, () => assert.ok(rows.every(r => (r.barW >= 4) === r.unreadIcon), JSON.stringify(rows.filter(r => (r.barW >= 4) !== r.unreadIcon).map(r => [r.title, r.barW]))));
+  check(`${label} : titre en gras (>= 600) si non lu, plus léger sinon`, () => assert.ok(rows.every(r => r.unreadIcon ? r.weight >= 600 : r.weight < 600), JSON.stringify(rows.filter(r => r.unreadIcon ? r.weight < 600 : r.weight >= 600).map(r => [r.title, r.weight]))));
+  check(`${label} : cadenas visible sur chaque sujet verrouillé`, () => assert.ok(rows.filter(r => r.lockIcon).every(r => r.lockVisible), JSON.stringify(rows.filter(r => r.lockIcon && !r.lockVisible).map(r => r.title))));
+};
+
+if (frag('l1-statuts')) {
+  console.log('L1 : statuts non lu / verrouillé / pages (classes JS, pastille, barre, gras, cadenas)');
+  for (const width of WIDTHS) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const rows = await p.evaluate(STATUS);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-statuts-${width}.png`), fullPage: true }); }
+    check(`${width} : permanents = 5 lignes dont 2 non lues et 3 verrouillées`, () => { const perm = rows.filter(r => r.perm); assert.equal(perm.length, 5); assert.equal(perm.filter(r => r.unread).length, 2); assert.equal(perm.filter(r => r.locked).length, 3); });
+    check(`${width} : page 1 de #topics = 10 lignes dont 9 non lues`, () => { const t = rows.filter(r => !r.perm); assert.equal(t.length, 10); assert.equal(t.filter(r => r.unread).length, 9); });
+    checkStatus(`${width}`, rows);
+    await context.close();
+  }
+}
+
+if (frag('l1-redraw')) {
+  console.log('L1 : les statuts survivent aux redessins DataTables (page 2, tri « Vus », recherche « PA », « Afficher 25 »), sans double traitement');
+  for (const width of [375, 1280]) {
+    for (const [name, act] of REDRAWS) {
+      const { context, page: p } = await open({ width });
+      await withTools(p);
+      await act(p);
+      await settleRedraw(p);
+      const rows = (await p.evaluate(STATUS)).filter(r => !r.perm);
+      check(`${width} après ${name} : des lignes de #topics sont affichées`, () => assert.ok(rows.length >= 3));
+      checkStatus(`${width} après ${name}`, rows);
+      await context.close();
+    }
+  }
+}
+
+if (frag('l1-themes')) {
+  console.log('L1 : contrastes >= 4,5:1 sur les 16 thèmes (en-têtes de section, pastille, barre, cadenas, dates)');
+  for (const width of [375, 1280]) {
+    for (const variant of THEMES) {
+      const { context, page: p } = await open({ width, variant });
+      await withTools(p);
+      const m = await p.evaluate(() => {
+        const t = window.__krColorTools();
+        const heads = [...document.querySelectorAll('.panel-heading .panel-title')].map(h => t.round(t.ratio(t.fgOn(h, t.bgOf(h)), t.bgOf(h))));
+        return { heads };
+      });
+      const rows = await p.evaluate(STATUS);
+      const unread = rows.filter(r => r.unreadIcon);
+      const min = a => Math.min(...a.filter(x => x !== null));
+      check(`${width} ${variant} : en-têtes « Sujets permanents » et « Sujets » >= 4,5:1 (${m.heads.join(' / ')})`, () => { assert.equal(m.heads.length, 2); assert.ok(min(m.heads) >= 4.5); });
+      check(`${width} ${variant} : pastille NON LU >= 4,5:1`, () => { assert.ok(unread.length > 0 && unread.every(r => r.badgeRatio !== null)); assert.ok(min(unread.map(r => r.badgeRatio)) >= 4.5, 'min ' + min(unread.map(r => r.badgeRatio))); });
+      check(`${width} ${variant} : barre de statut >= 4,5:1 sur la ligne`, () => { assert.ok(unread.every(r => r.barRatio !== null)); assert.ok(min(unread.map(r => r.barRatio)) >= 4.5, 'min ' + min(unread.map(r => r.barRatio))); });
+      check(`${width} ${variant} : cadenas et dates >= 4,5:1`, () => { const v = rows.flatMap(r => [r.lockRatio, r.dateRatio]).filter(x => x !== null); assert.ok(v.length > 0); assert.ok(min(v) >= 4.5, 'min ' + min(v)); });
+      await context.close();
+    }
+  }
+}
+
 await browser.close();
 console.log(failures ? `${failures} échec(s)` : 'Tous les contrôles passent');
 process.exit(failures ? 1 : 0);

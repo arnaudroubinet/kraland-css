@@ -4844,6 +4844,69 @@
   })();
 
   // ============================================================================
+  // SOUS-FORUM — statuts des sujets (refonte variante A, lot L1)
+  // Le site ne donne qu'un état lu / non lu par sujet (icône dossier), un cadenas pour les sujets verrouillés et une liste de pages.
+  // Ces états sont reportés en classes sur chaque <tr> (kr-topic-unread, kr-topic-locked, kr-topic-pages + data-kr-pages) et le non lu
+  // reçoit une pastille « NON LU » en toutes lettres : le statut ne repose jamais sur la couleur seule.
+  // Ne JAMAIS s'appuyer sur l'attribut title (Bootstrap le déplace vers data-original-title) : les marqueurs fiables sont les classes d'icônes.
+  // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche).
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    const isTopicsListTable = table => table.id === 'topics' || table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+
+    function processRow(row) {
+      const cell = row.cells[0];
+      const title = cell ? cell.querySelector('p') : null;
+      if (!title || !title.querySelector('a')) {return;} // ligne « Aucun élément à afficher »
+
+      const unread = cell.querySelector('i.fa.fa-folder') !== null;
+      const locked = title.querySelector('i.fa-lock') !== null;
+      const pageLists = cell.querySelectorAll('ul.pagination');
+      const pages = pageLists.length > 1 ? pageLists[1].querySelectorAll('li').length : 0;
+
+      row.classList.toggle('kr-topic-unread', unread);
+      row.classList.toggle('kr-topic-locked', locked);
+      row.classList.toggle('kr-topic-pages', pages > 0);
+      if (pages > 0) {
+        row.setAttribute('data-kr-pages', String(pages));
+      } else {
+        row.removeAttribute('data-kr-pages');
+      }
+
+      const badge = title.querySelector(':scope > .kr-topic-badge');
+      if (unread && !badge) {
+        const chip = document.createElement('span');
+        chip.className = 'kr-topic-badge';
+        chip.textContent = 'NON LU';
+        title.appendChild(chip);
+      } else if (!unread && badge) {
+        badge.remove();
+      }
+    }
+
+    function processAll() {
+      Array.from(document.querySelectorAll('table')).filter(isTopicsListTable).forEach(table => {
+        Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(processRow));
+      });
+    }
+
+    function initTopicStatus() {
+      if (!document.body.classList.contains('page-forum')) {return;}
+      const topics = document.getElementById('topics');
+      if (!topics) {return;} // pas un sous-forum (index des forums, sujet, kramail)
+      document.body.classList.add('kr-subforum');
+      processAll();
+      if (typeof jQuery !== 'undefined') {
+        jQuery(topics).on('draw.dt', processAll);
+      }
+    }
+
+    InitQueue.register('ForumTopics:Status', initTopicStatus, 24);
+  })();
+
+  // ============================================================================
   // MOBILE FORUM TOPICS - Stats + Smart Navigation
   // Layout identique aux "Sujets permanents" (simple et épuré)
   // Ajoute les stats (Msg · Vus) en texte simple sous le titre
