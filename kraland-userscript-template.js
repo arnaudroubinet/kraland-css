@@ -4877,9 +4877,11 @@
 
       const badge = title.querySelector(':scope > .kr-topic-badge');
       if (unread && !badge) {
+        // Le libellé vit dans un attribut et s'affiche par CSS (::before) : DataTables lit le texte des cellules (recherche, tri) et,
+        // si le plug-in s'initialise après le userscript, un vrai texte « NON LU » ferait remonter tous les sujets non lus à la recherche « lu ».
         const chip = document.createElement('span');
         chip.className = 'kr-topic-badge';
-        chip.textContent = 'NON LU';
+        chip.setAttribute('data-kr-label', 'NON LU');
         title.appendChild(chip);
       } else if (!unread && badge) {
         badge.remove();
@@ -4907,13 +4909,52 @@
   })();
 
   // ============================================================================
-  // MOBILE FORUM TOPICS - Stats + Smart Navigation
-  // Layout identique aux "Sujets permanents" (simple et épuré)
-  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
-  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
-  // Rend toute la card cliquable (comme les Sujets permanents)
+  // MOBILE FORUM TOPICS - libellés, navigation et ligne cliquable (sous-forum, lot L3)
+  // - Chaque chiffre a son mot : « 13 messages · 75 vues · 2 pages ». Le mot est posé en attribut (data-kr-unit sur les cellules Msg et Vus,
+  //   data-kr-pages-label sur la 1re cellule) et affiché par CSS (::after) : le texte des cellules reste celui du site (DataTables s'en sert
+  //   pour la recherche et le tri, y compris s'il s'initialise après ce module). Singulier / pluriel écrits ici, à l'init et à chaque draw.dt.
+  // - Le bouton → natif « aller au dernier message » reçoit un nom accessible (le title est déplacé par l'infobulle Bootstrap).
+  // - Recherche et « Afficher » reçoivent un placeholder et un nom accessible (leurs libellés visibles sont masqués par CSS pour tenir sur une ligne).
+  // - Navigation intelligente et ligne cliquable (comme avant) : le titre d'un sujet non lu suit le lien de l'icône dossier.
   // ============================================================================
   (function () {
+    const plural = (n, one, many) => (n > 1 ? many : one);
+
+    function labelRow(row) {
+      const msgCell = row.querySelector('td:nth-child(2)');
+      const viewsCell = row.querySelector('td:nth-child(3)');
+      if (!msgCell || !viewsCell) {return;}
+      const msg = parseInt(msgCell.textContent, 10);
+      const views = parseInt(viewsCell.textContent, 10);
+      if (!Number.isNaN(msg)) {msgCell.setAttribute('data-kr-unit', plural(msg, 'message', 'messages'));}
+      if (!Number.isNaN(views)) {viewsCell.setAttribute('data-kr-unit', plural(views, 'vue', 'vues'));}
+
+      const titleCell = row.querySelector('td:nth-child(1)');
+      const pages = parseInt(row.getAttribute('data-kr-pages') || '0', 10);
+      if (titleCell) {
+        if (pages > 0) {
+          titleCell.setAttribute('data-kr-pages-label', pages + ' ' + plural(pages, 'page', 'pages'));
+        } else {
+          titleCell.removeAttribute('data-kr-pages-label');
+        }
+      }
+
+      const arrow = row.querySelector('td:nth-child(5) a.btn');
+      if (arrow && !arrow.hasAttribute('aria-label')) {
+        arrow.setAttribute('aria-label', arrow.getAttribute('data-original-title') || arrow.getAttribute('title') || 'aller au dernier message');
+      }
+    }
+
+    function nameControls() {
+      const search = document.querySelector('.dataTables_filter input');
+      if (search) {
+        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les sujets');}
+      }
+      const length = document.querySelector('.dataTables_length select');
+      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de sujets par page');}
+    }
+
     function enrichForumTopicsCards() {
       // N'exécuter qu'en mode mobile et uniquement sur les pages forum
       if (!document.body.classList.contains('mobile-mode')) {return;}
@@ -4926,18 +4967,17 @@
       function processRows() {
         const rows = forumTable.querySelectorAll('tbody tr');
         if (rows.length === 0) {return;}
+        nameControls();
 
         rows.forEach(row => {
-          // Éviter le double traitement
+          labelRow(row);
+
+          // Éviter le double traitement des écouteurs (DataTables réutilise les mêmes <tr>)
           if (row.hasAttribute('data-stats-added')) {return;}
           row.setAttribute('data-stats-added', 'true');
 
-          // Récupérer les cellules
           const titleCell = row.querySelector('td:nth-child(1)');
-          const msgCell = row.querySelector('td:nth-child(2)');
-          const viewsCell = row.querySelector('td:nth-child(3)');
-
-          if (!titleCell || !msgCell || !viewsCell) {return;}
+          if (!titleCell) {return;}
 
           // === SMART NAVIGATION ===
           // Détecter si l'icône "premier message non lu" existe
@@ -4945,7 +4985,7 @@
           const titleLink = titleCell.querySelector('p > a');
 
           if (unreadIconLink && titleLink) {
-            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            // Sujet NON LU : rediriger le titre vers le lien de l'icône dossier
             titleLink.href = unreadIconLink.href;
             titleLink.setAttribute('data-smart-redirect', 'first-unread');
           }
@@ -4961,24 +5001,6 @@
               titleLink.click();
             });
           }
-
-          // === STATS SIMPLES ===
-          const msgCount = msgCell.textContent.trim();
-          const viewsCount = viewsCell.textContent.trim();
-
-          const statsContainer = document.createElement('div');
-          statsContainer.className = 'forum-topic-stats-mobile';
-          statsContainer.innerHTML = `
-            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
-            <span class="stats-sep">·</span>
-            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
-          `;
-
-          // Insérer après le titre
-          const titleParagraph = titleCell.querySelector('p');
-          if (titleParagraph) {
-            titleParagraph.after(statsContainer);
-          }
         });
 
         console.log('[Forum Topics Mobile] Sujets enrichis');
@@ -4987,7 +5009,7 @@
       // Exécuter immédiatement
       processRows();
 
-      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche, y compris l'initialisation tardive du plug-in)
       if (typeof jQuery !== 'undefined') {
         jQuery(forumTable).on('draw.dt', function () {
           processRows();

@@ -46,7 +46,7 @@ function forumIndex() {
 const browser = await chromium.launch({ headless: true });
 
 // Ouvre une page de la fixture. `url` : chemin ; `variant` : thème ; `html` : corps de page (défaut : le sous-forum).
-async function open({ width, variant = 'empire-brun-dark', height = 800, url = SUBFORUM, html = FIXTURE, theme = true }) {
+async function open({ width, variant = 'empire-brun-dark', height = 800, url = SUBFORUM, html = FIXTURE, theme = true, late = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
   const state = { documents: 0, other: [] };
@@ -74,7 +74,7 @@ async function open({ width, variant = 'empire-brun-dark', height = 800, url = S
     }
   }, { src: userscript, enabled: theme, variant });
   const page = await context.newPage();
-  await page.goto(BASE + url, { waitUntil: 'load' });
+  await page.goto(BASE + url + (late ? '?dt=late' : ''), { waitUntil: 'load' });
   await domQuiet(page, { ready: theme ? THEME_READY : null, label: 'sous-forum' });
   return { context, page, state };
 }
@@ -148,7 +148,7 @@ const COLOR_TOOLS = () => {
     return acc;
   };
   const fgOn = (el, bg) => over(parse(getComputedStyle(el).color), bg);
-  return { parse, ratio, bgOf, fgOn, round: n => Math.round(n * 100) / 100 };
+  return { parse, over, ratio, bgOf, fgOn, round: n => Math.round(n * 100) / 100 };
 };
 
 // Statuts des lignes (permanents + #topics) : classes JS, pastille, barre, verrou.
@@ -182,7 +182,8 @@ const STATUS = () => {
       pagesCls: tr.classList.contains('kr-topic-pages'),
       pagesAttr: tr.getAttribute('data-kr-pages'),
       badges: tr.querySelectorAll('.kr-topic-badge').length,
-      badgeText: badge ? badge.textContent.trim() : null,
+      badgeDomText: badge ? badge.textContent.trim() : null,
+      badgeText: badge ? (badge.textContent.trim() || getComputedStyle(badge, '::before').content.replace(/^"|"$/g, '')) : null,
       badgeVisible: badge ? vis(badge) : false,
       badgeRatio: badge ? tools.round(tools.ratio(tools.fgOn(badge, tools.parse(getComputedStyle(badge).backgroundColor)), tools.parse(getComputedStyle(badge).backgroundColor))) : null,
       barW: bar.w,
@@ -195,8 +196,51 @@ const STATUS = () => {
   });
 };
 
-// Installe les outils de couleur dans la page (une fonction nommée, pour les appels répétés).
-const withTools = page => page.evaluate(`(window.__krColorTools = ${COLOR_TOOLS.toString()}, true)`);
+// Texte visible d'un élément, contenus générés (::before / ::after, attr()) compris, dans l'ordre du DOM ; ignore display:none et visibility:hidden.
+const VISIBLE_TEXT = () => {
+  const walk = n => {
+    if (n.nodeType === 3) { return n.textContent; }
+    if (n.nodeType !== 1) { return ''; }
+    const cs = getComputedStyle(n);
+    if (cs.display === 'none' || cs.visibility === 'hidden') { return ''; }
+    const gen = w => { const c = getComputedStyle(n, w).content; return c && c !== 'none' && c !== 'normal' ? c.replace(/^"|"$/g, '') : ''; };
+    return gen('::before') + [...n.childNodes].map(walk).join('') + gen('::after');
+  };
+  return el => walk(el).replace(/\s+/g, ' ').trim();
+};
+
+// Cibles tactiles réellement touchables : on balaie une grille `elementFromPoint` sur la zone (en faisant défiler la page), on regroupe les points
+// par élément interactif le plus proche et on mesure la boîte qu'ils couvrent (tolérance = pas de la grille). Une cible couverte par un autre élément
+// ou rendue inerte (pointer-events: none) n'est pas comptée ; un lien étiré (::after absolu) compte pour toute sa surface.
+const SMALL_TARGETS = () => async (rootSel, skipSel) => {
+  const root = document.querySelector(rootSel);
+  const step = 2;
+  const boxes = new Map();
+  const rr = root.getBoundingClientRect();
+  const top = rr.top + window.scrollY; const bottom = rr.bottom + window.scrollY;
+  const band = window.innerHeight - 160;
+  for (let y0 = Math.max(0, top - 80); y0 < bottom; y0 += band) {
+    window.scrollTo(0, y0);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    for (let y = 80; y < window.innerHeight - 80; y += step) {
+      const docY = y + window.scrollY;
+      if (docY < top || docY > bottom) { continue; }
+      for (let x = 1; x < window.innerWidth; x += step) {
+        const el = document.elementFromPoint(x, y);
+        const t = el && el.closest('a, button, input, select, textarea, th, summary, [role="button"]');
+        if (!t || !root.contains(t) || (skipSel && t.closest(skipSel))) { continue; }
+        const b = boxes.get(t) || { x0: x, x1: x, y0: docY, y1: docY };
+        b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, docY); b.y1 = Math.max(b.y1, docY);
+        boxes.set(t, b);
+      }
+    }
+  }
+  window.scrollTo(0, 0);
+  return [...boxes.entries()].map(([t, b]) => ({ tag: t.tagName.toLowerCase(), text: (t.textContent || t.getAttribute('aria-label') || t.getAttribute('name') || '').replace(/\s+/g, ' ').trim().slice(0, 30), w: b.x1 - b.x0 + step, h: b.y1 - b.y0 + step }));
+};
+
+// Installe les outils dans la page (fonctions nommées, pour les appels répétés).
+const withTools = page => page.evaluate(`(window.__krColorTools = ${COLOR_TOOLS.toString()}, window.__krVisibleText = (${VISIBLE_TEXT.toString()})(), window.__krSmallTargets = (${SMALL_TARGETS.toString()})(), true)`);
 
 // Redessins DataTables : page 2, tri « Vus », recherche « PA », « Afficher 25 » (le même déclencheur que DataTables : clic, saisie, changement).
 const REDRAWS = [
@@ -216,6 +260,7 @@ const checkStatus = (label, rows, { badgeExpected = true } = {}) => {
   if (badgeExpected) {
     check(`${label} : pastille « NON LU » en toutes lettres, une seule, si et seulement si non lu`, () => assert.ok(rows.every(r => r.badges === (r.unreadIcon ? 1 : 0) && (!r.unreadIcon || r.badgeText === 'NON LU')), JSON.stringify(rows.filter(r => r.badges !== (r.unreadIcon ? 1 : 0)).map(r => [r.title, r.badges]))));
     check(`${label} : pastille visible sur chaque ligne non lue`, () => assert.ok(rows.filter(r => r.unreadIcon).every(r => r.badgeVisible)));
+    check(`${label} : la pastille n'écrit aucun texte dans la cellule (DataTables lit le texte des cellules pour la recherche et le tri)`, () => assert.ok(rows.filter(r => r.unreadIcon).every(r => r.badgeDomText === ''), JSON.stringify(rows.filter(r => r.badgeDomText).map(r => [r.title, r.badgeDomText]))));
   }
   check(`${label} : barre de statut d'au moins 4 px si et seulement si non lu`, () => assert.ok(rows.every(r => (r.barW >= 4) === r.unreadIcon), JSON.stringify(rows.filter(r => (r.barW >= 4) !== r.unreadIcon).map(r => [r.title, r.barW]))));
   check(`${label} : titre en gras (>= 600) si non lu, plus léger sinon`, () => assert.ok(rows.every(r => r.unreadIcon ? r.weight >= 600 : r.weight < 600), JSON.stringify(rows.filter(r => r.unreadIcon ? r.weight < 600 : r.weight >= 600).map(r => [r.title, r.weight]))));
@@ -232,6 +277,21 @@ if (frag('l1-statuts')) {
     check(`${width} : permanents = 5 lignes dont 2 non lues et 3 verrouillées`, () => { const perm = rows.filter(r => r.perm); assert.equal(perm.length, 5); assert.equal(perm.filter(r => r.unread).length, 2); assert.equal(perm.filter(r => r.locked).length, 3); });
     check(`${width} : page 1 de #topics = 10 lignes dont 9 non lues`, () => { const t = rows.filter(r => !r.perm); assert.equal(t.length, 10); assert.equal(t.filter(r => r.unread).length, 9); });
     checkStatus(`${width}`, rows);
+    await context.close();
+  }
+  for (const width of [375, 1280]) {
+    const { context, page: p } = await open({ width, late: true });
+    await withTools(p);
+    const rows = await p.evaluate(STATUS);
+    checkStatus(`${width} (DataTables initialisé après le userscript)`, rows);
+    await context.close();
+  }
+  for (const late of [false, true]) {
+    const { context, page: p } = await open({ width: 375, late });
+    await p.fill('.dataTables_filter input', 'NON LU');
+    await settleRedraw(p);
+    const found = await p.evaluate(() => ({ rows: [...document.querySelectorAll('#topics tbody tr')].filter(tr => tr.querySelector('td:first-child a')).length, info: document.querySelector('.dataTables_info').textContent }));
+    check(`recherche « NON LU »${late ? ' (DataTables initialisé après le userscript)' : ''} : aucun sujet, le libellé de la pastille n'est pas dans le texte des cellules`, () => { assert.equal(found.rows, 0, found.info); });
     await context.close();
   }
 }
@@ -344,6 +404,12 @@ if (frag('l2-entete')) {
     check(`${width} : en-tête natif conservé au bureau (aucun en-tête mobile, 2 liens natifs dans le h1)`, () => { assert.equal(m.head, 0); assert.equal(m.titles, 0); assert.equal(m.h1Links, 2); assert.equal(m.buttons.length, 1); assert.equal(m.fabs, 0); });
     await context.close();
   }
+  {
+    const { context, page: p } = await open({ width: 375, late: true });
+    await withTools(p);
+    checkHeader('375 (DataTables initialisé après le userscript)', await p.evaluate(HEADER));
+    await context.close();
+  }
 }
 
 if (frag('l2-themes')) {
@@ -357,6 +423,151 @@ if (frag('l2-themes')) {
       assert.ok(v.length >= 5 && v.every(x => typeof x === 'number'), JSON.stringify(v));
       assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v));
     });
+    await context.close();
+  }
+}
+
+// ---------- L3 : liste des sujets mobile (ligne sur 3 lignes de texte, → de 44 px, libellés, puces de tri, recherche + « Afficher » sur une ligne) ----------
+const TOPIC_ROWS = () => {
+  const t = window.__krColorTools(); const vt = window.__krVisibleText;
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), b: Math.round(r.bottom + window.scrollY) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const hitIsNot = el => { const r = el.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !hit || hit.closest('a') !== el; };
+  const rows = [...document.querySelectorAll('#topics tbody tr')].filter(tr => tr.querySelector('td:first-child p a'));
+  return rows.map(tr => {
+    const title = tr.querySelector('td:first-child p a');
+    const last = tr.querySelector('td:nth-child(5) a.nomargin');
+    const lastDate = tr.querySelector('td:nth-child(5) p.mini');
+    const author = tr.querySelector('td:nth-child(4) a.nomargin');
+    const arrow = tr.querySelector('td:nth-child(5) a.btn');
+    const msg = tr.querySelector('td:nth-child(2)'); const views = tr.querySelector('td:nth-child(3)');
+    const tags = [...tr.querySelectorAll('span.tagforum a')].map(a => a.textContent.trim());
+    const bg = t.bgOf(tr);
+    const rowRect = rect(tr);
+    return {
+      title: title.textContent.trim(),
+      unread: tr.classList.contains('kr-topic-unread'),
+      pages: tr.getAttribute('data-kr-pages'),
+      text: vt(tr),
+      expect: { last: last.textContent.trim(), date: lastDate.textContent.replace(/\s+/g, ' ').trim(), msg: Number(msg.textContent.trim()), views: Number(views.textContent.trim()), author: author.textContent.trim(), tags },
+      row: rowRect, titleRect: rect(title), titleFs: parseFloat(getComputedStyle(title).fontSize), lastRect: rect(last), statsRect: rect(msg),
+      arrow: arrow ? { ...rect(arrow), href: arrow.getAttribute('href'), label: arrow.getAttribute('aria-label'), vis: vis(arrow) } : null,
+      authorInert: hitIsNot(author), lastInert: hitIsNot(last),
+      cellText: { msg: msg.textContent.trim(), views: views.textContent.trim() },
+      colors: {
+        title: t.round(t.ratio(t.fgOn(title, bg), bg)), last: t.round(t.ratio(t.fgOn(last, bg), bg)), date: t.round(t.ratio(t.fgOn(lastDate, bg), bg)),
+        msg: t.round(t.ratio(t.fgOn(msg, bg), bg)), views: t.round(t.ratio(t.fgOn(views, bg), bg)), author: t.round(t.ratio(t.fgOn(author, bg), bg)),
+        tag: tags.length ? t.round(t.ratio(t.fgOn(tr.querySelector('span.tagforum a'), bg), bg)) : null,
+        arrow: arrow ? t.round(t.ratio(t.fgOn(arrow, t.bgOf(arrow)), t.bgOf(arrow))) : null
+      }
+    };
+  });
+};
+
+const TOOLBAR = () => {
+  const t = window.__krColorTools();
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const input = document.querySelector('.dataTables_filter input'); const select = document.querySelector('.dataTables_length select');
+  const ths = [...document.querySelectorAll('#topics thead th')];
+  const tr = document.querySelector('#topics thead tr');
+  const mask = tr ? (getComputedStyle(tr).maskImage || '') + (getComputedStyle(tr).webkitMaskImage || '') : '';
+  const chipRatio = th => { const bg = t.bgOf(th); return t.round(t.ratio(t.fgOn(th, bg), bg)); };
+  const firstRegular = document.querySelector('#topics tbody tr');
+  return {
+    iw: window.innerWidth, ih: window.innerHeight,
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    input: input ? { ...rect(input), vis: vis(input), placeholder: input.getAttribute('placeholder'), aria: input.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(input).fontSize) } : null,
+    select: select ? { ...rect(select), vis: vis(select), aria: select.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(select).fontSize) } : null,
+    chips: ths.map(th => ({ text: th.textContent.replace(/\s+/g, ' ').trim(), ...rect(th), vis: vis(th), cls: th.className, aria: th.getAttribute('aria-sort'), ratio: vis(th) ? chipRatio(th) : null })),
+    mask, scrollX: tr ? getComputedStyle(tr).overflowX : '',
+    triPrefix: tr ? getComputedStyle(tr, '::before').content : '',
+    triRatio: tr ? (() => { const bg = t.bgOf(tr); const c = t.parse(getComputedStyle(tr, '::before').color); return t.round(t.ratio(t.over(c, bg), bg)); })() : null,
+    firstRegularY: firstRegular ? Math.round(firstRegular.getBoundingClientRect().top + window.scrollY) : null,
+    inputRatio: input ? (() => { const bg = t.bgOf(input); return t.round(t.ratio(t.fgOn(input, bg), bg)); })() : null,
+    selectRatio: select ? (() => { const bg = t.bgOf(select); return t.round(t.ratio(t.fgOn(select, bg), bg)); })() : null
+  };
+};
+
+const fr = n => `${n} message${n > 1 ? 's' : ''}`;
+const checkTopicRows = (label, rows) => {
+  const bad = (pred) => JSON.stringify(rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
+  check(`${label} : des lignes de #topics sont présentes`, () => assert.ok(rows.length >= 3));
+  check(`${label} : chaque ligne montre titre, dernier message (auteur et date), compteurs libellés, pages, auteur et étiquettes`, () => assert.ok(rows.every(r => {
+    const e = r.expect;
+    return r.text.includes(`Dernier : ${e.last}`) && r.text.includes(e.date) && r.text.includes(fr(e.msg)) && r.text.includes(`${e.views} vue${e.views > 1 ? 's' : ''}`)
+      && r.text.includes(`par ${e.author}`) && (!r.pages || r.text.includes(`${r.pages} pages`)) && e.tags.every(tg => r.text.includes('#' + tg));
+  }), bad(r => r.text.includes('Dernier : ' + r.expect.last) && r.text.includes(fr(r.expect.msg)))));
+  check(`${label} : « NON LU » lisible dans la ligne si et seulement si non lu`, () => assert.ok(rows.every(r => r.text.includes('NON LU') === r.unread), bad(r => r.text.includes('NON LU') === r.unread)));
+  check(`${label} : ordre des lignes de texte = titre, puis dernier message, puis compteurs`, () => assert.ok(rows.every(r => r.titleRect.b <= r.lastRect.y + 2 && r.lastRect.b <= r.statsRect.y + 2), bad(r => r.titleRect.b <= r.lastRect.y + 2 && r.lastRect.b <= r.statsRect.y + 2)));
+  check(`${label} : titre en 16 px`, () => assert.ok(rows.every(r => r.titleFs === 16), bad(r => r.titleFs === 16)));
+  check(`${label} : hauteur de ligne raisonnable (60 à 130 px)`, () => assert.ok(rows.every(r => r.row.h >= 60 && r.row.h <= 130), JSON.stringify(rows.map(r => r.row.h))));
+  check(`${label} : bouton → natif de 44 x 44 à droite, centré dans la ligne, libellé « aller au dernier message »`, () => assert.ok(rows.every(r => r.arrow && r.arrow.vis && Math.abs(r.arrow.w - 44) <= 1 && Math.abs(r.arrow.h - 44) <= 1 && r.arrow.r >= r.row.r - 16 && Math.abs((r.arrow.y + 22) - (r.row.y + r.row.h / 2)) <= 8 && /#msg/.test(r.arrow.href) && r.arrow.label === 'aller au dernier message'), JSON.stringify(rows.slice(0, 2).map(r => r.arrow))));
+  check(`${label} : auteurs non cliquables sur mobile (aucun toucher accidentel vers Kramail ou un profil)`, () => assert.ok(rows.every(r => r.authorInert && r.lastInert), bad(r => r.authorInert && r.lastInert)));
+  check(`${label} : cellules natives intactes (chiffres seuls dans les cellules Msg et Vus)`, () => assert.ok(rows.every(r => r.cellText.msg === String(r.expect.msg) && r.cellText.views === String(r.expect.views)), bad(r => r.cellText.msg === String(r.expect.msg))));
+};
+
+const checkToolbar = (label, m) => {
+  check(`${label} : recherche et « Afficher » sur une ligne, au moins 44 px de haut`, () => { assert.ok(m.input && m.select && m.input.vis && m.select.vis); assert.ok(Math.abs(m.input.y - m.select.y) <= 4, `input y ${m.input.y}, select y ${m.select.y}`); assert.ok(m.input.h >= 44 && m.select.h >= 44, `${m.input.h} / ${m.select.h}`); assert.ok(m.input.w >= 150, 'largeur ' + m.input.w); });
+  check(`${label} : champs nommés (placeholder et libellés accessibles), police 16 px (pas de zoom iOS)`, () => { assert.ok(/Rechercher/.test(m.input.placeholder || '')); assert.ok(m.input.aria && m.select.aria); assert.equal(m.input.fs, 16); assert.equal(m.select.fs, 16); });
+  check(`${label} : 5 puces de tri natives (th) visibles, 44 px de haut, la colonne triée en premier`, () => { assert.equal(m.chips.length, 5); assert.ok(m.chips.every(c => c.vis && c.h >= 44 && c.w >= 44), JSON.stringify(m.chips.map(c => [c.text, c.w, c.h, c.vis]))); const sorted = m.chips.find(c => c.aria); assert.ok(sorted && /Dernier/.test(sorted.text)); assert.ok(m.chips.every(c => c === sorted || c.x > sorted.x)); });
+  check(`${label} : puces défilantes avec fondu à droite, préfixe « Trier : »`, () => { assert.equal(m.scrollX, 'auto'); assert.ok(/gradient/.test(m.mask), m.mask); assert.ok(/Trier/.test(m.triPrefix)); });
+  check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
+};
+
+if (frag('l3-liste')) {
+  console.log('L3 : liste des sujets mobile (variante A)');
+  for (const width of [375, 700]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const rows = await p.evaluate(TOPIC_ROWS);
+    const tb = await p.evaluate(TOOLBAR);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-liste-${width}.png`), fullPage: true }); }
+    checkTopicRows(`${width}`, rows);
+    checkToolbar(`${width}`, tb);
+    const small = await p.evaluate(() => window.__krSmallTargets('#topics_wrapper', '.dataTables_paginate, thead'));
+    check(`${width} : toutes les cibles de la liste (hors pagination et puces de tri) font au moins 44 x 44 (grille elementFromPoint)`, () => { const bad = small.filter(s => s.w < 44 || s.h < 44); assert.ok(small.length >= 10 && bad.length === 0, JSON.stringify(bad.slice(0, 5))); });
+    // Tri : un toucher sur la puce « Vus » trie par DataTables (aria-sort posé par le plug-in)
+    await p.locator('#topics thead th', { hasText: 'Vus' }).click();
+    await settleRedraw(p);
+    const sorted = await p.evaluate(() => ({ aria: document.querySelector('#topics thead th:nth-child(3)').getAttribute('aria-sort'), views: [...document.querySelectorAll('#topics tbody td:nth-child(3)')].map(td => Number(td.textContent)) }));
+    check(`${width} : toucher la puce « Vus » trie la liste (aria-sort et ordre croissant)`, () => { assert.equal(sorted.aria, 'ascending'); assert.deepEqual(sorted.views, [...sorted.views].sort((a, b) => a - b)); });
+    await context.close();
+    for (const [name, act] of REDRAWS) {
+      const c = await open({ width });
+      await withTools(c.page);
+      await act(c.page);
+      await settleRedraw(c.page);
+      checkTopicRows(`${width} après ${name}`, await c.page.evaluate(TOPIC_ROWS));
+      await c.context.close();
+    }
+  }
+  {
+    const { context, page: p } = await open({ width: 375, late: true });
+    await withTools(p);
+    checkTopicRows('375 (DataTables initialisé après le userscript)', await p.evaluate(TOPIC_ROWS));
+    checkToolbar('375 (DataTables initialisé après le userscript)', await p.evaluate(TOOLBAR));
+    await context.close();
+  }
+  for (const width of [1280, 1440]) {
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const d = await p.evaluate(() => ({ unit: document.querySelector('#topics tbody td:nth-child(2)').textContent.trim(), text: window.__krVisibleText(document.querySelector('#topics tbody tr')), thead: getComputedStyle(document.querySelector('#topics thead')).display, theadTr: getComputedStyle(document.querySelector('#topics thead tr')).display, ths: [...document.querySelectorAll('#topics thead th')].filter(th => th.getBoundingClientRect().width > 0).length }));
+    check(`${width} : bureau inchangé par la liste mobile (tableau natif, en-têtes en table, pas de libellé « Dernier : »)`, () => { assert.equal(d.thead, 'table-header-group'); assert.equal(d.theadTr, 'table-row'); assert.equal(d.ths, 5); assert.ok(!/Dernier :|messages|vues/.test(d.text), d.text); });
+    await context.close();
+  }
+}
+
+if (frag('l3-themes')) {
+  console.log('L3 : contrastes >= 4,5:1 de la liste des sujets mobile sur les 16 thèmes');
+  for (const variant of THEMES) {
+    const { context, page: p } = await open({ width: 375, variant });
+    await withTools(p);
+    const rows = await p.evaluate(TOPIC_ROWS);
+    const tb = await p.evaluate(TOOLBAR);
+    const min = a => Math.min(...a.filter(x => typeof x === 'number'));
+    check(`375 ${variant} : titres, dernier message, dates, compteurs, auteurs, étiquettes et flèches >= 4,5:1`, () => { const all = rows.flatMap(r => Object.values(r.colors)).filter(x => x !== null); assert.ok(all.length >= 60); assert.ok(min(all) >= 4.5, 'min ' + min(all)); });
+    check(`375 ${variant} : puces de tri, « Trier : », recherche et « Afficher » >= 4,5:1`, () => { const v = [...tb.chips.map(c => c.ratio), tb.triRatio, tb.inputRatio, tb.selectRatio]; assert.ok(v.every(x => typeof x === 'number'), JSON.stringify(v)); assert.ok(min(v) >= 4.5, 'min ' + min(v)); });
     await context.close();
   }
 }

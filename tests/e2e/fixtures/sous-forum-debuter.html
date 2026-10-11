@@ -103,6 +103,7 @@
 
   // ---- Émulateur minimal de DataTables 1.10.5 (dom « lfrtip », 10 lignes, tri initial colonne 5 décroissante) ----
   var $ = window.jQuery;
+  function initDataTables() {
   var table = document.getElementById('topics');
   var tbody = table.tBodies[0];
   var rows = [].slice.call(tbody.rows).map(function (tr) {
@@ -171,6 +172,11 @@
   lenDiv.querySelector('select').addEventListener('change', function (e) { st.length = parseInt(e.target.value, 10); st.page = 0; draw(); });
   filDiv.querySelector('input').addEventListener('input', function (e) { st.search = e.target.value; st.page = 0; draw(); });
   draw();
+  }
+  // Deux ordres d'initialisation possibles sur le vrai site : DataTables avant le userscript (défaut, DOM à 10 lignes au DOMContentLoaded) ou
+  // après (?dt=late : $(fn) de jQuery 3 s'exécute après les écouteurs DOMContentLoaded posés au document-start, donc après le userscript ;
+  // DataTables lit alors le texte des cellules DÉJÀ modifiées par le userscript, pour la recherche et le tri).
+  if (/[?&]dt=late/.test(location.search)) { $(initDataTables); } else { initDataTables(); }
 
   // ---- Repli natif des panneaux (main.js du site) ----
   $(document).on('click', '.panel-heading span.clickable', function () {
