@@ -7,9 +7,9 @@
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
 // Variables : KR_CONCURRENCY (défaut min(8, CPU/2)), KR_LOGDIR (défaut $TMPDIR/kraland-e2e/<horodatage>, jamais dans le dépôt),
-//             KR_SCRIPT (bundle testé), KR_BOOTSTRAP_DIR (vrai Bootstrap 3.3.7 + jQuery : sans lui les fragments « real » sont signalés SKIP).
+//             KR_SCRIPT (bundle testé), KR_BOOTSTRAP_DIR (vrai Bootstrap 3.3.7 + jQuery : sans lui les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
 // Chaque fragment a son journal, son dossier de captures (KR_SHOTS) et son TMPDIR : aucune ressource partagée, aucun port fixe.
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -18,92 +18,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const E2E = 'tests/e2e';
 
-// Registre : une suite = un fichier ; fragments = exécutions indépendantes (KR_FRAG) dont la somme rejoue la suite entière.
-// Les fragments les plus longs sont lancés en premier (ordre de la liste).
-const FORUM_FRAGS = [
-  ['seuil-real-sombre'], ['seuil-real-clair'], ['seuil-fake-sombre'], ['seuil-fake-clair'],
-  ['m2-real'], ['m2-fake'], ['s3-real'], ['s3-fake'], ['s3d-real'],
-  ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop', 's3d-fake']
-];
-const SUITES = [
-  { name: 'forum-mobile', file: 'forum-mobile.mjs', zones: ['forum'], frags: FORUM_FRAGS, needsBootstrap: true },
-  { name: 'demarrage-mobile', file: 'demarrage-mobile.mjs', zones: ['demarrage'],
-    frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1']] },
-  { name: 'breakpoint-switch', file: 'breakpoint-switch.mjs', zones: ['transitions', 'plateau'], frags: [['nav-large'], ['nav-origine'], ['widths']] },
-  { name: 'croix-directionnelle', file: 'croix-directionnelle.mjs', zones: ['croix', 'plateau'],
-    frags: [['etats'], ['clics'], ['m1'], ['themes'], ['transitions'], ['impossibles', 'ordre', 'natif']] },
-  { name: 'plateau-profil-mobile', file: 'plateau-profil-mobile.mjs', zones: ['profil', 'plateau'] },
-  { name: 'plateau-qualite-usage', file: 'plateau-qualite-usage.mjs', zones: ['plateau'] },
-  { name: 'map-exclusions', file: 'map-exclusions.mjs', zones: ['images'] },
-  { name: 'image-fallback', file: 'image-fallback.mjs', zones: ['images'] },
-  { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] }
-];
-const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
-
-// Zones touchées d'après un fichier ; null = inconnu (on élargit au total).
-const FILE_RULES = [
-  [/^tests\/e2e\/run\.mjs$|^package\.json$|^tests\/e2e\/lib\//, 'all'],
-  [/^tests\/e2e\/([\w-]+)\.mjs$/, m => SUITES.filter(s => s.file === m[1] + '.mjs').flatMap(s => s.zones)],
-  [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
-  [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
-  [/^(README\.md|CLAUDE\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
-  [/^(kraland-userscript-main\.user\.js|kraland-userscript\.user\.js|kraland-userscript-dev\.user\.js)$/, []] // fichiers générés : la source fait foi
-];
-// Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu élargit au total.
-const KEYWORDS = [
-  [/forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, 'forum'],
-  [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, 'images'],
-  [/croix|dpad|directionnel|d-pad/i, 'croix'],
-  [/mini-profil|mobile-mini-profile|jauge|profil/i, 'profil'],
-  [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, 'demarrage']
-];
-
-function gitLines(args) {
-  try { return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).split('\n'); } catch (_e) { return null; }
-}
-
-function zonesFromDiff(baseRef) {
-  const reasons = [];
-  let files = [];
-  let diffArgs;
-  if (baseRef) { files = gitLines(['diff', '--name-only', baseRef]); diffArgs = [baseRef]; } else {
-    const work = gitLines(['diff', '--name-only', 'HEAD']);
-    const untracked = gitLines(['ls-files', '--others', '--exclude-standard']);
-    files = work === null ? null : [...work, ...(untracked || [])];
-    diffArgs = ['HEAD'];
-    if (files && files.filter(Boolean).length === 0) {
-      const mb = ['origin/feature/next', 'origin/main'].map(r => gitLines(['merge-base', 'HEAD', r])).find(l => l && l[0]);
-      if (mb) { diffArgs = [mb[0].trim()]; files = gitLines(['diff', '--name-only', diffArgs[0]]); reasons.push('arbre propre : comparaison avec ' + diffArgs[0].slice(0, 9)); }
-    }
-  }
-  if (files === null) { return { zones: ZONES, reasons: ['git indisponible : total par prudence'], widened: true }; }
-  files = [...new Set(files.filter(Boolean))];
-  const zones = new Set();
-  let widened = false;
-  const widen = why => { widened = true; reasons.push(why); };
-  for (const f of files) {
-    if (f === 'kraland-theme.css' || f === 'kraland-userscript-template.js') {
-      const diff = gitLines(['diff', '-U0', ...diffArgs, '--', f]);
-      const hunks = []; let cur = null;
-      for (const l of diff || []) {
-        if (l.startsWith('@@')) { cur = { head: l, body: '' }; hunks.push(cur); } else if (cur && /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l)) { cur.body += l + '\n'; }
-      }
-      if (!hunks.length) { widen(f + ' : diff illisible'); continue; }
-      for (const h of hunks) {
-        const hit = KEYWORDS.filter(([re]) => re.test(h.head + '\n' + h.body)).map(k => k[1]);
-        if (!hit.length) { widen(`${f} ${h.head.split('@@')[1].trim()} : aucune zone reconnue`); } else { hit.forEach(z => zones.add(z)); }
-      }
-      continue;
-    }
-    const rule = FILE_RULES.find(([re]) => re.test(f));
-    if (!rule) { widen(f + ' : fichier inconnu'); continue; }
-    const m = f.match(rule[0]);
-    const z = typeof rule[1] === 'function' ? rule[1](m) : rule[1];
-    if (z === 'all') { widen(f + ' : touche le lanceur ou la configuration'); } else { z.forEach(x => zones.add(x)); }
-  }
-  if (widened) { return { zones: ZONES, reasons, widened: true, files }; }
-  return { zones: [...zones], reasons, widened: false, files };
-}
+import { SUITES, ZONES, zonesFromDiff } from './lib/router.mjs';
 
 function buildUnits(zones, env) {
   const units = [];

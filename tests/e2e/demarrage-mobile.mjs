@@ -113,7 +113,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
   }, { src: userscript, when: moment, late: lateViewport, blocked: blockStorage, readOnly: readOnlyStorage });
   const page = await context.newPage();
   await page.goto('http://www.kraland.org' + route, { waitUntil: 'load' });
-  // Plus d'attente fixe (6 s + 2 s) : on attend que le script ait été injecté (marqueur posé par le test après l'évaluation) et la page chargée, puis une fenêtre calme
+  // Fenêtre d'absence : QUIET_MS = 2,5 s sans nouveau document (avant : 6 s + 2 s fixes). Borne documentée dans le SKILL. On attend que le script ait été injecté (marqueur posé par le test après l'évaluation) et la page chargée, puis une fenêtre calme
   // (aucun nouveau document pendant QUIET_MS, > écart minimal entre deux rechargements 1200 ms + anti-rebond 400 ms). Une boucle de
   // rechargement ne se calme jamais : expiration à MAX_SETTLE_MS = échec explicite (stable = false), jamais un faux vert.
   const stableResult = await settle(page, () => documents);
@@ -131,7 +131,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
   return { documents: after6, stable: stableResult.stable && documents === after6, ...state };
 }
 
-console.log('Démarrage : nombre de documents chargés en 6 s (attendu : 1)');
+console.log('Démarrage : nombre de documents chargés jusqu\'à la stabilité (attendu : 1)');
 for (const moment of ['start', 'dcl', 'load', 'later'].filter(m => frag('moment-' + m))) {
   for (const width of [375, 700]) {
     for (const route of Object.keys(PAGES)) {

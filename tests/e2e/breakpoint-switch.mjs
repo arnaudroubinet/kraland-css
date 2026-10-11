@@ -19,6 +19,7 @@ const html = fs.readFileSync(fixturePath, 'utf8');
 const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 
 const RESIZE_QUIET_MS = 900; // anti-rebond du script (400 ms) + marge ; état stable pendant cette durée = redimensionnement traité
+const ABSENCE_QUIET_MS = 1800; // assertions d'ABSENCE de rechargement : fenêtre longue (un rechargement tardif, écart minimal de 1,2 s entre deux, doit rester visible)
 const TARGET = 'http://www.kraland.org/jouer/plateau';
 
 // Fragmentation (exécution parallèle) : KR_FRAG = widths, nav-large, nav-origine ; vide = tout jouer.
@@ -67,12 +68,13 @@ const snapProbe = () => page.evaluate(() => ({
   sw: document.documentElement.scrollWidth, ready: document.readyState
 }));
 
-async function resizeTo(width, height = 772) {
+async function resizeTo(width, height = 772, quietMs = RESIZE_QUIET_MS) {
   await page.evaluate(() => { window.__krMarker = 1; });
   await page.setViewportSize({ width, height });
-  // Plus d'attente fixe de 1,8 s : on attend que l'état (largeur, mode, marqueur, document, bandeau) reste identique pendant
-  // RESIZE_QUIET_MS = 900 ms (anti-rebond du script 400 ms + marge). Un rechargement change le document ; son absence laisse l'état stable.
-  return probeQuiet(snapProbe, { quietMs: RESIZE_QUIET_MS, label: `redimensionnement ${width}px` }).then(() => snap());
+  // On attend que l'état (largeur, mode, marqueur, document, bandeau) reste identique pendant quietMs : RESIZE_QUIET_MS (900 ms, anti-rebond
+  // du script 400 ms + marge) quand un rechargement est attendu ; ABSENCE_QUIET_MS (1,8 s, comme avant) quand on affirme qu'il n'y en a PAS.
+  // Un rechargement change le document ; son absence laisse l'état stable.
+  return probeQuiet(snapProbe, { quietMs, label: `redimensionnement ${width}px` }).then(() => snap());
 }
 
 if (frag('widths')) {
@@ -83,9 +85,9 @@ if (frag('widths')) {
   console.log('Transitions de largeur');
   let previousMobile = false;
   for (const width of [1512, 2560, 375, 1512, 767, 768, 767, 1280, 1024, 800]) {
-    const s = await resizeTo(width);
     const expectMobile = width < 768;
     const crossed = expectMobile !== previousMobile;
+    const s = await resizeTo(width, 772, crossed ? RESIZE_QUIET_MS : ABSENCE_QUIET_MS);
     check(`${width}px : mode ${expectMobile ? 'mobile' : 'desktop'}`, () => assert.equal(s.mobile, expectMobile));
     check(`${width}px : ${crossed ? 'rechargement' : 'pas de rechargement'} (${previousMobile ? 'mobile' : 'desktop'} -> ${expectMobile ? 'mobile' : 'desktop'})`, () => assert.equal(s.marker, !crossed));
     if (!expectMobile) {
@@ -117,7 +119,7 @@ if (frag('widths')) {
   // 3. Saisie en cours : pas de rechargement, bandeau proposé, texte conservé
   console.log('Saisie en cours');
   await page.fill('#champ-saisie', 'texte en cours de rédaction');
-  const typing = await resizeTo(375);
+  const typing = await resizeTo(375, 772, ABSENCE_QUIET_MS);
   const bannerShown = await page.evaluate(() => Boolean(document.getElementById('kr-resize-banner')));
   const typed = await page.inputValue('#champ-saisie');
   check('pas de rechargement avec une saisie en cours', () => assert.equal(typing.marker, true));

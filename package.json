@@ -16,6 +16,7 @@
     "test:changed": "node tests/e2e/run.mjs changed",
     "test:red": "node tests/e2e/run.mjs red",
     "test:zones": "node tests/e2e/run.mjs list",
+    "test:router": "node tests/e2e/lib/router.test.mjs",
     "test:transitions": "node tests/e2e/breakpoint-switch.mjs",
     "test:map-exclusions": "node tests/e2e/map-exclusions.mjs",
     "test:qualite-usage": "node tests/e2e/plateau-qualite-usage.mjs",
