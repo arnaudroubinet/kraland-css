@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, probeQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -245,7 +245,20 @@ async function readingChecks(width, variant, tag) {
   });
   const clicks = await p.evaluate(() => window.__clicks.length);
   check(`${tag} : aucune action native déclenchée (0 clic, 0 navigation)`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
-  if (SHOTS) { const focus = () => p.evaluate(() => document.querySelector('ul.media-list.forum > li.media').scrollIntoView({ block: 'start' })); await focus(); await p.screenshot({ path: path.join(SHOTS, `lecture-${variant}-${width}.png`) }); await p.evaluate(() => document.querySelector('ul.media-list.forum > li.media button.kr-msg-more')?.click()); await p.evaluate(() => { const li = document.querySelector('ul.media-list.forum > li.media'); window.scrollTo(0, li.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + 8); }); await p.screenshot({ path: path.join(SHOTS, `lecture-menu-${variant}-${width}.png`) }); }
+  if (SHOTS) {
+    // Une barre fixe masque le haut de la carte si scrollIntoView l'aligne en y=0 : garder l'identité sous la navbar.
+    await p.evaluate(() => {
+      const post = document.querySelector('ul.media-list.forum > li.media');
+      const nav = document.querySelector('nav.navbar');
+      const inset = nav && getComputedStyle(nav).position === 'fixed' ? nav.getBoundingClientRect().height : 0;
+      window.scrollTo(0, post.getBoundingClientRect().top + window.scrollY - inset - 8);
+    });
+    await p.screenshot({ path: path.join(SHOTS, `lecture-${variant}-${width}.png`) });
+    await p.screenshot({ path: path.join(SHOTS, `lecture-complete-${variant}-${width}.png`), fullPage: true });
+    await p.evaluate(() => document.querySelector('ul.media-list.forum > li.media button.kr-msg-more')?.click());
+    await p.evaluate(() => { const li = document.querySelector('ul.media-list.forum > li.media'); window.scrollTo(0, li.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + 8); });
+    await p.screenshot({ path: path.join(SHOTS, `lecture-menu-${variant}-${width}.png`) });
+  }
   await context.close();
 }
 
@@ -400,13 +413,46 @@ if (frag('transitions')) {
       await p.setViewportSize({ width: 768, height: 800 });
       const d1 = await reloaded(p, state, 2);
       const desk = await p.evaluate(s => ({ skin: !!document.querySelector(s), mobile: document.body.classList.contains('mobile-mode'), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), sel);
+      // Le DOM peut être calme avant que le garde-fou natif autorise le rechargement suivant (écart minimal 1200 ms).
+      // Attendre cette condition, pas un délai arbitraire ni une suppression du garde-fou. Le cas rapide est vérifié ci-dessous.
+      await p.waitForFunction(() => {
+        const log = JSON.parse(sessionStorage.getItem('kr-breakpoint-reload-log') || '[]');
+        return log.length > 0 && Date.now() - log[log.length - 1] >= 1200;
+      });
       await p.setViewportSize({ width: 767, height: 800 });
       const d2 = await reloaded(p, state, 3);
       const mob = await p.evaluate(s => ({ skin: !!document.querySelector(s), mobile: document.body.classList.contains('mobile-mode'), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), sel);
+      console.log('  diagnostic ' + tag + ' : ' + JSON.stringify({ d1, desk, d2, mob, guard: await p.evaluate(() => ({ banner: document.querySelector('#kr-resize-banner')?.textContent || '', log: sessionStorage.getItem('kr-breakpoint-reload-log') })) }));
       check(`${tag} : 375 -> 768 recharge (2 documents) et rend le DOM natif sans mise en forme v3`, () => { assert.equal(start, true); assert.equal(d1, 2); assert.equal(desk.skin, false); assert.equal(desk.mobile, false); assert.ok(desk.ox <= 0); });
       check(`${tag} : 768 -> 767 recharge (3 documents) et rend la mise en forme mobile v3`, () => { assert.equal(d2, 3); assert.equal(mob.skin, true); assert.equal(mob.mobile, true); assert.ok(mob.ox <= 0); });
       await context.close();
     }
+  }
+  // Reproduit de façon déterministe la cause des anciens FAIL : Date figée, timers réels (anti-rebond inchangé),
+  // retour au seuil avant les 1200 ms autorisées. Le script doit conserver son garde-fou, pas recharger en boucle.
+  for (const kind of ['sujet', 'repondre']) {
+    const { context, page: p, state } = await open({ width: 375, kind });
+    const fixed = await p.evaluate(() => Date.now());
+    await p.clock.setFixedTime(new Date(fixed));
+    await p.setViewportSize({ width: 768, height: 800 });
+    await reloaded(p, state, 2);
+    await p.clock.setFixedTime(new Date(fixed + 400));
+    await p.setViewportSize({ width: 767, height: 800 });
+    const guard = await probeQuiet(() => p.evaluate(() => ({
+      mobile: document.body.classList.contains('mobile-mode'), banner: document.querySelector('#kr-resize-banner')?.textContent || '',
+      doc: performance.timeOrigin, ready: document.readyState
+    })), { quietMs: 1800, label: 'retour rapide avec garde-fou' });
+    check(`transition rapide ${kind} : garde-fou 1200 ms respecté (2 documents, bandeau, mode chargé conservé)`, () => {
+      assert.equal(state.documents, 2); assert.equal(guard.mobile, false); assert.ok(guard.banner.includes('quand vous le souhaitez'));
+    });
+    await p.clock.setFixedTime(new Date(fixed + 1200));
+    await p.setViewportSize({ width: 766, height: 800 });
+    const docs = await reloaded(p, state, 3);
+    const restored = await p.evaluate(() => ({ mobile: document.body.classList.contains('mobile-mode'), banner: !!document.querySelector('#kr-resize-banner') }));
+    check(`transition rapide ${kind} : nouveau resize après 1200 ms autorisé (3 documents, mode mobile, bandeau retiré)`, () => {
+      assert.equal(docs, 3); assert.equal(restored.mobile, true); assert.equal(restored.banner, false);
+    });
+    await context.close();
   }
 }
 
@@ -417,7 +463,7 @@ if (frag('bureau')) {
     for (const kind of ['sujet', 'repondre', 'editer']) {
       const { context, page: p, state } = await open({ width: 1280, kind, variant, height: 900 });
       const r = await p.evaluate(() => ({ added: document.querySelectorAll('.kr-msg, .kr-msg-more, .kr-msg-secondary, .kr-tools-ready, .kr-tools-plus, .kr-tool-extra, .kr-tools-break, .kr-sender-row').length, mobile: document.body.classList.contains('mobile-mode'), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-      const vis = await p.evaluate(() => { const v = e => { if (!e) { return null; } const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }; return { citer: v(document.querySelector('a[href*="forum/post/repondre-3-"]')), votes: v(document.querySelector('a[href^="javascript:updateAjax"]')), tools: document.querySelectorAll('.btn-toolbar a.btn').length ? Array.from(document.querySelectorAll('.btn-toolbar > .btn-group > a.btn')).every(v) : null }; });
+      const vis = await p.evaluate(() => { const v = e => { if (!e) { return null; } const box = e.getBoundingClientRect(); return box.width > 0 && box.height > 0; }; return { citer: v(document.querySelector('a[href*="forum/post/repondre-3-"]')), votes: v(document.querySelector('a[href^="javascript:updateAjax"]')), tools: document.querySelectorAll('.btn-toolbar a.btn').length ? Array.from(document.querySelectorAll('.btn-toolbar > .btn-group > a.btn')).every(v) : null }; });
       check(`bureau 1280 px ${kind} ${VARIANT_NAME(variant)} : aucune classe ni élément de la v3, pas de mode mobile, pas de débordement, actions natives visibles`, () => {
         assert.equal(r.added, 0); assert.equal(r.mobile, false); assert.ok(r.ox <= 0, `${r.ox}`);
         if (kind === 'sujet') { assert.equal(vis.citer, true); assert.equal(vis.votes, true); } else { assert.equal(vis.tools, true); }
