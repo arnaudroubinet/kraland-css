@@ -9590,7 +9590,11 @@ body.mobile-mode .building-section-content img.img-responsive {
    - Feedback visuel clair
    ============================================================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
+  /* Seuil unique (carte t_f4fad4a5) : 767 px comme le mode mobile JS (< 768) et Bootstrap 3 natif (xs < 768 <= sm).
+     À 768 px exactement, ce bloc s'appliquait seul (barre « Envoyer » fixe, grille réinitialisée) sans le mode mobile JS ni les
+     correctifs PR12 (max-width: 767px) : Signature masquée, smileys 0/126, outils débordants. 768 est désormais en mise en page bureau. */
+
   /* 0. LAYOUT - Fix Bootstrap grid overflow */
   
   /* Ajouter padding latéral pour ne pas coller au bord */
@@ -12333,3 +12337,266 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding-left: 15px;
   }
 }
+
+/* ============================================================================
+   FORUM MOBILE : actions « Répondre » / « Nouveau sujet » (F-01) et barre BBCode (F-06)
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* F-01 : barre d'actions du sujet, en haut (sous le fil d'Ariane) et en bas (sous la pagination).
+     « Répondre » = action principale pleine ; « Nouveau sujet » = action secondaire cerclée. */
+  .forum-thread-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+
+  /* N-1 : le bouton fixe « Remonter en haut » (36 px, à 8 px du bord droit, visible dès 400 px de défilement) passait sur la fin de
+     « Nouveau sujet » quand la barre du bas traversait le bas de l'écran. On réserve donc à droite de cette barre la place du bouton
+     (8 + 36 + 8 = 52 px) : le bouton ne la recouvre plus, à aucune position de défilement. */
+  .forum-thread-actions-bottom {
+    margin: 12px 52px 16px 16px;
+  }
+
+  .forum-thread-action {
+    display: flex;
+    flex: 1 1 140px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 2px solid var(--kr-primary);
+    border-radius: var(--mobile-radius, 8px);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  /* M1 : encre et fond dédiés (mêmes variables que les touches de la croix CX2 : --kr-arm-*),
+     garantis >= 4,5:1 dans les 16 thèmes en état normal, survol et actif.
+     Le blanc sur --kr-primary tombait à 1,65:1 (paladium-dark). */
+  .forum-thread-action-reply {
+    flex-grow: 2;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+  }
+
+  .forum-thread-action-reply:hover,
+  .forum-thread-action-reply:active {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+    text-decoration: none;
+  }
+
+  .forum-thread-action-new {
+    background: transparent;
+    color: var(--kr-text-primary, var(--kr-primary)) !important;
+  }
+
+  /* F-06 : barre BBCode de l'éditeur (réponse, nouveau sujet, Kramail) = grille de cibles 44 px qui
+     passe à la ligne, au lieu d'une bande à défilement où chaque bouton faisait 329 à 338 px
+     (cause : « .btn-group > .btn { width: 100% !important } » générique). Pas dans les fenêtres bootbox. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) {
+    position: relative;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    overflow: visible !important;
+    white-space: normal;
+  }
+
+  /* Le clearfix Bootstrap (::before/::after) deviendrait un élément de la grille et décalerait la 1re rangée */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::before,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::after {
+    display: none !important;
+  }
+
+  /* Les groupes et menus déroulants s'effacent : les boutons s'enchaînent en une seule grille */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown {
+    display: contents !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > a.btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    display: flex !important;
+    flex: 0 0 44px !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* L'ancre « dropdown-toggle » n'est qu'un conteneur : pas de double cadre autour du bouton qu'elle porte */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Menus (smileys, couleurs) : ancrés à la barre, sur toute sa largeur disponible */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu {
+    max-width: calc(100vw - 24px);
+  }
+
+  /* M2 : palette « Couleurs » = grille de pastilles 44×44 dans le menu (6 colonnes). Sans cela, la règle
+     mobile générique « .btn-group > .btn { width: 100% !important } » étirait chaque pastille à 168 px
+     et 17 sur 18 sortaient du menu. La couleur (style en ligne), le href et l'onclick natifs ne sont pas touchés. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    display: grid !important;
+    grid-template-columns: repeat(6, 44px);
+    gap: 6px;
+    width: auto !important;
+    max-width: 100%;
+    padding: 8px;
+    float: none !important;
+  }
+
+  /* MA-1 : le menu natif porte « padding:10px; width:190px » en ligne, trop étroit pour la grille 6×44. On élargit
+     SEULEMENT le menu qui contient la palette (le menu smileys n'a pas de .btn-group), borné à l'écran ;
+     6 colonnes de 44 + 5 écarts + 2×8 de marge + 2×10 de marge du menu + bordures = 334 px. Écran plus étroit : moins de colonnes. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) {
+    box-sizing: border-box !important;
+    width: min(334px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) > .btn-group {
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group > .btn {
+    display: block !important;
+    float: none !important;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+}
+
+@media (max-width: 339px) {
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    grid-template-columns: repeat(5, 44px);
+  }
+}
+
+/* ============================================================================
+   FORUM MOBILE : réserves PR12 (smileys, Signature, barre « Envoyer », « Remonter en haut »)
+   Dépendance :has — navigateurs sans :has (Firefox < 121, Safari < 15.4) : les règles qui en dépendent sont ignorées
+   et on retrouve le comportement d'avant (page jamais cassée) : menu smileys absolu rogné, bouton « Remonter en haut »
+   qui déborde sur la barre « Envoyer ». Les règles sans :has (Signature, gouttière N-1) s'appliquent partout.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* S3 : le menu smileys natif (320 px × 638 px, position absolue) était rogné à y = 554 par « .form-group .col-sm-10 { overflow: hidden } » :
+     54 smileys sur 126 inatteignables. Il devient un panneau DANS LE FLUX, sous la barre d'outils (order: la dernière rangée), sur toute la
+     largeur : la page défile jusqu'au dernier smiley, rien n'est rogné ni superposé. position: relative + z-index conservent le menu
+     au-dessus du fond .dropdown-backdrop (z-index 990) que Bootstrap pose sur écran tactile ; la palette Couleurs (menu sans table) n'est pas touchée. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 1000;
+    order: 100;
+    flex: 0 0 100%;
+    float: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Les 126 smileys en grille de cibles 44×44 qui passe à la ligne (le menu natif les alignait 9 par rangée en 32 × 44 px) */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table {
+    display: block;
+    width: 100%;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody > tr {
+    display: contents;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td {
+    display: block;
+    padding: 0;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Signature : la règle mobile générique « label { padding: 5px 0 !important } » annulait le retrait Bootstrap alors que la case
+     reste en position absolue : elle recouvrait « Si » de « Signature » (280 px²). Le libellé devient une ligne flex : case 20 px,
+     espace, texte, sans chevauchement, et tout le libellé (44 px de haut) sert de cible tactile (le toucher du texte coche la case). */
+  body.page-forum form label.checkbox-inline {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px 0 0 !important;
+  }
+
+  body.page-forum form label.checkbox-inline > input[type="checkbox"] {
+    position: static !important;
+    flex: 0 0 20px;
+    margin: 0 !important;
+  }
+
+  /* La barre « Envoyer » est fixe (56 px, en bas de l'écran) : le défilement vers un champ (scrollIntoView, focus au clavier, ancre) laisse
+     donc 72 px libres sous lui, et le formulaire garde 64 px de page sous sa dernière ligne (l'ancienne réserve
+     « .form-group:last-of-type » ne visait aucun élément : le dernier <div> du formulaire n'a pas la classe .form-group). */
+  body.page-forum form :is(input, select, textarea, label) {
+    scroll-margin-bottom: 72px;
+  }
+
+  body.page-forum form[name="post_msg"] {
+    padding-bottom: 64px;
+  }
+
+  /* Pied collant : la règle d'en-tête mobile « body.mobile-mode .navbar-inverse { position: sticky; top: 0; z-index: var(--z-header) } » (1000)
+     atteint aussi le <footer class="navbar-inverse"> natif : il devenait un contexte d'empilement de 1000 qui se peignait SUR la barre « Envoyer »
+     fixe (z-index 90) dès que le pied de page passait dessous (la barre disparaissait et le toucher allait à la citation du pied de page : 44 positions
+     de défilement sur 62 à 375 px). Sur une page qui porte cette barre, le pied de page revient dans le flux normal ; le bouton « Remonter en haut »
+     (position: fixed) garde son z-index 1000 dans le contexte racine. */
+  body.mobile-mode:has(button.btn-primary.pull-right) footer.navbar-inverse {
+    position: relative;
+    top: auto;
+    z-index: auto;
+  }
+
+  /* Le bouton fixe « Remonter en haut » (z-index 1000, bas 8 px) se peignait aussi sur la fin de la barre « Envoyer » (56 px, pleine largeur) :
+     33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
+  body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
+    bottom: 64px;
+  }
+}
+

@@ -304,7 +304,62 @@
     const RELOAD_KEY = 'kr-breakpoint-reload';
     const RELOAD_MAX_AGE_MS = 15000;
     const RESIZE_SETTLE_MS = 400;
-    const loadedAsMobile = isMobileDevice();
+    // G-01 : au tout début du document (bundle @run-at document-start), window.innerWidth vaut la largeur
+    // par défaut (980) tant que la meta viewport n'est pas analysée. On ne fixe donc l'état « chargé en mobile/desktop »
+    // qu'une fois le <head> analysé (DOMContentLoaded, ou immédiatement si le script s'exécute plus tard) ;
+    // avant, aucun franchissement de seuil n'est pris en compte.
+    let loadedAsMobile = null;
+    // Garde-fou : jamais plus de RELOAD_MAX_COUNT rechargements par fenêtre de RELOAD_WINDOW_MS, ni deux à moins de
+    // RELOAD_MIN_GAP_MS d'écart (même si la mesure reste fausse, la page ne peut pas recharger en boucle).
+    const RELOAD_LOG_KEY = 'kr-breakpoint-reload-log';
+    const RELOAD_WINDOW_MS = 60000;
+    const RELOAD_MAX_COUNT = 10;
+    const RELOAD_MIN_GAP_MS = 1200;
+
+    function settleLoadedState() {
+      if (loadedAsMobile === null) {
+        loadedAsMobile = isMobileDevice();
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', settleLoadedState);
+    } else {
+      settleLoadedState();
+    }
+
+    function readReloadLog() {
+      try {
+        const log = JSON.parse(sessionStorage.getItem(RELOAD_LOG_KEY) || '[]');
+        const now = Date.now();
+        return Array.isArray(log) ? log.filter(function (t) { return typeof t === 'number' && now - t >= 0 && now - t < RELOAD_WINDOW_MS; }) : [];
+      } catch (_e) { return []; }
+    }
+
+    // Sans sessionStorage le plafond ne peut pas être suivi : aucun rechargement automatique (bandeau manuel)
+    // (lecture ET écriture : un stockage lisible mais en écriture refusée, QuotaExceededError, ne tiendrait pas le journal)
+    const RELOAD_PROBE_KEY = 'kr-breakpoint-probe';
+    function reloadStorageAvailable() {
+      try {
+        sessionStorage.getItem(RELOAD_LOG_KEY);
+        // Sonde d'écriture sur une clé dédiée, aussitôt retirée : aucune autre donnée n'est touchée
+        sessionStorage.setItem(RELOAD_PROBE_KEY, '1');
+        sessionStorage.removeItem(RELOAD_PROBE_KEY);
+        return true;
+      } catch (_e) { return false; }
+    }
+
+    function reloadAllowed() {
+      if (!reloadStorageAvailable()) {return false;}
+      const log = readReloadLog();
+      if (log.length >= RELOAD_MAX_COUNT) {return false;}
+      return !log.length || Date.now() - log[log.length - 1] >= RELOAD_MIN_GAP_MS;
+    }
+
+    function recordReload() {
+      const log = readReloadLog();
+      log.push(Date.now());
+      try { sessionStorage.setItem(RELOAD_LOG_KEY, JSON.stringify(log)); } catch (_e) { /* sessionStorage indisponible */ }
+    }
 
     function hasPendingInput() {
       const active = document.activeElement;
@@ -317,13 +372,25 @@
       });
     }
 
-    function showReloadBanner() {
-      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+    const RELOAD_BANNER_TEXT = {
+      input: 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ',
+      guard: 'La mise en page s\'adaptera au prochain rechargement. Rechargez la page quand vous le souhaitez. '
+    };
+
+    function showReloadBanner(reason) {
+      const message = RELOAD_BANNER_TEXT[reason] || RELOAD_BANNER_TEXT.guard;
+      const existing = document.getElementById('kr-resize-banner');
+      if (existing) {
+        const label = existing.querySelector('span');
+        if (label && label.textContent !== message) {label.textContent = message;}
+        return;
+      }
+      if (!document.body) {return;}
       const banner = document.createElement('div');
       banner.id = 'kr-resize-banner';
       banner.setAttribute('role', 'status');
       const text = document.createElement('span');
-      text.textContent = 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ';
+      text.textContent = message;
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Recharger';
@@ -341,6 +408,7 @@
     }
 
     function reloadKeepingScroll() {
+      recordReload();
       try {
         sessionStorage.setItem(RELOAD_KEY, JSON.stringify({
           y: window.scrollY,
@@ -352,13 +420,18 @@
     }
 
     function checkBreakpointCrossing() {
-      if (!document.body) {return;}
+      if (!document.body || loadedAsMobile === null) {return;}
       if (isMobileDevice() === loadedAsMobile) {
         hideReloadBanner();
         return;
       }
       if (hasPendingInput()) {
-        showReloadBanner();
+        showReloadBanner('input');
+        return;
+      }
+      if (!reloadAllowed()) {
+        // Garde-fou atteint (ou stockage inaccessible) : pas de rechargement automatique, le joueur décide
+        showReloadBanner('guard');
         return;
       }
       reloadKeepingScroll();
@@ -5030,6 +5103,7 @@
       breadcrumbLeft.appendChild(currentTitle);
 
       // Partie droite : bouton (+)
+      // F-01 : pas de « + » sur les pages d'édition (/forum/post/...) : il mènerait à « nouveau sujet » et ferait quitter la saisie
       const fab = document.createElement('a');
       fab.href = newTopicLink.href;
       fab.className = 'forum-new-topic-fab';
@@ -5062,7 +5136,9 @@
       });
 
       breadcrumbWrapper.appendChild(breadcrumbLeft);
-      breadcrumbWrapper.appendChild(fab);
+      if (!/\/forum\/post\//.test(window.location.pathname)) {
+        breadcrumbWrapper.appendChild(fab);
+      }
 
       // ========================================
       // 2. REMPLACER LE CONTENU DU H1
@@ -5798,6 +5874,8 @@
       const firstForumTop = forumTops[0];
       const taverneLink = firstForumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
       const newTopicLink = firstForumTop.querySelector('a[href*="nouveau-sujet"]');
+      // Lien natif « répondre » du sujet (absent si le sujet est fermé) : lu avant que les .forum-top soient vidés
+      const replyLink = firstForumTop.querySelector('a[href*="post/repondre"]');
 
       if (!taverneLink || !newTopicLink) {
         console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
@@ -5906,43 +5984,35 @@
         breadcrumbLeft.appendChild(separator2);
         breadcrumbLeft.appendChild(threadTitleSpan);
 
-        // Partie droite : bouton (+)
-        const fab = document.createElement('a');
-        fab.href = newTopicLink.href;
-        fab.className = 'forum-new-topic-fab';
-        fab.setAttribute('aria-label', 'Nouveau sujet');
-        fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
-        fab.style.cssText = `
-          width: 44px;
-          height: 44px;
-          min-width: 44px;
-          flex-shrink: 0;
-          border-radius: 50%;
-          background: var(--kr-primary);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-          text-decoration: none;
-          transition: all 0.2s ease;
-        `;
-
-        // Feedback tactile
-        fab.addEventListener('touchstart', function () {
-          this.style.transform = 'scale(0.92)';
-          this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
-        });
-
-        fab.addEventListener('touchend', function () {
-          this.style.transform = 'scale(1)';
-          this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-        });
-
         breadcrumbWrapper.appendChild(breadcrumbLeft);
-        breadcrumbWrapper.appendChild(fab);
 
         return breadcrumbWrapper;
+      }
+
+      // ========================================
+      // FONCTION HELPER : actions du sujet (F-01)
+      // « Répondre » (action principale) et « Nouveau sujet » (secondaire), libellés visibles,
+      // en haut ET en bas du sujet. Les href sont ceux du site (attribut recopié tel quel).
+      // ========================================
+      function createThreadActions(isBottom) {
+        const bar = document.createElement('div');
+        bar.className = 'forum-thread-actions' + (isBottom ? ' forum-thread-actions-bottom' : '');
+        function makeAction(link, className, iconClass, label) {
+          const a = document.createElement('a');
+          a.setAttribute('href', link.getAttribute('href'));
+          a.className = 'forum-thread-action ' + className;
+          const icon = document.createElement('i');
+          icon.className = 'fa ' + iconClass;
+          icon.setAttribute('aria-hidden', 'true');
+          a.appendChild(icon);
+          a.appendChild(document.createTextNode(' ' + label));
+          return a;
+        }
+        if (replyLink) {
+          bar.appendChild(makeAction(replyLink, 'forum-thread-action-reply', 'fa-reply', 'Répondre'));
+        }
+        bar.appendChild(makeAction(newTopicLink, 'forum-thread-action-new', 'fa-plus', 'Nouveau sujet'));
+        return bar;
       }
 
       // ========================================
@@ -5955,6 +6025,7 @@
         background: transparent !important;
       `;
       forumHeading.appendChild(createBreadcrumb(false));
+      forumHeading.appendChild(createThreadActions(false));
 
       // ========================================
       // 2. TRANSFORMER LES .forum-top (sauf le premier si c'est le même que le h1)
@@ -5971,7 +6042,7 @@
           background: transparent !important;
           border: none !important;
         `;
-        forumTop.appendChild(createBreadcrumb(true));
+        forumTop.appendChild(createThreadActions(true));
       });
 
       // ========================================
@@ -5984,7 +6055,7 @@
       }
 
       // Masquer les liens d'actions redondants (nouveau sujet, répondre, etc.)
-      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"], .forum-top a[href*="repondre"]');
+      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"]:not(.forum-thread-action), .forum-top a[href*="repondre"]:not(.forum-thread-action)');
       forumTopActions.forEach(action => {
         action.parentElement.style.display = 'none';
       });
