@@ -9353,236 +9353,6 @@ body.mobile-mode .building-section-content img.img-responsive {
     border-color: var(--kr-primary) !important;
     color: white !important;
   }
-
-  /* ============================================================================
-     MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
-     Structure restructurée par JS:
-     - Row 1: col-xs-4 (user) + col-xs-8 (boutons)
-     - Row 2: col-xs-12 (contenu message)
-     ============================================================================ */
-  
-  /* === STRUCTURE PRINCIPALE === */
-  
-  /* Container du post restructuré */
-  ul.media-list.forum > li.media.forum-post-restructured {
-    display: block !important;
-    padding: 12px 8px !important;
-    margin-bottom: 24px !important;
-    list-style: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  }
-  
-  /* Row 1: Header (user + boutons) */
-  ul.media-list.forum > li.media .forum-header {
-    margin-bottom: 12px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-  
-  /* Row 2: Contenu */
-  ul.media-list.forum > li.media .forum-content-row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-  
-  /* === COLONNE 1: USER INFO === */
-  
-  .forum-user-section {
-    padding: 0 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-  }
-  
-  /* Avatar */
-  .forum-user-section img.avatar,
-  .forum-user-section .user-info img:first-child {
-    max-width: 80px !important;
-    height: auto !important;
-    border-radius: 4px !important;
-    margin-bottom: 8px !important;
-  }
-  
-  /* Nom d'utilisateur - sans ellipsis, wrap autorisé */
-  .forum-user-section .cartouche strong,
-  .forum-user-section strong a {
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-    display: block !important;
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    max-width: 100% !important;
-    min-height: 0 !important;
-  }
-  
-  /* Conteneur icône de rang + titre (inline) */
-  .forum-user-section [data-kr-rank-title] {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    flex-wrap: nowrap !important;
-    margin-top: 4px !important;
-    max-width: 100% !important;
-  }
-  
-  .forum-user-section [data-kr-rank-title] img {
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-    max-width: 24px !important;
-    max-height: 24px !important;
-  }
-  
-  /* Titre de rang : inline sans ellipsis */
-  .forum-user-section [data-kr-rank-title] strong {
-    font-size: 10px !important;
-    color: #bbb !important;
-    font-weight: normal !important;
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    max-width: none !important;
-    line-height: 1.3 !important;
-    text-align: center !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-  }
-  
-  /* Date mobile ajoutée par JS */
-  .forum-user-section .post-date-mobile {
-    font-size: 11px !important;
-    color: #999 !important;
-    margin-top: 4px !important;
-    text-align: center !important;
-  }
-  
-  /* Titre/fonction - ellipsis */
-  .forum-user-section strong:not(.cartouche strong, [data-kr-rank-title] strong) {
-    font-size: 10px !important;
-    color: #bbb !important;
-    font-weight: normal !important;
-    margin-top: 4px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 100% !important;
-  }
-  
-  /* === COLONNE 2: BOUTONS D'ACTION === */
-  
-  .forum-actions-section {
-    padding: 0 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-end !important;
-    gap: 8px !important;
-  }
-  
-  /* Container des boutons */
-  .forum-actions-section .pull-right {
-    float: none !important;
-    display: flex !important;
-    flex-flow: row wrap !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-  
-  /* Groupes de boutons inline */
-  .forum-actions-section .btn-group {
-    display: inline-flex !important;
-    flex-flow: row nowrap !important;
-    gap: 0 !important;
-  }
-  
-  /* Boutons carrés 44x44px (WCAG touch target) */
-  .forum-actions-section .btn {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 14px !important;
-    line-height: 44px !important;
-    border: none !important;
-    border-radius: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  
-  /* Override Bootstrap min-width */
-  .forum-actions-section .btn-group-xs > .btn,
-  .forum-actions-section .btn-group-xs .btn {
-    min-width: 44px !important;
-  }
-  
-  /* Icônes des boutons */
-  .forum-actions-section .btn i {
-    font-size: 11px !important;
-    line-height: 24px !important;
-  }
-  
-  /* === ROW 2: CONTENU DU MESSAGE === */
-  
-  .forum-content-row {
-    margin-top: 0 !important;
-  }
-  
-  .forum-content-section {
-    padding: 12px 8px !important;
-    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
-    font-size: 15px !important;
-    line-height: 1.6 !important;
-    width: 100% !important;
-  }
-  
-  /* Contenu du message */
-  .forum-content-section .forum-msg,
-  .forum-content-section > div {
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* Citations et blockquotes */
-  .forum-content-section blockquote {
-    margin: 8px 0 !important;
-    padding: 8px 12px !important;
-    border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
-    font-size: 14px !important;
-  }
-  
-  /* Images dans le contenu */
-  .forum-content-section img {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-  
-  /* Spoilers */
-  .forum-content-section .spoiler {
-    margin: 8px 0 !important;
-  }
-  
-  /* Signature */
-  .forum-content-section hr,
-  .forum-content-section .signature {
-    margin-top: 16px !important;
-    padding-top: 16px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-    font-size: 12px !important;
-    color: #999 !important;
-  }
 }
 
 /* ============================================================================
@@ -13520,3 +13290,438 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
+
+/* ============================================================================
+   MESSAGES DU FORUM V3 (maquette validée « Moins d'interface. Plus de message. »)
+   Portée : mobile uniquement (max-width: 767px et body.mobile-mode), pages /forum/. Les classes kr-msg, kr-msg-more, kr-msg-secondary,
+   kr-editor, kr-sender-row, kr-message-row, kr-tools-* sont posées par le module Messages:V3 ; aucun nœud natif n'est cloné ni déplacé.
+   Le bureau (>= 768 px) garde le DOM et la mise en page natifs. Kramail n'est pas touché (pas de classe sur ses pages).
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* --- Lecture : identité sur une ligne (avatar réduit, nom, rang, date), texte, puis actions sous le texte --- */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg {
+    display: grid !important;
+    grid-template-columns: 60px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+    margin: 10px 0 14px;
+    padding: 14px !important;
+    list-style: none;
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  /* Le conteneur de l'avatar, le bloc identité et le corps s'effacent : leurs enfants deviennent les cellules de la grille */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .pull-left,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .pull-left > .user-info,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body {
+    display: contents !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg img.avatar {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    width: 60px;
+    max-width: 60px;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong {
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 16px;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong a {
+    color: var(--kr-text-primary);
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    margin: 2px 0 0;
+    padding: 0;
+    color: var(--kr-text-secondary);
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche p {
+    margin: 0;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > :not(img.avatar, strong, .cartouche) {
+    grid-column: 2;
+  }
+
+  /* Date : le groupe natif « posté / modifié » (un span désactivé) reste le texte natif, remis en ligne simple sous le rang */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .btn-group {
+    grid-column: 2;
+    grid-row: 3;
+    display: block !important;
+    float: none;
+    margin: 2px 0 0;
+    text-align: left;
+    justify-self: start;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .btn-group > .btn {
+    display: block !important;
+    justify-content: flex-start !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px;
+    line-height: 18px;
+    opacity: 1;
+    text-align: left;
+    white-space: nowrap;
+    max-width: none !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > [id^="ajax-h"] {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .forum-msg {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    min-width: 0;
+    margin: 12px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--kr-border-default);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .forum-msg img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Actions sous le texte : score, pouces, « Répondre », « ••• » ; le reste dans le panneau qu'ouvre « ••• ». Les groupes natifs s'effacent
+     (leurs boutons deviennent des éléments d'une même ligne), les sélecteurs portent sur le href et les classes, jamais sur un identifiant
+     recréé : après un vote, le serveur remplace le contenu de #ajax-N et la mise en forme tient. */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right {
+    grid-column: 1 / -1;
+    grid-row: 6;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 6px;
+    float: none !important;
+    margin: 12px 0 0;
+    padding: 12px 0 0 !important;
+    border-top: 1px solid var(--kr-border-default);
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right::before,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right::after {
+    display: none;
+  }
+
+  /* Saut de ligne avant le panneau « ••• » (ouvert) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right::after {
+    content: "";
+    display: block;
+    order: 9;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn-group {
+    display: contents !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    float: none;
+    width: auto !important;
+    min-width: 44px !important;
+    max-width: none !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 6px !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn i {
+    font-size: 16px !important;
+    line-height: 1 !important;
+  }
+
+  /* Score : pastille d'information (non tactile) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn-success {
+    order: 1;
+    height: 36px !important;
+    min-width: 36px !important;
+    padding: 0 8px !important;
+    border-color: rgba(46, 160, 67, 0.55) !important;
+    background: rgba(46, 160, 67, 0.18) !important;
+    cursor: default;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href^="javascript:updateAjax"] {
+    order: 2;
+    min-width: 56px !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href*="forum/post/repondre-"] {
+    order: 4;
+  }
+
+  /* Libellé « Répondre » en CSS (le lien natif « citer » ne porte que son icône) : le titre natif reste sur le lien */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href*="forum/post/repondre-"]::after {
+    content: "Répondre";
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .kr-msg-more {
+    order: 5;
+    margin-left: auto !important;
+    min-width: 48px !important;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  /* Actions secondaires (profil, Kramail, Signaler, lien) : repliées, ouvertes par « ••• », en grille de deux colonnes sous les actions */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg:not(.kr-msg-open) > .media-body > .pull-right .btn.kr-msg-secondary {
+    display: none !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right .kr-msg-secondary {
+    order: 10;
+    flex: 1 1 calc(50% - 6px);
+    justify-content: flex-start;
+    min-width: 0 !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right .kr-msg-secondary::after {
+    content: attr(data-kr-label);
+  }
+
+  /* --- Rédaction et édition : expéditeur compact, texte d'abord, outils courants + « Plus », validation dans le flux --- */
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px !important;
+    padding: 0 12px !important;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row::before,
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row::after {
+    display: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row > label,
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row > label {
+    flex: 0 0 auto;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row > .col-sm-10 {
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row .input-group-addon {
+    display: none !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row .form-control {
+    height: 44px;
+    min-height: 44px !important;
+    margin: 0;
+    padding: 0 12px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row {
+    margin: 0 0 8px !important;
+    padding: 0 12px !important;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row > label {
+    display: block;
+    margin-bottom: 8px !important;
+  }
+
+  /* Cadre d'éditeur : barre d'outils collée à la zone de saisie */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready {
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border-radius: 8px 8px 0 0;
+    background: var(--kr-bg-elevated);
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready + textarea.form-control {
+    min-height: max(300px, 45vh) !important;
+    margin: 0 !important;
+    border-top: 0;
+    border-radius: 0 0 8px 8px !important;
+    font-size: 15px !important;
+  }
+
+  /* Outils : à plat (le cadre est celui de l'éditeur), icône à 16 px, ordre = gras, italique, lien, citation, émoticônes, puis « Plus » */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a.btn,
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="b"] { order: 1; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="i"] { order: 2; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="url"] { order: 3; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="quote"] { order: 4; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown[data-kr-tool="smileys"] > .dropdown-toggle { order: 5; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a.kr-tool-extra,
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown.kr-tool-extra > .dropdown-toggle {
+    order: 20;
+  }
+
+  /* Les treize autres outils (natifs, inchangés) ne sont visibles que sous « Plus » */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready:not(.kr-tools-open) .kr-tool-extra {
+    display: none !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-break {
+    display: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready.kr-tools-open .kr-tools-break {
+    display: block;
+    order: 15;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus {
+    display: inline-flex !important;
+    order: 10;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 56px !important;
+    height: 44px !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 10px !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 13px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus::after {
+    content: "▾";
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready.kr-tools-open .kr-tools-plus::after {
+    content: "▴";
+  }
+
+  /* Validation dans le flux : plus de barre fixe qui recouvre la saisie ; le libellé natif du bouton est conservé */
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right {
+    position: static !important;
+    display: block !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 120px;
+    height: 48px !important;
+    margin: 12px 52px 0 auto !important;
+    padding: 0 20px !important;
+    border-radius: 8px !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+    font-size: 16px;
+  }
+
+  /* Même encre et même fond que « Répondre » (jetons --kr-arm-*, >= 4,5:1 sur les 16 thèmes) */
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:hover,
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:active,
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:focus {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
+    color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+  }
+
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] {
+    padding-bottom: 16px;
+  }
+
+  /* Plus de barre fixe en bas : le bouton « Remonter en haut » retrouve sa place d'origine (20 px) ; « Envoyer » lui laisse sa colonne de droite
+     (marge de 52 px = 8 + 36 + 8) pour qu'il ne le recouvre à aucune position de défilement. */
+  body.mobile-mode:has(form.kr-editor) .container.white .kraland-back-to-top {
+    bottom: 20px;
+  }
+}
+
+/* 320-359 px : une seule rangée « 5 outils + Plus » demande 5 × 44 + 48 + écarts ; les marges latérales de la zone d'édition sont reprises pour qu'elle tienne */
+@media (max-width: 359px) {
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row {
+    padding: 0 !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready {
+    gap: 2px !important;
+    padding: 4px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus {
+    min-width: 48px !important;
+    padding: 0 6px !important;
+  }
+}

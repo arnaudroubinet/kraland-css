@@ -6350,127 +6350,110 @@
   })();
 
   // ============================================================================
-  // MODULE : ForumPosts:Restructure
-  // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
-  // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
-  // Row 2: col-xs-12 (contenu message)
+  // MODULE : Messages:V3 — messages du forum, lecture / rédaction / édition (mobile, maquette v3 validée)
+  // Aucun nœud natif n'est cloné, recréé ni déplacé : la mise en page est faite en CSS (grille, ordre) sur les classes posées ici, les
+  // liens, boutons, href, onclick et le texte du message restent ceux du site. La peau ajoute seulement deux boutons à elle
+  // (« ••• » sur chaque message, « Plus » dans l'éditeur) et des classes/étiquettes. Kramail n'est pas concerné (chemin /forum/ seulement).
   // ============================================================================
   (function () {
     'use strict';
 
-    const MOBILE_BREAKPOINT = 768;
+    const SECONDARY_LABELS = { profil: 'Profil', kramail: 'Kramail', signaler: 'Signaler', lien: 'Lien du message' };
+    // Outils BBCode courants gardés en barre ; les 13 autres (souligné, barré, image, vidéo, spoiler, pré-formaté, couleurs, alignements, flottants, prévisualisation) sous « Plus »
+    const COMMON_TOOLS = ['b', 'i', 'url', 'quote', 'smileys'];
 
-    function restructureForumPosts() {
-      // Uniquement en mode mobile (basé sur la largeur de l'écran)
-      if (window.innerWidth >= MOBILE_BREAKPOINT) {
-        return;
-      }
-
-      // Vérifier qu'on est sur une page de thread
-      if (!window.location.pathname.includes('/forum/sujet/')) {
-        return;
-      }
-
-      // Sélectionner tous les posts non-restructurés
-      const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
-
-      if (posts.length === 0) {
-        return;
-      }
-
-      posts.forEach(post => {
-        // 1. Récupérer les éléments existants
-        const userInfo = post.querySelector('.pull-left, .user-info');
-        const pullRight = post.querySelector('.pull-right');
-        const mediaBody = post.querySelector('.media-body');
-
-        if (!userInfo || !mediaBody) {
-          return;
-        }
-
-        // Sauvegarder TOUT le contenu de media-body avant modification
-        const originalMediaBodyHTML = mediaBody.innerHTML;
-
-        // 2. Créer Row 1 (header: user + boutons)
-        const headerRow = document.createElement('div');
-        headerRow.className = 'row forum-header';
-
-        // Colonne 1: User info
-        const userCol = document.createElement('div');
-        userCol.className = 'col-xs-8 forum-user-section';
-
-        // Cloner le userInfo pour le déplacer
-        const userInfoClone = userInfo.cloneNode(true);
-        userCol.appendChild(userInfoClone);
-
-        // Extraire et ajouter la date depuis le bouton de date
-        const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
-        if (dateButton) {
-          const dateText = dateButton.textContent.replace('posté', '').replace('modifié', '').trim();
-          const dateElement = document.createElement('div');
-          dateElement.className = 'post-date-mobile';
-          dateElement.textContent = dateText;
-          userCol.appendChild(dateElement);
-        }
-
-        // Colonne 2: Boutons d'action
-        const actionsCol = document.createElement('div');
-        actionsCol.className = 'col-xs-4 forum-actions-section';
-        if (pullRight) {
-          const pullRightClone = pullRight.cloneNode(true);
-          actionsCol.appendChild(pullRightClone);
-        }
-
-        headerRow.appendChild(userCol);
-        headerRow.appendChild(actionsCol);
-
-        // 3. Créer Row 2 (contenu du message)
-        const contentRow = document.createElement('div');
-        contentRow.className = 'row forum-content-row';
-
-        const contentCol = document.createElement('div');
-        contentCol.className = 'col-xs-12 forum-content-section';
-
-        // Créer un nouveau mediaBody temporaire pour extraire le contenu
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = originalMediaBodyHTML;
-
-        // Retirer userInfo, pullRight, dateButton du tempDiv
-        const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
-        const tempPullRight = tempDiv.querySelector('.pull-right');
-        const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
-
-        if (tempUserInfo) {tempUserInfo.remove();}
-        if (tempPullRight) {tempPullRight.remove();}
-        if (tempDateButton) {tempDateButton.remove();}
-
-        // Tout ce qui reste est le contenu du message
-        contentCol.innerHTML = tempDiv.innerHTML;
-
-        contentRow.appendChild(contentCol);
-
-        // 4. Vider le post et reconstruire
-        // Supprimer le .pull-left original (avatar dupliqué)
-        if (userInfo && userInfo.parentElement === post) {
-          userInfo.remove();
-        }
-
-        // Vider le mediaBody complètement
-        mediaBody.innerHTML = '';
-
-        // Insérer les nouvelles rows
-        mediaBody.appendChild(headerRow);
-        mediaBody.appendChild(contentRow);
-
-        // 5. Marquer comme restructuré
-        post.setAttribute('data-restructured', 'true');
-        post.classList.add('forum-post-restructured');
-      });
-
-      console.log(`[Forum Restructure] ${posts.length} posts restructurés avec nouveau layout`);
+    function isMessagesView() {
+      return !!document.body && document.body.classList.contains('mobile-mode') && window.innerWidth < 768 && window.location.pathname.indexOf('/forum/') === 0;
     }
 
-    InitQueue.register('ForumPosts:Restructure', restructureForumPosts, 26);
+    function nativeTitle(el) {
+      return (el.getAttribute('data-original-title') || el.getAttribute('title') || '').trim().toLowerCase();
+    }
+
+    function enhancePosts() {
+      if (!window.location.pathname.includes('/forum/sujet/')) {return;}
+      document.querySelectorAll('ul.media-list.forum > li.media:not(.kr-msg)').forEach(post => {
+        const bar = post.querySelector(':scope > .media-body > .pull-right');
+        if (!bar) {return;}
+        const mark = (el, role) => {
+          if (!el) {return;}
+          el.classList.add('kr-msg-secondary');
+          el.setAttribute('data-kr-label', SECONDARY_LABELS[role]);
+        };
+        mark(bar.querySelector('a[href*="communaute/membres/"]'), 'profil');
+        const mails = Array.from(bar.querySelectorAll('a[href*="kramail/post/"]'));
+        const reportIndex = mails.findIndex(a => nativeTitle(a).includes('signal'));
+        mails.forEach((a, i) => mark(a, (reportIndex >= 0 ? i === reportIndex : i === 1) ? 'signaler' : 'kramail'));
+        mark(bar.querySelector('button.btn'), 'lien');
+
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'btn btn-default kr-msg-more';
+        more.setAttribute('aria-expanded', 'false');
+        more.setAttribute('aria-label', 'Autres actions');
+        const dots = document.createElement('span');
+        dots.setAttribute('aria-hidden', 'true');
+        dots.textContent = '•••';
+        more.appendChild(dots);
+        more.addEventListener('click', () => {
+          const open = post.classList.toggle('kr-msg-open');
+          more.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        bar.appendChild(more);
+        post.classList.add('kr-msg');
+      });
+    }
+
+    function toolKey(item) {
+      if (item.classList.contains('dropdown')) {
+        return item.querySelector('table') ? 'smileys' : 'couleurs';
+      }
+      const m = (item.getAttribute('href') || '').match(/addtag\('([^']+)'/);
+      return m ? m[1] : 'autre';
+    }
+
+    function enhanceEditors() {
+      document.querySelectorAll('form[name="post_msg"]').forEach(form => {
+        const bar = form.querySelector('.btn-toolbar');
+        if (!bar || bar.classList.contains('kr-tools-ready')) {return;}
+        form.classList.add('kr-editor');
+        const groups = Array.from(form.querySelectorAll('.form-group'));
+        const sender = groups.find(g => g.querySelector('.input-group') && g.querySelector('select, input'));
+        if (sender) {sender.classList.add('kr-sender-row');}
+        const messageRow = groups.find(g => g.contains(bar));
+        if (messageRow) {messageRow.classList.add('kr-message-row');}
+
+        bar.querySelectorAll(':scope > .btn-group > a.btn, :scope > .btn-group > .dropdown').forEach(item => {
+          const key = toolKey(item);
+          item.setAttribute('data-kr-tool', key);
+          if (!COMMON_TOOLS.includes(key)) {item.classList.add('kr-tool-extra');}
+        });
+
+        const spacer = document.createElement('span');
+        spacer.className = 'kr-tools-break';
+        spacer.setAttribute('aria-hidden', 'true');
+        bar.appendChild(spacer);
+        const plus = document.createElement('button');
+        plus.type = 'button';
+        plus.className = 'btn btn-default kr-tools-plus';
+        plus.setAttribute('aria-expanded', 'false');
+        plus.textContent = 'Plus';
+        plus.addEventListener('click', () => {
+          const open = bar.classList.toggle('kr-tools-open');
+          plus.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        bar.appendChild(plus);
+        bar.classList.add('kr-tools-ready');
+      });
+    }
+
+    function initMessagesV3() {
+      if (!isMessagesView()) {return;}
+      enhancePosts();
+      enhanceEditors();
+    }
+
+    InitQueue.register('Messages:V3', initMessagesV3, 27);
 
   })();
 
