@@ -23,7 +23,9 @@ export const SUITES = [
   { name: 'plateau-qualite-usage', file: 'plateau-qualite-usage.mjs', zones: ['plateau'] },
   { name: 'map-exclusions', file: 'map-exclusions.mjs', zones: ['images'] },
   { name: 'image-fallback', file: 'image-fallback.mjs', zones: ['images'] },
-  { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] }
+  { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] },
+  // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
+  { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 
@@ -32,6 +34,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/run\.mjs$|^package\.json$|^tests\/e2e\/lib\//, 'all'],
   [/^tests\/e2e\/([\w-]+)\.mjs$/, m => SUITES.filter(s => s.file === m[1] + '.mjs').flatMap(s => s.zones)],
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
+  [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
   [/^(README\.md|CLAUDE\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
   [/^(kraland-userscript-main\.user\.js|kraland-userscript\.user\.js|kraland-userscript-dev\.user\.js)$/, 'generated'] // fichiers générés : la source fait foi, sinon total
@@ -40,7 +43,8 @@ export const FILE_RULES = [
 const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint-switch.mjs').flatMap(s => s.zones)];
 // Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu élargit au total.
 export const KEYWORDS = [
-  [/forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
+  [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
+  [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic/i, ['sous-forum']],
   [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, ['images']],
   [/croix|dpad|directionnel|d-pad/i, ['croix']],
   [/mini-profil|mobile-mini-profile|profil/i, ['profil']],

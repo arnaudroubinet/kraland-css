@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE sous-forum « Débuter » (structure réelle, aucune action de jeu)</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+<!--
+  Fixture du sous-forum « Débuter » (/forum/hrp/debuter-20102), relevé natif de la proposition UX t_d123c7f6 (sections 3.1 et 3.4).
+  - Balisage des lignes, des en-têtes, du h1 et des panneaux : copie du DOM vivant (jQuery 3.3.1, Bootstrap 3.3.7, DataTables 1.10.5).
+  - 5 sujets permanents (3 verrouillés, 2 non lus, 1 sur 2 pages, 1 étiquette) ; #topics = 145 lignes (10 réelles + 135 générées à
+    l'identique, sans donnée personnelle), tri initial colonne 5 décroissante, 10 par page, stateSave faux.
+  - Le « … » de la pagination est un <span> SANS classe, comme DataTables 1.10.5 (jquery.dataTables.js, ligne 14151 : container.append('<span>&hellip;</span>')).
+    Les tests couvrent aussi la variante récente <span class="ellipsis"> en remplaçant ce balisage à la volée.
+  - DataTables : le plug-in n'est pas embarqué, un émulateur minimal reproduit son DOM (dom « lfrtip », classes sorting*, paginate_button,
+    événement draw.dt, nœuds <tr> conservés d'un dessin à l'autre) et ses réglages (tri, recherche, « Afficher », pagination).
+  - Les icônes Font Awesome sont remplacées par des carrés de leur taille approximative (la police n'est pas chargée hors ligne).
+-->
+<style>
+  .fa, .far, .fas { display: inline-block; font-style: normal; }
+  .fa::before, .far::before, .fas::before { content: "\25A0"; font-size: 0.8em; }
+  .invisible { visibility: hidden; display: none; }
+  .nomargin { margin: 0 !important; }
+  table.dataTable { width: 100%; clear: both; }
+  table.dataTable thead th, table.dataTable thead td, table.dataTable tbody td { padding: 8px 10px; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div><div id="navbar" class="navbar-collapse collapse"><ul class="nav navbar-nav"><li><a href="/jouer/plateau">Jouer</a></li></ul></div></div></nav>
+<div id="content" class="container"><div class="row"><div id="col-left" class="col-md-3 sidebar"><div class="list-group"><a class="list-group-item" href="forum/hrp">Jeu (HRP)</a><a class="list-group-item" href="forum/rp">Jeu (RP)</a></div></div>
+<div id="col-right" class="col-md-9">
+<h1 class="page-header">Débuter <span class="pull-right"> <a href="forum/hrp" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Jeu (HRP)"><i class="fa fa-backward"></i> Jeu (HRP)</a> <a href="forum/post/nouveau-sujet-1-20102" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="nouveau sujet"><i class="fa fa-comment"></i> nouveau sujet</a> </span> </h1>
+<div class="panel panel-default" id="fx-permanents">
+ <div class="panel-heading"> <h3 class="panel-title"><i class="far fa-comments"></i> Sujets permanents</h3> <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span> </div>
+ <div class="panel-body">
+  <table class="table nomargin"><thead> <tr> <th>Sujet</th> <th>Msg</th> <th>Vus</th> <th>Auteur</th> <th>Dernier&nbsp;Message</th> </tr> </thead><tbody id="fx-perm-body"></tbody></table>
+ </div>
+</div>
+<div class="panel panel-default" id="fx-sujets">
+ <div class="panel-heading"> <h3 class="panel-title"><i class="far fa-comments"></i> Sujets</h3> <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span> </div>
+ <div class="panel-body">
+  <table id="topics" class="display"><thead> <tr> <th>Sujet</th> <th>Msg</th> <th>Vus</th> <th>Auteur</th> <th>Dernier&nbsp;Message</th> </tr> </thead><tbody id="fx-topics-body"></tbody></table>
+ </div>
+</div>
+</div></div></div>
+<footer class="navbar-inverse"><div class="container white"><div class="footer-quote">« FIXTURE citation du pied de page »</div></div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script>
+(function () {
+  // ---- Données : 5 permanents + 15 premières lignes réelles (relevé 11/10/2026), puis 130 lignes générées ----
+  function R(o) { return o; }
+  var PERM = [
+    R({ t: "Entraide : Demandes d'images et modifications (...)", h: 'entraide-demandes-d-images-et-modifications-d-image-334396', u: 1, l: 0, p: 2, tags: [], m: 13, v: 69, a: 'KraDesk', ad: '23/08 (14:48)', d: 'Myakim', dd: '30/09 (14:40)', ts: '2026-09-30 14:40:00', msg: 6810141 }),
+    R({ t: 'Questions récurrentes', h: 'questions-recurrentes-329478', u: 0, l: 1, p: 0, tags: ['FAQ'], m: 1, v: 188, a: 'KraDesk', ad: '28/12/25 (18:42)', d: 'KraDesk', dd: '28/12/25 (18:42)', ts: '2025-12-28 18:42:00', msg: 6744726 }),
+    R({ t: 'Bien débuter sur Kraland Interactif', h: 'bien-debuter-sur-kraland-interactif-329477', u: 1, l: 1, p: 0, tags: [], m: 4, v: 152, a: 'KraDesk', ad: '28/12/25 (18:17)', d: 'KraDesk', dd: '28/12/25 (18:32)', ts: '2025-12-28 18:32:00', msg: 6744700 }),
+    R({ t: 'Discussion sur la modération du forum Débuter', h: 'discussion-sur-la-moderation-du-forum-debuter-329447', u: 0, l: 0, p: 0, tags: [], m: 1, v: 61, a: 'KraDesk', ad: '24/12/25 (18:07)', d: 'KraDesk', dd: '24/12/25 (18:07)', ts: '2025-12-24 18:07:00', msg: 6743900 }),
+    R({ t: 'Règles du forum débuter', h: 'regles-du-forum-debuter-276445', u: 0, l: 1, p: 0, tags: [], m: 2, v: 249, a: 'KraDesk', ad: '26/03/14 (17:40)', d: 'KraDesk', dd: '26/03/14 (17:43)', ts: '2014-03-26 17:43:00', msg: 5100100 })
+  ];
+  var REAL = [
+    ['comment mettre une image dans un tableau ?', 'comment-mettre-une-image-dans-un-tableau-334888', 0, 0, 0, ['personnalisation', 'image'], 4, 47, 'Djah Far', '01/10 (02:11)', 'Morgan90', 'Hier (13:20)', '2026-10-10 13:20:40'],
+    ['Sergent - Engager des soldats', 'sergent-engager-des-soldats-334915', 1, 0, 0, [], 3, 37, 'Kalkhan', '04/10 (09:37)', 'Kalkhan', '05/10 (09:20)', '2026-10-05 09:20:39'],
+    ['Familier', 'familier-334876', 1, 0, 0, [], 4, 31, 'Mastox', '30/09 (00:04)', 'Marvin D', '30/09 (09:56)', '2026-09-30 09:56:12'],
+    ['Mise à jour', 'mise-a-jour-334792', 1, 0, 0, [], 5, 56, 'Papy Azote', '24/09 (02:23)', 'Shpam', '29/09 (02:26)', '2026-09-29 02:26:03'],
+    ['Échec ordre + visibilité texte', 'echec-ordre-+-visibilite-texte-334844', 1, 0, 0, [], 1, 27, 'Forgoil', '28/09 (09:09)', 'Forgoil', '28/09 (09:09)', '2026-09-28 09:09:44'],
+    ['Déplacement bâtiment architecte', 'deplacement-batiment-architecte-334785', 1, 0, 0, [], 2, 22, 'Aestus', '23/09 (18:06)', 'Shpam', '23/09 (18:33)', '2026-09-23 18:33:21'],
+    ['Gagner des PA', 'gagner-des-pa-334743', 1, 0, 2, [], 13, 75, 'Papy Azote', '19/09 (08:25)', 'Marshkalk', '23/09 (18:11)', '2026-09-23 18:11:34'],
+    ['Mise à jour quotidienne', 'mise-a-jour-quotidienne-334776', 1, 0, 0, [], 2, 45, 'Papy Azote', '23/09 (01:29)', 'KraDesk', '23/09 (01:52)', '2026-09-23 01:52:10'],
+    ['PA', 'pa-334742', 1, 0, 0, [], 3, 39, 'Papy Azote', '19/09 (04:40)', 'Shpam', '19/09 (10:03)', '2026-09-19 10:03:55'],
+    ['Kayak Portable', 'kayak-portable-329992', 1, 0, 2, [], 11, 95, 'AliceOnChain', '11/01 (11:00)', 'Lama Del Ray', '12/09 (01:49)', '2026-09-12 01:49:30']
+  ];
+  var WORDS = ['Recrutement', 'Armée', 'Bâtiment', 'Commerce', 'Diplomatie', 'Ressources', 'Équipement', 'Compétence', 'Mission', 'Alliance', 'Ville', 'Province', 'Marché', 'Combat', 'Agenda', 'Entraînement', 'Guilde', 'Rumeur', 'Voyage', 'Chantier'];
+  var QUALIF = ['débutant', 'avancé', 'rapide', 'étrange', 'bloqué', 'utile', 'ancien', 'mystérieux'];
+  var NAMES = ['Aestus', 'Forgoil', 'Mastox', 'Shpam', 'Kalkhan', 'Marvin D', 'Lama Del Ray', 'AliceOnChain', 'Papy Azote', 'Djah Far', 'Morgan90', 'Myakim'];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  var generated = [];
+  for (var i = 0; i < 135; i++) {
+    var day = new Date(Date.UTC(2026, 8, 10 - i * 2, 20 - (i % 11), (i * 7) % 60, (i * 13) % 60));
+    var inYear = day.getUTCFullYear() === 2026;
+    var fmt = pad(day.getUTCDate()) + '/' + pad(day.getUTCMonth() + 1) + (inYear ? '' : '/' + String(day.getUTCFullYear()).slice(2)) + ' (' + pad(day.getUTCHours()) + ':' + pad(day.getUTCMinutes()) + ')';
+    var ts = day.getUTCFullYear() + '-' + pad(day.getUTCMonth() + 1) + '-' + pad(day.getUTCDate()) + ' ' + pad(day.getUTCHours()) + ':' + pad(day.getUTCMinutes()) + ':' + pad(day.getUTCSeconds());
+    var title = WORDS[i % WORDS.length] + ' ' + QUALIF[(i * 3) % QUALIF.length] + (i % 9 === 4 ? ' : question sur les PA' : '') + ' #' + (i + 1);
+    var author = NAMES[(i * 5) % NAMES.length];
+    generated.push([title, 'sujet-genere-' + (330000 - i), i % 3 === 0 ? 1 : 0, i % 17 === 8 ? 1 : 0, i % 11 === 5 ? 2 : 0, i % 13 === 3 ? ['astuce'] : [], 1 + (i * 7) % 40, 20 + (i * 37) % 400, author, fmt, NAMES[(i * 7 + 3) % NAMES.length], fmt, ts]);
+  }
+  function lastMsgId(i) { return 6700000 - i * 311; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function slug(n) { return n.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
+  function rowHtml(o, withInvisible) {
+    var href = 'forum/sujet/' + o.h + '-1';
+    var lastHref = 'forum/sujet/' + o.h + '-' + (o.p || 1) + '#msg' + o.msg;
+    var pages = '';
+    if (o.p) { pages = '<ul class="pagination pagination-xsm nomargin">'; for (var k = 1; k <= o.p; k++) { pages += '<li><a href="forum/sujet/' + o.h + '-' + k + '">' + k + '</a></li>'; } pages += '</ul>'; }
+    var tags = o.tags.length ? '<span class="tagforum"> <i class="fa fa-tag"></i> ' + o.tags.map(function (t) { return '<a href="forum/tags/' + t + '">' + t + '</a>'; }).join(', ') + '</span>' : '';
+    var icon = o.u ? '<i class="fa fa-folder"></i>' : '<i class="far fa-folder-open"></i>';
+    return '<tr style="background: none"><td style="background: none"> <p class="nomargin"> ' + (o.l ? '<i class="fa fa-lock"></i> ' : '') + (withInvisible ? '<span class="invisible">' + esc(o.t) + '</span> ' : '') +
+      '<a href="' + href + '">' + esc(o.t) + '</a> </p> <ul class="pagination pagination-xsm nomargin"> <li><a href="' + href + '" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="' + (o.u ? 'sujet non-lu' : 'sujet lu') + '">' + icon + '</a></li> </ul> ' + pages + ' ' + tags + ' </td>' +
+      '<td class="center" style="background: none">' + o.m + '</td><td class="center" style="background: none">' + o.v + '</td>' +
+      '<td style="background: none"> <a href="communaute/membres/' + slug(o.a) + '-1-100" class="nomargin">' + esc(o.a) + '</a> <p class="nomargin mini">' + o.ad + '</p> </td>' +
+      '<td style="background: none">' + (withInvisible ? '<span class="invisible">' + o.ts + '</span>' : '') + '<a href="communaute/membres/' + slug(o.d) + '-1-100" class="nomargin">' + esc(o.d) + '</a> <p class="nomargin mini"> <span class="btn-group btn-group-xs"> <a href="' + lastHref + '" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a> </span> ' + o.dd + ' </p> </td></tr>';
+  }
+  function toObj(a, idx) { return { t: a[0], h: a[1], u: a[2], l: a[3], p: a[4], tags: a[5], m: a[6], v: a[7], a: a[8], ad: a[9], d: a[10], dd: a[11], ts: a[12], msg: lastMsgId(idx) }; }
+  document.getElementById('fx-perm-body').innerHTML = PERM.map(function (o) { return rowHtml(o, false); }).join('');
+  document.getElementById('fx-topics-body').innerHTML = REAL.concat(generated).map(function (a, idx) { return rowHtml(toObj(a, idx), true); }).join('');
+
+  // ---- Émulateur minimal de DataTables 1.10.5 (dom « lfrtip », 10 lignes, tri initial colonne 5 décroissante) ----
+  var $ = window.jQuery;
+  function initDataTables() {
+  var table = document.getElementById('topics');
+  var tbody = table.tBodies[0];
+  var rows = [].slice.call(tbody.rows).map(function (tr) {
+    return { tr: tr, keys: [].map.call(tr.cells, function (td) { return td.textContent.replace(/\s+/g, ' ').trim().toLowerCase(); }) };
+  });
+  var heads = [].slice.call(table.tHead.rows[0].cells);
+  var st = { order: [4, 'desc'], search: '', length: 10, page: 0 };
+  table.className = 'display dataTable no-footer';
+  var wrapper = document.createElement('div');
+  wrapper.id = 'topics_wrapper'; wrapper.className = 'dataTables_wrapper no-footer';
+  var lenDiv = document.createElement('div'); lenDiv.id = 'topics_length'; lenDiv.className = 'dataTables_length';
+  lenDiv.innerHTML = '<label>Afficher <select name="topics_length" aria-controls="topics" class=""><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> lignes</label>';
+  var filDiv = document.createElement('div'); filDiv.id = 'topics_filter'; filDiv.className = 'dataTables_filter';
+  filDiv.innerHTML = '<label>Rechercher<input type="search" class="" placeholder="" aria-controls="topics"></label>';
+  var infoDiv = document.createElement('div'); infoDiv.id = 'topics_info'; infoDiv.className = 'dataTables_info'; infoDiv.setAttribute('role', 'status'); infoDiv.setAttribute('aria-live', 'polite');
+  var pagDiv = document.createElement('div'); pagDiv.id = 'topics_paginate'; pagDiv.className = 'dataTables_paginate paging_simple_numbers';
+  table.parentNode.insertBefore(wrapper, table);
+  wrapper.appendChild(lenDiv); wrapper.appendChild(filDiv); wrapper.appendChild(table); wrapper.appendChild(infoDiv); wrapper.appendChild(pagDiv);
+  var names = ['Sujet', 'Msg', 'Vus', 'Auteur', 'Dernier&nbsp;Message'];
+  heads.forEach(function (th, c) {
+    th.setAttribute('tabindex', '0'); th.setAttribute('aria-controls', 'topics'); th.setAttribute('rowspan', '1'); th.setAttribute('colspan', '1');
+    th.addEventListener('click', function () { st.order = (st.order[0] === c && st.order[1] === 'asc') ? [c, 'desc'] : (st.order[0] === c ? [c, 'asc'] : [c, 'asc']); st.page = 0; draw(); });
+    th.addEventListener('keypress', function (e) { if (e.which === 13) { th.click(); } });
+  });
+  function cmp(a, b) {
+    var c = st.order[0]; var x = a.keys[c]; var y = b.keys[c];
+    var nx = parseFloat(x); var ny = parseFloat(y);
+    var r = (c === 1 || c === 2) ? nx - ny : (x < y ? -1 : (x > y ? 1 : 0));
+    return st.order[1] === 'asc' ? r : -r;
+  }
+  function pagesWindow(page, pages) {
+    var out = [];
+    if (pages <= 7) { for (var i = 0; i < pages; i++) { out.push(i); } } else if (page <= 3) { out = [0, 1, 2, 3, 4, 'ellipsis', pages - 1]; } else if (page >= pages - 4) { out = [0, 'ellipsis']; for (var j = pages - 5; j < pages; j++) { out.push(j); } } else { out = [0, 'ellipsis', page - 1, page, page + 1, 'ellipsis', pages - 1]; }
+    return out;
+  }
+  function draw() {
+    var term = st.search.toLowerCase();
+    var shown = rows.filter(function (r) { return !term || r.keys.join(' ').indexOf(term) >= 0; }).sort(cmp);
+    var pages = Math.max(1, Math.ceil(shown.length / st.length));
+    if (st.page >= pages) { st.page = pages - 1; }
+    var slice = shown.slice(st.page * st.length, st.page * st.length + st.length);
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    rows.forEach(function (r) { [].forEach.call(r.tr.cells, function (td) { td.classList.remove('sorting_1'); }); });
+    slice.forEach(function (r, i) { r.tr.setAttribute('role', 'row'); r.tr.className = i % 2 ? 'even' : 'odd'; [].forEach.call(r.tr.cells, function (td, c) { if (c === st.order[0]) { td.classList.add('sorting_1'); } }); tbody.appendChild(r.tr); });
+    if (!slice.length) { var e = document.createElement('tr'); e.className = 'odd'; e.innerHTML = '<td valign="top" colspan="5" class="dataTables_empty">Aucun élément à afficher</td>'; tbody.appendChild(e); }
+    heads.forEach(function (th, c) {
+      th.className = c === st.order[0] ? 'sorting_' + st.order[1] : 'sorting';
+      if (c === st.order[0]) { th.setAttribute('aria-sort', st.order[1] === 'asc' ? 'ascending' : 'descending'); } else { th.removeAttribute('aria-sort'); }
+      th.setAttribute('aria-label', names[c].replace('&nbsp;', ' ') + ': activate to sort column ' + (c === st.order[0] && st.order[1] === 'asc' ? 'descending' : 'ascending'));
+    });
+    var from = shown.length ? st.page * st.length + 1 : 0;
+    infoDiv.textContent = shown.length ? 'Affiche ' + from + ' à ' + (from + slice.length - 1) + ' de ' + shown.length + ' lignes' + (term ? ' (filtré de ' + rows.length + ' lignes au total)' : '') : 'Affiche 0 à 0 de 0 lignes';
+    var h = '<a class="paginate_button previous' + (st.page === 0 ? ' disabled' : '') + '" aria-controls="topics" data-dt-idx="previous" tabindex="0" id="topics_previous">Précédent</a><span>';
+    pagesWindow(st.page, pages).forEach(function (p) { h += p === 'ellipsis' ? '<span>…</span>' : '<a class="paginate_button' + (p === st.page ? ' current' : '') + '" aria-controls="topics" data-dt-idx="' + p + '" tabindex="0">' + (p + 1) + '</a>'; });
+    h += '</span><a class="paginate_button next' + (st.page >= pages - 1 ? ' disabled' : '') + '" aria-controls="topics" data-dt-idx="next" tabindex="0" id="topics_next">Suivant</a>';
+    pagDiv.innerHTML = h;
+    $(table).trigger('draw.dt');
+  }
+  pagDiv.addEventListener('click', function (ev) {
+    var a = ev.target.closest('a.paginate_button');
+    if (!a || a.classList.contains('disabled')) { return; }
+    var idx = a.getAttribute('data-dt-idx');
+    st.page = idx === 'previous' ? st.page - 1 : (idx === 'next' ? st.page + 1 : parseInt(idx, 10));
+    draw();
+  });
+  lenDiv.querySelector('select').addEventListener('change', function (e) { st.length = parseInt(e.target.value, 10); st.page = 0; draw(); });
+  filDiv.querySelector('input').addEventListener('input', function (e) { st.search = e.target.value; st.page = 0; draw(); });
+  draw();
+  }
+  // Deux ordres d'initialisation possibles sur le vrai site : DataTables avant le userscript (défaut, DOM à 10 lignes au DOMContentLoaded) ou
+  // après (?dt=late : $(fn) de jQuery 3 s'exécute après les écouteurs DOMContentLoaded posés au document-start, donc après le userscript ;
+  // DataTables lit alors le texte des cellules DÉJÀ modifiées par le userscript, pour la recherche et le tri).
+  if (/[?&]dt=late/.test(location.search)) { $(initDataTables); } else { initDataTables(); }
+
+  // ---- Repli natif des panneaux (main.js du site) ----
+  $(document).on('click', '.panel-heading span.clickable', function () {
+    var $this = $(this); var body = $this.parents('.panel').find('.panel-body');
+    if (!$this.hasClass('panel-collapsed')) { body.hide(); $this.addClass('panel-collapsed'); $this.find('i').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down'); } else { body.show(); $this.removeClass('panel-collapsed'); $this.find('i').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up'); }
+  });
+})();
+</script>
+</body>
+</html>

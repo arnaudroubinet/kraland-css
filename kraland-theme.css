@@ -132,12 +132,16 @@
   /* PLT-QU : pastille de niveau = accent du thème ; le rouge reste réservé aux alertes */
   --kr-level-bg: var(--kr-highlight);
   --kr-level-fg: var(--kr-white);
+
+  /* Sous-forum (L1) : couleur du statut « non lu » (barre, pastille). Suit l'accent du thème, sauf EB clair (voir plus bas). */
+  --kr-status-unread: var(--kr-highlight);
 }
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
   --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
+  --kr-status-unread: #8a5a00; /* sous-forum : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
 }
 
 html.kr-theme-variant-paladium {
@@ -12597,6 +12601,922 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
      33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
   body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
     bottom: 64px;
+  }
+}
+
+/* ============================================================================
+   SOUS-FORUM (refonte variante A) — rapport UX t_d123c7f6
+   Portée : pages /forum/<categorie>/<sous-forum> (body.page-forum.kr-subforum, posée par le module ForumTopics:Status).
+   Les classes kr-topic-unread / kr-topic-locked / kr-topic-pages et la pastille .kr-topic-badge sont posées en JS à l'init et à chaque
+   draw.dt : le CSS ne s'écrit que sur ces classes (une classe sans son CSS ne casse rien).
+   ============================================================================ */
+
+/* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (texte = fond de ligne, fond = jeton --kr-status-unread). */
+@media (max-width: 767px), (min-width: 768px) {
+  body.page-forum.kr-subforum .kr-topic-badge {
+    display: inline-block;
+    flex: 0 0 auto;
+    margin: 0 0 0 8px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--kr-status-unread);
+    color: var(--kr-bg-surface);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* Libellé en CSS (attribut data-kr-label) : aucun texte dans la cellule, DataTables ne le voit ni à la recherche ni au tri. */
+  body.page-forum.kr-subforum .kr-topic-badge::before {
+    content: attr(data-kr-label);
+  }
+}
+
+/* L1 — mobile. Barre de 4 px à gauche (réservée sur toutes les lignes pour ne pas décaler le contenu), titre en gras si non lu, cadenas visible,
+   en-têtes de section en texte principal (D-11 : 3 thèmes sur 16 sous 4,5:1 avec la couleur primaire). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .panel-default > .panel-heading h3 {
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr,
+  body.page-forum.kr-subforum table.dataTable tbody tr {
+    border-left: 4px solid transparent !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr.kr-topic-unread,
+  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr:not(.kr-topic-unread) td:first-child p > a {
+    font-weight: 400 !important;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    display: inline-block !important;
+    flex: 0 0 auto;
+    margin: 0 6px 0 0;
+    color: var(--kr-text-secondary);
+    font-size: 14px !important;
+    line-height: 1.4;
+  }
+
+  body.page-forum.kr-subforum td:first-child p > .kr-topic-badge {
+    align-self: center;
+    font-size: 11px !important;
+  }
+}
+
+/* L1 — bureau. Barre de 4 px à l'intérieur de la 1re cellule (le tableau natif est conservé), titre en gras si non lu, cadenas lisible. */
+@media (min-width: 768px) {
+  body.page-forum.kr-subforum tr.kr-topic-unread > td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--kr-status-unread);
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    margin-right: 6px;
+    color: var(--kr-text-secondary);
+  }
+}
+
+/* L2 — en-tête mobile : fil d'Ariane, titre en 24 px, « + Nouveau sujet » (composant PR12 .forum-thread-action-new) en haut et sous la pagination. */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .container h1.page-header {
+    border-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    color: var(--kr-text-secondary);
+    font-size: 14px;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--kr-text-primary) !important;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-sep,
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-current {
+    color: var(--kr-text-secondary);
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-title {
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top .forum-thread-action,
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom .forum-thread-action {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 16px;
+    white-space: nowrap;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom {
+    justify-content: center;
+  }
+}
+
+/* L3 — liste des sujets mobile (variante A) : une ligne de sujet = titre, « NON LU · Dernier : X, date », « N messages · N vues · N pages · par X · #étiquettes »,
+   et le bouton → natif « aller au dernier message » (44 x 44) à droite. Le tableau natif DataTables est conservé : lignes en flex, cellules en display: contents,
+   libellés en CSS (attributs posés par ForumTopics:MobileStats), tri par les en-têtes natifs devenus des puces de 44 px qui défilent. */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum #topics span.invisible {
+    display: none !important;
+  }
+
+  /* Contrôles DataTables : recherche + « Afficher » sur une ligne (ordre changé en CSS seulement, dom « lfrtip » conservé), tableau en pleine largeur. */
+  body.page-forum.kr-subforum #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 4px !important;
+    overflow: visible !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter {
+    order: 1;
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length {
+    order: 2;
+    flex: 0 0 auto;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Les mots « Rechercher », « Afficher » et « lignes » sont remplacés par le placeholder et un nom accessible (JS) : texte des labels à 0 px. */
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter label,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length label {
+    display: flex !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter input {
+    flex: 1 1 auto;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length select {
+    min-width: 72px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_info {
+    order: 4;
+    flex: 0 0 100%;
+    margin: 8px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
+    order: 5;
+    flex: 0 0 100%;
+  }
+
+  body.page-forum.kr-subforum #topics {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    width: calc(100% + 32px) !important;
+    max-width: none !important;
+    margin: 4px -16px 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Tri : les 5 en-têtes natifs (th) deviennent des puces de 44 px qui défilent, la colonne triée en premier, fondu à droite. */
+  body.page-forum.kr-subforum #topics thead {
+    display: block !important;
+  }
+
+  body.page-forum.kr-subforum #topics thead tr {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 16px 8px;
+    overflow: auto hidden;
+    background: transparent !important;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.page-forum.kr-subforum #topics thead tr::before {
+    content: "Trier :";
+    order: -2;
+    flex: 0 0 auto;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    width: auto !important;
+    min-height: 44px;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 22px;
+    background: transparent !important;
+    background-image: none !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_asc,
+  body.page-forum.kr-subforum #topics thead th.sorting_desc {
+    order: -1;
+    border-color: var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_desc::after {
+    content: "\25BE";
+    margin-left: 6px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_asc::after {
+    content: "\25B4";
+    margin-left: 6px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th:focus-visible {
+    outline: 2px solid var(--kr-primary);
+    outline-offset: 2px;
+  }
+
+  /* Ligne de sujet : flex qui passe à la ligne ; deux pseudo-éléments de 100 % forcent les sauts de ligne (après le titre, après le dernier message). */
+  body.page-forum.kr-subforum #topics tbody {
+    display: block !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    margin: 0 !important;
+    padding: 10px 56px 10px 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+    cursor: pointer;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::before,
+  body.page-forum.kr-subforum #topics tbody tr::after {
+    content: "";
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::before {
+    order: 5;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::after {
+    order: 10;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(1),
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4),
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) {
+    display: contents !important;
+  }
+
+  /* Ligne 1 : cadenas, titre en 16 px. Le titre est un lien étiré sur toute la ligne (cible de toucher = la ligne) ; le bouton → passe au-dessus. */
+  body.page-forum.kr-subforum #topics tbody td:first-child p {
+    display: contents !important;
+    margin: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > i.fa-lock {
+    order: 0;
+  }
+
+  /* Réinitialise la règle générique de toucher (liens de 44 px de haut, rembourrés, avec marge) : la ligne entière est la cible, via le lien étiré. */
+  body.page-forum.kr-subforum #topics tbody td a:not(.btn) {
+    display: block !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > a {
+    display: block !important;
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > ul {
+    display: none !important;
+  }
+
+  /* Ligne 2 : « NON LU · Dernier : X, date ». Les noms ne sont pas cliquables (profil ou Kramail : pas de toucher accidentel). */
+  body.page-forum.kr-subforum #topics tbody td:first-child p > .kr-topic-badge {
+    order: 6;
+    margin: 0;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin {
+    order: 7;
+    color: var(--kr-text-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin::before {
+    content: "Dernier : ";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin::after {
+    content: ",";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini {
+    display: block !important;
+    order: 8;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini .btn-group {
+    position: absolute !important;
+    top: 50%;
+    right: 8px;
+    left: auto !important;
+    z-index: 2;
+    display: block !important;
+    float: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1;
+  }
+
+  /* Ligne 3 : « N messages · N vues · N pages · par X · #étiquettes ». */
+  body.page-forum.kr-subforum #topics tbody td:nth-child(2) {
+    order: 11;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3) {
+    order: 12;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(2)::after,
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3)::after {
+    content: " " attr(data-kr-unit);
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3)::before {
+    content: "· ";
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(1)[data-kr-pages-label]::after {
+    content: "· " attr(data-kr-pages-label);
+    order: 13;
+    color: var(--kr-text-secondary);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin {
+    order: 14;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin::before {
+    content: "· par ";
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > p {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum {
+    display: block !important;
+    order: 15;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before {
+    content: "· ";
+    font-size: 12px;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum > i {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a {
+    display: inline !important;
+    margin-right: 6px !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a::before {
+    content: "#";
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+}
+
+/* L4 — sujets permanents mobile (variante A) : une ligne de 44 px par sujet = cadenas, titre coupé par « … », NON LU, date du dernier message ; toute la ligne
+   mène au sujet (lien du titre étiré). Compteurs, auteur et pages restent dans le sujet : leurs cellules natives sont masquées, pas déplacées.
+   Spécificité volontairement haute : les anciennes règles « cartes » des permanents (body.mobile-mode / body.page-forum .panel-default .table …) sont en !important. */
+@media (max-width: 767px) {
+  /* Chevrons de repli natifs (span.clickable, mécanisme du site) : cible de 44 x 44 ; en-tête de panneau de 44 px. */
+  body.page-forum.kr-subforum .panel-default > .panel-heading {
+    min-height: 44px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .panel-heading span.clickable {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0 -12px 0 auto !important;
+    cursor: pointer;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(1),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) {
+    display: contents !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(2),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Les anciens préfixes « → » et séparateurs des cartes ne s'appliquent plus. */
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::before,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::after {
+    content: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > ul,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > span.tagforum,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > a.nomargin,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini .btn-group {
+    display: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p {
+    display: contents !important;
+    margin: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > i.fa-lock {
+    order: 0;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a {
+    display: block !important;
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    text-decoration: none !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 -1px;
+    z-index: 1;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > .kr-topic-badge {
+    order: 2;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+}
+
+/* L5 — pagination mobile : « ‹ 1 2 3 … 15 › » sur une ligne, cibles de 44 px. Les boutons natifs masqués par ForumTopics:Pagination (.kr-page-hidden) restent dans le DOM ;
+   « Précédent » et « Suivant » gardent leur texte (nom accessible) mais s'affichent en ‹ et › (taille de police à 0, signe en ::before). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin: 8px 0 0 !important;
+    overflow: visible;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate > span {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button {
+    flex: 0 0 auto;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    box-sizing: border-box;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-hidden,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate span.ellipsis {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-gap {
+    flex: 0 0 auto;
+    min-width: 16px;
+    color: var(--kr-text-secondary);
+    font-size: 16px;
+    text-align: center;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next {
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
+    content: "\2039";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next::before {
+    content: "\203A";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  /* Page courante : bordure de 2 px + gras + fond relevé, texte du thème (le blanc sur --kr-primary n'est pas lisible sur les accents clairs des thèmes sombres). */
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.current {
+    border: 2px solid var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* L6 — desktop (variante A) : le tableau natif DataTables est conservé (mêmes colonnes, même tri) et restylé, mêmes informations que sur mobile.
+   Titres en couleur de texte (15 px, gras si non lu), chiffres alignés à droite, nom en gras + date secondaire dessous, flèche « dernier message » de 32 px,
+   icône dossier native masquée (le statut est la barre + la pastille NON LU), permanents compacts. Spécificité haute : règles desktop existantes en !important. */
+@media (min-width: 768px) {
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td {
+    padding: 6px 10px !important;
+    vertical-align: middle !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:first-of-type {
+    display: none !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p {
+    display: inline !important;
+    margin: 0 !important;
+  }
+
+  /* Pages et étiquettes sur la ligne du titre (permanents compacts : 52 px au lieu de 77). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) {
+    display: inline-flex !important;
+    vertical-align: middle;
+    margin: 0 0 0 6px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > a {
+    color: var(--kr-text-primary) !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    line-height: 1.35;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr.kr-topic-unread > td:first-child > p > a {
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > a:hover {
+    text-decoration: underline !important;
+  }
+
+  /* Msg et Vus : à droite, chiffres de même largeur ; en-têtes alignés comme leurs chiffres. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(2),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(2),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(3) {
+    font-variant-numeric: tabular-nums;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+
+  /* Auteur et dernier message : nom en gras, date secondaire dessous. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > a.nomargin,
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > a.nomargin {
+    display: block;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > p,
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > p.mini {
+    display: block;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li > a {
+    min-width: 24px;
+    padding: 1px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) {
+    position: relative;
+    padding-right: 52px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    display: block !important;
+    float: none !important;
+    width: 32px;
+    height: 32px;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group > a.btn:hover {
+    border-color: var(--kr-primary) !important;
+    background: var(--kr-bg-hover) !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > i.fa-lock {
+    color: var(--kr-text-secondary);
+  }
+
+  /* Étiquettes : en texte secondaire (le doré #C69100 ne fait que 2,82:1 sur le blanc d'Empire Brun clair, D-12). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+  }
+
+  /* Rythme vertical resserré : le premier sujet réel doit rester dans le premier écran (1280 x 720). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default {
+    margin-bottom: 14px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body {
+    padding: 8px 15px 10px !important;
+  }
+
+  /* « Afficher N sujets » à gauche et « Rechercher » à droite sur une seule ligne (comme la maquette), le tableau en dessous. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 16px;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_length {
+    order: 1;
+    flex: 1 1 0;
+    margin: 0 0 8px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_filter {
+    order: 2;
+    flex: 0 0 auto;
+    margin: 0 0 8px !important;
+    text-align: right;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper #topics {
+    order: 3;
+    flex: 0 0 100%;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_info {
+    order: 4;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_paginate {
+    order: 5;
+    margin-left: auto;
   }
 }
 

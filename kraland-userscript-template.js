@@ -4553,8 +4553,16 @@
       return;
     }
 
+    // L0 (sous-forum) : un tableau dont la 1re colonne contient des liens vers des sujets (forum/sujet/) est une liste de sujets, pas un
+    // index de forums (l'index peut, lui, porter des liens « dernier message » vers des sujets dans une autre colonne).
+    // Sans ce garde-fou, le 1er tableau de la page (les sujets permanents) était doublé par des cartes forum aux chiffres faux.
+    const isTopicsTable = table => table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+    function findForumsTable() {
+      return Array.from(document.querySelectorAll('table.table')).find(table => table.querySelector('tbody') && !isTopicsTable(table)) || null;
+    }
+
     function transformTableToCards() {
-      const forumTable = document.querySelector('table.table tbody');
+      const forumTable = findForumsTable()?.querySelector('tbody');
       if (!forumTable) {
         console.warn('[Forum Cards] Tableau forums introuvable');
         return;
@@ -4836,13 +4844,178 @@
   })();
 
   // ============================================================================
-  // MOBILE FORUM TOPICS - Stats + Smart Navigation
-  // Layout identique aux "Sujets permanents" (simple et épuré)
-  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
-  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
-  // Rend toute la card cliquable (comme les Sujets permanents)
+  // SOUS-FORUM — statuts des sujets (refonte variante A, lot L1)
+  // Le site ne donne qu'un état lu / non lu par sujet (icône dossier), un cadenas pour les sujets verrouillés et une liste de pages.
+  // Ces états sont reportés en classes sur chaque <tr> (kr-topic-unread, kr-topic-locked, kr-topic-pages + data-kr-pages) et le non lu
+  // reçoit une pastille « NON LU » en toutes lettres : le statut ne repose jamais sur la couleur seule.
+  // Ne JAMAIS s'appuyer sur l'attribut title (Bootstrap le déplace vers data-original-title) : les marqueurs fiables sont les classes d'icônes.
+  // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche).
   // ============================================================================
   (function () {
+    'use strict';
+
+    const isTopicsListTable = table => table.id === 'topics' || table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+
+    function processRow(row) {
+      const cell = row.cells[0];
+      const title = cell ? cell.querySelector('p') : null;
+      if (!title || !title.querySelector('a')) {return;} // ligne « Aucun élément à afficher »
+
+      const unread = cell.querySelector('i.fa.fa-folder') !== null;
+      const locked = title.querySelector('i.fa-lock') !== null;
+      const pageLists = cell.querySelectorAll('ul.pagination');
+      const pages = pageLists.length > 1 ? pageLists[1].querySelectorAll('li').length : 0;
+
+      row.classList.toggle('kr-topic-unread', unread);
+      row.classList.toggle('kr-topic-locked', locked);
+      row.classList.toggle('kr-topic-pages', pages > 0);
+      if (pages > 0) {
+        row.setAttribute('data-kr-pages', String(pages));
+      } else {
+        row.removeAttribute('data-kr-pages');
+      }
+
+      const badge = title.querySelector(':scope > .kr-topic-badge');
+      if (unread && !badge) {
+        // Le libellé vit dans un attribut et s'affiche par CSS (::before) : DataTables lit le texte des cellules (recherche, tri) et,
+        // si le plug-in s'initialise après le userscript, un vrai texte « NON LU » ferait remonter tous les sujets non lus à la recherche « lu ».
+        const chip = document.createElement('span');
+        chip.className = 'kr-topic-badge';
+        chip.setAttribute('data-kr-label', 'NON LU');
+        title.appendChild(chip);
+      } else if (!unread && badge) {
+        badge.remove();
+      }
+    }
+
+    function processAll() {
+      Array.from(document.querySelectorAll('table')).filter(isTopicsListTable).forEach(table => {
+        Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(processRow));
+      });
+    }
+
+    function initTopicStatus() {
+      if (!document.body.classList.contains('page-forum')) {return;}
+      const topics = document.getElementById('topics');
+      if (!topics) {return;} // pas un sous-forum (index des forums, sujet, kramail)
+      document.body.classList.add('kr-subforum');
+      processAll();
+      if (typeof jQuery !== 'undefined') {
+        jQuery(topics).on('draw.dt', processAll);
+      }
+    }
+
+    InitQueue.register('ForumTopics:Status', initTopicStatus, 24);
+  })();
+
+  // ============================================================================
+  // SOUS-FORUM — pagination mobile (refonte variante A, lot L5)
+  // DataTables affiche « Précédent 1 2 3 4 5 … 15 Suivant » (9 éléments) : trop large pour 375 px. On garde la première page, la dernière, la page
+  // courante et, près des bords, les pages voisines ; les autres boutons natifs reçoivent .kr-page-hidden (masqués en CSS, jamais retirés) et un
+  // « … » .kr-page-gap est inséré à chaque saut. Les boutons natifs (clics, aria-controls) ne sont pas touchés. Relancé à chaque draw.dt.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    function compactPagination(topics) {
+      const pag = document.querySelector('#' + topics.id + '_wrapper .dataTables_paginate');
+      if (!pag) {return;}
+      pag.querySelectorAll('.kr-page-gap').forEach(gap => gap.remove());
+      const numbered = Array.from(pag.querySelectorAll('a.paginate_button')).filter(a => /^\d+$/.test(a.textContent.trim()));
+      if (numbered.length === 0) {return;}
+      const mobile = document.body.classList.contains('mobile-mode');
+      if (!mobile) {
+        // Bureau : pagination native conservée telle quelle (un seul « … » natif par saut) ; on retire ce que le mode mobile aurait posé.
+        pag.querySelectorAll('.kr-page-hidden').forEach(a => a.classList.remove('kr-page-hidden'));
+        return;
+      }
+      // M-2 : le « … » natif de DataTables 1.10.5 est un <span> SANS classe (la classe .ellipsis n'existe que dans les versions récentes). On le repère
+      // donc par son contenu (span feuille « … », hors .kr-page-gap) et on le masque comme les boutons : un seul « … » (le .kr-page-gap) par saut.
+      // Le bureau retire tous les .kr-page-hidden ci-dessus, donc le « … » natif y est rétabli.
+      pag.querySelectorAll('span').forEach(s => {
+        if (s.children.length === 0 && !s.classList.contains('kr-page-gap') && s.textContent.trim() === '…') { s.classList.add('kr-page-hidden'); }
+      });
+      const nums = numbered.map(a => Number(a.textContent.trim()));
+      const first = nums[0] === 1 ? nums[0] : 1;
+      const last = nums[nums.length - 1];
+      const currentButton = numbered.find(a => a.classList.contains('current'));
+      const current = currentButton ? Number(currentButton.textContent.trim()) : first;
+      const keep = new Set([first, last, current]);
+      if (current <= 2) { [1, 2, 3].forEach(n => keep.add(n)); }
+      if (current >= last - 1) { [last - 2, last - 1, last].forEach(n => keep.add(n)); }
+      let previousShown = null;
+      numbered.forEach((a, i) => {
+        const hide = mobile && !keep.has(nums[i]);
+        a.classList.toggle('kr-page-hidden', hide);
+        if (hide) {return;}
+        if (previousShown !== null && nums[i] - previousShown > 1) {
+          const gap = document.createElement('span');
+          gap.className = 'kr-page-gap';
+          gap.setAttribute('aria-hidden', 'true');
+          gap.textContent = '…';
+          a.parentNode.insertBefore(gap, a);
+        }
+        previousShown = nums[i];
+      });
+    }
+
+    function initPagination() {
+      const topics = document.getElementById('topics');
+      if (!topics || !document.body.classList.contains('page-forum') || typeof jQuery === 'undefined') {return;}
+      compactPagination(topics);
+      jQuery(topics).on('draw.dt', () => compactPagination(topics));
+    }
+
+    InitQueue.register('ForumTopics:Pagination', initPagination, 26);
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM TOPICS - libellés, navigation et ligne cliquable (sous-forum, lot L3)
+  // - Chaque chiffre a son mot : « 13 messages · 75 vues · 2 pages ». Le mot est posé en attribut (data-kr-unit sur les cellules Msg et Vus,
+  //   data-kr-pages-label sur la 1re cellule) et affiché par CSS (::after) : le texte des cellules reste celui du site (DataTables s'en sert
+  //   pour la recherche et le tri, y compris s'il s'initialise après ce module). Singulier / pluriel écrits ici, à l'init et à chaque draw.dt.
+  // - Le bouton → natif « aller au dernier message » reçoit un nom accessible (le title est déplacé par l'infobulle Bootstrap).
+  // - Recherche et « Afficher » reçoivent un placeholder et un nom accessible (leurs libellés visibles sont masqués par CSS pour tenir sur une ligne).
+  // - Navigation intelligente et ligne cliquable (comme avant) : le titre d'un sujet non lu suit le lien de l'icône dossier.
+  // ============================================================================
+  (function () {
+    const plural = (n, one, many) => (n > 1 ? many : one);
+
+    function labelRow(row) {
+      const msgCell = row.querySelector('td:nth-child(2)');
+      const viewsCell = row.querySelector('td:nth-child(3)');
+      if (!msgCell || !viewsCell) {return;}
+      const msg = parseInt(msgCell.textContent, 10);
+      const views = parseInt(viewsCell.textContent, 10);
+      if (!Number.isNaN(msg)) {msgCell.setAttribute('data-kr-unit', plural(msg, 'message', 'messages'));}
+      if (!Number.isNaN(views)) {viewsCell.setAttribute('data-kr-unit', plural(views, 'vue', 'vues'));}
+
+      const titleCell = row.querySelector('td:nth-child(1)');
+      const pages = parseInt(row.getAttribute('data-kr-pages') || '0', 10);
+      if (titleCell) {
+        if (pages > 0) {
+          titleCell.setAttribute('data-kr-pages-label', pages + ' ' + plural(pages, 'page', 'pages'));
+        } else {
+          titleCell.removeAttribute('data-kr-pages-label');
+        }
+      }
+
+      const arrow = row.querySelector('td:nth-child(5) a.btn');
+      if (arrow && !arrow.hasAttribute('aria-label')) {
+        arrow.setAttribute('aria-label', arrow.getAttribute('data-original-title') || arrow.getAttribute('title') || 'aller au dernier message');
+      }
+    }
+
+    function nameControls() {
+      const search = document.querySelector('.dataTables_filter input');
+      if (search) {
+        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les sujets');}
+      }
+      const length = document.querySelector('.dataTables_length select');
+      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de sujets par page');}
+    }
+
     function enrichForumTopicsCards() {
       // N'exécuter qu'en mode mobile et uniquement sur les pages forum
       if (!document.body.classList.contains('mobile-mode')) {return;}
@@ -4855,18 +5028,17 @@
       function processRows() {
         const rows = forumTable.querySelectorAll('tbody tr');
         if (rows.length === 0) {return;}
+        nameControls();
 
         rows.forEach(row => {
-          // Éviter le double traitement
+          labelRow(row);
+
+          // Éviter le double traitement des écouteurs (DataTables réutilise les mêmes <tr>)
           if (row.hasAttribute('data-stats-added')) {return;}
           row.setAttribute('data-stats-added', 'true');
 
-          // Récupérer les cellules
           const titleCell = row.querySelector('td:nth-child(1)');
-          const msgCell = row.querySelector('td:nth-child(2)');
-          const viewsCell = row.querySelector('td:nth-child(3)');
-
-          if (!titleCell || !msgCell || !viewsCell) {return;}
+          if (!titleCell) {return;}
 
           // === SMART NAVIGATION ===
           // Détecter si l'icône "premier message non lu" existe
@@ -4874,7 +5046,7 @@
           const titleLink = titleCell.querySelector('p > a');
 
           if (unreadIconLink && titleLink) {
-            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            // Sujet NON LU : rediriger le titre vers le lien de l'icône dossier
             titleLink.href = unreadIconLink.href;
             titleLink.setAttribute('data-smart-redirect', 'first-unread');
           }
@@ -4890,24 +5062,6 @@
               titleLink.click();
             });
           }
-
-          // === STATS SIMPLES ===
-          const msgCount = msgCell.textContent.trim();
-          const viewsCount = viewsCell.textContent.trim();
-
-          const statsContainer = document.createElement('div');
-          statsContainer.className = 'forum-topic-stats-mobile';
-          statsContainer.innerHTML = `
-            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
-            <span class="stats-sep">·</span>
-            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
-          `;
-
-          // Insérer après le titre
-          const titleParagraph = titleCell.querySelector('p');
-          if (titleParagraph) {
-            titleParagraph.after(statsContainer);
-          }
         });
 
         console.log('[Forum Topics Mobile] Sujets enrichis');
@@ -4916,7 +5070,7 @@
       // Exécuter immédiatement
       processRows();
 
-      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche, y compris l'initialisation tardive du plug-in)
       if (typeof jQuery !== 'undefined') {
         jQuery(forumTable).on('draw.dt', function () {
           processRows();
@@ -4937,6 +5091,9 @@
       // N'exécuter qu'en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {return;}
 
+      // L4 (sous-forum) : sur la page de liste des sujets (table#topics), les permanents tiennent sur une ligne (titre, non lu, date) :
+      // compteurs, auteur et pages restent dans le sujet. Aucun bloc de statistiques n'est ajouté, les cellules natives ne sont pas masquées en JS.
+      if (document.getElementById('topics')) {return;}
       // Cibler les panel-default (Sujets permanents)
       const panels = document.querySelectorAll('.panel-default');
       if (panels.length === 0) {return;}
@@ -5007,6 +5164,61 @@
   (function () {
     'use strict';
 
+    // L2 : action « + Nouveau sujet » libellée (composant PR12 : .forum-thread-action-new). Le href est recopié tel quel du lien natif du h1.
+    function createNewTopicAction(newTopicLink, extraClass) {
+      const bar = document.createElement('div');
+      bar.className = 'forum-thread-actions ' + extraClass;
+      const action = document.createElement('a');
+      action.setAttribute('href', newTopicLink.getAttribute('href'));
+      action.className = 'forum-thread-action forum-thread-action-new';
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-plus';
+      icon.setAttribute('aria-hidden', 'true');
+      action.appendChild(icon);
+      action.appendChild(document.createTextNode(' Nouveau sujet'));
+      bar.appendChild(action);
+      return bar;
+    }
+
+    // L2 : en-tête du sous-forum (mobile). Fil d'Ariane « ◀◀ Jeu (HRP) › Débuter », titre en 24 px et « + Nouveau sujet » à droite ;
+    // le même bouton est répété sous la pagination DataTables (hors du wrapper : DataTables ne le redessine pas).
+    function transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText) {
+      const crumb = document.createElement('div');
+      crumb.className = 'forum-mobile-breadcrumb';
+      const back = backLink.cloneNode(true);
+      back.className = 'forum-mobile-breadcrumb-link';
+      ['data-toggle', 'data-placement', 'data-original-title', 'title', 'style'].forEach(attr => back.removeAttribute(attr));
+      const separator = document.createElement('span');
+      separator.className = 'forum-mobile-breadcrumb-sep';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '›';
+      const current = document.createElement('span');
+      current.className = 'forum-mobile-breadcrumb-current';
+      current.textContent = titleText;
+      crumb.append(back, separator, current);
+
+      const head = document.createElement('div');
+      head.className = 'forum-subforum-head';
+      const title = document.createElement('span');
+      title.className = 'forum-subforum-title';
+      title.textContent = titleText;
+      head.append(title, createNewTopicAction(newTopicLink, 'forum-subforum-actions-top'));
+
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+      forumHeading.append(crumb, head);
+
+      if (!document.querySelector('.forum-subforum-actions-bottom')) {
+        const anchor = document.getElementById('topics_wrapper') || document.getElementById('topics');
+        anchor.insertAdjacentElement('afterend', createNewTopicAction(newTopicLink, 'forum-thread-actions-bottom forum-subforum-actions-bottom'));
+      }
+      console.log('[Forum Header Mobile] En-tête du sous-forum créé');
+    }
+
     function transformForumHeader() {
       // Uniquement en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {
@@ -5043,6 +5255,11 @@
       const backLink = links[0]; // Lien "Jeu (RP)"
       const newTopicLink = links[1]; // Lien "nouveau sujet"
 
+      // L2 (sous-forum) : la page de liste des sujets (table#topics) a son propre en-tête : fil d'Ariane, titre, « + Nouveau sujet » libellé
+      if (document.getElementById('topics') && !/\/forum\/post\//.test(window.location.pathname)) {
+        transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText);
+        return;
+      }
       // ========================================
       // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
       // ========================================
