@@ -27,7 +27,7 @@ export const SUITES = [
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
   { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] },
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
-  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes']], needsBootstrap: true }
+  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 

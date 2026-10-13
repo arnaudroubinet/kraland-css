@@ -2,8 +2,10 @@
 // Pages = FIXTURES inertes reprenant le DOM RÉEL relevé en lecture seule (GET public) sur forum/sujet/… et forum/post/repondre-… :
 //   message  : ul.media-list.forum > li.media.well > .pull-left(.user-info) + .media-body(date, .pull-right(votes #ajax-N, profil, lien, citer), .forum-msg)
 //   éditeur  : form[name=post_msg] > .form-group(Expéditeur) + .form-group(.btn-toolbar de 4 groupes, textarea#message) + bouton .btn-primary.pull-right
-// Cascade native = vrai Bootstrap 3.3.7 + jQuery 3.3.1 embarqués dans tests/e2e/vendor/. Aucun réseau Kraland : tout est intercepté, aucune action déclenchée
-// (attendu : 0 clic natif, 0 navigation, 0 formulaire soumis). Émulation Chromium, pas un vrai téléphone.
+// Cascade native = vrai Bootstrap 3.3.7 + jQuery 3.3.1 embarqués dans tests/e2e/vendor/. Confinement réseau : un refus global `**/*` est posé AVANT les routes de
+// fixtures (la dernière route enregistrée passe en premier) et couvre TOUS les hôtes, pas seulement www.kraland.org. Seuls la fixture et les bibliothèques locales
+// sont servies ; deux requêtes émises par la page ou le script sont refusées explicitement (EXPECTED_REFUSALS) ; toute autre est journalisée et fait échouer les
+// assertions « aucune requête imprévue ». Aucune action déclenchée (attendu : 0 clic natif, 0 navigation, 0 formulaire soumis). Émulation Chromium, pas un vrai téléphone.
 //
 // Usage : npm run build && npm run test:zone -- messages
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures), KR_FA_DIR=/dossier (copie locale de Font Awesome 5.6.3 du site, captures seulement :
@@ -27,6 +29,21 @@ if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.ex
 
 const URLS = { sujet: '/forum/sujet/messages-v3-329425-1', repondre: '/forum/post/repondre-3-6801390', editer: '/forum/post/editer-4-6801390' };
 const EDIT_LABEL = 'Modifier'; // libellé d'édition de la FIXTURE : le test vérifie seulement qu'il est conservé tel quel, quel qu'il soit
+// Requêtes réellement émises par le script ou la page native et refusées explicitement par le harnais (hôte + chemin exacts, rien d'autre) :
+// vérification de version du CSS (réglages mobiles) et logo natif de la page. Elles ne quittent jamais la machine.
+const EXPECTED_REFUSALS = [
+  { host: 'raw.githubusercontent.com', pathname: '/arnaudroubinet/kraland-css/refs/heads/main/version.json' },
+  { host: 'img7.kraland.org', pathname: '/2/world/logo2.gif' }
+];
+const isExpectedRefusal = (r) => EXPECTED_REFUSALS.some(e => e.host === r.host && e.pathname === r.pathname);
+// Requêtes imprévues : www.kraland.org non servi par une fixture (state.other), toute autre destination refusée hors liste, toute requête vue sans passer par
+// le refus global (state.external). Doit rester vide.
+// Les requêtes vues hors www.kraland.org (state.external) doivent toutes figurer dans le journal du refus global ; évalué à l'assertion, après la fin des échanges.
+const unexpected = (state) => [
+  ...state.other.map(p => 'www.kraland.org' + p),
+  ...state.denied.filter(r => !isExpectedRefusal(r)).map(r => r.host + r.pathname),
+  ...state.external.filter(u => !state.denied.some(d => d.host === u.host && d.pathname === u.pathname)).map(u => u.host + u.pathname + ' (non journalisé par le refus global)')
+];
 
 // ---------- DOM natif : message ----------
 const svg = (w, h, fill) => 'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${fill}"/></svg>`).toString('base64');
@@ -114,7 +131,7 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + String(e.message).split('\n')[0]); }
 }
 
-// Fragments : lecture-sombre, lecture-clair, redaction-sombre, redaction-clair, edition, bureau, seuils, transitions, themes
+// Fragments : lecture-sombre, lecture-clair, redaction-sombre, redaction-clair, edition, bureau, seuils, transitions, themes, confinement
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 
@@ -124,7 +141,19 @@ const DARK = 'empire-brun-dark'; const LIGHT = 'empire-brun';
 async function open({ width, kind, theme = true, variant = DARK, height = 800, stripTitles = false, touch = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: 2 });
-  const state = { documents: 0, other: [] };
+  const state = { documents: 0, other: [], denied: [], external: [] };
+  // 1) Refus global posé EN PREMIER : toute destination (http, https, autre hôte, version.json, images tierces) est journalisée puis refusée.
+  await context.route('**/*', r => {
+    const u = new URL(r.request().url());
+    state.denied.push({ host: u.host, pathname: u.pathname, type: r.request().resourceType() });
+    return r.abort();
+  });
+  // Contrôle indépendant des routes : toute requête réseau vue hors www.kraland.org (hors data:/blob:/about:) doit être passée par le refus global.
+  context.on('request', req => {
+    const u = new URL(req.url());
+    if (/^https?:$/.test(u.protocol) && u.host !== 'www.kraland.org') { state.external.push({ host: u.host, pathname: u.pathname }); }
+  });
+  // 2) Routes de fixtures, enregistrées après : seules à servir du contenu, et uniquement sous http://www.kraland.org/.
   await context.route(BASE + '/**', r => {
     const u = new URL(r.request().url());
     if (r.request().resourceType() === 'document' && u.pathname === URLS[kind]) {
@@ -245,6 +274,7 @@ async function readingChecks(width, variant, tag) {
   });
   const clicks = await p.evaluate(() => window.__clicks.length);
   check(`${tag} : aucune action native déclenchée (0 clic, 0 navigation)`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+  check(`${tag} : aucune requête imprévue, tous hôtes confondus (refus global ; refus explicites attendus : ${EXPECTED_REFUSALS.length} au plus)`, () => assert.deepEqual(unexpected(state), []));
   if (SHOTS) {
     // Une barre fixe masque le haut de la carte si scrollIntoView l'aligne en y=0 : garder l'identité sous la navbar.
     await p.evaluate(() => {
@@ -348,6 +378,7 @@ async function editorChecks(width, variant, kind, tag) {
   check(`${tag} : les 18 outils, le texte, la liste et le bouton conservés (balise, href, onclick, texte identiques à la page sans la peau : ${nativeSig.length})`, () => { assert.ok(nativeSig.length >= 150, `${nativeSig.length}`); assert.deepEqual(sig, nativeSig); });
   const clicks = await p.evaluate(() => window.__clicks.length);
   check(`${tag} : aucune action native déclenchée (0 clic, 0 envoi, 0 navigation)`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));
+  check(`${tag} : aucune requête imprévue, tous hôtes confondus (refus global ; refus explicites attendus : ${EXPECTED_REFUSALS.length} au plus)`, () => assert.deepEqual(unexpected(state), []));
   if (SHOTS) {
     await p.evaluate(() => window.scrollTo(0, 0)); await p.screenshot({ path: path.join(SHOTS, `${kind}-${variant}-${width}.png`) });
     await p.evaluate(() => document.querySelector('.btn-toolbar button.kr-tools-plus')?.click()); await p.screenshot({ path: path.join(SHOTS, `${kind}-plus-${variant}-${width}.png`) });
@@ -469,6 +500,7 @@ if (frag('bureau')) {
         if (kind === 'sujet') { assert.equal(vis.citer, true); assert.equal(vis.votes, true); } else { assert.equal(vis.tools, true); }
       });
       check(`bureau 1280 px ${kind} ${VARIANT_NAME(variant)} : aucune action déclenchée`, () => assert.equal((state.other.length), 0));
+      check(`bureau 1280 px ${kind} ${VARIANT_NAME(variant)} : aucune requête imprévue, tous hôtes confondus`, () => assert.deepEqual(unexpected(state), []));
       if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `bureau-${kind}-${variant}-1280.png`) }); }
       await context.close();
     }
@@ -498,6 +530,40 @@ if (frag('themes')) {
       assert.equal(bad.length, 0, bad.join(' ; '));
     });
   }
+}
+
+// ---------- confinement réseau (tous hôtes) ----------
+if (frag('confinement')) {
+  console.log('Confinement réseau : refus global avant les routes locales, journal et assertion de requêtes imprévues, tous hôtes');
+  // Chaque vue : seules les requêtes déclarées sont refusées, aucune autre destination, aucune requête hors du journal du refus global.
+  for (const kind of ['sujet', 'repondre', 'editer']) {
+    const { context, page: p, state } = await open({ width: 375, kind });
+    await p.waitForTimeout(1500); // fenêtre d'observation d'une ABSENCE de requête de plus : pas de condition positive possible
+    check(`confinement ${kind} : seules les destinations déclarées sont refusées (${EXPECTED_REFUSALS.map(e => e.host).join(', ')}), aucune requête imprévue`, () => {
+      assert.deepEqual(unexpected(state), []);
+      assert.ok(state.denied.every(isExpectedRefusal), JSON.stringify(state.denied));
+    });
+    check(`confinement ${kind} : toute requête externe vue est passée par le refus global (vues : ${state.external.length}, refusées : ${state.denied.length})`, () => {
+      for (const u of state.external) { assert.ok(state.denied.some(d => d.host === u.host && d.pathname === u.pathname), u.host + u.pathname); }
+    });
+    await context.close();
+  }
+  // Auto-test du garde : des requêtes imprévues (autre hôte, autre schéma d'URL d'hôte, www hors fixture) sont refusées SANS partir, journalisées et rendues visibles.
+  const probe = await open({ width: 375, kind: 'repondre' });
+  const res = await probe.page.evaluate(async () => {
+    const out = {};
+    for (const [k, url] of [['tiers-https', 'https://example.invalid/sonde-confinement'], ['tiers-http', 'http://img9.kraland.org/sonde.gif'], ['www-hors-fixture', 'http://www.kraland.org/sonde-hors-fixture']]) {
+      try { await fetch(url, { mode: 'no-cors' }); out[k] = 'reponse'; } catch (_e) { out[k] = 'refuse'; }
+    }
+    return out;
+  });
+  check('confinement auto-test : trois requêtes imprévues (https tiers, http tiers, www hors fixture) sont refusées par le garde, aucune réponse', () => assert.deepEqual(res, { 'tiers-https': 'refuse', 'tiers-http': 'refuse', 'www-hors-fixture': 'refuse' }));
+  check('confinement auto-test : les trois requêtes sont journalisées et listées comme imprévues (l\'assertion « aucune requête imprévue » échouerait)', () => {
+    const u = unexpected(probe.state);
+    assert.ok(u.includes('example.invalid/sonde-confinement') && u.includes('img9.kraland.org/sonde.gif') && u.includes('www.kraland.org/sonde-hors-fixture'), u.join(' ; '));
+    assert.throws(() => assert.deepEqual(u, []));
+  });
+  await probe.context.close();
 }
 
 await browser.close();
