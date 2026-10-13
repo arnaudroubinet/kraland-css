@@ -194,6 +194,9 @@ async function open({ width, kind, locked = false, theme = true, variant = 'empi
   const page_ = await context.newPage();
   await page_.goto(BASE + urlFor, { waitUntil: 'load' });
   await settlePage(page_, theme);
+  // v3 : les 13 outils moins courants sont sous « Plus » ; ces suites historiques mesurent les 18 outils, « Plus » est donc ouvert ici
+  // (la v3 elle-même, repliée comme dépliée, est testée par messages-v3.mjs).
+  if (kind === 'editeur') { await page_.evaluate(() => { const b = document.querySelector('.btn-toolbar.kr-tools-ready:not(.kr-tools-open) .kr-tools-plus'); if (b) { b.click(); } }); }
   return { context, page: page_, state };
 }
 
@@ -558,7 +561,9 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
   const end = await p.evaluate(SIGNATURE_SCROLL, 'end');
   const max = await p.evaluate(SIGNATURE_SCROLL, 'max');
   const foc = await p.evaluate(SIGNATURE_SCROLL, 'focus');
-  check(`${tag} : barre « Envoyer » fixe conservée (position: fixed)`, () => assert.equal(end.barFixed, true));
+  // Identifiants historiques conservés pour le multiset : leurs mentions de « fixe / barre » sont obsolètes depuis la v3.
+  // Le contrat validé remplace la barre fixe par un bouton dans le flux ; les contrôles de visibilité, hit-test et non-recouvrement restent actifs.
+  check(`${tag} : barre « Envoyer » fixe conservée (position: fixed)`, () => assert.equal(end.barFixed, false));
   check(`${tag} : ligne Signature ramenée en bas de l'écran (scrollIntoView) : non masquée par la barre (${end.hit})`, () => { assert.equal(end.covered, false, JSON.stringify(end)); assert.ok(end.bottom <= end.barTop + 0.5, JSON.stringify(end)); });
   check(`${tag} : ligne Signature au focus clavier : non masquée par la barre`, () => { assert.equal(foc.covered, false, JSON.stringify(foc)); assert.ok(foc.bottom <= foc.barTop + 0.5, JSON.stringify(foc)); });
   check(`${tag} : fin de page : Signature visible au-dessus de la barre, et >= 56 px de page réservés sous la ligne`, () => { assert.equal(max.covered, false, JSON.stringify(max)); assert.ok(max.bottom <= max.barTop + 0.5, JSON.stringify(max)); assert.ok(max.gapBelowDoc >= 56, `${max.gapBelowDoc}`); });
@@ -613,7 +618,7 @@ async function sweep(p, step) {
       if (a.bandY) { out.bandSteps += 1; }
       if (a.inter > 0 || a.coveredPts > 0) { out.actionInter += 1; out.actionMaxInter = Math.max(out.actionMaxInter, a.inter); out.actionCovered += a.coveredPts; if (!out.first) { out.first = { sy: s.sy, a: a.t, inter: a.inter, back: s.back, action: { x: a.x, y: a.y, w: a.w, h: a.h } }; } }
     }
-    if (s.send && s.send.y < vh && s.send.y + s.send.h > 0) {
+    if (s.send && ((s.send.fixed && s.send.y < vh && s.send.y + s.send.h > 0) || (!s.send.fixed && s.send.y >= 0 && s.send.y + s.send.h <= vh))) {
       out.sendSteps += 1;
       if (s.send.inter > 0) { out.sendInter += 1; }
       if (s.send.hitsOk < s.send.hits.length) { out.sendBad += 1; if (!out.first) { out.first = { sy: s.sy, send: s.send, back: s.back }; } }
@@ -650,6 +655,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
   const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
   const sw = await sweep(p, 20);
   const tag = `${width} px ${variant}`;
+  // Libellés historiques (barre fixe) : en v3, mesure du bouton dans le flux sur toutes les positions où il est entièrement dans l'écran.
   check(`${tag} : barre « Envoyer » fixe (56 px, z 90) et lien « Remonter en haut » visible sur ${sw.backSteps}/${sw.steps} positions`, () => { assert.ok(sw.sendSteps > 0 && sw.backSteps > 3, JSON.stringify([sw.sendSteps, sw.backSteps])); });
   check(`${tag} : le bouton fixe ne chevauche jamais la barre « Envoyer » (aire)`, () => assert.equal(sw.sendInter, 0, JSON.stringify(sw.first)));
   check(`${tag} : 6 points de la barre « Envoyer » toujours reçus par le bouton (elementFromPoint), sur toutes les positions`, () => assert.equal(sw.sendBad, 0, JSON.stringify(sw.first)));
@@ -690,7 +696,8 @@ for (const mode of paletteModes.filter(m => frag('seuil-' + m.id))) {
       const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant, touch, height: 800 });
       const m = await p.evaluate(MEASURE);
       const bar0 = await p.evaluate(() => getComputedStyle(document.querySelector('button.btn-primary.pull-right')).position);
-      check(`${tag} : mode mobile JS ${mobile ? 'actif' : 'inactif'} ET barre « Envoyer » ${mobile ? 'fixe' : 'dans le flux'} (même seuil CSS / JS)`, () => { assert.equal(m.mobileMode, mobile); assert.equal(bar0 === 'fixed', mobile, bar0); });
+      // Libellé historique conservé ; le contrat v3 exige « dans le flux » des deux côtés du seuil.
+      check(`${tag} : mode mobile JS ${mobile ? 'actif' : 'inactif'} ET barre « Envoyer » ${mobile ? 'fixe' : 'dans le flux'} (même seuil CSS / JS)`, () => { assert.equal(m.mobileMode, mobile); assert.notEqual(bar0, 'fixed', bar0); });
       check(`${tag} : aucun débordement horizontal de la page ni de la barre d'outils, 18 outils dans l'écran`, () => {
         const bad = m.tools.filter(t => !(t.ok && t.x >= -0.5 && t.x + t.w <= m.iw + 0.5));
         assert.ok(m.overflowX <= 0, `${m.overflowX}`); assert.ok(m.toolbarScroll <= 0, `${m.toolbarScroll}`);

@@ -10,6 +10,7 @@ Depuis le dépôt, avec les dépendances déjà présentes : aucun prérequis ma
 | Fichier ou zone touchée | Commande ciblée |
 |---|---|
 | Forum, BBCode, seuil du formulaire | `npm run test:zone -- forum` |
+| Messages du forum v3 (lecture d'un message, rédaction, édition, mobile ; module Messages:V3, classes kr-msg / kr-tools) | `npm run test:zone -- messages` (avec `forum` si le CSS commun de l'éditeur change ; `KR_FA_DIR=/dossier` = copie locale de Font Awesome 5.6.3 du site, captures seulement) |
 | Plateau, navigation, jauges (le mini-profil les affiche aussi : `test:changed` vise profil ET plateau) | `npm run test:zone -- plateau` |
 | Croix directionnelle | `npm run test:zone -- croix` |
 | Démarrage, stockage, chargement différé | `npm run test:zone -- demarrage` (bascule 768 / resize / reload / mobile-mode : ajouter `transitions`, que `test:changed` vise aussi) |
