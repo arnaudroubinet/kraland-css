@@ -1,0 +1,16 @@
+<!-- SONDE STRUCTURELLE : pas une capture du formulaire natif Parler. -->
+<!-- Bootbox 4.4.0 construit le conteneur natif ; seuls ces champs intérieurs sont synthétiques. -->
+<div id="ajax-order">
+  <form name="post_msg" method="post" action="/submission-blocked">
+    <h3>Parler — sonde locale sans envoi</h3>
+    <p>Contenu synthétique pour mesurer le conteneur d’ordre. Aucun personnage ni message réel.</p>
+    <div class="panel panel-primary with-nav-tabs">
+      <div class="panel-heading"><ul class="nav nav-tabs"><li class="active"><a href="#model">Parler</a></li></ul></div>
+      <div class="panel-body panel-order">
+        <div class="form-group"><label for="message">Message de test</label><textarea id="message" name="message" class="form-control" rows="5"></textarea></div>
+        <p>Champs intérieurs non vérifiés sur le site natif. La présence de textarea#message provient des sélecteurs du userscript, pas d’une archive Parler.</p>
+      </div>
+      <div class="panel-footer"><p>Informations de la sonde locale.</p></div>
+    </div>
+  </form>
+</div>

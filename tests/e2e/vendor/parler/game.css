@@ -1,0 +1,107 @@
+/* country color */
+
+.f1 {
+	color: #A00000;
+	font-weight: bold;
+}
+
+.f2 {
+	color: #804000;
+	font-weight: bold;
+}
+
+.f3 {
+	color: #EECC00;
+	font-weight: bold;
+}
+
+.f4 {
+	color: #004080;
+	font-weight: bold;
+}
+
+.f5 {
+	color: #108029;
+	font-weight: bold;
+}
+
+.f6 {
+	color: #800040;
+	font-weight: bold;
+}
+
+.f7 {
+	color: #808080;
+	font-weight: bold;
+}
+
+.f8 {
+	color: #335533;
+	font-weight: bold;
+}
+
+.f9 {
+	color: #808000;
+	font-weight: bold;
+}
+
+.c1 {
+	/* Description : couleur de fond de la République de Kraland */
+	/* Usage : généralisé */
+	background-color: #FF8080;
+}
+
+.c2 {
+	/* Description : couleur de fond de l'Empire Brun */
+	/* Usage : généralisé */
+	background-color: #AA7000;
+}
+
+.c3 {
+	/* Description : couleur de fond de la Palladium Corporation */
+	/* Usage : généralisé */
+	background-color: #FFFF80;
+}
+
+.c4 {
+	/* Description : couleur de fond de la Théocratie Seelienne */
+	/* Usage : généralisé */
+	background-color: #8080FF;
+}
+
+.c5 {
+	/* Description : couleur de fond du Paradigme Vert */
+	/* Usage : généralisé */
+	background-color: #80FF80;
+}
+
+.c6 {
+	/* Description : couleur de fond du Khanat Elmérien */
+	/* Usage : généralisé */
+	background-color: #CC80FF;
+}
+
+.c7 {
+	/* Description : couleur de fond de la Confédération Libre */
+	/* Usage : généralisé */
+	background-color: #AAAAAA;
+}
+
+.c8 {
+	/* Description : couleur de fond du Royaume de Ruthvénie */
+	/* Usage : généralisé */
+	background-color: #739773;
+}
+
+.c9 {
+	/* Description : couleur de fond des Provinces Indépendantes */
+	/* Usage : généralisé */
+	background-color: #AAAA44;
+}
+
+.c10 {
+	/* Description : couleur de fond des Limbes */
+	/* Usage : généralisé */
+	background-color: #CCFFFF;
+}
+

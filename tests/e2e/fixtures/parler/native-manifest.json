@@ -1,0 +1,65 @@
+[
+  {
+    "file": "jquery.min.js",
+    "url": "http://www.kraland.org/lib/jquery-3.3.1/jquery-3.3.1.min.js",
+    "bytes": 86927,
+    "sha256": "160a426ff2894252cd7cebbdd6d6b7da8fcd319c65b70468f10b6690c45d02ef",
+    "contentType": "application/x-javascript"
+  },
+  {
+    "file": "bootstrap.min.js",
+    "url": "http://www.kraland.org/lib/bootstrap-3.3.7/js/bootstrap.min.js",
+    "bytes": 37045,
+    "sha256": "53964478a7c634e8dad34ecc303dd8048d00dce4993906de1bacf67f663486ef",
+    "contentType": "application/x-javascript"
+  },
+  {
+    "file": "bootstrap1.min.css",
+    "url": "http://www.kraland.org/lib/bootstrap-3.3.7/css/bootstrap1.min.css",
+    "bytes": 121200,
+    "sha256": "f75e846cc83bd11432f4b1e21a45f31bc85283d11d372f7b19accd1bf6a2635c",
+    "contentType": "text/css"
+  },
+  {
+    "file": "bootbox.min.js",
+    "url": "http://www.kraland.org/lib/bootbox-4.4.0/bootbox.min.js",
+    "bytes": 9972,
+    "sha256": "0b6bab63e3aa24b4ab6aab63765a217db5004961bab1ab7d74ffebfa33efb5c4",
+    "contentType": "application/x-javascript"
+  },
+  {
+    "file": "main.js",
+    "url": "http://www.kraland.org/lib/kraland-7.0.9/js/main.js",
+    "bytes": 5786,
+    "sha256": "ce174fb6b829ce30a609ddd613106561a2536ae58eadf4deff3ff32b6768c4be",
+    "contentType": "application/x-javascript"
+  },
+  {
+    "file": "main.css",
+    "url": "http://www.kraland.org/lib/kraland-7.0.9/css/main.css",
+    "bytes": 7153,
+    "sha256": "66606fb706ffbf1408dfaee524788b92a487fd421d3269a1d53bda5fdf2b5909",
+    "contentType": "text/css"
+  },
+  {
+    "file": "bootswatch.css",
+    "url": "http://www.kraland.org/lib/kraland-7.0.9/css/bootswatch.css",
+    "bytes": 956,
+    "sha256": "9992808326ba94c379b9fde1c89ea2e2333b58665f8d2e0949408b6bae3148dc",
+    "contentType": "text/css"
+  },
+  {
+    "file": "minichat.css",
+    "url": "http://www.kraland.org/lib/kraland-7.0.9/css/minichat.css",
+    "bytes": 905,
+    "sha256": "933d770b2e1f2e23cc19a493df9e83cd02ddf1df828d9be3487fd6d61106752d",
+    "contentType": "text/css"
+  },
+  {
+    "file": "game.css",
+    "url": "http://www.kraland.org/lib/kraland-7.0.9/css/game.css",
+    "bytes": 1769,
+    "sha256": "a1e8698144416be5d4c81d42ed6419ec017bc56b6abd8868fefe3672e1e5d752",
+    "contentType": "text/css"
+  }
+]

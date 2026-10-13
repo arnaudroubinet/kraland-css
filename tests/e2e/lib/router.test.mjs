@@ -28,6 +28,11 @@ function check(name, fn) {
 
 const T = 'kraland-userscript-template.js';
 console.log('Routeur test:changed');
+check('viewport des ordres et fixture Parler : zone parler', () => {
+  assert.deepEqual(route(T, hunk('function trackOrderModalViewport(modal) {', "modal.classList.add('kr-order-viewport');")).zones, ['parler']);
+  assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
+  assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
+});
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');
