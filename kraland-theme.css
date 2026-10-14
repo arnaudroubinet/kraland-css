@@ -10702,12 +10702,19 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 /* --- Bureau : barre compacte de 24 px sur une ligne, panneau superposé au formulaire --- */
 
 /* Libellé « DESTINATAIRES * » : la colonne des libellés (col-sm-2) ne mesure que 105 px vers 770 et 992 px ; en majuscules à 13 px
-   le mot en faisait 107 et touchait le champ (QA t_63fbb540, m-2). Plus petit, sans espacement, sans marge gauche : il tient dans sa
-   colonne, aligné à droite comme les autres libellés, à 30 px du champ. Taille normale rétablie dès 1200 px (bloc suivant). */
+   avec l'espacement des autres libellés, le mot en faisait 107 et touchait le champ (QA t_63fbb540, m-2).
+   Même taille que les autres libellés (S-1, re-QA t_503eb6f6) : sans espacement entre lettres (≈ 101 px), sans marge gauche, et une
+   marge droite qui ne cède que là où la colonne est trop étroite : 15 px dès que la colonne (16,667 % de la ligne) atteint 118 px,
+   0 à 15 px en dessous. Le mot reste dans sa colonne, aligné à droite comme les autres dès qu'il y a la place, à 15 px au moins du champ. */
 @media (min-width: 768px) {
+  /* Le thème natif bascule ces libellés à 769 px : couvrir aussi 768 px pour garder une taille commune de 13 px (S-1). */
+  body.page-kramail-compose form[name="post_msg"] .form-group > label.control-label {
+    font-size: 13px;
+  }
+
   body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    padding-right: clamp(0px, calc(16.6667% - 103px), 15px) !important;
     padding-left: 0 !important;
-    font-size: 11px;
     letter-spacing: 0;
   }
 }

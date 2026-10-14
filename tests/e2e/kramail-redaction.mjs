@@ -16,7 +16,7 @@
 // Options : KR_SCRIPT (bundle « après »), KR_SCRIPT_AVANT (bundle « avant », pour la non-régression et les captures avant/après),
 //   KR_SHOTS=/dossier (captures), KR_FA_DIR=/dossier (copie locale de Font Awesome 5.6.3 : css/all.min.css + webfonts/, captures seulement),
 //   KR_FRAG (fragments : barre, dest-1280, dest-375, dest-320, blocage-1280, blocage-375, blocage-320, reponses-repondre, reponses-tous,
-//   reponses-transferer, clavier, reseau, envoi, repli, libelle, regression, themes, avant).
+//   reponses-transferer, clavier, reseau, envoi, repli, libelle, indicatif, regression, themes, avant).
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
@@ -598,6 +598,40 @@ if (frag('clavier')) {
   const focused = await p.evaluate(() => document.activeElement === document.querySelector('.kd-input'));
   check('le libellé « Destinataires » donne le focus au champ', () => assert.equal(focused, true));
   await context.close();
+
+  // Décision d'Arnaud, Q-3 = (a) : « ; » est le SEUL séparateur, comme sur le site. La virgule reste dans le nom (un nom peut en contenir une).
+  const v = await open({ width: 1280 });
+  const q = v.page;
+  await q.fill('input[name="c[1]"]', 'Sujet de test');
+  await q.fill('#message', 'Corps du message');
+  await q.focus('.kd-input');
+  await q.keyboard.insertText('Durand, Jean; Alpha, Beta, Gamma;');
+  let e = await q.evaluate(DEST);
+  check('virgule (Q-3 = a) : collage « Durand, Jean; Alpha, Beta, Gamma; » → 2 pastilles, la virgule ne coupe aucun nom, #dest au format natif', () => {
+    assert.deepEqual(e.chips.map(c => c.name), ['Durand, Jean', 'Alpha, Beta, Gamma']);
+    assert.equal(e.dest, 'Durand, Jean; Alpha, Beta, Gamma; ');
+  });
+  await q.keyboard.type('Lenoir, Paul', { delay: 15 });
+  e = await q.evaluate(DEST);
+  check('virgule : « Lenoir, Paul » tapé (sans « ; ») reste un seul texte en attente, aucune pastille ajoutée', () => {
+    assert.equal(e.input.value, 'Lenoir, Paul'); assert.equal(e.chips.length, 2); assert.equal(e.dest, 'Durand, Jean; Alpha, Beta, Gamma; ');
+  });
+  await q.click('form[name="post_msg"] button.btn-primary');
+  e = await q.evaluate(DEST);
+  const vs0 = await q.evaluate(() => window.__submits.length);
+  check('virgule : Envoyer → bloqué, « Validez ou effacez « Lenoir, Paul » » (un seul nom), rien ne part', () => { assert.equal(vs0, 0); assert.match(e.msg, /Validez ou effacez « Lenoir, Paul »/); });
+  await q.click('.kd-msg-add');
+  e = await q.evaluate(DEST);
+  check('virgule : « Ajouter » fait de « Lenoir, Paul » UNE seule pastille', () => {
+    assert.deepEqual(e.chips.map(c => c.name), ['Durand, Jean', 'Alpha, Beta, Gamma', 'Lenoir, Paul']);
+    assert.equal(e.dest, 'Durand, Jean; Alpha, Beta, Gamma; Lenoir, Paul; ');
+  });
+  await q.click('form[name="post_msg"] button.btn-primary');
+  const vs = await q.evaluate(() => window.__submits);
+  check('virgule : le formulaire natif part une fois, c[3] = « Durand, Jean; Alpha, Beta, Gamma; Lenoir, Paul; »', () => {
+    assert.equal(vs.length, 1); assert.equal(Object.fromEntries(vs[0])['c[3]'], 'Durand, Jean; Alpha, Beta, Gamma; Lenoir, Paul; ');
+  });
+  await v.context.close();
 }
 
 // =====================================================================================================
@@ -1059,8 +1093,8 @@ for (const [pg, R] of Object.entries(REPONSES)) {
 // 6 bis) Libellé « Destinataires » entre 768 et 1199 px (QA t_63fbb540, m-2) : dans sa colonne, à 8 px au moins du champ
 // =====================================================================================================
 if (frag('libelle')) {
-  console.log('Libellé « Destinataires * » de 768 à 1199 px : pas de débordement de sa colonne, écart >= 8 px avec le champ');
-  for (const width of [768, 769, 800, 900, 991, 992, 1100, 1199, 1200, 1280]) {
+  console.log('Libellé « Destinataires * » de 768 à 1199 px : même taille que les autres libellés, pas de débordement de sa colonne, écart >= 8 px avec le champ');
+  for (const width of [768, 769, 780, 800, 830, 900, 991, 992, 1000, 1050, 1100, 1199, 1200, 1280]) {
     const { context, page: p } = await open({ width });
     const m = await p.evaluate(() => {
       const lab = document.querySelector('.kd-label');
@@ -1069,18 +1103,71 @@ if (frag('libelle')) {
       const rects = Array.from(range.getClientRects());
       const text = { l: Math.min(...rects.map(r => r.left)), r: Math.max(...rects.map(r => r.right)) };
       const box = lab.getBoundingClientRect();
+      const cs = getComputedStyle(lab);
       const field = document.querySelector('.kd-field').getBoundingClientRect();
-      return { textL: text.l, textR: text.r, boxL: box.left, boxR: box.right, field: field.left, lines: new Set(rects.map(r => Math.round(r.top))).size, sw: lab.scrollWidth, cw: lab.clientWidth, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+      // autres libellés visibles du formulaire (Expéditeur, Sujet, Message) : leur taille de police
+      const others = Array.from(document.querySelectorAll('form[name="post_msg"] .form-group > label.control-label')).filter(l => l !== lab && l.offsetParent && /Expéditeur|Sujet|Message/.test(l.textContent)).map(l => getComputedStyle(l).fontSize);
+      return { textL: text.l, textR: text.r, boxL: box.left, boxR: box.right, contentL: box.left + parseFloat(cs.paddingLeft), contentR: box.right - parseFloat(cs.paddingRight), font: cs.fontSize, others, field: field.left, lines: new Set(rects.map(r => Math.round(r.top))).size, sw: lab.scrollWidth, cw: lab.clientWidth, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth };
     });
     const gap = Math.round((m.field - m.textR) * 10) / 10;
-    console.log(`  ${width} px : texte ${m.textL.toFixed(1)}–${m.textR.toFixed(1)}, colonne ${m.boxL.toFixed(1)}–${m.boxR.toFixed(1)}, champ à ${m.field.toFixed(1)}, écart ${gap} px, ${m.lines} ligne(s)`);
+    console.log(`  ${width} px : ${m.font} (autres ${m.others.join('/')}), texte ${m.textL.toFixed(1)}–${m.textR.toFixed(1)}, colonne ${m.boxL.toFixed(1)}–${m.boxR.toFixed(1)} (contenu ${m.contentL.toFixed(1)}–${m.contentR.toFixed(1)}), champ à ${m.field.toFixed(1)}, écart ${gap} px, ${m.lines} ligne(s)`);
     check(`libellé ${width} px : « Destinataires * » dans sa colonne (texte ${m.textL.toFixed(0)}–${m.textR.toFixed(0)} ⊂ ${m.boxL.toFixed(0)}–${m.boxR.toFixed(0)}), écart ${gap} px >= 8 avec le champ, pas de scrollX`, () => {
       assert.ok(m.textL >= m.boxL - 0.5 && m.textR <= m.boxR + 0.5, JSON.stringify(m));
       assert.ok(m.sw <= m.cw, `débordement interne ${m.sw}/${m.cw}`);
       assert.ok(gap >= 8, `écart ${gap}`);
       assert.ok(m.ox <= 0);
     });
+    // Re-QA t_503eb6f6, S-1 : de 768 à 1199 px, même taille de 13 px que les autres libellés, et le texte tient dans la zone de contenu
+    // de sa colonne (marges comprises : aucun débordement, même de 1 px)
+    if (width < 1200) {
+      check(`libellé ${width} px : taille ${m.font} = celle des autres libellés (${m.others.join('/')}), texte dans la zone de contenu de sa colonne (${m.textL.toFixed(1)}–${m.textR.toFixed(1)} ⊂ ${m.contentL.toFixed(1)}–${m.contentR.toFixed(1)})`, () => {
+        assert.ok(m.others.length >= 3, JSON.stringify(m.others));
+        assert.ok(m.others.every(f => f === m.font), `${m.font} / ${m.others.join(',')}`);
+        assert.equal(m.font, '13px');
+        assert.ok(m.textL >= m.contentL - 0.5 && m.textR <= m.contentR + 0.5, JSON.stringify(m));
+      });
+    }
+    if (SHOTS && [769, 992, 1100, 1280].includes(width)) {
+      await p.evaluate(() => window.scrollTo(0, Math.max(0, document.querySelector('.kd-row').getBoundingClientRect().top + window.scrollY - 260)));
+      await p.screenshot({ path: path.join(SHOTS, `S1-libelle-${width}.png`), clip: await p.evaluate(() => { const f = document.querySelector('form[name="post_msg"]').getBoundingClientRect(); const r = document.querySelector('.kd-row').getBoundingClientRect(); return { x: Math.max(0, f.left - 8), y: Math.max(0, r.top - 200), width: Math.min(document.documentElement.clientWidth - Math.max(0, f.left - 8), 640), height: r.height + 280 }; }) });
+    }
     await context.close();
+  }
+}
+
+// =====================================================================================================
+// 6 ter) Texte indicatif « Membre ou personnage » (re-QA t_503eb6f6, S-2) : jamais coupé ; masqué dès qu'une pastille existe
+// =====================================================================================================
+if (frag('indicatif')) {
+  console.log('Texte indicatif : entier sur un champ vide, masqué dès qu\'une pastille existe (Nouveau, Répondre prérempli), à 1280 / 375 / 320 px');
+  const PH = () => {
+    const i = document.querySelector('.kd-input');
+    const cs = getComputedStyle(i);
+    const c = document.createElement('canvas').getContext('2d');
+    c.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    return { ph: i.placeholder, need: Math.ceil(c.measureText(i.placeholder).width), room: Math.floor(i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)), chips: document.querySelectorAll('.kd-chip').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+  };
+  for (const width of [1280, 375, 320]) {
+    const mob = width < 768;
+    const { context, page: p, errors } = await open({ width, height: mob ? 800 : 900 });
+    let m = await p.evaluate(PH);
+    check(`${width} Nouveau, champ vide : texte indicatif « Membre ou personnage » entier (${m.need} px pour ${m.room} px)`, () => { assert.equal(m.ph, 'Membre ou personnage'); assert.ok(m.need <= m.room, JSON.stringify(m)); });
+    await p.focus('.kd-input');
+    await p.keyboard.insertText('Marelle Duvent; ');
+    await p.evaluate(() => document.activeElement.blur());
+    m = await p.evaluate(PH);
+    check(`${width} Nouveau, une pastille : texte indicatif masqué (aucun texte coupé), pas de scrollX`, () => { assert.equal(m.chips, 1); assert.equal(m.ph, ''); assert.ok(m.ox <= 0); });
+    if (SHOTS) { await shotDest(p, `S2-indicatif-${width}-nouveau-pastille`); }
+    await p.click('.kd-chip-x');
+    m = await p.evaluate(PH);
+    check(`${width} Nouveau, pastille retirée : le texte indicatif revient, entier`, () => { assert.equal(m.chips, 0); assert.equal(m.ph, 'Membre ou personnage'); assert.ok(m.need <= m.room, JSON.stringify(m)); });
+    check(`${width} Nouveau : aucune erreur`, () => assert.deepEqual(errors, [], JSON.stringify(errors)));
+    await context.close();
+    const r = await open({ width, page: 'repondre', height: mob ? 800 : 900 });
+    m = await r.page.evaluate(PH);
+    check(`${width} Répondre (destinataire prérempli) : dès l'ouverture, une pastille et aucun texte indicatif coupé`, () => { assert.equal(m.chips, 1); assert.equal(m.ph, ''); assert.ok(m.ox <= 0); });
+    if (SHOTS) { await shotDest(r.page, `S2-indicatif-${width}-repondre`); }
+    await r.context.close();
   }
 }
 

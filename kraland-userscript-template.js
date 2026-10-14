@@ -6191,7 +6191,8 @@
       input.setAttribute('autocomplete', 'off');
       input.setAttribute('autocapitalize', 'off');
       input.setAttribute('spellcheck', 'false');
-      input.placeholder = 'Membre ou personnage';
+      const PLACEHOLDER = 'Membre ou personnage';
+      input.placeholder = PLACEHOLDER;
       flow.appendChild(chipList);
       flow.appendChild(input);
       field.appendChild(flow);
@@ -6328,6 +6329,9 @@
       // ---------- pastilles ----------
       function renderChips(dupKeys) {
         chipList.textContent = '';
+        // Texte indicatif seulement sur un champ sans pastille : à côté d'une pastille, la saisie peut être trop étroite
+        // pour « Membre ou personnage » (320 px, Répondre prérempli) et le couperait (re-QA t_503eb6f6, S-2)
+        input.placeholder = state.chips.length ? '' : PLACEHOLDER;
         state.chips.forEach((name, index) => {
           const li = el('li', 'kd-chip');
           if (index === state.selectedChip) {li.classList.add('is-selected');}
@@ -6629,7 +6633,8 @@
         state.flash = '';
         state.selectedChip = -1;
         say('');
-        // « ; » (séparateur natif) : découpe en pastilles, y compris au collage « A; B; C » (un doublon refusé reste signalé)
+        // « ; » (séparateur natif, le SEUL) : découpe en pastilles, y compris au collage « A; B; C » (un doublon refusé reste signalé).
+        // La virgule ne sépare pas : un nom peut en contenir une, comme sur le site (décision d'Arnaud, Q-3 = a).
         if (value.indexOf(';') !== -1) {
           const parts = value.split(';');
           const rest = parts.pop();
