@@ -85,6 +85,6 @@ Aucun `npm run build`, lint applicatif ou e2e n’est revendiqué : le diff ne t
 
 ## Nettoyage et apprentissage
 
-Aucun serveur, navigateur, processus applicatif ou conteneur n’est démarré. `docker ps -a` constate un daemon indisponible (socket absent) ; aucun daemon n’est lancé, aucun conteneur tiers ou Apple n’est touché. Les rendus restent ignorés dans le worktree de travail et disparaissent avec son retrait après push ; sondes et journaux sont dans le scratch. L’archive de preuves est conservée sur la carte avant ce retrait.
+Aucun serveur, navigateur, processus applicatif ou conteneur n’est démarré. `docker ps -a` constate un daemon indisponible (socket absent) ; aucun daemon n’est lancé, aucun conteneur tiers ou Apple n’est touché. Les rendus restent ignorés dans le worktree de travail et disparaissent avec son retrait après push ; sondes et journaux sont dans le scratch. L’archive de preuves est préparée hors du worktree et transmise avec le handoff de la carte.
 
 Leçon de ce setup, conservée dans `contexte-projet.md` : **fixer explicitement le nom du projet après un setup en worktree temporaire, car le défaut officiel reprend le nom du dossier**. Aucune proposition d’allongement d’AGENTS.md : cette règle est locale à l’adoption BMad et n’exige pas de fichier d’instructions supplémentaire.
