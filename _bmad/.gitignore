@@ -1,0 +1,4 @@
+# Rendus de workflows propres à la machine et caches Python.
+render/
+__pycache__/
+*.pyc
