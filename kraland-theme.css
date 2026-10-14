@@ -10653,10 +10653,70 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg {
   font-weight: 700;
 }
 
+/* Envoi bloqué par un texte tapé non validé : « Validez ou effacez « x » » et deux boutons, Ajouter puis Effacer */
+body.page-kramail-compose form[name="post_msg"] .kd-msg.kd-msg-block {
+  flex-wrap: wrap;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-actions {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid var(--kd-border);
+  border-radius: 3px;
+  background: var(--kd-panel);
+  color: var(--kd-text);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn.kd-msg-add {
+  border-color: var(--kd-accent);
+  background: var(--kd-chip);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:hover {
+  border-color: var(--kd-accent);
+  background: var(--kd-active);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
+  outline: 2px solid var(--kd-accent);
+  outline-offset: 1px;
+}
+
 /* --- Bureau : barre compacte de 24 px sur une ligne, panneau superposé au formulaire --- */
+
+/* Libellé « DESTINATAIRES * » : la colonne des libellés (col-sm-2) ne mesure que 105 px vers 770 et 992 px ; en majuscules à 13 px
+   le mot en faisait 107 et touchait le champ (QA t_63fbb540, m-2). Plus petit, sans espacement, sans marge gauche : il tient dans sa
+   colonne, aligné à droite comme les autres libellés, à 30 px du champ. Taille normale rétablie dès 1200 px (bloc suivant). */
+@media (min-width: 768px) {
+  body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    padding-left: 0 !important;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+}
+
 @media (min-width: 1200px) {
   /* « Destinataires * » sur une seule ligne quand la colonne des libellés le permet (dès 1200 px ; en dessous, retour à la ligne comme le libellé natif) */
   body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    padding-left: 15px !important;
+    font-size: 13px;
     letter-spacing: 0;
     white-space: nowrap;
   }
@@ -10881,6 +10941,12 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg {
   body.page-kramail-compose form[name="post_msg"] .kd-msg {
     gap: 7px;
     margin: 6px 0 0;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+    height: 26px;
+    padding: 0 12px;
     font-size: 13px;
   }
 }
@@ -11141,6 +11207,24 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg {
     gap: 7px;
     margin: 6px 0 0;
     font-size: 14px;
+  }
+
+  /* Cibles de 40 px au toucher ; les deux boutons passent sous le texte quand la ligne est trop courte */
+  body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+    min-width: 88px;
+    height: 40px;
+    min-height: 40px !important;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  /* Répondre / Transférer : « Message auquel vous répondez » (accordéon natif sous le formulaire). La règle mobile générale des
+     .panel-group (marges de -15 px pour aller bord à bord) suppose une colonne avec 15 px de marge intérieure ; ici la colonne
+     n'en a pas : l'accordéon dépassait de 15 px et créait un défilement horizontal. Il reprend la largeur de la colonne. */
+  body.page-kramail-compose #col-right > .panel-group {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
   }
 }
 

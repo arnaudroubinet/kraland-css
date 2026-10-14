@@ -472,7 +472,9 @@
       const path = window.location.pathname;
       if (path.includes('/kramail')) {
         document.body.classList.add('page-kramail');
-        if (path.match(/\/kramail\/post\/nouveau/)) {
+        // Rédaction : Nouveau (…/post/nouveau-4-<compte>) et Répondre / Répondre à tous / Transférer (…/post/<sujet>-5-, -6-, -7-<id>
+        // depuis la réception, -15-, -16-, -17-<id> depuis l'envoi) : même formulaire post_msg natif, avec #dest (c[3]).
+        if (path.match(/\/kramail\/post\/nouveau/) || (path.match(/\/kramail\/post\//) && document.querySelector('form[name="post_msg"] textarea#dest[name="c[3]"]'))) {
           document.body.classList.add('page-kramail-compose');
         }
       } else if (path.startsWith('/forum/')) {
@@ -6063,6 +6065,7 @@
     const HIDDEN = 'kd-natif-cache';
     const ID = 'kr-kd';
 
+    // Nouveau, Répondre, Répondre à tous, Transférer : même formulaire post_msg natif (voir addPageTypeClass)
     function isComposePage() {
       return !!document.body && (document.body.classList.contains('page-kramail-compose') || /\/kramail\/post\/nouveau/.test(window.location.pathname));
     }
@@ -6116,24 +6119,27 @@
 
     // Réponse HTML d'ajaxsearch.php : <strong>Groupe</strong>&nbsp;[<a onClick='…+"NOM; ";return false;'>+</a>]NOM AFFICHÉ;&nbsp;… (...) <hr>
     // On lit le nom INSÉRÉ par le lien natif (pas le nom affiché, qui peut contenir des smileys). DOMParser : document inerte.
+    // unreadable : des liens [+] sont présents mais aucun nom n'a pu être lu (format changé par le site) → état d'erreur, pas « aucun résultat ».
     function parseDirectory(html) {
       const doc = new DOMParser().parseFromString('<body>' + html + '</body>', 'text/html');
       const items = [];
       let group = '';
       let truncated = false;
+      let links = 0;
       const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
       while (walker.nextNode()) {
         const n = walker.currentNode;
         if (n.nodeType === 1 && n.tagName === 'STRONG') {
           group = groupTag(n.textContent);
         } else if (n.nodeType === 1 && n.tagName === 'A') {
+          if (n.hasAttribute('onclick')) {links += 1;}
           const m = /\.value\s*\+\s*"([\s\S]*); "\s*;\s*return false;?\s*$/.exec(n.getAttribute('onclick') || '');
           if (m && m[1].trim()) {items.push({ name: m[1], group, source: 'annuaire' });}
         } else if (n.nodeType === 3 && n.parentNode && n.parentNode.tagName !== 'STRONG' && n.textContent.indexOf('(...)') !== -1) {
           truncated = true;
         }
       }
-      return { items, truncated };
+      return { items, truncated, unreadable: links > 0 && items.length === 0 };
     }
 
     function el(tag, className, text) {
@@ -6157,7 +6163,7 @@
 
       const contacts = contactsSelect ? readContacts(contactsSelect) : [];
       const state = {
-        chips: [], text: '', open: false, mode: 'search', options: [], active: -1, selectedChip: -1, flash: '',
+        chips: [], text: '', open: false, mode: 'search', options: [], active: -1, selectedChip: -1, flash: '', blocked: false,
         dir: { q: '', status: 'idle', items: [], truncated: false }, cache: new Map(), timer: 0, controller: null
       };
 
@@ -6224,11 +6230,12 @@
       root.appendChild(live);
 
       // ---------- #dest natif ----------
+      // Seules les pastilles partent dans #dest. Un texte tapé mais pas validé n'y est jamais écrit : tant qu'il reste,
+      // #dest porte une erreur de validité, la validation native bloque l'envoi et l'événement invalid affiche « Validez ou effacez ».
       function syncDest() {
+        dest.value = state.chips.map(n => n + '; ').join('');
         const pending = state.text.trim();
-        const names = state.chips.slice();
-        if (pending && !names.some(n => sameKey(n) === sameKey(pending))) {names.push(pending);}
-        dest.value = names.map(n => n + '; ').join('');
+        dest.setCustomValidity(pending ? 'Validez ou effacez « ' + pending + ' »' : '');
       }
 
       function hasChip(name) {
@@ -6236,11 +6243,87 @@
       }
 
       function say(text, warn) {
+        // Envoi bloqué par une saisie en attente : le message de blocage reste tant que le texte est là
+        if (!text && state.blocked && state.text.trim()) { showBlock(); return; }
+        msg.classList.remove('kd-msg-block');
         msg.textContent = '';
         if (!text) {return;}
         if (warn) {msg.appendChild(icon('fas fa-exclamation-triangle'));}
         msg.appendChild(document.createTextNode(text));
       }
+
+      // ---------- envoi bloqué : texte tapé non validé (décision d'Arnaud, Q-1 option b) ----------
+      const blockAdd = el('button', 'kd-msg-btn kd-msg-add', 'Ajouter');
+      blockAdd.type = 'button';
+      const blockClear = el('button', 'kd-msg-btn kd-msg-clear', 'Effacer');
+      blockClear.type = 'button';
+
+      function showBlock() {
+        const q = state.text.trim();
+        msg.textContent = '';
+        msg.classList.add('kd-msg-block');
+        msg.appendChild(icon('fas fa-exclamation-triangle'));
+        const text = el('span', 'kd-msg-text');
+        text.appendChild(document.createTextNode('Validez ou effacez '));
+        text.appendChild(el('b', '', '« ' + q + ' »'));
+        msg.appendChild(text);
+        const actions = el('span', 'kd-msg-actions');
+        blockAdd.setAttribute('aria-label', 'Ajouter « ' + q + ' » aux destinataires');
+        blockClear.setAttribute('aria-label', 'Effacer « ' + q + ' »');
+        actions.appendChild(blockAdd);
+        actions.appendChild(blockClear);
+        msg.appendChild(actions);
+        field.classList.add('is-invalid');
+      }
+
+      function clearBlock() {
+        if (!state.blocked) {return;}
+        state.blocked = false;
+        field.classList.remove('is-invalid');
+        if (msg.classList.contains('kd-msg-block')) {say('');}
+      }
+
+      function block() {
+        state.blocked = true;
+        if (!panel.hidden) {closePanel();}
+        showBlock();
+        live.textContent = 'Envoi bloqué : validez ou effacez « ' + state.text.trim() + ' ».';
+      }
+
+      // Effacer (bouton ou Échap) : vide le texte tapé, sans toucher aux pastilles
+      function clearPending() {
+        state.blocked = false;
+        setText('');
+        scheduleDirectory('');
+        closePanel();
+        field.classList.remove('is-invalid');
+        say('');
+        input.focus();
+      }
+
+      // Ajouter : le texte devient une pastille, comme « ajouter tel quel · non vérifié »
+      function addPending() {
+        const q = state.text.trim();
+        state.blocked = false;
+        field.classList.remove('is-invalid');
+        if (!q) { say(''); input.focus(); return; }
+        if (hasChip(q)) {
+          // déjà choisi : rien à ajouter, la saisie est retirée et on le dit
+          const existing = state.chips.find(n => sameKey(n) === sameKey(q));
+          setText('');
+          scheduleDirectory('');
+          closePanel();
+          say(existing + ' est déjà dans les destinataires.', true);
+        } else {
+          commitFree();
+          say('');
+        }
+        input.focus();
+      }
+
+      [blockAdd, blockClear].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+      blockAdd.addEventListener('click', addPending);
+      blockClear.addEventListener('click', clearPending);
 
       // ---------- pastilles ----------
       function renderChips(dupKeys) {
@@ -6310,6 +6393,11 @@
               if (controller.signal.aborted || state.controller !== controller) {return;}
               state.controller = null;
               const parsed = parseDirectory(html);
+              // Format inattendu (liens présents, aucun nom lu) : pas de mise en cache, état d'erreur existant
+              if (parsed.unreadable) {
+                if (state.text.trim() === q) { state.dir = { q, status: 'error', items: [], truncated: false }; render(); }
+                return;
+              }
               state.cache.set(key, parsed);
               if (state.text.trim() === q) { state.dir = { q, status: 'done', ...parsed }; render(); }
             })
@@ -6512,6 +6600,8 @@
         state.text = value;
         if (input.value !== value) {input.value = value;}
         syncDest();
+        // Envoi bloqué : le message suit le texte tapé et disparaît quand il est vide
+        if (state.blocked) { if (value.trim()) {showBlock();} else {clearBlock();} }
       }
 
       function choose(item) {
@@ -6588,7 +6678,8 @@
             if (visible && state.active >= 0) {choose(state.options[state.active].item);} else {commitFree();}
           }
         } else if (e.key === 'Escape') {
-          if (visible) { e.preventDefault(); closePanel(); }
+          // Envoi bloqué : Échap efface le texte tapé (comme « Effacer ») ; sinon il ferme le panneau sans rien perdre
+          if (state.blocked && state.text.trim()) { e.preventDefault(); clearPending(); } else if (visible) { e.preventDefault(); closePanel(); }
         } else if (e.key === 'Backspace') {
           if (input.value === '' && state.chips.length) {
             e.preventDefault();
@@ -6623,14 +6714,20 @@
       panel.addEventListener('mousedown', e => e.preventDefault());
       // clic hors du champ : on referme (rien n'est perdu)
       document.addEventListener('mousedown', e => { if (!panel.hidden && !root.contains(e.target)) {closePanel();} }, true);
-      // Zone native requise et masquée : le message vient sur le champ visible, sans bulle sur une zone invisible
+      // Zone native requise et masquée : le message vient sur le champ visible, sans bulle sur une zone invisible.
+      // Même chemin pour un texte tapé non validé (erreur de validité posée par syncDest) : envoi bloqué, « Validez ou effacez ».
       dest.addEventListener('invalid', e => {
+        if (!root.isConnected) {return;} // interface retirée (repli) : validation native intacte
         e.preventDefault();
-        say('Ajoutez au moins un destinataire.', true);
-        field.classList.add('is-invalid');
+        if (state.text.trim()) {
+          block();
+        } else {
+          say('Ajoutez au moins un destinataire.', true);
+          field.classList.add('is-invalid');
+        }
         input.focus();
       });
-      input.addEventListener('input', () => field.classList.remove('is-invalid'));
+      input.addEventListener('input', () => { if (!state.blocked) {field.classList.remove('is-invalid');} });
 
       // Valeur déjà présente dans #dest (retour arrière du navigateur, brouillon) : reprise en pastilles
       String(dest.value || '').split(';').map(p => p.trim()).filter(Boolean).forEach(p => { if (!hasChip(p)) {state.chips.push(p.replace(/\s+/g, ' '));} });
@@ -6648,6 +6745,7 @@
         undo() {
           window.clearTimeout(state.timer);
           if (state.controller) {state.controller.abort();}
+          dest.setCustomValidity('');
           label.remove();
           root.remove();
           destRow.classList.remove('kd-row');
@@ -6659,7 +6757,9 @@
     }
 
     function initKramailDestinataires() {
-      if (!isComposePage()) {return;}
+      // Thème coupé par le joueur (ou jamais choisi) : InitQueue tourne quand même, mais sans le CSS qui masque les zones
+      // natives. Le module ne s'installe pas : la page reste 100 % native (QA t_63fbb540, M-1).
+      if (!isComposePage() || !isThemeEnabled()) {return;}
       const form = document.forms.post_msg || document.querySelector('form[name="post_msg"]');
       const dest = form && form.querySelector('textarea#dest[name="c[3]"]');
       if (!form || !dest || form.dataset.krDest) {return;}
@@ -6671,6 +6771,7 @@
       } catch (e) {
         // Repli : on retire tout ce qui a été posé, les trois zones natives restent visibles et utilisables
         try {
+          dest.setCustomValidity('');
           const row = dest.closest('.form-group');
           if (row) {
             row.querySelectorAll('.kd-label, .kd').forEach(n => n.remove());

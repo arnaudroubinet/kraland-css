@@ -3,6 +3,10 @@
 //   tests/e2e/fixtures/kramail-nouveau.html  (rédaction : form[name=post_msg], #dest c[3], #contacts c[4] 47+2 contacts fictifs, #search, #results,
 //                                              barre btn-toolbar 4 groupes / 18 boutons ; copies verbatim de post.js (addtag), kramail_post.js, extraits de main.js)
 //   tests/e2e/fixtures/kramail-{reception,envoi,corbeille,lecture}.html (non-régression des autres pages Kramail)
+//   tests/e2e/fixtures/kramail-{repondre,repondre-tous,transferer}.html : la fixture « nouveau » + les SEULES différences relevées sur les
+//     pages réelles Répondre / Répondre à tous / Transférer (relevé t_4ab208f0, GET d'un message déjà lu et d'un message envoyé) : titre et
+//     2e bouton « Message », n[6]/n[7]/n[5], sujet « Re: » / « Tr: », #dest prérempli (vide pour Transférer), message cité
+//     « [b]X a écrit :[/b] [quote]…[/quote] », accordéon « Message auquel vous répondez » après le formulaire. Noms fictifs.
 // ajaxsearch.php est servi par un ANNUAIRE FICTIF qui reproduit la forme exacte de la réponse réelle (relevé) : <strong>Membres</strong>&nbsp;
 // [<a href="#" onClick='…+"NOM; ";return false;'>+</a>]AFFICHÉ;&nbsp;… puis Plateau, 25 noms au plus puis « (...) », « <hr> » final, « <hr> » seul si vide.
 // Confinement : refus global `**/*` posé AVANT les routes de fixtures ; toute requête hors fixture est journalisée et fait échouer « aucune requête imprévue ».
@@ -11,7 +15,8 @@
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle « après »), KR_SCRIPT_AVANT (bundle « avant », pour la non-régression et les captures avant/après),
 //   KR_SHOTS=/dossier (captures), KR_FA_DIR=/dossier (copie locale de Font Awesome 5.6.3 : css/all.min.css + webfonts/, captures seulement),
-//   KR_FRAG (fragments : barre, dest-1280, dest-375, dest-320, clavier, reseau, envoi, repli, regression, themes, avant).
+//   KR_FRAG (fragments : barre, dest-1280, dest-375, dest-320, blocage-1280, blocage-375, blocage-320, reponses-repondre, reponses-tous,
+//   reponses-transferer, clavier, reseau, envoi, repli, libelle, regression, themes, avant).
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
@@ -44,7 +49,12 @@ const PAGES = {
   reception: { url: '/kramail/personnage-fictif-2000-0', html: FIX('kramail-reception.html') },
   envoi: { url: '/kramail/personnage-fictif-2000-1', html: FIX('kramail-envoi.html') },
   corbeille: { url: '/kramail/personnage-fictif-2000-2', html: FIX('kramail-corbeille.html') },
-  lecture: { url: '/kramail/post/sujet-fictif-0-9000002', html: FIX('kramail-lecture.html') }
+  lecture: { url: '/kramail/post/sujet-fictif-0-9000002', html: FIX('kramail-lecture.html') },
+  // Répondre / Répondre à tous / Transférer depuis la réception (…-5-, -6-, -7-<id>) : même formulaire que Nouveau, prérempli
+  repondre: { url: '/kramail/post/sujet-fictif-de-lecture-5-9000002', html: FIX('kramail-repondre.html') },
+  'repondre-tous': { url: '/kramail/post/sujet-fictif-de-lecture-6-9000002', html: FIX('kramail-repondre-tous.html') },
+  // depuis l'envoi, le site numérote 15 / 16 / 17 : la page est reconnue par son formulaire, pas par le numéro
+  transferer: { url: '/kramail/post/sujet-fictif-de-lecture-17-9000002', html: FIX('kramail-transferer.html') }
 };
 // Requêtes émises par le script et refusées explicitement par le harnais (hôte + chemin exacts) : vérification de version du CSS, logo du thème.
 const EXPECTED_REFUSALS = [
@@ -110,6 +120,7 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
       state.ajax.push({ q, t: u.searchParams.get('t'), raw: u.search, at: Date.now() });
       await new Promise(res => setTimeout(res, state.ajaxDelay));
       if (state.ajaxStatus[q]) { return r.fulfill({ status: state.ajaxStatus[q], contentType: 'text/html', body: 'erreur' }).catch(() => {}); }
+      if (state.ajaxBody && state.ajaxBody[q]) { return r.fulfill({ status: 200, contentType: 'text/html', body: state.ajaxBody[q] }).catch(() => {}); }
       return r.fulfill({ status: 200, contentType: 'text/html', body: ajaxHtml(q) }).catch(() => {});
     }
     if (u.pathname.startsWith('/lib/fontawesome')) {
@@ -237,7 +248,8 @@ const shotDest = async (p, name) => {
   const clip = await p.evaluate(() => {
     const boxes = ['.kd-row', '.kd-panel:not([hidden])'].map(s => document.querySelector(s)).filter(Boolean).map(e => e.getBoundingClientRect());
     const top = Math.min(...boxes.map(b => b.top)); const bottom = Math.max(...boxes.map(b => b.bottom));
-    window.scrollTo(0, Math.max(0, top + window.scrollY - 12));
+    // sur mobile, la barre de navigation collante (≈ 55 px) couvrirait le haut : la ligne est amenée juste sous elle
+    window.scrollTo(0, Math.max(0, top + window.scrollY - (window.innerWidth < 768 ? 70 : 12)));
     const again = ['.kd-row', '.kd-panel:not([hidden])'].map(s => document.querySelector(s)).filter(Boolean).map(e => e.getBoundingClientRect());
     const t = Math.min(...again.map(b => b.top)); const l = Math.min(...again.map(b => b.left)); const r = Math.max(...again.map(b => b.right));
     return { x: Math.max(0, l - 8), y: Math.max(0, t - 8), width: Math.min(document.documentElement.clientWidth, r + 8) - Math.max(0, l - 8), height: Math.min(window.innerHeight - Math.max(0, t - 8), bottom - top + 16) };
@@ -488,7 +500,7 @@ for (const width of [1280, 375, 320]) {
     assert.match(d.live, /Aucun résultat/);
     assert.ok(d.ox <= 0);
   });
-  check(`${width} saisie en cours : le texte non validé est déjà dans #dest (« xqzw; »), comme dans la zone native`, () => assert.equal(d.dest, 'xqzw; '));
+  check(`${width} saisie en cours : le texte non validé n'est PAS écrit dans #dest (seules les pastilles partent ; envoi bloqué tant qu'il reste)`, () => assert.equal(d.dest, ''));
   await shotDest(p, `apres-${width}-dest-aucun`);
   await p.keyboard.press('Enter');
   d = await p.evaluate(DEST);
@@ -621,6 +633,24 @@ if (frag('reseau')) {
   await b.page.waitForFunction(() => document.querySelector('.kd-error'), null, { timeout: 4000 }).catch(() => {});
   const e = await b.page.evaluate(DEST);
   check('erreur réseau : « Annuaire indisponible, réessayez », la saisie reste possible', () => { assert.match(e.panel.text, /Annuaire indisponible, réessayez/); });
+  // QA t_63fbb540, m-1 : format de l'annuaire changé par le site (mêmes liens [+], guillemets inversés) → aucun nom lisible.
+  // Le panneau dit « Annuaire indisponible, réessayez », jamais « aucun résultat » (le nom existe peut-être).
+  b.state.ajaxBody = { marcus: '<strong>Membres</strong>&nbsp;[<a href="#" onClick="javascript:post_msg.dest.value=post_msg.dest.value+\'Marcus Ferrand; \';return false;">+</a>]Marcus Ferrand;&nbsp;<hr>' };
+  await b.page.fill('.kd-input', '');
+  await b.page.keyboard.type('marcus', { delay: 30 });
+  await b.page.waitForFunction(() => document.querySelector('.kd-error') || document.querySelector('.kd-empty') || document.querySelector('.kd-opt'), null, { timeout: 4000 }).catch(() => {});
+  await b.page.waitForTimeout(100);
+  const f = await b.page.evaluate(DEST);
+  check('annuaire au format inattendu (liens [+] présents, aucun nom lu) : « Annuaire indisponible, réessayez », pas « aucun résultat », réponse non mise en cache', () => {
+    assert.match(f.panel.text, /Annuaire indisponible, réessayez/);
+    assert.doesNotMatch(f.panel.text, /Aucun contact ni nom/);
+    assert.equal(f.empty, '');
+  });
+  if (SHOTS) { await b.page.screenshot({ path: path.join(SHOTS, 'reseau-1280-format-inattendu.png') }); }
+  await b.page.keyboard.press('Backspace');
+  await b.page.keyboard.type('s', { delay: 30 });
+  await b.page.waitForTimeout(500);
+  check('format inattendu : « marcus » retapé relance la requête (pas de cache d\'une réponse illisible)', () => assert.equal(b.state.ajax.filter(x => x.q === 'marcus').length, 2));
   await b.page.fill('.kd-input', '');
   await b.page.keyboard.type('mar', { delay: 30 });
   await settleDir(b.page, b.state, 'mar');
@@ -649,8 +679,25 @@ if (frag('envoi')) {
     await p.keyboard.type('Marelle Duvent;', { delay: 15 });
     await p.keyboard.type('Nom libre', { delay: 15 });
     await p.click('form[name="post_msg"] button.btn-primary');
+    d = await p.evaluate(DEST);
+    const subs1 = await p.evaluate(() => window.__submits.length);
+    check(`${width} envoi avec « Nom libre » tapé mais pas validé : envoi BLOQUÉ (rien ne part), « Validez ou effacez « Nom libre » », focus dans le champ, #dest intact`, () => {
+      assert.equal(subs1, 0);
+      assert.match(d.msg, /Validez ou effacez « Nom libre »/);
+      assert.equal(d.input.focused, true);
+      assert.equal(d.input.value, 'Nom libre');
+      assert.equal(d.dest, 'Marelle Duvent; ');
+    });
+    await p.click('.kd-msg-add');
+    d = await p.evaluate(DEST);
+    const subs2 = await p.evaluate(() => window.__submits.length);
+    check(`${width} « Ajouter » : « Nom libre » devient une pastille, message retiré, aucun envoi automatique`, () => {
+      assert.deepEqual(d.chips.map(c => c.name), ['Marelle Duvent', 'Nom libre']);
+      assert.equal(d.msg, ''); assert.equal(d.input.value, ''); assert.equal(subs2, 0);
+    });
+    await p.click('form[name="post_msg"] button.btn-primary');
     const subs = await p.evaluate(() => window.__submits);
-    check(`${width} envoi : le formulaire NATIF part avec c[3] = « Marelle Duvent; Nom libre; » (saisie en cours incluse), sans champ ajouté par la peau`, () => {
+    check(`${width} envoi : le formulaire NATIF part avec c[3] = « Marelle Duvent; Nom libre; », sans champ ajouté par la peau`, () => {
       assert.equal(subs.length, 1);
       const fd = Object.fromEntries(subs[0]);
       assert.equal(fd['c[3]'], 'Marelle Duvent; Nom libre; ');
@@ -728,6 +775,251 @@ if (frag('repli')) {
       assert.deepEqual(d.natives, { dest: true, contacts: true, search: true, results: true, plus: true });
       assert.equal(v, 'Alpha; ', '#dest réécrit : ' + JSON.stringify(v));
       assert.deepEqual(errors, [], JSON.stringify(errors));
+    });
+    await context.close();
+  }
+}
+
+// =====================================================================================================
+// 5 bis) Texte tapé non validé à l'envoi (décision d'Arnaud Q-1 = b, précisée) : envoi bloqué, « Validez ou effacez « x » »,
+//        boutons Ajouter / Effacer (>= 40 px au toucher), Échap efface, rien n'est ajouté ni effacé en silence, aucun envoi automatique
+// =====================================================================================================
+for (const width of [1280, 375, 320]) {
+  if (!frag('blocage-' + width)) { continue; }
+  console.log(`Blocage ${width} px : saisie non validée au moment de l'envoi`);
+  const mob = width < 768;
+  const { context, page: p, state, errors } = await open({ width, height: mob ? 800 : 900 });
+  const send = () => p.click('form[name="post_msg"] button.btn-primary');
+  const press = async sel => {
+    if (mob) {
+      await p.evaluate(s => { const e = document.querySelector(s); const r = e.getBoundingClientRect(); window.scrollTo(0, Math.max(0, r.top + window.scrollY - window.innerHeight / 2)); }, sel);
+      await p.tap(sel);
+    } else { await p.click(sel); }
+  };
+  const subs = () => p.evaluate(() => window.__submits.length);
+  const BLOCK = () => {
+    const m = document.querySelector('.kd-msg');
+    const box = e => { if (!e) { return null; } const r = e.getBoundingClientRect(); return { w: r.width, h: r.height, l: r.left, r: r.right, t: r.top, b: r.bottom }; };
+    const add = document.querySelector('.kd-msg-add');
+    const clr = document.querySelector('.kd-msg-clear');
+    return { text: m.textContent, block: m.classList.contains('kd-msg-block'), add: add && add.isConnected ? { ...box(add), label: add.textContent } : null, clear: clr && clr.isConnected ? { ...box(clr), label: clr.textContent } : null, field: document.querySelector('.kd-field').classList.contains('is-invalid'), msgBox: box(m), kd: box(document.querySelector('.kd')), validity: document.querySelector('#dest').validity.customError };
+  };
+  await p.fill('input[name="c[1]"]', 'Sujet de test');
+  await p.fill('#message', 'Corps du message');
+  await typeIn(p, 'Marelle Duvent;');
+  await typeIn(p, 'mar');
+  await settleDir(p, state, 'mar');
+  await send();
+  let d = await p.evaluate(DEST);
+  let b = await p.evaluate(BLOCK);
+  check(`${width} blocage : « mar » tapé, Envoyer → rien ne part, « Validez ou effacez « mar » » près du champ, focus dans le champ, panneau fermé`, () => {
+    assert.equal(b.block, true);
+    assert.match(b.text, /^Validez ou effacez « mar »/);
+    assert.equal(d.input.focused, true); assert.equal(d.input.value, 'mar'); assert.equal(d.panel.open, false);
+    assert.equal(b.field, true);
+    assert.ok(b.msgBox.t >= b.kd.t && b.msgBox.b <= b.kd.b + 0.5, 'message hors du bloc Destinataires');
+  });
+  const s1 = await subs();
+  check(`${width} blocage : aucune soumission, #dest = pastilles seules (« Marelle Duvent; »), « mar » jamais envoyé partiellement`, () => { assert.equal(s1, 0); assert.equal(d.dest, 'Marelle Duvent; '); assert.deepEqual(d.chips.map(c => c.name), ['Marelle Duvent']); });
+  const reach = await p.evaluate(REACH, '.kd-msg-btn');
+  check(`${width} blocage : boutons « Ajouter » et « Effacer » visibles, ${mob ? '>= 40 px de haut (toucher)' : '>= 24 px'}, atteints en leur centre, dans la largeur, pas de scrollX`, () => {
+    assert.equal(b.add.label, 'Ajouter'); assert.equal(b.clear.label, 'Effacer');
+    for (const k of ['add', 'clear']) { assert.ok(b[k].h >= (mob ? 40 : 24) - 0.5 && b[k].w >= (mob ? 40 : 24), JSON.stringify(b[k])); assert.ok(b[k].l >= 0 && b[k].r <= d.vw + 0.5); }
+    assert.ok(reach.every(r => r.ok), JSON.stringify(reach));
+    assert.ok(d.ox <= 0, 'scrollX ' + d.ox);
+  });
+  if (SHOTS) {
+    await p.evaluate(() => window.scrollTo(0, Math.max(0, document.querySelector('.kd-row').getBoundingClientRect().top + window.scrollY - (window.innerWidth < 768 ? 80 : 60))));
+    await shotDest(p, `apres-${width}-blocage`);
+    await p.screenshot({ path: path.join(SHOTS, `apres-${width}-page-blocage.png`) });
+  }
+  // Retirer une pastille reste d'un clic, le blocage demeure tant que le texte est là
+  await press('.kd-chip-x[aria-label="Retirer Marelle Duvent"]');
+  d = await p.evaluate(DEST);
+  b = await p.evaluate(BLOCK);
+  check(`${width} blocage : la croix retire la pastille en un clic, le message de blocage reste (« mar » toujours là)`, () => { assert.deepEqual(d.chips, []); assert.equal(d.dest, ''); assert.match(b.text, /Validez ou effacez « mar »/); });
+  // Texte modifié : le message suit ; vidé : le message disparaît
+  await p.focus('.kd-input');
+  await p.keyboard.type('c', { delay: 20 });
+  b = await p.evaluate(BLOCK);
+  check(`${width} blocage : texte modifié (« marc ») → le message suit`, () => assert.match(b.text, /Validez ou effacez « marc »/));
+  for (let i = 0; i < 4; i += 1) { await p.keyboard.press('Backspace'); }
+  d = await p.evaluate(DEST);
+  b = await p.evaluate(BLOCK);
+  check(`${width} blocage : texte vidé au clavier → message retiré, champ normal, plus d'erreur « Validez ou effacez » sur #dest`, () => { assert.equal(d.input.value, ''); assert.equal(b.text, ''); assert.equal(b.field, false); assert.equal(b.validity, false); });
+  // Effacer : vide le texte tapé, sans toucher aux pastilles
+  await typeIn(p, 'Omar Sablier;');
+  await typeIn(p, 'brouillon');
+  await send();
+  await press('.kd-msg-clear');
+  d = await p.evaluate(DEST);
+  b = await p.evaluate(BLOCK);
+  const s2 = await subs();
+  check(`${width} « Effacer » : texte tapé vidé, pastilles intactes, message retiré, aucun envoi automatique`, () => {
+    assert.equal(d.input.value, ''); assert.deepEqual(d.chips.map(c => c.name), ['Omar Sablier']); assert.equal(d.dest, 'Omar Sablier; ');
+    assert.equal(b.text, ''); assert.equal(s2, 0); assert.equal(d.input.focused, true);
+  });
+  // Échap efface aussi le texte tapé quand l'envoi est bloqué
+  await typeIn(p, 'zut');
+  await send();
+  await p.keyboard.press('Escape');
+  d = await p.evaluate(DEST);
+  b = await p.evaluate(BLOCK);
+  check(`${width} Échap pendant le blocage : texte tapé effacé, pastilles intactes, message retiré`, () => { assert.equal(d.input.value, ''); assert.deepEqual(d.chips.map(c => c.name), ['Omar Sablier']); assert.equal(b.text, ''); });
+  // Ajouter : le texte devient une pastille (tel quel), puis l'envoi part seulement quand le joueur reclique
+  await typeIn(p, 'Nom libre');
+  await send();
+  await press('.kd-msg-add');
+  d = await p.evaluate(DEST);
+  const s3 = await subs();
+  check(`${width} « Ajouter » : pastille « Nom libre » ajoutée telle quelle, message retiré, aucun envoi automatique`, () => {
+    assert.deepEqual(d.chips.map(c => c.name), ['Omar Sablier', 'Nom libre']); assert.equal(d.dest, 'Omar Sablier; Nom libre; ');
+    assert.equal(d.msg, ''); assert.equal(s3, 0);
+  });
+  // Ajouter un nom déjà choisi : rien n'est ajouté, la saisie est retirée et on le dit
+  await typeIn(p, 'omar sablier');
+  await send();
+  await press('.kd-msg-add');
+  d = await p.evaluate(DEST);
+  check(`${width} « Ajouter » sur un nom déjà choisi : aucune pastille de plus, saisie retirée, « Omar Sablier est déjà dans les destinataires. »`, () => {
+    assert.deepEqual(d.chips.map(c => c.name), ['Omar Sablier', 'Nom libre']); assert.equal(d.input.value, ''); assert.match(d.msg, /Omar Sablier est déjà dans les destinataires\./);
+  });
+  await send();
+  const all = await p.evaluate(() => window.__submits);
+  check(`${width} envoi après correction : un seul envoi, natif, c[3] = « Omar Sablier; Nom libre; »`, () => {
+    assert.equal(all.length, 1); assert.equal(Object.fromEntries(all[0])['c[3]'], 'Omar Sablier; Nom libre; ');
+  });
+  check(`${width} blocage : aucune navigation, aucune erreur, aucune requête imprévue`, () => { assert.equal(state.documents, 1); assert.deepEqual(errors, [], JSON.stringify(errors)); assert.deepEqual(unexpected(state), [], JSON.stringify(unexpected(state))); });
+  await context.close();
+}
+
+// =====================================================================================================
+// 5 ter) Répondre / Répondre à tous / Transférer (décision d'Arnaud Q-2 : « on fait tout ») : même barre, même champ Destinataires,
+//        destinataires préremplis par le site repris en pastilles et conservés ; sujet, message cité et champs cachés intacts
+// =====================================================================================================
+const REPONSES = {
+  repondre: { frag: 'repondre', h1: 'Répondre', n7: '1', sujet: 'Re: Sujet fictif de lecture', dest: 'Marelle Duvent; ', chips: ['Marelle Duvent'] },
+  'repondre-tous': { frag: 'tous', h1: 'Répondre à tous', n7: '2', sujet: 'Re: Sujet fictif de lecture', dest: 'Marelle Duvent; Omar Sablier; Jade Noir\'mor; ', chips: ['Marelle Duvent', 'Omar Sablier', 'Jade Noir\'mor'] },
+  transferer: { frag: 'transferer', h1: 'Transférer', n7: '3', sujet: 'Tr: Sujet fictif de lecture', dest: '', chips: [] }
+};
+const CITATION = '[b]Marelle Duvent a écrit :[/b]\n[quote]Bonjour,\n\nMessage fictif de lecture : [b]gras[/b] et smileys [:)] rendus par le site.\nUne deuxième ligne pour le corps du message.[/quote]\n\n';
+for (const [pg, R] of Object.entries(REPONSES)) {
+  if (!frag('reponses-' + R.frag)) { continue; }
+  console.log(`${R.h1} : barre et champ Destinataires, destinataires préremplis (${R.chips.length})`);
+  for (const width of [1280, 375, 320]) {
+    const mob = width < 768;
+    const { context, page: p, state, errors } = await open({ width, page: pg, height: mob ? 800 : 900 });
+    let d = await p.evaluate(DEST);
+    const form = await p.evaluate(() => ({
+      body: document.body.classList.contains('page-kramail-compose'),
+      h1: document.querySelector('h1.page-header').textContent.replace(/\s+/g, ' ').trim(),
+      sujet: document.querySelector('input[name="c[1]"]').value,
+      message: document.querySelector('#message').value,
+      hidden: ['n[6]', 'n[7]', 'n[5]', 'f[3]'].map(n => document.forms.post_msg.elements[n].value),
+      cite: document.querySelector('#accordion .accordion-toggle')?.textContent || ''
+    }));
+    check(`${pg} ${width} : page reconnue comme rédaction (« ${R.h1} »), champ unique posé, zones natives masquées mais présentes`, () => {
+      assert.equal(form.body, true); assert.ok(form.h1.startsWith(R.h1 + ' ') || form.h1 === R.h1, form.h1.slice(0, 40));
+      assert.equal(d.kd, true);
+      assert.deepEqual(d.natives, { dest: false, contacts: false, search: false, results: false, plus: false });
+      assert.equal(d.inForm, true);
+    });
+    check(`${pg} ${width} : destinataires préremplis en pastilles ${JSON.stringify(R.chips)}, #dest conservé tel quel (« ${R.dest} »)`, () => {
+      assert.deepEqual(d.chips.map(c => c.name), R.chips); assert.equal(d.dest, R.dest);
+    });
+    check(`${pg} ${width} : sujet « ${R.sujet} », message cité, n[6]/n[7]/n[5]/f[3] et bloc « Message auquel vous répondez » intacts`, () => {
+      assert.equal(form.sujet, R.sujet); assert.equal(form.message, CITATION);
+      assert.deepEqual(form.hidden, ['9000002', R.n7, '9100001', '0']);
+      assert.equal(form.cite, 'Message auquel vous répondez');
+    });
+    const o = await p.evaluate(BAR);
+    const rows = [...new Set(o.buttons.map(bt => Math.round(bt.y)))].length;
+    check(`${pg} ${width} : même barre que Nouveau (18 boutons [4,4,4,6], ${width === 1280 ? 1 : (width === 375 ? 3 : 4)} ligne(s), ${mob ? 40 : 24} px), aucun défilement horizontal`, () => {
+      assert.deepEqual(o.groups, [4, 4, 4, 6]);
+      assert.deepEqual(o.buttons.map(bt => bt.icon), TOOLS.map(t => t[1]));
+      assert.equal(rows, width === 1280 ? 1 : (width === 375 ? 3 : 4));
+      for (const bt of o.buttons) { assert.ok(Math.abs(bt.h - (mob ? 40 : 24)) <= 0.6); }
+      assert.ok(o.ox <= 0 && d.ox <= 0, `scrollX ${o.ox}/${d.ox}`);
+    });
+    if (SHOTS) {
+      await p.evaluate(() => window.scrollTo(0, 0));
+      await p.screenshot({ path: path.join(SHOTS, `apres-${width}-${pg}-page.png`), fullPage: true });
+      await shotDest(p, `apres-${width}-${pg}-dest`);
+    }
+    // Ajout et retrait sur une réponse : le prérempli est conservé
+    await typeIn(p, 'sire');
+    await settleDir(p, state, 'sire');
+    await p.keyboard.press('Enter');
+    d = await p.evaluate(DEST);
+    check(`${pg} ${width} : ajout d'un destinataire → #dest = prérempli + « Sire Bastien; »`, () => { assert.equal(d.dest, R.dest + 'Sire Bastien; '); });
+    if (R.chips.length) {
+      const sel = `.kd-chip-x[aria-label="Retirer ${R.chips[0]}"]`;
+      if (mob) {
+        await p.evaluate(s => { const e = document.querySelector(s); const r = e.getBoundingClientRect(); window.scrollTo(0, Math.max(0, r.top + window.scrollY - window.innerHeight / 2)); }, sel);
+        await p.tap(sel);
+      } else { await p.click(sel); }
+      d = await p.evaluate(DEST);
+      check(`${pg} ${width} : retrait de « ${R.chips[0]} » par sa croix → #dest = « ${R.dest.replace(R.chips[0] + '; ', '')}Sire Bastien; »`, () => assert.equal(d.dest, R.dest.replace(R.chips[0] + '; ', '') + 'Sire Bastien; '));
+    }
+    // Saisie non validée : même blocage que sur Nouveau
+    await typeIn(p, 'mar');
+    await settleDir(p, state, 'mar');
+    await p.click('form[name="post_msg"] button.btn-primary');
+    d = await p.evaluate(DEST);
+    const s0 = await p.evaluate(() => window.__submits.length);
+    check(`${pg} ${width} : texte tapé non validé → envoi bloqué, « Validez ou effacez « mar » »`, () => { assert.equal(s0, 0); assert.match(d.msg, /Validez ou effacez « mar »/); });
+    if (SHOTS && width !== 1280) { await shotDest(p, `apres-${width}-${pg}-blocage`); }
+    await p.keyboard.press('Escape');
+    await p.click('form[name="post_msg"] button.btn-primary');
+    const sent = await p.evaluate(() => window.__submits);
+    check(`${pg} ${width} : envoi natif, c[3] = destinataires des pastilles, sujet, message et champs cachés du site inchangés`, () => {
+      assert.equal(sent.length, 1);
+      const fd = Object.fromEntries(sent[0]);
+      assert.equal(fd['c[3]'], d.dest);
+      assert.equal(fd['c[1]'], R.sujet); assert.equal(fd.message.replace(/\r\n/g, '\n'), CITATION);
+      assert.equal(fd['n[6]'], '9000002'); assert.equal(fd['n[7]'], R.n7); assert.equal(fd['n[5]'], '9100001');
+    });
+    check(`${pg} ${width} : aucune navigation, aucune erreur, aucune requête imprévue`, () => { assert.equal(state.documents, 1); assert.deepEqual(errors, [], JSON.stringify(errors)); assert.deepEqual(unexpected(state), [], JSON.stringify(unexpected(state))); });
+    await context.close();
+    if (SHOTS && AVANT) {
+      const av = await open({ width, page: pg, bundle: 'avant', height: mob ? 800 : 900 });
+      await av.page.screenshot({ path: path.join(SHOTS, `avant-${width}-${pg}-page.png`), fullPage: true });
+      await av.context.close();
+    }
+  }
+  // Thème désactivé sur une page de réponse : page 100 % native, #dest prérempli intact
+  const off = await open({ width: 1280, page: pg, themeOn: false });
+  const dOff = await off.page.evaluate(DEST);
+  check(`${pg} thème désactivé : aucune interface du module, zones natives visibles, #dest prérempli intact`, () => {
+    assert.equal(dOff.kd, false); assert.deepEqual(dOff.natives, { dest: true, contacts: true, search: true, results: true, plus: true }); assert.equal(dOff.dest, R.dest);
+  });
+  await off.context.close();
+}
+
+// =====================================================================================================
+// 6 bis) Libellé « Destinataires » entre 768 et 1199 px (QA t_63fbb540, m-2) : dans sa colonne, à 8 px au moins du champ
+// =====================================================================================================
+if (frag('libelle')) {
+  console.log('Libellé « Destinataires * » de 768 à 1199 px : pas de débordement de sa colonne, écart >= 8 px avec le champ');
+  for (const width of [768, 769, 800, 900, 991, 992, 1100, 1199, 1200, 1280]) {
+    const { context, page: p } = await open({ width });
+    const m = await p.evaluate(() => {
+      const lab = document.querySelector('.kd-label');
+      const range = document.createRange();
+      range.selectNodeContents(lab);
+      const rects = Array.from(range.getClientRects());
+      const text = { l: Math.min(...rects.map(r => r.left)), r: Math.max(...rects.map(r => r.right)) };
+      const box = lab.getBoundingClientRect();
+      const field = document.querySelector('.kd-field').getBoundingClientRect();
+      return { textL: text.l, textR: text.r, boxL: box.left, boxR: box.right, field: field.left, lines: new Set(rects.map(r => Math.round(r.top))).size, sw: lab.scrollWidth, cw: lab.clientWidth, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    const gap = Math.round((m.field - m.textR) * 10) / 10;
+    console.log(`  ${width} px : texte ${m.textL.toFixed(1)}–${m.textR.toFixed(1)}, colonne ${m.boxL.toFixed(1)}–${m.boxR.toFixed(1)}, champ à ${m.field.toFixed(1)}, écart ${gap} px, ${m.lines} ligne(s)`);
+    check(`libellé ${width} px : « Destinataires * » dans sa colonne (texte ${m.textL.toFixed(0)}–${m.textR.toFixed(0)} ⊂ ${m.boxL.toFixed(0)}–${m.boxR.toFixed(0)}), écart ${gap} px >= 8 avec le champ, pas de scrollX`, () => {
+      assert.ok(m.textL >= m.boxL - 0.5 && m.textR <= m.boxR + 0.5, JSON.stringify(m));
+      assert.ok(m.sw <= m.cw, `débordement interne ${m.sw}/${m.cw}`);
+      assert.ok(gap >= 8, `écart ${gap}`);
+      assert.ok(m.ox <= 0);
     });
     await context.close();
   }
@@ -816,8 +1108,15 @@ if (frag('themes')) {
     await p.fill('.kd-input', '');
     await p.evaluate(() => { document.querySelector('.kd-input').dispatchEvent(new Event('input')); document.activeElement.blur(); });
     const r2 = await p.evaluate(MEASURE, [['aide', '.kd-help'], ['texte indicatif', '.kd-input', '::placeholder']]);
+    // Envoi bloqué (texte tapé non validé) : message et boutons Ajouter / Effacer
+    await p.focus('.kd-input');
+    await p.keyboard.type('zz', { delay: 5 });
+    await p.keyboard.press('Escape');
+    await p.click('form[name="post_msg"] button.btn-primary');
+    await p.mouse.move(0, 0);
+    const r3 = await p.evaluate(MEASURE, [['message de blocage', '.kd-msg-text'], ['bouton Ajouter', '.kd-msg-add'], ['bouton Effacer', '.kd-msg-clear']]);
     await context.close();
-    const all = { ...r1, ...r2 };
+    const all = { ...r1, ...r2, ...r3 };
     check(`thème ${variant} : textes du champ et de la barre >= 4,5:1`, () => {
       const bad = Object.entries(all).filter(([, v]) => v === null || v < 4.5).map(([k, v]) => `${k} ${v}`);
       assert.equal(bad.length, 0, bad.join(' ; '));
