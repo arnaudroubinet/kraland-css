@@ -6048,6 +6048,646 @@
   })();
 
   // ============================================================================
+  // MODULE : Kramail:Destinataires — rédaction d'un Kramail, champ « Destinataires » unique (t_abf9ccd4, maquette t_859e687e validée)
+  // Les trois zones natives (Destinataire(s) #dest, Contacts #contacts + « + », Chercher #search + #results) restent dans le
+  // formulaire, masquées par une classe : rien n'est supprimé ni déplacé. Les pastilles écrivent dans #dest (c[3]) au format
+  // natif « Nom; Nom; » ; l'envoi reste celui du site. Sources des suggestions : les options de #contacts déjà dans la page et
+  // ajaxsearch.php?c[1]=…&t=…, la requête que fait déjà Chercher (kramail_post.js). Aucun autre appel serveur.
+  // En cas d'erreur, l'interface est retirée et les zones natives restent utilisables.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    const MIN_DIRECTORY = 2;          // règle native de Chercher : longueur > 1
+    const DIRECTORY_DELAY_MS = 250;   // délai après la dernière frappe
+    const HIDDEN = 'kd-natif-cache';
+    const ID = 'kr-kd';
+
+    function isComposePage() {
+      return !!document.body && (document.body.classList.contains('page-kramail-compose') || /\/kramail\/post\/nouveau/.test(window.location.pathname));
+    }
+
+    // Comparaison des doublons : casse et espaces en trop ignorés
+    function sameKey(name) {
+      return String(name).replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+
+    // Repli caractère par caractère (accents et casse) pour filtrer et souligner la partie trouvée
+    function fold(text) {
+      const chars = Array.from(String(text));
+      let folded = '';
+      const map = [];
+      chars.forEach((ch, i) => {
+        const f = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        for (let k = 0; k < f.length; k += 1) { folded += f[k]; map.push(i); }
+      });
+      return { folded, map, chars };
+    }
+
+    function findMatch(name, query) {
+      const q = fold(query.trim()).folded;
+      if (!q) {return null;}
+      const f = fold(name);
+      const at = f.folded.indexOf(q);
+      if (at < 0) {return null;}
+      const start = f.map[at];
+      const end = f.map[at + q.length - 1] + 1;
+      return { start, end, chars: f.chars, prefix: at === 0 };
+    }
+
+    function groupTag(label) {
+      const l = String(label || '').trim();
+      if (/^membres?$/i.test(l)) {return 'Membre';}
+      return l;
+    }
+
+    // Contacts : options écrites par le serveur dans #contacts (groupes Membres / Plateau), valeur = texte inséré par « + »
+    function readContacts(select) {
+      const out = [];
+      Array.from(select.children).forEach(child => {
+        if (child.tagName === 'OPTGROUP') {
+          Array.from(child.children).forEach(o => { if (o.tagName === 'OPTION' && o.value) {out.push({ name: o.value, group: groupTag(child.label), source: 'contacts' });} });
+        } else if (child.tagName === 'OPTION' && child.value) {
+          out.push({ name: child.value, group: '', source: 'contacts' });
+        }
+      });
+      return out;
+    }
+
+    // Réponse HTML d'ajaxsearch.php : <strong>Groupe</strong>&nbsp;[<a onClick='…+"NOM; ";return false;'>+</a>]NOM AFFICHÉ;&nbsp;… (...) <hr>
+    // On lit le nom INSÉRÉ par le lien natif (pas le nom affiché, qui peut contenir des smileys). DOMParser : document inerte.
+    function parseDirectory(html) {
+      const doc = new DOMParser().parseFromString('<body>' + html + '</body>', 'text/html');
+      const items = [];
+      let group = '';
+      let truncated = false;
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const n = walker.currentNode;
+        if (n.nodeType === 1 && n.tagName === 'STRONG') {
+          group = groupTag(n.textContent);
+        } else if (n.nodeType === 1 && n.tagName === 'A') {
+          const m = /\.value\s*\+\s*"([\s\S]*); "\s*;\s*return false;?\s*$/.exec(n.getAttribute('onclick') || '');
+          if (m && m[1].trim()) {items.push({ name: m[1], group, source: 'annuaire' });}
+        } else if (n.nodeType === 3 && n.parentNode && n.parentNode.tagName !== 'STRONG' && n.textContent.indexOf('(...)') !== -1) {
+          truncated = true;
+        }
+      }
+      return { items, truncated };
+    }
+
+    function el(tag, className, text) {
+      const e = document.createElement(tag);
+      if (className) {e.className = className;}
+      if (text !== undefined && text !== null) {e.textContent = text;}
+      return e;
+    }
+
+    function icon(classes) {
+      const i = el('i', classes);
+      i.setAttribute('aria-hidden', 'true');
+      return i;
+    }
+
+    function build(form, dest, contactsSelect) {
+      const destRow = dest.closest('.form-group');
+      const results = form.querySelector('#results');
+      const resultsRow = results ? results.closest('.form-group') : null;
+      if (!destRow || destRow.querySelector('.kd')) {return null;}
+
+      const contacts = contactsSelect ? readContacts(contactsSelect) : [];
+      const state = {
+        chips: [], text: '', open: false, mode: 'search', options: [], active: -1, selectedChip: -1, flash: '',
+        dir: { q: '', status: 'idle', items: [], truncated: false }, cache: new Map(), timer: 0, controller: null
+      };
+
+      // ---------- structure ----------
+      const label = el('label', 'col-sm-2 control-label kd-label');
+      label.id = ID + '-label';
+      label.htmlFor = ID + '-input';
+      label.appendChild(document.createTextNode('Destinataires '));
+      label.appendChild(el('span', 'required', '*'));
+
+      const root = el('div', 'col-sm-10 kd');
+      const box = el('div', 'kd-box');
+      const field = el('div', 'kd-field');
+      const flow = el('div', 'kd-flow');
+      const chipList = el('ul', 'kd-chips');
+      chipList.setAttribute('aria-label', 'Destinataires choisis');
+      const input = el('input', 'kd-input');
+      input.type = 'text';
+      input.id = ID + '-input';
+      input.setAttribute('role', 'combobox');
+      input.setAttribute('aria-autocomplete', 'list');
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-controls', ID + '-list');
+      input.setAttribute('aria-describedby', ID + '-help');
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('autocapitalize', 'off');
+      input.setAttribute('spellcheck', 'false');
+      input.placeholder = 'Membre ou personnage';
+      flow.appendChild(chipList);
+      flow.appendChild(input);
+      field.appendChild(flow);
+
+      const contactsBtn = el('button', 'kd-contacts');
+      contactsBtn.type = 'button';
+      contactsBtn.setAttribute('aria-haspopup', 'listbox');
+      contactsBtn.setAttribute('aria-expanded', 'false');
+      contactsBtn.setAttribute('aria-controls', ID + '-list');
+      contactsBtn.appendChild(icon('fas fa-address-book'));
+      contactsBtn.appendChild(el('span', '', 'Contacts'));
+      field.appendChild(contactsBtn);
+      box.appendChild(field);
+
+      const panel = el('div', 'kd-panel');
+      panel.hidden = true;
+      const list = el('div', 'kd-list');
+      list.id = ID + '-list';
+      list.setAttribute('role', 'listbox');
+      list.setAttribute('aria-labelledby', label.id);
+      const foot = el('div', 'kd-foot');
+      panel.appendChild(list);
+      panel.appendChild(foot);
+      box.appendChild(panel);
+      root.appendChild(box);
+
+      const help = el('p', 'kd-help', 'Tapez au moins 2 lettres : vos contacts d’abord, puis l’annuaire du jeu (membres et plateau).');
+      help.id = ID + '-help';
+      // message visible (doublon refusé, champ requis) et annonce pour lecteur d'écran (nombre de suggestions, aucun résultat, doublon)
+      const msg = el('p', 'kd-msg');
+      msg.setAttribute('aria-live', 'polite');
+      const live = el('p', 'sr-only kd-live');
+      live.setAttribute('role', 'status');
+      root.appendChild(help);
+      root.appendChild(msg);
+      root.appendChild(live);
+
+      // ---------- #dest natif ----------
+      function syncDest() {
+        const pending = state.text.trim();
+        const names = state.chips.slice();
+        if (pending && !names.some(n => sameKey(n) === sameKey(pending))) {names.push(pending);}
+        dest.value = names.map(n => n + '; ').join('');
+      }
+
+      function hasChip(name) {
+        return state.chips.some(n => sameKey(n) === sameKey(name));
+      }
+
+      function say(text, warn) {
+        msg.textContent = '';
+        if (!text) {return;}
+        if (warn) {msg.appendChild(icon('fas fa-exclamation-triangle'));}
+        msg.appendChild(document.createTextNode(text));
+      }
+
+      // ---------- pastilles ----------
+      function renderChips(dupKeys) {
+        chipList.textContent = '';
+        state.chips.forEach((name, index) => {
+          const li = el('li', 'kd-chip');
+          if (index === state.selectedChip) {li.classList.add('is-selected');}
+          if (dupKeys && dupKeys.has(sameKey(name))) {li.classList.add('is-dup');}
+          li.appendChild(el('span', 'kd-chip-name', name));
+          const x = el('button', 'kd-chip-x');
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Retirer ' + name);
+          x.appendChild(icon('fas fa-times'));
+          x.addEventListener('click', (e) => {
+            e.preventDefault();
+            removeChip(index);
+            input.focus();
+          });
+          li.appendChild(x);
+          chipList.appendChild(li);
+        });
+      }
+
+      function addChip(name) {
+        const clean = String(name).trim();
+        if (!clean) {return false;}
+        if (hasChip(clean)) {
+          const existing = state.chips.find(n => sameKey(n) === sameKey(clean));
+          state.flash = sameKey(clean);
+          say(existing + ' est déjà dans les destinataires.', true);
+          live.textContent = existing + ' est déjà dans les destinataires.';
+          renderChips(new Set([state.flash]));
+          return false;
+        }
+        state.chips.push(clean);
+        state.selectedChip = -1;
+        state.flash = '';
+        field.classList.remove('is-invalid');
+        say('');
+        return true;
+      }
+
+      function removeChip(index) {
+        if (index < 0 || index >= state.chips.length) {return;}
+        state.chips.splice(index, 1);
+        state.selectedChip = -1;
+        syncDest();
+        say('');
+        render();
+      }
+
+      // ---------- annuaire (ajaxsearch.php, même requête que Chercher) ----------
+      function scheduleDirectory(q) {
+        window.clearTimeout(state.timer);
+        if (state.controller) { state.controller.abort(); state.controller = null; }
+        if (q.length < MIN_DIRECTORY) { state.dir = { q, status: 'idle', items: [], truncated: false }; return; }
+        const key = q.toLowerCase();
+        if (state.cache.has(key)) { state.dir = { q, status: 'done', ...state.cache.get(key) }; return; }
+        state.dir = { q, status: 'loading', items: [], truncated: false };
+        state.timer = window.setTimeout(() => {
+          const controller = new window.AbortController();
+          state.controller = controller;
+          // Même requête que Chercher : 'ajaxsearch.php' résolu sur <base href="http://www.kraland.org/"> = /ajaxsearch.php
+          fetch('/ajaxsearch.php?c[1]=' + encodeURIComponent(q) + '&t=' + new Date().getTime(), { credentials: 'same-origin', signal: controller.signal })
+            .then(r => { if (!r.ok) {throw new Error('HTTP ' + r.status);} return r.text(); })
+            .then(html => {
+              if (controller.signal.aborted || state.controller !== controller) {return;}
+              state.controller = null;
+              const parsed = parseDirectory(html);
+              state.cache.set(key, parsed);
+              if (state.text.trim() === q) { state.dir = { q, status: 'done', ...parsed }; render(); }
+            })
+            .catch(err => {
+              if (controller.signal.aborted || (err && err.name === 'AbortError')) {return;}
+              if (state.controller === controller) {state.controller = null;}
+              if (state.text.trim() === q) { state.dir = { q, status: 'error', items: [], truncated: false }; render(); }
+            });
+        }, DIRECTORY_DELAY_MS);
+      }
+
+      // ---------- suggestions ----------
+      // Les noms qui commencent par la saisie d'abord. keepAll : l'annuaire a déjà filtré côté serveur, on n'écarte aucun de ses noms.
+      function sortByPrefix(items, q, keepAll) {
+        return items
+          .map((it, i) => ({ it, i, m: findMatch(it.name, q) }))
+          .filter(x => keepAll || x.m)
+          .sort((a, b) => {
+            const pa = !!(a.m && a.m.prefix);
+            const pb = !!(b.m && b.m.prefix);
+            return pa === pb ? a.i - b.i : (pa ? -1 : 1);
+          })
+          .map(x => x.it);
+      }
+
+      function computeSections() {
+        const q = state.text.trim();
+        const sections = [];
+        if (state.mode === 'contacts') {
+          const pool = q ? sortByPrefix(contacts, q) : contacts.slice();
+          const groups = [];
+          pool.forEach(c => { if (!groups.includes(c.group)) {groups.push(c.group);} });
+          groups.forEach(g => sections.push({ id: 'c-' + groups.indexOf(g), title: 'Contacts' + (g ? ' · ' + (g === 'Membre' ? 'Membres' : g) : ''), items: pool.filter(c => c.group === g), icon: 'fas fa-address-book', tags: false }));
+          return { sections, empty: pool.length === 0 };
+        }
+        const mine = q ? sortByPrefix(contacts, q) : [];
+        if (mine.length) {sections.push({ id: 'c', title: 'Vos contacts', items: mine, icon: 'fas fa-address-book', tags: true });}
+        let dirItems = [];
+        if (q.length >= MIN_DIRECTORY && state.dir.q === q && state.dir.status === 'done') {
+          const known = new Set(contacts.map(c => sameKey(c.name)));
+          dirItems = sortByPrefix(state.dir.items.filter(it => !known.has(sameKey(it.name))), q, true);
+          if (dirItems.length) {sections.push({ id: 'a', title: 'Annuaire du jeu', note: 'début du nom d’abord', items: dirItems, icon: 'fas fa-user', tags: true });}
+        }
+        const loading = q.length >= MIN_DIRECTORY && state.dir.status === 'loading';
+        const error = q.length >= MIN_DIRECTORY && state.dir.status === 'error';
+        const done = q.length >= MIN_DIRECTORY && state.dir.q === q && state.dir.status === 'done';
+        return { sections, loading, error, empty: done && mine.length === 0 && dirItems.length === 0, truncated: done && state.dir.truncated };
+      }
+
+      function optionNode(item, section, index, q) {
+        const opt = el('div', 'kd-opt');
+        opt.id = ID + '-opt-' + index;
+        opt.setAttribute('role', 'option');
+        const dup = hasChip(item.name);
+        const ico = el('span', 'kd-opt-ico');
+        ico.appendChild(icon(dup ? 'fas fa-check' : (item.free ? 'fas fa-plus' : section.icon)));
+        opt.appendChild(ico);
+        const nameNode = el('span', 'kd-opt-name');
+        const m = q && !item.free ? findMatch(item.name, q) : null;
+        if (m) {
+          nameNode.appendChild(document.createTextNode(m.chars.slice(0, m.start).join('')));
+          nameNode.appendChild(el('mark', '', m.chars.slice(m.start, m.end).join('')));
+          nameNode.appendChild(document.createTextNode(m.chars.slice(m.end).join('')));
+        } else {
+          nameNode.textContent = item.name;
+        }
+        opt.appendChild(nameNode);
+        let tag = '';
+        if (dup) {tag = 'déjà ajouté';} else if (item.free) {tag = 'ajouter tel quel · non vérifié';} else if (section.tags) {tag = item.group;}
+        if (tag) {opt.appendChild(el('span', 'kd-opt-tag', tag));}
+        if (dup) {opt.setAttribute('aria-disabled', 'true');}
+        if (item.free) {opt.classList.add('kd-opt-free');}
+        opt.addEventListener('mousedown', e => e.preventDefault()); // garde le focus dans la saisie
+        opt.addEventListener('click', () => {
+          if (dup) {return;}
+          choose(item);
+        });
+        return { node: opt, item, disabled: dup };
+      }
+
+      function render() {
+        const q = state.text.trim();
+        const computed = state.open ? computeSections() : null;
+        list.textContent = '';
+        foot.textContent = '';
+        panel.querySelectorAll('.kd-warn, .kd-empty').forEach(n => n.remove());
+        state.options = [];
+        const dupKeys = new Set();
+        if (computed) {
+          let index = 0;
+          computed.sections.forEach(section => {
+            const group = el('div', 'kd-group');
+            group.setAttribute('role', 'group');
+            const head = el('div', 'kd-sec', section.title);
+            head.id = ID + '-sec-' + section.id;
+            if (section.note) {head.appendChild(el('small', '', section.note));}
+            group.setAttribute('aria-labelledby', head.id);
+            group.appendChild(head);
+            section.items.forEach(item => {
+              const o = optionNode(item, section, index, q);
+              index += 1;
+              if (o.disabled) {dupKeys.add(sameKey(item.name));}
+              state.options.push(o);
+              group.appendChild(o.node);
+            });
+            list.appendChild(group);
+          });
+          if (computed.loading) {list.appendChild(el('div', 'kd-sec kd-loading', 'Recherche dans l’annuaire…'));}
+          if (computed.error) {list.appendChild(el('div', 'kd-sec kd-error', 'Annuaire indisponible, réessayez'));}
+          if (computed.empty) {
+            const empty = el('p', 'kd-empty');
+            if (state.mode === 'contacts') {
+              empty.textContent = q ? 'Aucun contact ne contient « ' + q + ' ».' : 'Aucun contact enregistré.';
+            } else {
+              empty.appendChild(document.createTextNode('Aucun contact ni nom de l’annuaire ne contient '));
+              empty.appendChild(el('b', '', '« ' + q + ' »'));
+              empty.appendChild(document.createTextNode('. Vérifiez l’orthographe.'));
+            }
+            panel.insertBefore(empty, list);
+            if (state.mode !== 'contacts' && q) {
+              const freeSection = { id: 'f', icon: 'fas fa-plus', tags: false };
+              const o = optionNode({ name: q, free: true }, freeSection, index, q);
+              if (!o.disabled) {state.options.push(o);}
+              list.appendChild(o.node);
+              foot.appendChild(el('span', '', 'Un nom absent de l’annuaire reste possible : il part tel quel, comme dans la zone de texte actuelle.'));
+            }
+          }
+          if (dupKeys.size && state.mode !== 'contacts') {
+            const first = state.options.find(o => o.disabled);
+            const warn = el('div', 'kd-warn');
+            warn.appendChild(icon('fas fa-exclamation-triangle'));
+            warn.appendChild(document.createTextNode((first ? first.item.name : '') + ' est déjà dans les destinataires.'));
+            panel.insertBefore(warn, panel.firstChild);
+          }
+          if (computed.truncated) {
+            const t = el('span', '');
+            t.appendChild(document.createTextNode('Annuaire : '));
+            t.appendChild(el('b', '', '25 premiers noms'));
+            t.appendChild(document.createTextNode(' seulement, précisez pour affiner.'));
+            foot.appendChild(t);
+          }
+          if (state.mode === 'contacts') {
+            foot.appendChild(el('span', '', 'Tapez pour filtrer vos contacts ; un clic ajoute, la liste reste ouverte.'));
+          }
+          const keys = el('span', 'kd-keys');
+          keys.appendChild(document.createTextNode('↑↓ choisir · '));
+          keys.appendChild(el('b', '', 'Entrée'));
+          keys.appendChild(document.createTextNode(' ajouter · '));
+          keys.appendChild(el('b', '', 'Échap'));
+          keys.appendChild(document.createTextNode(' fermer'));
+          foot.appendChild(keys);
+          foot.classList.toggle('kd-foot-touches', foot.children.length === 1);
+          // option active : la première choisissable, ou celle déjà active si elle l'est encore
+          const enabled = state.options.map((o, i) => (o.disabled ? -1 : i)).filter(i => i >= 0);
+          if (!enabled.includes(state.active)) {state.active = enabled.length ? enabled[0] : -1;}
+        } else {
+          state.active = -1;
+        }
+        state.options.forEach((o, i) => {
+          const on = i === state.active;
+          o.node.classList.toggle('is-active', on);
+          o.node.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const visible = !!computed && (state.options.length > 0 || computed.loading || computed.error || computed.empty);
+        panel.hidden = !visible;
+        root.classList.toggle('is-open', visible);
+        input.setAttribute('aria-expanded', visible ? 'true' : 'false');
+        contactsBtn.setAttribute('aria-expanded', visible && state.mode === 'contacts' ? 'true' : 'false');
+        if (state.active >= 0) {input.setAttribute('aria-activedescendant', state.options[state.active].node.id);} else {input.removeAttribute('aria-activedescendant');}
+        // Annonce (lecteur d'écran) ; le doublon est aussi écrit dans le panneau
+        let announce = '';
+        const firstDup = state.options.find(o => o.disabled);
+        if (visible && firstDup && state.mode !== 'contacts') {
+          announce = firstDup.item.name + ' est déjà dans les destinataires.';
+        } else if (visible && computed.empty) {
+          announce = 'Aucun résultat.';
+        } else if (visible && !computed.loading) {
+          const n = state.options.filter(o => !o.disabled && !o.item.free).length;
+          announce = n + (n > 1 ? ' suggestions.' : ' suggestion.');
+        }
+        if (announce) {live.textContent = announce;}
+        const lit = state.mode === 'contacts' ? new Set() : dupKeys;
+        if (state.flash) {lit.add(state.flash);}
+        renderChips(lit);
+      }
+
+      function openPanel(mode) {
+        state.mode = mode;
+        state.open = true;
+        render();
+      }
+
+      function closePanel() {
+        state.open = false;
+        state.mode = 'search';
+        render();
+      }
+
+      function setText(value) {
+        state.text = value;
+        if (input.value !== value) {input.value = value;}
+        syncDest();
+      }
+
+      function choose(item) {
+        const name = item.free ? state.text.trim() : item.name;
+        const keepOpen = state.mode === 'contacts';
+        if (addChip(name)) {
+          setText('');
+          scheduleDirectory('');
+          syncDest();
+          if (keepOpen) {openPanel('contacts');} else {closePanel();}
+        } else {
+          render();
+        }
+        input.focus();
+      }
+
+      function commitFree() {
+        const q = state.text.trim();
+        if (!q) {return;}
+        if (addChip(q)) { setText(''); scheduleDirectory(''); syncDest(); closePanel(); } else { render(); }
+      }
+
+      function onText() {
+        let value = input.value;
+        state.flash = '';
+        state.selectedChip = -1;
+        say('');
+        // « ; » (séparateur natif) : découpe en pastilles, y compris au collage « A; B; C » (un doublon refusé reste signalé)
+        if (value.indexOf(';') !== -1) {
+          const parts = value.split(';');
+          const rest = parts.pop();
+          parts.map(p => p.trim()).filter(Boolean).forEach(p => addChip(p));
+          value = rest.replace(/^\s+/, '');
+          input.value = value;
+        }
+        setText(value);
+        const q = value.trim();
+        if (state.mode === 'contacts') {
+          scheduleDirectory('');
+          openPanel('contacts');
+        } else {
+          scheduleDirectory(q);
+          if (q.length >= 1) {openPanel('search');} else {closePanel();}
+        }
+      }
+
+      function move(step) {
+        const enabled = state.options.map((o, i) => (o.disabled ? -1 : i)).filter(i => i >= 0);
+        if (!enabled.length) {return;}
+        const pos = enabled.indexOf(state.active);
+        const next = pos < 0 ? (step > 0 ? 0 : enabled.length - 1) : (pos + step + enabled.length) % enabled.length;
+        state.active = enabled[next];
+        state.options.forEach((o, i) => {
+          const on = i === state.active;
+          o.node.classList.toggle('is-active', on);
+          o.node.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const node = state.options[state.active].node;
+        input.setAttribute('aria-activedescendant', node.id);
+        if (typeof node.scrollIntoView === 'function' && !panel.hidden && getComputedStyle(panel).position === 'absolute') {node.scrollIntoView({ block: 'nearest' });}
+      }
+
+      function onKey(e) {
+        const visible = !panel.hidden;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!visible) { if (state.text.trim()) {openPanel('search');} else if (contacts.length) {openPanel('contacts');} return; }
+          move(e.key === 'ArrowDown' ? 1 : -1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault(); // jamais d'envoi implicite du formulaire depuis cette saisie
+          if (visible && state.active >= 0) {choose(state.options[state.active].item);} else {commitFree();}
+        } else if (e.key === 'Tab') {
+          if (state.text.trim()) {
+            if (visible && state.active >= 0) {choose(state.options[state.active].item);} else {commitFree();}
+          }
+        } else if (e.key === 'Escape') {
+          if (visible) { e.preventDefault(); closePanel(); }
+        } else if (e.key === 'Backspace') {
+          if (input.value === '' && state.chips.length) {
+            e.preventDefault();
+            if (state.selectedChip === state.chips.length - 1) {
+              removeChip(state.chips.length - 1);
+            } else {
+              state.selectedChip = state.chips.length - 1;
+              renderChips();
+            }
+          }
+        } else if (state.selectedChip !== -1) {
+          state.selectedChip = -1;
+          renderChips();
+        }
+      }
+
+      input.addEventListener('input', onText);
+      input.addEventListener('keydown', onKey);
+      input.addEventListener('focus', () => field.classList.add('is-focus'));
+      input.addEventListener('blur', () => {
+        field.classList.remove('is-focus');
+        if (state.selectedChip !== -1) { state.selectedChip = -1; renderChips(); }
+      });
+      field.addEventListener('mousedown', e => {
+        if (e.target === field || e.target === flow || e.target === chipList) { e.preventDefault(); input.focus(); }
+      });
+      contactsBtn.addEventListener('mousedown', e => e.preventDefault());
+      contactsBtn.addEventListener('click', () => {
+        if (!panel.hidden && state.mode === 'contacts') {closePanel();} else {openPanel('contacts');}
+        input.focus();
+      });
+      panel.addEventListener('mousedown', e => e.preventDefault());
+      // clic hors du champ : on referme (rien n'est perdu)
+      document.addEventListener('mousedown', e => { if (!panel.hidden && !root.contains(e.target)) {closePanel();} }, true);
+      // Zone native requise et masquée : le message vient sur le champ visible, sans bulle sur une zone invisible
+      dest.addEventListener('invalid', e => {
+        e.preventDefault();
+        say('Ajoutez au moins un destinataire.', true);
+        field.classList.add('is-invalid');
+        input.focus();
+      });
+      input.addEventListener('input', () => field.classList.remove('is-invalid'));
+
+      // Valeur déjà présente dans #dest (retour arrière du navigateur, brouillon) : reprise en pastilles
+      String(dest.value || '').split(';').map(p => p.trim()).filter(Boolean).forEach(p => { if (!hasChip(p)) {state.chips.push(p.replace(/\s+/g, ' '));} });
+      if (state.chips.length) {syncDest();}
+
+      // ---------- mise en place : zones natives masquées, jamais retirées ----------
+      Array.from(destRow.children).forEach(c => c.classList.add(HIDDEN));
+      if (resultsRow && resultsRow !== destRow) {resultsRow.classList.add(HIDDEN);}
+      destRow.classList.add('kd-row');
+      destRow.appendChild(label);
+      destRow.appendChild(root);
+      render();
+
+      return {
+        undo() {
+          window.clearTimeout(state.timer);
+          if (state.controller) {state.controller.abort();}
+          label.remove();
+          root.remove();
+          destRow.classList.remove('kd-row');
+          destRow.querySelectorAll('.' + HIDDEN).forEach(c => c.classList.remove(HIDDEN));
+          if (resultsRow) {resultsRow.classList.remove(HIDDEN);}
+        },
+        state
+      };
+    }
+
+    function initKramailDestinataires() {
+      if (!isComposePage()) {return;}
+      const form = document.forms.post_msg || document.querySelector('form[name="post_msg"]');
+      const dest = form && form.querySelector('textarea#dest[name="c[3]"]');
+      if (!form || !dest || form.dataset.krDest) {return;}
+      if (typeof window.fetch !== 'function' || typeof window.AbortController !== 'function' || typeof window.DOMParser !== 'function') {return;}
+      let built = null;
+      try {
+        built = build(form, dest, form.querySelector('select#contacts'));
+        if (built) {form.dataset.krDest = 'ready';}
+      } catch (e) {
+        // Repli : on retire tout ce qui a été posé, les trois zones natives restent visibles et utilisables
+        try {
+          const row = dest.closest('.form-group');
+          if (row) {
+            row.querySelectorAll('.kd-label, .kd').forEach(n => n.remove());
+            row.classList.remove('kd-row');
+          }
+          form.querySelectorAll('.kd-natif-cache').forEach(n => n.classList.remove('kd-natif-cache'));
+        } catch (_e) { /* rien de plus à défaire */ }
+        form.dataset.krDest = 'repli';
+        console.warn('[Kramail:Destinataires] interface désactivée, zones natives conservées :', e);
+      }
+    }
+
+    InitQueue.register('Kramail:Destinataires', initKramailDestinataires, 34);
+
+  })();
+
+  // ============================================================================
   // MODULE : ForumThread:MobileBreadcrumb
   // Transforme le header des threads de forum en fil d'ariane + FAB button
   // ============================================================================

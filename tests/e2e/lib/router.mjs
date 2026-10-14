@@ -27,7 +27,9 @@ export const SUITES = [
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
   { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] },
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
-  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true }
+  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
+  // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
+  { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['clavier', 'reseau', 'envoi', 'repli']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 
@@ -38,6 +40,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
+  [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
   [/^(README\.md|CLAUDE\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
   [/^(kraland-userscript-main\.user\.js|kraland-userscript\.user\.js|kraland-userscript-dev\.user\.js)$/, 'generated'] // fichiers générés : la source fait foi, sinon total
 ];
@@ -47,6 +50,7 @@ const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint
 export const KEYWORDS = [
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
+  [/kramail|post_msg|\.kd-|kd-natif|btn-toolbar|Destinataires/i, ['kramail']],
   [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic/i, ['sous-forum']],
   [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, ['images']],
   [/croix|dpad|directionnel|d-pad/i, ['croix']],
