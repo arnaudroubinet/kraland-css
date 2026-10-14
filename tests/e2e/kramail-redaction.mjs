@@ -89,7 +89,7 @@ const shot = async (target, name, opts = {}) => { if (SHOTS) { await target.scre
 const browser = await chromium.launch({ headless: true });
 const DARK = 'empire-brun-dark';
 
-async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK, height = 900, touch = false, init = null, ajaxDelay = 120 }) {
+async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK, height = 900, touch = false, init = null, ajaxDelay = 120, themeOn = true }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: SHOTS ? 2 : 1 });
   const state = { documents: 0, other: [], denied: [], ajax: [], failed: [], ajaxDelay, ajaxStatus: {} };
@@ -126,7 +126,7 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
     return r.abort();
   });
   context.on('requestfailed', req => { const u = new URL(req.url()); if (u.pathname === '/ajaxsearch.php') { state.failed.push({ q: u.searchParams.get('c[1]'), err: req.failure()?.errorText }); } });
-  await context.addInitScript(({ src, v, extra }) => {
+  await context.addInitScript(({ src, v, extra, on }) => {
     window.GM = { xmlHttpRequest: () => {} };
     window.__opened = [];
     window.__submits = [];
@@ -143,17 +143,18 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
     // eslint-disable-next-line no-eval
     if (extra) { (0, eval)(extra); }
     if (src) {
-      localStorage.setItem('kr-theme-enabled', 'true');
+      // Thème désactivé par le joueur (on === false) : le bundle tourne, mais sans CSS (cas réel du bouton d'activation du thème)
+      localStorage.setItem('kr-theme-enabled', on === false ? 'false' : 'true');
       localStorage.setItem('kr-theme-variant', v);
       // eslint-disable-next-line no-eval
       document.addEventListener('DOMContentLoaded', () => (0, eval)(src));
     }
-  }, { src: bundle === 'apres' ? APRES : (bundle === 'avant' ? AVANT : null), v: variant, extra: init });
+  }, { src: bundle === 'apres' ? APRES : (bundle === 'avant' ? AVANT : null), v: variant, extra: init, on: themeOn });
   const p = await context.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(String(e.message)));
   await p.goto(BASE + PAGES[page].url, { waitUntil: 'load' });
-  if (bundle) { await domQuiet(p, { ready: THEME_READY, label: 'kramail ' + page }); } else { await p.waitForTimeout(300); }
+  if (bundle) { await domQuiet(p, { ready: themeOn === false ? null : THEME_READY, label: 'kramail ' + page }); } else { await p.waitForTimeout(300); }
   return { context, page: p, state, errors };
 }
 const AVANT = bundleAvant();
@@ -294,6 +295,11 @@ if (frag('barre')) {
       }
     });
     check(`barre ${width} px : aucun défilement horizontal (page ${o.ox}, barre ${o.bar.sw - o.bar.w})`, () => { assert.ok(o.ox <= 0); assert.ok(o.bar.sw <= o.bar.w); assert.ok(o.buttons.every(b => b.x >= 0 && b.r <= o.vw)); });
+    // QA t_63fbb540 : l'ordre DOM ne suffit pas, la barre est en flex (un `order` ou un `row-reverse` changerait l'ordre vu sans changer le DOM)
+    check(`barre ${width} px : ordre À L'ÉCRAN identique à l'ordre natif (lignes de haut en bas, boutons de gauche à droite)`, () => {
+      const lu = o.buttons.map((b, i) => ({ i, y: Math.round(b.y), x: b.x })).sort((a, b) => (a.y - b.y) || (a.x - b.x)).map(v => v.i);
+      assert.deepEqual(lu, o.buttons.map((_b, i) => i));
+    });
     const reach = await p.evaluate(REACH, 'form[name="post_msg"] .btn-toolbar > .btn-group > a.btn, form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn');
     check(`barre ${width} px : les 18 boutons sont atteints en leur centre (elementFromPoint)`, () => assert.ok(reach.every(r => r.ok), JSON.stringify(reach.filter(r => !r.ok))));
     if (SHOTS) {
@@ -411,6 +417,9 @@ for (const width of [1280, 375, 320]) {
     assert.equal(d.sections[1].tags[0], 'Membre');
   });
   check(`${width} suggestions : nom INSÉRÉ par le site, pas le nom affiché (smiley, casse)`, () => { assert.ok(d.sections[1].names.includes('Margot Lys')); assert.ok(d.sections[1].names.includes('Tamara Velours')); });
+  // QA t_63fbb540 : ordre des sections VU à l'écran (le DOM seul ne prouve pas l'ordre affiché)
+  const vues = await p.evaluate(() => Array.from(document.querySelectorAll('.kd-group')).map(g => ({ t: g.querySelector('.kd-sec').firstChild.textContent.trim(), y: g.getBoundingClientRect().top })).sort((a, b) => a.y - b.y).map(s => s.t));
+  check(`${width} suggestions : à l'écran, « Vos contacts » au-dessus de « Annuaire du jeu »`, () => assert.deepEqual(vues, ['Vos contacts', 'Annuaire du jeu']));
   check(`${width} suggestions : combobox ARIA ouverte, 1re option active`, () => { assert.equal(d.input.expanded, 'true'); assert.equal(d.options[0].active, true); assert.equal(d.input.active, d.options[0].id); assert.match(d.live, /suggestions/); });
   const optReach = await p.evaluate(REACH, '.kd-opt');
   check(`${width} suggestions : lignes de ${mob ? 44 : 34} px, toutes atteintes en leur centre, panneau dans la largeur, pas de scrollX`, () => {
@@ -702,6 +711,24 @@ if (frag('repli')) {
     const { context, page: p } = await open({ width: 1280, init: 'delete window.AbortController;' });
     const d = await p.evaluate(DEST);
     check('navigateur sans AbortController : le module ne s\'installe pas, zones natives visibles', () => { assert.equal(d.kd, false); assert.deepEqual(d.natives, { dest: true, contacts: true, search: true, results: true, plus: true }); });
+    await context.close();
+  }
+  // QA t_63fbb540 : thème désactivé par le joueur (kr-theme-enabled = false). InitQueue tourne quand même, mais sans le CSS :
+  // le module ne doit pas s'installer (sinon deux champs Destinataires et #dest réécrit par le champ du module).
+  {
+    const { context, page: p, errors } = await open({ width: 1280, themeOn: false });
+    const d = await p.evaluate(DEST);
+    await p.click('#dest');
+    await p.keyboard.type('Alpha; ', { delay: 10 });
+    const dup = await p.evaluate(() => { const i = document.querySelector('.kd-input'); if (!i) { return null; } i.focus(); return true; });
+    if (dup) { await p.keyboard.type('o', { delay: 10 }); }
+    const v = await p.evaluate(() => document.querySelector('#dest').value);
+    check('thème désactivé : aucune interface du module, zones natives seules et utilisables, #dest jamais réécrit', () => {
+      assert.equal(d.kd, false, 'interface du module présente sans le thème');
+      assert.deepEqual(d.natives, { dest: true, contacts: true, search: true, results: true, plus: true });
+      assert.equal(v, 'Alpha; ', '#dest réécrit : ' + JSON.stringify(v));
+      assert.deepEqual(errors, [], JSON.stringify(errors));
+    });
     await context.close();
   }
 }
