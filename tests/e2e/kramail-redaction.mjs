@@ -778,6 +778,33 @@ if (frag('repli')) {
     });
     await context.close();
   }
+  // QA t_503eb6f6 (décision Q-1 b) : partout où le module ne s'installe pas, l'envoi reste 100 % natif. Aucune erreur de validité
+  // n'est posée sur #dest et le formulaire part avec la valeur tapée dans la zone native (sinon l'envoi serait bloqué sans message).
+  for (const [cas, opts] of [
+    ['thème désactivé', { themeOn: false }],
+    ['navigateur sans AbortController', { init: 'delete window.AbortController;' }],
+    ['module en panne', { init: "(() => { const g = Object.getOwnPropertyDescriptor(Element.prototype, 'children').get; Object.defineProperty(HTMLSelectElement.prototype, 'children', { configurable: true, get() { if (this.id === 'contacts') { throw new Error('panne simulée'); } return g.call(this); } }); })();" }],
+    ['thème désactivé sur Répondre', { themeOn: false, page: 'repondre' }]
+  ]) {
+    const { context, page: p, errors } = await open({ width: 1280, ...opts });
+    await p.fill('input[name="c[1]"]', 'Sujet natif');
+    await p.fill('#message', 'Corps natif');
+    await p.click('#dest');
+    await p.keyboard.press('End');
+    await p.keyboard.type('Alpha; Beta', { delay: 10 });
+    const avant = await p.evaluate(() => ({ kd: !!document.querySelector('.kd'), erreur: document.querySelector('#dest').validity.customError, v: document.querySelector('#dest').value }));
+    await p.click('form[name="post_msg"] button.btn-primary');
+    const envois = await p.evaluate(() => window.__submits.map(s => Object.fromEntries(s)));
+    check(`${cas} : envoi 100 % natif (aucune erreur de validité sur #dest, un envoi, c[3] = valeur tapée dans la zone native)`, () => {
+      assert.equal(avant.kd, false, 'interface du module présente');
+      assert.equal(avant.erreur, false, 'erreur de validité posée sur #dest');
+      assert.equal(envois.length, 1, 'envois : ' + envois.length);
+      assert.equal(envois[0]['c[3]'], avant.v);
+      assert.match(envois[0]['c[3]'], /Alpha; Beta$/);
+      assert.deepEqual(errors, [], JSON.stringify(errors));
+    });
+    await context.close();
+  }
 }
 
 // =====================================================================================================
@@ -891,6 +918,38 @@ for (const width of [1280, 375, 320]) {
   });
   check(`${width} blocage : aucune navigation, aucune erreur, aucune requête imprévue`, () => { assert.equal(state.documents, 1); assert.deepEqual(errors, [], JSON.stringify(errors)); assert.deepEqual(unexpected(state), [], JSON.stringify(unexpected(state))); });
   await context.close();
+  // QA t_503eb6f6 : parcours réel. Le joueur a écrit son message et touche « Envoyer » en bas de page (bouton collant sur mobile) ;
+  // le champ Destinataires est plus haut. Après le blocage, le message et les boutons Ajouter / Effacer doivent être À L'ÉCRAN,
+  // ni sous la barre de navigation fixe ni sous le bouton Envoyer collant, et atteignables en leur centre.
+  {
+    const v = await open({ width, height: mob ? 800 : 900 });
+    await v.page.fill('input[name="c[1]"]', 'Sujet de test');
+    await v.page.fill('#message', 'Corps du message\n'.repeat(12));
+    await typeIn(v.page, 'mar');
+    await settleDir(v.page, v.state, 'mar');
+    await v.page.keyboard.press('Escape');
+    await v.page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const envoyer = 'form[name="post_msg"] button.btn-primary';
+    if (mob) { await v.page.tap(envoyer); } else { await v.page.click(envoyer); }
+    await v.page.waitForTimeout(300);
+    const vu = await v.page.evaluate(() => {
+      const nav = document.querySelector('nav.navbar');
+      const haut = nav && /fixed|sticky/.test(getComputedStyle(nav).position) ? nav.getBoundingClientRect().bottom : 0;
+      return ['.kd-msg-text', '.kd-msg-add', '.kd-msg-clear'].map(s => {
+        const e = document.querySelector(s);
+        if (!e) { return { s, ok: false, raison: 'absent' }; }
+        const r = e.getBoundingClientRect();
+        const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return { s, ok: r.top >= haut - 0.5 && r.bottom <= window.innerHeight + 0.5 && !!h && (h === e || e.contains(h)), t: Math.round(r.top), b: Math.round(r.bottom), dessus: h ? h.tagName + '.' + h.className : null };
+      });
+    });
+    const parti = await v.page.evaluate(() => window.__submits.length);
+    check(`${width} blocage depuis le bas de page : message, Ajouter et Effacer à l'écran et atteignables (ni sous la barre fixe ni sous Envoyer), rien n'est parti`, () => {
+      assert.equal(parti, 0);
+      assert.ok(vu.every(x => x.ok), JSON.stringify(vu));
+    });
+    await v.context.close();
+  }
 }
 
 // =====================================================================================================
