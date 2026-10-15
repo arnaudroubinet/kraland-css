@@ -4070,8 +4070,9 @@
   // Q3 (décision d'Arnaud) : une entrée de la catégorie explicitement désactivée (.disabled, aria-disabled="true", disabled) est un accès perdu :
   // elle est retirée du menu si elle y était, jamais ajoutée ; si toutes le sont, la liste devient vide (pas de maintien de l'ancienne).
   // Cela vaut aussi pour les raccourcis FIXES du menu d'origine (Taverne, Marché, Monde en RP) : leur destination normalisée est mémorisée
-  // dans « denied » et le raccourci est retiré sur toute page, tant que la liste mémorisée est valable (7 j) ; accès rétabli = raccourci de retour.
-  // Une destination absente d'une liste, une liste partielle ou un simple style grisé ne prouvent rien.
+  // dans « denied » et le raccourci est retiré sur toute page, même si la liste mémorisée est périmée ou indisponible. Le refus se garde
+  // (refus mémorisés ∪ nouveaux refus − destinations explicitement actives lues) : seule une entrée active de la même destination le lève.
+  // Ni l'expiration, ni l'absence de la destination, ni une liste partielle, ni un simple style grisé ne prouvent un accès.
   // Un simple style grisé ne prouve rien. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
   // ignorés. Libellé : texte du lien sans icône, drapeau, badge ni pastille.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
@@ -4181,7 +4182,7 @@
       // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
       // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
       if (!readable && !deniedCount) {return { ok: false, reason: 'no-links' };}
-      return { ok: true, forums, denied };
+      return { ok: true, forums, denied, active: Array.from(activeKeys) };
     }
 
     function storageKey(menu) {
@@ -4204,12 +4205,17 @@
     }
 
     // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
-    function writeStored(menu, forums, at, denied) {
+    // denied : refus lus dans cette colonne ; active : destinations explicitement actives de cette colonne.
+    // Refus conservés = (refus mémorisés ∪ nouveaux refus) − destinations actives lues : seule une entrée active de la même destination
+    // lève un refus (ni l'expiration, ni l'absence de la destination, ni un état indisponible).
+    function writeStored(menu, forums, at, denied, active) {
       try {
         const current = readStored(menu);
         // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
         if (current && current.at > at && current.at <= Date.now() + 60000) {return false;}
-        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums, denied: denied || [] }));
+        const activeSet = new Set(active || []);
+        const kept = Array.from(new Set([...(current ? current.denied : []), ...(denied || [])])).filter(key => !activeSet.has(key));
+        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums, denied: kept }));
         return true;
       } catch (e) {
         console.error('[Forums] Sauvegarde localStorage impossible:', e);
@@ -4252,7 +4258,7 @@
       }
       // Heure murale du chargement de la page (pas du moment où le script relit le DOM). performance.timeOrigin dérive après une veille.
       const readAt = Date.now() - performance.now();
-      writeStored(menu, res.forums, readAt, res.denied);
+      writeStored(menu, res.forums, readAt, res.denied, res.active);
       return true;
     }
 
@@ -4276,9 +4282,10 @@
       const statics = known.nodes;
       const staticKeys = new Set();
       statics.forEach(item => item.querySelectorAll('a[href]').forEach(a => staticKeys.add(destinationKey(a.getAttribute('href')))));
-      // Refus démontré (liste mémorisée et encore valable, quelle que soit la page courante) : le raccourci dont la destination est refusée
-      // est retiré. Liste périmée (> 7 j) ou indisponible : la preuve ne l'est plus, les raccourcis d'origine reviennent (état « unavailable »).
-      const deniedKeys = new Set(usable ? stored.denied : []);
+      // Refus démontré (quelle que soit la page courante) : le raccourci dont la destination est refusée est retiré, même si la liste
+      // mémorisée est périmée (> 7 j) ou indisponible. Seule une entrée active de la même destination le rétablit. Une entrée datée du futur
+      // n'est pas une référence valable.
+      const deniedKeys = new Set(stored && age >= -60000 ? stored.denied : []);
       dropdown.innerHTML = '';
       let hasLink = false;
       statics.forEach(item => {
