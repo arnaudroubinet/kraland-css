@@ -2,37 +2,75 @@
 
 Menus concernés (créés par `modifyNavigationMenus`, remplis par `window.updateForum*Menu`) :
 
-| Menu | `data-forums-added` | Page source native | Clé de stockage |
+| Menu | `data-forums-added` | Catégorie native | Clé de stockage |
 |---|---|---|---|
-| Forum RP | `rp` | `/forum/rp` | `kr-forums-v2-rp` |
-| Forum HRP | `hrp` | `/forum/hrp` | `kr-forums-v2-hrp` |
-| Forum Communauté | `forum-communaute` | `/forum/communaute` | `kr-forums-v2-communaute` |
-| Forum Débats | `forum-debats` | `/forum/debats` | `kr-forums-v2-debats` |
-| Forum Staff | `forum-staff` | `/forum/staff` | `kr-forums-v2-staff` |
+| Forum RP | `rp` | `/forum/rp[/…]` | `kr-forums-v2-rp` |
+| Forum HRP | `hrp` | `/forum/hrp[/…]` | `kr-forums-v2-hrp` |
+| Forum Communauté | `forum-communaute` | `/forum/communaute[/…]` | `kr-forums-v2-communaute` |
+| Forum Débats | `forum-debats` | `/forum/debats[/…]` | `kr-forums-v2-debats` |
+| Forum Staff | `forum-staff` | `/forum/staff[/…]` | `kr-forums-v2-staff` |
 
-## Causes constatées sur fixtures
+## Décision d'Arnaud (carte t_64a83f97)
 
-1. Les menus étaient dessinés (`applyDOMTransformations`) **avant** que la liste de la page ne soit lue (`InitQueue`, priorité 5) : sur la page source, le menu affichait encore la liste précédente ; la nouvelle n'apparaissait qu'à la page suivante (test A, rouge puis vert).
-2. La liste n'était lue que sur la page source **exacte** (`/forum/rp`, sans barre finale).
-3. Une page sans tableau (maintenance, déconnexion) pouvait écrire `[]`, confondue avec « aucun forum accessible » ; une liste sans date ne pouvait jamais être jugée périmée : un joueur qui ne revisite pas la page source gardait indéfiniment une ancienne liste.
-4. Le filtrage par sous-chaîne (`includes('monde')`, `includes('staff')`…) masquait tout forum dont le nom contient « Monde », « Staff »… : un nouveau forum pouvait ne jamais apparaître.
+Arnaud a répondu **Oui** à la proposition : le menu de la catégorie visitée est actualisé depuis la **liste latérale native affichée** quand un forum de cette catégorie est visité ; les forums disparus sont retirés, les nouveaux ajoutés ; les autres catégories ne changent pas. Précisions tranchées :
 
-Non vérifié sur le vrai site (fixtures seulement, aucun compte) : la forme du tableau natif réel reste à confirmer. Le script lit `table.table tbody tr` ; dans chaque ligne, il prend le premier lien de la 1re cellule dont le texte est non vide et dont la destination est sous le chemin du menu (`/forum/rp/…`), ce qui exclut les liens image, les ancres `<a name>` et les profils de modérateurs (`/communaute/membres/…`).
+- aucune requête supplémentaire ;
+- aucun lien « Tous les forums » imposé (Q1 résolue dans ce périmètre) ;
+- le personnage ne compte pas : aucune isolation par personnage (Q2 résolue) ; c'est la liste affichée qui compte ;
+- source absente ou illisible : la dernière liste connue est conservée ;
+- blocs de la peau et badges exclus ;
+- exhaustivité en compte connecté **à vérifier, pas présumée** (voir « Inconnus ») ;
+- le développement est autorisé sur la PR #19, **la fusion ne l'est pas**.
+
+## Preuves historiques (relevés hors ligne, aucun compte)
+
+1. **Signalement initial** (t_7efd77f1) : les menus gardaient d'anciennes listes et n'affichaient pas les nouveaux forums. Causes constatées sur fixtures : menu dessiné avant la lecture de la source ; lecture sur la page exacte seulement ; page sans source écrivant une liste vide ; liste sans date jamais périmée ; exclusion par sous-chaîne.
+2. **Observation d'Arnaud** (capture « Royaume de Ruthvénie ») : quand on est sur un forum, on voit les autres forums de la catégorie dans la colonne de gauche.
+3. **Relevé t_84f1267a** (rapport `RAPPORT-LISTE-NATIVE-FORUMS.md`, @ux) : la liste latérale est du HTML renvoyé par le serveur, présent dans un GET anonyme sans JavaScript ni peau. Structure relevée : `#col-left .list-group > a.list-group-item[href]`, `href` relatifs résolus par `<base>`, titre dans `span.list-group-item.active`, icône dans `span.lefticon`. En anonyme, la liste latérale est identique au tableau de la page catégorie pour RP (3), HRP (5), Communauté (5) et Débats (4). Staff : non vérifiable (l'accueil est renvoyé).
+4. **Contrôle t_4daa5868** (@coach) : conforme avec sept réserves R1 à R7, reprises ci-dessous.
+
+La copie verbatim de la colonne native sert de fixture : `tests/e2e/fixtures/forum-colonne-native-hrp.html` (5 forums) et `forum-colonne-native-rp.html` (3 forums). Ce sont des relevés anonymes, sans donnée personnelle.
+
+## Source unique : la liste latérale
+
+Le script lit **uniquement** `#col-left .list-group > a.list-group-item[href]`. Le tableau `table.table` de la page catégorie n'est **plus lu**. Raison (R3) : l'égalité tableau / liste latérale n'est prouvée qu'en anonyme ; deux sources non démontrées équivalentes feraient alterner la liste d'une page à l'autre. Si la colonne manque mais que le tableau est présent, le tableau ne prend pas le relais (test M).
+
+Une entrée est retenue si elle remplit toutes ces conditions :
+
+- son `href` est non vide, de **même origine** que la page, et sa destination est sous `/forum/<catégorie>/` (frontière de segment : `/forum/rpx/…` est refusé) ;
+- elle n'est pas dans un bloc `.kraland-metrics` de la peau ;
+- elle n'est pas désactivée (`.disabled`, `aria-disabled="true"`, `disabled`) ;
+- son libellé n'est pas vide, une fois les décorations retirées ;
+- son nom n'est pas dans la liste d'exclusion du menu (Taverne, Marché, Monde, Communauté, Débats, Staff, sauf HRP), et sa destination n'est pas déjà lue (doublons fusionnés par chemin normalisé).
 
 ## Moment de rafraîchissement
 
-- **Sur la page source** (barre finale tolérée) : lecture du tableau natif juste avant le dessin du menu ; le menu de cette page est donc déjà à jour.
-- **Ailleurs** : la liste mémorisée est réaffichée telle quelle, **sans requête réseau**. Une relecture de fond (GET de la page source) a été essayée puis retirée : elle faisait échouer les suites qui exigent zéro requête hors fixture, et n'est pas vérifiable sans le vrai site. Elle reste une piste si Arnaud la souhaite.
-- Un autre onglet qui met la liste à jour (événement `storage`) ou un retour depuis le cache de navigation (`pageshow`) redessine le menu **sans relire** l'ancien DOM restauré. Toute lecture est datée de l'heure murale du chargement de la page (`Date.now() - performance.now()` : `performance.timeOrigin` peut retarder après une veille) et n'écrase jamais une entrée plus récente, sauf si celle-ci est datée de plus de 60 s dans le futur (horloge corrigée en arrière).
-- Le script ne détecte **aucun** changement de droits sans relire cette source native : la liste ne change qu'à la visite de la page source.
+- **Sur toute page de la catégorie** (`/forum/rp`, `/forum/rp/<forum>`, barre finale tolérée) : la liste latérale est lue **avant** les transformations de la peau (`window.captureForumSidebar` est la première transformation de `applyDOMTransformations`), puis le menu de cette catégorie est redessiné. Il est donc à jour dès le premier affichage. Les autres catégories ne changent pas (test L).
+- **Ailleurs** : la liste mémorisée est réaffichée telle quelle, **sans requête réseau**. Aucune requête n'est ajoutée sur les pages de forum non plus : un seul document, ni `fetch` ni XHR (test L).
+- **Pages de sujet** (`/forum/sujet/…`) et **index** (`/forum`) : aucune lecture. Le DOM d'un sujet n'a pas été relevé (ouvrir un sujet compte une vue et peut toucher le suivi de lecture) ; l'index n'a pour liste latérale que les catégories.
+- Un autre onglet qui met la liste à jour (événement `storage`) ou un retour depuis le cache de navigation (`pageshow`) redessine le menu **sans relire** l'ancien DOM restauré. Toute lecture est datée de l'heure murale du chargement de la page (`Date.now() - performance.now()` : `performance.timeOrigin` peut retarder après une veille) et n'écrase jamais une entrée plus récente, sauf si celle-ci est datée de plus de 60 s dans le futur.
+- Les mises à jour dynamiques du site après le chargement (le `main.js` natif contient aussi `updateAjax` et `updateAjaxPost`, qui écrivent un `innerHTML` par identifiant via `ajx/…` : R1) ne sont pas observées : le script lit le HTML au chargement.
 
-## Source indisponible ou incomplète (repli explicite)
+## Réserves du coach, reprises explicitement
+
+| Réserve | Traitement |
+|---|---|
+| **R1** `main.js` ne fait pas que replier la colonne : il contient `updateAjax` / `updateAjaxPost` | Formulation corrigée ici ; le verdict « HTML serveur » n'en dépend pas (la liste est déjà dans le HTML brut). Les remplacements Ajax tardifs ne sont pas lus. |
+| **R2** la peau pollue le sélecteur (`relocateKramailToLeft`, `nameLeftSidebarDivs`) | Lecture **avant** la peau ; en plus, exclusion de `.kraland-metrics` et filtre par destination `/forum/<catégorie>/` : Kramail, profil, modérateurs et métriques n'entrent jamais. Test N : lecture identique avant et après la peau, avec fixture `#col-t` et bloc joueur. |
+| **R3** égalité tableau/liste non prouvée en compte connecté | Source unique = liste latérale ; le tableau n'est plus une source. L'exhaustivité connectée reste un inconnu (ci-dessous). |
+| **R4** entrée grisée « Province Niarkalistan » inexpliquée | Entrée désactivée = état ambigu : **ignorée**, jamais comptée comme preuve d'absence. Limite : une entrée grisée mais accessible n'est pas proposée (test D). |
+| **R5** pastille de guilde d'origine inconnue | Les icônes (`.lefticon`, `i`, `.fa`, `.glyphicon`, `svg`), drapeaux (`img`), badges (`.badge`, `.label`) et éléments dont la classe contient `guild` ou `pastille` sont exclus du libellé ; le texte réel (« Guilde des Marchands ») est conservé (test K). Limite : une pastille en simple texte, sans classe reconnaissable, entrerait dans le libellé. |
+| **R6** fixture `sous-forum-debuter.html` fausse (`#col-left` à 2 liens de catégories) | Non modifiée (autres suites). Les tests de ce menu utilisent la colonne native copiée telle quelle (fixtures `forum-colonne-native-*.html`, test O) et une colonne générée au même balisage. |
+| **R7** écart de méthode : environ 11 GET anonymes (`curl` / `urllib`) au lieu des fixtures puis du Chrome 9223 | À acter par Arnaud. Sans effet sur le compte. Aucun nouvel accès au vrai site dans ce travail. |
+
+## Source absente, illisible ou ambiguë (repli explicite)
 
 | Situation | Effet |
 |---|---|
-| Tableau présent, `tbody` sans aucune ligne | **Liste vide valide** : le stockage est vidé, le menu affiche le lien de repli, état `empty` |
-| Pas de tableau, ou tableau dont toutes les lignes sont sans lien exploitable (S5c) | **Aucune écriture** : la liste précédente reste proposée |
-| Une ligne sans destination parmi d'autres lignes valides | Ligne ignorée ; les autres sont lues et remplacent la liste |
+| Pas de `#col-left`, page de maintenance, de connexion ou d'erreur | **Aucune écriture** : la liste précédente reste proposée |
+| `#col-left` sans aucun lien de la catégorie lisible (titre seul, liens tous désactivés, liens vides ou hors catégorie) | **Aucune écriture** : une liste sans lien n'est pas « aucun forum accessible » (indiscernable d'une page dégradée ou d'un état désactivé ambigu) ; le cache n'est jamais effacé par elle |
+| Liens de la catégorie lus, tous déjà dans le menu d'origine (RP anonyme : Taverne, Marché, Monde) | **Liste valide sans forum à ajouter** : le stockage est remplacé, le menu affiche le lien de repli, état `empty` |
+| Une entrée atypique (ancre sans `href`, lien image sans texte, désactivée) parmi des entrées valides | Entrée ignorée ; les autres sont lues et remplacent la liste |
 | Liste de plus de 24 h | Toujours proposée mais état `stale` |
 | Liste de plus de 7 jours | Plus proposée : lien de repli, état `unavailable` |
 | Ancienne clé `kr-forums-<menu>` (tableau nu, sans date) | Ignorée puis supprimée |
@@ -41,12 +79,23 @@ L'état est exposé sur l'élément `.dropdown-menu` (`data-kr-forums-state` : `
 
 ## Libellés, destinations, doublons
 
-Libellé et `href` suivent le tableau natif ; les doublons de destination sont fusionnés par chemin normalisé (URL absolue, relative, barre finale), éléments statiques du menu compris ; l'exclusion (Taverne, Marché, Monde, Communauté, Débats, Staff) se fait par **nom exact** (insensible à la casse), et non plus par sous-chaîne ; HRP n'exclut rien (comme avant).
+Libellé : texte du lien sans décorations, espaces natifs (tabulations, retours à la ligne) réduits à une espace. `href` : celui de la liste latérale. Doublons de destination fusionnés par chemin normalisé (URL absolue, relative, barre finale), éléments statiques du menu compris. Exclusion par **nom exact** (insensible à la casse), pas par sous-chaîne ; HRP n'exclut rien.
 
 ## Comptes et personnages
 
-Le stockage est un `localStorage` **par origine et par navigateur**, pas par compte : le script ne connaît pas l'identité du personnage. Changer de personnage dans le même navigateur peut donc montrer la liste du précédent jusqu'à la visite de la page source ; l'âge maximal de 7 jours borne l'effet. Deux profils de navigateur ne partagent rien. Le comportement dans un même navigateur (liste du précédent conservée hors page source, remplacée à la visite de la page source, retirée après 7 jours) est testé (fragment G).
+Le stockage est un `localStorage` **par origine et par navigateur**, pas par compte. Décision d'Arnaud : le personnage ne compte pas ; c'est la liste affichée qui est mémorisée et remplacée à chaque visite de la catégorie. Changer de personnage dans le même navigateur peut montrer la liste du précédent jusqu'à la visite de la catégorie ; l'âge maximal de 7 jours borne l'effet (test G).
+
+## Inconnus et limites (non prouvés)
+
+- **Compte connecté** : l'égalité tableau / liste latérale et l'exhaustivité ne sont pas prouvées (la capture d'Arnaud montre 7 forums RP, l'anonyme 3). Le script lit ce que la colonne affiche ; si elle était partielle pour un compte, le menu le serait aussi. À valider sur le vrai site par Arnaud ou une carte de relevé autorisée.
+- **Staff** : accès non vérifié (réservé) ; le menu Staff applique la même lecture sans preuve.
+- **DOM d'une page de sujet** : non relevé ; aucune lecture sur les sujets.
+- **Liste latérale vidée par une perte totale d'accès** : indiscernable d'une page dégradée ; la liste précédente reste proposée jusqu'à 7 jours.
+- **Entrée grisée mais accessible** : non proposée (état ambigu).
+- **Pastille en texte brut** : non détectable, entrerait dans le libellé.
+- **Changements Ajax tardifs** de la colonne : non observés.
+- Cette PR ne prouve pas la résolution du ticket sur le vrai site : seules des fixtures inertes ont été utilisées.
 
 ## Tests
 
-`npm run build && node tests/e2e/menus-forums.mjs` (fragments `KR_FRAG=a,…,k`). `KR_CHROMIUM` pointe vers un Chromium local si le navigateur attendu par Playwright manque.
+`npm run build && node tests/e2e/menus-forums.mjs` (fragments `KR_FRAG=a,…,o`). `KR_CHROMIUM` pointe vers un Chromium local si le navigateur attendu par Playwright manque. Fragments : A ancienne→nouvelle liste ; B libellés, doublons, exclusions ; C liste sans forum à ajouter ; D source absente, ambiguë, périmée ; E second onglet ; F bureau et mobile × deux thèmes ; G autre personnage ; H `pageshow` ; I doublons ; J entrées atypiques ; K décorations et horloges ; L sous-forums, catégories indépendantes, aucune requête de plus ; M source unique ; N lecture avant la peau ; O colonnes natives verbatim.

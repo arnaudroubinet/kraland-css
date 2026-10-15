@@ -3428,6 +3428,7 @@
     PerfLog.start('dom:transformations');
 
     const transforms = [
+      window.captureForumSidebar,
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
       reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, displayVersionInfo,
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
@@ -4053,16 +4054,21 @@
   // ============================================
   // MENUS FORUM DYNAMIQUES (RP, HRP, Communauté, Débats, Staff)
   // ============================================
-  // Source native : le tableau « table.table » des pages /forum/rp, /forum/hrp, /forum/communaute, /forum/debats, /forum/staff.
-  // Ce tableau ne liste que les forums accessibles au personnage connecté ; c'est la seule donnée à jour dont dispose le script.
+  // Source native UNIQUE : la liste latérale « #col-left .list-group > a.list-group-item[href] » que Kraland sert (HTML serveur) sur
+  // toute page d'une catégorie : /forum/rp[/…], /forum/hrp[/…], /forum/communaute[/…], /forum/debats[/…], /forum/staff[/…].
+  // Elle montre les forums accessibles au compte. Le tableau « table.table » de la page catégorie n'est PLUS lu : deux sources non
+  // démontrées équivalentes (égalité prouvée en anonyme seulement) feraient alterner la liste d'une page à l'autre.
   //
   // Moment de rafraîchissement (voir docs/MENUS-FORUMS.md) :
-  //   1. sur la page source elle-même : lecture du tableau natif AVANT le dessin du menu (le menu de cette page est donc déjà à jour) ;
-  //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau (aucune relecture de fond) ;
+  //   1. sur toute page d'une catégorie : lecture de la liste latérale AVANT les transformations de la peau (captureForumSidebar est la
+  //      1re transformation), puis dessin du menu de CETTE catégorie ; les autres catégories ne changent pas ;
+  //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau ;
   //   3. une liste de plus de MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
-  // Une source indisponible ou incomplète (pas de tableau, ou tableau dont les lignes n'ont aucun lien exploitable) ne remplace RIEN : la liste
-  // précédente reste proposée jusqu'à MAX_AGE_MS. Une ligne sans destination est ignorée (les autres sont lues).
-  // Un tableau présent mais sans aucune ligne (tbody vide) est une liste vide valide et efface la liste.
+  // Une source absente ou illisible (pas de #col-left, pas de lien de la catégorie, liens tous désactivés) ne remplace RIEN : la liste
+  // précédente reste proposée jusqu'à MAX_AGE_MS. Une liste latérale sans lien n'est PAS une liste vide valide (indiscernable d'une page
+  // dégradée ou d'un état désactivé ambigu) : le cache n'est jamais effacé par elle.
+  // Entrées ignorées : liens hors de la catégorie (Kramail, profil, modérateur…), blocs de la peau (.kraland-metrics), entrées désactivées
+  // (état ambigu). Libellé : texte du lien sans icône, drapeau, badge ni pastille.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
   // L'âge borné limite donc le risque de liste d'un autre personnage ; les anciennes clés « kr-forums-<menu> » (tableau nu, sans
   // date ni provenance) sont ignorées puis supprimées.
@@ -4102,42 +4108,64 @@
       }
     }
 
-    // Premier lien exploitable de la 1re cellule : href non vide, texte non vide (ignore ancres <a name> et liens image),
-    // et destination sous le chemin du menu (exclut p. ex. le profil d'un modérateur /communaute/membres/…).
-    function firstUsableLink(row, menu) {
-      const cell = row.querySelector('td:first-child');
-      if (!cell) {return null;}
-      return Array.from(cell.querySelectorAll('a[href]')).find(a => {
-        const href = a.getAttribute('href').trim();
-        if (!href || !a.textContent.trim()) {return false;}
-        return destinationKey(href, row.ownerDocument.baseURI).startsWith(menu.path + '/');
-      }) || null;
+    // Décorations d'une entrée de la liste latérale : icône (.lefticon, Font Awesome, glyphicon), drapeau (img), badge, pastille de guilde.
+    const DECORATIONS = '.lefticon, i, img, svg, .badge, .label, .glyphicon, .fa, .sr-only, script, style, [class*="guild"], [class*="pastille"]';
+
+    // Libellé réel d'un lien : son texte sans les décorations (le lien d'origine n'est pas modifié).
+    function labelOf(a) {
+      const copy = a.cloneNode(true);
+      copy.querySelectorAll(DECORATIONS).forEach(el => el.remove());
+      return copy.textContent.replace(/\s+/g, ' ').trim();
+    }
+
+    // Entrée désactivée : état ambigu (accès perdu ? simple survol ?), jamais reprise ni comptée comme preuve d'absence.
+    function isDisabledLink(a) {
+      return a.classList.contains('disabled') || a.getAttribute('aria-disabled') === 'true' || a.hasAttribute('disabled');
+    }
+
+    /** Menu dont c'est la catégorie pour le chemin donné (/forum/rp, /forum/rp/…), sinon null. */
+    function menuForPath(pathname) {
+      const p = normalizePath(pathname);
+      return MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
+    }
+
+    /** Même origine que le document : un lien vers un autre site portant un chemin /forum/rp/… n'est pas un forum de Kraland. */
+    function isSameOrigin(href, baseURI) {
+      try {
+        return new window.URL(href, baseURI || document.baseURI).origin === new window.URL(baseURI || document.baseURI).origin;
+      } catch (_e) {
+        return false;
+      }
     }
 
     /**
-     * Lit le tableau natif d'un document.
+     * Lit la liste latérale native d'un document pour la catégorie d'un menu.
+     * Seuls comptent les liens dont la destination est sous « /forum/<catégorie>/ » : Kramail, profils, modérateurs et blocs de la peau
+     * (.kraland-metrics) n'y entrent jamais.
      * @returns {{ok: true, forums: Array}|{ok: false, reason: string}}
      */
-    function parseForums(doc, menu) {
-      const rows = doc.querySelectorAll('table.table tbody');
-      if (!rows.length) {return { ok: false, reason: 'no-table' };}
+    function parseSidebar(doc, menu) {
+      const colLeft = doc.getElementById('col-left');
+      if (!colLeft) {return { ok: false, reason: 'no-sidebar' };}
       const forums = [];
       const seen = new Set();
-      let skipped = 0;
-      let usable = 0;
-      doc.querySelectorAll('table.table tbody tr').forEach(row => {
-        const link = firstUsableLink(row, menu);
-        if (!link) {skipped += 1; return;}
-        const name = link.textContent.trim();
-        const url = link.getAttribute('href').trim();
-        const key = destinationKey(url, doc.baseURI);
-        usable += 1;
+      let readable = 0;
+      colLeft.querySelectorAll('.list-group > a.list-group-item[href]').forEach(a => {
+        if (a.closest('.kraland-metrics')) {return;}
+        const href = a.getAttribute('href').trim();
+        if (!href || !isSameOrigin(href, doc.baseURI) || !destinationKey(href, doc.baseURI).startsWith(menu.path + '/')) {return;}
+        if (isDisabledLink(a)) {return;}
+        const name = labelOf(a);
+        if (!name) {return;}
+        const key = destinationKey(href, doc.baseURI);
+        readable += 1;
         if (isExcluded(menu, name) || seen.has(key)) {return;}
         seen.add(key);
-        forums.push({ name, url });
+        forums.push({ name, url: href });
       });
-      // Des lignes ignorées et aucun lien lu : source illisible, pas liste vide valide.
-      if (!usable && skipped) {return { ok: false, reason: 'incomplete' };}
+      // Aucun lien de la catégorie lisible : source absente, dégradée ou ambiguë, jamais « aucun forum accessible ».
+      // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
+      if (!readable) {return { ok: false, reason: 'no-links' };}
       return { ok: true, forums };
     }
 
@@ -4178,12 +4206,12 @@
       } catch (_e) { /* stockage inaccessible : rien à purger */ }
     }
 
-    /** Lit le tableau de la page courante si c'est la page source du menu. */
+    /** Lit la liste latérale de la page courante si elle appartient à la catégorie du menu. */
     function refreshFromCurrentPage(menu) {
-      if (normalizePath(window.location.pathname) !== menu.path) {return false;}
-      const res = parseForums(document, menu);
+      if (menuForPath(window.location.pathname) !== menu) {return false;}
+      const res = parseSidebar(document, menu);
       if (!res.ok) {
-        console.warn(`[Forums] ${menu.label} : source native ${res.reason}, liste précédente conservée`);
+        console.warn(`[Forums] ${menu.label} : liste latérale native ${res.reason}, liste précédente conservée`);
         return false;
       }
       // Heure murale du chargement de la page (pas du moment où le script relit le DOM). performance.timeOrigin dérive après une veille.
@@ -4230,11 +4258,28 @@
       dropdown.setAttribute('data-kr-forums-state', state);
     }
 
+    // Menus dont la liste latérale a déjà été lue pour ce chargement de page : une seule lecture, avant la peau.
+    const readThisLoad = new Set();
+
+    function capture(menu, force) {
+      if (!force && readThisLoad.has(menu.id)) {return;}
+      readThisLoad.add(menu.id);
+      refreshFromCurrentPage(menu);
+    }
+
     function update(menu) {
       purgeLegacy();
-      refreshFromCurrentPage(menu);
+      capture(menu, false);
       render(menu);
     }
+
+    // 1re transformation de la peau (R2) : lit la liste latérale native avant relocateKramailToLeft, nameLeftSidebarDivs, etc.
+    // `force` (tests) : relire le DOM après la peau ; le filtrage par destination et l'exclusion des blocs de la peau donnent le même résultat.
+    window.captureForumSidebar = function captureForumSidebar(force) {
+      purgeLegacy();
+      const menu = menuForPath(window.location.pathname);
+      if (menu) {capture(menu, force === true);}
+    };
 
     window.updateForumRPMenu = function () { update(MENUS[0]); };
     window.updateForumHRPMenu = function () { update(MENUS[1]); };
