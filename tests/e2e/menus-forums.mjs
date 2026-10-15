@@ -413,6 +413,18 @@ if (frag('j')) {
     check(`${label} : Charlie pris, Bravo retiré, entrée écartée`, () => { assert.deepEqual(mj.items.map(i => i[0]), ['Charlie']); assert.ok(!JSON.stringify(mj.items).includes(needle)); });
     await context.close();
   }
+  // QA : liens de la catégorie placés dans #col-left HORS d'une « .list-group » directe (panneau, bloc imbriqué) : jamais lus.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Charlie', 'charlie-3')]);
+    s.before['/forum/rp'] = '<div class="panel panel-body"><a href="forum/rp/dernier-sujet-77" class="btn btn-default">Dernier message RP</a><div><a href="forum/rp/hors-liste-78" class="list-group-item">Hors liste</a></div></div>';
+    await go(p, '/forum/rp');
+    const mj = await dynamicRp(p);
+    check('liens de forum hors de « .list-group > a.list-group-item » (panneau de la colonne) : écartés, Charlie seul', () => assert.deepEqual(mj.items.map(i => i[0]), ['Charlie']));
+    await context.close();
+  }
 }
 
 // ---------- K : entrées décorées (icône, drapeau, badge, pastille de guilde), horloges ----------
