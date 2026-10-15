@@ -4072,8 +4072,8 @@
   // Cela vaut aussi pour les raccourcis FIXES du menu d'origine (Taverne, Marché, Monde en RP) : leur destination normalisée est mémorisée
   // dans « denied » et le raccourci est retiré sur toute page, même si la liste mémorisée est périmée ou indisponible. Le refus se garde
   // (refus mémorisés ∪ nouveaux refus − destinations explicitement actives lues) : seule une entrée active de la même destination le lève.
-  // Ni l'expiration, ni l'absence de la destination, ni une liste partielle, ni un simple style grisé ne prouvent un accès.
-  // Un simple style grisé ne prouve rien. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
+  // Ni l'expiration, ni l'absence de la destination, ni une liste partielle ne lèvent un refus.
+  // Une entrée simplement grisée (style, opacité, text-muted), avec href et sans signal explicite, est une entrée active : elle lève le refus. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
   // ignorés. Libellé : texte du lien sans icône, drapeau, badge ni pastille.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
   // L'âge borné limite donc le risque de liste d'un autre personnage ; les anciennes clés « kr-forums-<menu> » (tableau nu, sans
@@ -4283,9 +4283,9 @@
       const staticKeys = new Set();
       statics.forEach(item => item.querySelectorAll('a[href]').forEach(a => staticKeys.add(destinationKey(a.getAttribute('href')))));
       // Refus démontré (quelle que soit la page courante) : le raccourci dont la destination est refusée est retiré, même si la liste
-      // mémorisée est périmée (> 7 j) ou indisponible. Seule une entrée active de la même destination le rétablit. Une entrée datée du futur
-      // n'est pas une référence valable.
-      const deniedKeys = new Set(stored && age >= -60000 ? stored.denied : []);
+      // mémorisée est périmée (> 7 j), indisponible ou datée du futur. Seule une entrée active de la même destination le rétablit.
+      // La garde de date (usable) ne vaut que pour la liste de forums.
+      const deniedKeys = new Set(stored ? stored.denied : []);
       dropdown.innerHTML = '';
       let hasLink = false;
       statics.forEach(item => {

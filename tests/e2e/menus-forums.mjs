@@ -1029,7 +1029,7 @@ if (frag('s')) {
     await context.close();
   }
 
-  // e : source partielle (Taverne simplement absente) ou grisée sans signal explicite : aucune preuve, le raccourci reste ; la preuve précédente est remplacée.
+  // e : source partielle (Taverne simplement absente) ou grisée sans signal explicite : aucune preuve, le raccourci reste.
   {
     const s = makeServer();
     const { context, p } = await open({ server: s });
@@ -1119,6 +1119,37 @@ if (frag('s')) {
     await go(p, '/forum/rp');
     n = await nm(p);
     check(`${width} : Taverne active + désactivée : accès prouvé, raccourci rétabli`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha']));
+    await context.close();
+  }
+
+  // f3 (B1) : une entrée simplement grisée (href, style/opacité/text-muted, aucun signal explicite) est une entrée ACTIVE : elle lève le refus.
+  for (const width of [1280, 390]) {
+    const s = makeServer();
+    const { context, p } = await open({ server: s, width });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = off(taverne) + item(alpha);
+    await go(p, '/forum/rp');
+    let n = await nm(p);
+    check(`${width} : précondition : Taverne refusée`, () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha']));
+    s.raw['/forum/rp'] = item(taverne).replace('class="list-group-item"', 'class="list-group-item text-muted inactive" style="opacity:.4;pointer-events:none;color:#999"') + item(alpha);
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check(`${width} : refus puis Taverne grisée : raccourci rétabli`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha']));
+    await go(p, '/jouer/plateau');
+    n = await nm(p);
+    check(`${width} : refus puis Taverne grisée, autre page : raccourci toujours là`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha']));
+    await context.close();
+  }
+
+  // f4 (B2) : le refus s'applique même si l'entrée mémorisée est datée du futur (horloge reculée) ; la garde de date ne vaut que pour la liste.
+  for (const width of [1280, 390]) {
+    const s = makeServer();
+    s.mode['/forum/rp'] = 'http500';
+    const seed = JSON.stringify({ v: 2, at: Date.now() + 10 * 60 * 1000, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }], denied: ['/forum/rp/taverne-10101'] });
+    const { context, p } = await open({ server: s, width, preset: { 'kr-forums-v2-rp': seed } });
+    await go(p, '/jouer/plateau');
+    const m = await read(p, 'rp');
+    check(`${width} : entrée datée du futur + refus : Taverne retirée, liste non proposée`, () => assert.deepEqual(m.items.map(i => i[0]), ['Marché', 'Monde', 'Autre']));
     await context.close();
   }
 
