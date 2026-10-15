@@ -1,0 +1,5 @@
+[agent]
+persistent_facts = [
+  "file:{project-root}/CLAUDE.md",
+  "file:{project-root}/_bmad-output/adoption/contexte-projet.md"
+]
