@@ -4092,6 +4092,22 @@
       return EXCLUDED_NAMES.includes(name.trim().toLowerCase());
     }
 
+    // Chemin normalisé d'une destination (relative, absolue ou avec barre finale) : clé de dédoublonnage.
+    function destinationKey(href, baseURI) {
+      try {
+        return normalizePath(new window.URL(href, baseURI || document.baseURI).pathname);
+      } catch (_e) {
+        return normalizePath(href);
+      }
+    }
+
+    // Premier lien exploitable (href non vide ET texte non vide) de la 1re cellule : ignore ancres <a name> et liens image.
+    function firstUsableLink(row) {
+      const cell = row.querySelector('td:first-child');
+      if (!cell) {return null;}
+      return Array.from(cell.querySelectorAll('a[href]')).find(a => a.getAttribute('href').trim() && a.textContent.trim()) || null;
+    }
+
     /**
      * Lit le tableau natif d'un document.
      * @returns {{ok: true, forums: Array}|{ok: false, reason: string}}
@@ -4101,18 +4117,21 @@
       if (!rows.length) {return { ok: false, reason: 'no-table' };}
       const forums = [];
       const seen = new Set();
-      let incomplete = false;
+      let skipped = 0;
+      let usable = 0;
       doc.querySelectorAll('table.table tbody tr').forEach(row => {
-        const link = row.querySelector('td:first-child a');
-        if (!link) {return;}
+        const link = firstUsableLink(row);
+        if (!link) {skipped += 1; return;}
         const name = link.textContent.trim();
-        const url = link.getAttribute('href');
-        if (!name || !url) {incomplete = true; return;}
-        if (isExcluded(menu, name) || seen.has(url)) {return;}
-        seen.add(url);
+        const url = link.getAttribute('href').trim();
+        const key = destinationKey(url, doc.baseURI);
+        usable += 1;
+        if (isExcluded(menu, name) || seen.has(key)) {return;}
+        seen.add(key);
         forums.push({ name, url });
       });
-      if (incomplete) {return { ok: false, reason: 'incomplete' };}
+      // Des lignes ignorées et aucun lien lu : source illisible, pas liste vide valide.
+      if (!usable && skipped) {return { ok: false, reason: 'incomplete' };}
       return { ok: true, forums };
     }
 
@@ -4133,11 +4152,16 @@
       }
     }
 
-    function writeStored(menu, forums) {
+    // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
+    function writeStored(menu, forums, at) {
       try {
-        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at: Date.now(), forums }));
+        const current = readStored(menu);
+        if (current && current.at > at) {return false;}
+        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums }));
+        return true;
       } catch (e) {
         console.error('[Forums] Sauvegarde localStorage impossible:', e);
+        return false;
       }
     }
 
@@ -4155,7 +4179,9 @@
         console.warn(`[Forums] ${menu.label} : source native ${res.reason}, liste précédente conservée`);
         return false;
       }
-      writeStored(menu, res.forums);
+      // Le DOM lu date du chargement de la page (performance.timeOrigin), pas du moment où le script le relit.
+      const readAt = (performance && performance.timeOrigin) || Date.now();
+      writeStored(menu, res.forums, readAt);
       return true;
     }
 
@@ -4165,12 +4191,14 @@
       const stored = readStored(menu);
       const age = stored ? Date.now() - stored.at : Infinity;
       const usable = stored && age <= MAX_AGE_MS && age >= -60000;
-      const forums = usable ? stored.forums : [];
 
       const statics = Array.from(dropdown.children).slice(0, menu.staticCount);
+      const staticKeys = new Set();
+      statics.forEach(item => item.querySelectorAll('a[href]').forEach(a => staticKeys.add(destinationKey(a.getAttribute('href')))));
       dropdown.innerHTML = '';
       statics.forEach(item => dropdown.appendChild(item));
 
+      const forums = (usable ? stored.forums : []).filter(forum => !staticKeys.has(destinationKey(forum.url)));
       forums.forEach(forum => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -4190,7 +4218,7 @@
       // État observable : fresh | stale (affiché mais ancien) | empty (liste vide valide) | unavailable (aucune liste utilisable)
       let state = 'unavailable';
       if (usable) {
-        state = !forums.length ? 'empty' : (age > STALE_MS ? 'stale' : 'fresh');
+        state = !(stored.forums.length) ? 'empty' : (age > STALE_MS ? 'stale' : 'fresh');
       }
       dropdown.setAttribute('data-kr-forums-state', state);
     }
@@ -4212,10 +4240,9 @@
     window.addEventListener('storage', e => {
       if (e.key && e.key.startsWith(STORAGE_PREFIX)) {renderAll();}
     });
+    // Retour depuis le cache de navigation : le DOM restauré peut être plus ancien que le stockage. On redessine seulement, sans relire.
     window.addEventListener('pageshow', e => {
-      if (e.persisted) {
-        MENUS.forEach(menu => { refreshFromCurrentPage(menu); render(menu); });
-      }
+      if (e.persisted) {renderAll();}
     });
   })();
 

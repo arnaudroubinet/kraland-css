@@ -6,6 +6,7 @@
 // Options : KR_SCRIPT=/chemin/script.user.js ; KR_FRAG=a,b pour ne rejouer que certains blocs (rouge/vert ciblé).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { Buffer } from 'node:buffer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -16,6 +17,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
 const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const BASE = 'http://www.kraland.org';
+const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
 const FRAGS = (process.env.KR_FRAG || '').split(',').filter(Boolean);
 const frag = name => !FRAGS.length || FRAGS.includes(name);
 
@@ -32,8 +34,11 @@ const NAV = `<nav class="navbar navbar-inverse nomargin"><div class="container">
       <ul class="dropdown-menu"><li><a href="forum/rp">Jeu (RP)</a></li><li><a href="forum/hrp">Hors jeu</a></li><li><a href="forum/staff">Staff</a></li></ul></li>
     <li class="dropdown"><a class="dropdown-toggle" href="/communaute">Communauté</a></li>
   </ul></div></div></nav>`;
-const page = (body) => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>fixture</title></head><body>${NAV}<div id="content" class="container"><div class="row"><div id="col-right" class="col-md-12">${body}</div></div></div><footer><div class="container white">pied</div></footer></body></html>`;
-const table = (forums) => `<table class="table"><thead><tr><th>Forum</th></tr></thead><tbody>${forums.map(f => `<tr><td><a href="${f.url}">${f.name}</a></td><td>0</td></tr>`).join('')}</tbody></table>`;
+// <base> comme sur le vrai site : les liens relatifs (forum/rp/…) se résolvent depuis la racine, y compris sous /forum/rp/.
+const page = (body) => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${BASE}/"><meta name="viewport" content="width=device-width, initial-scale=1"><title>fixture</title></head><body>${NAV}<div id="content" class="container"><div class="row"><div id="col-right" class="col-md-12">${body}</div></div></div><footer><div class="container white">pied</div></footer></body></html>`;
+// Ligne réaliste : titre en p > a, description, modérateurs, compteurs, dernier message avec liens.
+const row = (fo) => `<tr><td><p class="nomargin"><a href="${fo.url}">${fo.name}</a></p><p class="nomargin">Description de ${fo.name}</p><div class="mini">Modérateurs : <a href="communaute/membres/modo-1-1">Modo [mod]</a></div></td><td class="center">10 sujets</td><td class="center">100 messages</td><td><a href="communaute/membres/aestus-1-1">Aestus</a> <p class="nomargin mini"><a href="forum/sujet/dernier-1-1#msg1" class="btn btn-default">→</a> Hier (13:20)</p></td></tr>`;
+const table = (forums, extra = '') => `<table class="table"><thead><tr><th>Forum</th><th>Sujets</th><th>Messages</th><th>Dernier message</th></tr></thead><tbody>${forums.map(row).join('')}${extra}</tbody></table>`;
 const f = (n, slug) => ({ name: n, url: `forum/rp/${slug}` });
 
 // Serveur de fixtures : état mutable par test.
@@ -42,6 +47,7 @@ function makeServer() {
     lists: { '/forum/rp': [f('Taverne', 'taverne-10101'), f('Marché', 'marche-10102'), f('Monde', 'monde-10103'), f('Alpha', 'alpha-1'), f('Bravo', 'bravo-2')],
       '/forum/hrp': [{ name: 'Annonces', url: 'forum/hrp/annonces-9' }], '/forum/communaute': [{ name: 'Clubs', url: 'forum/communaute/clubs-5' }],
       '/forum/debats': [{ name: 'Politique', url: 'forum/debats/politique-6' }], '/forum/staff': [{ name: 'Modération', url: 'forum/staff/moderation-7' }] },
+    extra: {}, // chemin -> lignes HTML ajoutées au tableau
     mode: {}, // chemin -> 'notable' | 'norows' | 'broken-link' | 'http500' | 'redirect'
     hits: {} // chemin -> nombre de documents servis
   };
@@ -57,8 +63,9 @@ function makeServer() {
       if (mode === 'http500') { return route.fulfill({ status: 500, contentType: 'text/html', body: '<html><body>Erreur</body></html>' }); }
       if (mode === 'redirect') { return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: page('<h1>Connexion</h1>') }); }
       if (mode === 'notable') { return html('<h1>Maintenance</h1><p>Indisponible</p>'); }
-      if (mode === 'broken-link') { return html(table([...s.lists[key], { name: 'Sans destination', url: '' }]).replace('href=""', '')); }
-      return html(table(s.lists[key]));
+      // Ligne dont le seul lien n'a pas de destination (ancre nommée) : ignorée, sans invalider le reste de la page.
+      if (mode === 'broken-link') { return html(table(s.lists[key], '<tr><td><a name="x">Sans destination</a></td><td>0</td></tr>')); }
+      return html(table(s.lists[key], s.extra[key] || ''));
     }
     return html('<h1>Page</h1>');
   };
@@ -72,6 +79,8 @@ async function open({ width = 1280, variant = 'empire-brun-dark', server, preset
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile });
   await context.route(BASE + '/**', server.handler);
+  // Images du site : GIF factice, aucune requête réelle vers Kraland.
+  await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
   await context.addInitScript(({ src, theme, seed }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', 'true');
@@ -154,8 +163,8 @@ if (frag('b')) {
   await go(p, '/forum/staff');
   await go(p, '/jouer/plateau');
   for (const [id, expected] of [['communaute', ['Clubs']], ['debats', ['Politique']], ['staff', ['Modération']]]) {
-    m = await read(p, id);
-    check(`menu ${id} suit sa propre page source`, () => assert.deepEqual(names(m), expected));
+    const mi = await read(p, id);
+    check(`menu ${id} suit sa propre page source`, () => assert.deepEqual(names(mi), expected));
   }
   await context.close();
 }
@@ -271,17 +280,99 @@ if (frag('f')) {
   }
 }
 
-// ---------- G : isolation ----------
+// ---------- G : liste du personnage précédent, même navigateur, bornée à 7 jours ----------
 if (frag('g')) {
-  console.log('G : isolation (contextes de navigateur distincts = stockages distincts)');
+  console.log('G : même navigateur, autre personnage : liste précédente bornée à 7 jours');
   const s = makeServer();
-  const a = await open({ server: s });
-  await go(a.p, '/forum/rp');
-  const b = await open({ server: (() => { const s2 = makeServer(); s2.mode['/forum/rp'] = 'http500'; return s2; })() });
-  await go(b.p, '/jouer/plateau');
-  const mb = await dynamicRp(b.p);
-  check('un autre profil de navigateur ne voit pas la liste du premier', () => assert.deepEqual(mb.items, [['Autre', 'forum/rp']]));
-  await a.context.close(); await b.context.close();
+  const { context, p } = await open({ server: s });
+  await go(p, '/forum/rp'); // personnage A : Alpha, Bravo
+  SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Zoulou', 'zoulou-26')]); // personnage B, même navigateur
+  await go(p, '/jouer/plateau');
+  let m = await dynamicRp(p);
+  check('hors page source : la liste du personnage précédent reste affichée (non isolée, documenté)', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Bravo']));
+  await go(p, '/forum/rp');
+  m = await dynamicRp(p);
+  check('page source du nouveau personnage : sa liste remplace celle du précédent', () => assert.deepEqual(m.items.map(i => i[0]), ['Zoulou']));
+  // La liste mémorisée date de 8 jours : plus proposée.
+  await p.evaluate(() => { const k = 'kr-forums-v2-rp'; const d = JSON.parse(localStorage.getItem(k)); d.at = Date.now() - 8 * 24 * 60 * 60 * 1000; localStorage.setItem(k, JSON.stringify(d)); });
+  await go(p, '/jouer/plateau');
+  m = await dynamicRp(p);
+  check('liste de plus de 7 jours dans le même navigateur : plus proposée', () => { assert.deepEqual(m.items, [['Autre', 'forum/rp']]); assert.equal(m.state, 'unavailable'); });
+  await context.close();
+}
+
+// ---------- H : retour du cache de navigation (pageshow persisted) sur un ancien DOM ----------
+if (frag('h')) {
+  console.log('H : pageshow persisted ne réécrit pas une liste plus récente');
+  const s = makeServer();
+  const { context, p } = await open({ server: s });
+  await go(p, '/forum/rp'); // onglet 1 : DOM avec Alpha, Bravo
+  SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Charlie', 'charlie-3')]);
+  const p2 = await context.newPage();
+  await go(p2, '/forum/rp'); // onglet 2 : Charlie, plus récent
+  await waitMenu(p, 'rp', 'Charlie');
+  const before = await p.evaluate(() => JSON.parse(localStorage.getItem('kr-forums-v2-rp')));
+  // Le navigateur émet cet événement à la restauration depuis le cache de navigation ; sous route il est inerte, on le rejoue.
+  await p.evaluate(() => window.dispatchEvent(new window.PageTransitionEvent('pageshow', { persisted: true })));
+  await p.waitForTimeout(300);
+  const after = await p.evaluate(() => JSON.parse(localStorage.getItem('kr-forums-v2-rp')));
+  check('stockage inchangé : Charlie conservé, Bravo absent, date non reculée', () => { assert.deepEqual(after.forums.map(x => x.name), ['Charlie']); assert.equal(after.at, before.at); });
+  const m1 = await dynamicRp(p);
+  const m2 = await dynamicRp(p2);
+  check('onglet resté sur l\'ancien DOM : menu redessiné, Charlie', () => assert.deepEqual(m1.items.map(i => i[0]), ['Charlie']));
+  check('autre onglet : menu Charlie', () => assert.deepEqual(m2.items.map(i => i[0]), ['Charlie']));
+  // Même sans pageshow : une lecture datée du chargement de la page n'écrase jamais une entrée plus récente.
+  await p.evaluate(() => window.updateForumRPMenu());
+  const again = await p.evaluate(() => JSON.parse(localStorage.getItem('kr-forums-v2-rp')));
+  check('relecture de l\'ancien DOM : entrée plus récente non écrasée', () => assert.deepEqual(again.forums.map(x => x.name), ['Charlie']));
+  await context.close();
+}
+
+// ---------- I : doublons (statiques, URL absolue, barre finale) ----------
+if (frag('i')) {
+  console.log('I : doublons de destination, statiques compris');
+  const s = makeServer();
+  SET(s, '/forum/rp', [f('La Taverne', 'taverne-10101'), f('Alpha', 'alpha-1'), { name: 'Alpha bis', url: 'http://www.kraland.org/forum/rp/alpha-1' }, { name: 'Alpha ter', url: 'forum/rp/alpha-1/' }, f('Marché aux puces', 'marche-10102')]);
+  const { context, p } = await open({ server: s });
+  await go(p, '/forum/rp');
+  const m = await read(p, 'rp');
+  const paths = await p.evaluate(items => items.map(i => new URL(i[1], document.baseURI).pathname.replace(/\/+$/, '')), m.items);
+  check('aucune destination en double (statiques, URL absolue, barre finale)', () => assert.equal(new Set(paths).size, paths.length, JSON.stringify(m.items)));
+  check('seul Alpha s\'ajoute aux 3 statiques', () => assert.deepEqual(m.items.slice(3).map(i => i[0]), ['Alpha']));
+  await context.close();
+}
+
+// ---------- J : lignes atypiques ----------
+if (frag('j')) {
+  console.log('J : ligne atypique ignorée, la page n\'est pas invalidée');
+  const extras = {
+    'en-tête de groupe': '<tr><td colspan="4"><strong>Organisations</strong></td></tr>',
+    'ancre sans href en 1re cellule': '<tr><td><a name="org"></a><p class="nomargin"><a href="forum/rp/org-77">Organisation</a></p></td><td>1</td><td>1</td><td></td></tr>',
+    'lien image sans texte en 1re cellule': '<tr><td><a href="forum/rp/img-78"><img src="x.png" alt=""></a> <a href="forum/rp/img-79">Image</a></td><td>1</td><td>1</td><td></td></tr>',
+    'ligne sans lien utilisable': '<tr><td><a href="forum/rp/vide-80"><img src="x.png" alt=""></a></td><td>1</td><td>1</td><td></td></tr>'
+  };
+  for (const [label, extra] of Object.entries(extras)) {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Charlie', 'charlie-3')]);
+    s.extra['/forum/rp'] = extra;
+    await go(p, '/forum/rp');
+    const mj = await dynamicRp(p);
+    const got = mj.items.map(i => i[0]);
+    check(`${label} : Charlie pris, Bravo retiré`, () => { assert.ok(got.includes('Charlie')); assert.ok(!got.includes('Bravo')); });
+    await context.close();
+  }
+  // Aucune ligne exploitable du tout : lecture invalide, la liste précédente n'est pas remplacée.
+  const s = makeServer();
+  const { context, p } = await open({ server: s });
+  await go(p, '/forum/rp');
+  SET(s, '/forum/rp', []);
+  s.extra['/forum/rp'] = '<tr><td><a name="x"></a></td></tr>';
+  await go(p, '/forum/rp');
+  const mk = await dynamicRp(p);
+  check('aucune ligne exploitable : liste précédente conservée', () => assert.deepEqual(mk.items.map(i => i[0]), ['Alpha', 'Bravo']));
+  await context.close();
 }
 
 await browser.close();
