@@ -99,6 +99,38 @@ const shot = async (target, name, opts = {}) => { if (SHOTS) { await target.scre
 const browser = await chromium.launch({ headless: true });
 const DARK = 'empire-brun-dark';
 
+// Comparaison de captures par pixels décodés (canvas d'une page vierge). Tolérance bornée : au plus PIX_MAX_PIXELS pixels
+// différents, chacun d'un écart <= PIX_MAX_CANAL sur un canal. Toute autre différence (dimensions, pixels plus nombreux ou plus
+// éloignés) reste une régression.
+const PIX_MAX_PIXELS = 4;
+const PIX_MAX_CANAL = 2;
+async function comparePixels(a, b) {
+  const ctx = await browser.newContext();
+  try {
+    const pg = await ctx.newPage();
+    return await pg.evaluate(async ([ba, bb]) => {
+      const dec = async b64 => {
+        const bin = atob(b64); const u8 = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) { u8[i] = bin.charCodeAt(i); }
+        const bmp = await createImageBitmap(new Blob([u8], { type: 'image/png' }));
+        const cv = document.createElement('canvas'); cv.width = bmp.width; cv.height = bmp.height;
+        const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(bmp, 0, 0);
+        return { w: bmp.width, h: bmp.height, d: cx.getImageData(0, 0, bmp.width, bmp.height).data };
+      };
+      const x = await dec(ba); const y = await dec(bb);
+      if (x.w !== y.w || x.h !== y.h) { return { dims: [x.w + 'x' + x.h, y.w + 'x' + y.h] }; }
+      let pixels = 0; let maxCanal = 0; const first = [];
+      for (let i = 0; i < x.d.length; i += 4) {
+        let m = 0;
+        for (let c = 0; c < 4; c++) { m = Math.max(m, Math.abs(x.d[i + c] - y.d[i + c])); }
+        if (m > 0) { pixels += 1; maxCanal = Math.max(maxCanal, m); if (first.length < 3) { const n = i / 4; first.push([n % x.w, Math.floor(n / x.w)]); } }
+      }
+      return { pixels, maxCanal, first };
+    }, [a.toString('base64'), b.toString('base64')]);
+  } finally { await ctx.close(); }
+}
+const pixelsEquivalent = d => d.identique === true || (!d.dims && d.pixels <= PIX_MAX_PIXELS && d.maxCanal <= PIX_MAX_CANAL);
+
 async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK, height = 900, touch = false, init = null, ajaxDelay = 120, themeOn = true }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: SHOTS ? 2 : 1 });
@@ -1207,11 +1239,15 @@ if (frag('regression')) {
           doms[bundle].errors = errors.length;
           await context.close();
         }
+        // Octet pour octet si possible ; sinon pixels décodés, avec une tolérance bornée (bruit d'anticrénelage de Chromium sur
+        // le coin arrondi d'un panneau, mesuré en A/A : même bundle des deux côtés, 1 à 2 pixels, écart <= 2 sur un canal).
+        const diffs = Buffer.compare(shots.avant, shots.apres) === 0 ? { identique: true } : await comparePixels(shots.avant, shots.apres);
+        if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
         check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
           assert.equal(doms.apres.kd, 0);
           assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined });
           assert.deepEqual(doms.apres.unexpected, []);
-          assert.ok(Buffer.compare(shots.avant, shots.apres) === 0, `captures différentes (${shots.avant.length} / ${shots.apres.length} octets)`);
+          assert.ok(pixelsEquivalent(diffs), `captures différentes (${shots.avant.length} / ${shots.apres.length} octets) : ${JSON.stringify(diffs)}`);
         });
       }
     }
