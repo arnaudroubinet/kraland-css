@@ -4064,11 +4064,13 @@
   //      1re transformation), puis dessin du menu de CETTE catégorie ; les autres catégories ne changent pas ;
   //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau ;
   //   3. une liste de plus de MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
-  // Une source absente ou illisible (pas de #col-left, pas de lien de la catégorie, liens tous désactivés) ne remplace RIEN : la liste
+  // Une source absente ou illisible (pas de #col-left, pas de lien de la catégorie, ni accessible ni désactivé) ne remplace RIEN : la liste
   // précédente reste proposée jusqu'à MAX_AGE_MS. Une liste latérale sans lien n'est PAS une liste vide valide (indiscernable d'une page
-  // dégradée ou d'un état désactivé ambigu) : le cache n'est jamais effacé par elle.
-  // Entrées ignorées : liens hors de la catégorie (Kramail, profil, modérateur…), blocs de la peau (.kraland-metrics), entrées désactivées
-  // (état ambigu). Libellé : texte du lien sans icône, drapeau, badge ni pastille.
+  // dégradée) : le cache n'est jamais effacé par elle.
+  // Q3 (décision d'Arnaud) : une entrée de la catégorie explicitement désactivée (.disabled, aria-disabled="true", disabled) est un accès perdu :
+  // elle est retirée du menu si elle y était, jamais ajoutée ; si toutes le sont, la liste devient vide (pas de maintien de l'ancienne).
+  // Un simple style grisé ne prouve rien. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
+  // ignorés. Libellé : texte du lien sans icône, drapeau, badge ni pastille.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
   // L'âge borné limite donc le risque de liste d'un autre personnage ; les anciennes clés « kr-forums-<menu> » (tableau nu, sans
   // date ni provenance) sont ignorées puis supprimées.
@@ -4118,7 +4120,8 @@
       return copy.textContent.replace(/\s+/g, ' ').trim();
     }
 
-    // Entrée désactivée : état ambigu (accès perdu ? simple survol ?), jamais reprise ni comptée comme preuve d'absence.
+    // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
+    // .disabled, aria-disabled="true", attribut disabled. Un simple style (grisé, opacité, survol, text-muted) n'en est PAS un.
     function isDisabledLink(a) {
       return a.classList.contains('disabled') || a.getAttribute('aria-disabled') === 'true' || a.hasAttribute('disabled');
     }
@@ -4150,11 +4153,13 @@
       const forums = [];
       const seen = new Set();
       let readable = 0;
+      let denied = 0;
       colLeft.querySelectorAll('.list-group > a.list-group-item[href]').forEach(a => {
         if (a.closest('.kraland-metrics')) {return;}
         const href = a.getAttribute('href').trim();
         if (!href || !isSameOrigin(href, doc.baseURI) || !destinationKey(href, doc.baseURI).startsWith(menu.path + '/')) {return;}
-        if (isDisabledLink(a)) {return;}
+        // Forum de la catégorie dont l'accès est explicitement coupé : preuve d'accès perdu, jamais ajouté (donc retiré s'il était connu).
+        if (isDisabledLink(a)) {denied += 1; return;}
         const name = labelOf(a);
         if (!name) {return;}
         const key = destinationKey(href, doc.baseURI);
@@ -4163,9 +4168,10 @@
         seen.add(key);
         forums.push({ name, url: href });
       });
-      // Aucun lien de la catégorie lisible : source absente, dégradée ou ambiguë, jamais « aucun forum accessible ».
+      // Aucun lien de la catégorie, ni accessible ni explicitement désactivé : source absente ou dégradée, jamais « aucun forum accessible ».
+      // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
       // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
-      if (!readable) {return { ok: false, reason: 'no-links' };}
+      if (!readable && !denied) {return { ok: false, reason: 'no-links' };}
       return { ok: true, forums };
     }
 
@@ -4206,13 +4212,16 @@
       } catch (_e) { /* stockage inaccessible : rien à purger */ }
     }
 
-    // Retour arrière servi par le cache HTTP (aucun octet reçu) : le HTML est celui d'une visite passée, mais le script s'exécute maintenant.
-    // Dater sa colonne « maintenant » écraserait une liste plus récente par une ancienne : on ne la lit pas.
-    // Navigation normale, rechargement et retour revalidé par le serveur (octets reçus) restent lus.
-    function isCachedHistoryReturn() {
+    // Page servie par le cache HTTP (aucun octet reçu, mais un corps existe) : le HTML est celui d'une visite passée, mais le script s'exécute
+    // maintenant. Dater sa colonne « maintenant » écraserait une liste plus récente par une ancienne : on ne la lit pas.
+    // Quel que soit le type de navigation (retour arrière, navigation normale vers une page encore fraîche pour le cache HTTP, etc.) :
+    // une page redemandée au serveur, même revalidée (304), reçoit des octets (en-têtes) et reste lue ; le rechargement aussi.
+    // Fiabilité : transferSize vaut 0 aussi quand l'API ne renseigne rien ; encodedBodySize > 0 écarte ce cas (mesure non fiable : lecture
+    // normale, comme avant). Ne dépend d'aucune requête.
+    function isServedFromHttpCache() {
       try {
         const nav = performance.getEntriesByType('navigation')[0];
-        return !!nav && nav.type === 'back_forward' && nav.transferSize === 0;
+        return !!nav && nav.transferSize === 0 && nav.encodedBodySize > 0;
       } catch (_e) {
         return false;
       }
@@ -4221,8 +4230,8 @@
     /** Lit la liste latérale de la page courante si elle appartient à la catégorie du menu. */
     function refreshFromCurrentPage(menu) {
       if (menuForPath(window.location.pathname) !== menu) {return false;}
-      if (isCachedHistoryReturn()) {
-        console.warn(`[Forums] ${menu.label} : retour arrière servi par le cache HTTP, colonne ancienne non relue, liste mémorisée conservée`);
+      if (isServedFromHttpCache()) {
+        console.warn(`[Forums] ${menu.label} : page servie par le cache HTTP, colonne ancienne non relue, liste mémorisée conservée`);
         return false;
       }
       const res = parseSidebar(document, menu);

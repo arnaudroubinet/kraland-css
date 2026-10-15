@@ -26,7 +26,7 @@ const frag = name => !FRAGS.length || FRAGS.includes(name);
 
 let failures = 0;
 function check(name, fn) {
-  try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
+  try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n').slice(0, process.env.KR_VERBOSE ? 12 : 1).join('\n       ')); }
 }
 
 const NAV = `<nav class="navbar navbar-inverse nomargin"><div class="container">
@@ -225,8 +225,8 @@ if (frag('c')) {
 
 // ---------- D : source absente, illisible ou ambiguë != liste vide ----------
 if (frag('d')) {
-  console.log('D : liste latérale absente, sans lien, désactivée ou page dégradée : dernière liste connue conservée');
-  for (const [label, mode] of [['pas de colonne latérale (tableau seul)', 'nosidebar'], ['page de maintenance', 'maintenance'], ['liste latérale sans aucun lien', 'nolinks'], ['tous les liens désactivés (état ambigu)', 'alldisabled'], ['réponse 500', 'http500'], ['page de connexion', 'redirect']]) {
+  console.log('D : liste latérale absente, sans lien ou page dégradée : dernière liste connue conservée (tout désactivé : fragment R)');
+  for (const [label, mode] of [['pas de colonne latérale (tableau seul)', 'nosidebar'], ['page de maintenance', 'maintenance'], ['liste latérale sans aucun lien', 'nolinks'], ['réponse 500', 'http500'], ['page de connexion', 'redirect']]) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -247,7 +247,7 @@ if (frag('d')) {
     s.side['/forum/rp'] = '<a name="x" class="list-group-item">Sans destination</a><a href="forum/rp/niark-9" class="list-group-item disabled"><span class="lefticon"><i class="fa fa-ban"></i></span>Province Niarkalistan</a><a href="forum/rp/niark-10" class="list-group-item" aria-disabled="true">Autre grisée</a>';
     await go(p, '/forum/rp');
     const mb = await dynamicRp(p);
-    check('ancre sans href et entrées désactivées ignorées, Charlie lu (limite documentée : une entrée grisée accessible n\'est pas proposée)', () => assert.deepEqual(mb.items.map(i => i[0]), ['Charlie']));
+    check('ancre sans href ignorée, entrées désactivées retirées (Q3), Charlie lu', () => assert.deepEqual(mb.items.map(i => i[0]), ['Charlie']));
     await context.close();
   }
   // Page non source : aucune relecture réseau. Une liste de 2 jours reste affichée, marquée « stale », sans aucune requête vers la source.
@@ -690,6 +690,267 @@ if (frag('p')) {
   }
   await realBrowser.close();
   await new Promise(resolve => server.close(resolve));
+}
+
+// ---------- Q (N1) : navigation normale servie par le cache HTTP frais, vrai serveur HTTP local, réseau externe bloqué ----------
+// Parcours A -> B -> clic sur A : le navigateur sert A depuis son cache (type « navigate », 0 octet) ; sa colonne est ancienne mais la
+// page se charge « maintenant » : elle ne doit pas écraser la liste lue sur B. En-têtes réels de Kraland INCONNUS : quatre profils types.
+if (frag('q')) {
+  console.log('Q : navigation normale servie par le cache HTTP (max-age, Last-Modified, session PHP, ETag), serveur local');
+  const baseList = [f('Taverne', 'taverne-10101'), f('Alpha', 'alpha-1')];
+  const lists = { rp: [], hrp: [] };
+  const hits = {};
+  let mode = 'max-age';
+  const lastModified = new Date(Date.now() - 365 * DAY).toUTCString();
+  const server = http.createServer((req, res) => {
+    const pth = new URL(req.url, BASE).pathname;
+    hits[pth] = (hits[pth] || 0) + 1;
+    const key = normalize(pth);
+    const cat = ['rp', 'hrp'].find(c => key.startsWith('/forum/' + c + '/'));
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    if (!cat) { res.setHeader('Cache-Control', 'no-store'); res.end(page('<h1>Page</h1>')); return; }
+    const html = page(topics, sideHtml(TITLES[cat], lists[cat].map(it => item(it)).join('')));
+    if (mode === 'max-age') { res.setHeader('Cache-Control', 'max-age=600'); }
+    if (mode === 'last-modified') { res.setHeader('Last-Modified', lastModified); }
+    if (mode === 'php') {
+      res.setHeader('Expires', 'Thu, 19 Nov 1981 08:52:00 GMT');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Set-Cookie', 'PHPSESSID=fixture; path=/');
+    }
+    if (mode === 'etag') {
+      const etag = '"' + Buffer.from(html).length + '-' + html.length + '-' + lists[cat].map(it => it.name).join('|') + '"';
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('ETag', Buffer.from(etag).toString('base64').slice(0, 60));
+      if (req.headers['if-none-match'] === res.getHeader('ETag')) { res.statusCode = 304; res.end(); return; }
+    }
+    res.end(html);
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  const realBrowser = await chromium.launch({
+    headless: true,
+    executablePath: process.env.KR_CHROMIUM || undefined,
+    args: [`--host-resolver-rules=MAP www.kraland.org 127.0.0.1:${port}, MAP * ~NOTFOUND , EXCLUDE 127.0.0.1`]
+  });
+  const navInfo = p => p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; return { type: n.type, transferSize: n.transferSize, body: n.encodedBodySize }; });
+  const settle = (p, label) => domQuiet(p, { ready: THEME_READY, quietMs: 400, label });
+  const clickTo = async (p, hrefEnd) => {
+    await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), p.evaluate((end) => document.querySelector(`#col-left a[href$="${end}"]`).click(), hrefEnd)]);
+    await settle(p, 'clic ' + hrefEnd);
+  };
+  const namesOf = async (p) => (await dynamicRp(p)).items.map(i => i[0]);
+  const hrpNames = async (p) => names(await read(p, 'hrp'));
+  for (const width of [1280, 375]) {
+    for (const m of ['max-age', 'last-modified', 'php', 'etag']) {
+      const cached = m === 'max-age' || m === 'last-modified';
+      mode = m;
+      for (const k of Object.keys(hits)) { delete hits[k]; }
+      lists.rp = [...baseList, f('Bravo', 'bravo-2')];
+      lists.hrp = [{ name: 'H1', url: 'forum/hrp/h1-1' }, { name: 'H2', url: 'forum/hrp/h2-2' }];
+      const mobile = width < 768;
+      const context = await realBrowser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile });
+      await context.addInitScript(({ src }) => {
+        window.GM = { xmlHttpRequest: () => {} };
+        localStorage.setItem('kr-theme-enabled', 'true');
+        localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
+        // eslint-disable-next-line no-eval
+        document.addEventListener('DOMContentLoaded', () => (0, eval)(src));
+      }, { src: userscript });
+      const p = await context.newPage();
+      const tag = `${width} ${m}`;
+      await go(p, '/forum/rp/alpha-1');
+      const first = await namesOf(p);
+      check(`${tag} : forum A lu (Alpha, Bravo)`, () => assert.deepEqual(first, ['Alpha', 'Bravo']));
+      lists.rp = [...baseList, f('Charlie', 'charlie-3')];
+      await go(p, '/forum/rp/charlie-3');
+      const mid = await stored(p, 'rp');
+      check(`${tag} : forum B lu, liste récente = Alpha, Charlie`, () => assert.deepEqual(mid.forums.map(x => x.name), ['Alpha', 'Charlie']));
+      // Le serveur change encore : seul un document VRAIMENT redemandé peut le montrer.
+      lists.rp = [...baseList, f('Delta', 'delta-4')];
+      const hitsA = hits['/forum/rp/alpha-1'];
+      await clickTo(p, 'alpha-1');
+      const nav = await navInfo(p);
+      const colBravo = await p.evaluate(() => document.getElementById('col-left').textContent.includes('Bravo'));
+      if (cached) {
+        check(`${tag} : précondition : A servie par le cache HTTP (navigate, 0 octet, serveur non sollicité, ancienne colonne affichée)`, () => {
+          assert.equal(nav.type, 'navigate'); assert.equal(nav.transferSize, 0); assert.equal(hits['/forum/rp/alpha-1'], hitsA); assert.equal(colBravo, true);
+        });
+        const after = await stored(p, 'rp');
+        check(`${tag} : cache HTTP, navigation normale : la liste récente (Alpha, Charlie) n'est pas écrasée, date non reculée`, () => { assert.deepEqual(after.forums.map(x => x.name), ['Alpha', 'Charlie']); assert.equal(after.at, mid.at); });
+        const menu = await namesOf(p);
+        check(`${tag} : cache HTTP, navigation normale : le menu affiche la liste récente`, () => assert.deepEqual(menu, ['Alpha', 'Charlie']));
+        // Rechargement : la page est redemandée, la colonne fraîche est lue.
+        await p.reload({ waitUntil: 'load' });
+        await settle(p, 'reload');
+        const navReload = await navInfo(p);
+        const afterReload = await namesOf(p);
+        check(`${tag} : rechargement : page redemandée (octets reçus) et colonne relue (Delta)`, () => { assert.equal(navReload.type, 'reload'); assert.ok(navReload.transferSize > 0); assert.deepEqual(afterReload, ['Alpha', 'Delta']); });
+        // Page jamais vue : lecture normale, ajout d'un forum.
+        lists.rp = [...baseList, f('Echo', 'echo-5')];
+        await go(p, '/forum/rp/echo-5');
+        const afterNew = await namesOf(p);
+        check(`${tag} : page non mise en cache : colonne lue (Alpha, Echo remplace Delta)`, () => assert.deepEqual(afterNew, ['Alpha', 'Echo']));
+        // Catégories indépendantes : HRP lu deux fois, puis A de HRP servi par le cache ; RP et HRP gardent leur liste.
+        await go(p, '/forum/hrp/h1-1');
+        lists.hrp = [{ name: 'H1', url: 'forum/hrp/h1-1' }, { name: 'H3', url: 'forum/hrp/h3-3' }];
+        await go(p, '/forum/hrp/h3-3');
+        lists.hrp = [{ name: 'H1', url: 'forum/hrp/h1-1' }, { name: 'H9', url: 'forum/hrp/h9-9' }];
+        await clickTo(p, 'h1-1');
+        const navH = await navInfo(p);
+        const hrp = await hrpNames(p);
+        const rpStored = await stored(p, 'rp');
+        check(`${tag} : HRP servie par le cache (0 octet) : liste HRP récente conservée (H1, H3), liste RP intacte (Alpha, Echo)`, () => { assert.equal(navH.transferSize, 0); assert.deepEqual(hrp, ['H1', 'H3']); assert.deepEqual(rpStored.forums.map(x => x.name), ['Alpha', 'Echo']); });
+      } else {
+        check(`${tag} : précondition : A redemandée au serveur (navigate, octets reçus)`, () => { assert.equal(nav.type, 'navigate'); assert.ok(nav.transferSize > 0); assert.equal(hits['/forum/rp/alpha-1'], hitsA + 1); assert.equal(colBravo, false); });
+        const after = await namesOf(p);
+        check(`${tag} : navigation normale non servie par le cache : colonne fraîche lue (Alpha, Delta)`, () => assert.deepEqual(after, ['Alpha', 'Delta']));
+      }
+      await context.close();
+    }
+  }
+  // Fiabilité de la mesure (transferSize) : stub de performance.getEntriesByType sur un serveur qui répond toujours (mode php, aucun cache).
+  // 0 octet ET aucun corps mesuré = mesure non renseignée : lecture normale ; 0 octet avec corps = cache ; octets reçus = lecture.
+  {
+    mode = 'php';
+    lists.rp = [...baseList, f('Bravo', 'bravo-2')];
+    for (const [label, ts, eb, expectRead] of [['mesure non renseignée (transferSize 0, encodedBodySize 0)', 0, 0, true], ['servie par le cache (transferSize 0, corps 5000)', 0, 5000, false], ['octets reçus (transferSize 300, corps 5000)', 300, 5000, true]]) {
+      const context = await realBrowser.newContext({ viewport: { width: 1280, height: 800 } });
+      await context.addInitScript(({ ts_, eb_ }) => {
+        const orig = performance.getEntriesByType.bind(performance);
+        performance.getEntriesByType = (t) => (t === 'navigation' ? [{ type: 'navigate', transferSize: ts_, encodedBodySize: eb_ }] : orig(t));
+      }, { ts_: ts, eb_: eb });
+      await context.addInitScript(({ src }) => {
+        window.GM = { xmlHttpRequest: () => {} };
+        localStorage.setItem('kr-theme-enabled', 'true');
+        localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
+        // eslint-disable-next-line no-eval
+        document.addEventListener('DOMContentLoaded', () => (0, eval)(src));
+      }, { src: userscript });
+      const p = await context.newPage();
+      await p.goto(BASE + '/jouer/plateau', { waitUntil: 'load' });
+      await p.evaluate(() => localStorage.setItem('kr-forums-v2-rp', JSON.stringify({ v: 2, at: Date.now() - 1000, forums: [{ name: 'Récent', url: 'forum/rp/recent-9' }] })));
+      await go(p, '/forum/rp/alpha-1');
+      const st = await stored(p, 'rp');
+      check(`garde : ${label} : ${expectRead ? 'colonne lue (Alpha, Bravo)' : 'liste mémorisée conservée (Récent)'}`, () => assert.deepEqual(st.forums.map(x => x.name), expectRead ? ['Alpha', 'Bravo'] : ['Récent']));
+      await context.close();
+    }
+  }
+  await realBrowser.close();
+  await new Promise(resolve => server.close(resolve));
+}
+
+// ---------- R (Q3, décision d'Arnaud t_c1975f06) : un forum dont l'accès est explicitement coupé est retiré, jamais réintroduit ----------
+// « Si on a perdu l'accès, il faut le retirer. On cherche pas à référencer les forums auxquels on accède pas. »
+// Signaux de perte d'accès retenus : .disabled, aria-disabled="true", attribut disabled sur l'entrée de la liste latérale native.
+// Un simple style (grisé, text-muted, opacity, survol) n'est PAS une preuve. Source absente ou illisible : liste conservée (fragment D).
+if (frag('r')) {
+  console.log('R : Q3 entrées désactivées retirées (liste mixte, tout désactivé), pas de maintien ni de réintroduction');
+  const off = (fo, how) => item(fo).replace('class="list-group-item"', how === 'class' ? 'class="list-group-item disabled"' : how === 'aria' ? 'class="list-group-item" aria-disabled="true"' : 'class="list-group-item" disabled=""');
+  const alpha = f('Alpha', 'alpha-1');
+  const bravo = f('Bravo', 'bravo-2');
+  for (const how of ['class', 'aria', 'attr']) {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const before = await stored(p, 'rp');
+    check(`${how} : précondition : Alpha et Bravo mémorisés`, () => assert.deepEqual(before.forums.map(x => x.name), ['Alpha', 'Bravo']));
+    // liste mixte : Bravo devient inaccessible
+    s.raw['/forum/rp'] = item(alpha) + off(bravo, how);
+    await go(p, '/forum/rp');
+    let m = await dynamicRp(p);
+    check(`${how} : liste mixte : Bravo (désactivé) retiré du menu, Alpha gardé`, () => { assert.deepEqual(m.items.map(i => i[0]), ['Alpha']); assert.equal(m.state, 'fresh'); });
+    await go(p, '/jouer/plateau');
+    m = await dynamicRp(p);
+    check(`${how} : ailleurs : Bravo ne revient pas`, () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha']));
+    // tout désactivé : plus aucun forum, pas de maintien aveugle de l'ancienne liste
+    s.raw['/forum/rp'] = off(alpha, how) + off(bravo, how);
+    await go(p, '/forum/rp');
+    m = await dynamicRp(p);
+    const st = await stored(p, 'rp');
+    check(`${how} : tout désactivé : plus aucun forum dans le menu, seul le lien vers la catégorie, état « empty »`, () => { assert.deepEqual(m.items, [['Autre', 'forum/rp']]); assert.equal(m.state, 'empty'); });
+    check(`${how} : tout désactivé : stockage vidé (liste valide sans forum), ni Alpha ni Bravo`, () => assert.deepEqual(st.forums, []));
+    await go(p, '/jouer/plateau');
+    m = await dynamicRp(p);
+    check(`${how} : tout désactivé puis autre page : aucun forum réintroduit`, () => assert.deepEqual(m.items, [['Autre', 'forum/rp']]));
+    // source ensuite absente : on ne ressort pas l'ancienne liste, la dernière liste connue est la liste vide
+    s.mode['/forum/rp'] = 'nosidebar';
+    await go(p, '/forum/rp');
+    m = await dynamicRp(p);
+    check(`${how} : source absente après un tout désactivé : la dernière liste connue (vide) est conservée, rien n'est réintroduit`, () => assert.deepEqual(m.items, [['Autre', 'forum/rp']]));
+    // accès rétabli : les forums redeviennent proposés (la liste affichée fait foi dans les deux sens)
+    delete s.mode['/forum/rp'];
+    delete s.raw['/forum/rp'];
+    await go(p, '/forum/rp');
+    m = await dynamicRp(p);
+    check(`${how} : accès rétabli : Alpha et Bravo de nouveau lus`, () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
+  // Tout désactivé via la fixture « alldisabled » (class), dans chacune des cinq catégories : seule la catégorie visitée change.
+  for (const cat of CATS) {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    for (const c of CATS) { await go(p, '/forum/' + c); }
+    s.mode['/forum/' + cat] = 'alldisabled';
+    await go(p, '/forum/' + cat);
+    const own = await read(p, cat);
+    const fallback = cat === 'rp' ? 'Autre' : 'Voir tous les forums';
+    const ownItems = cat === 'rp' ? own.items.slice(3) : own.items;
+    check(`${cat} : tout désactivé : lien vers la catégorie seul, état « empty »`, () => { assert.deepEqual(ownItems, [[fallback, 'forum/' + cat]]); assert.equal(own.state, 'empty'); });
+    for (const other of CATS.filter(c => c !== cat)) {
+      const mo = await read(p, other);
+      const expected = other === 'rp' ? ['Alpha', 'Bravo'] : s.lists['/forum/' + other].map(x => x.name);
+      const got = other === 'rp' ? mo.items.slice(3).map(i => i[0]) : names(mo);
+      check(`${cat} tout désactivé : la catégorie ${other} ne change pas`, () => assert.deepEqual(got, expected));
+    }
+    await context.close();
+  }
+  // Un forum désactivé jamais mémorisé n'est pas ajouté, ni dans le menu ni dans le stockage.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), alpha]);
+    s.side['/forum/rp'] = off(f('Charlie', 'charlie-3'), 'class');
+    await go(p, '/forum/rp');
+    const m = await dynamicRp(p);
+    const raw = await p.evaluate(() => localStorage.getItem('kr-forums-v2-rp'));
+    check('forum désactivé jamais connu : non ajouté (menu et stockage)', () => { assert.deepEqual(m.items.map(i => i[0]), ['Alpha']); assert.ok(!raw.includes('Charlie') && !raw.includes('charlie-3')); });
+    await context.close();
+  }
+  // Même destination à la fois active et désactivée : l'entrée active prouve l'accès, elle reste.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = item(alpha) + off(alpha, 'class') + off(bravo, 'class');
+    await go(p, '/forum/rp');
+    const m = await dynamicRp(p);
+    check('même destination active et désactivée : active gardée, Bravo retiré', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha']));
+    await context.close();
+  }
+  // Simple style grisé, survol, classes visuelles : PAS une preuve d'accès perdu, l'entrée reste proposée.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const gray = (fo, extra) => item(fo).replace('class="list-group-item"', `class="list-group-item ${extra.cls}" style="${extra.style}"`);
+    s.raw['/forum/rp'] = item(alpha) + gray(bravo, { cls: 'text-muted grey inactive', style: 'opacity:.4;color:#999;pointer-events:none;cursor:not-allowed' });
+    await go(p, '/forum/rp');
+    const m = await dynamicRp(p);
+    check('entrée seulement grisée (style, opacity, text-muted, pointer-events) : toujours proposée', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
+  // Une entrée désactivée HORS de la catégorie (Kramail, autre catégorie) n'est pas un forum de la catégorie : pas de preuve, liste conservée.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = '<a href="kramail" class="list-group-item disabled">Kramail</a><a href="forum/hrp/autre-5" class="list-group-item disabled">Autre catégorie</a>';
+    await go(p, '/forum/rp');
+    const m = await dynamicRp(p);
+    check('désactivés hors catégorie seulement : aucun forum de la catégorie lu, liste conservée', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
 }
 
 await browser.close();
