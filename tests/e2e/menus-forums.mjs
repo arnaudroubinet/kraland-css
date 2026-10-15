@@ -375,6 +375,59 @@ if (frag('j')) {
   await context.close();
 }
 
+// ---------- K (QA t_1cd6c20f) : lien exploitable, entrée datée dans le futur, horloge de performance en retard ----------
+if (frag('k')) {
+  console.log('K : forum de la ligne atypique lu, lien hors forum écarté, date de lecture murale');
+  // La règle « premier lien exploitable » doit LIRE le forum de la ligne atypique, pas seulement ignorer la ligne.
+  for (const [label, extra, expected] of [
+    ['ancre sans href puis p > a', '<tr><td><a name="org"></a><p class="nomargin"><a href="forum/rp/org-77">Organisation</a></p></td><td>1</td><td>1</td><td></td></tr>', ['Organisation', 'forum/rp/org-77']],
+    ['lien image puis lien texte', '<tr><td><a href="forum/rp/img-79"><img src="x.png" alt=""></a> <a href="forum/rp/img-79">Image</a></td><td>1</td><td>1</td><td></td></tr>', ['Image', 'forum/rp/img-79']]
+  ]) {
+    const s = makeServer();
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Charlie', 'charlie-3')]);
+    s.extra['/forum/rp'] = extra;
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const mk = await dynamicRp(p);
+    check(`${label} : ${expected[0]} lu avec sa destination native`, () => assert.ok(mk.items.some(i => i[0] === expected[0] && i[1] === expected[1]), JSON.stringify(mk.items)));
+    await context.close();
+  }
+  // Titre en lien image sans texte, modérateurs dans la même cellule : le profil du modérateur n'est pas un forum.
+  {
+    const s = makeServer();
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Charlie', 'charlie-3')]);
+    s.extra['/forum/rp'] = '<tr><td><p class="nomargin"><a href="forum/rp/icone-81"><img src="x.png" alt=""></a></p><p class="nomargin">Description</p><div class="mini">Modérateurs : <a href="communaute/membres/modo-1-1">Modo [mod]</a></div></td><td>1</td><td>1</td><td></td></tr>';
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const mk = await dynamicRp(p);
+    check('titre image + modérateurs : aucun lien hors forum dans le menu Forum RP', () => assert.ok(!mk.items.some(i => /communaute\/membres/.test(i[1])), JSON.stringify(mk.items)));
+    await context.close();
+  }
+  // Entrée datée de 2 h dans le futur (horloge corrigée en arrière) : la visite de la page source la remplace.
+  {
+    const s = makeServer();
+    const future = JSON.stringify({ v: 2, at: Date.now() + 2 * 3600e3, forums: [{ name: 'Ancien', url: 'forum/rp/ancien-1' }] });
+    const { context, p } = await open({ server: s, preset: { 'kr-forums-v2-rp': future } });
+    await go(p, '/forum/rp');
+    const mk = await dynamicRp(p);
+    check('entrée datée dans le futur : la page source la remplace (Alpha, Bravo)', () => assert.deepEqual(mk.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
+  // performance.timeOrigin en retard (dérive documentée après veille) dans l'onglet qui lit la liste la plus récente.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp'); // Alpha, Bravo mémorisés maintenant
+    SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), f('Delta', 'delta-4')]);
+    const p2 = await context.newPage();
+    await p2.addInitScript(() => { const real = performance.timeOrigin; Object.defineProperty(window.Performance.prototype, 'timeOrigin', { configurable: true, get: () => real - 10 * 3600e3 }); });
+    await go(p2, '/forum/rp');
+    const mk = await dynamicRp(p2);
+    check('timeOrigin en retard de 10 h : la liste plus récente (Delta) est mémorisée et affichée', () => assert.deepEqual(mk.items.map(i => i[0]), ['Delta']));
+    await context.close();
+  }
+}
+
 await browser.close();
 console.log(failures ? `\n${failures} échec(s)` : '\nTout est vert');
 process.exit(failures ? 1 : 0);
