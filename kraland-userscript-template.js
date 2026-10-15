@@ -4060,8 +4060,9 @@
   //   1. sur la page source elle-même : lecture du tableau natif AVANT le dessin du menu (le menu de cette page est donc déjà à jour) ;
   //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau (aucune relecture de fond) ;
   //   3. une liste de plus de MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
-  // Une source indisponible ou incomplète (pas de tableau, lien sans destination) ne remplace RIEN : la liste précédente reste proposée
-  // jusqu'à MAX_AGE_MS. Un tableau présent mais sans forum est une liste vide valide et efface la liste.
+  // Une source indisponible ou incomplète (pas de tableau, ou tableau dont les lignes n'ont aucun lien exploitable) ne remplace RIEN : la liste
+  // précédente reste proposée jusqu'à MAX_AGE_MS. Une ligne sans destination est ignorée (les autres sont lues).
+  // Un tableau présent mais sans aucune ligne (tbody vide) est une liste vide valide et efface la liste.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
   // L'âge borné limite donc le risque de liste d'un autre personnage ; les anciennes clés « kr-forums-<menu> » (tableau nu, sans
   // date ni provenance) sont ignorées puis supprimées.
@@ -4101,11 +4102,16 @@
       }
     }
 
-    // Premier lien exploitable (href non vide ET texte non vide) de la 1re cellule : ignore ancres <a name> et liens image.
-    function firstUsableLink(row) {
+    // Premier lien exploitable de la 1re cellule : href non vide, texte non vide (ignore ancres <a name> et liens image),
+    // et destination sous le chemin du menu (exclut p. ex. le profil d'un modérateur /communaute/membres/…).
+    function firstUsableLink(row, menu) {
       const cell = row.querySelector('td:first-child');
       if (!cell) {return null;}
-      return Array.from(cell.querySelectorAll('a[href]')).find(a => a.getAttribute('href').trim() && a.textContent.trim()) || null;
+      return Array.from(cell.querySelectorAll('a[href]')).find(a => {
+        const href = a.getAttribute('href').trim();
+        if (!href || !a.textContent.trim()) {return false;}
+        return destinationKey(href, row.ownerDocument.baseURI).startsWith(menu.path + '/');
+      }) || null;
     }
 
     /**
@@ -4120,7 +4126,7 @@
       let skipped = 0;
       let usable = 0;
       doc.querySelectorAll('table.table tbody tr').forEach(row => {
-        const link = firstUsableLink(row);
+        const link = firstUsableLink(row, menu);
         if (!link) {skipped += 1; return;}
         const name = link.textContent.trim();
         const url = link.getAttribute('href').trim();
@@ -4156,7 +4162,8 @@
     function writeStored(menu, forums, at) {
       try {
         const current = readStored(menu);
-        if (current && current.at > at) {return false;}
+        // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
+        if (current && current.at > at && current.at <= Date.now() + 60000) {return false;}
         localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums }));
         return true;
       } catch (e) {
@@ -4179,8 +4186,8 @@
         console.warn(`[Forums] ${menu.label} : source native ${res.reason}, liste précédente conservée`);
         return false;
       }
-      // Le DOM lu date du chargement de la page (performance.timeOrigin), pas du moment où le script le relit.
-      const readAt = (performance && performance.timeOrigin) || Date.now();
+      // Heure murale du chargement de la page (pas du moment où le script relit le DOM). performance.timeOrigin dérive après une veille.
+      const readAt = Date.now() - performance.now();
       writeStored(menu, res.forums, readAt);
       return true;
     }

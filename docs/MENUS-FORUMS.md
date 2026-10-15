@@ -17,21 +17,22 @@ Menus concernés (créés par `modifyNavigationMenus`, remplis par `window.updat
 3. Une page sans tableau (maintenance, déconnexion) pouvait écrire `[]`, confondue avec « aucun forum accessible » ; une liste sans date ne pouvait jamais être jugée périmée : un joueur qui ne revisite pas la page source gardait indéfiniment une ancienne liste.
 4. Le filtrage par sous-chaîne (`includes('monde')`, `includes('staff')`…) masquait tout forum dont le nom contient « Monde », « Staff »… : un nouveau forum pouvait ne jamais apparaître.
 
-Non vérifié sur le vrai site (fixtures seulement, aucun compte) : la forme du tableau natif réel (`table.table tbody tr td:first-child a`) reste celle déjà utilisée par le script.
+Non vérifié sur le vrai site (fixtures seulement, aucun compte) : la forme du tableau natif réel reste à confirmer. Le script lit `table.table tbody tr` ; dans chaque ligne, il prend le premier lien de la 1re cellule dont le texte est non vide et dont la destination est sous le chemin du menu (`/forum/rp/…`), ce qui exclut les liens image, les ancres `<a name>` et les profils de modérateurs (`/communaute/membres/…`).
 
 ## Moment de rafraîchissement
 
 - **Sur la page source** (barre finale tolérée) : lecture du tableau natif juste avant le dessin du menu ; le menu de cette page est donc déjà à jour.
 - **Ailleurs** : la liste mémorisée est réaffichée telle quelle, **sans requête réseau**. Une relecture de fond (GET de la page source) a été essayée puis retirée : elle faisait échouer les suites qui exigent zéro requête hors fixture, et n'est pas vérifiable sans le vrai site. Elle reste une piste si Arnaud la souhaite.
-- Un autre onglet qui met la liste à jour (événement `storage`) ou un retour depuis le cache de navigation (`pageshow`) redessine le menu **sans relire** l'ancien DOM restauré. Toute lecture est datée du chargement de la page (`performance.timeOrigin`) et n'écrase jamais une entrée plus récente.
+- Un autre onglet qui met la liste à jour (événement `storage`) ou un retour depuis le cache de navigation (`pageshow`) redessine le menu **sans relire** l'ancien DOM restauré. Toute lecture est datée de l'heure murale du chargement de la page (`Date.now() - performance.now()` : `performance.timeOrigin` peut retarder après une veille) et n'écrase jamais une entrée plus récente, sauf si celle-ci est datée de plus de 60 s dans le futur (horloge corrigée en arrière).
 - Le script ne détecte **aucun** changement de droits sans relire cette source native : la liste ne change qu'à la visite de la page source.
 
 ## Source indisponible ou incomplète (repli explicite)
 
 | Situation | Effet |
 |---|---|
-| Tableau présent, aucune ligne de forum | **Liste vide valide** : le stockage est vidé, le menu affiche le lien de repli, état `empty` |
-| Pas de tableau, ou lien sans destination | **Aucune écriture** : la liste précédente reste proposée |
+| Tableau présent, `tbody` sans aucune ligne | **Liste vide valide** : le stockage est vidé, le menu affiche le lien de repli, état `empty` |
+| Pas de tableau, ou tableau dont toutes les lignes sont sans lien exploitable (S5c) | **Aucune écriture** : la liste précédente reste proposée |
+| Une ligne sans destination parmi d'autres lignes valides | Ligne ignorée ; les autres sont lues et remplacent la liste |
 | Liste de plus de 24 h | Toujours proposée mais état `stale` |
 | Liste de plus de 7 jours | Plus proposée : lien de repli, état `unavailable` |
 | Ancienne clé `kr-forums-<menu>` (tableau nu, sans date) | Ignorée puis supprimée |
@@ -48,4 +49,4 @@ Le stockage est un `localStorage` **par origine et par navigateur**, pas par com
 
 ## Tests
 
-`npm run build && node tests/e2e/menus-forums.mjs` (fragments `KR_FRAG=a,…,g`). `KR_CHROMIUM` pointe vers un Chromium local si le navigateur attendu par Playwright manque.
+`npm run build && node tests/e2e/menus-forums.mjs` (fragments `KR_FRAG=a,…,k`). `KR_CHROMIUM` pointe vers un Chromium local si le navigateur attendu par Playwright manque.

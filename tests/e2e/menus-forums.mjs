@@ -78,6 +78,8 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 async function open({ width = 1280, variant = 'empire-brun-dark', server, preset = null }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile });
+  // Route de dernier recours, posée EN PREMIER (Playwright donne priorité à la dernière route) : tout domaine non routé est abandonné (version.json, etc.).
+  await context.route('**/*', route => route.abort());
   await context.route(BASE + '/**', server.handler);
   // Images du site : GIF factice, aucune requête réelle vers Kraland.
   await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
@@ -189,14 +191,26 @@ if (frag('c')) {
 // ---------- D : source indisponible / incomplète ----------
 if (frag('d')) {
   console.log('D : source indisponible ou incomplète != liste vide');
-  for (const mode of ['notable', 'broken-link']) {
+  {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
-    s.mode['/forum/rp'] = mode;
+    s.mode['/forum/rp'] = 'notable';
     await go(p, '/forum/rp');
     const mb = await dynamicRp(p);
-    check(`${mode} sur la page source : la dernière liste connue est conservée (pas vidée)`, () => assert.deepEqual(mb.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    check('notable sur la page source : la dernière liste connue est conservée (pas vidée)', () => assert.deepEqual(mb.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
+  // Une ligne sans destination est ignorée ; les autres lignes de la page relue sont prises.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    SET(s, '/forum/rp', [{ name: 'Charlie', url: 'forum/rp/charlie-3' }]);
+    s.mode['/forum/rp'] = 'broken-link';
+    await go(p, '/forum/rp');
+    const mb = await dynamicRp(p);
+    check('broken-link : ligne sans destination ignorée, liste différente de la page relue prise', () => assert.deepEqual(mb.items.map(i => i[0]), ['Charlie']));
     await context.close();
   }
   // Page non source : aucune relecture réseau. Une liste de 2 jours reste affichée, marquée « stale », sans aucune requête vers la source.
