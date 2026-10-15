@@ -4069,6 +4069,9 @@
   // dégradée) : le cache n'est jamais effacé par elle.
   // Q3 (décision d'Arnaud) : une entrée de la catégorie explicitement désactivée (.disabled, aria-disabled="true", disabled) est un accès perdu :
   // elle est retirée du menu si elle y était, jamais ajoutée ; si toutes le sont, la liste devient vide (pas de maintien de l'ancienne).
+  // Cela vaut aussi pour les raccourcis FIXES du menu d'origine (Taverne, Marché, Monde en RP) : leur destination normalisée est mémorisée
+  // dans « denied » et le raccourci est retiré sur toute page, tant que la liste mémorisée est valable (7 j) ; accès rétabli = raccourci de retour.
+  // Une destination absente d'une liste, une liste partielle ou un simple style grisé ne prouvent rien.
   // Un simple style grisé ne prouve rien. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
   // ignorés. Libellé : texte du lien sans icône, drapeau, badge ni pastille.
   // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
@@ -4153,26 +4156,32 @@
       const forums = [];
       const seen = new Set();
       let readable = 0;
-      let denied = 0;
+      let deniedCount = 0;
+      const deniedKeys = new Set();
+      const activeKeys = new Set();
       colLeft.querySelectorAll('.list-group > a.list-group-item[href]').forEach(a => {
         if (a.closest('.kraland-metrics')) {return;}
         const href = a.getAttribute('href').trim();
         if (!href || !isSameOrigin(href, doc.baseURI) || !destinationKey(href, doc.baseURI).startsWith(menu.path + '/')) {return;}
         // Forum de la catégorie dont l'accès est explicitement coupé : preuve d'accès perdu, jamais ajouté (donc retiré s'il était connu).
-        if (isDisabledLink(a)) {denied += 1; return;}
+        if (isDisabledLink(a)) {deniedCount += 1; deniedKeys.add(destinationKey(href, doc.baseURI)); return;}
         const name = labelOf(a);
         if (!name) {return;}
         const key = destinationKey(href, doc.baseURI);
         readable += 1;
+        activeKeys.add(key);
         if (isExcluded(menu, name) || seen.has(key)) {return;}
         seen.add(key);
         forums.push({ name, url: href });
       });
+      // Destinations explicitement désactivées SANS entrée active pour la même destination : accès perdu, y compris pour les raccourcis fixes
+      // du menu d'origine (Taverne, Marché, Monde en RP). Une destination absente de la liste n'en fait jamais partie.
+      const denied = Array.from(deniedKeys).filter(key => !activeKeys.has(key));
       // Aucun lien de la catégorie, ni accessible ni explicitement désactivé : source absente ou dégradée, jamais « aucun forum accessible ».
       // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
       // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
-      if (!readable && !denied) {return { ok: false, reason: 'no-links' };}
-      return { ok: true, forums };
+      if (!readable && !deniedCount) {return { ok: false, reason: 'no-links' };}
+      return { ok: true, forums, denied };
     }
 
     function storageKey(menu) {
@@ -4185,6 +4194,8 @@
         if (!raw) {return null;}
         const data = JSON.parse(raw);
         if (!data || data.v !== 2 || !Array.isArray(data.forums) || typeof data.at !== 'number') {return null;}
+        // denied : destinations de raccourcis fixes dont l'accès est démontré perdu (absent des entrées écrites avant ce champ = aucun refus).
+        data.denied = Array.isArray(data.denied) ? data.denied.filter(k => typeof k === 'string') : [];
         return data;
       } catch (e) {
         console.warn('[Forums] Lecture localStorage impossible:', e);
@@ -4193,12 +4204,12 @@
     }
 
     // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
-    function writeStored(menu, forums, at) {
+    function writeStored(menu, forums, at, denied) {
       try {
         const current = readStored(menu);
         // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
         if (current && current.at > at && current.at <= Date.now() + 60000) {return false;}
-        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums }));
+        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums, denied: denied || [] }));
         return true;
       } catch (e) {
         console.error('[Forums] Sauvegarde localStorage impossible:', e);
@@ -4241,9 +4252,12 @@
       }
       // Heure murale du chargement de la page (pas du moment où le script relit le DOM). performance.timeOrigin dérive après une veille.
       const readAt = Date.now() - performance.now();
-      writeStored(menu, res.forums, readAt);
+      writeStored(menu, res.forums, readAt, res.denied);
       return true;
     }
+
+    // Raccourcis fixes d'origine par menu (voir render).
+    const staticsOf = new Map();
 
     function render(menu) {
       const dropdown = document.querySelector(`[data-forums-added="${menu.attr}"] .dropdown-menu`);
@@ -4252,11 +4266,29 @@
       const age = stored ? Date.now() - stored.at : Infinity;
       const usable = stored && age <= MAX_AGE_MS && age >= -60000;
 
-      const statics = Array.from(dropdown.children).slice(0, menu.staticCount);
+      // Raccourcis fixes d'origine (Taverne, Marché, Monde en RP) : mémorisés au premier dessin, car un raccourci retiré (accès perdu) doit
+      // pouvoir revenir si l'accès est rétabli. Un autre <ul> (menu recréé) invalide la mémoire.
+      let known = staticsOf.get(menu.id);
+      if (!known || known.dropdown !== dropdown) {
+        known = { dropdown, nodes: Array.from(dropdown.children).slice(0, menu.staticCount) };
+        staticsOf.set(menu.id, known);
+      }
+      const statics = known.nodes;
       const staticKeys = new Set();
       statics.forEach(item => item.querySelectorAll('a[href]').forEach(a => staticKeys.add(destinationKey(a.getAttribute('href')))));
+      // Refus démontré (liste mémorisée et encore valable, quelle que soit la page courante) : le raccourci dont la destination est refusée
+      // est retiré. Liste périmée (> 7 j) ou indisponible : la preuve ne l'est plus, les raccourcis d'origine reviennent (état « unavailable »).
+      const deniedKeys = new Set(usable ? stored.denied : []);
       dropdown.innerHTML = '';
-      statics.forEach(item => dropdown.appendChild(item));
+      let hasLink = false;
+      statics.forEach(item => {
+        const anchors = Array.from(item.querySelectorAll('a[href]'));
+        if (anchors.length && anchors.every(a => deniedKeys.has(destinationKey(a.getAttribute('href'))))) {return;}
+        // Séparateur d'origine : gardé seulement s'il suit au moins un raccourci conservé (pas de trait en tête de menu).
+        if (!anchors.length && !hasLink) {return;}
+        if (anchors.length) {hasLink = true;}
+        dropdown.appendChild(item);
+      });
 
       const forums = (usable ? stored.forums : []).filter(forum => !staticKeys.has(destinationKey(forum.url)));
       forums.forEach(forum => {

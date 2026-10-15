@@ -238,7 +238,8 @@ if (frag('d')) {
     check(`${label} : stockage inchangé (liste non effacée)`, () => assert.deepEqual(kept.forums.map(x => x.name), ['Alpha', 'Bravo']));
     await context.close();
   }
-  // Entrées ambiguës parmi des entrées valides : ignorées, les autres sont lues et remplacent la liste.
+  // Parmi des entrées valides : l'ancre sans href est ignorée, les entrées explicitement désactivées sont retirées (Q3), les autres sont lues
+  // et remplacent la liste.
   {
     const s = makeServer();
     const { context, p } = await open({ server: s });
@@ -895,7 +896,8 @@ if (frag('r')) {
     await go(p, '/forum/' + cat);
     const own = await read(p, cat);
     const fallback = cat === 'rp' ? 'Autre' : 'Voir tous les forums';
-    const ownItems = cat === 'rp' ? own.items.slice(3) : own.items;
+    // RP : la fixture désactive aussi Taverne/Marché/Monde (M1) ; leurs raccourcis fixes sont retirés, il ne reste que « Autre ».
+    const ownItems = own.items;
     check(`${cat} : tout désactivé : lien vers la catégorie seul, état « empty »`, () => { assert.deepEqual(ownItems, [[fallback, 'forum/' + cat]]); assert.equal(own.state, 'empty'); });
     for (const other of CATS.filter(c => c !== cat)) {
       const mo = await read(p, other);
@@ -913,8 +915,8 @@ if (frag('r')) {
     s.side['/forum/rp'] = off(f('Charlie', 'charlie-3'), 'class');
     await go(p, '/forum/rp');
     const m = await dynamicRp(p);
-    const raw = await p.evaluate(() => localStorage.getItem('kr-forums-v2-rp'));
-    check('forum désactivé jamais connu : non ajouté (menu et stockage)', () => { assert.deepEqual(m.items.map(i => i[0]), ['Alpha']); assert.ok(!raw.includes('Charlie') && !raw.includes('charlie-3')); });
+    const raw = await stored(p, 'rp');
+    check('forum désactivé jamais connu : non ajouté (menu et liste mémorisée) ; sa destination n\'est que notée comme refusée', () => { assert.deepEqual(m.items.map(i => i[0]), ['Alpha']); assert.deepEqual(raw.forums.map(x => x.name), ['Alpha']); assert.deepEqual(raw.denied, ['/forum/rp/charlie-3']); });
     await context.close();
   }
   // Même destination à la fois active et désactivée : l'entrée active prouve l'accès, elle reste.
@@ -949,6 +951,187 @@ if (frag('r')) {
     await go(p, '/forum/rp');
     const m = await dynamicRp(p);
     check('désactivés hors catégorie seulement : aucun forum de la catégorie lu, liste conservée', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Bravo']));
+    await context.close();
+  }
+}
+
+// ---------- S (M1, Q3 appliqué aux raccourcis FIXES) : Taverne, Marché, Monde du menu RP suivent le refus natif ----------
+// Principe d'Arnaud (t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Appliqué par l'orchestratrice aux trois raccourcis codés en dur
+// (ce sont des forums RP). Seul un signal explicite (.disabled, aria-disabled="true", disabled) sur la destination est une preuve : l'absence
+// dans une liste partielle ou un simple grisé n'en est pas une. Le lien « Autre » (page de catégorie) n'est pas un forum : il reste.
+if (frag('s')) {
+  console.log('S : raccourcis fixes RP (Taverne, Marché, Monde) retirés sur refus natif explicite, rétablis au retour de l\'accès');
+  const off = (fo, how = 'class') => item(fo).replace('class="list-group-item"', how === 'class' ? 'class="list-group-item disabled"' : how === 'aria' ? 'class="list-group-item" aria-disabled="true"' : 'class="list-group-item" disabled=""');
+  const taverne = f('Taverne', 'taverne-10101');
+  const marche = f('Marché', 'marche-10102');
+  const monde = f('Monde', 'monde-10103');
+  const alpha = f('Alpha', 'alpha-1');
+  const bravo = f('Bravo', 'bravo-2');
+  const nm = async p => names(await read(p, 'rp'));
+  const dividers = p => p.evaluate(() => document.querySelectorAll('[data-forums-added="rp"] .dropdown-menu > li.divider').length);
+  const reload = async (p) => { await p.reload({ waitUntil: 'load' }); await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'reload' }); };
+
+  // a / d / c : un raccourci refusé disparaît (3 signaux), sur la page RP puis ailleurs, et revient quand l'accès est rétabli.
+  for (const how of ['class', 'aria', 'attr']) {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const pre = await read(p, 'rp');
+    check(`${how} : précondition : les trois raccourcis fixes sont présents`, () => assert.deepEqual(names(pre), ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    s.raw['/forum/rp'] = off(taverne, how) + item(marche) + item(monde) + item(alpha) + item(bravo);
+    await go(p, '/forum/rp');
+    let n = await nm(p);
+    check(`${how} : Taverne refusée : raccourci retiré, Marché et Monde gardés`, () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha', 'Bravo']));
+    const d1 = await dividers(p);
+    check(`${how} : séparateur d'origine conservé tant qu'un raccourci reste`, () => assert.equal(d1, 1));
+    await go(p, '/jouer/plateau');
+    n = await nm(p);
+    check(`${how} : hors page RP : Taverne n'est pas réintroduite`, () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha', 'Bravo']));
+    await go(p, '/forum/hrp');
+    n = await nm(p);
+    check(`${how} : sur une autre catégorie : Taverne toujours absente`, () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha', 'Bravo']));
+    // source absente / partielle : aucune preuve nouvelle, le refus mémorisé reste
+    s.mode['/forum/rp'] = 'nosidebar';
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check(`${how} : source absente : le refus mémorisé reste (rien n'est réintroduit)`, () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha', 'Bravo']));
+    delete s.mode['/forum/rp'];
+    // les trois refusés : plus aucun raccourci, ni séparateur en tête, « Autre » vers la catégorie
+    s.raw['/forum/rp'] = off(taverne, how) + off(marche, how) + off(monde, how) + off(alpha, how) + off(bravo, how);
+    await go(p, '/forum/rp');
+    const all = await read(p, 'rp');
+    check(`${how} : tout refusé : seul « Autre » vers la catégorie, état « empty »`, () => { assert.deepEqual(all.items, [['Autre', 'forum/rp']]); assert.equal(all.state, 'empty'); });
+    const d0 = await dividers(p);
+    check(`${how} : tout refusé : aucun séparateur orphelin`, () => assert.equal(d0, 0));
+    await go(p, '/jouer/plateau');
+    const away = await read(p, 'rp');
+    check(`${how} : tout refusé puis autre page : toujours aucun raccourci`, () => assert.deepEqual(away.items, [['Autre', 'forum/rp']]));
+    // accès rétabli
+    delete s.raw['/forum/rp'];
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check(`${how} : accès rétabli : Taverne, Marché, Monde reviennent`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    await go(p, '/jouer/plateau');
+    n = await nm(p);
+    check(`${how} : accès rétabli puis autre page : raccourcis toujours là`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    await context.close();
+  }
+
+  // b : l'identification se fait par destination normalisée (URL absolue, barre finale, majuscules), pas par le libellé.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = item({ name: 'Le comptoir', url: 'http://www.kraland.org/forum/rp/Taverne-10101/' }).replace('class="list-group-item"', 'class="list-group-item disabled"') + item(alpha);
+    await go(p, '/forum/rp');
+    const n = await nm(p);
+    check('destination absolue, barre finale, casse différente, libellé différent : Taverne retirée, Marché et Monde gardés', () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha']));
+    await context.close();
+  }
+
+  // e : source partielle (Taverne simplement absente) ou grisée sans signal explicite : aucune preuve, le raccourci reste ; la preuve précédente est remplacée.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = item(alpha) + item(bravo);
+    await go(p, '/forum/rp');
+    let n = await nm(p);
+    check('liste partielle sans Taverne : absence ≠ refus, les trois raccourcis restent', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    s.raw['/forum/rp'] = item(alpha) + item(marche).replace('class="list-group-item"', 'class="list-group-item text-muted inactive" style="opacity:.4;pointer-events:none;color:#999"') + item(bravo);
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check('Marché seulement grisée (style, text-muted) : pas une preuve, raccourci gardé', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    // refus puis liste partielle qui ne cite plus la destination : la dernière lecture fait foi (le refus n'est pas éternel)
+    s.raw['/forum/rp'] = off(taverne) + item(alpha);
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check('précondition : Taverne refusée', () => assert.deepEqual(n, ['Marché', 'Monde', 'Alpha']));
+    s.raw['/forum/rp'] = item(alpha);
+    await go(p, '/forum/rp');
+    n = await nm(p);
+    check('refus puis liste lue sans Taverne ni signal : la dernière lecture fait foi, raccourci rétabli', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha']));
+    await context.close();
+  }
+
+  // f : refus actif dans les 7 jours ; au-delà (liste périmée) la preuve n'est plus valable : raccourcis d'origine rétablis, état « unavailable ».
+  for (const [label, ageDays, expectAll] of [['2 jours', 2, false], ['6 jours', 6, false], ['8 jours', 8, true]]) {
+    const s = makeServer();
+    s.mode['/forum/rp'] = 'http500';
+    const seed = JSON.stringify({ v: 2, at: Date.now() - ageDays * DAY, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }], denied: ['/forum/rp/taverne-10101', '/forum/rp/monde-10103'] });
+    const { context, p } = await open({ server: s, preset: { 'kr-forums-v2-rp': seed } });
+    await go(p, '/jouer/plateau');
+    const m = await read(p, 'rp');
+    const got = names(m);
+    check(`liste de ${label} : ${expectAll ? 'preuve périmée, trois raccourcis d\'origine, repli, état « unavailable »' : 'refus conservé (Marché seul), état attendu'}`, () => {
+      if (expectAll) { assert.deepEqual(m.items.map(i => i[0]), ['Taverne', 'Marché', 'Monde', 'Autre']); assert.equal(m.state, 'unavailable'); }
+      else { assert.deepEqual(got, ['Marché', 'Alpha']); assert.notEqual(m.state, 'unavailable'); }
+    });
+    await context.close();
+  }
+
+  // g : entrée écrite avant le champ « denied » (stockage existant) : aucun refus déduit.
+  {
+    const s = makeServer();
+    s.mode['/forum/rp'] = 'http500';
+    const legacy = JSON.stringify({ v: 2, at: Date.now() - 1 * DAY, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }] });
+    const { context, p } = await open({ server: s, preset: { 'kr-forums-v2-rp': legacy } });
+    await go(p, '/jouer/plateau');
+    const n = await nm(p);
+    check('stockage sans champ denied : raccourcis fixes intacts', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha']));
+    await context.close();
+  }
+
+  // h : un autre onglet qui enregistre un refus redessine le premier sans rechargement ; un rechargement n'invente rien.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    await go(p, '/jouer/plateau');
+    s.raw['/forum/rp'] = off(monde) + item(alpha);
+    const p2 = await context.newPage();
+    await go(p2, '/forum/rp');
+    await p.waitForFunction(() => ![...document.querySelectorAll('[data-forums-added="rp"] .dropdown-menu a')].some(a => a.textContent.trim() === 'Monde'), null, { timeout: 8000 })
+      .catch(() => check('second onglet : Monde retiré sans rechargement', () => { throw new Error('jamais retiré'); }));
+    let n = await nm(p);
+    check('second onglet : Monde retiré sans rechargement, Taverne et Marché gardés', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Alpha']));
+    await reload(p);
+    n = await nm(p);
+    check('rechargement du premier onglet : même liste', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Alpha']));
+    await context.close();
+  }
+
+  // i : les autres catégories n'ont pas de raccourci fixe : un refus y retire seulement la liste, comme avant.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    for (const c of CATS) { await go(p, '/forum/' + c); }
+    s.raw['/forum/rp'] = off(taverne) + item(alpha);
+    await go(p, '/forum/rp');
+    for (const other of CATS.filter(c => c !== 'rp')) {
+      const mo = await read(p, other);
+      check(`refus RP : la catégorie ${other} est inchangée`, () => assert.deepEqual(names(mo), s.lists['/forum/' + other].map(x => x.name)));
+    }
+    await context.close();
+  }
+
+  // j (S2) : un lien désactivé que la peau range dans .kraland-metrics (bloc hors liste de forums) ne prouve JAMAIS un refus.
+  // Scénario discriminant : relecture forcée APRÈS la peau, quand le bloc existe. Sans l'exclusion de .kraland-metrics, la destination
+  // /forum/rp/taverne-10101 serait lue comme refusée (stockage { denied: [taverne] }, raccourci retiré) : cette assertion l'attrape.
+  {
+    const s = makeServer();
+    // Taverne n'est PAS dans la liste de la catégorie : sans cela, l'entrée active de la même destination masquerait le défaut (l'entrée active prouve l'accès).
+    SET(s, '/forum/rp', [alpha, f('Bravo', 'bravo-2')]);
+    s.colT = '<div id="col-t"><a class="list-group-item ds_online disabled" href="forum/rp/taverne-10101">Personnes en ligne</a></div>';
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    const inMetrics = await p.evaluate(() => !!document.querySelector('#col-left .kraland-metrics a[href="forum/rp/taverne-10101"].disabled'));
+    check('précondition : la peau a rangé le lien désactivé de la destination Taverne dans .kraland-metrics', () => assert.equal(inMetrics, true));
+    await p.evaluate(() => { localStorage.removeItem('kr-forums-v2-rp'); window.captureForumSidebar(true); window.updateForumRPMenu(); });
+    const st = await stored(p, 'rp');
+    check('relecture après la peau : le lien de .kraland-metrics ne crée aucun refus', () => { assert.deepEqual(st.denied, []); assert.deepEqual(st.forums.map(x => x.name), ['Alpha', 'Bravo']); });
+    const n = await nm(p);
+    check('relecture après la peau : Taverne reste dans le menu', () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
     await context.close();
   }
 }
