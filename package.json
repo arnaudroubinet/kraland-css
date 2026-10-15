@@ -25,6 +25,7 @@
     "test:forum-mobile": "node tests/e2e/forum-mobile.mjs",
     "test:croix": "node tests/e2e/croix-directionnelle.mjs",
     "test:messages": "node tests/e2e/messages-v3.mjs",
+    "test:menus-forums": "node tests/e2e/menus-forums.mjs",
     "test:image-fallback": "node tests/e2e/image-fallback.mjs",
     "audit:map-images": "node tests/e2e/audit-map-images.mjs --online",
     "lint:css": "stylelint \"**/*.css\"",
