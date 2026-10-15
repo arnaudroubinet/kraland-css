@@ -88,7 +88,7 @@ for (const width of [1512, 2560, 375, 1512, 767, 768, 767, 1280, 1024, 800]) {
 }
 
 // 1 bis. Jauges PV/PM/PP (PLT-07, choix A) : les deux segments natifs sont conservés, même rendu desktop et mobile.
-// Valeurs de la fixture : PV 20 (reste 7, SYNTHÉTIQUE), PM 25 (reste 0), PP 0 (reste 150) — voir le commentaire de la fixture.
+// Valeurs de la fixture : PV 20 (écart au max 7, SYNTHÉTIQUE), PM 25 (0), PP 0 (150) — voir le commentaire de la fixture.
 console.log('Jauges PV/PM/PP');
 const gaugeSnap = gaugePage => gaugePage.evaluate(() => {
   const out = {};
@@ -119,7 +119,23 @@ const gaugeSnap = gaugePage => gaugePage.evaluate(() => {
     };
   });
   const fullHeaders = Array.from(document.querySelectorAll('.mobile-gauge-full-header')).map(h => h.textContent.replace(/\s+/g, ' ').trim());
-  return { native: out, mini, fullHeaders, legend: document.querySelectorAll('.kr-gauge-legend').length };
+  // Une légende dans un parent à overflow masqué dont la boîte ne la recouvre pas (max-height 0 du mini-profil replié) n'est pas visible
+  const clipped = (el, r) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const ps = getComputedStyle(p);
+      if (ps.overflow !== 'visible' || ps.overflowY !== 'visible') {
+        const pr = p.getBoundingClientRect();
+        if (r.bottom <= pr.top + 0.5 || r.top >= pr.bottom - 0.5) { return true; }
+      }
+    }
+    return false;
+  };
+  const legends = Array.from(document.querySelectorAll('.kr-gauge-legend')).map(l => {
+    const cs = getComputedStyle(l);
+    const r = l.getBoundingClientRect();
+    return { inMini: !!l.closest('.mobile-mini-profile'), shown: cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.height > 0 && !clipped(l, r), fontSize: parseFloat(cs.fontSize), text: l.textContent.replace(/\s+/g, ' ').trim() };
+  });
+  return { native: out, mini, fullHeaders, legend: legends.length, legends };
 });
 const expectedGauge = { pv: [20 / 27, 7 / 27], pm: [1, 0], pp: [0, 1] };
 const gaugeResults = {};
@@ -139,6 +155,13 @@ for (const width of [1512, 375]) {
   await gaugePage.goto(TARGET, { waitUntil: 'load' });
   await gaugePage.waitForTimeout(SETTLE_MS);
   const g = await gaugeSnap(gaugePage);
+  if (width < 768) {
+    // Mini-profil replié : la légende n'est pas visible ; après dépliage elle doit l'être (C3)
+    g.collapsedLegends = g.legends;
+    await gaugePage.evaluate(() => document.querySelector('.mobile-mini-profile-header').click());
+    await gaugePage.waitForTimeout(500);
+    g.legends = (await gaugeSnap(gaugePage)).legends;
+  }
   if (process.env.KR_SHOTS) {
     await gaugePage.screenshot({ path: path.join(process.env.KR_SHOTS, `jauges-${width}.png`) });
   }
@@ -147,19 +170,32 @@ for (const width of [1512, 375]) {
   for (const type of ['pv', 'pm', 'pp']) {
     const [v, r] = expectedGauge[type];
     check(`${width}px : jauge ${type.toUpperCase()} segment valeur = ${v.toFixed(2)}`, () => assert.ok(g.native[type] && Math.abs(g.native[type].ratio - v) < 0.01, JSON.stringify(g.native[type])));
-    check(`${width}px : jauge ${type.toUpperCase()} segment reste conservé = ${r.toFixed(2)}`, () => assert.ok(g.native[type].restShown && Math.abs(g.native[type].restRatio - r) < 0.01, JSON.stringify(g.native[type])));
-    check(`${width}px : jauge ${type.toUpperCase()} reste hachuré (couleur unique)`, () => assert.match(g.native[type].restBg, /repeating-linear-gradient/));
+    check(`${width}px : jauge ${type.toUpperCase()} segment écart au max conservé = ${r.toFixed(2)}`, () => assert.ok(g.native[type].restShown && Math.abs(g.native[type].restRatio - r) < 0.01, JSON.stringify(g.native[type])));
+    check(`${width}px : jauge ${type.toUpperCase()} écart au max hachuré (couleur unique)`, () => assert.match(g.native[type].restBg, /repeating-linear-gradient/));
   }
-  check(`${width}px : PP à 0 garde son segment restant plein (natif)`, () => assert.ok(g.native.pp.ratio === 0 && g.native.pp.restRatio > 0.99));
+  check(`${width}px : PP à 0 garde son segment écart au max plein (natif)`, () => assert.ok(g.native.pp.ratio === 0 && g.native.pp.restRatio > 0.99));
   check(`${width}px : trois couleurs de thème distinctes pour la valeur`, () => assert.equal(new Set([g.native.pv.color, g.native.pm.color, g.native.pp.color]).size, 3));
-  check(`${width}px : infobulle valeur / reste`, () => assert.match(g.native.pv.title, /PV : 20 .*reste jusqu'au maximum : 7/));
-  check(`${width}px : légende visible`, () => assert.ok(g.legend >= 1));
+  check(`${width}px : infobulle valeur / écart au max`, () => assert.match(g.native.pv.title, /PV : 20 .*écart au max : 7/));
+  check(`${width}px : légende réellement visible${width < 768 ? ' après dépliage du mini-profil' : ''}, sens des segments lisible, ≥ ${width < 768 ? 11 : 12} px`, () => {
+    const shown = g.legends.filter(l => l.shown);
+    // Desktop : une seule légende (celle des jauges natives). Mobile : celle du mini-profil déplié, plus celle des jauges natives du plateau.
+    if (width < 768) {
+      assert.ok(shown.some(l => l.inMini), JSON.stringify(g.legends));
+      assert.ok(g.collapsedLegends.filter(l => l.inMini).every(l => !l.shown), 'légende du mini-profil visible alors qu\'il est replié : ' + JSON.stringify(g.collapsedLegends));
+    } else {
+      assert.equal(shown.length, 1, JSON.stringify(g.legends));
+    }
+    for (const l of shown) {
+      assert.match(l.text, /valeur.*écart au maximum/);
+      assert.ok(!/reste/.test(l.text) && l.fontSize >= (width < 768 ? 11 : 12), JSON.stringify(l));
+    }
+  });
 }
 {
   const d = gaugeResults[1512];
   const m = gaugeResults[375];
   check('mêmes couleurs de valeur en desktop et en mobile', () => assert.deepEqual(['pv', 'pm', 'pp'].map(t => d.native[t].color), ['pv', 'pm', 'pp'].map(t => m.native[t].color)));
-  check('375px : mini-profil, proportions natives (PV 74 % + reste 26 %, PM 100 %, PP 0 % + reste 100 %)', () => {
+  check('375px : mini-profil, proportions natives (PV 74 % + écart au max 26 %, PM 100 %, PP 0 % + écart au max 100 %)', () => {
     assert.ok(Math.abs(m.mini.pv.fill - 20 / 27) < 0.02 && Math.abs(m.mini.pv.rest - 7 / 27) < 0.02, JSON.stringify(m.mini.pv));
     assert.ok(m.mini.pm.fill > 0.98 && m.mini.pm.rest < 0.02, JSON.stringify(m.mini.pm));
     assert.ok(m.mini.pp.fill === 0 && m.mini.pp.rest > 0.98, JSON.stringify(m.mini.pp));
@@ -167,7 +203,7 @@ for (const width of [1512, 375]) {
   check('375px : mini-profil, mêmes couleurs de valeur que les jauges natives', () => assert.deepEqual(['pv', 'pm', 'pp'].map(t => m.mini[t].color), ['pv', 'pm', 'pp'].map(t => m.native[t].color)));
   check('375px : mini-profil, valeur affichée et aucun maximum inventé', () => {
     assert.equal(m.mini.pv.value, '20');
-    assert.equal(m.fullHeaders.join('|'), 'PV 20 · reste 7|PM 25 · reste 0|PP 0 · reste 150');
+    assert.equal(m.fullHeaders.join('|'), 'PV 20 · écart au max 7|PM 25 · écart au max 0|PP 0 · écart au max 150');
   });
 }
 

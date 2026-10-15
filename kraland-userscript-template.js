@@ -89,10 +89,10 @@
   // PLT-07 — Jauges PV/PM/PP : lecture du DOM natif (Bootstrap 3).
   // Natif : .progress contient deux segments empilés.
   //   - progress-bar-success : largeur = part de la valeur, texte caché = valeur ;
-  //   - progress-bar-warning : texte caché = maximum - valeur (reste jusqu'au maximum).
+  //   - progress-bar-warning : texte caché = maximum - valeur (écart au maximum).
   // Décision d'Arnaud (choix A) : on conserve les DEUX segments natifs en desktop et en mobile
-  // (même sens, mêmes variables --kr-gauge-pv/pm/pp pour la valeur, une couleur unique pour le reste).
-  // Aucun maximum n'est affiché : celui de PP (150 ?) n'est confirmé nulle part, seul le reste l'est.
+  // (même sens, mêmes variables --kr-gauge-pv/pm/pp pour la valeur, une couleur unique pour l’écart au max).
+  // Aucun maximum n'est affiché : celui de PP (150 ?) n'est confirmé nulle part, seul l’écart au max l'est.
   var GAUGE_BUTTONS = { pv: 'alert141', pm: 'alert142', pp: 'alert143' };
   var GAUGE_LABELS = { pv: 'PV', pm: 'PM', pp: 'PP' };
 
@@ -145,7 +145,7 @@
     var name = GAUGE_LABELS[gauge.type];
     var text = name + ' : ' + gauge.current + ' (valeur, segment coloré)';
     if (gauge.rest !== null) {
-      text += ' · reste jusqu\'au maximum : ' + gauge.rest + ' (segment hachuré)';
+      text += ' · écart au max : ' + gauge.rest + ' (segment hachuré)';
     }
     return text;
   }
@@ -166,7 +166,7 @@
       var legend = document.createElement('div');
       legend.className = 'kr-gauge-legend';
       legend.innerHTML = '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch value"></i>valeur</span>' +
-        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>reste jusqu\'au maximum</span>';
+        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>écart au maximum</span>';
       last.insertAdjacentElement('afterend', legend);
     }
   }
@@ -919,8 +919,8 @@
         }
       };
 
-      // PLT-07 : le DOM natif fait foi (valeur + reste). L'ancienne lecture (qui confondait
-      // maximum et valeur) ne sert que de secours, sans segment « reste » (rest: null).
+      // PLT-07 : le DOM natif fait foi (valeur + écart au max). L'ancienne lecture (qui confondait
+      // maximum et valeur) ne sert que de secours, sans segment « écart au max » (rest: null).
       const legacyGauge = (section, type) => {
         const g = findGaugeInSection(section, type);
         return g ? { type: g.type, current: g.current, rest: null, percent: g.percent, restPercent: 0 } : null;
@@ -1051,7 +1051,7 @@
         const el = document.createElement('div');
         el.className = 'mobile-gauge-full';
         el.title = describeGauge(gauge);
-        const restText = gauge.rest !== null ? ` · reste ${gauge.rest}` : '';
+        const restText = gauge.rest !== null ? ` · écart au max ${gauge.rest}` : '';
         el.innerHTML = `
           <div class="mobile-gauge-full-header">
             <span>${type.toUpperCase()}</span>
@@ -1068,7 +1068,7 @@
       const gaugesLegend = document.createElement('div');
       gaugesLegend.className = 'kr-gauge-legend';
       gaugesLegend.innerHTML = '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch value"></i>valeur</span>' +
-        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>reste jusqu\'au maximum</span>';
+        '<span class="kr-gauge-legend-item"><i class="kr-gauge-legend-swatch rest"></i>écart au maximum</span>';
       gaugesFull.appendChild(gaugesLegend);
 
       details.appendChild(gaugesFull);
@@ -1153,7 +1153,7 @@
       console.log('  - Nom:', profileData.name);
       console.log('  - Argent:', profileData.money);
       console.log('  - Horloge:', profileData.clock);
-      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current} (reste ${profileData.gauges.pv.rest})` : 'N/A');
+      console.log('  - PV:', profileData.gauges.pv ? `${profileData.gauges.pv.current} (écart au max ${profileData.gauges.pv.rest})` : 'N/A');
     }
 
     /**
