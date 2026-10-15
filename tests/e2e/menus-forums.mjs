@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { URL } from 'node:url';
+import http from 'node:http';
 import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -594,6 +595,101 @@ if (frag('o')) {
       await context.close();
     }
   }
+}
+
+// ---------- P (C2) : retour arrière servi par le cache HTTP, vrai serveur HTTP local, réseau externe bloqué ----------
+// Les routes Playwright contournent le cache HTTP : ce fragment sert les pages par un serveur http local (port éphémère) et fait
+// résoudre www.kraland.org vers lui ; tout autre hôte est introuvable (aucun accès à Kraland ni à Internet).
+if (frag('p')) {
+  console.log('P : retour arrière via le cache HTTP, serveur local (réseau externe bloqué)');
+  const lists = { '/forum/rp': [f('Taverne', 'taverne-10101'), f('Alpha', 'alpha-1'), f('Bravo', 'bravo-2')] };
+  const hits = {};
+  let cacheControl = 'max-age=600';
+  const server = http.createServer((req, res) => {
+    const p = new URL(req.url, BASE).pathname;
+    hits[p] = (hits[p] || 0) + 1;
+    const key = normalize(p);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    if (key === '/forum/rp' || key.startsWith('/forum/rp/')) {
+      res.setHeader('Cache-Control', cacheControl);
+      const list = lists['/forum/rp'];
+      res.end(page(key === '/forum/rp' ? table(list) : topics, sideHtml(TITLES.rp, list.map(item).join(''))));
+      return;
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(page('<h1>Page</h1>'));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  const realBrowser = await chromium.launch({
+    headless: true,
+    executablePath: process.env.KR_CHROMIUM || undefined,
+    args: [`--host-resolver-rules=MAP www.kraland.org 127.0.0.1:${port}, MAP * ~NOTFOUND , EXCLUDE 127.0.0.1`]
+  });
+  const names_ = async (p) => (await dynamicRp(p)).items.map(i => i[0]);
+  const navInfo = p => p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; return { type: n.type, transferSize: n.transferSize }; });
+  const back = async (p) => { await p.goBack({ waitUntil: 'load' }); await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'goBack' }); };
+  const reopen = async (width) => {
+    const mobile = width < 768;
+    const context = await realBrowser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile });
+    await context.addInitScript(({ src }) => {
+      window.GM = { xmlHttpRequest: () => {} };
+      localStorage.setItem('kr-theme-enabled', 'true');
+      localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
+      // eslint-disable-next-line no-eval
+      document.addEventListener('DOMContentLoaded', () => (0, eval)(src));
+    }, { src: userscript });
+    return { context, p: await context.newPage() };
+  };
+  for (const width of [1280, 375]) {
+    cacheControl = 'max-age=600';
+    for (const k of Object.keys(hits)) { delete hits[k]; }
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('Alpha', 'alpha-1'), f('Bravo', 'bravo-2')];
+    const { context, p } = await reopen(width);
+    await go(p, '/forum/rp/alpha-1');
+    const first = await names_(p);
+    check(`${width} : forum A lu (Alpha, Bravo)`, () => assert.deepEqual(first, ['Alpha', 'Bravo']));
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('Alpha', 'alpha-1'), f('Charlie', 'charlie-3')];
+    await go(p, '/forum/rp/charlie-3');
+    const mid = await stored(p, 'rp');
+    check(`${width} : forum B lu, liste récente = Alpha, Charlie`, () => assert.deepEqual(mid.forums.map(x => x.name), ['Alpha', 'Charlie']));
+    await back(p);
+    const nav = await navInfo(p);
+    const colHasBravo = await p.evaluate(() => document.getElementById('col-left').textContent.includes('Bravo'));
+    check(`${width} : précondition : retour arrière servi par le cache HTTP (back_forward, 0 octet, serveur non sollicité, ancienne colonne affichée)`, () => {
+      assert.equal(nav.type, 'back_forward'); assert.equal(nav.transferSize, 0); assert.equal(hits['/forum/rp/alpha-1'], 1); assert.equal(colHasBravo, true);
+    });
+    const afterBack = await stored(p, 'rp');
+    check(`${width} : retour via cache HTTP : la liste récente (Alpha, Charlie) n'est pas remplacée par l'ancienne colonne, date non reculée`, () => { assert.deepEqual(afterBack.forums.map(x => x.name), ['Alpha', 'Charlie']); assert.equal(afterBack.at, mid.at); });
+    const menuBack = await names_(p);
+    check(`${width} : retour via cache HTTP : le menu affiche la liste récente`, () => assert.deepEqual(menuBack, ['Alpha', 'Charlie']));
+    // Rechargement : le navigateur redemande la page, la colonne est lue.
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('Delta', 'delta-4')];
+    await p.reload({ waitUntil: 'load' });
+    await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'reload' });
+    const afterReload = await names_(p);
+    check(`${width} : rechargement : colonne relue (Delta)`, () => assert.deepEqual(afterReload, ['Delta']));
+    // Navigation normale vers un autre forum : colonne lue.
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('Echo', 'echo-5')];
+    await go(p, '/forum/rp/echo-5');
+    const afterNav = await names_(p);
+    check(`${width} : navigation normale : colonne lue (Echo)`, () => assert.deepEqual(afterNav, ['Echo']));
+    // Retour revalidé par le serveur (réponse no-store) : octets reçus, page fraîche, lue.
+    cacheControl = 'no-store';
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('A1', 'a1-1')];
+    await go(p, '/forum/rp/a1-1');
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('A1', 'a1-1'), f('B1', 'b1-2')];
+    await go(p, '/jouer/plateau');
+    lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('A1', 'a1-1'), f('B1', 'b1-2'), f('C1', 'c1-3')];
+    await back(p);
+    const nav2 = await navInfo(p);
+    check(`${width} : retour no-store : page redemandée (octets reçus) et colonne fraîche lue (A1, B1, C1)`, () => { assert.equal(nav2.type, 'back_forward'); assert.ok(nav2.transferSize > 0); assert.equal(hits['/forum/rp/a1-1'], 2); });
+    const afterNoStore = await names_(p);
+    check(`${width} : retour no-store : menu = colonne fraîche (A1, B1, C1)`, () => assert.deepEqual(afterNoStore, ['A1', 'B1', 'C1']));
+    await context.close();
+  }
+  await realBrowser.close();
+  await new Promise(resolve => server.close(resolve));
 }
 
 await browser.close();

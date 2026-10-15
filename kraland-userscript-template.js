@@ -4206,9 +4206,25 @@
       } catch (_e) { /* stockage inaccessible : rien à purger */ }
     }
 
+    // Retour arrière servi par le cache HTTP (aucun octet reçu) : le HTML est celui d'une visite passée, mais le script s'exécute maintenant.
+    // Dater sa colonne « maintenant » écraserait une liste plus récente par une ancienne : on ne la lit pas.
+    // Navigation normale, rechargement et retour revalidé par le serveur (octets reçus) restent lus.
+    function isCachedHistoryReturn() {
+      try {
+        const nav = performance.getEntriesByType('navigation')[0];
+        return !!nav && nav.type === 'back_forward' && nav.transferSize === 0;
+      } catch (_e) {
+        return false;
+      }
+    }
+
     /** Lit la liste latérale de la page courante si elle appartient à la catégorie du menu. */
     function refreshFromCurrentPage(menu) {
       if (menuForPath(window.location.pathname) !== menu) {return false;}
+      if (isCachedHistoryReturn()) {
+        console.warn(`[Forums] ${menu.label} : retour arrière servi par le cache HTTP, colonne ancienne non relue, liste mémorisée conservée`);
+        return false;
+      }
       const res = parseSidebar(document, menu);
       if (!res.ok) {
         console.warn(`[Forums] ${menu.label} : liste latérale native ${res.reason}, liste précédente conservée`);
