@@ -2,7 +2,7 @@
 
 ## Avertissement : chargement et setup
 
-- **Hermes ne charge pas `.hermes/skills/` de ce dépôt** tant que la racine (et chaque worktree) n’est pas dans `skills.trusted_project_dirs`. Les agents utilisent leurs copies de profil, qui diffèrent des copies du projet (11 skills sur 30 sous la même étiquette `6.13.0-next`). L’activation du mode projet est la question Q1 d’Arnaud (voir `installation-bmad.md`) : **non décidée, non vérifiée**. Ne pas présenter la méthode du projet comme effective.
+- **État final (15/10/2026, `t_71c74c7f`) : la racine du dépôt est approuvée dans `skills.trusted_project_dirs` des sept profils BMad ; leurs copies projet (`.hermes/skills/`) sont chargées** (worker neuf par profil, `bmad`, `bmad-build-auto`, `bmad-ticket`, sur le commit de fusion final ; `--status` `current=true`). Chaque worktree est une racine distincte à approuver séparément. Détail et réserves : `installation-bmad.md`.
 - **Ne jamais lancer `bmad setup` ni `bmad update` depuis une copie de profil dans ce dépôt**, même si le statut propose `next="bmad setup"` : dégradation démontrée par la QA (fichiers réécrits, `_bmad/scripts/migrate_v6.py` supprimé, statut projet `current=false`). Seul `--status` (lecture seule) est sûr.
 - La référence d’identité des copies est le `ref` de `skills-lock.json`, pas l’étiquette de version.
 - Le skill `bmad` n’a pas de `customize.toml` : ce fichier n’est pas lu automatiquement par `bmad status`/`setup`. Cet avertissement est donc aussi en tête de `installation-bmad.md`.

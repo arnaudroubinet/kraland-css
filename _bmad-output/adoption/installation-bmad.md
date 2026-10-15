@@ -1,13 +1,12 @@
 # Installation BMad — kraland-css
 
-> **Avertissement — lire avant d’utiliser ces copies (revue QA `t_0e8fb249`, contrôle coach `t_9814331f`).**
+> **État final (mis à jour le 15/10/2026, carte `t_71c74c7f`).** La racine du dépôt est approuvée dans `skills.trusted_project_dirs` des sept profils BMad (carte `t_de898847`, sous l'autorisation d'Arnaud qui couvre la mise à jour des branches puis « Il faut le corriger, pas le préserver »). Avec la branche `fix/plateau-plt07-jauges` qui intègre `feature/next` (4880203), `.hermes/skills/` et `_bmad/` sont présents dans le checkout principal.
 >
-> - **Hermes ne charge pas `.hermes/skills/` de ce dépôt tant que la racine du dépôt (et chaque worktree, qui est une racine distincte) n’est pas approuvée** dans `skills.trusted_project_dirs` de la configuration du profil. Aucune approbation n’existe aujourd’hui dans les profils vérifiés. Les agents Hermes utilisent donc **leurs copies de profil**, pas celles de ce dépôt.
-> - Ces copies de profil **diffèrent des copies du projet** : 11 skills sur 30 (`bmad`, `bmad-brainstorming`, `bmad-build`, `bmad-build-auto`, `bmad-code-review`, `bmad-qa-generate-e2e-tests`, `bmad-retrospective`, `bmad-ticket`, `bmad-walkthrough`, `bmod-core-tools`, `bmod-method`) dans chacun des sept profils BMad contrôlés, sous la même étiquette `6.13.0-next`.
-> - Le statut officiel calculé **sur la racine du projet** est `current=true`. Calculé avec **la racine que Hermes active réellement (le profil seul)**, il donne `current=false`, scripts partagés périmés et propose `bmad setup`.
-> - **Ne jamais lancer `bmad setup` ou `bmad update` depuis une copie de profil dans ce dépôt** : la QA a démontré que cela réécrit des fichiers et **supprime `_bmad/scripts/migrate_v6.py`**, puis le statut projet repasse à `current=false`.
-> - Le skill `bmad` n’a pas de `customize.toml` : l’instruction de lire `contexte-projet.md` n’est pas injectée quand on lance seulement `bmad status` ou `bmad setup`. D’où cet avertissement répété ici, dans `contexte-projet.md` et dans la PR.
-> - Les neuf surcharges `_bmad/custom/` ne s’appliquent donc, comme les copies projet, que lorsque ces copies sont réellement chargées. **Le mode « méthode du projet » n’est pas effectif tant qu’Arnaud n’a pas décidé de la question Q1 (voir ci-dessous) et qu’un chargement réel n’a pas été vérifié.**
+> - **Chargement réel vérifié** sur le commit de fusion final (jamais pendant une fusion non commitée) : un worker neuf, cwd = racine du dépôt, pour chacun des sept profils (analyste, architecte, coach, dev, pm, qa, ux), a chargé `bmad`, `bmad-build-auto` et `bmad-ticket` depuis `.hermes/skills/` du projet. Journaux : `workers/*.txt` dans les pièces jointes de la carte. Le chemin est celui que l'outil `skill_view` a renvoyé au worker ; il n'a pas été relu dans `state.db`.
+> - `--status` (racine projet seule) : `current=true`, `problems=[]`. `--status` projet puis profil dev : `current=true`, `problems=[]`.
+> - **Les worktrees sont des racines distinctes** : chacun doit être approuvé séparément avant que ses copies de projet soient chargées. Les branches `bmad/forum-mobile-*` et `bmad/plt-qu-*` ne sont pas poussées par cette carte.
+> - **Ne jamais lancer `bmad setup` ou `bmad update` depuis une copie de profil dans ce dépôt** : la QA a démontré que cela réécrit des fichiers et supprime `_bmad/scripts/migrate_v6.py`. Seul `--status` (lecture seule) est sûr.
+> - Le skill `bmad` n'a pas de `customize.toml` : l'instruction de lire `contexte-projet.md` n'est pas injectée par `bmad status` ou `bmad setup` ; d'où le rappel ici et dans `contexte-projet.md`.
 
 ## Mandat et périmètre
 
@@ -82,25 +81,15 @@ SHA-256 de `CLAUDE.md` inchangé : `c07ff57759075496d45c2f7cf78c822ffe25e7a527eb
 
 ## Utilisation et réserves
 
-**État effectif aujourd’hui (rappel de l’avertissement en tête).** Hermes ignore `.hermes/skills/` de ce dépôt tant que sa racine, et chaque worktree, n’est pas listée dans `skills.trusted_project_dirs` ; les agents travaillent avec leurs copies de profil (11/30 différentes). Cette PR **n’a modifié ni profil ni liste de répertoires approuvés**.
+**État effectif.** Les copies du projet (`.hermes/skills/`) sont chargées pour les sept profils BMad, la racine étant approuvée (voir l'état final en tête). Les 11 skills sur 30 qui différaient des copies de profil sont désormais ceux du projet pour ces agents. Un worktree non approuvé continue d'utiliser les copies de profil.
 
-**Deux notions de priorité à ne pas confondre.** (1) Pour `setup.py`, l’ordre des `--root` décide quelle copie un statut considère comme prioritaire : la copie projet l’est quand `--root .hermes/skills` vient en premier. (2) Pour **le chargement par Hermes**, seule la liste d’approbation compte. Le premier point ne prouve rien sur le second.
+**Deux notions de priorité à ne pas confondre.** (1) Pour `setup.py`, l'ordre des `--root` décide quelle copie un statut considère comme prioritaire. (2) Pour le chargement par Hermes, seule la liste d'approbation compte.
 
-Les commandes ci-dessus doivent être exécutées **depuis la racine du checkout concerné**. Les chemins relatifs ne se transportent pas d’un appel parallèle ou d’un autre checkout par hypothèse ; fournir le bon répertoire de travail à l’outil terminal.
+Les commandes doivent être exécutées depuis la racine du checkout concerné. Pour diagnostiquer un agent disposant aussi de skills globaux, ajouter au statut `--root <dossier-de-skills-du-profil>` après `--root .hermes/skills` : cela expose les doublons sans les supprimer. Utiliser uniquement `--status`.
 
-Pour diagnostiquer un agent disposant aussi de skills globaux, ajouter au statut `--root <dossier-de-skills-du-profil>` **après** `--root .hermes/skills`. Cela expose les doublons sans les supprimer. Utiliser **uniquement `--status`** (lecture seule) : ne lancer aucun `setup`/`update` depuis une copie de profil dans ce dépôt. Les doublons de cette machine sont annoncés, pas cachés ; supprimer les globaux affecterait d’autres projets et sort du mandat.
+### Question Q1 — activation de la méthode du projet : traitée
 
-Demander `bmad` pour la découverte et `bmad-ticket` pour une initiative future **une fois la méthode du projet effectivement chargée** ; en attendant, les agents utilisent les copies de profil. L’installation ne change pas la configuration de découverte des profils Hermes. Les rendus ont été testés comme **smoke tests**, pas exécutés comme des builds produit ou des rétrospectives : ils ne valent ni revue, ni QA, ni validation du passé. La QA indépendante n’a pas pu refaire ces rendus (`jinja2` absent, installation interdite).
-
-### Question Q1 — activation de la méthode du projet (décision d’Arnaud, non tranchée)
-
-Comment rendre les copies du projet effectives pour les agents ? Options posées par la QA et le coach :
-
-- **(a)** approuver la racine du dépôt et chacun de ses worktrees dans `skills.trusted_project_dirs` des profils qui utilisent BMad (changement de configuration de profils, recommandé par le coach, autorisation explicite requise) ;
-- **(b)** aligner les copies de profil sur le commit `8f0d50e` (modifie les profils) ;
-- **(c)** garder les copies de profil comme méthode effective et ne tenir les copies du projet que pour la référence documentaire (aucun changement de profil).
-
-**Aucune option n’est choisie ni appliquée par cette PR, y compris (c) par défaut.** Le statu quo actuel est un constat, pas une décision. Tant qu’Arnaud n’a pas répondu et qu’un chargement réel n’a pas été vérifié, ne pas présenter le mode projet comme effectif. Les options (a) et (b) sortent du périmètre de la décision « b », qui excluait les profils.
+Option retenue : **(a)**, approuver la racine du dépôt dans `skills.trusted_project_dirs` des sept profils BMad. Elle n'a pas été tranchée par une réponse ponctuelle à Q1 : elle découle de l'autorisation d'Arnaud (plan de mise à jour des branches, puis « Il faut le corriger, pas le préserver ») appliquée par la carte `t_de898847`. Les options (b) et (c) ne sont pas appliquées. Arnaud peut la révoquer avec `hermes skills untrust`.
 
 Le contrôle officiel compare les versions aux manifests distants ; `current=true` est le résultat réel à cette date, pas une promesse sur la stabilité d’une préversion ni sur ses versions futures. Les analyses tierces affichées par l’installateur incluaient des alertes sur certains skills ; ce sont des indications de scan, pas une approbation de sécurité indépendante. Les garde-fous du dépôt, l’autorisation d’installation et la revue par `@qa` restent applicables.
 
