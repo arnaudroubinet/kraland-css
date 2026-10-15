@@ -129,14 +129,25 @@
   --kr-overlay-dark-20: rgba(0, 0, 0, 0.2);
   --kr-overlay-dark-30: rgba(0, 0, 0, 0.3);
   --kr-overlay-dark-125: rgba(0, 0, 0, 0.125);
+
+  /* PLT-QU : pastille de niveau = accent du thème ; le rouge reste réservé aux alertes */
+  --kr-level-bg: var(--kr-highlight);
+  --kr-level-fg: var(--kr-white);
+
+  /* Sous-forum (L1) : couleur du statut « non lu » (barre, pastille). Suit l'accent du thème, sauf EB clair (voir plus bas). */
+  --kr-status-unread: var(--kr-highlight);
 }
 
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
+  --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
+  --kr-status-unread: #8a5a00; /* sous-forum : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
 }
 
 html.kr-theme-variant-paladium {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
   --kr-primary: #D4AF37; 
   --kr-highlight: #044c17; 
 }
@@ -174,6 +185,7 @@ html[class*="-dark"] {
   --kr-bg-active: rgba(255, 255, 255, 0.06);
   --kr-border-default: rgb(255,255,255,0.08);
   --kr-border-strong: rgb(255,255,255,0.15);
+  --kr-level-fg: var(--kr-highlight-reverse); /* PLT-QU : texte de pastille sur l'accent sombre */
   --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
   --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
   --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
@@ -183,6 +195,10 @@ html[class*="-dark"] {
 }
 
 html.kr-theme-variant-kraland-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-bg: #b64c4c;
+  --kr-arm-ink: #f5f1ed;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #c45252;
   --kr-primary-dark: #8b0f0e;
   --kr-highlight: #e07070;
@@ -227,6 +243,9 @@ html.kr-theme-variant-empire-brun-dark {
 }
 
 html.kr-theme-variant-paladium-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #1e1a15;
   --kr-primary: #e6c76e;
   --kr-primary-dark: #D4AF37;
   --kr-highlight: #4a9d5f;
@@ -249,6 +268,9 @@ html.kr-theme-variant-paladium-dark {
 }
 
 html.kr-theme-variant-theocratie-seelienne-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #5a8fd9;
   --kr-primary-dark: #2d5fcb;
   --kr-highlight: #80b3ff;
@@ -271,6 +293,9 @@ html.kr-theme-variant-theocratie-seelienne-dark {
 }
 
 html.kr-theme-variant-paradigme-vert-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4d9c61;
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #70c784;
@@ -293,6 +318,10 @@ html.kr-theme-variant-paradigme-vert-dark {
 }
 
 html.kr-theme-variant-khanat-elmerien-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-bg: #8659b3;
+  --kr-arm-ink: #f5f1ed;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #96c;
   --kr-primary-dark: #7b4c9c;
   --kr-highlight: #b794d9;
@@ -315,6 +344,10 @@ html.kr-theme-variant-khanat-elmerien-dark {
 }
 
 html.kr-theme-variant-confederation-libre-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-bg-hover: #5f6673;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #9ca3af;
   --kr-primary-dark: #6b7280;
   --kr-highlight: #c2c9d6;
@@ -337,6 +370,9 @@ html.kr-theme-variant-confederation-libre-dark {
 }
 
 html.kr-theme-variant-royaume-ruthvenie-dark {
+  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4a9d61;
   --kr-primary-dark: #2a7a3d;
   --kr-highlight: #ff6b85;
@@ -4742,7 +4778,7 @@ body > map {
     }
     
     .mobile-mini-profile.expanded .mobile-mini-profile-details {
-      max-height: 1200px !important;
+      max-height: 2400px !important;
     }
     
     /* Jauges détaillées */
@@ -4798,56 +4834,98 @@ body > map {
       background: var(--kr-gauge-pp) !important;
     }
     
-    /* Caractéristiques */
+    /* Caractéristiques : 6 colonnes égales, cellules à la largeur de colonne */
     .mobile-mini-profile-characteristics {
       display: grid !important;
-      grid-template-columns: repeat(6, 1fr) !important;
-      gap: 0 !important;
+      grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+      gap: 4px !important;
       margin: 12px 0 !important;
-      padding: 12px !important;
+      padding: 8px !important;
       background: var(--kr-bg-surface) !important;
       border: 1px solid var(--kr-border-default) !important;
       border-radius: 4px !important;
     }
-    
-    .mobile-characteristic-badge {
-      min-width: 44px !important;
-      min-height: 44px !important;
-      margin: 4px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
-    
-    .mobile-characteristic-badge:active {
-      background: var(--kr-bg-hover) !important;
-    }
-    
-    /* Compétences */
+
+    /* Compétences : 4 colonnes à 375 px (mots entiers sur 2 lignes), 6 dès 480 px ; hauteur = contenu */
     .mobile-mini-profile-skills {
-      max-height: 350px !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch !important;
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 8px 4px !important;
       margin: 12px 0 !important;
-      padding: 12px !important;
+      padding: 8px !important;
+      max-height: none !important;
+      overflow: visible !important;
       background: var(--kr-bg-surface) !important;
       border: 1px solid var(--kr-border-default) !important;
       border-radius: 4px !important;
-      display: grid !important;
-      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)) !important;
-      gap: 8px !important;
     }
-    
-    .mobile-skill-item {
-      min-height: 44px !important;
-      margin: 0 !important;
+
+    @media (min-width: 480px) {
+      .mobile-mini-profile-skills {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+      }
+    }
+
+    /* Cellule (clone du site) : largeur de colonne, sans le padding .btn ni le min-width hérités */
+    .mobile-mini-profile .mobile-skill-item,
+    .mobile-mini-profile .mobile-characteristic-badge {
+      box-sizing: border-box !important;
       display: flex !important;
+      flex-direction: column !important;
       align-items: center !important;
-      justify-content: center !important;
+      justify-content: flex-start !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 44px !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 6px 2px 4px !important;
+      white-space: normal !important;
+      overflow: visible !important;
     }
-    
-    .mobile-skill-item:active {
+
+    .mobile-mini-profile .mobile-skill-item:active,
+    .mobile-mini-profile .mobile-characteristic-badge:active {
       background: var(--kr-bg-hover) !important;
+    }
+
+    /* Légende : mots entiers, 2 lignes au plus ; la pastille (coin de l'icône) reste hors de son emprise */
+    .mobile-mini-profile .kr-skill-caption {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 8px 0 0 !important;
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      text-align: center !important;
+      overflow-wrap: normal !important;
+      word-break: normal !important;
+      white-space: normal !important;
+      text-wrap: balance;
+    }
+
+    /* Icône : cadre et image alignés sur les 32 px naturels des GIF. Le thème force 40 px sur
+       .list-group-item img (0,2,1) !important : on le dépasse ici pour ne pas déborder du cadre ni agrandir le GIF */
+    .mobile-mini-profile .kr-skill-icon {
+      position: relative !important;
+      display: block !important;
+      flex: none !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    .mobile-mini-profile .kr-skill-icon .kr-skill-img {
+      display: block !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    /* Pastille : coin bas-droit de l'icône. Bootstrap .btn .badge (0,2,0) la passait en relative avec top -1px,
+       sous l'icône et sur la légende : on neutralise position et les 4 côtés hérités */
+    .mobile-mini-profile .kr-skill-icon .kr-skill-badge,
+    .mobile-mini-profile .kr-skill-icon .kr-stat-badge {
+      position: absolute !important;
+      inset: auto -4px -4px auto !important;
     }
 
     /* Chevron expand/collapse */
@@ -6030,101 +6108,361 @@ body.mobile-mode .building-section-content img.img-responsive {
 }
 
 /* ============================================================================
- * TASK-2.1 : Accès aux pièces en ligne horizontale avec croix directionnelle
- * Style identique aux actions rapides (Dormir, Prier, etc.)
+ * CX2 : croix directionnelle V2 et accès tactile aux pièces (mobile uniquement)
+ * Bloc unique non flottant : croix 154×154 à gauche (4 touches 50×50, centre neutre),
+ * pièces à droite (3 premières, alignées sur les 3 rangées de la croix), pièces en excès dessous.
+ * Couleurs : variables du thème (aucune valeur en dur propre à un thème).
  * ============================================================================ */
+@media (max-width: 767px) {
+  body.mobile-mode .kr-nav-v2 {
+    display: grid;
+    grid-template-columns: 154px minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(50px, auto));
+    grid-auto-rows: minmax(50px, auto);
+    gap: 2px 12px;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 5px;
+    padding: 8px 12px;
+    background: var(--kr-bg-surface);
+    border-bottom: 1px solid var(--kr-border-default);
+  }
 
-/* Conteneur principal : table layout comme mobile-quick-actions */
-body.mobile-mode .kr-navigation-row {
-  display: table !important;
-  width: 100%;
-  table-layout: fixed;
-  margin-bottom: 5px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
+  /* Réduire l'espacement du container suivant */
+  body.mobile-mode .kr-nav-v2 + .container {
+    padding-top: 10px !important;
+  }
 
-/* Réduire l'espacement du container suivant */
-body.mobile-mode .kr-navigation-row + .container {
-  padding-top: 10px !important;
-}
+  /* En-tête de groupe lu par les lecteurs d'écran, sans coût en hauteur */
+  body.mobile-mode .kr-nav-v2-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 
-/* Groupes (croix + cartes) - affichage en cellules de table */
-body.mobile-mode .kr-navigation-row > .btn-group {
-  display: table-cell !important;
-  width: 1%;
-  vertical-align: middle;
-  float: none !important;
-}
+  /* Pavé en croix : 3 × 50 px, toujours en haut à gauche, quelle que soit la hauteur des pièces */
+  body.mobile-mode .kr-nav-v2 .kr-pad {
+    position: relative;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    align-self: start;
+    display: grid;
+    grid-template: ". n ." 50px "w c e" 50px ". s ." 50px / 50px 50px 50px;
+    gap: 2px;
+    width: 154px;
+    height: 154px;
+  }
 
-/* Croix directionnelle - même style que les actions rapides */
-body.mobile-mode .kr-direction-link {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 60px !important;
-  padding: 0 !important;
-  text-align: center;
-  position: relative;
-}
+  body.mobile-mode .kr-nav-v2 .kr-pad::before {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1.5px solid var(--kr-border-strong);
+    border-radius: 50%;
+    pointer-events: none;
+  }
 
-body.mobile-mode .kr-direction-link img {
-  width: 60px;
-  height: 60px;
-  display: block;
-}
+  body.mobile-mode .kr-nav-v2 a.kr-arm {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    min-width: 50px;
+    min-height: 50px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--kr-primary-dark);
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-body.mobile-mode .kr-direction-link map {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+  body.mobile-mode .kr-nav-v2 a.kr-arm svg {
+    flex: none;
+    width: 16px;
+    height: 14px;
+  }
 
-/* Cases des accès aux pièces - même style que mobile-quick-action */
-body.mobile-mode .kr-room-link {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 60px !important;
-  padding: 0 !important;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1.2;
-}
+  body.mobile-mode .kr-nav-v2 .kr-n {
+    grid-area: n;
+    border-radius: 10px 10px 2px 2px;
+  }
 
-body.mobile-mode .kr-room-link img {
-  width: 60px;
-  height: 60px;
-  display: block;
-}
+  body.mobile-mode .kr-nav-v2 .kr-s {
+    grid-area: s;
+    flex-direction: column-reverse;
+    border-radius: 2px 2px 10px 10px;
+  }
 
-/* Premier élément : bordures arrondies à gauche */
-body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:first-child .kr-room-link {
-  border-radius: 4px 0 0 4px;
-}
+  body.mobile-mode .kr-nav-v2 .kr-w {
+    grid-area: w;
+    border-radius: 10px 2px 2px 10px;
+  }
 
-/* Dernier élément : bordures arrondies à droite */
-body.mobile-mode .kr-navigation-row > .btn-group:last-child .kr-room-link {
-  border-radius: 0 4px 4px 0;
-}
+  body.mobile-mode .kr-nav-v2 .kr-e {
+    grid-area: e;
+    border-radius: 2px 10px 10px 2px;
+  }
 
-/* Éléments du milieu : pas de bordure gauche pour éviter le doublon */
-body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:not(:first-child) .kr-room-link {
-  border-left: none;
-}
+  body.mobile-mode .kr-nav-v2 .kr-s svg { transform: rotate(180deg); }
+  body.mobile-mode .kr-nav-v2 .kr-w svg { transform: rotate(-90deg); }
+  body.mobile-mode .kr-nav-v2 .kr-e svg { transform: rotate(90deg); }
 
-/* Si un seul élément : bordures arrondies partout */
-body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-direction-link,
-body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
-  border-radius: 4px;
+  body.mobile-mode .kr-nav-v2 a.kr-arm:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-arm:active {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white));
+    text-decoration: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-arm:active {
+    box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125);
+  }
+
+  body.mobile-mode .kr-nav-v2 a:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: 1px;
+    z-index: 2;
+  }
+
+  /* Touche indisponible : creux en pointillé, nom lisible, clairement inactive */
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"],
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:active {
+    border: 1px dashed var(--kr-border-strong);
+    background: var(--kr-bg-page);
+    color: var(--kr-text-muted);
+    font-weight: 600;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Thèmes clairs : --kr-text-muted ne donne que 2,33:1 ; le pointillé et le fond creux marquent déjà l'inactivité */
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"],
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:hover,
+  html:not([class*="-dark"]) body.mobile-mode .kr-nav-v2 a.kr-arm[aria-disabled="true"]:active {
+    color: var(--kr-text-secondary);
+  }
+
+  /* Centre neutre : ni lien, ni focus, ni action */
+  body.mobile-mode .kr-nav-v2 .kr-hub {
+    position: relative;
+    z-index: 1;
+    grid-area: c;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--kr-border-default);
+    border-radius: 2px;
+    background: var(--kr-bg-page);
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-hub::before {
+    content: "";
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--kr-text-muted);
+    transform: rotate(45deg);
+  }
+
+  /* Pièces : une rangée de 50 px minimum par lien (cible tactile >= 44 px), 3 premières à droite de la croix */
+  body.mobile-mode .kr-nav-v2 .kr-rooms {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-rooms > li {
+    display: flex;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Mode « lignes » (le site fournit un nom de pièce en texte) : 3 premières rangées à droite de la croix */
+  body.mobile-mode .kr-nav-rows .kr-rooms {
+    display: contents;
+  }
+
+  body.mobile-mode .kr-nav-rows .kr-rooms > li {
+    grid-column: 2;
+  }
+
+  /* Pièces en excès : sous la croix, pleine largeur, dans l'ordre natif (aucune interaction masquée) */
+  body.mobile-mode .kr-nav-rows .kr-rooms > li:nth-child(n+4) {
+    grid-column: 1 / -1;
+  }
+
+  /* Mode « tuiles » (cas réel : le lien ne contient que l'image 60×60 qui porte le nom et le cadenas) :
+     image entière, non réduite, en grille à droite de la croix ; aucune interaction masquée */
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-rooms {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    grid-auto-rows: 60px;
+    align-content: start;
+    gap: 2px;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-thumb img {
+    width: 60px;
+    height: 60px;
+    border-radius: 0;
+  }
+
+  /* Pièce courante : cadre épais dans les couleurs du thème + pastille « ici » (repère indépendant de la couleur) */
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile[aria-current="true"] {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles a.kr-room-tile[aria-current="true"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--kr-highlight);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2.kr-nav-tiles .kr-room-tile .kr-room-here {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    z-index: 1;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-room {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 50px;
+    margin: 0;
+    padding: 4px 8px 4px 4px;
+    border: 1px solid var(--kr-border-default);
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    text-decoration: none;
+    white-space: normal;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.mobile-mode .kr-nav-v2 a.kr-room:hover,
+  body.mobile-mode .kr-nav-v2 a.kr-room:active {
+    background: var(--kr-bg-hover);
+    color: var(--kr-text-primary);
+    text-decoration: none;
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb {
+    position: relative;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    background: var(--kr-bg-page);
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    max-width: none;
+    margin: 0;
+    border-radius: 3px;
+    object-fit: contain;
+  }
+
+  /* Cadenas et autres images natives en surimpression de la vignette */
+  body.mobile-mode .kr-nav-v2 .kr-room-thumb img + img {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 12px;
+    height: 13px;
+    border-radius: 0;
+  }
+
+  /* Nom entier : retour à la ligne, même sans espace ; jamais d'ellipse ni de coupure */
+  body.mobile-mode .kr-nav-v2 .kr-room-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  /* Pièce courante : repère indépendant de la couleur (bordure marquée + liseré + pastille « ici ») */
+  body.mobile-mode .kr-nav-v2 a.kr-room[aria-current="true"] {
+    border: 2px solid var(--kr-highlight);
+    padding-left: 3px;
+    box-shadow: inset 4px 0 0 var(--kr-highlight);
+  }
+
+  body.mobile-mode .kr-nav-v2 .kr-room-here {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 6px;
+    border-radius: 9px;
+    background: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    line-height: 1;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
 }
 
 /* ============================================
@@ -9084,236 +9422,6 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
     border-color: var(--kr-primary) !important;
     color: white !important;
   }
-
-  /* ============================================================================
-     MOBILE OPTIMISATION - MESSAGES DE FORUM (THREAD)
-     Structure restructurée par JS:
-     - Row 1: col-xs-4 (user) + col-xs-8 (boutons)
-     - Row 2: col-xs-12 (contenu message)
-     ============================================================================ */
-  
-  /* === STRUCTURE PRINCIPALE === */
-  
-  /* Container du post restructuré */
-  ul.media-list.forum > li.media.forum-post-restructured {
-    display: block !important;
-    padding: 12px 8px !important;
-    margin-bottom: 24px !important;
-    list-style: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  }
-  
-  /* Row 1: Header (user + boutons) */
-  ul.media-list.forum > li.media .forum-header {
-    margin-bottom: 12px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-  }
-  
-  /* Row 2: Contenu */
-  ul.media-list.forum > li.media .forum-content-row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-  
-  /* === COLONNE 1: USER INFO === */
-  
-  .forum-user-section {
-    padding: 0 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-  }
-  
-  /* Avatar */
-  .forum-user-section img.avatar,
-  .forum-user-section .user-info img:first-child {
-    max-width: 80px !important;
-    height: auto !important;
-    border-radius: 4px !important;
-    margin-bottom: 8px !important;
-  }
-  
-  /* Nom d'utilisateur - sans ellipsis, wrap autorisé */
-  .forum-user-section .cartouche strong,
-  .forum-user-section strong a {
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-    display: block !important;
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    max-width: 100% !important;
-    min-height: 0 !important;
-  }
-  
-  /* Conteneur icône de rang + titre (inline) */
-  .forum-user-section [data-kr-rank-title] {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    flex-wrap: nowrap !important;
-    margin-top: 4px !important;
-    max-width: 100% !important;
-  }
-  
-  .forum-user-section [data-kr-rank-title] img {
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-    max-width: 24px !important;
-    max-height: 24px !important;
-  }
-  
-  /* Titre de rang : inline sans ellipsis */
-  .forum-user-section [data-kr-rank-title] strong {
-    font-size: 10px !important;
-    color: #bbb !important;
-    font-weight: normal !important;
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    max-width: none !important;
-    line-height: 1.3 !important;
-    text-align: center !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-  }
-  
-  /* Date mobile ajoutée par JS */
-  .forum-user-section .post-date-mobile {
-    font-size: 11px !important;
-    color: #999 !important;
-    margin-top: 4px !important;
-    text-align: center !important;
-  }
-  
-  /* Titre/fonction - ellipsis */
-  .forum-user-section strong:not(.cartouche strong, [data-kr-rank-title] strong) {
-    font-size: 10px !important;
-    color: #bbb !important;
-    font-weight: normal !important;
-    margin-top: 4px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 100% !important;
-  }
-  
-  /* === COLONNE 2: BOUTONS D'ACTION === */
-  
-  .forum-actions-section {
-    padding: 0 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-end !important;
-    gap: 8px !important;
-  }
-  
-  /* Container des boutons */
-  .forum-actions-section .pull-right {
-    float: none !important;
-    display: flex !important;
-    flex-flow: row wrap !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-  
-  /* Groupes de boutons inline */
-  .forum-actions-section .btn-group {
-    display: inline-flex !important;
-    flex-flow: row nowrap !important;
-    gap: 0 !important;
-  }
-  
-  /* Boutons carrés 44x44px (WCAG touch target) */
-  .forum-actions-section .btn {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 14px !important;
-    line-height: 44px !important;
-    border: none !important;
-    border-radius: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  
-  /* Override Bootstrap min-width */
-  .forum-actions-section .btn-group-xs > .btn,
-  .forum-actions-section .btn-group-xs .btn {
-    min-width: 44px !important;
-  }
-  
-  /* Icônes des boutons */
-  .forum-actions-section .btn i {
-    font-size: 11px !important;
-    line-height: 24px !important;
-  }
-  
-  /* === ROW 2: CONTENU DU MESSAGE === */
-  
-  .forum-content-row {
-    margin-top: 0 !important;
-  }
-  
-  .forum-content-section {
-    padding: 12px 8px !important;
-    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
-    font-size: 15px !important;
-    line-height: 1.6 !important;
-    width: 100% !important;
-  }
-  
-  /* Contenu du message */
-  .forum-content-section .forum-msg,
-  .forum-content-section > div {
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* Citations et blockquotes */
-  .forum-content-section blockquote {
-    margin: 8px 0 !important;
-    padding: 8px 12px !important;
-    border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
-    font-size: 14px !important;
-  }
-  
-  /* Images dans le contenu */
-  .forum-content-section img {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-  
-  /* Spoilers */
-  .forum-content-section .spoiler {
-    margin: 8px 0 !important;
-  }
-  
-  /* Signature */
-  .forum-content-section hr,
-  .forum-content-section .signature {
-    margin-top: 16px !important;
-    padding-top: 16px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-    font-size: 12px !important;
-    color: #999 !important;
-  }
 }
 
 /* ============================================================================
@@ -9325,7 +9433,11 @@ body.mobile-mode .kr-navigation-row > .btn-group:only-child .kr-room-link {
    - Feedback visuel clair
    ============================================================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
+  /* Seuil unique (carte t_f4fad4a5) : 767 px comme le mode mobile JS (< 768) et Bootstrap 3 natif (xs < 768 <= sm).
+     À 768 px exactement, ce bloc s'appliquait seul (barre « Envoyer » fixe, grille réinitialisée) sans le mode mobile JS ni les
+     correctifs PR12 (max-width: 767px) : Signature masquée, smileys 0/126, outils débordants. 768 est désormais en mise en page bureau. */
+
   /* 0. LAYOUT - Fix Bootstrap grid overflow */
   
   /* Ajouter padding latéral pour ne pas coller au bord */
@@ -11193,6 +11305,13 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
   }
 }
 
+/* E4 : le bouton « retour en haut » (36 px + 8 px) ne cache plus la fin de la ligne du pied de page */
+@media (min-width: 768px) {
+  footer .container.white {
+    padding-right: 64px;
+  }
+}
+
 /* PLT-01 : bandeau proposé quand le rechargement est différé (saisie en cours) */
 #kr-resize-banner {
   position: fixed;
@@ -11251,6 +11370,83 @@ html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !impor
 /* PLT-10 : textes sous le ratio WCAG AA 4,5:1 (thèmes sombres) */
 html[class*="-dark"] a.btn-primary,
 html[class*="-dark"] button.btn-primary {
+  color: #f5f1ed;
+}
+
+/* E3 : texte des boutons primaires par variante sombre (WCAG AA 4,5:1).
+   Fonds clairs : texte foncé ; fonds moyens : fond légèrement assombri + texte clair.
+   Survol/focus/actif : fond --kr-primary-dark, texte choisi pour garder >= 4,5:1. */
+html.kr-theme-variant-paladium-dark a.btn-primary,
+html.kr-theme-variant-paladium-dark button.btn-primary,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary,
+html.kr-theme-variant-paladium-dark a.btn-primary:hover,
+html.kr-theme-variant-paladium-dark a.btn-primary:focus,
+html.kr-theme-variant-paladium-dark a.btn-primary:active,
+html.kr-theme-variant-paladium-dark button.btn-primary:hover,
+html.kr-theme-variant-paladium-dark button.btn-primary:focus,
+html.kr-theme-variant-paladium-dark button.btn-primary:active {
+  color: #1e1a15;
+}
+
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary {
+  background-color: #8659b3;
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-kraland-dark a.btn-primary,
+html.kr-theme-variant-kraland-dark button.btn-primary {
+  background-color: #b64c4c;
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:hover,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:focus,
+html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:active,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:hover,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:focus,
+html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:active,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:hover,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:focus,
+html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:active,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:hover,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:focus,
+html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:active,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:hover,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:focus,
+html.kr-theme-variant-paradigme-vert-dark a.btn-primary:active,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:hover,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:focus,
+html.kr-theme-variant-paradigme-vert-dark button.btn-primary:active,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:hover,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:focus,
+html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:active,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:hover,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:focus,
+html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:active,
+html.kr-theme-variant-kraland-dark a.btn-primary:hover,
+html.kr-theme-variant-kraland-dark a.btn-primary:focus,
+html.kr-theme-variant-kraland-dark a.btn-primary:active,
+html.kr-theme-variant-kraland-dark button.btn-primary:hover,
+html.kr-theme-variant-kraland-dark button.btn-primary:focus,
+html.kr-theme-variant-kraland-dark button.btn-primary:active {
+  color: #f5f1ed;
+}
+
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:hover,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:focus,
+html.kr-theme-variant-confederation-libre-dark a.btn-primary:active,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:hover,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:focus,
+html.kr-theme-variant-confederation-libre-dark button.btn-primary:active {
+  background-color: #5f6673;
   color: #f5f1ed;
 }
 
@@ -11348,17 +11544,22 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: none !important;
   }
 
-  nav.navbar .navbar-collapse.collapse.in {
+  /* E5 : .collapsing reçoit le même positionnement que .collapse.in (pas de saut en fin d'animation) */
+  nav.navbar .navbar-collapse.collapse.in,
+  nav.navbar .navbar-collapse.collapsing {
     display: block !important;
     position: absolute;
     top: 60px;
     left: 0;
     right: 0;
-    height: auto !important;
     max-height: calc(100vh - 60px) !important;
     overflow-y: auto !important;
     background: var(--kr-navbar-bg);
     border-top: 1px solid rgb(255,255,255,0.1);
+  }
+
+  nav.navbar .navbar-collapse.collapse.in {
+    height: auto !important;
   }
 
   nav.navbar .navbar-nav,
@@ -11480,5 +11681,2180 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   .kr-gauge-legend-swatch.rest {
     background: repeating-linear-gradient(45deg, var(--kr-gauge-rest) 0 3px, transparent 3px 6px) !important;
     border: 1px solid var(--kr-gauge-rest) !important;
+  }
+}
+
+/* ============================================================================
+   PLT-QU : qualité d'usage du plateau
+   Compétences nommées et lisibles, commandes en grilles alignées, texte utile
+   d'au moins 11 px, en-têtes de groupe calmes, barre de navigation compactée.
+   Mobile : max-width 767px ; desktop : min-width 768px (puis paliers 992 / 1360 / 1440).
+   Les couleurs passent par les jetons du thème : les 15 variantes en héritent.
+   ============================================================================ */
+
+/* Pastilles de niveau : jetons --kr-level-bg / --kr-level-fg définis en tête de feuille (section 1). */
+
+/* --- Pastilles et cellules d'icônes : desktop et tablette (>= 768 px) --- */
+@media (min-width: 768px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--kr-cell);
+    height: var(--kr-cell);
+    min-width: var(--kr-cell);
+    min-height: var(--kr-cell);
+    margin: 0;
+    padding: 0;
+  }
+
+  #col-leftest .kr-skill-icon {
+    position: relative;
+    display: block;
+    width: var(--kr-icon);
+    height: var(--kr-icon);
+    color: var(--kr-text-secondary);
+  }
+
+  #col-leftest .kr-skill-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Repli quand l'image d'icône ne charge pas : trois lettres du nom */
+  #col-leftest .kr-icon-fallback,
+  #col-leftest .kr-stat-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--kr-text-primary);
+  }
+
+  /* La pastille reste DANS la boîte de la cellule : coin bas-droit de l'icône */
+  #col-leftest .kr-skill-badge,
+  #col-leftest .kr-stat-badge {
+    position: absolute;
+    top: auto; /* neutralise .btn .badge { top: -1px } de Bootstrap */
+    right: calc((var(--kr-icon) - var(--kr-cell)) / 2);
+    bottom: calc((var(--kr-icon) - var(--kr-cell)) / 2);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border: 1px solid var(--kr-bg-surface);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  #col-leftest .kr-skill-badge.is-level,
+  #col-leftest .kr-stat-badge.is-level {
+    background-color: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+  }
+
+  #col-leftest .kr-skill-badge.is-zero,
+  #col-leftest .kr-stat-badge.is-zero {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-strong);
+    color: var(--kr-text-secondary);
+  }
+
+  /* Légende masquée par défaut (pointeur précis) : l'étiquette de survol la remplace */
+  #col-leftest .kr-skill-caption {
+    display: none;
+  }
+
+  /* Étiquette « Nom · N » au survol et au focus clavier, sans décaler la grille */
+  #col-leftest .kr-icon-cell::after {
+    content: attr(data-kr-label);
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 40;
+    padding: 3px 8px;
+    border: 1px solid var(--kr-border-strong);
+    border-radius: 4px;
+    background: var(--kr-bg-elevated);
+    box-shadow: var(--kr-shadow-md);
+    color: var(--kr-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+
+    /* display:none (et non visibility) : une étiquette cachée ne doit pas agrandir la zone de défilement */
+    display: none;
+  }
+
+  #col-leftest .kr-icon-cell:focus-visible::after {
+    display: block;
+  }
+
+  #col-leftest .kr-icon-cell:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: 1px;
+  }
+
+  /* Grille : le nombre de colonnes suit la largeur réellement disponible */
+  #col-leftest .panel-body.grid-transformed {
+    padding: 8px 3px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--kr-track, 40px), 1fr));
+    gap: 6px 2px;
+    justify-items: center;
+    margin: 0;
+  }
+
+  #col-leftest .grid-transformed > .row::before,
+  #col-leftest .grid-transformed > .row::after {
+    display: none;
+  }
+
+  #col-leftest .grid-transformed > .row > [class*="col-"] {
+    display: flex;
+    float: none;
+    justify-content: center;
+    width: auto;
+    margin: 0 !important;
+    padding: 0;
+  }
+}
+
+/* Survol : seulement avec un pointeur qui sait survoler (un toucher ne laisse pas l'étiquette collée) */
+@media (min-width: 768px) and (hover: hover) {
+  #col-leftest .kr-icon-cell:hover::after {
+    display: block;
+  }
+}
+
+/* Tactile et tablette large : aucune information ne dépend du survol.
+   Le nom s'affiche en légende sous l'icône (11 px, sur 2 lignes si besoin). */
+@media (min-width: 768px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 64px;
+  }
+
+  #col-leftest .kr-icon-cell.btn {
+    width: 100%;
+    height: auto;
+    min-height: 48px;
+    padding: 4px 2px;
+  }
+
+  #col-leftest .kr-skill-caption {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 11px;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal; /* neutralise .btn { white-space: nowrap } */
+  }
+
+  #col-leftest .kr-icon-cell::after,
+  #col-leftest .kr-icon-cell:focus-visible::after {
+    display: none;
+  }
+}
+
+/* Largeur desktop 768-991 : la cellule 40 px des paliers étroits ne s'applique pas à la rangée horizontale.
+   Paliers min-width successifs (768 puis 992) : les règles de 992 plus bas reprennent la main sans max-width. */
+@media (min-width: 768px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 44px;
+  }
+}
+
+@media (min-width: 768px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 72px;
+  }
+}
+
+/* Largeur desktop intermédiaire : colonne étroite, icônes réduites (28 px minimum) */
+@media (min-width: 992px) {
+  #col-leftest {
+    padding-right: 4px;
+    padding-left: 10px;
+  }
+
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 34px;
+    --kr-icon: 28px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 33px;
+  }
+}
+
+@media (min-width: 992px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 60px;
+  }
+}
+
+@media (min-width: 1360px) {
+  #col-leftest .kr-icon-cell.btn {
+    --kr-cell: 40px;
+    --kr-icon: 32px;
+  }
+
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 40px;
+  }
+}
+
+@media (min-width: 1360px) and (hover: none) {
+  #col-leftest .grid-transformed > .row {
+    --kr-track: 64px;
+  }
+}
+
+/* --- Pastilles et légendes : mobile (le panneau reste masqué dans le mode mobile actuel) --- */
+@media (max-width: 767px) {
+  .kr-skill-icon {
+    position: relative;
+    display: block;
+    width: 32px;
+    height: 32px;
+  }
+
+  .kr-skill-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .kr-skill-badge,
+  .kr-stat-badge {
+    position: absolute;
+    top: auto;
+    right: -4px;
+    bottom: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border: 1px solid var(--kr-bg-surface);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .kr-skill-badge.is-level,
+  .kr-stat-badge.is-level {
+    background-color: var(--kr-level-bg);
+    color: var(--kr-level-fg);
+  }
+
+  .kr-skill-badge.is-zero,
+  .kr-stat-badge.is-zero {
+    background-color: var(--kr-bg-elevated);
+    border-color: var(--kr-border-strong);
+    color: var(--kr-text-secondary);
+  }
+
+  .kr-icon-cell.btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    min-height: 56px;
+    padding: 4px 2px;
+  }
+
+  .kr-skill-caption {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 11px;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal; /* neutralise .btn { white-space: nowrap } */
+  }
+}
+
+/* --- Commandes : deux grilles à 2 colonnes égales, même gouttière et même bord gauche --- */
+@media (min-width: 768px) {
+  /* Même bord gauche que les accès rapides, sans dépendre des marges négatives de .row */
+  #player-actions-section {
+    margin-right: 0;
+    margin-left: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  #player-actions-section .kr-action-grid {
+    flex: 1 1 100%;
+  }
+
+  /* Le séparateur d'origine n'a plus de groupe à séparer */
+  #player-actions-section .kr-action-grid ~ hr {
+    display: none;
+  }
+
+  .kr-action-grid,
+  .kr-quick-access-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kr-quick-access-buttons {
+    margin-top: 10px;
+  }
+
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 34px;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+@media (min-width: 768px) and (pointer: coarse) {
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  .kr-action-grid,
+  .kr-quick-access-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kr-quick-access-buttons {
+    margin-top: 10px;
+  }
+
+  .kr-action-grid > .btn,
+  .kr-quick-access-buttons > .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+}
+
+/* --- Texte utile : plancher de 11 px (statuts et noms à 12 px quand la place le permet) --- */
+@media (min-width: 768px) {
+  .dashboard-section-header {
+    font-size: 12px;
+  }
+
+  .dashboard-section-header .badge {
+    font-size: 11px;
+  }
+
+  .dashboard-card-status {
+    font-size: 12px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .dashboard-card-pnj {
+    font-size: 11px;
+  }
+
+  /* Les boutons d'action de la carte (profil, message) ne recouvrent plus la ligne de statut */
+  .dashboard-card:has(.dashboard-card-actions) .dashboard-card-body {
+    padding-bottom: 30px;
+  }
+
+  .xmini,
+  footer a {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-section-header {
+    font-size: 12px;
+  }
+
+  .dashboard-section-header .badge {
+    font-size: 11px;
+  }
+
+  body.mobile-mode .dashboard-card-status {
+    font-size: 12px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .dashboard-card-pnj {
+    font-size: 11px;
+  }
+
+  footer a,
+  .xmini,
+  body.mobile-mode .commerce-products-container > a.list-group-item .mention .xmini {
+    font-size: 11px;
+  }
+
+  /* Mini-profil mobile et barre d'onglets : 10 px -> 11 px (règles d'origine en !important) */
+  body.mobile-mode .mobile-gauge-compact-label,
+  body.mobile-mode .mobile-gauge-compact-value,
+  body.mobile-mode .mobile-tab-label {
+    font-size: 11px !important;
+  }
+
+  /* Noms de bâtiment et de produits : 10 px -> 12 px */
+  body.mobile-mode .building-section-content h4.list-group-item-heading {
+    font-size: 12px !important;
+  }
+}
+
+/* --- En-têtes de groupe calmes : surface du thème + filet d'accent, au lieu de l'aplat plein --- */
+@media (min-width: 768px) {
+  .dashboard-section-header {
+    border-left: 4px solid var(--kr-primary);
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn:hover {
+    border-color: var(--kr-highlight);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-highlight);
+  }
+
+  .dashboard-section-header .badge {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-section-header,
+  .dashboard-section-header-accordion {
+    border-left: 4px solid var(--kr-primary);
+    background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .dashboard-group-buttons .btn {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  .dashboard-section-header .badge {
+    border-color: var(--kr-border-strong);
+    background-color: var(--kr-bg-active);
+    color: var(--kr-text-primary);
+  }
+
+  /* L'accordéon se manipule aussi au clavier : focus visible */
+  .dashboard-section-header-accordion:focus-visible {
+    outline: 2px solid var(--kr-highlight);
+    outline-offset: -2px;
+  }
+}
+
+/* --- Barre de navigation compactée de 992 à 1439 px, SANS burger plus tôt (seuil 992 inchangé) --- */
+@media (min-width: 992px) {
+  nav.navbar .navbar-nav > li > a {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 13px;
+  }
+
+  nav.navbar .navbar-nav.navbar-right > li > a {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}
+
+/* Retour à l'existant dès que la barre tient d'origine sur une rangée */
+@media (min-width: 1440px) {
+  nav.navbar .navbar-nav > li > a {
+    padding-right: 15px;
+    padding-left: 15px;
+    font-size: 14px;
+  }
+
+  nav.navbar .navbar-nav.navbar-right > li > a {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+}
+
+/* ============================================================================
+   FORUM MOBILE : actions « Répondre » / « Nouveau sujet » (F-01) et barre BBCode (F-06)
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* F-01 : barre d'actions du sujet, en haut (sous le fil d'Ariane) et en bas (sous la pagination).
+     « Répondre » = action principale pleine ; « Nouveau sujet » = action secondaire cerclée. */
+  .forum-thread-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+
+  /* N-1 : le bouton fixe « Remonter en haut » (36 px, à 8 px du bord droit, visible dès 400 px de défilement) passait sur la fin de
+     « Nouveau sujet » quand la barre du bas traversait le bas de l'écran. On réserve donc à droite de cette barre la place du bouton
+     (8 + 36 + 8 = 52 px) : le bouton ne la recouvre plus, à aucune position de défilement. */
+  .forum-thread-actions-bottom {
+    margin: 12px 52px 16px 16px;
+  }
+
+  .forum-thread-action {
+    display: flex;
+    flex: 1 1 140px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 2px solid var(--kr-primary);
+    border-radius: var(--mobile-radius, 8px);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  /* M1 : encre et fond dédiés (mêmes variables que les touches de la croix CX2 : --kr-arm-*),
+     garantis >= 4,5:1 dans les 16 thèmes en état normal, survol et actif.
+     Le blanc sur --kr-primary tombait à 1,65:1 (paladium-dark). */
+  .forum-thread-action-reply {
+    flex-grow: 2;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+  }
+
+  .forum-thread-action-reply:hover,
+  .forum-thread-action-reply:active {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+    text-decoration: none;
+  }
+
+  .forum-thread-action-new {
+    background: transparent;
+    color: var(--kr-text-primary, var(--kr-primary)) !important;
+  }
+
+  /* F-06 : barre BBCode de l'éditeur (réponse, nouveau sujet, Kramail) = grille de cibles 44 px qui
+     passe à la ligne, au lieu d'une bande à défilement où chaque bouton faisait 329 à 338 px
+     (cause : « .btn-group > .btn { width: 100% !important } » générique). Pas dans les fenêtres bootbox. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) {
+    position: relative;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    overflow: visible !important;
+    white-space: normal;
+  }
+
+  /* Le clearfix Bootstrap (::before/::after) deviendrait un élément de la grille et décalerait la 1re rangée */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::before,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *)::after {
+    display: none !important;
+  }
+
+  /* Les groupes et menus déroulants s'effacent : les boutons s'enchaînent en une seule grille */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown {
+    display: contents !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > a.btn,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle,
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    display: flex !important;
+    flex: 0 0 44px !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* L'ancre « dropdown-toggle » n'est qu'un conteneur : pas de double cadre autour du bouton qu'elle porte */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) > .btn-group > .dropdown > .dropdown-toggle {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Menus (smileys, couleurs) : ancrés à la barre, sur toute sa largeur disponible */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu {
+    max-width: calc(100vw - 24px);
+  }
+
+  /* M2 : palette « Couleurs » = grille de pastilles 44×44 dans le menu (6 colonnes). Sans cela, la règle
+     mobile générique « .btn-group > .btn { width: 100% !important } » étirait chaque pastille à 168 px
+     et 17 sur 18 sortaient du menu. La couleur (style en ligne), le href et l'onclick natifs ne sont pas touchés. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    display: grid !important;
+    grid-template-columns: repeat(6, 44px);
+    gap: 6px;
+    width: auto !important;
+    max-width: 100%;
+    padding: 8px;
+    float: none !important;
+  }
+
+  /* MA-1 : le menu natif porte « padding:10px; width:190px » en ligne, trop étroit pour la grille 6×44. On élargit
+     SEULEMENT le menu qui contient la palette (le menu smileys n'a pas de .btn-group), borné à l'écran ;
+     6 colonnes de 44 + 5 écarts + 2×8 de marge + 2×10 de marge du menu + bordures = 334 px. Écran plus étroit : moins de colonnes. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) {
+    box-sizing: border-box !important;
+    width: min(334px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> .btn-group) > .btn-group {
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group > .btn {
+    display: block !important;
+    float: none !important;
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+}
+
+@media (max-width: 339px) {
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu .btn-group {
+    grid-template-columns: repeat(5, 44px);
+  }
+}
+
+/* ============================================================================
+   FORUM MOBILE : réserves PR12 (smileys, Signature, barre « Envoyer », « Remonter en haut »)
+   Dépendance :has — navigateurs sans :has (Firefox < 121, Safari < 15.4) : les règles qui en dépendent sont ignorées
+   et on retrouve le comportement d'avant (page jamais cassée) : menu smileys absolu rogné, bouton « Remonter en haut »
+   qui déborde sur la barre « Envoyer ». Les règles sans :has (Signature, gouttière N-1) s'appliquent partout.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* S3 : le menu smileys natif (320 px × 638 px, position absolue) était rogné à y = 554 par « .form-group .col-sm-10 { overflow: hidden } » :
+     54 smileys sur 126 inatteignables. Il devient un panneau DANS LE FLUX, sous la barre d'outils (order: la dernière rangée), sur toute la
+     largeur : la page défile jusqu'au dernier smiley, rien n'est rogné ni superposé. position: relative + z-index conservent le menu
+     au-dessus du fond .dropdown-backdrop (z-index 990) que Bootstrap pose sur écran tactile ; la palette Couleurs (menu sans table) n'est pas touchée. */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 1000;
+    order: 100;
+    flex: 0 0 100%;
+    float: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Les 126 smileys en grille de cibles 44×44 qui passe à la ligne (le menu natif les alignait 9 par rangée en 32 × 44 px) */
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table {
+    display: block;
+    width: 100%;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 44px);
+    justify-content: center;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) > table > tbody > tr {
+    display: contents;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td {
+    display: block;
+    padding: 0;
+  }
+
+  .col-sm-10 > .btn-toolbar:not(.bootbox *) .dropdown-menu:has(> table) td > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Signature : la règle mobile générique « label { padding: 5px 0 !important } » annulait le retrait Bootstrap alors que la case
+     reste en position absolue : elle recouvrait « Si » de « Signature » (280 px²). Le libellé devient une ligne flex : case 20 px,
+     espace, texte, sans chevauchement, et tout le libellé (44 px de haut) sert de cible tactile (le toucher du texte coche la case). */
+  body.page-forum form label.checkbox-inline {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px 0 0 !important;
+  }
+
+  body.page-forum form label.checkbox-inline > input[type="checkbox"] {
+    position: static !important;
+    flex: 0 0 20px;
+    margin: 0 !important;
+  }
+
+  /* La barre « Envoyer » est fixe (56 px, en bas de l'écran) : le défilement vers un champ (scrollIntoView, focus au clavier, ancre) laisse
+     donc 72 px libres sous lui, et le formulaire garde 64 px de page sous sa dernière ligne (l'ancienne réserve
+     « .form-group:last-of-type » ne visait aucun élément : le dernier <div> du formulaire n'a pas la classe .form-group). */
+  body.page-forum form :is(input, select, textarea, label) {
+    scroll-margin-bottom: 72px;
+  }
+
+  body.page-forum form[name="post_msg"] {
+    padding-bottom: 64px;
+  }
+
+  /* Pied collant : la règle d'en-tête mobile « body.mobile-mode .navbar-inverse { position: sticky; top: 0; z-index: var(--z-header) } » (1000)
+     atteint aussi le <footer class="navbar-inverse"> natif : il devenait un contexte d'empilement de 1000 qui se peignait SUR la barre « Envoyer »
+     fixe (z-index 90) dès que le pied de page passait dessous (la barre disparaissait et le toucher allait à la citation du pied de page : 44 positions
+     de défilement sur 62 à 375 px). Sur une page qui porte cette barre, le pied de page revient dans le flux normal ; le bouton « Remonter en haut »
+     (position: fixed) garde son z-index 1000 dans le contexte racine. */
+  body.mobile-mode:has(button.btn-primary.pull-right) footer.navbar-inverse {
+    position: relative;
+    top: auto;
+    z-index: auto;
+  }
+
+  /* Le bouton fixe « Remonter en haut » (z-index 1000, bas 8 px) se peignait aussi sur la fin de la barre « Envoyer » (56 px, pleine largeur) :
+     33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
+  body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
+    bottom: 64px;
+  }
+}
+
+/* ============================================================================
+   SOUS-FORUM (refonte variante A) — rapport UX t_d123c7f6
+   Portée : pages /forum/<categorie>/<sous-forum> (body.page-forum.kr-subforum, posée par le module ForumTopics:Status).
+   Les classes kr-topic-unread / kr-topic-locked / kr-topic-pages et la pastille .kr-topic-badge sont posées en JS à l'init et à chaque
+   draw.dt : le CSS ne s'écrit que sur ces classes (une classe sans son CSS ne casse rien).
+   ============================================================================ */
+
+/* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (texte = fond de ligne, fond = jeton --kr-status-unread). */
+@media (max-width: 767px), (min-width: 768px) {
+  body.page-forum.kr-subforum .kr-topic-badge {
+    display: inline-block;
+    flex: 0 0 auto;
+    margin: 0 0 0 8px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--kr-status-unread);
+    color: var(--kr-bg-surface);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* Libellé en CSS (attribut data-kr-label) : aucun texte dans la cellule, DataTables ne le voit ni à la recherche ni au tri. */
+  body.page-forum.kr-subforum .kr-topic-badge::before {
+    content: attr(data-kr-label);
+  }
+}
+
+/* L1 — mobile. Barre de 4 px à gauche (réservée sur toutes les lignes pour ne pas décaler le contenu), titre en gras si non lu, cadenas visible,
+   en-têtes de section en texte principal (D-11 : 3 thèmes sur 16 sous 4,5:1 avec la couleur primaire). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .panel-default > .panel-heading h3 {
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr,
+  body.page-forum.kr-subforum table.dataTable tbody tr {
+    border-left: 4px solid transparent !important;
+  }
+
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr.kr-topic-unread,
+  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr:not(.kr-topic-unread) td:first-child p > a {
+    font-weight: 400 !important;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    display: inline-block !important;
+    flex: 0 0 auto;
+    margin: 0 6px 0 0;
+    color: var(--kr-text-secondary);
+    font-size: 14px !important;
+    line-height: 1.4;
+  }
+
+  body.page-forum.kr-subforum td:first-child p > .kr-topic-badge {
+    align-self: center;
+    font-size: 11px !important;
+  }
+}
+
+/* L1 — bureau. Barre de 4 px à l'intérieur de la 1re cellule (le tableau natif est conservé), titre en gras si non lu, cadenas lisible. */
+@media (min-width: 768px) {
+  body.page-forum.kr-subforum tr.kr-topic-unread > td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--kr-status-unread);
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-unread td:first-child p > a {
+    font-weight: 700;
+  }
+
+  body.page-forum.kr-subforum tr.kr-topic-locked td:first-child p > i.fa-lock {
+    margin-right: 6px;
+    color: var(--kr-text-secondary);
+  }
+}
+
+/* L2 — en-tête mobile : fil d'Ariane, titre en 24 px, « + Nouveau sujet » (composant PR12 .forum-thread-action-new) en haut et sous la pagination. */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum .container h1.page-header {
+    border-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    color: var(--kr-text-secondary);
+    font-size: 14px;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--kr-text-primary) !important;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-sep,
+  body.page-forum.kr-subforum .forum-mobile-breadcrumb-current {
+    color: var(--kr-text-secondary);
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-title {
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-top .forum-thread-action,
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom .forum-thread-action {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 16px;
+    white-space: nowrap;
+  }
+
+  body.page-forum.kr-subforum .forum-subforum-actions-bottom {
+    justify-content: center;
+  }
+}
+
+/* L3 — liste des sujets mobile (variante A) : une ligne de sujet = titre, « NON LU · Dernier : X, date », « N messages · N vues · N pages · par X · #étiquettes »,
+   et le bouton → natif « aller au dernier message » (44 x 44) à droite. Le tableau natif DataTables est conservé : lignes en flex, cellules en display: contents,
+   libellés en CSS (attributs posés par ForumTopics:MobileStats), tri par les en-têtes natifs devenus des puces de 44 px qui défilent. */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum #topics span.invisible {
+    display: none !important;
+  }
+
+  /* Contrôles DataTables : recherche + « Afficher » sur une ligne (ordre changé en CSS seulement, dom « lfrtip » conservé), tableau en pleine largeur. */
+  body.page-forum.kr-subforum #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 4px !important;
+    overflow: visible !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter {
+    order: 1;
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length {
+    order: 2;
+    flex: 0 0 auto;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Les mots « Rechercher », « Afficher » et « lignes » sont remplacés par le placeholder et un nom accessible (JS) : texte des labels à 0 px. */
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter label,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length label {
+    display: flex !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_filter input {
+    flex: 1 1 auto;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_length select {
+    min-width: 72px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_info {
+    order: 4;
+    flex: 0 0 100%;
+    margin: 8px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
+    order: 5;
+    flex: 0 0 100%;
+  }
+
+  body.page-forum.kr-subforum #topics {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    width: calc(100% + 32px) !important;
+    max-width: none !important;
+    margin: 4px -16px 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Tri : les 5 en-têtes natifs (th) deviennent des puces de 44 px qui défilent, la colonne triée en premier, fondu à droite. */
+  body.page-forum.kr-subforum #topics thead {
+    display: block !important;
+  }
+
+  body.page-forum.kr-subforum #topics thead tr {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 16px 8px;
+    overflow: auto hidden;
+    background: transparent !important;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.page-forum.kr-subforum #topics thead tr::before {
+    content: "Trier :";
+    order: -2;
+    flex: 0 0 auto;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    width: auto !important;
+    min-height: 44px;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 22px;
+    background: transparent !important;
+    background-image: none !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_asc,
+  body.page-forum.kr-subforum #topics thead th.sorting_desc {
+    order: -1;
+    border-color: var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_desc::after {
+    content: "\25BE";
+    margin-left: 6px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th.sorting_asc::after {
+    content: "\25B4";
+    margin-left: 6px;
+  }
+
+  body.page-forum.kr-subforum #topics thead th:focus-visible {
+    outline: 2px solid var(--kr-primary);
+    outline-offset: 2px;
+  }
+
+  /* Ligne de sujet : flex qui passe à la ligne ; deux pseudo-éléments de 100 % forcent les sauts de ligne (après le titre, après le dernier message). */
+  body.page-forum.kr-subforum #topics tbody {
+    display: block !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    margin: 0 !important;
+    padding: 10px 56px 10px 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+    cursor: pointer;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::before,
+  body.page-forum.kr-subforum #topics tbody tr::after {
+    content: "";
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::before {
+    order: 5;
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr::after {
+    order: 10;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(1),
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4),
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) {
+    display: contents !important;
+  }
+
+  /* Ligne 1 : cadenas, titre en 16 px. Le titre est un lien étiré sur toute la ligne (cible de toucher = la ligne) ; le bouton → passe au-dessus. */
+  body.page-forum.kr-subforum #topics tbody td:first-child p {
+    display: contents !important;
+    margin: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > i.fa-lock {
+    order: 0;
+  }
+
+  /* Réinitialise la règle générique de toucher (liens de 44 px de haut, rembourrés, avec marge) : la ligne entière est la cible, via le lien étiré. */
+  body.page-forum.kr-subforum #topics tbody td a:not(.btn) {
+    display: block !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > a {
+    display: block !important;
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > ul {
+    display: none !important;
+  }
+
+  /* Ligne 2 : « NON LU · Dernier : X, date ». Les noms ne sont pas cliquables (profil ou Kramail : pas de toucher accidentel). */
+  body.page-forum.kr-subforum #topics tbody td:first-child p > .kr-topic-badge {
+    order: 6;
+    margin: 0;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin {
+    order: 7;
+    color: var(--kr-text-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin::before {
+    content: "Dernier : ";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin::after {
+    content: ",";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini {
+    display: block !important;
+    order: 8;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini .btn-group {
+    position: absolute !important;
+    top: 50%;
+    right: 8px;
+    left: auto !important;
+    z-index: 2;
+    display: block !important;
+    float: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1;
+  }
+
+  /* Ligne 3 : « N messages · N vues · N pages · par X · #étiquettes ». */
+  body.page-forum.kr-subforum #topics tbody td:nth-child(2) {
+    order: 11;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3) {
+    order: 12;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(2)::after,
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3)::after {
+    content: " " attr(data-kr-unit);
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(3)::before {
+    content: "· ";
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(1)[data-kr-pages-label]::after {
+    content: "· " attr(data-kr-pages-label);
+    order: 13;
+    color: var(--kr-text-secondary);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin {
+    order: 14;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin::before {
+    content: "· par ";
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > p {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum {
+    display: block !important;
+    order: 15;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before {
+    content: "· ";
+    font-size: 12px;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum > i {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a {
+    display: inline !important;
+    margin-right: 6px !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a::before {
+    content: "#";
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+}
+
+/* L4 — sujets permanents mobile (variante A) : une ligne de 44 px par sujet = cadenas, titre coupé par « … », NON LU, date du dernier message ; toute la ligne
+   mène au sujet (lien du titre étiré). Compteurs, auteur et pages restent dans le sujet : leurs cellules natives sont masquées, pas déplacées.
+   Spécificité volontairement haute : les anciennes règles « cartes » des permanents (body.mobile-mode / body.page-forum .panel-default .table …) sont en !important. */
+@media (max-width: 767px) {
+  /* Chevrons de repli natifs (span.clickable, mécanisme du site) : cible de 44 x 44 ; en-tête de panneau de 44 px. */
+  body.page-forum.kr-subforum .panel-default > .panel-heading {
+    min-height: 44px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  body.page-forum.kr-subforum .panel-heading span.clickable {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0 -12px 0 auto !important;
+    cursor: pointer;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(1),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) {
+    display: contents !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(2),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Les anciens préfixes « → » et séparateurs des cartes ne s'appliquent plus. */
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::before,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td::after {
+    content: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > ul,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > span.tagforum,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > a.nomargin,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini .btn-group {
+    display: none !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p {
+    display: contents !important;
+    margin: 0 !important;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > i.fa-lock {
+    order: 0;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a {
+    display: block !important;
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    text-decoration: none !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 -1px;
+    z-index: 1;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > .kr-topic-badge {
+    order: 2;
+    margin: 0;
+  }
+
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:nth-child(5) > p.mini {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+}
+
+/* L5 — pagination mobile : « ‹ 1 2 3 … 15 › » sur une ligne, cibles de 44 px. Les boutons natifs masqués par ForumTopics:Pagination (.kr-page-hidden) restent dans le DOM ;
+   « Précédent » et « Suivant » gardent leur texte (nom accessible) mais s'affichent en ‹ et › (taille de police à 0, signe en ::before). */
+@media (max-width: 767px) {
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin: 8px 0 0 !important;
+    overflow: visible;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate > span {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button {
+    flex: 0 0 auto;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    box-sizing: border-box;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-hidden,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate span.ellipsis {
+    display: none !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .kr-page-gap {
+    flex: 0 0 auto;
+    min-width: 16px;
+    color: var(--kr-text-secondary);
+    font-size: 16px;
+    text-align: center;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous,
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next {
+    font-size: 0 !important;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
+    content: "\2039";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.next::before {
+    content: "\203A";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  /* Page courante : bordure de 2 px + gras + fond relevé, texte du thème (le blanc sur --kr-primary n'est pas lisible sur les accents clairs des thèmes sombres). */
+  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button.current {
+    border: 2px solid var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* L6 — desktop (variante A) : le tableau natif DataTables est conservé (mêmes colonnes, même tri) et restylé, mêmes informations que sur mobile.
+   Titres en couleur de texte (15 px, gras si non lu), chiffres alignés à droite, nom en gras + date secondaire dessous, flèche « dernier message » de 32 px,
+   icône dossier native masquée (le statut est la barre + la pastille NON LU), permanents compacts. Spécificité haute : règles desktop existantes en !important. */
+@media (min-width: 768px) {
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td {
+    padding: 6px 10px !important;
+    vertical-align: middle !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:first-of-type {
+    display: none !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p {
+    display: inline !important;
+    margin: 0 !important;
+  }
+
+  /* Pages et étiquettes sur la ligne du titre (permanents compacts : 52 px au lieu de 77). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) {
+    display: inline-flex !important;
+    vertical-align: middle;
+    margin: 0 0 0 6px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > a {
+    color: var(--kr-text-primary) !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    line-height: 1.35;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr.kr-topic-unread > td:first-child > p > a {
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > a:hover {
+    text-decoration: underline !important;
+  }
+
+  /* Msg et Vus : à droite, chiffres de même largeur ; en-têtes alignés comme leurs chiffres. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(2),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(2),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(3) {
+    font-variant-numeric: tabular-nums;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+
+  /* Auteur et dernier message : nom en gras, date secondaire dessous. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > a.nomargin,
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > a.nomargin {
+    display: block;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > p,
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > p.mini {
+    display: block;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li > a {
+    min-width: 24px;
+    padding: 1px 6px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) {
+    position: relative;
+    padding-right: 52px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    display: block !important;
+    float: none !important;
+    width: 32px;
+    height: 32px;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) .btn-group > a.btn:hover {
+    border-color: var(--kr-primary) !important;
+    background: var(--kr-bg-hover) !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > i.fa-lock {
+    color: var(--kr-text-secondary);
+  }
+
+  /* Étiquettes : en texte secondaire (le doré #C69100 ne fait que 2,82:1 sur le blanc d'Empire Brun clair, D-12). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > span.tagforum a {
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+  }
+
+  /* Rythme vertical resserré : le premier sujet réel doit rester dans le premier écran (1280 x 720). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default {
+    margin-bottom: 14px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body {
+    padding: 8px 15px 10px !important;
+  }
+
+  /* « Afficher N sujets » à gauche et « Rechercher » à droite sur une seule ligne (comme la maquette), le tableau en dessous. */
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 16px;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_length {
+    order: 1;
+    flex: 1 1 0;
+    margin: 0 0 8px !important;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_filter {
+    order: 2;
+    flex: 0 0 auto;
+    margin: 0 0 8px !important;
+    text-align: right;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper #topics {
+    order: 3;
+    flex: 0 0 100%;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_info {
+    order: 4;
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_paginate {
+    order: 5;
+    margin-left: auto;
+  }
+}
+
+
+/* ============================================================================
+   MESSAGES DU FORUM V3 (maquette validée « Moins d'interface. Plus de message. »)
+   Portée : mobile uniquement (max-width: 767px et body.mobile-mode), pages /forum/. Les classes kr-msg, kr-msg-more, kr-msg-secondary,
+   kr-editor, kr-sender-row, kr-message-row, kr-tools-* sont posées par le module Messages:V3 ; aucun nœud natif n'est cloné ni déplacé.
+   Le bureau (>= 768 px) garde le DOM et la mise en page natifs. Kramail n'est pas touché (pas de classe sur ses pages).
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* --- Lecture : identité sur une ligne (avatar réduit, nom, rang, date), texte, puis actions sous le texte --- */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg {
+    display: grid !important;
+    grid-template-columns: 60px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+    margin: 10px 0 14px;
+    padding: 14px !important;
+    list-style: none;
+    background: var(--kr-bg-elevated);
+    border: 1px solid var(--kr-border-default);
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  /* Le conteneur de l'avatar, le bloc identité et le corps s'effacent : leurs enfants deviennent les cellules de la grille */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .pull-left,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .pull-left > .user-info,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body {
+    display: contents !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg img.avatar {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    width: 60px;
+    max-width: 60px;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong {
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 16px;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong a {
+    color: var(--kr-text-primary);
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    margin: 2px 0 0;
+    padding: 0;
+    color: var(--kr-text-secondary);
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche p {
+    margin: 0;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > :not(img.avatar, strong, .cartouche) {
+    grid-column: 2;
+  }
+
+  /* Date : le groupe natif « posté / modifié » (un span désactivé) reste le texte natif, remis en ligne simple sous le rang */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .btn-group {
+    grid-column: 2;
+    grid-row: 3;
+    display: block !important;
+    float: none;
+    margin: 2px 0 0;
+    text-align: left;
+    justify-self: start;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .btn-group > .btn {
+    display: block !important;
+    justify-content: flex-start !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px;
+    line-height: 18px;
+    opacity: 1;
+    text-align: left;
+    white-space: nowrap;
+    max-width: none !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > [id^="ajax-h"] {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .forum-msg {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    min-width: 0;
+    margin: 12px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--kr-border-default);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg .forum-msg img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Actions sous le texte : score, pouces, « Répondre », « ••• » ; le reste dans le panneau qu'ouvre « ••• ». Les groupes natifs s'effacent
+     (leurs boutons deviennent des éléments d'une même ligne), les sélecteurs portent sur le href et les classes, jamais sur un identifiant
+     recréé : après un vote, le serveur remplace le contenu de #ajax-N et la mise en forme tient. */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right {
+    grid-column: 1 / -1;
+    grid-row: 6;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 6px;
+    float: none !important;
+    margin: 12px 0 0;
+    padding: 12px 0 0 !important;
+    border-top: 1px solid var(--kr-border-default);
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right::before,
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right::after {
+    display: none;
+  }
+
+  /* Saut de ligne avant le panneau « ••• » (ouvert) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right::after {
+    content: "";
+    display: block;
+    order: 9;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn-group {
+    display: contents !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    float: none;
+    width: auto !important;
+    min-width: 44px !important;
+    max-width: none !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 6px !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn i {
+    font-size: 16px !important;
+    line-height: 1 !important;
+  }
+
+  /* Score : pastille d'information (non tactile) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn-success {
+    order: 1;
+    height: 36px !important;
+    min-width: 36px !important;
+    padding: 0 8px !important;
+    border-color: rgba(46, 160, 67, 0.55) !important;
+    background: rgba(46, 160, 67, 0.18) !important;
+    cursor: default;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href^="javascript:updateAjax"] {
+    order: 2;
+    min-width: 56px !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href*="forum/post/repondre-"] {
+    order: 4;
+  }
+
+  /* Libellé « Répondre » en CSS (le lien natif « citer » ne porte que son icône) : le titre natif reste sur le lien */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href*="forum/post/repondre-"]::after {
+    content: "Répondre";
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .kr-msg-more {
+    order: 5;
+    margin-left: auto !important;
+    min-width: 48px !important;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  /* Actions secondaires (profil, Kramail, Signaler, lien) : repliées, ouvertes par « ••• », en grille de deux colonnes sous les actions */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg:not(.kr-msg-open) > .media-body > .pull-right .btn.kr-msg-secondary {
+    display: none !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right .kr-msg-secondary {
+    order: 10;
+    flex: 1 1 calc(50% - 6px);
+    justify-content: flex-start;
+    min-width: 0 !important;
+  }
+
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right .kr-msg-secondary::after {
+    content: attr(data-kr-label);
+  }
+
+  /* --- Rédaction et édition : expéditeur compact, texte d'abord, outils courants + « Plus », validation dans le flux --- */
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px !important;
+    padding: 0 12px !important;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row::before,
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row::after {
+    display: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row > label,
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row > label {
+    flex: 0 0 auto;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row > .col-sm-10 {
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row .input-group-addon {
+    display: none !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-sender-row .form-control {
+    height: 44px;
+    min-height: 44px !important;
+    margin: 0;
+    padding: 0 12px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row {
+    margin: 0 0 8px !important;
+    padding: 0 12px !important;
+    overflow: visible;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row > label {
+    display: block;
+    margin-bottom: 8px !important;
+  }
+
+  /* Cadre d'éditeur : barre d'outils collée à la zone de saisie */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready {
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border-radius: 8px 8px 0 0;
+    background: var(--kr-bg-elevated);
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready + textarea.form-control {
+    min-height: max(300px, 45vh) !important;
+    margin: 0 !important;
+    border-top: 0;
+    border-radius: 0 0 8px 8px !important;
+    font-size: 15px !important;
+  }
+
+  /* Outils : à plat (le cadre est celui de l'éditeur), icône à 16 px, ordre = gras, italique, lien, citation, émoticônes, puis « Plus » */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a.btn,
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="b"] { order: 1; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="i"] { order: 2; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="url"] { order: 3; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a[data-kr-tool="quote"] { order: 4; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown[data-kr-tool="smileys"] > .dropdown-toggle { order: 5; }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > a.kr-tool-extra,
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready > .btn-group > .dropdown.kr-tool-extra > .dropdown-toggle {
+    order: 20;
+  }
+
+  /* Les treize autres outils (natifs, inchangés) ne sont visibles que sous « Plus » */
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready:not(.kr-tools-open) .kr-tool-extra {
+    display: none !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-break {
+    display: none;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready.kr-tools-open .kr-tools-break {
+    display: block;
+    order: 15;
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus {
+    display: inline-flex !important;
+    order: 10;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 56px !important;
+    height: 44px !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 10px !important;
+    border: 1px solid var(--kr-border-default) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 13px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus::after {
+    content: "▾";
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready.kr-tools-open .kr-tools-plus::after {
+    content: "▴";
+  }
+
+  /* Validation dans le flux : plus de barre fixe qui recouvre la saisie ; le libellé natif du bouton est conservé */
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right {
+    position: static !important;
+    display: block !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 120px;
+    height: 48px !important;
+    margin: 12px 52px 0 auto !important;
+    padding: 0 20px !important;
+    border-radius: 8px !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+    font-size: 16px;
+  }
+
+  /* Même encre et même fond que « Répondre » (jetons --kr-arm-*, >= 4,5:1 sur les 16 thèmes) */
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:hover,
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:active,
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:focus {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
+    color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+  }
+
+  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] {
+    padding-bottom: 16px;
+  }
+
+  /* Plus de barre fixe en bas : le bouton « Remonter en haut » retrouve sa place d'origine (20 px) ; « Envoyer » lui laisse sa colonne de droite
+     (marge de 52 px = 8 + 36 + 8) pour qu'il ne le recouvre à aucune position de défilement. */
+  body.mobile-mode:has(form.kr-editor) .container.white .kraland-back-to-top {
+    bottom: 20px;
+  }
+}
+
+/* 320-359 px : une seule rangée « 5 outils + Plus » demande 5 × 44 + 48 + écarts ; les marges latérales de la zone d'édition sont reprises pour qu'elle tienne */
+@media (max-width: 359px) {
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row {
+    padding: 0 !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready {
+    gap: 2px !important;
+    padding: 4px !important;
+  }
+
+  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus {
+    min-width: 48px !important;
+    padding: 0 6px !important;
   }
 }

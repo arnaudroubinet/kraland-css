@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture plateau — barre de navigation à 14 entrées (sans données réelles)</title>
+  <style>
+    /* Reproduit l'essentiel de Bootstrap 3 utile à la barre : 14 entrées flottantes qui
+       passent sur deux lignes sous 1200 px, comme sur le site réel. */
+    body { margin: 0; }
+    .container { margin: 0 auto; }
+    .container::after, .navbar-collapse::after { content: ""; display: table; clear: both; }
+    @media (min-width: 992px) { .container { width: 970px; } }
+    @media (min-width: 1200px) { .container { width: 1170px; } }
+    .navbar-nav { margin: 0; padding: 0; list-style: none; }
+    .navbar-nav > li > a { display: block; padding: 20px 10px; line-height: 20px; width: 63px; box-sizing: content-box; }
+    @media (min-width: 768px) {
+      .navbar-nav > li { float: left; }
+      .navbar-nav.navbar-right { float: right; }
+      .navbar-header { float: left; }
+    }
+    @media (min-width: 992px) { .navbar-collapse.collapse { display: block; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="/e1">E1</a></li><li><a href="/e2">E2</a></li><li><a href="/e3">E3</a></li>
+          <li><a href="/e4">E4</a></li><li><a href="/e5">E5</a></li><li><a href="/e6">E6</a></li>
+          <li><a href="/e7">E7</a></li><li><a href="/e8">E8</a></li><li><a href="/e9">E9</a></li>
+          <li><a href="/e10">E10</a></li><li><a href="/e11">E11</a></li><li><a href="/e12">E12</a></li>
+          <li><a href="/e13">E13</a></li><li><a href="/e14">E14</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-leftest" class="col-md-1">
+        <div id="col-leftest-stats" class="panel panel-body"><div class="btn-group-xs"><a class="btn btn-default mini" href="#">3</a></div></div>
+      </div>
+      <div id="col-left" class="col-md-3 sidebar">
+        <div id="player-header-section" class="list-group">
+          <span class="list-group-item active">Joueur</span>
+          <div id="player-main-panel" class="panel panel-body">
+            <textarea id="champ-saisie" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-8">
+        <div class="container-fluid">
+          <div class="row t" style="height: 1500px">Contenu long</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer><div class="container white"><a href="#top" class="well well-sm"><i class="glyphicon glyphicon-chevron-up"></i></a></div></footer>
+</body>
+</html>

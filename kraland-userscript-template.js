@@ -378,8 +378,9 @@
       initMobileMode();
     }
 
-    // Écoute du resize via le gestionnaire centralisé
-    ResizeManager.add(initMobileMode, 250);
+    // E2 : le mode mobile n'est plus (ré)appliqué au redimensionnement. Le rechargement
+    // (checkBreakpointCrossing) s'en charge ; sans lui, des styles inline mobiles resteraient
+    // après un aller-retour avec une saisie en cours.
 
     // === Bascule mobile/desktop : règle unique et symétrique (PLT-01/02/03) ===
     // Les modules (barre d'onglets, mini-profil, styles inline...) ne se construisent
@@ -388,7 +389,62 @@
     const RELOAD_KEY = 'kr-breakpoint-reload';
     const RELOAD_MAX_AGE_MS = 15000;
     const RESIZE_SETTLE_MS = 400;
-    const loadedAsMobile = isMobileDevice();
+    // G-01 : au tout début du document (bundle @run-at document-start), window.innerWidth vaut la largeur
+    // par défaut (980) tant que la meta viewport n'est pas analysée. On ne fixe donc l'état « chargé en mobile/desktop »
+    // qu'une fois le <head> analysé (DOMContentLoaded, ou immédiatement si le script s'exécute plus tard) ;
+    // avant, aucun franchissement de seuil n'est pris en compte.
+    let loadedAsMobile = null;
+    // Garde-fou : jamais plus de RELOAD_MAX_COUNT rechargements par fenêtre de RELOAD_WINDOW_MS, ni deux à moins de
+    // RELOAD_MIN_GAP_MS d'écart (même si la mesure reste fausse, la page ne peut pas recharger en boucle).
+    const RELOAD_LOG_KEY = 'kr-breakpoint-reload-log';
+    const RELOAD_WINDOW_MS = 60000;
+    const RELOAD_MAX_COUNT = 10;
+    const RELOAD_MIN_GAP_MS = 1200;
+
+    function settleLoadedState() {
+      if (loadedAsMobile === null) {
+        loadedAsMobile = isMobileDevice();
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', settleLoadedState);
+    } else {
+      settleLoadedState();
+    }
+
+    function readReloadLog() {
+      try {
+        const log = JSON.parse(sessionStorage.getItem(RELOAD_LOG_KEY) || '[]');
+        const now = Date.now();
+        return Array.isArray(log) ? log.filter(function (t) { return typeof t === 'number' && now - t >= 0 && now - t < RELOAD_WINDOW_MS; }) : [];
+      } catch (_e) { return []; }
+    }
+
+    // Sans sessionStorage le plafond ne peut pas être suivi : aucun rechargement automatique (bandeau manuel)
+    // (lecture ET écriture : un stockage lisible mais en écriture refusée, QuotaExceededError, ne tiendrait pas le journal)
+    const RELOAD_PROBE_KEY = 'kr-breakpoint-probe';
+    function reloadStorageAvailable() {
+      try {
+        sessionStorage.getItem(RELOAD_LOG_KEY);
+        // Sonde d'écriture sur une clé dédiée, aussitôt retirée : aucune autre donnée n'est touchée
+        sessionStorage.setItem(RELOAD_PROBE_KEY, '1');
+        sessionStorage.removeItem(RELOAD_PROBE_KEY);
+        return true;
+      } catch (_e) { return false; }
+    }
+
+    function reloadAllowed() {
+      if (!reloadStorageAvailable()) {return false;}
+      const log = readReloadLog();
+      if (log.length >= RELOAD_MAX_COUNT) {return false;}
+      return !log.length || Date.now() - log[log.length - 1] >= RELOAD_MIN_GAP_MS;
+    }
+
+    function recordReload() {
+      const log = readReloadLog();
+      log.push(Date.now());
+      try { sessionStorage.setItem(RELOAD_LOG_KEY, JSON.stringify(log)); } catch (_e) { /* sessionStorage indisponible */ }
+    }
 
     function hasPendingInput() {
       const active = document.activeElement;
@@ -401,13 +457,25 @@
       });
     }
 
-    function showReloadBanner() {
-      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+    const RELOAD_BANNER_TEXT = {
+      input: 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ',
+      guard: 'La mise en page s\'adaptera au prochain rechargement. Rechargez la page quand vous le souhaitez. '
+    };
+
+    function showReloadBanner(reason) {
+      const message = RELOAD_BANNER_TEXT[reason] || RELOAD_BANNER_TEXT.guard;
+      const existing = document.getElementById('kr-resize-banner');
+      if (existing) {
+        const label = existing.querySelector('span');
+        if (label && label.textContent !== message) {label.textContent = message;}
+        return;
+      }
+      if (!document.body) {return;}
       const banner = document.createElement('div');
       banner.id = 'kr-resize-banner';
       banner.setAttribute('role', 'status');
       const text = document.createElement('span');
-      text.textContent = 'Affichage à adapter à cette taille de fenêtre. ';
+      text.textContent = message;
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Recharger';
@@ -425,6 +493,7 @@
     }
 
     function reloadKeepingScroll() {
+      recordReload();
       try {
         sessionStorage.setItem(RELOAD_KEY, JSON.stringify({
           y: window.scrollY,
@@ -436,13 +505,18 @@
     }
 
     function checkBreakpointCrossing() {
-      if (!document.body) {return;}
+      if (!document.body || loadedAsMobile === null) {return;}
       if (isMobileDevice() === loadedAsMobile) {
         hideReloadBanner();
         return;
       }
       if (hasPendingInput()) {
-        showReloadBanner();
+        showReloadBanner('input');
+        return;
+      }
+      if (!reloadAllowed()) {
+        // Garde-fou atteint (ou stockage inaccessible) : pas de rechargement automatique, le joueur décide
+        showReloadBanner('guard');
         return;
       }
       reloadKeepingScroll();
@@ -519,37 +593,59 @@
   // Sur les pages /map/*, la navbar a 2 lignes (logo + sous-nav) qui débordent
   // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
   (function () {
-    function fixNavbarPadding() {
-      if (isMobileMode()) {return;}
+    // E1 : recalculé au chargement ET à chaque redimensionnement (anti-rebond), car la
+    // hauteur de barre dépend de la largeur (60 px < 992, 106 à 206 px de 992 à 1359).
+    function applyNavbarPadding() {
+      var nav = document.querySelector('nav.navbar');
+      if (!nav || !document.body) {return;}
 
+      // 1. Repartir de la hauteur déterminée par la feuille de style
+      nav.style.removeProperty('max-height');
+      document.body.style.removeProperty('padding-top');
+
+      // 2. Mode compact / burger (< 992 px) : la feuille de style fixe la barre à 60 px
+      if (isMobileMode() || window.innerWidth < 992) {return;}
+
+      // 3. Remesurer la position basse réelle des éléments visibles de la navbar
+      var items = nav.querySelectorAll('.navbar-nav > li');
+      var maxBottom = 0;
+      for (var i = 0; i < items.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        if (rect.height > 0 && rect.bottom > maxBottom) {
+          maxBottom = rect.bottom;
+        }
+      }
+
+      // Si les éléments débordent du navbar, ajuster la hauteur et le padding
+      var navHeight = nav.offsetHeight;
+      if (maxBottom > navHeight + 5) {
+        var newHeight = Math.ceil(maxBottom) + 5;
+        nav.style.setProperty('max-height', newHeight + 'px', 'important');
+        // Le body réserve exactement la hauteur réelle de la barre
+        document.body.style.setProperty('padding-top', Math.ceil(nav.getBoundingClientRect().height) + 'px', 'important');
+      }
+    }
+
+    function fixNavbarPadding() {
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
       requestAnimationFrame(function () {
-        setTimeout(function () {
-          var nav = document.querySelector('nav.navbar');
-          if (!nav) {return;}
-
-          // Trouver la position basse réelle des éléments visibles de la navbar
-          var items = nav.querySelectorAll('.navbar-nav > li');
-          var maxBottom = 0;
-          for (var i = 0; i < items.length; i++) {
-            var rect = items[i].getBoundingClientRect();
-            if (rect.height > 0 && rect.bottom > maxBottom) {
-              maxBottom = rect.bottom;
-            }
-          }
-
-          // Si les éléments débordent du navbar, ajuster la hauteur et le padding
-          var navHeight = nav.offsetHeight;
-          if (maxBottom > navHeight + 5) {
-            var newHeight = Math.ceil(maxBottom) + 5;
-            nav.style.setProperty('max-height', newHeight + 'px', 'important');
-            document.body.style.setProperty('padding-top', newHeight + 'px', 'important');
-          }
-        }, 200);
+        setTimeout(applyNavbarPadding, 200);
       });
     }
 
     InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
+    ResizeManager.add(applyNavbarPadding, 150);
+
+    // E6 : Échap referme le panneau du menu (burger)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') {return;}
+      var panel = document.querySelector('nav.navbar .navbar-collapse.in');
+      var toggle = document.querySelector('nav.navbar .navbar-toggle');
+      if (panel && toggle) {
+        toggle.click();
+        toggle.focus();
+      }
+    });
   })();
 
   // ============================================================================
@@ -1092,7 +1188,6 @@
           charElements.forEach(charEl => {
             const charClone = charEl.cloneNode(true);
             charClone.className = charEl.className + ' mobile-characteristic-badge';
-            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
             characteristicsContainer.appendChild(charClone);
           });
 
@@ -1113,7 +1208,6 @@
           skills.forEach(skillEl => {
             const skillClone = skillEl.cloneNode(true);
             skillClone.className = skillEl.className + ' mobile-skill-item';
-            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
             skillsContainer.appendChild(skillClone);
           });
 
@@ -1828,21 +1922,36 @@
       icon.className = 'fa fa-chevron-down accordion-icon';
       header.appendChild(icon);
 
-      // Gérer le clic
+      // Gérer le clic (et le clavier : Entrée / Espace sur l'en-tête focalisé)
       header.style.cursor = 'pointer';
-      header.addEventListener('click', (e) => {
-        // Ne pas intercepter les clics sur les boutons d'action
-        if (e.target.closest('.dashboard-group-buttons')) {return;}
+      header.setAttribute('role', 'button');
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('aria-expanded', String(isExpanded));
 
-        // Toggle l'état
+      const toggleGroup = () => {
         const isNowExpanded = !cardsGrid.classList.contains('collapsed');
         cardsGrid.classList.toggle('collapsed', isNowExpanded);
         header.classList.toggle('expanded', !isNowExpanded);
+        header.setAttribute('aria-expanded', String(!isNowExpanded));
 
         console.log('[Group Accordion]',
           section.querySelector('.dashboard-group-title')?.textContent,
           isNowExpanded ? 'collapsed' : 'expanded'
         );
+      };
+
+      header.addEventListener('click', (e) => {
+        // Ne pas intercepter les clics sur les boutons d'action
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+        toggleGroup();
+      });
+
+      header.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') {return;}
+        // Les boutons d'action du groupe gardent leur propre comportement clavier
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+        e.preventDefault();
+        toggleGroup();
       });
 
       console.log('[Group Accordion] Groupe configuré:',
@@ -2114,148 +2223,311 @@
   });
 
   // ============================================================================
-  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
-  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // CX2 : CROIX DIRECTIONNELLE V2 ET ACCÈS TACTILE AUX PIÈCES (mobile, < 768 px)
+  // Remplace la ligne « image map clonée » : une vraie croix de 4 liens (50×50) et une liste
+  // de pièces (>= 44 px de haut). Destinations, onclick et états viennent strictement du DOM natif.
+  // Si la transformation est impossible ou ambiguë, le natif reste visible et fonctionnel.
   // ============================================================================
   (function () {
-    function initNavigationRow() {
-      if (!document.body.classList.contains('mobile-mode')) {return;}
+    const BLOCK_CLASS = 'kr-nav-v2';
+    const DIRECTIONS = ['Nord', 'Ouest', 'Est', 'Sud'];
+    const ARM_CLASS = { Nord: 'kr-n', Ouest: 'kr-w', Est: 'kr-e', Sud: 'kr-s' };
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SKIPPED_ATTRS = ['class', 'style', 'id', 'name', 'usemap', 'alt', 'shape', 'coords'];
+    let lastWarning = '';
 
-      // Utiliser un élément DOM préexistant comme ancre (pas .mobile-quick-actions créé par le script)
-      const navbar = document.querySelector('.navbar');
-      if (!navbar) {return;}
-
-      // Trouver l'image "Sortir" avec la croix directionnelle
-      const exitImg = document.querySelector('img[alt="Sortir"]');
-      if (!exitImg || !exitImg.parentElement) {return;}
-
-      const parent = exitImg.parentElement;
-      const map = parent.querySelector('map[name="exitmap"]');
-
-      // Trouver toutes les images bat*.gif (accès aux pièces)
-      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
-      if (allBatImages.length === 0) {return;}
-
-      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
-      const originalImages = allBatImages.filter(img => {
-        let current = img;
-        while (current && current !== document.body) {
-          if (current.classList && current.classList.contains('kr-navigation-row')) {
-            return false;
-          }
-          current = current.parentElement;
-        }
-        return true;
-      });
-
-      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
-      originalImages.sort((a, b) => {
-        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        return numA - numB;
-      });
-
-      if (originalImages.length === 0) {return;}
-
-      // Trouver et masquer le conteneur d'origine (div.row.center)
-      const originalContainer = parent.closest('.row.center');
-      if (originalContainer) {
-        originalContainer.style.display = 'none';
+    function warnOnce(msg) {
+      if (msg !== lastWarning) {
+        lastWarning = msg;
+        console.warn('[Navigation Croix] ' + msg + ' : croix native conservée');
       }
-
-      // Récupérer les liens parents des images
-      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
-      if (roomLinks.length === 0) {return;}
-
-      // Créer le conteneur de la ligne de navigation
-      const navRow = document.createElement('div');
-      navRow.className = 'kr-navigation-row';
-      navRow.setAttribute('role', 'group');
-
-      // Créer la croix directionnelle en premier
-      if (exitImg && map) {
-        const directionGroup = document.createElement('div');
-        directionGroup.className = 'btn-group kr-direction-cross';
-        directionGroup.setAttribute('role', 'group');
-
-        // Créer un lien style btn pour la croix
-        const directionLink = document.createElement('div');
-        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
-
-        // Cloner l'image et la map
-        const exitImgClone = exitImg.cloneNode(true);
-        exitImgClone.style.width = '60px';
-        exitImgClone.style.height = '60px';
-        exitImgClone.style.display = 'block';
-
-        const mapClone = map.cloneNode(true);
-
-        // En desktop, l'interaction se fait via les areas de la map
-        // En mobile, on doit intercepter les clics sur le conteneur et les rediriger vers les areas
-        directionLink.addEventListener('click', (e) => {
-          // Calculer les coordonnées relatives du clic
-          const rect = directionLink.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          // Trouver l'area qui correspond à ces coordonnées
-          const areas = mapClone.querySelectorAll('area');
-          for (const area of areas) {
-            if (area.shape === 'rect') {
-              const coords = area.coords.split(',').map(c => parseInt(c));
-              const [x1, y1, x2, y2] = coords;
-              if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-                e.preventDefault();
-                e.stopPropagation();
-                const url = area.href;
-                if (url && url !== '#') {
-                  window.location.href = url;
-                }
-                return;
-              }
-            }
-          }
-        });
-
-        directionLink.appendChild(exitImgClone);
-        directionLink.appendChild(mapClone);
-        directionGroup.appendChild(directionLink);
-        navRow.appendChild(directionGroup);
-      }
-
-      // Créer une carte pour chaque accès aux pièces
-      roomLinks.forEach(link => {
-        const btnGroup = document.createElement('div');
-        btnGroup.className = 'btn-group kr-room-access-card';
-        btnGroup.setAttribute('role', 'group');
-
-        // Cloner le lien pour ne pas modifier l'original
-        const linkClone = link.cloneNode(true);
-        // Utiliser les mêmes classes que les actions rapides
-        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
-
-        // Forcer la navigation pour éviter l'interception par Kraland
-        linkClone.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const url = linkClone.href;
-          if (url && url !== '#') {
-            window.location.href = url;
-          }
-        });
-
-        btnGroup.appendChild(linkClone);
-
-        navRow.appendChild(btnGroup);
-      });
-
-      // Insérer la nouvelle ligne après la navbar (élément préexistant)
-      // Note: On utilise .navbar (DOM original) et non .mobile-quick-actions (créé par le script)
-      navbar.parentNode.insertBefore(navRow, navbar.nextSibling);
-
-      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
     }
 
-    // Enregistrer dans la queue d'initialisation mobile (priorité 60 - après quick actions)
+    function normalise(text) {
+      return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    // Direction d'après le texte natif (alt/title) ; null si absent, 'ambigu' si plusieurs directions
+    function directionFromText(area) {
+      const found = new Set();
+      [area.getAttribute('alt'), area.getAttribute('title')].forEach(txt => {
+        const words = normalise(txt).match(/[a-z]+/g) || [];
+        words.forEach(w => {
+          if (w === 'nord') { found.add('Nord'); }
+          else if (w === 'sud') { found.add('Sud'); }
+          else if (w === 'est') { found.add('Est'); }
+          else if (w === 'ouest') { found.add('Ouest'); }
+        });
+      });
+      if (found.size === 0) { return null; }
+      return found.size === 1 ? Array.from(found)[0] : 'ambigu';
+    }
+
+    // Direction d'après la géométrie (image 60×60) : quadrant dominant net, sinon null
+    function directionFromGeometry(area) {
+      const c = (area.getAttribute('coords') || '').split(',').map(v => parseFloat(v));
+      if (c.length !== 4 || c.some(v => Number.isNaN(v))) { return null; }
+      const dx = (c[0] + c[2]) / 2 - 30;
+      const dy = (c[1] + c[3]) / 2 - 30;
+      const ax = Math.abs(dx);
+      const ay = Math.abs(dy);
+      if (Math.max(ax, ay) < 8) { return null; }
+      if (ax > ay * 1.5) { return dx < 0 ? 'Ouest' : 'Est'; }
+      if (ay > ax * 1.5) { return dy < 0 ? 'Nord' : 'Sud'; }
+      return null;
+    }
+
+    function usableHref(el) {
+      const href = (el.getAttribute('href') || '').trim();
+      return href !== '' && href !== '#';
+    }
+
+    // Lit le DOM natif. Retourne { container, areas: {dir: area|null}, rooms: [...] } ou null (+ journal)
+    function readNative() {
+      const exitImg = Array.from(document.querySelectorAll('img[alt="Sortir"]')).find(i => !i.closest('.' + BLOCK_CLASS));
+      if (!exitImg || !exitImg.parentElement) { return null; }
+      const map = exitImg.parentElement.querySelector('map[name="exitmap"]') || document.querySelector('map[name="exitmap"]');
+      if (!map) { warnOnce('map exitmap absente'); return null; }
+
+      const areas = { Nord: null, Ouest: null, Est: null, Sud: null };
+      for (const area of Array.from(map.querySelectorAll('area'))) {
+        if ((area.getAttribute('shape') || 'rect').toLowerCase() !== 'rect') { warnOnce('area non rectangulaire'); return null; }
+        let dir = directionFromText(area);
+        if (dir === 'ambigu') { warnOnce('area à plusieurs directions'); return null; }
+        if (!dir) { dir = directionFromGeometry(area); }
+        if (!dir) { warnOnce('direction d\'une area indéterminée (alt=' + area.getAttribute('alt') + ')'); return null; }
+        if (areas[dir]) { warnOnce('deux areas pour la direction ' + dir); return null; }
+        areas[dir] = area;
+      }
+
+      // Ordre natif du DOM conservé tel quel (décision d'Arnaud) : pas de tri, les pièces verrouillées restent à leur place
+      const batImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]')).filter(img => !img.closest('.' + BLOCK_CLASS));
+      const links = [];
+      batImages.forEach(img => {
+        const link = img.closest('a');
+        if (link && !links.includes(link)) { links.push(link); }
+      });
+      if (links.length === 0) { return null; }
+
+      // Sur le site réel, le lien de pièce ne contient QUE l'image (le nom et le cadenas sont dessinés dans le GIF, ni texte ni alt ni title) :
+      // sans nom natif, on montre l'image entière (tuile) et on ne fabrique aucun nom ; l'étiquette accessible n'est qu'un rang (« Pièce 2 sur 5 »)
+      const rooms = links.map((link, i) => {
+        const text = (link.textContent || '').replace(/\s+/g, ' ').trim();
+        const img = link.querySelector('img[src*="/bat/bat"]');
+        const nativeName = text || (img && (img.getAttribute('title') || img.getAttribute('alt'))) || link.getAttribute('title') || '';
+        const locked = Array.from(link.querySelectorAll('img')).some(im => /lock/i.test(im.getAttribute('src') || ''));
+        return { link, rank: i + 1, total: links.length, name: nativeName.trim(), named: nativeName.trim() !== '', locked, current: link.classList.contains('btn-warning') };
+      });
+      // Sans conteneur .row.center, on ne saurait pas masquer le natif : deux commandes seraient visibles → repli natif sûr (rien ajouté)
+      const container = exitImg.parentElement.closest('.row.center');
+      if (!container) { warnOnce('conteneur .row.center introuvable'); return null; }
+      return { container, areas, rooms, tiles: rooms.every(r => !r.named) };
+    }
+
+    function signature(model) {
+      const attr = (el, n) => el ? el.getAttribute(n) : null;
+      return JSON.stringify({
+        d: DIRECTIONS.map(d => model.areas[d] ? [attr(model.areas[d], 'href'), attr(model.areas[d], 'target'), attr(model.areas[d], 'onclick')] : null),
+        r: model.rooms.map(r => [attr(r.link, 'href'), attr(r.link, 'onclick'), r.name, r.current, r.locked, r.link.querySelectorAll('img').length]),
+        t: model.tiles
+      });
+    }
+
+    // Copie les attributs natifs utiles (href, target, onclick, title, rel...) sur le nouveau lien
+    function copyNativeAttributes(from, to) {
+      Array.from(from.attributes).forEach(a => {
+        if (!SKIPPED_ATTRS.includes(a.name)) { to.setAttribute(a.name, a.value); }
+      });
+    }
+
+    function makeArrow() {
+      const svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 14');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', 'M8 1.5 15 12.5H1z');
+      path.setAttribute('fill', 'currentColor');
+      svg.appendChild(path);
+      return svg;
+    }
+
+    function buildArm(dir, area) {
+      const arm = document.createElement('a');
+      arm.className = 'kr-arm ' + ARM_CLASS[dir];
+      arm.setAttribute('data-dir', dir);
+      if (area && usableHref(area)) {
+        copyNativeAttributes(area, arm);
+        arm.setAttribute('aria-label', dir);
+        // Même chemin que le natif : le lien navigue lui-même ; on évite seulement l'interception par les délégués du site
+        arm.addEventListener('click', e => { e.stopPropagation(); });
+      } else {
+        arm.setAttribute('aria-disabled', 'true');
+        arm.setAttribute('aria-label', dir + ' (indisponible)');
+        arm.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+      }
+      arm.appendChild(makeArrow());
+      const label = document.createElement('span');
+      label.textContent = dir;
+      arm.appendChild(label);
+      return arm;
+    }
+
+    function buildRoom(room, tile) {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'listitem');
+      const a = document.createElement('a');
+      a.className = 'kr-room' + (tile ? ' kr-room-tile' : '');
+      copyNativeAttributes(room.link, a);
+      a.addEventListener('click', e => { e.stopPropagation(); });
+
+      const thumb = document.createElement('span');
+      thumb.className = 'kr-room-thumb';
+      Array.from(room.link.querySelectorAll('img')).forEach((img, idx) => {
+        const clone = img.cloneNode(true);
+        clone.removeAttribute('style');
+        clone.removeAttribute('width');
+        clone.removeAttribute('height');
+        if (idx === 0) { clone.setAttribute('alt', ''); }
+        thumb.appendChild(clone);
+      });
+      a.appendChild(thumb);
+
+      let here = null;
+      if (room.current) {
+        a.setAttribute('aria-current', 'true');
+        a.classList.add('kr-room-current');
+        here = document.createElement('span');
+        here.className = 'kr-room-here';
+        here.setAttribute('aria-hidden', 'true');
+        here.textContent = 'ici';
+      }
+
+      if (tile) {
+        // Image seule (nom dessiné dans le GIF) : étiquette accessible = rang, sans nom inventé
+        a.setAttribute('aria-label', 'Pièce ' + room.rank + ' sur ' + room.total + (room.locked ? ', verrouillée' : ''));
+        if (here) { a.appendChild(here); }
+      } else {
+        const text = document.createElement('span');
+        text.className = 'kr-room-text';
+        const name = document.createElement('span');
+        name.className = 'kr-room-name';
+        name.textContent = room.named ? room.name : 'Pièce ' + room.rank;
+        text.appendChild(name);
+        if (here) { text.appendChild(here); }
+        a.appendChild(text);
+      }
+      li.appendChild(a);
+      return li;
+    }
+
+    function buildBlock(model, sig) {
+      const block = document.createElement('section');
+      block.className = BLOCK_CLASS + (model.tiles ? ' kr-nav-tiles' : ' kr-nav-rows');
+      block.setAttribute('aria-labelledby', 'kr-nav-v2-title');
+      block.setAttribute('data-sig', sig);
+
+      const title = document.createElement('h2');
+      title.id = 'kr-nav-v2-title';
+      title.className = 'kr-nav-v2-title';
+      title.textContent = 'Se déplacer';
+      block.appendChild(title);
+
+      const pad = document.createElement('div');
+      pad.className = 'kr-pad';
+      pad.setAttribute('role', 'group');
+      pad.setAttribute('aria-label', 'Directions');
+      DIRECTIONS.forEach(dir => { pad.appendChild(buildArm(dir, model.areas[dir])); });
+      const hub = document.createElement('span');
+      hub.className = 'kr-hub';
+      hub.setAttribute('aria-hidden', 'true');
+      pad.appendChild(hub);
+      block.appendChild(pad);
+
+      const list = document.createElement('ul');
+      list.className = 'kr-rooms';
+      list.setAttribute('role', 'list');
+      list.setAttribute('aria-label', 'Pièces');
+      model.rooms.forEach(room => { list.appendChild(buildRoom(room, model.tiles)); });
+      block.appendChild(list);
+      return block;
+    }
+
+    // L'état de masquage vit sur l'élément (data-*) : plusieurs instances du script (réinjection) restent cohérentes
+    function restoreNative(except) {
+      document.querySelectorAll('[data-kr-nav-hidden]').forEach(el => {
+        if (el === except) { return; }
+        const prev = el.getAttribute('data-kr-nav-prev') || '';
+        const priority = el.getAttribute('data-kr-nav-prio') || '';
+        if (prev === '') { el.style.removeProperty('display'); } else { el.style.setProperty('display', prev, priority); }
+        el.removeAttribute('data-kr-nav-hidden');
+        el.removeAttribute('data-kr-nav-prev');
+        el.removeAttribute('data-kr-nav-prio');
+      });
+    }
+
+    function hideNative(container) {
+      restoreNative(container);
+      if (!container) { return; }
+      if (!container.hasAttribute('data-kr-nav-hidden')) {
+        container.setAttribute('data-kr-nav-prev', container.style.getPropertyValue('display'));
+        container.setAttribute('data-kr-nav-prio', container.style.getPropertyPriority('display'));
+        container.setAttribute('data-kr-nav-hidden', '1');
+      }
+      if (container.style.getPropertyValue('display') !== 'none') { container.style.setProperty('display', 'none'); }
+    }
+
+    function removeBlocks() {
+      document.querySelectorAll('.' + BLOCK_CLASS).forEach(b => b.remove());
+      restoreNative();
+    }
+
+    // Idempotent : appelé à l'init, à chaque mutation, au changement de classe du body et au redimensionnement
+    function syncNavigation() {
+      if (!document.body || !isThemeEnabled() || !document.body.classList.contains('mobile-mode') || window.innerWidth >= 768) {
+        removeBlocks();
+        return;
+      }
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) { return; }
+      const model = readNative();
+      if (!model) {
+        removeBlocks();
+        return;
+      }
+      const sig = signature(model);
+      const existing = Array.from(document.querySelectorAll('.' + BLOCK_CLASS));
+      if (existing.length === 1 && existing[0].getAttribute('data-sig') === sig) {
+        hideNative(model.container);
+        return;
+      }
+      existing.forEach(b => b.remove());
+      lastWarning = '';
+      navbar.parentNode.insertBefore(buildBlock(model, sig), navbar.nextSibling);
+      hideNative(model.container);
+      console.log('[Navigation Croix] Bloc initialisé : ' + DIRECTIONS.filter(d => model.areas[d]).length + ' direction(s), ' + model.rooms.length + ' pièce(s)');
+    }
+
+    function initNavigationRow() {
+      if (!document.body) { return; }
+      syncNavigation();
+      let timer = null;
+      const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(syncNavigation, 120);
+      };
+      // Mutations utiles : classe du body (mobile-mode), ajout/retrait de nœuds, href/onclick/target des liens et areas natifs
+      const relevant = m => {
+        if (m.target.closest && m.target.closest('.' + BLOCK_CLASS)) { return false; }
+        if (m.type === 'childList') { return true; }
+        return m.target === document.body || (m.target.matches && m.target.matches('area, a'));
+      };
+      new MutationObserver(records => { if (records.some(relevant)) { schedule(); } })
+        .observe(document.body, { attributes: true, attributeFilter: ['class', 'href', 'onclick', 'target'], childList: true, subtree: true });
+      window.addEventListener('resize', schedule);
+    }
+
+    // Enregistrer dans la queue d'initialisation (priorité 60 - après quick actions)
     InitQueue.register('initNavigationRow', initNavigationRow, 60);
   })();
 
@@ -2417,6 +2689,7 @@
     },
 
     MEDIEVAL_SEPIA: '85%',
+    MEDIEVAL_PRETEST_TIMEOUT_MS: 3000,
 
     // Images sans équivalent /5/ ni override — ne pas tenter le remplacement
     MEDIEVAL_NO_REPLACE: {
@@ -2448,6 +2721,35 @@
       'http://img7.kraland.org/2/map/1b/231229.gif': true,
       'http://img7.kraland.org/2/map/1b/231329.gif': true,
       'http://img7.kraland.org/2/map/1b/231429.gif': true
+    },
+
+    // Noms dont la cible /2/map/5/ est ABSENTE ou invalide (audit réseau reproductible :
+    // `node tests/e2e/audit-map-images.mjs --online`, rapport docs/AUDIT-MAP-IMAGES.md). Évite des requêtes
+    // vouées à l'échec ; le repli d'exécution (retour à l'URL d'origine) reste actif pour tout le reste.
+    MEDIEVAL_ABSENT_IN_TARGET: {
+      '1': [
+        '109.gif', '123.gif', '124.gif', '125.gif', '126.gif', '127.gif', '128.gif', '129.gif', '130.gif',
+        '134.gif', '150.gif', '160.gif', '161.gif', '162.gif', '163.gif', '164.gif', '165.gif', '166.gif',
+        '167.gif', '168.gif', '169.gif', '170.gif', '197.gif', '198.gif', '199.gif', '231129.gif', '231229.gif',
+        '231329.gif', '231429.gif', '3527.gif', '5015.gif', '5021.gif', '5022.gif', '5023.gif', '5024.gif',
+        '51_1.gif', '51_2.gif', '51_3.gif', '51_4.gif', '51_5.gif', '51_6.gif', '51_7.gif', '51_8.gif',
+        '51_9.gif', '52_0.gif', '53_0.gif', '54.gif', '54_0.gif', '55_0.gif', '55_1.gif', '55_2.gif', '55_3.gif',
+        '55_4.gif', '55_5.gif', '55_6.gif', '55_7.gif', '55_8.gif', '55_9.gif', '56_1.gif', '56_2.gif',
+        '56_3.gif', '56_4.gif', '56_5.gif', '56_6.gif', '56_7.gif', '56_8.gif', '56_9.gif', 'blank.gif',
+        'c1w.gif', 'hex.gif', 'hex2.gif', 'hex3.gif', 'm1w.gif', 'm2w.gif', 'm3w.gif', 'm4w.gif', 'p1w.gif',
+        'p2w.gif', 'p3w.gif', 'p4w.gif'
+      ],
+      '1b': [
+        '109.gif', '123.gif', '124.gif', '125.gif', '126.gif', '127.gif', '128.gif', '129.gif', '130.gif',
+        '134.gif', '150.gif', '160.gif', '161.gif', '162.gif', '163.gif', '164.gif', '165.gif', '166.gif',
+        '167.gif', '168.gif', '169.gif', '170.gif', '197.gif', '198.gif', '199.gif', '231129.gif', '231229.gif',
+        '231329.gif', '231429.gif', '3527.gif', '5015.gif', '5021.gif', '5022.gif', '5023.gif', '5024.gif',
+        '51_1.gif', '51_2.gif', '51_3.gif', '51_4.gif', '51_5.gif', '51_6.gif', '51_7.gif', '51_8.gif',
+        '51_9.gif', '52_0.gif', '53_0.gif', '54.gif', '54_0.gif', '55_0.gif', '55_1.gif', '55_2.gif', '55_3.gif',
+        '55_4.gif', '55_5.gif', '55_6.gif', '55_7.gif', '55_8.gif', '55_9.gif', '56_1.gif', '56_2.gif',
+        '56_3.gif', '56_4.gif', '56_5.gif', '56_6.gif', '56_7.gif', '56_8.gif', '56_9.gif', 'hex.gif', 'hex2.gif',
+        'hex3.gif'
+      ]
     },
 
     // Commerce - affichage liste/tuiles
@@ -2544,14 +2846,95 @@
     return m ? m[1] : null;
   }
 
+  // Suivi des remplacements d'images (carte médiévale). Règle commune : la source d'origine est
+  // mémorisée AVANT tout remplacement et on y revient si la cible ne charge pas (404, décodage).
+  const KR_IMG = {
+    applied: 'data-kr-medieval-applied',
+    original: 'data-kr-medieval-original-bg',
+    filter: 'data-kr-medieval-original-filter',
+    target: 'data-kr-medieval-target',
+    failed: 'data-kr-medieval-failed',
+    pending: 'data-kr-medieval-pending'
+  };
+  // Cibles connues pour ne pas charger : on ne les retente pas (évite requêtes 404 en rafale)
+  const krBadTargets = Object.create(null);
+
+  /** Remet le filtre inline d'origine (celui mémorisé avant le remplacement) */
+  function krRestoreFilter(el) {
+    if (!el.hasAttribute(KR_IMG.filter) || !el.style) {return;}
+    const f = el.getAttribute(KR_IMG.filter);
+    if (f) { el.style.setProperty('filter', f, 'important'); } else { el.style.removeProperty('filter'); }
+  }
+
+  /** Retour à la source d'origine d'une <img> dont le remplacement a échoué (une seule fois, sans boucle) */
+  function krRevertImg(img) {
+    const target = img.getAttribute(KR_IMG.target);
+    if (target) { krBadTargets[target] = true; }
+    const orig = img.getAttribute(KR_IMG.original);
+    img.removeAttribute(KR_IMG.applied);
+    img.removeAttribute(KR_IMG.pending);
+    img.setAttribute(KR_IMG.failed, 'true');
+    krRestoreFilter(img);
+    if (orig !== null && img.getAttribute('src') !== orig) { img.setAttribute('src', orig); }
+  }
+
+  /** Écouteurs de repli, posés une seule fois par image (idempotent) ; lisent l'état à l'événement */
+  function krGuardImg(img) {
+    if (img.__krImgGuard) {return;}
+    img.__krImgGuard = true;
+    const check = function () {
+      if (img.getAttribute(KR_IMG.applied) !== 'true') {return;}
+      // Seul un échec de la cible remplacée déclenche le repli ; l'original en erreur ne relance rien
+      if (img.getAttribute('src') !== img.getAttribute(KR_IMG.target)) {return;}
+      if (img.__krFailEvent || img.naturalWidth === 0) { krRevertImg(img); }
+    };
+    img.addEventListener('error', function () { img.__krFailEvent = true; check(); img.__krFailEvent = false; });
+    img.addEventListener('load', check);
+  }
+
+  /** Remplace la source d'une <img> par `target`, avec repli garanti sur l'originale */
+  function krSwapImg(img, target, withSepia) {
+    if (!img.hasAttribute(KR_IMG.original)) { img.setAttribute(KR_IMG.original, img.getAttribute('src') || ''); }
+    if (!img.hasAttribute(KR_IMG.filter)) { img.setAttribute(KR_IMG.filter, img.style ? img.style.getPropertyValue('filter') || '' : ''); }
+    krGuardImg(img);
+    img.removeAttribute(KR_IMG.failed);
+    img.setAttribute(KR_IMG.target, target);
+    img.setAttribute(KR_IMG.applied, 'true');
+    img.setAttribute('src', target);
+    if (withSepia && img.style) { img.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important'); }
+    // Image déjà en erreur de décodage/chargement (cache) : repli immédiat
+    if (img.complete && img.naturalWidth === 0 && img.getAttribute('src') === target && img.currentSrc) { krRevertImg(img); }
+  }
+
+  /** Une <img> remplacée dont la source a été changée par le site ou un autre script : on repart de zéro */
+  function krResyncImg(img) {
+    if (img.getAttribute(KR_IMG.applied) !== 'true' && img.getAttribute(KR_IMG.failed) !== 'true') {return;}
+    const cur = img.getAttribute('src');
+    if (cur === img.getAttribute(KR_IMG.target) || cur === img.getAttribute(KR_IMG.original)) {return;}
+    krRestoreFilter(img);
+    [KR_IMG.applied, KR_IMG.failed, KR_IMG.pending, KR_IMG.target, KR_IMG.original, KR_IMG.filter].forEach(function (a) { img.removeAttribute(a); });
+  }
+
+  /** Noms (sans chemin ni paramètres) connus pour être absents de la variante cible /2/map/5/ */
+  const krAbsentInTargetSets = {};
+  function isAbsentInTarget(variant, src) {
+    if (!krAbsentInTargetSets[variant]) {
+      krAbsentInTargetSets[variant] = new Set((CONFIG.MEDIEVAL_ABSENT_IN_TARGET || {})[variant] || []);
+    }
+    const name = String(src).split('?')[0].split('#')[0].split('/').pop();
+    return krAbsentInTargetSets[variant].has(name);
+  }
+
   function computeReplacement(src) {
     if (!src) {return null;}
     const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
     if (overrides[src]) { return overrides[src]; }
     if (src.indexOf('/2/map/1b/') !== -1) {
+      if (isAbsentInTarget('1b', src)) {return null;}
       return src.replace('/2/map/1b/', '/2/map/5/');
     }
     if (src.indexOf('/2/map/1/') !== -1) {
+      if (isAbsentInTarget('1', src)) {return null;}
       return src.replace('/2/map/1/', '/2/map/5/');
     }
     return null;
@@ -2565,6 +2948,9 @@
       const originalFilterAttr = 'data-kr-medieval-original-filter';
 
       const _krTestCache = {};
+      // Résout true (chargée), false (échec confirmé par le navigateur) ou null (délai dépassé : INCONNU).
+      // Un délai sur réseau lent ne prouve rien : la cible n'est ni mémorisée ni bannie, le repli d'exécution
+      // (krSwapImg → retour à l'original si le chargement échoue vraiment) protège les <img>.
       function testImageExists(url) {
         if (Object.hasOwn(_krTestCache, url)) {return Promise.resolve(!!_krTestCache[url]);}
         return new Promise(resolve => {
@@ -2574,11 +2960,11 @@
             var timeout = setTimeout(function () {
               if (!settled) {
                 settled = true;
-                img.src = '';
-                _krTestCache[url] = false;
-                resolve(false);
+                img.onload = null;
+                img.onerror = null;
+                resolve(null);
               }
-            }, 500);
+            }, CONFIG.MEDIEVAL_PRETEST_TIMEOUT_MS);
             img.onload = function () {
               if (!settled) {
                 settled = true;
@@ -2601,6 +2987,7 @@
       }
 
       function processElement(el) {
+        if (el && el.tagName === 'IMG') { krResyncImg(el); }
         if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-failed') === 'true')) {return;}
         let src = null;
         if (el.tagName === 'IMG') {
@@ -2614,13 +3001,13 @@
         // Ne pas remplacer les URLs explicitement exclues
         if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
         const target = computeReplacement(src);
-        if (!target) {return;}
+        if (!target || krBadTargets[target]) {return;}
 
         // Marquer comme pending pour éviter les re-tests simultanés
         el.setAttribute && el.setAttribute('data-kr-medieval-pending', 'true');
-        // sauvegarde des valeurs originales
+        // sauvegarde des valeurs originales (attribut src tel quel pour une <img>)
         if (!el.hasAttribute || !el.hasAttribute(originalBgAttr)) {
-          el.setAttribute(originalBgAttr, src);
+          el.setAttribute(originalBgAttr, el.tagName === 'IMG' ? (el.getAttribute('src') || src) : src);
         }
         const origFilter = (el.style && el.style.getPropertyValue('filter')) || '';
         if (!el.hasAttribute || !el.hasAttribute(originalFilterAttr)) {
@@ -2629,21 +3016,29 @@
 
         // tester l'existence de la ressource cible avant d'appliquer
         testImageExists(target).then(exists => {
-          if (exists) {
+          if (exists === null) {
+            // Délai dépassé : cible inconnue (ni bannie ni marquée en échec). <img> : remplacement gardé par le repli
+            // d'exécution ; fond CSS : original conservé, nouvel essai possible à la prochaine mutation.
             if (el.tagName === 'IMG') {
-              try { el.src = target; } catch (_e) { el.setAttribute('src', target); }
+              krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
+            }
+          } else if (exists) {
+            if (el.tagName === 'IMG') {
+              // Remplacement gardé : repli sur l'original si la cible échoue après coup
+              krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
             } else {
               el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
+              if (src.indexOf('/2/map/1b/') !== -1) {
+                el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+              }
+              el.setAttribute && el.setAttribute(appliedAttr, 'true');
             }
-            if (src.indexOf('/2/map/1b/') !== -1) {
-              el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
-            }
-            el.setAttribute && el.setAttribute(appliedAttr, 'true');
           } else {
+            krBadTargets[target] = true;
             // fallback: restaurer l'original si nécessaire (ne rien changer autrement)
             const elemOrig = el.getAttribute(originalBgAttr);
             if (el.tagName === 'IMG') {
-              if (elemOrig) { try { el.src = elemOrig; } catch (_e) { el.setAttribute('src', elemOrig); } }
+              if (elemOrig && el.getAttribute('src') !== elemOrig) { el.setAttribute('src', elemOrig); }
             } else {
               if (elemOrig) { el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + elemOrig + '")', 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('background-image'); }
             }
@@ -2661,7 +3056,7 @@
           const origBg = el.getAttribute(originalBgAttr);
           if (el.tagName === 'IMG') {
             if (origBg) {
-              try { el.src = origBg; } catch (_e) { el.setAttribute('src', origBg); }
+              if (el.getAttribute('src') !== origBg) { el.setAttribute('src', origBg); }
             } else {
               el.removeAttribute && el.removeAttribute('src');
             }
@@ -2682,6 +3077,8 @@
           el.removeAttribute && el.removeAttribute('data-kr-medieval-failed');
           el.removeAttribute && el.removeAttribute(originalBgAttr);
           el.removeAttribute && el.removeAttribute(originalFilterAttr);
+          el.removeAttribute && el.removeAttribute(KR_IMG.target);
+          el.removeAttribute && el.removeAttribute(KR_IMG.pending);
         });
       }
 
@@ -2734,71 +3131,48 @@
            path !== '/jouer/communaute/membres';
   }
 
-  /** Crée un badge numérique pour les icônes de compétences (rouge, à droite) */
+  /** Crée la pastille de niveau d'une compétence : couleurs et position portées par le CSS (jetons du thème) */
   function createBadge(text) {
     const badge = document.createElement('span');
-    badge.className = 'badge';
+    badge.className = 'badge kr-skill-badge ' + (Number(text) > 0 ? 'is-level' : 'is-zero');
     badge.textContent = text;
-    Object.assign(badge.style, {
-      position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#c9302c', color: '#fff',
-      borderRadius: '50%', width: '19px', height: '19px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
-    });
     return badge;
   }
 
-  /** Crée un badge numérique pour les caractéristiques (bleu, en haut à gauche) */
+  /** Crée la pastille d'une caractéristique : même famille visuelle que celle des compétences */
   function createStatBadge(text) {
     const badge = document.createElement('span');
-    badge.className = 'badge';
+    badge.className = 'badge kr-stat-badge ' + (Number(text) > 0 ? 'is-level' : 'is-zero');
     badge.textContent = text;
-    Object.assign(badge.style, {
-      position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#0069d9', color: '#fff',
-      borderRadius: '50%', width: '19px', height: '19px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
-    });
     return badge;
   }
 
-  /** Crée un conteneur d'icône avec badge */
+  /** Si l'icône ne charge pas, on garde le nom lisible (3 lettres) au lieu d'une case vide */
+  function bindIconFallback(img, container, name) {
+    img.addEventListener('error', function () {
+      if (container.querySelector('.kr-icon-fallback')) {return;}
+      img.hidden = true;
+      const fb = document.createElement('span');
+      fb.className = 'kr-icon-fallback';
+      fb.setAttribute('aria-hidden', 'true');
+      fb.textContent = String(name || '').substring(0, 3).toUpperCase();
+      container.insertBefore(fb, img);
+    });
+  }
+
+  /** Crée un conteneur d'icône avec badge (dimensions et position dans le CSS) */
   function createIconContainer(iconUrl, altText, badgeText) {
     const container = document.createElement('div');
-    Object.assign(container.style, {
-      position: 'relative', display: 'inline-block',
-      width: '32px', height: '32px'
-    });
+    container.className = 'kr-skill-icon';
 
     const img = document.createElement('img');
+    img.className = 'kr-skill-img';
     img.src = iconUrl;
     img.alt = altText;
-    img.title = altText;
-    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    bindIconFallback(img, container, altText);
     container.appendChild(img);
 
     container.appendChild(createBadge(badgeText));
-    return container;
-  }
-
-  /** Crée un conteneur d'icône avec badge pour caractéristiques */
-  function _createStatIconContainer(iconUrl, altText, badgeText) {
-    const container = document.createElement('div');
-    Object.assign(container.style, {
-      position: 'relative', display: 'inline-block',
-      width: '32px', height: '32px'
-    });
-
-    const img = document.createElement('img');
-    img.src = iconUrl;
-    img.alt = altText;
-    img.title = altText;
-    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
-    container.appendChild(img);
-
-    container.appendChild(createStatBadge(badgeText));
     return container;
   }
 
@@ -2962,20 +3336,16 @@
     });
 
     function processImgEarly(img) {
-      if (img.getAttribute('data-kr-medieval-applied') === 'true') {return;}
+      krResyncImg(img);
+      if (img.getAttribute(KR_IMG.applied) === 'true' || img.getAttribute(KR_IMG.failed) === 'true') {return;}
       var src = img.getAttribute('src');
       if (!src) {return;}
       if (src.indexOf('/2/map/1/') === -1 && src.indexOf('/2/map/1b/') === -1) {return;}
       if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
       var target = computeReplacement(src);
-      if (!target) {return;}
-      img.setAttribute('data-kr-medieval-original-bg', src);
-      img.setAttribute('data-kr-medieval-applied', 'true');
-      img.setAttribute('src', target);
-      if (src.indexOf('/2/map/1b/') !== -1) {
-        img.setAttribute('data-kr-medieval-original-filter', img.style ? img.style.getPropertyValue('filter') || '' : '');
-        img.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
-      }
+      if (!target || krBadTargets[target]) {return;}
+      // Source d'origine mémorisée AVANT remplacement ; repli automatique si la cible ne charge pas
+      krSwapImg(img, target, src.indexOf('/2/map/1b/') !== -1);
     }
 
     earlyObserver.observe(document.documentElement, { childList: true, subtree: true });
@@ -3165,7 +3535,7 @@
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, normalizeNativeGauges, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
+      ensurePlayerMainPanelRows, addQuickAccessButtons, ensureActionGrid, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
@@ -3189,6 +3559,11 @@
     // 2. Si enfant de col-leftest ou panel-body grid-transformed
 
     document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
+      // Les cellules d'icônes (compétences, caractéristiques) portent leur nom dans title/aria-label : on les garde
+      if (el.classList.contains('kr-icon-cell')) {
+        ['data-toggle', 'data-placement', 'data-original-title'].forEach(a => el.removeAttribute(a));
+        return;
+      }
       const isMobile = document.body.classList.contains('mobile-mode');
       const isInColLeftest = el.closest('.col-leftest');
       const isInGridTransformed = el.closest('.panel-body.grid-transformed');
@@ -4280,8 +4655,16 @@
       return;
     }
 
+    // L0 (sous-forum) : un tableau dont la 1re colonne contient des liens vers des sujets (forum/sujet/) est une liste de sujets, pas un
+    // index de forums (l'index peut, lui, porter des liens « dernier message » vers des sujets dans une autre colonne).
+    // Sans ce garde-fou, le 1er tableau de la page (les sujets permanents) était doublé par des cartes forum aux chiffres faux.
+    const isTopicsTable = table => table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+    function findForumsTable() {
+      return Array.from(document.querySelectorAll('table.table')).find(table => table.querySelector('tbody') && !isTopicsTable(table)) || null;
+    }
+
     function transformTableToCards() {
-      const forumTable = document.querySelector('table.table tbody');
+      const forumTable = findForumsTable()?.querySelector('tbody');
       if (!forumTable) {
         console.warn('[Forum Cards] Tableau forums introuvable');
         return;
@@ -4563,13 +4946,178 @@
   })();
 
   // ============================================================================
-  // MOBILE FORUM TOPICS - Stats + Smart Navigation
-  // Layout identique aux "Sujets permanents" (simple et épuré)
-  // Ajoute les stats (Msg · Vus) en texte simple sous le titre
-  // Adapte le lien du titre selon l'état (non lu → premier non lu, lu → dernier message)
-  // Rend toute la card cliquable (comme les Sujets permanents)
+  // SOUS-FORUM — statuts des sujets (refonte variante A, lot L1)
+  // Le site ne donne qu'un état lu / non lu par sujet (icône dossier), un cadenas pour les sujets verrouillés et une liste de pages.
+  // Ces états sont reportés en classes sur chaque <tr> (kr-topic-unread, kr-topic-locked, kr-topic-pages + data-kr-pages) et le non lu
+  // reçoit une pastille « NON LU » en toutes lettres : le statut ne repose jamais sur la couleur seule.
+  // Ne JAMAIS s'appuyer sur l'attribut title (Bootstrap le déplace vers data-original-title) : les marqueurs fiables sont les classes d'icônes.
+  // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche).
   // ============================================================================
   (function () {
+    'use strict';
+
+    const isTopicsListTable = table => table.id === 'topics' || table.querySelector('tbody td:first-child a[href*="forum/sujet/"]') !== null;
+
+    function processRow(row) {
+      const cell = row.cells[0];
+      const title = cell ? cell.querySelector('p') : null;
+      if (!title || !title.querySelector('a')) {return;} // ligne « Aucun élément à afficher »
+
+      const unread = cell.querySelector('i.fa.fa-folder') !== null;
+      const locked = title.querySelector('i.fa-lock') !== null;
+      const pageLists = cell.querySelectorAll('ul.pagination');
+      const pages = pageLists.length > 1 ? pageLists[1].querySelectorAll('li').length : 0;
+
+      row.classList.toggle('kr-topic-unread', unread);
+      row.classList.toggle('kr-topic-locked', locked);
+      row.classList.toggle('kr-topic-pages', pages > 0);
+      if (pages > 0) {
+        row.setAttribute('data-kr-pages', String(pages));
+      } else {
+        row.removeAttribute('data-kr-pages');
+      }
+
+      const badge = title.querySelector(':scope > .kr-topic-badge');
+      if (unread && !badge) {
+        // Le libellé vit dans un attribut et s'affiche par CSS (::before) : DataTables lit le texte des cellules (recherche, tri) et,
+        // si le plug-in s'initialise après le userscript, un vrai texte « NON LU » ferait remonter tous les sujets non lus à la recherche « lu ».
+        const chip = document.createElement('span');
+        chip.className = 'kr-topic-badge';
+        chip.setAttribute('data-kr-label', 'NON LU');
+        title.appendChild(chip);
+      } else if (!unread && badge) {
+        badge.remove();
+      }
+    }
+
+    function processAll() {
+      Array.from(document.querySelectorAll('table')).filter(isTopicsListTable).forEach(table => {
+        Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(processRow));
+      });
+    }
+
+    function initTopicStatus() {
+      if (!document.body.classList.contains('page-forum')) {return;}
+      const topics = document.getElementById('topics');
+      if (!topics) {return;} // pas un sous-forum (index des forums, sujet, kramail)
+      document.body.classList.add('kr-subforum');
+      processAll();
+      if (typeof jQuery !== 'undefined') {
+        jQuery(topics).on('draw.dt', processAll);
+      }
+    }
+
+    InitQueue.register('ForumTopics:Status', initTopicStatus, 24);
+  })();
+
+  // ============================================================================
+  // SOUS-FORUM — pagination mobile (refonte variante A, lot L5)
+  // DataTables affiche « Précédent 1 2 3 4 5 … 15 Suivant » (9 éléments) : trop large pour 375 px. On garde la première page, la dernière, la page
+  // courante et, près des bords, les pages voisines ; les autres boutons natifs reçoivent .kr-page-hidden (masqués en CSS, jamais retirés) et un
+  // « … » .kr-page-gap est inséré à chaque saut. Les boutons natifs (clics, aria-controls) ne sont pas touchés. Relancé à chaque draw.dt.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    function compactPagination(topics) {
+      const pag = document.querySelector('#' + topics.id + '_wrapper .dataTables_paginate');
+      if (!pag) {return;}
+      pag.querySelectorAll('.kr-page-gap').forEach(gap => gap.remove());
+      const numbered = Array.from(pag.querySelectorAll('a.paginate_button')).filter(a => /^\d+$/.test(a.textContent.trim()));
+      if (numbered.length === 0) {return;}
+      const mobile = document.body.classList.contains('mobile-mode');
+      if (!mobile) {
+        // Bureau : pagination native conservée telle quelle (un seul « … » natif par saut) ; on retire ce que le mode mobile aurait posé.
+        pag.querySelectorAll('.kr-page-hidden').forEach(a => a.classList.remove('kr-page-hidden'));
+        return;
+      }
+      // M-2 : le « … » natif de DataTables 1.10.5 est un <span> SANS classe (la classe .ellipsis n'existe que dans les versions récentes). On le repère
+      // donc par son contenu (span feuille « … », hors .kr-page-gap) et on le masque comme les boutons : un seul « … » (le .kr-page-gap) par saut.
+      // Le bureau retire tous les .kr-page-hidden ci-dessus, donc le « … » natif y est rétabli.
+      pag.querySelectorAll('span').forEach(s => {
+        if (s.children.length === 0 && !s.classList.contains('kr-page-gap') && s.textContent.trim() === '…') { s.classList.add('kr-page-hidden'); }
+      });
+      const nums = numbered.map(a => Number(a.textContent.trim()));
+      const first = nums[0] === 1 ? nums[0] : 1;
+      const last = nums[nums.length - 1];
+      const currentButton = numbered.find(a => a.classList.contains('current'));
+      const current = currentButton ? Number(currentButton.textContent.trim()) : first;
+      const keep = new Set([first, last, current]);
+      if (current <= 2) { [1, 2, 3].forEach(n => keep.add(n)); }
+      if (current >= last - 1) { [last - 2, last - 1, last].forEach(n => keep.add(n)); }
+      let previousShown = null;
+      numbered.forEach((a, i) => {
+        const hide = mobile && !keep.has(nums[i]);
+        a.classList.toggle('kr-page-hidden', hide);
+        if (hide) {return;}
+        if (previousShown !== null && nums[i] - previousShown > 1) {
+          const gap = document.createElement('span');
+          gap.className = 'kr-page-gap';
+          gap.setAttribute('aria-hidden', 'true');
+          gap.textContent = '…';
+          a.parentNode.insertBefore(gap, a);
+        }
+        previousShown = nums[i];
+      });
+    }
+
+    function initPagination() {
+      const topics = document.getElementById('topics');
+      if (!topics || !document.body.classList.contains('page-forum') || typeof jQuery === 'undefined') {return;}
+      compactPagination(topics);
+      jQuery(topics).on('draw.dt', () => compactPagination(topics));
+    }
+
+    InitQueue.register('ForumTopics:Pagination', initPagination, 26);
+  })();
+
+  // ============================================================================
+  // MOBILE FORUM TOPICS - libellés, navigation et ligne cliquable (sous-forum, lot L3)
+  // - Chaque chiffre a son mot : « 13 messages · 75 vues · 2 pages ». Le mot est posé en attribut (data-kr-unit sur les cellules Msg et Vus,
+  //   data-kr-pages-label sur la 1re cellule) et affiché par CSS (::after) : le texte des cellules reste celui du site (DataTables s'en sert
+  //   pour la recherche et le tri, y compris s'il s'initialise après ce module). Singulier / pluriel écrits ici, à l'init et à chaque draw.dt.
+  // - Le bouton → natif « aller au dernier message » reçoit un nom accessible (le title est déplacé par l'infobulle Bootstrap).
+  // - Recherche et « Afficher » reçoivent un placeholder et un nom accessible (leurs libellés visibles sont masqués par CSS pour tenir sur une ligne).
+  // - Navigation intelligente et ligne cliquable (comme avant) : le titre d'un sujet non lu suit le lien de l'icône dossier.
+  // ============================================================================
+  (function () {
+    const plural = (n, one, many) => (n > 1 ? many : one);
+
+    function labelRow(row) {
+      const msgCell = row.querySelector('td:nth-child(2)');
+      const viewsCell = row.querySelector('td:nth-child(3)');
+      if (!msgCell || !viewsCell) {return;}
+      const msg = parseInt(msgCell.textContent, 10);
+      const views = parseInt(viewsCell.textContent, 10);
+      if (!Number.isNaN(msg)) {msgCell.setAttribute('data-kr-unit', plural(msg, 'message', 'messages'));}
+      if (!Number.isNaN(views)) {viewsCell.setAttribute('data-kr-unit', plural(views, 'vue', 'vues'));}
+
+      const titleCell = row.querySelector('td:nth-child(1)');
+      const pages = parseInt(row.getAttribute('data-kr-pages') || '0', 10);
+      if (titleCell) {
+        if (pages > 0) {
+          titleCell.setAttribute('data-kr-pages-label', pages + ' ' + plural(pages, 'page', 'pages'));
+        } else {
+          titleCell.removeAttribute('data-kr-pages-label');
+        }
+      }
+
+      const arrow = row.querySelector('td:nth-child(5) a.btn');
+      if (arrow && !arrow.hasAttribute('aria-label')) {
+        arrow.setAttribute('aria-label', arrow.getAttribute('data-original-title') || arrow.getAttribute('title') || 'aller au dernier message');
+      }
+    }
+
+    function nameControls() {
+      const search = document.querySelector('.dataTables_filter input');
+      if (search) {
+        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les sujets');}
+      }
+      const length = document.querySelector('.dataTables_length select');
+      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de sujets par page');}
+    }
+
     function enrichForumTopicsCards() {
       // N'exécuter qu'en mode mobile et uniquement sur les pages forum
       if (!document.body.classList.contains('mobile-mode')) {return;}
@@ -4582,18 +5130,17 @@
       function processRows() {
         const rows = forumTable.querySelectorAll('tbody tr');
         if (rows.length === 0) {return;}
+        nameControls();
 
         rows.forEach(row => {
-          // Éviter le double traitement
+          labelRow(row);
+
+          // Éviter le double traitement des écouteurs (DataTables réutilise les mêmes <tr>)
           if (row.hasAttribute('data-stats-added')) {return;}
           row.setAttribute('data-stats-added', 'true');
 
-          // Récupérer les cellules
           const titleCell = row.querySelector('td:nth-child(1)');
-          const msgCell = row.querySelector('td:nth-child(2)');
-          const viewsCell = row.querySelector('td:nth-child(3)');
-
-          if (!titleCell || !msgCell || !viewsCell) {return;}
+          if (!titleCell) {return;}
 
           // === SMART NAVIGATION ===
           // Détecter si l'icône "premier message non lu" existe
@@ -4601,7 +5148,7 @@
           const titleLink = titleCell.querySelector('p > a');
 
           if (unreadIconLink && titleLink) {
-            // Sujet NON LU : rediriger le titre vers le premier message non lu
+            // Sujet NON LU : rediriger le titre vers le lien de l'icône dossier
             titleLink.href = unreadIconLink.href;
             titleLink.setAttribute('data-smart-redirect', 'first-unread');
           }
@@ -4617,24 +5164,6 @@
               titleLink.click();
             });
           }
-
-          // === STATS SIMPLES ===
-          const msgCount = msgCell.textContent.trim();
-          const viewsCount = viewsCell.textContent.trim();
-
-          const statsContainer = document.createElement('div');
-          statsContainer.className = 'forum-topic-stats-mobile';
-          statsContainer.innerHTML = `
-            <i class="fa fa-comment" aria-hidden="true"></i> ${msgCount}
-            <span class="stats-sep">·</span>
-            <i class="fa fa-eye" aria-hidden="true"></i> ${viewsCount}
-          `;
-
-          // Insérer après le titre
-          const titleParagraph = titleCell.querySelector('p');
-          if (titleParagraph) {
-            titleParagraph.after(statsContainer);
-          }
         });
 
         console.log('[Forum Topics Mobile] Sujets enrichis');
@@ -4643,7 +5172,7 @@
       // Exécuter immédiatement
       processRows();
 
-      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche)
+      // Ré-exécuter à chaque draw DataTables (pagination, tri, recherche, y compris l'initialisation tardive du plug-in)
       if (typeof jQuery !== 'undefined') {
         jQuery(forumTable).on('draw.dt', function () {
           processRows();
@@ -4664,6 +5193,9 @@
       // N'exécuter qu'en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {return;}
 
+      // L4 (sous-forum) : sur la page de liste des sujets (table#topics), les permanents tiennent sur une ligne (titre, non lu, date) :
+      // compteurs, auteur et pages restent dans le sujet. Aucun bloc de statistiques n'est ajouté, les cellules natives ne sont pas masquées en JS.
+      if (document.getElementById('topics')) {return;}
       // Cibler les panel-default (Sujets permanents)
       const panels = document.querySelectorAll('.panel-default');
       if (panels.length === 0) {return;}
@@ -4734,6 +5266,61 @@
   (function () {
     'use strict';
 
+    // L2 : action « + Nouveau sujet » libellée (composant PR12 : .forum-thread-action-new). Le href est recopié tel quel du lien natif du h1.
+    function createNewTopicAction(newTopicLink, extraClass) {
+      const bar = document.createElement('div');
+      bar.className = 'forum-thread-actions ' + extraClass;
+      const action = document.createElement('a');
+      action.setAttribute('href', newTopicLink.getAttribute('href'));
+      action.className = 'forum-thread-action forum-thread-action-new';
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-plus';
+      icon.setAttribute('aria-hidden', 'true');
+      action.appendChild(icon);
+      action.appendChild(document.createTextNode(' Nouveau sujet'));
+      bar.appendChild(action);
+      return bar;
+    }
+
+    // L2 : en-tête du sous-forum (mobile). Fil d'Ariane « ◀◀ Jeu (HRP) › Débuter », titre en 24 px et « + Nouveau sujet » à droite ;
+    // le même bouton est répété sous la pagination DataTables (hors du wrapper : DataTables ne le redessine pas).
+    function transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText) {
+      const crumb = document.createElement('div');
+      crumb.className = 'forum-mobile-breadcrumb';
+      const back = backLink.cloneNode(true);
+      back.className = 'forum-mobile-breadcrumb-link';
+      ['data-toggle', 'data-placement', 'data-original-title', 'title', 'style'].forEach(attr => back.removeAttribute(attr));
+      const separator = document.createElement('span');
+      separator.className = 'forum-mobile-breadcrumb-sep';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '›';
+      const current = document.createElement('span');
+      current.className = 'forum-mobile-breadcrumb-current';
+      current.textContent = titleText;
+      crumb.append(back, separator, current);
+
+      const head = document.createElement('div');
+      head.className = 'forum-subforum-head';
+      const title = document.createElement('span');
+      title.className = 'forum-subforum-title';
+      title.textContent = titleText;
+      head.append(title, createNewTopicAction(newTopicLink, 'forum-subforum-actions-top'));
+
+      forumHeading.innerHTML = '';
+      forumHeading.style.cssText = `
+        margin: 12px 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+      `;
+      forumHeading.append(crumb, head);
+
+      if (!document.querySelector('.forum-subforum-actions-bottom')) {
+        const anchor = document.getElementById('topics_wrapper') || document.getElementById('topics');
+        anchor.insertAdjacentElement('afterend', createNewTopicAction(newTopicLink, 'forum-thread-actions-bottom forum-subforum-actions-bottom'));
+      }
+      console.log('[Forum Header Mobile] En-tête du sous-forum créé');
+    }
+
     function transformForumHeader() {
       // Uniquement en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {
@@ -4770,6 +5357,11 @@
       const backLink = links[0]; // Lien "Jeu (RP)"
       const newTopicLink = links[1]; // Lien "nouveau sujet"
 
+      // L2 (sous-forum) : la page de liste des sujets (table#topics) a son propre en-tête : fil d'Ariane, titre, « + Nouveau sujet » libellé
+      if (document.getElementById('topics') && !/\/forum\/post\//.test(window.location.pathname)) {
+        transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText);
+        return;
+      }
       // ========================================
       // 1. CRÉER LE FIL D'ARIANE AVEC BOUTON (+)
       // ========================================
@@ -4830,6 +5422,7 @@
       breadcrumbLeft.appendChild(currentTitle);
 
       // Partie droite : bouton (+)
+      // F-01 : pas de « + » sur les pages d'édition (/forum/post/...) : il mènerait à « nouveau sujet » et ferait quitter la saisie
       const fab = document.createElement('a');
       fab.href = newTopicLink.href;
       fab.className = 'forum-new-topic-fab';
@@ -4862,7 +5455,9 @@
       });
 
       breadcrumbWrapper.appendChild(breadcrumbLeft);
-      breadcrumbWrapper.appendChild(fab);
+      if (!/\/forum\/post\//.test(window.location.pathname)) {
+        breadcrumbWrapper.appendChild(fab);
+      }
 
       // ========================================
       // 2. REMPLACER LE CONTENU DU H1
@@ -5598,6 +6193,8 @@
       const firstForumTop = forumTops[0];
       const taverneLink = firstForumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
       const newTopicLink = firstForumTop.querySelector('a[href*="nouveau-sujet"]');
+      // Lien natif « répondre » du sujet (absent si le sujet est fermé) : lu avant que les .forum-top soient vidés
+      const replyLink = firstForumTop.querySelector('a[href*="post/repondre"]');
 
       if (!taverneLink || !newTopicLink) {
         console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
@@ -5706,43 +6303,35 @@
         breadcrumbLeft.appendChild(separator2);
         breadcrumbLeft.appendChild(threadTitleSpan);
 
-        // Partie droite : bouton (+)
-        const fab = document.createElement('a');
-        fab.href = newTopicLink.href;
-        fab.className = 'forum-new-topic-fab';
-        fab.setAttribute('aria-label', 'Nouveau sujet');
-        fab.innerHTML = '<span style="font-size: 24px; font-weight: 300; line-height: 1;">+</span>';
-        fab.style.cssText = `
-          width: 44px;
-          height: 44px;
-          min-width: 44px;
-          flex-shrink: 0;
-          border-radius: 50%;
-          background: var(--kr-primary);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-          text-decoration: none;
-          transition: all 0.2s ease;
-        `;
-
-        // Feedback tactile
-        fab.addEventListener('touchstart', function () {
-          this.style.transform = 'scale(0.92)';
-          this.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.3)';
-        });
-
-        fab.addEventListener('touchend', function () {
-          this.style.transform = 'scale(1)';
-          this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-        });
-
         breadcrumbWrapper.appendChild(breadcrumbLeft);
-        breadcrumbWrapper.appendChild(fab);
 
         return breadcrumbWrapper;
+      }
+
+      // ========================================
+      // FONCTION HELPER : actions du sujet (F-01)
+      // « Répondre » (action principale) et « Nouveau sujet » (secondaire), libellés visibles,
+      // en haut ET en bas du sujet. Les href sont ceux du site (attribut recopié tel quel).
+      // ========================================
+      function createThreadActions(isBottom) {
+        const bar = document.createElement('div');
+        bar.className = 'forum-thread-actions' + (isBottom ? ' forum-thread-actions-bottom' : '');
+        function makeAction(link, className, iconClass, label) {
+          const a = document.createElement('a');
+          a.setAttribute('href', link.getAttribute('href'));
+          a.className = 'forum-thread-action ' + className;
+          const icon = document.createElement('i');
+          icon.className = 'fa ' + iconClass;
+          icon.setAttribute('aria-hidden', 'true');
+          a.appendChild(icon);
+          a.appendChild(document.createTextNode(' ' + label));
+          return a;
+        }
+        if (replyLink) {
+          bar.appendChild(makeAction(replyLink, 'forum-thread-action-reply', 'fa-reply', 'Répondre'));
+        }
+        bar.appendChild(makeAction(newTopicLink, 'forum-thread-action-new', 'fa-plus', 'Nouveau sujet'));
+        return bar;
       }
 
       // ========================================
@@ -5755,6 +6344,7 @@
         background: transparent !important;
       `;
       forumHeading.appendChild(createBreadcrumb(false));
+      forumHeading.appendChild(createThreadActions(false));
 
       // ========================================
       // 2. TRANSFORMER LES .forum-top (sauf le premier si c'est le même que le h1)
@@ -5771,7 +6361,7 @@
           background: transparent !important;
           border: none !important;
         `;
-        forumTop.appendChild(createBreadcrumb(true));
+        forumTop.appendChild(createThreadActions(true));
       });
 
       // ========================================
@@ -5784,7 +6374,7 @@
       }
 
       // Masquer les liens d'actions redondants (nouveau sujet, répondre, etc.)
-      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"], .forum-top a[href*="repondre"]');
+      const forumTopActions = document.querySelectorAll('.forum-top a[href*="nouveau-sujet"]:not(.forum-thread-action), .forum-top a[href*="repondre"]:not(.forum-thread-action)');
       forumTopActions.forEach(action => {
         action.parentElement.style.display = 'none';
       });
@@ -5862,127 +6452,110 @@
   })();
 
   // ============================================================================
-  // MODULE : ForumPosts:Restructure
-  // Restructure complètement le DOM des posts pour une mise en page Bootstrap propre
-  // Row 1: col-xs-4 (user-info) + col-xs-8 (boutons)
-  // Row 2: col-xs-12 (contenu message)
+  // MODULE : Messages:V3 — messages du forum, lecture / rédaction / édition (mobile, maquette v3 validée)
+  // Aucun nœud natif n'est cloné, recréé ni déplacé : la mise en page est faite en CSS (grille, ordre) sur les classes posées ici, les
+  // liens, boutons, href, onclick et le texte du message restent ceux du site. La peau ajoute seulement deux boutons à elle
+  // (« ••• » sur chaque message, « Plus » dans l'éditeur) et des classes/étiquettes. Kramail n'est pas concerné (chemin /forum/ seulement).
   // ============================================================================
   (function () {
     'use strict';
 
-    const MOBILE_BREAKPOINT = 768;
+    const SECONDARY_LABELS = { profil: 'Profil', kramail: 'Kramail', signaler: 'Signaler', lien: 'Lien du message' };
+    // Outils BBCode courants gardés en barre ; les 13 autres (souligné, barré, image, vidéo, spoiler, pré-formaté, couleurs, alignements, flottants, prévisualisation) sous « Plus »
+    const COMMON_TOOLS = ['b', 'i', 'url', 'quote', 'smileys'];
 
-    function restructureForumPosts() {
-      // Uniquement en mode mobile (basé sur la largeur de l'écran)
-      if (window.innerWidth >= MOBILE_BREAKPOINT) {
-        return;
-      }
-
-      // Vérifier qu'on est sur une page de thread
-      if (!window.location.pathname.includes('/forum/sujet/')) {
-        return;
-      }
-
-      // Sélectionner tous les posts non-restructurés
-      const posts = document.querySelectorAll('ul.media-list.forum > li.media:not([data-restructured])');
-
-      if (posts.length === 0) {
-        return;
-      }
-
-      posts.forEach(post => {
-        // 1. Récupérer les éléments existants
-        const userInfo = post.querySelector('.pull-left, .user-info');
-        const pullRight = post.querySelector('.pull-right');
-        const mediaBody = post.querySelector('.media-body');
-
-        if (!userInfo || !mediaBody) {
-          return;
-        }
-
-        // Sauvegarder TOUT le contenu de media-body avant modification
-        const originalMediaBodyHTML = mediaBody.innerHTML;
-
-        // 2. Créer Row 1 (header: user + boutons)
-        const headerRow = document.createElement('div');
-        headerRow.className = 'row forum-header';
-
-        // Colonne 1: User info
-        const userCol = document.createElement('div');
-        userCol.className = 'col-xs-8 forum-user-section';
-
-        // Cloner le userInfo pour le déplacer
-        const userInfoClone = userInfo.cloneNode(true);
-        userCol.appendChild(userInfoClone);
-
-        // Extraire et ajouter la date depuis le bouton de date
-        const dateButton = mediaBody.querySelector('.btn-group.btn-group-xs:first-child, div.btn-group.btn-group-xs:first-child');
-        if (dateButton) {
-          const dateText = dateButton.textContent.replace('posté', '').replace('modifié', '').trim();
-          const dateElement = document.createElement('div');
-          dateElement.className = 'post-date-mobile';
-          dateElement.textContent = dateText;
-          userCol.appendChild(dateElement);
-        }
-
-        // Colonne 2: Boutons d'action
-        const actionsCol = document.createElement('div');
-        actionsCol.className = 'col-xs-4 forum-actions-section';
-        if (pullRight) {
-          const pullRightClone = pullRight.cloneNode(true);
-          actionsCol.appendChild(pullRightClone);
-        }
-
-        headerRow.appendChild(userCol);
-        headerRow.appendChild(actionsCol);
-
-        // 3. Créer Row 2 (contenu du message)
-        const contentRow = document.createElement('div');
-        contentRow.className = 'row forum-content-row';
-
-        const contentCol = document.createElement('div');
-        contentCol.className = 'col-xs-12 forum-content-section';
-
-        // Créer un nouveau mediaBody temporaire pour extraire le contenu
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = originalMediaBodyHTML;
-
-        // Retirer userInfo, pullRight, dateButton du tempDiv
-        const tempUserInfo = tempDiv.querySelector('.pull-left, .user-info');
-        const tempPullRight = tempDiv.querySelector('.pull-right');
-        const tempDateButton = tempDiv.querySelector('.btn-group.btn-group-xs:first-child');
-
-        if (tempUserInfo) {tempUserInfo.remove();}
-        if (tempPullRight) {tempPullRight.remove();}
-        if (tempDateButton) {tempDateButton.remove();}
-
-        // Tout ce qui reste est le contenu du message
-        contentCol.innerHTML = tempDiv.innerHTML;
-
-        contentRow.appendChild(contentCol);
-
-        // 4. Vider le post et reconstruire
-        // Supprimer le .pull-left original (avatar dupliqué)
-        if (userInfo && userInfo.parentElement === post) {
-          userInfo.remove();
-        }
-
-        // Vider le mediaBody complètement
-        mediaBody.innerHTML = '';
-
-        // Insérer les nouvelles rows
-        mediaBody.appendChild(headerRow);
-        mediaBody.appendChild(contentRow);
-
-        // 5. Marquer comme restructuré
-        post.setAttribute('data-restructured', 'true');
-        post.classList.add('forum-post-restructured');
-      });
-
-      console.log(`[Forum Restructure] ${posts.length} posts restructurés avec nouveau layout`);
+    function isMessagesView() {
+      return !!document.body && document.body.classList.contains('mobile-mode') && window.innerWidth < 768 && window.location.pathname.indexOf('/forum/') === 0;
     }
 
-    InitQueue.register('ForumPosts:Restructure', restructureForumPosts, 26);
+    function nativeTitle(el) {
+      return (el.getAttribute('data-original-title') || el.getAttribute('title') || '').trim().toLowerCase();
+    }
+
+    function enhancePosts() {
+      if (!window.location.pathname.includes('/forum/sujet/')) {return;}
+      document.querySelectorAll('ul.media-list.forum > li.media:not(.kr-msg)').forEach(post => {
+        const bar = post.querySelector(':scope > .media-body > .pull-right');
+        if (!bar) {return;}
+        const mark = (el, role) => {
+          if (!el) {return;}
+          el.classList.add('kr-msg-secondary');
+          el.setAttribute('data-kr-label', SECONDARY_LABELS[role]);
+        };
+        mark(bar.querySelector('a[href*="communaute/membres/"]'), 'profil');
+        const mails = Array.from(bar.querySelectorAll('a[href*="kramail/post/"]'));
+        const reportIndex = mails.findIndex(a => nativeTitle(a).includes('signal'));
+        mails.forEach((a, i) => mark(a, (reportIndex >= 0 ? i === reportIndex : i === 1) ? 'signaler' : 'kramail'));
+        mark(bar.querySelector('button.btn'), 'lien');
+
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'btn btn-default kr-msg-more';
+        more.setAttribute('aria-expanded', 'false');
+        more.setAttribute('aria-label', 'Autres actions');
+        const dots = document.createElement('span');
+        dots.setAttribute('aria-hidden', 'true');
+        dots.textContent = '•••';
+        more.appendChild(dots);
+        more.addEventListener('click', () => {
+          const open = post.classList.toggle('kr-msg-open');
+          more.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        bar.appendChild(more);
+        post.classList.add('kr-msg');
+      });
+    }
+
+    function toolKey(item) {
+      if (item.classList.contains('dropdown')) {
+        return item.querySelector('table') ? 'smileys' : 'couleurs';
+      }
+      const m = (item.getAttribute('href') || '').match(/addtag\('([^']+)'/);
+      return m ? m[1] : 'autre';
+    }
+
+    function enhanceEditors() {
+      document.querySelectorAll('form[name="post_msg"]').forEach(form => {
+        const bar = form.querySelector('.btn-toolbar');
+        if (!bar || bar.classList.contains('kr-tools-ready')) {return;}
+        form.classList.add('kr-editor');
+        const groups = Array.from(form.querySelectorAll('.form-group'));
+        const sender = groups.find(g => g.querySelector('.input-group') && g.querySelector('select, input'));
+        if (sender) {sender.classList.add('kr-sender-row');}
+        const messageRow = groups.find(g => g.contains(bar));
+        if (messageRow) {messageRow.classList.add('kr-message-row');}
+
+        bar.querySelectorAll(':scope > .btn-group > a.btn, :scope > .btn-group > .dropdown').forEach(item => {
+          const key = toolKey(item);
+          item.setAttribute('data-kr-tool', key);
+          if (!COMMON_TOOLS.includes(key)) {item.classList.add('kr-tool-extra');}
+        });
+
+        const spacer = document.createElement('span');
+        spacer.className = 'kr-tools-break';
+        spacer.setAttribute('aria-hidden', 'true');
+        bar.appendChild(spacer);
+        const plus = document.createElement('button');
+        plus.type = 'button';
+        plus.className = 'btn btn-default kr-tools-plus';
+        plus.setAttribute('aria-expanded', 'false');
+        plus.textContent = 'Plus';
+        plus.addEventListener('click', () => {
+          const open = bar.classList.toggle('kr-tools-open');
+          plus.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        bar.appendChild(plus);
+        bar.classList.add('kr-tools-ready');
+      });
+    }
+
+    function initMessagesV3() {
+      if (!isMessagesView()) {return;}
+      enhancePosts();
+      enhanceEditors();
+    }
+
+    InitQueue.register('Messages:V3', initMessagesV3, 27);
 
   })();
 
@@ -6688,6 +7261,16 @@
     }
   }
 
+  /** Ajoute à une cellule d'icône son nom accessible (aria-label), l'infobulle native et l'étiquette de survol/focus */
+  function labelIconCell(el, name, value, ariaLabel) {
+    el.classList.add('kr-icon-cell');
+    // Bootstrap tooltip retiré : l'infobulle native (title) prend le relais
+    ['data-toggle', 'data-placement', 'data-original-title'].forEach(a => el.removeAttribute(a));
+    el.setAttribute('aria-label', ariaLabel);
+    el.title = ariaLabel;
+    el.setAttribute('data-kr-label', name + ' · ' + value);
+  }
+
   function transformSkillsToIcons() {
     const skillsPanel = document.getElementById('skills-panel');
     if (!skillsPanel || skillsPanel.dataset.iconsTransformed) {return;}
@@ -6701,17 +7284,19 @@
 
       const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
       const originalClasses = item.className;
-      item.className = originalClasses + ' btn btn-default mini';
+      item.className = originalClasses + ' btn btn-default mini kr-skill';
       item.innerHTML = '';
 
       const iconContainer = createIconContainer(iconUrl, skillName, level);
-      Object.assign(item.style, {
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'center', padding: '8px',
-        width: '40px', height: '40px',
-        minWidth: '40px', minHeight: '40px'
-      });
+      labelIconCell(item, skillName, level, skillName + ' — niveau ' + level);
       item.appendChild(iconContainer);
+
+      // Légende lisible sans survol (tactile, tablette) : affichée par le CSS selon le type de pointeur
+      const caption = document.createElement('span');
+      caption.className = 'kr-skill-caption';
+      caption.setAttribute('aria-hidden', 'true');
+      caption.textContent = skillName;
+      item.appendChild(caption);
     });
 
     skillsPanel.dataset.iconsTransformed = '1';
@@ -6731,37 +7316,20 @@
       while (statBtn.firstChild) {statBtn.removeChild(statBtn.firstChild);}
 
       const originalClasses = statBtn.className;
-      statBtn.className = originalClasses + ' list-group-item ds_game';
-      Object.assign(statBtn.style, {
-        padding: '8px', display: 'flex',
-        alignItems: 'center', justifyContent: 'center',
-        width: '40px', height: '40px',
-        minWidth: '40px', minHeight: '40px'
-      });
-      statBtn.title = cleanStatName;
+      statBtn.className = originalClasses + ' list-group-item ds_game kr-stat';
+      labelIconCell(statBtn, cleanStatName, number, cleanStatName + ' : ' + number);
 
       const displayMode = getStatsDisplayMode();
 
       // Créer le conteneur principal (toujours avec badge)
       const container = document.createElement('div');
-      Object.assign(container.style, {
-        position: 'relative', display: 'inline-block',
-        width: '32px', height: '32px'
-      });
+      container.className = 'kr-skill-icon kr-stat-icon';
 
       if (displayMode === 'text') {
         // Mode texte : afficher uniquement l'abréviation (3 lettres)
         const textSpan = document.createElement('span');
+        textSpan.className = 'kr-stat-text';
         textSpan.textContent = cleanStatName.substring(0, 3).toUpperCase();
-        Object.assign(textSpan.style, {
-          fontWeight: 'bold',
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '32px',
-          height: '32px'
-        });
         container.appendChild(textSpan);
       } else {
         // Mode icône (par défaut)
@@ -6769,26 +7337,23 @@
         if (iconCode) {
           const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
           const img = document.createElement('img');
+          img.className = 'kr-skill-img';
           img.src = iconUrl;
           img.alt = cleanStatName;
-          img.title = cleanStatName;
-          Object.assign(img.style, {
-            display: 'block', width: '32px', height: '32px'
-          });
+          bindIconFallback(img, container, cleanStatName);
           container.appendChild(img);
         } else {
-          // Fallback SVG
+          // Fallback SVG (couleurs héritées du thème via currentColor)
           const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svg.setAttribute('width', '32');
-          svg.setAttribute('height', '32');
+          svg.setAttribute('class', 'kr-skill-img');
           svg.setAttribute('viewBox', '0 0 32 32');
-          svg.style.display = 'block';
 
           const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           rect.setAttribute('width', '32');
           rect.setAttribute('height', '32');
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#ccc');
+          rect.setAttribute('fill', 'currentColor');
+          rect.setAttribute('fill-opacity', '0.15');
+          rect.setAttribute('stroke', 'currentColor');
           svg.appendChild(rect);
 
           const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -6797,7 +7362,7 @@
           svgText.setAttribute('text-anchor', 'middle');
           svgText.setAttribute('font-size', '14');
           svgText.setAttribute('font-weight', 'bold');
-          svgText.setAttribute('fill', '#333');
+          svgText.setAttribute('fill', 'currentColor');
           svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
           svg.appendChild(svgText);
 
@@ -6808,6 +7373,15 @@
       // Toujours ajouter le badge de notification
       container.appendChild(createStatBadge(number));
       statBtn.appendChild(container);
+
+      // Légende visible sans survol (tactile) ; inutile en mode texte où l'abréviation est déjà affichée
+      if (displayMode !== 'text') {
+        const caption = document.createElement('span');
+        caption.className = 'kr-skill-caption';
+        caption.setAttribute('aria-hidden', 'true');
+        caption.textContent = cleanStatName;
+        statBtn.appendChild(caption);
+      }
     });
 
     colLeftestStats.dataset.badgesTransformed = '1';
@@ -6861,19 +7435,11 @@
       { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
     ];
 
-    // Créer le conteneur principal avec le système de grille Bootstrap
+    // Conteneur en grille CSS (2 colonnes, même gouttière que la grille d'actions) : plus de row/col imbriqués
     const container = document.createElement('div');
     container.className = 'kr-quick-access-buttons';
-    container.style.marginTop = '10px';
 
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    // Créer chaque bouton avec une colonne Bootstrap (2 par ligne)
     buttons.forEach(btn => {
-      const col = document.createElement('div');
-      col.className = 'col-xs-6 col-sm-6';
-
       const link = document.createElement('a');
       link.href = btn.url;
       link.className = 'btn btn-default btn-block mini';
@@ -6884,14 +7450,33 @@
       link.appendChild(icon);
       link.appendChild(document.createTextNode(' ' + btn.label));
 
-      col.appendChild(link);
-      row.appendChild(col);
+      container.appendChild(link);
     });
-
-    container.appendChild(row);
 
     // Ajouter les boutons à la fin du panneau
     panel.appendChild(container);
+  }
+
+  /**
+   * Range les actions de jeu natives (Dormir, Prier, Pouvoir, Fouiller…) de #player-actions-section
+   * dans une grille à 2 colonnes égales. Les nœuds sont DÉPLACÉS (jamais recréés) : liens,
+   * attributs et gestionnaires d'origine restent intacts. Les nœuds qui ne sont pas des boutons
+   * (séparateur, texte) restent hors grille. Le nombre d'actions est celui du DOM réel.
+   */
+  function ensureActionGrid() {
+    const section = document.getElementById('player-actions-section');
+    if (!section) {return;}
+
+    let grid = section.querySelector(':scope > .kr-action-grid');
+    const buttons = Array.from(section.children).filter(el => el.matches('a.btn, button.btn'));
+    if (buttons.length === 0) {return;}
+
+    if (!grid) {
+      grid = document.createElement('div');
+      grid.className = 'kr-action-grid';
+      section.insertBefore(grid, buttons[0]);
+    }
+    buttons.forEach(btn => grid.appendChild(btn));
   }
 
   // ============================================================================

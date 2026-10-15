@@ -75,8 +75,7 @@ InitQueue.register('nom-module', function() { /* ... */ }, priority);
 
 ## Workflow de test avec Playwright
 
-1. Modifier les fichiers sources
-2. `npm run build`
-3. Attendre 5 secondes pour la synchronisation Tampermonkey
-4. Tester via Playwright MCP tools (viewport mobile : 375x667, desktop : 1280x720)
-5. Vérifier l'absence d'impact croisé mobile/desktop
+Pour les tests sur fixtures, voir `.claude/skills/tester-kraland-css/SKILL.md`.
+Après `npm run build`, utiliser `npm run test:zone -- <zone>` ou `npm run test:changed` pendant la boucle rouge/vert ; `npm run test:all` une seule fois à la fin.
+Bootstrap 3.3.7 et jQuery 3.3.1 sont embarqués dans `tests/e2e/vendor/` (cascade réelle utilisée par défaut, aucune configuration) ; `KR_BOOTSTRAP_DIR` permet de pointer ailleurs. Captures et journaux hors dépôt. Ne jamais utiliser Chrome 9222/9223 ni le site réel pour ces fixtures.
+Pour une vérification visuelle manuelle séparée, attendre 5 secondes après le build pour la synchronisation Tampermonkey, puis vérifier mobile (375×667), bureau (1280×720) et absence d'impact croisé.
