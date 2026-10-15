@@ -1,0 +1,3 @@
+# Conserver les octets des sources tierces épinglées (y compris CRLF).
+skills/** -text
+LICENSE-BMAD -text
