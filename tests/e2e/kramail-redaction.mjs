@@ -102,8 +102,14 @@ const DARK = 'empire-brun-dark';
 // Comparaison de captures par pixels décodés (canvas d'une page vierge). Tolérance bornée : au plus PIX_MAX_PIXELS pixels
 // différents, chacun d'un écart <= PIX_MAX_CANAL sur un canal. Toute autre différence (dimensions, pixels plus nombreux ou plus
 // éloignés) reste une régression.
-const PIX_MAX_PIXELS = 4;
+// Calibrage (A/A : même bundle des deux côtés, 12 exécutions du fragment regression par révision, t_292a52e1) :
+//   chrome-headless-shell 1224 (Chromium 149) : au plus 1 pixel, écart 2 (coin arrondi, en 5-7, 230) ;
+//   chrome-headless-shell 1248 (Chromium 156) : au plus 9 pixels, écart 2 ; « lecture 1280 » varie de 9 pixels, écart 1, en (357-432, 265-267).
+// Borne du nombre de pixels = plus de 2 x le maximum mesuré (9) ; borne d'écart = maximum mesuré (2). Le bruit est de quelques pixels :
+// un voile à écart 2 sur toute la page (~300 000 px), un pixel franc (écart 255), une hauteur +1 px (dimensions) restent détectés.
+const PIX_MAX_PIXELS = 20;
 const PIX_MAX_CANAL = 2;
+/* global atob, createImageBitmap, Blob -- utilisés dans pg.evaluate, donc dans le navigateur */
 async function comparePixels(a, b) {
   const ctx = await browser.newContext();
   try {
@@ -1240,7 +1246,7 @@ if (frag('regression')) {
           await context.close();
         }
         // Octet pour octet si possible ; sinon pixels décodés, avec une tolérance bornée (bruit d'anticrénelage de Chromium sur
-        // le coin arrondi d'un panneau, mesuré en A/A : même bundle des deux côtés, 1 à 2 pixels, écart <= 2 sur un canal).
+        // le coin arrondi d'un panneau et sur du texte, mesuré en A/A : même bundle des deux côtés, jusqu'à 9 pixels, écart <= 2 sur un canal ; voir PIX_MAX_*).
         const diffs = Buffer.compare(shots.avant, shots.apres) === 0 ? { identique: true } : await comparePixels(shots.avant, shots.apres);
         if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
         check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
