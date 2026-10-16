@@ -30,9 +30,9 @@ class UserscriptValidator {
       }
 
       // Reconstruct minimal userscript for parsing
-      const headerOnly = `// ==UserScript==\n${headerMatch[1]}// ==\/UserScript==\n`;
+      const headerOnly = `// ==UserScript==\n${headerMatch[1]}// ==/UserScript==\n`;
       const metadata = parseScriptMetadata(headerOnly);
-      
+
       // Check required fields
       const required = ['name', 'namespace', 'version', 'match', 'grant'];
       required.forEach((field) => {
@@ -103,7 +103,7 @@ class UserscriptValidator {
       isValid: this.errors.length === 0,
       errors: this.errors,
       warnings: this.warnings,
-      metadata: metadata,
+      metadata: metadata
     };
   }
 
@@ -116,7 +116,7 @@ class UserscriptValidator {
       red: '\x1b[31m',
       green: '\x1b[32m',
       yellow: '\x1b[33m',
-      cyan: '\x1b[36m',
+      cyan: '\x1b[36m'
     };
 
     console.log('\n' + colors.cyan + '═══════════════════════════════════════════════════════════════' + colors.reset);
@@ -126,7 +126,7 @@ class UserscriptValidator {
     if (results.metadata) {
       console.log('Metadata:');
       const getMetaValue = (val) => {
-        if (Array.isArray(val)) return val[0];
+        if (Array.isArray(val)) { return val[0]; }
         return val;
       };
       console.log(`  Name:    ${getMetaValue(results.metadata.name) || 'N/A'}`);

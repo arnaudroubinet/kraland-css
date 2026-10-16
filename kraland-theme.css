@@ -1174,18 +1174,6 @@ a.carousel-control.right{
 }
 
 /* 5. TOOLBAR BBCODE */
-.bootbox-confirm .btn-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: var(--mobile-spacing-md);
-}
-
-.bootbox-confirm .btn-toolbar .btn-group {
-  margin-right: 0;
-  margin-bottom: 4px;
-}
-
 .bootbox-confirm .btn-toolbar .btn {
   min-height: var(--mobile-touch-target);
   min-width: var(--mobile-touch-target);
@@ -1216,7 +1204,6 @@ a.carousel-control.right{
   color: var(--kr-text-primary) !important;
   border: 1px solid var(--kr-border-default) !important;
   appearance: none;
-  -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -11614,16 +11601,65 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
    - les labels carte utilisent les classes c1-c10 pour les couleurs nationales
    - on force un fond opaque pour garantir la lisibilité sur la carte
    --------------------------------------------------------------------------- */
-html[class*='-dark'] .mini.c1  { background-color: rgba(255,128,128,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c2  { background-color: rgba(170,112,0,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c3  { background-color: rgba(255,255,128,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c4  { background-color: rgba(128,128,255,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c5  { background-color: rgba(128,255,128,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c6  { background-color: rgba(204,128,255,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c7  { background-color: rgba(170,170,170,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c8  { background-color: rgba(115,151,115,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c9  { background-color: rgba(170,170,68,0.92) !important; color: #000 !important; text-shadow: none !important; }
-html[class*='-dark'] .mini.c10 { background-color: rgba(204,255,255,0.92) !important; color: #000 !important; text-shadow: none !important; }
+html[class*='-dark'] .mini.c1 {
+  background-color: rgba(255,128,128,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c2 {
+  background-color: rgba(170,112,0,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c3 {
+  background-color: rgba(255,255,128,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c4 {
+  background-color: rgba(128,128,255,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c5 {
+  background-color: rgba(128,255,128,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c6 {
+  background-color: rgba(204,128,255,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c7 {
+  background-color: rgba(170,170,170,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c8 {
+  background-color: rgba(115,151,115,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c9 {
+  background-color: rgba(170,170,68,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
+
+html[class*='-dark'] .mini.c10 {
+  background-color: rgba(204,255,255,0.92) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+}
 
 /* ============================================================================
    PAGE ACCUEIL - DESKTOP

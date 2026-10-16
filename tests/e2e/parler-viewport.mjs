@@ -3,7 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
+import { Buffer } from 'node:buffer';
 import { chromium } from 'playwright';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fixture = path.join(root, 'tests/e2e/fixtures/parler');
@@ -14,7 +15,7 @@ const src = fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-us
 const form = fs.readFileSync(path.join(fixture, 'model-form.html'), 'utf8');
 const text = 'Saisie synthétique conservée : éà [b]test[/b]';
 const results = []; let failures = 0; let checks = 0;
-function check(value, label) { checks++; console.log(`${value ? 'ok' : 'FAIL'} ${label}`); if (!value) failures++; }
+function check(value, label) { checks++; console.log(`${value ? 'ok' : 'FAIL'} ${label}`); if (!value) { failures++; } }
 const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
 async function open({ fallback = false, desktop = false, delayed = false } = {}) {
   const ctx = await browser.newContext({ viewport: desktop ? { width: 1280, height: 720 } : { width: 390, height: 844 }, isMobile: !desktop, hasTouch: !desktop, deviceScaleFactor: 1 });
@@ -22,30 +23,30 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   await ctx.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin === 'http://fixture.invalid' && route.request().method() === 'GET') {
-      if (url.pathname === '/jouer/plateau') return route.fulfill({ contentType: 'text/html', path: path.join(fixture, 'model-page.html') });
-      if (/^\/native\/[\w.-]+$/.test(url.pathname) && fs.existsSync(path.join(vendor, path.basename(url.pathname)))) return route.fulfill({ path: path.join(vendor, path.basename(url.pathname)) });
+      if (url.pathname === '/jouer/plateau') { return route.fulfill({ contentType: 'text/html', path: path.join(fixture, 'model-page.html') }); }
+      if (/^\/native\/[\w.-]+$/.test(url.pathname) && fs.existsSync(path.join(vendor, path.basename(url.pathname)))) { return route.fulfill({ path: path.join(vendor, path.basename(url.pathname)) }); }
     }
     blocked.push(route.request().method() + ' ' + url.href); return route.abort();
   });
-  await ctx.addInitScript(({ src, fallback }) => {
-    if (fallback) Object.defineProperty(window, 'visualViewport', { value: undefined });
+  await ctx.addInitScript(({ source, hasFallback }) => {
+    if (hasFallback) { Object.defineProperty(window, 'visualViewport', { value: undefined }); }
     window.__submits = 0; window.__confirmations = 0;
     window.GM = { xmlHttpRequest: () => {} };
-    HTMLFormElement.prototype.submit = () => { window.__submits++; };
-    HTMLFormElement.prototype.requestSubmit = () => { window.__submits++; };
+    window.HTMLFormElement.prototype.submit = () => { window.__submits++; };
+    window.HTMLFormElement.prototype.requestSubmit = () => { window.__submits++; };
     document.addEventListener('submit', e => { e.preventDefault(); window.__submits++; }, true);
-    document.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); }, true);
+    document.addEventListener('click', e => { if (e.target.closest('a')) { e.preventDefault(); } }, true);
     localStorage.setItem('kr-theme-enabled', 'true'); localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
-    new MutationObserver((m, observer) => { if (document.body) { observer.disconnect(); (0, eval)(src); } }).observe(document, { childList: true, subtree: true });
-  }, { src, fallback });
+    new MutationObserver((m, observer) => { if (document.body) { observer.disconnect(); const script = document.createElement('script'); script.textContent = source; document.documentElement.appendChild(script); script.remove(); } }).observe(document, { childList: true, subtree: true });
+  }, { source: src, hasFallback: fallback });
   const page = await ctx.newPage(); page.on('pageerror', e => errors.push(e.message));
   const cdp = await ctx.newCDPSession(page);
   await page.goto('http://fixture.invalid/jouer/plateau'); await page.waitForTimeout(900);
-  await page.evaluate(form => { bootbox.confirm({ message: form, buttons: { confirm: { label: 'Valider' }, cancel: { label: 'Annuler' } }, callback: () => { window.__confirmations++; return false; } }); }, delayed ? 'Chargement local inerte' : form);
+  await page.evaluate(markup => { window.bootbox.confirm({ message: markup, buttons: { confirm: { label: 'Valider' }, cancel: { label: 'Annuler' } }, callback: () => { window.__confirmations++; return false; } }); }, delayed ? 'Chargement local inerte' : form);
   await page.waitForTimeout(900);
   if (delayed) {
     check(await page.evaluate(() => !document.querySelector('.bootbox').classList.contains('kr-order-viewport')), 'Ajax : modale vide non ciblée');
-    await page.evaluate(form => { document.querySelector('.bootbox-body').innerHTML = form; }, form);
+    await page.evaluate(markup => { document.querySelector('.bootbox-body').innerHTML = markup; }, form);
     await page.waitForTimeout(400);
     check(await page.evaluate(() => document.querySelector('.bootbox').classList.contains('kr-order-viewport')), 'Ajax : ordre avec saisie détecté après insertion');
   }
@@ -54,18 +55,18 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   const native = await page.evaluate(() => { const f = document.querySelector('form[name=post_msg]'); return { action: f.getAttribute('action'), method: f.method, fields: [...f.elements].map(x => [x.name, x.type, x.required, x.getAttribute('onchange'), x.getAttribute('onclick')]) }; });
   async function snap(label) {
     await page.waitForTimeout(250);
-    const measure = ({ label, text, native }) => {
+    const measure = ({ lbl, txt, nat }) => {
       const b = document.querySelector('[data-bb-handler=confirm]'); const r = b.getBoundingClientRect(); const v = window.visualViewport;
       const top = v?.offsetTop || 0; const height = v?.height || window.innerHeight;
       const x = (r.left + r.right) / 2; const y = (r.top + r.bottom) / 2; const hit = document.elementFromPoint(x, y);
       const nodes = ['.bootbox', '.modal-dialog', '.modal-content', '.modal-body', '.modal-footer'].map(s => { const e = document.querySelector('.bootbox' + (s === '.bootbox' ? '' : ' ' + s)); const rr = e.getBoundingClientRect(); const st = getComputedStyle(e); return { selector: s, top: rr.top, bottom: rr.bottom, height: rr.height, clientHeight: e.clientHeight, scrollHeight: e.scrollHeight, scrollTop: e.scrollTop, overflowY: st.overflowY, maxHeight: st.maxHeight }; });
       const f = document.querySelector('form[name=post_msg]');
-      const current = { action: f.getAttribute('action'), method: f.method, fields: [...f.elements].map(x => [x.name, x.type, x.required, x.getAttribute('onchange'), x.getAttribute('onclick')]) };
+      const current = { action: f.getAttribute('action'), method: f.method, fields: [...f.elements].map(el => [el.name, el.type, el.required, el.getAttribute('onchange'), el.getAttribute('onclick')]) };
       const probe = document.createElement('div'); probe.style.cssText = 'position:fixed;visibility:hidden;height:100vh'; document.body.appendChild(probe); const vh = probe.getBoundingClientRect().height; probe.remove();
-      return { label, width: innerWidth, innerHeight, viewport: { top, height, width: v?.width || innerWidth, scale: v?.scale || 1, api: !!v }, vh, button: { top: r.top, bottom: r.bottom, height: r.height }, fullyInside: r.top >= top && r.bottom <= top + height && r.left >= 0 && r.right <= (v?.width || innerWidth), hit: hit === b || b.contains(hit), nodes, inputPreserved: document.querySelector('#message').value === text && document.querySelector('#message') === window.__refs[0], nativePreserved: JSON.stringify(current) === JSON.stringify(native) && f === window.__refs[1] && b === window.__refs[2] && $._data(b.closest('.bootbox'), 'events').click.every((h, i) => h.handler === window.__handlers[i]), submits: window.__submits, confirmations: window.__confirmations };
+      return { label: lbl, width: window.innerWidth, innerHeight: window.innerHeight, viewport: { top, height, width: v?.width || window.innerWidth, scale: v?.scale || 1, api: !!v }, vh, button: { top: r.top, bottom: r.bottom, height: r.height }, fullyInside: r.top >= top && r.bottom <= top + height && r.left >= 0 && r.right <= (v?.width || window.innerWidth), hit: hit === b || b.contains(hit), nodes, inputPreserved: document.querySelector('#message').value === txt && document.querySelector('#message') === window.__refs[0], nativePreserved: JSON.stringify(current) === JSON.stringify(nat) && f === window.__refs[1] && b === window.__refs[2] && $._data(b.closest('.bootbox'), 'events').click.every((h, i) => h.handler === window.__handlers[i]), submits: window.__submits, confirmations: window.__confirmations };
     };
-    const raw = await cdp.send('Runtime.evaluate', { expression: '(' + measure.toString() + ')(' + JSON.stringify({ label, text, native }) + ')', returnByValue: true });
-    if (raw.exceptionDetails) throw new Error(JSON.stringify(raw.exceptionDetails));
+    const raw = await cdp.send('Runtime.evaluate', { expression: '(' + measure.toString() + ')(' + JSON.stringify({ lbl: label, txt: text, nat: native }) + ')', returnByValue: true });
+    if (raw.exceptionDetails) { throw new Error(JSON.stringify(raw.exceptionDetails)); }
     const state = raw.result.value;
     // Capture CDP brute : page.screenshot réappliquerait les métriques Playwright après clear.
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -119,7 +120,7 @@ try {
     check(!s.viewport.api && s.fullyInside && s.hit, `fallback ${height} : sans API visualViewport, bouton atteignable`);
   }
   check(f.errors.length === 0, 'fallback : aucune erreur JavaScript');
-  await f.page.evaluate(() => bootbox.alert('Autre modale sans formulaire d’ordre')); await f.page.waitForTimeout(400);
+  await f.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre')); await f.page.waitForTimeout(400);
   check(await f.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport') && getComputedStyle(document.querySelector('.bootbox-alert')).paddingTop === '30px'), 'autre Bootbox mobile : géométrie historique non ciblée');
   await f.ctx.close();
   const a = await open({ delayed: true });
@@ -131,7 +132,7 @@ try {
   s = await d.snap('bureau');
   check(s.fullyInside && s.hit, 'bureau : bouton visible');
   check(await d.page.evaluate(() => getComputedStyle(document.querySelector('.bootbox')).paddingTop === '30px'), 'bureau : géométrie historique hors correctif mobile');
-  await d.page.evaluate(() => bootbox.alert('Autre modale sans formulaire d’ordre'));
+  await d.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
   await d.page.waitForTimeout(400);
   check(await d.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport')), 'autre Bootbox : non ciblée');
   check(d.errors.length === 0, 'bureau/autre modale : aucune erreur JavaScript'); await d.ctx.close();

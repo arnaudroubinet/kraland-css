@@ -91,7 +91,7 @@ export default [
     }
   },
   {
-    files: ['build.js'],
+    files: ['build.js', 'validate.js'],
     languageOptions: {
       sourceType: 'module',
       globals: {
