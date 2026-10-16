@@ -3430,6 +3430,7 @@
     PerfLog.start('dom:transformations');
 
     const transforms = [
+      window.captureForumSidebar,
       markActiveIcons, replaceMcAnchors, replaceSImages, replaceNavbarBrand,
       reorderBtnGroupXs, ensureSexStrong, ensureFooterSticky, displayVersionInfo,
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
@@ -4053,494 +4054,314 @@
   }
 
   // ============================================
-  // DYNAMIC FORUM RP MENU FROM PAGE CONTENT
+  // MENUS FORUM DYNAMIQUES (RP, HRP, Communauté, Débats, Staff)
   // ============================================
+  // Source native UNIQUE : la liste latérale « #col-left .list-group > a.list-group-item[href] » que Kraland sert (HTML serveur) sur
+  // toute page d'une catégorie : /forum/rp[/…], /forum/hrp[/…], /forum/communaute[/…], /forum/debats[/…], /forum/staff[/…].
+  // Elle montre les forums accessibles au compte. Le tableau « table.table » de la page catégorie n'est PLUS lu : deux sources non
+  // démontrées équivalentes (égalité prouvée en anonyme seulement) feraient alterner la liste d'une page à l'autre.
+  //
+  // Moment de rafraîchissement (voir docs/MENUS-FORUMS.md) :
+  //   1. sur toute page d'une catégorie : lecture de la liste latérale AVANT les transformations de la peau (captureForumSidebar est la
+  //      1re transformation), puis dessin du menu de CETTE catégorie ; les autres catégories ne changent pas ;
+  //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau ;
+  //   3. une liste de plus de MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
+  // Une source absente ou illisible (pas de #col-left, pas de lien de la catégorie, ni accessible ni désactivé) ne remplace RIEN : la liste
+  // précédente reste proposée jusqu'à MAX_AGE_MS. Une liste latérale sans lien n'est PAS une liste vide valide (indiscernable d'une page
+  // dégradée) : le cache n'est jamais effacé par elle.
+  // Q3 (décision d'Arnaud) : une entrée de la catégorie explicitement désactivée (.disabled, aria-disabled="true", disabled) est un accès perdu :
+  // elle est retirée du menu si elle y était, jamais ajoutée ; si toutes le sont, la liste devient vide (pas de maintien de l'ancienne).
+  // Cela vaut aussi pour les raccourcis FIXES du menu d'origine (Taverne, Marché, Monde en RP) : leur destination normalisée est mémorisée
+  // dans « denied » et le raccourci est retiré sur toute page, même si la liste mémorisée est périmée ou indisponible. Le refus se garde
+  // (refus mémorisés ∪ nouveaux refus − destinations explicitement actives lues) : seule une entrée active de la même destination le lève.
+  // Ni l'expiration, ni l'absence de la destination, ni une liste partielle ne lèvent un refus.
+  // Une entrée simplement grisée (style, opacité, text-muted), avec href et sans signal explicite, est une entrée active : elle lève le refus. Liens hors de la catégorie (Kramail, profil, modérateur…) et blocs de la peau (.kraland-metrics)
+  // ignorés. Libellé : texte du lien sans icône, drapeau, badge ni pastille.
+  // Stockage : localStorage (par origine et par navigateur, pas par compte : le script ne connaît pas l'identité du personnage).
+  // L'âge borné limite donc le risque de liste d'un autre personnage ; les anciennes clés « kr-forums-<menu> » (tableau nu, sans
+  // date ni provenance) sont ignorées puis supprimées.
   (function () {
     'use strict';
 
-    const STORAGE_KEY = 'kr-forums-rp';
-    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+    const STORAGE_PREFIX = 'kr-forums-v2-';
+    const LEGACY_PREFIX = 'kr-forums-';
+    const STALE_MS = 24 * 60 * 60 * 1000;
+    const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+    const EXCLUDED_NAMES = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+    // attr : valeur de data-forums-added ; staticCount : éléments d'origine conservés en tête du menu.
+    const MENUS = [
+      { id: 'rp', attr: 'rp', path: '/forum/rp', label: 'Forum RP', fallbackText: 'Autre', staticCount: 4 },
+      { id: 'hrp', attr: 'hrp', path: '/forum/hrp', label: 'Forum HRP', fallbackText: 'Voir tous les forums', staticCount: 0, noExclusion: true },
+      { id: 'communaute', attr: 'forum-communaute', path: '/forum/communaute', label: 'Forum Communauté', fallbackText: 'Voir tous les forums', staticCount: 0 },
+      { id: 'debats', attr: 'forum-debats', path: '/forum/debats', label: 'Forum Débats', fallbackText: 'Voir tous les forums', staticCount: 0 },
+      { id: 'staff', attr: 'forum-staff', path: '/forum/staff', label: 'Forum Staff', fallbackText: 'Voir tous les forums', staticCount: 0 }
+    ];
+
+    function normalizePath(p) {
+      return String(p || '').replace(/\/+$/, '').toLowerCase();
+    }
+
+    function isExcluded(menu, name) {
+      if (menu.noExclusion) {return false;}
+      return EXCLUDED_NAMES.includes(name.trim().toLowerCase());
+    }
+
+    // Chemin normalisé d'une destination (relative, absolue ou avec barre finale) : clé de dédoublonnage.
+    function destinationKey(href, baseURI) {
+      try {
+        return normalizePath(new window.URL(href, baseURI || document.baseURI).pathname);
+      } catch (_e) {
+        return normalizePath(href);
+      }
+    }
+
+    // Décorations d'une entrée de la liste latérale : icône (.lefticon, Font Awesome, glyphicon), drapeau (img), badge, pastille de guilde.
+    const DECORATIONS = '.lefticon, i, img, svg, .badge, .label, .glyphicon, .fa, .sr-only, script, style, [class*="guild"], [class*="pastille"]';
+
+    // Libellé réel d'un lien : son texte sans les décorations (le lien d'origine n'est pas modifié).
+    function labelOf(a) {
+      const copy = a.cloneNode(true);
+      copy.querySelectorAll(DECORATIONS).forEach(el => el.remove());
+      return copy.textContent.replace(/\s+/g, ' ').trim();
+    }
+
+    // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
+    // .disabled, aria-disabled="true", attribut disabled. Un simple style (grisé, opacité, survol, text-muted) n'en est PAS un.
+    function isDisabledLink(a) {
+      return a.classList.contains('disabled') || a.getAttribute('aria-disabled') === 'true' || a.hasAttribute('disabled');
+    }
+
+    /** Menu dont c'est la catégorie pour le chemin donné (/forum/rp, /forum/rp/…), sinon null. */
+    function menuForPath(pathname) {
+      const p = normalizePath(pathname);
+      return MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
+    }
+
+    /** Même origine que le document : un lien vers un autre site portant un chemin /forum/rp/… n'est pas un forum de Kraland. */
+    function isSameOrigin(href, baseURI) {
+      try {
+        return new window.URL(href, baseURI || document.baseURI).origin === new window.URL(baseURI || document.baseURI).origin;
+      } catch (_e) {
+        return false;
+      }
+    }
 
     /**
-     * Extrait les forums de la page /forum/rp et les stocke dans localStorage
-     * Exclut Taverne, Marché, Monde, Communauté, Débats et Staff
+     * Lit la liste latérale native d'un document pour la catégorie d'un menu.
+     * Seuls comptent les liens dont la destination est sous « /forum/<catégorie>/ » : Kramail, profils, modérateurs et blocs de la peau
+     * (.kraland-metrics) n'y entrent jamais.
+     * @returns {{ok: true, forums: Array}|{ok: false, reason: string}}
      */
-    function extractAndStoreForumsRP() {
-      // Ne s'exécuter que sur /forum/rp
-      if (window.location.pathname !== '/forum/rp') {
-        return;
-      }
-
-      console.log('[Forums RP] Extraction des forums depuis la page...');
-
+    function parseSidebar(doc, menu) {
+      const colLeft = doc.getElementById('col-left');
+      if (!colLeft) {return { ok: false, reason: 'no-sidebar' };}
       const forums = [];
+      const seen = new Set();
+      let readable = 0;
+      let deniedCount = 0;
+      const deniedKeys = new Set();
+      const activeKeys = new Set();
+      colLeft.querySelectorAll('.list-group > a.list-group-item[href]').forEach(a => {
+        if (a.closest('.kraland-metrics')) {return;}
+        const href = a.getAttribute('href').trim();
+        if (!href || !isSameOrigin(href, doc.baseURI) || !destinationKey(href, doc.baseURI).startsWith(menu.path + '/')) {return;}
+        // Forum de la catégorie dont l'accès est explicitement coupé : preuve d'accès perdu, jamais ajouté (donc retiré s'il était connu).
+        if (isDisabledLink(a)) {deniedCount += 1; deniedKeys.add(destinationKey(href, doc.baseURI)); return;}
+        const name = labelOf(a);
+        if (!name) {return;}
+        const key = destinationKey(href, doc.baseURI);
+        readable += 1;
+        activeKeys.add(key);
+        if (isExcluded(menu, name) || seen.has(key)) {return;}
+        seen.add(key);
+        forums.push({ name, url: href });
+      });
+      // Destinations explicitement désactivées SANS entrée active pour la même destination : accès perdu, y compris pour les raccourcis fixes
+      // du menu d'origine (Taverne, Marché, Monde en RP). Une destination absente de la liste n'en fait jamais partie.
+      const denied = Array.from(deniedKeys).filter(key => !activeKeys.has(key));
+      // Aucun lien de la catégorie, ni accessible ni explicitement désactivé : source absente ou dégradée, jamais « aucun forum accessible ».
+      // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
+      // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
+      if (!readable && !deniedCount) {return { ok: false, reason: 'no-links' };}
+      return { ok: true, forums, denied, active: Array.from(activeKeys) };
+    }
 
-      // Sélectionner toutes les lignes du tableau des forums
-      const forumRows = document.querySelectorAll('table.table tbody tr');
+    function storageKey(menu) {
+      return STORAGE_PREFIX + menu.id;
+    }
 
-      forumRows.forEach(row => {
-        const linkCell = row.querySelector('td:first-child a');
-        if (!linkCell) {return;}
+    function readStored(menu) {
+      try {
+        const raw = localStorage.getItem(storageKey(menu));
+        if (!raw) {return null;}
+        const data = JSON.parse(raw);
+        if (!data || data.v !== 2 || !Array.isArray(data.forums) || typeof data.at !== 'number') {return null;}
+        // denied : destinations de raccourcis fixes dont l'accès est démontré perdu (absent des entrées écrites avant ce champ = aucun refus).
+        data.denied = Array.isArray(data.denied) ? data.denied.filter(k => typeof k === 'string') : [];
+        return data;
+      } catch (e) {
+        console.warn('[Forums] Lecture localStorage impossible:', e);
+        return null;
+      }
+    }
 
-        const forumName = linkCell.textContent.trim();
-        const forumUrl = linkCell.getAttribute('href');
+    // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
+    // denied : refus lus dans cette colonne ; active : destinations explicitement actives de cette colonne.
+    // Refus conservés = (refus mémorisés ∪ nouveaux refus) − destinations actives lues : seule une entrée active de la même destination
+    // lève un refus (ni l'expiration, ni l'absence de la destination, ni un état indisponible).
+    function writeStored(menu, forums, at, denied, active) {
+      try {
+        const current = readStored(menu);
+        // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
+        if (current && current.at > at && current.at <= Date.now() + 60000) {return false;}
+        const activeSet = new Set(active || []);
+        const kept = Array.from(new Set([...(current ? current.denied : []), ...(denied || [])])).filter(key => !activeSet.has(key));
+        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums, denied: kept }));
+        return true;
+      } catch (e) {
+        console.error('[Forums] Sauvegarde localStorage impossible:', e);
+        return false;
+      }
+    }
 
-        // Exclure les forums de la liste noire (insensible à la casse)
-        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
-          forumName.toLowerCase().includes(excluded)
-        );
+    function purgeLegacy() {
+      try {
+        MENUS.forEach(menu => localStorage.removeItem(LEGACY_PREFIX + menu.id));
+      } catch (_e) { /* stockage inaccessible : rien à purger */ }
+    }
 
-        if (!isExcluded && forumUrl) {
-          forums.push({
-            name: forumName,
-            url: forumUrl
-          });
-          console.log(`[Forums RP] Ajouté: ${forumName} (${forumUrl})`);
-        } else {
-          console.log(`[Forums RP] Exclu: ${forumName}`);
-        }
+    // Page servie par le cache HTTP (aucun octet reçu, mais un corps existe) : le HTML est celui d'une visite passée, mais le script s'exécute
+    // maintenant. Dater sa colonne « maintenant » écraserait une liste plus récente par une ancienne : on ne la lit pas.
+    // Quel que soit le type de navigation (retour arrière, navigation normale vers une page encore fraîche pour le cache HTTP, etc.) :
+    // une page redemandée au serveur, même revalidée (304), reçoit des octets (en-têtes) et reste lue ; le rechargement aussi.
+    // Fiabilité : transferSize vaut 0 aussi quand l'API ne renseigne rien ; encodedBodySize > 0 écarte ce cas (mesure non fiable : lecture
+    // normale, comme avant). Ne dépend d'aucune requête.
+    function isServedFromHttpCache() {
+      try {
+        const nav = performance.getEntriesByType('navigation')[0];
+        return !!nav && nav.transferSize === 0 && nav.encodedBodySize > 0;
+      } catch (_e) {
+        return false;
+      }
+    }
+
+    /** Lit la liste latérale de la page courante si elle appartient à la catégorie du menu. */
+    function refreshFromCurrentPage(menu) {
+      if (menuForPath(window.location.pathname) !== menu) {return false;}
+      if (isServedFromHttpCache()) {
+        console.warn(`[Forums] ${menu.label} : page servie par le cache HTTP, colonne ancienne non relue, liste mémorisée conservée`);
+        return false;
+      }
+      const res = parseSidebar(document, menu);
+      if (!res.ok) {
+        console.warn(`[Forums] ${menu.label} : liste latérale native ${res.reason}, liste précédente conservée`);
+        return false;
+      }
+      // Heure murale du chargement de la page (pas du moment où le script relit le DOM). performance.timeOrigin dérive après une veille.
+      const readAt = Date.now() - performance.now();
+      writeStored(menu, res.forums, readAt, res.denied, res.active);
+      return true;
+    }
+
+    // Raccourcis fixes d'origine par menu (voir render).
+    const staticsOf = new Map();
+
+    function render(menu) {
+      const dropdown = document.querySelector(`[data-forums-added="${menu.attr}"] .dropdown-menu`);
+      if (!dropdown) {return;}
+      const stored = readStored(menu);
+      const age = stored ? Date.now() - stored.at : Infinity;
+      const usable = stored && age <= MAX_AGE_MS && age >= -60000;
+
+      // Raccourcis fixes d'origine (Taverne, Marché, Monde en RP) : mémorisés au premier dessin, car un raccourci retiré (accès perdu) doit
+      // pouvoir revenir si l'accès est rétabli. Un autre <ul> (menu recréé) invalide la mémoire.
+      let known = staticsOf.get(menu.id);
+      if (!known || known.dropdown !== dropdown) {
+        known = { dropdown, nodes: Array.from(dropdown.children).slice(0, menu.staticCount) };
+        staticsOf.set(menu.id, known);
+      }
+      const statics = known.nodes;
+      const staticKeys = new Set();
+      statics.forEach(item => item.querySelectorAll('a[href]').forEach(a => staticKeys.add(destinationKey(a.getAttribute('href')))));
+      // Refus démontré (quelle que soit la page courante) : le raccourci dont la destination est refusée est retiré, même si la liste
+      // mémorisée est périmée (> 7 j), indisponible ou datée du futur. Seule une entrée active de la même destination le rétablit.
+      // La garde de date (usable) ne vaut que pour la liste de forums.
+      const deniedKeys = new Set(stored ? stored.denied : []);
+      dropdown.innerHTML = '';
+      let hasLink = false;
+      statics.forEach(item => {
+        const anchors = Array.from(item.querySelectorAll('a[href]'));
+        if (anchors.length && anchors.every(a => deniedKeys.has(destinationKey(a.getAttribute('href'))))) {return;}
+        // Séparateur d'origine : gardé seulement s'il suit au moins un raccourci conservé (pas de trait en tête de menu).
+        if (!anchors.length && !hasLink) {return;}
+        if (anchors.length) {hasLink = true;}
+        dropdown.appendChild(item);
       });
 
-      // Stocker dans localStorage
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
-        console.log(`[Forums RP] ${forums.length} forums stockés dans localStorage`);
-      } catch (e) {
-        console.error('[Forums RP] Erreur sauvegarde localStorage:', e);
-      }
-    }
-
-    /**
-     * Récupère les forums RP depuis le localStorage
-     */
-    function getStoredForumsRP() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.warn('[Forums RP] Erreur lecture localStorage:', e);
-        return [];
-      }
-    }
-
-    /**
-     * Met à jour le menu Forum RP avec les forums stockés
-     */
-    window.updateForumRPMenu = function () {
-      const forumRpDropdown = document.querySelector('[data-forums-added="rp"] .dropdown-menu');
-      if (!forumRpDropdown) {
-        // Menu pas encore créé ou page sans navigation - normal
-        return;
-      }
-
-      const forums = getStoredForumsRP();
-      console.log(`[Forums RP] Mise à jour du menu avec ${forums.length} forums`);
-
-      // Conserver les 3 premiers liens (Taverne, Marché, Monde) et le divider
-      const staticItems = Array.from(forumRpDropdown.children).slice(0, 4); // 3 liens + 1 divider
-
-      // Vider le menu
-      forumRpDropdown.innerHTML = '';
-
-      // Remettre les items statiques
-      staticItems.forEach(item => forumRpDropdown.appendChild(item));
-
-      // Ajouter les forums dynamiques
-      if (forums.length > 0) {
-        forums.forEach(forum => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = forum.url;
-          a.textContent = forum.name;
-          li.appendChild(a);
-          forumRpDropdown.appendChild(li);
-        });
-      } else {
-        // Si aucun forum stocké, afficher un lien vers la page /forum/rp
+      const forums = (usable ? stored.forums : []).filter(forum => !staticKeys.has(destinationKey(forum.url)));
+      forums.forEach(forum => {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = 'forum/rp';
-        a.textContent = 'Autre';
+        a.href = forum.url;
+        a.textContent = forum.name;
         li.appendChild(a);
-        forumRpDropdown.appendChild(li);
-      }
-    };
-
-    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
-    InitQueue.register('ForumsRP:Extract', extractAndStoreForumsRP, 5);
-  })();
-
-  // ============================================
-  // DYNAMIC FORUM HRP MENU FROM PAGE CONTENT
-  // ============================================
-  (function () {
-    'use strict';
-
-    const STORAGE_KEY = 'kr-forums-hrp';
-
-    /**
-     * Extrait les forums de la page /forum/hrp et les stocke dans localStorage
-     */
-    function extractAndStoreForumsHRP() {
-      // Ne s'exécuter que sur /forum/hrp
-      if (window.location.pathname !== '/forum/hrp') {
-        return;
-      }
-
-      console.log('[Forums HRP] Extraction des forums depuis la page...');
-
-      const forums = [];
-
-      // Sélectionner toutes les lignes du tableau des forums
-      const forumRows = document.querySelectorAll('table.table tbody tr');
-
-      forumRows.forEach(row => {
-        const linkCell = row.querySelector('td:first-child a');
-        if (!linkCell) {return;}
-
-        const forumName = linkCell.textContent.trim();
-        const forumUrl = linkCell.getAttribute('href');
-
-        if (forumUrl) {
-          forums.push({
-            name: forumName,
-            url: forumUrl
-          });
-          console.log(`[Forums HRP] Ajouté: ${forumName} (${forumUrl})`);
-        }
+        dropdown.appendChild(li);
       });
-
-      // Stocker dans localStorage
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
-        console.log(`[Forums HRP] ${forums.length} forums stockés dans localStorage`);
-      } catch (e) {
-        console.error('[Forums HRP] Erreur sauvegarde localStorage:', e);
-      }
-    }
-
-    /**
-     * Récupère les forums HRP depuis le localStorage
-     */
-    function getStoredForumsHRP() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.warn('[Forums HRP] Erreur lecture localStorage:', e);
-        return [];
-      }
-    }
-
-    /**
-     * Met à jour le menu Forum HRP avec les forums stockés
-     */
-    window.updateForumHRPMenu = function () {
-      const forumHrpDropdown = document.querySelector('[data-forums-added="hrp"] .dropdown-menu');
-      if (!forumHrpDropdown) {
-        // Menu pas encore créé ou page sans navigation - normal
-        return;
-      }
-
-      const forums = getStoredForumsHRP();
-      console.log(`[Forums HRP] Mise à jour du menu avec ${forums.length} forums`);
-
-      // Vider le menu
-      forumHrpDropdown.innerHTML = '';
-
-      // Ajouter tous les forums dynamiques
-      if (forums.length > 0) {
-        forums.forEach(forum => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = forum.url;
-          a.textContent = forum.name;
-          li.appendChild(a);
-          forumHrpDropdown.appendChild(li);
-        });
-      } else {
-        // Si aucun forum stocké, afficher un lien vers la page /forum/hrp
+      if (!forums.length) {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = 'forum/hrp';
-        a.textContent = 'Voir tous les forums';
+        a.href = menu.path.slice(1);
+        a.textContent = menu.fallbackText;
         li.appendChild(a);
-        forumHrpDropdown.appendChild(li);
+        dropdown.appendChild(li);
       }
+      // État observable : fresh | stale (affiché mais ancien) | empty (liste vide valide) | unavailable (aucune liste utilisable)
+      let state = 'unavailable';
+      if (usable) {
+        state = !(stored.forums.length) ? 'empty' : (age > STALE_MS ? 'stale' : 'fresh');
+      }
+      dropdown.setAttribute('data-kr-forums-state', state);
+    }
+
+    // Menus dont la liste latérale a déjà été lue pour ce chargement de page : une seule lecture, avant la peau.
+    const readThisLoad = new Set();
+
+    function capture(menu, force) {
+      if (!force && readThisLoad.has(menu.id)) {return;}
+      readThisLoad.add(menu.id);
+      refreshFromCurrentPage(menu);
+    }
+
+    function update(menu) {
+      purgeLegacy();
+      capture(menu, false);
+      render(menu);
+    }
+
+    // 1re transformation de la peau (R2) : lit la liste latérale native avant relocateKramailToLeft, nameLeftSidebarDivs, etc.
+    // `force` (tests) : relire le DOM après la peau ; le filtrage par destination et l'exclusion des blocs de la peau donnent le même résultat.
+    window.captureForumSidebar = function captureForumSidebar(force) {
+      purgeLegacy();
+      const menu = menuForPath(window.location.pathname);
+      if (menu) {capture(menu, force === true);}
     };
 
-    // Enregistrer l'extraction dans InitQueue (priorité haute pour s'exécuter dès que possible)
-    InitQueue.register('ForumsHRP:Extract', extractAndStoreForumsHRP, 5);
-  })();
+    window.updateForumRPMenu = function () { update(MENUS[0]); };
+    window.updateForumHRPMenu = function () { update(MENUS[1]); };
+    window.updateForumCommunauteMenu = function () { update(MENUS[2]); };
+    window.updateForumDebatsMenu = function () { update(MENUS[3]); };
+    window.updateForumStaffMenu = function () { update(MENUS[4]); };
 
-  // ============================================
-  // DYNAMIC FORUM COMMUNAUTE MENU FROM PAGE CONTENT
-  // ============================================
-  (function () {
-    'use strict';
-
-    const STORAGE_KEY = 'kr-forums-communaute';
-    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
-
-    function extractAndStoreForumsCommunaute() {
-      if (window.location.pathname !== '/forum/communaute') {
-        return;
-      }
-
-      console.log('[Forums Communauté] Extraction des forums depuis la page...');
-
-      const forums = [];
-      const forumRows = document.querySelectorAll('table.table tbody tr');
-
-      forumRows.forEach(row => {
-        const linkCell = row.querySelector('td:first-child a');
-        if (!linkCell) {return;}
-
-        const forumName = linkCell.textContent.trim();
-        const forumUrl = linkCell.getAttribute('href');
-
-        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
-          forumName.toLowerCase().includes(excluded)
-        );
-
-        if (!isExcluded && forumUrl) {
-          forums.push({
-            name: forumName,
-            url: forumUrl
-          });
-          console.log(`[Forums Communauté] Ajouté: ${forumName} (${forumUrl})`);
-        }
-      });
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
-        console.log(`[Forums Communauté] ${forums.length} forums stockés dans localStorage`);
-      } catch (e) {
-        console.error('[Forums Communauté] Erreur sauvegarde localStorage:', e);
-      }
-    }
-
-    function getStoredForumsCommunaute() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.warn('[Forums Communauté] Erreur lecture localStorage:', e);
-        return [];
-      }
-    }
-
-    window.updateForumCommunauteMenu = function () {
-      const forumCommunauteDropdown = document.querySelector('[data-forums-added="forum-communaute"] .dropdown-menu');
-      if (!forumCommunauteDropdown) {
-        return;
-      }
-
-      const forums = getStoredForumsCommunaute();
-      console.log(`[Forums Communauté] Mise à jour du menu avec ${forums.length} forums`);
-
-      forumCommunauteDropdown.innerHTML = '';
-
-      if (forums.length > 0) {
-        forums.forEach(forum => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = forum.url;
-          a.textContent = forum.name;
-          li.appendChild(a);
-          forumCommunauteDropdown.appendChild(li);
-        });
-      } else {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = 'forum/communaute';
-        a.textContent = 'Voir tous les forums';
-        li.appendChild(a);
-        forumCommunauteDropdown.appendChild(li);
-      }
-    };
-
-    InitQueue.register('ForumsCommunaute:Extract', extractAndStoreForumsCommunaute, 5);
-  })();
-
-  // ============================================
-  // DYNAMIC FORUM DEBATS MENU FROM PAGE CONTENT
-  // ============================================
-  (function () {
-    'use strict';
-
-    const STORAGE_KEY = 'kr-forums-debats';
-    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
-
-    function extractAndStoreForumsDebats() {
-      if (window.location.pathname !== '/forum/debats') {
-        return;
-      }
-
-      console.log('[Forums Débats] Extraction des forums depuis la page...');
-
-      const forums = [];
-      const forumRows = document.querySelectorAll('table.table tbody tr');
-
-      forumRows.forEach(row => {
-        const linkCell = row.querySelector('td:first-child a');
-        if (!linkCell) {return;}
-
-        const forumName = linkCell.textContent.trim();
-        const forumUrl = linkCell.getAttribute('href');
-
-        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
-          forumName.toLowerCase().includes(excluded)
-        );
-
-        if (!isExcluded && forumUrl) {
-          forums.push({
-            name: forumName,
-            url: forumUrl
-          });
-          console.log(`[Forums Débats] Ajouté: ${forumName} (${forumUrl})`);
-        }
-      });
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
-        console.log(`[Forums Débats] ${forums.length} forums stockés dans localStorage`);
-      } catch (e) {
-        console.error('[Forums Débats] Erreur sauvegarde localStorage:', e);
-      }
-    }
-
-    function getStoredForumsDebats() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.warn('[Forums Débats] Erreur lecture localStorage:', e);
-        return [];
-      }
-    }
-
-    window.updateForumDebatsMenu = function () {
-      const forumDebatsDropdown = document.querySelector('[data-forums-added="forum-debats"] .dropdown-menu');
-      if (!forumDebatsDropdown) {
-        return;
-      }
-
-      const forums = getStoredForumsDebats();
-      console.log(`[Forums Débats] Mise à jour du menu avec ${forums.length} forums`);
-
-      forumDebatsDropdown.innerHTML = '';
-
-      if (forums.length > 0) {
-        forums.forEach(forum => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = forum.url;
-          a.textContent = forum.name;
-          li.appendChild(a);
-          forumDebatsDropdown.appendChild(li);
-        });
-      } else {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = 'forum/debats';
-        a.textContent = 'Voir tous les forums';
-        li.appendChild(a);
-        forumDebatsDropdown.appendChild(li);
-      }
-    };
-
-    InitQueue.register('ForumsDebats:Extract', extractAndStoreForumsDebats, 5);
-  })();
-
-  // ============================================
-  // DYNAMIC FORUM STAFF MENU FROM PAGE CONTENT
-  // ============================================
-  (function () {
-    'use strict';
-
-    const STORAGE_KEY = 'kr-forums-staff';
-    const EXCLUDED_FORUMS = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
-
-    function extractAndStoreForumsStaff() {
-      if (window.location.pathname !== '/forum/staff') {
-        return;
-      }
-
-      console.log('[Forums Staff] Extraction des forums depuis la page...');
-
-      const forums = [];
-      const forumRows = document.querySelectorAll('table.table tbody tr');
-
-      forumRows.forEach(row => {
-        const linkCell = row.querySelector('td:first-child a');
-        if (!linkCell) {return;}
-
-        const forumName = linkCell.textContent.trim();
-        const forumUrl = linkCell.getAttribute('href');
-
-        const isExcluded = EXCLUDED_FORUMS.some(excluded =>
-          forumName.toLowerCase().includes(excluded)
-        );
-
-        if (!isExcluded && forumUrl) {
-          forums.push({
-            name: forumName,
-            url: forumUrl
-          });
-          console.log(`[Forums Staff] Ajouté: ${forumName} (${forumUrl})`);
-        }
-      });
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(forums));
-        console.log(`[Forums Staff] ${forums.length} forums stockés dans localStorage`);
-      } catch (e) {
-        console.error('[Forums Staff] Erreur sauvegarde localStorage:', e);
-      }
-    }
-
-    function getStoredForumsStaff() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.warn('[Forums Staff] Erreur lecture localStorage:', e);
-        return [];
-      }
-    }
-
-    window.updateForumStaffMenu = function () {
-      const forumStaffDropdown = document.querySelector('[data-forums-added="forum-staff"] .dropdown-menu');
-      if (!forumStaffDropdown) {
-        return;
-      }
-
-      const forums = getStoredForumsStaff();
-      console.log(`[Forums Staff] Mise à jour du menu avec ${forums.length} forums`);
-
-      forumStaffDropdown.innerHTML = '';
-
-      if (forums.length > 0) {
-        forums.forEach(forum => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = forum.url;
-          a.textContent = forum.name;
-          li.appendChild(a);
-          forumStaffDropdown.appendChild(li);
-        });
-      } else {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = 'forum/staff';
-        a.textContent = 'Voir tous les forums';
-        li.appendChild(a);
-        forumStaffDropdown.appendChild(li);
-      }
-    };
-
-    InitQueue.register('ForumsStaff:Extract', extractAndStoreForumsStaff, 5);
+    // Un autre onglet a mis la liste à jour, ou la page revient du cache de navigation : on redessine depuis le stockage.
+    const renderAll = () => MENUS.forEach(render);
+    window.addEventListener('storage', e => {
+      if (e.key && e.key.startsWith(STORAGE_PREFIX)) {renderAll();}
+    });
+    // Retour depuis le cache de navigation : le DOM restauré peut être plus ancien que le stockage. On redessine seulement, sans relire.
+    window.addEventListener('pageshow', e => {
+      if (e.persisted) {renderAll();}
+    });
   })();
 
   /**
