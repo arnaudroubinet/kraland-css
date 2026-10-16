@@ -293,8 +293,98 @@
       initMobileMode();
     }
 
-    // Écoute du resize via le gestionnaire centralisé
-    ResizeManager.add(initMobileMode, 250);
+    // E2 : le mode mobile n'est plus (ré)appliqué au redimensionnement. Le rechargement
+    // (checkBreakpointCrossing) s'en charge ; sans lui, des styles inline mobiles resteraient
+    // après un aller-retour avec une saisie en cours.
+
+    // === Bascule mobile/desktop : règle unique et symétrique (PLT-01/02/03) ===
+    // Les modules (barre d'onglets, mini-profil, styles inline...) ne se construisent
+    // qu'au chargement : au franchissement du seuil, dans un sens comme dans l'autre,
+    // on recharge la page (défilement restauré), sauf si une saisie est en cours.
+    const RELOAD_KEY = 'kr-breakpoint-reload';
+    const RELOAD_MAX_AGE_MS = 15000;
+    const RESIZE_SETTLE_MS = 400;
+    const loadedAsMobile = isMobileDevice();
+
+    function hasPendingInput() {
+      const active = document.activeElement;
+      if (active && (active.isContentEditable || (active.matches && active.matches('textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="hidden"])')))) {
+        return true;
+      }
+      const fields = document.querySelectorAll('textarea, input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="url"], input[type="tel"]');
+      return Array.prototype.some.call(fields, function (field) {
+        return field.value !== field.defaultValue;
+      });
+    }
+
+    function showReloadBanner() {
+      if (document.getElementById('kr-resize-banner') || !document.body) {return;}
+      const banner = document.createElement('div');
+      banner.id = 'kr-resize-banner';
+      banner.setAttribute('role', 'status');
+      const text = document.createElement('span');
+      text.textContent = 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Recharger';
+      button.addEventListener('click', function () {
+        reloadKeepingScroll();
+      });
+      banner.appendChild(text);
+      banner.appendChild(button);
+      document.body.appendChild(banner);
+    }
+
+    function hideReloadBanner() {
+      const banner = document.getElementById('kr-resize-banner');
+      if (banner) {banner.remove();}
+    }
+
+    function reloadKeepingScroll() {
+      try {
+        sessionStorage.setItem(RELOAD_KEY, JSON.stringify({
+          y: window.scrollY,
+          url: location.pathname + location.search,
+          at: Date.now()
+        }));
+      } catch (_e) { /* sessionStorage indisponible : rechargement sans restauration */ }
+      location.reload();
+    }
+
+    function checkBreakpointCrossing() {
+      if (!document.body) {return;}
+      if (isMobileDevice() === loadedAsMobile) {
+        hideReloadBanner();
+        return;
+      }
+      if (hasPendingInput()) {
+        showReloadBanner();
+        return;
+      }
+      reloadKeepingScroll();
+    }
+
+    function restoreScrollAfterReload() {
+      let saved = null;
+      try {
+        saved = JSON.parse(sessionStorage.getItem(RELOAD_KEY) || 'null');
+        sessionStorage.removeItem(RELOAD_KEY);
+      } catch (_e) { return; }
+      if (!saved || Date.now() - saved.at > RELOAD_MAX_AGE_MS || saved.url !== location.pathname + location.search) {return;}
+      // Le contenu s'allonge pendant l'initialisation des modules : plusieurs tentatives
+      [0, 150, 400, 900, 1800].forEach(function (delay) {
+        setTimeout(function () {
+          window.scrollTo(0, saved.y);
+        }, delay);
+      });
+    }
+
+    ResizeManager.add(checkBreakpointCrossing, RESIZE_SETTLE_MS);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restoreScrollAfterReload);
+    } else {
+      restoreScrollAfterReload();
+    }
 
     // Export global pour debug
     window.KralandMobile = {
@@ -345,37 +435,59 @@
   // Sur les pages /map/*, la navbar a 2 lignes (logo + sous-nav) qui débordent
   // au-delà du max-height CSS. Ce module ajuste le padding-top du body.
   (function () {
-    function fixNavbarPadding() {
-      if (isMobileMode()) {return;}
+    // E1 : recalculé au chargement ET à chaque redimensionnement (anti-rebond), car la
+    // hauteur de barre dépend de la largeur (60 px < 992, 106 à 206 px de 992 à 1359).
+    function applyNavbarPadding() {
+      var nav = document.querySelector('nav.navbar');
+      if (!nav || !document.body) {return;}
 
+      // 1. Repartir de la hauteur déterminée par la feuille de style
+      nav.style.removeProperty('max-height');
+      document.body.style.removeProperty('padding-top');
+
+      // 2. Mode compact / burger (< 992 px) : la feuille de style fixe la barre à 60 px
+      if (isMobileMode() || window.innerWidth < 992) {return;}
+
+      // 3. Remesurer la position basse réelle des éléments visibles de la navbar
+      var items = nav.querySelectorAll('.navbar-nav > li');
+      var maxBottom = 0;
+      for (var i = 0; i < items.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        if (rect.height > 0 && rect.bottom > maxBottom) {
+          maxBottom = rect.bottom;
+        }
+      }
+
+      // Si les éléments débordent du navbar, ajuster la hauteur et le padding
+      var navHeight = nav.offsetHeight;
+      if (maxBottom > navHeight + 5) {
+        var newHeight = Math.ceil(maxBottom) + 5;
+        nav.style.setProperty('max-height', newHeight + 'px', 'important');
+        // Le body réserve exactement la hauteur réelle de la barre
+        document.body.style.setProperty('padding-top', Math.ceil(nav.getBoundingClientRect().height) + 'px', 'important');
+      }
+    }
+
+    function fixNavbarPadding() {
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
       requestAnimationFrame(function () {
-        setTimeout(function () {
-          var nav = document.querySelector('nav.navbar');
-          if (!nav) {return;}
-
-          // Trouver la position basse réelle des éléments visibles de la navbar
-          var items = nav.querySelectorAll('.navbar-nav > li');
-          var maxBottom = 0;
-          for (var i = 0; i < items.length; i++) {
-            var rect = items[i].getBoundingClientRect();
-            if (rect.height > 0 && rect.bottom > maxBottom) {
-              maxBottom = rect.bottom;
-            }
-          }
-
-          // Si les éléments débordent du navbar, ajuster la hauteur et le padding
-          var navHeight = nav.offsetHeight;
-          if (maxBottom > navHeight + 5) {
-            var newHeight = Math.ceil(maxBottom) + 5;
-            nav.style.setProperty('max-height', newHeight + 'px', 'important');
-            document.body.style.setProperty('padding-top', newHeight + 'px', 'important');
-          }
-        }, 200);
+        setTimeout(applyNavbarPadding, 200);
       });
     }
 
     InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
+    ResizeManager.add(applyNavbarPadding, 150);
+
+    // E6 : Échap referme le panneau du menu (burger)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') {return;}
+      var panel = document.querySelector('nav.navbar .navbar-collapse.in');
+      var toggle = document.querySelector('nav.navbar .navbar-toggle');
+      if (panel && toggle) {
+        toggle.click();
+        toggle.focus();
+      }
+    });
   })();
 
   // ============================================================================
@@ -901,7 +1013,6 @@
           charElements.forEach(charEl => {
             const charClone = charEl.cloneNode(true);
             charClone.className = charEl.className + ' mobile-characteristic-badge';
-            charClone.style.cssText = 'min-width: 44px; min-height: 44px; margin: 4px;';
             characteristicsContainer.appendChild(charClone);
           });
 
@@ -922,7 +1033,6 @@
           skills.forEach(skillEl => {
             const skillClone = skillEl.cloneNode(true);
             skillClone.className = skillEl.className + ' mobile-skill-item';
-            skillClone.style.cssText = 'min-height: 44px; margin: 4px; display: flex; align-items: center; justify-content: center;';
             skillsContainer.appendChild(skillClone);
           });
 
@@ -1637,21 +1747,36 @@
       icon.className = 'fa fa-chevron-down accordion-icon';
       header.appendChild(icon);
 
-      // Gérer le clic
+      // Gérer le clic (et le clavier : Entrée / Espace sur l'en-tête focalisé)
       header.style.cursor = 'pointer';
-      header.addEventListener('click', (e) => {
-        // Ne pas intercepter les clics sur les boutons d'action
-        if (e.target.closest('.dashboard-group-buttons')) {return;}
+      header.setAttribute('role', 'button');
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('aria-expanded', String(isExpanded));
 
-        // Toggle l'état
+      const toggleGroup = () => {
         const isNowExpanded = !cardsGrid.classList.contains('collapsed');
         cardsGrid.classList.toggle('collapsed', isNowExpanded);
         header.classList.toggle('expanded', !isNowExpanded);
+        header.setAttribute('aria-expanded', String(!isNowExpanded));
 
         console.log('[Group Accordion]',
           section.querySelector('.dashboard-group-title')?.textContent,
           isNowExpanded ? 'collapsed' : 'expanded'
         );
+      };
+
+      header.addEventListener('click', (e) => {
+        // Ne pas intercepter les clics sur les boutons d'action
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+        toggleGroup();
+      });
+
+      header.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') {return;}
+        // Les boutons d'action du groupe gardent leur propre comportement clavier
+        if (e.target.closest('.dashboard-group-buttons')) {return;}
+        e.preventDefault();
+        toggleGroup();
       });
 
       console.log('[Group Accordion] Groupe configuré:',
@@ -1923,148 +2048,311 @@
   });
 
   // ============================================================================
-  // TASK-2.1: CROIX DIRECTIONNELLE ET ACCÈS AUX PIÈCES EN LIGNE
-  // Afficher la croix (4 directions) et les accès aux pièces sur une ligne
+  // CX2 : CROIX DIRECTIONNELLE V2 ET ACCÈS TACTILE AUX PIÈCES (mobile, < 768 px)
+  // Remplace la ligne « image map clonée » : une vraie croix de 4 liens (50×50) et une liste
+  // de pièces (>= 44 px de haut). Destinations, onclick et états viennent strictement du DOM natif.
+  // Si la transformation est impossible ou ambiguë, le natif reste visible et fonctionnel.
   // ============================================================================
   (function () {
-    function initNavigationRow() {
-      if (!document.body.classList.contains('mobile-mode')) {return;}
+    const BLOCK_CLASS = 'kr-nav-v2';
+    const DIRECTIONS = ['Nord', 'Ouest', 'Est', 'Sud'];
+    const ARM_CLASS = { Nord: 'kr-n', Ouest: 'kr-w', Est: 'kr-e', Sud: 'kr-s' };
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SKIPPED_ATTRS = ['class', 'style', 'id', 'name', 'usemap', 'alt', 'shape', 'coords'];
+    let lastWarning = '';
 
-      // Utiliser un élément DOM préexistant comme ancre (pas .mobile-quick-actions créé par le script)
-      const navbar = document.querySelector('.navbar');
-      if (!navbar) {return;}
-
-      // Trouver l'image "Sortir" avec la croix directionnelle
-      const exitImg = document.querySelector('img[alt="Sortir"]');
-      if (!exitImg || !exitImg.parentElement) {return;}
-
-      const parent = exitImg.parentElement;
-      const map = parent.querySelector('map[name="exitmap"]');
-
-      // Trouver toutes les images bat*.gif (accès aux pièces)
-      const allBatImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]'));
-      if (allBatImages.length === 0) {return;}
-
-      // Trouver les images qui ne sont PAS déjà dans notre ligne créée
-      const originalImages = allBatImages.filter(img => {
-        let current = img;
-        while (current && current !== document.body) {
-          if (current.classList && current.classList.contains('kr-navigation-row')) {
-            return false;
-          }
-          current = current.parentElement;
-        }
-        return true;
-      });
-
-      // Trier les images par leur numéro (bat0, bat1, bat2, bat3, etc.)
-      originalImages.sort((a, b) => {
-        const numA = parseInt(a.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        const numB = parseInt(b.src.match(/bat(\d+)\.gif/)?.[1] || '999');
-        return numA - numB;
-      });
-
-      if (originalImages.length === 0) {return;}
-
-      // Trouver et masquer le conteneur d'origine (div.row.center)
-      const originalContainer = parent.closest('.row.center');
-      if (originalContainer) {
-        originalContainer.style.display = 'none';
+    function warnOnce(msg) {
+      if (msg !== lastWarning) {
+        lastWarning = msg;
+        console.warn('[Navigation Croix] ' + msg + ' : croix native conservée');
       }
-
-      // Récupérer les liens parents des images
-      const roomLinks = originalImages.map(img => img.closest('a')).filter(link => link !== null);
-      if (roomLinks.length === 0) {return;}
-
-      // Créer le conteneur de la ligne de navigation
-      const navRow = document.createElement('div');
-      navRow.className = 'kr-navigation-row';
-      navRow.setAttribute('role', 'group');
-
-      // Créer la croix directionnelle en premier
-      if (exitImg && map) {
-        const directionGroup = document.createElement('div');
-        directionGroup.className = 'btn-group kr-direction-cross';
-        directionGroup.setAttribute('role', 'group');
-
-        // Créer un lien style btn pour la croix
-        const directionLink = document.createElement('div');
-        directionLink.className = 'btn btn-default alert11 mini kr-direction-link';
-
-        // Cloner l'image et la map
-        const exitImgClone = exitImg.cloneNode(true);
-        exitImgClone.style.width = '60px';
-        exitImgClone.style.height = '60px';
-        exitImgClone.style.display = 'block';
-
-        const mapClone = map.cloneNode(true);
-
-        // En desktop, l'interaction se fait via les areas de la map
-        // En mobile, on doit intercepter les clics sur le conteneur et les rediriger vers les areas
-        directionLink.addEventListener('click', (e) => {
-          // Calculer les coordonnées relatives du clic
-          const rect = directionLink.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          // Trouver l'area qui correspond à ces coordonnées
-          const areas = mapClone.querySelectorAll('area');
-          for (const area of areas) {
-            if (area.shape === 'rect') {
-              const coords = area.coords.split(',').map(c => parseInt(c));
-              const [x1, y1, x2, y2] = coords;
-              if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-                e.preventDefault();
-                e.stopPropagation();
-                const url = area.href;
-                if (url && url !== '#') {
-                  window.location.href = url;
-                }
-                return;
-              }
-            }
-          }
-        });
-
-        directionLink.appendChild(exitImgClone);
-        directionLink.appendChild(mapClone);
-        directionGroup.appendChild(directionLink);
-        navRow.appendChild(directionGroup);
-      }
-
-      // Créer une carte pour chaque accès aux pièces
-      roomLinks.forEach(link => {
-        const btnGroup = document.createElement('div');
-        btnGroup.className = 'btn-group kr-room-access-card';
-        btnGroup.setAttribute('role', 'group');
-
-        // Cloner le lien pour ne pas modifier l'original
-        const linkClone = link.cloneNode(true);
-        // Utiliser les mêmes classes que les actions rapides
-        linkClone.className = 'btn btn-default alert11 mini kr-room-link';
-
-        // Forcer la navigation pour éviter l'interception par Kraland
-        linkClone.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const url = linkClone.href;
-          if (url && url !== '#') {
-            window.location.href = url;
-          }
-        });
-
-        btnGroup.appendChild(linkClone);
-
-        navRow.appendChild(btnGroup);
-      });
-
-      // Insérer la nouvelle ligne après la navbar (élément préexistant)
-      // Note: On utilise .navbar (DOM original) et non .mobile-quick-actions (créé par le script)
-      navbar.parentNode.insertBefore(navRow, navbar.nextSibling);
-
-      console.log(`[Navigation Row] Initialisée avec croix directionnelle et ${roomLinks.length} accès aux pièces`);
     }
 
-    // Enregistrer dans la queue d'initialisation mobile (priorité 60 - après quick actions)
+    function normalise(text) {
+      return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    // Direction d'après le texte natif (alt/title) ; null si absent, 'ambigu' si plusieurs directions
+    function directionFromText(area) {
+      const found = new Set();
+      [area.getAttribute('alt'), area.getAttribute('title')].forEach(txt => {
+        const words = normalise(txt).match(/[a-z]+/g) || [];
+        words.forEach(w => {
+          if (w === 'nord') { found.add('Nord'); }
+          else if (w === 'sud') { found.add('Sud'); }
+          else if (w === 'est') { found.add('Est'); }
+          else if (w === 'ouest') { found.add('Ouest'); }
+        });
+      });
+      if (found.size === 0) { return null; }
+      return found.size === 1 ? Array.from(found)[0] : 'ambigu';
+    }
+
+    // Direction d'après la géométrie (image 60×60) : quadrant dominant net, sinon null
+    function directionFromGeometry(area) {
+      const c = (area.getAttribute('coords') || '').split(',').map(v => parseFloat(v));
+      if (c.length !== 4 || c.some(v => Number.isNaN(v))) { return null; }
+      const dx = (c[0] + c[2]) / 2 - 30;
+      const dy = (c[1] + c[3]) / 2 - 30;
+      const ax = Math.abs(dx);
+      const ay = Math.abs(dy);
+      if (Math.max(ax, ay) < 8) { return null; }
+      if (ax > ay * 1.5) { return dx < 0 ? 'Ouest' : 'Est'; }
+      if (ay > ax * 1.5) { return dy < 0 ? 'Nord' : 'Sud'; }
+      return null;
+    }
+
+    function usableHref(el) {
+      const href = (el.getAttribute('href') || '').trim();
+      return href !== '' && href !== '#';
+    }
+
+    // Lit le DOM natif. Retourne { container, areas: {dir: area|null}, rooms: [...] } ou null (+ journal)
+    function readNative() {
+      const exitImg = Array.from(document.querySelectorAll('img[alt="Sortir"]')).find(i => !i.closest('.' + BLOCK_CLASS));
+      if (!exitImg || !exitImg.parentElement) { return null; }
+      const map = exitImg.parentElement.querySelector('map[name="exitmap"]') || document.querySelector('map[name="exitmap"]');
+      if (!map) { warnOnce('map exitmap absente'); return null; }
+
+      const areas = { Nord: null, Ouest: null, Est: null, Sud: null };
+      for (const area of Array.from(map.querySelectorAll('area'))) {
+        if ((area.getAttribute('shape') || 'rect').toLowerCase() !== 'rect') { warnOnce('area non rectangulaire'); return null; }
+        let dir = directionFromText(area);
+        if (dir === 'ambigu') { warnOnce('area à plusieurs directions'); return null; }
+        if (!dir) { dir = directionFromGeometry(area); }
+        if (!dir) { warnOnce('direction d\'une area indéterminée (alt=' + area.getAttribute('alt') + ')'); return null; }
+        if (areas[dir]) { warnOnce('deux areas pour la direction ' + dir); return null; }
+        areas[dir] = area;
+      }
+
+      // Ordre natif du DOM conservé tel quel (décision d'Arnaud) : pas de tri, les pièces verrouillées restent à leur place
+      const batImages = Array.from(document.querySelectorAll('img[src*="/bat/bat"]')).filter(img => !img.closest('.' + BLOCK_CLASS));
+      const links = [];
+      batImages.forEach(img => {
+        const link = img.closest('a');
+        if (link && !links.includes(link)) { links.push(link); }
+      });
+      if (links.length === 0) { return null; }
+
+      // Sur le site réel, le lien de pièce ne contient QUE l'image (le nom et le cadenas sont dessinés dans le GIF, ni texte ni alt ni title) :
+      // sans nom natif, on montre l'image entière (tuile) et on ne fabrique aucun nom ; l'étiquette accessible n'est qu'un rang (« Pièce 2 sur 5 »)
+      const rooms = links.map((link, i) => {
+        const text = (link.textContent || '').replace(/\s+/g, ' ').trim();
+        const img = link.querySelector('img[src*="/bat/bat"]');
+        const nativeName = text || (img && (img.getAttribute('title') || img.getAttribute('alt'))) || link.getAttribute('title') || '';
+        const locked = Array.from(link.querySelectorAll('img')).some(im => /lock/i.test(im.getAttribute('src') || ''));
+        return { link, rank: i + 1, total: links.length, name: nativeName.trim(), named: nativeName.trim() !== '', locked, current: link.classList.contains('btn-warning') };
+      });
+      // Sans conteneur .row.center, on ne saurait pas masquer le natif : deux commandes seraient visibles → repli natif sûr (rien ajouté)
+      const container = exitImg.parentElement.closest('.row.center');
+      if (!container) { warnOnce('conteneur .row.center introuvable'); return null; }
+      return { container, areas, rooms, tiles: rooms.every(r => !r.named) };
+    }
+
+    function signature(model) {
+      const attr = (el, n) => el ? el.getAttribute(n) : null;
+      return JSON.stringify({
+        d: DIRECTIONS.map(d => model.areas[d] ? [attr(model.areas[d], 'href'), attr(model.areas[d], 'target'), attr(model.areas[d], 'onclick')] : null),
+        r: model.rooms.map(r => [attr(r.link, 'href'), attr(r.link, 'onclick'), r.name, r.current, r.locked, r.link.querySelectorAll('img').length]),
+        t: model.tiles
+      });
+    }
+
+    // Copie les attributs natifs utiles (href, target, onclick, title, rel...) sur le nouveau lien
+    function copyNativeAttributes(from, to) {
+      Array.from(from.attributes).forEach(a => {
+        if (!SKIPPED_ATTRS.includes(a.name)) { to.setAttribute(a.name, a.value); }
+      });
+    }
+
+    function makeArrow() {
+      const svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 14');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', 'M8 1.5 15 12.5H1z');
+      path.setAttribute('fill', 'currentColor');
+      svg.appendChild(path);
+      return svg;
+    }
+
+    function buildArm(dir, area) {
+      const arm = document.createElement('a');
+      arm.className = 'kr-arm ' + ARM_CLASS[dir];
+      arm.setAttribute('data-dir', dir);
+      if (area && usableHref(area)) {
+        copyNativeAttributes(area, arm);
+        arm.setAttribute('aria-label', dir);
+        // Même chemin que le natif : le lien navigue lui-même ; on évite seulement l'interception par les délégués du site
+        arm.addEventListener('click', e => { e.stopPropagation(); });
+      } else {
+        arm.setAttribute('aria-disabled', 'true');
+        arm.setAttribute('aria-label', dir + ' (indisponible)');
+        arm.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+      }
+      arm.appendChild(makeArrow());
+      const label = document.createElement('span');
+      label.textContent = dir;
+      arm.appendChild(label);
+      return arm;
+    }
+
+    function buildRoom(room, tile) {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'listitem');
+      const a = document.createElement('a');
+      a.className = 'kr-room' + (tile ? ' kr-room-tile' : '');
+      copyNativeAttributes(room.link, a);
+      a.addEventListener('click', e => { e.stopPropagation(); });
+
+      const thumb = document.createElement('span');
+      thumb.className = 'kr-room-thumb';
+      Array.from(room.link.querySelectorAll('img')).forEach((img, idx) => {
+        const clone = img.cloneNode(true);
+        clone.removeAttribute('style');
+        clone.removeAttribute('width');
+        clone.removeAttribute('height');
+        if (idx === 0) { clone.setAttribute('alt', ''); }
+        thumb.appendChild(clone);
+      });
+      a.appendChild(thumb);
+
+      let here = null;
+      if (room.current) {
+        a.setAttribute('aria-current', 'true');
+        a.classList.add('kr-room-current');
+        here = document.createElement('span');
+        here.className = 'kr-room-here';
+        here.setAttribute('aria-hidden', 'true');
+        here.textContent = 'ici';
+      }
+
+      if (tile) {
+        // Image seule (nom dessiné dans le GIF) : étiquette accessible = rang, sans nom inventé
+        a.setAttribute('aria-label', 'Pièce ' + room.rank + ' sur ' + room.total + (room.locked ? ', verrouillée' : ''));
+        if (here) { a.appendChild(here); }
+      } else {
+        const text = document.createElement('span');
+        text.className = 'kr-room-text';
+        const name = document.createElement('span');
+        name.className = 'kr-room-name';
+        name.textContent = room.named ? room.name : 'Pièce ' + room.rank;
+        text.appendChild(name);
+        if (here) { text.appendChild(here); }
+        a.appendChild(text);
+      }
+      li.appendChild(a);
+      return li;
+    }
+
+    function buildBlock(model, sig) {
+      const block = document.createElement('section');
+      block.className = BLOCK_CLASS + (model.tiles ? ' kr-nav-tiles' : ' kr-nav-rows');
+      block.setAttribute('aria-labelledby', 'kr-nav-v2-title');
+      block.setAttribute('data-sig', sig);
+
+      const title = document.createElement('h2');
+      title.id = 'kr-nav-v2-title';
+      title.className = 'kr-nav-v2-title';
+      title.textContent = 'Se déplacer';
+      block.appendChild(title);
+
+      const pad = document.createElement('div');
+      pad.className = 'kr-pad';
+      pad.setAttribute('role', 'group');
+      pad.setAttribute('aria-label', 'Directions');
+      DIRECTIONS.forEach(dir => { pad.appendChild(buildArm(dir, model.areas[dir])); });
+      const hub = document.createElement('span');
+      hub.className = 'kr-hub';
+      hub.setAttribute('aria-hidden', 'true');
+      pad.appendChild(hub);
+      block.appendChild(pad);
+
+      const list = document.createElement('ul');
+      list.className = 'kr-rooms';
+      list.setAttribute('role', 'list');
+      list.setAttribute('aria-label', 'Pièces');
+      model.rooms.forEach(room => { list.appendChild(buildRoom(room, model.tiles)); });
+      block.appendChild(list);
+      return block;
+    }
+
+    // L'état de masquage vit sur l'élément (data-*) : plusieurs instances du script (réinjection) restent cohérentes
+    function restoreNative(except) {
+      document.querySelectorAll('[data-kr-nav-hidden]').forEach(el => {
+        if (el === except) { return; }
+        const prev = el.getAttribute('data-kr-nav-prev') || '';
+        const priority = el.getAttribute('data-kr-nav-prio') || '';
+        if (prev === '') { el.style.removeProperty('display'); } else { el.style.setProperty('display', prev, priority); }
+        el.removeAttribute('data-kr-nav-hidden');
+        el.removeAttribute('data-kr-nav-prev');
+        el.removeAttribute('data-kr-nav-prio');
+      });
+    }
+
+    function hideNative(container) {
+      restoreNative(container);
+      if (!container) { return; }
+      if (!container.hasAttribute('data-kr-nav-hidden')) {
+        container.setAttribute('data-kr-nav-prev', container.style.getPropertyValue('display'));
+        container.setAttribute('data-kr-nav-prio', container.style.getPropertyPriority('display'));
+        container.setAttribute('data-kr-nav-hidden', '1');
+      }
+      if (container.style.getPropertyValue('display') !== 'none') { container.style.setProperty('display', 'none'); }
+    }
+
+    function removeBlocks() {
+      document.querySelectorAll('.' + BLOCK_CLASS).forEach(b => b.remove());
+      restoreNative();
+    }
+
+    // Idempotent : appelé à l'init, à chaque mutation, au changement de classe du body et au redimensionnement
+    function syncNavigation() {
+      if (!document.body || !isThemeEnabled() || !document.body.classList.contains('mobile-mode') || window.innerWidth >= 768) {
+        removeBlocks();
+        return;
+      }
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) { return; }
+      const model = readNative();
+      if (!model) {
+        removeBlocks();
+        return;
+      }
+      const sig = signature(model);
+      const existing = Array.from(document.querySelectorAll('.' + BLOCK_CLASS));
+      if (existing.length === 1 && existing[0].getAttribute('data-sig') === sig) {
+        hideNative(model.container);
+        return;
+      }
+      existing.forEach(b => b.remove());
+      lastWarning = '';
+      navbar.parentNode.insertBefore(buildBlock(model, sig), navbar.nextSibling);
+      hideNative(model.container);
+      console.log('[Navigation Croix] Bloc initialisé : ' + DIRECTIONS.filter(d => model.areas[d]).length + ' direction(s), ' + model.rooms.length + ' pièce(s)');
+    }
+
+    function initNavigationRow() {
+      if (!document.body) { return; }
+      syncNavigation();
+      let timer = null;
+      const schedule = () => {
+        clearTimeout(timer);
+        timer = setTimeout(syncNavigation, 120);
+      };
+      // Mutations utiles : classe du body (mobile-mode), ajout/retrait de nœuds, href/onclick/target des liens et areas natifs
+      const relevant = m => {
+        if (m.target.closest && m.target.closest('.' + BLOCK_CLASS)) { return false; }
+        if (m.type === 'childList') { return true; }
+        return m.target === document.body || (m.target.matches && m.target.matches('area, a'));
+      };
+      new MutationObserver(records => { if (records.some(relevant)) { schedule(); } })
+        .observe(document.body, { attributes: true, attributeFilter: ['class', 'href', 'onclick', 'target'], childList: true, subtree: true });
+      window.addEventListener('resize', schedule);
+    }
+
+    // Enregistrer dans la queue d'initialisation (priorité 60 - après quick actions)
     InitQueue.register('initNavigationRow', initNavigationRow, 60);
   })();
 
@@ -2226,6 +2514,7 @@
     },
 
     MEDIEVAL_SEPIA: '85%',
+    MEDIEVAL_PRETEST_TIMEOUT_MS: 3000,
 
     // Images sans équivalent /5/ ni override — ne pas tenter le remplacement
     MEDIEVAL_NO_REPLACE: {
@@ -2257,6 +2546,35 @@
       'http://img7.kraland.org/2/map/1b/231229.gif': true,
       'http://img7.kraland.org/2/map/1b/231329.gif': true,
       'http://img7.kraland.org/2/map/1b/231429.gif': true
+    },
+
+    // Noms dont la cible /2/map/5/ est ABSENTE ou invalide (audit réseau reproductible :
+    // `node tests/e2e/audit-map-images.mjs --online`, rapport docs/AUDIT-MAP-IMAGES.md). Évite des requêtes
+    // vouées à l'échec ; le repli d'exécution (retour à l'URL d'origine) reste actif pour tout le reste.
+    MEDIEVAL_ABSENT_IN_TARGET: {
+      '1': [
+        '109.gif', '123.gif', '124.gif', '125.gif', '126.gif', '127.gif', '128.gif', '129.gif', '130.gif',
+        '134.gif', '150.gif', '160.gif', '161.gif', '162.gif', '163.gif', '164.gif', '165.gif', '166.gif',
+        '167.gif', '168.gif', '169.gif', '170.gif', '197.gif', '198.gif', '199.gif', '231129.gif', '231229.gif',
+        '231329.gif', '231429.gif', '3527.gif', '5015.gif', '5021.gif', '5022.gif', '5023.gif', '5024.gif',
+        '51_1.gif', '51_2.gif', '51_3.gif', '51_4.gif', '51_5.gif', '51_6.gif', '51_7.gif', '51_8.gif',
+        '51_9.gif', '52_0.gif', '53_0.gif', '54.gif', '54_0.gif', '55_0.gif', '55_1.gif', '55_2.gif', '55_3.gif',
+        '55_4.gif', '55_5.gif', '55_6.gif', '55_7.gif', '55_8.gif', '55_9.gif', '56_1.gif', '56_2.gif',
+        '56_3.gif', '56_4.gif', '56_5.gif', '56_6.gif', '56_7.gif', '56_8.gif', '56_9.gif', 'blank.gif',
+        'c1w.gif', 'hex.gif', 'hex2.gif', 'hex3.gif', 'm1w.gif', 'm2w.gif', 'm3w.gif', 'm4w.gif', 'p1w.gif',
+        'p2w.gif', 'p3w.gif', 'p4w.gif'
+      ],
+      '1b': [
+        '109.gif', '123.gif', '124.gif', '125.gif', '126.gif', '127.gif', '128.gif', '129.gif', '130.gif',
+        '134.gif', '150.gif', '160.gif', '161.gif', '162.gif', '163.gif', '164.gif', '165.gif', '166.gif',
+        '167.gif', '168.gif', '169.gif', '170.gif', '197.gif', '198.gif', '199.gif', '231129.gif', '231229.gif',
+        '231329.gif', '231429.gif', '3527.gif', '5015.gif', '5021.gif', '5022.gif', '5023.gif', '5024.gif',
+        '51_1.gif', '51_2.gif', '51_3.gif', '51_4.gif', '51_5.gif', '51_6.gif', '51_7.gif', '51_8.gif',
+        '51_9.gif', '52_0.gif', '53_0.gif', '54.gif', '54_0.gif', '55_0.gif', '55_1.gif', '55_2.gif', '55_3.gif',
+        '55_4.gif', '55_5.gif', '55_6.gif', '55_7.gif', '55_8.gif', '55_9.gif', '56_1.gif', '56_2.gif',
+        '56_3.gif', '56_4.gif', '56_5.gif', '56_6.gif', '56_7.gif', '56_8.gif', '56_9.gif', 'hex.gif', 'hex2.gif',
+        'hex3.gif'
+      ]
     },
 
     // Commerce - affichage liste/tuiles
@@ -2353,14 +2671,95 @@
     return m ? m[1] : null;
   }
 
+  // Suivi des remplacements d'images (carte médiévale). Règle commune : la source d'origine est
+  // mémorisée AVANT tout remplacement et on y revient si la cible ne charge pas (404, décodage).
+  const KR_IMG = {
+    applied: 'data-kr-medieval-applied',
+    original: 'data-kr-medieval-original-bg',
+    filter: 'data-kr-medieval-original-filter',
+    target: 'data-kr-medieval-target',
+    failed: 'data-kr-medieval-failed',
+    pending: 'data-kr-medieval-pending'
+  };
+  // Cibles connues pour ne pas charger : on ne les retente pas (évite requêtes 404 en rafale)
+  const krBadTargets = Object.create(null);
+
+  /** Remet le filtre inline d'origine (celui mémorisé avant le remplacement) */
+  function krRestoreFilter(el) {
+    if (!el.hasAttribute(KR_IMG.filter) || !el.style) {return;}
+    const f = el.getAttribute(KR_IMG.filter);
+    if (f) { el.style.setProperty('filter', f, 'important'); } else { el.style.removeProperty('filter'); }
+  }
+
+  /** Retour à la source d'origine d'une <img> dont le remplacement a échoué (une seule fois, sans boucle) */
+  function krRevertImg(img) {
+    const target = img.getAttribute(KR_IMG.target);
+    if (target) { krBadTargets[target] = true; }
+    const orig = img.getAttribute(KR_IMG.original);
+    img.removeAttribute(KR_IMG.applied);
+    img.removeAttribute(KR_IMG.pending);
+    img.setAttribute(KR_IMG.failed, 'true');
+    krRestoreFilter(img);
+    if (orig !== null && img.getAttribute('src') !== orig) { img.setAttribute('src', orig); }
+  }
+
+  /** Écouteurs de repli, posés une seule fois par image (idempotent) ; lisent l'état à l'événement */
+  function krGuardImg(img) {
+    if (img.__krImgGuard) {return;}
+    img.__krImgGuard = true;
+    const check = function () {
+      if (img.getAttribute(KR_IMG.applied) !== 'true') {return;}
+      // Seul un échec de la cible remplacée déclenche le repli ; l'original en erreur ne relance rien
+      if (img.getAttribute('src') !== img.getAttribute(KR_IMG.target)) {return;}
+      if (img.__krFailEvent || img.naturalWidth === 0) { krRevertImg(img); }
+    };
+    img.addEventListener('error', function () { img.__krFailEvent = true; check(); img.__krFailEvent = false; });
+    img.addEventListener('load', check);
+  }
+
+  /** Remplace la source d'une <img> par `target`, avec repli garanti sur l'originale */
+  function krSwapImg(img, target, withSepia) {
+    if (!img.hasAttribute(KR_IMG.original)) { img.setAttribute(KR_IMG.original, img.getAttribute('src') || ''); }
+    if (!img.hasAttribute(KR_IMG.filter)) { img.setAttribute(KR_IMG.filter, img.style ? img.style.getPropertyValue('filter') || '' : ''); }
+    krGuardImg(img);
+    img.removeAttribute(KR_IMG.failed);
+    img.setAttribute(KR_IMG.target, target);
+    img.setAttribute(KR_IMG.applied, 'true');
+    img.setAttribute('src', target);
+    if (withSepia && img.style) { img.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important'); }
+    // Image déjà en erreur de décodage/chargement (cache) : repli immédiat
+    if (img.complete && img.naturalWidth === 0 && img.getAttribute('src') === target && img.currentSrc) { krRevertImg(img); }
+  }
+
+  /** Une <img> remplacée dont la source a été changée par le site ou un autre script : on repart de zéro */
+  function krResyncImg(img) {
+    if (img.getAttribute(KR_IMG.applied) !== 'true' && img.getAttribute(KR_IMG.failed) !== 'true') {return;}
+    const cur = img.getAttribute('src');
+    if (cur === img.getAttribute(KR_IMG.target) || cur === img.getAttribute(KR_IMG.original)) {return;}
+    krRestoreFilter(img);
+    [KR_IMG.applied, KR_IMG.failed, KR_IMG.pending, KR_IMG.target, KR_IMG.original, KR_IMG.filter].forEach(function (a) { img.removeAttribute(a); });
+  }
+
+  /** Noms (sans chemin ni paramètres) connus pour être absents de la variante cible /2/map/5/ */
+  const krAbsentInTargetSets = {};
+  function isAbsentInTarget(variant, src) {
+    if (!krAbsentInTargetSets[variant]) {
+      krAbsentInTargetSets[variant] = new Set((CONFIG.MEDIEVAL_ABSENT_IN_TARGET || {})[variant] || []);
+    }
+    const name = String(src).split('?')[0].split('#')[0].split('/').pop();
+    return krAbsentInTargetSets[variant].has(name);
+  }
+
   function computeReplacement(src) {
     if (!src) {return null;}
     const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
     if (overrides[src]) { return overrides[src]; }
     if (src.indexOf('/2/map/1b/') !== -1) {
+      if (isAbsentInTarget('1b', src)) {return null;}
       return src.replace('/2/map/1b/', '/2/map/5/');
     }
     if (src.indexOf('/2/map/1/') !== -1) {
+      if (isAbsentInTarget('1', src)) {return null;}
       return src.replace('/2/map/1/', '/2/map/5/');
     }
     return null;
@@ -2374,6 +2773,9 @@
       const originalFilterAttr = 'data-kr-medieval-original-filter';
 
       const _krTestCache = {};
+      // Résout true (chargée), false (échec confirmé par le navigateur) ou null (délai dépassé : INCONNU).
+      // Un délai sur réseau lent ne prouve rien : la cible n'est ni mémorisée ni bannie, le repli d'exécution
+      // (krSwapImg → retour à l'original si le chargement échoue vraiment) protège les <img>.
       function testImageExists(url) {
         if (Object.hasOwn(_krTestCache, url)) {return Promise.resolve(!!_krTestCache[url]);}
         return new Promise(resolve => {
@@ -2383,11 +2785,11 @@
             var timeout = setTimeout(function () {
               if (!settled) {
                 settled = true;
-                img.src = '';
-                _krTestCache[url] = false;
-                resolve(false);
+                img.onload = null;
+                img.onerror = null;
+                resolve(null);
               }
-            }, 500);
+            }, CONFIG.MEDIEVAL_PRETEST_TIMEOUT_MS);
             img.onload = function () {
               if (!settled) {
                 settled = true;
@@ -2410,6 +2812,7 @@
       }
 
       function processElement(el) {
+        if (el && el.tagName === 'IMG') { krResyncImg(el); }
         if (!el || (el.getAttribute && el.getAttribute(appliedAttr) === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-pending') === 'true') || (el.getAttribute && el.getAttribute('data-kr-medieval-failed') === 'true')) {return;}
         let src = null;
         if (el.tagName === 'IMG') {
@@ -2423,13 +2826,13 @@
         // Ne pas remplacer les URLs explicitement exclues
         if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
         const target = computeReplacement(src);
-        if (!target) {return;}
+        if (!target || krBadTargets[target]) {return;}
 
         // Marquer comme pending pour éviter les re-tests simultanés
         el.setAttribute && el.setAttribute('data-kr-medieval-pending', 'true');
-        // sauvegarde des valeurs originales
+        // sauvegarde des valeurs originales (attribut src tel quel pour une <img>)
         if (!el.hasAttribute || !el.hasAttribute(originalBgAttr)) {
-          el.setAttribute(originalBgAttr, src);
+          el.setAttribute(originalBgAttr, el.tagName === 'IMG' ? (el.getAttribute('src') || src) : src);
         }
         const origFilter = (el.style && el.style.getPropertyValue('filter')) || '';
         if (!el.hasAttribute || !el.hasAttribute(originalFilterAttr)) {
@@ -2438,21 +2841,29 @@
 
         // tester l'existence de la ressource cible avant d'appliquer
         testImageExists(target).then(exists => {
-          if (exists) {
+          if (exists === null) {
+            // Délai dépassé : cible inconnue (ni bannie ni marquée en échec). <img> : remplacement gardé par le repli
+            // d'exécution ; fond CSS : original conservé, nouvel essai possible à la prochaine mutation.
             if (el.tagName === 'IMG') {
-              try { el.src = target; } catch (_e) { el.setAttribute('src', target); }
+              krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
+            }
+          } else if (exists) {
+            if (el.tagName === 'IMG') {
+              // Remplacement gardé : repli sur l'original si la cible échoue après coup
+              krSwapImg(el, target, src.indexOf('/2/map/1b/') !== -1);
             } else {
               el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + target + '")', 'important');
+              if (src.indexOf('/2/map/1b/') !== -1) {
+                el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
+              }
+              el.setAttribute && el.setAttribute(appliedAttr, 'true');
             }
-            if (src.indexOf('/2/map/1b/') !== -1) {
-              el.style && el.style.setProperty && el.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
-            }
-            el.setAttribute && el.setAttribute(appliedAttr, 'true');
           } else {
+            krBadTargets[target] = true;
             // fallback: restaurer l'original si nécessaire (ne rien changer autrement)
             const elemOrig = el.getAttribute(originalBgAttr);
             if (el.tagName === 'IMG') {
-              if (elemOrig) { try { el.src = elemOrig; } catch (_e) { el.setAttribute('src', elemOrig); } }
+              if (elemOrig && el.getAttribute('src') !== elemOrig) { el.setAttribute('src', elemOrig); }
             } else {
               if (elemOrig) { el.style && el.style.setProperty && el.style.setProperty('background-image', 'url("' + elemOrig + '")', 'important'); } else { el.style && el.style.removeProperty && el.style.removeProperty('background-image'); }
             }
@@ -2470,7 +2881,7 @@
           const origBg = el.getAttribute(originalBgAttr);
           if (el.tagName === 'IMG') {
             if (origBg) {
-              try { el.src = origBg; } catch (_e) { el.setAttribute('src', origBg); }
+              if (el.getAttribute('src') !== origBg) { el.setAttribute('src', origBg); }
             } else {
               el.removeAttribute && el.removeAttribute('src');
             }
@@ -2491,6 +2902,8 @@
           el.removeAttribute && el.removeAttribute('data-kr-medieval-failed');
           el.removeAttribute && el.removeAttribute(originalBgAttr);
           el.removeAttribute && el.removeAttribute(originalFilterAttr);
+          el.removeAttribute && el.removeAttribute(KR_IMG.target);
+          el.removeAttribute && el.removeAttribute(KR_IMG.pending);
         });
       }
 
@@ -2543,71 +2956,48 @@
            path !== '/jouer/communaute/membres';
   }
 
-  /** Crée un badge numérique pour les icônes de compétences (rouge, à droite) */
+  /** Crée la pastille de niveau d'une compétence : couleurs et position portées par le CSS (jetons du thème) */
   function createBadge(text) {
     const badge = document.createElement('span');
-    badge.className = 'badge';
+    badge.className = 'badge kr-skill-badge ' + (Number(text) > 0 ? 'is-level' : 'is-zero');
     badge.textContent = text;
-    Object.assign(badge.style, {
-      position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#d9534f', color: '#fff',
-      borderRadius: '50%', width: '19px', height: '19px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
-    });
     return badge;
   }
 
-  /** Crée un badge numérique pour les caractéristiques (bleu, en haut à gauche) */
+  /** Crée la pastille d'une caractéristique : même famille visuelle que celle des compétences */
   function createStatBadge(text) {
     const badge = document.createElement('span');
-    badge.className = 'badge';
+    badge.className = 'badge kr-stat-badge ' + (Number(text) > 0 ? 'is-level' : 'is-zero');
     badge.textContent = text;
-    Object.assign(badge.style, {
-      position: 'absolute', top: '25px', right: '-8px',
-      backgroundColor: '#007bff', color: '#fff',
-      borderRadius: '50%', width: '19px', height: '19px',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '11px', fontWeight: 'bold', border: '2px solid #fff'
-    });
     return badge;
   }
 
-  /** Crée un conteneur d'icône avec badge */
+  /** Si l'icône ne charge pas, on garde le nom lisible (3 lettres) au lieu d'une case vide */
+  function bindIconFallback(img, container, name) {
+    img.addEventListener('error', function () {
+      if (container.querySelector('.kr-icon-fallback')) {return;}
+      img.hidden = true;
+      const fb = document.createElement('span');
+      fb.className = 'kr-icon-fallback';
+      fb.setAttribute('aria-hidden', 'true');
+      fb.textContent = String(name || '').substring(0, 3).toUpperCase();
+      container.insertBefore(fb, img);
+    });
+  }
+
+  /** Crée un conteneur d'icône avec badge (dimensions et position dans le CSS) */
   function createIconContainer(iconUrl, altText, badgeText) {
     const container = document.createElement('div');
-    Object.assign(container.style, {
-      position: 'relative', display: 'inline-block',
-      width: '32px', height: '32px'
-    });
+    container.className = 'kr-skill-icon';
 
     const img = document.createElement('img');
+    img.className = 'kr-skill-img';
     img.src = iconUrl;
     img.alt = altText;
-    img.title = altText;
-    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
+    bindIconFallback(img, container, altText);
     container.appendChild(img);
 
     container.appendChild(createBadge(badgeText));
-    return container;
-  }
-
-  /** Crée un conteneur d'icône avec badge pour caractéristiques */
-  function _createStatIconContainer(iconUrl, altText, badgeText) {
-    const container = document.createElement('div');
-    Object.assign(container.style, {
-      position: 'relative', display: 'inline-block',
-      width: '32px', height: '32px'
-    });
-
-    const img = document.createElement('img');
-    img.src = iconUrl;
-    img.alt = altText;
-    img.title = altText;
-    Object.assign(img.style, { width: '32px', height: '32px', display: 'block' });
-    container.appendChild(img);
-
-    container.appendChild(createStatBadge(badgeText));
     return container;
   }
 
@@ -2771,20 +3161,16 @@
     });
 
     function processImgEarly(img) {
-      if (img.getAttribute('data-kr-medieval-applied') === 'true') {return;}
+      krResyncImg(img);
+      if (img.getAttribute(KR_IMG.applied) === 'true' || img.getAttribute(KR_IMG.failed) === 'true') {return;}
       var src = img.getAttribute('src');
       if (!src) {return;}
       if (src.indexOf('/2/map/1/') === -1 && src.indexOf('/2/map/1b/') === -1) {return;}
       if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
       var target = computeReplacement(src);
-      if (!target) {return;}
-      img.setAttribute('data-kr-medieval-original-bg', src);
-      img.setAttribute('data-kr-medieval-applied', 'true');
-      img.setAttribute('src', target);
-      if (src.indexOf('/2/map/1b/') !== -1) {
-        img.setAttribute('data-kr-medieval-original-filter', img.style ? img.style.getPropertyValue('filter') || '' : '');
-        img.style.setProperty('filter', 'sepia(' + CONFIG.MEDIEVAL_SEPIA + ')', 'important');
-      }
+      if (!target || krBadTargets[target]) {return;}
+      // Source d'origine mémorisée AVANT remplacement ; repli automatique si la cible ne charge pas
+      krSwapImg(img, target, src.indexOf('/2/map/1b/') !== -1);
     }
 
     earlyObserver.observe(document.documentElement, { childList: true, subtree: true });
@@ -2974,7 +3360,7 @@
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
+      ensurePlayerMainPanelRows, addQuickAccessButtons, ensureActionGrid, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
@@ -2998,6 +3384,11 @@
     // 2. Si enfant de col-leftest ou panel-body grid-transformed
 
     document.querySelectorAll('[data-toggle="tooltip"]').forEach(el => {
+      // Les cellules d'icônes (compétences, caractéristiques) portent leur nom dans title/aria-label : on les garde
+      if (el.classList.contains('kr-icon-cell')) {
+        ['data-toggle', 'data-placement', 'data-original-title'].forEach(a => el.removeAttribute(a));
+        return;
+      }
       const isMobile = document.body.classList.contains('mobile-mode');
       const isInColLeftest = el.closest('.col-leftest');
       const isInGridTransformed = el.closest('.panel-body.grid-transformed');
@@ -6243,6 +6634,13 @@
       } else if (back.parentElement !== footer) {
         footer.appendChild(back);
       }
+
+      // PLT-09 : le bouton n'apparaît qu'une fois la page défilée (il ne masque plus le haut de page)
+      const updateBackVisibility = () => {
+        back.classList.toggle('kr-btt-visible', window.scrollY > 400);
+      };
+      window.addEventListener('scroll', updateBackVisibility, { passive: true });
+      updateBackVisibility();
     }
 
     // Bootstrap 3.3 sticky footer: use margin-bottom on body
@@ -6490,6 +6888,16 @@
     }
   }
 
+  /** Ajoute à une cellule d'icône son nom accessible (aria-label), l'infobulle native et l'étiquette de survol/focus */
+  function labelIconCell(el, name, value, ariaLabel) {
+    el.classList.add('kr-icon-cell');
+    // Bootstrap tooltip retiré : l'infobulle native (title) prend le relais
+    ['data-toggle', 'data-placement', 'data-original-title'].forEach(a => el.removeAttribute(a));
+    el.setAttribute('aria-label', ariaLabel);
+    el.title = ariaLabel;
+    el.setAttribute('data-kr-label', name + ' · ' + value);
+  }
+
   function transformSkillsToIcons() {
     const skillsPanel = document.getElementById('skills-panel');
     if (!skillsPanel || skillsPanel.dataset.iconsTransformed) {return;}
@@ -6503,17 +6911,19 @@
 
       const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
       const originalClasses = item.className;
-      item.className = originalClasses + ' btn btn-default mini';
+      item.className = originalClasses + ' btn btn-default mini kr-skill';
       item.innerHTML = '';
 
       const iconContainer = createIconContainer(iconUrl, skillName, level);
-      Object.assign(item.style, {
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'center', padding: '8px',
-        width: '40px', height: '40px',
-        minWidth: '40px', minHeight: '40px'
-      });
+      labelIconCell(item, skillName, level, skillName + ' — niveau ' + level);
       item.appendChild(iconContainer);
+
+      // Légende lisible sans survol (tactile, tablette) : affichée par le CSS selon le type de pointeur
+      const caption = document.createElement('span');
+      caption.className = 'kr-skill-caption';
+      caption.setAttribute('aria-hidden', 'true');
+      caption.textContent = skillName;
+      item.appendChild(caption);
     });
 
     skillsPanel.dataset.iconsTransformed = '1';
@@ -6533,37 +6943,20 @@
       while (statBtn.firstChild) {statBtn.removeChild(statBtn.firstChild);}
 
       const originalClasses = statBtn.className;
-      statBtn.className = originalClasses + ' list-group-item ds_game';
-      Object.assign(statBtn.style, {
-        padding: '8px', display: 'flex',
-        alignItems: 'center', justifyContent: 'center',
-        width: '40px', height: '40px',
-        minWidth: '40px', minHeight: '40px'
-      });
-      statBtn.title = cleanStatName;
+      statBtn.className = originalClasses + ' list-group-item ds_game kr-stat';
+      labelIconCell(statBtn, cleanStatName, number, cleanStatName + ' : ' + number);
 
       const displayMode = getStatsDisplayMode();
 
       // Créer le conteneur principal (toujours avec badge)
       const container = document.createElement('div');
-      Object.assign(container.style, {
-        position: 'relative', display: 'inline-block',
-        width: '32px', height: '32px'
-      });
+      container.className = 'kr-skill-icon kr-stat-icon';
 
       if (displayMode === 'text') {
         // Mode texte : afficher uniquement l'abréviation (3 lettres)
         const textSpan = document.createElement('span');
+        textSpan.className = 'kr-stat-text';
         textSpan.textContent = cleanStatName.substring(0, 3).toUpperCase();
-        Object.assign(textSpan.style, {
-          fontWeight: 'bold',
-          fontSize: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '32px',
-          height: '32px'
-        });
         container.appendChild(textSpan);
       } else {
         // Mode icône (par défaut)
@@ -6571,26 +6964,23 @@
         if (iconCode) {
           const iconUrl = `http://img7.kraland.org/2/mat/94/${iconCode}.gif`;
           const img = document.createElement('img');
+          img.className = 'kr-skill-img';
           img.src = iconUrl;
           img.alt = cleanStatName;
-          img.title = cleanStatName;
-          Object.assign(img.style, {
-            display: 'block', width: '32px', height: '32px'
-          });
+          bindIconFallback(img, container, cleanStatName);
           container.appendChild(img);
         } else {
-          // Fallback SVG
+          // Fallback SVG (couleurs héritées du thème via currentColor)
           const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svg.setAttribute('width', '32');
-          svg.setAttribute('height', '32');
+          svg.setAttribute('class', 'kr-skill-img');
           svg.setAttribute('viewBox', '0 0 32 32');
-          svg.style.display = 'block';
 
           const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           rect.setAttribute('width', '32');
           rect.setAttribute('height', '32');
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#ccc');
+          rect.setAttribute('fill', 'currentColor');
+          rect.setAttribute('fill-opacity', '0.15');
+          rect.setAttribute('stroke', 'currentColor');
           svg.appendChild(rect);
 
           const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -6599,7 +6989,7 @@
           svgText.setAttribute('text-anchor', 'middle');
           svgText.setAttribute('font-size', '14');
           svgText.setAttribute('font-weight', 'bold');
-          svgText.setAttribute('fill', '#333');
+          svgText.setAttribute('fill', 'currentColor');
           svgText.textContent = cleanStatName.substring(0, 2).toUpperCase();
           svg.appendChild(svgText);
 
@@ -6610,6 +7000,15 @@
       // Toujours ajouter le badge de notification
       container.appendChild(createStatBadge(number));
       statBtn.appendChild(container);
+
+      // Légende visible sans survol (tactile) ; inutile en mode texte où l'abréviation est déjà affichée
+      if (displayMode !== 'text') {
+        const caption = document.createElement('span');
+        caption.className = 'kr-skill-caption';
+        caption.setAttribute('aria-hidden', 'true');
+        caption.textContent = cleanStatName;
+        statBtn.appendChild(caption);
+      }
     });
 
     colLeftestStats.dataset.badgesTransformed = '1';
@@ -6663,19 +7062,11 @@
       { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
     ];
 
-    // Créer le conteneur principal avec le système de grille Bootstrap
+    // Conteneur en grille CSS (2 colonnes, même gouttière que la grille d'actions) : plus de row/col imbriqués
     const container = document.createElement('div');
     container.className = 'kr-quick-access-buttons';
-    container.style.marginTop = '10px';
 
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    // Créer chaque bouton avec une colonne Bootstrap (2 par ligne)
     buttons.forEach(btn => {
-      const col = document.createElement('div');
-      col.className = 'col-xs-6 col-sm-6';
-
       const link = document.createElement('a');
       link.href = btn.url;
       link.className = 'btn btn-default btn-block mini';
@@ -6686,14 +7077,33 @@
       link.appendChild(icon);
       link.appendChild(document.createTextNode(' ' + btn.label));
 
-      col.appendChild(link);
-      row.appendChild(col);
+      container.appendChild(link);
     });
-
-    container.appendChild(row);
 
     // Ajouter les boutons à la fin du panneau
     panel.appendChild(container);
+  }
+
+  /**
+   * Range les actions de jeu natives (Dormir, Prier, Pouvoir, Fouiller…) de #player-actions-section
+   * dans une grille à 2 colonnes égales. Les nœuds sont DÉPLACÉS (jamais recréés) : liens,
+   * attributs et gestionnaires d'origine restent intacts. Les nœuds qui ne sont pas des boutons
+   * (séparateur, texte) restent hors grille. Le nombre d'actions est celui du DOM réel.
+   */
+  function ensureActionGrid() {
+    const section = document.getElementById('player-actions-section');
+    if (!section) {return;}
+
+    let grid = section.querySelector(':scope > .kr-action-grid');
+    const buttons = Array.from(section.children).filter(el => el.matches('a.btn, button.btn'));
+    if (buttons.length === 0) {return;}
+
+    if (!grid) {
+      grid = document.createElement('div');
+      grid.className = 'kr-action-grid';
+      section.insertBefore(grid, buttons[0]);
+    }
+    buttons.forEach(btn => grid.appendChild(btn));
   }
 
   // ============================================================================
@@ -8390,13 +8800,8 @@
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
-    // Gérer le redimensionnement de la fenêtre via le gestionnaire centralisé
-    ResizeManager.add(() => {
-      const nowMobile = window.innerWidth < 768;
-      if (nowMobile !== isMobile) {
-        location.reload(); // Recharger si on passe desktop <-> mobile
-      }
-    }, 250);
+    // Le franchissement du seuil mobile/desktop est géré dans les deux sens
+    // par checkBreakpointCrossing (voir TASK-1.1).
   }
 
   /**

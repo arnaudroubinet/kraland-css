@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture plateau — compétences, actions et accès rapides (structure du site réel, sans données réelles)</title>
+  <style>
+    /* Seule règle Bootstrap 3 utile ici : sans elle, les .container du thème débordent de leur marge */
+    *, *::before, *::after { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-leftest" class="col-md-1">
+        <div id="col-leftest-stats" class="panel panel-body"><div class="btn-group-xs">
+          <a class="btn btn-success alert121 mini" href="#">FOR 3</a>
+          <a class="btn btn-success alert122 mini" href="#">VOL 0</a>
+        </div></div>
+      </div>
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <a class="list-group-item ds_game alert111" href="#"><h4 class="list-group-item-heading"><span class="mini">Baratin</span> <span class="mention">0</span></h4></a>
+            <a class="list-group-item ds_game alert112" href="#"><h4 class="list-group-item-heading"><span class="mini">Combat Mains Nues</span> <span class="mention">2</span></h4></a>
+            <a class="list-group-item ds_game alert113" href="#" data-toggle="tooltip" data-placement="right" title="Tooltip Bootstrap d'origine"><h4 class="list-group-item-heading"><span class="mini">Vol</span> <span class="mention">11</span></h4></a>
+            <a class="list-group-item ds_game alert114" href="#"><h4 class="list-group-item-heading"><span class="mini">Pouvoir</span> <span class="mention">0</span></h4></a>
+          </div>
+        </div>
+        <div class="list-group">
+          <span class="list-group-item active">Joueur</span>
+        </div>
+        <div class="panel panel-body">
+          <div class="t row">1 PV</div>
+          <div class="t row">
+<a class="btn btn-primary alert11 mini" href="#" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Dormir"><i class="fa fa-bed"></i> Dormir</a>
+<a class="btn btn-primary alert12 mini" href="#" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Prier"><i class="fa fa-pray"></i> Prier</a>
+<a class="btn btn-default alert14 mini" href="#" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Pouvoir"><i class="fa fa-star-half-alt"></i> Pouvoir</a>
+<hr style="border-top: 1px solid #337ab7; background: transparent;">
+<a class="btn btn-primary alert1103 mini" href="#" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Fouiller"><i class="fab fa-get-pocket"></i> Fouiller</a>
+          </div>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-8">
+        <div class="container-fluid">
+          <div class="dashboard-section">
+            <div class="dashboard-section-header"><span class="dashboard-group-title">Groupe d'essai</span></div>
+            <div class="dashboard-card"><div class="dashboard-card-body"><div class="dashboard-card-status">[Statut d'essai]</div></div></div>
+          </div>
+          <div class="row t" style="height: 1500px">Contenu long</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer><div class="container white"><a href="#top" class="well well-sm">Haut</a></div></footer>
+  <script>
+    // Gestionnaires natifs du site (simulés) : doivent survivre au déplacement des boutons dans la grille.
+    window.__clicks = {};
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a[href="#"]') : null;
+      if (!a) { return; }
+      e.preventDefault();
+      var k = Array.from(a.classList).find(function (c) { return /^alert/.test(c); }) || 'autre';
+      window.__clicks[k] = (window.__clicks[k] || 0) + 1;
+    });
+  </script>
+</body>
+</html>
