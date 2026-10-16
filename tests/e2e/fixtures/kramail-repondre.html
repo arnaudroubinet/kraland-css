@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+	<meta charset="utf-8"/>
+	<title>FIXTURE Kramail répondre (aucune donnée réelle)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<!-- css -->
+	<base href="http://www.kraland.org/">
+	<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
+	<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css" />
+	<!-- /css -->
+</head>
+<body>
+<!-- navbar -->
+<nav class="navbar navbar-inverse nomargin">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="accueil">Kraland</a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse navbar-collapse1">
+			<ul class="nav navbar-nav">
+				<li class="dropdown">
+					<a href="jouer" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Jouer <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="jouer/plateau">Plateau</a></li>
+						<li><a href="jouer/materiel">Matériel</a></li>
+						<li><a href="jouer/perso">Personnage</a></li>
+						<li><a href="jouer/bat">Bâtiments</a></li>
+						<li><a href="jouer/pnj">Employés</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="regles" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Règles <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="regles/base">Règles de Base</a></li>
+						<li><a href="regles/avancees">Règles Avancées</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Vocations</li>
+						<li><a href="regles/carrieres">Carrières</a></li>
+						<li><a href="regles/types">Types</a></li>
+						<li><a href="regles/politique">Politique</a></li>
+						<li><a href="regles/combat">Combat</a></li>
+						<li><a href="regles/pouvoir">Pouvoir</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Gestion Publique</li>
+						<li><a href="regles/ville">Gestion de Ville</a></li>
+						<li><a href="regles/province">Gestion de Province</a></li>
+						<li><a href="regles/empire">Gestion d'Empire</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Annexes</li>
+						<li><a href="regles/provinces">Provinces</a></li>
+						<li><a href="regles/materiel">Liste du Matériel</a></li>
+						<li><a href="regles/batiments">Liste des Bâtiments</a></li>
+						<li><a href="regles/bestiaire">Le Bestiaire</a></li>
+						<li><a href="regles/ordres">Liste des Ordres</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="monde" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Monde <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="monde/citoyens">Citoyens</a></li>
+						<li><a href="monde/empires">Empires</a></li>
+						<li><a href="monde/organisations">Organisations</a></li>
+						<li><a href="monde/evenements">Événements</a></li>
+						<li><a href="monde/guide">Guide du Monde</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/rp">Jeu (RP)</a></li>
+						<li><a href="forum/hrp">Jeu (HRP)</a></li>
+						<li><a href="forum/communaute">Communauté</a></li>
+						<li><a href="forum/debats">Débats</a></li>
+						<li class="divider"></li>
+						<li><a href="forum/top20">Top 20</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="communaute" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Communauté <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres">Membres</a></li>
+						<li><a href="communaute/chat">Mini-Chat</a></li>
+						<li><a href="communaute/soutien">Soutenir le Site</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Mini-Jeux</li>
+						<li><a href="communaute/civikra">Civikra</a></li>
+						<li><a href="communaute/krasolo">Kraland Solo</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="" onclick="javascript:openMap();return false;"><i class="fa fa-globe"></i></a></li>
+				<li><a href="" onclick="javascript:openReport();return false;"><i class="fa fa-bell"></i><span class="badge badge-danger"></span></a></li>
+				<li><a href="kramail"><i class="fa fa-envelope"></i><span class="badge" id="badge"></span></a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-user"></i><span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<form method="post" id="reconnect" action="reconnect">
+							<input type="hidden" name="t" value="FIXTURE">
+						</form>
+						<form method="post" id="exit" action="exit">
+							<input type="hidden" name="t" value="FIXTURE">
+						</form>
+						<li><a href="communaute/membres/edit"><i class="fa fa-user"></i> Modifier profil</a></li>
+						<li><a href="profil/interface"><i class="fa fa-cog"></i> Paramètres</a></li>
+						<li><a href="contacts"><i class="fa fa-users"></i> Contacts</a></li>
+						<li><a href="profil/notes"><i class="fas fa-file-signature"></i> Notes</a></li>
+						<li><a href="aide"><i class="fa fa-medkit"></i> A l'aide !</a></li>
+						<li class="divider"></li>
+						<li><a href="javascript:document.getElementById('reconnect').submit();"><i class="fa fa-sync-alt"></i> Reconnexion</a></li>
+						<li><a href="javascript:document.getElementById('exit').submit();"><i class="fa fa-sign-out-alt"></i> Déconnexion</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+</nav>
+<!-- /navbar --> 
+<!-- content -->
+<div id="content" class="container">
+	<div class="row">
+		<div id="col-left" class="col-md-3 sidebar">
+			<!-- submenu -->
+			<div class="mini-submenu navbar-default">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</div>
+			<div class="list-group">
+				<span class="list-group-item active">
+					Kramail
+					<span class="pull-right" id="slide-submenu">
+		  				<i class="fa fa-times"></i>
+					</span>
+				</span>
+				<li class="list-group-item list-group-subtitle">Compte Membre</li>
+				<a href="kramail/membre-fictif-1000-0" class="list-group-item">Membre fictif<span class="badge" id="badge1000"></span></a>
+				<li class="list-group-item list-group-subtitle">Plateau</li>
+				<a href="kramail/personnage-fictif-2000-0" class="list-group-item">Personnage fictif<span class="badge" id="badge2000"></span></a>
+			</div>
+			<!-- /submenu -->
+
+		</div>
+		<div id="col-right" class="col-md-9">
+			<h1 class="page-header">Répondre
+				<span class="pull-right">
+					<a href="kramail/personnage-fictif-2000-0" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Réception"><i class="fa fa-backward"></i> Réception</a>
+					<a href="kramail/post/sujet-fictif-de-lecture-0-9000002" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Message"><i class="fa fa-backward"></i> Message</a>
+				</span>
+			</h1>
+			<form name="post_msg" method="post" action="kramail/personnage-fictif-2000-0" class="form-horizontal">
+				<input type=hidden name="a" value=1>
+				<input type=hidden name="t" value="FIXTURE">
+				<input type=hidden name="n[6]" value="9000002">
+				<input type=hidden name="n[7]" value="1">
+				<input type=hidden name="n[5]" value="9100001">
+				<input type=hidden name="f[3]" value="0">
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Sujet <span class="required">*</span></label>
+				<div class="col-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<i class="fa fa-comment"></i>
+							</span>
+							<input type="text" name="c[1]" class="form-control" placeholder="Sujet" value="Re: Sujet fictif de lecture" maxlength=100 required/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Expéditeur <span class="required">*</span></label>
+					<div class="col-sm-10">
+						<div class="input-group">
+							<span class="input-group-addon">
+								<i class="fa fa-user"></i>
+							</span>
+							<select name="c[2]" class="form-control" required>
+								<optgroup label="Compte Membre">
+									<option value="1000">Membre fictif</option>
+								</optgroup>
+								<optgroup label="Plateau">
+									<option value="2000" selected>Personnage fictif</option>
+								</optgroup>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Destinataire(s) <span class="required">*</span></label>
+					<div class="col-sm-4">
+						<textarea id="dest" name="c[3]" rows="4" class="form-control" data-plugin-textarea-autosize required>Marelle Duvent; </textarea>
+					</div>
+					<label class="col-sm-1 control-label">Contacts</label>
+					<div class="col-sm-5">
+						<div class="input-group">
+							<span class="input-group-addon btn-group-xs">
+								<input type="button" class="btn btn-primary" onclick="javascript:post_msg.dest.value=post_msg.dest.value+post_msg.contacts.value+'; '";" value="+">
+							</span>
+							<select name="c[4]" id="contacts" class="form-control">
+								<option value=""></option>
+								<optgroup label="Membres">
+									<option value="Aldric Venn">Aldric Venn</option>
+									<option value="Amaury Sel">Amaury Sel</option>
+									<option value="Anouk Fléau">Anouk Fléau</option>
+									<option value="Aurèle Brin">Aurèle Brin</option>
+									<option value="Bastide Noire">Bastide Noire</option>
+									<option value="Brune Castel">Brune Castel</option>
+									<option value="Cael Morn">Cael Morn</option>
+									<option value="Capucine Draye">Capucine Draye</option>
+									<option value="Céleste Aumont">Céleste Aumont</option>
+									<option value="Cendre Vive">Cendre Vive</option>
+									<option value="Corvin Asp">Corvin Asp</option>
+									<option value="Dame Ysolde">Dame Ysolde</option>
+									<option value="Darian Fosse">Darian Fosse</option>
+									<option value="Elio Fernat">Elio Fernat</option>
+									<option value="Émeric Vaast">Émeric Vaast</option>
+									<option value="Ferdinand Gré">Ferdinand Gré</option>
+									<option value="Gaëlle Morel">Gaëlle Morel</option>
+									<option value="Galant Dumas">Galant Dumas</option>
+									<option value="Hector Lune">Hector Lune</option>
+									<option value="Iléana Roc">Iléana Roc</option>
+									<option value="Isolde Vent">Isolde Vent</option>
+									<option value="Jade Noir'mor">Jade Noir'mor</option>
+									<option value="Jules Ardent">Jules Ardent</option>
+									<option value="K-77">K-77</option>
+									<option value="Léandre Faye">Léandre Faye</option>
+									<option value="Lys Ombreuse">Lys Ombreuse</option>
+									<option value="Marelle Duvent">Marelle Duvent</option>
+									<option value="Mathis Rovère">Mathis Rovère</option>
+									<option value="Mélusine Arc">Mélusine Arc</option>
+									<option value="Nadir Sable">Nadir Sable</option>
+									<option value="Nox">Nox</option>
+									<option value="Omar Sablier">Omar Sablier</option>
+									<option value="Orphée Lenn">Orphée Lenn</option>
+									<option value="Pip'">Pip'</option>
+									<option value="Perrine Sorbe">Perrine Sorbe</option>
+									<option value="Quentin Marl">Quentin Marl</option>
+									<option value="R.V.">R.V.</option>
+									<option value="Salomé Frêne">Salomé Frêne</option>
+									<option value="Séraphin Kol">Séraphin Kol</option>
+									<option value="Tiago Brume">Tiago Brume</option>
+									<option value="Ulric Vasse">Ulric Vasse</option>
+									<option value="Valérie Onde">Valérie Onde</option>
+									<option value="Virgile Cardo">Virgile Cardo</option>
+									<option value="Xénia Pruel">Xénia Pruel</option>
+									<option value="Yvain Doré">Yvain Doré</option>
+									<option value="Zélie Corne">Zélie Corne</option>
+									<option value="Ça pique, pôbien">Ça pique, pôbien</option>
+								</optgroup>
+								<optgroup label="Plateau">
+									<option value="Personnage C">Personnage C</option>
+									<option value="Sire Bastien">Sire Bastien</option>
+								</optgroup>
+							</select>
+						</div>
+					</div>
+					<hr>
+					<label class="col-sm-1 control-label">Chercher</label>
+					<div class="col-sm-5">
+						<input type="text" class="form-control" name="search" id="search" />
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-2"></div>
+					<div id="results" class="col-sm-10"><hr></div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Message <span class="required">*</span></label>
+					<div class="col-sm-10">
+						<!-- post toolbar -->
+						<div class="btn-toolbar" role="toolbar" aria-label="...">
+							<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme">
+								<a href="javascript:addtag('b',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Gras: [b]x[/b]"><i class="fa fa-bold"></i></a>
+								<a href="javascript:addtag('i',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Italique: [i]x[/i]"><i class="fa fa-italic"></i></a>
+								<a href="javascript:addtag('u',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Souligné: [u]x[/u]"><i class="fa fa-underline"></i></a>
+								<a href="javascript:addtag('strike',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Barré: [strike]x[/strike]"><i class="fa fa-strikethrough"></i></a>
+							</div>
+							<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme">
+								<a href="javascript:addtag('img',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Image: [img]x[/img]"><i class="far fa-image"></i></a>
+								<a href="javascript:addtag('url',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Lien: [url=...]x[/url]"><i class="fa fa-link"></i></a>
+								<a href="javascript:addtag('youtube',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Vidéo youtube: [youtube]x[/youtube] x = lien de youtube ou numéro vidéo (11 caractères)"><i class="fas fa-video"></i></a>
+								<span class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" data-toggle="tooltip" data-placement="bottom" title="Smileys"><i class="far fa-smile"></i></button></a>
+									<div class="dropdown-menu" role="menu" style="padding:10px;width:320px;">
+										<table>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag(':)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:)]" title="[:)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;)]" title="[;)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8)]" title="[8)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':]',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:]]" title="[:]]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':D',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:D]" title="[:D]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':p',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:p]" title="[:p]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':6',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:6]" title="[:6]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('3)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[3)]" title="[3)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':,',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:,]" title="[:,]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag(':(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:(]" title="[:(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':[',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:[]" title="[:[]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(')[',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[)[]" title="[)[]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('!(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[!(]" title="[!(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('^]',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[^]]" title="[^]]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('x(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[x(]" title="[x(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8(]" title="[8(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('o)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[o)]" title="[o)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('%(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[%(]" title="[%(]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag(':o',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:o]" title="[:o]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':|',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:|]" title="[:|]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(')|',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[)|]" title="[)|]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;(]" title="[;(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';[',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;[]" title="[;[]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':f',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:f]" title="[:f]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';o',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;o]" title="[;o]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';|',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;|]" title="[;|]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('[(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[[(]" title="[[(]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('0)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[0)]" title="[0)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':B',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:B]" title="[:B]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':=',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:=]" title="[:=]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8]',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8]]" title="[8]]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('|)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[|)]" title="[|)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('O)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[O)]" title="[O)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8i',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8i]" title="[8i]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8I',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8I]" title="[8I]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('j)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[j)]" title="[j)]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('p)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[p)]" title="[p)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('^)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[^)]" title="[^)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(')f',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[)f]" title="[)f]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':i',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:i]" title="[:i]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':I',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:I]" title="[:I]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('%)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[%)]" title="[%)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8O',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8O]" title="[8O]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('OX',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[OX]" title="[OX]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(')%',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[)%]" title="[)%]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('oX',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[oX]" title="[oX]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':.',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:.]" title="[:.]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('o(',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[o(]" title="[o(]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('hp',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[hp]" title="[hp]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':n',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:n]" title="[:n]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':P',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:P]" title="[:P]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':x',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:x]" title="[:x]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('8p',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[8p]" title="[8p]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('j|',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[j|]" title="[j|]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('kD',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[kD]" title="[kD]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('k]',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[k]]" title="[k]]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(';p',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[;p]" title="[;p]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':l',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:l]" title="[:l]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':+',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:+]" title="[:+]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag(':-',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[:-]" title="[:-]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('VV',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[VV]" title="[VV]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('%%',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[%%]" title="[%%]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('Q)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[Q)]" title="[Q)]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('fr',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[fr]" title="[fr]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('en',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[en]" title="[en]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('de',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[de]" title="[de]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('es',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[es]" title="[es]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('it',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[it]" title="[it]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('nl',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[nl]" title="[nl]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('ca',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[ca]" title="[ca]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('sw',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[sw]" title="[sw]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('jp',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[jp]" title="[jp]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('*t',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*t]" title="[*t]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*j',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*j]" title="[*j]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*o',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*o]" title="[*o]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*r',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*r]" title="[*r]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*v',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*v]" title="[*v]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*c',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*c]" title="[*c]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*b',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*b]" title="[*b]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*m',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*m]" title="[*m]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('*n',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[*n]" title="[*n]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('=o',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=o]" title="[=o]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=n',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=n]" title="[=n]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=S',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=S]" title="[=S]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('ty',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[ty]" title="[ty]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('mt',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[mt]" title="[mt]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('so',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[so]" title="[so]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('iz',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[iz]" title="[iz]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('jo',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[jo]" title="[jo]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('tk',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[tk]" title="[tk]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('pk',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[pk]" title="[pk]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('ka',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[ka]" title="[ka]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('ke',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[ke]" title="[ke]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('3i',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[3i]" title="[3i]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('+)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[+)]" title="[+)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('st',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[st]" title="[st]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=c',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=c]" title="[=c]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=O',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=O]" title="[=O]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=g',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=g]" title="[=g]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('co',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[co]" title="[co]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=p',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=p]" title="[=p]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=)',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=)]" title="[=)]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=!',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=!]" title="[=!]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=k',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=k]" title="[=k]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=y',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=y]" title="[=y]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=x',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=x]" title="[=x]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=b',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=b]" title="[=b]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=3',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=3]" title="[=3]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('=;',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=;]" title="[=;]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=+',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=+]" title="[=+]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=-',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=-]" title="[=-]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=|',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=|]" title="[=|]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=V',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=V]" title="[=V]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=I',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=I]" title="[=I]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=h',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=h]" title="[=h]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=w',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=w]" title="[=w]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=R',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=R]" title="[=R]" class="img-thumbnail"></a></td>
+											</tr>
+											<tr>
+												<td><a href="#" OnClick="javascript:addtag('=v',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=v]" title="[=v]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=d',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=d]" title="[=d]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=i',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=i]" title="[=i]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=C',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=C]" title="[=C]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=l',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=l]" title="[=l]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=Y',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=Y]" title="[=Y]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=m',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=m]" title="[=m]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=D',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZDA4YTAwIi8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=D]" title="[=D]" class="img-thumbnail"></a></td>
+												<td><a href="#" OnClick="javascript:addtag('=r',0);return false;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjYzlhMjI3Ii8+PC9zdmc+" data-toggle="tooltip" data-placement="bottom" alt="[=r]" title="[=r]" class="img-thumbnail"></a></td>
+											</tr>
+										</table>
+									</div>
+								</span>
+							</div>
+							<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme">
+								<a href="javascript:addtag('quote',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Citation: [quote]x[/quote]"><i class="fa fa-quote-right"></i></a>
+								<a href="javascript:addtag('spoiler',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Spoiler: [spoiler]x[/spoiler]"><i class="fa fa-compress"></i></a>
+								<a href="javascript:addtag('pre',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Pré-formaté: [pre]x[/pre]"><i class="fa fa-list"></i></a>
+								<span class="dropdown">
+									<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><button type="button" class="btn btn-xs btn-default" data-toggle="tooltip" data-placement="bottom" title="Couleurs"><i class="fa fa-flask" aria-hidden="true"></i></button></a>
+									<div class="dropdown-menu" role="menu" style="padding:10px;width:190px;">
+										<div class="btn-group btn-group-xs" role="group">
+											<a href="javascript:addtag('yellow',1);" class="btn btn-default" style="background: none;background-color:#f4ac00" data-toggle="tooltip" data-placement="bottom" title="[yellow]x[/yellow]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('orange',1);" class="btn btn-default" style="background: none;background-color:#f77400" data-toggle="tooltip" data-placement="bottom" title="[orange]x[/orange]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('fuchsia',1);" class="btn btn-default" style="background: none;background-color:#ed6161" data-toggle="tooltip" data-placement="bottom" title="[fuchsia]x[/fuchsia]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('red',1);" class="btn btn-default" style="background: none;background-color:#d50000" data-toggle="tooltip" data-placement="bottom" title="[red]x[/red]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('olive',1);" class="btn btn-default" style="background: none;background-color:#808000" data-toggle="tooltip" data-placement="bottom" title="[olive]x[/olive]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('lightgreen',1);" class="btn btn-default" style="background: none;background-color:#219c5a" data-toggle="tooltip" data-placement="bottom" title="[lightgreen]x[/lightgreen]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('green',1);" class="btn btn-default" style="background: none;background-color:#006f00" data-toggle="tooltip" data-placement="bottom" title="[green]x[/green]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('teal',1);" class="btn btn-default" style="background: none;background-color:#008080" data-toggle="tooltip" data-placement="bottom" title="[teal]x[/teal]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('lightblue',1);" class="btn btn-default" style="background: none;background-color:#5577bc" data-toggle="tooltip" data-placement="bottom" title="[lightblue]x[/lightblue]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('blue',1);" class="btn btn-default" style="background: none;background-color:#2b2be4" data-toggle="tooltip" data-placement="bottom" title="[blue]x[/blue]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('navy',1);" class="btn btn-default" style="background: none;background-color:#000080" data-toggle="tooltip" data-placement="bottom" title="[navy]x[/navy]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('purple',1);" class="btn btn-default" style="background: none;background-color:#800080" data-toggle="tooltip" data-placement="bottom" title="[purple]x[/purple]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('indigo',1);" class="btn btn-default" style="background: none;background-color:#4B0082" data-toggle="tooltip" data-placement="bottom" title="[indigo]x[/indigo]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('maroon',1);" class="btn btn-default" style="background: none;background-color:#800000" data-toggle="tooltip" data-placement="bottom" title="[maroon]x[/maroon]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('brown',1);" class="btn btn-default" style="background: none;background-color:#5e432d" data-toggle="tooltip" data-placement="bottom" title="[brown]x[/brown]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('gray',1);" class="btn btn-default" style="background: none;background-color:#808080" data-toggle="tooltip" data-placement="bottom" title="[gray]x[/gray]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('darkgray',1);" class="btn btn-default" style="background: none;background-color:#5a5a5a" data-toggle="tooltip" data-placement="bottom" title="[darkgray]x[/darkgray]">&nbsp;&nbsp;</a>
+											<a href="javascript:addtag('black',1);" class="btn btn-default" style="background: none;background-color:#000000" data-toggle="tooltip" data-placement="bottom" title="[black]x[/black]">&nbsp;&nbsp;</a>
+										</div>
+									</div>
+								</span>
+							</div>
+							<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme">
+								<a href="javascript:addtag('left',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Aligner à gauche: [left]x[/left]"><i class="fa fa-align-left"></i></a>
+								<a href="javascript:addtag('center',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Centrer: [center]x[/center]"><i class="fa fa-align-center"></i></a>
+								<a href="javascript:addtag('right',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Aligner à droite: [right]x[/right]"><i class="fa fa-align-right"></i></a>
+								<a href="javascript:addtag('fleft',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Flottant à gauche: [fleft]x[/fleft]"><i class="fa fa-outdent"></i></a>
+								<a href="javascript:addtag('fright',1);" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Flottant à droite: [fright]x[/fright]"><i class="fa fa-indent"></i></a>
+								<a href="" onclick="javascript:openHelp('prev');return false;" data-toggle="tooltip" data-placement="bottom" title="Prévisualisation" class="btn btn-default"><i class="fab fa-searchengin"></i></a>
+							</div>
+						</div>
+						<!-- /post toolbar -->
+						<textarea name="message" id="message" rows="14" class="form-control" placeholder="Votre message" data-plugin-textarea-autosize required>[b]Marelle Duvent a écrit :[/b]
+[quote]Bonjour,
+
+Message fictif de lecture : [b]gras[/b] et smileys [:)] rendus par le site.
+Une deuxième ligne pour le corps du message.[/quote]
+
+</textarea>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-md-2 control-label">Options</label>
+					<div class="col-md-10">
+						<label class="checkbox-inline">
+							<input type="checkbox" name="f[0]" value="1" checked> Signature
+						</label>
+						<label class="checkbox-inline">
+							<input type="checkbox" name="f[1]" value="1"> Accusé de réception
+						</label>
+						<label class="checkbox-inline">
+							<input type="checkbox" name="f[2]" value="1"> Message important
+						</label>
+					</div>
+				</div>
+				<div>
+					<div class="col-sm-12">
+						<button class="btn btn-primary pull-right">Envoyer</button>
+					</div>
+				</div>
+			</form>
+			<br>
+			<br>
+			<hr>
+			<div class="panel-group" id="accordion">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">Message auquel vous répondez</a>
+						</h4>
+					</div>
+					<div id="collapseOne" class="panel-collapse collapse">
+						<div class="panel-body">
+						<h2 class="nomargin">
+							<i class="far fa-envelope-open"></i>
+							Sujet fictif de lecture
+						</h2>
+						<!-- kramail -->
+						<ul class="media-list forum t">
+							<li class="media well">
+								<div class="pull-left">
+									<div class="user-info">
+										<img class="avatar img-thumbnail" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjN2E1MjQwIi8+PC9zdmc+" width="80" alt="Marelle Duvent">
+										<strong><a href="communaute/membres/marelle-duvent-1-2">Marelle Duvent</a></strong>
+										<div class="cartouche">
+											<p>Citoyen</p>
+										</div>
+									</div>
+								</div>
+								<div class="media-body">
+									<div class="btn-group btn-group-xs">
+										<span class="btn btn-default"><i class="fa fa-clock-o"></i> posté 07/10 (21:02)</span>
+									</div>
+									<div class="t">
+									Bonjour,<br><br>Message fictif de lecture : <b>gras</b> et smileys rendus par le site.<br>Une deuxième ligne pour le corps du message.
+									</div>
+								</div>
+							</li>
+						</ul>
+						<!-- /kramail -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /content -->
+<!-- top-link -->
+<span id="top-link" class="hidden">
+	<a href="#top" class="well well-sm"  onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+		<i class="glyphicon glyphicon-chevron-up"></i>
+	</a>
+</span>
+<!-- /top-link -->
+<!-- footer -->
+<footer class="navbar-inverse">
+	<div class="container white">
+		<div class="footer-quote">&laquo; Entre le fort et le faible, entre le riche et le pauvre, entre le maître et le serviteur, c'est la liberté qui opprime et la loi qui affranchit. &raquo; (Lacordaire)</div>
+		<div style="margin-top:5px;text-align:right;font-size:10px;">
+								<a href="" onclick="javascript:openHelp('');return false;" style="color:inherit;">Mentions légales</a> |
+								<a href="" onclick="javascript:openHelp('defkra');return false;" style="color:inherit;">Defkra 5</a> |
+Généré en 0.03 sec. | FIXTURE 		</div>
+	</div>
+</footer>
+<!-- /footer -->
+<!-- js -->
+<!-- /js -->
+<!-- js (fixture : jQuery 3.3.1 et Bootstrap 3.3.7 du dépôt ; copies verbatim de lib/kraland-7.0.9/js/post.js et kramail_post.js ; extraits verbatim de main.js : tooltip, openHelp) -->
+<script>
+var lang = 1;
+var topbar = 0;
+</script>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script>
+// Active tooltip
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+function openHelp( part ) 
+{ 
+	window.open( "help"+( part ? "/"+part : "" ),"Aide","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=800,height=480")
+}
+</script>
+<script>
+var clientPC = navigator.userAgent.toLowerCase(); // Get client info
+var clientVer = parseInt(navigator.appVersion); // Get browser version
+var is_ie = ((clientPC.indexOf("msie") != -1) && (clientPC.indexOf("opera") == -1));
+var is_nav = ((clientPC.indexOf('mozilla')!=-1) && (clientPC.indexOf('spoofer')==-1)
+                && (clientPC.indexOf('compatible') == -1) && (clientPC.indexOf('opera')==-1)
+                && (clientPC.indexOf('webtv')==-1) && (clientPC.indexOf('hotjava')==-1));
+var is_moz = ((clientPC.indexOf('mozilla')!=-1) && (clientPC.indexOf("safari") == -1));;
+var is_win = ((clientPC.indexOf("win")!=-1) || (clientPC.indexOf("16bit") != -1));
+var is_mac = (clientPC.indexOf("mac")!=-1);
+var is_opera = (clientPC.indexOf("opera") != -1);
+var is_safari = (clientPC.indexOf('safari')!=-1);
+
+var tagopen;
+
+function addtag( tag, tagtype )
+{
+	textselect=this.document.post_msg.message;
+	
+	if( tag == "mail" || tag == "url" )
+	{
+		eq = "=";
+	}
+	else
+	{
+		eq = "";
+	}
+	
+	if( is_moz || is_safari || is_opera || is_ie )
+	{
+		var selLength = textselect.textLength;
+		var selStart = textselect.selectionStart;
+		var selEnd = textselect.selectionEnd;
+		// if (selEnd == 1 || selEnd == 2)	selEnd = selLength;
+		var s1 = (textselect.value).substring(0,selStart);
+		var s2 = (textselect.value).substring(selStart, selEnd)
+		var s3 = (textselect.value).substring(selEnd, selLength);
+		if( textselect.selectionEnd && (textselect.selectionEnd - textselect.selectionStart > 0) && tagtype == 1 )
+		{
+			textselect.value = s1 + "[" + tag + eq + "]" + s2 + "[/" + tag + "]" + s3;
+			textselect.selectionStart = s1.length;
+			textselect.selectionEnd = (textselect.value).length - s3.length;
+		} 
+		else 
+		{
+			if( tagopen == tag && tagtype == 1 )
+			{
+				s2 = "[/" + tag + "]";
+				tagopen = '';
+			} 
+			else 
+			{
+				s2 = "[" + tag + eq + "]";
+				tagopen = tag;
+			}
+			textselect.value = s1 + s2 + s3;
+			textselect.selectionStart = s1.length + s2.length;
+			textselect.selectionEnd = s1.length + s2.length;
+		}
+	} 
+	else 
+	{
+		if( tagopen == tag && tagtype == 1 ) 
+		{
+			textselect.value+= "[/" + tag + "]";	
+			tagopen = '';
+		} 
+		else 
+		{
+			textselect.value+= "[" + tag + eq + "]";	
+			tagopen = tag;
+		}		
+	}
+	textselect.focus();	
+}
+
+function previsualisation()
+{
+	window.open('help.php?p=prev','Aide','width=600,height=480,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,copyhistory=yes,resizable=yes');
+}
+</script>
+<script>
+$(document).ready( function() {
+	$('#search').keyup( function(){
+		$('#results').html('');
+		if( $(this).val().length > 1 )
+		{
+			$.ajax({
+				type : 'GET',
+				url : 'ajaxsearch.php',
+				data : 'c[1]='+$(this).val()+"&t="+new Date().getTime(),
+				beforeSend : function() {
+				$('#results').html('<img src="../v7_img/wait.gif" alt="wait" />');
+				},
+				success : function(data){
+				$('#results').html(data);
+				}
+			});
+		}		
+	});
+});
+</script>
+<!-- /js -->
+</body>
+</html>

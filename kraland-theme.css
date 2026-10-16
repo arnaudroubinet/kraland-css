@@ -10255,6 +10255,1019 @@ body.page-kramail h1.page-header .btn-default:hover {
 } /* fin @media (max-width: 768px) — Kramail formulaire mobile */
 
 /* ============================================================================
+   KRAMAIL RÉDACTION — barre d'outils fidèle et champ « Destinataires » (t_abf9ccd4)
+   Référence validée par Arnaud : maquette t_859e687e (barre t_29241bce + destinataires).
+   1) Barre d'outils : les 18 boutons natifs (4 groupes btn-group-xs, icônes Font Awesome, infobulles Bootstrap natives)
+      gardent leurs liens et actions ; seul le rendu change. Bureau : une ligne compacte de 24 px, groupes accolés.
+      Mobile : cibles de 40 px, un groupe passe à la ligne en entier, jamais de défilement horizontal.
+   2) Destinataires : classes .kd-* posées par le module JS Kramail:Destinataires ; les zones natives (#dest, #contacts,
+      #search, #results) restent dans le formulaire, masquées par .kd-natif-cache. Sans le module, rien ne change.
+   Couleurs : variables du thème ; l'accent est --kr-highlight (cuivre en Empire Brun sombre, couleur soutenue lisible en clair).
+   Règles universelles (couleurs, structure) ici ; tailles et positions dans les blocs bureau et mobile ci-dessous.
+   ============================================================================ */
+
+/* --- Universel : variables, masquage des zones natives, couleurs et structure --- */
+
+body.page-kramail-compose form[name="post_msg"] {
+  --kd-accent: var(--kr-highlight);
+  --kd-bg: var(--kr-form-bg, var(--kr-bg-elevated));
+  --kd-panel: var(--kr-bg-elevated);
+  --kd-border: var(--kr-border-strong);
+  --kd-text: var(--kr-text-primary);
+  --kd-muted: var(--kr-text-secondary);
+  --kd-chip: color-mix(in srgb, var(--kd-accent) 16%, var(--kd-bg));
+  --kd-chip-line: color-mix(in srgb, var(--kd-accent) 60%, var(--kd-bg));
+  --kd-chip-dup: color-mix(in srgb, var(--kd-accent) 32%, var(--kd-bg));
+  --kd-active: color-mix(in srgb, var(--kd-accent) 24%, var(--kd-panel));
+  --kd-hover: color-mix(in srgb, var(--kd-accent) 10%, var(--kd-panel));
+
+  /* accent pour du TEXTE : tiré vers la couleur du texte, lisible même quand l'accent est clair sur fond clair (or d'Empire Brun) */
+  --kd-accent-text: color-mix(in srgb, var(--kd-accent) 65%, var(--kd-text));
+}
+
+/* Zones natives remplacées par le champ unique : masquées, jamais retirées (elles partent à l'envoi) */
+body.page-kramail-compose form[name="post_msg"] .kd-natif-cache {
+  display: none !important;
+}
+
+/* Barre d'outils : boîte de la barre neutralisée, groupes en ligne, boutons accolés */
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar {
+  position: relative;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* Le clearfix Bootstrap (::before/::after) deviendrait un élément de la ligne et décalerait le 1er groupe */
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar::before,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar::after {
+  display: none !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group {
+  display: inline-flex !important;
+  flex-flow: row nowrap !important;
+  flex: 0 0 auto !important;
+  float: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-decoration: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  float: none !important;
+  border: 1px solid var(--kd-border) !important;
+  border-radius: 0 !important;
+  background: var(--kr-bg-elevated) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--kd-text) !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+/* Arrondi aux extrémités de chaque groupe (spécificité relevée : les anciennes règles Kramail mobiles arrondissaient
+   le 1er et le dernier bouton de la barre entière et retiraient la bordure droite du dernier) */
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > a.btn:first-child {
+  border-top-left-radius: 4px !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > a.btn:last-of-type:not(:has(~ .dropdown)),
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > .dropdown:last-of-type > .dropdown-toggle > .btn {
+  border-right: 1px solid var(--kd-border) !important;
+  border-top-right-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > a.btn:last-of-type:not(:has(~ .dropdown)):is(:hover, :focus-visible),
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > .dropdown:last-of-type > .dropdown-toggle:hover > .btn,
+html body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group.btn-group > .dropdown.open:last-of-type > .dropdown-toggle > .btn {
+  border-right-color: var(--kd-accent) !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn i,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn i {
+  color: inherit !important;
+  font-size: inherit !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:hover,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:focus-visible,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle:hover > .btn,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn:focus-visible,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown.open > .dropdown-toggle > .btn {
+  border-color: var(--kd-accent) !important;
+  background: var(--kd-hover) !important;
+  color: var(--kd-text) !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:focus-visible,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle:focus-visible > .btn,
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn:focus-visible {
+  outline: 2px solid var(--kd-accent) !important;
+  outline-offset: 1px;
+}
+
+/* La barre n'est plus collée au message : la zone Message retrouve sa bordure haute */
+body.page-kramail-compose form[name="post_msg"] .btn-toolbar + textarea.form-control {
+  border-top-style: solid !important;
+  border-top-width: 1px !important;
+  border-top-color: inherit;
+}
+
+/* Destinataires : couleurs et structure */
+body.page-kramail-compose form[name="post_msg"] .kd {
+  min-width: 0;
+  text-align: left;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-field {
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+  border: 1px solid var(--kd-border);
+  background: var(--kd-bg);
+  cursor: text;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-field.is-focus {
+  border-color: var(--kd-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kd-accent) 30%, transparent);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-field.is-invalid {
+  border-color: var(--kr-badge-danger, #dc3545);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chips {
+  display: contents;
+  list-style: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid var(--kd-chip-line);
+  background: var(--kd-chip);
+  color: var(--kd-text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip-x:hover,
+body.page-kramail-compose form[name="post_msg"] .kd-chip-x:focus-visible {
+  background: var(--kd-chip-dup);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip-x:focus-visible {
+  outline: 2px solid var(--kd-accent);
+  outline-offset: -2px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip.is-selected {
+  outline: 2px solid var(--kd-accent);
+  outline-offset: 1px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-chip.is-dup {
+  border-color: var(--kd-accent);
+  background: var(--kd-chip-dup);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kd-accent) 55%, transparent);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-input {
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--kd-text);
+  outline: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-input::placeholder {
+  color: var(--kd-muted);
+  opacity: 1;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-contacts {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid var(--kd-border);
+  background: var(--kd-panel);
+  color: var(--kd-text);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
+  color: var(--kd-accent);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-contacts:hover,
+body.page-kramail-compose form[name="post_msg"] .kd-contacts[aria-expanded="true"] {
+  border-color: var(--kd-accent);
+  background: var(--kd-active);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-contacts:focus-visible {
+  outline: 2px solid var(--kd-accent);
+  outline-offset: 1px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-panel {
+  box-sizing: border-box;
+  border: 1px solid var(--kd-chip-line);
+  background: var(--kd-panel);
+  overflow: hidden;
+  text-align: left;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-panel[hidden] {
+  display: none !important;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-list {
+  overflow: auto;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-sec {
+  color: var(--kd-accent-text);
+  font-weight: 700;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-sec small {
+  color: var(--kd-muted);
+  font-weight: 400;
+  text-transform: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
+body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
+  color: var(--kd-muted);
+  font-weight: 400;
+  text-transform: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  border-left: 3px solid transparent;
+  color: var(--kd-text);
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt:hover {
+  background: var(--kd-hover);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt.is-active {
+  border-left-color: var(--kd-accent);
+  background: var(--kd-active);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt.is-active .kd-opt-tag {
+  color: var(--kd-text);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  color: var(--kd-muted);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt-name mark {
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--kd-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
+  flex: none;
+  color: var(--kd-muted);
+  text-transform: uppercase;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] {
+  color: var(--kd-muted);
+  cursor: default;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"]:hover {
+  background: transparent;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-ico {
+  color: var(--kd-accent);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag,
+body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
+  text-transform: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
+  border: 1px dashed var(--kd-accent);
+  color: var(--kd-text);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-warn {
+  display: flex;
+  align-items: center;
+  color: var(--kd-text);
+  font-weight: 700;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-warn i,
+body.page-kramail-compose form[name="post_msg"] .kd-msg i {
+  color: var(--kd-accent);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-empty {
+  color: var(--kd-muted);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-empty b,
+body.page-kramail-compose form[name="post_msg"] .kd-foot b {
+  color: var(--kd-text);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  border-top: 1px solid var(--kd-border);
+  color: var(--kd-muted);
+  line-height: 1.4;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-foot:empty,
+body.page-kramail-compose form[name="post_msg"] .kd-msg:empty {
+  display: none;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-help {
+  color: var(--kd-muted);
+  line-height: 1.45;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg {
+  display: flex;
+  align-items: center;
+  color: var(--kd-text);
+  font-weight: 700;
+}
+
+/* Envoi bloqué par un texte tapé non validé : « Validez ou effacez « x » » et deux boutons, Ajouter puis Effacer */
+body.page-kramail-compose form[name="post_msg"] .kd-msg.kd-msg-block {
+  flex-wrap: wrap;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-actions {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid var(--kd-border);
+  border-radius: 3px;
+  background: var(--kd-panel);
+  color: var(--kd-text);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn.kd-msg-add {
+  border-color: var(--kd-accent);
+  background: var(--kd-chip);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:hover {
+  border-color: var(--kd-accent);
+  background: var(--kd-active);
+}
+
+body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
+  outline: 2px solid var(--kd-accent);
+  outline-offset: 1px;
+}
+
+/* --- Bureau : barre compacte de 24 px sur une ligne, panneau superposé au formulaire --- */
+
+/* Libellé « DESTINATAIRES * » : la colonne des libellés (col-sm-2) ne mesure que 105 px vers 770 et 992 px ; en majuscules à 13 px
+   avec l'espacement des autres libellés, le mot en faisait 107 et touchait le champ (QA t_63fbb540, m-2).
+   Même taille que les autres libellés (S-1, re-QA t_503eb6f6) : sans espacement entre lettres (≈ 101 px), sans marge gauche, et une
+   marge droite qui ne cède que là où la colonne est trop étroite : 15 px dès que la colonne (16,667 % de la ligne) atteint 118 px,
+   0 à 15 px en dessous. Le mot reste dans sa colonne, aligné à droite comme les autres dès qu'il y a la place, à 15 px au moins du champ. */
+@media (min-width: 768px) {
+  /* Le thème natif bascule ces libellés à 769 px : couvrir aussi 768 px pour garder une taille commune de 13 px (S-1). */
+  body.page-kramail-compose form[name="post_msg"] .form-group > label.control-label {
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    padding-right: clamp(0px, calc(16.6667% - 103px), 15px) !important;
+    padding-left: 0 !important;
+    letter-spacing: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* « Destinataires * » sur une seule ligne quand la colonne des libellés le permet (dès 1200 px ; en dessous, retour à la ligne comme le libellé natif) */
+  body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    padding-left: 15px !important;
+    font-size: 13px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 768px) {
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar {
+    gap: 5px !important;
+    margin: 0 0 4px !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    position: relative;
+    width: auto !important;
+    min-width: 24px !important;
+    max-width: none !important;
+    height: 24px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 5px !important;
+    font-size: 12px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn + a.btn,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn + .dropdown {
+    margin-left: -1px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:hover,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:focus-visible,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle:hover > .btn,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown.open > .dropdown-toggle > .btn {
+    z-index: 2;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar + textarea.form-control {
+    border-top-left-radius: 4px !important;
+    border-top-right-radius: 4px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd {
+    position: relative;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-box {
+    position: relative;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-field {
+    gap: 6px;
+    min-height: 34px;
+    padding: 3px 3px 3px 4px;
+    border-radius: 4px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-flow {
+    flex: 1;
+    gap: 4px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chips {
+    margin: 0;
+    padding: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chip {
+    max-width: 100%;
+    height: 26px;
+    margin: 0;
+    padding: 0 0 0 10px;
+    border-radius: 13px;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
+    width: 26px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 12px 12px 0;
+    font-size: 11px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-input {
+    flex: 1 1 140px;
+    width: auto;
+    min-width: 120px;
+    height: 26px;
+    min-height: 0;
+    margin: 0;
+    padding: 0 6px;
+    font-size: 14px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-contacts {
+    gap: 6px;
+    height: 26px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
+    font-size: 12px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-panel {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 4px);
+    left: 0;
+    width: min(100%, 540px);
+    border-radius: 6px;
+    box-shadow: var(--kr-shadow-lg);
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-list {
+    max-height: 330px;
+    margin: 0;
+    padding: 4px 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec {
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    letter-spacing: 0.7px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec small {
+    margin-left: 6px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
+  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt {
+    gap: 10px;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
+    width: 14px;
+    font-size: 12px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-name mark {
+    padding: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag {
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11.5px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-warn {
+    gap: 8px;
+    padding: 10px 12px 4px;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-empty {
+    margin: 0;
+    padding: 10px 12px 6px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-foot {
+    gap: 4px 12px;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-help {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd.is-open .kd-help {
+    visibility: hidden;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-msg {
+    gap: 7px;
+    margin: 6px 0 0;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+    height: 26px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+/* --- Mobile : cibles de 40/44 px, « Contacts » au bout du libellé, panneau dans le flux --- */
+@media (max-width: 767px) {
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar {
+    gap: 6px !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn {
+    position: relative;
+    width: auto !important;
+    min-width: 40px !important;
+    max-width: none !important;
+    height: 40px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    font-size: 16px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn + a.btn,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn + .dropdown {
+    margin-left: -1px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > a.btn:focus-visible,
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown.open > .dropdown-toggle > .btn {
+    z-index: 2;
+  }
+
+  /* Menus natifs Smileys et Couleurs : panneau fixe en bas d'écran, au-dessus de la barre « Envoyer » (56 px) et du fond
+     .dropdown-backdrop (z-index 990) que Bootstrap pose au toucher ; il défile seul, rien n'est rogné par la colonne (overflow: hidden) */
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar .dropdown-menu {
+    position: fixed !important;
+    inset: auto 8px 64px !important;
+    z-index: 1050 !important;
+    float: none !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 50vh;
+    margin: 0 !important;
+    overflow-y: auto;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .btn-toolbar + textarea.form-control {
+    border-top-left-radius: var(--mobile-radius, 8px) !important;
+    border-top-right-radius: var(--mobile-radius, 8px) !important;
+  }
+
+  /* Libellé : « Contacts » vient au bout de sa ligne, le champ garde toute la largeur pour les pastilles */
+  body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    min-height: 44px;
+    margin: 0 !important;
+    padding: 0 112px 2px 0 !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd {
+    position: relative;
+    overflow: visible !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-box {
+    position: relative;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-field {
+    gap: 6px;
+    min-height: 44px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-flow {
+    flex: 1;
+    gap: 6px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chips {
+    margin: 0;
+    padding: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chip {
+    max-width: 100%;
+    height: 34px;
+    margin: 0;
+    padding: 0 0 0 12px;
+    border-radius: 17px;
+    font-size: 15px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
+    width: 34px;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 16px 16px 0;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-input {
+    flex: 1 1 110px;
+    width: auto;
+    min-width: 96px;
+    height: 34px;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0 6px !important;
+    font-size: 16px !important;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-contacts {
+    position: absolute;
+    z-index: 2;
+    top: -42px;
+    right: 0;
+    gap: 6px;
+    height: 40px;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
+    font-size: 14px;
+  }
+
+  /* Panneau dans le flux sous le champ : il ne glisse pas sous le clavier */
+  body.page-kramail-compose form[name="post_msg"] .kd-panel {
+    position: static;
+    width: 100%;
+    margin-top: 6px;
+    border-radius: 6px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-list {
+    max-height: none;
+    margin: 0;
+    padding: 4px 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec {
+    padding: 10px 12px 4px;
+    font-size: 11px;
+    letter-spacing: 0.7px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec small {
+    margin-left: 6px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
+  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt {
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 16px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
+    width: 14px;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-name mark {
+    padding: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag {
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-warn {
+    gap: 8px;
+    padding: 10px 12px 4px;
+    font-size: 14px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-empty {
+    margin: 0;
+    padding: 10px 12px 6px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-foot {
+    gap: 4px 12px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-foot .kd-keys,
+  body.page-kramail-compose form[name="post_msg"] .kd-foot.kd-foot-touches {
+    display: none;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-help {
+    margin: 6px 0 0;
+    font-size: 13px;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd.is-open .kd-help {
+    display: none;
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-msg {
+    gap: 7px;
+    margin: 6px 0 0;
+    font-size: 14px;
+  }
+
+  /* Cibles de 40 px au toucher ; les deux boutons passent sous le texte quand la ligne est trop courte */
+  body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
+    min-width: 88px;
+    height: 40px;
+    min-height: 40px !important;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  /* Répondre / Transférer : « Message auquel vous répondez » (accordéon natif sous le formulaire). La règle mobile générale des
+     .panel-group (marges de -15 px pour aller bord à bord) suppose une colonne avec 15 px de marge intérieure ; ici la colonne
+     n'en a pas : l'accordéon dépassait de 15 px et créait un défilement horizontal. Il reprend la largeur de la colonne. */
+  body.page-kramail-compose #col-right > .panel-group {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* ============================================================================
    PAGE ÉVÉNEMENTS - Filtres sidebar desktop
    ============================================================================ */
 
