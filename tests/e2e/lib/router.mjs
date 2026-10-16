@@ -13,6 +13,7 @@ const FORUM_FRAGS = [
   ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop', 's3d-fake']
 ];
 export const SUITES = [
+  { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'] },
   { name: 'forum-mobile', file: 'forum-mobile.mjs', zones: ['forum'], frags: FORUM_FRAGS, needsBootstrap: true },
   { name: 'demarrage-mobile', file: 'demarrage-mobile.mjs', zones: ['demarrage'],
     frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1']] },
@@ -36,6 +37,8 @@ export const FILE_RULES = [
   [/^tests\/e2e\/run\.mjs$|^package\.json$|^tests\/e2e\/lib\//, 'all'],
   [/^tests\/e2e\/([\w-]+)\.mjs$/, m => SUITES.filter(s => s.file === m[1] + '.mjs').flatMap(s => s.zones)],
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
+  [/^tests\/e2e\/fixtures\/parler\//, ['parler']],
+  [/^tests\/e2e\/vendor\/parler\//, ['parler']],
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
   [/^(README\.md|CLAUDE\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
@@ -45,6 +48,7 @@ export const FILE_RULES = [
 const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint-switch.mjs').flatMap(s => s.zones)];
 // Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu élargit au total.
 export const KEYWORDS = [
+  [/kr-order-viewport|kr-order-visible|trackOrderModalViewport|visualViewport/i, ['parler']],
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
   [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic/i, ['sous-forum']],

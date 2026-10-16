@@ -7342,6 +7342,38 @@ body.mobile-mode .building-section-content img.img-responsive {
     }
   }
 
+/* Ordres avec saisie : budget vertical visible, marges incluses (barres/clavier).
+   Le scroll du content/dialog reste possible si le footer seul dépasse ce budget.
+   Les autres Bootbox et le bureau conservent leur cascade historique. */
+@media (max-width: 767px) {
+  .bootbox.modal.kr-order-viewport {
+    top: var(--kr-order-visible-top, 0) !important;
+    bottom: auto !important;
+    height: var(--kr-order-visible-height, 100vh) !important;
+    box-sizing: border-box;
+    padding: 10px 0 !important;
+    overflow-y: auto !important;
+  }
+
+  .bootbox.modal.kr-order-viewport > .modal-dialog {
+    margin: 0 10px !important;
+    max-height: calc(var(--kr-order-visible-height, 100vh) - 20px) !important;
+  }
+
+  .bootbox.modal.kr-order-viewport .modal-content {
+    max-height: calc(var(--kr-order-visible-height, 100vh) - 20px) !important;
+    overflow-y: auto !important;
+  }
+
+  .bootbox.modal.kr-order-viewport .modal-body {
+    min-height: 0;
+  }
+
+  .bootbox.modal.kr-order-viewport .modal-footer {
+    position: relative !important;
+  }
+}
+
 /* ============================================================================
    MOBILE - PAGE PROFIL/INTERFACE
    ============================================================================ */

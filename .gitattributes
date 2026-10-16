@@ -1,0 +1,2 @@
+# Assets natifs du diagnostic : conserver les octets et SHA256 du manifeste.
+tests/e2e/vendor/parler/* -text

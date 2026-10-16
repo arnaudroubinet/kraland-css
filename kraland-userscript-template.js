@@ -7905,6 +7905,7 @@
         mutation.addedNodes.forEach((node) => {
           // Vérifier si c'est une modal Bootbox
           if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            trackOrderModalViewport(node);
             setTimeout(() => {
               enhanceCharacterModal(node);
             }, 150);
@@ -7917,6 +7918,47 @@
     if (document.body) {
       modalObserver.observe(document.body, { childList: true, subtree: false });
     }
+  }
+
+  /**
+   * Contient les ordres avec saisie dans la zone réellement visible, sans toucher au formulaire.
+   * Le contenu peut arriver par Ajax ; les autres Bootbox et le bureau restent hors périmètre.
+   */
+  function trackOrderModalViewport(modal) {
+    const viewport = window.visualViewport;
+    const mobile = window.matchMedia('(max-width: 767px)');
+    function update() {
+      const active = mobile.matches && !!modal.querySelector('.panel-order textarea#message');
+      modal.classList.toggle('kr-order-viewport', active);
+      if (active) {
+        modal.style.setProperty('--kr-order-visible-height', (viewport ? viewport.height : window.innerHeight) + 'px');
+        modal.style.setProperty('--kr-order-visible-top', (viewport ? viewport.offsetTop : 0) + 'px');
+      } else {
+        modal.style.removeProperty('--kr-order-visible-height');
+        modal.style.removeProperty('--kr-order-visible-top');
+      }
+    }
+    const contentObserver = new MutationObserver(update);
+    contentObserver.observe(modal, { childList: true, subtree: true });
+    window.addEventListener('resize', update);
+    mobile.addEventListener('change', update);
+    if (viewport) {
+      viewport.addEventListener('resize', update);
+      viewport.addEventListener('scroll', update);
+    }
+    $(modal).one('hidden.bs.modal', function () {
+      contentObserver.disconnect();
+      window.removeEventListener('resize', update);
+      mobile.removeEventListener('change', update);
+      if (viewport) {
+        viewport.removeEventListener('resize', update);
+        viewport.removeEventListener('scroll', update);
+      }
+      modal.classList.remove('kr-order-viewport');
+      modal.style.removeProperty('--kr-order-visible-height');
+      modal.style.removeProperty('--kr-order-visible-top');
+    });
+    update();
   }
 
   /**
