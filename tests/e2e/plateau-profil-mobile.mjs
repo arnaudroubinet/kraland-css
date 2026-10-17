@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -49,6 +50,7 @@ function check(name, fn) {
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true });
+await confineNetwork(context); // refus global EN PREMIER (version.json : refusé ; img7 routé ci-dessous)
 await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
 await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
 await context.addInitScript(({ src }) => {

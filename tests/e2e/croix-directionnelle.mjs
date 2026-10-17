@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -85,6 +86,7 @@ let currentHtml = '';
 const requests = []; // navigations vers les FIXTURE-* : interceptées et comptées
 async function newPage(variant = 'empire-brun-dark', enabled = true) {
   const context = await browser.newContext({ viewport: { width: 375, height: 800 }, hasTouch: true, isMobile: false });
+  await confineNetwork(context); // refus global EN PREMIER (img7 routé ci-dessous)
   await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: currentHtml }));
   await context.route('**/FIXTURE-*', route => { requests.push(route.request().url()); route.abort(); });
   await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
