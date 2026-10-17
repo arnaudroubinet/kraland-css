@@ -79,21 +79,21 @@
     "plateau-profil-mobile": 9,
     "plateau-qualite-usage": 6,
     "sous-forum#l0": 5,
-    "sous-forum#l1-redraw": 12,
+    "sous-forum#l1-redraw": 11,
     "sous-forum#l1-statuts": 8,
-    "sous-forum#l1-themes": 27,
-    "sous-forum#l2-entete": 16,
+    "sous-forum#l1-themes": 28,
+    "sous-forum#l2-entete": 17,
     "sous-forum#l2-themes": 14,
-    "sous-forum#l3-liste": 18,
+    "sous-forum#l3-liste": 19,
     "sous-forum#l3-themes": 14,
     "sous-forum#l4-perm": 6,
     "sous-forum#l4-themes": 14,
-    "sous-forum#l5-pagination-m2-bureau": 4,
-    "sous-forum#l5-pagination-m2-mobile": 4,
+    "sous-forum#l5-pagination-m2-bureau": 5,
+    "sous-forum#l5-pagination-m2-mobile": 5,
     "sous-forum#l5-pagination-socle": 10,
     "sous-forum#l5-pagination-viewport": 7,
     "sous-forum#l5-themes": 14,
     "sous-forum#l6-desktop": 7,
-    "sous-forum#l6-themes": 13
+    "sous-forum#l6-themes": 14
   }
 }

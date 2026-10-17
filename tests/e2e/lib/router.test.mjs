@@ -140,7 +140,7 @@ check('aucune unité perdue ni dupliquée', () => {
 check('durations.json versionné : chaque fragment du registre a une durée, aucune durée orpheline', () => {
   const doc = JSON.parse(fs.readFileSync(new URL('../durations.json', import.meta.url), 'utf8'));
   const ids = SUITES.flatMap(s => s.frags ? s.frags.map(f => `${s.name}#${f.join('+')}`) : [s.name]);
-  assert.deepEqual(ids.filter(id => !Number.isFinite(doc.durations[id])), [], 'fragments sans durée');
+  assert.deepEqual(ids.filter(id => !Number.isFinite(doc.durations[id])), [], 'fragments sans durée : les mesurer avec KR_SAVE_DURATIONS=1 npm run test:zone -- <zone>, puis committer tests/e2e/durations.json');
   assert.deepEqual(Object.keys(doc.durations).filter(id => !ids.includes(id)), [], 'durées orphelines');
 });
 
