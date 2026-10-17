@@ -74,8 +74,8 @@ export async function waitState(page, fn, arg = null, { maxMs = 5000 } = {}) {
 }
 
 /**
- * Style d'un élément posé : l'élément `sel` (n° `index`) vérifie le pseudo-état `state` (':hover', ':active', facultatif) et n'a plus
- * aucune transition ou animation finie en cours (getAnimations, sous-arbre compris) ; puis une image. Remplace les attentes fixes avant
+ * Style d'un élément posé : l'élément `sel` (n° `index`) vérifie le pseudo-état `state` (':hover', ':active', facultatif) et aucune
+ * transition ni animation finie n'est encore en cours (getAnimations, sous-arbre compris) ; puis une image. Remplace les attentes fixes avant
  * une mesure de couleurs. Sans lever d'erreur (borne `maxMs`) : la mesure qui suit tranche.
  */
 export async function styleSettled(page, sel, { index = 0, state = null, maxMs = 3000 } = {}) {
