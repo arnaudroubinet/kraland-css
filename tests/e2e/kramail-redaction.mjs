@@ -622,7 +622,8 @@ if (frag('clavier')) {
   let d = await p.evaluate(DEST);
   check('collage « Alpha; Beta;Gamma ; » : 3 pastilles, #dest au format natif', () => { assert.deepEqual(d.chips.map(c => c.name), ['Alpha', 'Beta', 'Gamma']); assert.equal(d.dest, 'Alpha; Beta; Gamma; '); });
   await p.keyboard.type('ça pique', { delay: 30 });
-  await p.waitForTimeout(400);
+  // Au lieu de 400 ms : le contact « Ça pique, pôbien » est proposé (condition bornée, sans erreur : la vérification tranche)
+  await p.waitForFunction(() => [...document.querySelectorAll('.kd-opt')].some(o => o.textContent.includes('Ça pique, pôbien')), null, { timeout: 3000 }).catch(() => {});
   d = await p.evaluate(DEST);
   check('contact avec virgule (« Ça pique, pôbien ») trouvé sans accent ni majuscule, la virgule ne coupe pas le nom', () => assert.equal(d.sections[0].names[0], 'Ça pique, pôbien'));
   await p.keyboard.press('Tab');
@@ -686,7 +687,8 @@ if (frag('reseau')) {
   await p.waitForFunction(() => document.querySelector('.kd-loading'), null, { timeout: 3000 });
   const loading = await p.evaluate(DEST);
   check('saisie rapide « habi » : « Recherche dans l’annuaire… » puis une seule requête (pas une par touche)', () => { assert.match(loading.panel.text, /Recherche dans l’annuaire…/); });
-  await p.waitForTimeout(400); // laisser partir la requête « habi » (délai 250 ms) avant la touche suivante
+  // La requête « habi » est partie (reçue par la route, délai du script 250 ms) avant la touche suivante : condition au lieu de 400 ms
+  for (const t1 = Date.now(); !a.state.ajax.some(x => x.q === 'habi') && Date.now() - t1 < 3000;) { await p.waitForTimeout(20); }
   await p.keyboard.type('t', { delay: 10 });
   await p.waitForFunction(() => !document.querySelector('.kd-loading') && document.querySelectorAll('.kd-opt').length > 0, null, { timeout: 5000 });
   const d = await p.evaluate(DEST);
@@ -722,7 +724,8 @@ if (frag('reseau')) {
   if (SHOTS) { await b.page.screenshot({ path: path.join(SHOTS, 'reseau-1280-format-inattendu.png') }); }
   await b.page.keyboard.press('Backspace');
   await b.page.keyboard.type('s', { delay: 30 });
-  await b.page.waitForTimeout(500);
+  // La seconde requête « marcus » est reçue par la route (condition au lieu de 500 ms, bornée à 3 s : la vérification tranche)
+  for (const t1 = Date.now(); b.state.ajax.filter(x => x.q === 'marcus').length < 2 && Date.now() - t1 < 3000;) { await b.page.waitForTimeout(20); }
   check('format inattendu : « marcus » retapé relance la requête (pas de cache d\'une réponse illisible)', () => assert.equal(b.state.ajax.filter(x => x.q === 'marcus').length, 2));
   await b.page.fill('.kd-input', '');
   await b.page.keyboard.type('mar', { delay: 30 });
