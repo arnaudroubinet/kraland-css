@@ -18,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -309,14 +309,16 @@ for (const variant of VARIANTS.filter(v => frag(v.endsWith('-dark') ? 'm1-sombre
   const { context, page: p, state } = await open({ width: 375, kind: 'sujet', variant });
   for (const [index, place] of [[0, 'haut'], [1, 'bas']]) {
     await p.evaluate(i => Array.from(document.querySelectorAll('a.forum-thread-action-reply'))[i].scrollIntoView({ block: 'center' }), index);
-    await p.waitForTimeout(250);
+    // Conditions observables au lieu de 250 ms : défilement distribué, pseudo-état atteint, aucune transition en cours
+    await frames(p);
+    await styleSettled(p, 'a.forum-thread-action-reply', { index });
     const normal = await replyColors(p, index);
     // Survol puis appui réels (souris), relâchés hors du bouton : aucun clic, aucune navigation
     await p.mouse.move(normal.x, normal.y);
-    await p.waitForTimeout(250);
+    await styleSettled(p, 'a.forum-thread-action-reply', { index, state: ':hover' });
     const hover = await replyColors(p, index);
     await p.mouse.down();
-    await p.waitForTimeout(250);
+    await styleSettled(p, 'a.forum-thread-action-reply', { index, state: ':active' });
     const active = await replyColors(p, index);
     await p.mouse.move(1, 1);
     await p.mouse.up();
@@ -331,9 +333,10 @@ for (const variant of VARIANTS.filter(v => frag(v.endsWith('-dark') ? 'm1-sombre
   }
   // s4 : page active de la pagination (accent rouge kraland des thèmes clairs signalé par Sally) : normal et survol >= 4,5:1 dans les 8 thèmes clairs
   const pagColors = () => p.evaluate(() => { const a = document.querySelector('.pagination > li.active > a'); a.scrollIntoView({ block: 'center' }); const cs = getComputedStyle(a); const r = a.getBoundingClientRect(); return { color: cs.color, bg: cs.backgroundColor, x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await frames(p);
   const pagN = await pagColors();
   await p.mouse.move(pagN.x, pagN.y);
-  await p.waitForTimeout(250);
+  await styleSettled(p, '.pagination > li.active > a', { state: ':hover' });
   const pagH = await pagColors();
   await p.mouse.move(1, 1);
   if (variant === 'empire-brun') {
@@ -372,7 +375,17 @@ async function openPalette(p, realBs) {
   const btn = await p.evaluate(() => { const b = document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) }; });
   if (!btn.ok) { throw new Error('bouton Couleurs recouvert ou hors écran au point visé'); }
   if (realBs) { await p.mouse.click(btn.x, btn.y); } else { await p.evaluate(() => document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button').closest('.dropdown').classList.add('open')); }
-  await p.waitForTimeout(300);
+  await menuSettled(p, '.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group)', true);
+}
+// Menu ouvert (classe .open et menu affiché) ou refermé (aucun .open ni fond .dropdown-backdrop), sans transition en cours, puis
+// deux images : remplace les 300 ms fixes. Sans erreur : la vérification qui suit mesure l'état réel.
+async function menuSettled(p, sel, wantOpen) {
+  await waitState(p, ({ s, o }) => {
+    if (!o) { return !document.querySelector('.dropdown.open, .dropdown-backdrop'); }
+    const dd = document.querySelector(s); const menu = dd && dd.querySelector('.dropdown-menu');
+    return !!menu && dd.classList.contains('open') && getComputedStyle(menu).display !== 'none' && menu.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+  }, { s: sel, o: wantOpen }, { maxMs: 3000 });
+  await frames(p);
 }
 const overlap = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
 const paletteModes = [{ id: 'fake', name: 'fixture Bootstrap minimal (.open posé)', realBs: false }];
@@ -437,7 +450,7 @@ async function closeNative(p) {
     const r = b.getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   });
-  if (pt) { await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(300); }
+  if (pt) { await p.mouse.click(pt.x, pt.y); await menuSettled(p, null, false); }
 }
 async function openSmileys(p, realBs) {
   const btn = await p.evaluate(() => {
@@ -456,7 +469,7 @@ async function openSmileys(p, realBs) {
       if ('ontouchstart' in document.documentElement) { const bd = document.createElement('div'); bd.className = 'dropdown-backdrop'; dd.querySelector('a.dropdown-toggle').after(bd); }
     });
   }
-  await p.waitForTimeout(300);
+  await menuSettled(p, '.btn-toolbar .dropdown:has(table img)', true);
 }
 const SMILEYS = () => {
   const dd = document.querySelector('.btn-toolbar .dropdown:has(table img)');
@@ -607,27 +620,51 @@ const FIXED_STATE = () => {
   const backHitSelf = back && backShown ? hitBack(br.x + br.w / 2, br.y + br.h / 2) : null;
   return { sy: Math.round(window.scrollY), backShown, back: br, backBottom: back ? bcs.bottom : null, backRight: back ? bcs.right : null, backZ: back ? bcs.zIndex : null, actions, send, backHitSelf };
 };
+// Balayage du défilement, entièrement dans la page (un seul aller-retour) : à chaque pas, scrollTo, puis deux conditions observables
+// avant la mesure : (1) l'événement scroll de CE pas (Chromium le distribue à l'image suivante ; notre écouteur, ajouté après celui du
+// userscript, passe après le gestionnaire qui pose kr-btt-visible) ; (2) plus aucune transition en cours sur « Remonter en haut »
+// (son apparition est une transition d'opacité : à sa première image l'opacité vaut encore 0). Position inchangée (bas de page
+// atteint) : pas d'événement, l'état ne change pas. Mêmes positions et mêmes agrégats qu'avant (ancienne boucle : 40 ms + 2
+// évaluations par pas) ; mesurer après une seule image, sans ces conditions, comptait une position « masquée » de trop.
 async function sweep(p, step) {
-  const docH = await p.evaluate(() => document.documentElement.scrollHeight);
-  const vh = await p.evaluate(() => window.innerHeight);
-  const out = { docH, steps: 0, backSteps: 0, actionInter: 0, actionMaxInter: 0, actionCovered: 0, bandSteps: 0, sendInter: 0, sendBad: 0, sendSteps: 0, backUnreachable: 0, first: null };
-  for (let y = 0; y <= docH; y += step) {
-    await p.evaluate(top => window.scrollTo({ top, behavior: 'instant' }), y);
-    await p.waitForTimeout(40);
-    const s = await p.evaluate(FIXED_STATE);
-    out.steps += 1;
-    if (s.backShown) { out.backSteps += 1; if (s.backHitSelf === false) { out.backUnreachable += 1; } }
-    for (const a of s.actions) {
-      if (a.bandY) { out.bandSteps += 1; }
-      if (a.inter > 0 || a.coveredPts > 0) { out.actionInter += 1; out.actionMaxInter = Math.max(out.actionMaxInter, a.inter); out.actionCovered += a.coveredPts; if (!out.first) { out.first = { sy: s.sy, a: a.t, inter: a.inter, back: s.back, action: { x: a.x, y: a.y, w: a.w, h: a.h } }; } }
+  return p.evaluate(async ({ step: inc, src }) => {
+    // eslint-disable-next-line no-eval
+    const fixedState = (0, eval)('(' + src + ')');
+    const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+    const backEl = document.querySelector('.kraland-back-to-top');
+    const backSettled = async () => {
+      const t0 = performance.now();
+      while (backEl && backEl.getAnimations().some(a => a.playState === 'running') && performance.now() - t0 < 2000) { await frame(); }
+    };
+    const scrolled = () => new Promise(r => {
+      const t = setTimeout(() => { window.removeEventListener('scroll', on); r(); }, 2000);
+      function on() { clearTimeout(t); r(); }
+      window.addEventListener('scroll', on, { once: true, passive: true });
+    });
+    const docH = document.documentElement.scrollHeight;
+    const vh = window.innerHeight;
+    const out = { docH, steps: 0, backSteps: 0, actionInter: 0, actionMaxInter: 0, actionCovered: 0, bandSteps: 0, sendInter: 0, sendBad: 0, sendSteps: 0, backUnreachable: 0, first: null };
+    for (let y = 0; y <= docH; y += inc) {
+      const before = window.scrollY;
+      const event = scrolled();
+      window.scrollTo({ top: y, behavior: 'instant' });
+      if (window.scrollY !== before) { await event; }
+      await backSettled();
+      const s = fixedState();
+      out.steps += 1;
+      if (s.backShown) { out.backSteps += 1; if (s.backHitSelf === false) { out.backUnreachable += 1; } }
+      for (const a of s.actions) {
+        if (a.bandY) { out.bandSteps += 1; }
+        if (a.inter > 0 || a.coveredPts > 0) { out.actionInter += 1; out.actionMaxInter = Math.max(out.actionMaxInter, a.inter); out.actionCovered += a.coveredPts; if (!out.first) { out.first = { sy: s.sy, a: a.t, inter: a.inter, back: s.back, action: { x: a.x, y: a.y, w: a.w, h: a.h } }; } }
+      }
+      if (s.send && ((s.send.fixed && s.send.y < vh && s.send.y + s.send.h > 0) || (!s.send.fixed && s.send.y >= 0 && s.send.y + s.send.h <= vh))) {
+        out.sendSteps += 1;
+        if (s.send.inter > 0) { out.sendInter += 1; }
+        if (s.send.hitsOk < s.send.hits.length) { out.sendBad += 1; if (!out.first) { out.first = { sy: s.sy, send: s.send, back: s.back }; } }
+      }
     }
-    if (s.send && ((s.send.fixed && s.send.y < vh && s.send.y + s.send.h > 0) || (!s.send.fixed && s.send.y >= 0 && s.send.y + s.send.h <= vh))) {
-      out.sendSteps += 1;
-      if (s.send.inter > 0) { out.sendInter += 1; }
-      if (s.send.hitsOk < s.send.hits.length) { out.sendBad += 1; if (!out.first) { out.first = { sy: s.sy, send: s.send, back: s.back }; } }
-    }
-  }
-  return out;
+    return out;
+  }, { step, src: FIXED_STATE.toString() });
 }
 
 console.log('N-1 : « Remonter en haut » ne recouvre jamais « Répondre » ni « Nouveau sujet » (balayage du défilement)');
@@ -647,7 +684,7 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
 if (frag('n1')) {
   const { context, page: p } = await open({ width: 1280, kind: 'sujet', height: 720 });
   await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' }));
-  await p.waitForTimeout(300);
+  await frames(p); // événement scroll distribué : kr-btt-visible à jour
   const s = await p.evaluate(FIXED_STATE);
   check('1280 px : « Remonter en haut » desktop inchangé (36 px, bas 20 px, droite 8 px)', () => { assert.equal(s.backShown, true); assert.equal(Math.round(s.back.w), 36); assert.equal(s.backBottom, '20px'); assert.equal(s.backRight, '8px'); });
   await context.close();
