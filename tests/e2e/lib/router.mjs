@@ -38,10 +38,13 @@ export const SUITES = [
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
   { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau', 'envoi', 'repli', 'libelle', 'indicatif']] },
   // Garde du confinement réseau : refus effectif d'une sonde hors local (lib/confinement.mjs) et chaque contexte de suite confiné (lecture statique).
-  { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] }
+  { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] },
+  // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
+  { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
+const GARDE_INIT = 'fin-initialisation'; // relancée dès que le template change (tâche différée non enregistrée auprès d'InitQueue ?)
 
 // Ordre de lancement : plus longs d'abord (ordonnancement LPT), d'après les durées mesurées (secondes par id d'unité, tests/e2e/durations.json).
 // Une unité sans durée connue (fragment nouveau ou renommé) passe EN TÊTE : on ne sait pas si elle est longue, et la lancer tôt évite qu'elle
@@ -250,6 +253,8 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
         if (m) { cur = { head: l, body: '', start: Number(m[1]), count: m[2] === undefined ? 1 : Number(m[2]) }; hunks.push(cur); } else if (cur && /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l)) { cur.body += l + '\n'; }
       }
       if (!hunks.length) { widen(f + ' : diff illisible'); continue; }
+      // Template : tout module peut ajouter une mise en forme différée ; le garde-fou vérifie qu'elle est suivie par InitQueue (quelques secondes).
+      if (f.endsWith('.js')) { units.add(GARDE_INIT); }
       const text = readNew(f);
       const lines = text === null ? [] : text.split('\n');
       const sections = f.endsWith('.js') ? templateSections(text) : [];

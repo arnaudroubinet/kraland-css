@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, probeQuiet } from './lib/settle.mjs';
+import { krReady, probeQuiet } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -83,7 +83,7 @@ async function resizeTo(width, height = 772, quietMs = RESIZE_QUIET_MS) {
 
 if (frag('widths')) {
   await page.goto(TARGET, { waitUntil: 'load' });
-  await domQuiet(page, { quietMs: 600, label: 'chargement plateau' });
+  await krReady(page, { label: 'chargement plateau' });
 
   // 1. Suite de largeurs : rechargement si et seulement si le seuil 768 est franchi
   console.log('Transitions de largeur');
@@ -193,7 +193,7 @@ async function navSuite(fixtureFile, strict) {
     const p = await navContext.newPage();
     await p.setViewportSize({ width, height });
     await p.goto(TARGET, { waitUntil: 'load' });
-    await domQuiet(p, { quietMs: 600, label: `chargement direct ${width}px` });
+    await krReady(p, { label: `chargement direct ${width}px` });
     await p.evaluate(() => { document.title = 'direct'; });
     direct[width] = await p.evaluate(() => {
       const nav = document.querySelector('nav.navbar');
@@ -206,7 +206,7 @@ async function navSuite(fixtureFile, strict) {
   async function runNavSequence(label, start, steps) {
     await navPage.setViewportSize({ width: start, height: 800 });
     await navPage.goto(TARGET, { waitUntil: 'load' });
-    await domQuiet(navPage, { quietMs: 600, label: 'chargement barre' });
+    await krReady(navPage, { label: 'chargement barre' });
     await navPage.evaluate(() => { window.__krMarker = 1; });
     for (const width of steps) {
       const m = await navResize(width);
@@ -232,7 +232,7 @@ async function navSuite(fixtureFile, strict) {
   // iPad : rotation 820x1180 -> 1180x820 (émulation)
   await navPage.setViewportSize({ width: 820, height: 1180 });
   await navPage.goto(TARGET, { waitUntil: 'load' });
-  await domQuiet(navPage, { quietMs: 600, label: 'chargement barre' });
+  await krReady(navPage, { label: 'chargement barre' });
   const landscape = await navResize(1180, 820);
   const landscapeRef = await directLoad(1180, 820);
   check(`rotation 820x1180 -> 1180x820 : barre = chargement direct (${landscape.barHeight} vs ${landscapeRef.barHeight} px)`, () => assert.ok(Math.abs(landscape.barHeight - landscapeRef.barHeight) <= 1));

@@ -2,8 +2,9 @@
 //   1. dynamique : un contexte confiné par lib/confinement.mjs, avec une page de fixture servie par route (comme les suites), REFUSE les
 //      requêtes vers les hôtes externes (logo du thème, version.json de GitHub, hôte inconnu). Ces hôtes sont résolus vers un puits local
 //      (--host-resolver-rules) : si le refus cède, la requête arrive au puits au lieu de partir sur Internet, et la vérification échoue ;
-//   2. statique : chaque contexte créé par une suite du registre est confiné (confineNetwork(ctx) ou ctx.route('**/*', …) juste après sa
-//      création, ou navigateur lancé avec « MAP * ~NOTFOUND »), sauf les exceptions inertes listées ci-dessous avec leur raison.
+//   2. statique : chaque contexte créé par une suite du registre est confiné (confineNetwork(ctx) ou ctx.route('**/*', …) qui refuse par
+//      abort, juste après sa création, ou navigateur lancé avec « MAP * ~NOTFOUND »), sauf les exceptions inertes listées ci-dessous avec
+//      leur raison. Lecture sur le code sans commentaires : un appel commenté ne confine rien.
 //
 // Usage : node tests/e2e/confinement-reseau.mjs (lancé par test:all et par test:changed dès qu'un fichier de suite change)
 import assert from 'node:assert/strict';
@@ -63,8 +64,37 @@ const INERTES = [
   ['kramail-redaction.mjs', 'const ctx = await browser.newContext();', 'comparePixels : décode deux PNG en mémoire (Blob), aucune navigation'],
   ['audit-map-images.mjs', 'const page = await browser.newPage();', 'moteur de décodage d\'images : about:blank, données en mémoire']
 ];
+// Code sans ses commentaires (// et /* */), remplacés par des espaces (sauts de ligne gardés : les numéros de ligne restent justes). Les
+// chaînes et gabarits sont respectés ('http://…' n'est pas un commentaire) ; un antislash hors chaîne saute le caractère suivant (\/ des
+// expressions régulières). Un appel confineNetwork commenté ne compte donc plus comme un confinement.
+function stripComments(src) {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    const n = src[i + 1];
+    if (quote) {
+      out += c;
+      if (c === '\\') { out += n === undefined ? '' : n; i += 1; } else if (c === quote || (c === '\n' && quote !== '`')) { quote = null; }
+      continue;
+    }
+    if (c === '/' && n === '/') { while (i < src.length && src[i] !== '\n') { out += ' '; i += 1; } i -= 1; continue; }
+    if (c === '/' && n === '*') {
+      const end = src.indexOf('*/', i + 2);
+      const stop = end < 0 ? src.length : end + 2;
+      out += src.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop - 1;
+      continue;
+    }
+    if (c === '\\') { out += c + (n === undefined ? '' : n); i += 1; continue; }
+    if (c === '\'' || c === '"' || c === '`') { quote = c; }
+    out += c;
+  }
+  return out;
+}
+
 for (const s of SUITES.filter(x => x.file !== 'confinement-reseau.mjs')) {
-  const lines = fs.readFileSync(path.join(dir, s.file), 'utf8').split('\n');
+  const lines = stripComments(fs.readFileSync(path.join(dir, s.file), 'utf8')).split('\n');
   // Navigateurs lancés avec leur propre puits DNS (« MAP * ~NOTFOUND ») : leurs contextes sont confinés par le résolveur.
   const selfConfined = new Set();
   lines.forEach((l, i) => {
@@ -79,7 +109,12 @@ for (const s of SUITES.filter(x => x.file !== 'confinement-reseau.mjs')) {
     if (INERTES.some(([f, txt]) => f === s.file && l.trim() === txt)) { return; }
     if (selfConfined.has(m[2])) { return; }
     const next = lines.slice(i + 1, i + 6).join('\n');
-    const ok = m[3] === 'newContext' && (next.includes(`confineNetwork(${m[1]})`) || next.includes(`${m[1]}.route('**/*'`));
+    // Route de dernier recours : elle doit REFUSER (abort), pas laisser passer (fallback, continue) ni tout servir (fulfill direct).
+    const at = next.indexOf(`${m[1]}.route('**/*'`);
+    const tail = lines.slice(i + 1, i + 20).join('\n');
+    const handler = at < 0 ? '' : tail.slice(tail.indexOf(`${m[1]}.route('**/*'`)).slice(0, 1200);
+    const routeAborts = at >= 0 && /\.abort\(/.test(handler) && !/\.(fallback|continue|fulfill)\(/.test(handler.split('\n')[0]);
+    const ok = m[3] === 'newContext' && (next.includes(`confineNetwork(${m[1]})`) || routeAborts);
     if (!ok) { bad.push(`${s.file}:${i + 1} ${l.trim().slice(0, 80)}`); }
   });
   check(`${s.file} : chaque contexte est confiné dès sa création`, () => { assert.deepEqual(bad, [], 'non confiné : ' + bad.join(' | ')); });

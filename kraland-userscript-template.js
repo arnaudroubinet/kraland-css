@@ -125,10 +125,17 @@
      */
     add(callback, debounceMs = 200) {
       let timer;
+      let release = null;
       const wrapped = () => {
         if (debounceMs > 0) {
           clearTimeout(timer);
-          timer = setTimeout(callback, debounceMs);
+          // Redimensionnement pendant le chargement : la file attend le recalcul avant de poser data-kr-ready
+          if (!release) { release = InitQueue.hold('resize'); }
+          timer = setTimeout(() => {
+            const end = release;
+            release = null;
+            try { callback(); } finally { end(); }
+          }, debounceMs);
         } else {
           callback();
         }
@@ -149,18 +156,86 @@
   // Garantit l'ordre d'exécution séquentiel de tous les modules
   // Chaque module décide lui-même s'il doit s'exécuter (mobile/desktop/page)
   // ============================================================================
+  // Fin d'initialisation observable : la file pose html[data-kr-ready] (attribut technique, sans effet visuel) quand toutes les
+  // fonctions enregistrées ont tourné ET que toutes les tâches différées de mise en forme initiale sont terminées.
+  // Règle : tout setTimeout / requestAnimationFrame / promesse qui modifie la page pendant le chargement passe par
+  // InitQueue.hold, InitQueue.later ou InitQueue.debounce (ou une promesse renvoyée par la fonction enregistrée).
+  // Le marqueur n'est jamais posé par un module. Une tâche oubliée est détectée par tests/e2e/fin-initialisation.mjs.
   const InitQueue = {
     _queue: [],
     _initialized: false,
+    _holds: 0,
+    _ready: false,
+    _waitingLoad: false,
+    _checkTimer: null,
 
     /**
      * Enregistre une fonction d'initialisation avec sa priorité
      * @param {string} name - Nom du module (pour debug)
-     * @param {Function} fn - Fonction d'initialisation
+     * @param {Function} fn - Fonction d'initialisation (peut renvoyer une promesse : la file attend qu'elle soit réglée)
      * @param {number} priority - Priorité (plus petit = exécuté en premier)
      */
     register(name, fn, priority = 100) {
       this._queue.push({ name, fn, priority });
+    },
+
+    /**
+     * Ouvre une tâche différée de mise en forme initiale. Renvoie sa fonction de fin (idempotente).
+     * Après la pose du marqueur, ne suit plus rien (fonction de fin sans effet).
+     * @param {string} _name - Nom de la tâche (pour debug)
+     * @returns {Function}
+     */
+    hold(_name) {
+      if (this._ready) { return function () {}; }
+      this._holds++;
+      let done = false;
+      return () => {
+        if (done) { return; }
+        done = true;
+        this._holds--;
+        this._check();
+      };
+    },
+
+    /** setTimeout suivi par la file tant que le marqueur n'est pas posé. */
+    later(name, fn, ms) {
+      const release = this.hold(name);
+      return setTimeout(function () {
+        try { fn(); } finally { release(); }
+      }, ms);
+    },
+
+    /** Anti-rebond suivi : chaque appel repousse `fn` de `ms` ; la file attend son exécution. */
+    debounce(name, fn, ms) {
+      let timer = null;
+      let release = null;
+      return () => {
+        clearTimeout(timer);
+        if (!release) { release = this.hold(name); }
+        timer = setTimeout(function () {
+          const end = release;
+          release = null;
+          try { fn(); } finally { end(); }
+        }, ms);
+      };
+    },
+
+    /** Pose le marqueur si plus rien n'est en cours (vérifié à la tâche suivante, après les MutationObserver et le load). */
+    _check() {
+      if (this._ready || !this._initialized || this._holds > 0) { return; }
+      if (document.readyState !== 'complete') {
+        if (!this._waitingLoad) {
+          this._waitingLoad = true;
+          window.addEventListener('load', () => this._check(), { once: true });
+        }
+        return;
+      }
+      clearTimeout(this._checkTimer);
+      this._checkTimer = setTimeout(() => {
+        if (this._ready || this._holds > 0) { return; }
+        this._ready = true;
+        document.documentElement.setAttribute('data-kr-ready', '');
+      }, 0);
     },
 
     /**
@@ -184,8 +259,12 @@
       this._queue.forEach(({ name, fn }) => {
         try {
           PerfLog.start('module:' + name);
-          fn();
+          const result = fn();
           PerfLog.end('module:' + name);
+          if (result && typeof result.then === 'function') {
+            const release = this.hold('module:' + name);
+            Promise.resolve(result).catch(e => console.error(`[InitQueue] ✗ ${name}:`, e)).then(release);
+          }
         } catch (e) {
           PerfLog.end('module:' + name);
           console.error(`[InitQueue] ✗ ${name}:`, e);
@@ -193,6 +272,7 @@
       });
 
       PerfLog.end('InitQueue');
+      this._check();
     }
   };
 
@@ -444,7 +524,9 @@
         sessionStorage.removeItem(RELOAD_KEY);
       } catch (_e) { return; }
       if (!saved || Date.now() - saved.at > RELOAD_MAX_AGE_MS || saved.url !== location.pathname + location.search) {return;}
-      // Le contenu s'allonge pendant l'initialisation des modules : plusieurs tentatives
+      // Le contenu s'allonge pendant l'initialisation des modules : plusieurs tentatives.
+      // Non suivi par InitQueue : un défilement n'est pas une mutation du DOM (data-kr-ready ne couvre que la mise en forme, comme
+      // l'ancienne fenêtre de calme des tests) ; une vérification de position attend sa propre condition (window.scrollY).
       [0, 150, 400, 900, 1800].forEach(function (delay) {
         setTimeout(function () {
           window.scrollTo(0, saved.y);
@@ -545,8 +627,11 @@
 
     function fixNavbarPadding() {
       // Attendre que le CSS soit appliqué (chargé de manière asynchrone en mode dev)
+      const release = InitQueue.hold('fixNavbarPadding');
       requestAnimationFrame(function () {
-        setTimeout(applyNavbarPadding, 200);
+        setTimeout(function () {
+          try { applyNavbarPadding(); } finally { release(); }
+        }, 200);
       });
     }
 
@@ -1379,7 +1464,7 @@
       // Gérer l'indicateur de scroll
       handleTabBarScroll(tabBar);
 
-      // Scroll automatique vers l'onglet actif
+      // Scroll automatique vers l'onglet actif (défilement, pas une mutation : non suivi par InitQueue)
       setTimeout(() => scrollToActiveTab(tabBar), 100);
 
       console.log('[Mobile Tab Bar] Créée avec', navLinks.length, 'onglets');
@@ -1397,7 +1482,7 @@
       tabBar.addEventListener('scroll', checkScroll, { passive: true });
 
       // Check initial
-      setTimeout(checkScroll, 100);
+      InitQueue.later('initTabBar:checkScroll', checkScroll, 100);
 
       // Re-check au resize via le gestionnaire centralisé
       ResizeManager.add(checkScroll, 100);
@@ -1596,11 +1681,14 @@
       if (!window.location.pathname.includes('/profil/interface')) {return;}
 
       // Attendre que le placeholder Alertes soit présent
+      const release = InitQueue.hold('addResetButtonToInterfacePage');
       const checkForm = setInterval(() => {
         const alertsSection = document.querySelector('#kr-alerts-section');
         if (!alertsSection) {return;}
 
         clearInterval(checkForm);
+        // Fin de tâche signalée ici : le marqueur est vérifié à la tâche suivante, après l'insertion synchrone ci-dessous
+        release();
 
         // Créer une section dédiée
         const section = document.createElement('div');
@@ -2411,11 +2499,7 @@
     function initNavigationRow() {
       if (!document.body) { return; }
       syncNavigation();
-      let timer = null;
-      const schedule = () => {
-        clearTimeout(timer);
-        timer = setTimeout(syncNavigation, 120);
-      };
+      const schedule = InitQueue.debounce('initNavigationRow:syncNavigation', syncNavigation, 120);
       // Mutations utiles : classe du body (mobile-mode), ajout/retrait de nœuds, href/onclick/target des liens et areas natifs
       const relevant = m => {
         if (m.target.closest && m.target.closest('.' + BLOCK_CLASS)) { return false; }
@@ -2914,7 +2998,8 @@
           el.setAttribute(originalFilterAttr, origFilter);
         }
 
-        // tester l'existence de la ressource cible avant d'appliquer
+        // tester l'existence de la ressource cible avant d'appliquer (pendant le chargement, la file attend le résultat)
+        const releasePretest = InitQueue.hold('medieval:pretest');
         testImageExists(target).then(exists => {
           if (exists === null) {
             // Délai dépassé : cible inconnue (ni bannie ni marquée en échec). <img> : remplacement gardé par le repli
@@ -2947,7 +3032,7 @@
             el.setAttribute && el.setAttribute('data-kr-medieval-failed', 'true');
           }
           el.removeAttribute && el.removeAttribute('data-kr-medieval-pending');
-        }).catch(_ => { el.setAttribute && el.setAttribute('data-kr-medieval-failed', 'true'); el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); });
+        }).catch(_ => { el.setAttribute && el.setAttribute('data-kr-medieval-failed', 'true'); el.removeAttribute && el.removeAttribute('data-kr-medieval-pending'); }).then(releasePretest);
       }
 
       function restoreAll() {
@@ -3128,6 +3213,8 @@
       const docEl = document.documentElement;
       // Rien à révéler si on n'a pas masqué
       if (docEl.style.opacity !== '0') { return; }
+      // La levée (2 rAF + nettoyage à 200 ms) fait partie de la mise en forme initiale : la file l'attend
+      const release = InitQueue.hold('revealPage');
       // Dernière passe : s'assurer que notre style est bien en fin de <head>
       moveStyleToEnd();
       // Double rAF pour garantir que les styles sont calculés avant le paint
@@ -3139,6 +3226,7 @@
           setTimeout(function () {
             docEl.style.transition = '';
             docEl.style.opacity = '';
+            release();
           }, 200);
         });
       });
@@ -6872,7 +6960,7 @@
 
       // Les tags sont ajoutés dynamiquement, donc on doit attendre un peu
       // Utiliser un délai pour s'assurer qu'ils sont présents
-      setTimeout(() => {
+      InitQueue.later('ForumThread:HideTags', () => {
         console.log('[Forum Thread:HideTags] setTimeout fired');
 
         // Chercher tous les liens de tags (sans slash initial dans le href)
@@ -7521,7 +7609,8 @@
     // Déterminer l'URL du fichier version.json (GitHub en prod)
     const versionUrl = 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/refs/heads/main/version.json';
 
-    // Récupérer la dernière version disponible
+    // Récupérer la dernière version disponible (pendant le chargement, la file attend la réponse ou l'erreur)
+    const releaseVersion = InitQueue.hold('displayVersionInfo');
     fetch(versionUrl)
       .then(response => {
         if (!response.ok) {throw new Error('Fetch failed');}
@@ -7544,7 +7633,8 @@
         if (latestSpan) {
           latestSpan.textContent = 'erreur';
         }
-      });
+      })
+      .then(releaseVersion);
   }
 
   function relocateKramailToLeft() {
@@ -8411,9 +8501,10 @@
 
     if (!tryInsert()) {
       let attempts = 0;
+      const release = InitQueue.hold('insertTampermonkeyThemeUI');
       const id = setInterval(() => {
         attempts++;
-        if (tryInsert() || attempts > 25) {clearInterval(id);}
+        if (tryInsert() || attempts > 25) {clearInterval(id); release();}
       }, 200);
     }
   }
@@ -8423,18 +8514,17 @@
   // ============================================================================
 
   function startObservers() {
-    let moTimer;
+    // Debounce les callbacks non-critiques (carte médiévale, toggle button) ; suivi par la file pendant le chargement
+    const scheduleNonCritical = InitQueue.debounce('observers:nonCritical', () => {
+      safeCall(() => applyMedievalMapOption());
+      safeCall(insertToggleCSSButton);
+    }, 150);
     const mo = new MutationObserver(() => {
       // Vérification immédiate du CSS (critique, pas de debounce)
       if (isThemeEnabled() && !document.getElementById(CONFIG.STYLE_ID)) {
         applyThemeInline(CONFIG.BUNDLED_CSS).catch(() => {});
       }
-      // Debounce les callbacks non-critiques (carte médiévale, toggle button)
-      clearTimeout(moTimer);
-      moTimer = setTimeout(() => {
-        safeCall(() => applyMedievalMapOption());
-        safeCall(insertToggleCSSButton);
-      }, 150);
+      scheduleNonCritical();
     });
 
     if (document.documentElement || document) {
@@ -8444,12 +8534,12 @@
     // SPA navigation
     const wrap = orig => function () {
       const ret = orig.apply(this, arguments);
-      setTimeout(() => ensureTheme(), 250);
+      InitQueue.later('observers:ensureTheme', () => ensureTheme(), 250);
       return ret;
     };
     history.pushState = wrap(history.pushState);
     history.replaceState = wrap(history.replaceState);
-    window.addEventListener('popstate', () => setTimeout(() => ensureTheme(), 250));
+    window.addEventListener('popstate', () => InitQueue.later('observers:ensureTheme', () => ensureTheme(), 250));
   }
 
   // ============================================================================

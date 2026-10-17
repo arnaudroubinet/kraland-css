@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, probeQuiet } from './lib/settle.mjs';
+import { krReady, probeQuiet } from './lib/settle.mjs';
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { parseIndex, signatureInfo, computeExclusions, exclusionsInTemplate, probe, engine, closeEngine, decodeWithEngine, scratchDir, INVENTORY_PATH } from './audit-map-images.mjs';
@@ -185,7 +185,7 @@ await context.addInitScript(({ src }) => {
 }, { src: userscript });
 const page = await context.newPage();
 await page.goto('http://www.kraland.org/jouer/plateau', { waitUntil: 'load' });
-await domQuiet(page, { quietMs: 500, label: 'chargement plateau' });
+await krReady(page, { label: 'chargement plateau' });
 
 // Échantillons : toutes les exclusions, 40 noms remplaçables par variante (dont suffixes), 3 noms inconnus de l'inventaire
 const overrideMap = Object.fromEntries([...fs.readFileSync(path.join(root, 'kraland-userscript-template.js'), 'utf8').match(/MEDIEVAL_MAP_OVERRIDES: \{([\s\S]*?)\n {4}\},/)[1].matchAll(/'([^']+)': '([^']+)'/g)].map(m => [m[1], m[2]]));

@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
-import { domQuiet, probeQuiet, THEME_READY } from './lib/settle.mjs';
+import { krReady, probeQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -141,7 +141,7 @@ const DARK = 'empire-brun-dark'; const LIGHT = 'empire-brun';
 async function open({ width, kind, theme = true, variant = DARK, height = 800, stripTitles = false, touch = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: 2 });
-  const state = { documents: 0, other: [], denied: [], external: [] };
+  const state = { documents: 0, loads: 0, other: [], denied: [], external: [] };
   // 1) Refus global posé EN PREMIER : toute destination (http, https, autre hôte, version.json, images tierces) est journalisée puis refusée.
   await context.route('**/*', r => {
     const u = new URL(r.request().url());
@@ -185,8 +185,10 @@ async function open({ width, kind, theme = true, variant = DARK, height = 800, s
     }
   }, { src: userscript, enabled: theme, variant });
   const p = await context.newPage();
+  // Documents entièrement chargés (événement load de chaque document) : un rechargement est fini quand ce compteur l'atteint.
+  p.on('load', () => { state.loads += 1; });
   await p.goto(BASE + URLS[kind], { waitUntil: 'load' });
-  if (theme) { await domQuiet(p, { ready: THEME_READY, label: 'messages-v3' }); } else { await p.waitForTimeout(300); }
+  if (theme) { await krReady(p, { ready: THEME_READY, label: 'messages-v3' }); } else { await p.waitForTimeout(300); }
   return { context, page: p, state };
 }
 
@@ -430,10 +432,11 @@ if (frag('seuils')) {
 if (frag('transitions')) {
   console.log('Vraies transitions de viewport (rechargement au franchissement de 768 px), deux sens');
   const reloaded = async (p, state, docs) => {
+    // Attendre le load du NOUVEAU document (compteur state.loads) avant le marqueur : html[data-kr-ready] de l'ancien document, encore
+    // affiché entre la requête et la validation de la navigation, ferait passer l'attente trop tôt.
     const t0 = Date.now();
-    while (state.documents < docs && Date.now() - t0 < 25000) { await p.waitForTimeout(100); }
-    await p.waitForLoadState('load');
-    await domQuiet(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
+    while ((state.documents < docs || state.loads < docs) && Date.now() - t0 < 25000) { await p.waitForTimeout(50); }
+    await krReady(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
     return state.documents;
   };
   for (const variant of [DARK, LIGHT]) {
