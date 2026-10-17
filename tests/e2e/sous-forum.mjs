@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -50,6 +51,7 @@ async function open({ width, variant = 'empire-brun-dark', height = 800, url = S
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
   const state = { documents: 0, other: [] };
+  await confineNetwork(context); // refus global EN PREMIER (logos du thème et version.json : refusés)
   await context.route(BASE + '/**', r => {
     const u = new URL(r.request().url());
     if (r.request().resourceType() === 'document' && u.pathname === url) {

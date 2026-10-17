@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, probeQuiet } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -39,6 +40,9 @@ function check(name, fn) {
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1512, height: 772 } });
+// Refus global EN PREMIER. Logo du thème refusé VOLONTAIREMENT (image cassée + alt, comme la référence AVANT sous
+// puits DNS) : un GIF 1 x 1 rétrécit la marque et supprime le cas « barre sur deux lignes à 1000 px » de nav-origine.
+await confineNetwork(context);
 await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
 await context.addInitScript(({ src }) => {
   window.GM = { xmlHttpRequest: () => {} };
@@ -150,6 +154,7 @@ async function navSuite(fixtureFile, strict) {
   const navHtml = fs.readFileSync(path.join(root, 'tests/e2e/fixtures', fixtureFile), 'utf8');
   const paddingOk = (m) => strict ? Math.abs(m.paddingTop - m.barHeight) <= 1 : (m.paddingTop - m.barHeight >= 0 && m.paddingTop - m.barHeight <= 3);
   const navContext = await browser.newContext({ viewport: { width: 1512, height: 800 } });
+  await confineNetwork(navContext);
   await navContext.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: navHtml }));
   await navContext.addInitScript(({ src }) => {
     window.GM = { xmlHttpRequest: () => {} };

@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -67,6 +68,7 @@ const browser = await chromium.launch({ headless: true });
 async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false }) {
   const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   let documents = 0;
+  await confineNetwork(context); // refus global EN PREMIER
   await context.route('http://www.kraland.org/**', r => {
     const u = new URL(r.request().url());
     if (!PAGES[u.pathname]) { return r.fulfill({ status: 204, body: '' }); }

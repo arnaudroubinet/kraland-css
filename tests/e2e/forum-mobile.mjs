@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -167,6 +168,7 @@ async function open({ width, kind, locked = false, theme = true, variant = 'empi
   // touch : écran tactile à une largeur de bureau (tablette en portrait à 768 px) ; isMobile reste réservé aux largeurs < 768
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: 2 });
   const state = { documents: 0, other: [] };
+  await confineNetwork(context); // refus global EN PREMIER (logos du thème et version.json : refusés)
   const urlFor = kind === 'sujet' ? '/forum/sujet/fixture-1-2' : '/forum/post/repondre-2-FIXTURE';
   await context.route(BASE + '/**', r => {
     const u = new URL(r.request().url());

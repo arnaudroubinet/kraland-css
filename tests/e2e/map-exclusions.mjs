@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, probeQuiet } from './lib/settle.mjs';
 import http from 'node:http';
 import { execFile } from 'node:child_process';
@@ -169,6 +170,7 @@ const requests = {};
 const html = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="zone"></div></body></html>';
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+await confineNetwork(context); // refus global EN PREMIER (img7 et imgur routés ci-dessous)
 const exists = (url) => { const m = url.match(/\/2\/map\/([^/]+)\/([^/?#]+)$/); return Boolean(m && inv.variants[m[1]] && inv.variants[m[1]].files.includes(decodeURIComponent(m[2]))); };
 await context.route('http://www.kraland.org/jouer/plateau', route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
 await context.route('http://img7.kraland.org/**', route => { const u = route.request().url(); requests[u] = (requests[u] || 0) + 1; return exists(u) ? route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }) : route.fulfill({ status: 404, contentType: 'text/html', body: 'not found' }); });
