@@ -2,7 +2,7 @@
 //
 //   node tests/e2e/run.mjs all                  le total, en parallèle (à lancer UNE fois en fin de travail)
 //   node tests/e2e/run.mjs zone forum croix     seulement les zones citées (npm run test:zone -- forum croix)
-//   node tests/e2e/run.mjs changed [--base REF] zones déduites de git diff (npm run test:changed) ; doute = total
+//   node tests/e2e/run.mjs changed [--base REF] zones et unités déduites de git diff (npm run test:changed) ; doute = total ; routeur modifié = test:router en plus
 //   node tests/e2e/run.mjs red forum            preuve ROUGE ciblée : réussit seulement si la zone ÉCHOUE (npm run test:red -- forum)
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
@@ -12,7 +12,7 @@
 //             (dossier du vrai Bootstrap 3.3.7 + jQuery 3.3.1 ; défaut : tests/e2e/vendor/, embarqué dans le dépôt. Si le dossier, par défaut ou indiqué,
 //             est incomplet, les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
 // Chaque fragment a son journal, son dossier de captures (KR_SHOTS) et son TMPDIR : aucune ressource partagée, aucun port fixe.
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -22,7 +22,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const E2E = 'tests/e2e';
 const DEFAULT_BOOTSTRAP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 
-import { SUITES, ZONES, zonesFromDiff, orderLongestFirst } from './lib/router.mjs';
+import { SUITES, ZONES, zonesFromDiff, orderLongestFirst, pickUnits } from './lib/router.mjs';
 
 // Durées mesurées par fragment (secondes), versionnées : elles fixent l'ordre de lancement (plus longs d'abord). Mise à jour EXPLICITE seulement
 // (KR_SAVE_DURATIONS=1, après une exécution verte) : une exécution ordinaire ne modifie jamais le dépôt.
@@ -134,6 +134,8 @@ if (cmd === 'list') {
 }
 
 let zones = ZONES;
+let changed = null;
+let routerBad = false;
 let expectRed = false;
 if (cmd === 'zone' || cmd === 'red') {
   zones = args.filter(a => !a.startsWith('--'));
@@ -142,11 +144,21 @@ if (cmd === 'zone' || cmd === 'red') {
   if (!zones.length || unknown.length) { console.error(`Zone attendue parmi : ${ZONES.join(', ')}${unknown.length ? ` (inconnue : ${unknown.join(', ')})` : ''}`); process.exit(2); }
 } else if (cmd === 'changed') {
   const i = args.indexOf('--base');
-  const r = zonesFromDiff(i >= 0 ? args[i + 1] : null);
+  changed = zonesFromDiff(i >= 0 ? args[i + 1] : null);
+  const r = changed;
   zones = r.zones;
   console.log('Fichiers modifiés : ' + (r.files && r.files.length ? r.files.join(', ') : '(aucun)'));
   r.reasons.forEach(x => console.log('  - ' + x));
-  if (r.widened) { console.log('INCERTITUDE : élargi au total (toutes les zones).'); } else if (!zones.length) { console.log('Aucune zone testable touchée : rien à lancer.'); process.exit(0); } else { console.log('Zones choisies : ' + zones.join(', ')); }
+  if (r.routerTest) {
+    // Routeur ou registre modifié : son test (sans navigateur, < 1 s) passe avant tout fragment.
+    const t = spawnSync(process.execPath, [path.join(root, E2E, 'lib/router.test.mjs')], { cwd: root, encoding: 'utf8' });
+    routerBad = t.status !== 0;
+    console.log(`Test du routeur : ${routerBad ? 'ÉCHEC' : 'ok'}${routerBad ? '\n' + t.stdout + t.stderr : ''}`);
+  }
+  if (r.widened) { console.log('INCERTITUDE : élargi au total (toutes les zones).'); } else if (!zones.length && !r.units.length) {
+    console.log('Aucune zone testable touchée : rien à lancer' + (r.routerTest ? ' (hors test du routeur).' : '.'));
+    process.exit(routerBad ? 1 : 0);
+  } else { console.log('Zones choisies : ' + (zones.join(', ') || '(aucune)') + (r.units.length ? ' ; unités : ' + r.units.join(', ') : '')); }
 } else if (cmd !== 'all') {
   console.error('Usage : run.mjs all | zone <z...> | changed [--base REF] | red <zone> | list'); process.exit(2);
 }
@@ -154,7 +166,7 @@ if (cmd === 'zone' || cmd === 'red') {
 const logDir = process.env.KR_LOGDIR || fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'kraland-e2e-'));
 if (path.resolve(logDir).startsWith(root + path.sep)) { console.error('KR_LOGDIR ne doit pas être dans le dépôt : ' + logDir); process.exit(2); }
 fs.mkdirSync(logDir, { recursive: true });
-const units = buildUnits(zones, process.env);
+const units = changed && !changed.widened ? pickUnits(buildUnits(ZONES, process.env), changed) : buildUnits(zones, process.env);
 if (units.some(u => u.missingBootstrap)) { console.error('Fichiers Bootstrap 3.3.7 et jQuery introuvables ou incomplets dans ' + (process.env.KR_BOOTSTRAP_DIR || DEFAULT_BOOTSTRAP_DIR) + ' (attendus : bootstrap.min.css, bootstrap.min.js, jquery.min.js ; défaut tests/e2e/vendor, surcharge KR_BOOTSTRAP_DIR). Aucun fragment ignoré silencieusement.'); process.exit(2); }
 const unmeasured = units.filter(u => !Number.isFinite(readDurations()[u.id])).map(u => u.id);
 console.log(`${units.length} fragment(s), concurrence ${concurrency}, plus longs d'abord (${path.relative(root, DURATIONS_FILE)})${unmeasured.length ? ` ; sans durée mesurée, lancés en tête : ${unmeasured.join(', ')}` : ''}, journaux dans ${logDir}`);
@@ -170,4 +182,5 @@ if (expectRed) {
   if (sum.bad) { console.log('ROUGE confirmé : la zone échoue comme attendu (preuve rouge OK).'); process.exit(0); }
   console.log('PAS ROUGE : la zone passe, le test ne prouve rien avant le correctif.'); process.exit(1);
 }
-process.exit(sum.bad ? 1 : 0);
+if (routerBad) { console.log('RÉSULTAT : ÉCHEC (test du routeur)'); }
+process.exit(sum.bad || routerBad ? 1 : 0);
