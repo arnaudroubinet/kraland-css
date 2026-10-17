@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 // Registre : une suite = un fichier ; fragments = exécutions indépendantes (KR_FRAG) dont la somme rejoue la suite entière.
-// Les fragments les plus longs sont lancés en premier (ordre de la liste).
+// L'ordre de lancement ne dépend PAS de cette liste : run.mjs lance les plus longs d'abord d'après tests/e2e/durations.json (orderLongestFirst).
 const FORUM_FRAGS = [
   ['seuil-real-sombre'], ['seuil-real-clair'], ['seuil-fake-sombre'], ['seuil-fake-clair'],
   ['m2-real'], ['m2-fake'], ['s3-real'], ['s3-fake'], ['s3d-real'],
@@ -28,13 +28,25 @@ export const SUITES = [
   { name: 'image-fallback', file: 'image-fallback.mjs', zones: ['images'] },
   { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] },
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
-  { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] },
+  { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination-socle'], ['l5-pagination-m2-mobile'], ['l5-pagination-m2-bureau'], ['l5-pagination-viewport'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] },
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
   { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
   { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau', 'envoi', 'repli', 'libelle', 'indicatif']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
+
+// Ordre de lancement : plus longs d'abord (ordonnancement LPT), d'après les durées mesurées (secondes par id d'unité, tests/e2e/durations.json).
+// Une unité sans durée connue (fragment nouveau ou renommé) passe EN TÊTE : on ne sait pas si elle est longue, et la lancer tôt évite qu'elle
+// allonge la fin de la suite. À durée égale ou inconnue, l'ordre du registre est conservé (tri stable).
+export function orderLongestFirst(units, durations = {}) {
+  const known = u => Number.isFinite(durations[u.id]);
+  return units.map((u, i) => ({ u, i })).sort((a, b) => {
+    if (known(a.u) !== known(b.u)) { return known(a.u) ? 1 : -1; }
+    if (known(a.u) && durations[b.u.id] !== durations[a.u.id]) { return durations[b.u.id] - durations[a.u.id]; }
+    return a.i - b.i;
+  }).map(x => x.u);
+}
 
 // Zones touchées d'après un fichier ; null = inconnu (on élargit au total).
 export const FILE_RULES = [
@@ -46,6 +58,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
+  [/^tests\/e2e\/durations\.json$/, []], // durées mesurées : changent l'ordre de lancement, jamais le résultat d'une vérification
   [/^(README\.md|CLAUDE\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
   [/^(kraland-userscript-main\.user\.js|kraland-userscript\.user\.js|kraland-userscript-dev\.user\.js)$/, 'generated'] // fichiers générés : la source fait foi, sinon total
 ];

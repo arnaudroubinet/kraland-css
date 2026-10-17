@@ -7,7 +7,8 @@
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
 // Variables : KR_CONCURRENCY (défaut min(8, CPU/2)), KR_LOGDIR (défaut $TMPDIR/kraland-e2e/<horodatage>, jamais dans le dépôt),
-//             KR_SCRIPT (bundle testé), KR_BOOTSTRAP_DIR
+//             KR_SCRIPT (bundle testé), KR_SAVE_DURATIONS=1 (après une exécution verte, réécrit tests/e2e/durations.json : ordre plus longs d'abord),
+//             KR_BOOTSTRAP_DIR
 //             (dossier du vrai Bootstrap 3.3.7 + jQuery 3.3.1 ; défaut : tests/e2e/vendor/, embarqué dans le dépôt. Si le dossier, par défaut ou indiqué,
 //             est incomplet, les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
 // Chaque fragment a son journal, son dossier de captures (KR_SHOTS) et son TMPDIR : aucune ressource partagée, aucun port fixe.
@@ -21,7 +22,24 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const E2E = 'tests/e2e';
 const DEFAULT_BOOTSTRAP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 
-import { SUITES, ZONES, zonesFromDiff } from './lib/router.mjs';
+import { SUITES, ZONES, zonesFromDiff, orderLongestFirst } from './lib/router.mjs';
+
+// Durées mesurées par fragment (secondes), versionnées : elles fixent l'ordre de lancement (plus longs d'abord). Mise à jour EXPLICITE seulement
+// (KR_SAVE_DURATIONS=1, après une exécution verte) : une exécution ordinaire ne modifie jamais le dépôt.
+const DURATIONS_FILE = path.join(root, E2E, 'durations.json');
+function readDurations() {
+  try { return JSON.parse(fs.readFileSync(DURATIONS_FILE, 'utf8')).durations || {}; } catch (_e) { return {}; }
+}
+function saveDurations(results) {
+  let doc = {};
+  try { doc = JSON.parse(fs.readFileSync(DURATIONS_FILE, 'utf8')); } catch (_e) { doc = {}; }
+  const merged = { ...(doc.durations || {}) };
+  for (const r of results.filter(x => !x.skipped)) { merged[r.id] = Math.max(1, Math.round(r.ms / 1000)); }
+  const known = new Set(buildUnits(ZONES, process.env).map(u => u.id)); // fragments retirés ou renommés : leur durée part
+  const durations = Object.fromEntries(Object.keys(merged).filter(k => known.has(k)).sort().map(k => [k, merged[k]]));
+  const out = { _comment: doc._comment || 'Durées murales mesurées par fragment (secondes). Lues par run.mjs pour lancer les plus longs d\'abord ; mises à jour par KR_SAVE_DURATIONS=1 npm run test:all (exécution verte seulement).', durations };
+  fs.writeFileSync(DURATIONS_FILE, JSON.stringify(out, null, 2) + '\n');
+}
 
 function buildUnits(zones, env) {
   const units = [];
@@ -64,7 +82,7 @@ function runUnit(unit, logDir) {
 
 async function runAll(units, concurrency, logDir) {
   const results = [];
-  const queue = units.filter(u => !u.skip);
+  const queue = orderLongestFirst(units.filter(u => !u.skip), readDurations());
   const state = { running: 0, next: 0 };
   await new Promise(done => {
     const launch = u => {
@@ -138,12 +156,16 @@ if (path.resolve(logDir).startsWith(root + path.sep)) { console.error('KR_LOGDIR
 fs.mkdirSync(logDir, { recursive: true });
 const units = buildUnits(zones, process.env);
 if (units.some(u => u.missingBootstrap)) { console.error('Fichiers Bootstrap 3.3.7 et jQuery introuvables ou incomplets dans ' + (process.env.KR_BOOTSTRAP_DIR || DEFAULT_BOOTSTRAP_DIR) + ' (attendus : bootstrap.min.css, bootstrap.min.js, jquery.min.js ; défaut tests/e2e/vendor, surcharge KR_BOOTSTRAP_DIR). Aucun fragment ignoré silencieusement.'); process.exit(2); }
-console.log(`${units.length} fragment(s), concurrence ${concurrency}, journaux dans ${logDir}`);
+const unmeasured = units.filter(u => !Number.isFinite(readDurations()[u.id])).map(u => u.id);
+console.log(`${units.length} fragment(s), concurrence ${concurrency}, plus longs d'abord (${path.relative(root, DURATIONS_FILE)})${unmeasured.length ? ` ; sans durée mesurée, lancés en tête : ${unmeasured.join(', ')}` : ''}, journaux dans ${logDir}`);
 const t0 = Date.now();
 const results = await runAll(units, concurrency, logDir);
 results.concurrency = concurrency;
 const sum = summarize(results, Date.now() - t0, logDir);
 console.log(sum.text);
+if (process.env.KR_SAVE_DURATIONS === '1' && !expectRed) {
+  if (sum.bad) { console.log('Durées NON enregistrées : exécution en échec.'); } else { saveDurations(results); console.log('Durées enregistrées dans ' + path.relative(root, DURATIONS_FILE) + ' (à committer).'); }
+}
 if (expectRed) {
   if (sum.bad) { console.log('ROUGE confirmé : la zone échoue comme attendu (preuve rouge OK).'); process.exit(0); }
   console.log('PAS ROUGE : la zone passe, le test ne prouve rien avant le correctif.'); process.exit(1);

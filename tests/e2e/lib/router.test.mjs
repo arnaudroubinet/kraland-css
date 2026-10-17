@@ -1,7 +1,9 @@
 // Test du routeur `test:changed` (zonesFromDiff) sur des hunks de référence, sans dépôt ni navigateur : npm run test:router
 // Principe : le routeur doit être CONSERVATEUR. Un mot-clé touche toutes les zones dont une suite vérifie le comportement visé.
 import assert from 'node:assert/strict';
-import { SUITES, zonesFromDiff } from './router.mjs';
+import fs from 'node:fs';
+import { URL } from 'node:url';
+import { SUITES, zonesFromDiff, orderLongestFirst } from './router.mjs';
 
 const zonesOf = file => SUITES.filter(s => s.file === file).flatMap(s => s.zones);
 const BASCULE = [...new Set(['demarrage', ...zonesOf('breakpoint-switch.mjs')])];
@@ -111,6 +113,35 @@ check('documentation seule : rien à lancer (pas d\'élargissement)', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'README.md': [] }));
   assert.equal(r.widened, false);
   assert.equal(r.zones.length, 0);
+});
+check('durées mesurées (tests/e2e/durations.json) seules : rien à lancer (elles ne changent que l\'ordre)', () => {
+  const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/durations.json': [] }));
+  assert.equal(r.widened, false);
+  assert.equal(r.zones.length, 0);
+});
+
+console.log('Ordre de lancement (plus longs d\'abord)');
+const U = ids => ids.map(id => ({ id }));
+check('durées connues : ordre décroissant, quel que soit l\'ordre du registre', () => {
+  assert.deepEqual(orderLongestFirst(U(['a', 'b', 'c']), { a: 5, b: 420, c: 30 }).map(u => u.id), ['b', 'c', 'a']);
+});
+check('unité sans durée mesurée : en tête (prudence), dans l\'ordre du registre', () => {
+  assert.deepEqual(orderLongestFirst(U(['a', 'n1', 'b', 'n2']), { a: 5, b: 50 }).map(u => u.id), ['n1', 'n2', 'b', 'a']);
+});
+check('durées égales ou fichier absent : ordre du registre conservé (tri stable)', () => {
+  assert.deepEqual(orderLongestFirst(U(['a', 'b', 'c']), { a: 7, b: 7, c: 7 }).map(u => u.id), ['a', 'b', 'c']);
+  assert.deepEqual(orderLongestFirst(U(['a', 'b', 'c'])).map(u => u.id), ['a', 'b', 'c']);
+});
+check('aucune unité perdue ni dupliquée', () => {
+  const ids = SUITES.flatMap(s => s.frags ? s.frags.map(f => `${s.name}#${f.join('+')}`) : [s.name]);
+  const out = orderLongestFirst(U(ids), { [ids[3]]: 1, [ids[0]]: 99 }).map(u => u.id);
+  assert.deepEqual([...out].sort(), [...ids].sort());
+});
+check('durations.json versionné : chaque fragment du registre a une durée, aucune durée orpheline', () => {
+  const doc = JSON.parse(fs.readFileSync(new URL('../durations.json', import.meta.url), 'utf8'));
+  const ids = SUITES.flatMap(s => s.frags ? s.frags.map(f => `${s.name}#${f.join('+')}`) : [s.name]);
+  assert.deepEqual(ids.filter(id => !Number.isFinite(doc.durations[id])), [], 'fragments sans durée : les mesurer avec KR_SAVE_DURATIONS=1 npm run test:zone -- <zone>, puis committer tests/e2e/durations.json');
+  assert.deepEqual(Object.keys(doc.durations).filter(id => !ids.includes(id)), [], 'durées orphelines');
 });
 
 console.log(failures ? `${failures} échec(s)` : 'Routeur conforme');
