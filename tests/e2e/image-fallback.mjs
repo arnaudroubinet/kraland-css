@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
+import { frames, krReady, waitState } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -33,6 +34,9 @@ const EXISTING = new Set([
   `${BASE}/1/201.gif`, `${BASE}/5/201.gif` // fond CSS dont la cible est lente
 ]);
 const SLOW = new Set([`${BASE}/5/200.gif`, `${BASE}/5/201.gif`]);
+// Fin des réponses lentes (3,8 s, plus que le délai de 3 s du pré-test) : condition observable côté Node au lieu d'une attente de 6 s
+const slowServed = {};
+const slowDone = new Map([...SLOW].map(u => [u, new Promise(r => { slowServed[u] = r; })]));
 // 77.gif : absente partout. 104 : /5/ répond 200 avec un corps qui n'est pas une image.
 const requests = {};
 
@@ -71,7 +75,7 @@ await context.route('http://img7.kraland.org/**', async route => {
   const url = route.request().url();
   requests[url] = (requests[url] || 0) + 1;
   // cibles valides mais lentes (réseau lent) : plus longues que le délai du pré-test (3 s)
-  if (SLOW.delete(url)) { await new Promise(r => setTimeout(r, 3800)); }
+  if (SLOW.delete(url)) { await new Promise(r => setTimeout(r, 3800)); slowServed[url](); }
   if (url === `${BASE}/5/104.gif`) { return route.fulfill({ status: 200, contentType: 'image/gif', body: 'ceci n est pas une image' }); }
   if (EXISTING.has(url)) { return route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }); }
   return route.fulfill({ status: 404, contentType: 'text/html', body: 'not found' });
@@ -93,7 +97,18 @@ await context.addInitScript(({ src, base }) => {
 }, { src: userscript, base: BASE });
 const page = await context.newPage();
 await page.goto(TARGET, { waitUntil: 'load' });
-await page.waitForTimeout(2500);
+// Au lieu de 2,5 s : fin d'initialisation (les pré-tests des images médiévales sont suivis par InitQueue), puis états finaux
+// attendus (condition bornée sans erreur : chaque vérification ci-dessous tranche sur l'état réel)
+await krReady(page, { label: 'image-fallback' });
+// Condition bornée, sans erreur, puis deux images
+const settle = async (fn, arg = null, maxMs = 5000) => { await waitState(page, fn, arg, { maxMs }); await frames(page); };
+await settle(b => {
+  const g = id => document.getElementById(id);
+  const img = (id, src) => g(id).getAttribute('src') === src && g(id).complete;
+  return img('ok', b + '/5/100.gif') && img('early-ok', b + '/5/100.gif') && img('exact', b + '/1/55_1.gif') && g('exact').naturalWidth > 0 &&
+    img('early-exact', b + '/1/55_1.gif') && g('early-exact').naturalWidth > 0 && img('both', b + '/1/77.gif') && img('early-both', b + '/1/77.gif') &&
+    img('bad', b + '/1/104.gif') && g('bad').naturalWidth > 0 && img('sepia', b + '/5/102.gif') && getComputedStyle(g('bgok')).backgroundImage.includes('/5/103.gif');
+}, BASE);
 
 const state = (id) => page.evaluate((i) => {
   const el = document.getElementById(i);
@@ -127,7 +142,7 @@ console.log('Cible et original absents : pas de boucle');
 const both = await state('both');
 check('retour à l\'original (même absent)', () => assert.equal(both.src, `${BASE}/1/77.gif`));
 const before = { a: count(`${BASE}/5/77.gif`), b: count(`${BASE}/1/77.gif`) };
-await page.waitForTimeout(2500);
+await page.waitForTimeout(2500); // fenêtre d'observation d'une ABSENCE (aucune requête de plus) : pas de condition positive possible
 check(`requêtes stables après 2,5 s (cible ${before.a}, original ${before.b})`, () => { assert.equal(count(`${BASE}/5/77.gif`), before.a); assert.equal(count(`${BASE}/1/77.gif`), before.b); });
 check('cible tentée au plus 2 fois, original au plus 3', () => { assert.ok(before.a <= 2, String(before.a)); assert.ok(before.b <= 3, String(before.b)); });
 
@@ -160,7 +175,7 @@ await page.evaluate(() => {
     el.style.setProperty('opacity', '0.99');
   }
 });
-await page.waitForTimeout(1500);
+await page.waitForTimeout(1500); // fenêtre d'observation d'une ABSENCE (états inchangés, pas de requête en boucle)
 const exact2 = await state('exact'); const ok2 = await state('ok'); const both2 = await state('both');
 check('états inchangés après mutations répétées', () => { assert.equal(exact2.src, `${BASE}/1/55_1.gif`); assert.equal(ok2.src, `${BASE}/5/100.gif`); assert.equal(both2.src, `${BASE}/1/77.gif`); });
 const snap0 = JSON.parse(snapshot);
@@ -170,7 +185,7 @@ check('cibles absentes jamais retentées', () => { assert.equal(count(`${BASE}/5
 
 console.log('Source changée par le site');
 await page.evaluate((b) => { document.getElementById('resync').setAttribute('src', b + '/1/106.gif'); }, BASE);
-await page.waitForTimeout(1500);
+await settle(b => document.getElementById('resync').getAttribute('src') === b + '/5/106.gif', BASE); // au lieu de 1,5 s
 const resync = await state('resync');
 check('nouvelle source traitée à son tour (/1/106 -> /5/106)', () => assert.equal(resync.src, `${BASE}/5/106.gif`));
 
@@ -182,13 +197,18 @@ await page.evaluate((b) => {
   mk('dyn-exact', b + '/1/55_1.gif');
   mk('dyn-both', b + '/1/88.gif');
 }, BASE);
-await page.waitForTimeout(2500);
+// Au lieu de 2,5 s : états finaux des images dynamiques (cible tentée puis original pour 88, sans cible pour 55_1)
+await settle(b => {
+  const g = id => document.getElementById(id);
+  return g('dyn-ok').getAttribute('src') === b + '/5/101.gif' && g('dyn-ok').complete && g('dyn-exact').getAttribute('src') === b + '/1/55_1.gif' && g('dyn-exact').naturalWidth > 0 &&
+    g('dyn-both').getAttribute('src') === b + '/1/88.gif' && g('dyn-both').complete && g('dyn-both').getAttribute('data-kr-medieval-failed') === 'true';
+}, BASE);
 const dynOk = await state('dyn-ok'); const dynExact = await state('dyn-exact'); const dynBoth = await state('dyn-both');
 check('image dynamique valide remplacée', () => assert.equal(dynOk.src, `${BASE}/5/101.gif`));
 check('image dynamique sans cible : original conservé et affiché', () => { assert.equal(dynExact.src, `${BASE}/1/55_1.gif`); assert.ok(dynExact.width > 0); });
 check('image dynamique absente partout : original, sans boucle', () => assert.equal(dynBoth.src, `${BASE}/1/88.gif`));
 const dyn1 = count(`${BASE}/1/88.gif`) + count(`${BASE}/5/88.gif`);
-await page.waitForTimeout(1500);
+await page.waitForTimeout(1500); // fenêtre d'observation d'une ABSENCE (aucune requête de plus)
 check('aucune requête supplémentaire pour l\'image dynamique absente', () => assert.equal(count(`${BASE}/1/88.gif`) + count(`${BASE}/5/88.gif`), dyn1));
 check('55_1.gif (précoce, initiale, dynamique) : toujours zéro requête vers /5/55_1.gif', () => assert.equal(count(`${BASE}/5/55_1.gif`), 0));
 
@@ -198,12 +218,14 @@ await page.evaluate((b) => {
   const i = document.createElement('img'); i.id = 'slow'; i.width = 16; i.height = 16; i.src = b + '/1/200.gif'; zone.appendChild(i);
   const d = document.createElement('div'); d.id = 'bgslow'; d.style.cssText = `width:20px;height:20px;background-image:url('${b}/1/201.gif')`; zone.appendChild(d);
 }, BASE);
-await page.waitForTimeout(6000);
+// Au lieu de 6 s : les deux réponses lentes sont servies (donc le délai de 3 s du pré-test est dépassé), puis l'image lente affichée
+await Promise.race([Promise.all([...slowDone.values()]), new Promise(r => setTimeout(r, 8000))]); // borne : une requête jamais partie ne bloque pas la suite
+await settle(b => { const i = document.getElementById('slow'); return i.getAttribute('src') === b + '/5/200.gif' && i.complete && i.naturalWidth > 0; }, BASE);
 const slow = await state('slow'); const bgslow = await state('bgslow');
 check('image lente : pas de bannissement (jamais marquée en échec), la cible /5/ finit par s\'afficher', () => { assert.notEqual(slow.failed, 'true'); assert.equal(slow.src, `${BASE}/5/200.gif`); assert.ok(slow.width > 0); });
 check('fond lent : original conservé sans marque d\'échec après le délai', () => { assert.notEqual(bgslow.failed, 'true'); });
 await page.evaluate((b) => { const d = document.getElementById('bgslow'); d.style.setProperty('background-image', `url('${b}/1/201.gif')`); d.style.setProperty('opacity', '0.99'); }, BASE);
-await page.waitForTimeout(1500);
+await settle(() => getComputedStyle(document.getElementById('bgslow')).backgroundImage.includes('/5/201.gif')); // au lieu de 1,5 s
 const bgslow2 = await state('bgslow');
 check('fond lent : nouvelle tentative possible, la cible (désormais en cache navigateur) est appliquée', () => assert.ok(bgslow2.bg.includes('/5/201.gif'), bgslow2.bg));
 check('la cible lente n\'a pas été relue en boucle', () => assert.ok(count(`${BASE}/5/200.gif`) <= 3, String(count(`${BASE}/5/200.gif`))));

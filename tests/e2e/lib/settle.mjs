@@ -59,6 +59,34 @@ export async function krReady(page, { ready = null, maxMs = 15000, label = 'page
   }
 }
 
+/** Deux images peintes (ou `n`) : les événements scroll / resize de la mise à jour du rendu ont été distribués. */
+export function frames(page, n = 2) {
+  return page.evaluate(count => new Promise(r => { const step = k => (k <= 0 ? r() : requestAnimationFrame(() => step(k - 1))); step(count); }), n);
+}
+
+/**
+ * Attend une condition observable `fn(arg)` (évaluée dans la page) au plus `maxMs`, SANS lever d'erreur : renvoie true si elle est
+ * atteinte. Sert quand la vérification qui suit doit rester celle qui échoue (message et compte de vérifications inchangés) : une
+ * condition jamais atteinte ne fait qu'attendre `maxMs`, puis la vérification mesure l'état réel et échoue.
+ */
+export async function waitState(page, fn, arg = null, { maxMs = 5000 } = {}) {
+  return page.waitForFunction(fn, arg, { timeout: maxMs }).then(() => true, () => false);
+}
+
+/**
+ * Style d'un élément posé : l'élément `sel` (n° `index`) vérifie le pseudo-état `state` (':hover', ':active', facultatif) et aucune
+ * transition ni animation finie n'est encore en cours (getAnimations, sous-arbre compris) ; puis une image. Remplace les attentes fixes avant
+ * une mesure de couleurs. Sans lever d'erreur (borne `maxMs`) : la mesure qui suit tranche.
+ */
+export async function styleSettled(page, sel, { index = 0, state = null, maxMs = 3000 } = {}) {
+  await waitState(page, ({ s, i, st }) => {
+    const el = document.querySelectorAll(s)[i];
+    if (!el || (st && !el.matches(st))) { return false; }
+    return el.getAnimations({ subtree: true }).every(a => a.playState !== 'running' || a.effect.getComputedTiming().iterations === Infinity);
+  }, { s: sel, i: index, st: state }, { maxMs });
+  await frames(page, 1);
+}
+
 /**
  * Attend (1) la condition `ready` (fonction évaluée dans la page, facultative), puis (2) que le DOM soit calme : aucune mutation pendant
  * `quietMs`, suivie de deux images peintes. Expiration à `maxMs` : erreur explicite, jamais un faux vert par attente trop courte.

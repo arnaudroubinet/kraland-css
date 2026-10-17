@@ -1,5 +1,10 @@
 // Sonde INERTE : vrai Bootbox 4.4.0 / Bootstrap 3.3.7, intérieur synthétique NON natif Parler.
 // Aucun réseau sortant, aucun clic de confirmation. Gestes CDP tactiles, jamais scrollTop/scrollIntoView.
+// Navigateur : le Chromium de Playwright de la suite (lot C ; avant : Chrome système). Même preuve rouge : le bundle d'avant le
+// correctif (ac0e638) échoue sur les 7 mêmes vérifications (barres, 390x240/180/160, 667x200, repli 200, Ajax).
+// Attentes : conditions observables (marqueur data-kr-ready, modale affichée et mise en forme, propriétés de hauteur à jour,
+// bandeau de rechargement dans l'état attendu) au lieu de délais fixes. Gestes à 6 000 px/s (×5), sauf le témoin lent
+// « barres-apres-gestes » (1 200 px/s, vitesse d'origine), qui garde la physique du geste tactile du diagnostic.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -16,7 +21,11 @@ const form = fs.readFileSync(path.join(fixture, 'model-form.html'), 'utf8');
 const text = 'Saisie synthétique conservée : éà [b]test[/b]';
 const results = []; let failures = 0; let checks = 0;
 function check(value, label) { checks++; console.log(`${value ? 'ok' : 'FAIL'} ${label}`); if (!value) { failures++; } }
-const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+const browser = await chromium.launch({ headless: true });
+const FAST = 6000; const SLOW = 1200;
+// Condition bornée, sans erreur : la vérification qui suit mesure l'état réel et tranche (une condition jamais atteinte coûte maxMs).
+const until = (page, fn, arg, maxMs = 5000) => page.waitForFunction(fn, arg, { timeout: maxMs, polling: 'raf' }).then(() => true, () => false);
+const frames = page => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
 async function open({ fallback = false, desktop = false, delayed = false } = {}) {
   const ctx = await browser.newContext({ viewport: desktop ? { width: 1280, height: 720 } : { width: 390, height: 844 }, isMobile: !desktop, hasTouch: !desktop, deviceScaleFactor: 1 });
   const blocked = []; const errors = [];
@@ -30,7 +39,7 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   });
   await ctx.addInitScript(({ source, hasFallback }) => {
     if (hasFallback) { Object.defineProperty(window, 'visualViewport', { value: undefined }); }
-    window.__submits = 0; window.__confirmations = 0;
+    window.__submits = 0; window.__confirmations = 0; window.__shown = [];
     window.GM = { xmlHttpRequest: () => {} };
     window.HTMLFormElement.prototype.submit = () => { window.__submits++; };
     window.HTMLFormElement.prototype.requestSubmit = () => { window.__submits++; };
@@ -41,20 +50,42 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   }, { source: src, hasFallback: fallback });
   const page = await ctx.newPage(); page.on('pageerror', e => errors.push(e.message));
   const cdp = await ctx.newCDPSession(page);
-  await page.goto('http://fixture.invalid/jouer/plateau'); await page.waitForTimeout(900);
+  await page.goto('http://fixture.invalid/jouer/plateau');
+  // Fin d'initialisation du userscript (html[data-kr-ready]) et Bootbox chargé, au lieu de 900 ms
+  await until(page, () => document.documentElement.hasAttribute('data-kr-ready') && !!window.bootbox && !!window.jQuery, null, 15000);
+  await page.evaluate(() => { window.jQuery(document).on('shown.bs.modal', e => window.__shown.push(e.target)); });
   await page.evaluate(markup => { window.bootbox.confirm({ message: markup, buttons: { confirm: { label: 'Valider' }, cancel: { label: 'Annuler' } }, callback: () => { window.__confirmations++; return false; } }); }, delayed ? 'Chargement local inerte' : form);
-  await page.waitForTimeout(900);
+  // Modale affichée (shown.bs.modal, fin du fondu) et mise en forme mobile faite (data-structure-transformed, posé 150 ms après
+  // l'insertion par enhanceCharacterModal), au lieu de 900 ms
+  await until(page, () => { const m = document.querySelector('.bootbox'); return !!m && window.__shown.includes(m) && (!document.body.classList.contains('mobile-mode') || m.dataset.structureTransformed === 'true'); });
+  await frames(page);
   if (delayed) {
     check(await page.evaluate(() => !document.querySelector('.bootbox').classList.contains('kr-order-viewport')), 'Ajax : modale vide non ciblée');
     await page.evaluate(markup => { document.querySelector('.bootbox-body').innerHTML = markup; }, form);
-    await page.waitForTimeout(400);
+    // Contenu Ajax : l'observateur du userscript marque la modale (condition attendue au lieu de 400 ms)
+    await until(page, () => document.querySelector('.bootbox').classList.contains('kr-order-viewport'), null, 3000);
+    await frames(page);
     check(await page.evaluate(() => document.querySelector('.bootbox').classList.contains('kr-order-viewport')), 'Ajax : ordre avec saisie détecté après insertion');
   }
   await page.locator('#message').fill(text);
   await page.evaluate(() => { window.__refs = [document.querySelector('#message'), document.querySelector('form[name=post_msg]'), document.querySelector('[data-bb-handler=confirm]')]; window.__handlers = $._data(window.__refs[2].closest('.bootbox'), 'events').click.map(h => h.handler); });
   const native = await page.evaluate(() => { const f = document.querySelector('form[name=post_msg]'); return { action: f.getAttribute('action'), method: f.method, fields: [...f.elements].map(x => [x.name, x.type, x.required, x.getAttribute('onchange'), x.getAttribute('onclick')]) }; });
+  // État posé avant une mesure (au lieu de 250 ms) : les redimensionnements ont été distribués (2 images), la hauteur visible
+  // reportée sur la modale d'ordre correspond au viewport visible, et le bandeau de rechargement (anti-rebond de 400 ms du
+  // userscript, saisie en cours) est dans l'état attendu : présent si la largeur a franchi 768 px depuis le chargement, absent sinon.
+  const loadedMobile = !desktop;
+  async function settled() {
+    await frames(page);
+    await until(page, mob => {
+      const m = document.querySelector('.bootbox'); const v = window.visualViewport;
+      const heightOk = !m || !m.classList.contains('kr-order-viewport') || m.style.getPropertyValue('--kr-order-visible-height') === (v ? v.height : window.innerHeight) + 'px';
+      const banner = !!document.getElementById('kr-resize-banner');
+      return heightOk && banner === ((window.innerWidth < 768) !== mob);
+    }, loadedMobile, 3000);
+    await frames(page);
+  }
   async function snap(label) {
-    await page.waitForTimeout(250);
+    await settled();
     const measure = ({ lbl, txt, nat }) => {
       const b = document.querySelector('[data-bb-handler=confirm]'); const r = b.getBoundingClientRect(); const v = window.visualViewport;
       const top = v?.offsetTop || 0; const height = v?.height || window.innerHeight;
@@ -78,14 +109,14 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
     check(Math.abs(state.screenshot.height - state.viewport.height * state.viewport.scale) <= 1, label + ' : capture brute et viewport cohérents ' + JSON.stringify({ screenshot: state.screenshot, viewport: state.viewport }));
     return state;
   }
-  async function gestures() {
+  async function gestures(speed = FAST) {
+    await settled();
     const raw = await cdp.send('Runtime.evaluate', { expression: '({ w: innerWidth, h: window.visualViewport?.height || innerHeight })', returnByValue: true });
     const size = raw.result.value;
     // Hors textarea : body, dialog et gouttière. Gestes tactiles transmis au navigateur.
     for (const x of [20, 15, 2]) {
-      await cdp.send('Input.synthesizeScrollGesture', { x, y: Math.min(150, size.h - 20), yDistance: -1200, gestureSourceType: desktop ? 'mouse' : 'touch', speed: 1200 });
+      await cdp.send('Input.synthesizeScrollGesture', { x, y: Math.min(150, size.h - 20), yDistance: -1200, gestureSourceType: desktop ? 'mouse' : 'touch', speed });
     }
-    await page.waitForTimeout(200);
   }
   return { ctx, page, cdp, snap, gestures, errors, blocked };
 }
@@ -96,7 +127,7 @@ try {
   await p.cdp.send('Emulation.setVisibleSize', { width: 390, height: 400 });
   await p.cdp.send('Emulation.clearDeviceMetricsOverride');
   await p.cdp.send('Emulation.setSmallViewportHeightDifferenceOverride', { difference: 200 });
-  await p.snap('barres-avant-gestes'); await p.gestures();
+  await p.snap('barres-avant-gestes'); await p.gestures(SLOW); // témoin lent : vitesse d'origine du diagnostic
   let s = await p.snap('barres-apres-gestes');
   check(s.vh > s.viewport.height + 100, 'écart grand/visible réellement reproduit');
   check(s.fullyInside && s.hit, 'barres : Valider intégralement visible et touchable après gestes');
@@ -108,9 +139,11 @@ try {
   }
   check(p.errors.length === 0, 'séquence transitions : aucune erreur JavaScript');
   check(!p.blocked.some(x => x.startsWith('POST ')), 'séquence transitions : aucune requête POST');
-  await p.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); }); await p.page.waitForTimeout(500);
+  await p.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
+  // Fermeture terminée : Bootbox retire la modale du document après hidden.bs.modal (au lieu de 500 ms)
+  await until(p.page, () => !document.body.contains(window.__closedModal));
   await p.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
-  await p.page.waitForTimeout(250);
+  await frames(p.page); // redimensionnement distribué : un écouteur resté branché aurait remis ses propriétés
   check(await p.page.evaluate(() => !window.__closedModal.classList.contains('kr-order-viewport') && !window.__closedModal.style.getPropertyValue('--kr-order-visible-height')), 'fermeture : marquage/propriétés retirés et listeners déconnectés');
   await p.ctx.close();
   const f = await open({ fallback: true });
@@ -120,7 +153,8 @@ try {
     check(!s.viewport.api && s.fullyInside && s.hit, `fallback ${height} : sans API visualViewport, bouton atteignable`);
   }
   check(f.errors.length === 0, 'fallback : aucune erreur JavaScript');
-  await f.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre')); await f.page.waitForTimeout(400);
+  await f.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
+  await until(f.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(f.page);
   check(await f.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport') && getComputedStyle(document.querySelector('.bootbox-alert')).paddingTop === '30px'), 'autre Bootbox mobile : géométrie historique non ciblée');
   await f.ctx.close();
   const a = await open({ delayed: true });
@@ -133,7 +167,7 @@ try {
   check(s.fullyInside && s.hit, 'bureau : bouton visible');
   check(await d.page.evaluate(() => getComputedStyle(document.querySelector('.bootbox')).paddingTop === '30px'), 'bureau : géométrie historique hors correctif mobile');
   await d.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
-  await d.page.waitForTimeout(400);
+  await until(d.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(d.page);
   check(await d.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport')), 'autre Bootbox : non ciblée');
   check(d.errors.length === 0, 'bureau/autre modale : aucune erreur JavaScript'); await d.ctx.close();
 } catch (e) { check(false, e.stack); }

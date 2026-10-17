@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { krReady, THEME_READY } from './lib/settle.mjs';
+import { frames, krReady, THEME_READY, waitState } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -118,6 +118,16 @@ const overlaps = (cells) => {
   return bad;
 };
 
+// Mini-profil dans l'état voulu (classe expanded / collapsed) et transition max-height terminée (aucune animation en cours dans
+// le panneau), puis une image : remplace les 900 ms fixes. Borné, sans erreur : la vérification qui suit mesure l'état réel.
+async function profileSettled(cls) {
+  await waitState(page, c => {
+    const mp = document.querySelector('.mobile-mini-profile');
+    return !!mp && mp.classList.contains(c) && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+  }, cls, { maxMs: 3000 });
+  await frames(page, 1);
+}
+
 async function runWidth(width, expectedSkillCols) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(TARGET, { waitUntil: 'load' });
@@ -131,7 +141,7 @@ async function runWidth(width, expectedSkillCols) {
 
   // --- déplié ---
   await page.tap('.mobile-mini-profile-header');
-  await page.waitForTimeout(900);
+  await profileSettled('expanded');
   const s = await measure();
   await page.screenshot({ path: path.join(process.env.TMPDIR || '/tmp', `profil-deplie-${width}.png`), fullPage: false });
   check('état déplié', () => assert.ok(/expanded/.test(s.cls)));
@@ -168,17 +178,18 @@ async function runWidth(width, expectedSkillCols) {
 
   // --- gestionnaires natifs : le clic sur une cellule clonée atteint le gestionnaire du site, sans replier le panneau ---
   await page.tap('.mobile-mini-profile-skills > *:nth-child(2)');
-  await page.waitForTimeout(300);
+  await waitState(page, () => (window.__clicks.alert112 || 0) >= 1, null, { maxMs: 3000 }); // gestionnaire natif atteint (au lieu de 300 ms)
+  await profileSettled('expanded');
   const after = await measure();
   check('clic sur un clone : gestionnaire natif atteint, panneau toujours déplié', () => { assert.ok((after.clicks.alert112 || 0) >= 1, JSON.stringify(after.clicks)); assert.ok(/expanded/.test(after.cls)); });
 
   // --- repli puis redépli (transitions) ---
   await page.tap('.mobile-mini-profile-header');
-  await page.waitForTimeout(900);
+  await profileSettled('collapsed');
   const folded = await measure();
   check('repli : classe collapsed, détails masqués', () => { assert.ok(/collapsed/.test(folded.cls)); assert.ok(folded.detailsH < 1, String(folded.detailsH)); });
   await page.tap('.mobile-mini-profile-header');
-  await page.waitForTimeout(900);
+  await profileSettled('expanded');
   const again = await measure();
   check('redépli : mêmes 24 cellules, 0 chevauchement', () => { assert.equal(again.cells.length, 24); assert.deepEqual(overlaps(again.cells), []); });
 }
