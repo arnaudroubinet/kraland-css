@@ -4957,6 +4957,7 @@
   // la pastille écrit l'état en toutes lettres : le statut ne repose jamais sur la couleur seule.
   // Ne JAMAIS s'appuyer sur l'attribut title (Bootstrap le déplace vers data-original-title) : les marqueurs fiables sont les classes d'icônes.
   // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche) ; le libellé suit l'état.
+  // Navigation intelligente (smartLink) : le titre d'un sujet lu en partie mène au premier message non lu, sur bureau et mobile, liste et permanents.
   // ============================================================================
   (function () {
     'use strict';
@@ -4997,6 +4998,30 @@
         if (badge.getAttribute('data-kr-label') !== label) {badge.setAttribute('data-kr-label', label);}
       } else if (badge) {
         badge.remove();
+      }
+
+      const iconLink = pageLists.length > 0 ? pageLists[0].querySelector('li a') : null;
+      smartLink(title.querySelector(':scope > a'), (unread || newMessages) && iconLink ? iconLink.getAttribute('href') : null);
+    }
+
+    // Navigation intelligente (seule source de vérité : bureau et mobile, liste #topics et permanents). L'icône dossier, masquée par la refonte,
+    // porte le lien du premier message non lu d'un sujet lu en partie (forum/sujet/...-1#msgNNN) ; le titre le reprend (data-smart-redirect).
+    // Sujet lu, ou icône sans #msg : le titre garde (ou retrouve) le lien d'origine. Idempotent à chaque draw.dt : si le href courant n'est pas celui
+    // que nous avons posé, le site l'a réécrit (la ligne a changé de sujet) et il devient le nouveau lien d'origine.
+    function smartLink(link, iconHref) {
+      if (!link) {return;}
+      const current = link.getAttribute('href');
+      const placed = link.getAttribute('data-kr-smart-href');
+      const origin = placed !== null && placed === current ? link.getAttribute('data-kr-origin-href') : current;
+      const target = iconHref && /#msg\d+$/.test(iconHref) ? iconHref : null;
+      if (target) {
+        if (current !== target) {link.setAttribute('href', target);}
+        link.setAttribute('data-kr-origin-href', origin);
+        link.setAttribute('data-kr-smart-href', target);
+        link.setAttribute('data-smart-redirect', 'first-unread');
+      } else {
+        if (origin !== null && current !== origin) {link.setAttribute('href', origin);}
+        ['data-kr-origin-href', 'data-kr-smart-href', 'data-smart-redirect'].forEach(a => link.removeAttribute(a));
       }
     }
 
@@ -5082,8 +5107,7 @@
   //   pour la recherche et le tri, y compris s'il s'initialise après ce module). Singulier / pluriel écrits ici, à l'init et à chaque draw.dt.
   // - Le bouton → natif « aller au dernier message » reçoit un nom accessible (le title est déplacé par l'infobulle Bootstrap).
   // - Recherche et « Afficher » reçoivent un placeholder et un nom accessible (leurs libellés visibles sont masqués par CSS pour tenir sur une ligne).
-  // - Navigation intelligente et ligne cliquable (comme avant) : le titre suit le lien de l'icône dossier. Pour un sujet lu en partie
-  //   (i.fa.fa-folder-open sans far, pastille « NOUVEAU MESSAGE »), ce lien mène au premier message non lu (…-1#msgNNN) ; sinon il est identique au titre.
+  // - Ligne cliquable : active le titre, dont ForumTopics:Status a déjà posé la navigation intelligente (premier message non lu d'un sujet lu en partie).
   // ============================================================================
   (function () {
     const plural = (n, one, many) => (n > 1 ? many : one);
@@ -5147,16 +5171,8 @@
           const titleCell = row.querySelector('td:nth-child(1)');
           if (!titleCell) {return;}
 
-          // === SMART NAVIGATION ===
-          // Détecter si l'icône "premier message non lu" existe
-          const unreadIconLink = titleCell.querySelector('ul:first-of-type li a');
+          // Navigation intelligente : posée sur le titre par ForumTopics:Status (bureau et mobile, liste et permanents), le clic de ligne la suit.
           const titleLink = titleCell.querySelector('p > a');
-
-          if (unreadIconLink && titleLink) {
-            // Sujet lu en partie (NOUVEAU MESSAGE) : l'icône mène au premier message non lu, le titre la suit ; ailleurs les deux liens sont identiques.
-            titleLink.href = unreadIconLink.href;
-            titleLink.setAttribute('data-smart-redirect', 'first-unread');
-          }
 
           // === CARD CLIQUABLE ===
           if (titleLink) {
@@ -5166,7 +5182,8 @@
               if (e.target.tagName === 'A' || e.target.closest('a')) {
                 return;
               }
-              titleLink.click();
+              // Lien relu au clic : il suit la cellule si elle a été reconstruite depuis la pose de l'écouteur.
+              (row.querySelector('td:nth-child(1) p > a') || titleLink).click();
             });
           }
         });

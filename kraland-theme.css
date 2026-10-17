@@ -13458,7 +13458,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 /* ============================================================================
    SOUS-FORUM (refonte variante A) — rapport UX t_d123c7f6
    Portée : pages /forum/<categorie>/<sous-forum> (body.page-forum.kr-subforum, posée par le module ForumTopics:Status).
-   Les classes kr-topic-unread / kr-topic-locked / kr-topic-pages et la pastille .kr-topic-badge sont posées en JS à l'init et à chaque
+   Les classes kr-topic-unread / kr-topic-newmsg / kr-topic-locked / kr-topic-pages et la pastille .kr-topic-badge sont posées en JS à l'init et à chaque
    draw.dt : le CSS ne s'écrit que sur ces classes (une classe sans son CSS ne casse rien).
    ============================================================================ */
 

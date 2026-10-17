@@ -1147,6 +1147,162 @@ if (frag('l7-nouveau')) {
   }
 }
 
+// ---------- L8 : raccourci « premier message non lu » sur le titre, bureau et mobile, liste et permanents ----------
+// Le site met le lien du premier message non lu (forum/sujet/...-1#msgNNN) sur l'icône dossier d'un sujet lu en partie ; le titre mène à la page 1.
+// L'icône est masquée par la refonte : le titre reprend ce lien (data-smart-redirect="first-unread"), sur bureau comme sur mobile, dans #topics comme
+// dans les permanents. Un sujet entièrement lu (et un sujet jamais ouvert, dont l'icône mène au début) garde le lien d'origine.
+const SHORTCUT = () => [...document.querySelectorAll('#fx-permanents tbody tr, #topics tbody tr')]
+  .filter(tr => tr.querySelector('td:first-child p a[href*="forum/sujet/"]'))
+  .map(tr => {
+    const title = tr.querySelector('td:first-child p > a');
+    const icon = tr.querySelector('td:first-child > ul.pagination:first-of-type li a');
+    const state = tr.querySelector('td:first-child i.fa.fa-folder') ? 'unread' : (tr.querySelector('td:first-child i.fa.fa-folder-open:not(.far)') ? 'newmsg' : 'read');
+    return { perm: !!tr.closest('#fx-permanents'), name: title.textContent.trim(), state, titleHref: title.getAttribute('href'), iconHref: icon.getAttribute('href'), smart: title.getAttribute('data-smart-redirect') };
+  });
+
+const checkShortcut = (label, rows) => {
+  const show = list => JSON.stringify(list.map(r => [r.name, r.titleHref, r.smart])).slice(0, 400);
+  for (const [where, perm] of [['liste', false], ['permanents', true]]) {
+    const part = rows.filter(r => r.perm === perm);
+    const partial = part.filter(r => r.state === 'newmsg');
+    const others = part.filter(r => r.state !== 'newmsg');
+    check(`${label} ${where} : au moins un sujet lu en partie et un autre état`, () => { assert.ok(partial.length > 0, 'aucun lu en partie'); assert.ok(others.length > 0, 'aucun autre état'); });
+    check(`${label} ${where} : titre d'un sujet lu en partie = premier message non lu (…-1#msgNNN, lien de l'icône, data-smart-redirect=first-unread)`, () => assert.ok(partial.every(r => r.titleHref === r.iconHref && /^forum\/sujet\/[^#]+-1#msg\d+$/.test(r.titleHref) && r.smart === 'first-unread'), show(partial)));
+    check(`${label} ${where} : sujet lu ou jamais ouvert inchangé (page 1, sans #msg ni data-smart-redirect)`, () => assert.ok(others.every(r => /^forum\/sujet\/[^#]+-1$/.test(r.titleHref) && r.smart === null), show(others)));
+  }
+};
+
+if (frag('l8-raccourci')) {
+  console.log('L8 : titre d\'un sujet lu en partie = premier message non lu (bureau, mobile, liste, permanents)');
+  for (const [width, height] of [[320, 568], [375, 667], [767, 800], [768, 800], [769, 800], [1280, 720]]) {
+    const { context, page: p, state } = await open({ width, height });
+    checkShortcut(`${width}`, await p.evaluate(SHORTCUT));
+    if (width === 375 || width === 1280) {
+      for (const [name, act] of REDRAWS) {
+        await act(p);
+        await settleRedraw(p);
+        checkShortcut(`${width} après ${name}`, await p.evaluate(SHORTCUT));
+      }
+    }
+    check(`${width} : aucune requête hors fixture`, () => assert.deepEqual(state.other, []));
+    await context.close();
+  }
+  for (const width of [375, 1280]) {
+    const { context, page: p } = await open({ width, late: true });
+    checkShortcut(`${width} (DataTables initialisé après le userscript)`, await p.evaluate(SHORTCUT));
+    await context.close();
+  }
+  for (const width of [375, 1280]) {
+    // Idempotence : DataTables réutilise les <tr> ; le lien suit l'état à chaque draw.dt, revient au lien d'origine et suit un changement de sujet.
+    const { context, page: p } = await open({ width });
+    const step = (fn) => p.evaluate(src => {
+      const tr = window.__krRow || (window.__krRow = [...document.querySelectorAll('#topics tbody tr')].find(r => r.querySelector('td:first-child a[href$="gagner-des-pa-334743-1"]')));
+      (0, eval)('(' + src + ')')(tr); // eslint-disable-line no-eval
+      window.jQuery('#topics').trigger('draw.dt').trigger('draw.dt');
+      const title = tr.querySelector('td:first-child p > a');
+      return { href: title.getAttribute('href'), smart: title.getAttribute('data-smart-redirect') };
+    }, fn.toString());
+    const first = await step(() => {});
+    check(`${width} idempotence : « Gagner des PA » lu en partie, deux draw.dt -> premier message non lu`, () => assert.ok(/^forum\/sujet\/gagner-des-pa-334743-1#msg\d+$/.test(first.href) && first.smart === 'first-unread', JSON.stringify(first)));
+    const read = await step(tr => { tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'far fa-folder-open'; });
+    check(`${width} idempotence : devenu entièrement lu -> lien d'origine (page 1), attribut retiré`, () => assert.deepEqual(read, { href: 'forum/sujet/gagner-des-pa-334743-1', smart: null }));
+    const back = await step(tr => { tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'fa fa-folder-open'; });
+    check(`${width} idempotence : redevenu lu en partie -> premier message non lu`, () => assert.deepEqual(back, first));
+    // Garde :not(.far) (suggestion S1 de la QA t_451c2edb) : une icône « fa far fa-folder-open » reste un sujet entièrement lu, sans pastille ni raccourci.
+    const farFa = await p.evaluate(() => {
+      const tr = window.__krRow;
+      tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'fa far fa-folder-open';
+      window.jQuery('#topics').trigger('draw.dt');
+      const title = tr.querySelector('td:first-child p > a');
+      const out = { href: title.getAttribute('href'), smart: title.getAttribute('data-smart-redirect'), newmsg: tr.classList.contains('kr-topic-newmsg'), unread: tr.classList.contains('kr-topic-unread'), badges: tr.querySelectorAll('.kr-topic-badge').length };
+      tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'fa fa-folder-open';
+      window.jQuery('#topics').trigger('draw.dt');
+      return out;
+    });
+    check(`${width} idempotence : icône « fa far fa-folder-open » = entièrement lu (ni classe, ni pastille, ni raccourci)`, () => assert.deepEqual(farFa, { href: 'forum/sujet/gagner-des-pa-334743-1', smart: null, newmsg: false, unread: false, badges: 0 }));
+    const moved = await step(tr => { tr.querySelector('td:first-child p > a').setAttribute('href', 'forum/sujet/autre-sujet-999-1'); tr.querySelector('td:first-child > ul.pagination:first-of-type li a').setAttribute('href', 'forum/sujet/autre-sujet-999-1#msg42'); });
+    check(`${width} idempotence : la ligne change de sujet (lien réécrit) -> premier non lu du nouveau sujet`, () => assert.deepEqual(moved, { href: 'forum/sujet/autre-sujet-999-1#msg42', smart: 'first-unread' }));
+    const movedRead = await step(tr => { tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'far fa-folder-open'; tr.querySelector('td:first-child > ul.pagination:first-of-type li a').setAttribute('href', 'forum/sujet/autre-sujet-999-1'); });
+    check(`${width} idempotence : nouveau sujet devenu lu -> son propre lien d'origine, pas celui de l'ancien sujet`, () => assert.deepEqual(movedRead, { href: 'forum/sujet/autre-sujet-999-1', smart: null }));
+    const rebuilt = await step(tr => { tr.cells[0].innerHTML = tr.cells[0].innerHTML.replace(/autre-sujet-999-1(#msg\d+)?/g, 'remplace-777-1').replace('far fa-folder-open', 'fa fa-folder-open').replace(/(<li><a href="forum\/sujet\/remplace-777-1)"/, '$1#msg7"'); });
+    check(`${width} idempotence : cellule reconstruite (nouveaux nœuds) -> premier non lu du sujet reconstruit`, () => assert.deepEqual(rebuilt, { href: 'forum/sujet/remplace-777-1#msg7', smart: 'first-unread' }));
+    await context.close();
+  }
+  for (const width of [375, 1280]) {
+    // Activation : clic, ctrl/cmd-clic, clic milieu (et, sur mobile, clic sur la ligne hors lien) mènent au premier message non lu ; rien n'annule le geste natif.
+    const { context, page: p } = await open({ width });
+    await p.evaluate(() => {
+      window.__nav = [];
+      const rec = e => { const a = e.target.closest && e.target.closest('a'); window.__nav.push({ type: e.type, href: a ? a.getAttribute('href') : null, prevented: e.defaultPrevented, ctrl: e.ctrlKey, meta: e.metaKey, button: e.button }); e.preventDefault(); };
+      window.addEventListener('click', rec); window.addEventListener('auxclick', rec);
+    });
+    const target = (perm) => p.evaluate(isPerm => {
+      const sel = isPerm ? '#fx-permanents tbody tr' : '#topics tbody tr';
+      const tr = [...document.querySelectorAll(sel)].find(r => r.querySelector('td:first-child i.fa.fa-folder-open:not(.far)'));
+      return tr.querySelector('td:first-child > ul.pagination:first-of-type li a').getAttribute('href');
+    }, perm);
+    for (const perm of [false, true]) {
+      const where = perm ? 'permanent' : 'liste';
+      const sel = `${perm ? '#fx-permanents' : '#topics'} tbody tr:has(td:first-child i.fa.fa-folder-open:not(.far)) td:first-child p > a`;
+      const expected = await target(perm);
+      const link = p.locator(sel).first();
+      await link.scrollIntoViewIfNeeded();
+      await p.evaluate(() => { window.__nav = []; });
+      await link.click();
+      await link.click({ modifiers: ['ControlOrMeta'] });
+      if (width >= 768) { await link.click({ button: 'middle' }); }
+      const nav = await p.evaluate(() => window.__nav);
+      check(`${width} ${where} : clic, ctrl/cmd-clic${width >= 768 ? ' et clic milieu' : ''} sur le titre -> ${expected}, geste natif non annulé`, () => { assert.equal(nav.length, width >= 768 ? 3 : 2, JSON.stringify(nav)); assert.ok(nav.every(n => n.href === expected && !n.prevented), JSON.stringify(nav)); assert.ok(nav[1].ctrl || nav[1].meta); if (width >= 768) { assert.equal(nav[2].button, 1); } });
+    }
+    if (width < 768) {
+      await p.evaluate(() => { window.__nav = []; });
+      // Point de la ligne hors de tout lien (mesuré par elementFromPoint, la mise en page mobile superpose les cellules).
+      const pt = await p.evaluate(() => {
+        const tr = [...document.querySelectorAll('#topics tbody tr')].find(r => r.querySelector('td:first-child i.fa.fa-folder-open:not(.far)'));
+        tr.scrollIntoView({ block: 'center' });
+        const r = tr.getBoundingClientRect();
+        for (let y = r.top + 2; y < r.bottom - 1; y += 3) {
+          for (let x = r.left + 2; x < r.right - 1; x += 5) {
+            const e = document.elementFromPoint(x, y);
+            if (e && tr.contains(e) && !e.closest('a')) { return { x, y }; }
+          }
+        }
+        return null;
+      });
+      check(`${width} liste : la ligne a une zone hors lien`, () => assert.ok(pt));
+      if (pt) { await p.mouse.click(pt.x, pt.y); }
+      const nav = await p.evaluate(() => window.__nav);
+      const expected = await target(false);
+      check(`${width} liste : clic sur la ligne hors lien -> titre activé, premier message non lu`, () => assert.ok(nav.some(n => n.href === expected && !n.prevented), JSON.stringify(nav)));
+      // Cellule reconstruite (nouveaux nœuds, autre sujet lu en partie) : le clic de ligne suit le titre actuel, pas l'ancien nœud.
+      await p.evaluate(() => {
+        const tr = [...document.querySelectorAll('#topics tbody tr')].find(r => r.querySelector('td:first-child i.fa.fa-folder-open:not(.far)'));
+        tr.cells[0].innerHTML = tr.cells[0].innerHTML.replace(/forum\/sujet\/[^"#]+-1(#msg\d+)?/g, (m, h) => 'forum/sujet/reconstruit-555-1' + (h ? '#msg55' : ''));
+        window.jQuery('#topics').trigger('draw.dt');
+        window.__nav = [];
+      });
+      if (pt) { await p.mouse.click(pt.x, pt.y); }
+      const nav2 = await p.evaluate(() => window.__nav).catch(e => [{ error: 'navigation hors écouteur : ' + e.message.split('\n')[0] }]);
+      check(`${width} liste : cellule reconstruite, clic sur la ligne -> premier non lu du titre actuel`, () => assert.ok(nav2.some(n => n.href === 'forum/sujet/reconstruit-555-1#msg55' && !n.prevented), JSON.stringify(nav2)));
+    }
+    await context.close();
+  }
+  if (SHOTS) {
+    for (const [width, height] of [[375, 667], [1280, 720]]) {
+      const { context, page: p } = await open({ width, height });
+      const box = await p.evaluate(() => {
+        const a = document.querySelector('#topics tbody tr.kr-topic-newmsg td:first-child p > a');
+        a.scrollIntoView({ block: 'center' }); a.focus();
+        const r = a.closest('tr').getBoundingClientRect();
+        return { x: 0, y: Math.max(0, r.top - 120), width: window.innerWidth, height: Math.min(window.innerHeight - Math.max(0, r.top - 120), r.height + 240) };
+      });
+      await p.screenshot({ path: path.join(SHOTS, `sous-forum-raccourci-${width}.png`), clip: box });
+      await p.screenshot({ path: path.join(SHOTS, `sous-forum-raccourci-${width}-page.png`), fullPage: true });
+      await context.close();
+    }
+  }
+}
+
 await browser.close();
 console.log(failures ? `${failures} échec(s)` : 'Tous les contrôles passent');
 process.exit(failures ? 1 : 0);
