@@ -1,6 +1,8 @@
 // Attentes par condition observable, partagées par les suites e2e (remplacent les waitForTimeout de « mise en place »).
 // Les fenêtres d'observation d'une ABSENCE (« aucun rechargement », « aucune requête de plus ») restent des durées bornées, nommées et
-// commentées dans chaque suite : attendre qu'un événement n'arrive pas n'a pas de condition positive.
+// commentées dans chaque suite : attendre qu'un événement n'arrive pas n'a pas de condition positive. krReady ne prouve pas non plus
+// une absence (« aucun bloc n'apparaît ») : il ne couvre que les tâches enregistrées dans InitQueue ; une telle vérification ajoute,
+// après lui, watchMutations sur une durée nommée (ex. ABSENCE_MS de croix-directionnelle) avec zéro mutation attendue.
 
 const pause = ms => new Promise(r => setTimeout(r, ms));
 

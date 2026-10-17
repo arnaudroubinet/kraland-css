@@ -10,7 +10,9 @@
 //      tardive enregistrée (InitQueue.later), ou une fonction enregistrée qui renvoie une promesse réglée 600 ms plus tard, doit être
 //      attendue par le marqueur (aucune mutation après lui) ;
 //   3. page /profil/interface sans le titre « Thème de base » (l'interface du thème renonce, #kr-alerts-section n'apparaît jamais) :
-//      le marqueur est quand même posé (addResetButtonToInterfacePage cesse d'attendre quand l'interface a renoncé, ~5 s).
+//      le marqueur est quand même posé (addResetButtonToInterfacePage cesse d'attendre quand l'interface a renoncé, ~5 s) ;
+//   4. même page, titre inséré tard par la page (THEME_TARDIF_MS) : l'interface du thème s'insère pendant ses essais et, au marqueur,
+//      la liste des alertes masquées d'addResetButtonToInterfacePage est déjà présente (puis aucune mutation).
 // Seuils des contre-preuves : la tâche tardive NON enregistrée attend elle-même le marqueur avant de muter (indépendante de l'heure du
 // marqueur) ; « attendue » ne dépend d'aucun seuil (le marqueur l'attend). LIMITE : les trois contre-preuves sur des délais du produit
 // (revealPage 2 rAF + 200 ms, fixNavbarPadding rAF + 200 ms, HideTags 500 ms) supposent un marqueur posé avant ces délais (mesuré : 100 à
@@ -52,13 +54,18 @@ const SUJET = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base 
 <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script></body></html>`;
 
 // Page « interface » du profil, minimale. Avec le titre « Thème de base », l'interface du thème s'insère ; sans lui, elle renonce.
-const INTERFACE = titre => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${BASE}/"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FIXTURE interface</title>
+const INTERFACE = (titre, extra = '') => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${BASE}/"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FIXTURE interface</title>
 <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css"></head><body>
 <nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
 <div id="content" class="container"><div class="row"><div id="col-right" class="col-md-12"><h1 class="page-header">Interface</h1>
 <h4>${titre}</h4><form class="form-horizontal"><div class="radio"><label><input type="radio" name="theme" value="1"> Thème 1</label></div></form>
 </div></div></div><footer class="navbar-inverse"><div class="container white">pied</div></footer>
-<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script></body></html>`;
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>${extra}</body></html>`;
+// R2 (QA du lot C) : cas réel du joueur, l'interface du site affiche son titre « Thème de base » tard. Le script de la page l'insère
+// à THEME_TARDIF_MS, pendant les essais de insertTampermonkeyThemeUI (25 × 200 ms) : l'interface du thème s'insère alors, et
+// addResetButtonToInterfacePage doit encore l'attendre pour ajouter la liste des alertes masquées avant le marqueur.
+const THEME_TARDIF_MS = 1500;
+const TITRE_TARDIF = `<script>setTimeout(function () { var h = document.createElement('h4'); h.textContent = 'Thème de base'; document.querySelector('#col-right form').before(h); }, ${THEME_TARDIF_MS});</script>`;
 
 const PAGES = [
   { id: 'sous-forum', url: '/forum/hrp/debuter-20102', html: FIX('sous-forum-debuter.html') },
@@ -71,7 +78,9 @@ const PAGES = [
   { id: 'sujet-tags', url: '/forum/sujet/fixture-1-2', html: SUJET },
   { id: 'profil-interface', url: '/profil/interface', html: INTERFACE('Thème de base') },
   // S1 (QA du lot B) : sans titre « Thème de base », #kr-alerts-section n'apparaît jamais ; avant le lot C, la file restait tenue
-  { id: 'profil-interface-sans-theme', url: '/profil/interface', html: INTERFACE('Préférences') }
+  { id: 'profil-interface-sans-theme', url: '/profil/interface', html: INTERFACE('Préférences') },
+  // R2 (QA du lot C) : titre « Thème de base » inséré par la page à THEME_TARDIF_MS ; au marqueur, la liste des alertes masquées est là
+  { id: 'profil-interface-theme-tardif', url: '/profil/interface', html: INTERFACE('Préférences', TITRE_TARDIF), alertsList: true }
 ];
 
 const browser = await chromium.launch({ headless: true });
@@ -110,7 +119,8 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     const readyMs = Date.now() - t0;
     const atReady = await p.evaluate(() => ({
       opacity: document.documentElement.style.opacity, transition: document.documentElement.style.transition,
-      tardif: document.body.getAttribute('data-garde-tardif')
+      tardif: document.body.getAttribute('data-garde-tardif'),
+      alertsList: !!document.querySelector('#kr-alerts-section .kr-dismissed-alerts-list')
     }));
     const late = ready ? await watchMutations(p, { ms: WINDOW_MS }) : [];
     return { ready, readyMs, atReady, late, errors };
@@ -147,13 +157,18 @@ try {
   // 1. Pages représentatives : marqueur posé, puis plus aucune mutation ------------------------------------------------------------
   const jobs = [];
   for (const mode of ['start', 'dcl']) { for (const pg of PAGES) { for (const width of pg.widths || [375, 1280]) { jobs.push({ page: pg, width, mode }); } } }
-  // Les 4 sondes « sans thème » (marqueur à ~5 s, après les essais de l'interface du thème) partent ensemble dans le premier lot
-  jobs.sort((a, b) => Number(b.page.id === 'profil-interface-sans-theme') - Number(a.page.id === 'profil-interface-sans-theme'));
+  // Les sondes lentes partent dans le premier lot : « sans thème » (marqueur à ~5 s, après les essais de l'interface du thème), puis
+  // « thème tardif » (marqueur après THEME_TARDIF_MS)
+  const lent = j => ({ 'profil-interface-sans-theme': 2, 'profil-interface-theme-tardif': 1 })[j.page.id] || 0;
+  jobs.sort((a, b) => lent(b) - lent(a));
   const results = await runAll(jobs);
   for (const { j, r } of results) {
     const tag = `${j.page.id} ${j.width} px (${j.mode === 'start' ? 'document-start' : 'DOMContentLoaded'})`;
     check(`${tag} : html[data-kr-ready] posé`, () => { assert.equal(r.ready, true, 'marqueur absent après 15 s'); });
     check(`${tag} : aucune mutation pendant ${WINDOW_MS} ms après le marqueur`, () => { assert.deepEqual(r.late, [], r.late.slice(0, 3).join(' | ')); });
+    if (j.page.alertsList) {
+      check(`${tag} : au marqueur, la liste des alertes masquées (.kr-dismissed-alerts-list) est dans #kr-alerts-section`, () => { assert.equal(r.atReady.alertsList, true); });
+    }
     if (j.mode === 'start') {
       check(`${tag} : au marqueur, la levée anti-FOUC est terminée (opacity et transition inline nettoyées)`, () => { assert.deepEqual([r.atReady.opacity, r.atReady.transition], ['', '']); });
     }
