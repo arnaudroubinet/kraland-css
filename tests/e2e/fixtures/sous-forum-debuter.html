@@ -9,8 +9,11 @@
 <!--
   Fixture du sous-forum « Débuter » (/forum/hrp/debuter-20102), relevé natif de la proposition UX t_d123c7f6 (sections 3.1 et 3.4).
   - Balisage des lignes, des en-têtes, du h1 et des panneaux : copie du DOM vivant (jQuery 3.3.1, Bootstrap 3.3.7, DataTables 1.10.5).
-  - 5 sujets permanents (3 verrouillés, 2 non lus, 1 sur 2 pages, 1 étiquette) ; #topics = 145 lignes (10 réelles + 135 générées à
+  - 5 sujets permanents (3 verrouillés, 2 non lus, 1 lu en partie, 1 sur 2 pages, 1 étiquette) ; #topics = 145 lignes (10 réelles + 135 générées à
     l'identique, sans donnée personnelle), tri initial colonne 5 décroissante, 10 par page, stateSave faux.
+  - Trois états de lecture, DOM relevé le 17/10/2026 sur /forum/rp/province-mystisie-1011217 (champ u) : 1 = jamais ouvert (i.fa.fa-folder,
+    « sujet non-lu », lien = début du sujet) ; 2 = lu en partie avec nouveaux messages (i.fa.fa-folder-open SANS far, « aller au premier message
+    non-lu », lien = forum/sujet/...-1#msgNNN, premier message non lu) ; 0 = entièrement lu (i.far.fa-folder-open, « sujet lu »).
   - Le « … » de la pagination est un <span> SANS classe, comme DataTables 1.10.5 (jquery.dataTables.js, ligne 14151 : container.append('<span>&hellip;</span>')).
     Les tests couvrent aussi la variante récente <span class="ellipsis"> en remplaçant ce balisage à la volée.
   - DataTables : le plug-in n'est pas embarqué, un émulateur minimal reproduit son DOM (dom « lfrtip », classes sorting*, paginate_button,
@@ -55,7 +58,7 @@
     R({ t: "Entraide : Demandes d'images et modifications (...)", h: 'entraide-demandes-d-images-et-modifications-d-image-334396', u: 1, l: 0, p: 2, tags: [], m: 13, v: 69, a: 'KraDesk', ad: '23/08 (14:48)', d: 'Myakim', dd: '30/09 (14:40)', ts: '2026-09-30 14:40:00', msg: 6810141 }),
     R({ t: 'Questions récurrentes', h: 'questions-recurrentes-329478', u: 0, l: 1, p: 0, tags: ['FAQ'], m: 1, v: 188, a: 'KraDesk', ad: '28/12/25 (18:42)', d: 'KraDesk', dd: '28/12/25 (18:42)', ts: '2025-12-28 18:42:00', msg: 6744726 }),
     R({ t: 'Bien débuter sur Kraland Interactif', h: 'bien-debuter-sur-kraland-interactif-329477', u: 1, l: 1, p: 0, tags: [], m: 4, v: 152, a: 'KraDesk', ad: '28/12/25 (18:17)', d: 'KraDesk', dd: '28/12/25 (18:32)', ts: '2025-12-28 18:32:00', msg: 6744700 }),
-    R({ t: 'Discussion sur la modération du forum Débuter', h: 'discussion-sur-la-moderation-du-forum-debuter-329447', u: 0, l: 0, p: 0, tags: [], m: 1, v: 61, a: 'KraDesk', ad: '24/12/25 (18:07)', d: 'KraDesk', dd: '24/12/25 (18:07)', ts: '2025-12-24 18:07:00', msg: 6743900 }),
+    R({ t: 'Discussion sur la modération du forum Débuter', h: 'discussion-sur-la-moderation-du-forum-debuter-329447', u: 2, l: 0, p: 0, tags: [], m: 1, v: 61, a: 'KraDesk', ad: '24/12/25 (18:07)', d: 'KraDesk', dd: '24/12/25 (18:07)', ts: '2025-12-24 18:07:00', msg: 6743900 }),
     R({ t: 'Règles du forum débuter', h: 'regles-du-forum-debuter-276445', u: 0, l: 1, p: 0, tags: [], m: 2, v: 249, a: 'KraDesk', ad: '26/03/14 (17:40)', d: 'KraDesk', dd: '26/03/14 (17:43)', ts: '2014-03-26 17:43:00', msg: 5100100 })
   ];
   var REAL = [
@@ -64,8 +67,8 @@
     ['Familier', 'familier-334876', 1, 0, 0, [], 4, 31, 'Mastox', '30/09 (00:04)', 'Marvin D', '30/09 (09:56)', '2026-09-30 09:56:12'],
     ['Mise à jour', 'mise-a-jour-334792', 1, 0, 0, [], 5, 56, 'Papy Azote', '24/09 (02:23)', 'Shpam', '29/09 (02:26)', '2026-09-29 02:26:03'],
     ['Échec ordre + visibilité texte', 'echec-ordre-+-visibilite-texte-334844', 1, 0, 0, [], 1, 27, 'Forgoil', '28/09 (09:09)', 'Forgoil', '28/09 (09:09)', '2026-09-28 09:09:44'],
-    ['Déplacement bâtiment architecte', 'deplacement-batiment-architecte-334785', 1, 0, 0, [], 2, 22, 'Aestus', '23/09 (18:06)', 'Shpam', '23/09 (18:33)', '2026-09-23 18:33:21'],
-    ['Gagner des PA', 'gagner-des-pa-334743', 1, 0, 2, [], 13, 75, 'Papy Azote', '19/09 (08:25)', 'Marshkalk', '23/09 (18:11)', '2026-09-23 18:11:34'],
+    ['Déplacement bâtiment architecte', 'deplacement-batiment-architecte-334785', 2, 0, 0, [], 2, 22, 'Aestus', '23/09 (18:06)', 'Shpam', '23/09 (18:33)', '2026-09-23 18:33:21'],
+    ['Gagner des PA', 'gagner-des-pa-334743', 2, 0, 2, [], 13, 75, 'Papy Azote', '19/09 (08:25)', 'Marshkalk', '23/09 (18:11)', '2026-09-23 18:11:34'],
     ['Mise à jour quotidienne', 'mise-a-jour-quotidienne-334776', 1, 0, 0, [], 2, 45, 'Papy Azote', '23/09 (01:29)', 'KraDesk', '23/09 (01:52)', '2026-09-23 01:52:10'],
     ['PA', 'pa-334742', 1, 0, 0, [], 3, 39, 'Papy Azote', '19/09 (04:40)', 'Shpam', '19/09 (10:03)', '2026-09-19 10:03:55'],
     ['Kayak Portable', 'kayak-portable-329992', 1, 0, 2, [], 11, 95, 'AliceOnChain', '11/01 (11:00)', 'Lama Del Ray', '12/09 (01:49)', '2026-09-12 01:49:30']
@@ -82,7 +85,7 @@
     var ts = day.getUTCFullYear() + '-' + pad(day.getUTCMonth() + 1) + '-' + pad(day.getUTCDate()) + ' ' + pad(day.getUTCHours()) + ':' + pad(day.getUTCMinutes()) + ':' + pad(day.getUTCSeconds());
     var title = WORDS[i % WORDS.length] + ' ' + QUALIF[(i * 3) % QUALIF.length] + (i % 9 === 4 ? ' : question sur les PA' : '') + ' #' + (i + 1);
     var author = NAMES[(i * 5) % NAMES.length];
-    generated.push([title, 'sujet-genere-' + (330000 - i), i % 3 === 0 ? 1 : 0, i % 17 === 8 ? 1 : 0, i % 11 === 5 ? 2 : 0, i % 13 === 3 ? ['astuce'] : [], 1 + (i * 7) % 40, 20 + (i * 37) % 400, author, fmt, NAMES[(i * 7 + 3) % NAMES.length], fmt, ts]);
+    generated.push([title, 'sujet-genere-' + (330000 - i), i % 3 === 0 ? 1 : (i % 7 === 1 ? 2 : 0), i % 17 === 8 ? 1 : 0, i % 11 === 5 ? 2 : 0, i % 13 === 3 ? ['astuce'] : [], 1 + (i * 7) % 40, 20 + (i * 37) % 400, author, fmt, NAMES[(i * 7 + 3) % NAMES.length], fmt, ts]);
   }
   function lastMsgId(i) { return 6700000 - i * 311; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -93,9 +96,12 @@
     var pages = '';
     if (o.p) { pages = '<ul class="pagination pagination-xsm nomargin">'; for (var k = 1; k <= o.p; k++) { pages += '<li><a href="forum/sujet/' + o.h + '-' + k + '">' + k + '</a></li>'; } pages += '</ul>'; }
     var tags = o.tags.length ? '<span class="tagforum"> <i class="fa fa-tag"></i> ' + o.tags.map(function (t) { return '<a href="forum/tags/' + t + '">' + t + '</a>'; }).join(', ') + '</span>' : '';
-    var icon = o.u ? '<i class="fa fa-folder"></i>' : '<i class="far fa-folder-open"></i>';
+    // u : 1 = jamais ouvert, 2 = lu en partie (nouveaux messages), 0 = entièrement lu. Premier message non lu : celui qui précède le dernier.
+    var icon = o.u === 1 ? '<i class="fa fa-folder"></i>' : (o.u === 2 ? '<i class="fa fa-folder-open"></i>' : '<i class="far fa-folder-open"></i>');
+    var iconHref = o.u === 2 ? href + '#msg' + (o.msg - 1) : href;
+    var iconTip = o.u === 1 ? 'sujet non-lu' : (o.u === 2 ? 'aller au premier message non-lu' : 'sujet lu');
     return '<tr style="background: none"><td style="background: none"> <p class="nomargin"> ' + (o.l ? '<i class="fa fa-lock"></i> ' : '') + (withInvisible ? '<span class="invisible">' + esc(o.t) + '</span> ' : '') +
-      '<a href="' + href + '">' + esc(o.t) + '</a> </p> <ul class="pagination pagination-xsm nomargin"> <li><a href="' + href + '" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="' + (o.u ? 'sujet non-lu' : 'sujet lu') + '">' + icon + '</a></li> </ul> ' + pages + ' ' + tags + ' </td>' +
+      '<a href="' + href + '">' + esc(o.t) + '</a> </p> <ul class="pagination pagination-xsm nomargin"> <li><a href="' + iconHref + '" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="' + iconTip + '">' + icon + '</a></li> </ul> ' + pages + ' ' + tags + ' </td>' +
       '<td class="center" style="background: none">' + o.m + '</td><td class="center" style="background: none">' + o.v + '</td>' +
       '<td style="background: none"> <a href="communaute/membres/' + slug(o.a) + '-1-100" class="nomargin">' + esc(o.a) + '</a> <p class="nomargin mini">' + o.ad + '</p> </td>' +
       '<td style="background: none">' + (withInvisible ? '<span class="invisible">' + o.ts + '</span>' : '') + '<a href="communaute/membres/' + slug(o.d) + '-1-100" class="nomargin">' + esc(o.d) + '</a> <p class="nomargin mini"> <span class="btn-group btn-group-xs"> <a href="' + lastHref + '" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a> </span> ' + o.dd + ' </p> </td></tr>';

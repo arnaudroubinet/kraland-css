@@ -4949,11 +4949,14 @@
 
   // ============================================================================
   // SOUS-FORUM — statuts des sujets (refonte variante A, lot L1)
-  // Le site ne donne qu'un état lu / non lu par sujet (icône dossier), un cadenas pour les sujets verrouillés et une liste de pages.
-  // Ces états sont reportés en classes sur chaque <tr> (kr-topic-unread, kr-topic-locked, kr-topic-pages + data-kr-pages) et le non lu
-  // reçoit une pastille « NON LU » en toutes lettres : le statut ne repose jamais sur la couleur seule.
+  // Le site donne trois états de lecture par l'icône dossier de la 1re cellule, un cadenas pour les sujets verrouillés et une liste de pages :
+  //   i.fa.fa-folder             jamais ouvert                          -> kr-topic-unread + pastille « NON LU »
+  //   i.fa.fa-folder-open (sans far) lu en partie, nouveaux messages     -> kr-topic-newmsg + pastille « NOUVEAU MESSAGE »
+  //   i.far.fa-folder-open       entièrement lu                         -> aucune classe de statut, aucune pastille
+  // Les deux premiers états sont exclusifs. Ces états sont reportés en classes sur chaque <tr> (+ kr-topic-locked, kr-topic-pages et data-kr-pages) ;
+  // la pastille écrit l'état en toutes lettres : le statut ne repose jamais sur la couleur seule.
   // Ne JAMAIS s'appuyer sur l'attribut title (Bootstrap le déplace vers data-original-title) : les marqueurs fiables sont les classes d'icônes.
-  // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche).
+  // Idempotent : relancé à chaque draw.dt (DataTables réutilise les mêmes <tr> et les déplace à chaque page, tri ou recherche) ; le libellé suit l'état.
   // ============================================================================
   (function () {
     'use strict';
@@ -4966,11 +4969,13 @@
       if (!title || !title.querySelector('a')) {return;} // ligne « Aucun élément à afficher »
 
       const unread = cell.querySelector('i.fa.fa-folder') !== null;
+      const newMessages = !unread && cell.querySelector('i.fa.fa-folder-open:not(.far)') !== null;
       const locked = title.querySelector('i.fa-lock') !== null;
       const pageLists = cell.querySelectorAll('ul.pagination');
       const pages = pageLists.length > 1 ? pageLists[1].querySelectorAll('li').length : 0;
 
       row.classList.toggle('kr-topic-unread', unread);
+      row.classList.toggle('kr-topic-newmsg', newMessages);
       row.classList.toggle('kr-topic-locked', locked);
       row.classList.toggle('kr-topic-pages', pages > 0);
       if (pages > 0) {
@@ -4979,15 +4984,18 @@
         row.removeAttribute('data-kr-pages');
       }
 
-      const badge = title.querySelector(':scope > .kr-topic-badge');
-      if (unread && !badge) {
+      const label = unread ? 'NON LU' : (newMessages ? 'NOUVEAU MESSAGE' : null);
+      let badge = title.querySelector(':scope > .kr-topic-badge');
+      if (label && !badge) {
         // Le libellé vit dans un attribut et s'affiche par CSS (::before) : DataTables lit le texte des cellules (recherche, tri) et,
         // si le plug-in s'initialise après le userscript, un vrai texte « NON LU » ferait remonter tous les sujets non lus à la recherche « lu ».
-        const chip = document.createElement('span');
-        chip.className = 'kr-topic-badge';
-        chip.setAttribute('data-kr-label', 'NON LU');
-        title.appendChild(chip);
-      } else if (!unread && badge) {
+        badge = document.createElement('span');
+        badge.className = 'kr-topic-badge';
+        title.appendChild(badge);
+      }
+      if (label) {
+        if (badge.getAttribute('data-kr-label') !== label) {badge.setAttribute('data-kr-label', label);}
+      } else if (badge) {
         badge.remove();
       }
     }
@@ -5074,7 +5082,8 @@
   //   pour la recherche et le tri, y compris s'il s'initialise après ce module). Singulier / pluriel écrits ici, à l'init et à chaque draw.dt.
   // - Le bouton → natif « aller au dernier message » reçoit un nom accessible (le title est déplacé par l'infobulle Bootstrap).
   // - Recherche et « Afficher » reçoivent un placeholder et un nom accessible (leurs libellés visibles sont masqués par CSS pour tenir sur une ligne).
-  // - Navigation intelligente et ligne cliquable (comme avant) : le titre d'un sujet non lu suit le lien de l'icône dossier.
+  // - Navigation intelligente et ligne cliquable (comme avant) : le titre suit le lien de l'icône dossier. Pour un sujet lu en partie
+  //   (i.fa.fa-folder-open sans far, pastille « NOUVEAU MESSAGE »), ce lien mène au premier message non lu (…-1#msgNNN) ; sinon il est identique au titre.
   // ============================================================================
   (function () {
     const plural = (n, one, many) => (n > 1 ? many : one);
@@ -5144,7 +5153,7 @@
           const titleLink = titleCell.querySelector('p > a');
 
           if (unreadIconLink && titleLink) {
-            // Sujet NON LU : rediriger le titre vers le lien de l'icône dossier
+            // Sujet lu en partie (NOUVEAU MESSAGE) : l'icône mène au premier message non lu, le titre la suit ; ailleurs les deux liens sont identiques.
             titleLink.href = unreadIconLink.href;
             titleLink.setAttribute('data-smart-redirect', 'first-unread');
           }

@@ -13462,7 +13462,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    draw.dt : le CSS ne s'écrit que sur ces classes (une classe sans son CSS ne casse rien).
    ============================================================================ */
 
-/* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (texte = fond de ligne, fond = jeton --kr-status-unread). */
+/* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (jamais ouvert) ou « NOUVEAU MESSAGE » (lu en partie, kr-topic-newmsg),
+   même jeton --kr-status-unread (texte = fond de ligne) : les deux états se distinguent par leur libellé, jamais par la couleur seule. */
 @media (max-width: 767px), (min-width: 768px) {
   body.page-forum.kr-subforum .kr-topic-badge {
     display: inline-block;
@@ -13499,15 +13500,18 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   body.page-forum.kr-subforum .panel-default .table > tbody > tr.kr-topic-unread,
-  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-unread {
+  body.page-forum.kr-subforum .panel-default .table > tbody > tr.kr-topic-newmsg,
+  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-unread,
+  body.page-forum.kr-subforum table.dataTable tbody tr.kr-topic-newmsg {
     border-left-color: var(--kr-status-unread) !important;
   }
 
-  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-unread td:first-child p > a {
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-unread td:first-child p > a,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr.kr-topic-newmsg td:first-child p > a {
     font-weight: 700 !important;
   }
 
-  html body.page-forum.kr-subforum.mobile-mode .panel-default tr:not(.kr-topic-unread) td:first-child p > a {
+  html body.page-forum.kr-subforum.mobile-mode .panel-default tr:not(.kr-topic-unread, .kr-topic-newmsg) td:first-child p > a {
     font-weight: 400 !important;
   }
 
@@ -13526,13 +13530,15 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* L1 — bureau. Barre de 4 px à l'intérieur de la 1re cellule (le tableau natif est conservé), titre en gras si non lu, cadenas lisible. */
+/* L1 — bureau. Barre de 4 px à l'intérieur de la 1re cellule (le tableau natif est conservé), titre en gras si non lu ou lu en partie, cadenas lisible. */
 @media (min-width: 768px) {
-  body.page-forum.kr-subforum tr.kr-topic-unread > td:first-child {
+  body.page-forum.kr-subforum tr.kr-topic-unread > td:first-child,
+  body.page-forum.kr-subforum tr.kr-topic-newmsg > td:first-child {
     box-shadow: inset 4px 0 0 0 var(--kr-status-unread);
   }
 
-  body.page-forum.kr-subforum tr.kr-topic-unread td:first-child p > a {
+  body.page-forum.kr-subforum tr.kr-topic-unread td:first-child p > a,
+  body.page-forum.kr-subforum tr.kr-topic-newmsg td:first-child p > a {
     font-weight: 700;
   }
 
@@ -13783,7 +13789,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     cursor: pointer;
   }
 
-  body.page-forum.kr-subforum #topics tbody tr.kr-topic-unread {
+  body.page-forum.kr-subforum #topics tbody tr.kr-topic-unread,
+  body.page-forum.kr-subforum #topics tbody tr.kr-topic-newmsg {
     border-left-color: var(--kr-status-unread) !important;
   }
 
@@ -13864,7 +13871,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: none !important;
   }
 
-  /* Ligne 2 : « NON LU · Dernier : X, date ». Les noms ne sont pas cliquables (profil ou Kramail : pas de toucher accidentel). */
+  /* Ligne 2 : « NON LU (ou NOUVEAU MESSAGE) · Dernier : X, date ». Les noms ne sont pas cliquables (profil ou Kramail : pas de toucher accidentel). */
   body.page-forum.kr-subforum #topics tbody td:first-child p > .kr-topic-badge {
     order: 6;
     margin: 0;
@@ -14050,7 +14057,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     overflow: visible !important;
   }
 
-  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-unread {
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-unread,
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-newmsg {
     border-left-color: var(--kr-status-unread) !important;
   }
 
@@ -14134,6 +14142,18 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     color: var(--kr-text-secondary) !important;
     font-size: 13px !important;
     white-space: nowrap;
+  }
+}
+
+/* L4 — permanents sur petit téléphone (< 480 px) : « NOUVEAU MESSAGE » sur une ligne prend ~130 px et ne laisse que 3 ou 4 lettres du titre à 320 px
+   (aucune pour un permanent verrouillé daté avec l'année). Le libellé est conservé en entier, replié sur deux lignes (« NOUVEAU / MESSAGE », ~75 px),
+   qui tiennent dans la ligne de 44 px. La liste #topics n'est pas concernée (sa pastille est sur la 2e ligne de texte). */
+@media (max-width: 479px) {
+  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-newmsg > td:first-child > p > .kr-topic-badge {
+    width: min-content;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
   }
 }
 
@@ -14237,7 +14257,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     line-height: 1.35;
   }
 
-  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr.kr-topic-unread > td:first-child > p > a {
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr.kr-topic-unread > td:first-child > p > a,
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr.kr-topic-newmsg > td:first-child > p > a {
     font-weight: 700 !important;
   }
 

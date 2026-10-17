@@ -183,6 +183,9 @@ const STATUS = () => {
       title: title.textContent.trim(),
       unreadIcon: !!tr.querySelector('td:first-child i.fa.fa-folder'),
       unread: tr.classList.contains('kr-topic-unread'),
+      newmsgIcon: !!tr.querySelector('td:first-child i.fa.fa-folder-open:not(.far)'),
+      newmsg: tr.classList.contains('kr-topic-newmsg'),
+      badgeAttr: badge ? badge.getAttribute('data-kr-label') : null,
       lockIcon: !!lock,
       locked: tr.classList.contains('kr-topic-locked'),
       pagesIcons: ul2 ? ul2.querySelectorAll('li').length : 0,
@@ -259,30 +262,35 @@ const REDRAWS = [
 const settleRedraw = p => domQuiet(p, { quietMs: 300, label: 'redessin DataTables' });
 
 // ---------- L1 : statuts (non lu, verrouillé, pages) en classes JS, pastille, barre, jeton de couleur ----------
+// Statut signalé (barre, gras, pastille) = jamais ouvert (« NON LU ») OU lu en partie avec nouveaux messages (« NOUVEAU MESSAGE »).
+const flagged = r => r.unreadIcon || r.newmsgIcon;
+const expectedLabel = r => (r.unreadIcon ? 'NON LU' : (r.newmsgIcon ? 'NOUVEAU MESSAGE' : null));
 const checkStatus = (label, rows, { badgeExpected = true } = {}) => {
   check(`${label} : des lignes sont présentes`, () => assert.ok(rows.length >= 5));
   check(`${label} : kr-topic-unread si et seulement si l'icône dossier (i.fa.fa-folder)`, () => assert.ok(rows.every(r => r.unread === r.unreadIcon), JSON.stringify(rows.filter(r => r.unread !== r.unreadIcon).map(r => r.title))));
+  check(`${label} : kr-topic-newmsg si et seulement si l'icône dossier ouvert pleine (i.fa.fa-folder-open sans far), exclusif de kr-topic-unread`, () => assert.ok(rows.every(r => r.newmsg === r.newmsgIcon && !(r.newmsg && r.unread)), JSON.stringify(rows.filter(r => r.newmsg !== r.newmsgIcon || (r.newmsg && r.unread)).map(r => r.title))));
   check(`${label} : kr-topic-locked si et seulement si le cadenas (i.fa-lock)`, () => assert.ok(rows.every(r => r.locked === r.lockIcon)));
   check(`${label} : kr-topic-pages si et seulement si 2e liste de pages, avec data-kr-pages = nombre de pages`, () => assert.ok(rows.every(r => r.pagesCls === (r.pagesIcons > 0) && (r.pagesIcons === 0 ? r.pagesAttr === null : Number(r.pagesAttr) === r.pagesIcons))));
   if (badgeExpected) {
-    check(`${label} : pastille « NON LU » en toutes lettres, une seule, si et seulement si non lu`, () => assert.ok(rows.every(r => r.badges === (r.unreadIcon ? 1 : 0) && (!r.unreadIcon || r.badgeText === 'NON LU')), JSON.stringify(rows.filter(r => r.badges !== (r.unreadIcon ? 1 : 0)).map(r => [r.title, r.badges]))));
-    check(`${label} : pastille visible sur chaque ligne non lue`, () => assert.ok(rows.filter(r => r.unreadIcon).every(r => r.badgeVisible)));
-    check(`${label} : la pastille n'écrit aucun texte dans la cellule (DataTables lit le texte des cellules pour la recherche et le tri)`, () => assert.ok(rows.filter(r => r.unreadIcon).every(r => r.badgeDomText === ''), JSON.stringify(rows.filter(r => r.badgeDomText).map(r => [r.title, r.badgeDomText]))));
+    check(`${label} : pastille « NON LU » en toutes lettres, une seule, si et seulement si non lu`, () => assert.ok(rows.filter(r => !r.newmsgIcon).every(r => r.badges === (r.unreadIcon ? 1 : 0) && (!r.unreadIcon || r.badgeText === 'NON LU')), JSON.stringify(rows.filter(r => !r.newmsgIcon && r.badges !== (r.unreadIcon ? 1 : 0)).map(r => [r.title, r.badges]))));
+    check(`${label} : pastille « NOUVEAU MESSAGE » en toutes lettres, une seule, si et seulement si lu en partie (jamais « NON LU »)`, () => assert.ok(rows.every(r => !r.newmsgIcon || (r.badges === 1 && r.badgeText === 'NOUVEAU MESSAGE' && r.badgeAttr === 'NOUVEAU MESSAGE')) && rows.every(r => r.badgeText !== 'NOUVEAU MESSAGE' || r.newmsgIcon), JSON.stringify(rows.filter(r => r.newmsgIcon !== (r.badgeText === 'NOUVEAU MESSAGE')).map(r => [r.title, r.badges, r.badgeText]))));
+    check(`${label} : pastille visible sur chaque ligne non lue ou lue en partie`, () => assert.ok(rows.filter(flagged).every(r => r.badgeVisible)));
+    check(`${label} : la pastille n'écrit aucun texte dans la cellule (DataTables lit le texte des cellules pour la recherche et le tri)`, () => assert.ok(rows.filter(flagged).every(r => r.badgeDomText === ''), JSON.stringify(rows.filter(r => r.badgeDomText).map(r => [r.title, r.badgeDomText]))));
   }
-  check(`${label} : barre de statut d'au moins 4 px si et seulement si non lu`, () => assert.ok(rows.every(r => (r.barW >= 4) === r.unreadIcon), JSON.stringify(rows.filter(r => (r.barW >= 4) !== r.unreadIcon).map(r => [r.title, r.barW]))));
-  check(`${label} : titre en gras (>= 600) si non lu, plus léger sinon`, () => assert.ok(rows.every(r => r.unreadIcon ? r.weight >= 600 : r.weight < 600), JSON.stringify(rows.filter(r => r.unreadIcon ? r.weight < 600 : r.weight >= 600).map(r => [r.title, r.weight]))));
+  check(`${label} : barre de statut d'au moins 4 px si et seulement si non lu ou lu en partie`, () => assert.ok(rows.every(r => (r.barW >= 4) === flagged(r)), JSON.stringify(rows.filter(r => (r.barW >= 4) !== flagged(r)).map(r => [r.title, r.barW]))));
+  check(`${label} : titre en gras (>= 600) si non lu ou lu en partie, plus léger sinon`, () => assert.ok(rows.every(r => flagged(r) ? r.weight >= 600 : r.weight < 600), JSON.stringify(rows.filter(r => flagged(r) ? r.weight < 600 : r.weight >= 600).map(r => [r.title, r.weight]))));
   check(`${label} : cadenas visible sur chaque sujet verrouillé`, () => assert.ok(rows.filter(r => r.lockIcon).every(r => r.lockVisible), JSON.stringify(rows.filter(r => r.lockIcon && !r.lockVisible).map(r => r.title))));
 };
 
 if (frag('l1-statuts')) {
-  console.log('L1 : statuts non lu / verrouillé / pages (classes JS, pastille, barre, gras, cadenas)');
+  console.log('L1 : statuts non lu / nouveaux messages / verrouillé / pages (classes JS, pastille, barre, gras, cadenas)');
   for (const width of WIDTHS) {
     const { context, page: p } = await open({ width });
     await withTools(p);
     const rows = await p.evaluate(STATUS);
     if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-statuts-${width}.png`), fullPage: true }); }
-    check(`${width} : permanents = 5 lignes dont 2 non lues et 3 verrouillées`, () => { const perm = rows.filter(r => r.perm); assert.equal(perm.length, 5); assert.equal(perm.filter(r => r.unread).length, 2); assert.equal(perm.filter(r => r.locked).length, 3); });
-    check(`${width} : page 1 de #topics = 10 lignes dont 9 non lues`, () => { const t = rows.filter(r => !r.perm); assert.equal(t.length, 10); assert.equal(t.filter(r => r.unread).length, 9); });
+    check(`${width} : permanents = 5 lignes dont 2 non lues, 1 lue en partie et 3 verrouillées`, () => { const perm = rows.filter(r => r.perm); assert.equal(perm.length, 5); assert.equal(perm.filter(r => r.unread).length, 2); assert.equal(perm.filter(r => r.newmsg).length, 1); assert.equal(perm.filter(r => r.locked).length, 3); });
+    check(`${width} : page 1 de #topics = 10 lignes dont 7 non lues, 2 lues en partie et 1 lue`, () => { const t = rows.filter(r => !r.perm); assert.equal(t.length, 10); assert.equal(t.filter(r => r.unread).length, 7); assert.equal(t.filter(r => r.newmsg).length, 2); assert.equal(t.filter(r => !r.unread && !r.newmsg).length, 1); });
     checkStatus(`${width}`, rows);
     await context.close();
   }
@@ -294,12 +302,14 @@ if (frag('l1-statuts')) {
     await context.close();
   }
   for (const late of [false, true]) {
-    const { context, page: p } = await open({ width: 375, late });
-    await p.fill('.dataTables_filter input', 'NON LU');
-    await settleRedraw(p);
-    const found = await p.evaluate(() => ({ rows: [...document.querySelectorAll('#topics tbody tr')].filter(tr => tr.querySelector('td:first-child a')).length, info: document.querySelector('.dataTables_info').textContent }));
-    check(`recherche « NON LU »${late ? ' (DataTables initialisé après le userscript)' : ''} : aucun sujet, le libellé de la pastille n'est pas dans le texte des cellules`, () => { assert.equal(found.rows, 0, found.info); });
-    await context.close();
+    for (const term of ['NON LU', 'NOUVEAU MESSAGE']) {
+      const { context, page: p } = await open({ width: 375, late });
+      await p.fill('.dataTables_filter input', term);
+      await settleRedraw(p);
+      const found = await p.evaluate(() => ({ rows: [...document.querySelectorAll('#topics tbody tr')].filter(tr => tr.querySelector('td:first-child a')).length, info: document.querySelector('.dataTables_info').textContent }));
+      check(`recherche « ${term} »${late ? ' (DataTables initialisé après le userscript)' : ''} : aucun sujet, le libellé de la pastille n'est pas dans le texte des cellules`, () => { assert.equal(found.rows, 0, found.info); });
+      await context.close();
+    }
   }
 }
 
@@ -331,10 +341,10 @@ if (frag('l1-themes')) {
         return { heads };
       });
       const rows = await p.evaluate(STATUS);
-      const unread = rows.filter(r => r.unreadIcon);
+      const unread = rows.filter(flagged);
       const min = a => Math.min(...a.filter(x => x !== null));
       check(`${width} ${variant} : en-têtes « Sujets permanents » et « Sujets » >= 4,5:1 (${m.heads.join(' / ')})`, () => { assert.equal(m.heads.length, 2); assert.ok(min(m.heads) >= 4.5); });
-      check(`${width} ${variant} : pastille NON LU >= 4,5:1`, () => { assert.ok(unread.length > 0 && unread.every(r => r.badgeRatio !== null)); assert.ok(min(unread.map(r => r.badgeRatio)) >= 4.5, 'min ' + min(unread.map(r => r.badgeRatio))); });
+      check(`${width} ${variant} : pastilles NON LU et NOUVEAU MESSAGE >= 4,5:1`, () => { assert.ok(unread.some(r => r.newmsgIcon) && unread.every(r => r.badgeRatio !== null)); assert.ok(min(unread.map(r => r.badgeRatio)) >= 4.5, 'min ' + min(unread.map(r => r.badgeRatio))); });
       check(`${width} ${variant} : barre de statut >= 4,5:1 sur la ligne`, () => { assert.ok(unread.every(r => r.barRatio !== null)); assert.ok(min(unread.map(r => r.barRatio)) >= 4.5, 'min ' + min(unread.map(r => r.barRatio))); });
       check(`${width} ${variant} : cadenas et dates >= 4,5:1`, () => { const v = rows.flatMap(r => [r.lockRatio, r.dateRatio]).filter(x => x !== null); assert.ok(v.length > 0); assert.ok(min(v) >= 4.5, 'min ' + min(v)); });
       await context.close();
@@ -454,6 +464,7 @@ const TOPIC_ROWS = () => {
     return {
       title: title.textContent.trim(),
       unread: tr.classList.contains('kr-topic-unread'),
+      newmsg: tr.classList.contains('kr-topic-newmsg'),
       pages: tr.getAttribute('data-kr-pages'),
       text: vt(tr),
       expect: { last: last.textContent.trim(), date: lastDate.textContent.replace(/\s+/g, ' ').trim(), msg: Number(msg.textContent.trim()), views: Number(views.textContent.trim()), author: author.textContent.trim(), tags },
@@ -506,6 +517,7 @@ const checkTopicRows = (label, rows) => {
       && r.text.includes(`par ${e.author}`) && (!r.pages || r.text.includes(`${r.pages} pages`)) && e.tags.every(tg => r.text.includes('#' + tg));
   }), bad(r => r.text.includes('Dernier : ' + r.expect.last) && r.text.includes(fr(r.expect.msg)))));
   check(`${label} : « NON LU » lisible dans la ligne si et seulement si non lu`, () => assert.ok(rows.every(r => r.text.includes('NON LU') === r.unread), bad(r => r.text.includes('NON LU') === r.unread)));
+  check(`${label} : « NOUVEAU MESSAGE » lisible dans la ligne si et seulement si lu en partie`, () => assert.ok(rows.every(r => r.text.includes('NOUVEAU MESSAGE') === r.newmsg), bad(r => r.text.includes('NOUVEAU MESSAGE') === r.newmsg)));
   check(`${label} : ordre des lignes de texte = titre, puis dernier message, puis compteurs`, () => assert.ok(rows.every(r => r.titleRect.b <= r.lastRect.y + 2 && r.lastRect.b <= r.statsRect.y + 2), bad(r => r.titleRect.b <= r.lastRect.y + 2 && r.lastRect.b <= r.statsRect.y + 2)));
   check(`${label} : titre en 16 px`, () => assert.ok(rows.every(r => r.titleFs === 16), bad(r => r.titleFs === 16)));
   check(`${label} : hauteur de ligne raisonnable (60 à 130 px)`, () => assert.ok(rows.every(r => r.row.h >= 60 && r.row.h <= 130), JSON.stringify(rows.map(r => r.row.h))));
@@ -601,7 +613,7 @@ const PERM_ROWS = () => {
       const href = title.getAttribute('href');
       const hit = (fx) => { const rr = tr.getBoundingClientRect(); return hitHref(rr.left + rr.width * fx, rr.top + rr.height / 2); };
       return {
-        title: title.textContent.trim(), href, unread: tr.classList.contains('kr-topic-unread'), locked: !!lock,
+        title: title.textContent.trim(), href, unread: tr.classList.contains('kr-topic-unread'), newmsg: tr.classList.contains('kr-topic-newmsg'), locked: !!lock,
         text: vt(tr), row: r, titleRect: rect(title), titleVisible: vis(title), titleOverflow: getComputedStyle(title).textOverflow, titleNowrap: getComputedStyle(title).whiteSpace,
         lockRect: lock && vis(lock) ? rect(lock) : null, badgeRect: badge && vis(badge) ? rect(badge) : null, dateRect: vis(date) ? rect(date) : null,
         dateText: date.textContent.replace(/\s+/g, ' ').trim(),
@@ -617,7 +629,7 @@ const checkPerm = (label, m) => {
   check(`${label} : 5 sujets permanents visibles`, () => assert.equal(m.rows.length, 5));
   check(`${label} : une ligne de 44 à 48 px par permanent, tableau de 5 lignes <= 240 px`, () => { assert.ok(m.rows.every(r => r.row.h >= 44 && r.row.h <= 48), JSON.stringify(m.rows.map(r => r.row.h))); assert.ok(m.tableH <= 240, 'tableau ' + m.tableH); });
   check(`${label} : titre sur une seule ligne, coupé par « … » s'il est trop long`, () => assert.ok(m.rows.every(r => r.titleVisible && r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis' && r.titleNowrap === 'nowrap'), bad(r => r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis')));
-  check(`${label} : cadenas visible si verrouillé, pastille NON LU si non lu, date du dernier message toujours`, () => assert.ok(m.rows.every(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === r.unread) && r.dateRect && r.text.includes(r.dateText) && (!r.unread || r.text.includes('NON LU'))), bad(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === r.unread) && r.dateRect)));
+  check(`${label} : cadenas visible si verrouillé, pastille NON LU si non lu, NOUVEAU MESSAGE si lu en partie, date du dernier message toujours`, () => assert.ok(m.rows.every(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === (r.unread || r.newmsg)) && r.dateRect && r.text.includes(r.dateText) && (!r.unread || r.text.includes('NON LU')) && (r.text.includes('NOUVEAU MESSAGE') === r.newmsg)), bad(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === (r.unread || r.newmsg)) && r.dateRect)));
   check(`${label} : ordre sur la ligne = cadenas, titre, NON LU, date (de gauche à droite, sans retour à la ligne)`, () => assert.ok(m.rows.every(r => {
     const seq = [r.lockRect, r.titleRect, r.badgeRect, r.dateRect].filter(Boolean);
     return seq.every((a, i) => i === 0 || seq[i - 1].r <= a.x + 1) && seq.every(a => a.y >= r.row.y - 1 && a.b <= r.row.b + 1);
@@ -938,7 +950,7 @@ const DESK = () => {
     const la = tr.querySelector('td:nth-child(5) > a.nomargin'); const laDate = tr.querySelector('td:nth-child(5) > p.mini'); const arrow = tr.querySelector('td:nth-child(5) .btn-group > a.btn');
     const r = rect(tr);
     return {
-      title: title.textContent.trim(), unread: tr.classList.contains('kr-topic-unread'), locked: !!lock, lockVisible: !!lock && vis(lock),
+      title: title.textContent.trim(), unread: tr.classList.contains('kr-topic-unread'), newmsg: tr.classList.contains('kr-topic-newmsg'), locked: !!lock, lockVisible: !!lock && vis(lock),
       row: r, folderHidden: !folderBox || !vis(folderBox),
       titleWeight: Number(getComputedStyle(title).fontWeight), titleSize: parseFloat(getComputedStyle(title).fontSize),
       titleRgb: getComputedStyle(title).color,
@@ -967,9 +979,9 @@ const checkDesk = (label, m, strict) => {
   const all = [...m.perm, ...m.reg];
   const bad = pred => JSON.stringify(all.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
   check(`${label} : 5 permanents et 10 lignes de la liste, tableau natif conservé, 5 en-têtes de tri visibles`, () => { assert.equal(m.perm.length, 5); assert.equal(m.reg.length, 10); assert.equal(m.heads.length, 5); assert.ok(m.heads.every(h => h.vis && h.h >= 30), JSON.stringify(m.heads)); });
-  check(`${label} : titres de 15 px, en gras s'ils sont non lus et en normal sinon`, () => assert.ok(all.every(r => r.titleSize === 15 && (r.unread ? r.titleWeight >= 700 : r.titleWeight <= 500)), bad(r => r.titleSize === 15 && (r.unread ? r.titleWeight >= 700 : r.titleWeight <= 500))));
+  check(`${label} : titres de 15 px, en gras s'ils sont non lus ou lus en partie et en normal sinon`, () => assert.ok(all.every(r => r.titleSize === 15 && ((r.unread || r.newmsg) ? r.titleWeight >= 700 : r.titleWeight <= 500)), bad(r => r.titleSize === 15 && ((r.unread || r.newmsg) ? r.titleWeight >= 700 : r.titleWeight <= 500))));
   check(`${label} : titres en couleur de texte du thème (plus en couleur de lien), contraste >= 4,5:1`, () => assert.ok(all.every(r => r.titleRatio >= 4.5), bad(r => r.titleRatio >= 4.5)));
-  check(`${label} : pastille NON LU si et seulement si non lu, cadenas visible si verrouillé, icône dossier native masquée`, () => assert.ok(all.every(r => r.badgeVisible === r.unread && r.lockVisible === r.locked && r.folderHidden && (!r.unread || r.text.includes('NON LU'))), bad(r => r.badgeVisible === r.unread && r.lockVisible === r.locked && r.folderHidden)));
+  check(`${label} : pastille NON LU si non lu, NOUVEAU MESSAGE si lu en partie, aucune sinon ; cadenas visible si verrouillé, icône dossier native masquée`, () => assert.ok(all.every(r => r.badgeVisible === (r.unread || r.newmsg) && r.lockVisible === r.locked && r.folderHidden && (!r.unread || r.text.includes('NON LU')) && (r.text.includes('NOUVEAU MESSAGE') === r.newmsg)), bad(r => r.badgeVisible === (r.unread || r.newmsg) && r.lockVisible === r.locked && r.folderHidden && (r.text.includes('NOUVEAU MESSAGE') === r.newmsg))));
   check(`${label} : chiffres (Msg, Vus) alignés à droite, chiffres tabulaires, mêmes bords droits sur toutes les lignes d'un tableau`, () => { assert.ok(all.every(r => r.numAlign[0] === 'right' && r.numAlign[1] === 'right' && r.numTabular)); const R = rows => new Set(rows.map(r => r.numRight.join(','))).size; assert.equal(R(m.perm), 1); assert.equal(R(m.reg), 1); });
   check(`${label} : auteur et dernier message = nom en gras, date secondaire en dessous (>= 4,5:1)`, () => assert.ok(all.every(r => r.auWeight >= 600 && r.laWeight >= 600 && r.auBelow && r.laBelow && Math.min(r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio) >= 4.5), bad(r => r.auWeight >= 600 && r.auBelow && r.laBelow && Math.min(r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio) >= 4.5)));
   check(`${label} : flèche « dernier message » de 32 x 32, dans la ligne, mène au dernier message, icône >= 4,5:1`, () => assert.ok(all.every(r => r.arrow.w === 32 && r.arrow.h === 32 && r.arrowInRow && r.arrowHit === r.arrowHref && r.arrowRatio >= 4.5), bad(r => r.arrow.w === 32 && r.arrow.h === 32 && r.arrowHit === r.arrowHref && r.arrowRatio >= 4.5)));
@@ -1023,6 +1035,114 @@ if (frag('l6-themes')) {
     await withTools(p);
     const m = await p.evaluate(DESK);
     check(`1280 ${variant} : titres, noms, dates, cadenas et flèches >= 4,5:1`, () => { const v = [...m.perm, ...m.reg].flatMap(r => [r.titleRatio, r.auRatio, r.laRatio, r.auDateRatio, r.laDateRatio, r.arrowRatio, r.lockRatio]).filter(x => x !== null); assert.ok(v.length >= 90, 'mesures ' + v.length); assert.ok(Math.min(...v) >= 4.5, 'min ' + Math.min(...v)); });
+    await context.close();
+  }
+}
+
+// ---------- L7 : sujets lus en partie, nouveaux messages (pastille « NOUVEAU MESSAGE », distincte de « NON LU ») ----------
+// DOM relevé sur le site (17/10/2026) : jamais ouvert = i.fa.fa-folder ; lu en partie = i.fa.fa-folder-open SANS far (lien de l'icône = premier
+// message non lu, forum/sujet/...-1#msgNNN) ; entièrement lu = i.far.fa-folder-open.
+const NEWMSG = () => {
+  const vt = window.__krVisibleText;
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), b: Math.round(r.bottom + window.scrollY) }; };
+  const vis = e => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+  const rows = [...document.querySelectorAll('#fx-permanents tbody tr, #topics tbody tr')].filter(tr => tr.querySelector('td:first-child p a[href*="forum/sujet/"]'));
+  return {
+    iw: window.innerWidth,
+    mobile: document.body.classList.contains('mobile-mode'),
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    rows: rows.map(tr => {
+      const badge = tr.querySelector('.kr-topic-badge'); const title = tr.querySelector('td:first-child p > a');
+      const icon = tr.querySelector('td:first-child > ul.pagination:first-of-type li a'); const arrow = tr.querySelector('td:nth-child(5) a.btn');
+      const last = tr.querySelector('td:nth-child(5) > a.nomargin'); const date = tr.querySelector('td:nth-child(5) > p.mini');
+      return {
+        perm: !!tr.closest('#fx-permanents'), title: title.textContent.trim(),
+        unreadIcon: !!tr.querySelector('td:first-child i.fa.fa-folder'), newmsgIcon: !!tr.querySelector('td:first-child i.fa.fa-folder-open:not(.far)'),
+        unread: tr.classList.contains('kr-topic-unread'), newmsg: tr.classList.contains('kr-topic-newmsg'),
+        badges: tr.querySelectorAll('.kr-topic-badge').length, label: badge ? badge.getAttribute('data-kr-label') : null,
+        badge: badge && vis(badge) ? rect(badge) : null, badgeFs: badge ? parseFloat(getComputedStyle(badge).fontSize) : 0,
+        row: rect(tr), titleRect: rect(title), titleHref: title.getAttribute('href'), iconHref: icon ? icon.getAttribute('href') : null,
+        smart: title.getAttribute('data-smart-redirect'),
+        arrow: arrow && vis(arrow) ? rect(arrow) : null, last: last && vis(last) ? rect(last) : null, date: date && vis(date) ? rect(date) : null,
+        text: vt(tr)
+      };
+    })
+  };
+};
+
+const checkNewmsg = (label, m) => {
+  const bad = pred => JSON.stringify(m.rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
+  check(`${label} : les trois états sont présents (jamais ouvert, lu en partie, entièrement lu)`, () => { assert.ok(m.rows.some(r => r.unreadIcon)); assert.ok(m.rows.some(r => r.newmsgIcon)); assert.ok(m.rows.some(r => !r.unreadIcon && !r.newmsgIcon)); });
+  check(`${label} : états exclusifs, une seule pastille au libellé de l'état (NON LU / NOUVEAU MESSAGE / aucune)`, () => assert.ok(m.rows.every(r => !(r.unread && r.newmsg) && r.unread === r.unreadIcon && r.newmsg === r.newmsgIcon && r.label === expectedLabel(r) && r.badges === (expectedLabel(r) ? 1 : 0)), bad(r => r.label === expectedLabel(r) && r.badges === (expectedLabel(r) ? 1 : 0))));
+  check(`${label} : libellé visible en toutes lettres dans la ligne (le statut ne repose pas sur la couleur seule)`, () => assert.ok(m.rows.filter(r => r.newmsgIcon).every(r => r.badge && r.text.includes('NOUVEAU MESSAGE') && !r.text.includes('NON LU')), bad(r => !r.newmsgIcon || (r.badge && r.text.includes('NOUVEAU MESSAGE')))));
+  check(`${label} : pastille NOUVEAU MESSAGE entière (une ligne de <= 20 px ; deux lignes « NOUVEAU / MESSAGE » de <= 34 px pour un permanent sous 480 px), dans sa ligne de tableau`, () => assert.ok(m.rows.filter(r => r.newmsgIcon).every(r => r.badge.h <= ((r.perm && m.mobile && m.iw < 480) ? 34 : 20) && r.badge.x >= r.row.x && r.badge.r <= r.row.r && r.badge.y >= r.row.y && r.badge.b <= r.row.b), JSON.stringify(m.rows.filter(r => r.newmsgIcon).map(r => [r.title, r.badge, r.row]))));
+  check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
+  if (m.mobile) {
+    const topics = m.rows.filter(r => !r.perm && r.newmsgIcon);
+    check(`${label} : liste mobile, la pastille ne passe pas sous le bouton → (44 x 44 conservé)`, () => assert.ok(topics.length > 0 && topics.every(r => r.arrow && r.arrow.w >= 43 && r.arrow.h >= 43 && (r.badge.r <= r.arrow.x || r.badge.b <= r.arrow.y || r.badge.y >= r.arrow.b)), JSON.stringify(topics.map(r => [r.badge, r.arrow]))));
+    check(`${label} : liste mobile, ligne 2 « NOUVEAU MESSAGE · Dernier : X, date » coupée proprement (pastille, « Dernier : X, » et date jamais coupés en leur milieu)`, () => assert.ok(topics.every(r => r.last && r.last.h <= 20 && r.date && r.date.h <= 20 && r.badge.h <= 20), JSON.stringify(topics.map(r => [r.title, r.badge, r.last, r.date]))));
+    if (m.iw >= 375) {
+      check(`${label} : liste mobile, la pastille reste sur la ligne du dernier message (« NOUVEAU MESSAGE · Dernier : X »)`, () => assert.ok(topics.every(r => r.last && Math.abs((r.badge.y + r.badge.h / 2) - (r.last.y + r.last.h / 2)) <= 6), JSON.stringify(topics.map(r => [r.title, r.badge, r.last]))));
+    }
+    check(`${label} : navigation intelligente, le titre d'un sujet lu en partie mène au premier message non lu (lien de l'icône, #msg)`, () => assert.ok(topics.every(r => r.iconHref && r.titleHref.endsWith(r.iconHref) && /-1#msg\d+$/.test(r.titleHref) && r.smart === 'first-unread'), JSON.stringify(topics.map(r => [r.titleHref, r.iconHref, r.smart]))));
+    const perm = m.rows.filter(r => r.perm && r.newmsgIcon);
+    check(`${label} : permanent lu en partie sur une ligne de 44 à 48 px, titre encore lisible (>= 80 px avant « … »)`, () => assert.ok(perm.length === 1 && perm.every(r => r.row.h >= 44 && r.row.h <= 48 && r.titleRect.w >= 80), JSON.stringify(perm.map(r => [r.row.h, r.titleRect.w]))));
+  }
+};
+
+// Pire cas des permanents : verrouillé + lu en partie + date avec l'année (« Bien débuter sur Kraland Interactif », 28/12/25), l'icône est basculée
+// en dossier ouvert plein puis un draw.dt relance le module des statuts.
+const WORST_PERM = () => {
+  const tr = [...document.querySelectorAll('#fx-permanents tbody tr')].find(r => /bien-debuter-sur-kraland-interactif/.test(r.querySelector('td:first-child p > a').getAttribute('href')));
+  tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = 'fa fa-folder-open';
+  window.jQuery('#topics').trigger('draw.dt');
+  const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), y: Math.round(r.top), b: Math.round(r.bottom) }; };
+  const badge = tr.querySelector('.kr-topic-badge');
+  return { newmsg: tr.classList.contains('kr-topic-newmsg'), locked: tr.classList.contains('kr-topic-locked'), label: badge && badge.getAttribute('data-kr-label'), row: rect(tr), title: rect(tr.querySelector('td:first-child p > a')), badge: rect(badge), date: rect(tr.querySelector('td:nth-child(5) > p.mini')), overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+};
+
+if (frag('l7-nouveau')) {
+  console.log('L7 : sujets lus en partie (pastille « NOUVEAU MESSAGE »), mobile, bureau et seuils');
+  for (const [width, height] of [[320, 568], [375, 667], [767, 800], [768, 800], [769, 800], [1280, 720]]) {
+    const { context, page: p, state } = await open({ width, height });
+    await withTools(p);
+    const m = await p.evaluate(NEWMSG);
+    if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-nouveau-message-${width}.png`), fullPage: true }); }
+    check(`${width} : mode ${width < 768 ? 'mobile' : 'bureau'}`, () => assert.equal(m.mobile, width < 768));
+    checkNewmsg(`${width}`, m);
+    check(`${width} : aucune requête hors fixture`, () => assert.deepEqual(state.other, []));
+    await context.close();
+  }
+  for (const width of [320, 375]) {
+    const { context, page: p } = await open({ width, height: 667 });
+    const w = await p.evaluate(WORST_PERM);
+    check(`${width} pire cas : permanent verrouillé + NOUVEAU MESSAGE + date avec l'année sur une ligne de 44 à 48 px, titre >= 40 px, rien hors de la ligne`, () => { assert.ok(w.newmsg && w.locked && w.label === 'NOUVEAU MESSAGE'); assert.ok(w.row.h >= 44 && w.row.h <= 48, 'h ' + w.row.h); assert.ok(w.title.w >= 40, 'titre ' + w.title.w); assert.ok(w.badge.r <= w.date.x && w.date.r <= w.row.r && w.badge.y >= w.row.y && w.badge.b <= w.row.b, JSON.stringify(w)); assert.equal(w.overflowX, 0); });
+    await context.close();
+  }
+  for (const width of [375, 1280]) {
+    // Idempotence : l'état change (icône remplacée), le draw.dt suivant met à jour classe et libellé, sans doubler la pastille.
+    const { context, page: p } = await open({ width });
+    await withTools(p);
+    const setIcon = cls => p.evaluate(c => {
+      const tr = [...document.querySelectorAll('#topics tbody tr')].find(r => r.querySelector('td:first-child a[href$="gagner-des-pa-334743-1"]'));
+      tr.querySelector('td:first-child > ul.pagination:first-of-type i').className = c;
+      window.jQuery('#topics').trigger('draw.dt').trigger('draw.dt');
+      return { unread: tr.classList.contains('kr-topic-unread'), newmsg: tr.classList.contains('kr-topic-newmsg'), badges: tr.querySelectorAll('.kr-topic-badge').length, label: (tr.querySelector('.kr-topic-badge') || { getAttribute: () => null }).getAttribute('data-kr-label') };
+    }, cls);
+    const start = await setIcon('fa fa-folder-open');
+    check(`${width} idempotence : « Gagner des PA » lu en partie = NOUVEAU MESSAGE, une pastille après deux draw.dt`, () => assert.deepEqual(start, { unread: false, newmsg: true, badges: 1, label: 'NOUVEAU MESSAGE' }));
+    const toUnread = await setIcon('fa fa-folder');
+    check(`${width} idempotence : passé à jamais ouvert, la pastille devient NON LU (classe kr-topic-unread seule)`, () => assert.deepEqual(toUnread, { unread: true, newmsg: false, badges: 1, label: 'NON LU' }));
+    const toRead = await setIcon('far fa-folder-open');
+    check(`${width} idempotence : passé à entièrement lu, pastille et classes retirées`, () => assert.deepEqual(toRead, { unread: false, newmsg: false, badges: 0, label: null }));
+    const back = await setIcon('fa fa-folder-open');
+    check(`${width} idempotence : revenu à lu en partie, NOUVEAU MESSAGE reposé une seule fois`, () => assert.deepEqual(back, { unread: false, newmsg: true, badges: 1, label: 'NOUVEAU MESSAGE' }));
+    await context.close();
+  }
+  {
+    const { context, page: p } = await open({ width: 375, late: true });
+    await withTools(p);
+    checkNewmsg('375 (DataTables initialisé après le userscript)', await p.evaluate(NEWMSG));
     await context.close();
   }
 }
