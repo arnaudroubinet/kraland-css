@@ -7,7 +7,14 @@
 //      (comme la plupart des suites) : marqueur posé, puis AUCUNE mutation pendant WINDOW_MS ;
 //   2. contre-preuves intégrées, sur des copies du bundle modifiées en mémoire : une tâche tardive NON enregistrée (setTimeout nu), la
 //      levée anti-FOUC (revealPage) et le masquage des tags (HideTags) privés de leur enregistrement doivent être DÉTECTÉS ; la même tâche
-//      tardive enregistrée (InitQueue.later) doit être attendue par le marqueur (aucune mutation après lui).
+//      tardive enregistrée (InitQueue.later), ou une fonction enregistrée qui renvoie une promesse réglée 600 ms plus tard, doit être
+//      attendue par le marqueur (aucune mutation après lui) ;
+//   3. page /profil/interface sans le titre « Thème de base » (l'interface du thème renonce, #kr-alerts-section n'apparaît jamais) :
+//      le marqueur est quand même posé (addResetButtonToInterfacePage cesse d'attendre quand l'interface a renoncé, ~5 s).
+// Seuils des contre-preuves : la tâche tardive NON enregistrée attend elle-même le marqueur avant de muter (indépendante de l'heure du
+// marqueur) ; « attendue » ne dépend d'aucun seuil (le marqueur l'attend). LIMITE : les trois contre-preuves sur des délais du produit
+// (revealPage 2 rAF + 200 ms, fixNavbarPadding rAF + 200 ms, HideTags 500 ms) supposent un marqueur posé avant ces délais (mesuré : 100 à
+// 400 ms ici) ; sur une machine bien plus lente, elles échoueraient en « non détecté » (faux rouge du garde-fou, jamais un faux vert).
 // Aucun réseau : refus global (lib/confinement.mjs), fixtures locales, Bootstrap/jQuery embarqués (tests/e2e/vendor).
 //
 // Usage : npm run build && node tests/e2e/fin-initialisation.mjs   (KR_SCRIPT=/chemin/script.user.js : autre bundle)
@@ -44,6 +51,15 @@ const SUJET = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base 
 </div></div></div><footer class="navbar-inverse"><div class="container white">pied</div></footer>
 <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script></body></html>`;
 
+// Page « interface » du profil, minimale. Avec le titre « Thème de base », l'interface du thème s'insère ; sans lui, elle renonce.
+const INTERFACE = titre => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${BASE}/"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FIXTURE interface</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css"></head><body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container"><div class="row"><div id="col-right" class="col-md-12"><h1 class="page-header">Interface</h1>
+<h4>${titre}</h4><form class="form-horizontal"><div class="radio"><label><input type="radio" name="theme" value="1"> Thème 1</label></div></form>
+</div></div></div><footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script><script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script></body></html>`;
+
 const PAGES = [
   { id: 'sous-forum', url: '/forum/hrp/debuter-20102', html: FIX('sous-forum-debuter.html') },
   { id: 'sous-forum-dt-tardif', url: '/forum/hrp/debuter-20102?dt=late', html: FIX('sous-forum-debuter.html') },
@@ -52,7 +68,10 @@ const PAGES = [
   { id: 'plateau', url: '/jouer/plateau', html: FIX('plateau-qualite-usage.html') },
   // barre sur deux lignes de 992 à 1359 px : à 1000 px, fixNavbarPadding pose padding-top et max-height (rien à 1280 px)
   { id: 'plateau-barre-large', url: '/jouer/plateau', html: FIX('plateau-navbar-large.html'), widths: [375, 1000, 1280] },
-  { id: 'sujet-tags', url: '/forum/sujet/fixture-1-2', html: SUJET }
+  { id: 'sujet-tags', url: '/forum/sujet/fixture-1-2', html: SUJET },
+  { id: 'profil-interface', url: '/profil/interface', html: INTERFACE('Thème de base') },
+  // S1 (QA du lot B) : sans titre « Thème de base », #kr-alerts-section n'apparaît jamais ; avant le lot C, la file restait tenue
+  { id: 'profil-interface-sans-theme', url: '/profil/interface', html: INTERFACE('Préférences') }
 ];
 
 const browser = await chromium.launch({ headless: true });
@@ -115,10 +134,12 @@ function variant(pairs) {
   return s;
 }
 
-// Lots de sondes en parallèle (chaque sonde a son propre contexte).
+// Sondes en parallèle, au plus `size` à la fois (file d'attente : une sonde lente ne bloque pas les autres) ; résultats dans l'ordre des jobs.
 async function runAll(jobs, size = 7) {
-  const out = [];
-  for (let i = 0; i < jobs.length; i += size) { out.push(...await Promise.all(jobs.slice(i, i + size).map(j => probe(j).then(r => ({ j, r }))))); }
+  const out = new Array(jobs.length);
+  let next = 0;
+  const worker = async () => { while (next < jobs.length) { const i = next++; out[i] = { j: jobs[i], r: await probe(jobs[i]) }; } };
+  await Promise.all(Array.from({ length: Math.min(size, jobs.length) }, worker));
   return out;
 }
 
@@ -126,6 +147,8 @@ try {
   // 1. Pages représentatives : marqueur posé, puis plus aucune mutation ------------------------------------------------------------
   const jobs = [];
   for (const mode of ['start', 'dcl']) { for (const pg of PAGES) { for (const width of pg.widths || [375, 1280]) { jobs.push({ page: pg, width, mode }); } } }
+  // Les 4 sondes « sans thème » (marqueur à ~5 s, après les essais de l'interface du thème) partent ensemble dans le premier lot
+  jobs.sort((a, b) => Number(b.page.id === 'profil-interface-sans-theme') - Number(a.page.id === 'profil-interface-sans-theme'));
   const results = await runAll(jobs);
   for (const { j, r } of results) {
     const tag = `${j.page.id} ${j.width} px (${j.mode === 'start' ? 'document-start' : 'DOMContentLoaded'})`;
@@ -142,11 +165,16 @@ try {
   // 2. Contre-preuves : l'oubli d'enregistrement est détecté, l'enregistrement est attendu ----------------------------------------
   const ANCRE = "InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);";
   const tache = appel => `${ANCRE}\n    InitQueue.register('garde:tardif', function () { ${appel}(function () { document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+  // Tâche NON enregistrée : 600 ms, puis elle attend elle-même le marqueur avant de muter (la mutation tombe toujours après lui, quelle
+  // que soit l'heure du marqueur) ; le marqueur n'a pas pu l'attendre puisqu'elle était encore en cours quand il a été posé.
+  const nue = `${ANCRE}\n    InitQueue.register('garde:tardif', function () { setTimeout(function f() { if (!document.documentElement.hasAttribute('data-kr-ready')) { setTimeout(f, 50); return; } document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+  const promesse = `${ANCRE}\n    InitQueue.register('garde:promesse', function () { return new Promise(function (r) { setTimeout(function () { document.body.setAttribute('data-garde-tardif', '1'); r(); }, 600); }); }, 999);`;
   let cas;
   try {
     cas = [
-      { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, tache('setTimeout')]]), page: PAGES[4], mode: 'dcl', expect: 'detect' },
+      { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, nue]]), page: PAGES[4], mode: 'dcl', expect: 'detect' },
       { id: 'tâche tardive enregistrée (InitQueue.later, 600 ms)', src: variant([[ANCRE, tache("InitQueue.later.bind(InitQueue, 'garde:tardif')")]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
+      { id: 'module enregistré renvoyant une promesse réglée à 600 ms', src: variant([[ANCRE, promesse]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
       // revealPage et fixNavbarPadding ont le même délai (2 rAF / 1 rAF + 200 ms) : l'un masque l'oubli de l'autre, on retire donc les deux
       // pour la levée anti-FOUC (plateau sans débordement de barre : seule la levée mute), puis le seul padding sur la barre large.
       { id: 'levée anti-FOUC (revealPage) et padding de barre privés de leur enregistrement', src: variant([["const release = InitQueue.hold('revealPage');", 'const release = function () {};'], ["const release = InitQueue.hold('fixNavbarPadding');", 'const release = function () {};']]), page: PAGES[4], mode: 'start', expect: 'detect' },

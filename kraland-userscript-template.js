@@ -1680,11 +1680,19 @@
       // Vérifier qu'on est sur la bonne page
       if (!window.location.pathname.includes('/profil/interface')) {return;}
 
-      // Attendre que le placeholder Alertes soit présent
+      // Attendre que le placeholder Alertes soit présent. Il est inséré par insertTampermonkeyThemeUI : si celle-ci renonce (titre
+      // « Thème de base » absent après ses essais), il n'apparaîtra plus ; on cesse alors d'attendre, sinon la file d'initialisation
+      // resterait tenue et html[data-kr-ready] ne serait jamais posé.
       const release = InitQueue.hold('addResetButtonToInterfacePage');
       const checkForm = setInterval(() => {
         const alertsSection = document.querySelector('#kr-alerts-section');
-        if (!alertsSection) {return;}
+        if (!alertsSection) {
+          if (themeUiSettled) {
+            clearInterval(checkForm);
+            release();
+          }
+          return;
+        }
 
         clearInterval(checkForm);
         // Fin de tâche signalée ici : le marqueur est vérifié à la tâche suivante, après l'insertion synchrone ci-dessous
@@ -8149,6 +8157,10 @@
     }
   }
 
+  // Tentative d'insertion de l'interface du thème terminée (réussie ou abandonnée) : lu par addResetButtonToInterfacePage, qui cesse
+  // alors d'attendre #kr-alerts-section. `var` : lu avant cette ligne dans l'ordre du fichier (hissé, false par défaut).
+  var themeUiSettled = false;
+
   function insertTampermonkeyThemeUI() {
     if (!location?.href?.includes('/profil/interface')) {return;}
 
@@ -8504,8 +8516,10 @@
       const release = InitQueue.hold('insertTampermonkeyThemeUI');
       const id = setInterval(() => {
         attempts++;
-        if (tryInsert() || attempts > 25) {clearInterval(id); release();}
+        if (tryInsert() || attempts > 25) {clearInterval(id); themeUiSettled = true; release();}
       }, 200);
+    } else {
+      themeUiSettled = true;
     }
   }
 
