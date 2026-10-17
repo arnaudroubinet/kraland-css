@@ -13,7 +13,7 @@ import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -50,7 +50,7 @@ const browser = await chromium.launch({ headless: true });
 async function open({ width, variant = 'empire-brun-dark', height = 800, url = SUBFORUM, html = FIXTURE, theme = true, late = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 2 });
-  const state = { documents: 0, other: [] };
+  const state = { documents: 0, loads: 0, other: [] };
   await confineNetwork(context); // refus global EN PREMIER (logos du thème et version.json : refusés)
   await context.route(BASE + '/**', r => {
     const u = new URL(r.request().url());
@@ -76,8 +76,11 @@ async function open({ width, variant = 'empire-brun-dark', height = 800, url = S
     }
   }, { src: userscript, enabled: theme, variant });
   const page = await context.newPage();
+  // Documents entièrement chargés (événement load de chaque document) : un rechargement est fini quand ce compteur l'atteint.
+  page.on('load', () => { state.loads += 1; });
   await page.goto(BASE + url + (late ? '?dt=late' : ''), { waitUntil: 'load' });
-  await domQuiet(page, { ready: theme ? THEME_READY : null, label: 'sous-forum' });
+  // Lot B : avec le script, fin d'initialisation explicite (html[data-kr-ready]) ; sans script (theme false), le DOM calme reste la seule condition.
+  if (theme) { await krReady(page, { ready: THEME_READY, label: 'sous-forum' }); } else { await domQuiet(page, { label: 'sous-forum' }); }
   return { context, page, state };
 }
 
@@ -868,10 +871,11 @@ if (frag('l5-pagination-m2-bureau')) {
 if (frag('l5-pagination-viewport')) {
   console.log('L5 M-2 : vraies transitions de viewport (rechargement)');
   const reloaded = async (p, state, docs) => {
+    // Attendre le load du NOUVEAU document (compteur state.loads) avant le marqueur : html[data-kr-ready] de l'ancien document, encore
+    // affiché entre la requête et la validation de la navigation, ferait passer l'attente trop tôt.
     const t0 = Date.now();
-    while (state.documents < docs && Date.now() - t0 < 10000) { await p.waitForTimeout(100); }
-    await p.waitForLoadState('load');
-    await domQuiet(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
+    while ((state.documents < docs || state.loads < docs) && Date.now() - t0 < 10000) { await p.waitForTimeout(50); }
+    await krReady(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
     await withTools(p);
     return state.documents;
   };
@@ -887,6 +891,12 @@ if (frag('l5-pagination-viewport')) {
     await goNext(p, 6);
     const desk7 = await p.evaluate(PAGINATION);
     check(`${tag} : 1280 page 7 = séquence native exacte`, () => assert.deepEqual(desk7.seq, NATIVE_P7));
+    // Le garde-fou natif n'autorise un nouveau rechargement que 1200 ms après le précédent (comme messages-v3#transitions) : attendre
+    // cette condition, la fin d'initialisation pouvant arriver avant (lot B : plus de fenêtre de calme qui la masquait).
+    await p.waitForFunction(() => {
+      const log = JSON.parse(sessionStorage.getItem('kr-breakpoint-reload-log') || '[]');
+      return log.length > 0 && Date.now() - log[log.length - 1] >= 1200;
+    });
     await p.setViewportSize({ width: 320, height: 640 });
     const docs2 = await reloaded(p, state, 3);
     const mob = await p.evaluate(PAGINATION);

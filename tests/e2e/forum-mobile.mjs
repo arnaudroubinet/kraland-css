@@ -18,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -157,9 +157,10 @@ function check(name, fn) {
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 
-// Remplace l'ancienne attente fixe de 1,5 s : le script a posé sa classe sur <html>, puis le DOM est calme (aucune mutation pendant
-// 500 ms) et deux images ont été peintes (tests/e2e/lib/settle.mjs). Expiration explicite à 15 s.
-const settlePage = (pg, theme) => domQuiet(pg, { ready: theme ? THEME_READY : null, label: 'forum-mobile' });
+// Remplace l'ancienne attente fixe de 1,5 s puis la fenêtre de DOM calme (lot B) : avec le script, html[data-kr-ready] (posé par InitQueue
+// après toutes les tâches différées) et la classe de thème, puis deux images peintes (tests/e2e/lib/settle.mjs). Expiration explicite à 15 s.
+// Sans script (theme false), le DOM calme reste la seule condition.
+const settlePage = (pg, theme) => (theme ? krReady(pg, { ready: THEME_READY, label: 'forum-mobile' }) : domQuiet(pg, { label: 'forum-mobile' }));
 
 const browser = await chromium.launch({ headless: true });
 

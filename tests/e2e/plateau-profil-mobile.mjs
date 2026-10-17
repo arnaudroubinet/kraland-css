@@ -11,7 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { krReady, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -121,7 +121,7 @@ const overlaps = (cells) => {
 async function runWidth(width, expectedSkillCols) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(TARGET, { waitUntil: 'load' });
-  await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
+  await krReady(page, { ready: THEME_READY, label: 'chargement plateau' });
   console.log(`Profil mobile ${width} px`);
 
   // --- replié ---
@@ -189,7 +189,7 @@ await runWidth(700, 6);
 // >= 768 : le mini-profil n'existe pas (mode desktop), compétences du panneau latéral inchangées
 await page.setViewportSize({ width: 768, height: 900 });
 await page.goto(TARGET, { waitUntil: 'load' });
-await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
+await krReady(page, { ready: THEME_READY, label: 'chargement plateau' });
 console.log('Profil à 768 px (desktop inchangé)');
 const d = await measure();
 check('768 : mode desktop, pas de mini-profil', () => { assert.ok(!d.mobile); assert.ok(!d.exists); });

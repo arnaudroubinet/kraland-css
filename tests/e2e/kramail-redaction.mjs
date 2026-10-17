@@ -24,7 +24,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -203,7 +203,8 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
   const errors = [];
   p.on('pageerror', e => errors.push(String(e.message)));
   await p.goto(BASE + PAGES[page].url, { waitUntil: 'load' });
-  if (bundle) { await domQuiet(p, { ready: themeOn === false ? null : THEME_READY, label: 'kramail ' + page }); } else { await p.waitForTimeout(300); }
+  // Lot B : bundle courant = fin d'initialisation explicite (html[data-kr-ready]) ; bundle « avant » (base, peut précéder le marqueur) = DOM calme.
+  if (bundle === 'apres') { await krReady(p, { ready: themeOn === false ? null : THEME_READY, label: 'kramail ' + page }); } else if (bundle) { await domQuiet(p, { ready: themeOn === false ? null : THEME_READY, label: 'kramail ' + page }); } else { await p.waitForTimeout(300); }
   return { context, page: p, state, errors };
 }
 const AVANT = bundleAvant();

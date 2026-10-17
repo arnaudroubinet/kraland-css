@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { krReady, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -70,7 +70,7 @@ const snapshot = () => page.evaluate(() => {
 });
 
 await page.goto(TARGET, { waitUntil: 'load' });
-await domQuiet(page, { ready: THEME_READY, quietMs: 600, label: 'chargement plateau' });
+await krReady(page, { ready: THEME_READY, label: 'chargement plateau' });
 let s = await snapshot();
 
 console.log('Compétences nommées (desktop 1512)');

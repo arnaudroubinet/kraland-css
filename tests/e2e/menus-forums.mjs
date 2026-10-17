@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { URL } from 'node:url';
 import http from 'node:http';
-import { domQuiet, THEME_READY } from './lib/settle.mjs';
+import { krReady, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -133,7 +133,7 @@ async function open({ width = 1280, variant = 'empire-brun-dark', server, preset
 
 async function go(p, urlPath) {
   await p.goto(BASE + urlPath, { waitUntil: 'load' });
-  await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: urlPath });
+  await krReady(p, { ready: THEME_READY, label: urlPath });
 }
 
 const MENU_IDS = { rp: 'rp', hrp: 'hrp', communaute: 'forum-communaute', debats: 'forum-debats', staff: 'forum-staff' };
@@ -173,7 +173,7 @@ if (frag('a')) {
   m = await dynamicRp(p);
   check('navigation suivante : pas de retour de Bravo', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Charlie']));
   await p.reload({ waitUntil: 'load' });
-  await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'reload' });
+  await krReady(p, { ready: THEME_READY, label: 'reload' });
   m = await dynamicRp(p);
   check('rechargement : pas de retour de Bravo', () => assert.deepEqual(m.items.map(i => i[0]), ['Alpha', 'Charlie']));
   const st = (await read(p, 'rp')).items.slice(0, 3).map(i => i[0]);
@@ -629,7 +629,7 @@ if (frag('p')) {
   });
   const names_ = async (p) => (await dynamicRp(p)).items.map(i => i[0]);
   const navInfo = p => p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; return { type: n.type, transferSize: n.transferSize }; });
-  const back = async (p) => { await p.goBack({ waitUntil: 'load' }); await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'goBack' }); };
+  const back = async (p) => { await p.goBack({ waitUntil: 'load' }); await krReady(p, { ready: THEME_READY, label: 'goBack' }); };
   const reopen = async (width) => {
     const mobile = width < 768;
     const context = await realBrowser.newContext({ viewport: { width, height: 800 }, isMobile: mobile, hasTouch: mobile });
@@ -667,7 +667,7 @@ if (frag('p')) {
     // Rechargement : le navigateur redemande la page, la colonne est lue.
     lists['/forum/rp'] = [f('Taverne', 'taverne-10101'), f('Delta', 'delta-4')];
     await p.reload({ waitUntil: 'load' });
-    await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'reload' });
+    await krReady(p, { ready: THEME_READY, label: 'reload' });
     const afterReload = await names_(p);
     check(`${width} : rechargement : colonne relue (Delta)`, () => assert.deepEqual(afterReload, ['Delta']));
     // Navigation normale vers un autre forum : colonne lue.
@@ -735,7 +735,7 @@ if (frag('q')) {
     args: [`--host-resolver-rules=MAP www.kraland.org 127.0.0.1:${port}, MAP * ~NOTFOUND , EXCLUDE 127.0.0.1`]
   });
   const navInfo = p => p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; return { type: n.type, transferSize: n.transferSize, body: n.encodedBodySize }; });
-  const settle = (p, label) => domQuiet(p, { ready: THEME_READY, quietMs: 400, label });
+  const settle = (p, label) => krReady(p, { ready: THEME_READY, label });
   const clickTo = async (p, hrefEnd) => {
     await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), p.evaluate((end) => document.querySelector(`#col-left a[href$="${end}"]`).click(), hrefEnd)]);
     await settle(p, 'clic ' + hrefEnd);
@@ -969,7 +969,7 @@ if (frag('s')) {
   const bravo = f('Bravo', 'bravo-2');
   const nm = async p => names(await read(p, 'rp'));
   const dividers = p => p.evaluate(() => document.querySelectorAll('[data-forums-added="rp"] .dropdown-menu > li.divider').length);
-  const reload = async (p) => { await p.reload({ waitUntil: 'load' }); await domQuiet(p, { ready: THEME_READY, quietMs: 400, label: 'reload' }); };
+  const reload = async (p) => { await p.reload({ waitUntil: 'load' }); await krReady(p, { ready: THEME_READY, label: 'reload' }); };
 
   // a / d / c : un raccourci refusé disparaît (3 signaux), sur la page RP puis ailleurs, et revient quand l'accès est rétabli.
   for (const how of ['class', 'aria', 'attr']) {

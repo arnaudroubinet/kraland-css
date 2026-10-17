@@ -271,9 +271,13 @@ check('repère cité par une suite (kr-topic-unread, cité par sous-forum.mjs) :
   const r = route(T, hunk('function x() {', "row.classList.add('kr-topic-unread');"));
   assert.ok(r.units.includes('sous-forum'), r.units.join(','));
 });
-check('repère cité par plus de 3 suites (mobile-mode) : ignoré, les mots-clés décident', () => {
+check('repère cité par plus de 3 suites (mobile-mode) : ignoré, les mots-clés décident (seul le garde-fou de fin d\'initialisation suit tout hunk du template)', () => {
   const r = route(T, hunk('function x() {', "document.body.classList.add('mobile-mode');"));
-  assert.deepEqual(r.units, []);
+  assert.deepEqual(r.units, ['fin-initialisation']);
+});
+check('template modifié : garde-fou de fin d\'initialisation lancé ; CSS seul : non', () => {
+  assert.ok(route(T, hunk('function x() {', "row.classList.add('kr-topic-unread');")).units.includes('fin-initialisation'));
+  assert.ok(!route('kraland-theme.css', hunkAt(10, '  border: 0;'), CSS).units.includes('fin-initialisation'));
 });
 check('fixture citée par une suite (forum-colonne-native-rp.html -> menus-forums) ; fixture citée par aucune : total', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/forum-colonne-native-rp.html': [] }));
