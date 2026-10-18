@@ -40,6 +40,16 @@ check('viewport des ordres et fixture Parler : zone parler', () => {
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
   assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
 });
+check('Notifications /report (kr-page-report) : zone report, fixture et suite -> report-non-lu seule', () => {
+  assert.deepEqual(route('kraland-theme.css', hunk('html.kr-page-report table > tbody > tr.bg-info {', 'html.kr-page-report table > tbody > tr.bg-info { color: inherit; }')).zones, ['report']);
+  const t = route(T, hunk('function applyVariant() {', "document.documentElement.classList.toggle('kr-page-report', isReport);"));
+  assert.deepEqual(t.zones, ['report']);
+  assert.equal(t.widened, false);
+  const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
+  assert.equal(f.widened, false);
+  assert.deepEqual(f.units, ['report-non-lu']);
+  assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
+});
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');
