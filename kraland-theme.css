@@ -133,7 +133,8 @@
   --kr-level-bg: var(--kr-highlight);
   --kr-level-fg: var(--kr-white);
 
-  /* Sous-forum (L1) : couleur du statut « non lu » (barre, pastille). Suit l'accent du thème, sauf EB clair (voir plus bas). */
+  /* Non lu : forum et notifications. Couleur du statut « non lu » : barre et pastille du sous-forum (L1), barre et teinte de la cellule
+     de date sur /report. Suit l'accent du thème, sauf EB clair (voir plus bas). */
   --kr-status-unread: var(--kr-highlight);
 }
 
@@ -141,7 +142,7 @@ html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
   --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
-  --kr-status-unread: #8a5a00; /* sous-forum : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
+  --kr-status-unread: #8a5a00; /* non lu (forum et notifications) : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
 }
 
 html.kr-theme-variant-paladium {
@@ -640,8 +641,10 @@ input[type="checkbox"]:checked {
 /* Notifications (/report) : ligne non lue, marquée par le serveur d'un tr.bg-info (consommé à la première vue).
    La règle générique ci-dessus (fond --kr-primary, texte blanc) y rendait illisibles les couleurs du serveur (<font color>, bilans
    .mini.text-muted) et se confondait avec la page active de la pagination et le bandeau du sélecteur. Sur /report seulement
-   (html.kr-page-report, posé par applyVariant), la ligne garde le fond et le texte d'une ligne normale ; l'état passe par un filet
-   latéral de 4 px de la couleur du texte, sans mot visible (décision d'Arnaud du 18/10/2026 : « Juste la marque à gauche »).
+   (html.kr-page-report, posé par applyVariant), la ligne garde le fond et le texte d'une ligne normale, sans mot visible (décision
+   d'Arnaud du 18/10/2026 : « Juste la marque à gauche »). L'état passe par la cellule de la date seule (option N, « Go pour n ») :
+   filet latéral de 4 px de la couleur du non lu du forum (jeton --kr-status-unread, option B) et fond teinté à 14 % de cette couleur.
+   Le texte de la date garde sa couleur et sa graisse ; le texte du serveur (2e cellule) n'est pas touché.
    Valable en fenêtre (600 px) comme en onglet large : règle commune aux deux modes. Les autres .bg-info gardent la règle générique. */
 html.kr-page-report table > tbody > tr.bg-info {
   background-color: transparent;
@@ -649,8 +652,9 @@ html.kr-page-report table > tbody > tr.bg-info {
 }
 
 html.kr-page-report table > tbody > tr.bg-info > td:first-child {
-  box-shadow: inset 4px 0 0 currentcolor;
+  box-shadow: inset 4px 0 0 var(--kr-status-unread);
   padding-left: 10px;
+  background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
 }
 
 /* Badge danger - notification alert always red on all themes */
