@@ -22,7 +22,9 @@ const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScri
 const BASE = 'http://www.kraland.org';
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
 const FRAGS = (process.env.KR_FRAG || '').split(',').filter(Boolean);
-const frag = name => !FRAGS.length || FRAGS.includes(name);
+// Lot H : un bloc long se découpe en sous-fragments « <bloc>-<partie> » (q-1280, r-1, s-2...). frag('q') est vrai pour KR_FRAG=q-1280 (le
+// bloc s'ouvre) et frag('q-1280') pour KR_FRAG=q (le bloc entier rejoue toutes ses parties).
+const frag = name => !FRAGS.length || FRAGS.some(f => f === name || name.startsWith(f + '-') || f.startsWith(name + '-'));
 
 let failures = 0;
 function check(name, fn) {
@@ -743,6 +745,7 @@ if (frag('q')) {
   const namesOf = async (p) => (await dynamicRp(p)).items.map(i => i[0]);
   const hrpNames = async (p) => names(await read(p, 'hrp'));
   for (const width of [1280, 375]) {
+    if (!frag('q-' + width)) { continue; } // lot H : une largeur par fragment (q-1280, q-375 ; garde ci-dessous avec q-375)
     for (const m of ['max-age', 'last-modified', 'php', 'etag']) {
       const cached = m === 'max-age' || m === 'last-modified';
       mode = m;
@@ -812,7 +815,7 @@ if (frag('q')) {
   }
   // Fiabilité de la mesure (transferSize) : stub de performance.getEntriesByType sur un serveur qui répond toujours (mode php, aucun cache).
   // 0 octet ET aucun corps mesuré = mesure non renseignée : lecture normale ; 0 octet avec corps = cache ; octets reçus = lecture.
-  {
+  if (frag('q-375')) {
     mode = 'php';
     lists.rp = [...baseList, f('Bravo', 'bravo-2')];
     for (const [label, ts, eb, expectRead] of [['mesure non renseignée (transferSize 0, encodedBodySize 0)', 0, 0, true], ['servie par le cache (transferSize 0, corps 5000)', 0, 5000, false], ['octets reçus (transferSize 300, corps 5000)', 300, 5000, true]]) {
@@ -853,7 +856,9 @@ if (frag('r')) {
   // Lot F : seul le signal « class » rejoue ce scénario de bout en bout. aria-disabled="true" et l'attribut disabled ne changeaient que la
   // détection : ils sont couverts scénario par scénario par tests/unit/menus-forums.test.mjs (« R (aria) », « R (attr) »), et leur relevé
   // DOM de bout en bout par le passage « trois signaux mêlés » du fragment S.
-  for (const how of ['class']) {
+  // Lot H : deux sous-fragments indépendants (chaque scénario a son serveur et son contexte) : r-1 = « class », catégorie rp et les quatre
+  // cas isolés de fin de bloc ; r-2 = « tout désactivé » des catégories hrp, communaute, debats, staff.
+  for (const how of frag('r-1') ? ['class'] : []) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -892,6 +897,7 @@ if (frag('r')) {
   }
   // Tout désactivé via la fixture « alldisabled » (class), dans chacune des cinq catégories : seule la catégorie visitée change.
   for (const cat of CATS) {
+    if (!frag(cat === 'rp' ? 'r-1' : 'r-2')) { continue; }
     const s = makeServer();
     const { context, p } = await open({ server: s });
     for (const c of CATS) { await go(p, '/forum/' + c); }
@@ -911,7 +917,7 @@ if (frag('r')) {
     await context.close();
   }
   // Un forum désactivé jamais mémorisé n'est pas ajouté, ni dans le menu ni dans le stockage.
-  {
+  if (frag('r-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     SET(s, '/forum/rp', [f('Taverne', 'taverne-10101'), alpha]);
@@ -923,7 +929,7 @@ if (frag('r')) {
     await context.close();
   }
   // Même destination à la fois active et désactivée : l'entrée active prouve l'accès, elle reste.
-  {
+  if (frag('r-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -934,7 +940,7 @@ if (frag('r')) {
     await context.close();
   }
   // Simple style grisé, survol, classes visuelles : PAS une preuve d'accès perdu, l'entrée reste proposée.
-  {
+  if (frag('r-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -946,7 +952,7 @@ if (frag('r')) {
     await context.close();
   }
   // Une entrée désactivée HORS de la catégorie (Kramail, autre catégorie) n'est pas un forum de la catégorie : pas de preuve, liste conservée.
-  {
+  if (frag('r-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -976,7 +982,9 @@ if (frag('s')) {
 
   // a / d / c : un raccourci refusé disparaît, sur la page RP puis ailleurs, et revient quand l'accès est rétabli. Lot F : signal « class »
   // de bout en bout ; aria et attr dans tests/unit/menus-forums.test.mjs (« S (aria) », « S (attr) ») et dans le passage mêlé ci-dessous.
-  for (const how of ['class']) {
+  // Lot H : trois sous-fragments indépendants (chaque scénario a son serveur et son contexte) : s-1 = a/d/c, signaux mêlés, b, e ;
+  // s-2 = f, f2, f3, f4 ; s-3 = g, h, i, j.
+  for (const how of frag('s-1') ? ['class'] : []) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1024,7 +1032,7 @@ if (frag('s')) {
   // Trois signaux mêlés dans une même colonne (lot F) : relevé DOM de bout en bout de aria-disabled="true" et de l'attribut disabled, sur
   // un raccourci fixe ET sur un forum, à côté de la classe. Taverne (aria) et Marché (attr) retirés, Bravo (attr) retiré, Alpha (aria) aussi ;
   // Monde actif reste. Les refus sont mémorisés et tiennent sur une autre page.
-  {
+  if (frag('s-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1041,7 +1049,7 @@ if (frag('s')) {
   }
 
   // b : l'identification se fait par destination normalisée (URL absolue, barre finale, majuscules), pas par le libellé.
-  {
+  if (frag('s-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1053,7 +1061,7 @@ if (frag('s')) {
   }
 
   // e : source partielle (Taverne simplement absente) ou grisée sans signal explicite : aucune preuve, le raccourci reste.
-  {
+  if (frag('s-1')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1101,7 +1109,7 @@ if (frag('s')) {
 
   // f : le refus ne s'éteint pas avec l'âge : au-delà de 7 jours la liste de forums n'est plus proposée (état « unavailable », repli « Autre »)
   // mais Taverne et Monde, dont le refus est prouvé, restent retirés. Seule une entrée active les rétablit.
-  for (const [label, ageDays, expectAll] of [['2 jours', 2, false], ['6 jours', 6, false], ['8 jours', 8, true]]) {
+  for (const [label, ageDays, expectAll] of frag('s-2') ? [['2 jours', 2, false], ['6 jours', 6, false], ['8 jours', 8, true]] : []) {
     const s = makeServer();
     s.mode['/forum/rp'] = 'http500';
     const seed = JSON.stringify({ v: 2, at: Date.now() - ageDays * DAY, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }], denied: ['/forum/rp/taverne-10101', '/forum/rp/monde-10103'] });
@@ -1117,7 +1125,7 @@ if (frag('s')) {
   }
 
   // f2 : le refus survit à l'absence et à l'âge, et seule une entrée active le lève, au bureau (1280) comme au mobile (390).
-  for (const width of [1280, 390]) {
+  for (const width of frag('s-2') ? [1280, 390] : []) {
     const s = makeServer();
     const { context, p } = await open({ server: s, width });
     await go(p, '/forum/rp');
@@ -1146,7 +1154,7 @@ if (frag('s')) {
   }
 
   // f3 (B1) : une entrée simplement grisée (href, style/opacité/text-muted, aucun signal explicite) est une entrée ACTIVE : elle lève le refus.
-  for (const width of [1280, 390]) {
+  for (const width of frag('s-2') ? [1280, 390] : []) {
     const s = makeServer();
     const { context, p } = await open({ server: s, width });
     await go(p, '/forum/rp');
@@ -1165,7 +1173,7 @@ if (frag('s')) {
   }
 
   // f4 (B2) : le refus s'applique même si l'entrée mémorisée est datée du futur (horloge reculée) ; la garde de date ne vaut que pour la liste.
-  for (const width of [1280, 390]) {
+  for (const width of frag('s-2') ? [1280, 390] : []) {
     const s = makeServer();
     s.mode['/forum/rp'] = 'http500';
     const seed = JSON.stringify({ v: 2, at: Date.now() + 10 * 60 * 1000, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }], denied: ['/forum/rp/taverne-10101'] });
@@ -1177,7 +1185,7 @@ if (frag('s')) {
   }
 
   // g : entrée écrite avant le champ « denied » (stockage existant) : aucun refus déduit.
-  {
+  if (frag('s-3')) {
     const s = makeServer();
     s.mode['/forum/rp'] = 'http500';
     const legacy = JSON.stringify({ v: 2, at: Date.now() - 1 * DAY, forums: [{ name: 'Alpha', url: 'forum/rp/alpha-1' }] });
@@ -1189,7 +1197,7 @@ if (frag('s')) {
   }
 
   // h : un autre onglet qui enregistre un refus redessine le premier sans rechargement ; un rechargement n'invente rien.
-  {
+  if (frag('s-3')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1208,7 +1216,7 @@ if (frag('s')) {
   }
 
   // i : les autres catégories n'ont pas de raccourci fixe : un refus y retire seulement la liste, comme avant.
-  {
+  if (frag('s-3')) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     for (const c of CATS) { await go(p, '/forum/' + c); }
@@ -1224,7 +1232,7 @@ if (frag('s')) {
   // j (S2) : un lien désactivé que la peau range dans .kraland-metrics (bloc hors liste de forums) ne prouve JAMAIS un refus.
   // Scénario discriminant : relecture forcée APRÈS la peau, quand le bloc existe. Sans l'exclusion de .kraland-metrics, la destination
   // /forum/rp/taverne-10101 serait lue comme refusée (stockage { denied: [taverne] }, raccourci retiré) : cette assertion l'attrape.
-  {
+  if (frag('s-3')) {
     const s = makeServer();
     // Taverne n'est PAS dans la liste de la catégorie : sans cela, l'entrée active de la même destination masquerait le défaut (l'entrée active prouve l'accès).
     SET(s, '/forum/rp', [alpha, f('Bravo', 'bravo-2')]);

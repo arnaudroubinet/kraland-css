@@ -91,6 +91,12 @@ const PAGES = [
   { id: 'profil-interface-theme-tardif', url: '/profil/interface', html: INTERFACE('Préférences', TITRE_TARDIF), alertsList: true }
 ];
 
+// Fragmentation (lot H, exécution parallèle) : KR_FRAG = start, dcl (pages représentatives injectées au document-start ou au
+// DOMContentLoaded), contre-preuves ; vide = tout jouer. Chaque sonde ouvre SON contexte : aucun état partagé entre fragments.
+const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
+const frag = id => FRAG.length === 0 || FRAG.includes(id);
+if (FRAG.some(id => !['start', 'dcl', 'contre-preuves'].includes(id))) { console.log(`  FAIL KR_FRAG inconnu : ${FRAG.join(',')} (attendus : start, dcl, contre-preuves)`); process.exit(1); }
+
 const browser = await chromium.launch({ headless: true });
 
 // Ouvre une page avec le bundle `src`, injecté au document-start (`start`) ou au DOMContentLoaded (`dcl`). Renvoie l'état au marqueur
@@ -170,7 +176,7 @@ async function runAll(jobs, size = 7) {
 try {
   // 1. Pages représentatives : marqueur posé, puis plus aucune mutation ------------------------------------------------------------
   const jobs = [];
-  for (const mode of ['start', 'dcl']) { for (const pg of PAGES) { for (const width of pg.widths || [375, 1280]) { jobs.push({ page: pg, width, mode }); } } }
+  for (const mode of ['start', 'dcl'].filter(frag)) { for (const pg of PAGES) { for (const width of pg.widths || [375, 1280]) { jobs.push({ page: pg, width, mode }); } } }
   // Les sondes lentes partent dans le premier lot : « sans thème » (marqueur à ~5 s, après les essais de l'interface du thème), puis
   // « thème tardif » (marqueur après THEME_TARDIF_MS)
   const lent = j => ({ 'profil-interface-sans-theme': 2, 'profil-interface-theme-tardif': 1 })[j.page.id] || 0;
@@ -190,47 +196,49 @@ try {
     check(`${tag} : aucune erreur de page`, () => { assert.deepEqual(r.errors, []); });
   }
   const ms = results.map(x => x.r.readyMs).sort((a, b) => a - b);
-  console.log(`  info marqueur atteint en ${ms[0]} à ${ms[ms.length - 1]} ms après le début de la navigation (médiane ${ms[Math.floor(ms.length / 2)]} ms)`);
+  if (ms.length) { console.log(`  info marqueur atteint en ${ms[0]} à ${ms[ms.length - 1]} ms après le début de la navigation (médiane ${ms[Math.floor(ms.length / 2)]} ms)`); }
 
   // 2. Contre-preuves : l'oubli d'enregistrement est détecté, l'enregistrement est attendu ----------------------------------------
-  const ANCRE = "InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);";
-  const tache = appel => `${ANCRE}\n    InitQueue.register('garde:tardif', function () { ${appel}(function () { document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
-  // Tâche NON enregistrée : 600 ms, puis elle attend elle-même que le garde-fou observe (donc après le marqueur) avant de muter : la
-  // mutation tombe toujours dans la fenêtre observée, quelle que soit l'heure du marqueur ; le marqueur n'a pas pu l'attendre.
-  const nue = `${ANCRE}\n    InitQueue.register('garde:tardif', function () { setTimeout(function f() { if (!window.${ARMEE}) { setTimeout(f, 20); return; } document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
-  // Départ différé jusqu'à l'observation : requestAnimationFrame local (revealPage, fixNavbarPadding) ou setTimeout (HideTags) qui attend
-  // window[ARMEE] avant de lancer le code du produit inchangé.
-  const rafApresGarde = `const requestAnimationFrame = function (cb) { (function w() { if (window.${ARMEE}) { window.requestAnimationFrame(cb); } else { setTimeout(w, 20); } })(); };`;
-  const sansHold = nom => [`const release = InitQueue.hold('${nom}');`, `const release = function () {}; ${rafApresGarde}`];
-  const timeoutApresGarde = `(function (cb, ms) { setTimeout(function w() { if (window.${ARMEE}) { cb(); } else { setTimeout(w, 20); } }, ms); })(() => {`;
-  const promesse = `${ANCRE}\n    InitQueue.register('garde:promesse', function () { return new Promise(function (r) { setTimeout(function () { document.body.setAttribute('data-garde-tardif', '1'); r(); }, 600); }); }, 999);`;
-  // `vu` : la mutation tardive attendue, celle du module privé de son enregistrement (une autre mutation ne prouverait rien).
-  let cas;
-  try {
-    cas = [
-      { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, nue]]), page: PAGES[4], mode: 'dcl', expect: 'detect', vu: / attributes data-garde-tardif .*> body$/ },
-      { id: 'tâche tardive enregistrée (InitQueue.later, 600 ms)', src: variant([[ANCRE, tache("InitQueue.later.bind(InitQueue, 'garde:tardif')")]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
-      { id: 'module enregistré renvoyant une promesse réglée à 600 ms', src: variant([[ANCRE, promesse]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
-      // revealPage et fixNavbarPadding ont le même délai (2 rAF / 1 rAF + 200 ms) : on retire les deux enregistrements pour la levée
-      // anti-FOUC (la barre du plateau mute aussi : seule la mutation du style de <html> compte), puis le seul padding sur la barre large.
-      { id: 'levée anti-FOUC (revealPage) et padding de barre privés de leur enregistrement', src: variant([sansHold('revealPage'), sansHold('fixNavbarPadding')]), page: PAGES[4], mode: 'start', expect: 'detect', vu: /^\d+ ms attributes style html[^ ]*$/ },
-      { id: 'padding de barre large (fixNavbarPadding) privé de son enregistrement', src: variant([sansHold('fixNavbarPadding')]), page: PAGES[5], width: 1000, mode: 'dcl', expect: 'detect', vu: / attributes style .*> body$/ },
-      { id: 'masquage des tags (HideTags) privé de son enregistrement', src: variant([["InitQueue.later('ForumThread:HideTags', () => {", timeoutApresGarde]]), page: PAGES[6], mode: 'dcl', expect: 'detect', vu: /p\.tags/ }
-    ];
-  } catch (e) {
-    check('contre-preuves : textes du bundle à modifier présents une fois chacun', () => { throw e; });
-    cas = [];
-  }
-  const proofs = await runAll(cas.map(c => ({ page: c.page, width: c.width || 1280, mode: c.mode, src: c.src })), 5);
-  proofs.forEach(({ r }, i) => {
-    const c = cas[i];
-    check(`contre-preuve, ${c.id} : marqueur posé`, () => { assert.equal(r.ready, true); });
-    if (c.expect === 'detect') {
-      check(`contre-preuve, ${c.id} : mutation tardive DÉTECTÉE par le garde-fou`, () => { assert.ok(r.late.some(m => c.vu.test(m)), r.late.length ? `mutation du module absente (${c.vu}) parmi : ${r.late.slice(0, 3).join(' | ')}` : 'aucune mutation après le marqueur : le garde-fou ne verrait pas l\'oubli'); });
-    } else {
-      check(`contre-preuve, ${c.id} : déjà appliquée au marqueur, aucune mutation après lui`, () => { assert.equal(r.atReady.tardif, '1'); assert.deepEqual(r.late, [], r.late.slice(0, 3).join(' | ')); });
+  if (frag('contre-preuves')) {
+    const ANCRE = "InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);";
+    const tache = appel => `${ANCRE}\n    InitQueue.register('garde:tardif', function () { ${appel}(function () { document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+    // Tâche NON enregistrée : 600 ms, puis elle attend elle-même que le garde-fou observe (donc après le marqueur) avant de muter : la
+    // mutation tombe toujours dans la fenêtre observée, quelle que soit l'heure du marqueur ; le marqueur n'a pas pu l'attendre.
+    const nue = `${ANCRE}\n    InitQueue.register('garde:tardif', function () { setTimeout(function f() { if (!window.${ARMEE}) { setTimeout(f, 20); return; } document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+    // Départ différé jusqu'à l'observation : requestAnimationFrame local (revealPage, fixNavbarPadding) ou setTimeout (HideTags) qui attend
+    // window[ARMEE] avant de lancer le code du produit inchangé.
+    const rafApresGarde = `const requestAnimationFrame = function (cb) { (function w() { if (window.${ARMEE}) { window.requestAnimationFrame(cb); } else { setTimeout(w, 20); } })(); };`;
+    const sansHold = nom => [`const release = InitQueue.hold('${nom}');`, `const release = function () {}; ${rafApresGarde}`];
+    const timeoutApresGarde = `(function (cb, ms) { setTimeout(function w() { if (window.${ARMEE}) { cb(); } else { setTimeout(w, 20); } }, ms); })(() => {`;
+    const promesse = `${ANCRE}\n    InitQueue.register('garde:promesse', function () { return new Promise(function (r) { setTimeout(function () { document.body.setAttribute('data-garde-tardif', '1'); r(); }, 600); }); }, 999);`;
+    // `vu` : la mutation tardive attendue, celle du module privé de son enregistrement (une autre mutation ne prouverait rien).
+    let cas;
+    try {
+      cas = [
+        { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, nue]]), page: PAGES[4], mode: 'dcl', expect: 'detect', vu: / attributes data-garde-tardif .*> body$/ },
+        { id: 'tâche tardive enregistrée (InitQueue.later, 600 ms)', src: variant([[ANCRE, tache("InitQueue.later.bind(InitQueue, 'garde:tardif')")]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
+        { id: 'module enregistré renvoyant une promesse réglée à 600 ms', src: variant([[ANCRE, promesse]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
+        // revealPage et fixNavbarPadding ont le même délai (2 rAF / 1 rAF + 200 ms) : on retire les deux enregistrements pour la levée
+        // anti-FOUC (la barre du plateau mute aussi : seule la mutation du style de <html> compte), puis le seul padding sur la barre large.
+        { id: 'levée anti-FOUC (revealPage) et padding de barre privés de leur enregistrement', src: variant([sansHold('revealPage'), sansHold('fixNavbarPadding')]), page: PAGES[4], mode: 'start', expect: 'detect', vu: /^\d+ ms attributes style html[^ ]*$/ },
+        { id: 'padding de barre large (fixNavbarPadding) privé de son enregistrement', src: variant([sansHold('fixNavbarPadding')]), page: PAGES[5], width: 1000, mode: 'dcl', expect: 'detect', vu: / attributes style .*> body$/ },
+        { id: 'masquage des tags (HideTags) privé de son enregistrement', src: variant([["InitQueue.later('ForumThread:HideTags', () => {", timeoutApresGarde]]), page: PAGES[6], mode: 'dcl', expect: 'detect', vu: /p\.tags/ }
+      ];
+    } catch (e) {
+      check('contre-preuves : textes du bundle à modifier présents une fois chacun', () => { throw e; });
+      cas = [];
     }
-  });
+    const proofs = await runAll(cas.map(c => ({ page: c.page, width: c.width || 1280, mode: c.mode, src: c.src })), 5);
+    proofs.forEach(({ r }, i) => {
+      const c = cas[i];
+      check(`contre-preuve, ${c.id} : marqueur posé`, () => { assert.equal(r.ready, true); });
+      if (c.expect === 'detect') {
+        check(`contre-preuve, ${c.id} : mutation tardive DÉTECTÉE par le garde-fou`, () => { assert.ok(r.late.some(m => c.vu.test(m)), r.late.length ? `mutation du module absente (${c.vu}) parmi : ${r.late.slice(0, 3).join(' | ')}` : 'aucune mutation après le marqueur : le garde-fou ne verrait pas l\'oubli'); });
+      } else {
+        check(`contre-preuve, ${c.id} : déjà appliquée au marqueur, aucune mutation après lui`, () => { assert.equal(r.atReady.tardif, '1'); assert.deepEqual(r.late, [], r.late.slice(0, 3).join(' | ')); });
+      }
+    });
+  }
 } finally {
   await browser.close();
 }

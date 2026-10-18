@@ -16,7 +16,7 @@ const FORUM_FRAGS = [
   ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop']
 ];
 export const SUITES = [
-  { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'] },
+  { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'], frags: [['transitions'], ['fallback'], ['ajax', 'bureau']] },
   { name: 'forum-mobile', file: 'forum-mobile.mjs', zones: ['forum'], frags: FORUM_FRAGS, needsBootstrap: true },
   { name: 'demarrage-mobile', file: 'demarrage-mobile.mjs', zones: ['demarrage'],
     frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1']] },
@@ -26,7 +26,7 @@ export const SUITES = [
   { name: 'plateau-profil-mobile', file: 'plateau-profil-mobile.mjs', zones: ['profil', 'plateau'] },
   { name: 'plateau-qualite-usage', file: 'plateau-qualite-usage.mjs', zones: ['plateau'] },
   // Menus Forum RP/HRP/Communauté/Débats/Staff : liste native à jour (fixtures inertes, route mutable). KR_CHROMIUM : navigateur local de repli.
-  { name: 'menus-forums', file: 'menus-forums.mjs', zones: ['menus-forums'], frags: [['a'], ['b'], ['c'], ['d'], ['e'], ['f'], ['g'], ['h'], ['i'], ['j'], ['k'], ['l'], ['m'], ['n'], ['o'], ['p'], ['q'], ['r'], ['s']] },
+  { name: 'menus-forums', file: 'menus-forums.mjs', zones: ['menus-forums'], frags: [['a'], ['b'], ['c'], ['d'], ['e'], ['f'], ['g'], ['h'], ['i'], ['j'], ['k'], ['l'], ['m'], ['n'], ['o'], ['p'], ['q-1280'], ['q-375'], ['r-1'], ['r-2'], ['s-1'], ['s-2'], ['s-3']] },
   { name: 'map-exclusions', file: 'map-exclusions.mjs', zones: ['images'] },
   { name: 'image-fallback', file: 'image-fallback.mjs', zones: ['images'] },
   { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] },
@@ -35,11 +35,11 @@ export const SUITES = [
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
   { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['redaction-sombre'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
-  { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau', 'envoi', 'repli', 'libelle', 'indicatif']] },
+  { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau'], ['envoi', 'repli'], ['libelle', 'indicatif']] },
   // Garde du confinement réseau : refus effectif d'une sonde hors local (lib/confinement.mjs) et chaque contexte de suite confiné (lecture statique).
   { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] },
   // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
-  { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'] }
+  { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

@@ -7,12 +7,19 @@
 //   node tests/e2e/run.mjs red forum            preuve ROUGE ciblée : réussit seulement si la zone ÉCHOUE (npm run test:red -- forum)
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
-// Variables : KR_CONCURRENCY (défaut min(8, CPU/2)), KR_LOGDIR (défaut $TMPDIR/kraland-e2e/<horodatage>, jamais dans le dépôt),
+// Variables : KR_CONCURRENCY (défaut min(16, CPU - 2), voir CONCURRENCE PAR DÉFAUT ci-dessous), KR_LOGDIR (défaut $TMPDIR/kraland-e2e/<horodatage>, jamais dans le dépôt),
 //             KR_SCRIPT (bundle testé), KR_SAVE_DURATIONS=1 (après une exécution verte, réécrit tests/e2e/durations.json : ordre plus longs d'abord),
 //             KR_BOOTSTRAP_DIR
 //             (dossier du vrai Bootstrap 3.3.7 + jQuery 3.3.1 ; défaut : tests/e2e/vendor/, embarqué dans le dépôt. Si le dossier, par défaut ou indiqué,
 //             est incomplet, les fragments « real » font échouer le lanceur en exit 2, jamais un faux vert).
 // Chaque fragment a son journal, son dossier de captures (KR_SHOTS) et son TMPDIR : aucune ressource partagée, aucun port fixe.
+//
+// CONCURRENCE PAR DÉFAUT (lot H) : min(16, CPU - 2), au moins 1 ; KR_CONCURRENCY la remplace toujours. Pourquoi : un fragment attend
+// surtout le navigateur (images, minuteries, rAF), pas le processeur : à concurrence 16, test:all n'occupe qu'environ 9 cœurs en moyenne
+// (mesure du lot H sur 18 cœurs, user+sys / durée murale). Doubler la concurrence de 8 à 16 divise la durée par ~1,8 (55 s -> 29-33 s) pour
+// +5 % de durée cumulée. Au-delà de 16, la contention mange le gain (24 : 25-30 s, mais +25 % de durée cumulée et moins de marge quand dev
+// et qa lancent la suite en même temps). « CPU - 2 » laisse deux cœurs au système et au lanceur sur une petite machine (4 cœurs -> 2).
+// Le plafond tient dans [1, 32] (KR_CONCURRENCY hors de cet intervalle : refus, exit 2).
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -139,7 +146,8 @@ function summarize(results, wallMs, logDir, extra = []) {
 const args = process.argv.slice(2);
 const cmd = args.shift() || 'all';
 const requested = process.env.KR_CONCURRENCY;
-const concurrency = requested === undefined ? Math.min(8, Math.floor(os.cpus().length / 2) || 1) : Number(requested);
+const defaultConcurrency = cpus => Math.max(1, Math.min(16, cpus - 2)); // CONCURRENCE PAR DÉFAUT, voir l'en-tête
+const concurrency = requested === undefined ? defaultConcurrency(os.cpus().length) : Number(requested);
 if (!Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 32) { console.error('KR_CONCURRENCY doit être un entier entre 1 et 32.'); process.exit(2); }
 
 if (cmd === 'list') {
