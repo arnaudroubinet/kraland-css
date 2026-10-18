@@ -6,12 +6,15 @@
 //
 // Usage : npm run build && npm run test:demarrage
 // Option : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal).
+// Diagnostic : KR_DOCS=1 affiche, en fin d'exécution, le nombre de documents et la stabilité de chaque scénario ; KR_SCENARIOS=1 joue
+// les scénarios en série.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
+import { mapLimit } from './lib/parallele.mjs';
 import { installClock, runClock } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -143,9 +146,8 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
   return { documents: after6, stable: stableResult.stable && documents === after6, ...state };
 }
 
-// Scénarios indépendants (chacun son contexte) lancés en parallèle par lots de SCENARIOS_CONC (lot D) ; les titres et vérifications
+// Scénarios indépendants (chacun son contexte, lib/parallele.mjs) lancés en parallèle (lot D) ; les titres et vérifications
 // s'affichent ensuite dans l'ordre de déclaration, à l'identique d'une exécution en série.
-const SCENARIOS_CONC = Math.max(1, Number(process.env.KR_SCENARIOS) || 4);
 const plan = [];
 const section = title => plan.push({ title });
 const queue = (opts, verify) => plan.push({ opts, verify });
@@ -227,14 +229,7 @@ if (frag('s1')) {
   });
 }
 
-const results = new Array(plan.length);
-let nextJob = 0;
-await Promise.all(Array.from({ length: SCENARIOS_CONC }, async () => {
-  while (nextJob < plan.length) {
-    const i = nextJob++;
-    if (plan[i].opts) { results[i] = await scenario(plan[i].opts); }
-  }
-}));
+const results = await mapLimit(plan, step => (step.opts ? scenario(step.opts) : null));
 for (const [i, step] of plan.entries()) {
   if (step.title) { console.log(step.title); } else { step.verify(results[i]); }
 }

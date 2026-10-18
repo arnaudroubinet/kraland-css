@@ -30,6 +30,17 @@ export async function installClock(context) {
   });
 }
 
+/**
+ * Redimensionne et attend que l'événement resize de ce changement soit distribué (le navigateur le déclenche à l'image suivante, en
+ * temps réel ; compteur window.__krResizes posé par installClock). Les anti-rebonds du script partent donc DANS la fenêtre simulée qui
+ * suit. Sans changement de largeur ni de hauteur, rien à attendre.
+ */
+export async function resizeViewport(page, width, height) {
+  const before = await page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, n: window.__krResizes }));
+  await page.setViewportSize({ width, height });
+  if (before.w !== width || before.h !== height) { await waitState(page, n => window.__krResizes > n, before.n, { maxMs: 5000 }); }
+}
+
 /** Attend (temps réel, sans lever d'erreur avant `maxMs`) que le document courant soit chargé et ne soit pas en train d'être quitté. */
 export async function clockDocument(page, { maxMs = 15000, label = 'document' } = {}) {
   const t0 = Date.now();

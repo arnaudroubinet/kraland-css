@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { clockQuiet, installClock, krReady, waitState } from './lib/settle.mjs';
+import { clockQuiet, installClock, krReady, resizeViewport } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -77,17 +77,9 @@ const snapProbe = () => page.evaluate(() => ({
   sw: document.documentElement.scrollWidth, ready: document.readyState
 }));
 
-// Redimensionnement appliqué : l'événement resize de ce changement est distribué (le navigateur le déclenche à l'image suivante, en temps
-// réel) ; l'anti-rebond du script part donc DANS la fenêtre simulée qui suit. Sans changement de largeur ni de hauteur, rien à attendre.
-async function applyViewport(p, width, height) {
-  const before = await p.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, n: window.__krResizes }));
-  await p.setViewportSize({ width, height });
-  if (before.w !== width || before.h !== height) { await waitState(p, n => window.__krResizes > n, before.n, { maxMs: 5000 }); }
-}
-
 async function resizeTo(width, height = 772, quietMs = RESIZE_QUIET_MS) {
   await page.evaluate(() => { window.__krMarker = 1; });
-  await applyViewport(page, width, height);
+  await resizeViewport(page, width, height); // événement resize distribué : l'anti-rebond part dans la fenêtre simulée qui suit
   // On attend que l'état (largeur, mode, marqueur, document, bandeau) reste identique pendant quietMs simulées : RESIZE_QUIET_MS (900 ms,
   // anti-rebond du script 400 ms + marge) quand un rechargement est attendu ; ABSENCE_QUIET_MS (1,8 s, comme avant) quand on affirme qu'il
   // n'y en a PAS. Un rechargement change le document ; son absence laisse l'état stable.
@@ -196,7 +188,7 @@ async function navSuite(fixtureFile, strict) {
   });
 
   async function navResize(width, height = 800) {
-    await applyViewport(navPage, width, height);
+    await resizeViewport(navPage, width, height);
     await clockQuiet(navPage, () => navPage.evaluate(() => ({ w: window.innerWidth, doc: window.__krDocId, ready: document.readyState, bar: Math.round(document.querySelector('nav.navbar').getBoundingClientRect().height), pad: getComputedStyle(document.body).paddingTop })), { quietMs: RESIZE_QUIET_MS, label: `barre ${width}px` });
     return measureNav();
   }

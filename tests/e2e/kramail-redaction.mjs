@@ -24,6 +24,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
+import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -1221,45 +1222,50 @@ if (frag('regression')) {
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
-    for (const pg of ['reception', 'envoi', 'corbeille', 'lecture']) {
-      for (const width of [1280, 375, 320]) {
-        const shots = {};
-        const doms = {};
-        for (const bundle of ['avant', 'apres']) {
-          const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
-          await p.evaluate(() => {
-            document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
-            // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page
-            const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-            while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
-          });
-          doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-          // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
-          // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-          let prev = await p.screenshot({ fullPage: true, animations: 'disabled' });
-          for (let i = 0; i < 6; i++) {
-            await p.waitForTimeout(150);
-            const next = await p.screenshot({ fullPage: true, animations: 'disabled' });
-            if (Buffer.compare(prev, next) === 0) { break; }
-            prev = next;
-          }
-          shots[bundle] = prev;
-          if (SHOTS && bundle === 'apres') { fs.writeFileSync(path.join(SHOTS, `regression-${pg}-${width}.png`), shots[bundle]); }
-          doms[bundle].unexpected = unexpected(state);
-          doms[bundle].errors = errors.length;
-          await context.close();
-        }
-        // Octet pour octet si possible ; sinon pixels décodés, avec une tolérance bornée (bruit d'anticrénelage de Chromium sur
-        // le coin arrondi d'un panneau et sur du texte, mesuré en A/A : même bundle des deux côtés, jusqu'à 9 pixels, écart <= 2 sur un canal ; voir PIX_MAX_*).
-        const diffs = Buffer.compare(shots.avant, shots.apres) === 0 ? { identique: true } : await comparePixels(shots.avant, shots.apres);
-        if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
-        check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
-          assert.equal(doms.apres.kd, 0);
-          assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined });
-          assert.deepEqual(doms.apres.unexpected, []);
-          assert.ok(pixelsEquivalent(diffs), `captures différentes (${shots.avant.length} / ${shots.apres.length} octets) : ${JSON.stringify(diffs)}`);
+    // 12 combinaisons page × largeur indépendantes (contextes propres) capturées en parallèle (lib/parallele.mjs) ; dans chacune, avant
+    // puis après en série comme auparavant. Notes et vérifications ensuite, dans l'ordre.
+    const COMBOS = ['reception', 'envoi', 'corbeille', 'lecture'].flatMap(pg => [1280, 375, 320].map(width => ({ pg, width })));
+    const compared = await mapLimit(COMBOS, async ({ pg, width }) => {
+      const shots = {};
+      const doms = {};
+      for (const bundle of ['avant', 'apres']) {
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
+        await p.evaluate(() => {
+          document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
+          // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page
+          const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
         });
+        doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
+        // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
+        // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
+        let prev = await p.screenshot({ fullPage: true, animations: 'disabled' });
+        for (let i = 0; i < 6; i++) {
+          await p.waitForTimeout(150);
+          const next = await p.screenshot({ fullPage: true, animations: 'disabled' });
+          if (Buffer.compare(prev, next) === 0) { break; }
+          prev = next;
+        }
+        shots[bundle] = prev;
+        if (SHOTS && bundle === 'apres') { fs.writeFileSync(path.join(SHOTS, `regression-${pg}-${width}.png`), shots[bundle]); }
+        doms[bundle].unexpected = unexpected(state);
+        doms[bundle].errors = errors.length;
+        await context.close();
       }
+      // Octet pour octet si possible ; sinon pixels décodés, avec une tolérance bornée (bruit d'anticrénelage de Chromium sur
+      // le coin arrondi d'un panneau et sur du texte, mesuré en A/A : même bundle des deux côtés, jusqu'à 9 pixels, écart <= 2 sur un canal ; voir PIX_MAX_*).
+      const diffs = Buffer.compare(shots.avant, shots.apres) === 0 ? { identique: true } : await comparePixels(shots.avant, shots.apres);
+      return { doms, diffs, sizes: [shots.avant.length, shots.apres.length] };
+    });
+    for (const [i, { pg, width }] of COMBOS.entries()) {
+      const { doms, diffs, sizes } = compared[i];
+      if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
+      check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
+        assert.equal(doms.apres.kd, 0);
+        assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined });
+        assert.deepEqual(doms.apres.unexpected, []);
+        assert.ok(pixelsEquivalent(diffs), `captures différentes (${sizes[0]} / ${sizes[1]} octets) : ${JSON.stringify(diffs)}`);
+      });
     }
   }
 }
@@ -1288,7 +1294,8 @@ if (frag('themes')) {
     }
     return out;
   };
-  for (const variant of THEMES) {
+  // 16 thèmes indépendants (un contexte chacun) mesurés en parallèle (lib/parallele.mjs), vérifiés ensuite dans l'ordre.
+  const measured = await mapLimit(THEMES, async variant => {
     const { context, page: p } = await open({ width: 1280, variant });
     await p.focus('.kd-input');
     await p.keyboard.type('Alpha;Marelle Duvent;', { delay: 5 });
@@ -1308,7 +1315,10 @@ if (frag('themes')) {
     await p.mouse.move(0, 0);
     const r3 = await p.evaluate(MEASURE, [['message de blocage', '.kd-msg-text'], ['bouton Ajouter', '.kd-msg-add'], ['bouton Effacer', '.kd-msg-clear']]);
     await context.close();
-    const all = { ...r1, ...r2, ...r3 };
+    return { ...r1, ...r2, ...r3 };
+  });
+  for (const [i, variant] of THEMES.entries()) {
+    const all = measured[i];
     check(`thème ${variant} : textes du champ et de la barre >= 4,5:1`, () => {
       const bad = Object.entries(all).filter(([, v]) => v === null || v < 4.5).map(([k, v]) => `${k} ${v}`);
       assert.equal(bad.length, 0, bad.join(' ; '));
