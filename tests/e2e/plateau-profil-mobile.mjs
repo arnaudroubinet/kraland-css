@@ -9,7 +9,7 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, THEME_READY, waitState } from './lib/settle.mjs';
 
@@ -48,7 +48,7 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true });
 await confineNetwork(context); // refus global EN PREMIER (version.json : refusé ; img7 routé ci-dessous)
 await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));

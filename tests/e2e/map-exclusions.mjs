@@ -9,7 +9,7 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { krReady, probeQuiet } from './lib/settle.mjs';
 import http from 'node:http';
@@ -168,7 +168,7 @@ check('les 28 exclusions historiques (NO_REPLACE) sont toutes confirmées absent
 console.log('Comportement dans le script (images simulées d\'après l\'inventaire)');
 const requests = {};
 const html = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="zone"></div></body></html>';
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 await confineNetwork(context); // refus global EN PREMIER (img7 et imgur routés ci-dessous)
 const exists = (url) => { const m = url.match(/\/2\/map\/([^/]+)\/([^/?#]+)$/); return Boolean(m && inv.variants[m[1]] && inv.variants[m[1]].files.includes(decodeURIComponent(m[2]))); };

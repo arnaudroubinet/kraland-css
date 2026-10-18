@@ -11,7 +11,8 @@ import fs from 'node:fs';
 import { Buffer } from 'node:buffer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright'; // P et Q : realBrowser lancé à part (--host-resolver-rules), voir lib/navigateur.mjs
+import { launchBrowser } from './lib/navigateur.mjs';
 import { URL } from 'node:url';
 import http from 'node:http';
 import { krReady, THEME_READY } from './lib/settle.mjs';
@@ -108,7 +109,8 @@ function makeServer() {
   return s;
 }
 
-const browser = await chromium.launch({ headless: true, executablePath: process.env.KR_CHROMIUM || undefined });
+// Navigateur partagé (lib/navigateur.mjs) ; KR_CHROMIUM (option de lancement) force un navigateur à part.
+const browser = await launchBrowser({ executablePath: process.env.KR_CHROMIUM || undefined });
 
 async function open({ width = 1280, variant = 'empire-brun-dark', server, preset = null }) {
   const mobile = width < 768;

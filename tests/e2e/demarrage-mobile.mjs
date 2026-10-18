@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { installClock, runClock } from './lib/settle.mjs';
@@ -74,7 +74,7 @@ async function settle(page, getDocs) {
   return { documents: getDocs(), stable: false };
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 
 // moment : 'start' (document-start), 'dcl' (DOMContentLoaded), 'load' (après load), 'later' (différé 600 ms, chargeur asynchrone)
 // lateViewport : simule le pire cas où la largeur reste fausse (980) jusqu'après le chargement -> la garde doit plafonner.

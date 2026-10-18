@@ -15,7 +15,7 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { clockQuiet, installClock, krReady, resizeViewport, runClock, THEME_READY } from './lib/settle.mjs';
 
@@ -137,7 +137,7 @@ function check(name, fn) {
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const DARK = 'empire-brun-dark'; const LIGHT = 'empire-brun';
 
 async function open({ width, kind, theme = true, variant = DARK, height = 800, stripTitles = false, touch = false, clock = false }) {

@@ -10,7 +10,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath, URL } from 'node:url';
 import { Buffer } from 'node:buffer';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fixture = path.join(root, 'tests/e2e/fixtures/parler');
 const vendor = path.join(root, 'tests/e2e/vendor/parler');
@@ -21,7 +21,7 @@ const form = fs.readFileSync(path.join(fixture, 'model-form.html'), 'utf8');
 const text = 'Saisie synthétique conservée : éà [b]test[/b]';
 const results = []; let failures = 0; let checks = 0;
 function check(value, label) { checks++; console.log(`${value ? 'ok' : 'FAIL'} ${label}`); if (!value) { failures++; } }
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const FAST = 6000; const SLOW = 1200;
 // Condition bornée, sans erreur : la vérification qui suit mesure l'état réel et tranche (une condition jamais atteinte coûte maxMs).
 const until = (page, fn, arg, maxMs = 5000) => page.waitForFunction(fn, arg, { timeout: maxMs, polling: 'raf' }).then(() => true, () => false);

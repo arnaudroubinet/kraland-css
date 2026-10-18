@@ -15,7 +15,7 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 
@@ -161,7 +161,7 @@ const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith
 // Sans script (theme false), le DOM calme reste la seule condition.
 const settlePage = (pg, theme) => (theme ? krReady(pg, { ready: THEME_READY, label: 'forum-mobile' }) : domQuiet(pg, { label: 'forum-mobile' }));
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 
 async function open({ width, kind, locked = false, theme = true, variant = 'empire-brun-dark', realBs = false, height = 800, touch = false }) {
   const mobile = width < 768;

@@ -30,7 +30,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { KR_READY, watchMutations } from './lib/settle.mjs';
 
@@ -97,7 +97,7 @@ const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Bo
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
 if (FRAG.some(id => !['start', 'dcl', 'contre-preuves'].includes(id))) { console.log(`  FAIL KR_FRAG inconnu : ${FRAG.join(',')} (attendus : start, dcl, contre-preuves)`); process.exit(1); }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 
 // Ouvre une page avec le bundle `src`, injecté au document-start (`start`) ou au DOMContentLoaded (`dcl`). Renvoie l'état au marqueur
 // et les mutations observées pendant WINDOW_MS après lui (lib/settle.mjs, watchMutations).
