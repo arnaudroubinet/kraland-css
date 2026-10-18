@@ -1,7 +1,8 @@
-// Notifications (/report) : ligne non lue lisible (piste O-A de l'analyse UX t_977217b9, décision d'Arnaud du 18/10/2026).
+// Notifications (/report) : ligne non lue lisible (piste O-A de l'analyse UX t_977217b9, décisions d'Arnaud du 18/10/2026).
 // Le serveur marque une entrée non lue par la classe bg-info sur son <tr> ; la règle générique du skin (.bg-info : fond --kr-primary,
 // texte blanc) rendait illisibles les couleurs serveur (<font color>, bilans .mini.text-muted). Critères d'acceptation de O-A vérifiés :
-//   C1 l'état non lu ne repose pas sur la couleur seule : mot visible « Non lu », exposé aux lecteurs d'écran (arbre d'accessibilité) ;
+//   C1 l'état non lu passe par la marque de gauche (filet de 4 px, contraste ≥ 3:1 contre le fond), SANS mot visible : seconde décision
+//      d'Arnaud, « Dans notification pas besoin du tag non lu. Juste la marque à gauche. » ;
 //   C2 sur une ligne non lue, chaque texte (date, texte simple, lien, 5 couleurs serveur, bilan gris) est au moins aussi contrasté que le
 //      même texte sur une ligne normale, dans les 16 variantes ;
 //   C3 la marque reste distincte de la page active de la pagination et du bandeau du sélecteur de personnage ;
@@ -32,7 +33,7 @@ const SHOTS = process.env.KR_SHOTS || '';
 const BASE = 'http://www.kraland.org';
 const REPORT = BASE + '/report/perso-000000';
 const AUTRE = BASE + '/jouer/evenements'; // même DOM servi hors /report (C4)
-const LABEL = 'Non lu';
+const LABEL = 'Non lu'; // libellé retiré : son absence visible est vérifiée
 const VARIANTES = ['kraland', 'empire-brun', 'paladium', 'theocratie-seelienne', 'paradigme-vert', 'khanat-elmerien', 'confederation-libre',
   'royaume-ruthvenie', 'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark', 'paradigme-vert-dark',
   'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
@@ -79,11 +80,15 @@ const MESURE = (label) => {
   const rows = [...document.querySelectorAll('table > tbody > tr')];
   const normal = rows[0];
   const unread = rows.filter(r => r.classList.contains('bg-info'));
+  // Marque de gauche : box-shadow inset de la première cellule (« rgb(r, g, b) 4px 0px 0px 0px inset »), contraste contre le fond effectif.
   const marque = td => {
-    const b = getComputedStyle(td, '::before');
-    return { content: b.content, display: b.display, visibility: b.visibility, opacity: b.opacity, fontSize: parseFloat(b.fontSize),
-      contrast: cr(rgb(b.color), opaque(rgb(b.backgroundColor)) ? rgb(b.backgroundColor) : bgOf(td)) };
+    const sh = getComputedStyle(td).boxShadow;
+    const m = sh.match(/^(rgba?\([^)]*\))\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+([\d.]+)px\s+(-?[\d.]+)px\s+inset$/);
+    if (!m) { return { shadow: sh }; }
+    const c = rgb(m[1]);
+    return { shadow: sh, x: +m[2], y: +m[3], blur: +m[4], spread: +m[5], opaque: c.length === 3 || c[3] === 1, contrast: cr(c, bgOf(td)) };
   };
+  const vide = c => c === 'none' || c === 'normal';
   // Textes comparés : par repère data-t, la valeur la plus faible sur les lignes non lues contre la plus faible sur les lignes normales.
   const kinds = {};
   for (const el of document.querySelectorAll('table [data-t]')) {
@@ -103,9 +108,12 @@ const MESURE = (label) => {
     variant: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')),
     unreadCount: unread.length,
     marques: unread.map(r => marque(r.cells[0])),
-    marquesNormales: rows.filter(r => !r.classList.contains('bg-info')).map(r => getComputedStyle(r.cells[0], '::before').content),
+    marquesNormales: rows.filter(r => !r.classList.contains('bg-info')).map(r => marque(r.cells[0])),
+    // Aucun mot visible : ni contenu généré sur les cellules non lues, ni libellé dans le texte rendu, date non repoussée vers le bas.
+    contenuGenere: unread.flatMap(r => [...r.cells].flatMap(td => [getComputedStyle(td, '::before').content, getComputedStyle(td, '::after').content])).filter(c => !vide(c)),
+    libelleVisible: unread.filter(r => r.innerText.includes(label)).length,
     hauteurDate: (() => {
-      // Décalage du texte de la date sous le haut de sa cellule : le mot, en bloc au-dessus, le repousse (il occupe de la place visible).
+      // Décalage du texte de la date sous le haut de sa cellule : un mot en bloc au-dessus le repousserait (place visible occupée).
       const off = td => { const t = [...td.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); const r = document.createRange(); r.selectNodeContents(t); return r.getBoundingClientRect().top - td.getBoundingClientRect().top; };
       return { normal: off(normal.cells[0]), unread: off(unread[0].cells[0]) };
     })(),
@@ -119,18 +127,9 @@ const MESURE = (label) => {
   };
 };
 
-// Libellés « Non lu » exposés dans l'arbre d'accessibilité (contenu généré compris), comptés par ligne du tableau.
-async function axLabels(page) {
-  const cdp = await page.context().newCDPSession(page);
-  const { nodes } = await cdp.send('Accessibility.getFullAXTree');
-  await cdp.detach();
-  return nodes.filter(n => !n.ignored && n.role && n.role.value === 'StaticText' && n.name && n.name.value === LABEL).length;
-}
-
 async function scenario(variante, viewport, tag) {
   const { context, page, denied } = await open(REPORT, variante, viewport);
   const m = await page.evaluate(MESURE, LABEL);
-  m.ax = await axLabels(page);
   m.denied = denied.filter(d => d.url.startsWith(BASE)).map(d => d.url);
   if (SHOTS && ['empire-brun-dark', 'paladium', 'paladium-dark', 'kraland'].includes(variante)) {
     fs.mkdirSync(SHOTS, { recursive: true });
@@ -143,16 +142,18 @@ async function scenario(variante, viewport, tag) {
 const pire = (a) => Math.min(...a);
 function verifier(variante, m, tag) {
   check(`${tag} ${variante} : thème appliqué, page marquée kr-page-report, 5 lignes non lues dans la fixture`, () => { assert.equal(m.variant, 'kr-theme-variant-' + variante); assert.equal(m.pageReport, true); assert.equal(m.unreadCount, 5); });
-  check(`${tag} ${variante} : C1 mot « ${LABEL} » visible sur chaque ligne non lue (≥ 11 px, contraste ≥ 4,5:1), aucun sur les lignes normales`, () => {
+  check(`${tag} ${variante} : C1 marque de gauche sur chaque ligne non lue (filet inset 4 px, opaque, contraste ≥ 3:1), aucune sur les lignes normales`, () => {
     for (const k of m.marques) {
-      assert.equal(k.content, `"${LABEL}"`, JSON.stringify(k));
-      assert.ok(k.display !== 'none' && k.visibility === 'visible' && Number(k.opacity) === 1 && k.fontSize >= 11, JSON.stringify(k));
-      assert.ok(k.contrast >= 4.5, `contraste du mot ${k.contrast}`);
+      assert.ok(k.x === 4 && k.y === 0 && k.blur === 0 && k.spread === 0 && k.opaque, JSON.stringify(k));
+      assert.ok(k.contrast >= 3, `contraste du filet ${k.contrast}`);
     }
-    assert.ok(m.marquesNormales.every(c => c === 'none' || c === 'normal'), m.marquesNormales.join(' '));
-    assert.ok(m.hauteurDate.unread > m.hauteurDate.normal, `le mot occupe de la place : ${JSON.stringify(m.hauteurDate)}`);
+    assert.ok(m.marquesNormales.every(k => k.shadow === 'none'), m.marquesNormales.map(k => k.shadow).join(' | '));
   });
-  check(`${tag} ${variante} : C1 équivalent lecteur d'écran : « ${LABEL} » dans l'arbre d'accessibilité, une fois par ligne non lue`, () => assert.equal(m.ax, m.unreadCount));
+  check(`${tag} ${variante} : C1 aucun mot « ${LABEL} » visible (ni contenu généré, ni libellé rendu, date non repoussée)`, () => {
+    assert.deepEqual(m.contenuGenere, []);
+    assert.equal(m.libelleVisible, 0);
+    assert.equal(m.hauteurDate.unread, m.hauteurDate.normal, JSON.stringify(m.hauteurDate));
+  });
   check(`${tag} ${variante} : C2 chaque texte d'une ligne non lue au moins aussi contrasté que sur une ligne normale`, () => {
     const bad = Object.entries(m.kinds).filter(([, v]) => v.normal.length && v.unread.length && pire(v.unread) < pire(v.normal)).map(([k, v]) => `${k} ${pire(v.unread)} < ${pire(v.normal)}`);
     assert.equal(Object.values(m.kinds).filter(v => v.normal.length && v.unread.length).length, 10, 'repères comparés : ' + Object.keys(m.kinds).join(' '));
@@ -168,8 +169,7 @@ function verifier(variante, m, tag) {
   });
   check(`${tag} ${variante} : C5 ligne isolée au milieu et ligne à cellule unique marquées comme les autres`, () => {
     assert.equal(m.marques.length, 5);
-    assert.equal(m.marques[3].content, `"${LABEL}"`);
-    assert.equal(m.marques[4].content, `"${LABEL}"`);
+    for (const i of [3, 4]) { assert.ok(m.marques[i].x === 4 && m.marques[i].contrast >= 3, JSON.stringify(m.marques[i])); }
     assert.equal(new Set(m.fonds.unread).size, 1, m.fonds.unread.join(' | '));
   });
   check(`${tag} ${variante} : pas de débordement horizontal, aucune requête vers le site hors fixture`, () => { assert.equal(m.overflowX, 0); assert.deepEqual(m.denied, []); });

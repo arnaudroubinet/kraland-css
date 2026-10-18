@@ -640,9 +640,9 @@ input[type="checkbox"]:checked {
 /* Notifications (/report) : ligne non lue, marquée par le serveur d'un tr.bg-info (consommé à la première vue).
    La règle générique ci-dessus (fond --kr-primary, texte blanc) y rendait illisibles les couleurs du serveur (<font color>, bilans
    .mini.text-muted) et se confondait avec la page active de la pagination et le bandeau du sélecteur. Sur /report seulement
-   (html.kr-page-report, posé par applyVariant), la ligne garde le fond et le texte d'une ligne normale ; l'état passe par un mot
-   visible, lu par les lecteurs d'écran (contenu généré), et un filet latéral de la couleur du texte. Valable en fenêtre (600 px)
-   comme en onglet large : règle commune aux deux modes. Les autres .bg-info gardent la règle générique. */
+   (html.kr-page-report, posé par applyVariant), la ligne garde le fond et le texte d'une ligne normale ; l'état passe par un filet
+   latéral de 4 px de la couleur du texte, sans mot visible (décision d'Arnaud du 18/10/2026 : « Juste la marque à gauche »).
+   Valable en fenêtre (600 px) comme en onglet large : règle commune aux deux modes. Les autres .bg-info gardent la règle générique. */
 html.kr-page-report table > tbody > tr.bg-info {
   background-color: transparent;
   color: inherit;
@@ -651,19 +651,6 @@ html.kr-page-report table > tbody > tr.bg-info {
 html.kr-page-report table > tbody > tr.bg-info > td:first-child {
   box-shadow: inset 4px 0 0 currentcolor;
   padding-left: 10px;
-}
-
-html.kr-page-report table > tbody > tr.bg-info > td:first-child::before {
-  content: "Non lu";
-  display: block;
-  width: fit-content;
-  margin-bottom: 2px;
-  padding: 0 4px;
-  border: 1px solid currentcolor;
-  border-radius: 3px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.4;
 }
 
 /* Badge danger - notification alert always red on all themes */
