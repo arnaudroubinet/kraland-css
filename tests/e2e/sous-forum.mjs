@@ -24,7 +24,9 @@ const BASE = 'http://www.kraland.org';
 const FIXTURE = fs.readFileSync(path.join(here, 'fixtures/sous-forum-debuter.html'), 'utf8');
 const VENDOR = path.join(here, 'vendor');
 const SUBFORUM = '/forum/hrp/debuter-20102';
-const WIDTHS = [375, 700, 1280, 1440];
+// Lot E : 1440 retiré (bureau : rien dans la cascade ne change entre 1280 et 1440 pour le sous-forum ; seules règles >= 1360 / 1440 :
+// plateau #col-leftest et marges de la barre de navigation, hors de ces contrôles). Bureau = 1280.
+const WIDTHS = [375, 700, 1280];
 
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
@@ -402,7 +404,7 @@ if (frag('l2-entete')) {
       await c.context.close();
     }
   }
-  for (const width of [1280, 1440]) {
+  for (const width of [1280]) {
     const { context, page: p } = await open({ width });
     await withTools(p);
     const m = await p.evaluate(HEADER);
@@ -554,7 +556,7 @@ if (frag('l3-liste')) {
     checkToolbar('375 (DataTables initialisé après le userscript)', await p.evaluate(TOOLBAR));
     await context.close();
   }
-  for (const width of [1280, 1440]) {
+  for (const width of [1280]) {
     const { context, page: p } = await open({ width });
     await withTools(p);
     const d = await p.evaluate(() => ({ unit: document.querySelector('#topics tbody td:nth-child(2)').textContent.trim(), text: window.__krVisibleText(document.querySelector('#topics tbody tr')), thead: getComputedStyle(document.querySelector('#topics thead')).display, theadTr: getComputedStyle(document.querySelector('#topics thead tr')).display, ths: [...document.querySelectorAll('#topics thead th')].filter(th => th.getBoundingClientRect().width > 0).length }));
@@ -819,6 +821,12 @@ if (frag('l5-pagination-socle')) {
     const start = await p.evaluate(PAGINATION); const startMarks = await p.evaluate(MARKS);
     check('transition : à 375 la pagination est compacte avec marqueur .kr-page-gap', () => { assert.deepEqual(start.seq, ['prev', '1', '2', '3', '…', '15', 'next']); assert.ok(startMarks.gaps >= 1 && startMarks.hidden >= 1, JSON.stringify(startMarks)); });
     await p.evaluate(() => document.body.classList.remove('mobile-mode'));
+    // Lot E (QA du lot A, S1) : un redessin DataTables reconstruit les boutons, ce qui effaçait le masquage sans passer par compactPagination
+    // (le retrait des .kr-page-hidden au bureau pouvait disparaître sans qu'aucune vérification échoue). draw.dt seul, sur les boutons EXISTANTS
+    // (déjà masqués par le mobile) : c'est le gestionnaire draw.dt du script qui doit retirer le masquage et le « … » du projet.
+    await redraw(p, () => p.evaluate(() => window.jQuery('#topics').trigger('draw.dt')), 'draw.dt sans reconstruction');
+    const kept = await p.evaluate(MARKS);
+    check('transition mobile -> bureau, draw.dt sans reconstruction des boutons : compactPagination retire lui-même masquage et marqueurs, « … » natif rétabli', () => assert.deepEqual(kept, { gaps: 0, hidden: 0, ellipsis: 1 }));
     await redraw(p, () => p.evaluate(() => document.querySelector('#topics_paginate a.paginate_button[data-dt-idx="1"]').click()));
     const toDesk = await p.evaluate(MARKS);
     check('transition mobile -> bureau (page 2) : marqueurs et classes de masquage retirés, « … » natif conservé (DOM ; le CSS mobile suit la largeur)', () => assert.deepEqual(toDesk, { gaps: 0, hidden: 0, ellipsis: 1 }));
@@ -974,7 +982,7 @@ const checkDesk = (label, m, strict) => {
 
 if (frag('l6-desktop')) {
   console.log('L6 : desktop (tableau natif restylé)');
-  for (const [width, height] of [[1280, 720], [1440, 900]]) {
+  for (const [width, height] of [[1280, 720]]) {
     const { context, page: p } = await open({ width, height });
     await withTools(p);
     const m = await p.evaluate(DESK);

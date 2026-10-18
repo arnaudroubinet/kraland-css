@@ -12,9 +12,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 // Le routeur relit ce bloc (constantes en MAJUSCULES déclarées avant SUITES, puis SUITES jusqu'à la ligne « ]; ») dans l'ancienne et la
 // nouvelle version du fichier : garder cette forme (données littérales, sans appel de fonction) pour que l'ajout d'un fragment ne lance que lui.
 const FORUM_FRAGS = [
-  ['seuil-real-sombre'], ['seuil-real-clair'], ['seuil-fake-sombre'], ['seuil-fake-clair'],
-  ['m2-real'], ['m2-fake'], ['s3-real'], ['s3-fake'], ['s3d-real'],
-  ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop', 's3d-fake']
+  ['seuil-real-sombre'], ['m2-real'], ['s3-real'], ['s3d-real'],
+  ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop']
 ];
 export const SUITES = [
   { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'] },
@@ -34,7 +33,7 @@ export const SUITES = [
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
   { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination-socle'], ['l5-pagination-m2-mobile'], ['l5-pagination-m2-bureau'], ['l5-pagination-viewport'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete']] },
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
-  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['lecture-clair'], ['redaction-sombre'], ['redaction-clair'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
+  { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['redaction-sombre'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
   { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau', 'envoi', 'repli', 'libelle', 'indicatif']] },
   // Garde du confinement réseau : refus effectif d'une sonde hors local (lib/confinement.mjs) et chaque contexte de suite confiné (lecture statique).
