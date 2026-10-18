@@ -5,6 +5,9 @@
 //   2. statique : chaque contexte créé par une suite du registre est confiné (confineNetwork(ctx) ou ctx.route('**/*', …) qui refuse par
 //      abort, juste après sa création, ou navigateur lancé avec « MAP * ~NOTFOUND »), sauf les exceptions inertes listées ci-dessous avec
 //      leur raison. Lecture sur le code sans commentaires : un appel commenté ne confine rien.
+//      Navigateur partagé (lot H, lib/navigateur.mjs) : il est lancé par run.mjs SANS puits DNS, donc chacun de ses contextes doit se
+//      confiner ; tout navigateur de la suite (launchBrowser ou chromium.launch, quel que soit le nom de la variable) est suivi, et un
+//      browser.newPage() non listé comme inerte y est un contexte non confiné. Cette garde garde son propre navigateur (--host-resolver-rules).
 //
 // Usage : node tests/e2e/confinement-reseau.mjs (lancé par test:all et par test:changed dès qu'un fichier de suite change)
 import assert from 'node:assert/strict';
@@ -96,8 +99,13 @@ function stripComments(src) {
 for (const s of SUITES.filter(x => x.file !== 'confinement-reseau.mjs')) {
   const lines = stripComments(fs.readFileSync(path.join(dir, s.file), 'utf8')).split('\n');
   // Navigateurs lancés avec leur propre puits DNS (« MAP * ~NOTFOUND ») : leurs contextes sont confinés par le résolveur.
+  // Navigateurs de la suite, quel que soit leur nom : chromium.launch (à part) ou launchBrowser (lib/navigateur.mjs, navigateur PARTAGÉ :
+  // aucun puits DNS au lancement, chaque contexte doit se confiner lui-même ; un browser.newPage() y crée un contexte non confiné).
   const selfConfined = new Set();
+  const browsers = new Set();
   lines.forEach((l, i) => {
+    const b = l.match(/(?:const|let)\s+(\w+)\s*=\s*await\s+(?:chromium\.launch|launchBrowser)\(/);
+    if (b) { browsers.add(b[1]); }
     const m = l.match(/const (\w+) = await chromium\.launch\(/);
     if (m && lines.slice(i, i + 8).join('\n').includes('MAP * ~NOTFOUND')) { selfConfined.add(m[1]); }
   });
@@ -105,7 +113,7 @@ for (const s of SUITES.filter(x => x.file !== 'confinement-reseau.mjs')) {
   lines.forEach((l, i) => {
     const m = l.match(/(?:const|let)\s+(\w+)\s*=\s*await\s+(\w+)\.(newContext|newPage)\(/);
     if (!m) { return; }
-    if (m[3] === 'newPage' && !/browser/i.test(m[2])) { return; } // page d'un contexte : le contexte est vérifié à sa création
+    if (m[3] === 'newPage' && !/browser/i.test(m[2]) && !browsers.has(m[2])) { return; } // page d'un contexte : le contexte est vérifié à sa création
     if (INERTES.some(([f, txt]) => f === s.file && l.trim() === txt)) { return; }
     if (selfConfined.has(m[2])) { return; }
     const next = lines.slice(i + 1, i + 6).join('\n');

@@ -23,7 +23,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
@@ -97,7 +97,7 @@ const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Bo
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 const shot = async (target, name, opts = {}) => { if (SHOTS) { await target.screenshot({ path: path.join(SHOTS, name + '.png'), ...opts }); } };
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const DARK = 'empire-brun-dark';
 
 // Comparaison de captures par pixels décodés (canvas d'une page vierge). Tolérance bornée : au plus PIX_MAX_PIXELS pixels

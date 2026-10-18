@@ -10,7 +10,7 @@ import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, waitState, watchMutations } from './lib/settle.mjs';
 
@@ -82,7 +82,7 @@ function check(name, fn) {
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 let currentHtml = '';
 const requests = []; // navigations vers les FIXTURE-* : interceptées et comptées
 async function newPage(variant = 'empire-brun-dark', enabled = true) {

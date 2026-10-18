@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { clockQuiet, installClock, krReady, resizeViewport } from './lib/settle.mjs';
 
@@ -41,7 +41,7 @@ function check(name, fn) {
   }
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 1512, height: 772 } });
 // Refus global EN PREMIER. Logo du thème refusé VOLONTAIREMENT (image cassée + alt, comme la référence AVANT sous
 // puits DNS) : un GIF 1 x 1 rétrécit la marque et supprime le cas « barre sur deux lignes à 1000 px » de nav-origine.

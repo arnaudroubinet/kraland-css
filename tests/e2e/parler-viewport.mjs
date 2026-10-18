@@ -10,7 +10,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath, URL } from 'node:url';
 import { Buffer } from 'node:buffer';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fixture = path.join(root, 'tests/e2e/fixtures/parler');
 const vendor = path.join(root, 'tests/e2e/vendor/parler');
@@ -21,7 +21,7 @@ const form = fs.readFileSync(path.join(fixture, 'model-form.html'), 'utf8');
 const text = 'Saisie synthétique conservée : éà [b]test[/b]';
 const results = []; let failures = 0; let checks = 0;
 function check(value, label) { checks++; console.log(`${value ? 'ok' : 'FAIL'} ${label}`); if (!value) { failures++; } }
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 const FAST = 6000; const SLOW = 1200;
 // Condition bornée, sans erreur : la vérification qui suit mesure l'état réel et tranche (une condition jamais atteinte coûte maxMs).
 const until = (page, fn, arg, maxMs = 5000) => page.waitForFunction(fn, arg, { timeout: maxMs, polling: 'raf' }).then(() => true, () => false);
@@ -120,56 +120,72 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   }
   return { ctx, page, cdp, snap, gestures, errors, blocked };
 }
+// Fragmentation (lot H, exécution parallèle) : KR_FRAG = transitions, fallback, ajax, bureau ; vide = tout jouer. Chaque scénario ouvre
+// SON contexte (open()) : aucun état partagé. « transitions » garde la séquence barres -> transitions -> fermeture d'un seul tenant (même
+// page, chaque taille part de la précédente).
+const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
+const frag = id => FRAG.length === 0 || FRAG.includes(id);
+let s;
 try {
-  const p = await open();
-  // Même expérience CDP que le diagnostic, mais bundle HEAD courant, sans insets artificiels.
-  await p.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true, screenWidth: 390, screenHeight: 600, viewport: { x: 0, y: 0, width: 390, height: 600, scale: 1 } });
-  await p.cdp.send('Emulation.setVisibleSize', { width: 390, height: 400 });
-  await p.cdp.send('Emulation.clearDeviceMetricsOverride');
-  await p.cdp.send('Emulation.setSmallViewportHeightDifferenceOverride', { difference: 200 });
-  await p.snap('barres-avant-gestes'); await p.gestures(SLOW); // témoin lent : vitesse d'origine du diagnostic
-  let s = await p.snap('barres-apres-gestes');
-  check(s.vh > s.viewport.height + 100, 'écart grand/visible réellement reproduit');
-  check(s.fullyInside && s.hit, 'barres : Valider intégralement visible et touchable après gestes');
-  for (const [width, height] of [[390, 600], [390, 320], [390, 240], [390, 180], [390, 160], [667, 200], [844, 390], [390, 844], [1280, 720], [390, 600]]) {
-    await p.cdp.send('Emulation.setSmallViewportHeightDifferenceOverride', { difference: 0 });
-    await p.cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 768 });
-    await p.gestures(); s = await p.snap(`transition-${width}x${height}`);
-    check(s.fullyInside && s.hit, `${width}x${height} : Valider intégralement visible ou atteint par gestes`);
+  if (frag('transitions')) {
+    const p = await open();
+    // Même expérience CDP que le diagnostic, mais bundle HEAD courant, sans insets artificiels.
+    await p.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true, screenWidth: 390, screenHeight: 600, viewport: { x: 0, y: 0, width: 390, height: 600, scale: 1 } });
+    await p.cdp.send('Emulation.setVisibleSize', { width: 390, height: 400 });
+    await p.cdp.send('Emulation.clearDeviceMetricsOverride');
+    await p.cdp.send('Emulation.setSmallViewportHeightDifferenceOverride', { difference: 200 });
+    await p.snap('barres-avant-gestes'); await p.gestures(SLOW); // témoin lent : vitesse d'origine du diagnostic
+    s = await p.snap('barres-apres-gestes');
+    check(s.vh > s.viewport.height + 100, 'écart grand/visible réellement reproduit');
+    check(s.fullyInside && s.hit, 'barres : Valider intégralement visible et touchable après gestes');
+    for (const [width, height] of [[390, 600], [390, 320], [390, 240], [390, 180], [390, 160], [667, 200], [844, 390], [390, 844], [1280, 720], [390, 600]]) {
+      await p.cdp.send('Emulation.setSmallViewportHeightDifferenceOverride', { difference: 0 });
+      await p.cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 768 });
+      await p.gestures(); s = await p.snap(`transition-${width}x${height}`);
+      check(s.fullyInside && s.hit, `${width}x${height} : Valider intégralement visible ou atteint par gestes`);
+    }
+    check(p.errors.length === 0, 'séquence transitions : aucune erreur JavaScript');
+    check(!p.blocked.some(x => x.startsWith('POST ')), 'séquence transitions : aucune requête POST');
+    await p.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
+    // Fermeture terminée : Bootbox retire la modale du document après hidden.bs.modal (au lieu de 500 ms)
+    await until(p.page, () => !document.body.contains(window.__closedModal));
+    await p.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
+    await frames(p.page); // redimensionnement distribué : un écouteur resté branché aurait remis ses propriétés
+    check(await p.page.evaluate(() => !window.__closedModal.classList.contains('kr-order-viewport') && !window.__closedModal.style.getPropertyValue('--kr-order-visible-height')), 'fermeture : marquage/propriétés retirés et listeners déconnectés');
+    await p.ctx.close();
   }
-  check(p.errors.length === 0, 'séquence transitions : aucune erreur JavaScript');
-  check(!p.blocked.some(x => x.startsWith('POST ')), 'séquence transitions : aucune requête POST');
-  await p.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
-  // Fermeture terminée : Bootbox retire la modale du document après hidden.bs.modal (au lieu de 500 ms)
-  await until(p.page, () => !document.body.contains(window.__closedModal));
-  await p.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
-  await frames(p.page); // redimensionnement distribué : un écouteur resté branché aurait remis ses propriétés
-  check(await p.page.evaluate(() => !window.__closedModal.classList.contains('kr-order-viewport') && !window.__closedModal.style.getPropertyValue('--kr-order-visible-height')), 'fermeture : marquage/propriétés retirés et listeners déconnectés');
-  await p.ctx.close();
-  const f = await open({ fallback: true });
-  for (const height of [600, 200, 844]) {
-    await f.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height, deviceScaleFactor: 1, mobile: true });
-    await f.gestures(); s = await f.snap(`fallback-${height}`);
-    check(!s.viewport.api && s.fullyInside && s.hit, `fallback ${height} : sans API visualViewport, bouton atteignable`);
+  if (frag('fallback')) {
+    const f = await open({ fallback: true });
+    for (const height of [600, 200, 844]) {
+      await f.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height, deviceScaleFactor: 1, mobile: true });
+      await f.gestures(); s = await f.snap(`fallback-${height}`);
+      check(!s.viewport.api && s.fullyInside && s.hit, `fallback ${height} : sans API visualViewport, bouton atteignable`);
+    }
+    check(f.errors.length === 0, 'fallback : aucune erreur JavaScript');
+    await f.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
+    await until(f.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(f.page);
+    check(await f.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport') && getComputedStyle(document.querySelector('.bootbox-alert')).paddingTop === '30px'), 'autre Bootbox mobile : géométrie historique non ciblée');
+    await f.ctx.close();
   }
-  check(f.errors.length === 0, 'fallback : aucune erreur JavaScript');
-  await f.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
-  await until(f.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(f.page);
-  check(await f.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport') && getComputedStyle(document.querySelector('.bootbox-alert')).paddingTop === '30px'), 'autre Bootbox mobile : géométrie historique non ciblée');
-  await f.ctx.close();
-  const a = await open({ delayed: true });
-  await a.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
-  await a.gestures(); s = await a.snap('ajax-320');
-  check(s.fullyInside && s.hit && a.errors.length === 0, 'Ajax : bouton atteignable sans erreur'); await a.ctx.close();
-  const d = await open({ desktop: true });
-  await d.cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
-  s = await d.snap('bureau');
-  check(s.fullyInside && s.hit, 'bureau : bouton visible');
-  check(await d.page.evaluate(() => getComputedStyle(document.querySelector('.bootbox')).paddingTop === '30px'), 'bureau : géométrie historique hors correctif mobile');
-  await d.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
-  await until(d.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(d.page);
-  check(await d.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport')), 'autre Bootbox : non ciblée');
-  check(d.errors.length === 0, 'bureau/autre modale : aucune erreur JavaScript'); await d.ctx.close();
+  if (frag('ajax')) {
+    const a = await open({ delayed: true });
+    await a.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
+    await a.gestures(); s = await a.snap('ajax-320');
+    check(s.fullyInside && s.hit && a.errors.length === 0, 'Ajax : bouton atteignable sans erreur'); await a.ctx.close();
+  }
+  if (frag('bureau')) {
+    const d = await open({ desktop: true });
+    await d.cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
+    s = await d.snap('bureau');
+    check(s.fullyInside && s.hit, 'bureau : bouton visible');
+    check(await d.page.evaluate(() => getComputedStyle(document.querySelector('.bootbox')).paddingTop === '30px'), 'bureau : géométrie historique hors correctif mobile');
+    await d.page.evaluate(() => window.bootbox.alert('Autre modale sans formulaire d’ordre'));
+    await until(d.page, () => { const m = document.querySelector('.bootbox-alert'); return !!m && window.__shown.includes(m); }); await frames(d.page);
+    check(await d.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport')), 'autre Bootbox : non ciblée');
+    check(d.errors.length === 0, 'bureau/autre modale : aucune erreur JavaScript'); await d.ctx.close();
+  }
+  // Fragment inconnu : aucun scénario joué ne doit pas passer pour un succès.
+  if (checks === 0) { check(false, `KR_FRAG=${FRAG.join(',')} : aucun scénario joué (fragments : transitions, fallback, ajax, bureau)`); }
 } catch (e) { check(false, e.stack); }
 finally { await browser.close(); fs.writeFileSync(path.join(out, 'mesures.json'), JSON.stringify({ checks, failures, results }, null, 2)); console.log(`Parler : ${checks - failures} ok, ${failures} FAIL ; preuves : ${out}`); }
 process.exitCode = failures ? 1 : 0;

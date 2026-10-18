@@ -146,8 +146,8 @@ check('registre lisible dans le router.mjs versionné (sinon tout ajout de fragm
   assert.deepEqual(reg.suites.find(s => s.name === 'forum-mobile').frags, SUITES.find(s => s.name === 'forum-mobile').frags);
 });
 check('fragment ajouté au registre : ce fragment SEUL (pas d\'élargissement), test du routeur demandé', () => {
-  assert.ok(routerText.includes("['r'], ['s']] },"));
-  const r = viaRouter(routerText.replace("['r'], ['s']] },", "['r'], ['s'], ['t']] },"));
+  assert.ok(routerText.includes("['s-2'], ['s-3']] },"));
+  const r = viaRouter(routerText.replace("['s-2'], ['s-3']] },", "['s-2'], ['s-3'], ['t']] },"));
   assert.equal(r.widened, false, r.reasons.join(' ; '));
   assert.deepEqual(r.zones, []);
   assert.deepEqual(r.units, ['menus-forums#t']);
@@ -169,7 +169,7 @@ check('zones d\'une suite modifiées dans le registre : la suite entière', () =
   assert.deepEqual(r.units, ['map-exclusions']);
 });
 check('fragment retiré du registre : rien à lancer', () => {
-  const r = viaRouter(routerText.replace("['r'], ['s']] },", "['r']] },"));
+  const r = viaRouter(routerText.replace("['s-2'], ['s-3']] },", "['s-2']] },"));
   assert.equal(r.widened, false);
   assert.deepEqual([r.zones, r.units], [[], []]);
 });
@@ -286,8 +286,8 @@ check('fixture citée par une suite (forum-colonne-native-rp.html -> menus-forum
 });
 check('pickUnits : zones choisies + unités explicites, sans doublon', () => {
   const all = SUITES.flatMap(s => s.frags ? s.frags.map(f => ({ id: `${s.name}#${f.join('+')}`, suite: s.name })) : [{ id: s.name, suite: s.name }]);
-  const ids = pickUnits(all, { zones: ['parler'], units: ['menus-forums#s', 'image-fallback'] }).map(u => u.id);
-  assert.deepEqual(ids, ['parler-viewport', 'menus-forums#s', 'image-fallback']);
+  const ids = pickUnits(all, { zones: ['parler'], units: ['menus-forums#s-1', 'image-fallback'] }).map(u => u.id);
+  assert.deepEqual(ids, ['parler-viewport#transitions', 'parler-viewport#fallback', 'parler-viewport#ajax+bureau', 'menus-forums#s-1', 'image-fallback']);
 });
 
 console.log('Tests unitaires du cœur pur (lot F)');

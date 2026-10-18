@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 
@@ -46,7 +46,7 @@ function forumIndex() {
 </div></div></div><footer class="navbar-inverse"><div class="container white">pied</div></footer></body></html>`;
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await launchBrowser();
 
 // Ouvre une page de la fixture. `url` : chemin ; `variant` : thème ; `html` : corps de page (défaut : le sous-forum).
 async function open({ width, variant = 'empire-brun-dark', height = 800, url = SUBFORUM, html = FIXTURE, theme = true, late = false }) {

@@ -153,8 +153,8 @@ export async function engine() {
   if (!enginePromise) {
     enginePromise = (async () => {
       try {
-        const { chromium } = await import('playwright');
-        const browser = await chromium.launch();
+        const { launchBrowser } = await import('./lib/navigateur.mjs');
+        const browser = await launchBrowser();
         const page = await browser.newPage();
         await page.goto('about:blank');
         return { browser, page };
