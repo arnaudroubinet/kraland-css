@@ -6,6 +6,73 @@
 
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
+// ---------------------------------------------------------------------------------------------------------------------------
+// Horloge simulée (lot D) : une fenêtre d'absence de rechargement se joue en temps SIMULÉ (page.clock) au lieu d'être attendue.
+// installClock(context) installe l'horloge de Playwright AVANT tout addInitScript du test (le userscript capte ainsi les minuteries
+// simulées dès le début du document) et pose window.__krLeaving = true sur beforeunload (événement distribué de façon synchrone par
+// location.reload() : un départ est visible juste après le pas qui l'a déclenché). Hors des pas, le temps simulé suit le temps réel.
+// runClock(page, ms) avance l'horloge de `ms` par pas de CLOCK_STEP_MS et s'arrête au premier départ de document. Pourquoi des pas :
+// chaque runFor est rejoué par Playwright dans les documents suivants ; un seul runFor(2 500) interrompu par un rechargement ferait
+// sauter l'horloge du document suivant de 2,5 s et fausserait le garde-fou (écart minimal de 1 200 ms entre deux rechargements).
+// Avec des pas, l'avance excédentaire est bornée par un pas (100 ms), bien en dessous des délais du produit (anti-rebond 400 ms,
+// écart minimal 1 200 ms). Limite connue : performance.timeOrigin est simulé et identique d'un document à l'autre ; pour
+// identifier un document, utiliser window.__krDocId (posé par installClock).
+export const CLOCK_STEP_MS = 100;
+
+export async function installClock(context) {
+  await context.clock.install();
+  await context.addInitScript(() => {
+    window.__krLeaving = false;
+    window.__krDocId = Math.random();
+    window.__krResizes = 0;
+    window.addEventListener('beforeunload', () => { window.__krLeaving = true; });
+    window.addEventListener('resize', () => { window.__krResizes += 1; });
+  });
+}
+
+/** Attend (temps réel, sans lever d'erreur avant `maxMs`) que le document courant soit chargé et ne soit pas en train d'être quitté. */
+export async function clockDocument(page, { maxMs = 15000, label = 'document' } = {}) {
+  const t0 = Date.now();
+  for (;;) {
+    const ok = await page.evaluate(() => document.readyState === 'complete' && window.__krLeaving === false).catch(() => false);
+    if (ok) { return; }
+    if (Date.now() - t0 > maxMs) { throw new Error(`${label} : document jamais chargé en ${maxMs} ms`); }
+    await pause(20);
+  }
+}
+
+/**
+ * Équivalent de probeQuiet sous horloge simulée : `probe()` identique avant et après une fenêtre de `quietMs` SIMULÉES sans départ de
+ * document. Un départ (rechargement) relance une fenêtre sur le document suivant. Jamais stable en `maxRounds` fenêtres : erreur.
+ */
+export async function clockQuiet(page, probe, { quietMs = 900, maxRounds = 10, label = 'état' } = {}) {
+  for (let round = 0; round < maxRounds; round += 1) {
+    await clockDocument(page, { label });
+    const before = await probe().then(v => JSON.stringify(v), () => null);
+    const { left } = await runClock(page, quietMs);
+    if (left || before === null) { continue; }
+    const after = await probe().then(v => JSON.stringify(v), () => null);
+    if (after === before) { return JSON.parse(after); }
+  }
+  throw new Error(`${label} : jamais stable en ${maxRounds} fenêtres de ${quietMs} ms simulées`);
+}
+
+/**
+ * Avance l'horloge simulée de `ms` (pas de CLOCK_STEP_MS) ; { left: true, at } dès qu'un document est quitté (beforeunload, contexte
+ * détruit, ou déjà un autre document : __krDocId différent), sinon { left: false }.
+ */
+export async function runClock(page, ms, { stepMs = CLOCK_STEP_MS } = {}) {
+  const doc = () => page.evaluate(() => ({ leaving: window.__krLeaving === true, id: window.__krDocId })).catch(() => ({ leaving: true, id: null }));
+  const start = await doc();
+  if (start.leaving) { return { left: true, at: 0 }; }
+  for (let t = 0; t < ms; t += stepMs) {
+    await page.clock.runFor(Math.min(stepMs, ms - t)).catch(() => {});
+    const now = await doc();
+    if (now.leaving || now.id !== start.id) { return { left: true, at: t + stepMs }; }
+  }
+  return { left: false };
+}
+
 /** Le thème est posé et la page n'est plus masquée par l'anti-FOUC (opacity 0 sur <html> jusqu'à la levée). */
 export const THEME_READY = () => document.documentElement.classList.contains('kr-theme-enabled') && document.documentElement.style.opacity !== '0';
 
