@@ -16,7 +16,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium } from 'playwright';
-import { krReady, probeQuiet, THEME_READY } from './lib/settle.mjs';
+import { mapLimit } from './lib/parallele.mjs';
+import { clockQuiet, installClock, krReady, resizeViewport, runClock, THEME_READY } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -138,7 +139,7 @@ const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith
 const browser = await chromium.launch({ headless: true });
 const DARK = 'empire-brun-dark'; const LIGHT = 'empire-brun';
 
-async function open({ width, kind, theme = true, variant = DARK, height = 800, stripTitles = false, touch = false }) {
+async function open({ width, kind, theme = true, variant = DARK, height = 800, stripTitles = false, touch = false, clock = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile || touch, deviceScaleFactor: 2 });
   const state = { documents: 0, loads: 0, other: [], denied: [], external: [] };
@@ -172,6 +173,7 @@ async function open({ width, kind, theme = true, variant = DARK, height = 800, s
     state.other.push(u.pathname);
     return r.abort();
   });
+  if (clock) { await installClock(context); } // horloge simulée (transitions) AVANT l'injection du script
   await context.addInitScript(({ src, enabled, variant: v }) => {
     window.GM = { xmlHttpRequest: () => {} };
     window.__clicks = [];
@@ -439,21 +441,30 @@ if (frag('transitions')) {
     await krReady(p, { ready: THEME_READY, label: 'rechargement après redimensionnement' });
     return state.documents;
   };
+  // Horloge simulée (lot D, lib/settle.mjs) : après le redimensionnement (événement resize distribué), l'anti-rebond de 400 ms du script
+  // s'exécute dans RESIZE_RUN_MS simulées, avec arrêt au départ du document ; l'écart minimal du garde-fou s'avance de même.
+  const RESIZE_RUN_MS = 900;
+  const resizeAndRun = async (p, width) => { await resizeViewport(p, width, 800); await runClock(p, RESIZE_RUN_MS); };
   for (const variant of [DARK, LIGHT]) {
     for (const [kind, sel] of [['sujet', 'li.media.kr-msg'], ['repondre', '.btn-toolbar.kr-tools-ready']]) {
       const tag = `transition ${kind} ${VARIANT_NAME(variant)}`;
-      const { context, page: p, state } = await open({ width: 375, variant, kind });
+      const { context, page: p, state } = await open({ width: 375, variant, kind, clock: true });
       const start = await p.evaluate(s => !!document.querySelector(s), sel);
-      await p.setViewportSize({ width: 768, height: 800 });
+      await resizeAndRun(p, 768);
       const d1 = await reloaded(p, state, 2);
       const desk = await p.evaluate(s => ({ skin: !!document.querySelector(s), mobile: document.body.classList.contains('mobile-mode'), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), sel);
       // Le DOM peut être calme avant que le garde-fou natif autorise le rechargement suivant (écart minimal 1200 ms).
       // Attendre cette condition, pas un délai arbitraire ni une suppression du garde-fou. Le cas rapide est vérifié ci-dessous.
+      // Sous horloge simulée : on avance l'horloge du temps restant avant l'écart minimal, lu dans le journal du script, puis la condition.
+      await runClock(p, await p.evaluate(() => {
+        const log = JSON.parse(sessionStorage.getItem('kr-breakpoint-reload-log') || '[]');
+        return log.length ? Math.max(0, 1200 - (Date.now() - log[log.length - 1])) : 0;
+      }));
       await p.waitForFunction(() => {
         const log = JSON.parse(sessionStorage.getItem('kr-breakpoint-reload-log') || '[]');
         return log.length > 0 && Date.now() - log[log.length - 1] >= 1200;
       });
-      await p.setViewportSize({ width: 767, height: 800 });
+      await resizeAndRun(p, 767);
       const d2 = await reloaded(p, state, 3);
       const mob = await p.evaluate(s => ({ skin: !!document.querySelector(s), mobile: document.body.classList.contains('mobile-mode'), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), sel);
       console.log('  diagnostic ' + tag + ' : ' + JSON.stringify({ d1, desk, d2, mob, guard: await p.evaluate(() => ({ banner: document.querySelector('#kr-resize-banner')?.textContent || '', log: sessionStorage.getItem('kr-breakpoint-reload-log') })) }));
@@ -465,22 +476,23 @@ if (frag('transitions')) {
   // Reproduit de façon déterministe la cause des anciens FAIL : Date figée, timers réels (anti-rebond inchangé),
   // retour au seuil avant les 1200 ms autorisées. Le script doit conserver son garde-fou, pas recharger en boucle.
   for (const kind of ['sujet', 'repondre']) {
-    const { context, page: p, state } = await open({ width: 375, kind });
+    const { context, page: p, state } = await open({ width: 375, kind, clock: true });
     const fixed = await p.evaluate(() => Date.now());
     await p.clock.setFixedTime(new Date(fixed));
-    await p.setViewportSize({ width: 768, height: 800 });
+    await resizeAndRun(p, 768);
     await reloaded(p, state, 2);
     await p.clock.setFixedTime(new Date(fixed + 400));
-    await p.setViewportSize({ width: 767, height: 800 });
-    const guard = await probeQuiet(() => p.evaluate(() => ({
+    await resizeViewport(p, 767, 800);
+    // Fenêtre d'absence de 1,8 s en temps simulé (Date reste figée, minuteries avancées) ; document identifié par __krDocId.
+    const guard = await clockQuiet(p, () => p.evaluate(() => ({
       mobile: document.body.classList.contains('mobile-mode'), banner: document.querySelector('#kr-resize-banner')?.textContent || '',
-      doc: performance.timeOrigin, ready: document.readyState
+      doc: window.__krDocId, ready: document.readyState
     })), { quietMs: 1800, label: 'retour rapide avec garde-fou' });
     check(`transition rapide ${kind} : garde-fou 1200 ms respecté (2 documents, bandeau, mode chargé conservé)`, () => {
       assert.equal(state.documents, 2); assert.equal(guard.mobile, false); assert.ok(guard.banner.includes('quand vous le souhaitez'));
     });
     await p.clock.setFixedTime(new Date(fixed + 1200));
-    await p.setViewportSize({ width: 766, height: 800 });
+    await resizeAndRun(p, 766);
     const docs = await reloaded(p, state, 3);
     const restored = await p.evaluate(() => ({ mobile: document.body.classList.contains('mobile-mode'), banner: !!document.querySelector('#kr-resize-banner') }));
     check(`transition rapide ${kind} : nouveau resize après 1200 ms autorisé (3 documents, mode mobile, bandeau retiré)`, () => {
@@ -516,7 +528,8 @@ if (frag('themes')) {
   const THEMES = ['kraland', 'empire-brun', 'paladium', 'theocratie-seelienne', 'paradigme-vert', 'khanat-elmerien', 'confederation-libre', 'royaume-ruthvenie',
     'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark', 'paradigme-vert-dark', 'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
   const COLORS_OF = sel => { const e = document.querySelector(sel); const cs = getComputedStyle(e); let bg = cs.backgroundColor; let n = e; while (parseFloat((bg.match(/[\d.]+/g) || [0, 0, 0, 1])[3] ?? 1) === 0 && n.parentElement) { n = n.parentElement; bg = getComputedStyle(n).backgroundColor; } return { color: cs.color, bg }; };
-  for (const variant of THEMES) {
+  // 16 thèmes indépendants (deux contextes chacun) mesurés en parallèle (lib/parallele.mjs), vérifiés ensuite dans l'ordre.
+  const measured = await mapLimit(THEMES, async variant => {
     const a = await open({ width: 375, kind: 'sujet', variant });
     const reading = {};
     for (const [k, sel] of [['Répondre', 'li.media a[href*="forum/post/repondre-3-"]'], ['pouce haut', 'li.media a[href^="javascript:updateAjax"]'], ['•••', 'li.media button.kr-msg-more'], ['nom', 'li.media .user-info strong a'], ['date', 'li.media .media-body > .btn-group > span']]) { reading[k] = await a.page.evaluate(COLORS_OF, sel); }
@@ -527,6 +540,10 @@ if (frag('themes')) {
     const ed = {};
     for (const [k, sel] of [['Plus', '.btn-toolbar button.kr-tools-plus'], ['outil gras', '.btn-toolbar a[href="javascript:addtag(\'b\',1);"]'], ['validation', 'form[name="post_msg"] button.btn-primary'], ['libellé expéditeur', 'form[name="post_msg"] .form-group label']]) { ed[k] = await b.page.evaluate(COLORS_OF, sel); }
     await b.context.close();
+    return { reading, ed };
+  });
+  for (const [i, variant] of THEMES.entries()) {
+    const { reading, ed } = measured[i];
     check(`thème ${variant} : lecture et rédaction >= 4,5:1`, () => {
       const bad = [];
       for (const [k, v] of Object.entries({ ...reading, ...ed })) { const a2 = parseRgb(v.bg).a; const c = contrast(v.color, v.bg); if (a2 < 1 || c < 4.5) { bad.push(`${k} ${c.toFixed(2)} (${v.color} / ${v.bg})`); } }
@@ -539,9 +556,16 @@ if (frag('themes')) {
 if (frag('confinement')) {
   console.log('Confinement réseau : refus global avant les routes locales, journal et assertion de requêtes imprévues, tous hôtes');
   // Chaque vue : seules les requêtes déclarées sont refusées, aucune autre destination, aucune requête hors du journal du refus global.
-  for (const kind of ['sujet', 'repondre', 'editer']) {
+  // Les trois vues sont indépendantes (un contexte chacune) : leurs fenêtres d'absence (réseau, temps réel) courent en parallèle.
+  const KINDS = ['sujet', 'repondre', 'editer'];
+  const views = await mapLimit(KINDS, async kind => {
     const { context, page: p, state } = await open({ width: 375, kind });
     await p.waitForTimeout(1500); // fenêtre d'observation d'une ABSENCE de requête de plus : pas de condition positive possible
+    await context.close();
+    return state;
+  });
+  for (const [i, kind] of KINDS.entries()) {
+    const state = views[i];
     check(`confinement ${kind} : seules les destinations déclarées sont refusées (${EXPECTED_REFUSALS.map(e => e.host).join(', ')}), aucune requête imprévue`, () => {
       assert.deepEqual(unexpected(state), []);
       assert.ok(state.denied.every(isExpectedRefusal), JSON.stringify(state.denied));
@@ -549,7 +573,6 @@ if (frag('confinement')) {
     check(`confinement ${kind} : toute requête externe vue est passée par le refus global (vues : ${state.external.length}, refusées : ${state.denied.length})`, () => {
       for (const u of state.external) { assert.ok(state.denied.some(d => d.host === u.host && d.pathname === u.pathname), u.host + u.pathname); }
     });
-    await context.close();
   }
   // Auto-test du garde : des requêtes imprévues (autre hôte, autre schéma d'URL d'hôte, www hors fixture) sont refusées SANS partir, journalisées et rendues visibles.
   const probe = await open({ width: 375, kind: 'repondre' });
