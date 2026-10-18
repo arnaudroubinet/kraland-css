@@ -81,6 +81,16 @@ check('sous-forum (#topics, kr-topic-unread, dataTable) : zone sous-forum seule,
   assert.equal(r.widened, false);
   assert.deepEqual(sorted(r.zones), ['sous-forum']);
 });
+check('sous-forum lu en partie (kr-topic-newmsg, navigation intelligente du titre) : zone sous-forum, fragments l7-nouveau et l8-raccourci', () => {
+  const r = route('kraland-theme.css', hunk('.x {', 'body.kr-subforum #topics tr.kr-topic-newmsg { border-left: 4px solid; }'));
+  assert.equal(r.widened, false);
+  assert.deepEqual(sorted(r.zones), ['sous-forum']);
+  const t = route(T, hunk('function smartLink(link, iconHref) {', "row.classList.toggle('kr-topic-newmsg', newMessages);"));
+  assert.equal(t.widened, false);
+  assert.deepEqual(sorted(t.zones), ['sous-forum']);
+  const frags = SUITES.find(s => s.name === 'sous-forum').frags.flat();
+  assert.ok(frags.includes('l7-nouveau') && frags.includes('l8-raccourci'), frags.join(','));
+});
 check('index des forums (ForumCards, forums-cards-container) : zone sous-forum (les cartes y sont testées)', () => {
   const r = route(T, hunk('function findForumsTable() {', "return Array.from(document.querySelectorAll('table.table')); // forums-cards-container"));
   assert.equal(r.widened, false);

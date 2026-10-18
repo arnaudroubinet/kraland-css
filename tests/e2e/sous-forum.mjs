@@ -261,6 +261,22 @@ const REDRAWS = [
 ];
 const settleRedraw = p => domQuiet(p, { quietMs: 300, label: 'redessin DataTables' });
 
+// Redessin DataTables attendu sur CONDITION (lot A, remplace la fenêtre de calme de 300 ms de settleRedraw dans L5, la recherche des pastilles de L1 et les redessins de L8) : un compteur incrémenté par
+// un écouteur draw.dt que le test pose sur #topics. DataTables (et la fixture) déclenchent draw.dt de façon synchrone, après avoir réécrit les
+// lignes et la pagination ; les écouteurs draw.dt du userscript (statuts, pagination compacte, libellés) sont synchrones eux aussi : quand le
+// compteur a bougé, le redessin et ses retouches sont faits. Deux images peintes ensuite, pour mesurer un rendu posé. Plus strict que le calme :
+// une action qui ne redessine pas échoue en 15 s (erreur explicite), au lieu de passer pour un redessin terminé.
+const DRAWS = () => {
+  if (window.__krDraws === undefined) { window.__krDraws = 0; window.jQuery('#topics').on('draw.dt', () => { window.__krDraws += 1; }); }
+  return window.__krDraws;
+};
+const redraw = async (p, act, label = 'redessin DataTables') => {
+  const before = await p.evaluate(DRAWS);
+  await act();
+  await p.waitForFunction(n => window.__krDraws > n, before, { timeout: 15000 }).catch(e => { throw new Error(`${label} : aucun draw.dt en 15000 ms (${String(e.message).split('\n')[0]})`); });
+  await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+};
+
 // ---------- L1 : statuts (non lu, verrouillé, pages) en classes JS, pastille, barre, jeton de couleur ----------
 // Statut signalé (barre, gras, pastille) = jamais ouvert (« NON LU ») OU lu en partie avec nouveaux messages (« NOUVEAU MESSAGE »).
 const flagged = r => r.unreadIcon || r.newmsgIcon;
@@ -304,8 +320,7 @@ if (frag('l1-statuts')) {
   for (const late of [false, true]) {
     for (const term of ['NON LU', 'NOUVEAU MESSAGE']) {
       const { context, page: p } = await open({ width: 375, late });
-      await p.fill('.dataTables_filter input', term);
-      await settleRedraw(p);
+      await redraw(p, () => p.fill('.dataTables_filter input', term), `recherche « ${term} »`);
       const found = await p.evaluate(() => ({ rows: [...document.querySelectorAll('#topics tbody tr')].filter(tr => tr.querySelector('td:first-child a')).length, info: document.querySelector('.dataTables_info').textContent }));
       check(`recherche « ${term} »${late ? ' (DataTables initialisé après le userscript)' : ''} : aucun sujet, le libellé de la pastille n'est pas dans le texte des cellules`, () => { assert.equal(found.rows, 0, found.info); });
       await context.close();
@@ -713,21 +728,6 @@ const checkPagination = (label, m, expectedSeq) => {
   check(`${label} : la page courante est repérée (classe native current) et son numéro est affiché`, () => assert.equal(m.items.filter(i => i.current).length, 1));
 };
 
-// Redessin DataTables attendu sur CONDITION (lot A, remplace la fenêtre de calme de 300 ms de settleRedraw dans L5) : un compteur incrémenté par
-// un écouteur draw.dt que le test pose sur #topics. DataTables (et la fixture) déclenchent draw.dt de façon synchrone, après avoir réécrit les
-// lignes et la pagination ; les écouteurs draw.dt du userscript (statuts, pagination compacte, libellés) sont synchrones eux aussi : quand le
-// compteur a bougé, le redessin et ses retouches sont faits. Deux images peintes ensuite, pour mesurer un rendu posé. Plus strict que le calme :
-// une action qui ne redessine pas échoue en 15 s (erreur explicite), au lieu de passer pour un redessin terminé.
-const DRAWS = () => {
-  if (window.__krDraws === undefined) { window.__krDraws = 0; window.jQuery('#topics').on('draw.dt', () => { window.__krDraws += 1; }); }
-  return window.__krDraws;
-};
-const redraw = async (p, act, label = 'redessin DataTables') => {
-  const before = await p.evaluate(DRAWS);
-  await act();
-  await p.waitForFunction(n => window.__krDraws > n, before, { timeout: 15000 }).catch(e => { throw new Error(`${label} : aucun draw.dt en 15000 ms (${String(e.message).split('\n')[0]})`); });
-  await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
-};
 // M-1 (QA PR14) : au bureau (>= 768 px), séquences EXACTES de la pagination native (une seule « … » par saut, aucun marqueur ni classe ajoutés),
 // identiques à celles de la base 880a3f0 ; frontière 767 / 768 ; transitions mobile-mode <-> bureau.
 const NATIVE_P1 = ['prev', '1', '2', '3', '4', '5', '…', '15', 'next'];
@@ -1179,8 +1179,7 @@ if (frag('l8-raccourci')) {
     checkShortcut(`${width}`, await p.evaluate(SHORTCUT));
     if (width === 375 || width === 1280) {
       for (const [name, act] of REDRAWS) {
-        await act(p);
-        await settleRedraw(p);
+        await redraw(p, () => act(p), name);
         checkShortcut(`${width} après ${name}`, await p.evaluate(SHORTCUT));
       }
     }
