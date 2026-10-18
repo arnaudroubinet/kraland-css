@@ -17,6 +17,8 @@
     "test:red": "node tests/e2e/run.mjs red",
     "test:zones": "node tests/e2e/run.mjs list",
     "test:router": "node tests/e2e/lib/router.test.mjs",
+    "test:unit": "node --test tests/unit/",
+    "verify": "npm run lint && npm run test:router && npm run test:unit",
     "test:transitions": "node tests/e2e/breakpoint-switch.mjs",
     "test:map-exclusions": "node tests/e2e/map-exclusions.mjs",
     "test:qualite-usage": "node tests/e2e/plateau-qualite-usage.mjs",

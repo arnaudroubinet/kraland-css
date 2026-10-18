@@ -290,6 +290,32 @@ check('pickUnits : zones choisies + unités explicites, sans doublon', () => {
   assert.deepEqual(ids, ['parler-viewport', 'menus-forums#s', 'image-fallback']);
 });
 
+console.log('Tests unitaires du cœur pur (lot F)');
+check('tests/unit/ (tests ou chargeur) : tests unitaires seuls, aucune suite e2e, pas d\'élargissement', () => {
+  for (const f of ['tests/unit/pagination.test.mjs', 'tests/unit/lib/pure.mjs', 'tests/unit/nouveau.test.mjs']) {
+    const r = zonesFromDiff('REF', fakeGit({ [f]: [] }));
+    assert.equal(r.widened, false, f);
+    assert.equal(r.unitTest, true, f);
+    assert.deepEqual(r.zones, [], f);
+    assert.deepEqual(r.units, [], f);
+    assert.equal(r.routerTest, false, f);
+  }
+});
+check('template modifié (cœur pur ou module) : tests unitaires relancés en plus des zones', () => {
+  const r = route(T, hunk('function krCompactPageLayout(nums, current) {', '    // sous-forum : pagination compacte'));
+  assert.equal(r.unitTest, true);
+  assert.ok(r.zones.includes('sous-forum'));
+});
+check('ni template ni tests/unit/ : pas de tests unitaires (README, durées) ; élargissement au total : tests unitaires compris', () => {
+  assert.equal(zonesFromDiff('REF', fakeGit({ 'README.md': [] })).unitTest, false);
+  assert.equal(zonesFromDiff('REF', fakeGit({ 'tests/e2e/durations.json': [] })).unitTest, false);
+  assert.equal(zonesFromDiff('REF', fakeGit({ 'tests/e2e/sous-forum.mjs': [] })).unitTest, false);
+  const w = zonesFromDiff('REF', fakeGit({ 'fichier-inconnu.txt': [] }));
+  assert.equal(w.widened, true);
+  assert.equal(w.unitTest, true);
+  assert.equal(zonesFromDiff('REF', () => null).unitTest, true, 'git indisponible');
+});
+
 console.log('Ordre de lancement (plus longs d\'abord)');
 const U = ids => ids.map(id => ({ id }));
 check('durées connues : ordre décroissant, quel que soit l\'ordre du registre', () => {

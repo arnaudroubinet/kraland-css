@@ -58,12 +58,13 @@ export function orderLongestFirst(units, durations = {}) {
 }
 
 // Zones touchées d'après un fichier. Valeurs spéciales : 'all' (total), 'generated' (bundle : la source fait foi), 'lint' (outillage :
-// lint seul, aucune suite), 'registry' (router.mjs : diff du registre), 'router-test' (test du routeur seul), 'package' (package.json :
-// clés comparées), 'suite' (fichier de suite : cette suite et celles qui l'importent).
+// lint seul, aucune suite), 'registry' (router.mjs : diff du registre), 'router-test' (test du routeur seul), 'unit' (tests unitaires du
+// cœur pur seuls, node --test), 'package' (package.json : clés comparées), 'suite' (fichier de suite : cette suite et celles qui l'importent).
 export const FILE_RULES = [
   [/^tests\/e2e\/run\.mjs$|^package-lock\.json$/, 'all'],
   [/^tests\/e2e\/lib\/router\.mjs$/, 'registry'],
   [/^tests\/e2e\/lib\/router\.test\.mjs$/, 'router-test'],
+  [/^tests\/unit\//, 'unit'], // cœur pur (lot F) : tests et chargeur sans navigateur ; le template, lui, relance aussi ces tests
   [/^package\.json$/, 'package'],
   [/^tests\/e2e\/lib\//, 'all'],
   [/^tests\/e2e\/[\w-]+\.mjs$/, 'suite'],
@@ -218,13 +219,14 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
       if (mb) { diffArgs = [mb[0].trim()]; files = git(['diff', '--name-only', diffArgs[0]]); reasons.push('arbre propre : comparaison avec ' + diffArgs[0].slice(0, 9)); }
     }
   }
-  if (files === null) { return { zones: ZONES, units: [], reasons: ['git indisponible : total par prudence'], widened: true }; }
+  if (files === null) { return { zones: ZONES, units: [], reasons: ['git indisponible : total par prudence'], widened: true, unitTest: true }; }
   files = [...new Set(files.filter(Boolean))];
   const readOld = f => { const l = git(['show', `${diffArgs[0]}:${f}`]); return l === null ? null : l.join('\n'); };
   const zones = new Set();
   const units = new Set();
   let widened = false;
   let routerTest = false;
+  let unitTest = false;
   const lint = [];
   const generated = [];
   const widen = why => { widened = true; reasons.push(why); };
@@ -253,7 +255,8 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
       }
       if (!hunks.length) { widen(f + ' : diff illisible'); continue; }
       // Template : tout module peut ajouter une mise en forme différée ; le garde-fou vérifie qu'elle est suivie par InitQueue (quelques secondes).
-      if (f.endsWith('.js')) { units.add(GARDE_INIT); }
+      // Il porte aussi le cœur pur (blocs @kr-pure-begin) : les tests unitaires (node --test, < 1 s) repassent à chaque modification.
+      if (f.endsWith('.js')) { units.add(GARDE_INIT); unitTest = true; }
       const text = readNew(f);
       const lines = text === null ? [] : text.split('\n');
       const sections = f.endsWith('.js') ? templateSections(text) : [];
@@ -290,6 +293,7 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
     if (z === 'all') { widen(f + ' : touche le lanceur ou les dépendances'); continue; }
     if (z === 'lint') { lint.push(f); continue; }
     if (z === 'router-test') { routerTest = true; continue; }
+    if (z === 'unit') { unitTest = true; reasons.push(f + ' : tests unitaires du cœur pur (aucune suite e2e)'); continue; }
     if (z === 'registry') {
       routerTest = true;
       const before = registryOf(readOld(f)); const after = registryOf(readNew(f));
@@ -341,8 +345,8 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
   // Un diff qui ne touche QUE des fichiers générés (build, résolution de conflit) : la source ne dit rien, on ne peut pas conclure -> total.
   const isInert = f => FILE_RULES.some(([re, v]) => re.test(f) && ((Array.isArray(v) && v.length === 0) || v === 'lint'));
   if (generated.length && !files.some(f => !generated.includes(f) && !isInert(f))) { widen(generated.join(', ') + ' : seul le bundle généré a changé'); }
-  if (widened) { return { zones: ZONES, units: [], reasons, widened: true, files, routerTest }; }
-  return { zones: [...zones], units: [...units], reasons, widened: false, files, routerTest };
+  if (widened) { return { zones: ZONES, units: [], reasons, widened: true, files, routerTest, unitTest: true }; }
+  return { zones: [...zones], units: [...units], reasons, widened: false, files, routerTest, unitTest };
 }
 
 // Unités (de buildUnits) retenues par un résultat de zonesFromDiff : zone choisie, ou id/suite cité explicitement.

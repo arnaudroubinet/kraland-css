@@ -1,8 +1,9 @@
 // Lanceur des suites e2e : parallèle, ciblé par zone, sans dépendance (Node + playwright déjà présent).
 //
-//   node tests/e2e/run.mjs all                  le total, en parallèle (à lancer UNE fois en fin de travail)
+//   node tests/e2e/run.mjs all                  le total, en parallèle (à lancer UNE fois en fin de travail), tests unitaires du cœur pur en tête
 //   node tests/e2e/run.mjs zone forum croix     seulement les zones citées (npm run test:zone -- forum croix)
-//   node tests/e2e/run.mjs changed [--base REF] zones et unités déduites de git diff (npm run test:changed) ; doute = total ; routeur modifié = test:router en plus
+//   node tests/e2e/run.mjs changed [--base REF] zones et unités déduites de git diff (npm run test:changed) ; doute = total ; routeur modifié = test:router en plus ;
+//                                               template ou tests/unit/ modifié = tests unitaires (npm run test:unit) en plus
 //   node tests/e2e/run.mjs red forum            preuve ROUGE ciblée : réussit seulement si la zone ÉCHOUE (npm run test:red -- forum)
 //   node tests/e2e/run.mjs list                 zones, suites et fragments
 //
@@ -23,6 +24,18 @@ const E2E = 'tests/e2e';
 const DEFAULT_BOOTSTRAP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 
 import { SUITES, ZONES, zonesFromDiff, orderLongestFirst, pickUnits } from './lib/router.mjs';
+
+// Tests unitaires du cœur pur (lot F : node --test tests/unit/, sans navigateur, < 1 s). Lancés avant les fragments par `all`, et par
+// `changed` quand le template ou tests/unit/ change (ou en cas d'élargissement). Un échec rend le résultat ÉCHEC.
+function runUnitTests() {
+  const t0 = Date.now();
+  const t = spawnSync(process.execPath, ['--test', '--test-reporter=spec', 'tests/unit/'], { cwd: root, encoding: 'utf8' });
+  const out = (t.stdout || '') + (t.stderr || '');
+  const count = k => { const m = out.match(new RegExp(`^ℹ ${k} (\\d+)`, 'm')); return m ? Number(m[1]) : NaN; };
+  const bad = t.status !== 0 || !(count('pass') > 0) || count('fail') !== 0;
+  console.log(`Tests unitaires (node --test tests/unit/) : ${bad ? 'ÉCHEC' : 'ok'}, ${count('pass')} ok, ${count('fail')} FAIL en ${((Date.now() - t0) / 1000).toFixed(1)} s${bad ? '\n' + out : ''}`);
+  return bad;
+}
 
 // Durées mesurées par fragment (secondes), versionnées : elles fixent l'ordre de lancement (plus longs d'abord). Mise à jour EXPLICITE seulement
 // (KR_SAVE_DURATIONS=1, après une exécution verte) : une exécution ordinaire ne modifie jamais le dépôt.
@@ -136,8 +149,11 @@ if (cmd === 'list') {
 let zones = ZONES;
 let changed = null;
 let routerBad = false;
+let unitBad = false;
 let expectRed = false;
-if (cmd === 'zone' || cmd === 'red') {
+if (cmd === 'all') {
+  unitBad = runUnitTests();
+} else if (cmd === 'zone' || cmd === 'red') {
   zones = args.filter(a => !a.startsWith('--'));
   expectRed = cmd === 'red';
   const unknown = zones.filter(z => !ZONES.includes(z));
@@ -155,9 +171,10 @@ if (cmd === 'zone' || cmd === 'red') {
     routerBad = t.status !== 0;
     console.log(`Test du routeur : ${routerBad ? 'ÉCHEC' : 'ok'}${routerBad ? '\n' + t.stdout + t.stderr : ''}`);
   }
+  if (r.unitTest) { unitBad = runUnitTests(); }
   if (r.widened) { console.log('INCERTITUDE : élargi au total (toutes les zones).'); } else if (!zones.length && !r.units.length) {
-    console.log('Aucune zone testable touchée : rien à lancer' + (r.routerTest ? ' (hors test du routeur).' : '.'));
-    process.exit(routerBad ? 1 : 0);
+    console.log('Aucune zone testable touchée : rien à lancer' + (r.routerTest || r.unitTest ? ' (hors tests du routeur ou unitaires).' : '.'));
+    process.exit(routerBad || unitBad ? 1 : 0);
   } else { console.log('Zones choisies : ' + (zones.join(', ') || '(aucune)') + (r.units.length ? ' ; unités : ' + r.units.join(', ') : '')); }
 } else if (cmd !== 'all') {
   console.error('Usage : run.mjs all | zone <z...> | changed [--base REF] | red <zone> | list'); process.exit(2);
@@ -183,4 +200,5 @@ if (expectRed) {
   console.log('PAS ROUGE : la zone passe, le test ne prouve rien avant le correctif.'); process.exit(1);
 }
 if (routerBad) { console.log('RÉSULTAT : ÉCHEC (test du routeur)'); }
-process.exit(sum.bad || routerBad ? 1 : 0);
+if (unitBad) { console.log('RÉSULTAT : ÉCHEC (tests unitaires du cœur pur)'); }
+process.exit(sum.bad || routerBad || unitBad ? 1 : 0);

@@ -850,7 +850,10 @@ if (frag('r')) {
   const off = (fo, how) => item(fo).replace('class="list-group-item"', how === 'class' ? 'class="list-group-item disabled"' : how === 'aria' ? 'class="list-group-item" aria-disabled="true"' : 'class="list-group-item" disabled=""');
   const alpha = f('Alpha', 'alpha-1');
   const bravo = f('Bravo', 'bravo-2');
-  for (const how of ['class', 'aria', 'attr']) {
+  // Lot F : seul le signal « class » rejoue ce scénario de bout en bout. aria-disabled="true" et l'attribut disabled ne changeaient que la
+  // détection : ils sont couverts scénario par scénario par tests/unit/menus-forums.test.mjs (« R (aria) », « R (attr) »), et leur relevé
+  // DOM de bout en bout par le passage « trois signaux mêlés » du fragment S.
+  for (const how of ['class']) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -971,8 +974,9 @@ if (frag('s')) {
   const dividers = p => p.evaluate(() => document.querySelectorAll('[data-forums-added="rp"] .dropdown-menu > li.divider').length);
   const reload = async (p) => { await p.reload({ waitUntil: 'load' }); await krReady(p, { ready: THEME_READY, label: 'reload' }); };
 
-  // a / d / c : un raccourci refusé disparaît (3 signaux), sur la page RP puis ailleurs, et revient quand l'accès est rétabli.
-  for (const how of ['class', 'aria', 'attr']) {
+  // a / d / c : un raccourci refusé disparaît, sur la page RP puis ailleurs, et revient quand l'accès est rétabli. Lot F : signal « class »
+  // de bout en bout ; aria et attr dans tests/unit/menus-forums.test.mjs (« S (aria) », « S (attr) ») et dans le passage mêlé ci-dessous.
+  for (const how of ['class']) {
     const s = makeServer();
     const { context, p } = await open({ server: s });
     await go(p, '/forum/rp');
@@ -1014,6 +1018,25 @@ if (frag('s')) {
     await go(p, '/jouer/plateau');
     n = await nm(p);
     check(`${how} : accès rétabli puis autre page : raccourcis toujours là`, () => assert.deepEqual(n, ['Taverne', 'Marché', 'Monde', 'Alpha', 'Bravo']));
+    await context.close();
+  }
+
+  // Trois signaux mêlés dans une même colonne (lot F) : relevé DOM de bout en bout de aria-disabled="true" et de l'attribut disabled, sur
+  // un raccourci fixe ET sur un forum, à côté de la classe. Taverne (aria) et Marché (attr) retirés, Bravo (attr) retiré, Alpha (aria) aussi ;
+  // Monde actif reste. Les refus sont mémorisés et tiennent sur une autre page.
+  {
+    const s = makeServer();
+    const { context, p } = await open({ server: s });
+    await go(p, '/forum/rp');
+    s.raw['/forum/rp'] = off(taverne, 'aria') + off(marche, 'attr') + item(monde) + off(alpha, 'aria') + off(bravo, 'attr') + item(f('Charlie', 'charlie-3')) + off(f('Delta', 'delta-4'), 'class');
+    await go(p, '/forum/rp');
+    let n = await nm(p);
+    check('trois signaux mêlés (aria, attr, class) : Taverne et Marché retirées, Alpha et Bravo retirés, Monde et Charlie gardés', () => assert.deepEqual(n, ['Monde', 'Charlie']));
+    const st = await stored(p, 'rp');
+    check('trois signaux mêlés : refus mémorisés pour chaque signal (Taverne aria, Marché attr, Alpha aria, Bravo attr, Delta class)', () => assert.deepEqual([...st.denied].sort(), ['/forum/rp/alpha-1', '/forum/rp/bravo-2', '/forum/rp/delta-4', '/forum/rp/marche-10102', '/forum/rp/taverne-10101']));
+    await go(p, '/jouer/plateau');
+    n = await nm(p);
+    check('trois signaux mêlés puis autre page : rien n\'est réintroduit', () => assert.deepEqual(n, ['Monde', 'Charlie']));
     await context.close();
   }
 
