@@ -6,6 +6,279 @@
   const CURRENT_VERSION = '__USERSCRIPT_VERSION__';
 
   // ============================================================================
+  // CŒUR PUR : logique sans DOM, sans stockage, sans window ni location
+  // Chaque bloc « @kr-pure-begin <nom> » … « @kr-pure-end » ne déclare que des fonctions et des constantes, sans référence au
+  // navigateur. tests/unit/lib/pure.mjs l'extrait de ce fichier et l'exécute dans un contexte vide (npm run test:unit, node --test).
+  // Les modules plus bas appellent ces fonctions ; la lecture du DOM, du stockage et de l'heure reste dans les modules.
+  // ============================================================================
+
+  // @kr-pure-begin pagination
+  /**
+   * Pagination compacte du sous-forum en mobile (lot L5) : garde la première page, la dernière, la page courante et, près des bords,
+   * les pages voisines ; un « … » marque chaque saut.
+   * @param {number[]} nums numéros des boutons natifs, dans l'ordre d'affichage
+   * @param {number|null} current numéro du bouton .current (null : aucun, la première page fait foi)
+   * @returns {{hidden: boolean, gapBefore: boolean}[]} pour chaque bouton : masqué, et « … » à insérer avant lui
+   */
+  function krCompactPageLayout(nums, current) {
+    const first = nums[0] === 1 ? nums[0] : 1;
+    const last = nums[nums.length - 1];
+    const cur = current === null ? first : current;
+    const keep = new Set([first, last, cur]);
+    if (cur <= 2) { [1, 2, 3].forEach(n => keep.add(n)); }
+    if (cur >= last - 1) { [last - 2, last - 1, last].forEach(n => keep.add(n)); }
+    let previousShown = null;
+    return nums.map(n => {
+      if (!keep.has(n)) { return { hidden: true, gapBefore: false }; }
+      const gapBefore = previousShown !== null && n - previousShown > 1;
+      previousShown = n;
+      return { hidden: false, gapBefore };
+    });
+  }
+  // @kr-pure-end
+
+  // @kr-pure-begin rechargement
+  // Garde-fou du rechargement au franchissement du seuil mobile/desktop : jamais plus de RELOAD_MAX_COUNT rechargements par fenêtre
+  // de RELOAD_WINDOW_MS, ni deux à moins de RELOAD_MIN_GAP_MS d'écart (même si la mesure reste fausse, la page ne peut pas recharger en boucle).
+  const RELOAD_WINDOW_MS = 60000;
+  const RELOAD_MAX_COUNT = 10;
+  const RELOAD_MIN_GAP_MS = 1200;
+  const RELOAD_BANNER_TEXT = {
+    input: 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ',
+    guard: 'La mise en page s\'adaptera au prochain rechargement. Rechargez la page quand vous le souhaitez. '
+  };
+
+  /** Rechargements récents du journal (valeur JSON lue du stockage) : dates numériques de la fenêtre, ni futures ni trop anciennes. */
+  function krRecentReloads(log, now) {
+    return Array.isArray(log) ? log.filter(function (t) { return typeof t === 'number' && now - t >= 0 && now - t < RELOAD_WINDOW_MS; }) : [];
+  }
+
+  /** Plafond et écart minimal respectés par le journal des rechargements récents. */
+  function krReloadAllowedByLog(log, now) {
+    if (log.length >= RELOAD_MAX_COUNT) {return false;}
+    return !log.length || now - log[log.length - 1] >= RELOAD_MIN_GAP_MS;
+  }
+
+  /**
+   * Décision au franchissement (ou non) du seuil. hasPendingInput et reloadAllowed sont des fonctions, appelées seulement si
+   * nécessaire et dans cet ordre (la seconde sonde le stockage).
+   * @returns {'hide'|'input'|'guard'|'reload'} hide : pas de franchissement (bandeau retiré) ; input / guard : bandeau ; reload : rechargement
+   */
+  function krBreakpointAction(crossed, hasPendingInput, reloadAllowed) {
+    if (!crossed) {return 'hide';}
+    if (hasPendingInput()) {return 'input';}
+    if (!reloadAllowed()) {return 'guard';}
+    return 'reload';
+  }
+
+  /** Texte du bandeau « rechargez » selon la raison (saisie en cours, ou garde-fou / stockage inaccessible par défaut). */
+  function krReloadBannerText(reason) {
+    return RELOAD_BANNER_TEXT[reason] || RELOAD_BANNER_TEXT.guard;
+  }
+  // @kr-pure-end
+
+  // @kr-pure-begin menus-forums
+  const FORUM_STALE_MS = 24 * 60 * 60 * 1000;
+  const FORUM_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+  const FORUM_EXCLUDED_NAMES = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
+
+  // attr : valeur de data-forums-added ; staticCount : éléments d'origine conservés en tête du menu.
+  const FORUM_MENUS = [
+    { id: 'rp', attr: 'rp', path: '/forum/rp', label: 'Forum RP', fallbackText: 'Autre', staticCount: 4 },
+    { id: 'hrp', attr: 'hrp', path: '/forum/hrp', label: 'Forum HRP', fallbackText: 'Voir tous les forums', staticCount: 0, noExclusion: true },
+    { id: 'communaute', attr: 'forum-communaute', path: '/forum/communaute', label: 'Forum Communauté', fallbackText: 'Voir tous les forums', staticCount: 0 },
+    { id: 'debats', attr: 'forum-debats', path: '/forum/debats', label: 'Forum Débats', fallbackText: 'Voir tous les forums', staticCount: 0 },
+    { id: 'staff', attr: 'forum-staff', path: '/forum/staff', label: 'Forum Staff', fallbackText: 'Voir tous les forums', staticCount: 0 }
+  ];
+
+  function krForumNormalizePath(p) {
+    return String(p || '').replace(/\/+$/, '').toLowerCase();
+  }
+
+  function krForumIsExcluded(menu, name) {
+    if (menu.noExclusion) {return false;}
+    return FORUM_EXCLUDED_NAMES.includes(name.trim().toLowerCase());
+  }
+
+  /** Menu dont c'est la catégorie pour le chemin donné (/forum/rp, /forum/rp/…), sinon null. */
+  function krForumMenuForPath(pathname) {
+    const p = krForumNormalizePath(pathname);
+    return FORUM_MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
+  }
+
+  // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
+  // classe disabled, aria-disabled="true", attribut disabled. Un simple style (grisé, opacité, survol, text-muted) n'en est PAS un.
+  // entry.cls : attribut class brut (jetons séparés par des blancs ASCII, comme classList) ; entry.aria : attribut aria-disabled ;
+  // entry.disabledAttr : présence de l'attribut disabled.
+  function krForumIsDisabledEntry(entry) {
+    return String(entry.cls || '').split(/[\t\n\f\r ]+/).includes('disabled') || entry.aria === 'true' || entry.disabledAttr === true;
+  }
+
+  /**
+   * Analyse la liste latérale native d'une catégorie. entries : liens de la liste, dans l'ordre, déjà réduits à la même origine et hors
+   * blocs de la peau ; chacun { href, key (destination normalisée), cls, aria, disabledAttr, name (libellé sans décoration) }.
+   * Seuls comptent les liens dont la destination est sous « /forum/<catégorie>/ ».
+   * @returns {{ok: true, forums: Array, denied: string[], active: string[]}|{ok: false, reason: string}}
+   */
+  function krForumAnalyzeSidebar(entries, menu) {
+    const forums = [];
+    const seen = new Set();
+    let readable = 0;
+    let deniedCount = 0;
+    const deniedKeys = new Set();
+    const activeKeys = new Set();
+    entries.forEach(entry => {
+      if (!entry.key.startsWith(menu.path + '/')) {return;}
+      // Forum de la catégorie dont l'accès est explicitement coupé : preuve d'accès perdu, jamais ajouté (donc retiré s'il était connu).
+      if (krForumIsDisabledEntry(entry)) {deniedCount += 1; deniedKeys.add(entry.key); return;}
+      const name = entry.name;
+      if (!name) {return;}
+      const key = entry.key;
+      readable += 1;
+      activeKeys.add(key);
+      if (krForumIsExcluded(menu, name) || seen.has(key)) {return;}
+      seen.add(key);
+      forums.push({ name, url: entry.href });
+    });
+    // Destinations explicitement désactivées SANS entrée active pour la même destination : accès perdu, y compris pour les raccourcis fixes
+    // du menu d'origine (Taverne, Marché, Monde en RP). Une destination absente de la liste n'en fait jamais partie.
+    const denied = Array.from(deniedKeys).filter(key => !activeKeys.has(key));
+    // Aucun lien de la catégorie, ni accessible ni explicitement désactivé : source absente ou dégradée, jamais « aucun forum accessible ».
+    // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
+    // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
+    if (!readable && !deniedCount) {return { ok: false, reason: 'no-links' };}
+    return { ok: true, forums, denied, active: Array.from(activeKeys) };
+  }
+
+  /** Entrée mémorisée (texte brut du stockage) validée, ou null. JSON illisible : l'exception remonte à l'appelant. */
+  function krForumParseStored(raw) {
+    if (!raw) {return null;}
+    const data = JSON.parse(raw);
+    if (!data || data.v !== 2 || !Array.isArray(data.forums) || typeof data.at !== 'number') {return null;}
+    // denied : destinations de raccourcis fixes dont l'accès est démontré perdu (absent des entrées écrites avant ce champ = aucun refus).
+    data.denied = Array.isArray(data.denied) ? data.denied.filter(k => typeof k === 'string') : [];
+    return data;
+  }
+
+  // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
+  // denied : refus lus dans cette colonne ; active : destinations explicitement actives de cette colonne.
+  // Refus conservés = (refus mémorisés ∪ nouveaux refus) − destinations actives lues : seule une entrée active de la même destination
+  // lève un refus (ni l'expiration, ni l'absence de la destination, ni un état indisponible).
+  /** Entrée à écrire, ou null si l'entrée mémorisée (current) est plus récente et datée d'au plus 60 s dans le futur. */
+  function krForumMergeStored(current, forums, at, denied, active, now) {
+    // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
+    if (current && current.at > at && current.at <= now + 60000) {return null;}
+    const activeSet = new Set(active || []);
+    const kept = Array.from(new Set([...(current ? current.denied : []), ...(denied || [])])).filter(key => !activeSet.has(key));
+    return { v: 2, at, forums, denied: kept };
+  }
+
+  /**
+   * Liste mémorisée proposable ou non (au plus FORUM_MAX_AGE_MS, au plus 60 s dans le futur) et état observable du menu :
+   * fresh | stale (affiché mais plus vieux que FORUM_STALE_MS) | empty (liste vide valide) | unavailable (aucune liste utilisable).
+   */
+  function krForumListState(stored, now) {
+    const age = stored ? now - stored.at : Infinity;
+    const usable = !!stored && age <= FORUM_MAX_AGE_MS && age >= -60000;
+    let state = 'unavailable';
+    if (usable) {
+      state = !(stored.forums.length) ? 'empty' : (age > FORUM_STALE_MS ? 'stale' : 'fresh');
+    }
+    return { usable, state };
+  }
+  // @kr-pure-end
+
+  // @kr-pure-begin images
+  /** Nom de fichier d'une URL d'image, sans chemin ni paramètres. */
+  function krMapImageName(src) {
+    return String(src).split('?')[0].split('#')[0].split('/').pop();
+  }
+
+  /** URL explicitement exclue du remplacement (CONFIG.MEDIEVAL_NO_REPLACE). */
+  function krMapIsNoReplace(src, noReplace) {
+    return !!(noReplace && noReplace[src]);
+  }
+
+  /**
+   * Cible de la carte médiévale pour une image de carte : exception explicite (overrides) d'abord, sinon /2/map/1b/ ou /2/map/1/ ->
+   * /2/map/5/, sauf nom connu pour être absent de la cible (isAbsent(variante, src)). null : pas de remplacement.
+   */
+  function krMapReplacementFor(src, overrides, isAbsent) {
+    if (!src) {return null;}
+    if (overrides[src]) { return overrides[src]; }
+    if (src.indexOf('/2/map/1b/') !== -1) {
+      if (isAbsent('1b', src)) {return null;}
+      return src.replace('/2/map/1b/', '/2/map/5/');
+    }
+    if (src.indexOf('/2/map/1/') !== -1) {
+      if (isAbsent('1', src)) {return null;}
+      return src.replace('/2/map/1/', '/2/map/5/');
+    }
+    return null;
+  }
+  // @kr-pure-end
+
+  // @kr-pure-begin destinataires
+  // Champ « Destinataires » de la rédaction Kramail : format natif « Nom; Nom; ». Le « ; » est le SEUL séparateur : un nom peut contenir
+  // une virgule, comme sur le site (décision d'Arnaud, Q-3 = a).
+
+  /** Clé de comparaison des doublons : casse et espaces en trop ignorés. */
+  function krKdSameKey(name) {
+    return String(name).replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  /** Repli caractère par caractère (accents et casse) pour filtrer et souligner la partie trouvée. */
+  function krKdFold(text) {
+    const chars = Array.from(String(text));
+    let folded = '';
+    const map = [];
+    chars.forEach((ch, i) => {
+      const f = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      for (let k = 0; k < f.length; k += 1) { folded += f[k]; map.push(i); }
+    });
+    return { folded, map, chars };
+  }
+
+  function krKdFindMatch(name, query) {
+    const q = krKdFold(query.trim()).folded;
+    if (!q) {return null;}
+    const f = krKdFold(name);
+    const at = f.folded.indexOf(q);
+    if (at < 0) {return null;}
+    const start = f.map[at];
+    const end = f.map[at + q.length - 1] + 1;
+    return { start, end, chars: f.chars, prefix: at === 0 };
+  }
+
+  function krKdGroupTag(label) {
+    const l = String(label || '').trim();
+    if (/^membres?$/i.test(l)) {return 'Membre';}
+    return l;
+  }
+
+  /** Saisie contenant « ; » : noms complets (avant chaque « ; », non vides) et reste en cours de frappe (blancs de tête retirés). */
+  function krKdSplitTyped(value) {
+    const parts = value.split(';');
+    const rest = parts.pop();
+    return { names: parts.map(p => p.trim()).filter(Boolean), rest: rest.replace(/^\s+/, '') };
+  }
+
+  /** Valeur native de #dest (c[3]) pour une liste de pastilles. */
+  function krKdDestValue(chips) {
+    return chips.map(n => n + '; ').join('');
+  }
+
+  /** Pastilles reprises d'une valeur déjà présente dans #dest (retour arrière, brouillon) : sans doublon, espaces internes réduits. */
+  function krKdChipsFromDest(value) {
+    const chips = [];
+    String(value || '').split(';').map(p => p.trim()).filter(Boolean).forEach(p => {
+      if (!chips.some(n => krKdSameKey(n) === krKdSameKey(p))) {chips.push(p.replace(/\s+/g, ' '));}
+    });
+    return chips;
+  }
+  // @kr-pure-end
+
+  // ============================================================================
   // PERFORMANCE LOGGING
   // ============================================================================
   const PerfLog = {
@@ -389,12 +662,8 @@
     // qu'une fois le <head> analysé (DOMContentLoaded, ou immédiatement si le script s'exécute plus tard) ;
     // avant, aucun franchissement de seuil n'est pris en compte.
     let loadedAsMobile = null;
-    // Garde-fou : jamais plus de RELOAD_MAX_COUNT rechargements par fenêtre de RELOAD_WINDOW_MS, ni deux à moins de
-    // RELOAD_MIN_GAP_MS d'écart (même si la mesure reste fausse, la page ne peut pas recharger en boucle).
+    // Garde-fou (RELOAD_WINDOW_MS, RELOAD_MAX_COUNT, RELOAD_MIN_GAP_MS : cœur pur « rechargement », en tête du fichier).
     const RELOAD_LOG_KEY = 'kr-breakpoint-reload-log';
-    const RELOAD_WINDOW_MS = 60000;
-    const RELOAD_MAX_COUNT = 10;
-    const RELOAD_MIN_GAP_MS = 1200;
 
     function settleLoadedState() {
       if (loadedAsMobile === null) {
@@ -409,9 +678,7 @@
 
     function readReloadLog() {
       try {
-        const log = JSON.parse(sessionStorage.getItem(RELOAD_LOG_KEY) || '[]');
-        const now = Date.now();
-        return Array.isArray(log) ? log.filter(function (t) { return typeof t === 'number' && now - t >= 0 && now - t < RELOAD_WINDOW_MS; }) : [];
+        return krRecentReloads(JSON.parse(sessionStorage.getItem(RELOAD_LOG_KEY) || '[]'), Date.now());
       } catch (_e) { return []; }
     }
 
@@ -431,8 +698,7 @@
     function reloadAllowed() {
       if (!reloadStorageAvailable()) {return false;}
       const log = readReloadLog();
-      if (log.length >= RELOAD_MAX_COUNT) {return false;}
-      return !log.length || Date.now() - log[log.length - 1] >= RELOAD_MIN_GAP_MS;
+      return krReloadAllowedByLog(log, Date.now());
     }
 
     function recordReload() {
@@ -452,13 +718,8 @@
       });
     }
 
-    const RELOAD_BANNER_TEXT = {
-      input: 'La mise en page s\'adaptera au prochain rechargement. Terminez votre saisie avant de recharger. ',
-      guard: 'La mise en page s\'adaptera au prochain rechargement. Rechargez la page quand vous le souhaitez. '
-    };
-
     function showReloadBanner(reason) {
-      const message = RELOAD_BANNER_TEXT[reason] || RELOAD_BANNER_TEXT.guard;
+      const message = krReloadBannerText(reason);
       const existing = document.getElementById('kr-resize-banner');
       if (existing) {
         const label = existing.querySelector('span');
@@ -501,20 +762,15 @@
 
     function checkBreakpointCrossing() {
       if (!document.body || loadedAsMobile === null) {return;}
-      if (isMobileDevice() === loadedAsMobile) {
+      // Garde-fou atteint (ou stockage inaccessible) : pas de rechargement automatique, le joueur décide (bandeau « guard »)
+      const action = krBreakpointAction(isMobileDevice() !== loadedAsMobile, hasPendingInput, reloadAllowed);
+      if (action === 'hide') {
         hideReloadBanner();
-        return;
+      } else if (action === 'reload') {
+        reloadKeepingScroll();
+      } else {
+        showReloadBanner(action);
       }
-      if (hasPendingInput()) {
-        showReloadBanner('input');
-        return;
-      }
-      if (!reloadAllowed()) {
-        // Garde-fou atteint (ou stockage inaccessible) : pas de rechargement automatique, le joueur décide
-        showReloadBanner('guard');
-        return;
-      }
-      reloadKeepingScroll();
     }
 
     function restoreScrollAfterReload() {
@@ -2913,23 +3169,12 @@
     if (!krAbsentInTargetSets[variant]) {
       krAbsentInTargetSets[variant] = new Set((CONFIG.MEDIEVAL_ABSENT_IN_TARGET || {})[variant] || []);
     }
-    const name = String(src).split('?')[0].split('#')[0].split('/').pop();
-    return krAbsentInTargetSets[variant].has(name);
+    return krAbsentInTargetSets[variant].has(krMapImageName(src));
   }
 
+  // Règle /1/ et /1b/ -> /5/ et exceptions : krMapReplacementFor (cœur pur « images »).
   function computeReplacement(src) {
-    if (!src) {return null;}
-    const overrides = CONFIG.MEDIEVAL_MAP_OVERRIDES || {};
-    if (overrides[src]) { return overrides[src]; }
-    if (src.indexOf('/2/map/1b/') !== -1) {
-      if (isAbsentInTarget('1b', src)) {return null;}
-      return src.replace('/2/map/1b/', '/2/map/5/');
-    }
-    if (src.indexOf('/2/map/1/') !== -1) {
-      if (isAbsentInTarget('1', src)) {return null;}
-      return src.replace('/2/map/1/', '/2/map/5/');
-    }
-    return null;
+    return krMapReplacementFor(src, CONFIG.MEDIEVAL_MAP_OVERRIDES || {}, isAbsentInTarget);
   }
 
   /** Applique ou retire le remplacement d'images pour la carte médiévale */
@@ -2991,7 +3236,7 @@
         }
         if (!src) {return;}
         // Ne pas remplacer les URLs explicitement exclues
-        if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
+        if (krMapIsNoReplace(src, CONFIG.MEDIEVAL_NO_REPLACE)) {return;}
         const target = computeReplacement(src);
         if (!target || krBadTargets[target]) {return;}
 
@@ -3337,7 +3582,7 @@
       var src = img.getAttribute('src');
       if (!src) {return;}
       if (src.indexOf('/2/map/1/') === -1 && src.indexOf('/2/map/1b/') === -1) {return;}
-      if (CONFIG.MEDIEVAL_NO_REPLACE && CONFIG.MEDIEVAL_NO_REPLACE[src]) {return;}
+      if (krMapIsNoReplace(src, CONFIG.MEDIEVAL_NO_REPLACE)) {return;}
       var target = computeReplacement(src);
       if (!target || krBadTargets[target]) {return;}
       // Source d'origine mémorisée AVANT remplacement ; repli automatique si la cible ne charge pas
@@ -4161,9 +4406,9 @@
   //   1. sur toute page d'une catégorie : lecture de la liste latérale AVANT les transformations de la peau (captureForumSidebar est la
   //      1re transformation), puis dessin du menu de CETTE catégorie ; les autres catégories ne changent pas ;
   //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau ;
-  //   3. une liste de plus de MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
+  //   3. une liste de plus de FORUM_MAX_AGE_MS n'est plus proposée (repli : lien vers la page source), jamais reprise comme vraie.
   // Une source absente ou illisible (pas de #col-left, pas de lien de la catégorie, ni accessible ni désactivé) ne remplace RIEN : la liste
-  // précédente reste proposée jusqu'à MAX_AGE_MS. Une liste latérale sans lien n'est PAS une liste vide valide (indiscernable d'une page
+  // précédente reste proposée jusqu'à FORUM_MAX_AGE_MS. Une liste latérale sans lien n'est PAS une liste vide valide (indiscernable d'une page
   // dégradée) : le cache n'est jamais effacé par elle.
   // Q3 (décision d'Arnaud) : une entrée de la catégorie explicitement désactivée (.disabled, aria-disabled="true", disabled) est un accès perdu :
   // elle est retirée du menu si elle y était, jamais ajoutée ; si toutes le sont, la liste devient vide (pas de maintien de l'ancienne).
@@ -4181,34 +4426,14 @@
 
     const STORAGE_PREFIX = 'kr-forums-v2-';
     const LEGACY_PREFIX = 'kr-forums-';
-    const STALE_MS = 24 * 60 * 60 * 1000;
-    const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-    const EXCLUDED_NAMES = ['taverne', 'marché', 'monde', 'communauté', 'débats', 'staff'];
-
-    // attr : valeur de data-forums-added ; staticCount : éléments d'origine conservés en tête du menu.
-    const MENUS = [
-      { id: 'rp', attr: 'rp', path: '/forum/rp', label: 'Forum RP', fallbackText: 'Autre', staticCount: 4 },
-      { id: 'hrp', attr: 'hrp', path: '/forum/hrp', label: 'Forum HRP', fallbackText: 'Voir tous les forums', staticCount: 0, noExclusion: true },
-      { id: 'communaute', attr: 'forum-communaute', path: '/forum/communaute', label: 'Forum Communauté', fallbackText: 'Voir tous les forums', staticCount: 0 },
-      { id: 'debats', attr: 'forum-debats', path: '/forum/debats', label: 'Forum Débats', fallbackText: 'Voir tous les forums', staticCount: 0 },
-      { id: 'staff', attr: 'forum-staff', path: '/forum/staff', label: 'Forum Staff', fallbackText: 'Voir tous les forums', staticCount: 0 }
-    ];
-
-    function normalizePath(p) {
-      return String(p || '').replace(/\/+$/, '').toLowerCase();
-    }
-
-    function isExcluded(menu, name) {
-      if (menu.noExclusion) {return false;}
-      return EXCLUDED_NAMES.includes(name.trim().toLowerCase());
-    }
+    // FORUM_STALE_MS, FORUM_MAX_AGE_MS, FORUM_EXCLUDED_NAMES et FORUM_MENUS : cœur pur « menus-forums », en tête du fichier.
 
     // Chemin normalisé d'une destination (relative, absolue ou avec barre finale) : clé de dédoublonnage.
     function destinationKey(href, baseURI) {
       try {
-        return normalizePath(new window.URL(href, baseURI || document.baseURI).pathname);
+        return krForumNormalizePath(new window.URL(href, baseURI || document.baseURI).pathname);
       } catch (_e) {
-        return normalizePath(href);
+        return krForumNormalizePath(href);
       }
     }
 
@@ -4222,17 +4447,7 @@
       return copy.textContent.replace(/\s+/g, ' ').trim();
     }
 
-    // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
-    // .disabled, aria-disabled="true", attribut disabled. Un simple style (grisé, opacité, survol, text-muted) n'en est PAS un.
-    function isDisabledLink(a) {
-      return a.classList.contains('disabled') || a.getAttribute('aria-disabled') === 'true' || a.hasAttribute('disabled');
-    }
-
-    /** Menu dont c'est la catégorie pour le chemin donné (/forum/rp, /forum/rp/…), sinon null. */
-    function menuForPath(pathname) {
-      const p = normalizePath(pathname);
-      return MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
-    }
+    // Entrée explicitement désactivée : voir krForumIsDisabledEntry (cœur pur), qui lit les attributs bruts relevés ici.
 
     /** Même origine que le document : un lien vers un autre site portant un chemin /forum/rp/… n'est pas un forum de Kraland. */
     function isSameOrigin(href, baseURI) {
@@ -4246,41 +4461,27 @@
     /**
      * Lit la liste latérale native d'un document pour la catégorie d'un menu.
      * Seuls comptent les liens dont la destination est sous « /forum/<catégorie>/ » : Kramail, profils, modérateurs et blocs de la peau
-     * (.kraland-metrics) n'y entrent jamais.
+     * (.kraland-metrics) n'y entrent jamais. Relevé DOM ici, analyse dans krForumAnalyzeSidebar (cœur pur).
      * @returns {{ok: true, forums: Array}|{ok: false, reason: string}}
      */
     function parseSidebar(doc, menu) {
       const colLeft = doc.getElementById('col-left');
       if (!colLeft) {return { ok: false, reason: 'no-sidebar' };}
-      const forums = [];
-      const seen = new Set();
-      let readable = 0;
-      let deniedCount = 0;
-      const deniedKeys = new Set();
-      const activeKeys = new Set();
+      const entries = [];
       colLeft.querySelectorAll('.list-group > a.list-group-item[href]').forEach(a => {
         if (a.closest('.kraland-metrics')) {return;}
         const href = a.getAttribute('href').trim();
-        if (!href || !isSameOrigin(href, doc.baseURI) || !destinationKey(href, doc.baseURI).startsWith(menu.path + '/')) {return;}
-        // Forum de la catégorie dont l'accès est explicitement coupé : preuve d'accès perdu, jamais ajouté (donc retiré s'il était connu).
-        if (isDisabledLink(a)) {deniedCount += 1; deniedKeys.add(destinationKey(href, doc.baseURI)); return;}
-        const name = labelOf(a);
-        if (!name) {return;}
-        const key = destinationKey(href, doc.baseURI);
-        readable += 1;
-        activeKeys.add(key);
-        if (isExcluded(menu, name) || seen.has(key)) {return;}
-        seen.add(key);
-        forums.push({ name, url: href });
+        if (!href || !isSameOrigin(href, doc.baseURI)) {return;}
+        entries.push({
+          href,
+          key: destinationKey(href, doc.baseURI),
+          cls: a.getAttribute('class'),
+          aria: a.getAttribute('aria-disabled'),
+          disabledAttr: a.hasAttribute('disabled'),
+          name: labelOf(a)
+        });
       });
-      // Destinations explicitement désactivées SANS entrée active pour la même destination : accès perdu, y compris pour les raccourcis fixes
-      // du menu d'origine (Taverne, Marché, Monde en RP). Une destination absente de la liste n'en fait jamais partie.
-      const denied = Array.from(deniedKeys).filter(key => !activeKeys.has(key));
-      // Aucun lien de la catégorie, ni accessible ni explicitement désactivé : source absente ou dégradée, jamais « aucun forum accessible ».
-      // Au moins une entrée désactivée de la catégorie (même seule) : source exploitable qui démontre l'absence d'accès, la liste devient vide.
-      // (Des liens lus mais tous déjà présents dans le menu d'origine, p. ex. Taverne/Marché/Monde en RP, donnent une liste vide valide.)
-      if (!readable && !deniedCount) {return { ok: false, reason: 'no-links' };}
-      return { ok: true, forums, denied, active: Array.from(activeKeys) };
+      return krForumAnalyzeSidebar(entries, menu);
     }
 
     function storageKey(menu) {
@@ -4289,31 +4490,19 @@
 
     function readStored(menu) {
       try {
-        const raw = localStorage.getItem(storageKey(menu));
-        if (!raw) {return null;}
-        const data = JSON.parse(raw);
-        if (!data || data.v !== 2 || !Array.isArray(data.forums) || typeof data.at !== 'number') {return null;}
-        // denied : destinations de raccourcis fixes dont l'accès est démontré perdu (absent des entrées écrites avant ce champ = aucun refus).
-        data.denied = Array.isArray(data.denied) ? data.denied.filter(k => typeof k === 'string') : [];
-        return data;
+        return krForumParseStored(localStorage.getItem(storageKey(menu)));
       } catch (e) {
         console.warn('[Forums] Lecture localStorage impossible:', e);
         return null;
       }
     }
 
-    // at : date de la lecture. Une entrée plus récente (autre onglet) n'est jamais écrasée par une lecture plus ancienne.
-    // denied : refus lus dans cette colonne ; active : destinations explicitement actives de cette colonne.
-    // Refus conservés = (refus mémorisés ∪ nouveaux refus) − destinations actives lues : seule une entrée active de la même destination
-    // lève un refus (ni l'expiration, ni l'absence de la destination, ni un état indisponible).
+    // Fusion (date, refus conservés) : krForumMergeStored (cœur pur). Une lecture plus ancienne qu'une entrée mémorisée n'est pas écrite.
     function writeStored(menu, forums, at, denied, active) {
       try {
-        const current = readStored(menu);
-        // Une entrée datée trop loin dans le futur (horloge corrigée en arrière) n'est pas une référence valable.
-        if (current && current.at > at && current.at <= Date.now() + 60000) {return false;}
-        const activeSet = new Set(active || []);
-        const kept = Array.from(new Set([...(current ? current.denied : []), ...(denied || [])])).filter(key => !activeSet.has(key));
-        localStorage.setItem(storageKey(menu), JSON.stringify({ v: 2, at, forums, denied: kept }));
+        const record = krForumMergeStored(readStored(menu), forums, at, denied, active, Date.now());
+        if (!record) {return false;}
+        localStorage.setItem(storageKey(menu), JSON.stringify(record));
         return true;
       } catch (e) {
         console.error('[Forums] Sauvegarde localStorage impossible:', e);
@@ -4323,7 +4512,7 @@
 
     function purgeLegacy() {
       try {
-        MENUS.forEach(menu => localStorage.removeItem(LEGACY_PREFIX + menu.id));
+        FORUM_MENUS.forEach(menu => localStorage.removeItem(LEGACY_PREFIX + menu.id));
       } catch (_e) { /* stockage inaccessible : rien à purger */ }
     }
 
@@ -4344,7 +4533,7 @@
 
     /** Lit la liste latérale de la page courante si elle appartient à la catégorie du menu. */
     function refreshFromCurrentPage(menu) {
-      if (menuForPath(window.location.pathname) !== menu) {return false;}
+      if (krForumMenuForPath(window.location.pathname) !== menu) {return false;}
       if (isServedFromHttpCache()) {
         console.warn(`[Forums] ${menu.label} : page servie par le cache HTTP, colonne ancienne non relue, liste mémorisée conservée`);
         return false;
@@ -4367,8 +4556,8 @@
       const dropdown = document.querySelector(`[data-forums-added="${menu.attr}"] .dropdown-menu`);
       if (!dropdown) {return;}
       const stored = readStored(menu);
-      const age = stored ? Date.now() - stored.at : Infinity;
-      const usable = stored && age <= MAX_AGE_MS && age >= -60000;
+      const list = krForumListState(stored, Date.now());
+      const usable = list.usable;
 
       // Raccourcis fixes d'origine (Taverne, Marché, Monde en RP) : mémorisés au premier dessin, car un raccourci retiré (accès perdu) doit
       // pouvoir revenir si l'accès est rétabli. Un autre <ul> (menu recréé) invalide la mémoire.
@@ -4413,11 +4602,7 @@
         dropdown.appendChild(li);
       }
       // État observable : fresh | stale (affiché mais ancien) | empty (liste vide valide) | unavailable (aucune liste utilisable)
-      let state = 'unavailable';
-      if (usable) {
-        state = !(stored.forums.length) ? 'empty' : (age > STALE_MS ? 'stale' : 'fresh');
-      }
-      dropdown.setAttribute('data-kr-forums-state', state);
+      dropdown.setAttribute('data-kr-forums-state', list.state);
     }
 
     // Menus dont la liste latérale a déjà été lue pour ce chargement de page : une seule lecture, avant la peau.
@@ -4439,18 +4624,18 @@
     // `force` (tests) : relire le DOM après la peau ; le filtrage par destination et l'exclusion des blocs de la peau donnent le même résultat.
     window.captureForumSidebar = function captureForumSidebar(force) {
       purgeLegacy();
-      const menu = menuForPath(window.location.pathname);
+      const menu = krForumMenuForPath(window.location.pathname);
       if (menu) {capture(menu, force === true);}
     };
 
-    window.updateForumRPMenu = function () { update(MENUS[0]); };
-    window.updateForumHRPMenu = function () { update(MENUS[1]); };
-    window.updateForumCommunauteMenu = function () { update(MENUS[2]); };
-    window.updateForumDebatsMenu = function () { update(MENUS[3]); };
-    window.updateForumStaffMenu = function () { update(MENUS[4]); };
+    window.updateForumRPMenu = function () { update(FORUM_MENUS[0]); };
+    window.updateForumHRPMenu = function () { update(FORUM_MENUS[1]); };
+    window.updateForumCommunauteMenu = function () { update(FORUM_MENUS[2]); };
+    window.updateForumDebatsMenu = function () { update(FORUM_MENUS[3]); };
+    window.updateForumStaffMenu = function () { update(FORUM_MENUS[4]); };
 
     // Un autre onglet a mis la liste à jour, ou la page revient du cache de navigation : on redessine depuis le stockage.
-    const renderAll = () => MENUS.forEach(render);
+    const renderAll = () => FORUM_MENUS.forEach(render);
     window.addEventListener('storage', e => {
       if (e.key && e.key.startsWith(STORAGE_PREFIX)) {renderAll();}
     });
@@ -4855,26 +5040,20 @@
         if (s.children.length === 0 && !s.classList.contains('kr-page-gap') && s.textContent.trim() === '…') { s.classList.add('kr-page-hidden'); }
       });
       const nums = numbered.map(a => Number(a.textContent.trim()));
-      const first = nums[0] === 1 ? nums[0] : 1;
-      const last = nums[nums.length - 1];
       const currentButton = numbered.find(a => a.classList.contains('current'));
-      const current = currentButton ? Number(currentButton.textContent.trim()) : first;
-      const keep = new Set([first, last, current]);
-      if (current <= 2) { [1, 2, 3].forEach(n => keep.add(n)); }
-      if (current >= last - 1) { [last - 2, last - 1, last].forEach(n => keep.add(n)); }
-      let previousShown = null;
+      // Boutons gardés et sauts : krCompactPageLayout (cœur pur « pagination »).
+      const layout = krCompactPageLayout(nums, currentButton ? Number(currentButton.textContent.trim()) : null);
       numbered.forEach((a, i) => {
-        const hide = mobile && !keep.has(nums[i]);
+        const hide = layout[i].hidden;
         a.classList.toggle('kr-page-hidden', hide);
         if (hide) {return;}
-        if (previousShown !== null && nums[i] - previousShown > 1) {
+        if (layout[i].gapBefore) {
           const gap = document.createElement('span');
           gap.className = 'kr-page-gap';
           gap.setAttribute('aria-hidden', 'true');
           gap.textContent = '…';
           a.parentNode.insertBefore(gap, a);
         }
-        previousShown = nums[i];
       });
     }
 
@@ -5987,46 +6166,15 @@
       return !!document.body && (document.body.classList.contains('page-kramail-compose') || /\/kramail\/post\/nouveau/.test(window.location.pathname));
     }
 
-    // Comparaison des doublons : casse et espaces en trop ignorés
-    function sameKey(name) {
-      return String(name).replace(/\s+/g, ' ').trim().toLowerCase();
-    }
-
-    // Repli caractère par caractère (accents et casse) pour filtrer et souligner la partie trouvée
-    function fold(text) {
-      const chars = Array.from(String(text));
-      let folded = '';
-      const map = [];
-      chars.forEach((ch, i) => {
-        const f = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        for (let k = 0; k < f.length; k += 1) { folded += f[k]; map.push(i); }
-      });
-      return { folded, map, chars };
-    }
-
-    function findMatch(name, query) {
-      const q = fold(query.trim()).folded;
-      if (!q) {return null;}
-      const f = fold(name);
-      const at = f.folded.indexOf(q);
-      if (at < 0) {return null;}
-      const start = f.map[at];
-      const end = f.map[at + q.length - 1] + 1;
-      return { start, end, chars: f.chars, prefix: at === 0 };
-    }
-
-    function groupTag(label) {
-      const l = String(label || '').trim();
-      if (/^membres?$/i.test(l)) {return 'Membre';}
-      return l;
-    }
+    // Doublons (krKdSameKey), repli des accents (krKdFold), partie trouvée (krKdFindMatch), groupe (krKdGroupTag) : cœur pur
+    // « destinataires », en tête du fichier.
 
     // Contacts : options écrites par le serveur dans #contacts (groupes Membres / Plateau), valeur = texte inséré par « + »
     function readContacts(select) {
       const out = [];
       Array.from(select.children).forEach(child => {
         if (child.tagName === 'OPTGROUP') {
-          Array.from(child.children).forEach(o => { if (o.tagName === 'OPTION' && o.value) {out.push({ name: o.value, group: groupTag(child.label), source: 'contacts' });} });
+          Array.from(child.children).forEach(o => { if (o.tagName === 'OPTION' && o.value) {out.push({ name: o.value, group: krKdGroupTag(child.label), source: 'contacts' });} });
         } else if (child.tagName === 'OPTION' && child.value) {
           out.push({ name: child.value, group: '', source: 'contacts' });
         }
@@ -6047,7 +6195,7 @@
       while (walker.nextNode()) {
         const n = walker.currentNode;
         if (n.nodeType === 1 && n.tagName === 'STRONG') {
-          group = groupTag(n.textContent);
+          group = krKdGroupTag(n.textContent);
         } else if (n.nodeType === 1 && n.tagName === 'A') {
           if (n.hasAttribute('onclick')) {links += 1;}
           const m = /\.value\s*\+\s*"([\s\S]*); "\s*;\s*return false;?\s*$/.exec(n.getAttribute('onclick') || '');
@@ -6151,13 +6299,13 @@
       // Seules les pastilles partent dans #dest. Un texte tapé mais pas validé n'y est jamais écrit : tant qu'il reste,
       // #dest porte une erreur de validité, la validation native bloque l'envoi et l'événement invalid affiche « Validez ou effacez ».
       function syncDest() {
-        dest.value = state.chips.map(n => n + '; ').join('');
+        dest.value = krKdDestValue(state.chips);
         const pending = state.text.trim();
         dest.setCustomValidity(pending ? 'Validez ou effacez « ' + pending + ' »' : '');
       }
 
       function hasChip(name) {
-        return state.chips.some(n => sameKey(n) === sameKey(name));
+        return state.chips.some(n => krKdSameKey(n) === krKdSameKey(name));
       }
 
       function say(text, warn) {
@@ -6227,7 +6375,7 @@
         if (!q) { say(''); input.focus(); return; }
         if (hasChip(q)) {
           // déjà choisi : rien à ajouter, la saisie est retirée et on le dit
-          const existing = state.chips.find(n => sameKey(n) === sameKey(q));
+          const existing = state.chips.find(n => krKdSameKey(n) === krKdSameKey(q));
           setText('');
           scheduleDirectory('');
           closePanel();
@@ -6252,7 +6400,7 @@
         state.chips.forEach((name, index) => {
           const li = el('li', 'kd-chip');
           if (index === state.selectedChip) {li.classList.add('is-selected');}
-          if (dupKeys && dupKeys.has(sameKey(name))) {li.classList.add('is-dup');}
+          if (dupKeys && dupKeys.has(krKdSameKey(name))) {li.classList.add('is-dup');}
           li.appendChild(el('span', 'kd-chip-name', name));
           const x = el('button', 'kd-chip-x');
           x.type = 'button';
@@ -6272,8 +6420,8 @@
         const clean = String(name).trim();
         if (!clean) {return false;}
         if (hasChip(clean)) {
-          const existing = state.chips.find(n => sameKey(n) === sameKey(clean));
-          state.flash = sameKey(clean);
+          const existing = state.chips.find(n => krKdSameKey(n) === krKdSameKey(clean));
+          state.flash = krKdSameKey(clean);
           say(existing + ' est déjà dans les destinataires.', true);
           live.textContent = existing + ' est déjà dans les destinataires.';
           renderChips(new Set([state.flash]));
@@ -6334,7 +6482,7 @@
       // Les noms qui commencent par la saisie d'abord. keepAll : l'annuaire a déjà filtré côté serveur, on n'écarte aucun de ses noms.
       function sortByPrefix(items, q, keepAll) {
         return items
-          .map((it, i) => ({ it, i, m: findMatch(it.name, q) }))
+          .map((it, i) => ({ it, i, m: krKdFindMatch(it.name, q) }))
           .filter(x => keepAll || x.m)
           .sort((a, b) => {
             const pa = !!(a.m && a.m.prefix);
@@ -6358,8 +6506,8 @@
         if (mine.length) {sections.push({ id: 'c', title: 'Vos contacts', items: mine, icon: 'fas fa-address-book', tags: true });}
         let dirItems = [];
         if (q.length >= MIN_DIRECTORY && state.dir.q === q && state.dir.status === 'done') {
-          const known = new Set(contacts.map(c => sameKey(c.name)));
-          dirItems = sortByPrefix(state.dir.items.filter(it => !known.has(sameKey(it.name))), q, true);
+          const known = new Set(contacts.map(c => krKdSameKey(c.name)));
+          dirItems = sortByPrefix(state.dir.items.filter(it => !known.has(krKdSameKey(it.name))), q, true);
           if (dirItems.length) {sections.push({ id: 'a', title: 'Annuaire du jeu', note: 'début du nom d’abord', items: dirItems, icon: 'fas fa-user', tags: true });}
         }
         const loading = q.length >= MIN_DIRECTORY && state.dir.status === 'loading';
@@ -6377,7 +6525,7 @@
         ico.appendChild(icon(dup ? 'fas fa-check' : (item.free ? 'fas fa-plus' : section.icon)));
         opt.appendChild(ico);
         const nameNode = el('span', 'kd-opt-name');
-        const m = q && !item.free ? findMatch(item.name, q) : null;
+        const m = q && !item.free ? krKdFindMatch(item.name, q) : null;
         if (m) {
           nameNode.appendChild(document.createTextNode(m.chars.slice(0, m.start).join('')));
           nameNode.appendChild(el('mark', '', m.chars.slice(m.start, m.end).join('')));
@@ -6420,7 +6568,7 @@
             section.items.forEach(item => {
               const o = optionNode(item, section, index, q);
               index += 1;
-              if (o.disabled) {dupKeys.add(sameKey(item.name));}
+              if (o.disabled) {dupKeys.add(krKdSameKey(item.name));}
               state.options.push(o);
               group.appendChild(o.node);
             });
@@ -6553,10 +6701,9 @@
         // « ; » (séparateur natif, le SEUL) : découpe en pastilles, y compris au collage « A; B; C » (un doublon refusé reste signalé).
         // La virgule ne sépare pas : un nom peut en contenir une, comme sur le site (décision d'Arnaud, Q-3 = a).
         if (value.indexOf(';') !== -1) {
-          const parts = value.split(';');
-          const rest = parts.pop();
-          parts.map(p => p.trim()).filter(Boolean).forEach(p => addChip(p));
-          value = rest.replace(/^\s+/, '');
+          const typed = krKdSplitTyped(value);
+          typed.names.forEach(p => addChip(p));
+          value = typed.rest;
           input.value = value;
         }
         setText(value);
@@ -6652,7 +6799,7 @@
       input.addEventListener('input', () => { if (!state.blocked) {field.classList.remove('is-invalid');} });
 
       // Valeur déjà présente dans #dest (retour arrière du navigateur, brouillon) : reprise en pastilles
-      String(dest.value || '').split(';').map(p => p.trim()).filter(Boolean).forEach(p => { if (!hasChip(p)) {state.chips.push(p.replace(/\s+/g, ' '));} });
+      krKdChipsFromDest(dest.value).forEach(p => state.chips.push(p));
       if (state.chips.length) {syncDest();}
 
       // ---------- mise en place : zones natives masquées, jamais retirées ----------

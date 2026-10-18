@@ -58,12 +58,13 @@ export function orderLongestFirst(units, durations = {}) {
 }
 
 // Zones touchées d'après un fichier. Valeurs spéciales : 'all' (total), 'generated' (bundle : la source fait foi), 'lint' (outillage :
-// lint seul, aucune suite), 'registry' (router.mjs : diff du registre), 'router-test' (test du routeur seul), 'package' (package.json :
-// clés comparées), 'suite' (fichier de suite : cette suite et celles qui l'importent).
+// lint seul, aucune suite), 'registry' (router.mjs : diff du registre), 'router-test' (test du routeur seul), 'unit' (tests unitaires du
+// cœur pur seuls, node --test), 'package' (package.json : clés comparées), 'suite' (fichier de suite : cette suite et celles qui l'importent).
 export const FILE_RULES = [
   [/^tests\/e2e\/run\.mjs$|^package-lock\.json$/, 'all'],
   [/^tests\/e2e\/lib\/router\.mjs$/, 'registry'],
   [/^tests\/e2e\/lib\/router\.test\.mjs$/, 'router-test'],
+  [/^tests\/unit\//, 'unit'], // cœur pur (lot F) : tests et chargeur sans navigateur ; le template, lui, relance aussi ces tests
   [/^package\.json$/, 'package'],
   [/^tests\/e2e\/lib\//, 'all'],
   [/^tests\/e2e\/[\w-]+\.mjs$/, 'suite'],
@@ -112,6 +113,16 @@ export const SECTIONS = [
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']]
 ];
+// Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
+// qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc
+// absent de cette table (nouveau, renommé) ne rattache rien : le hunk retombe sur la règle des sections (CŒUR PUR transverse -> total).
+export const PURE_BLOCKS = {
+  pagination: ['sous-forum'],
+  rechargement: BASCULE_ZONES,
+  'menus-forums': ['menus-forums'],
+  images: ['images'], // image-fallback, map-exclusions (et audit-map-images, même zone)
+  destinataires: ['kramail']
+};
 // Repère de classe ou d'id cité par une suite : le hunk qui le touche lance aussi les suites qui le citent (au plus MAX_CITING suites :
 // au-delà, le repère est transverse, ex. mobile-mode, et les mots-clés en décident). S'ajoute aux zones, ne remplace jamais l'élargissement.
 const MAX_CITING = 3;
@@ -171,7 +182,7 @@ export function registryUnits(before, after) {
 
 // Sections de premier niveau du template : [{ line (1-based), title }]. Un en-tête est une boîte « // ====… », une ou plusieurs lignes de
 // commentaire (la première est le titre), « // ====… » ; la ligne de fermeture n'ouvre jamais une autre boîte.
-function templateSections(text) {
+export function templateSections(text) {
   const out = [];
   const lines = (text || '').split('\n');
   const bar = l => /^ {2}\/\/ ={5,}\s*$/.test(l);
@@ -181,6 +192,17 @@ function templateSections(text) {
     while (j < lines.length && j - i <= 12 && /^ {2}\/\/ /.test(lines[j]) && !bar(lines[j])) { j += 1; }
     if (j > i + 1 && j < lines.length && bar(lines[j])) { out.push({ line: i + 2, title: lines[i + 1].replace(/^ {2}\/\/ /, '').trim() }); i = j; }
   }
+  return out;
+}
+// Blocs du cœur pur du template : [{ name, start, end }] (lignes 1-based, marqueurs compris). Un bloc non fermé n'est pas retenu.
+export function pureBlocks(text) {
+  const out = [];
+  let open = null;
+  (text || '').split('\n').forEach((l, i) => {
+    const b = l.match(/^\s*\/\/ @kr-pure-begin ([\w-]+)\s*$/);
+    if (b) { open = { name: b[1], start: i + 1 }; return; }
+    if (open && /^\s*\/\/ @kr-pure-end\s*$/.test(l)) { out.push({ ...open, end: i + 1 }); open = null; }
+  });
   return out;
 }
 // Sélecteur de la règle CSS qui englobe la ligne `at` (1-based) : texte des lignes qui précèdent l'accolade ouvrante non fermée.
@@ -218,13 +240,14 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
       if (mb) { diffArgs = [mb[0].trim()]; files = git(['diff', '--name-only', diffArgs[0]]); reasons.push('arbre propre : comparaison avec ' + diffArgs[0].slice(0, 9)); }
     }
   }
-  if (files === null) { return { zones: ZONES, units: [], reasons: ['git indisponible : total par prudence'], widened: true }; }
+  if (files === null) { return { zones: ZONES, units: [], reasons: ['git indisponible : total par prudence'], widened: true, unitTest: true }; }
   files = [...new Set(files.filter(Boolean))];
   const readOld = f => { const l = git(['show', `${diffArgs[0]}:${f}`]); return l === null ? null : l.join('\n'); };
   const zones = new Set();
   const units = new Set();
   let widened = false;
   let routerTest = false;
+  let unitTest = false;
   const lint = [];
   const generated = [];
   const widen = why => { widened = true; reasons.push(why); };
@@ -253,10 +276,12 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
       }
       if (!hunks.length) { widen(f + ' : diff illisible'); continue; }
       // Template : tout module peut ajouter une mise en forme différée ; le garde-fou vérifie qu'elle est suivie par InitQueue (quelques secondes).
-      if (f.endsWith('.js')) { units.add(GARDE_INIT); }
+      // Il porte aussi le cœur pur (blocs @kr-pure-begin) : les tests unitaires (node --test, < 1 s) repassent à chaque modification.
+      if (f.endsWith('.js')) { units.add(GARDE_INIT); unitTest = true; }
       const text = readNew(f);
       const lines = text === null ? [] : text.split('\n');
       const sections = f.endsWith('.js') ? templateSections(text) : [];
+      const blocks = f.endsWith('.js') ? pureBlocks(text) : [];
       for (const h of hunks) {
         const where = h.head.split('@@')[1].trim();
         const own = h.head + '\n' + h.body;
@@ -267,10 +292,14 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
           const last = h.start + Math.max(h.count, 1) - 1;
           const inScope = sections.filter((s, i) => s.line <= last && (i + 1 >= sections.length || sections[i + 1].line > h.start));
           const known = inScope.map(s => SECTIONS.find(([re]) => re.test(s.title)));
+          // Cœur pur : hunk dont chaque ligne tombe dans un bloc connu -> zones de ces blocs (la section CŒUR PUR, transverse, n'élargit pas).
+          const pure = blocks.filter(b => b.start <= last && b.end >= h.start && PURE_BLOCKS[b.name]);
+          const inPure = pure.length > 0 && Array.from({ length: last - h.start + 1 }, (_x, k) => h.start + k).every(n => pure.some(b => b.start <= n && n <= b.end));
+          if (inPure) { pure.forEach(b => PURE_BLOCKS[b.name].forEach(z => hit.add(z))); }
           if (!hit.size && !(inScope.length && known.every(Boolean))) {
             widen(`${f} ${where} : aucune zone reconnue (module transverse : ${inScope.map(s => s.title).join(' / ') || 'en-tête'})`); continue;
           }
-          known.filter(Boolean).forEach(k => k[1].forEach(z => hit.add(z)));
+          if (!inPure) { known.filter(Boolean).forEach(k => k[1].forEach(z => hit.add(z))); }
         } else {
           // Hunk de déclarations seules : la règle englobante dit quel composant est touché. Un mot-clé de bascule (mobile-mode...) n'y suffit
           // pas : c'est une portée, pas un composant.
@@ -290,6 +319,7 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
     if (z === 'all') { widen(f + ' : touche le lanceur ou les dépendances'); continue; }
     if (z === 'lint') { lint.push(f); continue; }
     if (z === 'router-test') { routerTest = true; continue; }
+    if (z === 'unit') { unitTest = true; reasons.push(f + ' : tests unitaires du cœur pur (aucune suite e2e)'); continue; }
     if (z === 'registry') {
       routerTest = true;
       const before = registryOf(readOld(f)); const after = registryOf(readNew(f));
@@ -341,8 +371,8 @@ export function zonesFromDiff(baseRef, git = gitLines, readNew = readWorktree) {
   // Un diff qui ne touche QUE des fichiers générés (build, résolution de conflit) : la source ne dit rien, on ne peut pas conclure -> total.
   const isInert = f => FILE_RULES.some(([re, v]) => re.test(f) && ((Array.isArray(v) && v.length === 0) || v === 'lint'));
   if (generated.length && !files.some(f => !generated.includes(f) && !isInert(f))) { widen(generated.join(', ') + ' : seul le bundle généré a changé'); }
-  if (widened) { return { zones: ZONES, units: [], reasons, widened: true, files, routerTest }; }
-  return { zones: [...zones], units: [...units], reasons, widened: false, files, routerTest };
+  if (widened) { return { zones: ZONES, units: [], reasons, widened: true, files, routerTest, unitTest: true }; }
+  return { zones: [...zones], units: [...units], reasons, widened: false, files, routerTest, unitTest };
 }
 
 // Unités (de buildUnits) retenues par un résultat de zonesFromDiff : zone choisie, ou id/suite cité explicitement.
