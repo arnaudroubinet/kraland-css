@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
-import { krReady, THEME_READY } from './lib/settle.mjs';
+import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -91,7 +91,7 @@ check('pastille dans la boîte de sa cellule', () => assert.ok(s.skills.every(k 
 console.log('Étiquette au survol et au focus (pointeur précis)');
 check('étiquette masquée au repos, légende masquée', () => assert.ok(s.skills.every(k => k.after === 'hidden' && k.captionDisplay === 'none')));
 await page.hover('#skills-panel a.kr-skill >> nth=1');
-await page.waitForTimeout(300);
+await styleSettled(page, '#skills-panel a.kr-skill', { index: 1, state: ':hover' }); // au lieu de 300 ms
 const hovered = await page.evaluate(() => { const e = document.querySelectorAll('#skills-panel a.kr-skill')[1]; return { v: getComputedStyle(e, '::after').display === 'none' ? 'hidden' : 'visible', c: getComputedStyle(e, '::after').content }; });
 check('étiquette « Nom · N » visible au survol', () => { assert.equal(hovered.v, 'visible'); assert.ok(hovered.c.includes('Combat Mains Nues · 2'), hovered.c); });
 await page.mouse.move(700, 600);
@@ -128,11 +128,13 @@ check('pas de débordement horizontal', () => assert.equal(s.overflowX, 0, `${s.
 
 console.log('Idempotence (réinjection du script par-dessus un DOM déjà transformé)');
 await page.evaluate((src) => {
+  // Le nouvel InitQueue reposera html[data-kr-ready] après ses tâches différées : condition au lieu de 2,5 s
+  document.documentElement.removeAttribute('data-kr-ready');
   // eslint-disable-next-line no-eval
   (0, eval)(src);
   document.body.appendChild(document.createElement('span'));
 }, userscript);
-await page.waitForTimeout(2500);
+await krReady(page, { label: 'réinjection plateau' });
 const s2 = await snapshot();
 check('aucun doublon de grille, de pastille ni de légende après réinjection', () => { assert.equal(s2.gridCount, 1); assert.equal(s2.quickCount, 1); assert.equal(s2.skills.length, 4); });
 check('actions et accès rapides inchangés après réinjection', () => { assert.deepEqual(s2.gridTexts, ['Dormir', 'Prier', 'Pouvoir', 'Fouiller']); assert.deepEqual(s2.quickTexts, ['Agir', 'Matériel', 'Personnage', 'Bâtiments', 'Employés']); });
@@ -143,7 +145,10 @@ console.log('Tactile et tablette large (hover: none, pointer: coarse) : 1180 px'
 await page.setViewportSize({ width: 1180, height: 820 });
 await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
 await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
-await page.waitForTimeout(1800);
+// Au lieu de 1,8 s : redimensionnement distribué et règles (hover: none) appliquées (légendes affichées), borné sans erreur
+await frames(page);
+await waitState(page, () => window.matchMedia('(hover: none)').matches && [...document.querySelectorAll('#skills-panel .kr-skill-caption')].every(c => getComputedStyle(c).display !== 'none'), null, { maxMs: 3000 });
+await frames(page);
 const t = await snapshot();
 check('légende du nom visible sans survol, ≥ 11 px', () => assert.ok(t.skills.every(k => k.captionDisplay !== 'none' && k.captionFont >= 11), JSON.stringify(t.skills.map(k => [k.captionDisplay, k.captionFont]))));
 check('légendes = noms des compétences', () => assert.deepEqual(t.skills.map(k => k.caption), ['Baratin', 'Combat Mains Nues', 'Vol', 'Pouvoir']));

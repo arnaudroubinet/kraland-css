@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { confineNetwork } from './lib/confinement.mjs';
+import { frames, krReady, styleSettled, waitState, watchMutations } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -115,9 +116,26 @@ async function load(page, width, html, waitBlock = true) {
   currentHtml = html;
   await page.setViewportSize({ width, height: 800 });
   await page.goto(TARGET, { waitUntil: 'load' });
-  if (waitBlock) { await page.waitForSelector('.kr-nav-v2', { timeout: 6000 }).catch(() => {}); }
-  await page.waitForTimeout(waitBlock ? 500 : 2500);
+  // Fin d'initialisation (html[data-kr-ready] : syncNavigation et son anti-rebond suivis par InitQueue) au lieu de 500 / 2 500 ms.
+  // Bloc attendu : condition bornée sans erreur (la vérification tranche). Absence attendue : le marqueur ne prouve rien d'un traitement
+  // non enregistré dans InitQueue ; les cas « aucun bloc » ajoutent donc la fenêtre d'absence ABSENCE_MS (absenceWindow).
+  await krReady(page, { label: 'croix ' + width });
+  if (waitBlock) { await waitState(page, () => !!document.querySelector('.kr-nav-v2'), null, { maxMs: 6000 }); }
 }
+// Fenêtre d'absence des cas « aucun bloc » (impossibles, natif), remplace l'ancienne attente de 2 500 ms : 1 000 ms observés APRÈS le
+// marqueur couvrent toute synchronisation tardive armée jusqu'à 1 s après l'initialisation (minuterie nue hors InitQueue, qui
+// construirait le bloc ou masquerait le natif). Aucune mutation n'est attendue : le moindre changement du DOM est un échec.
+const ABSENCE_MS = 1000;
+const absenceWindow = page => watchMutations(page, { ms: ABSENCE_MS });
+// Réinjection du userscript : un nouvel InitQueue reposera html[data-kr-ready] quand sa synchronisation différée sera finie.
+async function reinject(page) {
+  // eslint-disable-next-line no-eval
+  await page.evaluate(src => { document.documentElement.removeAttribute('data-kr-ready'); (0, eval)(src); }, userscript);
+  await krReady(page, { label: 'croix réinjection' });
+}
+// Synchronisation après une mutation de la zone native (anti-rebond de 120 ms, hors InitQueue une fois le marqueur posé) :
+// condition observable propre à chaque cas, bornée sans erreur, puis deux images.
+async function synced(page, fn, arg = null) { await waitState(page, fn, arg, { maxMs: 3000 }); await frames(page); }
 
 // Mesures DOM d'une page transformée
 const measure = (page) => page.evaluate(() => {
@@ -246,6 +264,8 @@ if (frag('impossibles')) {
   for (const [label, st] of Object.entries(IMPOSSIBLE)) {
     console.log(`CA10 ${label}`);
     await load(page, 375, fixtureHtml(st), false);
+    const late = await absenceWindow(page);
+    check(`aucune mutation pendant ${ABSENCE_MS} ms après le marqueur (fenêtre d'absence)`, () => assert.deepEqual(late, []));
     const m = await measure(page);
     check('aucun bloc, natif visible et intact', () => { assert.ok(m.mobile); assert.equal(m.nBlocks, 0); assert.notEqual(m.native.display, 'none'); assert.equal(m.native.inline, ''); });
     check('image map native intacte', () => { if (!st.noMap) { assert.equal(m.native.imgUsemap, '#exitmap'); assert.ok(m.native.mapInDoc); } assert.equal(m.native.areas.length, st.noMap ? 0 : (st.areaOverride ? (st.areaOverride.match(/<area/g) || []).length : 4)); });
@@ -282,21 +302,17 @@ if (frag('clics')) {
   await c2.close();
 
   console.log('CA8 idempotence : 3 réinjections et mutation de la zone native');
-  for (let i = 0; i < 3; i += 1) {
-    // eslint-disable-next-line no-eval
-    await page.evaluate(src => { (0, eval)(src); }, userscript);
-    await page.waitForTimeout(500);
-  }
+  for (let i = 0; i < 3; i += 1) { await reinject(page); }
   let m = await measure(page);
   check('3 réinjections : 1 seul bloc, 4 touches, 5 pièces', () => { assert.equal(m.nBlocks, 1); assert.equal(m.block.arms.length, 4); assert.equal(m.block.rooms.length, 5); });
   let r = await click('.kr-room[href$="FIXTURE-room-2"]');
   check('après réinjections : 1 clic = 1 navigation et 1 onclick', () => { assert.equal(r.reqs.length, 1); assert.deepEqual(r.clicks, ['room2']); });
   await page.evaluate(() => { const z = document.getElementById('zone-native'); const c = z.cloneNode(true); c.style.removeProperty('display'); z.replaceWith(c); }); // re-rendu du natif, mêmes liens
-  await page.waitForTimeout(600);
+  await synced(page, () => getComputedStyle(document.getElementById('zone-native')).display === 'none'); // natif re-masqué
   m = await measure(page);
   check('mutation (re-rendu identique) : 1 bloc, natif re-masqué', () => { assert.equal(m.nBlocks, 1); assert.equal(m.native.display, 'none'); });
   await page.evaluate(() => { document.querySelector('#zone-native area[alt="Sud"]').setAttribute('href', '/jouer/plateau/FIXTURE-dir-sud-modifie'); });
-  await page.waitForTimeout(600);
+  await synced(page, () => { const a = document.querySelector('.kr-nav-v2 .kr-arm[data-dir="Sud"]'); return !!a && a.getAttribute('href') === '/jouer/plateau/FIXTURE-dir-sud-modifie'; });
   m = await measure(page);
   check('mutation (href natif modifié) : 1 bloc reconstruit avec le nouveau href', () => { assert.equal(m.nBlocks, 1); assert.equal(m.block.arms.find(a => a.dir === 'Sud').href, '/jouer/plateau/FIXTURE-dir-sud-modifie'); });
   r = await click('.kr-arm[data-dir="Sud"]');
@@ -308,7 +324,9 @@ if (frag('clics')) {
   const seq = [[768, 0], [375, 1], [1280, 0], [700, 1]];
   for (const [w, expectBlocks] of seq) {
     await page.setViewportSize({ width: w, height: 800 });
-    await page.waitForTimeout(900);
+    // Au lieu de 900 ms : le bloc suit la largeur (anti-rebond 120 ms) ET la vérification de franchissement du seuil (anti-rebond
+    // 400 ms) a tranché : saisie en cours, donc bandeau « rechargement différé » au-dessus de 768 px (chargé à 375), aucun en dessous.
+    await synced(page, ({ n, wide }) => document.querySelectorAll('.kr-nav-v2').length === n && !!document.getElementById('kr-resize-banner') === wide, { n: expectBlocks, wide: w >= 768 });
     const s = await measure(page);
     check(`${w} px : blocs = ${expectBlocks}`, () => assert.equal(s.nBlocks, expectBlocks));
     if (!expectBlocks) {
@@ -327,8 +345,7 @@ if (frag('transitions')) {
   const { page, context } = await newPage();
   console.log('CA9 transitions 375 → 768 → 375 → 1280 → 700 (le skin recharge au franchissement du seuil)');
   for (const [w, expectBlocks] of [[375, 1], [768, 0], [375, 1], [1280, 0], [700, 1]]) {
-    await load(page, w, fixtureHtml(STATES['FIXTURE 4 directions, 5 pièces']), expectBlocks === 1);
-    await page.waitForTimeout(800);
+    await load(page, w, fixtureHtml(STATES['FIXTURE 4 directions, 5 pièces']), expectBlocks === 1); // load attend déjà data-kr-ready (au lieu de 800 ms de plus)
     const s = await measure(page);
     check(`${w} px : ${expectBlocks} bloc${expectBlocks ? ', natif masqué' : ', natif visible, image map et 4 areas intactes'}`, () => {
       assert.equal(s.nBlocks, expectBlocks);
@@ -392,10 +409,10 @@ for (const variant of VARIANTS.filter(() => frag('m1'))) {
   const light = !variant.endsWith('-dark');
   const normal = await armColors(page, 'Sud');
   await page.mouse.move(normal.x, normal.y);
-  await page.waitForTimeout(150);
+  await styleSettled(page, '.kr-arm[data-dir="Sud"]', { state: ':hover' });
   const hover = await armColors(page, 'Sud');
   await page.mouse.down();
-  await page.waitForTimeout(150);
+  await styleSettled(page, '.kr-arm[data-dir="Sud"]', { state: ':active' });
   const active = await armColors(page, 'Sud');
   await page.mouse.move(2, 2); // relâché hors de la touche : aucun clic
   await page.mouse.up();
@@ -417,6 +434,8 @@ if (frag('natif')) {
   const { page, context } = await newPage('empire-brun-dark', false);
   console.log('Mode natif (skin désactivé) — 375 px');
   await load(page, 375, fixtureHtml(STATES['FIXTURE 4 directions, 5 pièces']), false);
+  const late = await absenceWindow(page);
+  check(`aucune mutation pendant ${ABSENCE_MS} ms après le marqueur (fenêtre d'absence)`, () => assert.deepEqual(late, []));
   const m = await measure(page);
   check('aucun bloc, natif intact', () => { assert.equal(m.nBlocks, 0); assert.notEqual(m.native.display, 'none'); assert.equal(m.native.areas.length, 4); });
   await context.close();
