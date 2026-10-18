@@ -103,10 +103,11 @@ export const KR_READY = () => document.documentElement.hasAttribute('data-kr-rea
 
 /**
  * Observe le DOM pendant `ms` et décrit chaque mutation (au plus `max`). Sert au garde-fou de fin d'initialisation
- * (tests/e2e/fin-initialisation.mjs) et à l'audit facultatif KR_READY_AUDIT.
+ * (tests/e2e/fin-initialisation.mjs) et à l'audit facultatif KR_READY_AUDIT. `armed` (nom de propriété de window, facultatif) : posée
+ * à true dès que l'observateur écoute (sans mutation du DOM), pour qu'une contre-preuve puisse muter à coup sûr PENDANT l'observation.
  */
-export function watchMutations(page, { ms = 1000, max = 30 } = {}) {
-  return page.evaluate(({ ms: dur, max: cap }) => new Promise(resolve => {
+export function watchMutations(page, { ms = 1000, max = 30, armed = null } = {}) {
+  return page.evaluate(({ ms: dur, max: cap, armed: flag }) => new Promise(resolve => {
     const t0 = performance.now();
     const out = [];
     const where = n => {
@@ -127,8 +128,9 @@ export function watchMutations(page, { ms = 1000, max = 30 } = {}) {
       }
     });
     obs.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+    if (flag) { window[flag] = true; }
     setTimeout(() => { obs.disconnect(); resolve(out); }, dur);
-  }), { ms, max });
+  }), { ms, max, armed });
 }
 
 /**

@@ -675,8 +675,24 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
 }
 if (frag('n1')) {
   const { context, page: p } = await open({ width: 1280, kind: 'sujet', height: 720 });
-  await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' }));
-  await frames(p); // événement scroll distribué : kr-btt-visible à jour
+  // R1 (QA du lot E, scintillement à concurrence 16) : deux images ne suffisaient pas toujours sous charge. Mêmes conditions observables
+  // que le balayage : l'événement scroll de CE défilement (notre écouteur passe après celui du userscript qui pose kr-btt-visible),
+  // puis plus aucune transition en cours sur « Remonter en haut » (son apparition est une transition d'opacité).
+  await p.evaluate(async () => {
+    const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+    const before = window.scrollY;
+    const event = new Promise(r => {
+      const t = setTimeout(() => { window.removeEventListener('scroll', on); r(); }, 2000);
+      function on() { clearTimeout(t); r(); }
+      window.addEventListener('scroll', on, { once: true, passive: true });
+    });
+    window.scrollTo({ top: 1e6, behavior: 'instant' });
+    if (window.scrollY !== before) { await event; }
+    const back = document.querySelector('.kraland-back-to-top');
+    const t0 = performance.now();
+    await frame();
+    while (back && back.getAnimations().some(a => a.playState === 'running') && performance.now() - t0 < 2000) { await frame(); }
+  });
   const s = await p.evaluate(FIXED_STATE);
   check('1280 px : « Remonter en haut » desktop inchangé (36 px, bas 20 px, droite 8 px)', () => { assert.equal(s.backShown, true); assert.equal(Math.round(s.back.w), 36); assert.equal(s.backBottom, '20px'); assert.equal(s.backRight, '8px'); });
   await context.close();

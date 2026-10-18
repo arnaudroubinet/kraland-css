@@ -13,10 +13,16 @@
 //      le marqueur est quand même posé (addResetButtonToInterfacePage cesse d'attendre quand l'interface a renoncé, ~5 s) ;
 //   4. même page, titre inséré tard par la page (THEME_TARDIF_MS) : l'interface du thème s'insère pendant ses essais et, au marqueur,
 //      la liste des alertes masquées d'addResetButtonToInterfacePage est déjà présente (puis aucune mutation).
-// Seuils des contre-preuves : la tâche tardive NON enregistrée attend elle-même le marqueur avant de muter (indépendante de l'heure du
-// marqueur) ; « attendue » ne dépend d'aucun seuil (le marqueur l'attend). LIMITE : les trois contre-preuves sur des délais du produit
-// (revealPage 2 rAF + 200 ms, fixNavbarPadding rAF + 200 ms, HideTags 500 ms) supposent un marqueur posé avant ces délais (mesuré : 100 à
-// 400 ms ici) ; sur une machine bien plus lente, elles échoueraient en « non détecté » (faux rouge du garde-fou, jamais un faux vert).
+// Contre-preuves « détectée », déterministes (R1 de la QA du lot E) : une tâche privée de son enregistrement mute à une heure sans lien
+// avec le marqueur ; sous charge (concurrence 16), revealPage (2 rAF + 200 ms) passait parfois AVANT le marqueur, donc avant l'observation
+// (faux rouge). Chaque variante « détectée » attend donc, avant sa première mutation, que l'observateur du garde-fou écoute
+// (window[ARMEE], posé par watchMutations sans toucher au DOM) : la mutation tombe toujours dans la fenêtre observée, quelle que soit la
+// charge. Le code muté reste celui du produit (revealPage, applyNavbarPadding, hideForumThreadTags), seul son départ est retardé ; le
+// marqueur ne peut pas l'attendre (rien n'est enregistré). Si la file attendait encore la tâche (enregistrement oublié de retirer), le
+// marqueur ne viendrait jamais (l'observation suit le marqueur) : « marqueur posé » échouerait, jamais un faux vert. Chaque contre-preuve
+// exige en outre la mutation du module visé (`vu`), pas n'importe laquelle : avant, la contre-preuve revealPage ne voyait que la barre
+// (au document-start, <html> n'existait pas encore, le masquage anti-FOUC échouait en silence et revealPage ne levait rien).
+// « attendue » ne dépend d'aucun seuil (le marqueur l'attend).
 // Aucun réseau : refus global (lib/confinement.mjs), fixtures locales, Bootstrap/jQuery embarqués (tests/e2e/vendor).
 //
 // Usage : npm run build && node tests/e2e/fin-initialisation.mjs   (KR_SCRIPT=/chemin/script.user.js : autre bundle)
@@ -37,6 +43,8 @@ const FIX = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 // Fenêtre d'observation après le marqueur : plus longue que tous les délais de mise en forme initiale du script (200 ms de revealPage et
 // de fixNavbarPadding, 500 ms de HideTags, 150 ms des anti-rebonds), sans couvrir les rappels qui suivent une action (aucune ici).
 const WINDOW_MS = 1000;
+// Propriété de window posée par watchMutations quand l'observateur écoute (contre-preuves « détectée » ci-dessous).
+const ARMEE = '__krGardeArmee';
 
 let failures = 0;
 function check(name, fn) {
@@ -106,7 +114,13 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     localStorage.setItem('kr-theme-enabled', 'true');
     localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
     // eslint-disable-next-line no-eval
-    if (when === 'start') { (0, eval)(code); } else { document.addEventListener('DOMContentLoaded', () => (0, eval)(code)); }
+    const go = () => { (0, eval)(code); window.__krFoucPose = document.documentElement.style.opacity === '0'; };
+    // document-start : Playwright exécute ce script AVANT la création de <html> (document.documentElement nul) ; le masquage anti-FOUC
+    // (style de <html>) échouait alors en silence et revealPage ne levait rien. Comme Tampermonkey, on lance le script dès que <html>
+    // existe, document encore en cours d'analyse (readyState « loading ») : l'anti-FOUC est réellement actif.
+    if (when === 'start') {
+      if (document.documentElement) { go(); } else { new MutationObserver((m, o) => { if (document.documentElement) { o.disconnect(); go(); } }).observe(document, { childList: true }); }
+    } else { document.addEventListener('DOMContentLoaded', go); }
   }, { code: src, when: mode });
   const p = await context.newPage();
   const errors = [];
@@ -118,11 +132,11 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     await p.waitForFunction(KR_READY, null, { timeout: 15000 }).catch(() => { ready = false; });
     const readyMs = Date.now() - t0;
     const atReady = await p.evaluate(() => ({
-      opacity: document.documentElement.style.opacity, transition: document.documentElement.style.transition,
+      opacity: document.documentElement.style.opacity, transition: document.documentElement.style.transition, foucPose: window.__krFoucPose === true,
       tardif: document.body.getAttribute('data-garde-tardif'),
       alertsList: !!document.querySelector('#kr-alerts-section .kr-dismissed-alerts-list')
     }));
-    const late = ready ? await watchMutations(p, { ms: WINDOW_MS }) : [];
+    const late = ready ? await watchMutations(p, { ms: WINDOW_MS, armed: ARMEE }) : [];
     return { ready, readyMs, atReady, late, errors };
   } finally {
     await context.close();
@@ -170,6 +184,7 @@ try {
       check(`${tag} : au marqueur, la liste des alertes masquées (.kr-dismissed-alerts-list) est dans #kr-alerts-section`, () => { assert.equal(r.atReady.alertsList, true); });
     }
     if (j.mode === 'start') {
+      check(`${tag} : masquage anti-FOUC posé à l'injection (la levée est réellement exercée)`, () => { assert.equal(r.atReady.foucPose, true); });
       check(`${tag} : au marqueur, la levée anti-FOUC est terminée (opacity et transition inline nettoyées)`, () => { assert.deepEqual([r.atReady.opacity, r.atReady.transition], ['', '']); });
     }
     check(`${tag} : aucune erreur de page`, () => { assert.deepEqual(r.errors, []); });
@@ -180,21 +195,27 @@ try {
   // 2. Contre-preuves : l'oubli d'enregistrement est détecté, l'enregistrement est attendu ----------------------------------------
   const ANCRE = "InitQueue.register('ForumThread:HideTags', hideForumThreadTags, 26);";
   const tache = appel => `${ANCRE}\n    InitQueue.register('garde:tardif', function () { ${appel}(function () { document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
-  // Tâche NON enregistrée : 600 ms, puis elle attend elle-même le marqueur avant de muter (la mutation tombe toujours après lui, quelle
-  // que soit l'heure du marqueur) ; le marqueur n'a pas pu l'attendre puisqu'elle était encore en cours quand il a été posé.
-  const nue = `${ANCRE}\n    InitQueue.register('garde:tardif', function () { setTimeout(function f() { if (!document.documentElement.hasAttribute('data-kr-ready')) { setTimeout(f, 50); return; } document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+  // Tâche NON enregistrée : 600 ms, puis elle attend elle-même que le garde-fou observe (donc après le marqueur) avant de muter : la
+  // mutation tombe toujours dans la fenêtre observée, quelle que soit l'heure du marqueur ; le marqueur n'a pas pu l'attendre.
+  const nue = `${ANCRE}\n    InitQueue.register('garde:tardif', function () { setTimeout(function f() { if (!window.${ARMEE}) { setTimeout(f, 20); return; } document.body.setAttribute('data-garde-tardif', '1'); }, 600); }, 999);`;
+  // Départ différé jusqu'à l'observation : requestAnimationFrame local (revealPage, fixNavbarPadding) ou setTimeout (HideTags) qui attend
+  // window[ARMEE] avant de lancer le code du produit inchangé.
+  const rafApresGarde = `const requestAnimationFrame = function (cb) { (function w() { if (window.${ARMEE}) { window.requestAnimationFrame(cb); } else { setTimeout(w, 20); } })(); };`;
+  const sansHold = nom => [`const release = InitQueue.hold('${nom}');`, `const release = function () {}; ${rafApresGarde}`];
+  const timeoutApresGarde = `(function (cb, ms) { setTimeout(function w() { if (window.${ARMEE}) { cb(); } else { setTimeout(w, 20); } }, ms); })(() => {`;
   const promesse = `${ANCRE}\n    InitQueue.register('garde:promesse', function () { return new Promise(function (r) { setTimeout(function () { document.body.setAttribute('data-garde-tardif', '1'); r(); }, 600); }); }, 999);`;
+  // `vu` : la mutation tardive attendue, celle du module privé de son enregistrement (une autre mutation ne prouverait rien).
   let cas;
   try {
     cas = [
-      { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, nue]]), page: PAGES[4], mode: 'dcl', expect: 'detect' },
+      { id: 'tâche tardive NON enregistrée (setTimeout nu, 600 ms)', src: variant([[ANCRE, nue]]), page: PAGES[4], mode: 'dcl', expect: 'detect', vu: / attributes data-garde-tardif .*> body$/ },
       { id: 'tâche tardive enregistrée (InitQueue.later, 600 ms)', src: variant([[ANCRE, tache("InitQueue.later.bind(InitQueue, 'garde:tardif')")]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
       { id: 'module enregistré renvoyant une promesse réglée à 600 ms', src: variant([[ANCRE, promesse]]), page: PAGES[4], mode: 'dcl', expect: 'wait' },
-      // revealPage et fixNavbarPadding ont le même délai (2 rAF / 1 rAF + 200 ms) : l'un masque l'oubli de l'autre, on retire donc les deux
-      // pour la levée anti-FOUC (plateau sans débordement de barre : seule la levée mute), puis le seul padding sur la barre large.
-      { id: 'levée anti-FOUC (revealPage) et padding de barre privés de leur enregistrement', src: variant([["const release = InitQueue.hold('revealPage');", 'const release = function () {};'], ["const release = InitQueue.hold('fixNavbarPadding');", 'const release = function () {};']]), page: PAGES[4], mode: 'start', expect: 'detect' },
-      { id: 'padding de barre large (fixNavbarPadding) privé de son enregistrement', src: variant([["const release = InitQueue.hold('fixNavbarPadding');", 'const release = function () {};']]), page: PAGES[5], width: 1000, mode: 'dcl', expect: 'detect' },
-      { id: 'masquage des tags (HideTags) privé de son enregistrement', src: variant([["InitQueue.later('ForumThread:HideTags', () => {", 'setTimeout(() => {']]), page: PAGES[6], mode: 'dcl', expect: 'detect' }
+      // revealPage et fixNavbarPadding ont le même délai (2 rAF / 1 rAF + 200 ms) : on retire les deux enregistrements pour la levée
+      // anti-FOUC (la barre du plateau mute aussi : seule la mutation du style de <html> compte), puis le seul padding sur la barre large.
+      { id: 'levée anti-FOUC (revealPage) et padding de barre privés de leur enregistrement', src: variant([sansHold('revealPage'), sansHold('fixNavbarPadding')]), page: PAGES[4], mode: 'start', expect: 'detect', vu: /^\d+ ms attributes style html[^ ]*$/ },
+      { id: 'padding de barre large (fixNavbarPadding) privé de son enregistrement', src: variant([sansHold('fixNavbarPadding')]), page: PAGES[5], width: 1000, mode: 'dcl', expect: 'detect', vu: / attributes style .*> body$/ },
+      { id: 'masquage des tags (HideTags) privé de son enregistrement', src: variant([["InitQueue.later('ForumThread:HideTags', () => {", timeoutApresGarde]]), page: PAGES[6], mode: 'dcl', expect: 'detect', vu: /p\.tags/ }
     ];
   } catch (e) {
     check('contre-preuves : textes du bundle à modifier présents une fois chacun', () => { throw e; });
@@ -205,7 +226,7 @@ try {
     const c = cas[i];
     check(`contre-preuve, ${c.id} : marqueur posé`, () => { assert.equal(r.ready, true); });
     if (c.expect === 'detect') {
-      check(`contre-preuve, ${c.id} : mutation tardive DÉTECTÉE par le garde-fou`, () => { assert.ok(r.late.length > 0, 'aucune mutation après le marqueur : le garde-fou ne verrait pas l\'oubli'); });
+      check(`contre-preuve, ${c.id} : mutation tardive DÉTECTÉE par le garde-fou`, () => { assert.ok(r.late.some(m => c.vu.test(m)), r.late.length ? `mutation du module absente (${c.vu}) parmi : ${r.late.slice(0, 3).join(' | ')}` : 'aucune mutation après le marqueur : le garde-fou ne verrait pas l\'oubli'); });
     } else {
       check(`contre-preuve, ${c.id} : déjà appliquée au marqueur, aucune mutation après lui`, () => { assert.equal(r.atReady.tardif, '1'); assert.deepEqual(r.late, [], r.late.slice(0, 3).join(' | ')); });
     }

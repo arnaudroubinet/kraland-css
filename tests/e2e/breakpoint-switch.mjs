@@ -203,7 +203,9 @@ async function navSuite(fixtureFile, strict) {
     await p.evaluate(() => { document.title = 'direct'; });
     direct[width] = await p.evaluate(() => {
       const nav = document.querySelector('nav.navbar');
-      return { barHeight: Math.round(nav.getBoundingClientRect().height) };
+      const a = nav.querySelector('.navbar-nav > li > a');
+      const cs = a ? getComputedStyle(a) : null;
+      return { barHeight: Math.round(nav.getBoundingClientRect().height), link: cs ? `${cs.paddingLeft} ${cs.paddingRight} ${cs.fontSize}` : null };
     });
     await p.close();
     return direct[width];
@@ -235,6 +237,15 @@ async function navSuite(fixtureFile, strict) {
   await runNavSequence('1100 -> 900 -> 1512', 1100, [900, 1512]);
   await runNavSequence('1512 -> 1100 -> 1360 -> 1000', 1512, [1100, 1360, 1000]);
 
+  // Constat A (QA du lot E) : barre compactée de 992 à 1439 px (liens 7 px de marge, police 13 px), retour à l'existant dès 1440 px
+  // (15 px, 14 px) ; aucune autre suite ne lisait ces règles (mutant sur la règle >= 1440 resté vert). Chargement direct, styles calculés
+  // du premier lien de la barre, de part et d'autre du seuil 1440.
+  if (strict) {
+    for (const [width, want] of [[1280, '7px 7px 13px'], [1439, '7px 7px 13px'], [1440, '15px 15px 14px'], [1512, '15px 15px 14px']]) {
+      const ref = await directLoad(width);
+      check(`barre ${width}px : liens ${width < 1440 ? 'compactés' : 'à l\'existant'} (marges et police ${want})`, () => assert.equal(ref.link, want));
+    }
+  }
   // iPad : rotation 820x1180 -> 1180x820 (émulation)
   await navPage.setViewportSize({ width: 820, height: 1180 });
   await navPage.goto(TARGET, { waitUntil: 'load' });
