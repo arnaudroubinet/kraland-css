@@ -15,11 +15,21 @@ const pause = ms => new Promise(r => setTimeout(r, ms));
 // chaque runFor est rejoué par Playwright dans les documents suivants ; un seul runFor(2 500) interrompu par un rechargement ferait
 // sauter l'horloge du document suivant de 2,5 s et fausserait le garde-fou (écart minimal de 1 200 ms entre deux rechargements).
 // Avec des pas, l'avance excédentaire est bornée par un pas (100 ms), bien en dessous des délais du produit (anti-rebond 400 ms,
-// écart minimal 1 200 ms). Limite connue : performance.timeOrigin est simulé et identique d'un document à l'autre ; pour
-// identifier un document, utiliser window.__krDocId (posé par installClock).
+// écart minimal 1 200 ms). Chaque pas attend aussi une VRAIE image peinte (requestAnimationFrame d'origine, capté avant l'horloge, qui
+// simule aussi requestAnimationFrame) : le navigateur garde ses étapes de rendu (autofocus, événements resize, mise en page) entre deux
+// pas, au lieu que 2,5 s de minuteries passent avant la première image ; sans cela, un champ autofocus pouvait ne pas encore avoir le
+// focus quand l'anti-rebond de 400 ms vérifiait la saisie en cours. Limite connue : performance.timeOrigin est simulé et identique d'un
+// document à l'autre ; pour identifier un document, utiliser window.__krDocId (posé par installClock).
 export const CLOCK_STEP_MS = 100;
 
 export async function installClock(context) {
+  // AVANT l'horloge : les scripts d'initialisation s'exécutent dans l'ordre d'ajout, celui-ci voit donc le requestAnimationFrame réel
+  await context.addInitScript(() => {
+    const raf = window.requestAnimationFrame.bind(window);
+    const timeout = window.setTimeout.bind(window);
+    // Une vraie image, bornée à 250 ms réelles (page sans rendu : on n'attend pas indéfiniment)
+    window.__krRealFrame = () => new Promise(r => { let done = false; const end = () => { if (!done) { done = true; r(); } }; raf(end); timeout(end, 250); });
+  });
   await context.clock.install();
   await context.addInitScript(() => {
     window.__krLeaving = false;
@@ -73,7 +83,8 @@ export async function clockQuiet(page, probe, { quietMs = 900, maxRounds = 10, l
  * détruit, ou déjà un autre document : __krDocId différent), sinon { left: false }.
  */
 export async function runClock(page, ms, { stepMs = CLOCK_STEP_MS } = {}) {
-  const doc = () => page.evaluate(() => ({ leaving: window.__krLeaving === true, id: window.__krDocId })).catch(() => ({ leaving: true, id: null }));
+  // État du document après une vraie image peinte (voir l'en-tête) ; contexte détruit = document quitté
+  const doc = () => page.evaluate(() => window.__krRealFrame().then(() => ({ leaving: window.__krLeaving === true, id: window.__krDocId }))).catch(() => ({ leaving: true, id: null }));
   const start = await doc();
   if (start.leaving) { return { left: true, at: 0 }; }
   for (let t = 0; t < ms; t += stepMs) {
