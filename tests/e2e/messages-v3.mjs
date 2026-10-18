@@ -132,7 +132,8 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + String(e.message).split('\n')[0]); }
 }
 
-// Fragments : lecture-sombre, lecture-clair, redaction-sombre, redaction-clair, edition, bureau, seuils, transitions, themes, confinement
+// Fragments : lecture-sombre, redaction-sombre, edition, bureau, seuils, transitions, themes, confinement
+// (lot E : lecture-clair et redaction-clair retirés ; le thème ne pose que des couleurs, contrastes des 16 thèmes vérifiés par « themes »).
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 
@@ -394,8 +395,9 @@ async function editorChecks(width, variant, kind, tag) {
 const VARIANT_NAME = v => (v === DARK ? 'sombre' : 'clair');
 
 for (const variant of [DARK, LIGHT]) {
+  // Lecture et rédaction : contrôles de mise en page et de DOM, joués dans un seul thème (lot E) ; l'édition garde les deux.
   const f = 'lecture-' + VARIANT_NAME(variant);
-  if (frag(f)) {
+  if (variant === DARK && frag(f)) {
     console.log(`Lecture du message, mobile, ${VARIANT_NAME(variant)}`);
     for (const width of [320, 375, 700]) { await readingChecks(width, variant, `lecture ${width} px ${VARIANT_NAME(variant)}`); }
     // Variante : titres retirés par l'initialisation des infobulles (le site ne garde que data-original-title)
@@ -407,19 +409,20 @@ for (const variant of [DARK, LIGHT]) {
   }
   for (const kind of ['repondre', 'editer']) {
     const id = (kind === 'repondre' ? 'redaction-' : 'edition-') + VARIANT_NAME(variant);
-    if (frag(id) || (kind === 'editer' && frag('edition'))) {
+    if ((kind === 'repondre' && variant === DARK && frag(id)) || (kind === 'editer' && (frag(id) || frag('edition')))) {
       console.log(`${kind === 'repondre' ? 'Rédaction (réponse)' : 'Édition'}, mobile, ${VARIANT_NAME(variant)}`);
       for (const width of [320, 375, 700]) { await editorChecks(width, variant, kind, `${kind === 'repondre' ? 'rédaction' : 'édition'} ${width} px ${VARIANT_NAME(variant)}`); }
     }
   }
 }
 
-// ---------- seuils 767 / 768 / 769 et transitions ----------
+// ---------- seuils 767 / 768 et transitions ----------
 if (frag('seuils')) {
-  console.log('Seuils N-1 / N / N+1 (767 / 768 / 769), lecture et rédaction, sombre et clair');
-  for (const variant of [DARK, LIGHT]) {
+  console.log('Seuils N-1 / N (767 / 768), lecture et rédaction, sombre');
+  // Lot E : un seul thème (le seuil ne dépend pas des couleurs) et plus de 769 (768 est la frontière exacte, côté bureau déjà prouvé).
+  for (const variant of [DARK]) {
     for (const [kind, probe] of [['sujet', () => ({ mobile: document.body.classList.contains('mobile-mode'), skin: !!document.querySelector('li.media.kr-msg'), more: !!document.querySelector('button.kr-msg-more'), sec: !!document.querySelector('.kr-msg-secondary') }) ], ['repondre', () => ({ mobile: document.body.classList.contains('mobile-mode'), skin: !!document.querySelector('.btn-toolbar.kr-tools-ready'), more: !!document.querySelector('button.kr-tools-plus'), sec: !!document.querySelector('.kr-tool-extra') })]]) {
-      for (const width of [767, 768, 769]) {
+      for (const width of [767, 768]) {
         const { context, page: p } = await open({ width, kind, variant, touch: true });
         const r = await p.evaluate(probe);
         const expect = width < 768;

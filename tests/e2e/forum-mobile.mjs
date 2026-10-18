@@ -6,11 +6,10 @@
 // Usage : npm run build && npm run test:forum-mobile
 // Option : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal).
 // Option : KR_SHOTS=/dossier pour enregistrer des captures de fixtures.
-// Passe « vrai Bootstrap » de la palette Couleurs (menu ouvert par le vrai gestionnaire data-toggle="dropdown") : jouée avec les fichiers embarqués
-//   dans tests/e2e/vendor/ (bootstrap.min.css, bootstrap.min.js, jquery.min.js : Bootstrap 3.3.7 et jQuery 3.3.1, voir vendor/README.md).
-// Option : KR_BOOTSTRAP_DIR=/dossier pour pointer vers d'autres copies. Si ce dossier est indiqué mais incomplet : exit 2 (jamais un faux vert, ce
-//   qu'on soit lancé par run.mjs ou directement en série). Si seul le dossier par défaut est incomplet, la passe est signalée « non jouée »
-//   (le menu est alors ouvert en posant la classe .open) ; le lanceur run.mjs, lui, sort alors en exit 2.
+// Passes « vrai Bootstrap » (palette Couleurs, smileys, seuil : menus ouverts par le vrai gestionnaire data-toggle="dropdown") : jouées avec les fichiers
+//   embarqués dans tests/e2e/vendor/ (bootstrap.min.css, bootstrap.min.js, jquery.min.js : Bootstrap 3.3.7 et jQuery 3.3.1, voir vendor/README.md).
+// Option : KR_BOOTSTRAP_DIR=/dossier pour pointer vers d'autres copies. Dossier (par défaut ou indiqué) incomplet : exit 2 (jamais un faux vert, ce
+//   qu'on soit lancé par run.mjs ou directement en série). L'ancienne passe « fixture Bootstrap minimal » (.open posé) est retirée (lot E).
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
@@ -62,7 +61,8 @@ const BOOTSTRAP = `
 const BS_FILES = ['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'];
 const BS_CANDIDATE = process.env.KR_BOOTSTRAP_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), 'vendor');
 const BS_DIR = BS_FILES.every(f => fs.existsSync(path.join(BS_CANDIDATE, f))) ? BS_CANDIDATE : '';
-if (!BS_DIR && process.env.KR_BOOTSTRAP_DIR) { console.error('KR_BOOTSTRAP_DIR=' + process.env.KR_BOOTSTRAP_DIR + ' est incomplet (attendus : ' + BS_FILES.join(', ') + '). Une passe « vrai Bootstrap » demandée mais impossible ne doit pas donner un faux vert.'); process.exit(2); }
+// Plus de repli « fixture Bootstrap minimal » (lot E) : sans les fichiers, les menus ne seraient pas testés ; échec explicite, jamais un faux vert.
+if (!BS_DIR) { console.error('Bootstrap 3.3.7 / jQuery introuvables ou incomplets dans ' + BS_CANDIDATE + ' (attendus : ' + BS_FILES.join(', ') + '). Les passes « vrai Bootstrap » ne peuvent pas être jouées : pas de faux vert.'); process.exit(2); }
 // 18 couleurs de la palette (style en ligne, href javascript:addtag natif) ; la 1re porte un onclick pour vérifier qu'il est préservé
 const COLORS = ['#000000', '#7f7f7f', '#d50000', '#ff6d00', '#ffd600', '#64dd17', '#00c853', '#00bfa5', '#00b8d4', '#0091ea', '#2962ff', '#6200ea', '#aa00ff', '#c51162', '#795548', '#9e9e9e', '#ffffff', '#ffcdd2'];
 const colorHref = i => `javascript:addtag('color${i}',1);`;
@@ -152,8 +152,7 @@ function check(name, fn) {
 
 // Fragmentation (exécution parallèle) : KR_FRAG = identifiants séparés par des virgules ; vide = tout jouer.
 // Un identifiant est joué si KR_FRAG le contient, contient l'un de ses préfixes (« seuil » couvre « seuil-real-sombre ») ou l'un de ses descendants.
-// Identifiants : f01, m1-clair, m1-sombre, m2-fake, m2-real, s3-fake, s3-real, s3d-fake, s3d-real, signature, n1, pied, desktop,
-// seuil-{fake,real}-{clair,sombre}.
+// Identifiants : f01, m1-clair, m1-sombre, m2-real, s3-real, s3d-real, signature, n1, pied, desktop, seuil-real-sombre.
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.some(f => f === id || id.startsWith(f + '-') || f.startsWith(id + '-'));
 
@@ -371,10 +370,10 @@ const PALETTE = () => {
   };
 };
 const hexToRgb = h => { const n = parseInt(h.slice(1), 16); return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`; };
-async function openPalette(p, realBs) {
+async function openPalette(p) {
   const btn = await p.evaluate(() => { const b = document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button'); b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) }; });
   if (!btn.ok) { throw new Error('bouton Couleurs recouvert ou hors écran au point visé'); }
-  if (realBs) { await p.mouse.click(btn.x, btn.y); } else { await p.evaluate(() => document.querySelector('.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group) > a.dropdown-toggle > button').closest('.dropdown').classList.add('open')); }
+  await p.mouse.click(btn.x, btn.y); // vrai gestionnaire Bootstrap (data-toggle)
   await menuSettled(p, '.btn-toolbar .dropdown:has(> .dropdown-menu > .btn-group)', true);
 }
 // Menu ouvert (classe .open et menu affiché) ou refermé (aucun .open ni fond .dropdown-backdrop), sans transition en cours, puis
@@ -388,15 +387,16 @@ async function menuSettled(p, sel, wantOpen) {
   await frames(p);
 }
 const overlap = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
-const paletteModes = [{ id: 'fake', name: 'fixture Bootstrap minimal (.open posé)', realBs: false }];
-if (BS_DIR) { paletteModes.push({ id: 'real', name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }); } else { console.log('  --   passe « vrai Bootstrap » non jouée (fichiers Bootstrap/jQuery absents de ' + BS_CANDIDATE + ')'); }
+// Menus (M2, S3, S3 desktop, SEUIL) : vrai Bootstrap 3.3.7 + jQuery seulement (tests/e2e/vendor/, dans le dépôt). L'ancienne passe « fixture
+// Bootstrap minimal » (.open posé par le test, lot E) rejouait les mêmes contrôles avec une cascade moins fidèle : retirée.
+const paletteModes = [{ id: 'real', name: 'vrai Bootstrap 3.3.7 + jQuery (clic sur data-toggle)', realBs: true }];
 for (const mode of paletteModes.filter(m => frag('m2-' + m.id))) {
   console.log(`M2 : palette Couleurs — ${mode.name}`);
   // 375/390/430/700 en thème clair ET sombre ; 320 (viewport plus étroit que le menu élargi) en sombre : le menu reste borné à l'écran
   const cases = [375, 390, 430, 700].flatMap(w => [[w, 'empire-brun'], [w, 'empire-brun-dark']]).concat([[320, 'empire-brun-dark']]);
   for (const [width, variant] of cases) {
     const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant });
-    await openPalette(p, mode.realBs);
+    await openPalette(p);
     const m = await p.evaluate(PALETTE);
     const tag = `${width} px ${variant}`;
     check(`${tag} : menu natif en ligne 190 px / padding 10 px, élargi par F06 (largeur calculée = min(334, écran - 24)), borné à l'écran`, () => {
@@ -452,7 +452,7 @@ async function closeNative(p) {
   });
   if (pt) { await p.mouse.click(pt.x, pt.y); await menuSettled(p, null, false); }
 }
-async function openSmileys(p, realBs) {
+async function openSmileys(p) {
   const btn = await p.evaluate(() => {
     const b = document.querySelector('.btn-toolbar .dropdown:has(table img) > a.dropdown-toggle > button');
     b.scrollIntoView({ block: 'center' });
@@ -460,15 +460,7 @@ async function openSmileys(p, realBs) {
     return { x: r.left + r.width / 2, y: r.top + r.height / 2, ok: hit === b || b.contains(hit) };
   });
   if (!btn.ok) { throw new Error('bouton Smileys recouvert ou hors écran au point visé'); }
-  if (realBs) {
-    await p.mouse.click(btn.x, btn.y);
-  } else {
-    // Sans Bootstrap réel : .open posé, et fond .dropdown-backdrop comme le fait Bootstrap 3.3.7 sur écran tactile (insertAfter du bouton d'ouverture)
-    await p.evaluate(() => {
-      const dd = document.querySelector('.btn-toolbar .dropdown:has(table img)'); dd.classList.add('open');
-      if ('ontouchstart' in document.documentElement) { const bd = document.createElement('div'); bd.className = 'dropdown-backdrop'; dd.querySelector('a.dropdown-toggle').after(bd); }
-    });
-  }
+  await p.mouse.click(btn.x, btn.y); // vrai gestionnaire Bootstrap (data-toggle ; fond .dropdown-backdrop posé par Bootstrap sur écran tactile)
   await menuSettled(p, '.btn-toolbar .dropdown:has(table img)', true);
 }
 const SMILEYS = () => {
@@ -499,7 +491,7 @@ console.log('S3 : menu smileys mobile — 126 smileys atteignables, cibles >= 44
 for (const mode of paletteModes.filter(m => frag('s3-' + m.id))) {
   for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']]) {
     const { context, page: p, state } = await open({ width, kind: 'editeur', realBs: mode.realBs, variant, height: width === 375 ? 667 : 800 });
-    await openSmileys(p, mode.realBs);
+    await openSmileys(p);
     const m = await p.evaluate(SMILEYS);
     const tag = `${width} px ${variant} (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
     check(`${tag} : menu smileys ouvert, natif en ligne 320 px / padding 10 px préservé`, () => { assert.equal(m.open, true); assert.equal(m.shown, true); assert.match(m.style, /width:\s*320px/); assert.match(m.style, /padding:\s*10px/); });
@@ -529,7 +521,7 @@ console.log('S3 desktop : menu smileys natif inchangé (320 px, absolu, superpos
 for (const mode of paletteModes.filter(m => frag('s3d-' + m.id))) {
   const { context, page: p } = await open({ width: 1280, kind: 'editeur', realBs: mode.realBs, height: 720 });
   const before = await p.evaluate(() => document.querySelector('.btn-toolbar').getBoundingClientRect().height);
-  await openSmileys(p, mode.realBs);
+  await openSmileys(p);
   const m = await p.evaluate(SMILEYS);
   const tag = `1280 px (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
   check(`${tag} : menu smileys 320×470 px, position absolue, style natif préservé`, () => {
@@ -541,7 +533,7 @@ for (const mode of paletteModes.filter(m => frag('s3d-' + m.id))) {
   check(`${tag} : barre d'outils desktop : 18 outils < 40 px`, () => assert.ok(m.tools.length === 18 && m.tools.every(t => t.h < 40), JSON.stringify(m.tools.map(t => t.h))));
   if (mode.realBs) { await closeNative(p); }
   await p.evaluate(() => document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open')));
-  await openPalette(p, mode.realBs);
+  await openPalette(p);
   const pal = await p.evaluate(PALETTE);
   check(`${tag} : palette Couleurs inchangée : menu 190 px, 18 pastilles dans le menu`, () => { assert.ok(Math.abs(pal.menu.w - 190) <= 1, JSON.stringify(pal.menu)); assert.equal(pal.dots.length, 18); assert.ok(pal.dots.every(d => d.hit)); });
   await context.close();
@@ -683,8 +675,24 @@ for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-da
 }
 if (frag('n1')) {
   const { context, page: p } = await open({ width: 1280, kind: 'sujet', height: 720 });
-  await p.evaluate(() => window.scrollTo({ top: 1e6, behavior: 'instant' }));
-  await frames(p); // événement scroll distribué : kr-btt-visible à jour
+  // R1 (QA du lot E, scintillement à concurrence 16) : deux images ne suffisaient pas toujours sous charge. Mêmes conditions observables
+  // que le balayage : l'événement scroll de CE défilement (notre écouteur passe après celui du userscript qui pose kr-btt-visible),
+  // puis plus aucune transition en cours sur « Remonter en haut » (son apparition est une transition d'opacité).
+  await p.evaluate(async () => {
+    const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+    const before = window.scrollY;
+    const event = new Promise(r => {
+      const t = setTimeout(() => { window.removeEventListener('scroll', on); r(); }, 2000);
+      function on() { clearTimeout(t); r(); }
+      window.addEventListener('scroll', on, { once: true, passive: true });
+    });
+    window.scrollTo({ top: 1e6, behavior: 'instant' });
+    if (window.scrollY !== before) { await event; }
+    const back = document.querySelector('.kraland-back-to-top');
+    const t0 = performance.now();
+    await frame();
+    while (back && back.getAnimations().some(a => a.playState === 'running') && performance.now() - t0 < 2000) { await frame(); }
+  });
   const s = await p.evaluate(FIXED_STATE);
   check('1280 px : « Remonter en haut » desktop inchangé (36 px, bas 20 px, droite 8 px)', () => { assert.equal(s.backShown, true); assert.equal(Math.round(s.back.w), 36); assert.equal(s.backBottom, '20px'); assert.equal(s.backRight, '8px'); });
   await context.close();
@@ -725,10 +733,12 @@ if (frag('desktop')) {
 
 // ---------- SEUIL 768 (carte t_f4fad4a5) : un seul seuil pour le formulaire, CSS comme JS, aligné sur Bootstrap 3 natif (xs < 768 <= sm) ----------
 // Avant correctif, à 768 px exactement : mode mobile JS inactif (< 768) mais barre « Envoyer » fixe (CSS max-width: 768px) et correctifs PR12 inactifs (max-width: 767px).
-console.log('SEUIL 768 : 767 = mobile, 768 et 769 = bureau (comme Bootstrap natif), 768 tactile compris, éditeur et sujet utilisables');
-const THRESHOLD_CASES = [[767, false], [768, false], [768, true], [769, false], [769, true]];
+console.log('SEUIL 768 : 767 = mobile, 768 = bureau (comme Bootstrap natif), 768 tactile compris, éditeur et sujet utilisables');
+// Lot E : un seul thème (sombre) et plus de 769. Le thème ne pose que des couleurs (classe html.kr-theme-variant-*, contrastes vérifiés par
+// m1-*), il ne change ni le seuil ni la mise en page ; 768 est la frontière exacte, 769 ne rejouait que le côté bureau déjà prouvé à 768.
+const THRESHOLD_CASES = [[767, false], [768, false], [768, true]];
 for (const mode of paletteModes.filter(m => frag('seuil-' + m.id))) {
-  for (const variant of ['empire-brun-dark', 'empire-brun'].filter(v => frag(`seuil-${mode.id}-${v === 'empire-brun' ? 'clair' : 'sombre'}`))) {
+  for (const variant of ['empire-brun-dark'].filter(() => frag(`seuil-${mode.id}-sombre`))) {
     for (const [width, touch] of THRESHOLD_CASES) {
       const mobile = width < 768;
       const tag = `${width} px${touch && !mobile ? ' tactile' : ''} ${variant} (${mode.realBs ? 'vrai Bootstrap' : 'fixture'})`;
@@ -750,7 +760,7 @@ for (const mode of paletteModes.filter(m => frag('seuil-' + m.id))) {
         for (const x of [end, max, foc]) { assert.equal(x.covered, false, JSON.stringify(x)); assert.ok(!x.barFixed || x.bottom <= x.barTop + 0.5, JSON.stringify(x)); }
       });
       // Smileys : 126 atteignables au défilement normal de la page (panneau dans le flux < 768, menu natif superposé >= 768)
-      await openSmileys(p, mode.realBs);
+      await openSmileys(p);
       const sm = await p.evaluate(SMILEYS);
       check(`${tag} : 126 smileys, 126 atteignables et touchables (défilement de la page), menu dans l'écran, pas de débordement`, () => {
         assert.equal(sm.shown, true); assert.equal(sm.cells.length, 126);
