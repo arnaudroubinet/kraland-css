@@ -4395,14 +4395,14 @@
   }
 
   // ============================================
-  // FORUM_MENUS FORUM DYNAMIQUES (RP, HRP, Communauté, Débats, Staff)
+  // MENUS FORUM DYNAMIQUES (RP, HRP, Communauté, Débats, Staff)
   // ============================================
   // Source native UNIQUE : la liste latérale « #col-left .list-group > a.list-group-item[href] » que Kraland sert (HTML serveur) sur
   // toute page d'une catégorie : /forum/rp[/…], /forum/hrp[/…], /forum/communaute[/…], /forum/debats[/…], /forum/staff[/…].
   // Elle montre les forums accessibles au compte. Le tableau « table.table » de la page catégorie n'est PLUS lu : deux sources non
   // démontrées équivalentes (égalité prouvée en anonyme seulement) feraient alterner la liste d'une page à l'autre.
   //
-  // Moment de rafraîchissement (voir docs/FORUM_MENUS-FORUMS.md) :
+  // Moment de rafraîchissement (voir docs/MENUS-FORUMS.md) :
   //   1. sur toute page d'une catégorie : lecture de la liste latérale AVANT les transformations de la peau (captureForumSidebar est la
   //      1re transformation), puis dessin du menu de CETTE catégorie ; les autres catégories ne changent pas ;
   //   2. ailleurs : la liste mémorisée est réaffichée telle quelle, sans requête réseau ;

@@ -75,6 +75,7 @@ test('signaux de refus : classe disabled, aria-disabled="true", attribut disable
   for (const how of Object.keys(SIGNALS)) { assert.equal(krForumIsDisabledEntry(SIGNALS[how]), true, how); }
   assert.equal(krForumIsDisabledEntry({ cls: 'disabled' }), true);
   assert.equal(krForumIsDisabledEntry({ cls: '  list-group-item\tdisabled\n' }), true, 'jetons séparés par des blancs ASCII, comme classList');
+  assert.equal(krForumIsDisabledEntry({ cls: 'x\u00a0disabled', aria: null, disabledAttr: false }), false, 'espace insécable : pas un séparateur de classList');
   for (const cls of ['list-group-item', 'text-muted grey inactive', 'is-disabled', 'disabled-look', 'Disabled', '']) {
     assert.equal(krForumIsDisabledEntry({ cls, aria: null, disabledAttr: false }), false, cls);
   }

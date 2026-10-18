@@ -116,7 +116,8 @@ async function runAll(units, concurrency, logDir) {
   return results;
 }
 
-function summarize(results, wallMs, logDir) {
+// `extra` : échecs hors suites e2e (test du routeur, tests unitaires) ; ils entrent dans l'unique ligne RÉSULTAT, pas dans `bad` (e2e seul).
+function summarize(results, wallMs, logDir, extra = []) {
   const lines = ['', 'Résumé par suite (somme des fragments) :'];
   let totalOk = 0; let totalFail = 0; let bad = false;
   for (const name of [...new Set(results.map(r => r.suite))]) {
@@ -130,7 +131,8 @@ function summarize(results, wallMs, logDir) {
   }
   for (const r of results.filter(x => !x.skipped && (x.code !== 0 || x.fail > 0))) { lines.push(`  -> journal en échec : ${r.logFile}`); }
   lines.push(`Total : ${totalOk} ok, ${totalFail} FAIL en ${(wallMs / 1000).toFixed(0)} s (concurrence ${results.concurrency}). Journaux : ${logDir}`);
-  lines.push(bad ? 'RÉSULTAT : ÉCHEC' : 'RÉSULTAT : VERT');
+  const causes = [...(bad ? ['suites e2e'] : []), ...extra];
+  lines.push(causes.length ? `RÉSULTAT : ÉCHEC${extra.length ? ` (${causes.join(', ')})` : ''}` : 'RÉSULTAT : VERT');
   return { text: lines.join('\n'), bad, totalOk, totalFail };
 }
 
@@ -190,7 +192,7 @@ console.log(`${units.length} fragment(s), concurrence ${concurrency}, plus longs
 const t0 = Date.now();
 const results = await runAll(units, concurrency, logDir);
 results.concurrency = concurrency;
-const sum = summarize(results, Date.now() - t0, logDir);
+const sum = summarize(results, Date.now() - t0, logDir, [...(routerBad ? ['test du routeur'] : []), ...(unitBad ? ['tests unitaires du cœur pur'] : [])]);
 console.log(sum.text);
 if (process.env.KR_SAVE_DURATIONS === '1' && !expectRed) {
   if (sum.bad) { console.log('Durées NON enregistrées : exécution en échec.'); } else { saveDurations(results); console.log('Durées enregistrées dans ' + path.relative(root, DURATIONS_FILE) + ' (à committer).'); }
@@ -199,6 +201,4 @@ if (expectRed) {
   if (sum.bad) { console.log('ROUGE confirmé : la zone échoue comme attendu (preuve rouge OK).'); process.exit(0); }
   console.log('PAS ROUGE : la zone passe, le test ne prouve rien avant le correctif.'); process.exit(1);
 }
-if (routerBad) { console.log('RÉSULTAT : ÉCHEC (test du routeur)'); }
-if (unitBad) { console.log('RÉSULTAT : ÉCHEC (tests unitaires du cœur pur)'); }
 process.exit(sum.bad || routerBad || unitBad ? 1 : 0);

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { URL } from 'node:url';
-import { SUITES, zonesFromDiff, orderLongestFirst, registryOf, pickUnits } from './router.mjs';
+import { SUITES, SECTIONS, PURE_BLOCKS, zonesFromDiff, orderLongestFirst, registryOf, pickUnits, templateSections, pureBlocks } from './router.mjs';
 
 const zonesOf = file => SUITES.filter(s => s.file === file).flatMap(s => s.zones);
 const BASCULE = [...new Set(['demarrage', ...zonesOf('breakpoint-switch.mjs')])];
@@ -314,6 +314,38 @@ check('ni template ni tests/unit/ : pas de tests unitaires (README, durées) ; �
   assert.equal(w.widened, true);
   assert.equal(w.unitTest, true);
   assert.equal(zonesFromDiff('REF', () => null).unitTest, true, 'git indisponible');
+});
+// Template réel : les titres et les blocs du cœur pur que le routeur doit reconnaître (un renommage par rechercher-remplacer les casse).
+const REAL_TPL = fs.readFileSync(new URL('../../../' + T, import.meta.url), 'utf8');
+check('template réel : chaque règle de SECTIONS reconnaît au moins un titre de section', () => {
+  const titles = templateSections(REAL_TPL).map(s => s.title);
+  const orphan = SECTIONS.filter(([re]) => !titles.some(t => re.test(t))).map(([re]) => String(re));
+  assert.deepEqual(orphan, [], 'règle(s) sans titre dans le template (titre renommé ?)');
+});
+check('template réel : chaque bloc @kr-pure-begin a ses zones dans PURE_BLOCKS, et réciproquement', () => {
+  const names = pureBlocks(REAL_TPL).map(b => b.name);
+  assert.deepEqual([...names].sort(), Object.keys(PURE_BLOCKS).sort());
+  assert.equal((REAL_TPL.match(/^\s*\/\/ @kr-pure-begin\b/gm) || []).length, names.length, 'bloc non fermé ou mal écrit');
+});
+for (const [name, expected] of [['pagination', ['sous-forum']], ['rechargement', BASCULE], ['menus-forums', ['menus-forums']], ['images', ['images']], ['destinataires', ['kramail']]]) {
+  check(`cœur pur, hunk sans mot-clé dans le bloc « ${name} » : ${expected.join(' + ')}, pas d'élargissement`, () => {
+    const b = pureBlocks(REAL_TPL).find(x => x.name === name);
+    assert.ok(b, 'bloc introuvable');
+    const r = route(T, hunkAt(b.start + 1, '  // x'), REAL_TPL);
+    assert.equal(r.widened, false, r.reasons.join(' ; '));
+    assert.deepEqual(sorted(r.zones), sorted(expected));
+    assert.equal(r.unitTest, true);
+    if (name === 'images') { assert.ok(['image-fallback', 'map-exclusions'].every(s => SUITES.find(x => x.name === s).zones.includes('images'))); }
+  });
+}
+check('cœur pur : hunk qui déborde du bloc dans l\'en-tête CŒUR PUR (transverse) sans mot-clé : total', () => {
+  const b = pureBlocks(REAL_TPL)[0];
+  assert.equal(route(T, ['@@ -1,0 +' + (b.start - 2) + ',3 @@', '+  // x'], REAL_TPL).widened, true);
+});
+check('cœur pur : bloc inconnu de PURE_BLOCKS (renommé) : total', () => {
+  const renamed = REAL_TPL.replace('@kr-pure-begin pagination', '@kr-pure-begin pagination2');
+  const b = pureBlocks(renamed).find(x => x.name === 'pagination2');
+  assert.equal(route(T, hunkAt(b.start + 1, '  // x'), renamed).widened, true);
 });
 
 console.log('Ordre de lancement (plus longs d\'abord)');
