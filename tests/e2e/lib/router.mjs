@@ -39,7 +39,9 @@ export const SUITES = [
   // Garde du confinement réseau : refus effectif d'une sonde hors local (lib/confinement.mjs) et chaque contexte de suite confiné (lecture statique).
   { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] },
   // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
-  { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] }
+  { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] },
+  // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A), 16 variantes en fenêtre 600 et en onglet 1280, portée limitée à /report.
+  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['fenetre'], ['bureau'], ['portee']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -90,6 +92,7 @@ const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint
 // Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu (ni dans son module englobant, voir SECTIONS) élargit au total.
 export const KEYWORDS = [
   [/kr-order-viewport|kr-order-visible|trackOrderModalViewport|visualViewport/i, ['parler']],
+  [/kr-page-report/, ['report']],
   [/forums-added|updateForum|kr-forums-|menus-forums/i, ['menus-forums']],
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],

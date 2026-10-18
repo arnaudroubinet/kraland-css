@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Kraland Interactif</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- FIXTURE SYNTHÉTIQUE de la page Notifications (/report) : aucune donnée réelle. En-tête, sélecteur et onglets repris de la fixture
+     anonymisée de l'onglet Combats (t_f45d2cfb) ; tableau du journal d'après la structure relevée (t_653cacff : table.table.table-condensed,
+     colgroup 100 px, « date | texte », <font color> serveur, bilans .mini.text-muted, pagination) ; lignes non lues = tr.bg-info (relevé du
+     17/10). Les lignes marquées data-fixture="garde" n'existent pas sur le site : gardes de position, de structure et de portée. -->
+<base href="http://www.kraland.org/">
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
+<script>
+function updateReport( param )
+{
+	window.__navigations = (window.__navigations || 0) + 1;
+}
+</script>
+</head>
+<body>
+
+<div class="bg-primary" style="margin:10px;">
+<form style="padding:1px;"><select name="top" class="form-control" onChange="updateReport( top.value );">
+<optgroup label="Personnage">
+<option value="perso-000000" selected>Personnage fictif</option>
+</optgroup>
+</select></form>
+</div>
+
+<ul id="myTab" class="nav nav-tabs">
+<li class="active">
+<a href="report/perso-000000"><i class="fa fa-star"></i> Rapport</a>
+</li>
+<li>
+<a href="combats/perso-000000"><i class="fa fa-fist-raised"></i> Combats</a>
+</li>
+</ul>
+
+<table class="table table-condensed">
+<colgroup><col width="100"></colgroup>
+<tbody>
+<tr data-t="normale"><td>15/10 (20:32)</td><td><span data-t="texte">Ligne normale, texte fictif.</span> <a href="jouer/plateau" data-t="lien">lien fictif</a></td></tr>
+<tr class="bg-info" data-t="non-lue"><td>15/10 (20:31)</td><td><span data-t="texte">Ligne non lue, texte simple fictif.</span> <a href="jouer/plateau" data-t="lien">lien fictif</a></td></tr>
+<tr class="bg-info"><td>15/10 (20:31)</td><td><font color="5e432d" data-t="font-5e432d">texte 5e432d</font> <font color="purple" data-t="font-purple">texte purple</font> <font color="4B0082" data-t="font-4B0082">texte 4B0082</font> <font color="maroon" data-t="font-maroon">texte maroon</font> <font color="gray" data-t="font-gray">texte gray</font></td></tr>
+<tr class="bg-info"><td>15/10 (20:30)</td><td>Ligne non lue avec bilan <span class="mini text-muted" data-t="bilan">[PA] 519/616 -&gt; 520/617</span></td></tr>
+<tr><td>15/10 (20:29)</td><td><font color="5e432d" data-t="font-5e432d">texte 5e432d</font> <font color="purple" data-t="font-purple">texte purple</font> <font color="4B0082" data-t="font-4B0082">texte 4B0082</font> <font color="maroon" data-t="font-maroon">texte maroon</font> <font color="gray" data-t="font-gray">texte gray</font> <span class="mini text-muted" data-t="bilan">[PA] 1/2</span></td></tr>
+<tr><td>15/10 (20:28)</td><td>Ligne normale.</td></tr>
+<tr class="bg-info" data-fixture="garde"><td>15/10 (20:27)</td><td>Ligne non lue isolée, au milieu de la liste (garde de position).</td></tr>
+<tr><td>15/10 (20:26)</td><td>Ligne normale.</td></tr>
+<tr class="bg-info" data-fixture="garde"><td colspan="2">Ligne non lue à cellule unique (garde de structure).</td></tr>
+<tr><td>15/10 (20:25)</td><td>Ligne normale.</td></tr>
+</tbody>
+</table>
+
+<p class="bg-info" data-fixture="garde">Paragraphe .bg-info hors du tableau (garde de portée : règle générique conservée).</p>
+
+<ul class="pagination">
+<li class="active"><a href="report/perso-000000-1">1</a></li>
+<li><a href="report/perso-000000-2">2</a></li>
+<li><a href="report/perso-000000-3">3</a></li>
+</ul>
+
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
