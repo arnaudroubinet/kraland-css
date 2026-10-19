@@ -78,7 +78,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
   [/^tests\/e2e\/fixtures\//, 'fixture'], // autre fixture : les suites qui citent son nom de fichier (aucune -> total)
   [/^tests\/e2e\/durations\.json$/, []], // durées mesurées : changent l'ordre de lancement, jamais le résultat d'une vérification
-  [/^(README\.md|CLAUDE\.md|AGENTS\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.serena\/|\.github\/)/, []],
+  [/^(README\.md|CLAUDE\.md|AGENTS\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.github\/)/, []],
   // Outillage : aucun effet sur le bundle ni sur les suites (configuration du lint, attributs git, agents, ancien script de migration non testé).
   [/^(\.gitattributes|\.gitignore|\.hermes\/|_bmad\/|_bmad-output\/|eslint\.config\.js|\.stylelintignore|\.stylelintrc\.json|\.mcp\.json|skills-lock\.json|validate\.js|kraland-userscript-main\.js)$|^(\.hermes|_bmad|_bmad-output)\//, 'lint'],
   [/^(kraland-userscript-main\.user\.js|kraland-userscript\.user\.js|kraland-userscript-dev\.user\.js)$/, 'generated'] // fichiers générés : la source fait foi, sinon total

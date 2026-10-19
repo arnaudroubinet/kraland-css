@@ -9,7 +9,7 @@
 
 ## Sources et autorité
 
-- Lire `CLAUDE.md` avant toute tâche : règles existantes, conservées sans modification par le setup.
+- Lire `AGENTS.md` avant toute tâche : règles existantes, conservées sans modification par le setup.
 - Le produit existe déjà : userscript Tampermonkey, JavaScript vanilla et CSS de surcharge sur Bootstrap 3 ; pas une application serveur à recréer.
 - Langue des échanges, commentaires et nouveaux artefacts : français. Les sources tierces BMad restent dans leur langue d’origine.
 - Arnaud est le product owner et tranche les décisions produit. Une configuration technique du setup n’est pas une validation produit.
@@ -22,7 +22,7 @@
 - Aucune installation additionnelle sans autorisation explicite pour cette installation. Ne pas modifier les profils Hermes depuis un mandat limité au dépôt.
 - Ne pas utiliser le site Kraland, ses comptes ou des données joueurs comme test implicite. Préférer les fixtures confinées ; tout accès réel exige un mandat explicite.
 - Travailler en worktree isolé quand un autre agent occupe le checkout principal. Ne jamais nettoyer, stasher ou déplacer ses changements.
-- Respecter les sources et fichiers générés indiqués dans `CLAUDE.md`. Un changement de méthode seul ne justifie pas de régénérer le bundle applicatif.
+- Respecter les sources et fichiers générés indiqués dans `AGENTS.md`. Un changement de méthode seul ne justifie pas de régénérer le bundle applicatif.
 
 ## Démarrage de la méthode
 

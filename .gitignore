@@ -25,7 +25,10 @@ desktop.ini
 .playwright-mcp/
 
 # Temporary files
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/.gitattributes
+!.claude/LICENSE-BMAD
 .tmp/
 temp/
 

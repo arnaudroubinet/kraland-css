@@ -47,7 +47,7 @@ Avant setup : `bmad_exists=false`, scripts absents, `current=false`. Aucune ques
 - `_bmad/config.toml` : `core.project_name="kraland-css"`, `core.output_folder="{project-root}/_bmad-output"`. Aucun chemin absolu de worktree stocké.
 - `_bmad/custom/.gitignore`, créé officiellement, protège `*.user.toml` ; pas de réponses personnelles commitées.
 - `_bmad/.gitignore` protège `render/` et les caches Python : les rendus contiennent des chemins machine et ne sont pas livrés.
-- Neuf surcharges **équipe** `_bmad/custom/bmad-*.toml` chargent `CLAUDE.md` et `adoption/contexte-projet.md` : les cinq agents et les workflows build, build-auto, ticket et project-context. Aucun défaut tiers n’est édité. Le contexte fixe le français, le cadre JS/CSS brownfield, les garde-fous et la séparation implémentation/QA.
+- Neuf surcharges **équipe** `_bmad/custom/bmad-*.toml` chargent `AGENTS.md` (anciennement `CLAUDE.md`) et `adoption/contexte-projet.md` : les cinq agents et les workflows build, build-auto, ticket et project-context. Aucun défaut tiers n’est édité. Le contexte fixe le français, le cadre JS/CSS brownfield, les garde-fous et la séparation implémentation/QA.
 - Pas de clés de langue v6 inventées : cette révision ne les lit plus ; le français provient des instructions existantes et des faits partagés résolus par les surcharges.
 - Pas d’initiative produit active choisie à la place du prochain mandat. Le store BMad est `repo` par défaut, sans connexion tracker. Le kanban Hermes reste la source des mandats opérationnels, pas un historique à convertir automatiquement.
 - `_bmad-output/backlog/README.md` rend explicite l’absence de tickets créés ; la commande d’inspection avec dossier fonctionne.
