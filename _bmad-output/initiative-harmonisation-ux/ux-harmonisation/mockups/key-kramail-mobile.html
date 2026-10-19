@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kramail mobile</title>
+<style>
+/* Maquette d'écran clé : kramail, dossier Réception, en 375 px, variante Empire Brun sombre. Messages fictifs, aucun contenu réel.
+   Gouverne :
+   - DESIGN.md › Components : Onglets de section (dossiers du kramail), Bouton « ••• », Carte de section, Bouton compact (pagination,
+     44 × 44 en mobile) ; Typography (17/15/13, H3.1 et H11.1) ; Layout & Spacing (marge 16 px H10.1, grille H11.2, cibles H9.1,
+     retrait des cartes Q10) ; Shapes (H6.3) ; Colors › Mode sombre : la primaire ne sert jamais de texte (H5.6), Texte posé sur la
+     couleur de nation (Q1).
+   - EXPERIENCE.md › Component Patterns : Onglets de section, Bouton « ••• », Carte de section ; State Patterns : section en cours
+     (dossier actif), carte de section dépliée ; Key Flows : parcours 3 (étape 4) ; Responsive & Platform : Kramail.
+   - .memlog.md (fait foi) : H4.1, H5.6, H6.2, H6.3, H9.1, H10.1, H11.2, H12.2, H13.1, Q1.
+   Structure du site (fixture synthétique tests/e2e/fixtures/kramail-reception.html) : h1.page-header (nom du personnage, sélecteur
+   ajouté par le userscript), boutons Réception (fa-sign-in-alt), Envoi (fa-sign-out-alt), Corbeille (far fa-trash-alt), Nouveau
+   (fa-envelope), Contacts (fa-user), menu « autres actions » cloné du thead ; panneau « Boîte de réception » avec DataTables
+   (recherche, lignes, pagination). Le titre de section passe de la primaire (2,56:1) à la couleur du texte. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1.doc { font-size: 20px; margin: 0 0 4px; }
+.intro, .leg { color: #6b6258; font-size: 14px; max-width: 900px; margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.notes { flex: 1 1 280px; min-width: 0; max-width: 520px; }
+.notes ul { margin: 0; padding-left: 18px; color: #6b6258; font-size: 14px; }
+.notes li { margin-bottom: 6px; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 4px; vertical-align: middle; }
+.ic { display: inline-block; width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+/* Jetons Empire Brun sombre */
+.eb { --page: #12100d; --surface: #1e1a15; --elev: #2a251f; --text: #f5f1ed; --text2: #b8a997; --line: rgba(255,255,255,.08);
+      --primary: #7a5240; --arm-bg: #7a5240; --arm-ink: #fff; --navbar: #111315; }
+.phone { width: 375px; max-width: 100%; overflow: hidden; padding-bottom: 8px; background: var(--page); color: var(--text); border-radius: 16px; box-shadow: 0 0 0 1px #000; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+/* En-tête du site */
+.nav { display: flex; align-items: center; height: 56px; padding: 0 8px; background: var(--navbar); border-bottom: 1px solid rgba(255,255,255,.1); box-shadow: 0 2px 4px rgba(0,0,0,.3); color: #fff; }
+.nav .t { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 4px; font-size: 18px; }
+.nav .grow { flex: 1; }
+.nav .tog { border: 1px solid rgba(255,255,255,.2); font-size: 20px; }
+
+/* Titre de page : nom du personnage et sélecteur */
+.kh { padding: 12px 16px 8px; }
+.kt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; font-size: 17.5px; font-weight: 700; line-height: 1.1; }
+.kt .dd { font-size: 12px; font-weight: 400; color: var(--text2); }
+
+/* Dossiers en onglets de section (même composant que le jeu) */
+.tabs { display: flex; background: var(--surface); border-bottom: 2px solid var(--line); }
+.tabs a { flex: 1 1 0; min-width: 0; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border-bottom: 3px solid transparent; color: var(--text); }
+.tabs .ic { font-size: 18px; }
+.tabs a > span { max-width: 100%; font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabs a.on { border-bottom-color: var(--primary); font-weight: 600; }
+
+/* Boutons à icône */
+.kb { display: flex; gap: 8px; padding: 12px 16px; }
+.ib { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--text); font-size: 18px; }
+.ib.more { font-size: 15px; letter-spacing: 1px; }
+
+/* Carte de section et liste DataTables */
+.scard { margin: 0 8px 8px; overflow: hidden; border-radius: 8px; background: var(--surface); }
+.scard-h { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+.scard-h .ic { font-size: 18px; }
+.scard-h .t { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; color: var(--text); }
+.scard-h .chev { font-size: 14px; color: var(--text2); }
+.search { display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 14px; color: var(--text2); }
+.search .inp { flex: 1; min-width: 0; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.msgs { margin: 0; padding: 0; list-style: none; }
+.msg { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 8px; row-gap: 4px; min-height: 64px; padding: 12px 16px 12px 4px; border-top: 1px solid var(--line); }
+.msg .cb { grid-row: 1 / -1; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+.msg .cb i { width: 20px; height: 20px; border: 2px solid var(--text2); border-radius: 4px; }
+.msg .sub { grid-column: 2 / 4; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.msg .sub .ic { font-size: 16px; color: var(--text2); }
+.msg .sub > span { min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg .from { grid-column: 2; min-width: 0; font-size: 13px; color: var(--text2); }
+.msg .date { grid-column: 3; font-size: 13px; color: var(--text2); text-align: right; white-space: nowrap; }
+.dtp { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 12px 16px 16px; border-top: 1px solid var(--line); }
+.dtp span { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); font-size: 14px; color: var(--text); }
+.dtp .on { background: var(--arm-bg); border-color: var(--arm-bg); color: var(--arm-ink); font-weight: 600; }
+.dtp .off { opacity: .4; }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 2.5a1.5 1.5 0 0 0-1.5 1.5v.7A6.5 6.5 0 0 0 5.5 11v4.2l-1.9 1.9a.8.8 0 0 0 .6 1.4h15.6a.8.8 0 0 0 .6-1.4l-1.9-1.9V11a6.5 6.5 0 0 0-5-6.3V4A1.5 1.5 0 0 0 12 2.5Zm-2.4 17a2.4 2.4 0 0 0 4.8 0Z"/></symbol>
+  <symbol id="i-env" viewBox="0 0 24 24"><path d="M3.5 5h17A1.5 1.5 0 0 1 22 6.5v.6l-10 6.2L2 7.1v-.6A1.5 1.5 0 0 1 3.5 5ZM2 9.4l10 6.2 10-6.2v8.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5Z"/></symbol>
+  <symbol id="i-env-open" viewBox="0 0 24 24"><path d="M3 10.2 12 4l9 6.2V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM3 10.2l9 6.3 9-6.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z"/></g></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3 6h18v2H3Zm0 5h18v2H3Zm0 5h18v2H3Z"/></symbol>
+  <symbol id="i-signin" viewBox="0 0 24 24"><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5v-2h5V5h-5Z"/><path d="M10 6.5 15.5 12 10 17.5V14H3v-4h7Z"/></symbol>
+  <symbol id="i-signout" viewBox="0 0 24 24"><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5Z"/><path d="M15 6.5 20.5 12 15 17.5V14H8v-4h7Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M9 2.5h6l1 2h4v2H4v-2h4Z"/><path d="M6 8h12l-1 13.5H7ZM9.8 10.5v8.5M14.2 10.5v8.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4.5"/><path d="M3 21c0-4.4 4-7.5 9-7.5s9 3.1 9 7.5Z"/></symbol>
+  <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<h1 class="doc">Kramail en mobile, dossier Réception</h1>
+<p class="intro">Écran de 375 px, variante Empire Brun sombre. Trois messages fictifs (une page en compte 10 ; la liste est raccourcie pour la maquette). Étiquettes orange : taille du texte en pixels ; elles n'apparaissent pas dans l'interface.</p>
+
+<div class="row">
+  <div class="col">
+    <div class="phone eb">
+      <div class="nav">
+        <span class="t"><svg class="ic"><use href="#i-bell"/></svg></span><span class="t"><svg class="ic"><use href="#i-env"/></svg></span><span class="t"><svg class="ic"><use href="#i-globe"/></svg></span>
+        <span class="grow"></span><span class="t tog"><svg class="ic"><use href="#i-bars"/></svg></span>
+      </div>
+
+      <!-- [ASSUMPTION] Titre à sa taille actuelle (h1 mobile en 1,75rem = 17,5 px, Q18) ; zone du sélecteur portée à 44 px de haut (H9.1). -->
+      <div class="kh"><h2 class="kt">Nerys<span class="size">17,5</span> <span class="dd">▼</span></h2></div>
+
+      <!-- [ASSUMPTION] Disposition non tranchée par H13.1 : barre d'onglets pleine largeur sous le titre (comme les sections du jeu), puis la rangée des trois boutons à icône, alignés à gauche comme la rangée actuelle. Libellés en 12 px (Q14). -->
+      <nav class="tabs">
+        <a class="on"><svg class="ic"><use href="#i-signin"/></svg><span>Réception<span class="size">12</span></span></a>
+        <a><svg class="ic"><use href="#i-signout"/></svg><span>Envoi</span></a>
+        <a><svg class="ic"><use href="#i-trash"/></svg><span>Corbeille</span></a>
+      </nav>
+
+      <!-- [ASSUMPTION] Boutons à icône au rendu actuel (fond surface, bordure, icône en couleur du texte), rayon 4 px au lieu de 10 (H6.3). -->
+      <div class="kb">
+        <span class="ib"><svg class="ic"><use href="#i-env"/></svg></span>
+        <span class="ib"><svg class="ic"><use href="#i-user"/></svg></span>
+        <span class="ib more">•••</span>
+      </div>
+
+      <div class="scard">
+        <!-- [ASSUMPTION] Icône d'enveloppe dans l'en-tête, comme la maquette h04 : l'icône native fa-comments-o n'existe pas en Font Awesome 5. -->
+        <div class="scard-h"><svg class="ic"><use href="#i-env"/></svg><span class="t">Boîte de réception<span class="size">17</span></span><svg class="ic chev"><use href="#i-chev-up"/></svg></div>
+        <!-- [ASSUMPTION] Recherche DataTables : libellé « Rechercher » (14 px, rendu actuel), champ de 44 px arrondi à 4 px (H6.3) au lieu de la pilule actuelle. -->
+        <div class="search"><span>Rechercher</span><span class="inp"></span></div>
+        <!-- [ASSUMPTION] Messages en lignes séparées par un filet dans la carte (maquette h04, option A) au lieu de cartes de 12 px de rayon ; case à cocher dans une colonne de 44 px (H9.1) ; date en détail 13 px atténué au lieu de 12 px en --kr-text-muted. -->
+        <ul class="msgs">
+          <li class="msg"><span class="cb"><i></i></span><span class="sub"><svg class="ic"><use href="#i-env-open"/></svg><span>Sujet d'un message<span class="size">15</span></span></span><span class="from">Expéditeur<span class="size">13</span></span><span class="date">18/10 (21:04)</span></li>
+          <li class="msg"><span class="cb"><i></i></span><span class="sub"><svg class="ic"><use href="#i-env-open"/></svg><span>Sujet d'un autre message</span></span><span class="from">Expéditeur</span><span class="date">16/10 (09:12)</span></li>
+          <li class="msg"><span class="cb"><i></i></span><span class="sub"><svg class="ic"><use href="#i-env-open"/></svg><span>Sujet d'un message plus long, coupé en fin de ligne</span></span><span class="from">Expéditeur</span><span class="date">08/10 (14:30)</span></li>
+        </ul>
+        <!-- [ASSUMPTION] Pagination : boutons de 44 px, 14 px, rayon 4 px ; page courante en --kr-arm-bg / --kr-arm-ink (Q1 ; le --kr-text-inverse actuel fait 2,81:1). -->
+        <div class="dtp"><span class="off">Précédent</span><span class="on">1</span><span>2</span><span>Suivant</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <ul>
+      <li>Dossiers en onglets libellés : icône et texte, « Réception » actif en gras avec filet primaire de 3 px, même composant que les sections du jeu (H13.1, H1.5).</li>
+      <li>Nouveau message, Contacts et « ••• » restent des boutons à icône de 44 × 44 ; « ••• » remplace « ⋮ », comme au forum (H12.2).</li>
+      <li>Carte de section : en-tête de 48 px dans la même carte que la liste, à 8 px des bords ; titre 17 px gras en couleur du texte au lieu de la primaire à 2,56:1 (H4.1, H5.6, Q10).</li>
+      <li>Ligne de message : sujet 15 px, expéditeur et date 13 px atténués à 7,55:1 ; toute la ligne ouvre le message, la case à cocher est une cible à part (H9.1).</li>
+      <li>Aucun texte à moins de 16 px du bord (H10.1) ; dans la carte, le texte commence à 24 px (retrait de 8 px, Q10).</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

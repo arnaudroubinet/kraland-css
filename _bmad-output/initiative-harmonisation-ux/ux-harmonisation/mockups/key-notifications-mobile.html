@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications mobile</title>
+<style>
+/* Maquette d'écran clé : notifications (/report) en 375 px, variante Empire Brun sombre, onglet Rapport, deux notifications non lues.
+   Gouverne :
+   - DESIGN.md › Components : Ligne de notification ; Typography (texte courant mobile 15 px, détail 13 px, H14.1) ;
+     Layout & Spacing (places fixes : sélecteur à 16 px du haut, date au-dessus du texte, filet « non lu » à gauche ; marge 16 px H10.1 ;
+     grille H11.2) ; Colors › Rôles (--kr-status-unread), Texte posé sur la couleur de nation (Q1) ; Shapes (H6.3).
+   - EXPERIENCE.md › Component Patterns : Ligne de notification (onglets Rapport et Combats, pagination : rendu actuel) ;
+     State Patterns : notifications non lues, arrivée sur la page ; Key Flows : parcours 1 (étapes 2 et 3) ; Responsive & Platform :
+     Notifications ; Interaction Primitives (cibles mobiles, ne jamais précharger /report).
+   - .memlog.md (fait foi) : visite de /report, H14.1, H14.2, H14.3, H9.1, H10.1, H11.2, Q1, R3.
+   Structure du site (fixture synthétique tests/e2e/fixtures/report-non-lu.html) : sélecteur dans div.bg-primary, onglets nav-tabs
+   Rapport (fa-star) et Combats (fa-fist-raised), journal table.table-condensed, ul.pagination. Non lu : tr.bg-info, filet de 4 px
+   en --kr-status-unread, la couleur unique du non-lu (R3 : celle des pastilles NON LU, NOUVEAU MESSAGE, de la cloche et de l'enveloppe),
+   et non plus l'accent ; elle vaut #d4a574 en Empire Brun sombre. Textes : événements de jeu neutres, aucune parole d'un autre joueur. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1.doc { font-size: 20px; margin: 0 0 4px; }
+.intro, .leg { color: #6b6258; font-size: 14px; max-width: 900px; margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.notes { flex: 1 1 280px; min-width: 0; max-width: 520px; }
+.notes ul { margin: 0; padding-left: 18px; color: #6b6258; font-size: 14px; }
+.notes li { margin-bottom: 6px; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 6px; vertical-align: middle; }
+.ic { display: inline-block; width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+/* Jetons Empire Brun sombre */
+.eb { --page: #12100d; --surface: #1e1a15; --elev: #2a251f; --text: #f5f1ed; --text2: #b8a997; --line: rgba(255,255,255,.08);
+      --primary: #7a5240; --arm-bg: #7a5240; --arm-ink: #fff; --form: #3a332b;
+      --status-unread: #d4a574; /* --kr-status-unread (R3) */ }
+.phone { width: 375px; max-width: 100%; overflow: hidden; padding-bottom: 8px; background: var(--page); color: var(--text); border-radius: 16px; box-shadow: 0 0 0 1px #000; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+/* Sélecteur de personnage : bandeau primaire actuel (1 px autour du champ), à 16 px du haut et des bords */
+.sel { padding: 16px 16px 0; }
+.sel-band { padding: 1px; border-radius: 4px; background: var(--primary); }
+.select { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--form); font-size: 15px; }
+.select .ic { font-size: 16px; color: var(--text2); }
+
+/* Onglets Rapport / Combats : nav-tabs du thème sombre */
+.ntabs { display: flex; gap: 4px; margin: 12px 0 0; padding: 0 16px; list-style: none; border-bottom: 1px solid var(--line); }
+.ntabs li { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: -1px; padding: 0 16px; border: 1px solid transparent; border-radius: 4px 4px 0 0; font-size: 14px; color: var(--text); }
+.ntabs .ic { font-size: 16px; }
+.ntabs li.on { background: var(--surface); border-color: var(--line) var(--line) transparent; }
+
+/* Lignes de notification */
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.list li.unread { box-shadow: inset 4px 0 0 var(--status-unread); }
+.list .d { margin-bottom: 4px; font-size: 13px; line-height: 1.3; color: var(--text2); }
+.list .t { font-size: 15px; line-height: 1.45; }
+.list .bilan { font-size: 13px; color: var(--text2); }
+
+/* Pagination */
+.pag { display: flex; margin: 16px; padding: 0; list-style: none; }
+.pag li { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: -1px; border: 1px solid var(--line); background: var(--elev); font-size: 14px; color: var(--text); }
+.pag li:first-child { margin-left: 0; border-radius: 4px 0 0 4px; }
+.pag li:last-child { border-radius: 0 4px 4px 0; }
+.pag li.on { background: var(--arm-bg); border-color: var(--arm-bg); color: var(--arm-ink); }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-caret" viewBox="0 0 24 24"><path d="M6.5 9.5 12 15l5.5-5.5Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z"/></symbol>
+  <symbol id="i-fist" viewBox="0 0 24 24"><path d="M6.5 6.5a1.5 1.5 0 0 1 3 0V5a1.5 1.5 0 0 1 3 0v-.5a1.5 1.5 0 0 1 3 0V6a1.5 1.5 0 0 1 3 0v6.5a6 6 0 0 1-3 5.2V21H8v-3.6A5 5 0 0 1 6.5 13Z"/></symbol>
+</svg>
+
+<h1 class="doc">Notifications en mobile (/report)</h1>
+<p class="intro">Écran de 375 px, variante Empire Brun sombre, onglet Rapport. La page s'ouvre directement sur le sélecteur de personnage, sans bande vide. Les deux premières notifications sont non lues. Étiquettes orange : taille du texte en pixels ; elles n'apparaissent pas dans l'interface.</p>
+
+<div class="row">
+  <div class="col">
+    <div class="phone eb">
+      <!-- [ASSUMPTION] Sélecteur à 44 px de haut (cible H9.1) et en 15 px (texte courant mobile, Q8) ; le bandeau primaire actuel (1 px autour du champ) est conservé, arrondi à 4 px comme le champ. -->
+      <div class="sel"><div class="sel-band"><div class="select"><span>Nerys<span class="size">15</span></span><svg class="ic"><use href="#i-caret"/></svg></div></div></div>
+
+      <!-- [ASSUMPTION] Onglets à 44 px de haut (H9.1) et à 16 px du bord (H10.1) ; aspect actuel des nav-tabs en sombre. -->
+      <ul class="ntabs">
+        <li class="on"><svg class="ic"><use href="#i-star"/></svg>Rapport<span class="size">14</span></li>
+        <li><svg class="ic"><use href="#i-fist"/></svg>Combats</li>
+      </ul>
+
+      <!-- [ASSUMPTION] Non lue : seul le filet de 4 px reste à gauche ; la teinte à 14 % de la cellule de date n'a plus de cellule où se poser et n'est pas reprise. -->
+      <!-- [ASSUMPTION] Bilan du serveur (span .mini.text-muted) en détail 13 px, couleur atténuée --kr-text-secondary (DESIGN.md réserve text-muted à l'indisponible). Deux textes ajoutés aux trois exemples fournis : « Vous êtes sortie du commerce. » et « Vous avez dormi. ». -->
+      <ol class="list">
+        <li class="unread"><div class="d">19/10 (07:58)<span class="size">13</span></div><div class="t">Vous êtes entrée dans le commerce.<span class="size">15</span></div></li>
+        <li class="unread"><div class="d">19/10 (07:41)</div><div class="t">Votre Volonté se développe. <span class="bilan">[VOL] 1 + 1 = 2</span><span class="size">13</span></div></li>
+        <li><div class="d">19/10 (02:00)</div><div class="t">Vous avez progressé dans votre combat : Lame Rapide niveau 5.</div></li>
+        <li><div class="d">18/10 (23:12)</div><div class="t">Vous êtes sortie du commerce.</div></li>
+        <li><div class="d">18/10 (21:30)</div><div class="t">Vous avez dormi.</div></li>
+      </ol>
+
+      <!-- [ASSUMPTION] Pagination à sa place actuelle, sous la liste (structure de la fixture report-non-lu.html), trois pages. Page courante : fond primaire (rendu actuel en sombre), chiffre en --kr-arm-ink par Q1 (le --kr-text-inverse actuel n'y fait que 2,81:1) ; les rendus de la page courante restent à unifier (Q18). Numéros de 44 × 44 (H9.1), 14 px (bouton normal mobile, H6.2). -->
+      <ul class="pag"><li class="on">1</li><li>2</li><li>3</li></ul>
+    </div>
+  </div>
+
+  <div class="notes">
+    <ul>
+      <li>Plus de bande vide d'environ 70 px : le sélecteur commence à 16 px du haut (H14.3), d'où une notification de plus visible d'entrée.</li>
+      <li>Date au-dessus du texte en ligne de détail de 13 px ; texte de 15 px sur toute la largeur, au lieu de la colonne de date d'environ 100 px (H14.1, H14.2).</li>
+      <li>Non lues : filet de 4 px à gauche (H14.2), dans la couleur du non-lu, --kr-status-unread (#d4a574 en Empire Brun sombre, 8,5:1 sur le fond), la même que les pastilles NON LU, NOUVEAU MESSAGE et celles de la cloche et de l'enveloppe (R3).</li>
+      <li>Onglets Rapport et Combats, pagination : rendu actuel, cibles portées à 44 px (H9.1).</li>
+      <li>Rappel : un seul chargement de /report marque tout comme lu ; la page n'est jamais préchargée.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Index du forum</title>
+<style>
+/* Maquette de la refonte de l'index du forum (Jeu RP), ordinateur et mobile, variante Empire Brun sombre.
+   Décisions appliquées (memlog) : priorité à l'activité (nom + dernier message), compteurs en détail, description et
+   modérateurs retirés de l'index, aucun signal lu/non lu, ordre fixe du jeu ; H3.1/H11.1 (15/13/17 px), H4.1 (carte unique
+   mobile), H6.3 (rayons 4/8), H8 (étiquette « guilde » 12 px), H9.1 (cibles 44 px), H10.1 (gouttière 16 px), H5.6 (accent pour les textes colorés).
+   Données : index Jeu (RP) relevé le 2026-10-19. */
+:root { --bg: #12100d; --surface: #1e1a15; --surface-2: #2a251f; --line: rgba(255,255,255,.08); --text: #f5f1ed; --muted: #b8a997; --accent: #d4a574; --primary: #7a5240; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1.doc { font-size: 20px; margin: 0 0 4px; }
+h2.doc { font-size: 16px; margin: 28px 0 8px; }
+.intro, .leg { color: #6b6258; font-size: 14px; max-width: 980px; margin: 6px 0 12px; }
+.ui { background: var(--bg); color: var(--text); font-family: "Helvetica Neue", Arial, sans-serif; border-radius: 12px; border: 1px solid #000; overflow: hidden; }
+.ico { display: inline-flex; width: 28px; justify-content: center; flex: none; color: var(--accent); font-size: 16px; }
+.lbl { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--primary); color: #fff; margin-left: 6px; vertical-align: 2px; }
+.go { display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); flex: none; }
+
+/* Ligne de forum, commune aux deux supports */
+.row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.main { flex: 1; min-width: 0; }
+.name { font-size: 15px; font-weight: 700; color: var(--text); }
+.last { font-size: 13px; color: var(--text); margin-top: 2px; }
+.last b { font-weight: 600; color: var(--accent); }
+.count { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Ordinateur */
+.desk { width: 1100px; max-width: 100%; }
+.desk-in { display: flex; gap: 24px; padding: 24px; overflow-x: auto; }
+.side { width: 260px; flex: none; background: var(--surface); border-radius: 8px; overflow: hidden; align-self: flex-start; }
+.side-h { background: var(--primary); padding: 10px 16px; font-size: 15px; display: flex; justify-content: space-between; }
+.side a { display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: var(--accent); text-decoration: none; font-size: 15px; }
+.content { flex: 1; min-width: 560px; }
+.page-title { font-size: 36px; font-weight: 500; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,.5); display: flex; justify-content: space-between; align-items: center; }
+.card { background: var(--surface); border-radius: 8px; overflow: hidden; }
+.card-h { padding: 12px 16px; background: var(--surface-2); font-size: 17px; font-weight: 700; display: flex; justify-content: space-between; }
+.desk .row { padding: 12px 16px; }
+.desk .meta { display: flex; gap: 24px; align-items: center; }
+.desk .meta .last { margin: 0; text-align: right; min-width: 210px; }
+.desk .count { margin: 0; min-width: 170px; text-align: right; }
+.desk .go { width: 34px; height: 34px; }
+
+/* Mobile */
+.mob { width: 375px; max-width: 100%; }
+.mob-bar { height: 52px; background: #0f1113; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 22px; padding: 0 16px; font-size: 18px; }
+.mob-title { padding: 16px 16px 8px; font-size: 22px; font-weight: 700; }
+.mob .card { margin: 8px; }
+.mob .card-h { height: 48px; align-items: center; padding: 0 16px; }
+.mob .row { min-height: 72px; }
+.mob .go { width: 44px; height: 44px; }
+</style>
+</head>
+<body>
+<h1 class="doc">Index du forum, refonte</h1>
+<p class="intro">Jeu (RP), variante Empire Brun sombre. Pour chaque forum, dans l'ordre du jeu : nom, dernier message (auteur et heure, flèche vers ce message), puis sujets et messages en détail. Description et modérateurs ne figurent plus sur l'index. Toute la ligne ouvre le forum ; la flèche ouvre le dernier message.</p>
+
+<h2 class="doc">Ordinateur</h2>
+<div class="ui desk"><div class="desk-in">
+  <nav class="side"><div class="side-h"><span>Jeu (RP)</span><span>✕</span></div>
+    <a><span class="ico">💬</span>Taverne</a><a><span class="ico">◇</span>Marché</a><a><span class="ico">○</span>Monde</a><a><span class="ico">⚑</span>Royaume de Ruthvénie</a><a><span class="ico">▱</span>Province Mystisie</a><a><span class="ico">▱</span>Province Niarkalistan</a><a><span class="ico">✋</span>Les Cadets Royaux<span class="lbl">guilde</span></a>
+  </nav>
+  <div class="content">
+    <div class="page-title"><span>Jeu (RP)</span><span class="go" style="width:40px;height:40px">≡</span></div>
+    <div class="card"><div class="card-h"><span>💬 Jeu (RP)</span><span>⌃</span></div>
+      <div class="row"><span class="ico">💬</span><div class="main"><div class="name">Taverne</div></div><div class="meta"><div class="count">73 sujets · 694 messages</div><div class="last"><b>Fée Con de la Gueuse</b> · hier 23:33</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">◇</span><div class="main"><div class="name">Marché</div></div><div class="meta"><div class="count">58 sujets · 275 messages</div><div class="last"><b>Nerdos Valkyry</b> · hier 18:35</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">○</span><div class="main"><div class="name">Monde</div></div><div class="meta"><div class="count">56 sujets · 1382 messages</div><div class="last"><b>Fée Con de la Gueuse</b> · auj. 12:45</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">⚑</span><div class="main"><div class="name">Royaume de Ruthvénie</div></div><div class="meta"><div class="count">46 sujets · 314 messages</div><div class="last"><b>Thalassa</b> · auj. 13:37</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">▱</span><div class="main"><div class="name">Province Mystisie</div></div><div class="meta"><div class="count">30 sujets · 609 messages</div><div class="last"><b>Berry</b> · auj. 11:09</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">▱</span><div class="main"><div class="name">Province Niarkalistan</div></div><div class="meta"><div class="count">4 sujets · 76 messages</div><div class="last"><b>Ayayaï Sapic</b> · 16/10 14:21</div></div><span class="go">→</span></div>
+      <div class="row"><span class="ico">✋</span><div class="main"><div class="name">Les Cadets Royaux<span class="lbl">guilde</span></div></div><div class="meta"><div class="count">2 sujets · 3 messages</div><div class="last"><b>Mench0</b> · 03/05 21:18</div></div><span class="go">→</span></div>
+    </div>
+  </div>
+</div></div>
+<p class="leg">Le panneau latéral (menu des forums) reste à sa place, comme sur les autres pages du forum. Chaque ligne : icône et nom à gauche ; compteurs, dernier message et flèche alignés à droite.</p>
+
+<h2 class="doc">Mobile</h2>
+<div class="ui mob">
+  <div class="mob-bar">🔔 ✉ 🌐</div>
+  <div class="mob-title">Jeu (RP)</div>
+  <div class="card"><div class="card-h"><span>💬 Jeu (RP)</span><span>⌃</span></div>
+    <div class="row"><span class="ico">💬</span><div class="main"><div class="name">Taverne</div><div class="last"><b>Fée Con de la Gueuse</b> · hier 23:33</div><div class="count">73 sujets · 694 messages</div></div><span class="go">→</span></div>
+    <div class="row"><span class="ico">◇</span><div class="main"><div class="name">Marché</div><div class="last"><b>Nerdos Valkyry</b> · hier 18:35</div><div class="count">58 sujets · 275 messages</div></div><span class="go">→</span></div>
+    <div class="row"><span class="ico">○</span><div class="main"><div class="name">Monde</div><div class="last"><b>Fée Con de la Gueuse</b> · auj. 12:45</div><div class="count">56 sujets · 1382 messages</div></div><span class="go">→</span></div>
+    <div class="row"><span class="ico">⚑</span><div class="main"><div class="name">Royaume de Ruthvénie</div><div class="last"><b>Thalassa</b> · auj. 13:37</div><div class="count">46 sujets · 314 messages</div></div><span class="go">→</span></div>
+    <div class="row"><span class="ico">✋</span><div class="main"><div class="name">Les Cadets Royaux<span class="lbl">guilde</span></div><div class="last"><b>Mench0</b> · 03/05 21:18</div><div class="count">2 sujets · 3 messages</div></div><span class="go">→</span></div>
+  </div>
+</div>
+<p class="leg">Une ligne par forum dans une carte unique (H4.1) : nom en 15 px, dernier message puis compteurs en 13 px, flèche de 44 px. Toute la ligne est touchable.</p>
+</body>
+</html>

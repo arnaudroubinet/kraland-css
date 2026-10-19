@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plateau mobile</title>
+<style>
+/* Maquette d'écran clé : plateau (section Agir) en 375 px, variante Empire Brun sombre, mini-profil plié.
+   Gouverne :
+   - DESIGN.md › Components : Mini-profil, Jauges PV, PM, PP, Onglets de section, Croix directionnelle et pièces, Carte de section,
+     Carte de personnage, Étiquette de catégorie ; Typography (17/15/13/12, H3.1) ; Layout & Spacing (marge 16 px H10.1,
+     grille H11.2, cibles H9.1, places fixes : nom en tête du mini-profil, section en cours) ; Shapes (H6.3) ; Colors › Jauges (H5.4).
+   - EXPERIENCE.md › Component Patterns : Mini-profil, Onglets de section, Croix directionnelle et pièces, Carte de section,
+     Carte de personnage ; State Patterns : section en cours, carte de section dépliée, mini-profil plié, direction indisponible,
+     pièce courante ; Key Flows : parcours 1 (étape 4) et parcours 4 (étapes 1 à 5) ; Responsive & Platform (mobile).
+   - .memlog.md (fait foi) : H1.3, H1.5, H1.6, H3.1, H4.1, H5.4, H5.6, H6.2, H6.3, H7.1, H8.1, H8.2, H9.1, H10.1, H11.2, Q1.
+   Rendu actuel conservé (kraland-theme.css, CX2) : barre d'actions de 64 px, croix 154 × 154 (touches 50 × 50, interstices de 2 px,
+   rayons asymétriques, Q12), vignettes de pièces 60 × 60, ordre natif des pièces. Mini-profil : avatar 48 px, bouton de gestion 44 px. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1.doc { font-size: 20px; margin: 0 0 4px; }
+.intro, .leg { color: #6b6258; font-size: 14px; max-width: 900px; margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.notes { flex: 1 1 280px; min-width: 0; max-width: 520px; }
+.notes ul { margin: 0; padding-left: 18px; color: #6b6258; font-size: 14px; }
+.notes li { margin-bottom: 6px; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 9999px; vertical-align: -1px; margin-right: 4px; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 4px; vertical-align: middle; letter-spacing: 0; text-transform: none; }
+.ic { display: inline-block; width: 1em; height: 1em; flex: none; fill: currentColor; }
+
+/* Jetons Empire Brun sombre ; jauges sombres proposées (DESIGN.md, H5.4) */
+.eb { --page: #12100d; --surface: #1e1a15; --elev: #2a251f; --hover: rgba(255,255,255,.03); --text: #f5f1ed; --text2: #b8a997; --muted: #8a7968;
+      --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15); --primary: #7a5240; --primary-strong: #5e3b2d; --accent: #d4a574;
+      --accent-rev: #1a0f0a; --arm-bg: #7a5240; --arm-ink: #fff; --navbar: #111315; --pv: #66bb6a; --pm: #64b5f6; --pp: #ffa726; }
+.phone { width: 375px; max-width: 100%; overflow: hidden; padding-bottom: 8px; background: var(--page); color: var(--text); border-radius: 16px; box-shadow: 0 0 0 1px #000; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+/* En-tête du site */
+.nav { display: flex; align-items: center; height: 56px; padding: 0 8px; background: var(--navbar); border-bottom: 1px solid rgba(255,255,255,.1); box-shadow: 0 2px 4px rgba(0,0,0,.3); color: #fff; }
+.nav .t { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 4px; font-size: 18px; }
+.nav .grow { flex: 1; }
+.nav .tog { border: 1px solid rgba(255,255,255,.2); font-size: 20px; }
+
+/* Barre d'actions */
+.qa { display: flex; background: var(--surface); border-bottom: 1px solid var(--line); }
+.qa a { flex: 1 1 0; min-width: 0; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border-right: 1px solid var(--line); color: var(--text); font-size: 14px; line-height: 1.2; }
+.qa a:first-child { border-left: 1px solid var(--line); }
+.qa .ic { font-size: 24px; }
+
+/* Mini-profil, plié */
+.mp { position: relative; padding: 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.mp-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.mp-av { width: 48px; height: 48px; flex: none; border-radius: 4px; background: radial-gradient(circle at 45% 35%, #e3c39a, #6b4630 70%, #3a2619); }
+.mp-info { flex: 1; min-width: 0; }
+.mp-name-row { display: flex; align-items: center; gap: 8px; }
+.mp-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-manage { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; border-radius: 4px; background: var(--surface); font-size: 20px; }
+.mp-money { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
+.mp-g { display: flex; gap: 8px; margin: 4px 24px 0 0; font-size: 12px; line-height: 1.2; }
+.mp-g .g { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
+.mp-g b { min-width: 20px; font-weight: 600; }
+.mp-g .bar { flex: 1; height: 6px; border-radius: 9999px; background: var(--line); overflow: hidden; }
+.mp-g .bar i { display: block; height: 100%; }
+.mp-g .v { min-width: 20px; text-align: right; color: var(--text2); }
+.mp-chev { position: absolute; right: 12px; bottom: 12px; font-size: 14px; color: var(--text2); }
+
+/* Onglets de section */
+.tabs { display: flex; background: var(--surface); border-bottom: 2px solid var(--line); }
+.tabs a { flex: 1 1 0; min-width: 0; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border-bottom: 3px solid transparent; color: var(--text); }
+.tabs .ic { font-size: 18px; }
+.tabs a > span { max-width: 100%; font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabs a.on { border-bottom-color: var(--primary); font-weight: 600; }
+
+/* Croix directionnelle et pièces (CX2, rendu actuel) */
+.cx { display: grid; grid-template-columns: 154px minmax(0, 1fr); gap: 2px 12px; margin: 0 0 4px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.pad { position: relative; display: grid; grid-template: ". n ." 50px "w c e" 50px ". s ." 50px / 50px 50px 50px; gap: 2px; width: 154px; height: 154px; }
+.pad::before { content: ""; position: absolute; inset: 14px; border: 1.5px solid var(--line2); border-radius: 50%; }
+.arm { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--primary-strong); background: var(--arm-bg); color: var(--arm-ink); font-size: 12px; font-weight: 700; line-height: 1; }
+.arm svg { width: 16px; height: 14px; fill: currentColor; }
+.arm.n { grid-area: n; border-radius: 10px 10px 2px 2px; }
+.arm.s { grid-area: s; flex-direction: column-reverse; border-radius: 2px 2px 10px 10px; }
+.arm.w { grid-area: w; border-radius: 10px 2px 2px 10px; }
+.arm.e { grid-area: e; border-radius: 2px 10px 10px 2px; }
+.arm.s svg { transform: rotate(180deg); }
+.arm.w svg { transform: rotate(-90deg); }
+.arm.e svg { transform: rotate(90deg); }
+.arm.off { border: 1px dashed var(--line2); background: var(--page); color: var(--muted); font-weight: 600; }
+.hub { position: relative; z-index: 1; grid-area: c; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 2px; background: var(--page); }
+.hub::before { content: ""; width: 11px; height: 11px; border: 2px solid var(--muted); transform: rotate(45deg); }
+.rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); grid-auto-rows: 60px; gap: 2px; align-content: start; margin: 0; padding: 0; list-style: none; }
+.tile { position: relative; display: flex; align-items: center; justify-content: center; height: 60px; overflow: hidden; border-radius: 4px; background: var(--elev); }
+.tile .img { display: grid; place-items: center; width: 60px; height: 60px; color: rgba(255,255,255,.35); font-size: 22px; }
+.tile .lock { position: absolute; right: 6px; bottom: 6px; font-size: 13px; color: #f5f1ed; }
+.tile.here::after { content: ""; position: absolute; inset: 0; border: 3px solid var(--accent); border-radius: 4px; }
+.here-tag { position: absolute; left: 4px; bottom: 4px; z-index: 1; padding: 0 8px; border-radius: 9999px; background: var(--accent); color: var(--accent-rev); font-size: 12px; font-weight: 700; line-height: 16px; letter-spacing: .05em; text-transform: uppercase; }
+
+/* Carte de section (H4.1) et cartes de personnages */
+.scard { margin: 8px; overflow: hidden; border-radius: 8px; background: var(--surface); }
+.scard-h { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+.scard-h .ic { font-size: 18px; }
+.scard-h .t { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; color: var(--text); }
+.scard-h .chev { font-size: 14px; color: var(--text2); }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px; }
+.pc { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--hover); }
+.pc-link { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; }
+.pc-ring { display: grid; place-items: center; width: 75px; height: 75px; border: 2px solid var(--pv); border-radius: 50%; }
+.pc-av { width: 65px; height: 65px; border-radius: 50%; }
+.pc-av.a1 { background: radial-gradient(circle at 40% 35%, #b98fd6, #3b2a52); }
+.pc-av.a2 { background: radial-gradient(circle at 40% 35%, #8fc3d6, #24414f); }
+.pc-name { max-width: 100%; font-size: 15px; font-weight: 600; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+.pc-act { display: flex; justify-content: center; gap: 8px; padding: 8px; border-top: 1px solid var(--line); }
+.pc-act a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--text2); font-size: 16px; }
+.lbl { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 0 8px; border-radius: 9999px; background: var(--arm-bg); color: var(--arm-ink); font-size: 12px; font-weight: 700; line-height: 20px; }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 2.5a1.5 1.5 0 0 0-1.5 1.5v.7A6.5 6.5 0 0 0 5.5 11v4.2l-1.9 1.9a.8.8 0 0 0 .6 1.4h15.6a.8.8 0 0 0 .6-1.4l-1.9-1.9V11a6.5 6.5 0 0 0-5-6.3V4A1.5 1.5 0 0 0 12 2.5Zm-2.4 17a2.4 2.4 0 0 0 4.8 0Z"/></symbol>
+  <symbol id="i-env" viewBox="0 0 24 24"><path d="M3.5 5h17A1.5 1.5 0 0 1 22 6.5v.6l-10 6.2L2 7.1v-.6A1.5 1.5 0 0 1 3.5 5ZM2 9.4l10 6.2 10-6.2v8.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5Z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z"/></g></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3 6h18v2H3Zm0 5h18v2H3Zm0 5h18v2H3Z"/></symbol>
+  <symbol id="i-bed" viewBox="0 0 24 24"><path d="M2 5h2v8.5h18V19h-2v-2.5H4V19H2Zm5.5 3a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Zm3.5.5h6.5a3.5 3.5 0 0 1 3.5 3.5v.5H11Z"/></symbol>
+  <symbol id="i-pray" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.5c-1.6 0-2.7 1.4-2.7 3V13l-3.6 4.1 2.2 3.9L12 18l4.1 3 2.2-3.9-3.6-4.1V5.5c0-1.6-1.1-3-2.7-3Zm-.5 2.8h1V17h-1Z"/></symbol>
+  <symbol id="i-starhalf" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 2.8v14.5l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z"/></symbol>
+  <symbol id="i-pocket" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4 4h16a1.5 1.5 0 0 1 1.5 1.5V11a9.5 9.5 0 0 1-19 0V5.5A1.5 1.5 0 0 1 4 4Zm3.3 5.6 4.7 4.4 4.7-4.4-1.4-1.5-3.3 3.1-3.3-3.1Z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 2 4.5 13.5h6L9.5 22l9-11.5h-6Z"/></symbol>
+  <symbol id="i-suitcase" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M9 3h6a2 2 0 0 1 2 2v2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3V5a2 2 0 0 1 2-2Zm0 2v2h6V5Z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4.5"/><path d="M3 21c0-4.4 4-7.5 9-7.5s9 3.1 9 7.5Z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3Z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6Z"/><circle cx="5" cy="9.5" r="2.5"/><path d="M.5 19c0-2.6 1.9-4.3 4.5-4.3.7 0 1.3.1 1.9.4A7.8 7.8 0 0 0 4.4 19Z"/><circle cx="19" cy="9.5" r="2.5"/><path d="M23.5 19c0-2.6-1.9-4.3-4.5-4.3-.7 0-1.3.1-1.9.4a7.8 7.8 0 0 1 2.5 3.9Z"/></symbol>
+  <symbol id="i-friends" viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3.8"/><path d="M1.5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5Z"/><circle cx="17" cy="9" r="3"/><path d="M16.2 13.8c3.4-.4 6.3 1.9 6.3 5.2V20h-5.2c0-2.4-.4-4.5-1.1-6.2Z"/></symbol>
+  <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 14"><path d="M8 1.5 15 12.5H1z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M7 10V7.5a5 5 0 0 1 10 0V10h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Zm2.5 0h5V7.5a2.5 2.5 0 0 0-5 0Z"/></symbol>
+</svg>
+
+<h1 class="doc">Plateau en mobile (section Agir)</h1>
+<p class="intro">Écran de 375 px, variante Empire Brun sombre, mini-profil plié, carte « Groupe Nerys » dépliée. La page défile au-delà de 667 px. Étiquettes orange : taille du texte en pixels ; elles n'apparaissent pas dans l'interface.</p>
+
+<div class="row">
+  <div class="col">
+    <div class="phone eb">
+      <div class="nav">
+        <span class="t"><svg class="ic"><use href="#i-bell"/></svg></span><span class="t"><svg class="ic"><use href="#i-env"/></svg></span><span class="t"><svg class="ic"><use href="#i-globe"/></svg></span>
+        <span class="grow"></span><span class="t tog"><svg class="ic"><use href="#i-bars"/></svg></span>
+      </div>
+
+      <!-- [ASSUMPTION] Libellés de la barre d'actions en 14 px (bouton normal « partout », H6.2) au lieu de 12 px ; icône au-dessus et hauteur de 64 px conservées. -->
+      <div class="qa">
+        <a><svg class="ic"><use href="#i-bed"/></svg><span>Dormir<span class="size">14</span></span></a>
+        <a><svg class="ic"><use href="#i-pray"/></svg><span>Prier</span></a>
+        <a><svg class="ic"><use href="#i-starhalf"/></svg><span>Pouvoir</span></a>
+        <a><svg class="ic"><use href="#i-pocket"/></svg><span>Fouiller</span></a>
+      </div>
+
+      <div class="mp">
+        <div class="mp-head">
+          <span class="mp-av"></span>
+          <div class="mp-info">
+            <div class="mp-name-row"><span class="mp-name">Nerys<span class="size">15</span></span><span class="mp-manage">⚙️</span></div>
+            <!-- [ASSUMPTION] Argent et horloge en ligne de détail de 13 px (H3.1) ; l'horloge passe de 12 à 13 px. -->
+            <div class="mp-money"><span>22467 MØ</span><span>⏱️ 48:00</span><span class="size">13</span></div>
+          </div>
+        </div>
+        <!-- [ASSUMPTION] Texte des jauges en 12 px, le minimum de H3.1 (taille exacte non tranchée, Q14). Maxima non fournis : PV et PM pleines, PP vide. Le chevron du mini-profil est posé en bas à droite (rendu actuel) : la ligne des jauges lui laisse 24 px pour ne pas passer dessous. -->
+        <div class="mp-g">
+          <div class="g"><b>PV</b><span class="bar"><i style="width:100%;background:var(--pv)"></i></span><span class="v">30</span></div>
+          <div class="g"><b>PM</b><span class="bar"><i style="width:100%;background:var(--pm)"></i></span><span class="v">25</span></div>
+          <div class="g"><b>PP</b><span class="bar"><i style="width:0;background:var(--pp)"></i></span><span class="v">0<span class="size">12</span></span></div>
+        </div>
+        <svg class="ic mp-chev"><use href="#i-chev-down"/></svg>
+      </div>
+
+      <!-- [ASSUMPTION] Libellés des onglets en 12 px, le minimum de H3.1 (11 px aujourd'hui, taille exacte non tranchée, Q14). -->
+      <nav class="tabs">
+        <a class="on"><svg class="ic"><use href="#i-bolt"/></svg><span>Agir<span class="size">12</span></span></a>
+        <a><svg class="ic"><use href="#i-suitcase"/></svg><span>Matériel</span></a>
+        <a><svg class="ic"><use href="#i-user"/></svg><span>Personnage</span></a>
+        <a><svg class="ic"><use href="#i-home"/></svg><span>Bâtiments</span></a>
+        <a><svg class="ic"><use href="#i-users"/></svg><span>Employés</span></a>
+      </nav>
+
+      <section class="cx">
+        <div class="pad">
+          <a class="arm n"><svg><use href="#i-arrow"/></svg><span>Nord</span></a>
+          <a class="arm w"><svg><use href="#i-arrow"/></svg><span>Ouest</span></a>
+          <a class="arm e off"><svg><use href="#i-arrow"/></svg><span>Est</span></a>
+          <a class="arm s"><svg><use href="#i-arrow"/></svg><span>Sud<span class="size">12</span></span></a>
+          <span class="hub"></span>
+        </div>
+        <!-- [ASSUMPTION] Vignettes figurées par des aplats : sur le site, chaque pièce est une image native de 60 × 60 où le nom et le cadenas sont dessinés. « ici » passe à 12 px gras (H8.2, toutes les pastilles) en gardant ses couleurs actuelles. -->
+        <ul class="rooms">
+          <li class="tile here"><span class="img"><svg class="ic"><use href="#i-home"/></svg></span><span class="here-tag">ici</span></li>
+          <li class="tile"><span class="img"><svg class="ic"><use href="#i-home"/></svg></span></li>
+          <li class="tile"><span class="img"><svg class="ic"><use href="#i-home"/></svg></span></li>
+          <li class="tile"><span class="img"><svg class="ic"><use href="#i-home"/></svg></span></li>
+          <li class="tile"><span class="img"><svg class="ic"><use href="#i-home"/></svg></span><svg class="ic lock"><use href="#i-lock"/></svg></li>
+        </ul>
+      </section>
+
+      <div class="scard">
+        <!-- [ASSUMPTION] Titre « Groupe Nerys » comme demandé : le JS actuel retire « Groupe » et passe le titre en capitales (« NERYS »). Icône fa-user-friends : l'en-tête de groupe n'en a pas aujourd'hui (H4.1 demande icône et chevron). -->
+        <div class="scard-h"><svg class="ic"><use href="#i-friends"/></svg><span class="t">Groupe Nerys<span class="size">17</span></span><svg class="ic chev"><use href="#i-chev-up"/></svg></div>
+        <!-- [ASSUMPTION] Cercle de PV autour de l'avatar dans la couleur PV des jauges (H5.4). Deux actions par carte (profil, kramail), comme la maquette h07. « PNJ » posé sur « Syllabus » pour la démonstration. -->
+        <div class="cards">
+          <div class="pc">
+            <span class="lbl">PNJ</span>
+            <div class="pc-link"><span class="pc-ring"><span class="pc-av a1"></span></span><span class="pc-name">Syllabus<span class="size">15</span></span></div>
+            <div class="pc-act"><a><svg class="ic"><use href="#i-user"/></svg></a><a><svg class="ic"><use href="#i-env"/></svg></a></div>
+          </div>
+          <div class="pc">
+            <div class="pc-link"><span class="pc-ring"><span class="pc-av a2"></span></span><span class="pc-name">Elias Kurano</span></div>
+            <div class="pc-act"><a><svg class="ic"><use href="#i-user"/></svg></a><a><svg class="ic"><use href="#i-env"/></svg></a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <ul>
+      <li>Mini-profil : « Nerys » à la place du mot fixe « Personnage » (H1.3), nom 15 px, argent et horloge 13 px (H3.1).</li>
+      <li>Jauges, mêmes couleurs que sur ordinateur (H5.4) : <span class="sw" style="background:#66bb6a"></span>PV #66bb6a, <span class="sw" style="background:#64b5f6"></span>PM #64b5f6, <span class="sw" style="background:#ffa726"></span>PP #ffa726 (tons sombres proposés, Q3).</li>
+      <li>Onglets : une icône par section, la même qu'à l'ordinateur (H1.6) ; Agir actif en gras avec filet primaire de 3 px, fond inchangé (H1.5).</li>
+      <li>Croix : rendu actuel, touches de 50 × 50 (≥ 48 px), texte blanc sur #7a5240 à 6,76:1 ; « Est » montre une direction indisponible (pointillé, sans lien). Pièces : vignettes de 60 × 60 dans l'ordre natif, pièce courante cerclée d'accent avec « ici ».</li>
+      <li>Carte de section : en-tête de 48 px et contenu dans la même carte, à 8 px des bords, titre 17 px gras en couleur du texte (H4.1, Q10).</li>
+      <li>Cartes de personnages : nom 15 px (H7.1), icônes d'action de 44 × 44 au lieu de 26 (H9.1), rayons 4 px et 8 px (H6.3) ; « PNJ » en étiquette de catégorie, 12 px gras, blanc sur la primaire au lieu du rouge danger (H8.1, H8.2, Q1).</li>
+      <li>Cibles : boutons du haut, gestion du personnage et icônes des cartes à 44 × 44 ; actions rapides de 64 px de haut.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

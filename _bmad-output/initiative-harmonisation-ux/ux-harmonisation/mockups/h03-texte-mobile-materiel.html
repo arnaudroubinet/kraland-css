@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H3 Texte mobile</title>
+<style>
+/* Maquette d'hypothèse H3 (taille du texte des pages de jeu sur mobile), illustrée sur le Matériel.
+   Gouverne : DESIGN.md Typography / Components (lignes d'objets), EXPERIENCE.md Responsive (mobile).
+   « Avant » reprend les valeurs mesurées le 2026-10-19 (variante empire-brun-dark, 375×667) ; « Après » est la proposition. */
+:root {
+  --bg: #12100d; --surface: #1e1a15; --surface-2: #2a251f; --line: rgba(255,255,255,.08);
+  --text: #f5f1ed; --muted: #b8a997; --highlight: #d4a574; --primary: #7a5240;
+  --page: #f3f0ec; --page-text: #2b2620; --note: #6b6258;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: var(--page); color: var(--page-text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.intro { margin: 0 0 20px; color: var(--note); max-width: 820px; }
+.pair { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.col h2 { font-size: 15px; margin: 0 0 8px; }
+.col p.leg { font-size: 13px; color: var(--note); margin: 8px 0 0; max-width: 375px; }
+.phone { width: 375px; max-width: 100%; background: var(--bg); color: var(--text); border-radius: 18px; overflow: hidden; border: 1px solid #000; font-family: "Helvetica Neue", Arial, sans-serif; }
+.bar { height: 44px; background: #0f1113; border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 16px; gap: 22px; font-size: 18px; color: var(--text); }
+.ico { display: inline-flex; width: 32px; height: 32px; border-radius: 4px; background: linear-gradient(135deg, #8a6a45, #4d3a26); flex: none; align-items: center; justify-content: center; font-size: 15px; }
+.tag { font-size: 11px; color: var(--note); }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 6px; vertical-align: middle; }
+
+/* Avant : valeurs mesurées */
+.av-head { margin: 16px 0 12px; height: 54px; background: var(--surface); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.av-head b { font-size: 20px; font-weight: 700; }
+.av-body { background: var(--surface); padding: 16px 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 32px 1fr; align-items: center; column-gap: 12px; min-height: 64px; }
+.av-charge { font-size: 14px; color: var(--highlight); }
+.av-name { font-size: 10px; font-weight: 500; justify-self: center; }
+
+/* Après : proposition */
+.ap-card { margin: 16px 0; background: var(--surface); border-radius: 8px; overflow: hidden; }
+.ap-head { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--line); }
+.ap-head b { font-size: 17px; font-weight: 700; }
+.ap-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 56px; }
+.ap-row + .ap-row { border-top: 1px solid var(--line); }
+.ap-name { font-size: 15px; font-weight: 600; flex: 1; }
+.ap-charge { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ap-money { font-size: 15px; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>H3 : taille du texte des pages de jeu sur mobile</h1>
+<p class="intro">Exemple du Matériel en 375 px, variante Empire Brun sombre. Les étiquettes orange donnent la taille du texte ; elles n'apparaissent pas dans l'interface.</p>
+
+<div class="pair">
+  <div class="col">
+    <h2>Avant (mesuré le 19/10)</h2>
+    <div class="phone">
+      <div class="bar">🔔 ✉ 🌐</div>
+      <div class="av-head"><b>▣ Argent<span class="size">20</span></b><span>⌃</span></div>
+      <div class="av-body"><span></span><span class="ico">💰</span><span class="av-name">22467 MØ<span class="size">10</span></span></div>
+      <div class="av-head"><b>▣ Outils<span class="size">20</span></b><span>⌃</span></div>
+      <div class="av-body"><span class="av-charge">charge 1<span class="size">14</span></span><span class="ico">🏮</span><span class="av-name">Lanterne<span class="size">10</span></span></div>
+      <div class="av-head"><b>▣ Médicaments<span class="size">20</span></b><span>⌃</span></div>
+      <div class="av-body"><span class="av-charge">charge 0.5<span class="size">14</span></span><span class="ico">💊</span><span class="av-name">Vitamine Jukramine<span class="size">10</span></span></div>
+    </div>
+    <p class="leg">Le nom de l'objet (10 px) est deux fois plus petit que le titre de section (20 px), plus petit que « charge » (14 px), et vient en dernier. Le titre est détaché de son contenu par 12 px.</p>
+  </div>
+
+  <div class="col">
+    <h2>Après (proposition)</h2>
+    <div class="phone">
+      <div class="bar">🔔 ✉ 🌐</div>
+      <div class="ap-card">
+        <div class="ap-head"><b>▣ Argent<span class="size">17</span></b><span>⌃</span></div>
+        <div class="ap-row"><span class="ico">💰</span><span class="ap-money">22 467 MØ<span class="size">15</span></span></div>
+      </div>
+      <div class="ap-card">
+        <div class="ap-head"><b>▣ Outils<span class="size">17</span></b><span>⌃</span></div>
+        <div class="ap-row"><span class="ico">🏮</span><span class="ap-name">Lanterne<span class="size">15</span></span><span class="ap-charge">charge 1<span class="size">13</span></span></div>
+      </div>
+      <div class="ap-card">
+        <div class="ap-head"><b>▣ Médicaments<span class="size">17</span></b><span>⌃</span></div>
+        <div class="ap-row"><span class="ico">💊</span><span class="ap-name">Vitamine Jukramine<span class="size">15</span></span><span class="ap-charge">charge 0.5<span class="size">13</span></span></div>
+      </div>
+    </div>
+    <p class="leg">Noms et valeurs à 15 px, détails (charge) à 13 px, titres à 17 px. L'ordre suit l'importance : image, nom, détail. Le titre et son contenu forment une seule carte.</p>
+  </div>
+</div>
+</body>
+</html>

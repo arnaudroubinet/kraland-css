@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modale d'ordre</title>
+<style>
+/* Maquette d'écran clé : modale d'ordre « Pouvoir », ordinateur (fenêtre 1280×720, modale de 900 px) et mobile (375×667),
+   variante Empire Brun sombre ; pied de modale en Paladium clair pour l'encre sombre (Q1) et le texte de nation en clair (Q2).
+   Gouverne :
+   - DESIGN.md › Components : Modale d'ordre, Alerte, Bouton standard, Bouton primaire, Pastilles coût, durée, potentiel,
+     Anneau de focus ; Colors › Texte posé sur la couleur de nation, Texte en couleur de nation (mode clair), Palette d'états,
+     Contrastes de référence ; Shapes (H6.3) ; Layout & Spacing (grille H11.2, places fixes de la modale).
+   - EXPERIENCE.md › Component Patterns : Modale d'ordre, Pastilles coût, durée, potentiel, Alerte ; State Patterns : modale d'ordre
+     (ordre bloqué, aide repliée, onglet actif), focus clavier ; Responsive & Platform : Modale d'ordre ; Key Flows : parcours 1
+     (étapes 5 et 6, cas d'échec « réservé à une vocation »).
+   - .memlog.md (fait foi) : H2.1 à H2.7, H5.5, H5.6, H5.7, H6.2, H6.3, H11.2, Q1, Q2.
+   Valeurs : kraland-theme.css (html.kr-theme-variant-empire-brun-dark, html.kr-theme-variant-paladium). Empire Brun sombre n'a pas
+   d'encre d'action propre : repli --kr-arm-bg = primaire #7a5240, --kr-arm-ink = blanc (6,76:1). */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1.doc { font-size: 20px; margin: 0 0 4px; }
+h2.doc { font-size: 16px; margin: 28px 0 8px; }
+h3.doc { font-size: 14px; margin: 0 0 6px; }
+.intro, .leg { color: #6b6258; font-size: 14px; max-width: 980px; margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 6px; vertical-align: middle; letter-spacing: 0; text-transform: none; }
+.pl .size { color: #b45309; }
+.ic { display: inline-block; width: 1em; height: 1em; flex: none; fill: currentColor; vertical-align: -0.125em; }
+
+/* Jetons Empire Brun sombre */
+.eb { --page: #12100d; --surface: #1e1a15; --elev: #2a251f; --text: #f5f1ed; --text2: #b8a997; --line: rgba(255,255,255,.08);
+      --primary: #7a5240; --primary-strong: #5e3b2d; --accent: #d4a574; --arm-bg: #7a5240; --arm-ink: #fff;
+      --std-bg: #1e1a15; --std-bd: rgba(255,255,255,.08); --std-ink: #d4a574; --navbar: #111315; }
+/* Jetons Paladium clair : bordure du bouton standard = primaire à 18 % sur blanc (H5.3), texte de nation = accent (Q2), encre d'action CX2 */
+.pl { --page: #f5f5f5; --surface: #fff; --elev: #fff; --text: #0f1724; --text2: #6b7280; --line: rgba(0,0,0,.08);
+      --primary: #d4af37; --primary-strong: #aa8c2c; --accent: #044c17; --arm-bg: #d4af37; --arm-ink: #1e1a15;
+      --std-bg: #fff; --std-bd: #f7f1db; --std-ink: #044c17; }
+.ui { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--text); }
+
+/* Composants communs aux deux supports */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 12px; border: 1px solid transparent; border-radius: 4px; font-size: 14px; line-height: 1; white-space: nowrap; }
+.btn .ic { font-size: 16px; }
+.btn.std { background: var(--std-bg); border-color: var(--std-bd); color: var(--std-ink); }
+.btn.pri { background: var(--arm-bg); border-color: var(--primary-strong); color: var(--arm-ink); box-shadow: 0 6px 18px rgba(122,82,64,.12); }
+.focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.alert { padding: 12px 16px; border: 1px solid rgba(255,138,128,.35); border-radius: 8px; background: rgba(255,138,128,.12); color: var(--text); }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 9999px; background: var(--arm-bg); color: var(--arm-ink); font-size: 12px; font-weight: 700; line-height: 16px; white-space: nowrap; }
+.badge .ic { font-size: 14px; }
+.x { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; border-radius: 4px; color: var(--text); font-size: 28px; line-height: 1; }
+.order { margin: 12px 0 0; font-size: 15px; font-weight: 600; }
+.backdrop { position: absolute; inset: 0; }
+
+/* Ordinateur : fenêtre 1280×720 réduite par paliers quand la page est plus étroite */
+.desk-wrap { max-width: 100%; overflow-x: auto; }
+.desk { position: relative; width: 1280px; height: 720px; overflow: hidden; background: var(--page); border: 1px solid #000; border-radius: 12px; zoom: .26; }
+@media (min-width: 454px) { .desk { zoom: .33; } }
+@media (min-width: 672px) { .desk { zoom: .5; } }
+@media (min-width: 954px) { .desk { zoom: .72; } }
+@media (min-width: 1312px) { .desk { zoom: 1; } }
+.d-nav { display: flex; align-items: center; gap: 24px; height: 50px; padding: 0 24px; background: var(--navbar); color: #fff; font-size: 15px; }
+.d-nav b { font-size: 18px; }
+.d-page { display: flex; gap: 16px; padding: 16px 24px; }
+.d-stats { width: 72px; height: 420px; background: var(--surface); border-radius: 8px; flex: none; }
+.d-side { width: 280px; flex: none; background: var(--surface); border-radius: 8px; overflow: hidden; }
+.d-side-h { padding: 12px 16px; background: var(--elev); border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 700; }
+.d-side-b { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; }
+.d-side-b span { height: 34px; width: 112px; border-radius: 4px; background: var(--primary); }
+.d-main { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-content: start; }
+.d-main span { height: 125px; border-radius: 8px; background: var(--surface); }
+.desk .backdrop { background: rgba(0,0,0,.5); }
+.d .modal { position: absolute; top: 30px; left: 190px; width: 900px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,.6); overflow: hidden; }
+.d .m-body { padding: 16px; }
+.d .m-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 12px; }
+.d .m-title h3 { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.1; }
+.d .alert { margin: 0 0 16px; font-size: 14px; }
+.d .panel { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.d .p-head { padding: 8px 16px 0; background: var(--elev); border-bottom: 1px solid var(--line); }
+.d .tabs { display: flex; gap: 4px; margin: 0 0 -1px; padding: 0; list-style: none; }
+.d .tabs li { padding: 8px 16px; border: 1px solid transparent; border-radius: 4px 4px 0 0; font-size: 14px; line-height: 20px; color: var(--text); }
+.d .tabs li.on { background: var(--surface); border-color: var(--line) var(--line) transparent; }
+.d .p-body { padding: 16px; background: var(--surface); }
+.d .p-foot { padding: 12px 16px; background: var(--elev); border-top: 1px solid var(--line); }
+.d .m-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px; border-top: 1px solid var(--line); }
+
+/* Mobile : écran 375×667, modale par-dessus le plateau voilé */
+.phone { position: relative; width: 375px; max-width: 100%; height: 667px; overflow: hidden; background: var(--page); border-radius: 16px; box-shadow: 0 0 0 1px #000; }
+.ph-nav { display: flex; align-items: center; height: 56px; padding: 0 8px; background: var(--navbar); border-bottom: 1px solid rgba(255,255,255,.1); color: #fff; font-size: 18px; }
+.ph-nav span { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+.ph-nav .grow { flex: 1; }
+.ph-blk { height: 64px; margin: 8px; border-radius: 8px; background: var(--surface); }
+.phone .backdrop { background: rgba(0,0,0,.6); }
+.phone.m .modal { position: absolute; top: 8px; left: 8px; right: 8px; background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,.6); }
+.m .m-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 16px; }
+.m .m-title h3 { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.3; }
+.m .alert { margin: 0 16px 12px; font-size: 15px; }
+.m .p-head { display: flex; background: var(--surface); border-bottom: 2px solid var(--line); }
+.m .tab { display: flex; align-items: center; justify-content: center; min-width: 88px; height: 44px; padding: 0 16px; border-bottom: 3px solid transparent; font-size: 14px; color: var(--text2); }
+.m .tab.on { background: var(--elev); border-bottom-color: var(--primary); color: var(--text); font-weight: 600; }
+.m .p-body { padding: 16px; }
+.m .btn { height: 44px; }
+.m .btn.aide { display: flex; width: 100%; justify-content: flex-start; padding: 0 16px; font-weight: 600; }
+.m .p-foot { padding: 12px 16px; background: var(--elev); border-top: 1px solid var(--line); }
+.m .m-foot { display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); }
+.m .m-foot .btn { width: 100%; font-weight: 600; }
+
+/* Paladium clair : pied de modale seul */
+.pl-frame { width: 375px; max-width: 100%; padding: 16px 8px; background: var(--page); border: 1px solid rgba(0,0,0,.15); border-radius: 16px; }
+.pl-frame .modal { background: var(--surface); border: 1px solid rgba(0,0,0,.2); border-radius: 8px; overflow: hidden; }
+.pl-frame .cut { padding: 8px 16px; font-size: 13px; color: var(--text2); text-align: center; }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.3 9.4a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.3-2.8 4.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.3"/></symbol>
+  <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 9.2c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v3c0 1.7-3.4 3-7.5 3s-7.5-1.3-7.5-3Zm0 5c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v3c0 1.7-3.4 3-7.5 3s-7.5-1.3-7.5-3Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 7v5.5l3.5 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-d20" viewBox="0 0 24 24"><path d="M12 2.2 20.5 7v10L12 21.8 3.5 17V7ZM12 6.8 7.2 15h9.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 2.5a1.5 1.5 0 0 0-1.5 1.5v.7A6.5 6.5 0 0 0 5.5 11v4.2l-1.9 1.9a.8.8 0 0 0 .6 1.4h15.6a.8.8 0 0 0 .6-1.4l-1.9-1.9V11a6.5 6.5 0 0 0-5-6.3V4A1.5 1.5 0 0 0 12 2.5Zm-2.4 17a2.4 2.4 0 0 0 4.8 0Z"/></symbol>
+  <symbol id="i-env" viewBox="0 0 24 24"><path d="M3.5 5h17A1.5 1.5 0 0 1 22 6.5v.6l-10 6.2L2 7.1v-.6A1.5 1.5 0 0 1 3.5 5ZM2 9.4l10 6.2 10-6.2v8.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 17.5Z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z"/></g></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3 6h18v2H3Zm0 5h18v2H3Zm0 5h18v2H3Z"/></symbol>
+</svg>
+
+<h1 class="doc">Modale d'ordre « Pouvoir »</h1>
+<p class="intro">Modale ouverte depuis le bouton « Pouvoir » du plateau, variante Empire Brun sombre. État montré : ordre réservé à une vocation (alerte en tête), aide repliée, focus clavier sur « Valider ». La fenêtre d'ordinateur est réduite à l'écran quand la page est plus étroite que 1280 px. Étiquettes orange : taille du texte en pixels ; elles n'apparaissent pas dans l'interface.</p>
+
+<h2 class="doc">Ordinateur (fenêtre de 1280 × 720, modale de 900 px)</h2>
+<div class="desk-wrap">
+  <div class="desk eb ui d">
+    <div class="d-nav"><b>Kraland</b><span>Jouer</span><span>Règles</span></div>
+    <div class="d-page">
+      <div class="d-stats"></div>
+      <div class="d-side"><div class="d-side-h">Nerys</div><div class="d-side-b"><span></span><span></span><span></span><span></span></div></div>
+      <div class="d-main"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="backdrop"></div>
+    <div class="modal">
+      <div class="m-body">
+        <!-- [ASSUMPTION] Titre de l'ordre à sa taille actuelle (h3 Bootstrap, 24 px sur ordinateur ; 18 px forcés en mobile) : aucune décision ne la fixe. -->
+        <div class="m-title"><h3>Pouvoir<span class="size">24</span></h3><span class="x">×</span></div>
+        <!-- [ASSUMPTION] « Ordre Réservé à une Vocation » traité en blocage (danger), H2.3 parlant d'un ordre impossible ; fond à 12 % et bordure à 35 % du rouge sombre #ff8a80, texte couleur du texte (DESIGN.md › Alerte, « fond en couleur d'état à faible opacité »). -->
+        <div class="alert">Ordre Réservé à une Vocation<span class="size">14</span></div>
+        <div class="panel">
+          <!-- [ASSUMPTION] Un seul onglet, au nom de l'ordre (« on lit le nom de l'ordre choisi », H2.7) ; les autres onglets éventuels ne sont pas connus. -->
+          <div class="p-head"><ul class="tabs"><li class="on">Pouvoir<span class="size">14</span></li></ul></div>
+          <div class="p-body">
+            <!-- [ASSUMPTION] « ? Aide » figuré en bouton sur ordinateur comme sur mobile, d'après l'anatomie de DESIGN.md › Modale d'ordre (sans distinction de support) ; aujourd'hui le repli de l'aide n'existe qu'en mobile (makeAlertCollapsible), l'ordinateur montre l'aide dépliée. -->
+            <span class="btn std"><svg class="ic"><use href="#i-q"/></svg>Aide<span class="size">14</span></span>
+            <!-- [ASSUMPTION] Contenu de l'ordre réduit à son intitulé « Pouvoir (délit) », en nom et valeur (15 px, 600) ; le reste du formulaire garde son rendu actuel et n'est pas figuré. -->
+            <p class="order">Pouvoir (délit)<span class="size">15</span></p>
+          </div>
+          <!-- [ASSUMPTION] Pastilles au style de l'étiquette de catégorie (Q5) : paire --kr-arm-bg / --kr-arm-ink (Q1), 12 px gras, marge intérieure 4/12 px ; icônes actuelles (pièces, horloge, dé). -->
+          <div class="p-foot"><div class="badges">
+            <span class="badge"><svg class="ic"><use href="#i-coins"/></svg>0 MØ</span>
+            <span class="badge"><svg class="ic"><use href="#i-clock"/></svg>02:00</span>
+            <span class="badge"><svg class="ic"><use href="#i-d20"/></svg>VOL + Pouvoir = 9</span><span class="size">12</span>
+          </div></div>
+        </div>
+      </div>
+      <div class="m-foot"><span class="btn std">Annuler</span><span class="btn pri focus">Valider<span class="size">14</span></span></div>
+    </div>
+  </div>
+</div>
+<p class="leg">Ordre de lecture : titre, alerte, onglet, « ? Aide », intitulé de l'ordre, puis pastilles juste au-dessus des boutons, au lieu de la ligne de texte de 12 px (H2.3, H2.5). L'alerte ne désactive rien : « Valider » reste actif (H2.3). Croix de 44 × 44 en couleur du texte, 15,4:1 (H2.6). « Annuler » en bouton standard, « Valider » en bouton primaire de la couleur de la nation, 14 px sur 34 px de haut (H2.1, H5.1, H6.2). Focus clavier : anneau de 2 px en accent #d4a574, décalé de 2 px (H5.7).</p>
+
+<h2 class="doc">Mobile (375 × 667) et pied de modale en Paladium clair</h2>
+<div class="row">
+  <div class="col">
+    <h3 class="doc">Empire Brun sombre</h3>
+    <div class="phone eb ui m">
+      <div class="ph-nav"><span><svg class="ic"><use href="#i-bell"/></svg></span><span><svg class="ic"><use href="#i-env"/></svg></span><span><svg class="ic"><use href="#i-globe"/></svg></span><span class="grow"></span><span><svg class="ic"><use href="#i-bars"/></svg></span></div>
+      <div class="ph-blk"></div><div class="ph-blk"></div><div class="ph-blk"></div><div class="ph-blk"></div><div class="ph-blk"></div>
+      <div class="backdrop"></div>
+      <!-- [ASSUMPTION] Modale à 8 px des bords (10 px aujourd'hui ; 10 devient 8 ou 12 par H11.2, Q11). -->
+      <div class="modal">
+        <!-- [ASSUMPTION] Croix en couleur du texte comme sur ordinateur : H2.6 ne vise que l'ordinateur ; la croix mobile mesure déjà 44 × 44 mais reste noire à 70 % d'opacité. -->
+        <div class="m-title"><h3>Pouvoir<span class="size">18</span></h3><span class="x">×</span></div>
+        <div class="alert">Ordre Réservé à une Vocation<span class="size">15</span></div>
+        <div class="p-head"><span class="tab on">Pouvoir<span class="size">14</span></span></div>
+        <div class="p-body">
+          <span class="btn std aide"><svg class="ic"><use href="#i-q"/></svg>Aide<span class="size">14</span></span>
+          <p class="order">Pouvoir (délit)<span class="size">15</span></p>
+        </div>
+        <div class="p-foot"><div class="badges">
+          <span class="badge"><svg class="ic"><use href="#i-coins"/></svg>0 MØ</span>
+          <span class="badge"><svg class="ic"><use href="#i-clock"/></svg>02:00</span>
+          <span class="badge"><svg class="ic"><use href="#i-d20"/></svg>VOL + Pouvoir = 9</span>
+        </div></div>
+        <!-- [ASSUMPTION] « Annuler » et « Valider » à 44 px de haut, 14 px (bouton normal mobile, H6.2), au lieu des 50 à 56 px actuels. -->
+        <div class="m-foot"><span class="btn std">Annuler</span><span class="btn pri focus">Valider<span class="size">14</span></span></div>
+      </div>
+    </div>
+    <p class="leg">Même ordre de lecture qu'à l'ordinateur. Onglet actif en couleur du texte sur #2a251f (13,5:1), filet primaire, sans halo bleu (H2.7). « ? Aide » en bouton standard, texte accent à 7,8:1 (H2.4). Pastilles et « Valider » : blanc sur #7a5240, 6,76:1 (Q1). « Valider » pleine largeur sous « Annuler », couleur de la nation au lieu du vert Bootstrap (H2.2).</p>
+  </div>
+  <div class="col">
+    <h3 class="doc">Paladium clair, pied de modale</h3>
+    <!-- [ASSUMPTION] Pied de modale montré dans sa disposition mobile (boutons pleine largeur). -->
+    <div class="pl-frame pl ui m">
+      <div class="modal">
+        <div class="cut">… haut de la modale inchangé …</div>
+        <div class="p-foot"><div class="badges">
+          <span class="badge"><svg class="ic"><use href="#i-coins"/></svg>0 MØ</span>
+          <span class="badge"><svg class="ic"><use href="#i-clock"/></svg>02:00</span>
+          <span class="badge"><svg class="ic"><use href="#i-d20"/></svg>VOL + Pouvoir = 9</span>
+        </div></div>
+        <div class="m-foot"><span class="btn std">Annuler<span class="size">14</span></span><span class="btn pri focus">Valider<span class="size">14</span></span></div>
+      </div>
+    </div>
+    <p class="leg">Pastilles et « Valider » : encre #1e1a15 sur l'or #D4AF37, 8,23:1 ; le blanc n'y ferait que 2,10:1 (Q1). Texte d'« Annuler » et anneau de focus dans l'accent #044c17, 10,24:1, au lieu de l'or (Q2). Bordure d'« Annuler » : or à 18 % sur blanc (H5.3).</p>
+  </div>
+</div>
+</body>
+</html>

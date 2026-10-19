@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Validation UX : Kraland — surcharge harmonisée</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --muted: #78716c;
+
+    --verdict-strong: #16a34a;
+    --verdict-adequate: #65a30d;
+    --verdict-thin: #d97706;
+    --verdict-broken: #dc2626;
+
+    --sev-low: #64748b;
+    --sev-medium: #ca8a04;
+    --sev-high: #ea580c;
+    --sev-critical: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  header.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .title h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .title .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  .synthesis {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    font-size: 15.5px;
+  }
+  .synthesis p { margin: 0 0 10px; }
+  .synthesis p:last-child { margin-bottom: 0; }
+
+  .dimension-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .dim-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .dim-card .dim-name { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .dim-card .dim-verdict { font-size: 14px; font-weight: 600; }
+
+  section.dimension, section.reviewer-section { margin-bottom: 14px; }
+  section.dimension details, section.reviewer-section details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  section summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section summary::-webkit-details-marker { display: none; }
+  section summary::before {
+    content: "▸";
+    display: inline-block;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+  }
+  section details[open] summary::before { transform: rotate(90deg); }
+  section summary h2 {
+    display: inline;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+  .verdict-pill {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: white;
+  }
+  .verdict-strong { background: var(--verdict-strong); }
+  .verdict-adequate { background: var(--verdict-adequate); }
+  .verdict-thin { background: var(--verdict-thin); }
+  .verdict-broken { background: var(--verdict-broken); }
+
+  .dim-body { padding: 4px 20px 18px; }
+  .dim-judgment { color: var(--text); font-size: 14.5px; }
+  .dim-judgment p { margin: 0 0 10px; }
+
+  .findings-list { padding: 0 20px 4px; }
+  article.finding {
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+  article.finding:first-child { border-top: none; }
+  article.finding header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .badge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .badge-sev-low { background: rgba(100, 116, 139, 0.12); color: var(--sev-low); }
+  .badge-sev-medium { background: rgba(202, 138, 4, 0.14); color: var(--sev-medium); }
+  .badge-sev-high { background: rgba(234, 88, 12, 0.14); color: var(--sev-high); }
+  .badge-sev-critical { background: rgba(220, 38, 38, 0.14); color: var(--sev-critical); }
+  .finding-title { margin: 0; font-size: 15px; font-weight: 500; flex: 1; min-width: 200px; }
+  .finding-location { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--muted); }
+  .finding-note, .finding-fix { margin-top: 6px; font-size: 14px; }
+  .finding-fix strong { color: var(--muted); font-weight: 500; }
+
+  .reviewer-source {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .mechanical {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+  .mechanical h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .mechanical ul { margin: 0; padding-left: 20px; }
+  .mechanical li { margin-bottom: 4px; color: var(--text); }
+
+  footer.report-footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  footer .meta { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  /* Ajouts de la synthèse : statut de résolution, badge neutre, code. */
+  .finding-resolution { margin-top: 6px; font-size: 14px; }
+  .finding-resolution strong { color: var(--muted); font-weight: 500; }
+  .res {
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    margin-right: 4px;
+  }
+  .res-resolu, .res-corrige { color: var(--verdict-strong); }
+  .res-ouvert { color: var(--sev-medium); }
+  .res-partiel, .res-inchange { color: var(--verdict-thin); }
+  .res-non-traite { color: var(--sev-high); }
+  .res-sans-suite { color: var(--muted); }
+  .badge-neutral { background: rgba(120, 113, 108, 0.12); color: var(--muted); }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9em; }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="report-header">
+      <div class="title">
+        <h1>Kraland — surcharge harmonisée — Rapport de validation UX</h1>
+        <div class="subtitle">_bmad-output/initiative-harmonisation-ux/ux-harmonisation/ · DESIGN.md + EXPERIENCE.md</div>
+      </div>
+    </header>
+
+    <div class="synthesis">
+      <p>La paire est solide sur la traçabilité : chaque règle cite sa décision, les 29 composants portent les mêmes noms dans le même ordre des deux côtés, toutes les références <code>{…}</code> se résolvent et les contrastes annoncés se vérifient au centième. La couche couleur ne se transpose pas encore telle quelle : valeurs par variante absentes pour les nuances dérivées de H5.2 et pour l'info sombre, convention <code>-dark</code> qui se résout mal (un cas à 2,96:1), liens et survols non couverts alors que H5.6 et H5.2 les touchent. S'y ajoutent les questions bloquantes Q1 et Q2, Q13 qui rouvre H1.2 et H6.2, et quelques règles absentes du memlog.</p>
+      <p>Les relectures de faisabilité et du joueur déplacent le risque de la couleur vers la modale d'ordre et le mobile réel. La faisabilité conclut « réalisable en surcharge, avec réserves » : un blocage (aucune source du nom du personnage sur Personnage et Employés), deux règles contraires aux points de rupture d'AGENTS.md (cartes de personnages, popup <code>/report</code> de 600 px) et une cascade à 48 % de <code>!important</code> à neutraliser avant toute règle transverse. Le joueur conclut « bonne base, pas encore prête à implémenter telle quelle » : l'alerte de la modale d'ordre peut être hors de vue au moment de « Valider », le « non lu » éclate en plusieurs couleurs, « une couleur vive signale un état » ne tient pas dans six nations sur huit, et le mobile n'a été vu qu'en émulation. Les deux relectures se rejoignent sur le repli de la première <code>.alert</code> de la modale et sur « Envoyer ». Le rapprochement avec la mission confirme la couverture : 9 exigences sur 11, 2 partielles, aucune absente.</p>
+      <p>Après les décisions Q1, Q2 et R1 à R7 et la passe de correction, aucune question bloquante ne reste. Sur les 22 constats critiques ou importants, 8 sont résolus par une décision, 8 corrigés dans les documents et 6 restent ouverts en questions non bloquantes (Q8, Q11, Q17, Q21, Q22, Q23). Sur les 105 constats gradués : 13 résolus, 39 corrigés, 46 ouverts, 3 corrigés en partie, 4 non traités, tous faibles. Chaque constat est classé d'après son point principal ; les restes sont notés à côté. « Corrigé » veut dire traité dans les documents : pour la faisabilité, c'est souvent un préalable consigné dans « Notes pour l'implémentation », pas un code déjà changé.</p>
+    </div>
+
+    <div class="dimension-summary">
+      <div class="dim-card">
+        <div class="dim-name">Couverture des parcours</div>
+        <div class="dim-verdict" style="color: var(--verdict-strong)">strong</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Complétude des jetons</div>
+        <div class="dim-verdict" style="color: var(--verdict-thin)">thin</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Couverture des composants</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Couverture des états</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Couverture des références visuelles</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Surcharge et surspécification</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Discipline d'héritage</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Adéquation de la forme</div>
+        <div class="dim-verdict" style="color: var(--verdict-strong)">strong</div>
+      </div>
+    </div>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Couverture des parcours (Flow coverage)</h2>
+          <span class="verdict-pill verdict-strong">strong</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : les besoins des sources (boucle de jeu d'<code>etude-ux.md</code> : plateau, ordres, déplacement, personnage, forum, kramail, notifications) et les 4 parcours retenus au memlog. Chaque étape de la boucle a au moins un parcours ; chaque parcours a son protagoniste (Arnaud, qui joue Nerys), des étapes numérotées, un climax et un chemin d'échec.</p>
+            <p>Après la passe de correction : intitulés des parcours repris du memlog, avertissement de Dormir suivi jusqu'à « Valider » au parcours 1 (R2), variante « dernier message dans un autre sujet » au parcours 2, dépendances à Q17 écrites aux parcours 1 et 3. Les surfaces sans parcours restent à confirmer (Q33).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Un seul support par étape</h3>
+              <span class="finding-location">EXPERIENCE › Key Flows</span>
+            </header>
+            <div class="finding-note">Le jeu n'est parcouru que sur mobile, le forum que sur ordinateur. Aucun parcours ne passe par H1.4, H1.5, H2.5 et H2.6 côté ordinateur, H6.1, H7.1 côté ordinateur, ni par H12.3, H12.4 et l'index mobile.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Faire confirmer par Arnaud que ces surfaces se construisent sur les tables seules, ou ajouter un parcours « ordre sur ordinateur ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q33) : la liste des surfaces construites sur les tables seules attend la confirmation d'Arnaud ; la maquette key-modale-ordre montre désormais la modale sur ordinateur.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Le parcours 1 repose sur deux points non vérifiés</h3>
+              <span class="finding-location">EXPERIENCE › Parcours 1</span>
+            </header>
+            <div class="finding-note">Le retour au plateau n'est pas décrit, alors que <code>/report</code> s'ouvre en popup 600×600 même en mode mobile. Le climax (« Valider » pleine largeur) dépend de Q17 : les améliorations mobiles de la modale sont peut-être inactives sur un vrai téléphone.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Dire comment on revient au plateau ; marquer le parcours 1 comme dépendant de Q17.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q17) : la dépendance est écrite au parcours 1 ; l'ouverture et la fermeture de <code>/report</code> sur téléphone restent à relever.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details open>
+        <summary>
+          <h2>Complétude des jetons (Token completeness)</h2>
+          <span class="verdict-pill verdict-thin">thin</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : 82 couleurs (hex à 6 ou 8 chiffres), 11 typographies, 3 rayons, 9 espacements, 15 composants ; toutes les références <code>{…}</code> résolues ; paires clair/sombre ; valeurs par variante ; cibles de contraste. Les ratios du tableau « Contrastes de référence », les teintes H5.3 et les primaires foncées dérivées ont été recalculés : exacts.</p>
+            <p>Après la passe de correction : chaque jeton de couleur désigne la variable CSS de son rôle, résolue par variante et par mode ; trois tables donnent les valeurs des 16 variantes (couleur de nation et texte coloré, encre d'action, teintes, alerte info et ombre) ; nouveaux jetons <code>text-accent</code>, <code>text-nation</code>, <code>action-*</code> et <code>btn-shadow</code>. Toutes les références des deux spines se résolvent (contrôle par script de cette synthèse). Restent ouverts : le fond des alertes de blocage et d'avertissement (Q3), la formule de l'info sombre (Q4).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critique</span>
+              <h3 class="finding-title">Les nuances dérivées de H5.2 n'ont pas de valeur par variante</h3>
+              <span class="finding-location">DESIGN › frontmatter, Colors</span>
+            </header>
+            <div class="finding-note">Le frontmatter ne portait que Kraland clair pour <code>primary-strong</code>, <code>highlight-reverse</code>, <code>info-bg</code> et <code>info-border</code> ; l'ombre des boutons n'était pas un jeton. Pour les 7 autres nations claires, ces nuances n'existaient qu'en prose ou en formule <code>[ASSUMPTION]</code>. En sombre, l'info n'avait aucune valeur. Le code qui reflète la spine ne pouvait pas produire ces valeurs.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Publier une table nation × nuance, en clair et en sombre ; trancher la base et les taux de l'info sombre.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : tables « Valeurs par variante » pour les 16 variantes et jeton <code>btn-shadow</code>, valeurs conformes aux exemples de la grille (Paladium clair : <code>highlight-reverse</code> <code>#d9e4dc</code>, <code>info-bg</code> <code>#fcfaf3</code>). La formule de l'info sombre (15 % et 30 % sur <code>bg-surface</code>) reste <code>[ASSUMPTION]</code> : Q4.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">La convention <code>-dark</code> se résout mal dans les composants</h3>
+              <span class="finding-location">DESIGN › frontmatter (composants)</span>
+            </header>
+            <div class="finding-note">Les jetons <code>-dark</code> portaient les valeurs d'Empire Brun sous des noms génériques. <code>button-standard.foreground-dark: '{colors.highlight}'</code> donnait l'accent de Kraland clair, 2,96:1 sur <code>#1e1a15</code>, au lieu de l'accent sombre de la nation ; <code>section-card.background-dark</code> donnait <code>#1e1a15</code> aux 8 nations sombres. Un résolveur de jetons, ou un agent qui suit le YAML, produisait des couleurs fausses dans 7 variantes sombres.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Déclarer que les jetons de rôle désignent la variable CSS du rôle, avec les hex dans les tables de variantes ; ou renommer les valeurs de référence et retirer les clés <code>-dark</code> des composants.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : jetons de rôle déclarés en tête du frontmatter ; plus aucune clé <code>-dark</code> dans les composants ; le suffixe <code>-dark</code> ne sert plus qu'aux valeurs communes aux 8 nations (bordures, états, jauges) ; le bouton standard passe par <code>{colors.text-nation}</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Survol du bouton primaire : fond et encre jamais vérifiés ensemble</h3>
+              <span class="finding-location">DESIGN › Bouton primaire, Dériver une variante</span>
+            </header>
+            <div class="finding-note">En Paladium clair, sans <code>--kr-arm-ink-hover</code>, l'encre retombe sur le blanc : 3,23:1 sur la primaire foncée <code>#aa8c2c</code>. En Confédération Libre sombre, 4,30:1, alors que le CSS actuel évite ce cas avec <code>--kr-arm-bg-hover: #5f6673</code>. Le même repli sert à « Répondre », « Envoyer » et à la croix.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Survol = paire <code>--kr-arm-bg-hover</code> / <code>--kr-arm-ink-hover</code> en jetons ; encre <code>#1e1a15</code> en Paladium clair ; les 16 paires au tableau des contrastes.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction, en application de Q1 : jetons <code>action-bg-hover</code> et <code>action-ink-hover</code>, tableau « Encre d'action » (16 paires, 4,73 à 12,89:1), encre <code>#1e1a15</code> à poser en Paladium clair.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Alerte : fond « à faible opacité » sans valeur ni jeton</h3>
+              <span class="finding-location">DESIGN › Alerte</span>
+            </header>
+            <div class="finding-note">Toutes les alertes des 16 variantes en dépendent, dont celle de la modale d'ordre (H2.3).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Fixer le taux du fond et de la bordure, en jetons, avec le contraste du texte.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q3) : marqué <code>[ASSUMPTION]</code> dans le composant <code>alert</code> ; la maquette key-modale-ordre propose 12 % et 35 %.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Hypothèses non marquées dans les composants du frontmatter</h3>
+              <span class="finding-location">DESIGN › frontmatter</span>
+            </header>
+            <div class="finding-note"><code>button-primary.foreground</code> et <code>label-category.foreground</code> en <code>{colors.action-ink}</code> (alors Q1, contre le « blanc » de H8.1), <code>badge-state</code> ambre et rouge (Q4) : un lecteur du seul YAML les prenait pour décidées.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Commentaire <code># [ASSUMPTION] Qn</code> sur ces lignes.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par Q1 (encre d'action validée) et R3 (<code>badge-state</code> en <code>{colors.status-unread}</code>) ; les hypothèses de couleur restantes portent un commentaire <code>[ASSUMPTION]</code>. Reste un cas du même ordre : <code>character-card.name</code> encode sans commentaire l'hypothèse du nom en 15 px sur ordinateur (Q7).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title"><code>primary-strong</code> a deux valeurs</h3>
+              <span class="finding-location">DESIGN › frontmatter, Dériver une variante</span>
+            </header>
+            <div class="finding-note"><code>#700b09</code> (valeur actuelle) dans le frontmatter, <code>#6f0c0b</code> par la formule.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une seule valeur.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : <code>#6f0c0b</code> partout, l'actuel <code>#700b09</code> en commentaire.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Contrastes sombres des états surévalués</h3>
+              <span class="finding-location">DESIGN › Palette d'états</span>
+            </header>
+            <div class="finding-note">Les bornes ≥ 8,60 / ≥ 10 / ≥ 7,58:1 valent sur <code>bg-surface</code> ; sur <code>bg-elevated</code>, les minima sont 7,55, 8,77 et 6,65:1. Conformes, mais surévalués.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Nommer le fond, ou donner les minima.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : la colonne donne les deux minima, sur <code>bg-surface</code> et sur <code>bg-elevated</code>.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Couverture des composants (Component coverage)</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : 29 lignes dans DESIGN « Components » et 29 dans EXPERIENCE « Component Patterns », mêmes noms, même ordre ; règles de comportement rédigées ; composants nommés ailleurs présents dans le CSS.</p>
+            <p>Après la passe de correction : 30 lignes de chaque côté avec le composant <strong>Lien</strong> (R7), mêmes noms et même ordre (contrôle par script de cette synthèse) ; les 17 clés de composants du frontmatter sont toutes citées. Les éléments existants sans composant (pastille de niveau, bouton à icône, tuiles d'action du plateau mobile…) sont renvoyés à Q24 et Q30.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">Les liens n'ont aucune spécification</h3>
+              <span class="finding-location">DESIGN › Components ; H5.6</span>
+            </header>
+            <div class="finding-note">En sombre, le survol des liens passe en primaire, ce que H5.6 interdit : 3,99:1 (Kraland), 2,56:1 (Empire Brun), 4,46:1 (Khanat) sur <code>bg-surface</code>. En clair, la primaire foncée de H5.2 ferait passer le survol des liens de Paladium de 12,06:1 à 3,23:1.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ajouter une ligne « Lien » aux deux tables (repos, survol, focus), le survol des liens aux cas de H5.6 et au tableau des contrastes ; traiter Paladium clair.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R7 : liens en <code>{colors.text-accent}</code> au repos et au survol, soulignés au survol, focus en <strong>Anneau de focus</strong>. Composant <strong>Lien</strong> dans les deux tables, liens parmi les cas de H5.6, ligne <code>text-accent</code> au tableau des contrastes (5,31 à 13,34:1).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Boutons d'action du plateau sans composant</h3>
+              <span class="finding-location">DESIGN › Components ; EXPERIENCE › Parcours 1</span>
+            </header>
+            <div class="finding-note">Dormir, Prier, Pouvoir, Fouiller : H6.1 change leur taille, H5.2 les a relevés rouges en Paradigme Vert clair, le parcours 1 s'appuie dessus, mais aucune ligne ne dit s'ils sont <strong>Bouton primaire</strong> ou <strong>Bouton standard</strong>.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Les rattacher à un composant dans les deux tables.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : DESIGN rattache les boutons de classe <code>btn-primary</code> (Dormir, Prier) au <strong>Bouton primaire</strong> et ceux de classe <code>btn-default</code> (Pouvoir) au <strong>Bouton standard</strong>. Les tuiles d'action du plateau mobile restent sans composant : Q24.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Pastille de niveau sans composant ni famille</h3>
+              <span class="finding-location">DESIGN › Rôles (<code>highlight-reverse</code>)</span>
+            </header>
+            <div class="finding-note">H8.1 ne connaît que deux familles (état, catégorie) et H8.2 met « toutes les étiquettes et pastilles » en 12 px gras : on ne sait pas où la ranger.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une ligne dans les deux tables et un classement, à faire valider.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">« Bouton à icône » sans ligne propre</h3>
+              <span class="finding-location">DESIGN › Components ; EXPERIENCE › Parcours 3</span>
+            </header>
+            <div class="finding-note">« Nouveau message » et « Contacts » du kramail (44 px, rayon de 10 à 4 px) sont nommés sans ligne propre.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une ligne, ou une variante du <strong>Bouton standard</strong>.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Bouton compact sans couleur</h3>
+              <span class="finding-location">DESIGN › Bouton compact</span>
+            </header>
+            <div class="finding-note">La palette réserve le succès aux votes, et une action ordinaire ne prend jamais une couleur d'état : un bouton de vote est-il vert ?</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Trancher.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q9), avec la piste de la relecture joueur : score en succès, boutons en standard.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Trois règles floues</h3>
+              <span class="finding-location">EXPERIENCE › Carte de section, Anneau de focus, Ligne de forum</span>
+            </header>
+            <div class="finding-note">Cible du repli (en-tête de 48 px ou chevron) ; <code>:focus</code> ou <code>:focus-visible</code> pour l'anneau ; heure de la ligne de forum (texte natif repris ou calcul).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une phrase pour chacune.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-partiel">en partie</span> le repli se fait en touchant l'en-tête, chevron compris (corrigé) ; l'heure est ouverte (Q27) ; <code>:focus</code> ou <code>:focus-visible</code> n'est pas tranché, les spines disent « focus clavier ».</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Couverture des états (State coverage)</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : chaque surface de l'architecture (boucle de jeu, pages secondaires) contre les états attendus : vide, chargement, erreur, focus, accès refusé, texte trop long, survol. Le tableau couvre bien les états propres à la surcharge (non-lu, sections pliées, modale bloquée, croix, variantes, bascule à 768 px).</p>
+            <p>Après la passe de correction : nouveaux états (lu et non lu du kramail, une alerte ou plusieurs, nom inconnu sur Personnage et Employés, survol des liens, bascule à 768 px pendant une saisie) ; règle de la carte de personnage exprimée par la largeur de la carte. Noms longs (Q29) et forum sans dernier message (Q27) restent ouverts.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">« États du site … hors de cette étude » : décision de périmètre absente du memlog</h3>
+              <span class="finding-location">EXPERIENCE › State Patterns</span>
+            </header>
+            <div class="finding-note">La ligne couvre des écrans que la peau habille (dossier du kramail vide, sous-forum vide, erreurs de rédaction), sans être validée ni marquée <code>[ASSUMPTION]</code>.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> La faire valider par Arnaud, ou la marquer <code>[ASSUMPTION]</code> avec une question.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : marquée <code>[ASSUMPTION]</code> et reprise dans les « autres hypothèses de rédaction », sans question propre.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Noms longs : aucune règle</h3>
+              <span class="finding-location">DESIGN › Mini-profil, Panneau latéral du jeu</span>
+            </header>
+            <div class="finding-note">H1.3 et H1.4 remplacent des mots fixes (« Personnage », « Employés ») par le nom du personnage, dans le mini-profil à 375 px et dans le titre du panneau latéral.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Fixer la règle : troncature, ou deux lignes au plus comme H7.1.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q29).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Ligne de forum sans dernier message ou sans accès</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Ligne de forum</span>
+            </header>
+            <div class="finding-note">Forum vide, guilde neuve, ou forum sans accès (retiré des menus selon AGENTS.md) : la flèche n'a pas de cible et la ligne perd son information principale.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Décrire le rendu de repli.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q27).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Carte de personnage : une plage de fenêtre au lieu de la largeur de la carte</h3>
+              <span class="finding-location">DESIGN › Carte de personnage ; EXPERIENCE › Responsive &amp; Platform</span>
+            </header>
+            <div class="finding-note">Le memlog décide « quand la carte est étroite » ; la spine traduisait en « ≈ 1100 à 1500 px » de fenêtre, plage mesurée avec des noms en 11 px, qui appelle une borne <code>max-width</code> qu'AGENTS.md interdit sur ordinateur.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Écrire la règle sur la largeur de la carte et garder la plage comme constat.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « quand la carte est trop étroite pour le nom à côté de l'avatar », dans DESIGN, EXPERIENCE et les Notes pour l'implémentation ; la plage reste un constat. Remesure en 15 px : Q7.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">États non cités</h3>
+              <span class="finding-location">EXPERIENCE › State Patterns</span>
+            </header>
+            <div class="finding-note">Lu et non lu des kramails ; modale d'ordre sans pastilles ou avec plusieurs alertes ; franchissement de 768 px pendant une saisie.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une ligne chacun, même « rendu actuel ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : lignes ajoutées pour le kramail, les alertes multiples et la bascule à 768 px ; la modale sans pastilles n'est pas citée.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Couverture des références visuelles (Visual reference coverage)</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : <code>mockups/</code> et <code>wireframes/</code> absents, <code>imports/</code> vide ; les 6 fichiers de <code>.working/</code> liés depuis les spines, chacun avec ce qu'il illustre ; « les documents priment sur les maquettes » dit une fois par spine ; aucun orphelin.</p>
+            <p>Après la passe de correction : quatre écrans clés ajoutés à la demande d'Arnaud (modale d'ordre, plateau, notifications et kramail mobiles), puis huit maquettes promues vers <code>mockups/</code> ; h07 et la synthèse restent dans <code>.working/</code>. Les 10 fichiers sont liés depuis les spines et tous les liens se résolvent (contrôle de cette synthèse). La couverture des surfaces sans maquette reste à confirmer (Q33).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Couverture des maquettes non confirmée</h3>
+              <span class="finding-location">Finalize › Mock coverage confirmed</span>
+            </header>
+            <div class="finding-note">Sans maquette : la <strong>Modale d'ordre</strong> (nouvel ordre de lecture), la <strong>Ligne de notification</strong> mobile, les dossiers du kramail en onglets, les <strong>Boutons d'accès rapide</strong>, la carte de personnage validée (h07 montre la version écartée).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Demander à Arnaud lesquelles méritent une maquette (au moins la modale et H7.1), puis journaliser les choix « tables seules ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q33). Par la décision « Maquettes de référence », Arnaud a demandé la modale d'ordre (ordinateur et mobile) et le plateau, les notifications et le kramail mobiles : elles existent. Restent sur les tables seules, à confirmer : Boutons d'accès rapide, carte de personnage sur ordinateur, sous-forum mobile dans sa carte, index mobile, En-tête de sujet étendu, pages secondaires.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Des maquettes contredisent les spines sans mise en garde</h3>
+              <span class="finding-location">DESIGN › Teintes du mode clair, Ligne d'objet</span>
+            </header>
+            <div class="finding-note">h05 garde des panneaux à 4 px, des marges de 10 et 15 px et des valeurs Paradigme Vert voisines mais différentes ; h03 pose la carte de section sans retrait, objet même de Q10.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une mise en garde par lien ; citer h03 dans Q10.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : mise en garde de h05 (« les tableaux priment »), h03 citée dans Q10 et à la <strong>Ligne d'objet</strong>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Références sans lien, liens fragiles</h3>
+              <span class="finding-location">DESIGN › Components</span>
+            </header>
+            <div class="finding-note">« Maquette : h05. » et « Maquette : h03. » sans lien ; tous les liens visaient <code>.working/</code>, que la promotion vers <code>mockups/</code> casserait.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Liens complets, à réécrire à la promotion.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : liens complets ; huit maquettes promues vers <code>mockups/</code> et liens réécrits (événement du memlog « Maquettes promues »).</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Surcharge et surspécification (Bloat &amp; overspecification)</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : valeurs en pixels face aux jetons, reprises des sources, doublons entre spines, sections sans lecteur.</p>
+            <p>Après la passe de correction : les composants du frontmatter citent <code>{spacing.touch-target}</code> ; les questions ouvertes ne sont exposées qu'une fois. EXPERIENCE.md répète toujours des pixels (« 44 px » 15 fois, « 44×44 » 8 fois, « 15 px » 11 fois, « 34 px » 7 fois).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Pixels répétés là où un jeton existe</h3>
+              <span class="finding-location">EXPERIENCE ; DESIGN › frontmatter (composants)</span>
+            </header>
+            <div class="finding-note">Dans EXPERIENCE, « 44 px » 14 fois, « 44×44 » 9 fois, « 15 px » 11 fois, « 34 px » 7 fois ; <code>44px</code> 5 fois dans les composants, à côté de <code>{spacing.touch-target}</code>. Les 15 px du texte courant mobile, encore <code>[ASSUMPTION]</code> (Q8), sont recopiés à quatre endroits : si Q8 change, ils dérivent.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Citer les jetons dans EXPERIENCE et dans les composants ; garder les pixels dans DESIGN.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-partiel">en partie</span> les composants citent les jetons ; EXPERIENCE garde ses pixels (comptes ci-dessus).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Questions argumentées deux fois</h3>
+              <span class="finding-location">DESIGN › Colors ; EXPERIENCE › Responsive &amp; Platform</span>
+            </header>
+            <div class="finding-note">Q1 et Q2 exposées dans les deux spines, avec un écart de périmètre ; « Responsive &amp; Platform » répétait Q6, Q7, Q19 et Q17.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un seul exposé, dans « Questions ouvertes », et des renvois ailleurs.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : Q1 et Q2 validées et appliquées ; « Responsive &amp; Platform » renvoie à Q7, Q8, Q17, Q19 et Q32 ; Q6 est résolue par R5.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Sources recopiées</h3>
+              <span class="finding-location">EXPERIENCE › Foundation, Responsive &amp; Platform ; DESIGN › Layout &amp; Spacing</span>
+            </header>
+            <div class="finding-note">La mission dans « Foundation », la procédure de test d'AGENTS.md dans « Vérification », la règle des points de rupture dans les deux spines.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Renvoyer à la source.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-partiel">en partie</span> « Vérification » renvoie à AGENTS.md pour le protocole, les points de rupture tiennent en une ligne avec renvoi ; « Foundation » résume toujours la mission.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Discipline d'héritage (Inheritance discipline)</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : <code>sources</code> d'EXPERIENCE (3 chemins, tous résolus) ; noms des étapes et des parcours face à <code>etude-ux.md</code> et au memlog ; glossaire ; noms de composants ; références de jetons ; les 75 entrées du memlog d'alors confrontées aux spines.</p>
+            <p>Après la passe de correction : Q13 tranchée par R4, intitulés des parcours repris du memlog, règles hors memlog marquées <code>[ASSUMPTION]</code> ou tranchées par Q1 et Q2. La proximité des couleurs d'état et de nation reste ouverte (Q21).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Q13 rouvrait une décision validée</h3>
+              <span class="finding-location">EXPERIENCE › Questions ouvertes ; DESIGN › Barre « Envoyer »</span>
+            </header>
+            <div class="finding-note">H1.2 réserve la barre fixe aux pages de rédaction et H6.2 confirme « Envoyer » de rédaction = barre fixe ; Q13 posait l'alternative sans proposition par défaut.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Appliquer la décision et garder le constat ; ne poser la question que si Arnaud veut revoir H1.2.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R4 (override d'Arnaud) : « Envoyer » dans le flux, sous le champ, au forum et au kramail ; la barre fixe disparaît partout.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Règles absentes du memlog, non marquées</h3>
+              <span class="finding-location">DESIGN › Rôles, Bouton standard ; EXPERIENCE › Accessibility Floor, Pages secondaires</span>
+            </header>
+            <div class="finding-note">« Texte ≥ 4,5:1 dans les 16 variantes » (H5.6 ne visait que le sombre) ; <code>text-muted</code> réservé aux éléments indisponibles ; marge de 16 px de la Carte étendue à l'ordinateur ; <strong>Bouton standard</strong> pour toutes les actions ordinaires, quand H5.5 dit « standard ou primaire ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Marquer <code>[ASSUMPTION]</code> avec une question, ou faire valider.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : le seuil de 4,5:1 est tranché par Q1 et Q2 ; <code>text-muted</code> (Q26) et la marge de la Carte sur ordinateur sont marqués <code>[ASSUMPTION]</code> ; le <strong>Bouton standard</strong> reprend « standard ou primaire ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">Tension avec H5.5 et H8.1</h3>
+              <span class="finding-location">DESIGN › Palette d'états, Valeurs par variante</span>
+            </header>
+            <div class="finding-note"><code>#8a5a00</code> sert à la fois l'alerte, le non-lu d'Empire Brun et le texte coloré proposé pour Empire Brun clair (Q2). En Kraland et en Ruthvénie, l'accent <code>#c41e3a</code> et le danger <code>#c62828</code> se confondent (1,04:1).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Présenter le cas à Arnaud avec Q2 et Q3 : ton d'alerte distinct, ou exception assumée par nation.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q21). Q2 a retenu <code>#8a5a00</code> pour le texte d'Empire Brun clair ; selon DESIGN, le non-lu de R3 vaut <code>text-accent</code> dans les 16 variantes.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title"><code>notification-row.text-mobile</code> lié à un jeton <code>[ASSUMPTION]</code></h3>
+              <span class="finding-location">DESIGN › frontmatter</span>
+            </header>
+            <div class="finding-note">Le jeton <code>{typography.body-mobile}</code> dépend de Q8, alors que H14.1 a validé 15 px : si Q8 change, la notification change contre une décision validée.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une valeur propre ou un jeton dédié.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : <code>text-mobile: 15px</code>, commenté H14.1.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Deux titres de parcours s'écartent du memlog</h3>
+              <span class="finding-location">EXPERIENCE › Key Flows</span>
+            </header>
+            <div class="finding-note">« Déplacement sur mobile » devenait « Changer de pièce », « réponse RP au forum » devenait « Une réponse RP à la Taverne ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Garder les intitulés du memlog.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Parcours 2 — Réponse RP au forum (ordinateur) », « Parcours 4 — Déplacement (mobile) ».</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Adéquation de la forme (Shape fit)</h2>
+          <span class="verdict-pill verdict-strong">strong</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Vérifié : DESIGN.md suit l'ordre canonique complet (Brand &amp; Style → Colors → Typography → Layout &amp; Spacing → Elevation &amp; Depth → Shapes → Components → Do's and Don'ts). EXPERIENCE.md a ses 8 sections par défaut, « Responsive &amp; Platform » (deux supports) et l'équivalent d'« Inspiration &amp; Anti-patterns ». Sections inventées : « Variantes de nation » et « Questions ouvertes ».</p>
+            <p>Après la passe de correction : titre canonique « Inspiration &amp; Anti-patterns » ; « Variantes de nation » fondue dans « Foundation » ; EXPERIENCE.md ajoute « Notes pour l'implémentation » (préalables relevés par la faisabilité) et garde « Questions ouvertes » (28 questions non bloquantes).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">Titre non canonique pour « Inspiration &amp; Anti-patterns »</h3>
+              <span class="finding-location">EXPERIENCE</span>
+            </header>
+            <div class="finding-note">La section s'intitulait « Références et options écartées » ; une extraction par titre la manquait.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Titre canonique, sous-titre français si voulu.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : titre « Inspiration &amp; Anti-patterns », sous-titre « Références et options écartées ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">« Variantes de nation » reprend surtout DESIGN</h3>
+              <span class="finding-location">EXPERIENCE</span>
+            </header>
+            <div class="finding-note">Seule la règle « une variante ne change que les couleurs » était nouvelle.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Déplacer cette règle dans « Foundation » et réduire la section à un renvoi.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : la règle est dans « Foundation › Variantes » ; la section a disparu.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="reviewer-section">
+      <details>
+        <summary>
+          <h2>Relecture de faisabilité en surcharge</h2>
+          <span class="reviewer-source">review-faisabilite.md</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Question posée : la surcharge (CSS injecté et JS du userscript, sans toucher au HTML ni au CSS du site) peut-elle tenir chaque règle, et comment ? Lecture seule du CSS, du template, des fixtures et du memlog ; contrastes recalculés ; toute déduction sans observation au rendu est marquée « non vérifié ».</p>
+            <p>Verdict : <strong>réalisable en surcharge, avec réserves.</strong> Sur 43 décisions et propositions relues : 17 en CSS seul, 16 en CSS avec un appui du JS, 10 en JS, dont 5 qui restructurent le DOM. Un point bloque : le nom du personnage sur deux des cinq pages de jeu. Deux règles contredisent les points de rupture d'AGENTS.md. Le risque principal n'est pas une règle isolée, mais la cascade existante : 48 % de <code>!important</code>, des sections sans garde, des styles en ligne <code>!important</code> posés par le JS. La modale d'ordre est la zone la plus fragile. Conformes à AGENTS.md : aucun préchargement de <code>/report</code>, liste latérale native conservée, ordre DOM des pièces inchangé. Constats : 1 critique, 10 importants, 15 moyens, 15 faibles.</p>
+            <p>Après la passe de correction : le blocage est levé par R1 ; les deux conflits avec AGENTS.md disparaissent (R5, règle des cartes sur leur propre largeur) ; la cascade, les classes de page, le module de la modale, les ancres et les marges mobiles sont consignés comme préalables dans « Notes pour l'implémentation » ; la grille de 4 px reste à borner (Q11). Quatre constats faibles ne sont pas repris (L3, L4, L7, L8).</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critique</span>
+              <h3 class="finding-title">C1. Nom du personnage : aucune source sur Personnage et Employés</h3>
+              <span class="finding-location">DESIGN › Mini-profil, Panneau latéral du jeu ; H1.3, H1.4</span>
+            </header>
+            <div class="finding-note">Le titre natif du panneau latéral vaut le nom sur le plateau, le matériel et les bâtiments, mais « Personnage » sur <code>/jouer/perso</code> et « Employés » sur <code>/jouer/pnj</code> ; le JS écrit d'ailleurs « Personnage » en dur (L1203-1205). Un nom mémorisé depuis le plateau serait faux après un changement de personnage ; lire une autre page en arrière-plan ajouterait une requête au site.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Relever sur le HTML natif un élément qui porte le nom ou l'identifiant, puis (a) lire cette source, (b) mémoriser le nom par identifiant, ou (c) limiter H1.3 et H1.4 aux trois pages qui portent le nom. Préciser le sort d'un nom long dans le mini-profil.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R1 : le userscript reprend le dernier nom vu sur une page de jeu (<code>span.list-group-item.active</code>), mémorisé localement, titre natif en repli. Le relevé du memlog confirme l'absence du nom (0 occurrence). Restent ouverts : le nom d'un autre personnage du compte (Q23), le nom long (Q29).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H1. Modale d'ordre : le JS actuel ne peut pas porter H2.3, H2.4 et H2.5</h3>
+              <span class="finding-location">DESIGN › Modale d'ordre ; EXPERIENCE › Q17</span>
+            </header>
+            <div class="finding-note">Les fonctions qui marquent la structure, replient l'aide et créent les pastilles ne tournent qu'en mobile (L9025-9028, L9149-9151, L9217-9219). Elles passent une seule fois, 150 ms après l'insertion de la modale, alors que le contenu arrive en Ajax et change quand le joueur choisit un autre ordre. Les observateurs ne sont posés que si <code>document.body</code> existe à l'<code>init()</code> : c'est le risque Q17, qui touche aussi l'ordinateur.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un module InitQueue commun aux deux supports, idempotent, relancé par un observateur du <code>.bootbox-body</code> ; traiter Q17 comme bloquante pour H2.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Notes pour l'implémentation › Modale d'ordre : module à revoir » consigne le constat ; le choix des moyens revient à l'implémentation. Q17 reste non bloquante, mais préalable aux règles mobiles de la modale.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H2. Alerte, aide et titre de l'ordre ne sont pas situés dans le DOM natif</h3>
+              <span class="finding-location">DESIGN › Modale d'ordre ; EXPERIENCE › Parcours 1</span>
+            </header>
+            <div class="finding-note">Le JS replie derrière « Aide » la <strong>première</strong> <code>.alert</code> de la modale (L9153), quelle qu'elle soit : une alerte de blocage placée avant l'aide disparaîtrait, contre H2.3. Le « titre de l'ordre » n'a pas d'élément désigné ; « ? Aide » n'existe qu'en mobile ; aucune fixture ne reproduit une modale d'ordre native.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une fixture synthétique fidèle de deux ou trois modales ; écrire le critère de chaque bloc et l'élément qui sert de titre ; dire si l'aide se replie aussi sur ordinateur.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R2, après le relevé du memlog : aide = <code>div.alert.alert-dismissible.alert-order</code>, blocage = <code>.alert-danger.alert-sm</code>, avertissement = <code>.alert-warning.alert-sm</code>, titre = <code>h3</code> puis <code>h4</code>. Seule <code>.alert-order</code> se replie ; le critère est consigné dans les Notes. Repli de l'aide sur ordinateur : Q25. La fixture reste à créer.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H3. Règles transverses contre une cascade à 48 % de <code>!important</code></h3>
+              <span class="finding-location">DESIGN › Typography, Shapes, Layout &amp; Spacing</span>
+            </header>
+            <div class="finding-note">3 367 déclarations <code>!important</code> sur 7 072. Des sections sans garde, entièrement en <code>!important</code>, s'appliquent à toutes les pages mobiles (PHASE 3, 4 et 5, 1re version du forum RP, nouveau sujet) : une règle gardée par <code>:where(html.x)</code> perd contre elles. Les documents ne disaient ni l'ordre des chantiers, ni s'il faut retirer les anciennes sections ou les battre.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Étape préalable : garder par page ou retirer ces sections, avec un contrôle page par page ; <code>!important</code> seulement contre une règle ancienne nommée ; ordre : jetons et couleurs, rayons et focus, typographie, espacements.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Notes pour l'implémentation › Cascade » pose la stratégie de cascade comme préalable aux règles transverses. L'ordre des chantiers n'est pas repris.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H4. Carte de section sur le sous-forum : conflit avec la liste pleine largeur</h3>
+              <span class="finding-location">DESIGN › Carte de section ; Q10</span>
+            </header>
+            <div class="finding-note">h04 met la liste des sujets dans une carte en retrait ; la refonte du sous-forum, zone de référence, l'étend sur toute la largeur (<code>calc(100% + 32px)</code>, marges de −16 px). Les deux s'excluent ; <code>sous-forum.mjs</code> fige le rendu actuel.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Trancher : la liste entre dans la carte (refonte reprise, tests mis à jour), ou le sous-forum est exempté de H4.1.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R6 : la liste des sujets entre dans la carte en retrait ; <code>tests/e2e/sous-forum.mjs</code> est à mettre à jour à l'implémentation.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H5. Typographie des pages de jeu mobiles : ni garde de page, ni correspondance des rôles</h3>
+              <span class="finding-location">DESIGN › Typography ; H3.1, H11.1</span>
+            </header>
+            <div class="finding-note">La cause citée, l'échelle mobile des titres, est globale (<code>h1</code> à <code>h6</code> en <code>rem</code> et <code>!important</code>) ; la changer pour le seul jeu demande une classe de page que le JS ne pose pas pour <code>/jouer/*</code>. Les rôles « nom et valeur », « détail », « titre de section » ne sont reliés à aucun élément du DOM natif. Même flou au bureau : l'accueil emploie aussi des <code>h4</code>.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Classe <code>html.kr-page-jouer</code>, échelle sous <code>:where(html.kr-page-jouer)</code>, table « rôle → sélecteur » pour les cinq pages de jeu ; contrôle du mini-profil plié et déplié à 375 et 700 px.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : les Notes consignent l'absence de classe pour <code>/jouer/*</code> et la table des rôles typographiques des cinq pages, à établir. Les <code>h4</code> de l'accueil (H11.1) ne sont pas repris.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H6. Marge de 16 px : le JS met à zéro, en ligne et en <code>!important</code>, les marges des conteneurs mobiles</h3>
+              <span class="finding-location">DESIGN › Layout &amp; Spacing ; H10.1</span>
+            </header>
+            <div class="finding-note"><code>applyMobileCriticalStyles</code> (L604-636) met à zéro le remplissage latéral des colonnes et des conteneurs et les marges des <code>.row</code>. Aucune feuille ne bat un style en ligne <code>!important</code> : la marge doit venir des éléments internes, page par page, ou d'une modification de cette fonction, qui tourne sur toutes les pages mobiles.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Choisir : (a) une marge sur les enfants des conteneurs, sous des classes de page ; (b) une gouttière mobile en jeton, appliquée par le JS. Mentionner la contrainte dans DESIGN.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : contrainte citée dans DESIGN (« Marge latérale mobile ») et décrite dans les Notes (« Marges mobiles ») ; le choix (a) ou (b) revient à l'implémentation.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H7. Grille de 4 px : périmètre non borné</h3>
+              <span class="finding-location">DESIGN › Layout &amp; Spacing ; Q11</span>
+            </header>
+            <div class="finding-note">« Les 10 et 15 px de Bootstrap deviennent 8, 12 ou 16 » peut viser la gouttière de la grille, les composants Bootstrap ou seulement les règles de la peau. Toucher la gouttière décale toutes les mises en page du bureau, dont les colonnes du plateau ; « selon les voisins » laisse le choix au développeur, élément par élément.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Liste des composants Bootstrap concernés et valeur cible de chacun ; exclure la gouttière, ou la traiter à part avec Arnaud ; une table au lieu de « selon les voisins ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q11) : périmètre à borner, composants candidats et question de la gouttière posés ; « selon les voisins » reste <code>[ASSUMPTION]</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H8. Cartes de personnages : une plage de fenêtre contraire aux points de rupture</h3>
+              <span class="finding-location">DESIGN › Carte de personnage, Points de rupture ; Q7</span>
+            </header>
+            <div class="finding-note">« Entre ≈ 1100 et 1500 px » se traduit par une requête bureau en <code>max-width</code>, que la convention interdit ; les bornes sont approximatives et mesurées avec des noms en 11 px ; la vraie cause est la largeur de la carte.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Exprimer la règle sur la carte : mise en page intrinsèque ou requête de conteneur.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : la règle porte sur la largeur de la carte, dans DESIGN, EXPERIENCE et les Notes ; la plage reste un constat.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H9. Popup <code>/report</code> de 600 px : des règles « ordinateur » sous le seuil mobile</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform ; Q6 ; H14.1, H14.2</span>
+            </header>
+            <div class="finding-note">Le JS pose <code>body.mobile-mode</code> dans le popup de 600 px ; lui donner les règles « ordinateur » contredit AGENTS.md. <code>window.opener</code> ne suffit sans doute pas comme critère. D'autres fenêtres natives sont dans le même cas (aperçu <code>help.php?p=prev</code>, 600×480).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Faire trancher : (a) le popup suit les règles mobiles ; (b) une exception écrite dans AGENTS.md, classe <code>html.kr-popup-bureau</code>. Étendre Q6 aux autres fenêtres natives.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R5 : sur ordinateur, la cloche ouvre le popup en 900×800 (redéfinition d'<code>openReport</code>, sans préchargement), au-dessus du seuil, sans exception aux points de rupture. Autres fenêtres natives : Q32.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H10. Le correctif d'ancres mobile retire <code>#msg…</code></h3>
+              <span class="finding-location">EXPERIENCE › Ligne de forum, Ligne de sujet, Parcours 2</span>
+            </header>
+            <div class="finding-note">Si <code>innerWidth &lt; 768</code> à l'évaluation du script, le JS retire toute ancre autre que <code>#top</code> (L2783-2808) : en émulation, le lien « premier non lu » du sous-forum, et probablement la flèche « dernier message » de l'index, mènent en haut du sujet ; sur un téléphone, où la largeur vaut 980 px à ce moment, le correctif ne fait rien. La vérification à 375×667 montrerait l'inverse de la réalité.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Réduire le correctif à son but déclaré (<code>#flap</code>), ou exclure <code>#msg\d+</code> ; vérifier les deux liens en mobile.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : constat consigné dans les Notes (« Ancres en mobile ») ; le correctif reste à faire à l'implémentation.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M1. Survol du bouton primaire : deux paires sous 4,5:1</h3>
+              <span class="finding-location">DESIGN › Bouton primaire</span>
+            </header>
+            <div class="finding-note">Paladium clair : 3,23:1 avec le repli blanc. Confédération Libre sombre : 4,30:1 sans le <code>--kr-arm-bg-hover: #5f6673</code> du CSS actuel.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Écrire le survol comme le code existant (<code>var(--kr-arm-bg-hover, …)</code>), ajouter <code>--kr-arm-ink-hover: #1e1a15</code> à Paladium clair et les paires de survol au tableau des contrastes.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction, comme le constat de la grille (« Complétude des jetons ») : tableau « Encre d'action », encre <code>#1e1a15</code> à poser en Paladium clair.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M2. Texte posé sur la couleur de nation : plus de couples que les trois composants cités</h3>
+              <span class="finding-location">DESIGN › Texte posé sur la couleur de nation</span>
+            </header>
+            <div class="finding-note">Le CSS pose aussi du texte sur la primaire : titre des listes latérales, bandeau du <code>/report</code>, page active de la pagination, onglets et menus actifs en sombre (2,81:1 en Empire Brun sombre), dossiers du kramail, onglets de la modale, bouton « Jouer » de l'accueil. En Paladium, 2,10:1 en clair et 1,65:1 en sombre.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Énoncer Q1 comme une règle de jetons et joindre cette liste comme périmètre d'implémentation.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par Q1 (« tout texte posé sur la couleur de nation ») ; la liste figure dans DESIGN comme périmètre relevé.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M3. Texte en couleur de nation : tous les liens, et 47 déclarations</h3>
+              <span class="finding-location">DESIGN › H5.6, Q2</span>
+            </header>
+            <div class="finding-note">Tous les liens sont en accent : 2,82:1 en Empire Brun clair. En sombre, 47 déclarations écrivent la primaire en couleur de texte ; H5.6 cite trois cas. Changer <code>--kr-highlight</code> changerait aussi ses usages décoratifs.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un jeton de texte coloré par variante, employé pour tous les textes colorés ; <code>--kr-highlight</code> reste décoratif ; l'audit des 47 déclarations fait partie de H5.6.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par Q2 et R7 : jeton <code>{colors.text-accent}</code> par variante, <code>highlight</code> décoratif, périmètre (liens, 47 déclarations) écrit dans H5.6.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M4. Texte atténué : une hypothèse invérifiable, qu'un jeton remplace</h3>
+              <span class="finding-location">DESIGN › Contrastes de référence</span>
+            </header>
+            <div class="finding-note"><code>--kr-text-secondary</code> est employé 95 fois ; garantir qu'aucun de ces textes n'est posé sur <code>#f5f5f5</code> ou sur une teinte de H5.3 (4,17 à 4,59:1) n'est ni tenable ni vérifiable.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Foncer le jeton en clair : <code>#636a77</code> donne au moins 4,70:1 sur toutes ces surfaces.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q26), avec la proposition <code>#636a77</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M5. Jauges : repérage au bureau et couleurs des cartes</h3>
+              <span class="finding-location">DESIGN › Jauges ; H5.4</span>
+            </header>
+            <div class="finding-note">Au bureau, PV et PM ont sans doute la même classe : aucun sélecteur CSS ne les distingue (non vérifié). Sur le plateau, le cercle et la barre de PV des cartes sont colorés par niveau de santé, un signal d'état qu'« une couleur par jauge » effacerait.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Marquer les jauges natives par le JS d'après leur texte ; faire dire à Arnaud si les cartes gardent leur couleur par niveau.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30) pour les cartes ; le marquage des jauges au bureau n'est pas repris.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M6. Palette d'états : les classes natives servent aux états et aux actions</h3>
+              <span class="finding-location">DESIGN › Palette d'états ; EXPERIENCE › Pages secondaires</span>
+            </header>
+            <div class="finding-note">Les boutons de Contacts et « Pas un contact » portent <code>.btn-danger</code>, <code>.btn-warning</code>, <code>.btn-info</code>, <code>.btn-success</code>, comme les votes, qui sont un état ; une règle globale ne peut pas les séparer et Contacts n'a pas de classe de page.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Des règles par page, une classe de page Contacts, une modification du bouton « Voir l'historique » du userscript ; la liste des actions ordinaires dans DESIGN.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : classe de page manquante consignée dans les Notes ; actions ordinaires listées dans DESIGN (« Palette d'états »).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M7. Mode clair thémé : des règles globales sur toutes les pages</h3>
+              <span class="finding-location">DESIGN › Teintes du mode clair</span>
+            </header>
+            <div class="finding-note">Aucune règle claire ne vise aujourd'hui <code>.panel-heading</code>, <code>th</code>, <code>.btn-default</code> ni <code>.nav-tabs</code> : les ajouter change toutes les pages. Les flèches de tri DataTables sont des images de fond qu'une déclaration <code>background</code> effacerait (non vérifié).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> <code>background-color</code>, jamais <code>background</code> ; bornes <code>.panel-default</code> et <code>.table</code> ; recenser les règles sombres non chromatiques.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Listes à établir » des Notes (panneaux et tableaux de H5.3, propriétés non chromatiques). La consigne <code>background-color</code> n'est pas reprise.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M8. Boutons : quels éléments sont des « boutons » ?</h3>
+              <span class="finding-location">DESIGN › Typography, Shapes, boutons primaire, standard et compact</span>
+            </header>
+            <div class="finding-note">« Normale partout » doit épargner les <code>.btn-group-xs</code> des caractéristiques, la barre BBCode, la croix, les flèches de l'index, les boutons à icône ; 4 px sur tous les <code>.btn</code> casse les jonctions des <code>.btn-group</code> ; le JS pose des rayons en ligne que le CSS ne bat pas.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une liste fermée des boutons et des exclusions ; la reprise des styles en ligne du JS ; garder les sélecteurs de groupe de Bootstrap.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : liste des boutons et de leurs exclusions à établir, consignée dans les Notes.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M9. H1.1 : garder par page la section du forum change toutes les tables mobiles hors forum</h3>
+              <span class="finding-location">EXPERIENCE › Ligne de citoyenneté</span>
+            </header>
+            <div class="finding-note">La 1re version du forum vise <code>body.mobile-mode .panel-default .table</code> sans garde ; la garder par <code>page-forum</code> règle H1.1, mais retire la mise en cartes d'Événements, Membres, Contacts, Statistiques.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Contrôler ces pages dans la même tâche, ou garder une mise en cartes générique.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : exemple de dépendance cité dans « Notes › Cascade ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M10. Classes de page et gardes : un prérequis absent des documents</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform ; AGENTS.md</span>
+            </header>
+            <div class="finding-note">Le JS ne pose de classe que pour l'accueil, le forum, le kramail, les événements, les membres et le <code>/report</code>. Rien pour <code>/jouer/*</code>, la rédaction, l'index du forum, Contacts, Règles, Interface, Aide, Statistiques, Carte. Le mode clair n'a pas de classe. InitQueue tourne aussi peau coupée.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un lot préalable : classes <code>html.kr-page-*</code>, garde de mode clair, test de la peau active dans chaque nouveau module.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Notes › Classes de page ». Le test de la peau active n'est pas repris.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M11. Règles communes aux deux supports et convention « jamais en global »</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform ; AGENTS.md</span>
+            </header>
+            <div class="finding-note">Rayons, étiquettes, focus, jauges et grille sont « identiques sur les deux supports », alors qu'AGENTS.md interdit le global ; le code contourne par des paires dupliquées ou par <code>(max-width: 767px), (min-width: 768px)</code> (l.13487).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Fixer dans AGENTS.md la forme d'une règle commune.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : la forme d'une règle commune est un préalable écrit dans « Notes › Cascade » ; AGENTS.md n'est pas modifié.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M12. Barre « Envoyer » fixe : le clavier virtuel peut la masquer</h3>
+              <span class="finding-location">EXPERIENCE › Barre « Envoyer », Parcours 3</span>
+            </header>
+            <div class="finding-note">Safari iOS et Chrome Android récent ne redimensionnent que le viewport visuel : un élément <code>position: fixed; bottom: 0</code> reste sous le clavier ; l'émulation ne le montre pas.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Suivre <code>visualViewport</code>, ou reformuler la règle.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R4 : « Envoyer » dans le flux, plus aucune barre fixe.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M13. Refonte de l'index du forum : quatre points à préciser</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Ligne de forum ; maquette h12</span>
+            </header>
+            <div class="finding-note">Au bureau, transformation neuve (seul le mobile remplace le tableau, et ce module tourne peau coupée) ; une flèche distincte demande une ligne à lien étiré ; une « heure relative » calculée dépendrait du fuseau du serveur ; l'icône de chaque forum n'est que dans la liste latérale native.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Libellé de date natif reformaté, sans calcul ; icône lue dans la liste latérale, avec une icône de repli ; un seul module pour les deux supports, actif seulement avec la peau.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q27) pour l'heure et l'icône ; le module commun et le lien étiré ne sont pas repris.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M14. « Annuler » / « Valider » : la méthode peut toucher d'autres fenêtres</h3>
+              <span class="finding-location">EXPERIENCE › Voice and Tone ; H2.1</span>
+            </header>
+            <div class="finding-note">La locale <code>fr</code> de Bootbox 4.4.0 dit « D'accord » ; <code>setDefaults</code> et <code>setLocale</code> agiraient sur toutes les Bootbox, kramail compris, via <code>unsafeWindow</code>. Le périmètre n'était pas écrit.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Réécrire les libellés dans le DOM des seules modales d'ordre ; écrire le périmètre dans EXPERIENCE.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « modales d'ordre seulement ; les autres confirmations gardent leurs libellés » (« Voice and Tone »).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M15. Vérification : les fixtures manquent pour la plupart des zones touchées</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform › Vérification</span>
+            </header>
+            <div class="finding-note">Rien pour la modale d'ordre native, l'index du forum, Personnage, Matériel, Bâtiments, Employés, les pages secondaires ; des suites figent des valeurs que les décisions changent.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Chiffrer dans le futur plan la création de fixtures synthétiques et la mise à jour des suites, chacune avec sa contre-épreuve.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « Notes › Tests et fixtures » liste les suites touchées et les fixtures manquantes.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L1. Croix de 44×44 au bureau sans titre de modale</h3>
+              <span class="finding-location">DESIGN › Modale d'ordre ; H2.6</span>
+            </header>
+            <div class="finding-note">Sans titre, Bootbox 4.4 place la croix dans le corps, avec <code>margin-top: -10px</code> en ligne : agrandie, elle peut chevaucher le premier bloc.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Vérifier sur la fixture de H2 ; réserver la place de la croix.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q25).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L2. Notifications mobiles : le filet « non lu » est sur la cellule de date</h3>
+              <span class="finding-location">DESIGN › Ligne de notification ; H14.2</span>
+            </header>
+            <div class="finding-note">Si la date passe au-dessus du texte, le filet ne couvre plus que la ligne de la date.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> En mobile, porter le filet sur la ligne ; mettre à jour <code>report-non-lu.mjs</code>.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : consigné dans « Notes › Tests et fixtures ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L3. Bande vide du <code>/report</code> : une marge globale</h3>
+              <span class="finding-location">H14.3</span>
+            </header>
+            <div class="finding-note">La bande vient du <code>padding-top: 60px</code> du <code>body</code>, prévu pour une barre de navigation que le <code>/report</code> n'a pas, et d'un <code>margin: 10px</code> en ligne ; d'autres fenêtres sans barre ont sans doute le même défaut.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Correction en CSS sous <code>html.kr-page-report</code> ; noter les autres fenêtres au prochain inventaire.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-non-traite">non traité</span> la cause n'est pas reprise dans les documents ; H14.3 reste décidée.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L4. En-tête de sujet étendu : libellés de catégorie en dur</h3>
+              <span class="finding-location">DESIGN › En-tête de sujet ; H12.4</span>
+            </header>
+            <div class="finding-note">Le JS ne reconnaît que les liens <code>forum/rp/</code> et <code>forum/hrp/</code>, et n'écrit que « Jeu (RP) » ou « Jeu (HRP) ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Lire le titre de la catégorie dans la liste latérale native, comme le veut AGENTS.md.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-non-traite">non traité</span> rien dans les documents.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L5. « ••• » est un glyphe texte, pas une icône</h3>
+              <span class="finding-location">DESIGN › Bouton « ••• »</span>
+            </header>
+            <div class="finding-note">Le « ••• » du forum est du texte ; une icône <code>fa-ellipsis-h</code> ne serait pas identique.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Reprendre le même glyphe texte dans les boutons du kramail.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « glyphe texte « ••• » du forum » pour tous les boutons « autres actions ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L6. Boutons d'accès rapide présents aussi en mobile</h3>
+              <span class="finding-location">DESIGN › Boutons d'accès rapide ; H1.5</span>
+            </header>
+            <div class="finding-note">Créés sans test de mode et stylés en mobile, ils peuvent coexister avec les onglets (non vérifié) ; leur état actif n'existe pas encore.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Dire s'ils sont masqués en mobile ; poser l'état actif par le JS.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L7. Icônes de 44×44 des cartes en mobile</h3>
+              <span class="finding-location">DESIGN › Carte de personnage ; Parcours 4</span>
+            </header>
+            <div class="finding-note">Les cartes vont par deux, environ 170 px de large : la rangée tient trois icônes de 44 px ; au-delà, elle passe à la ligne.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Relever le nombre maximal d'actions par personnage et prévoir le retour à la ligne.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-non-traite">non traité</span> rien dans les documents.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L8. Anneau de focus unique</h3>
+              <span class="finding-location">DESIGN › Anneau de focus ; H5.7</span>
+            </header>
+            <div class="finding-note"><code>a:hover, a:focus { outline: none }</code> est global, avec dix autres <code>outline: none</code> ; un anneau décalé de 2 px est rogné dans les conteneurs à <code>overflow</code>.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> <code>:focus-visible</code>, retrait des <code>outline: none</code>, décalage négatif dans ces conteneurs.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-non-traite">non traité</span> les spines disent « focus clavier » sans trancher <code>:focus-visible</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L9. Dépendances navigateur</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform › Vrai téléphone</span>
+            </header>
+            <div class="finding-note"><code>color-mix()</code>, <code>:has()</code>, <code>:focus-visible</code>, <code>-webkit-line-clamp</code>, peut-être les requêtes de conteneur : tous disponibles sur les navigateurs récents. Le navigateur mobile cible n'est pas nommé, alors que Chrome Android n'accepte aucune extension.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Nommer le navigateur mobile de référence.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q17).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L10. « Rien ne recouvre une information » : quelle portée ?</h3>
+              <span class="finding-location">EXPERIENCE › Accessibility Floor</span>
+            </header>
+            <div class="finding-note">Sans limite, la règle vise aussi les éléments fixes existants : barre de navigation, onglets collants, bouton « Remonter », bouton « MC ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> La limiter à la modale d'ordre, ou lister les éléments fixes admis.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : limitée à l'alerte de la modale (H2.3, R2) et à la saisie (R4).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L11. Pastille « ici » à 10,5 px contre le plancher de 12 px</h3>
+              <span class="finding-location">DESIGN › Croix directionnelle et pièces</span>
+            </header>
+            <div class="finding-note">Le « rendu actuel » de la croix contredit « rien sous 12 px » et « pastilles en 12 px ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une exception écrite, ou le passage à 12 px dans la tâche de H3.1.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : la pastille « ici » passe en <code>{typography.label}</code> (12 px).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L12. Dossiers du kramail en onglets à 375 px</h3>
+              <span class="finding-location">DESIGN › Onglets de section ; H13.1</span>
+            </header>
+            <div class="finding-note">Trois onglets libellés et trois boutons de 44 px ne tiennent pas sur une ligne utile de 343 px.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Préciser la disposition : deux rangées, ou barre défilante.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q31), avec la disposition de la maquette key-kramail-mobile en <code>[ASSUMPTION]</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L13. Étiquettes et pastilles : classes natives partagées</h3>
+              <span class="finding-location">DESIGN › Étiquette de catégorie, Pastille d'état</span>
+            </header>
+            <div class="finding-note"><code>.label</code> et <code>.badge</code> servent à la fois aux catégories, aux compteurs d'état et aux pastilles de niveau.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Une liste fermée « élément → famille » dans DESIGN.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : liste à établir, consignée dans les Notes.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L14. Carte de section : icône et chevron</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Carte de section</span>
+            </header>
+            <div class="finding-note">Certains en-têtes natifs n'ont pas d'icône ; le repli posé par le JS ne vaut que pour trois panneaux.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> « Icône native si elle existe, sinon aucune » ; « chevron seulement si la section se replie ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30) pour l'icône ; le chevron ne signale qu'une section repliable (corrigé).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L15. « Une variante ne change que les couleurs »</h3>
+              <span class="finding-location">EXPERIENCE › Foundation</span>
+            </header>
+            <div class="finding-note">Des règles sombres changent autre chose que la couleur, par exemple <code>hr</code> masqué en sombre seulement.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Recenser les propriétés non chromatiques des sélecteurs <code>-dark</code> avant d'écrire leurs équivalents clairs.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : recensement consigné dans « Notes › Listes à établir ».</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="reviewer-section">
+      <details>
+        <summary>
+          <h2>Relecture joueur</h2>
+          <span class="reviewer-source">review-joueur.md</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Relecture adversariale du point de vue d'un joueur de Kraland Interactif, sur ordinateur et sur mobile. Cadre respecté : corriger l'existant, aucun nouveau composant (les manques sont posés en questions), accessibilité limitée aux joueurs voyants ; les options écartées par Arnaud ne sont pas reproposées.</p>
+            <p>Verdict : <strong>bonne base, pas encore prête à implémenter telle quelle.</strong> Les documents suivent fidèlement le memlog et règlent de vrais irritants : texte de 10 à 11 px sur les pages de jeu mobiles, « Cancel / OK », aide illisible en sombre, bleu Bootstrap, alerte recouverte, icônes de 26 px. Trois zones restent fragiles : la modale d'ordre, cœur de la boucle, dont le seul garde-fou, l'alerte, peut être hors de vue au moment de « Valider » ; les couleurs d'état, où le « non lu » éclate et où « une couleur vive signale un état » se heurte aux couleurs de six nations sur huit ; le mobile, vu seulement en émulation. S'y ajoutent des trous de boucle : lire et répondre à un kramail, jouer plusieurs personnages, les tuiles d'action, les ordres à paramètres. Constats : 1 critique, 7 importants, 14 moyens, 9 faibles.</p>
+            <p>Après la passe de correction : R2 garde l'alerte sous les yeux, R3 réunifie le non-lu, R4 tranche « Envoyer ». Les trous de boucle et le mobile réel deviennent des questions ouvertes non bloquantes (notamment Q17 et Q21 à Q25). Q17 reste non bloquante, contre l'avis de cette relecture, mais devient un préalable à l'implémentation des règles mobiles de la modale et d'« Envoyer ».</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critique</span>
+              <h3 class="finding-title">C1. Modale d'ordre : l'alerte peut être hors de vue quand le joueur valide</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Modale d'ordre ; Parcours 1</span>
+            </header>
+            <div class="finding-note">Depuis H2.3, l'alerte est le seul signal d'un ordre impossible ou risqué, puisque « Valider » reste actif. Deux mécanismes peuvent la cacher : le repli de « ? Aide », qui prend la <strong>première</strong> <code>.alert</code> sans distinguer aide et blocage ; le défilement, où l'alerte glisse sous les onglets collants pendant que les pastilles et « Valider » restent à l'écran. La lecture naturelle « je lis le coût, je valide » se fait sans l'alerte.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Écrire que seule l'aide se replie ; relever ce qui distingue aide et blocage ; garder l'alerte dans l'en-tête collant jusqu'à « Valider » ? Vérifier à 375×667 et sur l'ordre Parler ; ajouter au parcours 1 un échec « avertissement ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R2 : alertes de blocage et d'avertissement fixées en haut du corps pendant le défilement, jamais repliées ; seule l'aide (<code>.alert-order</code>) se replie. Le parcours 1 suit l'avertissement de Dormir jusqu'à « Valider ». La vérification sur téléphone reste à faire (Q17).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H1. « Non lu » : un signal aujourd'hui cohérent, éclaté en plusieurs couleurs</h3>
+              <span class="finding-location">DESIGN › Rôles, Palette d'états, Pastille d'état ; Q4, Q15</span>
+            </header>
+            <div class="finding-note">Aujourd'hui, un seul jeton, <code>--kr-status-unread</code>, porte le non-lu, par choix d'Arnaud. Les documents passaient les pastilles en alerte et gardaient le filet en accent : deux couleurs pour un même état sur une même ligne. Le « ! » de la cloche en danger étirait le danger au-delà des blocages ; le badge de l'enveloppe du kramail n'était pas traité.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Rendre Q15 bloquante ; un seul jeton « non lu » pour pastilles, filets, teinte de <code>/report</code>, cloche et enveloppe.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R3 : <code>--kr-status-unread</code> pour tout « non lu / nouveau », cloche et enveloppe comprises ; le danger est réservé aux blocages. Selon DESIGN, le non-lu vaut <code>text-accent</code>, la couleur des liens et de l'anneau de focus ; Q21 traite sa proximité avec le danger.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H2. « Une couleur vive signale un état » ne tient pas dans six nations sur huit</h3>
+              <span class="finding-location">DESIGN › Brand &amp; Style, Palette d'états ; Q2, Q3</span>
+            </header>
+            <div class="finding-note">Rouges de Kraland et de Ruthvénie voisins du danger ; verts de Paradigme Vert et de Ruthvénie voisins du succès ; <code>#8a5a00</code> d'Empire Brun égal à l'alerte ; or de Paladium sombre voisin de l'alerte sombre ; primaire grise de Confédération Libre égale au texte atténué : « Valider » aura l'air désactivé. En Kraland clair, l'aide et un blocage sont deux roses pâles sous un « Valider » rouge foncé : la couleur ne les distingue pas.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un état se lit d'abord à son texte et à sa forme ; sa couleur ne sert jamais à une action. Contrôler Q3 nation par nation ; demander si la primaire grise de Confédération Libre convient.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q21), qui reprend la liste, la piste « libellé et forme d'abord » et le cas de Confédération Libre.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H3. « Envoyer » : barre fixe ou bouton dans le flux, la règle se contredit</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Barre « Envoyer » ; Q13 ; H1.2, H6.2</span>
+            </header>
+            <div class="finding-note">Appliquée à la lettre, la règle réintroduit au forum une barre fixe que l'éditeur avait retirée exprès (« plus de barre fixe qui recouvre la saisie ») ; laissée en l'état, le même geste a deux places selon qu'on écrit un RP ou un kramail.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Passer Q13 en bloquante, avec une seule réponse pour le forum et le kramail ; le précédent du forum plaide pour le bouton dans le flux.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-resolu">résolu</span> par R4 : « Envoyer » dans le flux, sous le champ, au forum et au kramail.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H4. Mobile vu seulement en émulation : vrai téléphone et clavier ouvert non vérifiés</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform ; Q17 ; Parcours 1 et 3</span>
+            </header>
+            <div class="finding-note"><code>initMobileFeatures</code> lit <code>innerWidth</code> au démarrage, quand la largeur vaut 980 px avant la meta viewport ; les améliorations mobiles de la modale dépendent d'un observateur posé seulement si <code>document.body</code> existe. H2.2, H2.4, H2.5 et H2.7 ont été décidées sur un rendu qu'un téléphone ne produit peut-être pas. Le climax du parcours 3 (barre fixe pendant la saisie) n'est pas observable en émulation. Q17 était non bloquante, alors que le parcours 1 en dépend entièrement.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Passer Q17 en bloquante pour la modale et le parcours 3 ; un passage court sur un vrai téléphone, iOS et Android.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q17), non bloquante contre l'avis de cette relecture, mais préalable écrit à l'implémentation des règles mobiles de la modale et d'« Envoyer ». Le risque du clavier sur une barre fixe disparaît avec R4.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H5. Zoom iOS : l'échelle de texte n'a pas de rôle « champ de saisie »</h3>
+              <span class="finding-location">DESIGN › Typography ; Q8</span>
+            </header>
+            <div class="finding-note">Les champs sont aujourd'hui à 16 px en mobile, à huit endroits du CSS, pour éviter le zoom de Safari iOS. Les aligner sur le « texte courant 15 px » ferait zoomer Safari à chaque toucher d'un champ : kramail, réponse RP, ordre Parler, recherche des règles.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ajouter à DESIGN le rôle « champ de saisie, mobile : 16 px, jamais moins ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q8) : le constat est écrit dans DESIGN (« Typography ») et dans Q8, sans rôle « champ » ajouté.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H6. Lire et répondre à un kramail : trou de boucle, actions en icônes seules</h3>
+              <span class="finding-location">EXPERIENCE › Boucle de jeu, Parcours 3</span>
+            </header>
+            <div class="finding-note">Le cas le plus fréquent, lire un kramail reçu et y répondre, n'est pas parcouru. Sur la page de lecture mobile, Répondre, Répondre à tous et Transférer sont des icônes seules, sans infobulle. Dans un jeu politique, un « répondre à tous » sur un kramail confidentiel a un coût en jeu.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Étendre à la lecture la logique de H13.1 (libellés visibles, au moins pour Répondre et Répondre à tous) ; ajouter un parcours « lire et répondre ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q22).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">important</span>
+              <h3 class="finding-title">H7. Joueur à plusieurs personnages : non couvert hors des pages de jeu</h3>
+              <span class="finding-location">EXPERIENCE › Liens dans la boucle ; H1.3, H1.4</span>
+            </header>
+            <div class="finding-note">Kramail et notifications sont propres à chaque personnage ; la peau a trois sélecteurs de personnage différents, aucun décrit. C'est en écrivant un kramail ou en lisant un rapport que se tromper de personnage coûte le plus.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Le joueur à plusieurs personnages est-il dans le périmètre ? Si oui : même aspect et même place pour le personnage courant, et un parcours qui change de personnage.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q23), qui ajoute le risque du nom mémorisé par R1.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M1. Pastilles coût, durée, potentiel : style, mots et taille</h3>
+              <span class="finding-location">DESIGN › Pastilles coût, durée, potentiel ; Q5</span>
+            </header>
+            <div class="finding-note">Trois pilules couleur d'action collées à « Valider » ressemblent à des boutons et diluent l'action principale ; les icônes remplacent les mots, et « 01:00 » près d'une horloge se lit comme une heure ; 12 px, la plus petite taille du système, pour l'information qui décide de l'ordre.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Style neutre (surface, texte du thème, bordure) ; garder le mot ou une abréviation ; valeur en 13 px ?</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q5) ; le fond de nation est tranché par Q1.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M2. Tuiles d'action du plateau mobile : absentes des composants</h3>
+              <span class="finding-location">DESIGN › Components ; Parcours 1</span>
+            </header>
+            <div class="finding-note">La commande la plus touchée de la boucle n'a pas de composant ; le code l'appelle « actions rapides », comme les « Boutons d'accès rapide » des documents. Appliquer H6.2 et H6.3 à la lettre change ces tuiles sans décision.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ajouter la tuile d'action aux composants ; renommer « Boutons d'accès rapide » en « Boutons de section (ordinateur) ».</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q24) ; DESIGN met en garde contre la confusion de noms, sans renommer.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M3. Modale d'ordre : anatomie ambiguë</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Modale d'ordre</span>
+            </header>
+            <div class="finding-note">Place des onglets par rapport à l'alerte ; « ? Aide » qui n'existe qu'en mobile ; croix de 44×44 qui empiète sur la rangée du titre quand Bootbox n'a pas de titre ; contenu de l'ordre (champs, cible, quantité) sans taille ni règle.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Compléter l'anatomie : place des onglets, alerte attachée à l'onglet actif, « ? Aide » en mobile seulement, place de la croix, tailles du contenu.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q25).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M4. Défilement et placement du plateau mobile : non mesurés</h3>
+              <span class="finding-location">EXPERIENCE › Parcours 1 et 4</span>
+            </header>
+            <div class="finding-note">Texte, cibles, en-têtes et lignes grandissent sous un en-tête collant et une barre d'onglets collante, un sixième de l'écran ; aucun relevé avant/après de la longueur des pages ; l'ordre des blocs du plateau n'est pas traité, alors que le placement est au cœur du sujet.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Mesurer à 375×667 avant et après ; une règle « tuiles d'action et croix visibles sans défilement à l'arrivée » ?</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q24) pour la règle d'arrivée ; les mesures avant/après ne sont pas reprises.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M5. Largeurs et supports non couverts : 360 et 320 px, paysage, tablette</h3>
+              <span class="finding-location">EXPERIENCE › Responsive &amp; Platform</span>
+            </header>
+            <div class="finding-note">À 360 px, « Personnage » se coupera dans les onglets. Tournés, la plupart des téléphones passent en mode ordinateur sur écran tactile ; à 768 px exactement, des blocs mobiles écrits en <code>max-width: 768px</code> s'appliquent sans le mode mobile du JS.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ajouter 360 et 320 px à la vérification ; paysage et tablette dans le périmètre ?</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q32 ; 360 px aussi dans Q14).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M6. Rangée du kramail mobile : ne tient pas en une ligne</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Onglets de section ; H13.1</span>
+            </header>
+            <div class="finding-note">Trois onglets libellés et trois boutons de 44 px dépassent les 343 px utiles ; « même composant que les sections du jeu » ne dit pas la disposition.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Préciser la disposition et la vérifier à 360 px.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q31).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M7. Fil d'Ariane : la référence a les défauts que la règle veut éviter</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Fil d'Ariane ; H12.3</span>
+            </header>
+            <div class="finding-note">Le fil « des sujets » réel a tous ses liens en texte atténué, 13 px, sans hauteur minimale, probablement à 4,43:1 sur le fond de page ; celui du sous-forum a un lien de 44 px en couleur du texte. Reprendre le premier tel quel retire au sous-forum sa cible et le rend moins lisible.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Décrire le format visé : liens en couleur du texte, cibles de 44 px, seul l'élément courant atténué.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q28).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M8. Index du forum : la flèche, le parcours 2 et la redite du titre</h3>
+              <span class="finding-location">EXPERIENCE › Parcours 2, Ligne de forum ; maquette h12</span>
+            </header>
+            <div class="finding-note">La flèche mène au dernier message du forum, la ligne de sujet au premier non lu : deux raccourcis voisins, deux sens. Le parcours 2 supposait que le dernier message est dans le sujet d'Arnaud. En mobile, « Jeu (RP) » se répète en titre de page et en en-tête de carte. Description et modérateurs quittent l'index.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ajouter au parcours 2 le cas « dernier message dans un autre sujet » ; carte sans en-tête quand il répète le titre ? Où lire description et modérateurs ?</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q27) ; la variante « dernier message dans un autre sujet » est ajoutée au parcours 2 (corrigé).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M9. Cartes de personnages : une règle par largeur de fenêtre</h3>
+              <span class="finding-location">DESIGN › Carte de personnage ; Q7</span>
+            </header>
+            <div class="finding-note">La plage a été mesurée avec des noms en 11 px ; en 15 px, les noms longs déborderont aussi au-delà de 1500 px, et le zoom du navigateur déplace la plage : la troncature reviendra hors de la plage.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Exprimer la règle par la place disponible ; remesurer en 15 px à 1024, 1280, 1366, 1440 et 1920 px.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : règle sur la largeur de la carte ; remesure aux cinq largeurs inscrite dans Q7.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M10. Cartes de section en retrait : le texte ne commence plus à 16 px</h3>
+              <span class="finding-location">DESIGN › Layout &amp; Spacing ; Q10</span>
+            </header>
+            <div class="finding-note">Retrait de 8 px plus marge intérieure de 16 px : le texte commence à 24 px du bord, le titre de page à 16 px, contre la promesse de H10.1 ; jeu et forum perdent 16 px de largeur de lecture.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Trancher Q10 avant l'implémentation.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q10), avec les options relevées.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M11. Texte atténué en clair : une contrainte de placement invérifiable</h3>
+              <span class="finding-location">DESIGN › Contrastes de référence</span>
+            </header>
+            <div class="finding-note">4,43:1 sur le fond de page, 4,17 à 4,59:1 sur les en-têtes teintés ; déjà posé hors des surfaces blanches (fil d'Ariane, cellule de date teintée des notifications).</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Un texte atténué un peu plus foncé plutôt qu'une règle de placement.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q26).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M12. Caractéristiques, compétences, malus : absents des documents</h3>
+              <span class="finding-location">H5.5, H8.2</span>
+            </header>
+            <div class="finding-note">Consultés avant un ordre, puisque le potentiel en dépend ; les caractéristiques sont des boutons natifs <code>btn-success</code> que H5.5 ferait passer en style standard ; H8.2 ramène le malus « -0 » de 15 à 12 px.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Classer chaque élément (état, catégorie, action) avant d'appliquer H5.5 et H8.2.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M13. Notifications sur mobile : retour au plateau et critère du popup</h3>
+              <span class="finding-location">EXPERIENCE › Parcours 1 ; Q6</span>
+            </header>
+            <div class="finding-note">Si le téléphone ouvre <code>/report</code> dans un onglet séparé, « il revient au plateau » veut dire fermer cet onglet : l'étape n'est pas décrite. Un critère « fenêtre ouverte par le site » vaudrait aussi sur téléphone et y appliquerait les règles ordinateur.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Relever sur un téléphone comment s'ouvre <code>/report</code> ; pour Q6, retenir un critère qui exclut le téléphone.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q17) pour le téléphone ; le critère du popup est résolu par R5 (900×800 sur ordinateur, mobile inchangé).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">moyen</span>
+              <h3 class="finding-title">M14. Trois barres d'outils pour un même geste d'écriture</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › Éditeur de rédaction</span>
+            </header>
+            <div class="finding-note">Forum mobile : « 5 outils + Plus » ; kramail : 18 boutons natifs en 4 groupes ; ordre Parler : sa propre barre. Le « rendu actuel » fige une incohérence que la mission demande de corriger.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Aligner les barres du kramail et de Parler sur celle du forum ?</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q31).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L1. Anneau de focus rouge sur les champs</h3>
+              <span class="finding-location">DESIGN › Anneau de focus</span>
+            </header>
+            <div class="finding-note">En Kraland et en Ruthvénie, l'accent est rouge : un anneau rouge autour de la réponse RP se lit comme une erreur.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Vérifier en Kraland clair sur le champ de réponse.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q21).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L2. Bouton standard peu reconnaissable</h3>
+              <span class="finding-location">DESIGN › Bouton standard</span>
+            </header>
+            <div class="finding-note">Bordure à environ 1,4:1 sur blanc en clair, fond de la carte en sombre : « Annuler », « ? Aide », « Voir l'historique » risquent de se lire comme du texte coloré.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Vérifier sur la maquette h05 ; sinon, bordure plus marquée.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q20).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L3. Jauges sombres voisines des états</h3>
+              <span class="finding-location">DESIGN › Jauges ; Q3</span>
+            </header>
+            <div class="finding-note">En sombre, PP <code>#ffa726</code> et alerte <code>#ffb74d</code>, PV <code>#66bb6a</code> et succès <code>#81c784</code> sont presque identiques.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Écarter les teintes au moment de valider Q3.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q3).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L4. « Nouveau message » reste une icône seule</h3>
+              <span class="finding-location">H13.1 ; Parcours 3</span>
+            </header>
+            <div class="finding-note">H13.1 libelle les dossiers pour ne plus deviner les icônes, mais laisse en icône seule l'action d'écriture, la principale du kramail.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Question pour Arnaud.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q31).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L5. Éléments <code>.btn-primary</code> non cliquables peints comme « Valider »</h3>
+              <span class="finding-location">H5.1</span>
+            </header>
+            <div class="finding-note">Le site pose <code>.btn-primary</code> sur des étiquettes d'Événements ; en couleur de nation, elles ressembleront à l'action principale.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Repérer les <code>.btn-primary</code> sans lien ni action et leur donner le style d'étiquette.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q30).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L6. « Succès : votes » est ambigu</h3>
+              <span class="finding-location">DESIGN › Palette d'états</span>
+            </header>
+            <div class="finding-note">Le score d'un message est une information ; les boutons de vote sont des actions : les peindre en succès contredirait H5.5.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Score en succès, boutons de vote en bouton compact standard.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q9).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L7. Barre du bas des sujets oubliée par H12.4</h3>
+              <span class="finding-location">DESIGN et EXPERIENCE › En-tête de sujet</span>
+            </header>
+            <div class="finding-note">« Répondre / Nouveau sujet » existe aussi en bas du sujet ; H12.4 ne cite que l'en-tête.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Étendre les deux barres à Communauté, Débats et Staff.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q28).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L8. Pagination à 44 px hors du forum</h3>
+              <span class="finding-location">H9.1</span>
+            </header>
+            <div class="finding-note">Dix numéros de 44 px ne tiennent pas sur 343 px ; le sous-forum a déjà une pagination condensée « ‹ 1 2 3 … 15 › ».</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Reprendre ce motif existant ailleurs.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q18).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">faible</span>
+              <h3 class="finding-title">L9. Bâtiments, employés, commerce : pages d'action sans parcours</h3>
+              <span class="finding-location">EXPERIENCE › Boucle de jeu ; Q19</span>
+            </header>
+            <div class="finding-note">Gérer un bâtiment, ses stocks ou ses employés, et acheter au commerce, passe par des tableaux et des champs que rien ne décrit sur mobile.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Ces pages comptent-elles dans la boucle ? Si oui, un relevé mobile avant l'implémentation.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q19).</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="reviewer-section">
+      <details>
+        <summary>
+          <h2>Rapprochement avec la mission</h2>
+          <span class="reviewer-source">reconcile-etude-ux.md</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Étape « Inputs reconciled » de Finalize : la mission <code>etude-ux.md</code> comparée à DESIGN.md et EXPERIENCE.md, le memlog faisant foi (lu jusqu'aux maquettes de référence demandées).</p>
+            <p>Bilan : sur les 11 exigences, 9 couvertes, 2 partielles, aucune absente ; au détail (21 points), 18 couverts, 3 partiels (déplacement ; ratios et proportions ; cohérence d'une page à l'autre). Aucune idée de fond abandonnée. Un seul composant sans décision du memlog : la Croix directionnelle et pièces, qui existe déjà. Cette relecture ne grade pas ses écarts : ils sont listés avec son propre statut, hors des comptes par gravité. Après la passe de correction : 4 corrigés, 6 ouverts, 4 inchangés, 1 sans suite attendue.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">à reporter</span>
+              <h3 class="finding-title">Q1 et Q2 validées, encore présentées comme <code>[ASSUMPTION]</code></h3>
+              <span class="finding-location">Bilan ; DESIGN › Colors ; EXPERIENCE › Questions ouvertes</span>
+            </header>
+            <div class="finding-note">Q1 et Q2, bloquantes dans les documents, étaient validées dans le memlog ; les spines les présentaient encore comme hypothèses.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Reporter les décisions.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : Q1 et Q2 appliquées dans DESIGN.md (« Texte posé sur la couleur de nation », « Texte en couleur de nation, mode clair ») ; EXPERIENCE.md les dit validées.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">partielle</span>
+              <h3 class="finding-title">Déplacement</h3>
+              <span class="finding-location">Exigence 2.3</span>
+            </header>
+            <div class="finding-note">Aucune décision propre au memlog, seulement le principe et le parcours 4 ; règles reprises de « CX2 » et d'AGENTS.md ; ordinateur au « rendu actuel », sans relevé cité.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-inchange">inchangé</span> la croix reste au rendu actuel (CX2) en mobile, l'ordinateur au rendu actuel.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">partielle</span>
+              <h3 class="finding-title">Ratios et proportions</h3>
+              <span class="finding-location">Exigence 3.3</span>
+            </header>
+            <div class="finding-note">Nommés une seule fois et traités par des valeurs ; DESIGN.md n'énonce aucune règle de proportion ; interlignage non tranché ; largeurs de colonnes et grilles de cartes sur ordinateur non traitées, sauf la carte de personnage.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q18) pour l'interlignage ; toujours aucune règle de proportion.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">partielle</span>
+              <h3 class="finding-title">Cohérence d'une page à l'autre</h3>
+              <span class="finding-location">Exigence 3.4</span>
+            </header>
+            <div class="finding-note">Q18 garde des écarts relevés sans décision : page courante de la pagination (5 rendus), grand titre présent ou absent selon la page, taille du titre de page mobile, interlignage (19 valeurs).</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q18), complétée de la pagination hors forum et du défilement horizontal de la carte.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">écart</span>
+              <h3 class="finding-title">« Focus visible » ajouté au périmètre d'accessibilité</h3>
+              <span class="finding-location">Exigence 6 ; EXPERIENCE › Accessibility Floor</span>
+            </header>
+            <div class="finding-note">Absent de la liste de la mission ; H5.7 est validée, sa place dans cette section reste à confirmer.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-inchange">inchangé</span> toujours dans le périmètre de l'« Accessibility Floor », sans confirmation au memlog.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">absente</span>
+              <h3 class="finding-title">Le bénéfice joueur de chaque hypothèse</h3>
+              <span class="finding-location">Idées qualitatives (§ 2)</span>
+            </header>
+            <div class="finding-note">Il reste dans le memlog ; les documents ne gardent que la règle et l'identifiant H : sans le memlog, on ne lit plus ce que le joueur y gagne.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-inchange">inchangé</span> toujours dans le seul memlog.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">absente</span>
+              <h3 class="finding-title">La comparaison avec le rendu natif</h3>
+              <span class="finding-location">Idées qualitatives (§ 2)</span>
+            </header>
+            <div class="finding-note">Outil de méthode (bouton de bascule), sans effet sur l'apparence ni sur le comportement.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-sans-suite">sans suite</span> aucune correction attendue.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">en partie</span>
+              <h3 class="finding-title">La famille « tableaux » réduite aux en-têtes</h3>
+              <span class="finding-location">Idées qualitatives (§ 2)</span>
+            </header>
+            <div class="finding-note">Les marges internes relevées (8/8 ou 10/18 px) ne sont pas citées ; seule la grille H11.2 les couvre.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q11) : les cellules de tableau figurent parmi les composants candidats.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">sans décision</span>
+              <h3 class="finding-title">Croix directionnelle et pièces</h3>
+              <span class="finding-location">Composants (§ 3) ; DESIGN › Components</span>
+            </header>
+            <div class="finding-note">Composant existant, décrit au rendu actuel, donc pas un nouveau composant. Risque faible, mais ses valeurs (touches ≥ 48 px, encre ≥ 4,5:1, « ici », pointillé) ne sont pas validées dans cette étude.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-inchange">inchangé</span> rendu actuel (CX2) ; seule la pastille « ici » passe en 12 px (H8.2).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">sans décision</span>
+              <h3 class="finding-title">Pastilles coût, durée, potentiel au style de l'Étiquette de catégorie</h3>
+              <span class="finding-location">Composants (§ 3) ; DESIGN › Pastilles</span>
+            </header>
+            <div class="finding-note">H8.1 ne prévoit que deux familles et H2.5 renvoie leurs couleurs à la palette ; Q1 suppose un fond de nation, le reste du style n'est pas tranché.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q5).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">sans décision</span>
+              <h3 class="finding-title">Bouton standard pour « ••• », la flèche de l'index et « Nouveau sujet »</h3>
+              <span class="finding-location">Composants (§ 3)</span>
+            </header>
+            <div class="finding-note">Choix de rédaction dans des composants validés.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : marqué <code>[ASSUMPTION]</code> dans les trois lignes et listé dans les « autres hypothèses de rédaction ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">sans décision</span>
+              <h3 class="finding-title">Fond de l'Alerte</h3>
+              <span class="finding-location">Composants (§ 3) ; DESIGN › Alerte</span>
+            </header>
+            <div class="finding-note">H2.3 fixe sa place, H5.5 sa palette ; aucune décision ne fixe son aspect.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q3).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">contradiction</span>
+              <h3 class="finding-title">« Aucun fil d'Ariane ajouté » contre l'extension H12.4</h3>
+              <span class="finding-location">Composants (§ 3) ; EXPERIENCE › Fil d'Ariane</span>
+            </header>
+            <div class="finding-note">H12.4 ajoute un fil d'Ariane sur des pages qui n'en ont pas ; la phrase doit réserver l'exception.</div>
+            <div class="finding-fix"><strong>Correction proposée :</strong> Réserver l'exception H12.4.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : « sauf par l'extension de l'En-tête de sujet aux sujets de Communauté, Débats et Staff (H12.4) ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">écart</span>
+              <h3 class="finding-title">9 variantes annoncées, 16 décrites</h3>
+              <span class="finding-location">Autres écarts (§ 4)</span>
+            </header>
+            <div class="finding-note">8 nations en clair et en sombre, plus <code>high-contrast</code>, connue du JS seul.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-ouvert">ouvert</span> (Q16).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-neutral">absente</span>
+              <h3 class="finding-title">Page Citoyens</h3>
+              <span class="finding-location">Autres écarts (§ 4) ; EXPERIENCE › Pages secondaires</span>
+            </header>
+            <div class="finding-note">Inventoriée, mais absente du tableau des pages secondaires.</div>
+            <div class="finding-resolution"><strong>Résolution :</strong> <span class="res res-corrige">corrigé</span> dans la passe de correction : ligne « Citoyens » (règles communes seulement).</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <div class="mechanical">
+      <h3>Notes mécaniques</h3>
+      <ul>
+        <li>Références <code>{…}</code> : toutes résolues dans les deux spines corrigées (contrôle par script de cette synthèse) ; les jokers d'EXPERIENCE (introduction) sont volontaires.</li>
+        <li>Composants : 17 clés anglaises dans le frontmatter, toutes citées par leur ligne (<code>{components.button-compact}</code> compris, jamais cité dans la version relue) ; 30 lignes, mêmes noms, même ordre dans les deux spines.</li>
+        <li>Questions : 28 questions ouvertes (Q3 à Q33, sans Q6, Q13 ni Q15, résolues par R5, R4 et R3) ; chaque question citée a sa ligne ; toutes sont journalisées au memlog (événement « Passe de correction appliquée »). Les « autres hypothèses de rédaction » ne sont pas journalisées.</li>
+        <li>Corrigés depuis la grille : <code>#9966cc</code> et hex en minuscules partout ; « 22467 MØ » sous une seule graphie ; double sens de <code>primary-strong</code> commenté ; classe <code>kr-theme-variant-kraland</code> décrite exactement ; « en-tête de section » de h04 signalé à la <strong>Carte de section</strong>.</li>
+        <li>Reste : <code>etude-ux.md</code> et <code>_bmad-output/initiative-harmonisation-ux/</code> ne sont pas suivis par git ; la source <code>../../../etude-ux.md</code> manquera sur un autre poste tant qu'ils ne sont pas commités.</li>
+        <li>Nouveau : la phrase « Les maquettes de <code>.working/</code> sont liées aux sections qu'elles illustrent » (DESIGN, « Brand &amp; Style » ; EXPERIENCE, introduction) précède la promotion : 8 maquettes sont désormais dans <code>mockups/</code>.</li>
+        <li>Aucun diagramme Mermaid.</li>
+        <li>Emplacements : ce rapport cite des sections ; les numéros de ligne des relectures visent la version relue, antérieure à la passe de correction. Les renvois <code>l.nnn</code> (CSS) et <code>Lnnn</code> (template) restent ceux du 2026-10-19.</li>
+      </ul>
+    </div>
+
+    <footer class="report-footer">
+      <div class="meta">
+        <span>DESIGN.md : _bmad-output/initiative-harmonisation-ux/ux-harmonisation/DESIGN.md</span>
+        <span>EXPERIENCE.md : _bmad-output/initiative-harmonisation-ux/ux-harmonisation/EXPERIENCE.md</span>
+        <span>Grille : _bmad-output/initiative-harmonisation-ux/ux-harmonisation/review-rubric.md</span>
+        <span>Relectures : review-faisabilite.md, review-joueur.md, reconcile-etude-ux.md</span>
+        <span>Généré : 2026-10-19T20:31:18+02:00</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

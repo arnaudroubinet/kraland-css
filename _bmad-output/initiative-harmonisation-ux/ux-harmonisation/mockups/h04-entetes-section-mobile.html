@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>En-têtes de section mobile</title>
+<style>
+/* Maquette d'hypothèse : style unique des en-têtes de section sur mobile (jeu, forum, kramail).
+   Gouverne : DESIGN.md Components (en-tête de section), EXPERIENCE.md Component Patterns / Responsive.
+   « Aujourd'hui » reprend les valeurs mesurées le 2026-10-19 (empire-brun-dark, 375 px). Textes d'exemple neutres. */
+:root {
+  --bg: #12100d; --surface: #1e1a15; --line: rgba(255,255,255,.08);
+  --text: #f5f1ed; --muted: #b8a997; --highlight: #d4a574; --primary: #7a5240;
+  --page: #f3f0ec; --page-text: #2b2620; --note: #6b6258;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: var(--page); color: var(--page-text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 28px 0 4px; }
+.intro, .leg { color: var(--note); max-width: 900px; margin: 0 0 12px; font-size: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 375px; min-width: 0; }
+.col h3 { font-size: 14px; margin: 0 0 6px; }
+.phone { width: 375px; max-width: 100%; background: var(--bg); color: var(--text); border: 1px solid #000; border-radius: 14px; overflow: hidden; padding: 12px 0; font-family: "Helvetica Neue", Arial, sans-serif; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 6px; }
+.ico { display: inline-flex; width: 32px; height: 32px; border-radius: 4px; background: linear-gradient(135deg, #8a6a45, #4d3a26); flex: none; }
+.line { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 56px; background: var(--surface); }
+.line b { font-size: 15px; font-weight: 600; flex: 1; }
+.line small { font-size: 13px; color: var(--muted); }
+.chev { margin-left: auto; color: var(--text); }
+
+/* Aujourd'hui */
+.jeu-head { height: 54px; margin: 0 0 12px; padding: 16px; background: var(--surface); border-radius: 8px; display: flex; align-items: center; }
+.jeu-head span.t { font-size: 20px; font-weight: 700; }
+.forum-head { height: 45px; padding: 0 16px; display: flex; align-items: center; }
+.forum-head span.t { font-size: 16px; font-weight: 600; }
+.kra-head { height: 50px; margin: 0 0 12px; padding: 16px; background: var(--surface); border-radius: 8px; display: flex; align-items: center; }
+.kra-head span.t { font-size: 16px; font-weight: 600; color: var(--primary); }
+
+/* Option A : carte unique */
+.a-card { background: var(--surface); border-radius: 8px; overflow: hidden; margin: 0 8px; }
+.a-head { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.a-head span.t { font-size: 17px; font-weight: 700; }
+
+/* Option B : bande plate du forum */
+.b-head { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.b-head span.t { font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>En-têtes de section sur mobile</h1>
+<p class="intro">Même section vue dans le jeu (Matériel), le forum (sous-forum) et le kramail (réception), en 375 px, variante Empire Brun sombre. Étiquettes orange : taille du titre.</p>
+
+<h2>Aujourd'hui : trois styles</h2>
+<div class="row">
+  <div class="col"><h3>Jeu</h3><div class="phone">
+    <div class="jeu-head"><span class="t">▣ Outils<span class="size">20</span></span><span class="chev">⌃</span></div>
+    <div class="line"><span class="ico"></span><b>Lanterne</b><small>charge 1</small></div>
+  </div><p class="leg">Carte arrondie de 54 px, détachée du contenu par 12 px.</p></div>
+  <div class="col"><h3>Forum</h3><div class="phone">
+    <div class="forum-head"><span class="t">💬 Sujets permanents<span class="size">16</span></span><span class="chev">⌃</span></div>
+    <div class="line"><b>Règles du forum</b><small>10/05</small></div>
+  </div><p class="leg">Bande transparente de 45 px, attachée au contenu.</p></div>
+  <div class="col"><h3>Kramail</h3><div class="phone">
+    <div class="kra-head"><span class="t">Boîte de réception<span class="size">16</span></span><span class="chev">⌃</span></div>
+    <div class="line"><b>Sujet d'un message</b><small>08/10</small></div>
+  </div><p class="leg">Carte arrondie de 50 px, détachée ; titre en couleur primaire, contraste 2,56:1.</p></div>
+</div>
+
+<h2>Option A : carte unique</h2>
+<p class="leg">En-tête de 48 px et contenu dans la même carte arrondie ; titre 17 px gras, couleur du texte, icône et chevron.</p>
+<div class="row">
+  <div class="col"><div class="phone"><div class="a-card"><div class="a-head"><span class="t">▣ Outils<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><span class="ico"></span><b>Lanterne</b><small>charge 1</small></div></div></div></div>
+  <div class="col"><div class="phone"><div class="a-card"><div class="a-head"><span class="t">💬 Sujets permanents<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><b>Règles du forum</b><small>10/05</small></div></div></div></div>
+  <div class="col"><div class="phone"><div class="a-card"><div class="a-head"><span class="t">✉ Boîte de réception<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><b>Sujet d'un message</b><small>08/10</small></div></div></div></div>
+</div>
+
+<h2>Option B : bande plate du forum, généralisée</h2>
+<p class="leg">En-tête transparent de 48 px, pleine largeur, filet sous le titre, contenu attaché ; titre 17 px gras, couleur du texte, icône et chevron.</p>
+<div class="row">
+  <div class="col"><div class="phone"><div class="b-head"><span class="t">▣ Outils<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><span class="ico"></span><b>Lanterne</b><small>charge 1</small></div></div></div>
+  <div class="col"><div class="phone"><div class="b-head"><span class="t">💬 Sujets permanents<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><b>Règles du forum</b><small>10/05</small></div></div></div>
+  <div class="col"><div class="phone"><div class="b-head"><span class="t">✉ Boîte de réception<span class="size">17</span></span><span class="chev">⌃</span></div><div class="line"><b>Sujet d'un message</b><small>08/10</small></div></div></div>
+</div>
+</body>
+</html>

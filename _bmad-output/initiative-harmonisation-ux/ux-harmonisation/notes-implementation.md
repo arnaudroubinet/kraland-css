@@ -1,0 +1,33 @@
+# Kraland — surcharge harmonisée : notes pour l'implémentation
+
+Ces notes accompagnent [DESIGN.md](DESIGN.md) et [EXPERIENCE.md](EXPERIENCE.md). Elles rassemblent les faits relevés par la relecture de faisabilité ([review-faisabilite.md](review-faisabilite.md)) et par les vérifications du memlog, ainsi que les préalables à régler avant d'écrire le code. Ce ne sont pas des solutions : le choix des moyens revient à l'implémentation. Renvois de code : « Lnnn » renvoie à `kraland-userscript-template.js`, « l.nnn » à `kraland-theme.css`, dans leur état du 19 octobre 2026.
+
+## Préalables
+
+1. **Cascade.** Avant d'écrire les règles transverses (typographie, rayons, grille, en-têtes), décider d'une stratégie de cascade (ajouter une garde de page aux sections décrites ci-dessous, les retirer ou les battre) et de la forme d'une règle commune aux deux supports (AGENTS.md interdit le global ; le code emploie des paires dupliquées ou `(max-width: 767px), (min-width: 768px)`, l.13487).
+   - Constat : 3 367 déclarations `!important` sur 7 072 (48 %). Des sections sans garde de page, entièrement en `!important`, s'appliquent à toutes les pages mobiles : PHASE 3, 4 et 5 (l.3810-4415), 1re version du forum RP (l.7466-7747), nouveau sujet (l.9406-9688). Une règle gardée par `:where(html.x)`, de spécificité nulle, perd contre elles.
+   - Exemple de dépendance : ajouter une garde de page à la 1re version du forum règle H1.1, mais retire aussi la mise en cartes des tableaux `.panel-default` hors forum (Événements, Membres, Contacts, Statistiques).
+2. **Vrai téléphone (Q17).** Avant d'implémenter les règles mobiles de la modale d'ordre et d'« Envoyer », faire les vérifications de Q17 (EXPERIENCE.md, « Questions ouvertes »). Fait de code : quatre fonctions mobiles appelées tôt (L10936-10964) liraient une largeur de 980 px au démarrage (commentaire G-01, L660-663 ; par exemple `initMobileFeatures`, L9945-9946).
+3. **Listes à établir avant le CSS.**
+   - les boutons visés par H6.1 à H6.3 et leurs exclusions (groupes de boutons, barre BBCode, croix, flèches de l'index, styles en ligne du JS) ;
+   - les panneaux et tableaux de H5.3 ;
+   - la famille de chaque étiquette ou pastille (`.label` et `.badge` servent aux deux, H8.1) ;
+   - les composants Bootstrap visés par H11.2 (Q11) ;
+   - le rôle typographique des éléments des cinq pages de jeu (H3.1) ;
+   - les propriétés non chromatiques des règles sombres (par exemple `hr` masqué en sombre seulement, l.3115-3117), à reprendre en clair (H5.3).
+
+## Faits relevés
+
+- **Classes de page.** Le JS ne pose de classe que pour l'accueil, le forum, le kramail et les événements (sur `body`), les membres et `/report` (sur `html`). Il n'en pose aucune pour `/jouer/*`, la rédaction du forum, l'index du forum, Contacts, Règles, Interface, Aide, Statistiques ni la Carte, que visent H1.2, H3.1, H5.5, H9.1, H10.1 et la refonte de l'index. Le mode clair n'a pas de classe propre.
+- **Modale d'ordre : critère des alertes.** Relevé du memlog : l'aide est `div.alert.alert-dismissible.alert-order` ; les blocages sont `div.alert.alert-danger.alert-sm` (« Ordre Réservé à une Vocation ») ; les avertissements sont `div.alert.alert-warning.alert-sm` (« Attention ! … », placé avant l'aide dans Dormir). Titre : `h3` (vide pour Dormir), puis `h4` « [?]Ordre » ; onglet actif : `li.active`. Seule `.alert-order` se replie (R2). Le JS actuel replie la première `.alert` venue (L9153) : il peut cacher l'avertissement de Dormir.
+- **Modale d'ordre : module à revoir.** Les fonctions qui marquent la structure, replient l'aide et créent les pastilles ne tournent que sur mobile (L9025-9028, L9149-9151, L9217-9219), alors que H2.3, H2.5 et R2 visent les deux supports. Elles ne passent qu'une fois, 150 ms après l'insertion de la modale (L8756-8759 ; drapeau `structureTransformed`, L9028). L'observateur de contenu ne réapplique que la grille des onglets et la barre d'outils (L9417-9426) : un contenu chargé en Ajax plus tard, ou changé quand le joueur choisit un autre ordre, n'est pas traité.
+- **Ancres sur mobile.** Si `innerWidth < 768` à l'évaluation du script, le JS retire toute ancre autre que `#top` et remonte en haut de page (L2783-2808). Il retire donc `#msg…` : la flèche « dernier message » de l'index (refonte de l'index) et le lien « premier non lu » du sous-forum mènent en haut du sujet. Sur un vrai téléphone, la largeur vaut 980 px à ce moment et ce retrait d'ancres ne se déclenche pas : l'émulation montre l'inverse du téléphone.
+- **Marges mobiles.** `applyMobileCriticalStyles` (L604-636) met à zéro, en style en ligne `!important`, la marge intérieure latérale de `[class*="col-"]`, `.container` et `.container-fluid`, les marges latérales de `.row`, ainsi que les marges extérieure et intérieure de `.dashboard` (largeur 100 %). Aucune feuille de style ne bat ce style en ligne : la marge latérale de 16 px de H10.1 doit en tenir compte.
+- **Cartes de personnages.** H7.1 s'exprime par la largeur de la carte (mise en page intrinsèque ou requête de conteneur), pas par une requête média d'ordinateur en `max-width`, que la convention interdit. La plage d'environ 1100 à 1500 px reste un constat.
+- **Nom du personnage (R1).** Absent du HTML de `/jouer/perso` (Personnage) et `/jouer/pnj` (Employés) (0 occurrence) ; présent sur le plateau, le matériel et les bâtiments (`span.list-group-item.active`). Un compte peut avoir plusieurs personnages : le nom mémorisé peut être celui d'un autre (Q23).
+- **Tests et fixtures.** Des suites figent des valeurs que les décisions changent : pleine largeur du sous-forum (`tests/e2e/sous-forum.mjs`, à mettre à jour pour R6) ; filet du `/report` posé sur la cellule de date (test `report-non-lu.mjs` ; règle CSS en l.654-658), qui ne couvrira plus que la ligne de date une fois la date au-dessus du texte (H14.2) ; planchers de 11 px du plateau (`plateau-qualite-usage.mjs`). Aucune fixture n'existe pour la modale d'ordre native, l'index du forum, Personnage, Matériel, Bâtiments, Employés ni les pages secondaires.
+
+## Périmètre relevé par la relecture de faisabilité
+
+- **Primaire en texte (H5.6).** Tous les liens (`a:link`, l.1979-1983) et 47 déclarations `color: var(--kr-primary)` ou `var(--kr-primary-dark)`, dont les liens des alertes en sombre (l.2757-2760).
+- **Texte posé aujourd'hui sur la primaire (Q1).** Titre des listes latérales `.list-group-item.active` (l.740-747) ; bandeau `.bg-primary` du `/report` (l.1974-1977) ; page active de la pagination (l.1951-1955) ; onglets et menus actifs en sombre (l.2689-2745, 2,81:1 en Empire Brun sombre) ; dossiers du kramail (l.8733-8770) et onglets de la modale (l.985, l.6602) ; bouton « Jouer » de l'accueil (l.11831, l.12088).

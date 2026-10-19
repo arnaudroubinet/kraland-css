@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartes de personnages</title>
+<style>
+/* Maquette d'hypothèse H7 : proportions des cartes de personnages du plateau (ordinateur et mobile).
+   Gouverne : DESIGN.md Components (carte de personnage) ; EXPERIENCE.md Component Patterns (plateau), Responsive.
+   « Avant » reprend les mesures du 2026-10-19 (empire-brun-dark) : carte 164×125, avatar 70, nom 11 px sur 39 px, icônes 24 px
+   (mobile : carte 178 px, avatar 65, nom 11 px, icônes 26 px). Noms de personnages du jeu, avatars remplacés par des disques. */
+:root { --bg: #12100d; --surface: #1e1a15; --surface-2: #2a251f; --line: rgba(255,255,255,.08); --text: #f5f1ed; --muted: #b8a997; --highlight: #d4a574; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #f3f0ec; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 24px 0 8px; }
+.leg, .intro { color: #6b6258; font-size: 14px; max-width: 900px; margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col { flex: 0 1 auto; min-width: 0; }
+.col h3 { font-size: 14px; margin: 0 0 6px; }
+.zone { background: var(--bg); color: var(--text); border-radius: 10px; padding: 12px; display: grid; gap: 12px; font-family: "Helvetica Neue", Arial, sans-serif; }
+.desk { width: 360px; max-width: 100%; grid-template-columns: repeat(2, 164px); }
+.mob { width: 375px; max-width: 100%; grid-template-columns: repeat(2, 1fr); padding: 12px 8px; }
+.size { font: 600 10px/1 ui-monospace, Menlo, monospace; color: #ffb44d; margin-left: 4px; }
+.av { border-radius: 50%; flex: none; background: radial-gradient(circle at 40% 35%, #b98fd6, #3b2a52); border: 3px solid #4caf50; }
+.ib { display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--surface-2); color: var(--text); border: 1px solid var(--line); font-size: 12px; }
+
+/* Avant */
+.b-card { background: var(--surface); border-radius: 4px; height: 125px; padding: 10px; position: relative; display: flex; gap: 6px; }
+.b-card .av { width: 70px; height: 70px; }
+.b-name { font-size: 11px; font-weight: 600; width: 39px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 26px; }
+.b-actions { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; }
+.b-actions .ib { width: 24px; height: 24px; }
+.mob .b-card { height: 184px; flex-direction: column; align-items: center; }
+.mob .b-card .av { width: 65px; height: 65px; }
+.mob .b-name { width: auto; margin-top: 4px; }
+.mob .b-actions .ib { width: 26px; height: 26px; }
+
+/* Après */
+.a-card { background: var(--surface); border-radius: 8px; padding: 12px 8px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.a-card .av { width: 56px; height: 56px; }
+.a-name { font-size: 14px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.mob .a-name { font-size: 15px; }
+.a-sub { font-size: 12px; color: var(--muted); }
+.mob .a-sub { font-size: 13px; }
+.a-actions { display: flex; gap: 8px; margin-top: auto; }
+.a-actions .ib { width: 32px; height: 32px; }
+.mob .a-actions .ib { width: 44px; height: 44px; font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>Cartes de personnages du plateau</h1>
+<p class="intro">Les personnages présents dans la pièce, deux cartes par ligne. Sur ordinateur, 28 noms sur 49 sont tronqués aujourd'hui. Étiquettes orange : taille du texte.</p>
+
+<h2>Ordinateur (colonne centrale de 360 px)</h2>
+<div class="row">
+  <div class="col"><h3>Avant (mesuré)</h3>
+    <div class="zone desk">
+      <div class="b-card"><span class="av"></span><span class="b-name">Syllabus</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="b-card"><span class="av"></span><span class="b-name">Elias Kurano</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="b-card"><span class="av"></span><span class="b-name">Ahyeon</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="b-card"><span class="av"></span><span class="b-name">Rejeton de Lilith</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+    </div>
+    <p class="leg">Avatar de 70 px, nom en 11 px dans 39 px de large : « Sylla… », « Elias… ». Icônes de 24 px.</p></div>
+  <div class="col"><h3>Après (proposition)</h3>
+    <div class="zone desk">
+      <div class="a-card"><span class="av"></span><span class="a-name">Syllabus<span class="size">14</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="a-card"><span class="av"></span><span class="a-name">Elias Kurano<span class="size">14</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="a-card"><span class="av"></span><span class="a-name">Ahyeon<span class="size">14</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="a-card"><span class="av"></span><span class="a-name">Rejeton de Lilith<span class="size">14</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+    </div>
+    <p class="leg">Avatar de 56 px au-dessus, nom en 14 px sur toute la largeur de la carte (deux lignes au plus, sans troncature), icônes de 32 px.</p></div>
+</div>
+
+<h2>Mobile (375 px)</h2>
+<div class="row">
+  <div class="col"><h3>Avant (mesuré)</h3>
+    <div class="zone mob">
+      <div class="b-card"><span class="av"></span><span class="b-name">Syllabus</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="b-card"><span class="av"></span><span class="b-name">Elias Kurano</span><span class="b-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+    </div>
+    <p class="leg">Nom en 11 px, icônes de 26 px (sous les 44 px tactiles).</p></div>
+  <div class="col"><h3>Après (proposition)</h3>
+    <div class="zone mob">
+      <div class="a-card"><span class="av"></span><span class="a-name">Syllabus<span class="size">15</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+      <div class="a-card"><span class="av"></span><span class="a-name">Elias Kurano<span class="size">15</span></span><span class="a-actions"><span class="ib">👤</span><span class="ib">✉</span></span></div>
+    </div>
+    <p class="leg">Même carte qu'à l'ordinateur ; nom en 15 px (H3.1), icônes de 44 px.</p></div>
+</div>
+</body>
+</html>

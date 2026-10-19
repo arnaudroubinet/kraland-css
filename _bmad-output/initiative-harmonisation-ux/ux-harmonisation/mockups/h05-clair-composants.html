@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Composants en mode clair</title>
+<style>
+/* Maquette d'hypothèse : thémer en clair les mêmes composants qu'en sombre (en-tête de panneau, en-tête de tableau, bouton standard).
+   Gouverne : DESIGN.md Colors (surfaces teintées par nation) / Components ; EXPERIENCE.md sans effet.
+   « Clair aujourd'hui » et « Sombre » reprennent les valeurs mesurées le 2026-10-19 ; les teintes claires proposées
+   sont la couleur de la nation à 8 % (fonds) et 18 % (bordures) sur blanc. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px 48px; background: #e9e6e2; color: #2b2620; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.intro, .leg { color: #6b6258; max-width: 980px; margin: 0 0 16px; font-size: 14px; }
+.grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.col { flex: 0 1 300px; min-width: 0; }
+.col h2 { font-size: 14px; margin: 0 0 6px; }
+.frame { padding: 16px; border-radius: 10px; border: 1px solid rgba(0,0,0,.15); font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; }
+.panel { border-radius: 4px; overflow: hidden; border: 1px solid var(--bd); background: var(--surface); color: var(--text); }
+.ph { padding: 10px 15px; background: var(--ph); color: var(--text); border-bottom: 1px solid var(--bd); display: flex; justify-content: space-between; }
+.pb { padding: 12px 15px; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+th { text-align: left; padding: 8px; background: var(--th); color: var(--text); font-weight: 700; }
+td { padding: 8px; border-top: 1px solid var(--bd); }
+.btns { display: flex; gap: 8px; }
+.btn { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 14px; border: 1px solid var(--btn-bd); background: var(--btn-bg); color: var(--btn-ink); }
+.btn.primary { background: var(--primary); border-color: var(--primary-dark); color: #fff; }
+
+.today { --surface: #fff; --ph: #f5f5f5; --th: transparent; --bd: #ddd; --text: #333; --btn-bg: #fff; --btn-bd: #ccc; --btn-ink: #c41e3a; --primary: #8b0f0e; --primary-dark: #700b09; background: #fff; }
+.today .btn.primary { color: #f9d9de; }
+.kr { --surface: #fff; --ph: #f6ecec; --th: #f6ecec; --bd: #ead4d4; --text: #2b2620; --btn-bg: #fff; --btn-bd: #ead4d4; --btn-ink: #8b0f0e; --primary: #8b0f0e; --primary-dark: #700b09; background: #fff; }
+.pv { --surface: #fff; --ph: #ecf3ed; --th: #ecf3ed; --bd: #d3e4d7; --text: #2b2620; --btn-bg: #fff; --btn-bd: #d3e4d7; --btn-ink: #0b6623; --primary: #0b6623; --primary-dark: #084d1a; background: #fff; }
+.dark { --surface: #1e1a15; --ph: #2a251f; --th: #2a251f; --bd: rgba(255,255,255,.08); --text: #f5f1ed; --btn-bg: #1e1a15; --btn-bd: rgba(255,255,255,.08); --btn-ink: #d4a574; --primary: #7a5240; --primary-dark: #5e3b2d; background: #12100d; color: #f5f1ed; }
+</style>
+</head>
+<body>
+<h1>Composants en mode clair</h1>
+<p class="intro">Même panneau (en-tête, tableau, boutons) sur ordinateur. Aujourd'hui, le mode clair garde le rendu Bootstrap (en-tête gris #f5f5f5, tableau sans en-tête teinté) alors que le mode sombre thème ces composants. Proposition : mêmes composants thémés en clair, avec une teinte légère de la nation.</p>
+<div class="grid">
+  <div class="col"><h2>Clair aujourd'hui (Kraland)</h2><div class="frame today">
+    <div class="panel"><div class="ph"><b>⌂ Bâtiment</b><span>⌃</span></div><div class="pb">
+      <table><tr><th>Objet</th><th>Stock</th></tr><tr><td>Légume</td><td>30/10</td></tr><tr><td>Fruit</td><td>15/10</td></tr></table>
+      <div class="btns"><span class="btn">Envoi</span><span class="btn primary">Réception</span></div></div></div>
+  </div><p class="leg">En-tête gris Bootstrap, tableau sans en-tête teinté, bouton standard à bordure grise.</p></div>
+
+  <div class="col"><h2>Clair proposé (Kraland)</h2><div class="frame kr">
+    <div class="panel"><div class="ph"><b>⌂ Bâtiment</b><span>⌃</span></div><div class="pb">
+      <table><tr><th>Objet</th><th>Stock</th></tr><tr><td>Légume</td><td>30/10</td></tr><tr><td>Fruit</td><td>15/10</td></tr></table>
+      <div class="btns"><span class="btn">Envoi</span><span class="btn primary">Réception</span></div></div></div>
+  </div><p class="leg">En-tête et en-tête de tableau teintés de rouge à 8 %, bordures à 18 %.</p></div>
+
+  <div class="col"><h2>Clair proposé (Paradigme Vert)</h2><div class="frame pv">
+    <div class="panel"><div class="ph"><b>⌂ Bâtiment</b><span>⌃</span></div><div class="pb">
+      <table><tr><th>Objet</th><th>Stock</th></tr><tr><td>Légume</td><td>30/10</td></tr><tr><td>Fruit</td><td>15/10</td></tr></table>
+      <div class="btns"><span class="btn">Envoi</span><span class="btn primary">Réception</span></div></div></div>
+  </div><p class="leg">Même règle avec le vert de la nation.</p></div>
+
+  <div class="col"><h2>Sombre (référence, Empire Brun)</h2><div class="frame dark">
+    <div class="panel"><div class="ph"><b>⌂ Bâtiment</b><span>⌃</span></div><div class="pb">
+      <table><tr><th>Objet</th><th>Stock</th></tr><tr><td>Légume</td><td>30/10</td></tr><tr><td>Fruit</td><td>15/10</td></tr></table>
+      <div class="btns"><span class="btn">Envoi</span><span class="btn primary">Réception</span></div></div></div>
+  </div><p class="leg">Aujourd'hui en sombre : en-tête et en-tête de tableau sur surface teintée, bouton standard thémé.</p></div>
+</div>
+</body>
+</html>
