@@ -126,7 +126,8 @@ export const PURE_BLOCKS = {
   rechargement: BASCULE_ZONES,
   'menus-forums': ['menus-forums'],
   images: ['images'], // image-fallback, map-exclusions (et audit-map-images, même zone)
-  destinataires: ['kramail']
+  destinataires: ['kramail'],
+  identite: ['plateau', 'profil']
 };
 // Repère de classe ou d'id cité par une suite : le hunk qui le touche lance aussi les suites qui le citent (au plus MAX_CITING suites :
 // au-delà, le repère est transverse, ex. mobile-mode, et les mots-clés en décident). S'ajoute aux zones, ne remplace jamais l'élargissement.
