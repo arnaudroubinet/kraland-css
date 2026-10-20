@@ -1240,7 +1240,7 @@
 
       // Nom du joueur : le nom du personnage, lu ou mémorisé (règle R1). Le libellé actif natif (ex: "Employés") n'est pas
       // un nom : il ne sert qu'en repli, quand aucun nom n'est connu
-      const playerName = getCharacterName() || getActiveTitleLabel();
+      const playerName = getCharacterName() || getActiveTitleLabel() || 'Personnage';
 
       // Avatar (dans la première row)
       const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
@@ -8243,7 +8243,7 @@
 
     if (['/jouer/perso', '/jouer/pnj'].includes(krActiveGameSection(location.pathname))) {
       const textNode = findActiveTitleTextNode();
-      if (textNode) {textNode.data = name;}
+      if (textNode) {textNode.data = textNode.data.replace(textNode.data.trim(), name);}
     }
   }
 

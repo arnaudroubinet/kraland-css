@@ -9639,7 +9639,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   /* Padding au dernier form-group pour éviter overlap avec footer */
-  .form-group:last-of-type {
+  :where(body.page-kramail-compose, body.page-forum) .form-group:last-of-type {
     padding-bottom: 60px;
   }
 
@@ -13471,7 +13471,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
      fixe (z-index 90) dès que le pied de page passait dessous (la barre disparaissait et le toucher allait à la citation du pied de page : 44 positions
      de défilement sur 62 à 375 px). Sur une page qui porte cette barre, le pied de page revient dans le flux normal ; le bouton « Remonter en haut »
      (position: fixed) garde son z-index 1000 dans le contexte racine. */
-  body.mobile-mode:has(button.btn-primary.pull-right) footer.navbar-inverse {
+  body.mobile-mode:where(.page-kramail-compose, .page-forum):has(button.btn-primary.pull-right) footer.navbar-inverse {
     position: relative;
     top: auto;
     z-index: auto;

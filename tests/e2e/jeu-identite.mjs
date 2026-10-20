@@ -190,7 +190,18 @@ const MESURE_BOUTON = formulaire => {
   const form = document.querySelector(formulaire);
   const boutons = form ? [...form.querySelectorAll('button.btn-primary.pull-right')] : [];
   const remonter = document.querySelector('.kraland-back-to-top');
+  const pied = document.querySelector('footer.navbar-inverse');
+  // Réserve de la barre fixe : marge intérieure basse d'un .form-group sonde posé en dernier dans le formulaire le temps de la mesure
+  let reserve = null;
+  if (form) {
+    form.insertAdjacentHTML('beforeend', '<div class="form-group kr-sonde"></div>');
+    const sonde = form.querySelector('.kr-sonde');
+    reserve = getComputedStyle(sonde).paddingBottom;
+    sonde.remove();
+  }
   return {
+    pied: pied ? getComputedStyle(pied).position : null,
+    reserve,
     champs: form ? form.querySelectorAll('input.form-control').length : 0,
     boutons: boutons.length,
     libelle: boutons.length ? boutons[0].textContent.trim() : null,
@@ -314,6 +325,10 @@ if (on('fuite-forum')) {
       verifierSocle(index, v, { pageForum: true });
       assert.equal(index.lignes, 2);
     });
+    check(`[${v}] index du forum : cartes du forum affichées (conteneur présent, première ligne visible en carte : display: grid)`, () => {
+      assert.ok(index.cartes > 0, 'conteneurs .forums-cards-container : ' + index.cartes);
+      assert.equal(index.affichage, 'grid', 'première ligne visible du tableau : ' + index.affichage);
+    });
     check(`[${v}] index du forum : le décor reste (« sujets » après la 2e cellule, « → » avant la dernière, sur une ligne native)`, () => {
       assert.ok(index.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + index.decor.sujets);
       assert.ok(index.decor.fleche.includes('→'), 'td:last-child::before = ' + index.decor.fleche);
@@ -350,6 +365,11 @@ if (on('regles-ok')) {
     check(`[${v}] règles : « Remonter en haut » n'est pas relevé (bas : 8 px), aucune barre fixe à dégager`, () => {
       assert.equal(regles.remonter, '8px', 'bouton « Remonter en haut » : bas = ' + regles.remonter);
     });
+    check(`[${v}] règles : ni pied de page sorti de sa position (footer.navbar-inverse), ni réserve de 60 px sous le dernier groupe du formulaire`, () => {
+      assert.notEqual(regles.pied, null, 'footer.navbar-inverse absent de la fixture');
+      assert.notEqual(regles.pied, 'relative', 'pied de page remis dans le flux pour une barre absente');
+      assert.equal(regles.reserve, '0px', 'réserve sous le dernier .form-group : ' + regles.reserve);
+    });
     check(`[${v}] rédaction kramail : thème appliqué, mode mobile actif, page marquée page-kramail-compose, un bouton « Envoyer »`, () => {
       verifierSocle(kramail, v, { pageKramailCompose: true });
       assert.equal(kramail.boutons, 1, 'boutons button.btn-primary.pull-right du formulaire de rédaction : ' + kramail.boutons);
@@ -357,6 +377,10 @@ if (on('regles-ok')) {
     });
     check(`[${v}] rédaction kramail : la barre « Envoyer » reste fixe`, () => {
       assert.equal(kramail.position, 'fixed', 'barre « Envoyer » : position = ' + kramail.position);
+    });
+    check(`[${v}] rédaction kramail : le pied de page revient dans le flux et le dernier groupe garde une réserve sous la barre`, () => {
+      assert.equal(kramail.pied, 'relative', 'footer.navbar-inverse : position = ' + kramail.pied);
+      assert.notEqual(kramail.reserve, '0px', 'réserve sous le dernier .form-group : ' + kramail.reserve);
     });
     check(`[${v}] rédaction kramail : « Remonter en haut » reste relevé au-dessus de la barre fixe (bas : 64 px)`, () => {
       assert.equal(kramail.remonter, '64px', 'bouton « Remonter en haut » : bas = ' + kramail.remonter);
