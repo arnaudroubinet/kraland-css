@@ -5251,6 +5251,9 @@
     function enrichPermanentTopicsStats() {
       // N'exécuter qu'en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {return;}
+      // Forum et racine du forum seulement : ailleurs (Cybermonde, Personnage…), les tableaux ne sont pas des listes de sujets. Sortie avant
+      // tout marquage de ligne ; sans le display !important du forum, le masquage en ligne des cellules 2 et 3 s'appliquerait (ticket 1.6)
+      if (!document.body.classList.contains('page-forum') && !document.body.classList.contains('page-forum-racine')) {return;}
 
       // L4 (sous-forum) : sur la page de liste des sujets (table#topics), les permanents tiennent sur une ligne (titre, non lu, date) :
       // compteurs, auteur et pages restent dans le sujet. Aucun bloc de statistiques n'est ajouté, les cellules natives ne sont pas masquées en JS.

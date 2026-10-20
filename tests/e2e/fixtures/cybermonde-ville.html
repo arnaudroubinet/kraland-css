@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE RECONSTRUITE (pas une capture du site) : Cybermonde, vue de ville, chemin servi /map.
+  Reprise de bmad/ux-lot8:tests/e2e/fixtures/hors-forums/cybermonde-ville.html, complétée d'un tableau « table nomargin minix »
+  à 5 colonnes (forme mesurée sur le site réel le 2026-10-20 : tableau de fonctionnaires à 3 colonnes, tableau minix à 5 colonnes).
+  Source native citée : ~/.hermes/profiles/ux/artifacts/t_788e40b9/natif/EXTRAITS-NATIFS.md (E1 : marque « Cybermonde »,
+  href="map/cybermonde") et rapport d'audit MV-1 (lignes de fonctionnaires, doublons poste / nom).
+  Écarts assumés : (1) noms, postes, bâtiments et valeurs INVENTÉS, aucune donnée réelle ; (2) forme des lignes
+  de fonctionnaires DÉDUITE de MV-1 (3 cellules : icône, poste, nom ; 1 ligne à une seule cellule colspan=2) et non relue sur le DOM natif ;
+  (3) la carte (image et zones) est remplacée par un bloc vide ; (4) aucun script de la page native.
+  Un vert sur cette fixture ne prouve pas le rendu sur le site (validation visuelle d'Arnaud distincte).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE RECONSTRUITE Cybermonde ville</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><a class="navbar-brand" href="map/cybermonde">Cybermonde</a></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-right" class="col-md-12">
+      <div id="mapname-container"><h4 class="page-header">Ville de Fixture</h4></div>
+      <form class="form-inline">
+        <select id="sel-province" onchange="void 0"><option>Province A</option><option>Province B</option></select>
+        <select id="sel-ville" onchange="void 0"><option>Ville de Fixture</option><option>Ville Deux</option></select>
+        <select id="sel-travail" onchange="void 0"><option>Vue d'ensemble</option><option>Travail</option></select>
+      </form>
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Fonctionnaires <span class="clickable pull-right"><i class="fa fa-chevron-up"></i></span></h3></div>
+        <div class="panel-body">
+          <table class="table nomargin">
+            <tbody>
+              <tr><td><i class="fa fa-user"></i></td><td>Gouverneur</td><td><a href="communaute/membres/fixture-1">Alpha Fixture</a></td></tr>
+              <tr><td><i class="fa fa-user"></i></td><td>Maire</td><td><a href="communaute/membres/fixture-2">Beta Fixture</a></td></tr>
+              <tr><td><i class="fa fa-user"></i></td><td>Juge</td><td><a href="communaute/membres/fixture-3">Gamma Fixture</a></td></tr>
+              <tr><td><i class="fa fa-user"></i></td><td>Chef de la garde</td><td><a href="communaute/membres/fixture-4">Delta Fixture</a></td></tr>
+              <tr><td><i class="fa fa-user"></i></td><td>Trésorier</td><td><a href="communaute/membres/fixture-5">Epsilon Fixture</a></td></tr>
+              <tr><td colspan="2">Poste vacant</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Informations</h3></div>
+        <div class="panel-body">
+          <table class="table nomargin">
+            <tbody>
+              <tr><td>Population</td><td>1 234</td></tr>
+              <tr><td>Province</td><td><a href="map/province/fixture-a">Province A</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Bâtiments</h3></div>
+        <div class="panel-body">
+          <table class="table nomargin minix">
+            <thead><tr><th></th><th>Bâtiment</th><th>Propriétaire</th><th>Niveau</th><th>Salaire</th></tr></thead>
+            <tbody>
+              <tr><td><i class="fa fa-home"></i></td><td>Taverne de Fixture</td><td><a href="communaute/membres/fixture-6">Zeta Fixture</a></td><td>2</td><td>12</td></tr>
+              <tr><td><i class="fa fa-home"></i></td><td>Forge de Fixture</td><td><a href="communaute/membres/fixture-7">Eta Fixture</a></td><td>1</td><td>8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+</body>
+</html>

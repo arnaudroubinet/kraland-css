@@ -28,7 +28,12 @@
 // d'une fixture, pour le déplier).
 //
 // Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
-// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones (vide = tout).
+// Fragment hors-forum-js (ticket 1.6, accord du 2026-10-16) : le module JS des sujets permanents (enrichPermanentTopicsStats) n'agit que sur le forum
+// et sa racine. Sur Cybermonde (/map, fixture reconstruite cybermonde-ville.html) et sur Personnage, à 320, 375, 768 et 1280 px : aucun bloc de
+// compteurs, aucune ligne marquée, aucune cellule masquée ; sur l'index et la racine du forum, les blocs restent (non-régression). La garde de page
+// n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768 et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules
+// au plus), seul le marquage des lignes trahissait le module.
+// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones, hors-forum-js (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -52,6 +57,7 @@ const PNJ = BASE + '/jouer/pnj';
 const INDEX_FORUM = BASE + '/forum/rp';
 const RACINE_FORUM = BASE + '/forum'; // racine du forum : même tableau d'index (fixture forum-index-rp.html), mais hors « /forum/… »
 const REGLES = BASE + '/regles/base';
+const CYBERMONDE = BASE + '/map';
 const KRAMAIL_NOUVEAU = BASE + '/kramail/post/nouveau-4-2000'; // URL de la fixture dans kramail-redaction.mjs
 const VARIANTES = ['kraland', 'empire-brun-dark'];
 const MOBILE = { viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true };
@@ -592,6 +598,50 @@ if (on('icones')) {
   check(`[${V}] plateau mobile : les onglets de section ont les mêmes icônes, dans le même ordre`, () => {
     verifierSocle(mobile, V);
     assert.deepEqual(mobile.onglets, ICONES, 'icônes des onglets de section : ' + JSON.stringify(mobile.onglets));
+  });
+}
+
+// Effets du module des sujets permanents : blocs de compteurs ajoutés, lignes marquées, cellules de tableau masquées (display: none calculé)
+const MESURE_SUJETS_PERMANENTS = () => {
+  const cellules = [...document.querySelectorAll('#col-right table td')];
+  return {
+    cellules: cellules.length,
+    blocs: document.querySelectorAll('.permanent-topic-stats').length,
+    marquees: document.querySelectorAll('[data-permanent-icons-added]').length,
+    masquees: cellules.filter(td => getComputedStyle(td).display === 'none').length
+  };
+};
+
+if (on('hors-forum-js')) {
+  const V = VARIANTES[1];
+  const LARGEURS = [320, 375, 768, 1280];
+  console.log(`Module des sujets permanents hors forum : Cybermonde et Personnage à ${LARGEURS.join(', ')} px, forum à 375 px, variante ${V}`);
+  const device = l => (l < 768 ? { viewport: { width: l, height: 667 }, isMobile: true, hasTouch: true } : { viewport: { width: l, height: 800 } });
+  const cas = [
+    ...LARGEURS.map(l => ({ nom: `Cybermonde ${l} px`, url: CYBERMONDE, html: fixture('cybermonde-ville.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
+    ...LARGEURS.map(l => ({ nom: `Personnage ${l} px`, url: PERSO, html: fixture('jeu-perso.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
+    { nom: 'index du forum 375 px', url: INDEX_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: false, socle: { pageForum: true } },
+    { nom: 'racine du forum 375 px', url: RACINE_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: false, socle: { pageForumRacine: true } }
+  ];
+  const res = await mapLimit(cas, c => mesurerPage({ url: c.url, html: c.html, variante: V, device: c.device, mesure: MESURE_SUJETS_PERMANENTS }));
+  cas.forEach((c, i) => {
+    const m = res[i];
+    check(`[${V}] ${c.nom} : thème appliqué, mode ${c.socle.mobile === false ? 'ordinateur' : 'mobile'}, classes de page attendues, aucune exception`, () => {
+      verifierSocle(m, V, c.socle);
+      assert.deepEqual(m.erreurs, []);
+    });
+    if (c.hors) {
+      check(`[${V}] ${c.nom} : aucun bloc de compteurs, aucune ligne marquée, aucune cellule masquée`, () => {
+        assert.ok(m.cellules > 0, 'aucune cellule de tableau dans #col-right');
+        assert.equal(m.blocs, 0, 'blocs .permanent-topic-stats : ' + m.blocs);
+        assert.equal(m.marquees, 0, 'lignes data-permanent-icons-added : ' + m.marquees);
+        assert.equal(m.masquees, 0, 'cellules masquées : ' + m.masquees + ' sur ' + m.cellules);
+      });
+    } else {
+      check(`[${V}] ${c.nom} : le module ajoute toujours ses blocs de compteurs (non-régression)`, () => {
+        assert.ok(m.blocs > 0, 'blocs .permanent-topic-stats : ' + m.blocs);
+      });
+    }
   });
 }
 
