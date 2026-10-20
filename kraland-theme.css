@@ -9615,7 +9615,8 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   /* 5. BOUTON ENVOYER - Sticky footer */
 
-  button.btn-primary.pull-right {
+  /* Barre réservée aux pages de rédaction (kramail, forum) : ailleurs, un bouton de validation (« ok » de la recherche des Règles) reste à côté de son champ. */
+  :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -9631,7 +9632,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     border: none !important;
   }
 
-  button.btn-primary.pull-right:active {
+  :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right:active {
     background: var(--kr-primary-dark);
     transform: scale(0.98);
   }

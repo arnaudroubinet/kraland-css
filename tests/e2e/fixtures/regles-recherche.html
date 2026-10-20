@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture Règles, recherche (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la page Règles (/regles/base) : aucune donnée réelle. Colonne gauche : liste de section « Règles ». Colonne droite : panneau de
+       recherche (formulaire à un champ input.form-control et un bouton « ok » button.btn.btn-primary.pull-right) puis un panneau de texte. Hors rédaction,
+       ce bouton de validation doit rester à côté de son champ. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/kramail">Kramail</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Règles</span>
+          <a class="list-group-item" href="regles/base">Règles de base</a>
+          <a class="list-group-item" href="regles/avancees">Règles avancées</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">Rechercher dans les règles</h3></div>
+          <div class="panel-body">
+            <form name="recherche" method="get" action="regles/recherche">
+              <input type="text" class="form-control" name="q" placeholder="Mot à chercher" aria-label="Mot à chercher">
+              <button type="submit" class="btn btn-primary pull-right">ok</button>
+            </form>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">Règles de base</h3></div>
+          <div class="panel-body">
+            <p>Texte d'essai de la première règle de base.</p>
+            <p>Texte d'essai de la seconde règle de base.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer><div class="container white"><a href="#top" class="well well-sm"><i class="glyphicon glyphicon-chevron-up"></i></a></div></footer>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
