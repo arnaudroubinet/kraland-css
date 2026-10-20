@@ -1,0 +1,62 @@
+# tickets.toml — épopées de l'initiative Harmonisation UX, dans l'ordre de construction.
+
+[[epic]]
+id = 1
+slug = "epic-identite-et-defauts"
+title = "Identité du personnage et pages sans décor emprunté"
+covers = ["CAP-1", "CAP-2"]
+
+[[epic]]
+id = 2
+slug = "epic-modale-ordre"
+title = "Modale d'ordre lisible et sûre"
+covers = ["CAP-3"]
+
+[[epic]]
+id = 3
+slug = "epic-palette-nation"
+title = "Couleurs de nation et contrastes"
+covers = ["CAP-4"]
+after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }]
+
+[[epic]]
+id = 4
+slug = "epic-typographie-formes"
+title = "Même rôle, même taille, même forme"
+covers = ["CAP-5"]
+after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 3, needs = "jetons de couleur et anneau de focus" }]
+
+[[epic]]
+id = 5
+slug = "epic-cartes-pastilles"
+title = "Cartes de section et familles de pastilles"
+covers = ["CAP-6"]
+after = [{ epic = 3, needs = "couleurs d'état et couleur « non lu »" }, { epic = 4, needs = "titres 17 px et rayons" }]
+
+[[epic]]
+id = 6
+slug = "epic-forum"
+title = "Forum : activité et repères"
+covers = ["CAP-7"]
+after = [{ epic = 5, needs = "carte de section mobile" }]
+
+[[epic]]
+id = 7
+slug = "epic-kramail-mobile"
+title = "Kramail mobile"
+covers = ["CAP-8"]
+after = [{ epic = 2, needs = "résultat P2 (vrai téléphone)" }, { epic = 5, needs = "carte de section et onglets" }, { epic = 6, needs = "bouton « ••• » commun" }]
+
+[[epic]]
+id = 8
+slug = "epic-notifications"
+title = "Notifications"
+covers = ["CAP-9"]
+after = [{ epic = 4, needs = "échelle typographique" }]
+
+[[epic]]
+id = 9
+slug = "epic-plateau-confort-mobile"
+title = "Plateau et confort mobile"
+covers = ["CAP-10"]
+after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 4, needs = "tailles de bouton" }, { epic = 6, needs = "pages du forum finies" }, { epic = 7, needs = "pages du kramail finies" }, { epic = 8, needs = "page des notifications finie" }]

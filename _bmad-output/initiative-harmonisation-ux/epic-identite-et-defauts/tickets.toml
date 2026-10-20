@@ -1,0 +1,96 @@
+# tickets.toml — epic-identite-et-defauts, dans l'ordre de construction.
+# Entrées 1 à 5 : construites sur feature/next (statut built dans leur plan), commits cités en commentaire.
+
+[[entry]]
+id = 1
+type = "story"
+title = "Cœur pur de l'identité"
+description = "Sections de jeu, section active et résolution du nom du personnage, en fonctions pures testées (bloc identite)."
+verify = "npm run test:unit : tests identite verts."
+covers = ["CAP-2"]
+after = []
+hitl = false
+risk = "low"
+# construit : 948d93f, 23bc317, part de a24311d
+
+[[entry]]
+id = 2
+type = "story"
+title = "Décor du forum réservé aux pages du forum (H1.1)"
+description = "La mise en cartes et le décor mobile des tableaux du forum ne s'appliquent qu'au forum et à sa racine ; Personnage montre ses cellules natives."
+verify = "KR_FRAG=fuite-forum node tests/e2e/jeu-identite.mjs vert ; test:zone forum, sous-forum, kramail verts."
+covers = ["CAP-1"]
+after = []
+hitl = false
+risk = "medium"
+# construit : e547d3e, 8a62b04, part de a24311d
+
+[[entry]]
+id = 3
+type = "story"
+title = "Barre fixe d'envoi réservée à la rédaction (H1.2)"
+description = "Le « ok » des Règles reste à côté de son champ et « Remonter en haut » n'y est plus relevé ; la rédaction du kramail et toutes les pages du forum gardent la barre jusqu'à l'épopée 7."
+verify = "KR_FRAG=regles-ok node tests/e2e/jeu-identite.mjs vert ; test:zone kramail vert."
+covers = ["CAP-1"]
+after = [2]
+hitl = false
+risk = "low"
+# construit : 6423121, a1c3bf6, d21ac51
+
+[[entry]]
+id = 4
+type = "story"
+title = "Nom du personnage dans le mini-profil et le panneau latéral (H1.3, H1.4, R1)"
+description = "Le nom lu sur plateau, matériel ou bâtiments est mémorisé et affiché dans le mini-profil mobile et le titre du panneau latéral, Personnage et Employés compris."
+verify = "KR_FRAG=nom node tests/e2e/jeu-identite.mjs vert (sans nom connu, changement de personnage, stockage indisponible, nom long) ; npm run test:unit (nom blanc, sources matériel et bâtiments)."
+covers = ["CAP-2"]
+after = [1, 2]
+hitl = false
+risk = "medium"
+# construit : ffac373, part de a24311d
+
+[[entry]]
+id = 5
+type = "story"
+title = "Section active et icônes uniques (H1.5, H1.6)"
+description = "Le bouton d'accès rapide de la section en cours est marqué sur ordinateur et les cinq sections ont la même icône sur ordinateur et mobile."
+verify = "KR_FRAG=section-active,icones node tests/e2e/jeu-identite.mjs vert ; test:zone plateau vert ; npm run test:unit (sous-chemins du plateau)."
+covers = ["CAP-2"]
+after = [1, 2]
+hitl = false
+risk = "low"
+# construit : eb628b6
+
+[[entry]]
+id = 6
+type = "bug"
+title = "Cybermonde : le module des sujets permanents masque des cellules hors forum"
+description = "Sur mobile, enrichPermanentTopicsStats n'agit plus que sur le forum et sa racine (page-forum, page-forum-racine) : Cybermonde (/map, /map/…) montre chaque cellule native une fois, sans bloc de compteurs, et aucun tableau hors forum ne perd de colonne (CAP-1). La garde de l'entrée 2 a retiré le display: block !important qui annulait le masquage en ligne du module."
+verify = "Nouvelle fixture synthétique Cybermonde (ville, province, Travail) : aucun .permanent-topic-stats, aucune cellule masquée à 320, 375, 768 et 1280 px, ni sur jeu-perso.html ; index, racine et sous-forum du forum inchangés ; test:zone forum, sous-forum, kramail verts ; validation visuelle d'Arnaud à 1280, 1440, 1920 et 375 px, Kraland clair et Empire Brun sombre."
+covers = ["CAP-1"]
+after = [2]
+hitl = true
+risk = "medium"
+# mesuré en réel le 2026-10-20 : 6 blocs, 12 cellules masquées ; hitl = validation visuelle d'Arnaud
+
+[[entry]]
+id = 7
+type = "story"
+title = "Note d'options de cascade (P1)"
+description = "Note d'options sur la stratégie de cascade (garde de page, retrait ou surenchère des sections sans garde ; forme d'une règle commune aux deux supports), qu'Arnaud tranche ; sa décision est aussi consignée en ligne Decision: de l'initiative, que lisent les épopées 3, 4 et 9."
+verify = "La note existe dans le dossier de l'épopée et la décision d'Arnaud y est consignée."
+covers = ["CAP-1"]
+after = [2, 3, 6]
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:all vert après le nettoyage."
+covers = ["CAP-1", "CAP-2"]
+after = [1, 2, 3, 4, 5, 6, 7]
+hitl = false
+risk = "low"
