@@ -21,6 +21,7 @@ test('section active, sous-chemins du plateau compris', () => {
 test('nom lu seulement sur plateau, matériel, bâtiments', () => {
   assert.equal(krCharacterNameFromPage('/jouer/plateau', ' Nerys '), 'Nerys');
   assert.equal(krCharacterNameFromPage('/jouer/plateau/200002-11211-13-7956839652', 'Nerys'), 'Nerys');
+  assert.equal(krCharacterNameFromPage('/jouer/materiel', 'Nerys'), 'Nerys');
   assert.equal(krCharacterNameFromPage('/jouer/bat', 'Nerys'), 'Nerys');
   assert.equal(krCharacterNameFromPage('/jouer/perso', 'Personnage'), null);
   assert.equal(krCharacterNameFromPage('/jouer/pnj', 'Employés'), null);

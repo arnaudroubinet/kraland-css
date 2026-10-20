@@ -1,9 +1,10 @@
 // Harmonisation UX, lot 1 : défauts de style et identité du personnage (décisions H1.1 à H1.6 et R1 de l'étude, EXPERIENCE.md).
 // Fragment fuite-forum (H1.1) : le décor mobile des listes de forum (« → … sujets · ») reste réservé aux pages du forum. Sur Personnage,
 // aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (::before « → »,
-// ::after « sujets · ») ; sur l'index du forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE). La racine
-// du forum (/forum, qui liste tous les forums) n'est pas une page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux
-// modules de /forum/…), et son tableau natif, que le module des cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
+// ::after « sujets · ») et chacune de leurs lignes reste une ligne de tableau (display: table-row, pas une carte en grille) ; sur l'index du
+// forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE). La racine du forum (/forum, qui liste tous les
+// forums) n'est pas une page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau
+// natif, que le module des cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
 // Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
 // bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
 // n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
@@ -11,7 +12,9 @@
 // Fragment nom (H1.3, H1.4, R1) : le nom du personnage est lu sur le titre actif du panneau latéral du plateau (matériel et bâtiments aussi),
 // mémorisé sous kr-character-name, puis repris sur Personnage et Employés, dont le titre natif n'est pas le nom. Mobile : le mini-profil
 // l'affiche ; ordinateur : le titre du panneau le porte (le texte seul change, un élément enfant reste en place). Sans nom connu, le titre natif
-// reste ; un stockage qui lève (navigation privée) ne casse pas la page (aucune exception, mini-profil et titre natifs).
+// reste ; un stockage qui lève (navigation privée) ne casse pas la page (aucune exception, mini-profil et titre natifs). Un nom de 40 caractères
+// (plateau avec avatar et vrai Bootstrap), mini-profil plié puis déplié à 375 et 700 px : le bouton de gestion reste entièrement dans l'écran, le
+// document ne déborde pas horizontalement, le nom est tronqué par une ellipse à 375 px et tient en entier à 700 px.
 // Fragment section-active (H1.5) : sur ordinateur, parmi les cinq accès rapides du panneau du joueur, celui de la page courante (Agir sur le
 // plateau, Personnage sur Personnage) porte kr-quick-access-active : texte en demi-gras (600) et filet de 3 px de la couleur primaire sous le
 // bouton (ombre interne), fond inchangé ; les quatre autres restent en 400, sans ombre ni classe d'activité. Mise en valeur réservée à
@@ -21,7 +24,8 @@
 // Matériel, Personnage, Bâtiments, Employés : fa-bolt, fa-suitcase, fa-user, fa-home, fa-users.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, regles-recherche.html), aucune
 // donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html, servie à son URL de kramail-redaction.mjs) ;
-// vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucun clic, aucune navigation.
+// vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucune navigation, un seul toucher (l'en-tête du mini-profil
+// d'une fixture, pour le déplier).
 //
 // Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
 // Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones (vide = tout).
@@ -32,7 +36,7 @@ import { fileURLToPath } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
-import { krReady, THEME_READY } from './lib/settle.mjs';
+import { frames, krReady, THEME_READY, waitState } from './lib/settle.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -54,6 +58,10 @@ const MOBILE = { viewport: { width: 375, height: 667 }, isMobile: true, hasTouch
 const BUREAU = { viewport: { width: 1280, height: 720 } };
 const CLE_NOM = 'kr-character-name';
 const NOM = 'Joueur'; // titre actif de plateau-minimal.html : sur le plateau, le titre du panneau est le nom du personnage
+const NOM_LONG = 'Bartholomé-Alphonse de Rochefort-Lambert'; // 40 caractères
+// Largeurs mobiles (< 768 px) du mini-profil à nom long, et si le nom y est tronqué. Mesuré : sur 375 px, l'avatar (48 px, 64 px déplié) et le bouton de
+// gestion laissent au nom 239 px (223 déplié) pour un contenu d'environ 300 px ; sur 700 px, ils lui en laissent plus de 540 et il tient en entier.
+const CAS_NOM_LONG = [{ largeur: 375, hauteur: 667, tronque: true }, { largeur: 700, hauteur: 900, tronque: false }];
 const PANNEAUX_PERSO = [{ titre: 'Citoyenneté', cellules: [2, 2, 2] }, { titre: 'Maladies', cellules: [1, 1] }]; // structure de jeu-perso.html
 // Les cinq sections du jeu, dans l'ordre du menu (Agir, Matériel, Personnage, Bâtiments, Employés) : destinations des accès rapides et icônes
 // communes aux accès rapides (ordinateur) et aux onglets de section (mobile).
@@ -137,7 +145,8 @@ function verifierSocle(m, variante, { mobile = true, pageForum = false, pageForu
 }
 
 // Mesures dans la page. fuites = contenus générés (::before, ::after) d'une cellule d'un panneau de Personnage (Citoyenneté : deux cellules
-// par ligne ; Maladies : une seule, où la même cellule est première et dernière) qui portent le décor du forum.
+// par ligne ; Maladies : une seule, où la même cellule est première et dernière) qui portent le décor du forum. affichages = affichage calculé de
+// chaque ligne de ces panneaux : la mise en page d'une ligne de tableau (table-row) et non celle d'une carte du forum (grid).
 const MESURE_PERSO = () => {
   const panneaux = [...document.querySelectorAll('#col-right .panel-default')].map(p => ({
     titre: p.querySelector('.panel-title').textContent.trim(),
@@ -150,6 +159,7 @@ const MESURE_PERSO = () => {
   }))));
   return {
     panneaux: panneaux.map(p => ({ titre: p.titre, cellules: p.lignes.map(tr => tr.cells.length) })),
+    affichages: panneaux.map(p => ({ titre: p.titre, lignes: p.lignes.map(tr => getComputedStyle(tr).display) })),
     fuites
   };
 };
@@ -204,6 +214,25 @@ const MESURE_NOM = cle => {
   };
 };
 
+// Mini-profil mobile et nom long : état (plié / déplié), avatar, bouton de gestion (⚙️) en coordonnées de la fenêtre, nom (texte, largeur du contenu
+// `defile` et de la boîte `boite`, text-overflow calculé), taille de la fenêtre et largeur de défilement du document (débordement horizontal).
+const MESURE_MINI_PROFIL = () => {
+  const profil = document.querySelector('.mobile-mini-profile');
+  const nom = document.querySelector('.mobile-mini-profile-name');
+  const gerer = document.querySelector('.mobile-mini-profile-manage-btn');
+  if (!profil || !nom || !gerer) { return { existe: false }; }
+  const boite = gerer.getBoundingClientRect();
+  return {
+    existe: true,
+    etat: profil.classList.contains('expanded') ? 'déplié' : 'plié',
+    avatar: profil.querySelector('.avatar') !== null,
+    fenetre: { largeur: window.innerWidth, hauteur: window.innerHeight },
+    defilement: document.documentElement.scrollWidth,
+    gerer: { gauche: boite.left, droite: boite.right, haut: boite.top, bas: boite.bottom },
+    nom: { texte: nom.textContent, defile: nom.scrollWidth, boite: nom.clientWidth, debordement: getComputedStyle(nom).textOverflow }
+  };
+};
+
 // Sections du jeu telles que la page les montre. acces = accès rapides du panneau du joueur (ordinateur) : destination, classe d'activité,
 // icône (classes fa-*), graisse, ombre et fond calculés. onglets = icônes (classes fa-*) des onglets de section (mobile). primaire = couleur
 // primaire du thème résolue (var(--kr-primary) lue sur une sonde), à retrouver dans l'ombre du filet de la section active.
@@ -244,6 +273,27 @@ async function scenarioRegles(variante) {
   return { regles, kramail };
 }
 
+// Mini-profil de `html` dans une fenêtre mobile `largeur` × `hauteur`, plié puis déplié par un toucher sur son en-tête. Chaque état est mesuré quand
+// le profil a la classe voulue et que ses transitions (avatar, hauteur) sont finies : la largeur du nom dépend de celle de l'avatar.
+async function scenarioNomLong({ largeur, hauteur, html }) {
+  const device = { viewport: { width: largeur, height: hauteur }, isMobile: true, hasTouch: true };
+  const { context, page } = await open(PLATEAU, html, VARIANTES[0], device);
+  const stabilise = async classe => {
+    await waitState(page, c => {
+      const profil = document.querySelector('.mobile-mini-profile');
+      return profil !== null && profil.classList.contains(c) && profil.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+    }, classe, { maxMs: 3000 });
+    await frames(page, 1);
+  };
+  await stabilise('collapsed');
+  const plie = await mesurer(page, MESURE_MINI_PROFIL);
+  await page.tap('.mobile-mini-profile-header');
+  await stabilise('expanded');
+  const deplie = await mesurer(page, MESURE_MINI_PROFIL);
+  await context.close();
+  return { plie, deplie };
+}
+
 if (on('fuite-forum')) {
   console.log('Fuite du décor des listes de forum (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
   const res = await mapLimit(VARIANTES, scenario);
@@ -255,6 +305,10 @@ if (on('fuite-forum')) {
     });
     check(`[${v}] perso : aucune cellule de Citoyenneté ne reçoit le décor du forum (ni celle de Maladies, à une seule cellule par ligne)`, () => {
       assert.equal(perso.fuites.length, 0, 'décor du forum sur Personnage : ' + perso.fuites.join(' ; '));
+    });
+    check(`[${v}] perso : chaque ligne de Citoyenneté et de Maladies garde sa mise en page de tableau (display: table-row), comme sur ordinateur`, () => {
+      const attendu = PANNEAUX_PERSO.map(p => ({ titre: p.titre, lignes: p.cellules.map(() => 'table-row') }));
+      assert.deepEqual(perso.affichages, attendu, 'affichage des lignes : ' + JSON.stringify(perso.affichages));
     });
     check(`[${v}] index du forum : thème appliqué, mode mobile actif, page marquée page-forum, 2 lignes`, () => {
       verifierSocle(index, v, { pageForum: true });
@@ -398,6 +452,48 @@ if (on('nom')) {
     assert.equal(plateauSansEcriture.memoire, 'Ancien', 'panne de l\'écriture non simulée');
     assert.equal(plateauSansEcriture.profil, NOM, `nom du mini-profil : ${plateauSansEcriture.profil}`);
     assert.deepEqual(plateauSansEcriture.erreurs, [], `exceptions de la page : ${plateauSansEcriture.erreurs.join(' ; ')}`);
+  });
+
+  // Nom de 40 caractères : le mini-profil porte un texte variable (plus le « Personnage » fixe d'avant). Variante du plateau avec le CSS de Bootstrap
+  // (cascade réelle : le bouton de gestion mesure 44 px, pas 60) et un avatar (image data:, aucun réseau), qui comme sur le site réduit la place du nom.
+  const avatar = '<a class="btn alert100" href="#"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" alt=""></a>';
+  const plateauLongHtml = plateauHtml
+    .replace(titrePlateau, `<span class="list-group-item active">${NOM_LONG}</span>`)
+    .replace('</head>', '  <link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap1.min.css">\n</head>')
+    .replace('<textarea id="champ-saisie"', avatar + '<textarea id="champ-saisie"');
+  console.log(`Nom de ${NOM_LONG.length} caractères : mini-profil plié et déplié (${CAS_NOM_LONG.map(c => `${c.largeur} × ${c.hauteur}`).join(' et ')}, tactile), variante ${V}`);
+  const mesuresLong = await mapLimit(CAS_NOM_LONG, c => scenarioNomLong({ largeur: c.largeur, hauteur: c.hauteur, html: plateauLongHtml }));
+  check(`[${V}] fixtures : le titre actif du plateau devient un nom de 40 caractères, avec le CSS de Bootstrap et un avatar`, () => {
+    assert.equal(NOM_LONG.length, 40, `longueur du nom : ${NOM_LONG.length}`);
+    assert.ok(plateauLongHtml.includes(`<span class="list-group-item active">${NOM_LONG}</span>`), 'titre actif à nom long introuvable');
+    assert.ok(plateauLongHtml.includes('bootstrap1.min.css'), 'CSS de Bootstrap introuvable');
+    assert.ok(plateauLongHtml.includes('<img src="data:image/gif'), 'avatar introuvable');
+  });
+  CAS_NOM_LONG.forEach(({ largeur, tronque }, i) => {
+    [['plié', mesuresLong[i].plie], ['déplié', mesuresLong[i].deplie]].forEach(([etat, m]) => {
+      const etiquette = `[${V}] nom long, ${largeur} px, mini-profil ${etat}`;
+      check(`${etiquette} : le bouton de gestion reste entièrement dans l'écran et le document ne déborde pas horizontalement`, () => {
+        verifierSocle(m, V);
+        assert.ok(m.existe, 'mini-profil, nom ou bouton de gestion introuvable');
+        assert.equal(m.etat, etat, `état du mini-profil : ${m.etat}`);
+        assert.equal(m.nom.texte, NOM_LONG, `nom du mini-profil : ${m.nom.texte}`);
+        assert.ok(m.avatar, 'avatar absent du mini-profil');
+        // Un contenu qui déborde élargit la fenêtre d'un navigateur mobile (innerWidth passe de 375 à plus) : les bornes sont celles de la largeur voulue
+        const g = m.gerer;
+        assert.ok(g.gauche >= 0 && g.droite <= largeur && g.haut >= 0 && g.bas <= m.fenetre.hauteur,
+          `bouton de gestion ${JSON.stringify(g)} hors de la fenêtre ${largeur} × ${m.fenetre.hauteur}`);
+        assert.ok(m.defilement <= largeur, `largeur de défilement du document : ${m.defilement} pour une fenêtre de ${largeur}`);
+        assert.equal(m.fenetre.largeur, largeur, `fenêtre élargie à ${m.fenetre.largeur} px par un débordement horizontal`);
+      });
+      check(`${etiquette} : ${tronque ? 'le nom est tronqué par une ellipse (contenu plus large que sa boîte)' : 'le nom tient en entier (la place suffit, ellipse prête)'}`, () => {
+        assert.equal(m.nom.debordement, 'ellipsis', `text-overflow du nom : ${m.nom.debordement}`);
+        if (tronque) {
+          assert.ok(m.nom.defile > m.nom.boite, `contenu du nom : ${m.nom.defile} px, boîte : ${m.nom.boite} px`);
+        } else {
+          assert.ok(m.nom.defile <= m.nom.boite, `contenu du nom : ${m.nom.defile} px, boîte : ${m.nom.boite} px`);
+        }
+      });
+    });
   });
 }
 
