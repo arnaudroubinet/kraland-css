@@ -1235,9 +1235,9 @@
         return null;
       }
 
-      // Nom du joueur — valeur fixe car le sélecteur .list-group-item.active
-      // retourne l'onglet de navigation actif (ex: "Employés") au lieu du nom
-      const playerName = 'Personnage';
+      // Nom du joueur : le nom du personnage, lu ou mémorisé (règle R1). Le libellé actif natif (ex: "Employés") n'est pas
+      // un nom : il ne sert qu'en repli, quand aucun nom n'est connu
+      const playerName = getCharacterName() || getActiveTitleLabel();
 
       // Avatar (dans la première row)
       const avatarLink = mainPanel.querySelector('.btn.alert100 img, a[href*="perso"] img, img[src*="avatar"]');
@@ -2896,6 +2896,7 @@
     ENABLE_KEY: 'kr-theme-enabled',
     VARIANT_KEY: 'kr-theme-variant',
     STATS_DISPLAY_KEY: 'kr-stats-display',
+    CHARACTER_NAME_KEY: 'kr-character-name',
     STYLE_ID: 'kraland-theme-style',
     THEME_VARIANTS: ['kraland','kraland-dark','empire-brun','paladium','theocratie-seelienne','paradigme-vert','khanat-elmerien','confederation-libre','royaume-ruthvenie','empire-brun-dark','paladium-dark','theocratie-seelienne-dark','paradigme-vert-dark','khanat-elmerien-dark','confederation-libre-dark','royaume-ruthvenie-dark','high-contrast'],
     LOGO_MAP: {
@@ -3816,7 +3817,7 @@
       relocateKramailToLeft, restructurePlatoColumns, moveBtnGroupToCols, moveSkillsPanelToCols,
       transformToBootstrapGrid, nameLeftSidebarDivs, transformSkillsToIcons,
       transformStatsToNotifications, ensureEditorClasses, ensurePageScoping,
-      ensurePlayerMainPanelRows, addQuickAccessButtons, ensureActionGrid, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
+      ensurePlayerMainPanelRows, applyCharacterIdentity, addQuickAccessButtons, ensureActionGrid, moveMaterielToColLeft, moveClefsSectionAboveFabriquer, addRankTitles,
       disableTooltips, modifyNavigationMenus, window.updateForumRPMenu,
       window.updateForumHRPMenu, window.updateForumCommunauteMenu,
       window.updateForumDebatsMenu, window.updateForumStaffMenu,
@@ -8192,6 +8193,61 @@
       .forEach(div => {
         if (!div.classList.contains('row')) {div.classList.add('row');}
       });
+  }
+
+  // ============================================================================
+  // IDENTITÉ DU PERSONNAGE (règle R1)
+  // Le nom du personnage n'est écrit que sur le plateau, le matériel et les bâtiments (titre actif du panneau latéral). Il est mémorisé
+  // sous CONFIG.CHARACTER_NAME_KEY et repris sur Personnage et Employés. Sans nom connu, le titre natif reste. Le stockage peut lever
+  // (navigation privée) : chaque lecture et chaque écriture sont dans un try/catch, sur localStorage directement (_lsGet et _lsSet n'attrapent
+  // rien, et _lsSet retient la valeur dans son cache même quand l'écriture échoue).
+  // ============================================================================
+
+  /** Nœud texte du titre actif du panneau latéral (hors éléments enfants, comme le bouton de repli), null s'il n'y en a pas */
+  function findActiveTitleTextNode() {
+    const title = document.querySelector('#col-left .list-group-item.active');
+    if (!title) {return null;}
+    return Array.from(title.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.data.trim()) || null;
+  }
+
+  /** Libellé natif du titre actif du panneau latéral ('' s'il n'y en a pas) */
+  function getActiveTitleLabel() {
+    const textNode = findActiveTitleTextNode();
+    return textNode ? textNode.data.trim() : '';
+  }
+
+  /** Nom du personnage de la page courante : { name, store } (voir krResolveCharacterName) */
+  function resolveCharacterName() {
+    let storedName = null;
+    try {
+      storedName = localStorage.getItem(CONFIG.CHARACTER_NAME_KEY);
+    } catch (_e) { /* stockage indisponible (navigation privée) : aucun nom mémorisé */ }
+    return krResolveCharacterName(location.pathname, getActiveTitleLabel(), storedName);
+  }
+
+  /** Nom du personnage de la page courante (lu sur la page, sinon mémorisé), null s'il est inconnu */
+  function getCharacterName() {
+    return resolveCharacterName().name;
+  }
+
+  /**
+   * Mémorise le nom lu sur la page et, sur Personnage et Employés, le met à la place du titre natif du panneau latéral (le texte
+   * seul : les éléments enfants du titre restent en place). Sans nom connu, le titre natif reste.
+   */
+  function applyCharacterIdentity() {
+    const { name, store } = resolveCharacterName();
+    if (!name) {return;}
+
+    if (store) {
+      try {
+        localStorage.setItem(CONFIG.CHARACTER_NAME_KEY, name);
+      } catch (_e) { /* écriture impossible (navigation privée, quota) : le nom reste lu sur la page */ }
+    }
+
+    if (['/jouer/perso', '/jouer/pnj'].includes(krActiveGameSection(location.pathname))) {
+      const textNode = findActiveTitleTextNode();
+      if (textNode) {textNode.data = name;}
+    }
   }
 
   function addQuickAccessButtons() {
