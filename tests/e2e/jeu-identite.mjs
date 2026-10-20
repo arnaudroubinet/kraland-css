@@ -10,12 +10,19 @@
 // mémorisé sous kr-character-name, puis repris sur Personnage et Employés, dont le titre natif n'est pas le nom. Mobile : le mini-profil
 // l'affiche ; ordinateur : le titre du panneau le porte (le texte seul change, un élément enfant reste en place). Sans nom connu, le titre natif
 // reste ; un stockage qui lève (navigation privée) ne casse pas la page (aucune exception, mini-profil et titre natifs).
+// Fragment section-active (H1.5) : sur ordinateur, parmi les cinq accès rapides du panneau du joueur, celui de la page courante (Agir sur le
+// plateau, Personnage sur Personnage) porte kr-quick-access-active : texte en demi-gras (600) et filet de 3 px de la couleur primaire sous le
+// bouton (ombre interne), fond inchangé ; les quatre autres restent en 400, sans ombre ni classe d'activité. Mise en valeur réservée à
+// l'ordinateur (seuil de 768 px) : à 767 px et en mobile, l'accès actif garde l'apparence des autres (l'onglet de section de la barre mobile
+// porte l'état).
+// Fragment icones (H1.6) : les cinq sections ont la même icône sur ordinateur (accès rapides) et sur mobile (onglets), dans l'ordre Agir,
+// Matériel, Personnage, Bâtiments, Employés : fa-bolt, fa-suitcase, fa-user, fa-home, fa-users.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, regles-recherche.html), aucune
 // donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html, servie à son URL de kramail-redaction.mjs) ;
 // vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucun clic, aucune navigation.
 //
 // Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
-// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -45,6 +52,10 @@ const BUREAU = { viewport: { width: 1280, height: 720 } };
 const CLE_NOM = 'kr-character-name';
 const NOM = 'Joueur'; // titre actif de plateau-minimal.html : sur le plateau, le titre du panneau est le nom du personnage
 const PANNEAUX_PERSO = [{ titre: 'Citoyenneté', cellules: [2, 2, 2] }, { titre: 'Maladies', cellules: [1, 1] }]; // structure de jeu-perso.html
+// Les cinq sections du jeu, dans l'ordre du menu (Agir, Matériel, Personnage, Bâtiments, Employés) : destinations des accès rapides et icônes
+// communes aux accès rapides (ordinateur) et aux onglets de section (mobile).
+const DESTINATIONS = ['/jouer/plateau', '/jouer/materiel', '/jouer/perso', '/jouer/bat', '/jouer/pnj'];
+const ICONES = ['fa-bolt', 'fa-suitcase', 'fa-user', 'fa-home', 'fa-users'];
 // Ligne native de l'index (1re ligne du corps de table de la fixture). La peau remanie les lignes de la page : le module des sujets permanents
 // insère un bloc de statistiques en 2e position et le tableau est masqué au profit de cartes, donc td:nth-child(2) n'y existe plus. La ligne
 // d'origine, remise telle quelle dans le tableau le temps d'une mesure, dit si le décor s'applique encore sur une page du forum.
@@ -179,6 +190,33 @@ const MESURE_NOM = cle => {
     enfants: titre ? titre.children.length : 0,
     profil: profil ? profil.textContent.trim() : null,
     memoire
+  };
+};
+
+// Sections du jeu telles que la page les montre. acces = accès rapides du panneau du joueur (ordinateur) : destination, classe d'activité,
+// icône (classes fa-*), graisse, ombre et fond calculés. onglets = icônes (classes fa-*) des onglets de section (mobile). primaire = couleur
+// primaire du thème résolue (var(--kr-primary) lue sur une sonde), à retrouver dans l'ombre du filet de la section active.
+const MESURE_SECTIONS = () => {
+  const sonde = document.createElement('i');
+  sonde.style.color = 'var(--kr-primary)';
+  document.body.appendChild(sonde);
+  const primaire = getComputedStyle(sonde).color;
+  sonde.remove();
+  const classesIcone = i => [...i.classList].filter(c => c.startsWith('fa-')).join(' ');
+  return {
+    primaire,
+    acces: [...document.querySelectorAll('.kr-quick-access-buttons > a')].map(a => {
+      const style = getComputedStyle(a);
+      return {
+        href: a.getAttribute('href'),
+        actif: a.classList.contains('kr-quick-access-active'),
+        icone: [...a.querySelectorAll('i')].map(classesIcone).join(' '),
+        graisse: style.fontWeight,
+        ombre: style.boxShadow,
+        fond: style.backgroundColor
+      };
+    }),
+    onglets: [...document.querySelectorAll('.mobile-tab-bar .mobile-tab-icon')].map(classesIcone)
   };
 };
 
@@ -336,6 +374,80 @@ if (on('nom')) {
     assert.equal(plateauSansEcriture.memoire, 'Ancien', 'panne de l\'écriture non simulée');
     assert.equal(plateauSansEcriture.profil, NOM, `nom du mini-profil : ${plateauSansEcriture.profil}`);
     assert.deepEqual(plateauSansEcriture.erreurs, [], `exceptions de la page : ${plateauSansEcriture.erreurs.join(' ; ')}`);
+  });
+}
+
+if (on('section-active')) {
+  const pages = [
+    { id: 'plateau', url: PLATEAU, html: fixture('plateau-minimal.html'), actif: '/jouer/plateau', libelle: 'Agir' },
+    { id: 'perso', url: PERSO, html: fixture('jeu-perso.html'), actif: '/jouer/perso', libelle: 'Personnage' }
+  ];
+  const lots = VARIANTES.flatMap(variante => pages.map(p => ({ ...p, variante })));
+  console.log('Section active des accès rapides (1280 × 720), variantes ' + VARIANTES.join(' et '));
+  const mesures = await mapLimit(lots, l => mesurerPage({ url: l.url, html: l.html, variante: l.variante, device: BUREAU, mesure: MESURE_SECTIONS }));
+  lots.forEach((l, i) => {
+    const m = mesures[i];
+    const etiquette = `[${l.variante}] ${l.id} ordinateur`;
+    check(`${etiquette} : thème appliqué, cinq accès rapides dans l'ordre, seul « ${l.libelle} » porte kr-quick-access-active`, () => {
+      verifierSocle(m, l.variante, { mobile: false });
+      assert.deepEqual(m.acces.map(a => a.href), DESTINATIONS, 'destinations mesurées : ' + JSON.stringify(m.acces.map(a => a.href)));
+      const actifs = m.acces.filter(a => a.actif).map(a => a.href);
+      assert.deepEqual(actifs, [l.actif], 'accès marqués actifs : ' + JSON.stringify(actifs));
+    });
+    check(`${etiquette} : l'accès actif est en demi-gras (600) avec un filet de 3 px de la couleur primaire sous le bouton`, () => {
+      const actif = m.acces.find(a => a.actif);
+      assert.ok(actif, 'aucun accès actif');
+      assert.equal(actif.graisse, '600', 'graisse de l\'accès actif : ' + actif.graisse);
+      assert.ok(actif.ombre.includes('inset') && actif.ombre.includes('-3px'), 'ombre de l\'accès actif : ' + actif.ombre);
+      assert.ok(actif.ombre.includes(m.primaire), `ombre de l'accès actif : ${actif.ombre} (couleur primaire attendue : ${m.primaire})`);
+    });
+    check(`${etiquette} : les quatre autres accès restent en 400, sans filet, et le fond de l'accès actif est inchangé`, () => {
+      const actif = m.acces.find(a => a.actif);
+      const autres = m.acces.filter(a => !a.actif);
+      assert.ok(actif, 'aucun accès actif');
+      assert.equal(autres.length, 4, 'accès non actifs : ' + autres.length);
+      assert.deepEqual(autres.map(a => a.graisse), Array(4).fill('400'), 'graisses des autres accès : ' + JSON.stringify(autres.map(a => a.graisse)));
+      assert.deepEqual(autres.map(a => a.ombre), Array(4).fill('none'), 'ombres des autres accès : ' + JSON.stringify(autres.map(a => a.ombre)));
+      assert.deepEqual(autres.map(a => a.fond), Array(4).fill(actif.fond), `fonds des autres accès : ${JSON.stringify(autres.map(a => a.fond))} (accès actif : ${actif.fond})`);
+    });
+  });
+  // Seuil de 768 px : la règle appartient au bloc ordinateur (min-width: 768px) et ne déborde pas sur le mobile (767 px, 375 px tactile).
+  const V = VARIANTES[0];
+  const seuils = [
+    { nom: '375 px (tactile)', device: MOBILE, bureau: false },
+    { nom: '767 px', device: { viewport: { width: 767, height: 800 } }, bureau: false },
+    { nom: '768 px', device: { viewport: { width: 768, height: 800 } }, bureau: true }
+  ];
+  const mesuresSeuils = await mapLimit(seuils, s => mesurerPage({ url: PLATEAU, html: fixture('plateau-minimal.html'), variante: V, device: s.device, mesure: MESURE_SECTIONS }));
+  seuils.forEach((s, i) => {
+    const m = mesuresSeuils[i];
+    check(`[${V}] plateau ${s.nom} : ${s.bureau ? 'l\'accès actif est en demi-gras (600) avec le filet de 3 px' : 'l\'accès actif garde l\'apparence des autres (400, sans ombre), mode mobile actif'}`, () => {
+      verifierSocle(m, V, { mobile: !s.bureau });
+      const actif = m.acces.find(a => a.actif);
+      assert.ok(actif, 'aucun accès actif');
+      if (s.bureau) {
+        assert.equal(actif.graisse, '600', 'graisse de l\'accès actif : ' + actif.graisse);
+        assert.ok(actif.ombre.includes('inset') && actif.ombre.includes('-3px'), 'ombre de l\'accès actif : ' + actif.ombre);
+      } else {
+        assert.equal(actif.graisse, '400', 'graisse de l\'accès actif : ' + actif.graisse);
+        assert.equal(actif.ombre, 'none', 'ombre de l\'accès actif : ' + actif.ombre);
+      }
+    });
+  });
+}
+
+if (on('icones')) {
+  const V = VARIANTES[0]; // les icônes ne dépendent pas du thème : une seule variante
+  console.log(`Icônes des cinq sections : accès rapides (1280 × 720) et onglets de section (375 × 667, tactile), variante ${V}`);
+  const [bureau, mobile] = await mapLimit([BUREAU, MOBILE], device => mesurerPage({ url: PLATEAU, html: fixture('plateau-minimal.html'), variante: V, device, mesure: MESURE_SECTIONS }));
+  check(`[${V}] plateau ordinateur : les accès rapides ont les icônes des cinq sections, dans l'ordre`, () => {
+    verifierSocle(bureau, V, { mobile: false });
+    const icones = bureau.acces.map(a => a.icone);
+    assert.deepEqual(icones, ICONES, 'icônes des accès rapides : ' + JSON.stringify(icones));
+  });
+  check(`[${V}] plateau mobile : les onglets de section ont les mêmes icônes, dans le même ordre`, () => {
+    verifierSocle(mobile, V);
+    assert.deepEqual(mobile.onglets, ICONES, 'icônes des onglets de section : ' + JSON.stringify(mobile.onglets));
   });
 }
 

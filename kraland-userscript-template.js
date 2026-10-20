@@ -1658,14 +1658,8 @@
      * Trouve les liens du menu navigation jeu
      */
     function findNavigationLinks() {
-      // Patterns à chercher avec icônes Font Awesome
-      const patterns = [
-        { pattern: '/jouer/plateau', href: '/jouer/plateau', label: 'Agir', icon: 'fa-bolt' },
-        { pattern: '/jouer/materiel', href: '/jouer/materiel', label: 'Matériel', icon: 'fa-cube' },
-        { pattern: '/jouer/perso', href: '/jouer/perso', label: 'Personnage', icon: 'fa-user' },
-        { pattern: '/jouer/bat', href: '/jouer/bat', label: 'Bâtiments', icon: 'fa-home' },
-        { pattern: '/jouer/pnj', href: '/jouer/pnj', label: 'Employés', icon: 'fa-users' }
-      ];
+      // Patterns à chercher avec icônes Font Awesome : les cinq sections du jeu, mêmes icônes que les accès rapides du bureau
+      const patterns = KR_GAME_SECTIONS.map(section => ({ pattern: section.url, href: section.url, label: section.label, icon: section.icon }));
 
       const links = [];
 
@@ -8257,23 +8251,18 @@
     // Vérifier si les boutons ont déjà été ajoutés
     if (panel.querySelector('.kr-quick-access-buttons')) {return;}
 
-    // Définir les boutons
-    const buttons = [
-      { label: 'Agir', url: '/jouer/plateau', icon: 'fa-map' },
-      { label: 'Matériel', url: '/jouer/materiel', icon: 'fa-box' },
-      { label: 'Personnage', url: '/jouer/perso', icon: 'fa-user' },
-      { label: 'Bâtiments', url: '/jouer/bat', icon: 'fa-building' },
-      { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
-    ];
-
     // Conteneur en grille CSS (2 colonnes, même gouttière que la grille d'actions) : plus de row/col imbriqués
     const container = document.createElement('div');
     container.className = 'kr-quick-access-buttons';
 
-    buttons.forEach(btn => {
+    // Un bouton par section du jeu ; celui de la page courante porte kr-quick-access-active (mis en valeur sur ordinateur)
+    const activeUrl = krActiveGameSection(location.pathname);
+
+    KR_GAME_SECTIONS.forEach(btn => {
       const link = document.createElement('a');
       link.href = btn.url;
       link.className = 'btn btn-default btn-block mini';
+      if (btn.url === activeUrl) {link.classList.add('kr-quick-access-active');}
 
       const icon = document.createElement('i');
       icon.className = `fa ${btn.icon}`;

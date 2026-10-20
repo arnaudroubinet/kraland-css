@@ -13023,6 +13023,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     text-align: center;
     white-space: normal;
   }
+
+  /* Section courante (H1.5) : demi-gras et filet de 3 px de la couleur primaire sous le bouton, fond inchangé */
+  .kr-quick-access-buttons a.kr-quick-access-active {
+    font-weight: 600;
+    box-shadow: inset 0 -3px 0 var(--kr-primary);
+  }
 }
 
 @media (min-width: 768px) and (pointer: coarse) {
