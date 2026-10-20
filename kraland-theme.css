@@ -9615,7 +9615,8 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   /* 5. BOUTON ENVOYER - Sticky footer */
 
-  /* Barre réservée aux pages de rédaction (kramail, forum) : ailleurs, un bouton de validation (« ok » de la recherche des Règles) reste à côté de son champ. */
+  /* Barre fixe : pages de rédaction du kramail et toutes les pages du forum (la branche forum garde le comportement d'avant le lot 1 jusqu'au lot 7, R4).
+     Ailleurs, un bouton de validation (« ok » de la recherche des Règles) reste à côté de son champ. */
   :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right {
     position: fixed !important;
     bottom: 0 !important;
