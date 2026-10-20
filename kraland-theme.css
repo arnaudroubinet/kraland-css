@@ -13472,7 +13472,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   /* Le bouton fixe « Remonter en haut » (z-index 1000, bas 8 px) se peignait aussi sur la fin de la barre « Envoyer » (56 px, pleine largeur) :
      33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
-  body:has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
+  body:where(.page-kramail-compose, .page-forum):has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
     bottom: 64px;
   }
 }

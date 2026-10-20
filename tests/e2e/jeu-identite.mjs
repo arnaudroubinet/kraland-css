@@ -3,8 +3,9 @@
 // aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (::before « → »,
 // ::after « sujets · ») ; sur l'index du forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE).
 // Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
-// bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ ; sur la rédaction d'un
-// Kramail, la barre « Envoyer » reste fixe (non-régression, retirée au lot 7 seulement).
+// bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
+// n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
+// haut » reste relevé à 64 px (non-régression, retirés au lot 7 seulement).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, forum-index-rp.html, regles-recherche.html), aucune donnée réelle, et la
 // fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html, servie à son URL de kramail-redaction.mjs) ; vrai Bootstrap 3.3.7
 // (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucun clic, aucune navigation.
@@ -119,15 +120,18 @@ const MESURE_INDEX = (ligneNative) => {
   };
 };
 // Bouton de validation (button.btn-primary.pull-right) du formulaire `formulaire` : nombre, libellé et position calculée (« fixed » = barre du
-// bas d'écran de la rédaction), avec le nombre de champs input.form-control du même formulaire (le champ auprès duquel il doit rester).
+// bas d'écran de la rédaction), avec le nombre de champs input.form-control du même formulaire (le champ auprès duquel il doit rester) et le
+// bas calculé du bouton « Remonter en haut » (8 px par défaut en mobile ; relevé à 64 px au-dessus de la barre fixe de la rédaction).
 const MESURE_BOUTON = formulaire => {
   const form = document.querySelector(formulaire);
   const boutons = form ? [...form.querySelectorAll('button.btn-primary.pull-right')] : [];
+  const remonter = document.querySelector('.kraland-back-to-top');
   return {
     champs: form ? form.querySelectorAll('input.form-control').length : 0,
     boutons: boutons.length,
     libelle: boutons.length ? boutons[0].textContent.trim() : null,
-    position: boutons.length ? getComputedStyle(boutons[0]).position : null
+    position: boutons.length ? getComputedStyle(boutons[0]).position : null,
+    remonter: remonter ? getComputedStyle(remonter).bottom : null
   };
 };
 
@@ -175,7 +179,7 @@ if (on('fuite-forum')) {
 }
 
 if (on('regles-ok')) {
-  console.log('Barre fixe « Envoyer » réservée aux pages de rédaction (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
+  console.log('Barre fixe « Envoyer » et relèvement de « Remonter en haut » réservés aux pages de rédaction (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
   const res = await mapLimit(VARIANTES, scenarioRegles);
   VARIANTES.forEach((v, i) => {
     const { regles, kramail } = res[i];
@@ -188,6 +192,9 @@ if (on('regles-ok')) {
     check(`[${v}] règles : le bouton « ok » n'est pas fixé`, () => {
       assert.notEqual(regles.position, 'fixed', 'bouton « ok » fixé en bas de l\'écran (position: fixed)');
     });
+    check(`[${v}] règles : « Remonter en haut » n'est pas relevé (bas : 8 px), aucune barre fixe à dégager`, () => {
+      assert.equal(regles.remonter, '8px', 'bouton « Remonter en haut » : bas = ' + regles.remonter);
+    });
     check(`[${v}] rédaction kramail : thème appliqué, mode mobile actif, page marquée page-kramail-compose, un bouton « Envoyer »`, () => {
       verifierSocle(kramail, v, { pageKramailCompose: true });
       assert.equal(kramail.boutons, 1, 'boutons button.btn-primary.pull-right du formulaire de rédaction : ' + kramail.boutons);
@@ -195,6 +202,9 @@ if (on('regles-ok')) {
     });
     check(`[${v}] rédaction kramail : la barre « Envoyer » reste fixe`, () => {
       assert.equal(kramail.position, 'fixed', 'barre « Envoyer » : position = ' + kramail.position);
+    });
+    check(`[${v}] rédaction kramail : « Remonter en haut » reste relevé au-dessus de la barre fixe (bas : 64 px)`, () => {
+      assert.equal(kramail.remonter, '64px', 'bouton « Remonter en haut » : bas = ' + kramail.remonter);
     });
   });
 }
