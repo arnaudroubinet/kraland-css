@@ -278,6 +278,41 @@
   }
   // @kr-pure-end
 
+  // @kr-pure-begin identite
+  // Identité du personnage : sections du jeu, section active d'après le chemin, nom lu sur le libellé actif du plateau, du matériel
+  // ou des bâtiments. Ailleurs, le libellé actif n'est pas le nom du personnage (« Personnage », « Employés »).
+
+  /** Sections du jeu, dans l'ordre du menu : libellé, URL d'accès, icône Font Awesome. */
+  const KR_GAME_SECTIONS = [
+    { label: 'Agir', url: '/jouer/plateau', icon: 'fa-bolt' },
+    { label: 'Matériel', url: '/jouer/materiel', icon: 'fa-suitcase' },
+    { label: 'Personnage', url: '/jouer/perso', icon: 'fa-user' },
+    { label: 'Bâtiments', url: '/jouer/bat', icon: 'fa-home' },
+    { label: 'Employés', url: '/jouer/pnj', icon: 'fa-users' }
+  ];
+
+  /** URL de la section dont le chemin est l'URL ou un sous-chemin (/jouer/plateau/…), sinon null. */
+  function krActiveGameSection(pathname) {
+    const hit = KR_GAME_SECTIONS.find(s => pathname === s.url || pathname.startsWith(s.url + '/'));
+    return hit ? hit.url : null;
+  }
+
+  /** Nom du personnage : libellé actif nettoyé, lu seulement sur plateau, matériel et bâtiments ; sinon null. */
+  function krCharacterNameFromPage(pathname, activeLabel) {
+    const section = krActiveGameSection(pathname);
+    const name = (activeLabel || '').trim();
+    if (!['/jouer/plateau', '/jouer/materiel', '/jouer/bat'].includes(section) || !name) {return null;}
+    return name;
+  }
+
+  /** Règle R1 : nom lu sur la page (à enregistrer s'il diffère du nom mémorisé), sinon nom mémorisé sans enregistrement. */
+  function krResolveCharacterName(pathname, activeLabel, storedName) {
+    const pageName = krCharacterNameFromPage(pathname, activeLabel);
+    if (pageName) {return { name: pageName, store: pageName !== storedName };}
+    return { name: storedName || null, store: false };
+  }
+  // @kr-pure-end
+
   // ============================================================================
   // PERFORMANCE LOGGING
   // ============================================================================
