@@ -1,7 +1,9 @@
 // Harmonisation UX, lot 1 : défauts de style et identité du personnage (décisions H1.1 à H1.6 et R1 de l'étude, EXPERIENCE.md).
 // Fragment fuite-forum (H1.1) : le décor mobile des listes de forum (« → … sujets · ») reste réservé aux pages du forum. Sur Personnage,
 // aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (::before « → »,
-// ::after « sujets · ») ; sur l'index du forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE).
+// ::after « sujets · ») ; sur l'index du forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE). La racine
+// du forum (/forum, qui liste tous les forums) n'est pas une page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux
+// modules de /forum/…), et son tableau natif, que le module des cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
 // Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
 // bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
 // n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
@@ -44,6 +46,7 @@ const PLATEAU = BASE + '/jouer/plateau';
 const PERSO = BASE + '/jouer/perso';
 const PNJ = BASE + '/jouer/pnj';
 const INDEX_FORUM = BASE + '/forum/rp';
+const RACINE_FORUM = BASE + '/forum'; // racine du forum : même tableau d'index (fixture forum-index-rp.html), mais hors « /forum/… »
 const REGLES = BASE + '/regles/base';
 const KRAMAIL_NOUVEAU = BASE + '/kramail/post/nouveau-4-2000'; // URL de la fixture dans kramail-redaction.mjs
 const VARIANTES = ['kraland', 'empire-brun-dark'];
@@ -114,6 +117,7 @@ const MESURE_SOCLE = () => ({
   variant: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')),
   mobile: document.body.classList.contains('mobile-mode'),
   pageForum: document.body.classList.contains('page-forum'),
+  pageForumRacine: document.body.classList.contains('page-forum-racine'),
   pageKramailCompose: document.body.classList.contains('page-kramail-compose')
 });
 const mesurer = async (page, mesure, arg) => ({ ...(await page.evaluate(MESURE_SOCLE)), ...(await page.evaluate(mesure, arg)) });
@@ -124,10 +128,11 @@ async function mesurerPage({ url, html, variante, device = MOBILE, memoire, mesu
   await context.close();
   return { ...m, erreurs };
 }
-function verifierSocle(m, variante, { mobile = true, pageForum = false, pageKramailCompose = false } = {}) {
+function verifierSocle(m, variante, { mobile = true, pageForum = false, pageForumRacine = false, pageKramailCompose = false } = {}) {
   assert.equal(m.variant, 'kr-theme-variant-' + variante);
   assert.equal(m.mobile, mobile, mobile ? 'body sans mobile-mode' : 'body marqué mobile-mode');
   assert.equal(m.pageForum, pageForum, pageForum ? 'body sans page-forum' : 'body marqué page-forum');
+  assert.equal(m.pageForumRacine, pageForumRacine, pageForumRacine ? 'body sans page-forum-racine' : 'body marqué page-forum-racine');
   assert.equal(m.pageKramailCompose, pageKramailCompose, pageKramailCompose ? 'body sans page-kramail-compose' : 'body marqué page-kramail-compose');
 }
 
@@ -148,8 +153,12 @@ const MESURE_PERSO = () => {
     fuites
   };
 };
+// Index des forums : affichage calculé de la première ligne visible du tableau (null s'il est masqué, comme sous /forum/<catégorie> où le module
+// des cartes le remplace), nombre de conteneurs de cartes, et décor mesuré sur la ligne native `ligneNative` remise le temps de la mesure.
 const MESURE_INDEX = (ligneNative) => {
   const tbody = document.querySelector('#col-right .panel-default .table > tbody');
+  const premiere = [...tbody.rows].find(tr => tr.getClientRects().length > 0);
+  const affichage = premiere ? getComputedStyle(premiere).display : null;
   tbody.insertAdjacentHTML('beforeend', ligneNative);
   const sonde = tbody.lastElementChild;
   const decor = {
@@ -159,6 +168,8 @@ const MESURE_INDEX = (ligneNative) => {
   sonde.remove();
   return {
     lignes: tbody.rows.length,
+    affichage,
+    cartes: document.querySelectorAll('.forums-cards-container').length,
     decor
   };
 };
@@ -223,7 +234,8 @@ const MESURE_SECTIONS = () => {
 async function scenario(variante) {
   const perso = await mesurerPage({ url: PERSO, html: fixture('jeu-perso.html'), variante, mesure: MESURE_PERSO });
   const index = await mesurerPage({ url: INDEX_FORUM, html: fixture('forum-index-rp.html'), variante, mesure: MESURE_INDEX, arg: LIGNE_NATIVE });
-  return { perso, index };
+  const racine = await mesurerPage({ url: RACINE_FORUM, html: fixture('forum-index-rp.html'), variante, mesure: MESURE_INDEX, arg: LIGNE_NATIVE });
+  return { perso, index, racine };
 }
 
 async function scenarioRegles(variante) {
@@ -236,7 +248,7 @@ if (on('fuite-forum')) {
   console.log('Fuite du décor des listes de forum (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
   const res = await mapLimit(VARIANTES, scenario);
   VARIANTES.forEach((v, i) => {
-    const { perso, index } = res[i];
+    const { perso, index, racine } = res[i];
     check(`[${v}] perso : thème appliqué, mode mobile actif, page hors forum, panneaux Citoyenneté (2 cellules par ligne) et Maladies (1 par ligne)`, () => {
       verifierSocle(perso, v);
       assert.deepEqual(perso.panneaux, PANNEAUX_PERSO, 'panneaux mesurés : ' + JSON.stringify(perso.panneaux));
@@ -251,6 +263,18 @@ if (on('fuite-forum')) {
     check(`[${v}] index du forum : le décor reste (« sujets » après la 2e cellule, « → » avant la dernière, sur une ligne native)`, () => {
       assert.ok(index.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + index.decor.sujets);
       assert.ok(index.decor.fleche.includes('→'), 'td:last-child::before = ' + index.decor.fleche);
+    });
+    check(`[${v}] racine du forum : thème appliqué, mode mobile actif, page marquée page-forum-racine (et non page-forum), tableau natif affiché sans carte, 2 lignes`, () => {
+      verifierSocle(racine, v, { pageForumRacine: true });
+      assert.equal(racine.cartes, 0, 'conteneurs de cartes à la racine : ' + racine.cartes);
+      assert.equal(racine.lignes, 2);
+    });
+    check(`[${v}] racine du forum : la première ligne visible du tableau des forums est une carte (display: grid)`, () => {
+      assert.equal(racine.affichage, 'grid', 'affichage de la 1re ligne visible : ' + racine.affichage);
+    });
+    check(`[${v}] racine du forum : le décor reste (« sujets » après la 2e cellule, « → » avant la dernière, sur une ligne native)`, () => {
+      assert.ok(racine.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + racine.decor.sujets);
+      assert.ok(racine.decor.fleche.includes('→'), 'td:last-child::before = ' + racine.decor.fleche);
     });
   });
 }

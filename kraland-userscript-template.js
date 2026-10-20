@@ -852,6 +852,9 @@
         }
       } else if (path.startsWith('/forum/')) {
         document.body.classList.add('page-forum');
+      } else if (path === '/forum') {
+        // Racine du forum (liste de tous les forums) : page-forum-racine seule, page-forum activerait tous les modules de /forum/…
+        document.body.classList.add('page-forum-racine');
       } else if (path === '/' || path === '/accueil') {
         document.body.classList.add('page-accueil');
       } else if (path.startsWith('/monde/evenements')) {
