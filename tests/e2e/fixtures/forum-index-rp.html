@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture index du forum RP (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de l'index du forum (/forum/rp) : aucune donnée réelle. Table native de l'index : première cellule (titre, description,
+       modérateurs), deux cellules de compteurs (td.center), dernière cellule (auteur du dernier message et boutons du lien vers ce message). -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/forum">Forum</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-right" class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">Jeu (RP)</h3></div>
+          <table class="table">
+            <thead>
+              <tr><th>Forum</th><th class="center">Sujets</th><th class="center">Messages</th><th>Dernier message</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <p class="nomargin"><a href="forum/rp/taverne-10101">Taverne</a></p>
+                  <p class="nomargin tagforum">Description du forum d'essai, premier forum.</p>
+                  <span class="tagforum"><span class="lefticon"><i class="fa fa-user"></i></span> <a href="communaute/membres/modo-1-1">Modo</a></span>
+                </td>
+                <td class="center">12</td>
+                <td class="center">345</td>
+                <td>
+                  <a href="communaute/membres/aestus-1-1">Aestus</a>
+                  <span class="btn-group btn-group-xs"><a class="btn btn-default" href="forum/sujet/dernier-1-1#msg1"><i class="glyphicon glyphicon-arrow-right"></i></a></span>
+                  Hier (13:20)
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p class="nomargin"><a href="forum/rp/marche-10102">Marché</a></p>
+                  <p class="nomargin tagforum">Description du forum d'essai, second forum.</p>
+                  <span class="tagforum"><span class="lefticon"><i class="fa fa-user"></i></span> <a href="communaute/membres/modo-2-1">Modo Deux</a></span>
+                </td>
+                <td class="center">7</td>
+                <td class="center">89</td>
+                <td>
+                  <a href="communaute/membres/aestus-1-1">Aestus</a>
+                  <span class="btn-group btn-group-xs"><a class="btn btn-default" href="forum/sujet/dernier-2-1#msg2"><i class="glyphicon glyphicon-arrow-right"></i></a></span>
+                  Aujourd'hui (09:05)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

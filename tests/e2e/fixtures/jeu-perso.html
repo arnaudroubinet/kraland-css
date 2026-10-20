@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture Personnage (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la page Personnage (/jouer/perso) : aucune donnée réelle. Colonne gauche reprise de plateau-minimal.html
+       (liste de section « Personnage », panneau du joueur) ; colonne droite : panneau « Citoyenneté » (lignes à deux cellules : icône, valeur)
+       et panneau « Maladies » (lignes à une seule cellule : texte court). -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/kramail">Kramail</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-leftest" class="col-md-1">
+        <div id="col-leftest-stats" class="panel panel-body"><div class="btn-group-xs"><a class="btn btn-default mini" href="#">3</a></div></div>
+      </div>
+      <div id="col-left" class="col-md-3 sidebar">
+        <div id="player-header-section" class="list-group">
+          <span class="list-group-item active">Personnage</span>
+          <div id="player-main-panel" class="panel panel-body">
+            <div class="t row">1 PV</div>
+          </div>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-8">
+        <div class="container-fluid">
+          <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title">Citoyenneté</h3></div>
+            <table class="table">
+              <tbody>
+                <tr><td><i class="fa fa-flag"></i></td><td>Empire Brun</td></tr>
+                <tr><td><i class="fa fa-home"></i></td><td>Ville d'essai</td></tr>
+                <tr><td><i class="fa fa-id-card"></i></td><td>Citoyen</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title">Maladies</h3></div>
+            <table class="table">
+              <tbody>
+                <tr><td>2 Stress d'essai</td></tr>
+                <tr><td>1 Fatigue d'essai</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer><div class="container white"><a href="#top" class="well well-sm"><i class="glyphicon glyphicon-chevron-up"></i></a></div></footer>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

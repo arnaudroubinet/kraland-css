@@ -41,7 +41,9 @@ export const SUITES = [
   // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
   { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] },
   // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A), 16 variantes en fenêtre 600 et en onglet 1280, portée limitée à /report.
-  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['fenetre'], ['bureau'], ['portee']], needsBootstrap: true }
+  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['fenetre'], ['bureau'], ['portee']], needsBootstrap: true },
+  // Harmonisation UX, lot 1 (défauts de style et identité du personnage) : fixtures synthétiques de Personnage et de l'index du forum, mobile 375 × 667.
+  { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil'], frags: [['fuite-forum']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
