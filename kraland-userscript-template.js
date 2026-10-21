@@ -859,6 +859,8 @@
         document.body.classList.add('page-accueil');
       } else if (path.startsWith('/monde/evenements')) {
         document.body.classList.add('page-evenements');
+      } else if (path === '/map' || path.startsWith('/map/')) {
+        document.body.classList.add('page-cybermonde');
       }
     }
     if (document.readyState === 'loading') {
@@ -942,6 +944,57 @@
         toggle.focus();
       }
     });
+  })();
+
+  // ============================================================================
+  // CYBERMONDE : CARTE CENTRÉE (ORDINATEUR) ET CADRE DÉFILANT (MOBILE)
+  // ============================================================================
+  // Monde (/map) : div absolu (left:200px; top:120px en ligne) qui contient img[usemap]. Région (/map/province/…, /map/ville/…) : boîte
+  // relative de 678 px en ligne qui contient tuiles, chemins et un div absolu avec img[usemap] de 1017 px qui la déborde. Le module marque
+  // l'élément (kr-cybermonde-monde / kr-cybermonde-region) et donne à la boîte de région l'étendue réelle de son contenu (variables CSS) ;
+  // la feuille de style centre (ordinateur) ou en fait un cadre défilant (mobile), ouvert ici au milieu. Image, <map> et <area> intactes.
+  (function () {
+    function initCybermondeMap() {
+      if (!document.body.classList.contains('page-cybermonde')) {return;}
+      const img = document.querySelector('img[usemap]');
+      if (!img) {return;}
+      const region = img.closest('div[style*="width:678px"], div[style*="width: 678px"]');
+      const monde = !region && img.parentElement.style.position === 'absolute' && img.parentElement.parentElement === document.body ? img.parentElement : null;
+      const carte = region || monde;
+      if (!carte) {return;}
+      carte.classList.add('kr-cybermonde-carte', region ? 'kr-cybermonde-region' : 'kr-cybermonde-monde');
+
+      function mesurer() {
+        if (region) {
+          let droite = 0;
+          let bas = 0;
+          Array.prototype.forEach.call(region.children, function (el) {
+            droite = Math.max(droite, el.offsetLeft + el.offsetWidth);
+            bas = Math.max(bas, el.offsetTop + el.offsetHeight);
+          });
+          region.style.setProperty('--kr-cybermonde-largeur', droite + 'px');
+          region.style.setProperty('--kr-cybermonde-hauteur', bas + 'px');
+        }
+        // Sans effet hors du cadre défilant (ordinateur)
+        carte.scrollLeft = (carte.scrollWidth - carte.clientWidth) / 2;
+      }
+
+      // Mesure après l'image (taille inconnue avant son chargement sans attributs width/height) et le style appliqué
+      const release = InitQueue.hold('Cybermonde:Carte');
+      function lancer() {
+        requestAnimationFrame(function () {
+          try { mesurer(); } finally { release(); }
+        });
+      }
+      if (img.complete) {
+        lancer();
+      } else {
+        img.addEventListener('load', lancer, { once: true });
+        img.addEventListener('error', lancer, { once: true });
+      }
+    }
+
+    InitQueue.register('Cybermonde:Carte', initCybermondeMap, 90);
   })();
 
   // ============================================================================

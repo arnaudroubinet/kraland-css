@@ -23,8 +23,8 @@ Dans la fenêtre Cybermonde (`/map`, `/map/…`), la carte du monde et la carte 
    **Given** la fenêtre Cybermonde à 768, 769, 1280, 1440 et 1920 px, carte du monde puis carte d'une ville
    **When** la page est affichée
    **Then** les marges gauche et droite de la carte dans son conteneur diffèrent d'au plus 2 px
-   **And** la largeur affichée de la carte est sa largeur naturelle (625 px pour la carte du monde)
-   **And** le document ne défile pas horizontalement
+   **And** la largeur affichée de la carte est sa largeur naturelle (625 px pour la carte du monde, 1017 px pour une région)
+   **And** le document ne défile pas horizontalement, sauf pour une région plus large que la fenêtre (768 à 1016 px) : elle reste à taille réelle et la page défile en largeur
 2. **Cadre défilant sur mobile**
    **Given** la fenêtre Cybermonde à 320, 375 et 767 px, carte du monde (625 × 530) puis carte d'une ville
    **When** la page est affichée
@@ -54,7 +54,8 @@ Dans la fenêtre Cybermonde (`/map`, `/map/…`), la carte du monde et la carte 
 
 - Decision: sur mobile, cadre défilant à taille réelle, et non carte réduite à la largeur ni aperçu avec plein écran (Arnaud, 2026-10-21).
 - Decision: sur ordinateur, la carte est centrée (Arnaud, 2026-10-21).
-- Constat du 2026-10-21 (site réel) : la carte du monde (`map2.png`, 625 × 530, 25 zones polygonales en pixels de l'image) est en position absolue à 200 px du bord gauche ; sur mobile, la page fait 825 px de large pour 375 px d'écran. La carte d'une ville (image isométrique encadrée, environ 650 px) est collée à gauche sur ordinateur.
+- Decision: entre 768 et 1016 px, une carte de région plus large que la fenêtre reste à taille réelle et la page défile en largeur, sans cadre (Arnaud, 2026-10-21).
+- Constat du 2026-10-21 (site réel) : la carte du monde (`map2.png`, 625 × 530, 25 zones polygonales en pixels de l'image) est en position absolue à 200 px du bord gauche ; sur mobile, la page fait 825 px de large pour 375 px d'écran. Correction du 2026-10-21 : la carte d'une province ou d'une ville est faite de tuiles (`div#cX-Y`, 54 × 54) et d'une image transparente à zones (1017 × 549, 545 zones) dans une boîte de 678 px de large qu'elles débordent ; elle est collée à gauche sur ordinateur et fait 1017 px de document sur mobile.
 - Assumption: le titre de la ville à 16 px du bord sur mobile (H10.1) reste à l'épopée 9.
 - Assumption: le cadre mobile n'ajoute ni bordure ni fond ; la carte garde son cadre natif. Aucune règle de couleur, donc pas de vérification des 16 variantes.
 - Open question: la carte du monde, en position absolue, réserve-t-elle sa place dans le flux ? À relever au début du travail ; un décalage vertical des panneaux est admis (critère 4).

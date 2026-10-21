@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Cybermonde, carte du monde, chemin servi /map.
+  Forme reprise du constat du 2026-10-21 (ticket story-carte-cybermonde-centree-et-defilante) : div enfant de <body> en position absolue
+  (style en ligne left:200px; top:120px) qui contient l'image de la carte (625 × 530, img[usemap]) et sa <map> de 25 zones, puis une série
+  de <br> qui lui réserve la place dans le flux. Écarts assumés : image générée par la suite (aplat, servie à une URL de fixture), zones
+  rectangulaires en grille 5 × 5 (polygones sur le site), noms et destinations inventés, aucun script de la page native.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Cybermonde monde</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><a class="navbar-brand" href="map/cybermonde">Cybermonde</a></div></nav>
+<div class="center"><ul class="pagination"><li><a href="map">Province</a></li><li><a><select id="sel-province" onchange="void 0"><option>Province A</option><option>Province B</option></select></a></li><li><a href="map">Travail</a></li></ul></div>
+<div style="position:absolute; left:200px; top:120px"><img src="http://img7.kraland.org/2/fixture/map2.png" usemap="#map2" border="0" alt="Carte du monde">
+<map name="map2">
+  <area shape="rect" coords="0,0,124,105" href="map/province/fixture-1" alt="Province 1">
+  <area shape="rect" coords="125,0,249,105" href="map/province/fixture-2" alt="Province 2">
+  <area shape="rect" coords="250,0,374,105" href="map/province/fixture-3" alt="Province 3">
+  <area shape="rect" coords="375,0,499,105" href="map/province/fixture-4" alt="Province 4">
+  <area shape="rect" coords="500,0,624,105" href="map/province/fixture-5" alt="Province 5">
+  <area shape="rect" coords="0,106,124,211" href="map/province/fixture-6" alt="Province 6">
+  <area shape="rect" coords="125,106,249,211" href="map/province/fixture-7" alt="Province 7">
+  <area shape="rect" coords="250,106,374,211" href="map/province/fixture-8" alt="Province 8">
+  <area shape="rect" coords="375,106,499,211" href="map/province/fixture-9" alt="Province 9">
+  <area shape="rect" coords="500,106,624,211" href="map/province/fixture-10" alt="Province 10">
+  <area shape="rect" coords="0,212,124,317" href="map/province/fixture-11" alt="Province 11">
+  <area shape="rect" coords="125,212,249,317" href="map/province/fixture-12" alt="Province 12">
+  <area shape="rect" coords="250,212,374,317" href="map/province/fixture-13" alt="Province 13">
+  <area shape="rect" coords="375,212,499,317" href="map/province/fixture-14" alt="Province 14">
+  <area shape="rect" coords="500,212,624,317" href="map/province/fixture-15" alt="Province 15">
+  <area shape="rect" coords="0,318,124,423" href="map/province/fixture-16" alt="Province 16">
+  <area shape="rect" coords="125,318,249,423" href="map/province/fixture-17" alt="Province 17">
+  <area shape="rect" coords="250,318,374,423" href="map/province/fixture-18" alt="Province 18">
+  <area shape="rect" coords="375,318,499,423" href="map/province/fixture-19" alt="Province 19">
+  <area shape="rect" coords="500,318,624,423" href="map/province/fixture-20" alt="Province 20">
+  <area shape="rect" coords="0,424,124,529" href="map/province/fixture-21" alt="Province 21">
+  <area shape="rect" coords="125,424,249,529" href="map/province/fixture-22" alt="Province 22">
+  <area shape="rect" coords="250,424,374,529" href="map/province/fixture-23" alt="Province 23">
+  <area shape="rect" coords="375,424,499,529" href="map/province/fixture-24" alt="Province 24">
+  <area shape="rect" coords="500,424,624,529" href="map/province/fixture-25" alt="Province 25">
+</map></div>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<div id="content" class="container">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Information</h3></div>
+        <div class="panel-body"><table class="table nomargin"><tbody><tr><td>Provinces</td><td>25</td></tr><tr><td>Capitale</td><td><a href="map/ville/fixture-capitale">Capitale de Fixture</a></td></tr></tbody></table></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Fonctionnaires</h3></div>
+        <div class="panel-body"><table class="table nomargin"><tbody><tr><td><i class="fa fa-user"></i></td><td>Empereur</td><td><a href="communaute/membres/fixture-1">Alpha Fixture</a></td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+</body>
+</html>

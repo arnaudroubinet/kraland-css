@@ -43,7 +43,10 @@ export const SUITES = [
   // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A), 16 variantes en fenêtre 600 et en onglet 1280, portée limitée à /report.
   { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['fenetre'], ['bureau'], ['portee']], needsBootstrap: true },
   // Harmonisation UX, lot 1 (défauts de style et identité du personnage) : fixtures synthétiques du plateau, de Personnage, de l'index du forum et des Règles (et rédaction Kramail), mobile 375 × 667 (titre du panneau et accès rapides : ordinateur 1280 × 720) ; fixture reconstruite de Cybermonde, 320 à 1280 px (hors-forum-js).
-  { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] }
+  { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
+  // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),
+  // zones cliquables intactes, panneaux comparés au bundle « avant » ; fixtures synthétiques cybermonde-monde.html et cybermonde-region.html.
+  { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -100,6 +103,7 @@ export const KEYWORDS = [
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
   [/kramail|post_msg|\.kd-|kd-natif|btn-toolbar|Destinataires/i, ['kramail']],
   [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic|forum-thread-action-new/i, ['sous-forum']],
+  [/cybermonde/i, ['cybermonde']],
   [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, ['images']],
   [/croix|dpad|directionnel|d-pad/i, ['croix']],
   [/mini-profil|mobile-mini-profile|profil/i, ['profil']],
@@ -117,7 +121,8 @@ export const SECTIONS = [
   [/^MODULE : (ForumThread|Messages):/, ['forum', 'messages']],
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']],
-  [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']]
+  [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],
+  [/^CYBERMONDE/, ['cybermonde']]
 ];
 // Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
 // qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc

@@ -3630,6 +3630,46 @@ body > map {
   display: none;
 }
 
+/* ============================================================================
+   CYBERMONDE : carte centrée (ordinateur), cadre défilant (mobile)
+   Classes et variables posées par le module Cybermonde:Carte ; image, <map> et <area> intactes.
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  /* Monde : le div absolu (left:200px en ligne) est centré dans la largeur du document */
+  :where(body.page-cybermonde) .kr-cybermonde-monde {
+    left: 50% !important;
+    width: max-content !important;
+    transform: translateX(-50%);
+  }
+
+  /* Région : la boîte (678 px en ligne) prend la largeur réelle de son contenu et se centre ;
+     plus large que la fenêtre, elle reste calée à gauche et la page défile en largeur */
+  :where(body.page-cybermonde) .kr-cybermonde-region {
+    width: var(--kr-cybermonde-largeur, 678px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Carte à taille réelle dans un cadre pleine largeur qui défile en largeur, sans bordure ni fond ;
+     plus étroite que le cadre (monde à 767 px), elle y est centrée */
+  :where(body.page-cybermonde) .kr-cybermonde-monde {
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    overflow: auto hidden;
+    text-align: center;
+  }
+
+  :where(body.page-cybermonde) .kr-cybermonde-region {
+    width: 100% !important;
+    height: var(--kr-cybermonde-hauteur, 522px) !important;
+    overflow: auto;
+  }
+}
+
 /* Nav map mobile : éviter le chevauchement des onglets Province/Ville */
 @media (max-width: 767px) {
   .center > ul.pagination:has(select) {
