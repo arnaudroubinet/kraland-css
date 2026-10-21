@@ -96,3 +96,5 @@ Passe quick du 2026-10-21 : 2 medium, 3 low, 1 false, 1 low rejeté.
 - low, rejet — pas de recentrage après rotation sous 768 px : rare, le critère porte sur l'ouverture, la correction ajouterait un écouteur.
 
 Vérification après correctifs : suite `cybermonde-carte` 116 ok ; `test:router` conforme ; `lint:css`, `lint:js` 0 erreur ; `test:all` 4212 ok, 0 FAIL.
+
+Validation sur le site réel (2026-10-21) : carte du monde à 375 px en Kraland clair ouverte à 0 au lieu du milieu (centrage unique calculé avant l'application du CSS par le chargeur de développement). Correctif : recentrage par ResizeObserver tant que le joueur n'a pas fait défiler le cadre ; fragment `recentrage` (contre-épreuves : 2 FAIL sans l'observateur, 2 FAIL sans l'arrêt après action du joueur). Recontrôle réel : 8 ouvertures sur 8 au milieu (monde 125/250, province 321/642, deux variantes).

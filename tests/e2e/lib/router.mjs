@@ -46,7 +46,7 @@ export const SUITES = [
   { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
   // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),
   // zones cliquables intactes, panneaux comparés au bundle « avant » ; fixtures synthétiques cybermonde-monde.html et cybermonde-region.html.
-  { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte']], needsBootstrap: true }
+  { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte'], ['recentrage']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

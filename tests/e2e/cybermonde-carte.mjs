@@ -17,11 +17,14 @@
 // carte (cybermonde-ville.html) aussi, sans exception.
 // Fragment sans-carte : page /map sans img[usemap], page /maps (hors Cybermonde) et ville dont la boîte n'a pas width:678px (non reconnue) :
 // aucune exception, aucune classe kr-cybermonde-*, et sur /maps comme sur la ville la carte garde sa position native.
+// Fragment recentrage : cadre mobile ouvert à 375 px puis fenêtre réduite à 320 px (toujours mobile, sans rechargement) : le cadre est
+// recentré (scrollLeft = (scrollWidth - clientWidth) / 2 à 1 px près) ; après un défilement du joueur (pointerdown puis scrollLeft = 0), la
+// même réduction ne le recentre plus. Monde et ville.
 // Pages = FIXTURES SYNTHÉTIQUES, images générées ici ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; confinement réseau (lib/confinement.mjs).
 // Seules navigations : vers les destinations des zones touchées, servies par une page vide interceptée.
 //
 // Usage : npm run build && node tests/e2e/cybermonde-carte.mjs   (ou : npm run test:zone -- cybermonde)
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_FRAG = monde, region, zones, panneaux, sans-carte (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_FRAG = monde, region, zones, panneaux, sans-carte, recentrage (vide = tout).
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
@@ -352,6 +355,53 @@ if (on('sans-carte')) {
       assert.equal(m.pageCybermonde, c.cyber);
       if (!c.cyber) { assert.equal(m.gauche, '200px'); }
       if (c.natif) { assert.equal(m.gauche, '0px'); assert.equal(m.transformation, 'none'); }
+    });
+  });
+}
+
+// Cadre défilant de la carte (plus proche ancêtre de l'image en overflow-x auto/scroll) : position et milieu attendu
+const CADRE = () => {
+  let cadre = document.querySelector('img[usemap]').parentElement;
+  while (cadre && cadre !== document.body && !['auto', 'scroll'].includes(getComputedStyle(cadre).overflowX)) { cadre = cadre.parentElement; }
+  if (!cadre || cadre === document.body) { return null; }
+  return { scrollLeft: cadre.scrollLeft, milieu: (cadre.scrollWidth - cadre.clientWidth) / 2, mobile: document.body.classList.contains('mobile-mode') };
+};
+
+if (on('recentrage')) {
+  console.log('Recentrage du cadre mobile : 375 puis 320 px, sans puis après défilement du joueur, monde et ville');
+  const cas = ['monde', 'region'].flatMap(nom => [false, true].map(joueur => ({ nom, joueur })));
+  const res = await mapLimit(cas, async c => {
+    const carte = CARTES[c.nom];
+    const { context, page, erreurs } = await open(carte.url, carte.html, VARIANTES[0], device(375));
+    const avant = await page.evaluate(CADRE);
+    if (c.joueur) {
+      await page.evaluate(() => {
+        let cadre = document.querySelector('img[usemap]').parentElement;
+        while (!['auto', 'scroll'].includes(getComputedStyle(cadre).overflowX)) { cadre = cadre.parentElement; }
+        cadre.dispatchEvent(new window.PointerEvent('pointerdown', { bubbles: true }));
+        cadre.scrollLeft = 0;
+      });
+    }
+    await page.setViewportSize({ width: 320, height: 667 });
+    await waitState(page, () => window.innerWidth === 320, null, { maxMs: 5000 });
+    if (!c.joueur) {
+      await waitState(page, `(() => { const m = (${CADRE})(); return m && Math.abs(m.scrollLeft - m.milieu) <= 1; })()`, null, { maxMs: 3000 });
+    }
+    await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const apres = await page.evaluate(CADRE);
+    await context.close();
+    return { avant, apres, erreurs };
+  });
+  cas.forEach((c, i) => {
+    const m = res[i];
+    check(`${c.nom} 375 puis 320 px${c.joueur ? ' après défilement du joueur : le cadre reste où le joueur l\'a mis' : ' : le cadre est recentré'}`, () => {
+      assert.deepEqual(m.erreurs, []);
+      assert.ok(m.avant && m.apres && m.apres.mobile, 'cadre ou mode mobile absent');
+      if (c.joueur) {
+        assert.equal(m.apres.scrollLeft, 0, 'scrollLeft : ' + m.apres.scrollLeft);
+      } else {
+        assert.ok(Math.abs(m.apres.scrollLeft - m.apres.milieu) <= 1, `scrollLeft ${m.apres.scrollLeft}, attendu ${m.apres.milieu}`);
+      }
     });
   });
 }

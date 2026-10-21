@@ -975,8 +975,20 @@
           region.style.setProperty('--kr-cybermonde-largeur', droite + 'px');
           region.style.setProperty('--kr-cybermonde-hauteur', bas + 'px');
         }
-        // Sans effet hors du cadre défilant (ordinateur)
-        carte.scrollLeft = (carte.scrollWidth - carte.clientWidth) / 2;
+        centrer();
+      }
+
+      // Cadre ouvert au milieu ; sans effet hors du cadre défilant (ordinateur). Recentré quand la taille du cadre change (feuille de
+      // style appliquée après le script, fenêtre redimensionnée), jusqu'à ce que le joueur le fasse défiler lui-même.
+      let manuel = false;
+      function centrer() {
+        if (!manuel) { carte.scrollLeft = (carte.scrollWidth - carte.clientWidth) / 2; }
+      }
+      ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (type) {
+        carte.addEventListener(type, function () { manuel = true; }, { passive: true });
+      });
+      if (typeof window.ResizeObserver === 'function') {
+        new window.ResizeObserver(centrer).observe(carte);
       }
 
       // Mesure après l'image (taille inconnue avant son chargement sans attributs width/height) et le style appliqué
