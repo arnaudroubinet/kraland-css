@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <!--
   FIXTURE SYNTHÉTIQUE (pas une capture du site) : Cybermonde, carte du monde, chemin servi /map.
-  Forme reprise du constat du 2026-10-21 (ticket story-carte-cybermonde-centree-et-defilante) : div enfant de <body> en position absolue
-  (style en ligne left:200px; top:120px) qui contient l'image de la carte (625 × 530, img[usemap]) et sa <map> de 25 zones, puis une série
-  de <br> qui lui réserve la place dans le flux. Écarts assumés : image générée par la suite (aplat, servie à une URL de fixture), zones
-  rectangulaires en grille 5 × 5 (polygones sur le site), noms et destinations inventés, aucun script de la page native.
+  Ordre des enfants du body relevé sur /map le 2026-10-21 (ticket story-carte-cybermonde-centree-et-defilante) : nav.navbar, div.center
+  (sélecteurs), map (25 zones), div en position absolue (style en ligne position:absolute;left:200px;top:120px;) qui contient l'image de
+  la carte (625 × 530, img[usemap]), 26 br qui lui réservent la place dans le flux, div.genmsg, 3 scripts. Écarts assumés : image
+  générée par la suite (aplat, servie à une URL de fixture), zones rectangulaires en grille 5 × 5 (polygones sur le site), contenu de
+  div.genmsg inventé (deux panneaux, pour vérifier qu'ils ne bougent pas), noms et destinations inventés, scripts vides.
 -->
 <html lang="fr">
 <head>
@@ -16,8 +17,7 @@
 </head>
 <body>
 <nav class="navbar navbar-inverse nomargin"><div class="container"><a class="navbar-brand" href="map/cybermonde">Cybermonde</a></div></nav>
-<div class="center"><ul class="pagination"><li><a href="map">Province</a></li><li><a><select id="sel-province" onchange="void 0"><option>Province A</option><option>Province B</option></select></a></li><li><a href="map">Travail</a></li></ul></div>
-<div style="position:absolute; left:200px; top:120px"><img src="http://img7.kraland.org/2/fixture/map2.png" usemap="#map2" border="0" alt="Carte du monde">
+<div class="center"><ul class="pagination"><li><a href="map">Province</a></li><li><a><select id="sel-province" onchange="void 0"><option>Province A</option><option>Province B</option></select></a></li><li><a>Ville</a></li><li><a><select id="sel-ville" onchange="void 0"><option>Ville de Fixture</option><option>Ville Deux</option></select></a></li><li><a href="map">Travail</a></li></ul></div>
 <map name="map2">
   <area shape="rect" coords="0,0,124,105" href="map/province/fixture-1" alt="Province 1">
   <area shape="rect" coords="125,0,249,105" href="map/province/fixture-2" alt="Province 2">
@@ -44,9 +44,10 @@
   <area shape="rect" coords="250,424,374,529" href="map/province/fixture-23" alt="Province 23">
   <area shape="rect" coords="375,424,499,529" href="map/province/fixture-24" alt="Province 24">
   <area shape="rect" coords="500,424,624,529" href="map/province/fixture-25" alt="Province 25">
-</map></div>
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-<div id="content" class="container">
+</map>
+<div style="position:absolute;left:200px;top:120px;"><img src="http://img7.kraland.org/2/fixture/map2.png" usemap="#map2" border="0" alt="Carte du monde"></div>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<div class="genmsg"><div class="container">
   <div class="row">
     <div class="col-md-6">
       <div class="panel panel-default">
@@ -61,7 +62,9 @@
       </div>
     </div>
   </div>
-</div>
-<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+</div></div>
+<script></script>
+<script></script>
+<script></script>
 </body>
 </html>

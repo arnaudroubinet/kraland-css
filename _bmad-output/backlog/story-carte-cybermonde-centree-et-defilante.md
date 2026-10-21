@@ -35,7 +35,11 @@ Dans la fenêtre Cybermonde (`/map`, `/map/…`), la carte du monde et la carte 
    **Given** la carte du monde et ses 25 zones de province, et les liens de la carte d'une ville (flèches de sortie, bâtiments)
    **When** le joueur touche ou clique une zone ou un lien, sur mobile après défilement du cadre comme sur ordinateur
    **Then** la destination ouverte est celle de l'élément touché, comme sur le site natif
-4. **Rien d'autre ne bouge**
+4. **Sélecteurs visibles sur mobile**
+   **Given** la carte du monde à 320, 375 et 767 px
+   **When** la page est affichée
+   **Then** la carte commence sous les sélecteurs Province et Ville : aucun sélecteur n'est recouvert, et aucun grand vide ne les sépare de la carte
+5. **Rien d'autre ne bouge**
    **Given** les panneaux de la page (Information, Fonctionnaires, Bâtiments…) et les sélecteurs Province, Ville, Travail, en Kraland clair et Empire Brun sombre
    **When** la page est affichée sur les deux supports
    **Then** leur rendu est celui d'avant le ticket, à leur position verticale près si la carte reprend sa place dans le flux
@@ -54,6 +58,7 @@ Dans la fenêtre Cybermonde (`/map`, `/map/…`), la carte du monde et la carte 
 
 - Decision: sur mobile, cadre défilant à taille réelle, et non carte réduite à la largeur ni aperçu avec plein écran (Arnaud, 2026-10-21).
 - Decision: sur ordinateur, la carte est centrée (Arnaud, 2026-10-21).
+- Decision: sur mobile, la carte du monde ne recouvre plus le sélecteur Ville, défaut natif corrigé dans ce ticket (Arnaud, 2026-10-21).
 - Decision: entre 768 et 1016 px, une carte de région plus large que la fenêtre reste à taille réelle et la page défile en largeur, sans cadre (Arnaud, 2026-10-21).
 - Constat du 2026-10-21 (site réel) : la carte du monde (`map2.png`, 625 × 530, 25 zones polygonales en pixels de l'image) est en position absolue à 200 px du bord gauche ; sur mobile, la page fait 825 px de large pour 375 px d'écran. Correction du 2026-10-21 : la carte d'une province ou d'une ville est faite de tuiles (`div#cX-Y`, 54 × 54) et d'une image transparente à zones (1017 × 549, 545 zones) dans une boîte de 678 px de large qu'elles débordent ; elle est collée à gauche sur ordinateur et fait 1017 px de document sur mobile.
 - Assumption: le titre de la ville à 16 px du bord sur mobile (H10.1) reste à l'épopée 9.

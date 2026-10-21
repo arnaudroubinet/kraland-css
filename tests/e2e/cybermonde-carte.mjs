@@ -4,7 +4,9 @@
 // largeur du document, aucun défilement horizontal du document. Mobile, 320, 375 et 767 px : document sans défilement horizontal, image à sa
 // largeur naturelle dans un cadre pleine largeur qui défile en largeur (sans défilement vertical ni image rognée), ouvert au milieu
 // (scrollLeft = (scrollWidth - clientWidth) / 2 à 1 px près). À 767 px, la carte du monde (625 px) tient dans le cadre : rien à faire défiler,
-// elle y est centrée (marges égales à 2 px près).
+// elle y est centrée (marges égales à 2 px près). Mobile toujours (critère 4) : la carte du monde est dans le flux sous les sélecteurs
+// (body > div.center) : aucun sélecteur recouvert (elementFromPoint au centre de chaque select), écart ≤ 24 px, div.genmsg juste sous la carte (≤ 24 px : les <br> natifs
+// qui réservaient la place de la carte absolue sont masqués).
 // Fragment region (critères 1 et 2) : carte d'une ville (/map/ville/…, fixture cybermonde-region.html : boîte relative de 678 px en ligne,
 // tuiles et image à zones de 1017 × 549 qui la débordent). Ordinateur : image de 1017 px, centrée dans le parent de la boîte s'il la contient
 // (1280 à 1920 px, document sans défilement horizontal), sinon calée à gauche et le document défile en largeur (768 et 769 px, décision
@@ -135,7 +137,20 @@ const MESURE_CARTE = () => {
   while (cadre && cadre !== document.body && !['auto', 'scroll'].includes(getComputedStyle(cadre).overflowX)) { cadre = cadre.parentElement; }
   if (cadre === document.body) { cadre = null; }
   const c = cadre && cadre.getBoundingClientRect();
+  const centre = document.querySelector('body > div.center');
+  const genmsg = document.querySelector('body > div.genmsg');
   return {
+    selecteurs: centre && {
+      bas: centre.getBoundingClientRect().bottom,
+      genmsgHaut: genmsg ? genmsg.getBoundingClientRect().top : null,
+      couverts: [...centre.querySelectorAll('select')].filter(sel => {
+        const b = sel.getBoundingClientRect();
+        const el = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+        return !(el && (el === sel || sel.contains(el)));
+      }).map(sel => '#' + sel.id)
+    },
+    carteHaut: r.top,
+    carteBas: r.bottom,
     pageCybermonde: document.body.classList.contains('page-cybermonde'),
     mobile: document.body.classList.contains('mobile-mode'),
     largeur: r.width,
@@ -201,6 +216,17 @@ function verifierCarte(nom, carte, largeur, m) {
       assert.ok(m.cadre.scrollHeight <= m.cadre.clientHeight + 1, `défilement vertical : ${m.cadre.scrollHeight} pour ${m.cadre.clientHeight}`);
       assert.ok(m.cadre.imgHaut >= m.cadre.haut - 1 && m.cadre.tuilesBas <= m.cadre.bas + 1, `carte ${m.cadre.imgHaut}..${m.cadre.tuilesBas}, cadre ${m.cadre.haut}..${m.cadre.bas}`);
     });
+    if (nom === 'monde') {
+      check(`${nom} ${largeur} px : carte dans le flux sous les sélecteurs (aucun recouvert, écart ≤ 24 px), div.genmsg juste sous la carte (écart ≤ 24 px)`, () => {
+        const sel = m.selecteurs;
+        assert.ok(sel, 'body > div.center absent');
+        assert.deepEqual(sel.couverts, [], 'sélecteurs recouverts');
+        assert.ok(m.carteHaut >= sel.bas - 1, `haut de la carte ${m.carteHaut}, bas des sélecteurs ${sel.bas}`);
+        assert.ok(m.carteHaut - sel.bas <= 24, `écart sélecteurs / carte : ${m.carteHaut - sel.bas} px`);
+        assert.ok(sel.genmsgHaut !== null && sel.genmsgHaut >= m.carteBas - 1, `div.genmsg à ${sel.genmsgHaut}, bas de la carte ${m.carteBas}`);
+        assert.ok(sel.genmsgHaut - m.carteBas <= 24, `écart carte / div.genmsg : ${sel.genmsgHaut - m.carteBas} px (<br> natifs encore affichés ?)`);
+      });
+    }
     check(`${nom} ${largeur} px : cadre ouvert au milieu de la carte`, () => {
       const milieu = (m.cadre.scrollWidth - m.cadre.clientWidth) / 2;
       assert.ok(Math.abs(m.cadre.scrollLeft - milieu) <= 1, `scrollLeft ${m.cadre.scrollLeft}, attendu ${milieu}`);

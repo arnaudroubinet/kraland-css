@@ -3654,13 +3654,20 @@ body > map {
 
 @media (max-width: 767px) {
   /* Carte à taille réelle dans un cadre pleine largeur qui défile en largeur, sans bordure ni fond ;
-     plus étroite que le cadre (monde à 767 px), elle y est centrée */
+     plus étroite que le cadre (monde à 767 px), elle y est centrée.
+     Monde : dans le flux, juste sous les sélecteurs (à top:120px en ligne, elle recouvrait le sélecteur Ville) ;
+     les <br> natifs qui lui réservaient la place sont masqués */
   :where(body.page-cybermonde) .kr-cybermonde-monde {
+    position: relative !important;
+    top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    width: auto !important;
+    width: 100% !important;
     overflow: auto hidden;
     text-align: center;
+  }
+
+  :where(body.page-cybermonde) .kr-cybermonde-monde ~ br {
+    display: none;
   }
 
   :where(body.page-cybermonde) .kr-cybermonde-region {
