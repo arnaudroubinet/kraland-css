@@ -3,7 +3,7 @@ title: 'La carte de Cybermonde est centrée sur ordinateur et défile dans un ca
 type: 'feature'
 ticket: 'story-carte-cybermonde-centree-et-defilante'
 created: '2026-10-21'
-status: 'built'
+status: done
 baseline_revision: '7a6370592da2179bc575931eb82e280f773913c3'
 route: 'full'
 route_source: 'auto'
@@ -102,3 +102,5 @@ Vérification après correctifs : suite `cybermonde-carte` 116 ok ; `test:router
 Validation sur le site réel (2026-10-21) : carte du monde à 375 px en Kraland clair ouverte à 0 au lieu du milieu (centrage unique calculé avant l'application du CSS par le chargeur de développement). Correctif : recentrage par ResizeObserver tant que le joueur n'a pas fait défiler le cadre ; fragment `recentrage` (contre-épreuves : 2 FAIL sans l'observateur, 2 FAIL sans l'arrêt après action du joueur). Recontrôle réel : 8 ouvertures sur 8 au milieu (monde 125/250, province 321/642, deux variantes).
 
 Critère 4 (2026-10-21, décision d'Arnaud) : sur mobile, la carte du monde passe dans le flux sous `div.center` et les 26 `<br>` natifs qui la suivent sont masqués. Contre-épreuves : 3 FAIL sans `position: relative`, 3 FAIL sans le masquage des `<br>` (vide de 520 px sous la carte). Recontrôle réel à 320, 375 et 767 px, deux variantes : 0 sélecteur recouvert, écart 0 px au-dessus et au-dessous, cadre ouvert au milieu ; 1280 px inchangé (la carte chevauche de 19 px le bas du bloc des sélecteurs, sans en recouvrir aucun, comme avant).
+
+Validé par Arnaud le 2026-10-21 sur les captures du site réel (`.tmp/captures/validation-carte-cybermonde/`, hors git).
