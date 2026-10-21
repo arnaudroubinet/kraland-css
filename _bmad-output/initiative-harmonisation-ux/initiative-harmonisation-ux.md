@@ -44,4 +44,6 @@ Une seule unité : la surcharge (`kraland-theme.css`, `kraland-userscript-templa
 - Assumption: P1 est un ticket hitl de l'épopée 1 (note d'options écrite après le lot 1) ; P2 est le premier ticket hitl de l'épopée 2, qui en a besoin la première.
 - Assumption: l'épopée 7 passe après la 6 (« ••• » commun posé par la 6, « Envoyer » du forum laissé à la 7) ; l'épopée 9 passe en dernier (marge de 16 px et cibles de 44 px touchent forum, kramail et notifications).
 - Assumption: l'utilitaire de vérification des 16 variantes appartient à l'épopée 3.
+- Decision: P1 tranché, option 4 « retirer par domaine » : chaque épopée retire ou réécrit les règles anciennes du domaine qu'elle reprend et garde par page (`:where(html.kr-page-x)`) ce qu'elle conserve ; note : epic-identite-et-defauts/note-options-cascade-p1.md (Arnaud, 2026-10-21).
+- Assumption: règle commune aux deux supports en liste combinée `@media (max-width: 767px), (min-width: 768px)`.
 - Waits on: voir `tickets.toml`.

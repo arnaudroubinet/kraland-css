@@ -55,7 +55,7 @@ La surcharge s'est construite page par page : un même élément change d'aspect
 ## Constraints
 
 - Le code du lot 1 sur `feature/next` (`948d93f..5bf2984`) est la base des lots suivants ; pour H1.1, sa garde `:where(.page-forum, .page-forum-racine)` est retenue, et non la classe `kr-no-forum-tables` du ticket 1 de `bmad/ux-lot8` (décision d'Arnaud, 2026-10-20).
-- P1 : Arnaud décide la stratégie de cascade, sur une note d'options écrite après le lot 1, avant CAP-4, CAP-5, CAP-6 et CAP-10.
+- P1 (tranché le 2026-10-21) : chaque épopée retire ou réécrit les règles anciennes du domaine qu'elle reprend et garde par page, en `:where(html.kr-page-x)`, ce qu'elle conserve (option 4 de la note d'options de cascade).
 - P2 : les vérifications sur un vrai téléphone (Q17), avec un protocole fourni à Arnaud, précèdent les parties mobiles de CAP-3 et CAP-8.
 - Ordinateur vérifié à 1280, 1440 et 1920 px, mobile à 375×667, sur au moins deux variantes contrastées ; toute règle de couleur est vérifiée dans les 16 variantes.
 - Aucun nouveau composant sans validation d'Arnaud ; corriger l'existant avant d'ajouter.
