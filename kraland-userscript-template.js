@@ -1726,19 +1726,17 @@
      * Trouve les liens du menu navigation jeu
      */
     function findNavigationLinks() {
-      // Patterns à chercher avec icônes Font Awesome : les cinq sections du jeu, mêmes icônes que les accès rapides du bureau
-      const patterns = KR_GAME_SECTIONS.map(section => ({ pattern: section.url, href: section.url, label: section.label, icon: section.icon }));
-
       const links = [];
 
-      patterns.forEach(item => {
-        const link = document.querySelector(`a[href*="${item.pattern}"]`);
+      // Les cinq sections du jeu, mêmes icônes Font Awesome que les accès rapides du bureau
+      KR_GAME_SECTIONS.forEach(section => {
+        const link = document.querySelector(`a[href*="${section.url}"]`);
         // Créer le lien même s'il n'existe pas sur la page actuelle
         links.push({
-          href: link ? link.getAttribute('href') : item.href,
-          text: link ? (link.textContent.trim() || item.label) : item.label,
-          pattern: item.pattern,
-          icon: item.icon
+          href: link ? link.getAttribute('href') : section.url,
+          text: link ? (link.textContent.trim() || section.label) : section.label,
+          pattern: section.url,
+          icon: section.icon
         });
       });
 
@@ -8329,17 +8327,17 @@
     // Un bouton par section du jeu ; celui de la page courante porte kr-quick-access-active (mis en valeur sur ordinateur)
     const activeUrl = krActiveGameSection(location.pathname);
 
-    KR_GAME_SECTIONS.forEach(btn => {
+    KR_GAME_SECTIONS.forEach(section => {
       const link = document.createElement('a');
-      link.href = btn.url;
+      link.href = section.url;
       link.className = 'btn btn-default btn-block mini';
-      if (btn.url === activeUrl) {link.classList.add('kr-quick-access-active');}
+      if (section.url === activeUrl) {link.classList.add('kr-quick-access-active');}
 
       const icon = document.createElement('i');
-      icon.className = `fa ${btn.icon}`;
+      icon.className = `fa ${section.icon}`;
 
       link.appendChild(icon);
-      link.appendChild(document.createTextNode(' ' + btn.label));
+      link.appendChild(document.createTextNode(' ' + section.label));
 
       container.appendChild(link);
     });

@@ -22,17 +22,18 @@
 // porte l'état).
 // Fragment icones (H1.6) : les cinq sections ont la même icône sur ordinateur (accès rapides) et sur mobile (onglets), dans l'ordre Agir,
 // Matériel, Personnage, Bâtiments, Employés : fa-bolt, fa-suitcase, fa-user, fa-home, fa-users.
-// Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, regles-recherche.html), aucune
-// donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html, servie à son URL de kramail-redaction.mjs) ;
-// vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucune navigation, un seul toucher (l'en-tête du mini-profil
-// d'une fixture, pour le déplier).
-//
-// Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
 // Fragment hors-forum-js (ticket 1.6, accord du 2026-10-16) : le module JS des sujets permanents (enrichPermanentTopicsStats) n'agit que sur le forum
 // et sa racine. Sur Cybermonde (/map, fixture reconstruite cybermonde-ville.html) et sur Personnage, à 320, 375, 768 et 1280 px : aucun bloc de
 // compteurs, aucune ligne marquée, aucune cellule masquée ; sur l'index et la racine du forum, les blocs restent (non-régression). La garde de page
 // n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768 et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules
 // au plus), seul le marquage des lignes trahissait le module.
+// Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, regles-recherche.html,
+// cybermonde-ville.html reconstruite), aucune donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html,
+// servie à son URL de kramail-redaction.mjs) ;
+// vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucune navigation, un seul toucher (l'en-tête du mini-profil
+// d'une fixture, pour le déplier).
+//
+// Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
 // Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones, hors-forum-js (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -401,7 +402,7 @@ if (on('nom')) {
   const titrePlateau = `<span class="list-group-item active">${NOM}</span>`;
   const titrePerso = '<span class="list-group-item active">Personnage</span>';
   const repli = '<span class="pull-right" id="slide-submenu"><i class="fa fa-times"></i></span>'; // bouton de repli des colonnes du site (icône)
-  const repliTexte = '<span class="pull-right" id="slide-submenu">×</span>'; // le même avec un « × » écrit : l'ancien code du mini-profil devait le retirer du nom
+  const repliTexte = '<span class="pull-right" id="slide-submenu">×</span>'; // le même avec un « × » écrit : le nom lu ne prend que le nœud texte du titre
   const employesHtml = persoHtml.replace(titrePerso, '<span class="list-group-item active">Employés</span>');
   const enfantHtml = persoHtml.replace(titrePerso, `<span class="list-group-item active">Personnage${repli}</span>`);
   const plateauRepliHtml = plateauHtml.replace(titrePlateau, `<span class="list-group-item active">${NOM}${repliTexte}</span>`);
