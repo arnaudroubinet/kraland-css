@@ -3,7 +3,7 @@ title: 'Cybermonde : le module des sujets permanents masque des cellules hors fo
 type: 'bugfix'
 ticket: '6'
 created: '2026-10-20'
-status: 'built'
+status: done
 baseline_revision: '2c31521a2bd391e48ed35e732bd84010badbf8da'
 route: 'oneshot'
 route_source: 'auto'
@@ -34,6 +34,8 @@ Preuve : bundle d'avant (`KR_SCRIPT` = HEAD `2c31521`) → 4 FAIL (Cybermonde et
 Surprise : un `git stash` partiel a échoué (fixture ajoutée en intention) sans rien remiser ; contre-épreuve refaite par `KR_SCRIPT`.
 
 Validation visuelle (hitl) en attente au 2026-10-20 : session Kraland du Chrome dédié expirée, Arnaud doit se connecter sur le Mac ; captures prêtes à lancer par `/tmp/kr-capture/validation.cjs` (375, 1280, 1440, 1920 px ; Kraland clair, Empire Brun sombre).
+
+Validation visuelle faite le 2026-10-21 sur le site réel (session ouverte, identifiants non utilisés) : 0 bloc et 0 cellule masquée à 375, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre ; captures dans `.tmp/captures/validation-1-6-cybermonde/` (hors git). Validé par Arnaud le 2026-10-21.
 
 ## Review Triage Log
 
