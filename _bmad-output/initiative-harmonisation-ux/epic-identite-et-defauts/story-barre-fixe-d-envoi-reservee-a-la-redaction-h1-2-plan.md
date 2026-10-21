@@ -1,7 +1,7 @@
 ---
 title: "Barre fixe d'envoi réservée à la rédaction (H1.2)"
 ticket: 3
-status: built
+status: done
 ---
 
 ## Code Review

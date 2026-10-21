@@ -1,7 +1,7 @@
 ---
 title: "Nom du personnage dans le mini-profil et le panneau latéral (H1.3, H1.4, R1)"
 ticket: 4
-status: built
+status: done
 ---
 
 ## Code Review

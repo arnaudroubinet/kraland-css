@@ -3,7 +3,7 @@ title: "Note d'options de cascade (P1)"
 type: 'chore'
 ticket: '7'
 created: '2026-10-21'
-status: 'built'
+status: done
 baseline_revision: '4488aa7b744505bb013cf18dda83ad9b4dc3f87a'
 route: 'oneshot'
 route_source: 'auto'

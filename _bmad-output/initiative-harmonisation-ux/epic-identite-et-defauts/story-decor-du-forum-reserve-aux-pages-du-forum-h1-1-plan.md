@@ -1,7 +1,7 @@
 ---
 title: "Décor du forum réservé aux pages du forum (H1.1)"
 ticket: 2
-status: built
+status: done
 ---
 
 ## Code Review
