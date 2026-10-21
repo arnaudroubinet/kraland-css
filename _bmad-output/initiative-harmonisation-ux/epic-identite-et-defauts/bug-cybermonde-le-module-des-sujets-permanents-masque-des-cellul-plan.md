@@ -33,6 +33,8 @@ Fichiers : `kraland-userscript-template.js` (garde dans `enrichPermanentTopicsSt
 Preuve : bundle d'avant (`KR_SCRIPT` = HEAD `2c31521`) → 4 FAIL (Cybermonde et Personnage à 320 et 375 px, 7 blocs sur Cybermonde) ; après → 20 contrôles verts ; `test:all` 4085+ ok, 0 FAIL ; lint 0 erreur.
 Surprise : un `git stash` partiel a échoué (fixture ajoutée en intention) sans rien remiser ; contre-épreuve refaite par `KR_SCRIPT`.
 
+Validation visuelle (hitl) en attente au 2026-10-20 : session Kraland du Chrome dédié expirée, Arnaud doit se connecter sur le Mac ; captures prêtes à lancer par `/tmp/kr-capture/validation.cjs` (375, 1280, 1440, 1920 px ; Kraland clair, Empire Brun sombre).
+
 ## Review Triage Log
 
 Passe quick du 2026-10-20 : 1 medium, 3 low, 1 false.
