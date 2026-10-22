@@ -281,6 +281,19 @@ check('template, hunk sans mot-clé dans le module ForumIndex (index du forum) :
   assert.equal(r.widened, false, r.reasons.join(' ; '));
   assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
 });
+check('modale d\'ordre : module des modales, repères du socle et .bootbox-confirm -> modale-ordre + parler ; fixtures -> modale-ordre ; harnais Bootbox -> les deux', () => {
+  assert.deepEqual(zonesOf('modale-ordre.mjs'), ['modale-ordre']);
+  const t = tpl(['MODAL PERSONNAGE MOBILE - INTERACTIONS UX/UI', ['  function e() {', '    return 5;', '  }']]);
+  const r = route(T, hunkAt(at(t, 'return 5'), '    const n = 5;'), t);
+  assert.equal(r.widened, false, r.reasons.join(' ; '));
+  assert.deepEqual(sorted(r.zones), ['modale-ordre', 'parler']);
+  assert.deepEqual(sorted(route('kraland-theme.css', hunk('.x {', '.kr-order-modal .modal-footer .btn { margin: 0; }')).zones), ['modale-ordre', 'parler']);
+  const css = route('kraland-theme.css', hunkAt(2, '  padding: 0;'), '.bootbox-confirm .modal-footer {\n  margin: 0;\n}');
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.deepEqual(sorted(css.zones), ['modale-ordre', 'parler']);
+  assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/modale-ordre/dormir.html': [] })).zones, ['modale-ordre']);
+  assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ 'tests/e2e/vendor/parler/bootbox.min.js': [] })).zones), ['modale-ordre', 'parler']);
+});
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);
 });

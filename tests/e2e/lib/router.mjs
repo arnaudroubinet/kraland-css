@@ -49,7 +49,10 @@ export const SUITES = [
   { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail', 'sous-forum', 'cybermonde'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
   // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),
   // zones cliquables intactes, panneaux comparés au bundle « avant » ; fixtures synthétiques cybermonde-monde.html et cybermonde-region.html.
-  { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte'], ['recentrage']], needsBootstrap: true }
+  { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte'], ['recentrage']], needsBootstrap: true },
+  // Modale d'ordre (épopée 2) : socle commun aux deux supports (reconnaissance, marquage kr-order-modal / kr-order-form, « Annuler » / « Valider »,
+  // contenu de #ajax-order remplacé), fixtures synthétiques Dormir et Pouvoir, harnais Bootbox de Parler ; 375 × 667, 767 à 769, 1280 à 1920 px.
+  { name: 'modale-ordre', file: 'modale-ordre.mjs', zones: ['modale-ordre'], frags: [['mobile'], ['bureau'], ['largeurs'], ['seuil']] }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -80,7 +83,8 @@ export const FILE_RULES = [
   [/^tests\/e2e\/[\w-]+\.mjs$/, 'suite'],
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
   [/^tests\/e2e\/fixtures\/parler\//, ['parler']],
-  [/^tests\/e2e\/vendor\/parler\//, ['parler']],
+  [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre']],
+  [/^tests\/e2e\/vendor\/parler\//, ['parler', 'modale-ordre']], // harnais Bootbox natif, repris par la suite de la modale d'ordre
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
@@ -100,6 +104,9 @@ const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint
 // Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu (ni dans son module englobant, voir SECTIONS) élargit au total.
 export const KEYWORDS = [
   [/kr-order-viewport|kr-order-visible|trackOrderModalViewport|visualViewport/i, ['parler']],
+  // Modale d'ordre : repères du socle (kr-order-modal, kr-order-form...), règles .bootbox-confirm, contenu #ajax-order, boutons Bootbox.
+  // Parler aussi : sa sonde est une modale d'ordre (#ajax-order form[name=post_msg]) dont il mesure la géométrie et les nœuds natifs.
+  [/kr-order-(?!viewport|visible)|bootbox-confirm|ajax-order|bb-handler|modale-ordre/i, ['modale-ordre', 'parler']],
   [/kr-page-report/, ['report']],
   [/forums-added|updateForum|kr-forums-|menus-forums/i, ['menus-forums']],
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
@@ -126,7 +133,9 @@ export const SECTIONS = [
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']],
   [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],
-  [/^CYBERMONDE/, ['cybermonde']]
+  [/^CYBERMONDE/, ['cybermonde']],
+  // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : seules ces deux suites ouvrent une modale Bootbox.
+  [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler']]
 ];
 // Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
 // qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc

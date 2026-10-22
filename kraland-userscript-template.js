@@ -8986,6 +8986,50 @@
   // ============================================================================
 
   /**
+   * Socle de la modale d'ordre, commun à l'ordinateur et au mobile : une confirmation Bootbox qui contient le formulaire d'ordre
+   * (#ajax-order form[name="post_msg"]) est marquée (kr-order-modal ; kr-order-form sur le contenu traité) et ses boutons
+   * deviennent « Annuler » / « Valider » (H2.1). Réappliqué quand le contenu de #ajax-order est remplacé (autre ordre, Ajax).
+   * Idempotent : l'observateur des modales est enregistré deux fois sur mobile ; chaque écriture n'a lieu que si elle change le DOM.
+   * Peau coupée : modale native.
+   */
+  const ORDER_MODAL_LABELS = { cancel: 'Annuler', confirm: 'Valider' };
+  const watchedOrderModals = new WeakSet();
+
+  function applyOrderModal(modal) {
+    const form = modal.querySelector('#ajax-order form[name="post_msg"]');
+    if (!form) {return;}
+    if (!modal.classList.contains('kr-order-modal')) {modal.classList.add('kr-order-modal');}
+    Object.entries(ORDER_MODAL_LABELS).forEach(([handler, label]) => {
+      const button = modal.querySelector(`.modal-footer [data-bb-handler="${handler}"]`);
+      if (button && button.textContent !== label) {button.textContent = label;}
+    });
+    if (!form.classList.contains('kr-order-form')) {form.classList.add('kr-order-form');}
+  }
+
+  function watchOrderModal(modal) {
+    if (!isThemeEnabled() || !modal.matches('.bootbox.bootbox-confirm') || watchedOrderModals.has(modal)) {return;}
+    watchedOrderModals.add(modal);
+    applyOrderModal(modal);
+    const contentObserver = new MutationObserver(() => applyOrderModal(modal));
+    contentObserver.observe(modal, { childList: true, subtree: true });
+    $(modal).one('hidden.bs.modal', function () {
+      contentObserver.disconnect();
+    });
+  }
+
+  // Bundle au document-start : <body> n'existe pas quand initCharacterModalMobile tourne. Le socle pose alors son propre observateur
+  // des modales au DOMContentLoaded (même fonction : un seul écouteur même si initCharacterModalMobile est appelé deux fois).
+  function watchOrderModalsOfBody() {
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {watchOrderModal(node);}
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: false });
+  }
+
+  /**
    * Améliore l'UX mobile du modal de sélection personnage
    * - Navigation carousel pour sélecteur personnages (prev/next)
    * - Description collapsible dans le header
@@ -9002,6 +9046,7 @@
           // Vérifier si c'est une modal Bootbox
           if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
             trackOrderModalViewport(node);
+            watchOrderModal(node);
             setTimeout(() => {
               enhanceCharacterModal(node);
             }, 150);
@@ -9013,6 +9058,8 @@
     // Vérifier que document.body existe avant d'utiliser le MutationObserver
     if (document.body) {
       modalObserver.observe(document.body, { childList: true, subtree: false });
+    } else {
+      document.addEventListener('DOMContentLoaded', watchOrderModalsOfBody, { once: true });
     }
   }
 
