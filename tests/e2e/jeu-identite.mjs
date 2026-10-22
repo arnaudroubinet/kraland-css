@@ -67,6 +67,7 @@ const BUREAU = { viewport: { width: 1280, height: 720 } };
 const CLE_NOM = 'kr-character-name';
 const NOM = 'Joueur'; // titre actif de plateau-minimal.html : sur le plateau, le titre du panneau est le nom du personnage
 const NOM_LONG = 'Bartholomé-Alphonse de Rochefort-Lambert'; // 40 caractères
+const NOM_DOLLAR = 'Jo$&hn $` $\' Ca$$h'; // les quatre motifs spéciaux d'une chaîne de remplacement de String.prototype.replace ($&, $`, $', $$)
 // Largeurs mobiles (< 768 px) du mini-profil à nom long, et si le nom y est tronqué. Mesuré : sur 375 px, l'avatar (48 px, 64 px déplié) et le bouton de
 // gestion laissent au nom 239 px (223 déplié) pour un contenu d'environ 300 px ; sur 700 px, ils lui en laissent plus de 540 et il tient en entier.
 const CAS_NOM_LONG = [{ largeur: 375, hauteur: 667, tronque: true }, { largeur: 700, hauteur: 900, tronque: false }];
@@ -231,6 +232,7 @@ const MESURE_NOM = cle => {
   try { memoire = localStorage.getItem(cle); } catch (_e) { memoire = 'indisponible'; }
   return {
     titre: titre ? titre.textContent.trim() : null,
+    brut: titre ? Array.from(titre.childNodes).filter(nd => nd.nodeType === Node.TEXT_NODE).map(nd => nd.data).join('|') : null,
     enfants: titre ? titre.children.length : 0,
     profil: profil ? profil.textContent.trim() : null,
     memoire
@@ -412,6 +414,8 @@ if (on('nom')) {
   const employesHtml = persoHtml.replace(titrePerso, '<span class="list-group-item active">Employés</span>');
   const enfantHtml = persoHtml.replace(titrePerso, `<span class="list-group-item active">Personnage${repli}</span>`);
   const plateauRepliHtml = plateauHtml.replace(titrePlateau, `<span class="list-group-item active">${NOM}${repliTexte}</span>`);
+  // Titre natif tel que le site l'écrit : libellé entouré de sauts de ligne et de tabulations, puis le bouton de repli (forum-colonne-native-rp.html)
+  const blancsHtml = persoHtml.replace(titrePerso, `<span class="list-group-item active">\n\t\t\tPersonnage\n\t\t\t${repli}</span>`);
   const scenarios = [
     { id: 'plateau', url: PLATEAU, html: plateauHtml },
     { id: 'plateauRepli', url: PLATEAU, html: plateauRepliHtml },
@@ -423,11 +427,13 @@ if (on('nom')) {
     { id: 'employes', url: PNJ, html: employesHtml, memoire: { nom: NOM } },
     { id: 'bureau', url: PERSO, html: persoHtml, device: BUREAU, memoire: { nom: NOM } },
     { id: 'bureauEnfant', url: PERSO, html: enfantHtml, device: BUREAU, memoire: { nom: NOM } },
-    { id: 'regles', url: REGLES, html: fixture('regles-recherche.html'), device: BUREAU, memoire: { nom: NOM } }
+    { id: 'regles', url: REGLES, html: fixture('regles-recherche.html'), device: BUREAU, memoire: { nom: NOM } },
+    { id: 'bureauDollar', url: PERSO, html: blancsHtml, device: BUREAU, memoire: { nom: NOM_DOLLAR } },
+    { id: 'persoDollar', url: PERSO, html: persoHtml, memoire: { nom: NOM_DOLLAR } }
   ];
   console.log(`Nom du personnage : mini-profil mobile (375 × 667, tactile) et titre du panneau (1280 × 720), variante ${V}`);
   const mesures = await mapLimit(scenarios, s => mesurerPage({ ...s, variante: V, mesure: MESURE_NOM, arg: CLE_NOM }));
-  const { plateau, plateauRepli, plateauAncien, plateauSansEcriture, persoMemoire, persoVide, persoPanne, employes, bureau, bureauEnfant, regles } =
+  const { plateau, plateauRepli, plateauAncien, plateauSansEcriture, persoMemoire, persoVide, persoPanne, employes, bureau, bureauEnfant, regles, bureauDollar, persoDollar } =
     Object.fromEntries(scenarios.map((s, i) => [s.id, mesures[i]]));
   check(`[${V}] fixtures : le titre actif est « ${NOM} » sur le plateau et « Personnage » sur Personnage (les variantes Employés, enfant et bouton de repli sont construites dessus)`, () => {
     assert.ok(plateauHtml.includes(titrePlateau), `titre actif de plateau-minimal.html : ${titrePlateau} introuvable`);
@@ -476,6 +482,14 @@ if (on('nom')) {
     assert.equal(persoVide.titre, 'Personnage', `titre du panneau : ${persoVide.titre}`);
     assert.equal(persoVide.profil, 'Personnage', `nom du mini-profil : ${persoVide.profil}`);
     assert.equal(persoVide.memoire, null, `le titre natif n'est pas un nom à mémoriser : ${persoVide.memoire}`);
+  });
+  check(`[${V}] nom contenant « $& », « $\` », « $' » et « $$ » (ticket 3 du backlog) : le titre du panneau et le mini-profil l'affichent tel quel ; les blancs autour du libellé et l'élément enfant du titre restent`, () => {
+    verifierSocle(bureauDollar, V, { mobile: false });
+    assert.equal(bureauDollar.titre, NOM_DOLLAR, `titre du panneau : ${bureauDollar.titre}`);
+    assert.equal(bureauDollar.enfants, 1, `éléments enfants du titre : ${bureauDollar.enfants}`);
+    assert.equal(bureauDollar.brut, `\n\t\t\t${NOM_DOLLAR}\n\t\t\t`, `nœud texte du titre (blancs autour du nom) : ${JSON.stringify(bureauDollar.brut)}`);
+    verifierSocle(persoDollar, V);
+    assert.equal(persoDollar.profil, NOM_DOLLAR, `nom du mini-profil : ${persoDollar.profil}`);
   });
   check(`[${V}] stockage indisponible : la page tient`, () => {
     verifierSocle(persoPanne, V);

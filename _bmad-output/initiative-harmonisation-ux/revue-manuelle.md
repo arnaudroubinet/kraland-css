@@ -6,6 +6,10 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 - Ticket 6.1, index du forum aligné sur le sous-forum : captures du site réel dans `.tmp/captures/validation-6-1-index-forum/` (`index.html`) ; 4 index, sous-forum et racine, 375 et 1440 px, Kraland clair et Empire Brun sombre.
 
+## Tickets construits à marquer « fait »
+
+- Backlog 3 : nom contenant « $ » (bug corrigé, sans validation visuelle requise).
+
 ## Décisions à confirmer
 
 - Ticket 6.1, fil d'Ariane de l'index sur mobile : construit à partir du bouton natif « Tous les forums » (« ⏪ Tous les forums › Jeu (RP) »), comme celui du sous-forum part de son bouton « ⏪ Jeu (RP) ». Option retenue : oui ; alternative : titre seul, sans fil d'Ariane (lecture stricte de H12.3).

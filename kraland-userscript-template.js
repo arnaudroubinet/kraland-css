@@ -8408,7 +8408,8 @@
 
     if (['/jouer/perso', '/jouer/pnj'].includes(krActiveGameSection(location.pathname))) {
       const textNode = findActiveTitleTextNode();
-      if (textNode) {textNode.data = textNode.data.replace(textNode.data.trim(), name);}
+      // Fonction de remplacement : un nom contenant « $& », « $' », « $` » ou « $$ » est inséré tel quel (motifs spéciaux d'une chaîne de remplacement)
+      if (textNode) {textNode.data = textNode.data.replace(textNode.data.trim(), () => name);}
     }
   }
 
