@@ -1,6 +1,6 @@
 ---
 title: 'Les deux constats différés de la revue du lot 1 sont-ils réels ?'
-type: 'spike'
+type: 'chore'
 ticket: '5'
 created: '2026-10-22'
 status: 'built'

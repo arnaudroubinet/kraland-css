@@ -4,7 +4,7 @@ type: bug
 title: "Au démarrage réel de la page, trois modules des modales ne s'installent pas"
 parent: none
 covers: []
-after: ["2.3"]
+after: []
 assignee: ""
 refined: false
 hitl: false
@@ -59,4 +59,4 @@ Gardes `if (document.body)` dans `initCharacterModalMobile` et dans l'installati
 
 ## Notes
 
-- Attend l'entrée 2.3 : réactiver la chaîne mobile actuelle replierait l'avertissement de Dormir.
+- Attend l'entrée 2.3 de l'épopée 2 (un ticket de backlog ne peut pas la nommer en `after`) : réactiver la chaîne mobile actuelle replierait l'avertissement de Dormir.
