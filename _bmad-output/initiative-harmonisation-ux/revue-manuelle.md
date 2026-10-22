@@ -10,6 +10,7 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 - Backlog 3 : nom contenant « $ » (bug corrigé, sans validation visuelle requise).
 - Backlog 2 : onglet de section actif sur mobile, même règle que l'ordinateur.
+- Backlog 4 : tests de CAP-1 (décor CSS sur Cybermonde, « messages », zones de test).
 
 ## Décisions à confirmer
 

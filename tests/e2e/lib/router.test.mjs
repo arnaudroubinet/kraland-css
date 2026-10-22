@@ -113,6 +113,16 @@ check('index du forum (html.kr-page-forum-index) : zone forum, suite forum-index
   assert.ok(r.zones.includes('forum'), r.zones.join(','));
   assert.ok(r.units.includes('forum-index'), r.units.join(','));
 });
+check('module des sujets permanents ou Cybermonde modifié : suite jeu-identite lancée (fragment hors-forum-js, ticket 4 du backlog)', () => {
+  assert.ok(zonesOf('jeu-identite.mjs').includes('sous-forum') && zonesOf('jeu-identite.mjs').includes('cybermonde'), zonesOf('jeu-identite.mjs').join(','));
+  const r = route(T, hunk('function enrichPermanentTopicsStats() {', "statsWrapper.className = 'permanent-topic-stats';"));
+  // pickUnits retient toute suite dont une zone est choisie : jeu-identite suit donc ces deux hunks
+  assert.ok(r.zones.includes('sous-forum'), 'sujets permanents : ' + r.zones.join(','));
+  const c = route('kraland-theme.css', hunk('.x {', ':where(body.page-cybermonde) .kr-cybermonde-monde { left: 0; }'));
+  assert.ok(c.zones.includes('cybermonde'), 'Cybermonde : ' + c.zones.join(','));
+  const choisies = units => pickUnits(units, r).map(u => u.suite).concat(pickUnits(units, c).map(u => u.suite));
+  assert.ok(choisies([{ id: 'jeu-identite#hors-forum-js', suite: 'jeu-identite' }]).filter(x => x === 'jeu-identite').length === 2, 'jeu-identite non retenue');
+});
 check('hunk commun forum + sous-forum : les deux zones', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
   assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);

@@ -1,7 +1,7 @@
 // Harmonisation UX, lot 1 : défauts de style et identité du personnage (décisions H1.1 à H1.6 et R1 de l'étude, EXPERIENCE.md).
 // Fragment fuite-forum (H1.1) : le décor mobile des listes de forum (« → … sujets · ») reste réservé aux pages du forum. Sur Personnage,
-// aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (::before « → »,
-// ::after « sujets · ») et chacune de leurs lignes reste une ligne de tableau (display: table-row, pas une carte en grille). L'index du forum
+// aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (« → », « sujets · »
+// ou « messages » en pseudo-élément) et chacune de leurs lignes reste une ligne de tableau (display: table-row, pas une carte en grille). L'index du forum
 // (/forum/rp) a quitté les cartes (ticket 6.1, présentation du sous-forum, vérifiée par forum-index.mjs) : ni conteneur de cartes ni décor des
 // cartes (mesuré sur une ligne native : voir LIGNE_NATIVE), lignes en flex. La racine du forum (/forum, qui liste tous les forums) n'est pas une
 // page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau natif, que le module des
@@ -29,6 +29,7 @@
 // compteurs, aucune ligne marquée, aucune cellule masquée ; l'index du forum en est exclu aussi (ticket 6.1 : compteurs libellés par le module de
 // l'index) ; sur la racine du forum, les blocs restent (non-régression). La garde de page n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768
 // et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules au plus), seul le marquage des lignes trahissait le module.
+// Sur Cybermonde et Personnage, aucune cellule ne reçoit non plus le décor CSS du forum (« sujets », « messages », « → », ticket 4 du backlog).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, forum-racine.html, regles-recherche.html,
 // cybermonde-ville.html reconstruite), aucune donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html,
 // servie à son URL de kramail-redaction.mjs) ;
@@ -168,7 +169,7 @@ const MESURE_PERSO = () => {
   const fuites = [];
   panneaux.forEach(p => p.lignes.forEach((tr, r) => [...tr.cells].forEach((td, c) => ['::before', '::after'].forEach(pseudo => {
     const contenu = getComputedStyle(td, pseudo).content;
-    if (/→|sujets/.test(contenu)) { fuites.push(`${p.titre} ligne ${r + 1} cellule ${c + 1} ${pseudo} = ${contenu}`); }
+    if (/→|sujets|messages/.test(contenu)) { fuites.push(`${p.titre} ligne ${r + 1} cellule ${c + 1} ${pseudo} = ${contenu}`); }
   }))));
   return {
     panneaux: panneaux.map(p => ({ titre: p.titre, cellules: p.lignes.map(tr => tr.cells.length) })),
@@ -420,7 +421,7 @@ if (on('nom')) {
   const employesHtml = persoHtml.replace(titrePerso, '<span class="list-group-item active">Employés</span>');
   const enfantHtml = persoHtml.replace(titrePerso, `<span class="list-group-item active">Personnage${repli}</span>`);
   const plateauRepliHtml = plateauHtml.replace(titrePlateau, `<span class="list-group-item active">${NOM}${repliTexte}</span>`);
-  // Titre natif tel que le site l'écrit : libellé entouré de sauts de ligne et de tabulations, puis le bouton de repli (forum-colonne-native-rp.html)
+  // Titre natif tel que le site l'écrit : libellé entouré de sauts de ligne et de tabulations, puis le bouton de repli (colonne native du forum RP)
   const blancsHtml = persoHtml.replace(titrePerso, `<span class="list-group-item active">\n\t\t\tPersonnage\n\t\t\t${repli}</span>`);
   const scenarios = [
     { id: 'plateau', url: PLATEAU, html: plateauHtml },
@@ -665,7 +666,10 @@ const MESURE_SUJETS_PERMANENTS = () => {
     cellules: cellules.length,
     blocs: document.querySelectorAll('.permanent-topic-stats').length,
     marquees: document.querySelectorAll('[data-permanent-icons-added]').length,
-    masquees: cellules.filter(td => getComputedStyle(td).display === 'none').length
+    masquees: cellules.filter(td => getComputedStyle(td).display === 'none').length,
+    // Décor CSS du forum (« sujets », « messages », « → » en pseudo-élément) dans les cellules des tableaux
+    decor: cellules.flatMap(td => ['::before', '::after'].map(pseudo => getComputedStyle(td, pseudo).content))
+      .filter(contenu => /→|sujets|messages/.test(contenu))
   };
 };
 
@@ -694,6 +698,11 @@ if (on('hors-forum-js')) {
         assert.equal(m.marquees, 0, 'lignes data-permanent-icons-added : ' + m.marquees);
         assert.equal(m.masquees, 0, 'cellules masquées : ' + m.masquees + ' sur ' + m.cellules);
       });
+      if (c.url !== INDEX_FORUM) {
+        check(`[${V}] ${c.nom} : aucune cellule ne reçoit le décor CSS du forum (« sujets », « messages », « → »)`, () => {
+          assert.deepEqual(m.decor, [], 'contenus générés : ' + JSON.stringify(m.decor));
+        });
+      }
     } else {
       check(`[${V}] ${c.nom} : le module ajoute toujours ses blocs de compteurs (non-régression)`, () => {
         assert.ok(m.blocs > 0, 'blocs .permanent-topic-stats : ' + m.blocs);
