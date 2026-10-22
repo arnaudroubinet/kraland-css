@@ -40,3 +40,6 @@ Lot 6. La barre d'envoi du forum reste à l'épopée 7. Non-goals : ceux de la s
 
 - Waits on epic-cartes-pastilles because: carte de section mobile.
 - Open question: Q27, Q28 (EXPERIENCE.md) à trancher au plan.
+- Decision: l'entrée 1 (index aligné sur le sous-forum, refonte H12.1) est avancée en tête de l'initiative, avant les épopées 3 à 5 ; elle reprend les composants existants du sous-forum plutôt que la carte de section de l'épopée 5 (Arnaud, 2026-10-22).
+- Decision: inception partielle, les autres entrées de l'épopée seront planifiées plus tard (2026-10-22).
+- Constat du 2026-10-22 (site réel, 1440 et 375 px) : l'index montre description, modérateurs, compteurs sans libellé sur mobile, en-tête de section répété et en couleur de nation, petite flèche sans bouton ; le sous-forum a fil d'Ariane, en-têtes à icône, lignes pleine largeur et bouton → au bout de chaque ligne.

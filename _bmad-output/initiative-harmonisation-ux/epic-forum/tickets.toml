@@ -1,0 +1,15 @@
+# tickets.toml — epic-forum, dans l'ordre de construction.
+# Inception partielle (décision d'Arnaud, 2026-10-22) : l'entrée 1 est avancée en tête de l'initiative ; les autres entrées seront planifiées à l'inception complète de l'épopée.
+
+[[entry]]
+id = 1
+type = "story"
+title = "L'index du forum reprend la présentation du sous-forum"
+description = "Sur ordinateur et mobile, les index RP, HRP, Communauté et Débats reprennent les composants du sous-forum : en-tête de page, en-têtes de section, une ligne par forum dans l'ordre du jeu avec nom, dernier message (auteur, heure) et bouton → vers ce message, « N sujets · N messages », sans description ni modérateurs (refonte H12.1)."
+verify = "Fixtures de l'index RP et d'un index Communauté, 375 et 1440 px : chaque ligne a nom, dernier message, compteurs libellés et bouton → menant à l'ancre du dernier message, aucune description ni modérateur ; en-têtes identiques à ceux du sous-forum ; validation visuelle d'Arnaud sur le site réel comparée au sous-forum Royaume de Ruthvénie."
+covers = ["CAP-7"]
+after = []
+hitl = true
+risk = "high"
+references = ["ux-harmonisation/mockups/h12-index-forum.html", ".tmp/captures/forum-index-vs-sousforum/ (hors git, relevé du 2026-10-22)"]
+notes = ["http://www.kraland.org/forum/rp doit être aligné sur http://www.kraland.org/forum/rp/royaume-de-ruthvenie-101118 en terme d'affichage."]
