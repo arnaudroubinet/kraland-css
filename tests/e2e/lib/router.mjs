@@ -32,6 +32,9 @@ export const SUITES = [
   { name: 'audit-map-images', file: 'audit-map-images.mjs', zones: ['images'] },
   // Sous-forum « Débuter » (refonte variante A) : fixture du DOM réel, DataTables émulé. Fragments = lots du rapport UX (L0 à L6).
   { name: 'sous-forum', file: 'sous-forum.mjs', zones: ['sous-forum'], frags: [['l1-themes'], ['l1-redraw'], ['l2-themes'], ['l3-themes'], ['l4-themes'], ['l5-themes'], ['l3-liste'], ['l4-perm'], ['l5-pagination-socle'], ['l5-pagination-m2-mobile'], ['l5-pagination-m2-bureau'], ['l5-pagination-viewport'], ['l6-desktop'], ['l6-themes'], ['l0'], ['l1-statuts'], ['l2-entete'], ['l7-nouveau'], ['l8-raccourci']] },
+  // Index du forum (ticket 6.1) : index RP, HRP, Communauté et Débats présentés comme le sous-forum (mesuré dans le même navigateur), 375 et
+  // 1440 px ; hors périmètre (racine, sous-forum, sujet, Staff) comparé au bundle d'avant le ticket ; seuil 767 / 768 / 769 ; peau coupée.
+  { name: 'forum-index', file: 'forum-index.mjs', zones: ['forum', 'sous-forum'], frags: [['mobile'], ['bureau'], ['seuil'], ['hors-perimetre'], ['peau-coupee']], needsBootstrap: true },
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
   { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['redaction-sombre'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
@@ -117,6 +120,7 @@ export const SECTIONS = [
   [/^MENUS FORUM DYNAMIQUES/, ['menus-forums']],
   [/^(FORUM TOPICS|SOUS-FORUM|MOBILE FORUM (PERMANENT )?TOPICS)\b/, ['sous-forum']],
   [/^MODULE : ForumHeader:/, ['forum', 'sous-forum']],
+  [/^MODULE : ForumIndex:/, ['forum', 'sous-forum']],
   [/^MODULE : Kramail:/, ['forum', 'kramail']],
   [/^MODULE : (ForumThread|Messages):/, ['forum', 'messages']],
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],

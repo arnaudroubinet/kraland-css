@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <base href="http://www.kraland.org/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FIXTURE index du forum Communauté (structure réelle, données inventées)</title>
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+  <!--
+    FIXTURE SYNTHÉTIQUE de l'index /forum/communaute : même balisage que forum-index-rp.html (relevé le 2026-10-22 sur les quatre index
+    natifs, sans le thème), données inventées, sans alerte en tête de colonne. Cas couverts : description avec <u>, deux modérateurs,
+    auteur avec icône, forum sans message (0 / 0).
+  -->
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/forum">Forum</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="mini-submenu navbar-default">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </div>
+        <div class="list-group">
+          <span class="list-group-item active">
+            Communauté
+            <span class="pull-right" id="slide-submenu"><i class="fa fa-times"></i></span>
+          </span>
+          <a href="forum/communaute/annonces-d-essai-30101" class="list-group-item"><span class="lefticon"><i class="far fa-newspaper"></i></span>Annonces d'essai</a>
+          <a href="forum/communaute/clubs-d-essai-30102" class="list-group-item"><span class="lefticon"><i class="far fa-smile"></i></span>Clubs d'essai</a>
+          <a href="forum/communaute/archives-d-essai-30103" class="list-group-item"><span class="lefticon"><i class="far fa-folder"></i></span>Archives d'essai</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <span class="pull-right"><a href="forum" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tous les forums"><i class="fa fa-stream"></i></a></span>
+        <h1 class="page-header">Communauté</h1>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-comments-o"></i> Communauté</h3>
+            <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+          </div>
+          <div class="panel-body">
+            <table class="table">
+              <thead>
+                <tr> <th>Forum</th> <th>Sujets</th> <th>Messages</th> <th>Dernier&nbsp;Message</th> </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/communaute/annonces-d-essai-30101">Annonces d'essai</a></p>
+                    <p class="nomargin tagforum">Forum d'essai pour les annonces de la communauté.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">1</td>
+                  <td class="center">1</td>
+                  <td>
+                    <a href="communaute/membres/aestus-1-911" class="nomargin">Aestus</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/annonce-unique-330101-1#msg6900101" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> 03/05 (21:18)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/communaute/clubs-d-essai-30102">Clubs d'essai</a></p>
+                    <p class="nomargin tagforum">Forum d'essai des <u>clubs</u> et des associations de joueurs.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-deux-1-902">ModoDeux</a> , <a href="communaute/membres/modo-trois-1-903">ModoTrois</a></span>
+                  </td>
+                  <td class="center">25</td>
+                  <td class="center">410</td>
+                  <td>
+                    <a href="communaute/membres/ysolde-1-914" class="nomargin"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" alt="[*r]" class="icon">Ysolde</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/club-de-lecture-330102-1#msg6900102" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> Aujourd'hui (06:13)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/communaute/archives-d-essai-30103">Archives d'essai</a></p>
+                    <p class="nomargin tagforum">Forum d'essai fermé, conservé pour mémoire.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">0</td>
+                  <td class="center">0</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="navbar-inverse"><div class="container white"><div class="footer-quote">« FIXTURE citation du pied de page »</div></div></footer>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -4248,8 +4248,9 @@ body > map {
     margin-bottom: 15px !important;
   }
 
-  /* Tables standard dans col-right (ex: Avis de Recherche sur /jouer/perso) */
-  body.mobile-mode #col-right table:not(.dataTable) {
+  /* Tables standard dans col-right (ex: Avis de Recherche sur /jouer/perso). Hors index du forum (P1) : sa présentation est celle du sous-forum
+     (section « INDEX DU FORUM ») ; cette règle y affichait aussi le tableau natif masqué sous les cartes (doublon mobile). */
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode #col-right table:not(.dataTable) {
     display: block !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -7535,20 +7536,23 @@ body.mobile-mode .building-section-content img.img-responsive {
     color: var(--kr-text-primary) !important;
   }
   
+  /* Tableaux du forum en cartes (1re version) : racine du forum, sous-forum (repris par L4), index Staff. Hors index RP, HRP, Communauté et
+     Débats (P1) : leur présentation est celle du sous-forum (section « INDEX DU FORUM »). */
+
   /* Cacher le header du tableau (colonnes) */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > thead {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > thead {
     display: none !important;
   }
   
   /* Transformer le tbody en container flex vertical */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody {
     display: flex !important;
     flex-direction: column !important;
     gap: 4px !important;
   }
   
   /* Chaque ligne devient une card avec CSS Grid pour contrôler l'ordre d'affichage */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr {
     display: grid !important;
     grid-template-columns: 1fr !important;
     grid-template-rows: auto !important;
@@ -7563,7 +7567,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Effet au tap sur la card */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr:active {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr:active {
     background: var(--kr-bg-hover) !important;
     transform: scale(0.98) !important;
   }
@@ -7571,7 +7575,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* === RÉORGANISATION DES CELLULES AVEC GRID === */
 
   /* Utiliser grid-row pour contrôler l'ordre d'affichage */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td {
     display: block !important;
     border: none !important;
     padding: 0 !important;
@@ -7583,31 +7587,31 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
 
   /* Cette cellule contient 3 éléments dont on doit cacher la description pour la réafficher plus tard */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child {
     display: flex !important;
     flex-direction: column !important;
     grid-row: 1 !important;
   }
   
   /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2),
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3) {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3) {
     grid-row: 2 !important;
   }
   
   /* td:nth-child(4) (dernier message) à la ligne 4 */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) {
     grid-row: 4 !important;
   }
   
   /* === TITRE DU FORUM === */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child {
     order: 1 !important;
     margin: 0 !important;
     font-size: 0 !important; /* Masquer le texte brut "→" */
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
     font-size: 15px !important;
     font-weight: 700 !important;
     color: var(--kr-text-primary) !important;
@@ -7616,14 +7620,14 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: block !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
     color: var(--kr-primary) !important;
   }
   
   /* === MODÉRATEURS === */
 
   /* Afficher les modérateurs juste après le titre */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
     margin: 0 !important;
     font-size: 11px !important;
@@ -7631,17 +7635,17 @@ body.mobile-mode .building-section-content img.img-responsive {
     line-height: 1.2 !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
     display: none !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
     font-weight: 500 !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
     color: var(--kr-primary) !important;
     text-decoration: underline !important;
   }
@@ -7649,8 +7653,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* === DESCRIPTION === */
 
   /* La description est maintenant dans un wrapper créé par JavaScript */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-description-wrapper > p {
     order: 999 !important;
     font-size: 12px !important;
     color: var(--kr-text-secondary) !important;
@@ -7659,16 +7663,16 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Description wrapper */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-description-wrapper {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-description-wrapper {
     margin: 0 0 6px !important;
   }
   
   /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
 
   /* Les stats sont maintenant dans un wrapper créé par JavaScript */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2),
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3),
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3),
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
     display: inline !important;
     font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
@@ -7678,27 +7682,27 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Stats wrapper */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper {
     margin: 0 0 2px !important;
   }
   
   /* Ajouter "sujets · " après le premier nombre */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2)::after,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
     content: " sujets · " !important;
   }
   
   /* Ajouter "messages" après le second nombre */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3)::after,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
     content: " messages" !important;
   }
   
   /* === CELLULE 4 : Dernier message === */
 
   /* Maintenant que le DOM est réorganisé, la cellule du dernier message est à la fin */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4),
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4),
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child {
     order: 5 !important;
     padding-top: 3px !important;
     border-top: 1px solid var(--kr-border-default) !important;
@@ -7709,8 +7713,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Préfixe "→" avant l'auteur */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4)::before,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child::before {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child::before {
     content: "→ " !important;
     color: var(--kr-text-secondary) !important;
     font-weight: 400 !important;
@@ -7718,8 +7722,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Auteur du dernier message - inline */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a {
     font-size: 12px !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
@@ -7727,31 +7731,31 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: inline !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a:active {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a:active {
     color: var(--kr-primary) !important;
     text-decoration: underline !important;
   }
   
   /* Séparateur avant le timestamp */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a::after {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a::after {
     content: " · " !important;
     color: var(--kr-text-muted) !important;
     font-weight: 400 !important;
   }
   
   /* Timestamp et lien vers le message - inline, pas de bouton */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p {
     display: inline !important;
     margin: 0 !important;
     font-size: 13px !important;
     color: var(--kr-text-secondary) !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
     display: inline-flex !important;
@@ -7764,14 +7768,14 @@ body.mobile-mode .building-section-content img.img-responsive {
     min-height: 20px !important;
   }
   
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a:active {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a:active {
     color: var(--kr-primary) !important;
   }
   
   /* Icône flèche dans le lien vers le message - 20x20px */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
     display: inline-block !important;
     width: 20px !important;
     height: 20px !important;
@@ -7781,7 +7785,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Badges/images dans les noms d'utilisateurs */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) img {
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) img {
     vertical-align: middle !important;
     margin: 0 2px !important;
     max-height: 16px !important;
@@ -8233,20 +8237,23 @@ body.mobile-mode .building-section-content img.img-responsive {
     color: var(--kr-primary) !important;
   }
   
+  /* Tableaux du forum en cartes (2e version) : hors index RP, HRP, Communauté et Débats (P1), présentés comme le sous-forum (section
+     « INDEX DU FORUM »). Les règles du panneau ci-dessus (fond, en-tête, corps, titre) restent communes au sous-forum et à l'index. */
+
   /* Cacher le header du tableau (colonnes) */
-  body.page-forum .panel-default .table > thead {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > thead {
     display: none !important;
   }
   
   /* Transformer le tbody en container flex vertical */
-  body.page-forum .panel-default .table > tbody {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
   }
   
   /* Chaque ligne devient une card — harmonisé kramail (12px radius/padding, plat sans ombre) */
-  body.page-forum .panel-default .table > tbody > tr {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr {
     display: grid !important;
     grid-template-columns: 1fr !important;
     grid-template-rows: auto !important;
@@ -8260,13 +8267,13 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Effet au tap sur la card */
-  body.page-forum .panel-default .table > tbody > tr:active {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr:active {
     background: var(--kr-bg-hover) !important;
   }
   
   /* === RÉORGANISATION DES CELLULES AVEC GRID === */
 
-  body.page-forum .panel-default .table > tbody > tr > td {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td {
     display: block !important;
     border: none !important;
     padding: 0 !important;
@@ -8274,31 +8281,31 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
-  body.page-forum .panel-default .table > tbody > tr > td:first-child {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child {
     display: flex !important;
     flex-direction: column !important;
     grid-row: 1 !important;
   }
   
   /* td:nth-child(2) et td:nth-child(3) (stats) à la ligne 2 */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3) {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3) {
     grid-row: 2 !important;
   }
   
   /* td:nth-child(4) (dernier message) à la ligne 4 */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) {
     grid-row: 4 !important;
   }
   
   /* === TITRE DU FORUM === */
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child {
     order: 1 !important;
     margin: 0 !important;
     font-size: 0 !important; /* Masquer le texte brut "→" */
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
     font-size: 15px !important;
     font-weight: 700 !important;
     color: var(--kr-text-primary) !important;
@@ -8307,12 +8314,12 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: block !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
     color: var(--kr-primary) !important;
   }
   
   /* === MODÉRATEURS === */
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
     margin: 0 !important;
     font-size: 11px !important;
@@ -8320,24 +8327,24 @@ body.mobile-mode .building-section-content img.img-responsive {
     line-height: 1.2 !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum > .lefticon {
     display: none !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
     font-weight: 500 !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
     color: var(--kr-primary) !important;
     text-decoration: underline !important;
   }
   
   /* === DESCRIPTION === */
-  body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
-  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p {
     order: 999 !important;
     font-size: 12px !important;
     color: var(--kr-text-secondary) !important;
@@ -8346,14 +8353,14 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Description wrapper */
-  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper {
     margin: 0 0 6px !important;
   }
   
   /* === CELLULE 2 & 3 : Stats (Sujets et Messages) === */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
-  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2),
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
     display: inline !important;
     font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
@@ -8363,25 +8370,25 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Stats wrapper */
-  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper {
     margin: 0 0 2px !important;
   }
   
   /* Ajouter "sujets · " après le premier nombre */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(2)::after,
-  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2)::after,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
     content: " sujets · " !important;
   }
   
   /* Ajouter "messages" après le second nombre */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(3)::after,
-  body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3)::after,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:nth-child(2)::after {
     content: " messages" !important;
   }
   
   /* === CELLULE 4 : Dernier message === */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4),
-  body.page-forum .panel-default .table > tbody > tr > td:last-child {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4),
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child {
     order: 5 !important;
     padding-top: 3px !important;
     border-top: 1px solid var(--kr-border-default) !important;
@@ -8392,8 +8399,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Préfixe "→" avant l'auteur */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4)::before,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child::before {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4)::before,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child::before {
     content: "→ " !important;
     color: var(--kr-text-secondary) !important;
     font-weight: 400 !important;
@@ -8401,8 +8408,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Auteur du dernier message - inline */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > a {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a {
     font-size: 12px !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
@@ -8410,31 +8417,31 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: inline !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > a:active {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a:active {
     color: var(--kr-primary) !important;
     text-decoration: underline !important;
   }
   
   /* Séparateur avant le timestamp */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > a::after {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a::after,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a::after {
     content: " · " !important;
     color: var(--kr-text-muted) !important;
     font-weight: 400 !important;
   }
   
   /* Timestamp et lien vers le message - inline, pas de bouton */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
     display: inline !important;
     margin: 0 !important;
     font-size: 13px !important;
     color: var(--kr-text-secondary) !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
     display: inline-flex !important;
@@ -8447,14 +8454,14 @@ body.mobile-mode .building-section-content img.img-responsive {
     min-height: 20px !important;
   }
   
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a:active {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a:active {
     color: var(--kr-primary) !important;
   }
   
   /* Icône flèche dans le lien vers le message - 20x20px */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
-  body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a .glyphicon,
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a .glyphicon {
     display: inline-block !important;
     width: 20px !important;
     height: 20px !important;
@@ -8464,7 +8471,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   /* Badges/images dans les noms d'utilisateurs */
-  body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) img {
+  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) img {
     vertical-align: middle !important;
     margin: 0 2px !important;
     max-height: 16px !important;
@@ -14460,6 +14467,391 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_paginate {
     order: 5;
     margin-left: auto;
+  }
+}
+
+/* ============================================================================
+   INDEX DU FORUM (refonte H12.1, ticket 6.1) — présentation du sous-forum
+   Portée : index /forum/rp, /forum/hrp, /forum/communaute et /forum/debats (html.kr-page-forum-index, posée avec le thème ; index Staff
+   exclu). Modèle : sous-forum ci-dessus, mêmes valeurs : L1 et L4 (en-tête de section), L2 (en-tête de page mobile), L3 (lignes mobiles),
+   L6 (bureau). Le module ForumIndex:Presentation pose les unités (data-kr-unit), le fil d'Ariane mobile et le bouton « Tous les forums »
+   dans le titre (bureau). Les anciennes règles « cartes » du forum (1re et 2e versions, tableaux de #col-right) excluent l'index (P1) ; les
+   règles mobiles transverses (cibles de 44 px, liens des panneaux, cellules) sont battues par la spécificité (#col-right).
+   ============================================================================ */
+
+/* Les deux supports : le nom seul (ni description ni modérateurs) ; icône de l'en-tête de section rendue (fa-comments-o, nom Font Awesome 4,
+   n'a pas de glyphe en Font Awesome 5 : même glyphe que le « far fa-comments » des en-têtes du sous-forum). */
+@media (max-width: 767px), (min-width: 768px) {
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > .tagforum {
+    display: none !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading h3 > i.fa-comments-o {
+    font-weight: 400;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading h3 > i.fa-comments-o::before {
+    content: "\f086";
+  }
+}
+
+/* Mobile — en-tête de page (L2) : fil d'Ariane « ⏪ Tous les forums › Jeu (RP) », puis le titre en 24 px, à 16 px du bord ; en-tête de section
+   (L1, L4) : titre en couleur de texte, 44 px de haut, chevron de 44 x 44. */
+@media (max-width: 767px) {
+  :where(html.kr-page-forum-index) #col-right > h1.page-header {
+    margin: 12px 16px !important;
+    padding: 0 !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Alerte native en tête de colonne (« Bienvenue ») : la règle mobile générique « .alert { padding: 12px 15px } » retire la réserve de 35 px
+     où Bootstrap place la croix (.alert-dismissible .close, right: -21px), qui débordait alors de l'écran. */
+  :where(html.kr-page-forum-index) #col-right > .alert-dismissible {
+    padding-right: 35px !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 4px;
+    color: var(--kr-text-secondary);
+    font-size: 14px;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--kr-text-primary) !important;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-sep,
+  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-current {
+    color: var(--kr-text-secondary);
+  }
+
+  :where(html.kr-page-forum-index) #col-right .forum-subforum-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .forum-subforum-title {
+    min-width: 0;
+    color: var(--kr-text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading {
+    min-height: 44px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading h3 {
+    color: var(--kr-text-primary) !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading span.clickable {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0 -12px 0 auto !important;
+    cursor: pointer;
+  }
+}
+
+/* Mobile — lignes (L3) : une ligne pleine largeur par forum = nom, « Dernier : auteur, heure », « N sujets · N messages », et le bouton → natif
+   du dernier message (44 x 44) à droite. Le tableau natif est conservé : ligne en flex, cellules 1 et 4 en display: contents, unités en CSS
+   (data-kr-unit) ; le nom est un lien étiré sur toute la ligne (cible de toucher = la ligne), le bouton → passe au-dessus. Un forum sans
+   message garde sa 4e cellule vide : ni « Dernier : » ni bouton. */
+@media (max-width: 767px) {
+  :where(html.kr-page-forum-index) #col-right .panel-default .table {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > thead {
+    display: none !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody {
+    display: block !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    margin: 0 !important;
+    padding: 10px 56px 10px 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+    cursor: pointer;
+  }
+
+  /* Sauts de ligne : après le nom, après le dernier message. */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr::before,
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr::after {
+    content: "";
+    flex: 0 0 100%;
+    height: 0;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr::before {
+    order: 5;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr::after {
+    order: 10;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(1),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p:not(.tagforum) {
+    display: contents !important;
+  }
+
+  /* Réinitialise la règle générique de toucher (liens de 44 px de haut, rembourrés) : la ligne entière est la cible, via le lien étiré. */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td a:not(.btn) {
+    display: block !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  /* Ligne 1 : le nom en 16 px, lien étiré sur la ligne. */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a {
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere;
+    text-decoration: none !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Ligne 2 : « Dernier : auteur, heure ». Le nom de l'auteur n'est pas cliquable (pas de toucher accidentel vers le profil). */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin {
+    order: 7;
+    color: var(--kr-text-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin::before {
+    content: "Dernier : ";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin::after {
+    content: ",";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini {
+    display: block !important;
+    order: 8;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini .btn-group {
+    position: absolute !important;
+    top: 50%;
+    right: 8px;
+    left: auto !important;
+    z-index: 2;
+    display: block !important;
+    float: none !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 16px !important;
+    line-height: 1;
+  }
+
+  /* Ligne 3 : « N sujets · N messages ». */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2) {
+    order: 11;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3) {
+    order: 12;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2)[data-kr-unit]::after,
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3)[data-kr-unit]::after {
+    content: " " attr(data-kr-unit);
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3)::before {
+    content: "· ";
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+}
+
+/* Bureau (L6) : le tableau natif est conservé (colonnes Forum, Sujets, Messages, Dernier Message) et restylé comme celui du sous-forum : nom en
+   couleur de texte (15 px), chiffres à droite, auteur en gras et heure secondaire dessous, bouton → de 32 px au bout de la ligne. */
+@media (min-width: 768px) {
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td {
+    padding: 6px 10px !important;
+    vertical-align: middle !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p:not(.tagforum) {
+    display: inline !important;
+    margin: 0 !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a {
+    color: var(--kr-text-primary) !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    line-height: 1.35;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a:hover {
+    text-decoration: underline !important;
+  }
+
+  /* Sujets et Messages : à droite, chiffres de même largeur ; en-têtes alignés comme leurs chiffres (Msg et Vus du sous-forum). */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > thead th:nth-child(2),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > thead th:nth-child(3) {
+    font-variant-numeric: tabular-nums;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+
+  /* Dernier message : auteur en gras, heure secondaire dessous, bouton → de 32 px au bout de la ligne. */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin {
+    display: block;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini {
+    display: block;
+    margin: 0 !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) {
+    position: relative;
+    padding-right: 52px !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    display: block !important;
+    float: none !important;
+    width: 32px;
+    height: 32px;
+    margin: 0 !important;
+    transform: translateY(-50%);
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group > a.btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kr-border-strong) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--kr-text-primary) !important;
+    font-size: 14px !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group > a.btn:hover {
+    border-color: var(--kr-primary) !important;
+    background: var(--kr-bg-hover) !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default {
+    margin-bottom: 14px !important;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-body {
+    padding: 8px 15px 10px !important;
   }
 }
 

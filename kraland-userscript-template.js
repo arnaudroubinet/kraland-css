@@ -106,6 +106,12 @@
     return FORUM_MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
   }
 
+  /** Index de catégorie présenté comme le sous-forum : /forum/rp, /forum/hrp, /forum/communaute, /forum/debats (Staff exclu). */
+  function krForumIsIndexPath(pathname) {
+    const p = krForumNormalizePath(pathname);
+    return FORUM_MENUS.some(menu => menu.id !== 'staff' && p === menu.path);
+  }
+
   // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
   // classe disabled, aria-disabled="true", attribut disabled. Un simple style (grisé, opacité, survol, text-muted) n'en est PAS un.
   // entry.cls : attribut class brut (jetons séparés par des blancs ASCII, comme classList) ; entry.aria : attribut aria-disabled ;
@@ -3744,6 +3750,9 @@
       // Page Notifications (/report, /report/<personnage>) : limite au journal le rendu des lignes non lues (tr.bg-info, voir le CSS)
       const isReport = /^\/report(?:\/|$)/.test(location?.pathname || '');
       document.documentElement.classList.toggle('kr-page-report', isReport);
+
+      // Index RP, HRP, Communauté et Débats : présentation du sous-forum (module ForumIndex:Presentation et CSS « INDEX DU FORUM »)
+      document.documentElement.classList.toggle('kr-page-forum-index', krForumIsIndexPath(location?.pathname || ''));
       PerfLog.end('css:applyVariant');
 
       return true;
@@ -4757,6 +4766,12 @@
       return;
     }
 
+    // Index RP, HRP, Communauté et Débats : présentés comme le sous-forum (ForumIndex:Presentation). Garde sur le chemin, peau coupée
+    // comprise : la page native reste intacte.
+    if (krForumIsIndexPath(window.location.pathname)) {
+      return;
+    }
+
     // L0 (sous-forum) : un tableau dont la 1re colonne contient des liens vers des sujets (forum/sujet/) est une liste de sujets, pas un
     // index de forums (l'index peut, lui, porter des liens « dernier message » vers des sujets dans une autre colonne).
     // Sans ce garde-fou, le 1er tableau de la page (les sujets permanents) était doublé par des cartes forum aux chiffres faux.
@@ -5317,6 +5332,8 @@
       // Forum et racine du forum seulement : ailleurs (Cybermonde, Personnage…), les tableaux ne sont pas des listes de sujets. Sortie avant
       // tout marquage de ligne ; sans le display !important du forum, le masquage en ligne des cellules 2 et 3 s'appliquerait (ticket 1.6)
       if (!document.body.classList.contains('page-forum') && !document.body.classList.contains('page-forum-racine')) {return;}
+      // Index RP, HRP, Communauté et Débats : compteurs libellés par ForumIndex:Presentation, cellules natives conservées (peau coupée comprise)
+      if (krForumIsIndexPath(window.location.pathname)) {return;}
 
       // L4 (sous-forum) : sur la page de liste des sujets (table#topics), les permanents tiennent sur une ligne (titre, non lu, date) :
       // compteurs, auteur et pages restent dans le sujet. Aucun bloc de statistiques n'est ajouté, les cellules natives ne sont pas masquées en JS.
@@ -5601,6 +5618,88 @@
 
     InitQueue.register('ForumHeader:MobileBreadcrumb', transformForumHeader, 25);
 
+  })();
+
+  // ============================================================================
+  // MODULE : ForumIndex:Presentation
+  // Index RP, HRP, Communauté et Débats (html.kr-page-forum-index, posée avec le thème) : présentation du sous-forum (refonte H12.1).
+  // - Chaque compteur a son mot : « 12 sujets · 345 messages », « 1 sujet », « 0 sujets » (forum sans message, Q27). Le mot est posé en
+  //   attribut (data-kr-unit sur les cellules Sujets et Messages) et affiché par le CSS mobile : le texte des cellules reste celui du site.
+  // - Le bouton → natif du dernier message reçoit un nom accessible, comme au sous-forum (labelRow de ForumTopics:MobileStats).
+  // - En-tête mobile : fil d'Ariane « ⏪ Tous les forums › Jeu (RP) » sur le lien du bouton natif « Tous les forums » (même href), puis le
+  //   titre, comme l'en-tête du sous-forum (L2) ; le bouton natif est retiré. Ordinateur : le bouton passe dans le titre, libellé, comme les
+  //   boutons « Jeu (RP) » et « nouveau sujet » du titre du sous-forum.
+  // Le libellé n'est pas lu dans l'infobulle du bouton : sur mobile, disableTooltips la retire avant que la file ne tourne.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    const ALL_FORUMS_LABEL = 'Tous les forums';
+    const unit = (n, one, many) => (n === 1 ? one : many);
+
+    function labelRows(table) {
+      Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(row => {
+        [[row.cells[1], 'sujet', 'sujets'], [row.cells[2], 'message', 'messages']].forEach(([cell, one, many]) => {
+          const text = cell ? cell.textContent.trim() : '';
+          if (/^\d+$/.test(text)) {cell.setAttribute('data-kr-unit', unit(Number(text), one, many));}
+        });
+        const arrow = row.cells[3] ? row.cells[3].querySelector('.btn-group > a.btn') : null;
+        if (arrow && !arrow.hasAttribute('aria-label')) {
+          arrow.setAttribute('aria-label', arrow.getAttribute('data-original-title') || arrow.getAttribute('title') || 'aller au dernier message');
+        }
+      }));
+    }
+
+    function createBreadcrumb(allLink, titleText) {
+      const crumb = document.createElement('div');
+      crumb.className = 'forum-mobile-breadcrumb';
+      const back = document.createElement('a');
+      back.setAttribute('href', allLink.getAttribute('href'));
+      back.className = 'forum-mobile-breadcrumb-link';
+      const icon = document.createElement('i');
+      icon.className = 'fa fa-backward';
+      back.append(icon, ' ' + ALL_FORUMS_LABEL);
+      const separator = document.createElement('span');
+      separator.className = 'forum-mobile-breadcrumb-sep';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '›';
+      const current = document.createElement('span');
+      current.className = 'forum-mobile-breadcrumb-current';
+      current.textContent = titleText;
+      crumb.append(back, separator, current);
+      return crumb;
+    }
+
+    function transformHeader(colRight) {
+      const heading = colRight.querySelector(':scope > h1.page-header');
+      const allLink = colRight.querySelector(':scope > span.pull-right > a[href="forum"]');
+      if (!heading || !allLink) {return;}
+      const titleText = heading.textContent.trim();
+      if (isMobileMode()) {
+        const head = document.createElement('div');
+        head.className = 'forum-subforum-head';
+        const title = document.createElement('span');
+        title.className = 'forum-subforum-title';
+        title.textContent = titleText;
+        head.appendChild(title);
+        heading.replaceChildren(createBreadcrumb(allLink, titleText), head);
+        allLink.parentElement.remove();
+      } else {
+        if (!allLink.textContent.trim()) {allLink.append(' ' + ALL_FORUMS_LABEL);}
+        heading.append(' ', allLink.parentElement);
+      }
+    }
+
+    function initForumIndex() {
+      if (!document.documentElement.classList.contains('kr-page-forum-index')) {return;}
+      const colRight = document.getElementById('col-right');
+      if (!colRight) {return;}
+      const table = colRight.querySelector('.panel-default table.table');
+      if (table) {labelRows(table);}
+      transformHeader(colRight);
+    }
+
+    InitQueue.register('ForumIndex:Presentation', initForumIndex, 26);
   })();
 
   // ============================================================================

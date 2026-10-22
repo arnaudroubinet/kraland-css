@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { loadPure, plain } from './lib/pure.mjs';
 
 const P = loadPure('menus-forums');
-const { krForumNormalizePath, krForumIsExcluded, krForumMenuForPath, krForumIsDisabledEntry, krForumAnalyzeSidebar, krForumParseStored,
-  krForumMergeStored, krForumListState, FORUM_MENUS, FORUM_STALE_MS, FORUM_MAX_AGE_MS } = P;
+const { krForumNormalizePath, krForumIsExcluded, krForumMenuForPath, krForumIsIndexPath, krForumIsDisabledEntry, krForumAnalyzeSidebar,
+  krForumParseStored, krForumMergeStored, krForumListState, FORUM_MENUS, FORUM_STALE_MS, FORUM_MAX_AGE_MS } = P;
 const RP = FORUM_MENUS[0];
 const HRP = FORUM_MENUS[1];
 const DAY = 24 * 60 * 60 * 1000;
@@ -63,6 +63,15 @@ test('chemins : normalisation (barre finale, casse) et catégorie d\'une page', 
   assert.equal(krForumMenuForPath('/forum/rpg'), null, 'préfixe sans barre : autre chemin');
   assert.equal(krForumMenuForPath('/forum'), null);
   assert.equal(krForumMenuForPath('/forum/sujet/un-1-1'), null);
+});
+
+test('index présentés comme le sous-forum : RP, HRP, Communauté et Débats exactement (barre finale, casse), jamais Staff ni un sous-chemin', () => {
+  for (const p of ['/forum/rp', '/forum/hrp', '/forum/communaute', '/forum/debats', '/forum/RP/', '/forum/debats//']) {
+    assert.equal(krForumIsIndexPath(p), true, p);
+  }
+  for (const p of ['/forum/staff', '/forum', '/forum/', '/forum/rp/taverne-10101', '/forum/rpg', '/forum/sujet/un-1-1', '/forum/post/nouveau-sujet-1-20102', '', null]) {
+    assert.equal(krForumIsIndexPath(p), false, String(p));
+  }
 });
 
 test('exclusions exactes (Taverne, Marché, Monde, Communauté, Débats, Staff), sauf en HRP', () => {

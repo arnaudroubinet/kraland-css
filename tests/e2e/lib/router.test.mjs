@@ -106,6 +106,13 @@ check('index des forums (ForumCards, forums-cards-container) : zone sous-forum (
   assert.equal(r.widened, false);
   assert.ok(r.zones.includes('sous-forum'));
 });
+check('index du forum (html.kr-page-forum-index) : zone forum, suite forum-index (zones forum et sous-forum) lancée', () => {
+  assert.deepEqual(sorted(zonesOf('forum-index.mjs')), ['forum', 'sous-forum']);
+  const r = route('kraland-theme.css', hunk('.x {', ':where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr { display: flex; }'));
+  assert.equal(r.widened, false);
+  assert.ok(r.zones.includes('forum'), r.zones.join(','));
+  assert.ok(r.units.includes('forum-index'), r.units.join(','));
+});
 check('hunk commun forum + sous-forum : les deux zones', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
   assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
@@ -257,6 +264,12 @@ check('template, en-tête sur plusieurs lignes : la ligne de fermeture n\'ouvre 
 check('template, hunk sans mot-clé dans un module Kramail : forum + kramail', () => {
   const r = route(T, hunkAt(at(TPL, 'return 3'), '    const n = 3;'), TPL);
   assert.deepEqual(sorted(r.zones), ['forum', 'kramail']);
+});
+check('template, hunk sans mot-clé dans le module ForumIndex (index du forum) : forum + sous-forum', () => {
+  const t = tpl(['MODULE : ForumIndex:Presentation — index du forum', ['  function d() {', '    return 4;', '  }']]);
+  const r = route(T, hunkAt(at(t, 'return 4'), '    const n = 4;'), t);
+  assert.equal(r.widened, false, r.reasons.join(' ; '));
+  assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
 });
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);

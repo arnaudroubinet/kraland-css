@@ -36,7 +36,8 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
 }
 
-// Index des forums (structure d'une page « cartes ») : 3 forums dans un tableau natif, pour vérifier que les cartes restent en place.
+// Index des forums : 3 forums dans un tableau natif, pour vérifier qu'aucune carte n'y est plus créée (ticket 6.1 : l'index reprend la présentation
+// du sous-forum, vérifiée par forum-index.mjs).
 function forumIndex() {
   const row = (n, t) => `<tr><td><p class="nomargin"><a href="forum/rp/${t}-${n}">Forum ${t}</a></p><p class="nomargin">Description du forum ${t}</p></td><td class="center">${n * 10} sujets</td><td class="center">${n * 100} messages</td><td><a href="communaute/membres/aestus-1-1" class="nomargin">Aestus</a> <p class="nomargin mini"><a href="forum/sujet/dernier-${n}-1#msg${n}" class="btn btn-default">→</a> Hier (13:20)</p></td></tr>`;
   return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><base href="${BASE}/"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>FIXTURE index des forums</title><link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css"></head><body>
@@ -115,7 +116,7 @@ const MEASURE = () => {
 
 // ---------- L0 : doublon des permanents (ForumCards ne touche plus un tableau de sujets) ----------
 if (frag('l0')) {
-  console.log('L0 : le tableau des permanents n\'est plus doublé par des cartes (mobile), l\'index garde ses cartes');
+  console.log('L0 : le tableau des permanents n\'est plus doublé par des cartes (mobile), l\'index n\'a plus de cartes (ticket 6.1)');
   for (const width of WIDTHS) {
     const { context, page: p, state } = await open({ width });
     const m = await p.evaluate(MEASURE);
@@ -132,7 +133,7 @@ if (frag('l0')) {
   for (const url of ['/forum/rp', '/forum/hrp']) {
     const { context, page: p } = await open({ width: 375, url, html: forumIndex() });
     const m = await p.evaluate(MEASURE);
-    check(`${url} à 375 : l'index des forums reste en cartes (1 conteneur, 3 cartes visibles)`, () => { assert.equal(m.cardsContainers, 1); assert.equal(m.cards, 3); assert.equal(m.cardsVisible, 1); });
+    check(`${url} à 375 : l'index des forums n'a plus de cartes (0 conteneur, 0 carte), son tableau natif est visible une seule fois`, () => { assert.equal(m.cardsContainers, 0); assert.equal(m.cards, 0); assert.equal(m.visibleTablesWithTopics, 1); });
     await context.close();
   }
 }

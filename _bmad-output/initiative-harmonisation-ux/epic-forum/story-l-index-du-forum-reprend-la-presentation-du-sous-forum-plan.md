@@ -3,14 +3,14 @@ title: "L'index du forum reprend la présentation du sous-forum"
 type: 'feature'
 ticket: '1'
 created: '2026-10-22'
-status: 'in-progress'
+status: 'built'
 baseline_revision: '81512a3a4a0adb59958ddf955e203a7d44941b0e'
 route: 'full'
 route_source: 'auto'
 risk: 'high'
-review: ''
-review_source: ''
-lenses_ran: []
+review: 'quick'
+review_source: 'pinned'
+lenses_ran: ['quick']
 review_loop_iteration: 0
 context: []
 ---
@@ -53,12 +53,12 @@ context: []
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] fixtures `forum-index-rp.html` (réécrite) et `forum-index-communaute.html` -- structure réelle, cas « forum sans message », auteur avec `img.icon`, description avec `<u>`, deux modérateurs -- base des tests
-- [ ] `tests/e2e/forum-index.mjs` + routeur -- suite rouge d'abord, une vérification par ligne de la matrice, à 375, 767, 768 et 1440 px, Kraland clair et Empire Brun sombre
-- [ ] `kraland-userscript-template.js` -- classe `kr-page-forum-index` sur `html` pour les 4 index ; exclusion de l'index dans `ForumCards` et `PermanentTopics:Icons` ; marquage minimal des cellules et ajouts de texte (unités, « Dernier : ») sur le modèle de `MobileStats`
-- [ ] `kraland-theme.css` -- index exclu de v1/v2 par `:where(html:not(.kr-page-forum-index))` ou retrait des règles qui ne servent qu'à l'index ; nouvelle section gardée `:where(html.kr-page-forum-index)`, ordinateur et mobile, sur le modèle L1, L2, L3, L6
-- [ ] `jeu-identite.mjs`, `sous-forum.mjs` -- contrôles de l'index mis à jour vers la nouvelle présentation ; racine inchangée
-- [ ] `npm run build` -- bundle et `version.json`
+- [x] fixtures `forum-index-rp.html` (réécrite) et `forum-index-communaute.html` -- structure réelle, cas « forum sans message », auteur avec `img.icon`, description avec `<u>`, deux modérateurs -- base des tests
+- [x] `tests/e2e/forum-index.mjs` + routeur -- suite rouge d'abord, une vérification par ligne de la matrice, à 375, 767, 768 et 1440 px, Kraland clair et Empire Brun sombre
+- [x] `kraland-userscript-template.js` -- classe `kr-page-forum-index` sur `html` pour les 4 index ; exclusion de l'index dans `ForumCards` et `PermanentTopics:Icons` ; marquage minimal des cellules et ajouts de texte (unités, « Dernier : ») sur le modèle de `MobileStats`
+- [x] `kraland-theme.css` -- index exclu de v1/v2 par `:where(html:not(.kr-page-forum-index))` ou retrait des règles qui ne servent qu'à l'index ; nouvelle section gardée `:where(html.kr-page-forum-index)`, ordinateur et mobile, sur le modèle L1, L2, L3, L6
+- [x] `jeu-identite.mjs`, `sous-forum.mjs` -- contrôles de l'index mis à jour vers la nouvelle présentation ; racine inchangée
+- [x] `npm run build` -- bundle et `version.json`
 
 **Acceptance Criteria:**
 - Given un index à 375 px, when la page s'affiche, then aucun élément ne déborde horizontalement et les cartes `.forums-cards-container` n'existent plus
@@ -66,6 +66,18 @@ context: []
 - Given le thème désactivé, when un index s'affiche, then la page native est intacte
 
 ## Implementation Notes
+
+- Fichiers : `kraland-userscript-template.js` (`krForumIsIndexPath` dans le cœur pur `menus-forums` ; `html.kr-page-forum-index` dans `applyThemeInline`, donc peau active seulement ; garde de chemin dans `ForumCards:MobileTransform` et `PermanentTopics:Icons`, peau coupée comprise ; module `ForumIndex:Presentation`, priorité 26) ; `kraland-theme.css` (`:where(html:not(.kr-page-forum-index))` devant les 46 sélecteurs « cartes » 1re version, les 46 sélecteurs de tableau de la 2e version et `body.mobile-mode #col-right table:not(.dataTable)` ; section « INDEX DU FORUM » après L6) ; fixtures `forum-index-rp.html` (réécrite, 4 forums) et `forum-index-communaute.html` (3 forums) ; suite `tests/e2e/forum-index.mjs` (5 fragments, 121 contrôles) enregistrée dans `router.mjs` (zones forum et sous-forum, entrée `SECTIONS` du module) avec 2 tests du routeur ; `jeu-identite.mjs`, `sous-forum.mjs`, `tests/unit/menus-forums.test.mjs` ; bundle et `version.json`.
+- « Même rendu que le sous-forum » est mesuré : la suite charge le sous-forum « Débuter » dans le même navigateur et compare les propriétés calculées de chaque composant (en-têtes, ligne, nom, dernier message, bouton →, compteurs, colonnes, position du bouton du titre).
+- Décision : les règles du panneau de la 2e version (fond, en-tête, corps, h3 16 px / 600) restent communes au sous-forum et à l'index, car elles font l'en-tête de section du sous-forum ; seules ses règles de tableau excluent l'index.
+- Décision : libellé « Tous les forums » écrit par le module. Sur mobile, `disableTooltips` (transformations DOM, avant la file) retire l'infobulle du bouton natif ; sur ordinateur, le libellé n'est ajouté que si le bouton n'a pas de texte. Le bouton natif est retiré sur mobile (remplacé par le fil d'Ariane, même href) et déplacé dans le h1 sur ordinateur.
+- Décision : unité posée seulement si la cellule ne contient qu'un nombre ; « 1 sujet », sinon pluriel (« 0 sujets »).
+- Hypothèses ajoutées à `revue-manuelle.md` : bouton du titre sur ordinateur, graisse 400 du nom de forum (DESIGN.md donne 700), glyphe de `fa-comments-o`.
+- Surprise : la croix de l'alerte native « Bienvenue » débordait de 5 px à 375 px (règle mobile générique `.alert { padding: 12px 15px }` contre `.alert-dismissible .close { right: -21px }`). Corrigé pour l'index seulement (`padding-right: 35px`) ; le défaut reste sur les autres pages mobiles à alerte fermable.
+- Surprise : sur ordinateur en Kraland clair, le titre de section du sous-forum est `#333` (Bootstrap), pas `--kr-text-primary` ; l'index reprend la même couleur, jamais celle de la nation.
+- Surprise : `origin/feature/next` a 33 commits locaux de retard ; le bundle « avant » de `forum-index.mjs` (hors périmètre) est pris sur la branche locale `feature/next` d'abord.
+- Vérification : `forum-index.mjs` rouge sur le bundle de HEAD (24 ok, 97 FAIL), vert après (121 ok) ; contre-épreuves (nom à 15 px : « même rendu » rouge ; unités retirées : contenus rouges) ; `test:zone -- forum sous-forum menus-forums` vert (1940 ok) ; `test:router` conforme ; `test:unit` 56 ok ; `lint:css` et `lint:js` à 0 erreur ; `test:all` VERT (4341 ok, 0 FAIL).
+- Correctifs de revue : le bouton → reçoit le nom accessible du sous-forum (libellé et repli de `labelRow`), vérifié sur mobile et ordinateur ; seuil mesuré à 767, 768 et 769 px ; la racine est servie par `forum-racine.html` (ancienne `forum-index-rp.html`, restaurée de 81512a3) et les contrôles « racine » de `jeu-identite.mjs` sont revenus à l'identique (2 lignes) ; le bundle « avant » est figé au commit 81512a3 (au lieu de la branche locale feature/next) ; une page de sujet entre dans la comparaison hors périmètre (`forum-sujet.html`, sortie du constructeur `page('sujet')` de `messages-v3.mjs`). `forum-index.mjs` 127 ok, `jeu-identite.mjs` 92 ok ; contre-épreuve : sans aria-label, les contrôles du bouton → sont rouges.
 
 ## Design Notes
 
@@ -82,3 +94,13 @@ context: []
 
 **Manual checks (if no CLI):**
 - Validation visuelle d'Arnaud sur le site réel : les 4 index à 375 et 1440 px, en Kraland clair et Empire Brun sombre, comparés au sous-forum Royaume de Ruthvénie.
+
+## Review Triage Log
+
+Passe quick du 2026-10-22 : 4 low, patch ; tous corrigés par l'implémenteur.
+- low, patch — bouton → mobile sans nom accessible (les infobulles sont retirées sur mobile avant la file d'init) : `aria-label` posé comme `labelRow` du sous-forum, vérifié à 375 et 1440 px.
+- low, patch — seuil testé à 767 et 768 px seulement (AGENTS.md : N−1, N, N+1) : 769 px ajouté.
+- low, patch — tests de la racine modifiés par la réécriture de la fixture : fixture d'origine conservée sous `forum-racine.html`, assertions de la racine revenues à l'identique.
+- low, patch — comparaison « hors périmètre » faite sur la branche locale (se comparerait à elle-même une fois commitée) et sans page de sujet : bundle d'avant figé à `81512a3` (remplaçable par `KR_SCRIPT_AVANT`), page de sujet ajoutée.
+
+Vérification : `forum-index.mjs` 127 ok ; `test:unit` 56/56 ; `test:router` conforme ; `lint:css`, `lint:js` 0 erreur ; `test:all` 4347 ok, 0 FAIL. Site réel (lecture seule, 2026-10-22) : 4 index à 375 et 1440 px, deux variantes : 0 carte, 0 description visible, → de 44 px (mobile) et 32 px (ordinateur) avec nom accessible, fil d'Ariane mobile, aucun débordement ; racine et sous-forum inchangés. Captures : `.tmp/captures/validation-6-1-index-forum/` (hors git).

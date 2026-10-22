@@ -1,10 +1,11 @@
 // Harmonisation UX, lot 1 : défauts de style et identité du personnage (décisions H1.1 à H1.6 et R1 de l'étude, EXPERIENCE.md).
 // Fragment fuite-forum (H1.1) : le décor mobile des listes de forum (« → … sujets · ») reste réservé aux pages du forum. Sur Personnage,
 // aucune cellule des panneaux Citoyenneté (deux cellules par ligne) et Maladies (une seule) ne reçoit ce contenu généré (::before « → »,
-// ::after « sujets · ») et chacune de leurs lignes reste une ligne de tableau (display: table-row, pas une carte en grille) ; sur l'index du
-// forum, le décor reste (non-régression, mesuré sur une ligne native : voir LIGNE_NATIVE). La racine du forum (/forum, qui liste tous les
-// forums) n'est pas une page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau
-// natif, que le module des cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
+// ::after « sujets · ») et chacune de leurs lignes reste une ligne de tableau (display: table-row, pas une carte en grille). L'index du forum
+// (/forum/rp) a quitté les cartes (ticket 6.1, présentation du sous-forum, vérifiée par forum-index.mjs) : ni conteneur de cartes ni décor des
+// cartes (mesuré sur une ligne native : voir LIGNE_NATIVE), lignes en flex. La racine du forum (/forum, qui liste tous les forums) n'est pas une
+// page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau natif, que le module des
+// cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
 // Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
 // bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
 // n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
@@ -24,10 +25,10 @@
 // Matériel, Personnage, Bâtiments, Employés : fa-bolt, fa-suitcase, fa-user, fa-home, fa-users.
 // Fragment hors-forum-js (ticket 1.6, accord du 2026-10-16) : le module JS des sujets permanents (enrichPermanentTopicsStats) n'agit que sur le forum
 // et sa racine. Sur Cybermonde (/map, fixture reconstruite cybermonde-ville.html) et sur Personnage, à 320, 375, 768 et 1280 px : aucun bloc de
-// compteurs, aucune ligne marquée, aucune cellule masquée ; sur l'index et la racine du forum, les blocs restent (non-régression). La garde de page
-// n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768 et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules
-// au plus), seul le marquage des lignes trahissait le module.
-// Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, regles-recherche.html,
+// compteurs, aucune ligne marquée, aucune cellule masquée ; l'index du forum en est exclu aussi (ticket 6.1 : compteurs libellés par le module de
+// l'index) ; sur la racine du forum, les blocs restent (non-régression). La garde de page n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768
+// et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules au plus), seul le marquage des lignes trahissait le module.
+// Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, forum-racine.html, regles-recherche.html,
 // cybermonde-ville.html reconstruite), aucune donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html,
 // servie à son URL de kramail-redaction.mjs) ;
 // vrai Bootstrap 3.3.7 (tests/e2e/vendor). Confinement réseau (lib/confinement.mjs) ; aucune navigation, un seul toucher (l'en-tête du mini-profil
@@ -56,7 +57,7 @@ const PLATEAU = BASE + '/jouer/plateau';
 const PERSO = BASE + '/jouer/perso';
 const PNJ = BASE + '/jouer/pnj';
 const INDEX_FORUM = BASE + '/forum/rp';
-const RACINE_FORUM = BASE + '/forum'; // racine du forum : même tableau d'index (fixture forum-index-rp.html), mais hors « /forum/… »
+const RACINE_FORUM = BASE + '/forum'; // racine du forum : tableau d'index (fixture forum-racine.html, l'index synthétique d'avant le ticket 6.1), hors « /forum/… »
 const REGLES = BASE + '/regles/base';
 const CYBERMONDE = BASE + '/map';
 const KRAMAIL_NOUVEAU = BASE + '/kramail/post/nouveau-4-2000'; // URL de la fixture dans kramail-redaction.mjs
@@ -74,10 +75,13 @@ const PANNEAUX_PERSO = [{ titre: 'Citoyenneté', cellules: [2, 2, 2] }, { titre:
 // communes aux accès rapides (ordinateur) et aux onglets de section (mobile).
 const DESTINATIONS = ['/jouer/plateau', '/jouer/materiel', '/jouer/perso', '/jouer/bat', '/jouer/pnj'];
 const ICONES = ['fa-bolt', 'fa-suitcase', 'fa-user', 'fa-home', 'fa-users'];
-// Ligne native de l'index (1re ligne du corps de table de la fixture). La peau remanie les lignes de la page : le module des sujets permanents
-// insère un bloc de statistiques en 2e position et le tableau est masqué au profit de cartes, donc td:nth-child(2) n'y existe plus. La ligne
-// d'origine, remise telle quelle dans le tableau le temps d'une mesure, dit si le décor s'applique encore sur une page du forum.
-const LIGNE_NATIVE = fixture('forum-index-rp.html').match(/<tr>\s*<td>[\s\S]*?<\/tr>/)[0];
+// Lignes natives de l'index et de la racine (1re ligne du corps de table de leur fixture). La peau remanie les lignes de la racine : le module des
+// sujets permanents y insère un bloc de statistiques en 2e position, donc td:nth-child(2) n'y est plus une cellule de compteur. La ligne
+// d'origine, remise telle quelle dans le tableau le temps d'une mesure, dit si le décor des cartes s'applique encore sur une page du forum.
+const premiereLigne = nom => fixture(nom).match(/<tr>\s*<td>[\s\S]*?<\/tr>/)[0];
+const LIGNE_NATIVE = premiereLigne('forum-index-rp.html');
+const LIGNE_NATIVE_RACINE = premiereLigne('forum-racine.html');
+const LIGNES_INDEX = (fixture('forum-index-rp.html').match(/<tr>\s*<td>/g) || []).length; // forums de la fixture de l'index (4)
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const on = name => FRAG.length === 0 || FRAG.includes(name);
 
@@ -170,8 +174,8 @@ const MESURE_PERSO = () => {
     fuites
   };
 };
-// Index des forums : affichage calculé de la première ligne visible du tableau (null s'il est masqué, comme sous /forum/<catégorie> où le module
-// des cartes le remplace), nombre de conteneurs de cartes, et décor mesuré sur la ligne native `ligneNative` remise le temps de la mesure.
+// Index des forums : affichage calculé de la première ligne visible du tableau (null s'il est masqué), nombre de conteneurs de cartes, classe de
+// page de l'index (html.kr-page-forum-index) et décor mesuré sur la ligne native `ligneNative` remise le temps de la mesure.
 const MESURE_INDEX = (ligneNative) => {
   const tbody = document.querySelector('#col-right .panel-default .table > tbody');
   const premiere = [...tbody.rows].find(tr => tr.getClientRects().length > 0);
@@ -187,6 +191,7 @@ const MESURE_INDEX = (ligneNative) => {
     lignes: tbody.rows.length,
     affichage,
     cartes: document.querySelectorAll('.forums-cards-container').length,
+    pageIndex: document.documentElement.classList.contains('kr-page-forum-index'),
     decor
   };
 };
@@ -281,7 +286,7 @@ const MESURE_SECTIONS = () => {
 async function scenario(variante) {
   const perso = await mesurerPage({ url: PERSO, html: fixture('jeu-perso.html'), variante, mesure: MESURE_PERSO });
   const index = await mesurerPage({ url: INDEX_FORUM, html: fixture('forum-index-rp.html'), variante, mesure: MESURE_INDEX, arg: LIGNE_NATIVE });
-  const racine = await mesurerPage({ url: RACINE_FORUM, html: fixture('forum-index-rp.html'), variante, mesure: MESURE_INDEX, arg: LIGNE_NATIVE });
+  const racine = await mesurerPage({ url: RACINE_FORUM, html: fixture('forum-racine.html'), variante, mesure: MESURE_INDEX, arg: LIGNE_NATIVE_RACINE });
   return { perso, index, racine };
 }
 
@@ -328,17 +333,18 @@ if (on('fuite-forum')) {
       const attendu = PANNEAUX_PERSO.map(p => ({ titre: p.titre, lignes: p.cellules.map(() => 'table-row') }));
       assert.deepEqual(perso.affichages, attendu, 'affichage des lignes : ' + JSON.stringify(perso.affichages));
     });
-    check(`[${v}] index du forum : thème appliqué, mode mobile actif, page marquée page-forum, 2 lignes`, () => {
+    check(`[${v}] index du forum : thème appliqué, mode mobile actif, page marquée page-forum et html.kr-page-forum-index, ${LIGNES_INDEX} lignes`, () => {
       verifierSocle(index, v, { pageForum: true });
-      assert.equal(index.lignes, 2);
+      assert.ok(index.pageIndex, 'html sans kr-page-forum-index');
+      assert.equal(index.lignes, LIGNES_INDEX);
     });
-    check(`[${v}] index du forum : cartes du forum affichées (conteneur présent, première ligne visible en carte : display: grid)`, () => {
-      assert.ok(index.cartes > 0, 'conteneurs .forums-cards-container : ' + index.cartes);
-      assert.equal(index.affichage, 'grid', 'première ligne visible du tableau : ' + index.affichage);
+    check(`[${v}] index du forum : plus de cartes (aucun conteneur), première ligne visible en ligne du sous-forum (display: flex, ticket 6.1)`, () => {
+      assert.equal(index.cartes, 0, 'conteneurs .forums-cards-container : ' + index.cartes);
+      assert.equal(index.affichage, 'flex', 'première ligne visible du tableau : ' + index.affichage);
     });
-    check(`[${v}] index du forum : le décor reste (« sujets » après la 2e cellule, « → » avant la dernière, sur une ligne native)`, () => {
-      assert.ok(index.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + index.decor.sujets);
-      assert.ok(index.decor.fleche.includes('→'), 'td:last-child::before = ' + index.decor.fleche);
+    check(`[${v}] index du forum : le décor des cartes ne s'applique plus (ni « sujets » après la 2e cellule ni « → » avant la dernière, sur une ligne native)`, () => {
+      assert.ok(!index.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + index.decor.sujets);
+      assert.ok(!index.decor.fleche.includes('→'), 'td:last-child::before = ' + index.decor.fleche);
     });
     check(`[${v}] racine du forum : thème appliqué, mode mobile actif, page marquée page-forum-racine (et non page-forum), tableau natif affiché sans carte, 2 lignes`, () => {
       verifierSocle(racine, v, { pageForumRacine: true });
@@ -621,8 +627,8 @@ if (on('hors-forum-js')) {
   const cas = [
     ...LARGEURS.map(l => ({ nom: `Cybermonde ${l} px`, url: CYBERMONDE, html: fixture('cybermonde-ville.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
     ...LARGEURS.map(l => ({ nom: `Personnage ${l} px`, url: PERSO, html: fixture('jeu-perso.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
-    { nom: 'index du forum 375 px', url: INDEX_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: false, socle: { pageForum: true } },
-    { nom: 'racine du forum 375 px', url: RACINE_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: false, socle: { pageForumRacine: true } }
+    { nom: 'index du forum 375 px', url: INDEX_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: true, socle: { pageForum: true } },
+    { nom: 'racine du forum 375 px', url: RACINE_FORUM, html: fixture('forum-racine.html'), device: MOBILE, hors: false, socle: { pageForumRacine: true } }
   ];
   const res = await mapLimit(cas, c => mesurerPage({ url: c.url, html: c.html, variante: V, device: c.device, mesure: MESURE_SUJETS_PERMANENTS }));
   cas.forEach((c, i) => {
@@ -632,7 +638,7 @@ if (on('hors-forum-js')) {
       assert.deepEqual(m.erreurs, []);
     });
     if (c.hors) {
-      check(`[${V}] ${c.nom} : aucun bloc de compteurs, aucune ligne marquée, aucune cellule masquée`, () => {
+      check(`[${V}] ${c.nom} : aucun bloc de compteurs, aucune ligne marquée, aucune cellule masquée${c.url === INDEX_FORUM ? ' (index exclu du module, ticket 6.1)' : ''}`, () => {
         assert.ok(m.cellules > 0, 'aucune cellule de tableau dans #col-right');
         assert.equal(m.blocs, 0, 'blocs .permanent-topic-stats : ' + m.blocs);
         assert.equal(m.marquees, 0, 'lignes data-permanent-icons-added : ' + m.marquees);
