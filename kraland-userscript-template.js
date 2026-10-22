@@ -8988,12 +8988,58 @@
   /**
    * Socle de la modale d'ordre, commun à l'ordinateur et au mobile : une confirmation Bootbox qui contient le formulaire d'ordre
    * (#ajax-order form[name="post_msg"]) est marquée (kr-order-modal ; kr-order-form sur le contenu traité) et ses boutons
-   * deviennent « Annuler » / « Valider » (H2.1). Réappliqué quand le contenu de #ajax-order est remplacé (autre ordre, Ajax).
-   * Idempotent : l'observateur des modales est enregistré deux fois sur mobile ; chaque écriture n'a lieu que si elle change le DOM.
-   * Peau coupée : modale native.
+   * deviennent « Annuler » / « Valider » (H2.1) ; ses alertes sont rangées (arrangeOrderAlerts). Réappliqué quand le contenu de
+   * #ajax-order est remplacé (autre ordre, Ajax). Idempotent : l'observateur des modales est enregistré deux fois sur mobile ; chaque
+   * écriture n'a lieu que si elle change le DOM. Peau coupée : modale native.
    */
   const ORDER_MODAL_LABELS = { cancel: 'Annuler', confirm: 'Valider' };
   const watchedOrderModals = new WeakSet();
+
+  /**
+   * Alertes de l'ordre (H2.3, R2, H2.4) : seule l'aide (alert-order) se replie, derrière un bouton « ? Aide » (kr-order-help-toggle) posé
+   * juste avant elle ; un bouton qui n'est plus suivi de son aide (aide retirée par sa croix, data-dismiss="alert" de Bootstrap) est
+   * retiré. Les blocages (alert-danger) et avertissements (alert-warning) passent dans un bloc kr-order-alerts juste sous le titre de
+   * l'ordre (h4 de l'onglet actif), collé en haut du corps pendant le défilement (CSS) et jamais replié ; sans onglet actif, ils restent
+   * en place. N'écrit que ce qui manque. Le texte natif des alertes ne change pas ; « Valider » reste actif.
+   */
+  function arrangeOrderAlerts(form) {
+    form.querySelectorAll('.kr-order-help-toggle').forEach(toggle => {
+      if (!toggle.nextElementSibling?.classList.contains('alert-order')) {toggle.remove();}
+    });
+    form.querySelectorAll('.alert-order').forEach(help => {
+      if (help.previousElementSibling?.classList.contains('kr-order-help-toggle')) {return;}
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn btn-default kr-order-help-toggle';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.innerHTML = '<i class="fas fa-question-circle" aria-hidden="true"></i>Aide';
+      help.hidden = true;
+      help.before(toggle);
+    });
+    const pane = form.querySelector('.tab-pane.active');
+    if (!pane) {return;}
+    const alerts = [...form.querySelectorAll('.alert-danger, .alert-warning')]
+      .filter(alert => !alert.classList.contains('alert-order') && !alert.parentElement.classList.contains('kr-order-alerts'));
+    if (alerts.length) {
+      let box = pane.querySelector(':scope > .kr-order-alerts');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'kr-order-alerts';
+        const title = pane.querySelector(':scope > h4');
+        if (title) {title.after(box);} else {pane.prepend(box);}
+      }
+      box.append(...alerts);
+    }
+  }
+
+  // « ? Aide » déplie ou replie l'aide qui le suit. Écouteur délégué, posé une fois par modale : il sert aussi les contenus remplacés.
+  function toggleOrderHelp(event) {
+    const toggle = event.target.closest('.kr-order-help-toggle');
+    const help = toggle?.nextElementSibling;
+    if (!help || !help.classList.contains('alert-order')) {return;}
+    help.hidden = !help.hidden;
+    toggle.setAttribute('aria-expanded', String(!help.hidden));
+  }
 
   function applyOrderModal(modal) {
     const form = modal.querySelector('#ajax-order form[name="post_msg"]');
@@ -9004,11 +9050,13 @@
       if (button && button.textContent !== label) {button.textContent = label;}
     });
     if (!form.classList.contains('kr-order-form')) {form.classList.add('kr-order-form');}
+    arrangeOrderAlerts(form);
   }
 
   function watchOrderModal(modal) {
     if (!isThemeEnabled() || !modal.matches('.bootbox.bootbox-confirm') || watchedOrderModals.has(modal)) {return;}
     watchedOrderModals.add(modal);
+    modal.addEventListener('click', toggleOrderHelp);
     applyOrderModal(modal);
     const contentObserver = new MutationObserver(() => applyOrderModal(modal));
     contentObserver.observe(modal, { childList: true, subtree: true });
@@ -9439,52 +9487,6 @@
   }
 
   /**
-   * UX AMÉLIORATION #1: Rend l'alerte d'aide repliable
-   */
-  function makeAlertCollapsible(modal) {
-    if (!modal) {return;}
-    if (!document.body.classList.contains('mobile-mode')) {return;}
-
-    const alert = modal.querySelector('.alert');
-    if (!alert) {return;}
-
-    // Créer le bouton toggle
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = 'kr-alert-toggle';
-    toggleBtn.innerHTML = '<i class="fas fa-question-circle"></i> Aide';
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    toggleBtn.setAttribute('aria-label', 'Afficher/masquer l\'aide');
-
-    // Wrapper pour le contenu de l'alerte
-    const alertContent = document.createElement('div');
-    alertContent.className = 'kr-alert-content';
-    alertContent.style.display = 'none';
-
-    // Déplacer le contenu dans le wrapper
-    while (alert.firstChild) {
-      alertContent.appendChild(alert.firstChild);
-    }
-
-    // Ajouter le bouton et le contenu
-    alert.appendChild(toggleBtn);
-    alert.appendChild(alertContent);
-    alert.classList.add('kr-alert-collapsible');
-
-    // Gérer le toggle
-    toggleBtn.addEventListener('click', function () {
-      const isExpanded = alertContent.style.display !== 'none';
-      alertContent.style.display = isExpanded ? 'none' : 'block';
-      toggleBtn.setAttribute('aria-expanded', !isExpanded);
-      toggleBtn.innerHTML = isExpanded ?
-        '<i class="fas fa-question-circle"></i> Aide' :
-        '<i class="fas fa-times-circle"></i> Masquer l\'aide';
-    });
-
-    console.log('[Order Modal] Alerte rendue repliable');
-  }
-
-  /**
    * UX AMÉLIORATION #3: Agrandit le textarea pour meilleur confort
    */
   function enlargeTextarea(modal) {
@@ -9685,8 +9687,7 @@
     cleanToolbarWhitespace(modal);
 
     // === AMÉLIORATIONS UX ===
-    // #1: Alerte repliable
-    makeAlertCollapsible(modal);
+    // #1 (repli de l'aide) : socle commun aux deux supports, arrangeOrderAlerts
 
     // #2: Améliorer le feedback des nav-tabs (avec état actif)
     enhanceNavTabsFeedback(modal);

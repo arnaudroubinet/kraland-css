@@ -4,6 +4,8 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ## Validations visuelles en attente (tickets `built`)
 
+- Tickets 2.2 et 2.3, modale d'ordre (libellés, alertes en tête, aide repliée) : captures du site réel dans `.tmp/captures/validation-2-2-2-3-modale/` (`index.html`) ; Dormir et Pouvoir, 375 et 1280 px, deux variantes. Pastilles pastel et « Valider » vert : tickets 2.4 et 2.6 à venir.
+
 - Ticket 6.1, index du forum aligné sur le sous-forum : captures du site réel dans `.tmp/captures/validation-6-1-index-forum/` (`index.html`) ; 4 index, sous-forum et racine, 375 et 1440 px, Kraland clair et Empire Brun sombre.
 
 ## Tickets construits à marquer « fait »
@@ -16,7 +18,7 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 ## Décisions à confirmer
 
 - Ticket 2.3, mobile : le bloc des alertes collé en haut du corps (au-dessus) recouvre la zone d'onglets, collante elle aussi, quand le corps défile. Option retenue : alertes prioritaires (R2 : « restent fixées en haut ») ; alternative : coller les alertes sous la zone d'onglets (moins de place pour le contenu).
-- Ticket 2.3, petits écrans (320 × 568, paysage) : l'avertissement de Dormir, placé sous le titre de l'ordre (Q25.2), est sous le pli à l'ouverture et se colle dès le premier défilement. Option retenue : tel quel ; alternative : alertes au-dessus des onglets.
+- Ticket 2.3, placement des alertes (Q25.2) : sous le titre de l'ordre, l'avertissement de Dormir dépasse le pli à l'ouverture d'environ 24 px à 375 × 667 (et davantage à 320 × 568 ou en paysage), parce que le lien « [?] » du titre mesure 44 px sur mobile ; il se colle en haut dès le premier défilement. Option retenue : tel quel ; alternative recommandée si tu veux qu'il soit entier dès l'ouverture : alertes au-dessus des onglets.
 - Ticket 2.3, mobile : à l'ouverture, la bande coût / durée collante recouvre le titre de Dormir et le « ? Aide » de Pouvoir (touchable après défilement). Repris par le ticket 2.4 (pastilles au-dessus des boutons).
 - Tickets de backlog 6, 7, 8 (créés en autonomie, critères complets, `refined: false`) : à approuver. 6 = trois modules des modales inactifs au démarrage réel (attend 2.3) ; 7 = fenêtre étroite au chargement qui arrête l'initialisation ; 8 = mode « start » de fin-initialisation à corriger.
 - Épopée 2 : P2 (vrai téléphone) ne bloque que l'entrée 6 ; les entrées 2 à 5 livrent aussi le mobile, vérifié en émulation, avec un risque de reprise si le téléphone diverge. Alternative : tout attendre P2.
@@ -44,6 +46,8 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 - Push et PR de `feature/next` : aucun push fait.
 
 ## Visites du site réel faites en autonomie (lecture seule)
+
+- 2026-10-22 : captures de validation des tickets 2.2 et 2.3 : modales Dormir et Pouvoir ouvertes puis annulées (16 ouvertures), variante restaurée.
 
 - 2026-10-22 : modales d'ordre Dormir et Pouvoir ouvertes depuis le plateau puis fermées par « Cancel » (aucun ordre validé) ; squelette hors dépôt.
 

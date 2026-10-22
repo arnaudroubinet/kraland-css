@@ -1720,60 +1720,10 @@ a.carousel-control.right{
 
 /* ============================================================================
    9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
+   UX #1 (repli de l'aide) : section 9e, commune aux deux supports (ticket 2.3).
    ============================================================================ */
 
 @media (max-width: 768px) {
-  /* === UX #1: ALERTE REPLIABLE === */
-  .bootbox-confirm .kr-alert-collapsible {
-    padding: 0 !important;
-    margin-bottom: 12px !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-  }
-  
-  .bootbox-confirm .kr-alert-toggle {
-    width: 100% !important;
-    padding: 12px 16px !important;
-    background: #e3f2fd !important;
-    border: none !important;
-    color: #1565c0 !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    text-align: left !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    cursor: pointer !important;
-    transition: background 0.2s ease !important;
-  }
-  
-  .bootbox-confirm .kr-alert-toggle:active {
-    background: #bbdefb !important;
-  }
-  
-  .bootbox-confirm .kr-alert-toggle i {
-    font-size: 18px !important;
-  }
-  
-  .bootbox-confirm .kr-alert-content {
-    padding: 12px 16px !important;
-    background: var(--kr-bg-elevated) !important;
-    border-top: 1px solid var(--kr-border-default) !important;
-    animation: slide-down 0.2s ease !important;
-  }
-  
-  @keyframes slide-down {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
   /* === UX #2: NAV-TABS ÉTAT ACTIF RENFORCÉ === */
   .bootbox-confirm .nav.nav-tabs li.active a {
     background: linear-gradient(135deg, #428bca 0%, #3071a9 100%) !important;
@@ -1881,12 +1831,16 @@ a.carousel-control.right{
   
 }
 
-/* 7. ALERT D'AIDE */
+/* 7. ALERTES : mise en page commune ; seule l'aide (alert-order) prend la teinte d'information, les blocages et avertissements gardent
+   leur couleur d'état (R2, ticket 2.3) */
 .bootbox-confirm .alert {
   font-size: 0.875rem;
   padding: 12px;
   margin-bottom: var(--mobile-spacing-lg);
   border-radius: var(--mobile-radius);
+}
+
+.bootbox-confirm .alert-order {
   background: var(--kr-alert-info-bg);
   border: 1px solid var(--kr-alert-info-border);
 }
@@ -1939,6 +1893,43 @@ a.carousel-control.right{
   justify-content: flex-end;
 }
 } /* Fin @media (max-width: 767px) pour BOOTBOX ORDER MODAL */
+
+/* ============================================================================
+   9e. MODALE D'ORDRE - ALERTES ET AIDE (ORDINATEUR ET MOBILE)
+   Socle commun (kr-order-form, template : arrangeOrderAlerts). Blocages et avertissements dans .kr-order-alerts, juste sous le titre
+   de l'ordre (h4) : collés en haut du corps de la modale pendant le défilement, jamais repliés (H2.3, R2). top : moins le padding du
+   corps (15 px sur les deux supports), sinon le bloc colle sous ce padding et le contenu défile dans une bande de 15 px au-dessus de
+   lui. clear : le bloc commence sous le lien flottant « [?] » du titre (44 px de haut sur mobile, plus haut que le h4), qu'il
+   recouvrait. Fond opaque de la surface : rien ne transparaît sous les teintes d'état semi-transparentes du mode sombre. Au-dessus des zones
+   collantes de la chaîne mobile (onglets 100, titre 110, coût et durée 90) : rien ne les recouvre. Seule l'aide (.alert-order) se
+   replie, derrière « ? Aide » (.kr-order-help-toggle, bouton standard btn-default : même fond qu'« Annuler », texte du thème),
+   lisible dans les 16 variantes (H2.4).
+   ============================================================================ */
+@media (max-width: 767px), (min-width: 768px) {
+  .kr-order-form .kr-order-alerts {
+    position: sticky;
+    top: -15px;
+    z-index: 111;
+    clear: both;
+    background-color: var(--kr-bg-surface);
+  }
+
+  .kr-order-form .kr-order-help-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    color: var(--kr-text-primary);
+  }
+}
+
+/* Sous 768 px sans body.mobile-mode (fenêtre rétrécie sans rechargement), le corps de la modale d'ordre n'a plus de padding (règle 9c,
+   .bootbox-confirm .modal-body) : le bloc colle alors au bord, sans décalage. */
+@media (max-width: 767px) {
+  body:not(.mobile-mode) .kr-order-form .kr-order-alerts {
+    top: 0;
+  }
+}
 
 /*
   Pagination est utilisé dans les rapports

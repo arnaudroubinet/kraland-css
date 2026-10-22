@@ -1,4 +1,4 @@
-<!-- FIXTURE SYNTHÉTIQUE : contenu de #ajax-order pour l'ordre Dormir. Structure native relevée le 2026-10-22 (avertissement avant les onglets), valeurs et textes inventés. -->
+<!-- FIXTURE SYNTHÉTIQUE : contenu de #ajax-order pour l'ordre Dormir. Structure native relevée le 2026-10-22 (avertissement avant les onglets), valeurs et textes inventés ; croix de l'aide en data-dismiss="alert" (motif Bootstrap, attribut réel non relevé) : Bootstrap retire alors l'aide. -->
 <form name="post_msg" method="post" action="/fixture/envoi-bloque">
   <h3><div class="pull-right"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="80" height="80"></div></h3>
   <p></p>
@@ -25,7 +25,7 @@
         <div class="tab-pane active">
           <h4><span class="mention pull-right mini"><a href="regles/avancees#fixture-dormir">[?]</a></span><strong>Dormir</strong></h4>
           <div class="alert alert-dismissible alert-order" role="alert">
-            <button type="button" class="close"><span>×</span></button>
+            <button type="button" class="close" data-dismiss="alert"><span>×</span></button>
             <p class="mini justify">Vous pouvez dormir (une fois par nuit) pour récupérer des PV et des PM. Aide inventée pour la fixture.</p>
           </div>
         </div>
