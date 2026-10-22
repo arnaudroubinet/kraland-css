@@ -1,0 +1,82 @@
+# tickets.toml — epic-modale-ordre, dans l'ordre de construction.
+# Balle traçante : entrée 2 ; P2 reste en entrée 1 (hitl, résultats attendus d'Arnaud) et ne bloque que l'entrée 6 (décision prise en autonomie, 2026-10-22).
+# Commun aux entrées 2 à 6 : vérifications à 375×667, 767, 768, 769, 1280, 1440 et 1920 px ; toute règle de couleur vérifiée dans les 16 variantes ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles `.bootbox-confirm` qu'elle remplace (l.~935-1941, mobile seulement aujourd'hui), sans les surcharger ;
+# chaque comportement est revérifié après un changement d'ordre et un contenu chargé plus tard (remplacement du contenu de la modale).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Protocole et vérifications sur un vrai téléphone (P2)"
+description = "Protocole écrit pour Arnaud couvrant tout Q17 : appareil, système (iOS, Android), navigateur et installation du script ; largeur lue au démarrage par les fonctions mobiles appelées tôt ; modale d'ordre Dormir ouverte puis annulée ; « Envoyer » de Parler clavier ouvert ; ouverture de /report ; consigne « annuler, ne rien envoyer ». Les résultats servent aussi epic-kramail-mobile et epic-notifications."
+verify = "Le protocole existe dans le dossier de l'épopée et les résultats d'Arnaud y sont consignés (appareil, système, navigateur, constat par point)."
+covers = ["CAP-3"]
+after = []
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 2
+type = "story"
+title = "Modale d'ordre : fixture, suite et module actif sur les deux supports"
+description = "Balle traçante. Fixture synthétique sur la structure relevée le 2026-10-22 (Dormir : avertissement avant les onglets ; Pouvoir : aide puis blocage dans l'onglet, libellé d'onglet en span.text-danger ; li.active ; ligne « Coût | Durée » en pied ; Cancel / OK), suite e2e réutilisant le harnais Bootbox de parler, zone enregistrée dans le routeur. Les fonctions de marquage, de repli de l'aide et de pastilles s'appliquent sur ordinateur et mobile, une seule fois même appelées deux fois, et se réappliquent quand le contenu de la modale est remplacé ; la grille d'onglets, le carrousel et le geste de balayage restent mobiles. Libellés « Annuler » / « Valider » pour les modales d'ordre seulement (H2.1)."
+verify = "Suite modale-ordre : à 375 et 1280 px, Dormir et Pouvoir puis contenu remplacé : « Annuler » / « Valider », marquage présent une seule fois ; une confirmation hors ordre garde « Cancel » / « OK » ; npm run test:parler et npm run test:router verts."
+covers = ["CAP-3"]
+after = []
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Blocages et avertissements en tête, jamais repliés ; seule l'aide se replie"
+description = "Les alertes de blocage (alert-danger) et d'avertissement (alert-warning) passent en tête du corps de l'onglet, juste sous le titre de l'ordre (h4), restent visibles au défilement et ne sont jamais repliées ; seule l'aide (alert-order) se replie derrière « ? Aide », sur les deux supports, au style d'un bouton standard (même fond qu'« Annuler », texte du thème) lisible dans toutes les variantes (H2.3, R2, H2.4). Crée l'outil de test des 16 variantes (tests/e2e/lib), repris par les épopées suivantes."
+verify = "Suite modale-ordre : avertissement de Dormir et blocage de Pouvoir sous le titre, non repliés, rien ne les recouvre après défilement du corps (scrollTo + elementFromPoint) ; « ? Aide » déplie l'aide au clic ; « Valider » reste actif ; contraste de « ? Aide » ≥ 4,5:1 dans les 16 variantes ; aux deux supports, après contenu remplacé."
+covers = ["CAP-3"]
+after = [2]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Coût, durée et potentiel en pastilles au-dessus des boutons"
+description = "La ligne « Coût | Durée | Potentiel » du pied devient des pastilles juste au-dessus des boutons, sur ordinateur et mobile : icône et valeur, style des étiquettes de catégorie en 12 px gras, fond --kr-arm-bg et texte --kr-arm-ink, sans pastels (H2.5, Q1 ; Q5 tranchée par défaut, voir revue-manuelle.md)."
+verify = "Suite modale-ordre : pastilles au-dessus des boutons aux deux supports, valeurs reprises du pied natif (segments absents compris), texte ≥ 4,5:1 dans les 16 variantes, après contenu remplacé."
+covers = ["CAP-3"]
+after = [3]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Croix de fermeture lisible"
+description = "La croix de fermeture (bootbox-close-button, dans le corps de la modale) prend la couleur du texte du thème, un contraste ≥ 3:1 et une zone de 44 × 44 px, sur ordinateur (H2.6) et sur mobile (CAP-3 ne limite pas le support)."
+verify = "Suite modale-ordre : croix ≥ 3:1 sur le fond de la modale et 44 × 44 px, à 375 et 1280 px, dans les 16 variantes."
+covers = ["CAP-3"]
+after = [4]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 6
+type = "story"
+title = "« Valider » en couleur de nation sur mobile et onglet actif lisible"
+description = "Sur mobile, « Valider » prend la paire arm au lieu du dégradé vert et de son halo, pleine largeur sous « Annuler » (H2.2, en levant la contradiction flex-direction / flex: 2 des règles actuelles) ; l'onglet actif, libellé en span.text-danger compris, se lit (≥ 4,5:1, texte du thème) sans aucun bleu Bootstrap (#428bca, #3071a9, halo rgba(66,139,202,.4)) sur les deux supports (H2.7). Déclare --kr-arm-ink-hover pour les variantes qui n'en ont pas si le survol l'emploie. Tient compte des résultats P2."
+verify = "Suite modale-ordre : à 375 px, « Valider » pleine largeur sous « Annuler », sans dégradé vert, texte ≥ 4,5:1 ; onglet actif ≥ 4,5:1 sans bleu Bootstrap aux deux supports ; chaque écart P2 sur la modale a un test ou une ligne Decision: dans l'épopée."
+covers = ["CAP-3"]
+after = [1, 5]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée, dont la règle en dur optgroup #428bca (l.~1873) si aucune entrée ne l'a reprise."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router conforme, npm run test:all vert après le nettoyage."
+covers = ["CAP-3"]
+after = [1, 2, 3, 4, 5, 6]
+hitl = false
+risk = "low"
