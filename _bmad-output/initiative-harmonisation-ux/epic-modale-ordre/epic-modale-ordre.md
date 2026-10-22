@@ -50,3 +50,4 @@ Lot 2. Les règles propres à la modale (`.bootbox-confirm`, en dur et en `!impo
 - Assumption: Q5 (pastilles) : style des étiquettes de catégorie, icône et valeur, 12 px gras ; Q25.2 : alertes sous le titre de l'ordre (h4) ; Q25.3 : aide repliée aussi sur ordinateur (maquette) ; Q25.4 : croix laissée à sa place native.
 - Assumption: l'outil de vérification des 16 variantes est créé par l'entrée 3 (et non par l'épopée 3).
 - Constat du 2026-10-22 (site réel, lecture seule, modales annulées) : structure native relevée hors dépôt dans `.tmp/captures/modale-ordre/squelettes.txt`.
+- Decision: le repli de l'aide et les pastilles passent aux deux supports aux entrées 3 et 4 (règles corrigées), pas à l'entrée 2, pour ne pas étendre à l'ordinateur le repli de la première alerte (2026-10-22).
