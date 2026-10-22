@@ -11,6 +11,7 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 - Backlog 3 : nom contenant « $ » (bug corrigé, sans validation visuelle requise).
 - Backlog 2 : onglet de section actif sur mobile, même règle que l'ordinateur.
 - Backlog 4 : tests de CAP-1 (décor CSS sur Cybermonde, « messages », zones de test).
+- Backlog 5 (exploration) : constat 2 infirmé, constat 1 non vérifiable sans marquer un message lu ; à clore ou à reprendre quand un message lu ou envoyé existera.
 
 ## Décisions à confirmer
 
@@ -30,6 +31,8 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 - Push et PR de `feature/next` : aucun push fait.
 
 ## Visites du site réel faites en autonomie (lecture seule)
+
+- 2026-10-22 : exploration backlog 5 : `/jouer/plateau`, `/jouer/bat`, `/jouer/materiel`, listes du kramail (réception, envoi) ; aucun message ouvert, aucun contenu relevé.
 
 - 2026-10-22 : captures de validation du ticket 6.1 (index, sous-forum, racine), variante de thème restaurée ensuite.
 

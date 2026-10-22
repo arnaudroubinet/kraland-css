@@ -42,3 +42,6 @@ Une seule visite, le temps de ces relevés. Réponse suffisante : la présence o
 
 - Étape humaine (hitl) : le mandat de visite du site réel.
 - Assumption: risque faible, le spike ne change pas de code.
+- Résultat du 2026-10-22 (visite en lecture seule, en autonomie) :
+  - Constat 2 (sous-pages du nom) : **infirmé**. Les pages `/jouer/bat` et `/jouer/materiel` ne contiennent aucun lien vers une sous-page `/jouer/bat/<x>` ou `/jouer/materiel/<x>` ; le titre actif y vaut le nom du personnage (« Nerys »), comme sur le plateau. Le code accepte ces sous-chemins, mais aucune page réelle n'y mène.
+  - Constat 1 (rédaction kramail sans `textarea#dest`) : **non vérifiable sans changer l'état du compte**. Boîte d'envoi de Nerys vide (aucun formulaire -15, -16, -17 atteignable) ; la réception ne contient qu'un message non lu, que l'ouvrir marquerait comme lu (formulaire -7). Reste ouvert : à vérifier quand un message lu ou envoyé existe.
