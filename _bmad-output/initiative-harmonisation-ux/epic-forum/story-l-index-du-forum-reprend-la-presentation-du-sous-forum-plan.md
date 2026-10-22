@@ -69,9 +69,9 @@ context: []
 
 ## Design Notes
 
-- En-tête de page mobile : fil d'Ariane construit à partir du bouton natif « Tous les forums » (« ⏪ Tous les forums › <catégorie> »), sur le modèle des classes \`.forum-mobile-breadcrumb*\` et \`.forum-subforum-head/-title\` du sous-forum, puis le titre ; ordinateur : titre et bouton « Tous les forums » à droite, comme les boutons du sous-forum (hypothèse notée dans \`revue-manuelle.md\`).
-- Index Staff exclu ; seuls rp, hrp, communaute et debats reçoivent \`kr-page-forum-index\`.
-- Cascade : les règles anciennes en \`!important\` (v1, v2, l.~4252) battent une garde à spécificité nulle ; les exclure de l'index plutôt que surenchérir (P1, option 4).
+- En-tête de page mobile : fil d'Ariane construit à partir du bouton natif « Tous les forums » (« ⏪ Tous les forums › <catégorie> »), sur le modèle des classes `.forum-mobile-breadcrumb*` et `.forum-subforum-head/-title` du sous-forum, puis le titre ; ordinateur : titre et bouton « Tous les forums » à droite, comme les boutons du sous-forum (hypothèse notée dans `revue-manuelle.md`).
+- Index Staff exclu ; seuls rp, hrp, communaute et debats reçoivent `kr-page-forum-index`.
+- Cascade : les règles anciennes en `!important` (v1, v2, l.~4252) battent une garde à spécificité nulle ; les exclure de l'index plutôt que surenchérir (P1, option 4).
 
 ## Verification
 
