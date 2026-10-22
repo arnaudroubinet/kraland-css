@@ -20,7 +20,8 @@
 // plateau, Personnage sur Personnage) porte kr-quick-access-active : texte en demi-gras (600) et filet de 3 px de la couleur primaire sous le
 // bouton (ombre interne), fond inchangé ; les quatre autres restent en 400, sans ombre ni classe d'activité. Mise en valeur réservée à
 // l'ordinateur (seuil de 768 px) : à 767 px et en mobile, l'accès actif garde l'apparence des autres (l'onglet de section de la barre mobile
-// porte l'état).
+// porte l'état). Même règle de section active pour l'onglet mobile et l'accès rapide (ticket 2 du backlog) : plateau, sous-chemin /jouer/plateau/<pièce>,
+// Personnage ; ni /jouer/plateaux ni une page hors jeu n'activent de section ; seul l'onglet actif porte aria-selected="true".
 // Fragment icones (H1.6) : les cinq sections ont la même icône sur ordinateur (accès rapides) et sur mobile (onglets), dans l'ordre Agir,
 // Matériel, Personnage, Bâtiments, Employés : fa-bolt, fa-suitcase, fa-user, fa-home, fa-users.
 // Fragment hors-forum-js (ticket 1.6, accord du 2026-10-16) : le module JS des sujets permanents (enrichPermanentTopicsStats) n'agit que sur le forum
@@ -281,7 +282,12 @@ const MESURE_SECTIONS = () => {
         fond: style.backgroundColor
       };
     }),
-    onglets: [...document.querySelectorAll('.mobile-tab-bar .mobile-tab-icon')].map(classesIcone)
+    onglets: [...document.querySelectorAll('.mobile-tab-bar .mobile-tab-icon')].map(classesIcone),
+    // État des onglets de section mobiles, dans l'ordre : li.active et aria-selected du lien
+    ongletsEtat: [...document.querySelectorAll('.mobile-tab-bar > li')].map(li => ({
+      actif: li.classList.contains('active'),
+      aria: li.querySelector('a') ? li.querySelector('a').getAttribute('aria-selected') : null
+    }))
   };
 };
 
@@ -554,7 +560,7 @@ if (on('section-active')) {
     { id: 'perso', url: PERSO, html: fixture('jeu-perso.html'), actif: '/jouer/perso', libelle: 'Personnage' }
   ];
   const lots = VARIANTES.flatMap(variante => pages.map(p => ({ ...p, variante })));
-  console.log('Section active des accès rapides (1280 × 720), variantes ' + VARIANTES.join(' et '));
+  console.log('Section active des accès rapides (1280 × 720), variantes ' + VARIANTES.join(' et ') + ' ; règle commune avec l\'onglet mobile (375 et 1280 px), variante ' + VARIANTES[0]);
   const mesures = await mapLimit(lots, l => mesurerPage({ url: l.url, html: l.html, variante: l.variante, device: BUREAU, mesure: MESURE_SECTIONS }));
   lots.forEach((l, i) => {
     const m = mesures[i];
@@ -580,6 +586,36 @@ if (on('section-active')) {
       assert.deepEqual(autres.map(a => a.graisse), Array(4).fill('400'), 'graisses des autres accès : ' + JSON.stringify(autres.map(a => a.graisse)));
       assert.deepEqual(autres.map(a => a.ombre), Array(4).fill('none'), 'ombres des autres accès : ' + JSON.stringify(autres.map(a => a.ombre)));
       assert.deepEqual(autres.map(a => a.fond), Array(4).fill(actif.fond), `fonds des autres accès : ${JSON.stringify(autres.map(a => a.fond))} (accès actif : ${actif.fond})`);
+    });
+  });
+  // Onglet de section actif sur mobile (ticket 2 du backlog) : même règle que l'accès rapide d'ordinateur (krActiveGameSection : URL exacte ou
+  // sous-chemin suivi de « / »). Un chemin qui commence comme une section sans en être un sous-chemin (/jouer/plateaux) n'active rien.
+  const regle = [
+    { id: 'plateau', url: PLATEAU, html: fixture('plateau-minimal.html'), actif: 0 },
+    { id: 'sous-chemin du plateau', url: PLATEAU + '/200002-11211-13-7956839652', html: fixture('plateau-minimal.html'), actif: 0 },
+    { id: 'Personnage', url: PERSO, html: fixture('jeu-perso.html'), actif: 2 },
+    { id: '/jouer/plateaux', url: BASE + '/jouer/plateaux', html: fixture('plateau-minimal.html'), actif: -1 },
+    // Page hors jeu portant le panneau du joueur (fixture du plateau servie à /forum/rp) : accès rapides présents, aucun actif
+    { id: 'hors jeu (/forum/rp)', url: BASE + '/forum/rp', html: fixture('plateau-minimal.html'), actif: -1, horsJeu: true }
+  ];
+  const V0 = VARIANTES[0];
+  const mesuresRegle = await mapLimit(regle.flatMap(r => [{ ...r, device: MOBILE }, { ...r, device: BUREAU }]),
+    r => mesurerPage({ url: r.url, html: r.html, variante: V0, device: r.device, mesure: MESURE_SECTIONS }));
+  regle.forEach((r, i) => {
+    const mobile = mesuresRegle[2 * i];
+    const bureau = mesuresRegle[2 * i + 1];
+    check(`[${V0}] ${r.id} : onglet mobile actif et accès rapide actif d'ordinateur désignent la même section (${r.actif < 0 ? 'aucune' : DESTINATIONS[r.actif]}), seul l'onglet actif porte aria-selected="true"`, () => {
+      const actifsMobile = mobile.ongletsEtat.map((o, k) => (o.actif ? k : -1)).filter(k => k >= 0);
+      const ariaMobile = mobile.ongletsEtat.map((o, k) => (o.aria === 'true' ? k : -1)).filter(k => k >= 0);
+      const actifsBureau = bureau.acces.map((a, k) => (a.actif ? k : -1)).filter(k => k >= 0);
+      const attendu = r.actif < 0 ? [] : [r.actif];
+      verifierSocle(mobile, V0, { pageForum: !!r.horsJeu });
+      verifierSocle(bureau, V0, { mobile: false, pageForum: !!r.horsJeu });
+      assert.equal(bureau.acces.length, 5, 'accès rapides d\'ordinateur : ' + bureau.acces.length);
+      if (!r.horsJeu) {assert.equal(mobile.ongletsEtat.length, 5, 'onglets de section mobiles : ' + mobile.ongletsEtat.length);}
+      assert.deepEqual(actifsMobile, attendu, 'onglets mobiles actifs : ' + JSON.stringify(actifsMobile));
+      assert.deepEqual(ariaMobile, attendu, 'onglets mobiles aria-selected="true" : ' + JSON.stringify(ariaMobile));
+      assert.deepEqual(actifsBureau, attendu, 'accès rapides actifs : ' + JSON.stringify(actifsBureau));
     });
   });
   // Seuil de 768 px : la règle appartient au bloc ordinateur (min-width: 768px) et ne déborde pas sur le mobile (767 px, 375 px tactile).

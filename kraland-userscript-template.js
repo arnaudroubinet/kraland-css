@@ -1794,9 +1794,8 @@
         a.appendChild(icon);
         a.appendChild(label);
 
-        // Marquer l'onglet actif (classe sur le li comme dans BS3)
-        const currentPath = window.location.pathname;
-        if (currentPath.includes(linkData.pattern)) {
+        // Marquer l'onglet actif (classe sur le li comme dans BS3) : même règle que les accès rapides d'ordinateur (URL exacte ou sous-chemin)
+        if (krActiveGameSection(window.location.pathname) === linkData.pattern) {
           li.classList.add('active');
           a.setAttribute('aria-selected', 'true');
         } else {
