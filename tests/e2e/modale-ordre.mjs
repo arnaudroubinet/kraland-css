@@ -7,16 +7,29 @@
 // Appel double : sur mobile, l'observateur des modales est enregistré deux fois (initCharacterModalMobile à l'initialisation et dans
 // initMobileFeatures) ; un journal des mutations (attribut class, enfants des boutons) compte les écritures du socle : une seule chacune.
 // Gardes des limites du plan : sur ordinateur, la chaîne mobile n'est pas étendue (grille d'onglets en style en ligne, indicateurs de
-// balayage, pastilles) ; sur mobile, la mise en forme existante reste appliquée (pastilles : entrée 4) ; boutons, formulaire et
-// gestionnaire natifs intacts, aucun envoi. Peau coupée : modale native.
+// balayage, anciennes pastilles pastel) ; sur mobile, la mise en forme existante reste appliquée (drapeau, pied, grille d'onglets) ;
+// boutons, formulaire et gestionnaire natifs intacts, aucun envoi. Peau coupée : modale native.
 // Ticket 2.3 (H2.3, R2, H2.4), même socle, mêmes largeurs, sur les deux supports : les blocages (alert-danger) et avertissements
-// (alert-warning) ne sont jamais repliés ; ils passent en tête de l'onglet, juste sous le titre de l'ordre (h4), et restent visibles et non
-// recouverts quand le corps défile. Seule l'aide (alert-order) se replie, derrière « ? Aide », bouton standard (fond d'« Annuler », texte
-// du thème) qui la déplie au toucher ou au clic ; fermée par sa croix (data-dismiss="alert"), elle emporte « ? Aide ». L'ancien repli
+// (alert-warning) ne sont jamais repliés ; ils passent en tête de l'ordre, juste sous son titre (h3 du formulaire), avant ses paragraphes et
+// le panneau d'onglets, et restent visibles et non recouverts quand le corps défile. Seule l'aide (alert-order) se replie, derrière
+// « ? Aide », bouton standard (fond d'« Annuler », texte du thème) qui la déplie au toucher ou au clic ; fermée par sa croix
+// (data-dismiss="alert"), elle emporte « ? Aide ». L'ancien repli
 // mobile de la première alerte venue est retiré. « Valider » reste actif. Contrastes de « ? Aide » et du texte des alertes dans les 16
 // variantes (lib/variantes.mjs). « ? Aide » = bouton du corps de la modale dont le texte est « Aide », quelle que soit sa classe (l'ancien
 // repli mobile en posait un dans la première alerte venue). Ordre long (défilement) : 40 paramètres inventés ajoutés en fin d'onglet ;
 // ordre sans alerte : Dormir sans son avertissement ; formulaire sans onglet actif : Dormir sans .tab-content ni .tab-pane.
+// Ticket 2.4 (H2.5, Q1, Q5), même socle, mêmes largeurs, sur les deux supports : la ligne native « Coût | Durée | Potentiel » (p.mini du
+// pied du panneau d'onglets) devient une seule rangée de pastilles (icône et valeur, 12 px gras, arrondi complet, fond --kr-arm-bg et
+// texte --kr-arm-ink) en tête du pied de la modale, juste au-dessus des boutons, visible et non recouverte dès l'ouverture, ordre long
+// compris. Dernier segment : « Potentiel: X » ou « Automatique », titré « Potentiel » ; autre segment à libellé inconnu : pastille
+// générique titrée de son libellé ; segment vide : aucune pastille. La ligne native reste dans le DOM, masquée, avec le pied du panneau
+// qui ne contient qu'elle ; les valeurs suivent le contenu courant (contenu remplacé, ligne réécrite en place, chargement Ajax), sans
+// doublon ; plus rien à montrer : rangée retirée, ligne native réaffichée. À l'ouverture, rien ne recouvre le titre de l'ordre, les
+// alertes ni « ? Aide », et le texte de l'avertissement de Dormir est entier dans la zone visible (375 × 667 compris). L'ancienne bande
+// collante coût et durée du mobile et ses pastilles pastel sont retirées. Contraste du texte des pastilles dans les 16 variantes.
+// Variantes dérivées de Dormir : sans ligne de coût (ni avertissement ni pied de panneau) ; sans potentiel (ligne arrêtée après la
+// durée) ; segment à libellé inconnu au milieu ; deux segments inconnus (sans libellé au milieu, libellé inconnu en dernier) ; ligne
+// sans aucun libellé connu, laissée telle quelle, sans pastille.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -67,6 +80,23 @@ if (SANS_ALERTE === DORMIR || /alert-(warning|danger)/.test(SANS_ALERTE)) { thro
 // Formulaire sans onglet actif (structure inconnue) : Dormir sans .tab-content ni .tab-pane, le contenu de l'onglet reste dans le panneau.
 const SANS_ONGLET = DORMIR.replace('<div class="tab-content">', '<div>').replace('<div class="tab-pane active">', '<div>');
 if (/tab-(content|pane)/.test(SANS_ONGLET)) { throw new Error('fixture Dormir : onglet introuvable'); }
+// Ordre sans ligne de coût (ticket 2.4) : Dormir sans avertissement ni pied de panneau (aucun .panel-footer p.mini).
+const SANS_COUT = SANS_ALERTE.replace(/\s*<div class="panel-footer">[\s\S]*?<\/div>/, '');
+if (SANS_COUT === SANS_ALERTE || /panel-footer/.test(SANS_COUT)) { throw new Error('fixture Dormir : pied de panneau introuvable'); }
+// Lignes de coût dérivées de Dormir (ticket 2.4) : sans potentiel (ligne arrêtée après la durée), segment à libellé inconnu au milieu,
+// deux segments inconnus (sans libellé au milieu, libellé inconnu en dernier), aucun libellé connu (structure inconnue).
+const avecLigne = texte => {
+  const html = DORMIR.replace('Coût: 0 FK | Durée: 00:00 | Automatique', texte);
+  if (html === DORMIR) { throw new Error('fixture Dormir : ligne de coût introuvable'); }
+  return html;
+};
+const SANS_POTENTIEL = avecLigne('Coût: 0 FK | Durée: 00:00 | ');
+const SEGMENT_MILIEU = avecLigne('Coût: 0 FK | Portée: 2 | Durée: 00:00 | Automatique');
+const DEUX_INCONNUS = avecLigne('Coût: 0 FK | Durée: 00:00 | Sans libellé | Portée: 2');
+const LIGNE_INCONNUE = avecLigne('Texte inventé sans libellé connu');
+// Ligne réécrite en place (ticket 2.4) : valeurs changées ; ligneServie : pied de panneau servi qui porte une ligne donnée (comparaison).
+const LIGNE_MODIFIEE = 'Coût: 3 FK | Durée: 01:00 | Automatique';
+const ligneServie = texte => `<div class="panel with-nav-tabs"><div class="panel-footer"><p class="mini">${texte}</p></div></div>`;
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const on = name => FRAG.length === 0 || FRAG.includes(name);
 
@@ -170,7 +200,8 @@ const ETAT = () => {
   };
 };
 // Chaîne mobile existante (enhanceCharacterModal, 150 ms après l'insertion, mobile seulement) : traces dans la modale ouverte. replis :
-// ancien repli de la première alerte (makeAlertCollapsible), retiré au ticket 2.3.
+// ancien repli de la première alerte (makeAlertCollapsible), retiré au ticket 2.3 ; pastel : anciennes pastilles pastel
+// (formatFooterAsBadges) et bande collante coût et durée (kraland-action-footer), retirées au ticket 2.4.
 const CHAINE = () => {
   const m = window.__modale;
   const ul = m.querySelector('.panel-heading ul.nav-tabs');
@@ -180,33 +211,35 @@ const CHAINE = () => {
     grilleEnLigne: !!ul && ul.style.getPropertyValue('display') === 'grid',
     indicateurs: m.querySelectorAll('.kr-tabs-indicator').length,
     replis: m.querySelectorAll('.kr-alert-collapsible, .kr-alert-toggle, .kr-alert-content').length,
-    pastilles: m.querySelectorAll('.kr-action-badges .kr-badge').length
+    pastel: m.querySelectorAll('.kr-action-badges, .kr-badge, .kraland-action-footer').length
   };
 };
 
-// Rangement des alertes (ticket 2.3), dans la modale ouverte, comparé à `html` (contenu de l'ordre tel que servi). lecture : enfants de
-// l'onglet actif dans l'ordre du document (titre h4, blocage, avertissement, « ? Aide », aide repliée ou dépliée, autre balise) ; un
-// conteneur sans rôle qui contient des alertes ou des boutons est lu à travers. Une alerte est rendue (ni display none, ni hidden, ni
-// taille nulle) et entière (tout son texte affiché : innerText = textContent) ; son texte natif est inchangé. aides : chaque aide, repliée
-// ou non, précédée ou non de « ? Aide » ; blocs : conteneurs kr-order-alerts du formulaire ; place : parent d'une alerte (formulaire ou autre).
+// Rangement des alertes (ticket 2.3), dans la modale ouverte, comparé à `html` (contenu de l'ordre tel que servi). lecture : dans l'ordre
+// du document, titre de l'ordre (h3 enfant du formulaire), blocages, avertissements, titre de l'onglet actif (h4), « ? Aide », aide repliée
+// ou dépliée ; bloc : place du conteneur kr-order-alerts (juste après le titre de l'ordre, ou ailleurs). Une alerte est rendue (ni display
+// none, ni hidden, ni taille nulle) et entière (tout son texte affiché : innerText = textContent) ; son texte natif est inchangé. aides :
+// chaque aide, repliée ou non, précédée ou non de « ? Aide » ; blocs : conteneurs kr-order-alerts du formulaire ; place : parent d'une
+// alerte (formulaire ou autre).
 const RANGEMENT = html => {
   const m = window.__modale;
   const form = m.querySelector('#ajax-order form[name="post_msg"]');
   if (!form) { return null; }
   const pane = form.querySelector('.tab-pane.active');
+  const titre = form.querySelector(':scope > h3');
   const norm = s => s.replace(/\s+/g, ' ').trim();
   const rendu = el => { const s = getComputedStyle(el); const r = el.getBoundingClientRect(); return !el.closest('[hidden]') && s.display !== 'none' && s.visibility === 'visible' && Number(s.opacity) > 0 && r.width > 0 && r.height > 0; };
   const estAide = el => el.matches('button') && el.textContent.trim() === 'Aide';
   const estAlerte = el => el.matches('.alert-danger, .alert-warning') && !el.matches('.alert-order');
   const nom = el => {
-    if (el.matches('h4')) { return 'titre'; }
+    if (el === titre) { return 'titre'; }
+    if (el.matches('h4') && !!pane && pane.contains(el)) { return 'onglet'; }
     if (estAlerte(el)) { return el.matches('.alert-danger') ? 'blocage' : 'avertissement'; }
     if (el.matches('.alert-order')) { return rendu(el) ? 'aide dépliée' : 'aide repliée'; }
-    return estAide(el) ? '? Aide' : el.tagName.toLowerCase();
+    return estAide(el) ? '? Aide' : null;
   };
-  const lecture = [];
-  const parcourir = parent => { for (const el of parent.children) { if (!el.matches('.alert') && !estAide(el) && el.querySelector('.alert, button')) { parcourir(el); } else { lecture.push(nom(el)); } } };
-  if (pane) { parcourir(pane); }
+  const lecture = [...form.querySelectorAll('h3, h4, .alert, button')].map(nom).filter(Boolean);
+  const box = form.querySelector('.kr-order-alerts');
   const alertes = [...form.querySelectorAll('.alert')].filter(estAlerte);
   const t = document.createElement('template');
   t.innerHTML = html;
@@ -215,6 +248,7 @@ const RANGEMENT = html => {
   const sv = getComputedStyle(valider);
   return {
     lecture,
+    bloc: box ? (box.parentElement === form && !!titre && box.previousElementSibling === titre ? 'sous le titre' : 'ailleurs') : null,
     boutons: [...m.querySelectorAll('.modal-body button')].filter(estAide).map(b => ({ type: b.type, expanded: b.getAttribute('aria-expanded') })),
     hauteurAide: Math.min(...[...m.querySelectorAll('.modal-body button')].filter(estAide).map(b => b.getBoundingClientRect().height)),
     alertes: alertes.map(a => ({ texte: norm(a.textContent), rendue: rendu(a), entiere: norm(a.innerText) === norm(a.textContent), place: a.parentElement === form ? 'formulaire' : 'autre' })),
@@ -249,8 +283,8 @@ const ALLONGER = html => {
 // Défilement : conteneur qui défile (premier ancêtre de l'alerte dont le contenu dépasse), mené par scrollTo en haut, au milieu et en
 // bas. Au milieu et en bas (bloc collé), le texte de l'alerte (boîte de son contenu, Range) est dans la zone visible du conteneur et de
 // la fenêtre, et elementFromPoint touche l'alerte en 5 points de ce texte (centre et quatre points intérieurs) : rien ne la recouvre. En
-// haut (ouverture), l'alerte peut affleurer le pli (375 × 667 : titre et lien « [?] » de 44 px au-dessus) : les points visibles
-// (visibles) la touchent tous. En bas, le titre de l'ordre est sorti : défilement réel. opaque : entre l'alerte et le bloc collant qui la porte, un fond opaque (les teintes d'état du
+// haut (ouverture), les points visibles (visibles) la touchent tous (texte entier à l'ouverture : OUVERTURE). En bas, le titre de
+// l'onglet est sorti : défilement réel. opaque : entre l'alerte et le bloc collant qui la porte, un fond opaque (les teintes d'état du
 // mode sombre sont à 15 % : sans lui, le contenu qui défile dessous transparaîtrait). bord : écart entre le haut du bloc collant et le haut
 // de la zone visible du conteneur ; collé (en bas), 0 : aucune bande de contenu ne défile au-dessus de lui.
 const DEFILEMENT = async () => {
@@ -299,6 +333,91 @@ const LIEN_REGLES = async () => {
   const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   return { lien: true, libre: !!h && (h === lien || lien.contains(h)), cible: h ? h.tagName.toLowerCase() + '.' + [...h.classList].join('.') : null };
 };
+// Ouverture (tickets 2.3 et 2.4), corps de la modale non défilé : titre de l'ordre (h3 du formulaire), titre de l'onglet (h4), blocages
+// et avertissements, « ? Aide ». Pour chacun, visibles : ceux de ses cinq points (centre et quatre points intérieurs) qui sont dans la zone
+// visible du corps et de la fenêtre (aucun pour un élément de taille nulle, comme le h3 vide de Dormir) ; touches : ceux où
+// elementFromPoint touche l'élément ou son enfant (rien ne les recouvre) ; entier (alertes) : boîte de leur texte (Range) entière dans la
+// zone visible du corps et de la fenêtre.
+const OUVERTURE = () => {
+  const m = window.__modale;
+  const sc = m.querySelector('.modal-body');
+  const v = sc.getBoundingClientRect();
+  const form = m.querySelector('#ajax-order form[name="post_msg"]');
+  const alertes = [...form.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order'));
+  const aide = [...m.querySelectorAll('.modal-body button')].find(b => b.textContent.trim() === 'Aide');
+  const cibles = [['titre', form.querySelector(':scope > h3')], ['onglet', form.querySelector('.tab-pane.active h4')], ...alertes.map(a => [a.matches('.alert-danger') ? 'blocage' : 'avertissement', a]), ['? Aide', aide]];
+  const dedans = r => r.height > 0 && r.top >= v.top - 0.5 && r.bottom <= v.bottom + 0.5 && r.top >= 0 && r.bottom <= window.innerHeight;
+  return {
+    scrollTop: Math.round(sc.scrollTop),
+    cibles: cibles.map(([nom, el]) => {
+      if (!el) { return { nom, absent: true }; }
+      const r = el.getBoundingClientRect();
+      const points = r.width > 0 && r.height > 0 ? [[0.5, 0.5], [0.1, 0.25], [0.9, 0.25], [0.1, 0.75], [0.9, 0.75]].map(([fx, fy]) => [r.left + r.width * fx, r.top + r.height * fy])
+        .filter(([x, y]) => y >= v.top && y <= v.bottom && x >= v.left && x <= v.right && y >= 0 && y <= window.innerHeight) : [];
+      const touches = points.filter(([x, y]) => { const h = document.elementFromPoint(x, y); return !!h && (h === el || el.contains(h)); }).length;
+      const res = { nom, visibles: points.length, touches };
+      if (nom === 'blocage' || nom === 'avertissement') {
+        const texte = document.createRange();
+        texte.selectNodeContents(el);
+        res.entier = dedans(texte.getBoundingClientRect());
+      }
+      return res;
+    })
+  };
+};
+// Pastilles coût, durée, potentiel (ticket 2.4), dans la modale telle qu'elle est (aucun défilement), comparées à `html` (contenu de
+// l'ordre tel que servi ou ligne réécrite). rangees : conteneurs kr-order-badges de la modale ; pied : enfants du pied de la modale
+// (rangée, puis boutons natifs par data-bb-handler) ; ligne : ligne native (p.mini du pied du panneau d'onglets), texte intact, masquée ou
+// non, pied du panneau affiché ou non ; scrollTop du corps (0 à l'ouverture) ; pastilles : libellé (infobulle), valeur, icône ; styles :
+// taille, graisse, arrondi complet, fond et texte comparés à la paire --kr-arm-bg / --kr-arm-ink (replis du thème) ; place : rangée
+// au-dessus des boutons et écart avec eux, pastilles sur une ligne, entières dans la fenêtre, non recouvertes (elementFromPoint au centre).
+const PASTILLES = html => {
+  const m = window.__modale;
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+  const t = document.createElement('template');
+  t.innerHTML = html;
+  const servie = t.content.querySelector('.panel.with-nav-tabs > .panel-footer > p.mini');
+  const form = m.querySelector('#ajax-order form[name="post_msg"]');
+  const ligne = form ? form.querySelector('.panel.with-nav-tabs > .panel-footer > p.mini') : null;
+  const rangees = [...m.querySelectorAll('.kr-order-badges')];
+  const pied = m.querySelector('.modal-footer');
+  const out = {
+    rangees: rangees.length,
+    pied: [...pied.children].map(e => (e.matches('.kr-order-badges') ? 'pastilles' : e.getAttribute('data-bb-handler') || e.tagName.toLowerCase())),
+    ligne: ligne ? { intacte: !!servie && norm(ligne.textContent) === norm(servie.textContent), masquee: !ligne.checkVisibility(), piedVisible: ligne.parentElement.checkVisibility() } : null,
+    scrollTop: Math.round(m.querySelector('.modal-body').scrollTop)
+  };
+  const box = rangees[0];
+  if (!box) { return out; }
+  const badges = [...box.children];
+  out.pastilles = badges.map(b => { const i = b.querySelector('i'); return { titre: b.title, valeur: b.textContent, icone: i ? i.className : null, cachee: i ? i.getAttribute('aria-hidden') : null }; });
+  const sonde = document.createElement('span');
+  sonde.style.backgroundColor = 'var(--kr-arm-bg, var(--kr-primary))';
+  sonde.style.color = 'var(--kr-arm-ink, var(--kr-white))';
+  document.body.appendChild(sonde);
+  const arm = { fond: getComputedStyle(sonde).backgroundColor, encre: getComputedStyle(sonde).color };
+  sonde.remove();
+  out.styles = badges.map(b => {
+    const s = getComputedStyle(b);
+    return { taille: s.fontSize, graisse: s.fontWeight, arrondi: parseFloat(s.borderTopLeftRadius) >= b.getBoundingClientRect().height / 2, fond: s.backgroundColor === arm.fond, encre: s.color === arm.encre };
+  });
+  const rb = box.getBoundingClientRect();
+  const boutons = [...pied.querySelectorAll('[data-bb-handler]')].map(b => b.getBoundingClientRect());
+  const centre = b => { const r = b.getBoundingClientRect(); const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!h && (h === b || b.contains(h)); };
+  out.place = {
+    dessus: boutons.every(b => rb.bottom <= b.top + 0.5),
+    ecart: Math.round(Math.min(...boutons.map(b => b.top)) - rb.bottom),
+    uneLigne: badges.every(b => Math.abs(b.getBoundingClientRect().top - badges[0].getBoundingClientRect().top) <= 1),
+    visibles: badges.filter(b => { const r = b.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth; }).length,
+    libres: badges.filter(centre).length
+  };
+  return out;
+};
+// Ligne native réécrite en place par le site (ticket 2.4) : nouveau texte, ou ligne retirée (null).
+const RECRIRE = texte => {
+  const ligne = window.__modale.querySelector('#ajax-order .panel.with-nav-tabs > .panel-footer > p.mini');
+  if (texte === null) { ligne.remove(); } else { ligne.textContent = texte; }
+};
 // État de l'aide : aria-expanded de « ? Aide », aide affichée ou non, modale toujours ouverte.
 const AIDE = () => {
   const m = window.__modale;
@@ -308,7 +427,7 @@ const AIDE = () => {
   return { expanded: b ? b.getAttribute('aria-expanded') : null, aide: visible, ouverte: document.body.contains(m) && m.classList.contains('in') };
 };
 // Avant un geste : « ? Aide » (cible 'aide') ou la croix de l'aide (cible 'croix') amené au milieu du corps par scrollTo, loin des zones
-// collantes de la chaîne mobile (onglets en haut, bande coût et durée en bas, entrée 4).
+// collantes (onglets de la chaîne mobile et bloc des alertes en haut).
 const CENTRER = cible => {
   const m = window.__modale;
   const el = cible === 'aide' ? [...m.querySelectorAll('.modal-body button')].find(b => b.textContent.trim() === 'Aide') : m.querySelector('#ajax-order .alert-order button.close');
@@ -326,7 +445,8 @@ const LIBRE = () => {
 };
 // Couleurs (H2.4 ; contrastes), outil des 16 variantes posé dans la page : « ? Aide » (rapport de son texte, fond effectif comparé à celui
 // d'« Annuler », couleur comparée au texte du thème --kr-text-primary) ; plus faible rapport du texte de chaque blocage ou avertissement,
-// et de l'aide dépliée par un clic sur « ? Aide » (repliée ensuite) ; la croix de l'aide, un bouton, n'est pas du texte.
+// et de l'aide dépliée par un clic sur « ? Aide » (repliée ensuite) ; la croix de l'aide, un bouton, n'est pas du texte. Pastilles (ticket
+// 2.4, Q1) : rapport du texte de chacune, fond et texte comparés à la paire --kr-arm-bg / --kr-arm-ink (replis du thème).
 const TEINTES = () => {
   const c = window.__krContraste;
   const m = window.__modale;
@@ -336,6 +456,9 @@ const TEINTES = () => {
   sonde.style.color = 'var(--kr-text-primary)';
   document.body.appendChild(sonde);
   const theme = getComputedStyle(sonde).color;
+  sonde.style.backgroundColor = 'var(--kr-arm-bg, var(--kr-primary))';
+  sonde.style.color = 'var(--kr-arm-ink, var(--kr-white))';
+  const arm = { fond: getComputedStyle(sonde).backgroundColor, encre: getComputedStyle(sonde).color };
   sonde.remove();
   const textes = el => [el, ...el.querySelectorAll('*')].filter(e => !e.closest('button') && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
   const pire = el => Math.min(...textes(el).map(c.texte));
@@ -348,7 +471,8 @@ const TEINTES = () => {
     fondAnnuler: rond(c.fond(annuler)),
     theme,
     alertes: [...m.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order')).map(pire),
-    aide: texteAide
+    aide: texteAide,
+    pastilles: [...m.querySelectorAll('.kr-order-badges > *')].map(p => ({ titre: p.title, contraste: c.texte(p), fond: getComputedStyle(p).backgroundColor === arm.fond, encre: getComputedStyle(p).color === arm.encre }))
   };
 };
 // Écritures du socle d'après le journal : pour chaque élément, valeur de class avant et après chaque écriture (après = avant de la
@@ -375,11 +499,20 @@ const AUDIT = () => {
     const alertes = [...f.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order'));
     return { aides: aides.size, deplacements: alertes.map(a => listes.filter(r => [...r.removedNodes].includes(a)).length) };
   };
+  // Pastilles (ticket 2.4), dans la modale : rangées kr-order-badges insérées (enregistrement dont un nœud ajouté est une rangée) ou
+  // retirées, et réécritures d'une rangée (enfants changés).
+  const estRangee = n => n.nodeType === 1 && n.classList.contains('kr-order-badges');
+  const dansModale = listes.filter(r => o.modal.contains(r.target));
   return {
     modale: effets(o.modal, 'kr-order-modal'),
     contenus: o.contenus.map(f => effets(f, 'kr-order-form')),
     libelles: o.boutons.map(b => window.__krLog.filter(r => r.type === 'childList' && r.target === b).length),
-    rangement: o.contenus.map(rangement)
+    rangement: o.contenus.map(rangement),
+    pastilles: {
+      insertions: dansModale.filter(r => [...r.addedNodes].some(estRangee)).length,
+      reecritures: dansModale.filter(r => estRangee(r.target)).length,
+      retraits: dansModale.filter(r => [...r.removedNodes].some(estRangee)).length
+    }
   };
 };
 
@@ -448,12 +581,15 @@ async function fermerAide(page, tactile) {
 async function scenario(cfg) {
   const { context, page, denied, errors } = await ouvrirPage(cfg);
   const tag = cfg.width + (cfg.mobile ? '-mobile' : '');
-  const r = { cfg, mobileMode: await page.evaluate(() => document.body.classList.contains('mobile-mode')), audits: {}, remplace: [], rangRemplace: [], defilement: {} };
+  const r = { cfg, mobileMode: await page.evaluate(() => document.body.classList.contains('mobile-mode')), audits: {}, remplace: [], rangRemplace: [], pastRemplace: [], lignes: {}, enPlace: [], pastLong: {}, defilement: {} };
   await page.evaluate(OUVRIR, enOrdre(DORMIR));
   await attendre(page, true);
   r.dormir = await page.evaluate(ETAT);
   r.rangDormir = await page.evaluate(RANGEMENT, DORMIR);
   r.chaine = await page.evaluate(CHAINE);
+  r.ouvDormir = await page.evaluate(OUVERTURE);
+  r.pastDormir = await page.evaluate(PASTILLES, DORMIR);
+  await capture(page, tag + '-dormir-ouverture');
   r.lienDormir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-dormir');
   r.aide = await basculer(page, !!cfg.mobile);
@@ -463,13 +599,36 @@ async function scenario(cfg) {
     await frames(page, 2);
     r.remplace.push(await page.evaluate(ETAT));
     r.rangRemplace.push(await page.evaluate(RANGEMENT, html));
+    r.pastRemplace.push(await page.evaluate(PASTILLES, html));
   }
   r.audits.dormir = await page.evaluate(AUDIT);
+  await page.evaluate(REMPLACER, SANS_COUT);
+  await frames(page, 2);
+  r.sansCout = { pastilles: await page.evaluate(PASTILLES, SANS_COUT), inchange: await page.evaluate(INCHANGE, SANS_COUT) };
+  for (const [nom, html] of [['sans potentiel', SANS_POTENTIEL], ['segment inconnu au milieu', SEGMENT_MILIEU], ['deux segments inconnus', DEUX_INCONNUS], ['ligne sans libellé connu', LIGNE_INCONNUE]]) {
+    await page.evaluate(REMPLACER, html);
+    await frames(page, 2);
+    r.lignes[nom] = await page.evaluate(PASTILLES, html);
+  }
+  // Ligne native réécrite en place (contenu courant : ligne sans libellé connu), puis Dormir, puis contenu sans formulaire.
+  for (const texte of [LIGNE_MODIFIEE, 'Texte inventé sans libellé connu', LIGNE_MODIFIEE, '', LIGNE_MODIFIEE, null]) {
+    await page.evaluate(RECRIRE, texte);
+    await frames(page, 2);
+    r.enPlace.push(await page.evaluate(PASTILLES, texte === null ? '' : ligneServie(texte)));
+  }
+  for (const html of [DORMIR, '<p>Chargement de l\'ordre…</p>']) {
+    await page.evaluate(REMPLACER, html);
+    await frames(page, 2);
+    r.enPlace.push(await page.evaluate(PASTILLES, html));
+  }
   await fermer(page);
   await page.evaluate(OUVRIR, enOrdre(POUVOIR));
   await attendre(page, true);
   r.pouvoir = await page.evaluate(ETAT);
   r.rangPouvoir = await page.evaluate(RANGEMENT, POUVOIR);
+  r.ouvPouvoir = await page.evaluate(OUVERTURE);
+  r.pastPouvoir = await page.evaluate(PASTILLES, POUVOIR);
+  await capture(page, tag + '-pouvoir-ouverture');
   r.audits.pouvoir = await page.evaluate(AUDIT);
   r.lienPouvoir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-pouvoir');
@@ -478,17 +637,20 @@ async function scenario(cfg) {
     await page.evaluate(OUVRIR, CHARGEMENT);
     await attendre(page, false);
     r.ajaxAvant = await page.evaluate(ETAT);
+    r.pastAjaxAvant = await page.evaluate(PASTILLES, CHARGEMENT);
     await page.evaluate(REMPLACER, DORMIR);
     await frames(page, 2);
     r.ajaxApres = await page.evaluate(ETAT);
     r.rangAjax = await page.evaluate(RANGEMENT, DORMIR);
     r.audits.ajax = await page.evaluate(AUDIT);
+    r.pastAjax = await page.evaluate(PASTILLES, DORMIR);
     await fermer(page);
   }
   await page.evaluate(OUVRIR, HORS_ORDRE);
   await attendre(page, false);
   r.horsOrdre = await page.evaluate(ETAT);
   r.audits.horsOrdre = await page.evaluate(AUDIT);
+  r.pastHorsOrdre = await page.evaluate(PASTILLES, HORS_ORDRE);
   await capture(page, tag + '-hors-ordre');
   await fermer(page);
   await page.evaluate(OUVRIR, enOrdre(SANS_ALERTE));
@@ -500,8 +662,11 @@ async function scenario(cfg) {
   r.sansOnglet = await page.evaluate(RANGEMENT, SANS_ONGLET);
   await fermer(page);
   for (const [nom, html] of [['Dormir', DORMIR], ['Pouvoir', POUVOIR]]) {
-    await page.evaluate(OUVRIR, await page.evaluate(ALLONGER, enOrdre(html)));
+    const long = await page.evaluate(ALLONGER, enOrdre(html));
+    await page.evaluate(OUVRIR, long);
     await attendre(page, true);
+    r.pastLong[nom] = await page.evaluate(PASTILLES, long);
+    await capture(page, `${tag}-long-${nom.toLowerCase()}-ouverture`);
     r.defilement[nom] = await page.evaluate(DEFILEMENT);
     await capture(page, `${tag}-defilement-${nom.toLowerCase()}`);
     await fermer(page);
@@ -529,18 +694,19 @@ function uneFois(a, nom, contenus) {
   a.contenus.forEach((c, i) => assert.deepEqual(c, UNE_FOIS, `${nom}, contenu ${i + 1} : ${JSON.stringify(c)}`));
   assert.deepEqual(a.libelles, [1, 1], `${nom}, écritures des libellés (Annuler, Valider) : ${a.libelles}`);
 }
-// Rangement attendu (ticket 2.3) : lecture de l'onglet, un seul « ? Aide » (bouton, replié), alertes rendues et entières au texte natif,
-// « Valider » actif.
+// Rangement attendu (ticket 2.3) : lecture de l'ordre (titre h3, blocage ou avertissement, titre de l'onglet, « ? Aide », aide), bloc des
+// alertes juste après le titre de l'ordre, un seul « ? Aide » (bouton, replié), alertes rendues et entières au texte natif, « Valider » actif.
 const LECTURE = {
-  Dormir: ['titre', 'avertissement', '? Aide', 'aide repliée'],
-  Pouvoir: ['titre', 'blocage', '? Aide', 'aide repliée'],
-  'sans alerte': ['titre', '? Aide', 'aide repliée']
+  Dormir: ['titre', 'avertissement', 'onglet', '? Aide', 'aide repliée'],
+  Pouvoir: ['titre', 'blocage', 'onglet', '? Aide', 'aide repliée'],
+  'sans alerte': ['titre', 'onglet', '? Aide', 'aide repliée']
 };
 function range(g, nom) {
   assert.ok(g, `${nom} : formulaire d'ordre absent`);
-  assert.deepEqual(g.lecture, LECTURE[nom], `${nom}, lecture de l'onglet : ${g.lecture.join(' > ')}`);
+  assert.deepEqual(g.lecture, LECTURE[nom], `${nom}, lecture de l'ordre : ${g.lecture.join(' > ')}`);
   assert.deepEqual(g.boutons, [{ type: 'button', expanded: 'false' }], `${nom}, « ? Aide » dans la modale : ${JSON.stringify(g.boutons)}`);
   const attendues = LECTURE[nom].filter(x => x === 'blocage' || x === 'avertissement').length;
+  assert.equal(g.bloc, attendues ? 'sous le titre' : null, `${nom}, bloc des alertes : ${g.bloc}`);
   assert.equal(g.alertes.length, attendues, `${nom} : ${g.alertes.length} blocage(s) ou avertissement(s)`);
   g.alertes.forEach(a => assert.ok(a.rendue && a.entiere, `${nom} : alerte masquée ou repliée (« ${a.texte} ») ${JSON.stringify(a)}`));
   assert.equal(g.textesIntacts, true, `${nom} : texte natif des alertes modifié`);
@@ -550,6 +716,40 @@ function rangeUneFois(a, nom, deplacements) {
   assert.deepEqual(a.rangement.map(c => c.aides), deplacements.map(() => 1), `${nom}, « ? Aide » créés par contenu : ${JSON.stringify(a.rangement)}`);
   assert.deepEqual(a.rangement.map(c => c.deplacements), deplacements, `${nom}, déplacements de chaque alerte par contenu : ${JSON.stringify(a.rangement)}`);
 }
+// Pastilles attendues (ticket 2.4) : libellé (infobulle) et valeur, dans l'ordre de la ligne native, segments vides absents ; icône pour
+// les libellés connus, cachée aux lecteurs d'écran, aucune pour une pastille générique ; ligne native masquée avec le pied du panneau ;
+// rangée en tête du pied de la modale, juste au-dessus des boutons (écart d'au plus 24 px : 12 px sur ordinateur ; sur mobile, deux gap
+// de 10 px autour du ::after vide du clearfix Bootstrap, placé avant les boutons réordonnés), entière dans la fenêtre, non recouverte, sur
+// une ligne jusqu'à trois pastilles ; ouverture : corps non défilé.
+const PASTILLES_ATTENDUES = {
+  Dormir: [['Coût', '0 FK'], ['Durée', '00:00'], ['Potentiel', 'Automatique']],
+  Pouvoir: [['Coût', '0 FK'], ['Durée', '02:00'], ['Potentiel', 'VOL + Pouvoir = 9']],
+  'Dormir modifié': [['Coût', '3 FK'], ['Durée', '01:00'], ['Potentiel', 'Automatique']],
+  'sans potentiel': [['Coût', '0 FK'], ['Durée', '00:00']],
+  'segment inconnu au milieu': [['Coût', '0 FK'], ['Portée', 'Portée: 2'], ['Durée', '00:00'], ['Potentiel', 'Automatique']],
+  'deux segments inconnus': [['Coût', '0 FK'], ['Durée', '00:00'], ['', 'Sans libellé'], ['Portée', 'Portée: 2']]
+};
+const ICONES = { 'Coût': 'fas fa-coins', 'Durée': 'far fa-clock', 'Potentiel': 'fas fa-dice-d20' };
+const LIGNE_MASQUEE = { intacte: true, masquee: true, piedVisible: false };
+const LIGNE_AFFICHEE = { intacte: true, masquee: false, piedVisible: true };
+function pastilles(p, nom, { ouverture = false } = {}) {
+  const attendues = PASTILLES_ATTENDUES[nom];
+  assert.equal(p.rangees, 1, `${nom} : ${p.rangees} rangée(s) de pastilles dans la modale`);
+  assert.deepEqual(p.pied, ['pastilles', 'cancel', 'confirm'], `${nom}, pied de la modale : ${JSON.stringify(p.pied)}`);
+  assert.deepEqual(p.pastilles.map(b => [b.titre, b.valeur]), attendues, `${nom}, pastilles (libellé, valeur) : ${JSON.stringify(p.pastilles)}`);
+  assert.ok(p.pastilles.every(b => b.icone === (ICONES[b.titre] || null) && (b.icone === null || b.cachee === 'true')), `${nom}, icônes : ${JSON.stringify(p.pastilles)}`);
+  assert.deepEqual(p.ligne, LIGNE_MASQUEE, `${nom}, ligne native (texte intact, masquée, pied du panneau masqué) : ${JSON.stringify(p.ligne)}`);
+  assert.ok(p.styles.every(s => s.taille === '12px' && s.graisse === '700' && s.arrondi && s.fond && s.encre), `${nom}, style (12 px gras, arrondi complet, paire arm) : ${JSON.stringify(p.styles)}`);
+  assert.ok(p.place.dessus && p.place.ecart >= 0 && p.place.ecart <= 24, `${nom}, place (juste au-dessus des boutons) : ${JSON.stringify(p.place)}`);
+  assert.ok(p.place.visibles === attendues.length && p.place.libres === attendues.length && (attendues.length > 3 || p.place.uneLigne), `${nom}, pastilles entières dans la fenêtre, non recouvertes, sur une ligne jusqu'à trois : ${JSON.stringify(p.place)}`);
+  if (ouverture) { assert.equal(p.scrollTop, 0, `${nom} : corps défilé de ${p.scrollTop} px à l'ouverture`); }
+}
+function sansPastille(p, nom) {
+  assert.equal(p.rangees, 0, `${nom} : ${p.rangees} rangée(s) de pastilles`);
+  assert.deepEqual(p.pied, ['cancel', 'confirm'], `${nom}, pied de la modale : ${JSON.stringify(p.pied)}`);
+}
+// Écritures de la rangée dans une modale (journal des mutations) : insertions, réécritures, retraits.
+const rangee = (insertions, reecritures = 0, retraits = 0) => ({ insertions, reecritures, retraits });
 
 function verifier(r) {
   const tag = `${r.cfg.width} px${r.cfg.mobile ? ' (mobile, ' + r.cfg.width + ' × ' + r.cfg.height + ')' : ''}`;
@@ -564,11 +764,13 @@ function verifier(r) {
     uneFois(r.audits.dormir, 'Dormir puis 2 remplacements', 3);
     uneFois(r.audits.pouvoir, 'Pouvoir', 1);
   });
-  check(`${tag} confirmation hors ordre (bootbox.confirm sans #ajax-order) : « Cancel » / « OK » inchangés, aucun marquage`, () => {
+  check(`${tag} confirmation hors ordre (bootbox.confirm sans #ajax-order) : « Cancel » / « OK » inchangés, aucun marquage, aucune pastille (ticket 2.4)`, () => {
     assert.deepEqual(r.horsOrdre.libelles, ['Cancel', 'OK'], 'libellés ' + JSON.stringify(r.horsOrdre.libelles));
     assert.deepEqual([r.horsOrdre.marquee, r.horsOrdre.modalesMarquees, r.horsOrdre.contenusMarques], [false, 0, 0], 'marquage (modale, modales marquées, contenus) ' + JSON.stringify([r.horsOrdre.marquee, r.horsOrdre.modalesMarquees, r.horsOrdre.contenusMarques]));
     assert.deepEqual(r.audits.horsOrdre.modale, SANS_EFFET, 'écritures de kr-order-modal ' + JSON.stringify(r.audits.horsOrdre.modale));
     assert.deepEqual(r.audits.horsOrdre.libelles, [0, 0], 'écritures des libellés ' + r.audits.horsOrdre.libelles);
+    sansPastille(r.pastHorsOrdre, 'hors ordre');
+    assert.deepEqual(r.audits.horsOrdre.pastilles, rangee(0), 'écritures de la rangée ' + JSON.stringify(r.audits.horsOrdre.pastilles));
   });
   check(`${tag} envoi natif intact : mêmes boutons (data-bb-handler, classes), même gestionnaire Bootbox du pied, formulaire inchangé ; aucun envoi ni confirmation, aucune requête POST, aucune erreur JavaScript`, () => {
     const etats = { dormir: r.dormir, pouvoir: r.pouvoir, remplace1: r.remplace[0], remplace2: r.remplace[1], horsOrdre: r.horsOrdre };
@@ -578,23 +780,22 @@ function verifier(r) {
     assert.deepEqual(r.errors, [], 'erreurs ' + r.errors.join(' | '));
   });
   if (r.mobileMode) {
-    check(`${tag} mobile : mise en forme existante toujours appliquée (drapeau data-structure-transformed, pied kraland-modal-footer, grille d'onglets, pastilles : entrée 4) ; ancien repli de la première alerte retiré (ticket 2.3)`, () => {
+    check(`${tag} mobile : mise en forme existante toujours appliquée (drapeau data-structure-transformed, pied kraland-modal-footer, grille d'onglets) ; ancien repli de la première alerte retiré (ticket 2.3) ; anciennes pastilles pastel et bande collante coût et durée retirées (ticket 2.4)`, () => {
       const c = r.chaine;
-      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.replis], [true, true, true, 0], JSON.stringify(c));
-      assert.ok(c.pastilles >= 2, 'pastilles coût et durée : ' + c.pastilles);
+      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.replis, c.pastel], [true, true, true, 0, 0], JSON.stringify(c));
     });
   } else {
-    check(`${tag} ordinateur : chaîne mobile non étendue (ni grille d'onglets en style en ligne, ni indicateurs de balayage, ni ancien repli de la première alerte, ni pastilles, ni data-structure-transformed)`, () => {
+    check(`${tag} ordinateur : chaîne mobile non étendue (ni grille d'onglets en style en ligne, ni indicateurs de balayage, ni ancien repli de la première alerte, ni pastilles pastel, ni data-structure-transformed)`, () => {
       const c = r.chaine;
-      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.indicateurs, c.replis, c.pastilles], [false, false, false, 0, 0, 0], JSON.stringify(c));
+      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.indicateurs, c.replis, c.pastel], [false, false, false, 0, 0, 0], JSON.stringify(c));
     });
   }
-  check(`${tag} Dormir (ticket 2.3) : avertissement déplacé sous le titre de l'ordre (h4), visible, jamais replié, texte natif ; aide repliée derrière un seul « ? Aide »${r.mobileMode ? ' (cible tactile ≥ 44 px)' : ''} ; « Valider » actif`, () => {
+  check(`${tag} Dormir (ticket 2.3) : avertissement déplacé en tête de l'ordre, juste sous son titre (h3), avant les paragraphes et l'onglet, visible, jamais replié, texte natif ; aide repliée derrière un seul « ? Aide »${r.mobileMode ? ' (cible tactile ≥ 44 px)' : ''} ; « Valider » actif`, () => {
     range(r.rangDormir, 'Dormir');
     if (r.mobileMode) { assert.ok(r.rangDormir.hauteurAide >= 44, `« ? Aide » haut de ${r.rangDormir.hauteurAide} px`); }
   });
-  check(`${tag} Pouvoir (ticket 2.3) : blocage sous le titre de l'ordre (h4), avant l'aide repliée, visible, jamais replié ; un seul « ? Aide » ; « Valider » actif`, () => range(r.rangPouvoir, 'Pouvoir'));
-  check(`${tag} lien « [?] » du titre de l'ordre (Dormir, Pouvoir) : le bloc des alertes commence sous lui, rien ne le recouvre (elementFromPoint en son centre)`, () => {
+  check(`${tag} Pouvoir (ticket 2.3) : blocage en tête de l'ordre, juste sous son titre (h3), avant l'onglet et l'aide repliée, visible, jamais replié ; un seul « ? Aide » ; « Valider » actif`, () => range(r.rangPouvoir, 'Pouvoir'));
+  check(`${tag} lien « [?] » du titre de l'onglet (Dormir, Pouvoir) : rien ne le recouvre (elementFromPoint en son centre)`, () => {
     for (const [nom, l] of [['Dormir', r.lienDormir], ['Pouvoir', r.lienPouvoir]]) {
       assert.ok(l.lien && l.libre, `${nom} : ${JSON.stringify(l)}`);
     }
@@ -654,6 +855,54 @@ function verifier(r) {
       uneFois(r.audits.ajax, 'Ajax', 1);
     });
   }
+  check(`${tag} ouverture (tickets 2.3 et 2.4), Dormir et Pouvoir : corps non défilé ; titre de l'ordre, titre de l'onglet, blocage ou avertissement et « ? Aide » non recouverts sur leur partie visible (elementFromPoint) ; texte de l'avertissement (Dormir) et du blocage (Pouvoir) entier dans la zone visible`, () => {
+    for (const [nom, o] of [['Dormir', r.ouvDormir], ['Pouvoir', r.ouvPouvoir]]) {
+      assert.equal(o.scrollTop, 0, `${nom} : corps défilé de ${o.scrollTop} px à l'ouverture`);
+      assert.ok(o.cibles.every(c => !c.absent && c.touches === c.visibles), `${nom} : ${JSON.stringify(o.cibles)}`);
+      const alertes = o.cibles.filter(c => 'entier' in c);
+      assert.ok(alertes.length === 1 && alertes[0].entier, `${nom}, alerte entière à l'ouverture : ${JSON.stringify(alertes)}`);
+    }
+  });
+  check(`${tag} pastilles (ticket 2.4) à l'ouverture, corps non défilé : Dormir, coût, durée et « Automatique » (titré Potentiel) ; Pouvoir, coût, durée et potentiel ; ordres longs (corps qui défile) ; icône et valeur, 12 px gras, arrondi complet, fond --kr-arm-bg, texte --kr-arm-ink ; une seule rangée, en tête du pied de la modale, juste au-dessus des boutons, entière dans la fenêtre, non recouverte ; ligne native masquée, texte intact`, () => {
+    pastilles(r.pastDormir, 'Dormir', { ouverture: true });
+    pastilles(r.pastPouvoir, 'Pouvoir', { ouverture: true });
+    pastilles(r.pastLong.Dormir, 'Dormir', { ouverture: true });
+    pastilles(r.pastLong.Pouvoir, 'Pouvoir', { ouverture: true });
+  });
+  check(`${tag} pastilles, contenu remplacé (Pouvoir, Dormir, sans ligne de coût, sans potentiel, segment à libellé inconnu au milieu, deux segments inconnus, ligne sans libellé connu) : valeurs du contenu courant, une seule rangée ; seul le dernier segment sans libellé est le potentiel, un libellé inconnu titre sa pastille générique ; sans ligne de coût, aucune pastille et rien d'autre ne change ; ligne sans libellé connu laissée telle quelle`, () => {
+    pastilles(r.pastRemplace[0], 'Pouvoir');
+    pastilles(r.pastRemplace[1], 'Dormir');
+    sansPastille(r.sansCout.pastilles, 'sans ligne de coût');
+    assert.equal(r.sansCout.pastilles.ligne, null, 'sans ligne de coût : ligne native présente ' + JSON.stringify(r.sansCout.pastilles.ligne));
+    assert.deepEqual(r.sansCout.inchange, { onglet: true, enfants: true }, 'sans ligne de coût : contenu modifié hors de l\'aide ' + JSON.stringify(r.sansCout.inchange));
+    for (const nom of ['sans potentiel', 'segment inconnu au milieu', 'deux segments inconnus']) { pastilles(r.lignes[nom], nom); }
+    sansPastille(r.lignes['ligne sans libellé connu'], 'ligne sans libellé connu');
+    assert.deepEqual(r.lignes['ligne sans libellé connu'].ligne, LIGNE_AFFICHEE, 'ligne sans libellé connu ' + JSON.stringify(r.lignes['ligne sans libellé connu'].ligne));
+  });
+  check(`${tag} pastilles, ligne native réécrite en place (valeurs changées, sans libellé connu, vidée, retirée), puis Dormir et contenu sans formulaire : valeurs suivies ; plus rien à montrer, rangée retirée et ligne native réaffichée`, () => {
+    const [modifiee, inconnue, modifiee2, videe, modifiee3, retiree, dormir, sansFormulaire] = r.enPlace;
+    [modifiee, modifiee2, modifiee3].forEach(p => pastilles(p, 'Dormir modifié'));
+    for (const [nom, p] of [['réécrite sans libellé connu', inconnue], ['vidée', videe]]) {
+      sansPastille(p, nom);
+      assert.deepEqual(p.ligne, LIGNE_AFFICHEE, `${nom}, ligne native ${JSON.stringify(p.ligne)}`);
+    }
+    for (const [nom, p] of [['retirée', retiree], ['sans formulaire', sansFormulaire]]) {
+      sansPastille(p, nom);
+      assert.equal(p.ligne, null, `${nom}, ligne native ${JSON.stringify(p.ligne)}`);
+    }
+    pastilles(dormir, 'Dormir');
+  });
+  check(`${tag} pastilles, appel double et contenus remplacés (ticket 2.4) : rangée posée une seule fois par modale, réécrite une fois par changement de valeurs`, () => {
+    assert.deepEqual(r.audits.dormir.pastilles, rangee(1, 2), 'Dormir puis 2 remplacements ' + JSON.stringify(r.audits.dormir.pastilles));
+    assert.deepEqual(r.audits.pouvoir.pastilles, rangee(1), 'Pouvoir ' + JSON.stringify(r.audits.pouvoir.pastilles));
+  });
+  if (r.cfg.ajax) {
+    check(`${tag} pastilles, chargement Ajax (ticket 2.4) : aucune pastille avant l'ordre, celles de Dormir après, posées une fois`, () => {
+      sansPastille(r.pastAjaxAvant, 'avant l\'ordre');
+      pastilles(r.pastAjax, 'Dormir');
+      assert.deepEqual(r.audits.ajax.pastilles, rangee(1), 'Ajax ' + JSON.stringify(r.audits.ajax.pastilles));
+    });
+  }
 }
 
 // Document-start : Dormir ouvert dans une page où le bundle a été évalué avant <body> ; seule la fin du fondu est attendue.
@@ -666,9 +915,10 @@ async function debutDeDocument(cfg) {
   const e = await page.evaluate(ETAT);
   const rang = await page.evaluate(RANGEMENT, DORMIR);
   const audit = await page.evaluate(AUDIT);
+  const past = await page.evaluate(PASTILLES, DORMIR);
   await fermer(page);
   await context.close();
-  return { cfg, injection, e, rang, audit, errors };
+  return { cfg, injection, e, rang, audit, past, errors };
 }
 function verifierDebut(d) {
   check(`${d.cfg.width} px${d.cfg.mobile ? ' (mobile)' : ''}, bundle évalué au document-start (avant <body>${d.cfg.mobile ? ', viewport pas encore lue : largeur ≥ 768 px, G-01' : ''}) : Dormir avec « Annuler » / « Valider », modale marquée une fois`, () => {
@@ -682,6 +932,11 @@ function verifierDebut(d) {
     assert.equal(d.injection.body, false, 'bundle évalué après <body> : document-start non reproduit');
     range(d.rang, 'Dormir');
     rangeUneFois(d.audit, 'Dormir', [[1]]);
+  });
+  check(`${d.cfg.width} px${d.cfg.mobile ? ' (mobile)' : ''}, document-start (ticket 2.4) : pastilles coût et durée de Dormir juste au-dessus des boutons, rangée posée une fois`, () => {
+    assert.equal(d.injection.body, false, 'bundle évalué après <body> : document-start non reproduit');
+    pastilles(d.past, 'Dormir', { ouverture: true });
+    assert.deepEqual(d.audit.pastilles, rangee(1), 'rangée ' + JSON.stringify(d.audit.pastilles));
   });
 }
 
@@ -717,6 +972,15 @@ function verifierTeintes(t) {
     }
     assert.deepEqual(t.errors, [], 'erreurs ' + t.errors.join(' | '));
   });
+  check(`${tag} : pastilles (ticket 2.4) au fond --kr-arm-bg et au texte --kr-arm-ink, texte ≥ 4,5:1 (Dormir : coût, durée, « Automatique » ; Pouvoir : coût, durée et potentiel)`, () => {
+    for (const [nom, e, n] of [['Dormir', t.dormir, 3], ['Pouvoir', t.pouvoir, 3]]) {
+      assert.equal(e.pastilles.length, n, `${nom} : ${e.pastilles.length} pastille(s)`);
+      e.pastilles.forEach(p => {
+        assert.ok(p.fond && p.encre, `${nom}, ${p.titre} : fond ou texte hors de la paire arm ${JSON.stringify(p)}`);
+        assert.ok(p.contraste >= 4.5, `${nom}, ${p.titre} : ${x(p.contraste)}`);
+      });
+    }
+  });
 }
 
 const VARIANTES = ['empire-brun-dark', 'kraland'];
@@ -737,6 +1001,7 @@ if (on('bureau')) {
   await attendre(page, true);
   const e = await page.evaluate(ETAT);
   const rang = await page.evaluate(RANGEMENT, DORMIR);
+  const past = await page.evaluate(PASTILLES, DORMIR);
   await fermer(page);
   await context.close();
   check('1280 px, peau coupée (thème désactivé) : modale d\'ordre native, « Cancel » / « OK », aucun marquage, aucune erreur', () => {
@@ -745,7 +1010,11 @@ if (on('bureau')) {
     assert.deepEqual(errors, [], 'erreurs ' + errors.join(' | '));
   });
   check('1280 px, peau coupée (ticket 2.3) : alertes à leur place native, aide dépliée, aucun « ? Aide »', () => {
-    assert.deepEqual([rang.lecture, rang.boutons.length], [['titre', 'aide dépliée'], 0], JSON.stringify(rang));
+    assert.deepEqual([rang.lecture, rang.boutons.length, rang.blocs], [['titre', 'avertissement', 'onglet', 'aide dépliée'], 0, 0], JSON.stringify(rang));
+  });
+  check('1280 px, peau coupée (ticket 2.4) : ligne de coût native affichée, aucune pastille', () => {
+    sansPastille(past, 'peau coupée');
+    assert.deepEqual(past.ligne, LIGNE_AFFICHEE, 'ligne native ' + JSON.stringify(past.ligne));
   });
 }
 
@@ -768,10 +1037,12 @@ async function transition(depart, arrivee) {
     await attendre(page, true);
     const etat = await page.evaluate(ETAT);
     const rang = await page.evaluate(RANGEMENT, DORMIR);
+    const ouverture = await page.evaluate(OUVERTURE);
+    const past = await page.evaluate(PASTILLES, DORMIR);
     await fermer(page);
     await page.evaluate(OUVRIR, await page.evaluate(ALLONGER, enOrdre(DORMIR)));
     await attendre(page, true);
-    etats.push({ w, etat, rang, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
+    etats.push({ w, etat, rang, ouverture, past, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
     await fermer(page);
   }
   await context.close();
@@ -787,6 +1058,12 @@ async function transition(depart, arrivee) {
       range(rang, 'Dormir');
       const bas = d.etats[2] || {};
       assert.ok(d.max > 200 && bas.titreSorti && bas.dedans && bas.touches === 5 && d.opaque && Math.abs(bas.bord) <= 1, `${w} px, en bas : ${JSON.stringify(d)}`);
+    }
+  });
+  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 2.4) : de chaque côté du seuil, pastilles de Dormir juste au-dessus des boutons dès l'ouverture ; titres, avertissement entier et « ? Aide » non recouverts`, () => {
+    for (const { w, ouverture, past } of etats) {
+      assert.ok(ouverture.cibles.every(c => !c.absent && c.touches === c.visibles && c.entier !== false), `${w} px, ouverture : ${JSON.stringify(ouverture)}`);
+      pastilles(past, 'Dormir', { ouverture: true });
     }
   });
 }

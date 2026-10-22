@@ -99,3 +99,5 @@ Passe quick du 2026-10-22 : 5 patch, 2 renvoyés à la revue manuelle, 1 constat
 - site réel — le bloc d'alertes chevauchait le lien « [?] » du titre à 375 px (lien de 44 px par la règle des cibles tactiles) : `clear: both` ; contrôle `elementFromPoint` ; contre-épreuve rouge. Effet : avertissement de Dormir à cheval sur le pli à l'ouverture à 375 × 667 (revue-manuelle.md, Q25.2).
 
 Vérification : `modale-ordre.mjs` 168 ok ; `test:parler` 78 ok ; `test:router` conforme ; `lint:css`, `lint:js` 0 erreur ; `test:all` 4530 ok, 0 FAIL. Site réel (lecture seule, modales annulées) : Dormir et Pouvoir, 375 et 1280 px, Kraland clair et Empire Brun sombre : « Annuler » / « Valider », alerte sous le titre et visible, aide repliée derrière un seul « ? Aide ». Captures : `.tmp/captures/validation-2-2-2-3-modale/` (hors git).
+
+Suite donnée au ticket 2.4 (2026-10-22) : le bloc des alertes est déplacé juste après le `h3` du formulaire (avant les caractéristiques et les onglets) pour que l'avertissement de Dormir reste entier à l'ouverture avec les pastilles dans le pied de la modale ; décision prise en autonomie, consignée dans revue-manuelle.md.

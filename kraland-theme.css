@@ -1475,21 +1475,7 @@ a.carousel-control.right{
     padding: 16px !important;
   }
 
-  /* Footer du panel (coût/durée) - sticky avant footer modal */
-  .bootbox-confirm .kraland-action-footer {
-    position: sticky !important;
-    bottom: 72px !important; /* Hauteur du footer modal */
-    z-index: 90 !important;
-    background: var(--kr-bg-elevated) !important;
-    padding: 12px 16px !important;
-    border-top: 1px solid var(--kr-border-default) !important;
-  }
-
-  .bootbox-confirm .kraland-action-footer p {
-    margin: 0 !important;
-    font-size: 13px !important;
-    color: var(--kr-text-secondary) !important;
-  }
+  /* Footer du panel (coût, durée, potentiel) : pastilles du socle commun, section 9f (ticket 2.4) */
 
   /* Footer modal sticky (boutons OK/Cancel) */
   .bootbox-confirm .kraland-modal-footer {
@@ -1721,6 +1707,7 @@ a.carousel-control.right{
 /* ============================================================================
    9d. AMÉLIORATIONS UX MODAL ORDRE (MOBILE ONLY)
    UX #1 (repli de l'aide) : section 9e, commune aux deux supports (ticket 2.3).
+   UX #4 (pastilles coût, durée, potentiel) : section 9f, commune aux deux supports (ticket 2.4).
    ============================================================================ */
 
 @media (max-width: 768px) {
@@ -1746,47 +1733,6 @@ a.carousel-control.right{
     font-size: 16px !important;
     line-height: 1.5 !important;
     padding: 12px !important;
-  }
-  
-  /* === UX #4: FOOTER EN BADGES === */
-  .bootbox-confirm .kr-action-badges {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    align-items: center !important;
-  }
-  
-  .bootbox-confirm .kr-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 6px 12px !important;
-    border-radius: 16px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    white-space: nowrap !important;
-  }
-  
-  .bootbox-confirm .kr-badge i {
-    font-size: 14px !important;
-  }
-  
-  .bootbox-confirm .kr-badge-cost {
-    background: #fff3cd !important;
-    color: #856404 !important;
-    border: 1px solid #ffeaa7 !important;
-  }
-  
-  .bootbox-confirm .kr-badge-duration {
-    background: #d1ecf1 !important;
-    color: #0c5460 !important;
-    border: 1px solid #b8daff !important;
-  }
-  
-  .bootbox-confirm .kr-badge-potential {
-    background: #f8d7da !important;
-    color: #721c24 !important;
-    border: 1px solid #f5c6cb !important;
   }
   
   /* === UX #5: BOUTON OK RENFORCÉ === */
@@ -1896,14 +1842,14 @@ a.carousel-control.right{
 
 /* ============================================================================
    9e. MODALE D'ORDRE - ALERTES ET AIDE (ORDINATEUR ET MOBILE)
-   Socle commun (kr-order-form, template : arrangeOrderAlerts). Blocages et avertissements dans .kr-order-alerts, juste sous le titre
-   de l'ordre (h4) : collés en haut du corps de la modale pendant le défilement, jamais repliés (H2.3, R2). top : moins le padding du
-   corps (15 px sur les deux supports), sinon le bloc colle sous ce padding et le contenu défile dans une bande de 15 px au-dessus de
-   lui. clear : le bloc commence sous le lien flottant « [?] » du titre (44 px de haut sur mobile, plus haut que le h4), qu'il
-   recouvrait. Fond opaque de la surface : rien ne transparaît sous les teintes d'état semi-transparentes du mode sombre. Au-dessus des zones
-   collantes de la chaîne mobile (onglets 100, titre 110, coût et durée 90) : rien ne les recouvre. Seule l'aide (.alert-order) se
-   replie, derrière « ? Aide » (.kr-order-help-toggle, bouton standard btn-default : même fond qu'« Annuler », texte du thème),
-   lisible dans les 16 variantes (H2.4).
+   Socle commun (kr-order-form, template : arrangeOrderAlerts). Blocages et avertissements dans .kr-order-alerts, en tête de l'ordre,
+   juste sous son titre (h3 du formulaire), avant ses paragraphes et le panneau d'onglets : collés en haut du corps de la modale pendant
+   le défilement, jamais repliés (H2.3, R2). top : moins le padding du corps (15 px sur les deux supports), sinon le bloc colle sous ce
+   padding et le contenu défile dans une bande de 15 px au-dessus de lui. clear : le bloc commence sous l'image flottante du titre
+   (div.pull-right du h3), qu'il recouvrirait. Fond opaque de la surface : rien ne transparaît sous les teintes d'état
+   semi-transparentes du mode sombre. Au-dessus des zones collantes de la chaîne mobile (onglets 100, titre 110) : rien ne les recouvre.
+   Seule l'aide (.alert-order) se replie, derrière « ? Aide » (.kr-order-help-toggle, bouton standard btn-default : même fond
+   qu'« Annuler », texte du thème), lisible dans les 16 variantes (H2.4).
    ============================================================================ */
 @media (max-width: 767px), (min-width: 768px) {
   .kr-order-form .kr-order-alerts {
@@ -1928,6 +1874,54 @@ a.carousel-control.right{
 @media (max-width: 767px) {
   body:not(.mobile-mode) .kr-order-form .kr-order-alerts {
     top: 0;
+  }
+}
+
+/* ============================================================================
+   9f. MODALE D'ORDRE - PASTILLES COÛT, DURÉE, POTENTIEL (ORDINATEUR ET MOBILE)
+   Socle commun (kr-order-modal, template : showOrderCosts). Rangée de pastilles (.kr-order-badges) en tête du pied de la modale, juste
+   au-dessus des boutons, hors de la zone qui défile : toujours visible, elle ne recouvre rien (H2.5). Spécificité (0,3,0) : bat la
+   règle mobile .bootbox-confirm .modal-footer > div (alignement à droite). Le pied du panneau d'onglets qui ne contient plus que la
+   ligne native masquée disparaît avec elle (pas de bande vide). Style de l'étiquette de catégorie (Q5) : icône et valeur, 12 px gras,
+   arrondi complet, fond --kr-arm-bg et texte --kr-arm-ink (Q1, ≥ 4,5:1 dans les 16 variantes ; replis : primaire et blanc). Sans
+   nowrap : une valeur trop longue pour la largeur passe à la ligne au lieu de déborder.
+   ============================================================================ */
+@media (max-width: 767px), (min-width: 768px) {
+  .kr-order-modal .modal-footer > .kr-order-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 0;
+    text-align: left;
+  }
+
+  .kr-order-form .panel.with-nav-tabs > .panel-footer:has(> p.mini[hidden]:only-child) {
+    display: none;
+  }
+
+  .kr-order-modal .kr-order-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background-color: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+  }
+
+  .kr-order-modal .kr-order-badge i {
+    font-size: 14px;
+  }
+}
+
+/* Ordinateur : pied en bloc (boutons en ligne), l'écart avec les boutons vient de la rangée ; sur mobile, le pied en colonne a son gap. */
+@media (min-width: 768px) {
+  .kr-order-modal .modal-footer > .kr-order-badges {
+    margin-bottom: 12px;
   }
 }
 

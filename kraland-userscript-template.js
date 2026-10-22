@@ -8988,9 +8988,10 @@
   /**
    * Socle de la modale d'ordre, commun à l'ordinateur et au mobile : une confirmation Bootbox qui contient le formulaire d'ordre
    * (#ajax-order form[name="post_msg"]) est marquée (kr-order-modal ; kr-order-form sur le contenu traité) et ses boutons
-   * deviennent « Annuler » / « Valider » (H2.1) ; ses alertes sont rangées (arrangeOrderAlerts). Réappliqué quand le contenu de
-   * #ajax-order est remplacé (autre ordre, Ajax). Idempotent : l'observateur des modales est enregistré deux fois sur mobile ; chaque
-   * écriture n'a lieu que si elle change le DOM. Peau coupée : modale native.
+   * deviennent « Annuler » / « Valider » (H2.1) ; ses alertes sont rangées (arrangeOrderAlerts) ; son coût, sa durée et son potentiel
+   * passent en pastilles (showOrderCosts). Réappliqué quand le contenu de #ajax-order est remplacé (autre ordre, Ajax).
+   * Idempotent : l'observateur des modales est enregistré deux fois sur mobile ; chaque écriture n'a lieu que si elle change le DOM.
+   * Peau coupée : modale native.
    */
   const ORDER_MODAL_LABELS = { cancel: 'Annuler', confirm: 'Valider' };
   const watchedOrderModals = new WeakSet();
@@ -8998,9 +8999,10 @@
   /**
    * Alertes de l'ordre (H2.3, R2, H2.4) : seule l'aide (alert-order) se replie, derrière un bouton « ? Aide » (kr-order-help-toggle) posé
    * juste avant elle ; un bouton qui n'est plus suivi de son aide (aide retirée par sa croix, data-dismiss="alert" de Bootstrap) est
-   * retiré. Les blocages (alert-danger) et avertissements (alert-warning) passent dans un bloc kr-order-alerts juste sous le titre de
-   * l'ordre (h4 de l'onglet actif), collé en haut du corps pendant le défilement (CSS) et jamais replié ; sans onglet actif, ils restent
-   * en place. N'écrit que ce qui manque. Le texte natif des alertes ne change pas ; « Valider » reste actif.
+   * retiré. Les blocages (alert-danger) et avertissements (alert-warning) passent dans un bloc kr-order-alerts en tête de l'ordre, juste
+   * sous son titre (h3 du formulaire), avant ses paragraphes et le panneau d'onglets ; collé en haut du corps pendant le défilement (CSS)
+   * et jamais replié ; sans onglet actif, ils restent en place. N'écrit que ce qui manque. Le texte natif des alertes ne change pas ;
+   * « Valider » reste actif.
    */
   function arrangeOrderAlerts(form) {
     form.querySelectorAll('.kr-order-help-toggle').forEach(toggle => {
@@ -9016,17 +9018,16 @@
       help.hidden = true;
       help.before(toggle);
     });
-    const pane = form.querySelector('.tab-pane.active');
-    if (!pane) {return;}
+    if (!form.querySelector('.tab-pane.active')) {return;}
     const alerts = [...form.querySelectorAll('.alert-danger, .alert-warning')]
       .filter(alert => !alert.classList.contains('alert-order') && !alert.parentElement.classList.contains('kr-order-alerts'));
     if (alerts.length) {
-      let box = pane.querySelector(':scope > .kr-order-alerts');
+      let box = form.querySelector(':scope > .kr-order-alerts');
       if (!box) {
         box = document.createElement('div');
         box.className = 'kr-order-alerts';
-        const title = pane.querySelector(':scope > h4');
-        if (title) {title.after(box);} else {pane.prepend(box);}
+        const title = form.querySelector(':scope > h3');
+        if (title) {title.after(box);} else {form.prepend(box);}
       }
       box.append(...alerts);
     }
@@ -9041,8 +9042,76 @@
     toggle.setAttribute('aria-expanded', String(!help.hidden));
   }
 
+  const ORDER_COST_ICONS = { 'Coût': 'fas fa-coins', 'Durée': 'far fa-clock', 'Potentiel': 'fas fa-dice-d20' };
+
+  /**
+   * Segments de la ligne native de coût (« Coût: 0 FK | Durée: 00:00 | Automatique », « … | Potentiel: VOL + Pouvoir = 9 ») : une
+   * pastille { label, text } par segment non vide. Libellé connu (Coût, Durée, Potentiel) : valeur seule, avec icône ; autre libellé
+   * (« Portée: 2 ») : pastille générique au segment entier, titrée de son libellé ; dernier segment sans libellé : le potentiel
+   * (« Automatique ») ; autre segment sans libellé : pastille générique sans titre. Ligne sans aucun libellé connu : aucune pastille.
+   */
+  function readOrderCosts(line) {
+    const segments = line.textContent.split('|').map(part => part.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    let known = false;
+    const costs = [];
+    segments.forEach((segment, index) => {
+      const match = segment.match(/^(\p{L}[^:]*?)\s*:\s*(.*)$/u);
+      if (!match) {
+        costs.push({ label: index === segments.length - 1 ? 'Potentiel' : '', text: segment });
+        return;
+      }
+      const [, label, value] = match;
+      if (ORDER_COST_ICONS[label]) {known = true;}
+      if (value) {costs.push({ label, text: ORDER_COST_ICONS[label] ? value : segment });}
+    });
+    return known ? costs : [];
+  }
+
+  /**
+   * Coût, durée et potentiel de l'ordre (H2.5, Q1, Q5) : rangée de pastilles (kr-order-badges : icône et valeur, libellé en infobulle)
+   * dans le pied de la modale, juste au-dessus des boutons, toujours visible ; valeurs lues dans la ligne native du contenu courant (p.mini
+   * du pied du panneau d'onglets), qui reste dans le DOM, masquée. Rien à montrer (pas de formulaire, ligne retirée, vidée ou réécrite
+   * sans libellé connu) : rangée retirée, ligne réaffichée. N'écrit que ce qui change.
+   */
+  function showOrderCosts(modal, form) {
+    const footer = modal.querySelector('.modal-footer');
+    const row = footer.querySelector(':scope > .kr-order-badges');
+    const line = form?.querySelector('.panel.with-nav-tabs > .panel-footer > p.mini');
+    const costs = line ? readOrderCosts(line) : [];
+    if (!costs.length) {
+      row?.remove();
+      if (line?.hidden) {line.hidden = false;}
+      return;
+    }
+    if (!line.hidden) {line.hidden = true;}
+    const wanted = costs.map(({ label, text }) => label + ':' + text).join('|');
+    if (row && [...row.children].map(badge => badge.title + ':' + badge.textContent).join('|') === wanted) {return;}
+    const badges = costs.map(({ label, text }) => {
+      const badge = document.createElement('span');
+      badge.className = 'kr-order-badge';
+      badge.title = label;
+      if (ORDER_COST_ICONS[label]) {
+        const icon = document.createElement('i');
+        icon.className = ORDER_COST_ICONS[label];
+        icon.setAttribute('aria-hidden', 'true');
+        badge.append(icon);
+      }
+      badge.append(text);
+      return badge;
+    });
+    if (row) {
+      row.replaceChildren(...badges);
+      return;
+    }
+    const newRow = document.createElement('div');
+    newRow.className = 'kr-order-badges';
+    newRow.append(...badges);
+    footer.prepend(newRow);
+  }
+
   function applyOrderModal(modal) {
     const form = modal.querySelector('#ajax-order form[name="post_msg"]');
+    showOrderCosts(modal, form);
     if (!form) {return;}
     if (!modal.classList.contains('kr-order-modal')) {modal.classList.add('kr-order-modal');}
     Object.entries(ORDER_MODAL_LABELS).forEach(([handler, label]) => {
@@ -9402,12 +9471,7 @@
         console.log('[Order Modal] Zone formulaire identifiée');
       }
 
-      // === 4. Identifier le footer du panel ===
-      const panelFooter = panelWithTabs.querySelector('.panel-footer');
-      if (panelFooter) {
-        panelFooter.classList.add('kraland-action-footer');
-        console.log('[Order Modal] Footer action identifié');
-      }
+      // === 4. Pied du panel (coût, durée, potentiel) : pastilles du socle commun aux deux supports, showOrderCosts ===
     }
 
     // === 5. Marquer le footer de la modal (boutons OK/Cancel) ===
@@ -9506,38 +9570,6 @@
     });
 
     console.log('[Order Modal] Textarea agrandi (8 rows + auto-resize)');
-  }
-
-  /**
-   * UX AMÉLIORATION #4: Formate le footer en badges visuels
-   */
-  function formatFooterAsBadges(modal) {
-    if (!modal) {return;}
-    if (!document.body.classList.contains('mobile-mode')) {return;}
-
-    const actionFooter = modal.querySelector('.kraland-action-footer p');
-    if (!actionFooter) {return;}
-
-    const text = actionFooter.textContent;
-
-    // Parser le texte: "Coût: 0 MØ | Durée: 00:00 | Potentiel: PER + Discrétion = 1"
-    const costMatch = text.match(/Coût:\s*([^|]+)/);
-    const durationMatch = text.match(/Durée:\s*([^|]+)/);
-    const potentialMatch = text.match(/Potentiel:\s*(.+)$/);
-
-    if (!costMatch && !durationMatch && !potentialMatch) {return;}
-
-    // Créer les badges
-    const badgesHTML = `
-      <div class="kr-action-badges">
-        ${costMatch ? `<span class="kr-badge kr-badge-cost"><i class="fas fa-coins"></i> ${costMatch[1].trim()}</span>` : ''}
-        ${durationMatch ? `<span class="kr-badge kr-badge-duration"><i class="far fa-clock"></i> ${durationMatch[1].trim()}</span>` : ''}
-        ${potentialMatch ? `<span class="kr-badge kr-badge-potential"><i class="fas fa-dice-d20"></i> ${potentialMatch[1].trim()}</span>` : ''}
-      </div>
-    `;
-
-    actionFooter.innerHTML = badgesHTML;
-    console.log('[Order Modal] Footer formaté en badges');
   }
 
   /**
@@ -9695,8 +9727,7 @@
     // #3: Agrandir le textarea
     enlargeTextarea(modal);
 
-    // #4: Footer en badges
-    formatFooterAsBadges(modal);
+    // #4 (pastilles coût, durée, potentiel) : socle commun aux deux supports, showOrderCosts
 
     // #5: Bouton OK renforcé
     enhanceOkButton(modal);
