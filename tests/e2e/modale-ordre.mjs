@@ -30,10 +30,20 @@
 // Variantes dérivées de Dormir : sans ligne de coût (ni avertissement ni pied de panneau) ; sans potentiel (ligne arrêtée après la
 // durée) ; segment à libellé inconnu au milieu ; deux segments inconnus (sans libellé au milieu, libellé inconnu en dernier) ; ligne
 // sans aucun libellé connu, laissée telle quelle, sans pastille.
+// Ticket 2.5 (H2.6, Q25.4), même socle, mêmes largeurs, sur les deux supports : la croix de fermeture de Bootbox (.bootbox-close-button,
+// premier enfant du corps, flottante à droite) d'une modale d'ordre mesure 44 × 44 px, entièrement visibles dans le corps de la modale
+// (fenêtre rétrécie sous 768 px sans rechargement comprise), prend la couleur du texte du thème (--kr-text-primary), sans voile
+// d'opacité (opacité propre et effective 1, survol compris sur ordinateur), avec un contraste ≥ 3:1 sur le fond de la modale
+// (16 variantes), à sa place native : même coin haut droit que la croix d'une confirmation hors ordre, et glyphe au même endroit que le
+// sien (centre à 3 px près) ; à l'ouverture, après un autre ordre, après un chargement Ajax, de part et d'autre du seuil. Touchée ou
+// cliquée en son centre (elementFromPoint : la croix), elle referme la modale sans valider (réponse false de Bootbox, aucun envoi). La
+// croix d'une confirmation hors ordre ne change pas (relevé du bundle 061fd4a : Bootstrap sur ordinateur, règle mobile commune sur
+// mobile).
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
-// « ? Aide » et la croix de l'aide, touchés ou cliqués ; aucune validation, aucun envoi. Confinement réseau (lib/confinement.mjs).
+// « ? Aide », la croix de l'aide et la croix de la modale (survolée d'abord sur ordinateur), touchés ou cliqués ; aucune validation,
+// aucun envoi. Confinement réseau (lib/confinement.mjs).
 //
 // Usage : npm run build && node tests/e2e/modale-ordre.mjs   (ou npm run test:zone -- modale-ordre)
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, seuil, variantes
@@ -45,7 +55,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
-import { THEME_READY, frames, krReady, waitState } from './lib/settle.mjs';
+import { THEME_READY, frames, krReady, styleSettled, waitState } from './lib/settle.mjs';
 import { CONTRASTE, VARIANTE_POSEE, choisirVariante, parVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -150,6 +160,7 @@ async function ouvrirPage({ width, height, mobile = false, theme = true, variant
   await krReady(page, { ready: theme ? THEME_READY : null, label: `plateau ${width} px` });
   await waitState(page, () => !!window.bootbox && !!window.jQuery);
   await page.evaluate(PREPARER);
+  await page.evaluate(CONTRASTE);
   return { context, page, denied, errors };
 }
 
@@ -475,6 +486,49 @@ const TEINTES = () => {
     pastilles: [...m.querySelectorAll('.kr-order-badges > *')].map(p => ({ titre: p.title, contraste: c.texte(p), fond: getComputedStyle(p).backgroundColor === arm.fond, encre: getComputedStyle(p).color === arm.encre }))
   };
 };
+// Croix de fermeture de la modale (ticket 2.5), modale telle qu'elle est : taille ; zone visible (intersection de la croix et de la boîte
+// de découpe du corps de la modale, qui défile : sa boîte de rembourrage, en valeurs fractionnaires, clientWidth étant arrondi à
+// l'entier ; la croix flotte à gauche d'une éventuelle barre de défilement) ; coin haut droit et centre du glyphe (boîte du texte, Range),
+// mesurés depuis le bord droit et le haut de .modal-content ; place native (premier enfant du corps, flottante à droite, marge en ligne
+// de Bootbox intacte) ; styles relevés ; couleur du texte du thème (--kr-text-primary) ; opacité effective (produit des opacités de ses
+// ancêtres) ; contraste de la croix sur le fond de la modale (outil des variantes, qui ignore l'opacité) ; centre : elementFromPoint en
+// son centre touche la croix.
+const CROIX = () => {
+  const m = window.__modale;
+  const x = m.querySelector('.bootbox-close-button');
+  if (!x) { return null; }
+  const s = getComputedStyle(x);
+  const r = x.getBoundingClientRect();
+  const c = m.querySelector('.modal-content').getBoundingClientRect();
+  const corps = m.querySelector('.modal-body');
+  const b = corps.getBoundingClientRect();
+  const sb = getComputedStyle(corps);
+  const decoupe = { left: b.left + parseFloat(sb.borderLeftWidth), top: b.top + parseFloat(sb.borderTopWidth), right: b.right - parseFloat(sb.borderRightWidth), bottom: b.bottom - parseFloat(sb.borderBottomWidth) };
+  const texte = document.createRange();
+  texte.selectNodeContents(x);
+  const g = texte.getBoundingClientRect();
+  const sonde = document.createElement('span');
+  sonde.style.color = 'var(--kr-text-primary)';
+  document.body.appendChild(sonde);
+  const theme = getComputedStyle(sonde).color;
+  sonde.remove();
+  let effective = 1;
+  for (let e = x; e; e = e.parentElement) { effective *= Number(getComputedStyle(e).opacity); }
+  const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  const dixieme = v => Math.round(v * 10) / 10;
+  return {
+    taille: [dixieme(r.width), dixieme(r.height)],
+    visible: [Math.max(0, Math.min(r.right, decoupe.right) - Math.max(r.left, decoupe.left)), Math.max(0, Math.min(r.bottom, decoupe.bottom) - Math.max(r.top, decoupe.top))].map(dixieme),
+    coin: [dixieme(c.right - r.right), dixieme(r.top - c.top)],
+    glyphe: [dixieme(c.right - (g.left + g.width / 2)), dixieme(g.top + g.height / 2 - c.top)],
+    place: x.parentElement.matches('.modal-body') && x.parentElement.firstElementChild === x && s.float === 'right' && x.style.marginTop === '-10px',
+    styles: { couleur: s.color, opacite: s.opacity, ombre: s.textShadow, police: s.fontSize, interligne: s.lineHeight, rembourrage: s.padding, position: s.position, zIndex: s.zIndex },
+    theme,
+    effective,
+    contraste: window.__krContraste.texte(x),
+    centre: !!h && (h === x || x.contains(h))
+  };
+};
 // Écritures du socle d'après le journal : pour chaque élément, valeur de class avant et après chaque écriture (après = avant de la
 // suivante, ou valeur actuelle). Ajout ou retrait du repère, ou écriture neutre (valeur inchangée, repère présent) ; enfants des boutons.
 const AUDIT = () => {
@@ -577,6 +631,37 @@ async function fermerAide(page, tactile) {
     return { aides: [...m.querySelectorAll('.modal-body button')].filter(b => b.textContent.trim() === 'Aide').length, aide: !!m.querySelector('#ajax-order .alert-order'), ouverte: document.body.contains(m) && m.classList.contains('in') };
   });
 }
+// Croix de la modale (ticket 2.5) : Dormir ouvert par bootbox.confirm avec un rappel qui note sa réponse sans retenir la modale (celui
+// d'OUVRIR la retient : il renvoie false), puis contenu remplacé par Pouvoir (autre ordre) ; croix mesurée, survolée d'abord sur ordinateur
+// (mesurée au survol), puis touchée ou cliquée en son centre ; ensuite : modale fermée et retirée, réponses du rappel, envois.
+const OUVRIR_CROIX = message => {
+  window.__reponses = [];
+  const m = window.bootbox.confirm(message, reponse => { window.__reponses.push(reponse); })[0];
+  window.__modale = m;
+  window.__ordre = { modal: m, contenus: [], boutons: [] };
+};
+async function fermerParLaCroix(page, tactile) {
+  await page.evaluate(OUVRIR_CROIX, enOrdre(DORMIR));
+  await attendre(page, true);
+  await page.evaluate(REMPLACER, POUVOIR);
+  await frames(page, 2);
+  const out = { croix: await page.evaluate(CROIX) };
+  const croix = page.locator('.bootbox .bootbox-close-button');
+  try {
+    if (tactile) {
+      await croix.tap({ timeout: 5000 });
+    } else {
+      await croix.hover({ timeout: 5000 });
+      await styleSettled(page, '.bootbox .bootbox-close-button', { state: ':hover' });
+      out.survol = await page.evaluate(CROIX);
+      await croix.click({ timeout: 5000 });
+    }
+  } catch (e) {
+    return { ...out, erreur: e.message.split('\n')[0] };
+  }
+  out.fermee = await waitState(page, () => !document.body.contains(window.__modale) && !document.querySelector('.modal-backdrop'));
+  return { ...out, ...await page.evaluate(() => ({ reponses: window.__reponses, submits: window.__submits })) };
+}
 
 async function scenario(cfg) {
   const { context, page, denied, errors } = await ouvrirPage(cfg);
@@ -589,6 +674,7 @@ async function scenario(cfg) {
   r.chaine = await page.evaluate(CHAINE);
   r.ouvDormir = await page.evaluate(OUVERTURE);
   r.pastDormir = await page.evaluate(PASTILLES, DORMIR);
+  r.croix = { Dormir: await page.evaluate(CROIX) };
   await capture(page, tag + '-dormir-ouverture');
   r.lienDormir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-dormir');
@@ -628,6 +714,7 @@ async function scenario(cfg) {
   r.rangPouvoir = await page.evaluate(RANGEMENT, POUVOIR);
   r.ouvPouvoir = await page.evaluate(OUVERTURE);
   r.pastPouvoir = await page.evaluate(PASTILLES, POUVOIR);
+  r.croix.Pouvoir = await page.evaluate(CROIX);
   await capture(page, tag + '-pouvoir-ouverture');
   r.audits.pouvoir = await page.evaluate(AUDIT);
   r.lienPouvoir = await page.evaluate(LIEN_REGLES);
@@ -644,6 +731,7 @@ async function scenario(cfg) {
     r.rangAjax = await page.evaluate(RANGEMENT, DORMIR);
     r.audits.ajax = await page.evaluate(AUDIT);
     r.pastAjax = await page.evaluate(PASTILLES, DORMIR);
+    r.croix['chargement Ajax'] = await page.evaluate(CROIX);
     await fermer(page);
   }
   await page.evaluate(OUVRIR, HORS_ORDRE);
@@ -651,6 +739,7 @@ async function scenario(cfg) {
   r.horsOrdre = await page.evaluate(ETAT);
   r.audits.horsOrdre = await page.evaluate(AUDIT);
   r.pastHorsOrdre = await page.evaluate(PASTILLES, HORS_ORDRE);
+  r.croixHorsOrdre = await page.evaluate(CROIX);
   await capture(page, tag + '-hors-ordre');
   await fermer(page);
   await page.evaluate(OUVRIR, enOrdre(SANS_ALERTE));
@@ -671,6 +760,7 @@ async function scenario(cfg) {
     await capture(page, `${tag}-defilement-${nom.toLowerCase()}`);
     await fermer(page);
   }
+  r.fermetureCroix = await fermerParLaCroix(page, !!cfg.mobile);
   r.envoi = await page.evaluate(() => ({ submits: window.__submits, confirmations: window.__confirmations }));
   r.posts = denied.filter(d => d.method !== 'GET').map(d => d.method + ' ' + d.url);
   r.errors = errors.slice();
@@ -750,6 +840,31 @@ function sansPastille(p, nom) {
 }
 // Écritures de la rangée dans une modale (journal des mutations) : insertions, réécritures, retraits.
 const rangee = (insertions, reecritures = 0, retraits = 0) => ({ insertions, reecritures, retraits });
+// Croix lisible (ticket 2.5, H2.6) : 44 × 44 px, entièrement dans la zone visible du corps de la modale, couleur du texte du thème,
+// opacité 1 (propre et effective), ≥ 3:1 sur le fond de la modale, rien ne la recouvre en son centre ; à sa place native (Q25.4) : premier
+// enfant du corps, flottante à droite, marge en ligne de Bootbox intacte et, si `native` est donnée (croix d'une confirmation hors ordre,
+// même largeur : celle d'avant le ticket), même coin haut droit à 0,5 px près et glyphe au même endroit, son centre à 3 px près.
+function lisible(x, nom, native = null) {
+  assert.ok(x, `${nom} : aucune croix de fermeture`);
+  assert.deepEqual(x.taille, [44, 44], `${nom}, taille ${x.taille.join(' × ')} px`);
+  assert.deepEqual(x.visible, [44, 44], `${nom}, zone visible dans le corps de la modale ${x.visible.join(' × ')} px`);
+  assert.equal(x.styles.couleur, x.theme, `${nom}, couleur ${x.styles.couleur}, texte du thème ${x.theme}`);
+  assert.ok(x.styles.opacite === '1' && x.effective === 1, `${nom}, opacité ${x.styles.opacite} (effective ${x.effective})`);
+  assert.ok(x.contraste >= 3, `${nom}, contraste ${x.contraste.toFixed(2)}:1 sur le fond de la modale`);
+  assert.equal(x.centre, true, `${nom} : centre de la croix recouvert`);
+  assert.equal(x.place, true, `${nom} : croix déplacée (premier enfant du corps, flottante à droite, marge en ligne de Bootbox)`);
+  if (native) {
+    assert.ok(x.coin.every((v, i) => Math.abs(v - native.coin[i]) <= 0.5), `${nom}, coin haut droit ${JSON.stringify(x.coin)}, hors ordre ${JSON.stringify(native.coin)}`);
+    assert.ok(x.glyphe.every((v, i) => Math.abs(v - native.glyphe[i]) <= 3), `${nom}, centre du glyphe ${JSON.stringify(x.glyphe)}, hors ordre ${JSON.stringify(native.glyphe)} (depuis le bord droit et le haut de la modale)`);
+  }
+}
+// Croix d'une confirmation hors ordre, inchangée (relevé du bundle 061fd4a, avant le ticket 2.5) : Bootstrap sur ordinateur (noire à 0,2,
+// ombre blanche, 21 px de haut) ; règle mobile commune sur mobile (44 × 44 px, noire à 0,7, au-dessus des zones collantes).
+const OMBRE_BOOTSTRAP = 'rgb(255, 255, 255) 0px 1px 0px';
+const CROIX_HORS_ORDRE = {
+  ordinateur: { hauteur: 21, styles: { couleur: 'rgb(0, 0, 0)', opacite: '0.2', ombre: OMBRE_BOOTSTRAP, police: '21px', interligne: '21px', rembourrage: '0px', position: 'static', zIndex: 'auto' } },
+  mobile: { hauteur: 44, largeur: 44, styles: { couleur: 'rgb(0, 0, 0)', opacite: '0.7', ombre: OMBRE_BOOTSTRAP, police: '28px', interligne: '24px', rembourrage: '10px', position: 'relative', zIndex: '120' } }
+};
 
 function verifier(r) {
   const tag = `${r.cfg.width} px${r.cfg.mobile ? ' (mobile, ' + r.cfg.width + ' × ' + r.cfg.height + ')' : ''}`;
@@ -903,6 +1018,31 @@ function verifier(r) {
       assert.deepEqual(r.audits.ajax.pastilles, rangee(1), 'Ajax ' + JSON.stringify(r.audits.ajax.pastilles));
     });
   }
+  const support = r.mobileMode ? 'mobile' : 'ordinateur';
+  check(`${tag} croix de fermeture (ticket 2.5, H2.6, ${support}) : Dormir et Pouvoir à l'ouverture, contenu remplacé${r.cfg.ajax ? ', chargement Ajax' : ''}${r.cfg.mobile ? '' : ', survol de la souris'} : 44 × 44 px entièrement visibles dans le corps, couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, rien ne la recouvre ; à sa place native (premier enfant du corps, flottante à droite, même coin haut droit que la croix d'une confirmation hors ordre, centre du glyphe à 3 px près du sien)`, () => {
+    const f = r.fermetureCroix;
+    const etats = [['Dormir', r.croix.Dormir], ['Pouvoir', r.croix.Pouvoir], ['contenu remplacé', f.croix]];
+    if (r.cfg.ajax) { etats.push(['chargement Ajax', r.croix['chargement Ajax']]); }
+    if (!r.cfg.mobile) { etats.push(['survol', f.survol]); }
+    for (const [nom, x] of etats) { lisible(x, nom, r.croixHorsOrdre); }
+  });
+  check(`${tag} croix ${r.cfg.mobile ? 'touchée' : 'cliquée'} en son centre (ticket 2.5), après un autre ordre : elementFromPoint touche la croix ; la modale se ferme sans valider (réponse false de Bootbox, aucun envoi, aucune requête POST)`, () => {
+    const f = r.fermetureCroix;
+    assert.equal(f.erreur, undefined, 'geste impossible : ' + f.erreur);
+    assert.ok(f.croix && f.croix.centre, 'centre de la croix recouvert avant le geste ' + JSON.stringify(f.croix));
+    assert.equal(f.fermee, true, 'modale toujours ouverte après le geste');
+    assert.deepEqual(f.reponses, [false], 'réponses du rappel Bootbox ' + JSON.stringify(f.reponses));
+    assert.equal(f.submits, 0, `${f.submits} envoi(s)`);
+    assert.deepEqual(r.posts, [], 'requêtes ' + r.posts.join(' | '));
+  });
+  check(`${tag} confirmation hors ordre (ticket 2.5) : croix inchangée, à sa place native (${r.mobileMode ? 'règle mobile commune : 44 × 44 px, noire à 0,7' : 'Bootstrap : noire à 0,2, 21 px de haut'})`, () => {
+    const x = r.croixHorsOrdre;
+    const attendu = CROIX_HORS_ORDRE[support];
+    assert.ok(x && x.place, 'croix absente ou déplacée ' + JSON.stringify(x));
+    assert.deepEqual(x.styles, attendu.styles, 'styles ' + JSON.stringify(x.styles));
+    assert.equal(x.taille[1], attendu.hauteur, `hauteur ${x.taille[1]} px`);
+    if (attendu.largeur) { assert.equal(x.taille[0], attendu.largeur, `largeur ${x.taille[0]} px`); }
+  });
 }
 
 // Document-start : Dormir ouvert dans une page où le bundle a été évalué avant <body> ; seule la fin du fondu est attendue.
@@ -944,17 +1084,18 @@ function verifierDebut(d) {
 async function teintes(cfg) {
   const { context, page, errors } = await ouvrirPage(cfg);
   const posee = await page.evaluate(VARIANTE_POSEE, cfg.variante);
-  await page.evaluate(CONTRASTE);
   await page.evaluate(OUVRIR, enOrdre(DORMIR));
   await attendre(page, true);
   const dormir = await page.evaluate(TEINTES);
+  const croix = { Dormir: await page.evaluate(CROIX) };
   if (['kraland', 'empire-brun-dark', 'paladium'].includes(cfg.variante)) { await capture(page, `${cfg.width}${cfg.mobile ? '-mobile' : ''}-${cfg.variante}-dormir`); }
   await page.evaluate(REMPLACER, POUVOIR);
   await frames(page, 2);
   const pouvoir = await page.evaluate(TEINTES);
+  croix['contenu remplacé (Pouvoir)'] = await page.evaluate(CROIX);
   await fermer(page);
   await context.close();
-  return { cfg, posee, dormir, pouvoir, errors };
+  return { cfg, posee, dormir, pouvoir, croix, errors };
 }
 function verifierTeintes(t) {
   const tag = `${t.cfg.width} px${t.cfg.mobile ? ' (mobile)' : ''}, ${t.cfg.variante}`;
@@ -980,6 +1121,9 @@ function verifierTeintes(t) {
         assert.ok(p.contraste >= 4.5, `${nom}, ${p.titre} : ${x(p.contraste)}`);
       });
     }
+  });
+  check(`${tag} : croix de fermeture (ticket 2.5, H2.6) de 44 × 44 px entièrement visibles dans le corps, couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native (Dormir, puis contenu remplacé par Pouvoir)`, () => {
+    for (const [nom, c] of Object.entries(t.croix)) { lisible(c, nom); }
   });
 }
 
@@ -1039,10 +1183,11 @@ async function transition(depart, arrivee) {
     const rang = await page.evaluate(RANGEMENT, DORMIR);
     const ouverture = await page.evaluate(OUVERTURE);
     const past = await page.evaluate(PASTILLES, DORMIR);
+    const croix = await page.evaluate(CROIX);
     await fermer(page);
     await page.evaluate(OUVRIR, await page.evaluate(ALLONGER, enOrdre(DORMIR)));
     await attendre(page, true);
-    etats.push({ w, etat, rang, ouverture, past, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
+    etats.push({ w, etat, rang, ouverture, past, croix, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
     await fermer(page);
   }
   await context.close();
@@ -1065,6 +1210,9 @@ async function transition(depart, arrivee) {
       assert.ok(ouverture.cibles.every(c => !c.absent && c.touches === c.visibles && c.entier !== false), `${w} px, ouverture : ${JSON.stringify(ouverture)}`);
       pastilles(past, 'Dormir', { ouverture: true });
     }
+  });
+  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 2.5) : de chaque côté du seuil, croix de Dormir de 44 × 44 px entièrement visibles dans le corps (intersection avec sa boîte de découpe ; sous 768 px sans mobile-mode, le corps n'a pas de rembourrage), couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native`, () => {
+    for (const { w, croix } of etats) { lisible(croix, `${w} px`); }
   });
 }
 

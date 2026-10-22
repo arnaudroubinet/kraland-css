@@ -1925,6 +1925,53 @@ a.carousel-control.right{
   }
 }
 
+/* ============================================================================
+   9g. MODALE D'ORDRE - CROIX DE FERMETURE (ORDINATEUR ET MOBILE)
+   Socle commun (kr-order-modal). La croix de Bootbox (.bootbox-close-button) garde sa place native, flottante en tête du corps de la
+   modale (Q25.4). Sur les deux supports, elle prend la zone de 44 × 44 px et le z-index de la règle mobile commune des croix (MODAL /
+   DIALOG MOBILE OPTIMIZATIONS, qui ne vise plus les modales d'ordre) : au-dessus des zones collantes de la chaîne mobile (110). Couleur
+   du texte du thème, sans le voile d'opacité ni l'ombre blanche de Bootstrap, survol et focus compris (même spécificité que .close:hover
+   et .close:focus de Bootstrap, feuille plus tardive) : ≥ 3:1 sur le fond de la modale dans les 16 variantes (H2.6). Le glyphe ne bouge
+   pas : centré dans la zone sur mobile, comme avec la règle commune ; sur ordinateur, au coin haut droit de la zone, là où était celui de
+   Bootstrap, la zone s'étendant vers la gauche et vers le bas. La zone réserve sa place : l'image flottante du titre de l'ordre se range
+   à sa gauche au lieu de passer dessous.
+   ============================================================================ */
+@media (max-width: 767px), (min-width: 768px) {
+  .kr-order-modal .bootbox-close-button {
+    position: relative;
+    z-index: 120;
+    width: 44px;
+    height: 44px;
+    font-size: 28px;
+    line-height: 24px;
+    color: var(--kr-text-primary);
+    text-shadow: none;
+    opacity: 1;
+  }
+}
+
+/* Mobile : glyphe centré dans la zone. Sous 768 px sans body.mobile-mode (fenêtre rétrécie sans rechargement), le corps de la modale
+   d'ordre n'a plus de padding (règle 9c, .bootbox-confirm .modal-body) : la marge négative en ligne de Bootbox sortirait le haut de la
+   croix de la zone visible ; elle est annulée (même cas que les alertes, section 9e). */
+@media (max-width: 767px) {
+  .kr-order-modal .bootbox-close-button {
+    padding: 10px;
+  }
+
+  body:not(.mobile-mode) .kr-order-modal .bootbox-close-button {
+    margin-top: 0 !important;
+  }
+}
+
+/* Ordinateur : glyphe au coin haut droit de la zone, à la place de celui de Bootstrap. Un bouton centre son contenu en hauteur : la boîte
+   de contenu est réduite à la ligne de 24 px, en haut. */
+@media (min-width: 768px) {
+  .kr-order-modal .bootbox-close-button {
+    padding: 0 0 20px;
+    text-align: right;
+  }
+}
+
 /*
   Pagination est utilisé dans les rapports
 */
@@ -6564,9 +6611,10 @@ body.mobile-mode .building-section-content img.img-responsive {
     }
     
     /* Close button - plus grand pour touch
-       z-index 120 nécessaire pour passer au-dessus du .kraland-modal-header (z-index: 110, position: sticky) */
-    body.mobile-mode .modal-header .close,
-    body.mobile-mode .bootbox-close-button {
+       z-index 120 nécessaire pour passer au-dessus du .kraland-modal-header (z-index: 110, position: sticky)
+       Sauf la croix des modales d'ordre : règle commune aux deux supports, section 9g (ticket 2.5). */
+    body.mobile-mode .modal-header .close:not(.kr-order-modal *),
+    body.mobile-mode .bootbox-close-button:not(.kr-order-modal *) {
       position: relative !important;
       z-index: 120 !important;
       width: 44px !important;
