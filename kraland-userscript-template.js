@@ -106,10 +106,10 @@
     return FORUM_MENUS.find(menu => p === menu.path || p.startsWith(menu.path + '/')) || null;
   }
 
-  /** Index de catégorie présenté comme le sous-forum : /forum/rp, /forum/hrp, /forum/communaute, /forum/debats (Staff exclu). */
+  /** Racine et index de catégorie présentés comme le sous-forum : /forum/rp, /forum/hrp, /forum/communaute, /forum/debats (Staff exclu). */
   function krForumIsIndexPath(pathname) {
     const p = krForumNormalizePath(pathname);
-    return FORUM_MENUS.some(menu => menu.id !== 'staff' && p === menu.path);
+    return p === '/forum' || FORUM_MENUS.some(menu => menu.id !== 'staff' && p === menu.path);
   }
 
   // Entrée explicitement désactivée (Q3, décision d'Arnaud t_c1975f06) : « si on a perdu l'accès, il faut le retirer ». Signaux retenus :
@@ -856,11 +856,11 @@
         if (path.match(/\/kramail\/post\/nouveau/) || (path.match(/\/kramail\/post\//) && document.querySelector('form[name="post_msg"] textarea#dest[name="c[3]"]'))) {
           document.body.classList.add('page-kramail-compose');
         }
-      } else if (path.startsWith('/forum/')) {
-        document.body.classList.add('page-forum');
-      } else if (path === '/forum') {
+      } else if (krForumNormalizePath(path) === '/forum') {
         // Racine du forum (liste de tous les forums) : page-forum-racine seule, page-forum activerait tous les modules de /forum/…
         document.body.classList.add('page-forum-racine');
+      } else if (path.startsWith('/forum/')) {
+        document.body.classList.add('page-forum');
       } else if (path === '/' || path === '/accueil') {
         document.body.classList.add('page-accueil');
       } else if (path.startsWith('/monde/evenements')) {
@@ -5693,8 +5693,7 @@
       if (!document.documentElement.classList.contains('kr-page-forum-index')) {return;}
       const colRight = document.getElementById('col-right');
       if (!colRight) {return;}
-      const table = colRight.querySelector('.panel-default table.table');
-      if (table) {labelRows(table);}
+      colRight.querySelectorAll('.panel-default table.table').forEach(labelRows);
       transformHeader(colRight);
     }
 

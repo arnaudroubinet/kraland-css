@@ -14539,7 +14539,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
 /* ============================================================================
    INDEX DU FORUM (refonte H12.1, ticket 6.1) — présentation du sous-forum
-   Portée : index /forum/rp, /forum/hrp, /forum/communaute et /forum/debats (html.kr-page-forum-index, posée avec le thème ; index Staff
+   Portée : racine /forum et index /forum/rp, /forum/hrp, /forum/communaute et /forum/debats (html.kr-page-forum-index, posée avec le thème ; index Staff
    exclu). Modèle : sous-forum ci-dessus, mêmes valeurs : L1 et L4 (en-tête de section), L2 (en-tête de page mobile), L3 (lignes mobiles),
    L6 (bureau). Le module ForumIndex:Presentation pose les unités (data-kr-unit), le fil d'Ariane mobile et le bouton « Tous les forums »
    dans le titre (bureau). Les anciennes règles « cartes » du forum (1re et 2e versions, tableaux de #col-right) excluent l'index (P1) ; les
@@ -14636,6 +14636,28 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     min-height: 44px;
     margin: 0 -12px 0 auto !important;
     cursor: pointer;
+  }
+}
+
+/* Racine : les en-têtes natifs séparent les groupes RP, HRP, etc. Ils restent visibles sur mobile. */
+@media (max-width: 767px) {
+  :where(html.kr-page-forum-index) body.page-forum-racine #col-right .panel-default .table > thead {
+    display: block !important;
+  }
+
+  :where(html.kr-page-forum-index) body.page-forum-racine #col-right .panel-default .table > thead > tr {
+    display: block;
+  }
+
+  :where(html.kr-page-forum-index) body.page-forum-racine #col-right .panel-default .table > thead > tr > th {
+    display: none;
+  }
+
+  :where(html.kr-page-forum-index) body.page-forum-racine #col-right .panel-default .table > thead > tr > th:first-child {
+    display: block;
+    padding: 12px;
+    color: var(--kr-text-primary);
+    background: var(--kr-bg-surface);
   }
 }
 

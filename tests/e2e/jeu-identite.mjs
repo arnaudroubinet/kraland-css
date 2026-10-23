@@ -5,7 +5,7 @@
 // (/forum/rp) a quitté les cartes (ticket 6.1, présentation du sous-forum, vérifiée par forum-index.mjs) : ni conteneur de cartes ni décor des
 // cartes (mesuré sur une ligne native : voir LIGNE_NATIVE), lignes en flex. La racine du forum (/forum, qui liste tous les forums) n'est pas une
 // page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau natif, que le module des
-// cartes ne remplace pas, reste en cartes (display: grid) avec le décor.
+// cartes ne remplace pas, reprend les lignes de l’index (display: flex), sans le décor des cartes.
 // Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
 // bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
 // n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
@@ -27,7 +27,7 @@
 // Fragment hors-forum-js (ticket 1.6, accord du 2026-10-16) : le module JS des sujets permanents (enrichPermanentTopicsStats) n'agit que sur le forum
 // et sa racine. Sur Cybermonde (/map, fixture reconstruite cybermonde-ville.html) et sur Personnage, à 320, 375, 768 et 1280 px : aucun bloc de
 // compteurs, aucune ligne marquée, aucune cellule masquée ; l'index du forum en est exclu aussi (ticket 6.1 : compteurs libellés par le module de
-// l'index) ; sur la racine du forum, les blocs restent (non-régression). La garde de page n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768
+// l'index) ; sur la racine du forum, les blocs sont également exclus. La garde de page n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768
 // et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules au plus), seul le marquage des lignes trahissait le module.
 // Sur Cybermonde et Personnage, aucune cellule ne reçoit non plus le décor CSS du forum (« sujets », « messages », « → », ticket 4 du backlog).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, forum-racine.html, regles-recherche.html,
@@ -360,12 +360,12 @@ if (on('fuite-forum')) {
       assert.equal(racine.cartes, 0, 'conteneurs de cartes à la racine : ' + racine.cartes);
       assert.equal(racine.lignes, 2);
     });
-    check(`[${v}] racine du forum : la première ligne visible du tableau des forums est une carte (display: grid)`, () => {
-      assert.equal(racine.affichage, 'grid', 'affichage de la 1re ligne visible : ' + racine.affichage);
+    check(`[${v}] racine du forum : la première ligne visible reprend la présentation du sous-forum (display: flex)`, () => {
+      assert.equal(racine.affichage, 'flex', 'affichage de la 1re ligne visible : ' + racine.affichage);
     });
-    check(`[${v}] racine du forum : le décor reste (« sujets » après la 2e cellule, « → » avant la dernière, sur une ligne native)`, () => {
-      assert.ok(racine.decor.sujets.includes('sujets'), 'td:nth-child(2)::after = ' + racine.decor.sujets);
-      assert.ok(racine.decor.fleche.includes('→'), 'td:last-child::before = ' + racine.decor.fleche);
+    check(`[${v}] racine du forum : l'ancien décor des cartes est retiré`, () => {
+      assert.ok(!racine.decor.sujets.includes('sujets'), racine.decor.sujets);
+      assert.ok(!racine.decor.fleche.includes('→'), racine.decor.fleche);
     });
   });
 }
@@ -682,7 +682,7 @@ if (on('hors-forum-js')) {
     ...LARGEURS.map(l => ({ nom: `Cybermonde ${l} px`, url: CYBERMONDE, html: fixture('cybermonde-ville.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
     ...LARGEURS.map(l => ({ nom: `Personnage ${l} px`, url: PERSO, html: fixture('jeu-perso.html'), device: device(l), hors: true, socle: { mobile: l < 768 } })),
     { nom: 'index du forum 375 px', url: INDEX_FORUM, html: fixture('forum-index-rp.html'), device: MOBILE, hors: true, socle: { pageForum: true } },
-    { nom: 'racine du forum 375 px', url: RACINE_FORUM, html: fixture('forum-racine.html'), device: MOBILE, hors: false, socle: { pageForumRacine: true } }
+    { nom: 'racine du forum 375 px', url: RACINE_FORUM, html: fixture('forum-racine.html'), device: MOBILE, hors: true, socle: { pageForumRacine: true } }
   ];
   const res = await mapLimit(cas, c => mesurerPage({ url: c.url, html: c.html, variante: V, device: c.device, mesure: MESURE_SUJETS_PERMANENTS }));
   cas.forEach((c, i) => {
@@ -698,7 +698,7 @@ if (on('hors-forum-js')) {
         assert.equal(m.marquees, 0, 'lignes data-permanent-icons-added : ' + m.marquees);
         assert.equal(m.masquees, 0, 'cellules masquées : ' + m.masquees + ' sur ' + m.cellules);
       });
-      if (c.url !== INDEX_FORUM) {
+      if (c.url !== INDEX_FORUM && c.url !== RACINE_FORUM) {
         check(`[${V}] ${c.nom} : aucune cellule ne reçoit le décor CSS du forum (« sujets », « messages », « → »)`, () => {
           assert.deepEqual(m.decor, [], 'contenus générés : ' + JSON.stringify(m.decor));
         });
