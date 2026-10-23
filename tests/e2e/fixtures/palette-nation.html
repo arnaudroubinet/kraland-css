@@ -9,7 +9,13 @@
        Colonne droite : texte et lien posés sur le fond de page, puis un panneau avec texte et lien, une alerte info, un button.btn-primary et
        un a.btn-primary, une pagination à page active (comme celle des rapports), puis la croix d'un panneau mobile (button.kr-mobile-close,
        créé par le template dans le panneau de compétences et le mini-chat) et le bouton « tout voir » du changelog
-       (button.kr-changelog-view-all). Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé. -->
+       (button.kr-changelog-view-all). Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé.
+       Ticket 3.2 (texte posé sur la couleur de nation) : un titre de forum à deux liens (le template en fait, sur mobile, le fil d'Ariane et
+       son « + »), deux titres actifs de liste latérale (texte, badge et lien internes), les boutons primaires par balise (button, a, label,
+       span, input) et par état de classe (active, focus, disabled, attribut disabled), un menu ouvert, un badge interne et un ensemble
+       désactivé, puis un échantillon de chaque composant posé sur la couleur de nation (bandeau, étiquettes, pastilles, pagination,
+       pilules, menu, onglets de modale, panneaux primaires (badge d'en-tête, corps repliables), carte du tableau de bord, bouton du mini-chat, « Jouer », encart de carte,
+       texte à sélectionner, bouton d'avertissement). -->
   <base href="http://www.kraland.org/">
   <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
 </head>
@@ -40,8 +46,17 @@
           <a class="list-group-item" href="regles/avancees">Règles avancées</a>
           <div id="entree-liste" class="list-group-item">Entrée de liste sans lien</div>
         </div>
+        <div class="list-group">
+          <a id="titre-actif" class="list-group-item active" href="regles/avancees">
+            <span id="titre-actif-badge" class="badge">3</span>
+            <h4 class="list-group-item-heading">Titre actif</h4>
+            <p id="titre-actif-texte" class="list-group-item-text">Texte du titre actif</p>
+          </a>
+          <div class="list-group-item active"><a id="titre-actif-lien" href="regles/base">Lien dans un titre actif</a></div>
+        </div>
       </div>
       <div id="col-right" class="col-md-9">
+        <h1>Forum d'essai <a href="forum/hrp">Jeu (HRP)</a> <a href="forum/hrp/essai-1/nouveau">nouveau sujet</a></h1>
         <p id="texte-page">Texte d'essai posé sur le fond de page, avec <a id="lien-page" href="regles/base">un lien d'essai</a>.</p>
         <div class="panel panel-default">
           <div class="panel-heading"><h3 class="panel-title">Règles avancées</h3></div>
@@ -61,6 +76,52 @@
           <button id="croix-mobile" class="kr-mobile-close" type="button" aria-label="Fermer">×</button>
         </div>
         <button id="tout-voir" class="kr-changelog-view-all" type="button">Voir tous les changements</button>
+        <div id="boutons" class="panel panel-default">
+          <div class="panel-body">
+          <div class="bp-ligne"><button id="bp-button" type="button" class="btn btn-primary">button</button> <button id="bp-button-active" type="button" class="btn btn-primary active">button active</button> <button id="bp-button-focus" type="button" class="btn btn-primary focus">button focus</button> <button id="bp-button-disabled" type="button" class="btn btn-primary disabled">button disabled</button> <button id="bp-button-attr-disabled" type="button" class="btn btn-primary" disabled>button attr-disabled</button></div>
+          <div class="bp-ligne"><a id="bp-a" class="btn btn-primary" href="regles/base">a</a> <a id="bp-a-active" class="btn btn-primary active" href="regles/base">a active</a> <a id="bp-a-focus" class="btn btn-primary focus" href="regles/base">a focus</a> <a id="bp-a-disabled" class="btn btn-primary disabled" href="regles/base">a disabled</a> <a id="bp-a-attr-disabled" class="btn btn-primary" href="regles/base" disabled>a attr-disabled</a></div>
+          <div class="bp-ligne"><label id="bp-label" class="btn btn-primary">label</label> <label id="bp-label-active" class="btn btn-primary active">label active</label> <label id="bp-label-focus" class="btn btn-primary focus">label focus</label> <label id="bp-label-disabled" class="btn btn-primary disabled">label disabled</label> <label id="bp-label-attr-disabled" class="btn btn-primary" disabled>label attr-disabled</label></div>
+          <div class="bp-ligne"><span id="bp-span" class="btn btn-primary">span</span> <span id="bp-span-active" class="btn btn-primary active">span active</span> <span id="bp-span-focus" class="btn btn-primary focus">span focus</span> <span id="bp-span-disabled" class="btn btn-primary disabled">span disabled</span> <span id="bp-span-attr-disabled" class="btn btn-primary" disabled>span attr-disabled</span></div>
+          <div class="bp-ligne"><input id="bp-input" type="button" class="btn btn-primary" value="input"> <input id="bp-input-active" type="button" class="btn btn-primary active" value="input active"> <input id="bp-input-focus" type="button" class="btn btn-primary focus" value="input focus"> <input id="bp-input-disabled" type="button" class="btn btn-primary disabled" value="input disabled"> <input id="bp-input-attr-disabled" type="button" class="btn btn-primary" value="input attr-disabled" disabled></div>
+          <div class="bp-ligne">
+            <div class="btn-group open"><button id="bp-menu" type="button" class="btn btn-primary dropdown-toggle">menu ouvert <span class="caret"></span></button></div>
+            <button id="bp-badge" type="button" class="btn btn-primary">badge <span id="bp-badge-pastille" class="badge">4</span></button>
+            <fieldset disabled style="display: inline;"><button id="bp-fieldset" type="button" class="btn btn-primary">ensemble désactivé</button></fieldset>
+          </div>
+          </div>
+        </div>
+        <div id="composants">
+          <p id="bandeau" class="bg-primary">Bandeau d'essai</p>
+          <p id="info" class="bg-info">Information d'essai</p>
+          <p><span id="etiquette" class="label label-default">Étiquette</span> <a id="etiquette-lien" class="label label-default" href="regles/base">Étiquette lien</a> <span id="pastille" class="badge">7</span></p>
+          <ul class="pagination"><li><a href="regles/avancees?p=4">4</a></li><li class="active"><span id="page-active-span">5</span></li></ul>
+          <div class="center"><ul class="pagination t"><li><a id="page-appui" href="regles/avancees?p=6">6</a></li></ul></div>
+          <div class="dataTables_paginate"><a id="page-courante" class="paginate_button current">1</a> <a class="paginate_button">2</a></div>
+          <ul class="nav nav-pills"><li class="active"><a id="pilule-active" href="regles/base">Pilule active</a></li><li><a href="regles/avancees">Autre pilule</a></li></ul>
+          <div class="dropdown open" style="position: relative; min-height: 90px;">
+            <ul class="dropdown-menu"><li class="active"><a id="menu-actif" href="regles/base">Entrée active</a></li><li><a href="regles/avancees">Autre entrée</a></li></ul>
+          </div>
+          <div class="modal-body">
+            <ul class="nav nav-tabs"><li class="active"><a id="onglet-modale" href="regles/base">Onglet actif</a></li><li><a id="onglet-modale-autre" href="regles/avancees">Autre onglet</a></li></ul>
+          </div>
+          <div class="panel panel-primary">
+            <div id="panneau-primaire" class="panel-heading">Panneau primaire <span id="panneau-primaire-badge" class="badge">2</span></div>
+            <div class="panel-collapse collapse in"><div class="panel-body">Corps repliable après l'en-tête</div></div>
+          </div>
+          <div class="panel panel-primary">
+            <div class="panel-footer">Pied du panneau</div>
+            <div class="panel-collapse collapse in"><div class="panel-body">Corps repliable après le pied</div></div>
+          </div>
+          <div class="dashboard-card" style="position: relative; min-height: 70px;">
+            <span id="pastille-carte" class="dashboard-card-badge">PNJ</span>
+            <div class="dashboard-card-actions"><a id="action-carte" href="regles/base">A</a></div>
+          </div>
+          <a id="lien-flap" href="#flap">MC</a>
+          <a id="jouer" class="accueil-play-btn" href="jouer/plateau">Jouer</a>
+          <div class="map-box"><div id="carte-titre" class="map-box-title">Titre d'encart</div><div class="map-box-content">Contenu de l'encart</div><div id="carte-pied" class="map-box-bottom">Pied d'encart</div></div>
+          <p id="selection">Texte d'essai à sélectionner</p>
+          <button id="bouton-alerte" type="button" class="btn btn-warning">Avertir</button>
+        </div>
       </div>
     </div>
   </div>

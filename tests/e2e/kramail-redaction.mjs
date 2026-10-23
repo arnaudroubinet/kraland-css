@@ -216,6 +216,22 @@ const AVANT = bundleAvant();
 // seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
 // ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
 const JETONS_AVANT = AVANT && !AVANT.includes('--kr-text-accent:') ? `(${poserJetonsRedefinis})(${JSON.stringify(JETONS_REDEFINIS)});` : null;
+// Écart accepté et consigné (épopée 3, ticket 2) : texte et fond posés sur la couleur de nation passent à la paire d'action (Empire Brun
+// sombre : texte des dossiers #f5f1ed -> blanc). Les éléments dont le fond propre est une couleur de nation (primaire, primaire foncée,
+// --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) sont marqués, puis masqués sur les deux captures ; tout autre écart reste
+// détecté.
+const MARQUER_PAIRE = () => {
+  const lire = s => (s.match(/[\d.]+/g) || []).map(Number);
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
+  const nation = ['var(--kr-primary)', 'var(--kr-primary-dark)', 'var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde);
+  let n = 0;
+  for (const e of document.body.querySelectorAll('*')) {
+    const c = lire(getComputedStyle(e).backgroundColor);
+    if (c.length > 3 && c[3] === 0) { continue; }
+    if (nation.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1))) { e.setAttribute('data-kr-paire', ''); n += 1; }
+  }
+  return n;
+};
 
 // ---------- sondes ----------
 const TOOLS = [
@@ -1227,6 +1243,7 @@ if (frag('indicatif')) {
 if (frag('regression')) {
   console.log('Non-régression : réception, envoi, corbeille, lecture rendues avec le bundle d\'avant et celui d\'après (1280 / 375 / 320)');
   if (JETONS_AVANT) { console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant », antérieur au ticket'); }
+  console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1246,18 +1263,21 @@ if (frag('regression')) {
           const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
           while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
         });
+        const paire = await p.evaluate(MARQUER_PAIRE);
         doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-        let prev = await p.screenshot({ fullPage: true, animations: 'disabled' });
+        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire]')] });
+        let prev = await capture();
         for (let i = 0; i < 6; i++) {
           await p.waitForTimeout(150);
-          const next = await p.screenshot({ fullPage: true, animations: 'disabled' });
+          const next = await capture();
           if (Buffer.compare(prev, next) === 0) { break; }
           prev = next;
         }
         shots[bundle] = prev;
         if (SHOTS && bundle === 'apres') { fs.writeFileSync(path.join(SHOTS, `regression-${pg}-${width}.png`), shots[bundle]); }
+        doms[bundle].paire = paire;
         doms[bundle].unexpected = unexpected(state);
         doms[bundle].errors = errors.length;
         await context.close();

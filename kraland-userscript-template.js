@@ -5574,8 +5574,8 @@
         height: 44px;
         min-width: 44px;
         border-radius: 50%;
-        background: var(--kr-primary);
-        color: white;
+        background: var(--kr-arm-bg, var(--kr-primary));
+        color: var(--kr-arm-ink, white);
         display: flex;
         align-items: center;
         justify-content: center;

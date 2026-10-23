@@ -140,8 +140,10 @@ const MESURE = (label) => {
     dates: { normal: cellule(normal.cells[0]), unread: unreadDouble.map(r => cellule(r.cells[0])), garde: unread.filter(r => r.cells.length === 1).map(r => cellule(r.cells[0])), page: bgOf(normal.cells[0]) },
     hauteurs,
     fonds: { normal: bgOf(normal.cells[1]).join(','), unread: unreadDouble.map(r => bgOf(r.cells[r.cells.length - 1]).join(',')), active: rgb(getComputedStyle(active).backgroundColor).join(','), banner: rgb(getComputedStyle(banner).backgroundColor).join(',') },
-    trUnread: { bg: getComputedStyle(unread[0]).backgroundColor, color: getComputedStyle(unread[0]).color, shadow: getComputedStyle(unread[0].cells[0]).boxShadow, before: getComputedStyle(unread[0].cells[0], '::before').content, tdBg: getComputedStyle(unread[0].cells[0]).backgroundColor },
+    trUnread: { paire: [getComputedStyle(unread[0]).backgroundColor, getComputedStyle(unread[0]).color].map(c => rgb(c).join(',')), shadow: getComputedStyle(unread[0].cells[0]).boxShadow, before: getComputedStyle(unread[0].cells[0], '::before').content, tdBg: getComputedStyle(unread[0].cells[0]).backgroundColor },
     primary: (() => { const d = document.createElement('div'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--kr-primary').trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; })(),
+    // Paire d'action (épopée 3, ticket 2) : fond et encre de la règle générique .bg-info.
+    paire: ['var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-ink, #fff)'].map(e => { const d = document.createElement('div'); d.style.color = e; document.body.appendChild(d); const c = rgb(getComputedStyle(d).color).join(','); d.remove(); return c; }),
     paragraphe: { bg: rgb(sp.backgroundColor).join(','), color: rgb(sp.color).join(','), before: getComputedStyle(p, '::before').content },
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     label
@@ -203,9 +205,10 @@ function verifier(variante, m, tag) {
   check(`${tag} ${variante} : C3 marque distincte de la page active de la pagination et du bandeau du sélecteur`, () => {
     for (const f of m.fonds.unread) { assert.notEqual(f, m.fonds.active, `fond non lu = page active (${f})`); assert.notEqual(f, m.fonds.banner, `fond non lu = bandeau (${f})`); }
   });
-  check(`${tag} ${variante} : C4 le paragraphe .bg-info de /report garde la règle générique (fond --kr-primary, sans mot)`, () => {
+  // Écart accepté et consigné (épopée 3, ticket 2) : la règle générique passe à la paire d'action (fond --kr-arm-bg, encre --kr-arm-ink).
+  check(`${tag} ${variante} : C4 le paragraphe .bg-info de /report garde la règle générique (paire d'action, comme le bandeau, sans mot)`, () => {
     assert.equal(m.paragraphe.bg, m.fonds.banner);
-    assert.equal(m.paragraphe.color, '255,255,255');
+    assert.deepEqual([m.paragraphe.bg, m.paragraphe.color], m.paire);
     assert.ok(m.paragraphe.before === 'none' || m.paragraphe.before === 'normal', m.paragraphe.before);
   });
   check(`${tag} ${variante} : C5 ligne isolée au milieu et ligne à cellule unique marquées comme les autres`, () => {
@@ -235,9 +238,8 @@ if (on('portee')) {
     const m = await page.evaluate(MESURE, LABEL);
     await context.close();
     check(`${v} : hors /report, html sans kr-page-report`, () => assert.equal(m.pageReport, false));
-    check(`${v} : hors /report, tr.bg-info inchangé (fond --kr-primary, texte blanc, ni mot ni filet)`, () => {
-      assert.equal(m.trUnread.bg, m.primary);
-      assert.equal(m.trUnread.color, 'rgb(255, 255, 255)');
+    check(`${v} : hors /report, tr.bg-info inchangé (règle générique : paire d'action, ni mot ni filet)`, () => {
+      assert.deepEqual(m.trUnread.paire, m.paire);
       assert.ok(m.trUnread.before === 'none' || m.trUnread.before === 'normal', m.trUnread.before);
       assert.equal(m.trUnread.shadow, 'none');
       assert.equal(m.trUnread.tdBg, 'rgba(0, 0, 0, 0)', 'cellule de date sans teinte hors /report');

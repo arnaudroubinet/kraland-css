@@ -157,7 +157,7 @@ html.kr-theme-variant-empire-brun {
 }
 
 html.kr-theme-variant-paladium {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-ink-hover: #1e1a15; /* Q1 : sur la primaire foncée #aa8c2c, le repli blanc ne fait que 3,23:1 */
   --kr-primary: #D4AF37; 
@@ -217,7 +217,7 @@ html[class*="-dark"] {
 }
 
 html.kr-theme-variant-kraland-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-bg: #b64c4c;
   --kr-arm-ink: #f5f1ed;
   --kr-arm-ink-hover: #f5f1ed;
@@ -265,7 +265,7 @@ html.kr-theme-variant-empire-brun-dark {
 }
 
 html.kr-theme-variant-paladium-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-ink-hover: #1e1a15;
   --kr-primary: #e6c76e;
@@ -290,7 +290,7 @@ html.kr-theme-variant-paladium-dark {
 }
 
 html.kr-theme-variant-theocratie-seelienne-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #5a8fd9;
@@ -315,7 +315,7 @@ html.kr-theme-variant-theocratie-seelienne-dark {
 }
 
 html.kr-theme-variant-paradigme-vert-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4d9c61;
@@ -340,7 +340,7 @@ html.kr-theme-variant-paradigme-vert-dark {
 }
 
 html.kr-theme-variant-khanat-elmerien-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-bg: #8659b3;
   --kr-arm-ink: #f5f1ed;
   --kr-arm-ink-hover: #f5f1ed;
@@ -366,7 +366,7 @@ html.kr-theme-variant-khanat-elmerien-dark {
 }
 
 html.kr-theme-variant-confederation-libre-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-bg-hover: #5f6673;
   --kr-arm-ink-hover: #f5f1ed;
@@ -392,7 +392,7 @@ html.kr-theme-variant-confederation-libre-dark {
 }
 
 html.kr-theme-variant-royaume-ruthvenie-dark {
-  /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
+  /* CX2, Q1 : paire d'action (croix, boutons primaires, texte posé sur la couleur de nation) >= 4,5:1 */
   --kr-arm-ink: #1e1a15;
   --kr-arm-ink-hover: #f5f1ed;
   --kr-primary: #4a9d61;
@@ -650,14 +650,24 @@ input[type="checkbox"]:checked {
 /* Badges & labels - info/primary variants use red */
 .label,
 .badge {
-  background-color: var(--kr-primary);
-  color: var(--kr-white);
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
   border-color: var(--kr-primary-dark);
 }
 
+/* Q1 : texte posé sur la couleur de nation = paire d'action. Étiquette lien : la règle des liens du sombre ((0,2,2)) ne doit pas l'emporter */
+html.kr-theme-enabled a.label:is(:link, :visited) {
+  color: var(--kr-arm-ink, var(--kr-white));
+}
+
+html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
+  background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+  color: var(--kr-arm-ink-hover, var(--kr-white));
+}
+
 .bg-info {
-  background-color: var(--kr-primary);
-  color: var(--kr-white);
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 /* Notifications (/report) : ligne non lue, marquée par le serveur d'un tr.bg-info (consommé à la première vue).
@@ -763,9 +773,25 @@ html.kr-hide-carousel .carousel {
 .list-group-item.active:focus,
 .list-group-item.active:hover,
 .list-group-item.active a {
-  background-color: var(--kr-primary) !important;
+  background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary-dark) !important;
-  color: var(--kr-surface) !important;
+  color: var(--kr-arm-ink, var(--kr-white)) !important;
+}
+
+/* Q1 : texte et badge internes du titre actif (Bootstrap : #c7ddef, jusqu'à (0,4,0) au survol et au focus, et badge bleu) ; badge en paire
+   inverse */
+.list-group-item.active .list-group-item-heading,
+.list-group-item.active .list-group-item-text,
+.list-group-item.active:is(:hover, :focus) .list-group-item-text {
+  color: var(--kr-arm-ink, var(--kr-white));
+}
+
+.list-group-item.active > .badge,
+.nav-pills > .active > a > .badge,
+.btn-primary .badge,
+html.kr-theme-enabled .panel-primary > .panel-heading .badge {
+  background-color: var(--kr-arm-ink, var(--kr-white));
+  color: var(--kr-arm-bg, var(--kr-primary));
 }
 
 /* Keep hover for non-active items subtle and themed */
@@ -1998,21 +2024,17 @@ a.carousel-control.right{
   Pagination est utilisé dans les rapports
 */
 
-/* Q1 : texte posé sur la primaire foncée = paire de survol d'action (encre de Paladium clair : 5,35:1 sur #aa8c2c) */
-.pagination > li.active > a{
-  color: var(--kr-arm-ink-hover, var(--kr-surface));
+/* Q1 : texte posé sur la primaire foncée = paire de survol d'action (encre de Paladium clair : 5,35:1 sur #aa8c2c), au repos, au survol
+   et au focus, lien ou span (Bootstrap : .pagination > .active > a:focus, (0,3,1)) */
+.pagination > li.active > :is(a, span),
+.pagination > li.active > :is(a, span):is(:hover, :focus) {
+  color: var(--kr-arm-ink-hover, var(--kr-white));
   background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
   border-color: var(--kr-primary-dark);
 }
 
 .pagination > li > a{
   color: var(--kr-primary);
-}
-
-.pagination > li.active > a:hover{
-  color: var(--kr-surface);
-  background-color: var(--kr-primary);
-  border-color: var(--kr-primary);
 }
 
 .pagination > li > a:hover{
@@ -2023,8 +2045,34 @@ a.carousel-control.right{
   .bg-primary est utilisé dans les rapports
 */
 .bg-primary {
-  background-color: var(--kr-primary) !important;
-  color: var(--kr-surface) !important;
+  background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
+  color: var(--kr-arm-ink, var(--kr-white)) !important;
+}
+
+/* Q1 : entrée active d'un menu et pilule active (Bootstrap : bleu, jusqu'à (0,3,2)) */
+html.kr-theme-enabled .nav-pills > li.active > a,
+html.kr-theme-enabled .nav-pills > li.active > a:is(:hover, :focus) {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
+}
+
+/* .panel-primary : en-tête en paire d'action (la règle sombre des en-têtes de panneau est en (0,2,1)) */
+.panel-primary {
+  border-color: var(--kr-primary-dark);
+}
+
+html.kr-theme-enabled .panel-primary > .panel-heading {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-arm-ink, var(--kr-white));
+}
+
+.panel-primary > .panel-heading + .panel-collapse > .panel-body {
+  border-top-color: var(--kr-primary-dark);
+}
+
+.panel-primary > .panel-footer + .panel-collapse > .panel-body {
+  border-bottom-color: var(--kr-primary-dark);
 }
 
 /* Liens (R7) : texte coloré de la nation (--kr-text-accent) au repos comme au survol ; le survol souligne au lieu de changer la couleur */
@@ -2042,21 +2090,36 @@ a:focus {
   outline: none;
 }
 
-button.btn-primary,
-a.btn-primary {
-  background-color: var(--kr-primary);
+/* Q1, H5.1 : boutons primaires de toute balise (button, a, label, span, input) et de tout état, dans les 16 variantes : paire d'action au
+   repos et désactivé, paire de survol au survol, au focus, à l'appui, en .active, .focus et menu ouvert. Bordure en primaire foncée.
+   Spécificité : les états de Bootstrap vont jusqu'à (0,4,0) (.open > .dropdown-toggle.btn-primary.focus) et la règle des liens du sombre
+   est en (0,2,2) ; repos (0,3,1), états (0,4,1) et (0,5,1), désactivé (0,4,1) placé après les états. */
+html.kr-theme-enabled .btn-primary.btn-primary {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
   border-color: var(--kr-primary-dark);
-  color: var(--kr-highlight-reverse);
+  color: var(--kr-arm-ink, var(--kr-white));
   box-shadow: 0 6px 18px var(--kr-btn-shadow);
 }
 
-/* Q1 : paire de survol d'action ; repli du texte = le blanc que posait jusqu'ici .btn-primary:hover de Bootstrap */
-button.btn-primary:hover,
-button.btn-primary:focus,
-a.btn-primary:hover,
-a.btn-primary:focus {
+html.kr-theme-enabled .btn-primary.btn-primary:is(:hover, :focus, .focus, :active, .active),
+html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary {
   background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+  border-color: var(--kr-primary-dark);
   color: var(--kr-arm-ink-hover, var(--kr-white));
+}
+
+/* Pressés : ombre intérieure de Bootstrap (.btn:active, .btn.active, .btn-group.open .dropdown-toggle), que la règle de repos battrait */
+html.kr-theme-enabled .btn-primary.btn-primary:is(:active, .active),
+html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary {
+  box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125);
+}
+
+html.kr-theme-enabled .btn-primary.btn-primary:is(.disabled, [disabled]),
+html.kr-theme-enabled fieldset[disabled] .btn-primary.btn-primary {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  border-color: var(--kr-primary-dark);
+  color: var(--kr-arm-ink, var(--kr-white));
+  box-shadow: none;
 }
 
 /* ============================================================================
@@ -2105,8 +2168,8 @@ footer .container.white {
 }
 
 .dashboard-section-header {
-  background: var(--kr-primary);
-  color: var(--kr-white);
+  background: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
   padding: 3px 8px;
   font-size: 9px;
   font-weight: 600;
@@ -2653,20 +2716,8 @@ html[class*="-dark"] .input-group-addon {
   color: var(--kr-text-primary);
 }
 
-/* === BUTTONS === */
-html[class*="-dark"] .btn-primary {
-  background-color: var(--kr-primary);
-  border-color: var(--kr-primary-dark);
-  color: var(--kr-text-primary);
-}
-
-html[class*="-dark"] .btn-primary:hover,
-html[class*="-dark"] .btn-primary:focus,
-html[class*="-dark"] .btn-primary:active {
-  background-color: var(--kr-primary-dark);
-  border-color: var(--kr-primary-dark);
-  color: var(--kr-text-primary);
-}
+/* === BUTTONS ===
+   Boutons primaires : règle commune aux deux modes (Q1, H5.1), après les liens */
 
 html[class*="-dark"] .btn-default {
   background-color: var(--kr-bg-elevated);
@@ -2755,11 +2806,12 @@ html[class*="-dark"] .dropdown-menu > li > a:focus {
   color: var(--kr-text-primary);
 }
 
-html[class*="-dark"] .dropdown-menu > .active > a,
-html[class*="-dark"] .dropdown-menu > .active > a:hover,
-html[class*="-dark"] .dropdown-menu > .active > a:focus {
-  background-color: var(--kr-primary);
-  color: var(--kr-text-inverse);
+/* Q1 : entrée active d'un menu en paire d'action, dans les deux modes (Bootstrap : bleu ; sombre : survol des entrées en (0,3,2)) */
+html.kr-theme-enabled .dropdown-menu > li.active > a,
+html.kr-theme-enabled .dropdown-menu > li.active > a:hover,
+html.kr-theme-enabled .dropdown-menu > li.active > a:focus {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 /* ============================================================================
@@ -2898,8 +2950,8 @@ html[class*="-dark"] .map-box {
 }
 
 html[class*="-dark"] .map-box-title {
-  background-color: var(--kr-primary);
-  color: var(--kr-text-inverse);
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 html[class*="-dark"] .map-box-content {
@@ -2907,8 +2959,8 @@ html[class*="-dark"] .map-box-content {
 }
 
 html[class*="-dark"] .map-box-bottom {
-  background-color: var(--kr-primary);
-  color: var(--kr-text-inverse);
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 /* === CLASSES KRALAND .f1-.f9 (couleurs nations) === */
@@ -3145,8 +3197,8 @@ html[class*="-dark"] ::-webkit-scrollbar-thumb:hover {
 
 /* === SELECTION === */
 html[class*="-dark"] ::selection {
-  background-color: var(--kr-primary);
-  color: var(--kr-text-inverse);
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 /* === FOOTER === */
@@ -3223,16 +3275,18 @@ html[class*="-dark"] a.next:hover {
 
 /* === BOUTONS WARNING === */
 
-/* Adaptation des boutons warning pour le thème sombre */
+/* Adaptation des boutons warning pour le thème sombre. Q1 : encre de la paire d'action, avec son fond (l'encre de Kraland et de Khanat
+   Elmérien sombres n'atteint 4,5:1 que sur --kr-arm-bg) ; au survol, fond d'accent et texte inverse inchangés */
 html[class*="-dark"] .btn-warning {
-  background-color: var(--kr-primary) !important;
+  background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary-dark) !important;
-  color: var(--kr-text-inverse) !important;
+  color: var(--kr-arm-ink, var(--kr-white)) !important;
 }
 
 html[class*="-dark"] .btn-warning:hover {
   background-color: var(--kr-highlight) !important;
   border-color: var(--kr-primary) !important;
+  color: var(--kr-text-inverse) !important;
 }
 
 /* === ICÔNES DE COMPÉTENCES ET CARACTÉRISTIQUES === */
@@ -3518,18 +3572,14 @@ html[class*="-dark"] .pagination > li > span:hover {
   color: var(--kr-primary) !important;
 }
 
+/* Q1 : page active en paire de survol d'action, comme en clair */
 html[class*="-dark"] .pagination > .active > a,
-html[class*="-dark"] .pagination > .active > span {
-  background-color: var(--kr-primary) !important;
-  border-color: var(--kr-primary) !important;
-  color: var(--kr-text-inverse) !important;
-}
-
+html[class*="-dark"] .pagination > .active > span,
 html[class*="-dark"] .pagination > .active > a:hover,
 html[class*="-dark"] .pagination > .active > span:hover {
-  background-color: var(--kr-primary) !important;
-  border-color: var(--kr-primary) !important;
-  color: var(--kr-text-inverse) !important;
+  background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
+  border-color: var(--kr-primary-dark) !important;
+  color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
 }
 
 /* DataTables Pagination */
@@ -3546,9 +3596,9 @@ html[class*="-dark"] .dataTables_paginate .paginate_button {
 }
 
 html[class*="-dark"] .dataTables_paginate .paginate_button.current {
-  background-color: var(--kr-primary) !important;
+  background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary) !important;
-  color: var(--kr-text-inverse) !important;
+  color: var(--kr-arm-ink, var(--kr-white)) !important;
 }
 
 html[class*="-dark"] .dataTables_paginate .paginate_button.disabled,
@@ -3567,9 +3617,9 @@ html[class*="-dark"] .dataTables_paginate .paginate_button:not(.disabled):hover 
 }
 
 html[class*="-dark"] .dataTables_paginate .paginate_button.current:hover {
-  background-color: var(--kr-primary) !important;
+  background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary) !important;
-  color: var(--kr-text-inverse) !important;
+  color: var(--kr-arm-ink, var(--kr-white)) !important;
 }
 
 /* DataTables - Wrapper et conteneur */
@@ -4126,8 +4176,8 @@ body > map {
     bottom: 20px !important;
     right: 20px !important;
     z-index: 1000 !important;
-    background: var(--kr-primary) !important;
-    color: white !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
+    color: var(--kr-arm-ink, white) !important;
     border-radius: 50% !important;
     width: 56px !important;
     height: 56px !important;
@@ -4544,8 +4594,8 @@ body > map {
   right: 10px;
   width: 40px;
   height: 40px;
-  background: var(--kr-primary);
-  color: white;
+  background: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, white);
   border: none;
   border-radius: 50%;
   display: flex;
@@ -5713,8 +5763,8 @@ body > map {
     position: absolute;
     top: 4px;
     right: 4px;
-    background: var(--kr-primary);
-    color: var(--kr-text-primary);
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
     font-size: 8px;
     font-weight: 600;
     padding: 2px 4px;
@@ -5758,9 +5808,9 @@ body > map {
 
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-card-actions a:hover {
-    background: var(--kr-primary);
-    border-color: var(--kr-primary);
-    color: var(--kr-text-primary);
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    border-color: var(--kr-primary-dark);
+    color: var(--kr-arm-ink-hover, var(--kr-white));
     transform: scale(1.1);
   }
 }
@@ -6707,12 +6757,17 @@ body.mobile-mode .building-section-content img.img-responsive {
       transition: all 0.2s ease !important;
     }
     
-    body.mobile-mode .modal-body .nav-tabs > li.active > a,
+    body.mobile-mode .modal-body .nav-tabs > li.active > a {
+      background: var(--kr-arm-bg, var(--kr-primary)) !important;
+      color: var(--kr-arm-ink, var(--kr-white)) !important;
+      border-color: var(--kr-primary) !important;
+    }
+
     body.mobile-mode .modal-body .nav-tabs > li > a:hover,
     body.mobile-mode .modal-body .nav-tabs > li > a:focus {
-      background: var(--kr-primary) !important;
-      color: var(--kr-surface) !important;
-      border-color: var(--kr-primary) !important;
+      background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
+      color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
+      border-color: var(--kr-primary-dark) !important;
     }
     
     /* Form groups - meilleur espacement */
@@ -8756,8 +8811,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   /* État actif */
   .dataTables_paginate .paginate_button.current {
-    background: var(--kr-primary) !important;
-    color: white !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
+    color: var(--kr-arm-ink, white) !important;
     border-color: var(--kr-primary) !important;
     font-weight: 600 !important;
   }
@@ -8875,9 +8930,9 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   /* Tab actif (btn-primary = onglet sélectionné) */
   body.page-kramail h1.page-header .pull-right > a.btn.btn-primary {
-    background: var(--kr-primary) !important;
-    border-color: var(--kr-primary) !important;
-    color: white !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
+    border-color: var(--kr-primary-dark) !important;
+    color: var(--kr-arm-ink, white) !important;
   }
 
   /* Feedback tactile */
@@ -9503,9 +9558,9 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   body.mobile-mode .center > ul.pagination.t > li > a:active {
     transform: scale(0.97) !important;
-    background: var(--kr-primary) !important;
-    border-color: var(--kr-primary) !important;
-    color: white !important;
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
+    border-color: var(--kr-primary-dark) !important;
+    color: var(--kr-arm-ink-hover, white) !important;
   }
 }
 
@@ -9748,7 +9803,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right:active {
-    background: var(--kr-primary-dark);
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white));
     transform: scale(0.98);
   }
 
@@ -10155,6 +10211,7 @@ body.page-kramail h1.page-header .btn-default:hover {
     border: none !important;
     background: transparent !important;
     color: inherit;
+    box-shadow: none;
   }
 
   /* =============================================
@@ -11613,8 +11670,8 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 }
 
 .kr-changelog-view-all {
-  background: var(--kr-primary) !important;
-  color: white !important;
+  background: var(--kr-arm-bg, var(--kr-primary)) !important;
+  color: var(--kr-arm-ink, white) !important;
   border-color: var(--kr-primary) !important;
 }
 
@@ -11949,8 +12006,8 @@ html[class*='-dark'] .mini.c10 {
   /* --- Bouton Jouer --- */
   .accueil-play-btn {
     display: block;
-    background: var(--kr-primary);
-    color: #fff !important;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, #fff) !important;
     text-align: center;
     padding: 10px;
     border-radius: var(--kr-radius);
@@ -11962,8 +12019,8 @@ html[class*='-dark'] .mini.c10 {
   }
 
   .accueil-play-btn:hover {
-    opacity: 0.85;
-    color: #fff !important;
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, #fff) !important;
   }
 
   .accueil-play-btn .fa {
@@ -12210,8 +12267,8 @@ html[class*='-dark'] .mini.c10 {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: var(--kr-primary);
-    color: #fff !important;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, #fff) !important;
     text-align: center;
     padding: 14px 16px;
     font-size: 18px;
@@ -12223,6 +12280,11 @@ html[class*='-dark'] .mini.c10 {
     border: none;
     border-radius: 0;
     width: 100%;
+  }
+
+  .page-accueil .accueil-play-btn:active {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, #fff) !important;
   }
 
   .page-accueil .accueil-play-btn .fa {
@@ -12516,89 +12578,6 @@ html[class*='-dark'] .mini.c10 {
   body.mobile-mode {
     padding-bottom: 52px;
   }
-}
-
-/* PLT-10 : textes sous le ratio WCAG AA 4,5:1 (thèmes sombres) */
-html[class*="-dark"] a.btn-primary,
-html[class*="-dark"] button.btn-primary {
-  color: #f5f1ed;
-}
-
-/* E3 : texte des boutons primaires par variante sombre (WCAG AA 4,5:1).
-   Fonds clairs : texte foncé ; fonds moyens : fond légèrement assombri + texte clair.
-   Survol/focus/actif : fond --kr-primary-dark, texte choisi pour garder >= 4,5:1. */
-html.kr-theme-variant-paladium-dark a.btn-primary,
-html.kr-theme-variant-paladium-dark button.btn-primary,
-html.kr-theme-variant-confederation-libre-dark a.btn-primary,
-html.kr-theme-variant-confederation-libre-dark button.btn-primary,
-html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary,
-html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary,
-html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary,
-html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary,
-html.kr-theme-variant-paradigme-vert-dark a.btn-primary,
-html.kr-theme-variant-paradigme-vert-dark button.btn-primary,
-html.kr-theme-variant-paladium-dark a.btn-primary:hover,
-html.kr-theme-variant-paladium-dark a.btn-primary:focus,
-html.kr-theme-variant-paladium-dark a.btn-primary:active,
-html.kr-theme-variant-paladium-dark button.btn-primary:hover,
-html.kr-theme-variant-paladium-dark button.btn-primary:focus,
-html.kr-theme-variant-paladium-dark button.btn-primary:active {
-  color: #1e1a15;
-}
-
-html.kr-theme-variant-khanat-elmerien-dark a.btn-primary,
-html.kr-theme-variant-khanat-elmerien-dark button.btn-primary {
-  background-color: #8659b3;
-  color: #f5f1ed;
-}
-
-html.kr-theme-variant-kraland-dark a.btn-primary,
-html.kr-theme-variant-kraland-dark button.btn-primary {
-  background-color: #b64c4c;
-  color: #f5f1ed;
-}
-
-html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:hover,
-html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:focus,
-html.kr-theme-variant-theocratie-seelienne-dark a.btn-primary:active,
-html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:hover,
-html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:focus,
-html.kr-theme-variant-theocratie-seelienne-dark button.btn-primary:active,
-html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:hover,
-html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:focus,
-html.kr-theme-variant-royaume-ruthvenie-dark a.btn-primary:active,
-html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:hover,
-html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:focus,
-html.kr-theme-variant-royaume-ruthvenie-dark button.btn-primary:active,
-html.kr-theme-variant-paradigme-vert-dark a.btn-primary:hover,
-html.kr-theme-variant-paradigme-vert-dark a.btn-primary:focus,
-html.kr-theme-variant-paradigme-vert-dark a.btn-primary:active,
-html.kr-theme-variant-paradigme-vert-dark button.btn-primary:hover,
-html.kr-theme-variant-paradigme-vert-dark button.btn-primary:focus,
-html.kr-theme-variant-paradigme-vert-dark button.btn-primary:active,
-html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:hover,
-html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:focus,
-html.kr-theme-variant-khanat-elmerien-dark a.btn-primary:active,
-html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:hover,
-html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:focus,
-html.kr-theme-variant-khanat-elmerien-dark button.btn-primary:active,
-html.kr-theme-variant-kraland-dark a.btn-primary:hover,
-html.kr-theme-variant-kraland-dark a.btn-primary:focus,
-html.kr-theme-variant-kraland-dark a.btn-primary:active,
-html.kr-theme-variant-kraland-dark button.btn-primary:hover,
-html.kr-theme-variant-kraland-dark button.btn-primary:focus,
-html.kr-theme-variant-kraland-dark button.btn-primary:active {
-  color: #f5f1ed;
-}
-
-html.kr-theme-variant-confederation-libre-dark a.btn-primary:hover,
-html.kr-theme-variant-confederation-libre-dark a.btn-primary:focus,
-html.kr-theme-variant-confederation-libre-dark a.btn-primary:active,
-html.kr-theme-variant-confederation-libre-dark button.btn-primary:hover,
-html.kr-theme-variant-confederation-libre-dark button.btn-primary:focus,
-html.kr-theme-variant-confederation-libre-dark button.btn-primary:active {
-  background-color: #5f6673;
-  color: #f5f1ed;
 }
 
 .kraland-css-version span span {

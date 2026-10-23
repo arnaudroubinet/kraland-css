@@ -40,14 +40,14 @@ check('viewport des ordres et fixture Parler : zone parler', () => {
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
   assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
 });
-check('Notifications /report (kr-page-report) : zone report, fixture et suite -> report-non-lu seule', () => {
+check('Notifications /report (kr-page-report) : zone report, suite -> report-non-lu seule ; fixture -> report-non-lu et palette-nation (balayage)', () => {
   assert.deepEqual(route('kraland-theme.css', hunk('html.kr-page-report table > tbody > tr.bg-info {', 'html.kr-page-report table > tbody > tr.bg-info { color: inherit; }')).zones, ['report']);
   const t = route(T, hunk('function applyVariant() {', "document.documentElement.classList.toggle('kr-page-report', isReport);"));
   assert.deepEqual(t.zones, ['report']);
   assert.equal(t.widened, false);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['report-non-lu']);
+  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
 });
 check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation seule', () => {

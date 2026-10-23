@@ -23,6 +23,15 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ## Décisions à confirmer
 
+- Ticket 3.2, texte posé sur la couleur de nation (décidé en autonomie le 2026-10-23) :
+  - fond et encre changent ensemble : tout fond en couleur de nation prend la paire d'action. Au repos, c'est `--kr-arm-bg` / `--kr-arm-ink` ; au survol, à l'appui et sur la primaire foncée, `--kr-arm-bg-hover` / `--kr-arm-ink-hover`. Effets visibles :
+    - en clair, le texte des boutons primaires passe du rose (accent inverse) au blanc, et à l'encre sombre en Paladium ;
+    - en Kraland et Khanat Elmérien sombres, ces fonds prennent la teinte d'action (`#b64c4c`, `#8659b3`) des boutons et de la croix ;
+    - en Empire Brun sombre, le texte passe de `#f5f1ed` à blanc ;
+  - les règles sombres E3 et PLT-10, qui recopiaient en dur les valeurs des variables, sont remplacées par les variables ;
+  - « fin du bleu Bootstrap » étendue à tous les éléments bleus de ces composants : états des boutons primaires, badge interne, `.dropdown-menu > .active`, `.nav-pills`, pagination au focus, `.label[href]` survolé, `.panel-primary`, texte et badge du titre actif des listes ;
+  - `.btn-warning` en sombre, peint en couleur de nation : son fond passe aussi en `--kr-arm-bg`. Avec la seule encre, le texte tombait à 4,00:1 en Kraland sombre et à 3,64:1 en Khanat Elmérien sombre. Le choix de sa couleur (état ou nation) revient au ticket 3.5 ;
+  - plan approuvé en autonomie (checkpoint 1), gardé en un seul plan malgré sa taille (un seul objectif).
 - Ticket 3.1, jetons de couleur (décidé en autonomie le 2026-10-23) :
   - nuances du clair calculées par une formule (`color-mix`, une par nuance, Kraland compris), plutôt que 56 valeurs recopiées ; Kraland clair change d'un cran, comme les tableaux de DESIGN.md (primaire foncée `#700b09` → `#6f0c0b`, accent inverse `#f9d9de` → `#f6dde1`) ;
   - le texte survolé des entrées sans lien des listes latérales (`.list-group-item:hover`, en primaire foncée) passe en couleur d'accent dès 3.1, sinon il tomberait à 2,9:1 en Paladium clair ; les entrées-liens gardent le survol de Bootstrap (`#555`, sans soulignement), avant comme après ;
@@ -77,3 +86,6 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 - 2026-10-22 : captures de validation du ticket 6.1 (index, sous-forum, racine), variante de thème restaurée ensuite.
 
 - 2026-10-22 : squelette DOM natif (sans le thème) de `/forum/rp`, `/forum/hrp`, `/forum/communaute`, `/forum/debats` et du sous-forum Royaume de Ruthvénie ; aucun contenu de message relevé.
+
+### Racine du forum /forum et /forum/ — validation visuelle
+La racine reprend les lignes des index sur ordinateur et mobile ; tous les groupes RP, HRP, etc. restent visibles. Vérifier noms, compteurs et accès au dernier message. Revue indépendante sans constat restant ; contre-épreuve rouge et tests sur fixtures verts. Pas de changement publié sur la modale ou la palette dans cette livraison.

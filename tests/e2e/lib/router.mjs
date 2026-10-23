@@ -55,9 +55,11 @@ export const SUITES = [
   // et Pouvoir, harnais Bootbox de Parler ; 375 × 667, 767 à 769, 1280 à 1920 px ; contrastes dans les 16 variantes (lib/variantes.mjs).
   { name: 'modale-ordre', file: 'modale-ordre.mjs', zones: ['modale-ordre'], frags: [['mobile'], ['bureau'], ['largeurs'], ['seuil'], ['variantes']] },
   // Couleurs de nation (épopée 3) : jetons de rôle des 16 variantes égaux à DESIGN.md, liens en couleur d'accent (repos, survol souligné),
-  // consommateurs des jetons redéfinis, texte posé sur la primaire foncée ; fixture synthétique palette-nation.html, 375 × 667, 767 à 769,
-  // 1280 à 1920 px, peau coupée. Aucun mot-clé : une déclaration de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee']], needsBootstrap: true }
+  // consommateurs des jetons redéfinis, texte posé sur la primaire foncée ; boutons primaires de toute balise et de tout état et texte posé sur
+  // la couleur de nation en paire d'action (ticket 2) ; fixture synthétique palette-nation.html, 375 × 667, 767 à 769, 1280 à 1920 px, peau
+  // coupée ; balayage des fixtures de référence (report, plateau, sujet, sous-forum, index RP, kramail). Aucun mot-clé : une déclaration de
+  // jeton élargit au total, comme toute déclaration de variable.
+  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

@@ -19,7 +19,8 @@
 // Confinement réseau ; aucun clic : les cibles sont mesurées par elementFromPoint, après un défilement par window.scrollTo.
 // Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT. Les jetons
 // redéfinis depuis par l'épopée 3, ticket 1 (lib/variantes.mjs, JETONS_REDEFINIS) y sont posés par-dessus : seul un écart qui vient d'eux est
-// accepté (consigné dans le plan de ce ticket).
+// accepté (consigné dans le plan de ce ticket). Le ticket 2 (paire d'action sur la couleur de nation) exclut de l'empreinte le texte, le fond
+// et la bordure des éléments posés sur la couleur de nation (consigné dans son plan, voir EMPREINTE).
 //
 // Usage : npm run build && node tests/e2e/forum-index.mjs   (ou : npm run test:zone -- forum)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_SHOTS=/dossier (captures hors dépôt), KR_VERBOSE=1 (détail des écarts),
@@ -559,18 +560,32 @@ if (on('seuil')) {
 
 // ---------- Racine et non-régression : sous-forum, sujet, index Staff ----------
 // Empreinte du rendu de #col-right : pour chaque élément (ordre du DOM), balise, classes et propriétés calculées principales, boîte.
+// Écart accepté et consigné (épopée 3, ticket 2) : un élément dont le fond propre est une couleur de nation (primaire, primaire foncée,
+// --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) prend la paire d'action ; son texte, son fond et sa bordure sont remplacés
+// par « paire » dans l'empreinte, ainsi que le texte des éléments transparents posés dessus. Tout autre écart reste détecté.
 const EMPREINTE = () => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
     'border-bottom-color', 'visibility', 'opacity', 'order', 'flex-direction', 'grid-row'];
+  const lire = c => (c.match(/[\d.]+/g) || []).map(Number);
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
+  const nation = ['var(--kr-primary)', 'var(--kr-primary-dark)', 'var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde);
+  const fondNation = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0) && nation.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); };
+  const opaque = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0); };
+  const surNation = el => { for (let e = el; e; e = e.parentElement) { if (opaque(e)) { return fondNation(e); } } return false; };
   const col = document.getElementById('col-right');
+  const valeur = (el, s, p) => {
+    if (fondNation(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'paire'; }
+    if (p === 'color' && surNation(el)) { return 'paire'; }
+    return s.getPropertyValue(p);
+  };
   return {
     html: [...document.documentElement.classList].filter(c => c !== 'kr-theme-enabled').sort().join(' '),
     corps: [...document.body.classList].sort().join(' '),
     elements: [col, ...col.querySelectorAll('*')].map(el => {
       const s = getComputedStyle(el); const r = el.getBoundingClientRect();
       const gen = w => getComputedStyle(el, w).content;
-      return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => s.getPropertyValue(p)), gen('::before'), gen('::after'),
+      return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => valeur(el, s, p)), gen('::before'), gen('::after'),
         Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join('|');
     })
   };
@@ -659,6 +674,7 @@ if (on('hors-perimetre')) {
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle « avant », ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
     console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant »');
+    console.log('  info écart accepté et consigné : texte, fond et bordure des éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2)');
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
