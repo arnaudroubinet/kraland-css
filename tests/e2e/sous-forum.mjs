@@ -1071,6 +1071,8 @@ const NEWMSG = () => {
   };
 };
 
+// Pastille à 12 px gras depuis l'épopée 4, ticket 1 (--kr-font-label, au lieu de 11 px) : écart voulu, consigné dans le plan du ticket ;
+// les hauteurs ci-dessous (<= 20 px une ligne, <= 34 px deux lignes, permanent 44 à 48 px) sont tenues à cette taille. Taille : typographie-formes.mjs.
 const checkNewmsg = (label, m) => {
   const bad = pred => JSON.stringify(m.rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
   check(`${label} : les trois états sont présents (jamais ouvert, lu en partie, entièrement lu)`, () => { assert.ok(m.rows.some(r => r.unreadIcon)); assert.ok(m.rows.some(r => r.newmsgIcon)); assert.ok(m.rows.some(r => !r.unreadIcon && !r.newmsgIcon)); });

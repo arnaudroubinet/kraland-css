@@ -18,6 +18,30 @@
   --kr-radius: .5rem;
   --kr-avatar-size: 120px;
 
+  /* Jetons d'échelle (DESIGN.md, frontmatter : typography, rounded, spacing ; 1 rem = 10 px sur ce site, valeurs en px). */
+  --kr-font-label: 12px;
+  --kr-font-button-compact: 12px;
+  --kr-font-detail: 13px;
+  --kr-font-body: 14px;
+  --kr-font-body-mobile: 15px;
+  --kr-font-name: 15px;
+  --kr-font-forum-name: 15px;
+  --kr-font-section-title: 17px;
+  --kr-font-page-title: 36px;
+  --kr-font-button: 14px;
+  --kr-radius-sm: 4px;
+  --kr-radius-md: 8px;
+  --kr-radius-full: 9999px;
+  --kr-space-1: 4px;
+  --kr-space-2: 8px;
+  --kr-space-3: 12px;
+  --kr-space-4: 16px;
+  --kr-space-5: 24px;
+  --kr-space-6: 32px;
+  --kr-margin-mobile: 16px;
+  --kr-touch-target: 44px;
+  --kr-touch-target-dpad: 48px;
+
   /* Jetons de rôle (DESIGN.md › Colors › Rôles) : texte coloré (liens) en accent, texte de la nation (bouton standard) en primaire,
      teintes d'en-tête et de bordure à 8 % et 18 % de la primaire sur blanc (H5.3). */
   --kr-text-accent: var(--kr-highlight);
@@ -670,12 +694,14 @@ input[type="checkbox"]:checked {
    Consolidated color remapping for theme
    ============================================================================ */
 
-/* Badges & labels - info/primary variants use red */
+/* Badges & labels - info/primary variants use red ; étiquettes et pastilles en 12 px gras (--kr-font-label, H8.2) */
 .label,
 .badge {
   background-color: var(--kr-arm-bg, var(--kr-primary));
   color: var(--kr-arm-ink, var(--kr-white));
   border-color: var(--kr-primary-dark);
+  font-size: var(--kr-font-label);
+  font-weight: 700;
 }
 
 /* Q1 : texte posé sur la couleur de nation = paire d'action. Étiquette lien : la règle des liens du sombre ((0,2,2)) ne doit pas l'emporter */
@@ -2087,7 +2113,7 @@ a.carousel-control.right{
     border-radius: 9999px;
     background-color: var(--kr-arm-bg, var(--kr-primary));
     color: var(--kr-arm-ink, var(--kr-white));
-    font-size: 12px;
+    font-size: var(--kr-font-label);
     font-weight: 700;
     line-height: 16px;
   }
@@ -2421,8 +2447,8 @@ footer .container.white {
   letter-spacing: 0;
   border-radius: 10rem;
   padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--kr-font-label);
+  font-weight: 700;
   background-color: rgba(255, 255, 255, 0.15);
   color: var(--kr-text);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -2603,8 +2629,8 @@ footer .container.white {
   right: 8px;
   background: #c9302c; /* PLT-10 : blanc sur #c9302c = 5,9:1 */
   color: var(--kr-white);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--kr-font-label);
+  font-weight: 700;
   padding: 2px 5px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -5590,7 +5616,7 @@ body > map {
       min-width: 16px !important;
       height: 16px !important;
       padding: 2px 4px !important;
-      font-size: 10px !important;
+      font-size: var(--kr-font-label) !important;
       line-height: 12px !important;
       border-radius: 8px !important;
     }
@@ -5692,7 +5718,7 @@ body > map {
       min-width: 18px !important;
       height: 18px !important;
       padding: 2px 5px !important;
-      font-size: 11px !important;
+      font-size: var(--kr-font-label) !important;
       line-height: 14px !important;
     }
   }
@@ -5940,23 +5966,6 @@ body > map {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-}
-
-/* --- 4p. Badge PNJ --- */
-@media (max-width: 767px) {
-  body.mobile-mode .dashboard-card-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: var(--kr-arm-bg, var(--kr-primary));
-    color: var(--kr-arm-ink, var(--kr-white));
-    font-size: 8px;
-    font-weight: 600;
-    padding: 2px 4px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    z-index: 2;
   }
 }
 
@@ -6737,7 +6746,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     border-radius: 9px;
     background: var(--kr-level-bg);
     color: var(--kr-level-fg);
-    font-size: 10.5px;
+    font-size: var(--kr-font-label);
     font-weight: 700;
     letter-spacing: .05em;
     line-height: 1;
@@ -8893,7 +8902,8 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: inline-flex !important;
     align-items: center !important;
     padding: 1px 4px !important;
-    font-size: 9px !important;
+    font-size: var(--kr-font-label) !important;
+    font-weight: 700 !important;
     color: var(--kr-text-secondary) !important;
     background: var(--kr-bg-hover) !important;
     border-radius: 2px !important;
@@ -11292,19 +11302,18 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
-    font-size: 11px;
+    font-size: var(--kr-font-label);
+    font-weight: 700;
     letter-spacing: 0.4px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag {
-    font-size: 12px;
     letter-spacing: 0;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
     padding: 1px 5px;
     border-radius: 3px;
-    font-size: 11.5px;
     letter-spacing: 0;
   }
 
@@ -11552,19 +11561,18 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
-    font-size: 11px;
+    font-size: var(--kr-font-label);
+    font-weight: 700;
     letter-spacing: 0.4px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag {
-    font-size: 12px;
     letter-spacing: 0;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
     padding: 1px 5px;
     border-radius: 3px;
-    font-size: 12px;
     letter-spacing: 0;
   }
 
@@ -12985,7 +12993,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0 3px;
     border: 1px solid var(--kr-bg-surface);
     border-radius: 8px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     font-weight: 700;
     line-height: 1;
   }
@@ -13195,7 +13203,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0 3px;
     border: 1px solid var(--kr-bg-surface);
     border-radius: 8px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     font-weight: 700;
     line-height: 1;
   }
@@ -13329,20 +13337,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: 12px;
   }
 
-  .dashboard-section-header .badge {
-    font-size: 11px;
-  }
-
   .dashboard-card-status {
     font-size: 12px;
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-  }
-
-  .dashboard-card-pnj {
-    font-size: 11px;
   }
 
   /* Les boutons d'action de la carte (profil, message) ne recouvrent plus la ligne de statut */
@@ -13361,20 +13361,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: 12px;
   }
 
-  .dashboard-section-header .badge {
-    font-size: 11px;
-  }
-
   body.mobile-mode .dashboard-card-status {
     font-size: 12px;
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-  }
-
-  .dashboard-card-pnj {
-    font-size: 11px;
   }
 
   footer a,
@@ -13758,7 +13750,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border-radius: 3px;
     background: var(--kr-status-unread);
     color: var(--kr-bg-surface);
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     font-weight: 700;
     letter-spacing: 0.04em;
     line-height: 1.5;
@@ -13811,7 +13803,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.page-forum.kr-subforum td:first-child p > .kr-topic-badge {
     align-self: center;
-    font-size: 11px !important;
+    font-size: var(--kr-font-label) !important;
   }
 }
 

@@ -68,6 +68,27 @@ export const COMPOSANTS_TICKET5 = ['alert', 'btn', 'text', 'panel'].flatMap(k =>
 export const AVANT_TICKET5 = bundle => !bundle.includes('--kr-success');
 
 /**
+ * Étiquettes et pastilles que l'épopée 4, ticket 1 passe à 12 px gras par --kr-font-label (H8.2). À poser par-dessus un bundle d'avant ce
+ * ticket (AVANT_TICKET41) dans une comparaison figée (poserJetonsRedefinis) : !important dans une couche (@layer), qui l'emporte sur tout
+ * !important hors couche quelle que soit la spécificité ; seuls la taille et la graisse de ces éléments sont neutralisées, tout autre écart
+ * reste détecté. Écart consigné dans le plan du ticket (story-jetons-d-echelle-etiquettes-et-pastilles-en-12-px-gras, Implementation Notes).
+ * Écrit ici pour la même raison que COMPOSANTS_TICKET4.
+ */
+export const ETIQUETTES_TICKET41 = [
+  '@layer kr-ticket41 {',
+  '  .label, .badge, .kr-topic-badge, .kr-stat-badge, .kr-skill-badge, .dashboard-card-pnj, .kr-room-here, .kd-opt-tag {',
+  '    font-size: 12px !important;',
+  '    font-weight: 700 !important;',
+  '  }',
+  '  @media (max-width: 767px) {',
+  '    body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a { font-size: 12px !important; font-weight: 700 !important; }',
+  '  }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 1 : il ne déclare pas encore les jetons d'échelle. */
+export const AVANT_TICKET41 = bundle => !bundle.includes('--kr-font-label');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

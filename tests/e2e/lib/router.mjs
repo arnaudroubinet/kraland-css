@@ -64,7 +64,13 @@ export const SUITES = [
   // fixtures synthétiques palette-nation-etats.html et palette-nation-profil.html, pages de référence, non lu gardé) ; une couleur par jauge,
   // la même sur ordinateur et mobile (ticket 6 ; fixture synthétique palette-nation-jauges.html). Aucun mot-clé : une
   // déclaration de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau'], ['etats-mobile'], ['etats-bureau'], ['etats-largeurs'], ['etats-pages-mobile'], ['etats-pages-bureau'], ['jauges-mobile'], ['jauges-bureau'], ['jauges-largeurs']], needsBootstrap: true }
+  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau'], ['etats-mobile'], ['etats-bureau'], ['etats-largeurs'], ['etats-pages-mobile'], ['etats-pages-bureau'], ['jauges-mobile'], ['jauges-bureau'], ['jauges-largeurs']], needsBootstrap: true },
+  // Typographie et formes (épopée 4) : jetons d'échelle de DESIGN.md sur :root (tailles, rayons, espacements, cibles tactiles), étiquettes et
+  // pastilles en 12 px gras par --kr-font-label (ticket 1) ; fixture synthétique typographie-formes.html (plateau, sujet de forum inventé),
+  // index RP, sous-forum, rédaction du kramail ; 375, 767, 768, 769 et 1280 px, Kraland clair et Empire Brun sombre, couleurs comparées au bundle
+  // de base ; mini-profil replié et déplié, bascule 767/768/767. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
+  // de jeton élargit au total, comme toute déclaration de variable.
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -129,6 +135,8 @@ export const KEYWORDS = [
   [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, ['images']],
   [/croix|dpad|directionnel|d-pad/i, ['croix']],
   [/mini-profil|mobile-mini-profile|profil/i, ['profil']],
+  // Étiquettes et pastilles (épopée 4, ticket 1) : emploi du jeton et composants mesurés. Une déclaration du jeton (sans var()) élargit au total.
+  [/kr-topic-badge|kd-opt-tag|kr-room-here|dashboard-card-pnj|kr-skill-badge|kr-stat-badge/, ['typographie-formes']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES]
 ];

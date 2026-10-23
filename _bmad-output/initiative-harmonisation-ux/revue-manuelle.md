@@ -146,3 +146,11 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
   - mandat de relevé en lecture seule (squelette DOM de Matériel, Bâtiments, Employés) avant l'entrée 6 ;
   - pages secondaires sous 12 px (accueil 8-9 px, Événements) : dans l'épopée 4 ou laissées ;
   - cibles de 44 px des votes et de la pagination sur mobile : épopée 9 (option retenue) ou entrée 4.
+
+## Ticket 4.1 — jetons et étiquettes en 12 px (2026-10-24)
+
+- « Puces du kramail » lues comme les étiquettes d'options (`.kd-opt-tag`, `.kd-opt-free`, 11-11,5 px) ; les puces de destinataire `.kd-chip` (13-15 px, avec croix) sont des contrôles et restent à leur taille. Alternative : les passer aussi en 12 px.
+- `.kr-stat-badge` (11 px, hors liste du ticket) inclus : c'est une pastille.
+- Plan de plus de 1600 jetons gardé entier (la balle traçante regroupe jetons, suite et routeur).
+- Icône `.forum-tags .glyphicon` laissée à 8 px (icône, pas texte d'étiquette). Alternative : 12 px.
+- Tout `.label` est désormais à 12 px fixe, même dans un titre (avant : 75 % du titre).

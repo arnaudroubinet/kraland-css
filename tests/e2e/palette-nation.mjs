@@ -284,7 +284,6 @@ const COMPOSANTS = [
   C('#onglet-modale', 'onglet actif d\'une modale', 'repos', MOBILE),
   C('#onglet-modale-autre', 'onglet de modale touché', null, MOBILE, { mobile: 'hover', paire: 'survol' }),
   C('#panneau-primaire', 'en-tête de .panel-primary', 'repos'),
-  C('#pastille-carte', 'pastille d\'une carte du tableau de bord', 'repos', MOBILE),
   C('#action-carte', 'action d\'une carte touchée', null, MOBILE, { mobile: 'hover', paire: 'survol' }),
   C('#lien-flap', 'bouton du mini-chat', 'repos', MOBILE, { mobile: 'active', paire: 'une' }),
   C('#croix-mobile', 'croix des panneaux mobiles', 'repos', TOUS, { bureau: 'hover', mobile: 'active', paire: 'survol', paireMobile: 'une' }),

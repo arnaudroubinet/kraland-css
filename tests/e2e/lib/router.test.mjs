@@ -72,6 +72,26 @@ check('couleurs de nation : déclaration d\'un jeton de rôle (même citant pale
   assert.deepEqual(f.units, ['palette-nation']);
 });
 
+check('typographie et formes : déclaration d\'un jeton d\'échelle sur :root : total ; fixture -> typographie-formes seule', () => {
+  assert.deepEqual(zonesOf('typographie-formes.mjs'), ['typographie-formes']);
+  const theme = [':root {', '  --kr-radius: .5rem;', '  --kr-font-label: 12px;', '  --kr-space-1: 4px;', '}'].join('\n');
+  const d = route('kraland-theme.css', hunkAt(3, '  --kr-font-label: 12px;'), theme);
+  assert.equal(d.widened, true, d.reasons.join(' ; '));
+  const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/typographie-formes.html': [] }), readWith({}));
+  assert.equal(f.widened, false);
+  assert.deepEqual(f.units, ['typographie-formes']);
+});
+check('typographie et formes : composant mesuré -> typographie-formes (en plus des zones du composant)', () => {
+  const u = route('kraland-theme.css', hunk('.kr-nav-v2 .kr-room-here {', '  font-size: var(--kr-font-label);'));
+  assert.equal(u.widened, false, u.reasons.join(' ; '));
+  assert.deepEqual(u.zones, ['typographie-formes']);
+  const s = route('kraland-theme.css', hunk('.kr-topic-badge {', '.kr-topic-badge { font-size: 13px; }'));
+  assert.equal(s.widened, false);
+  assert.deepEqual(sorted(s.zones), ['sous-forum', 'typographie-formes']);
+  const k = route('kraland-theme.css', hunk('.kd-opt-tag {', '.kd-opt-tag { font-weight: 600; }'));
+  assert.ok(k.zones.includes('typographie-formes') && k.zones.includes('kramail'), k.zones.join(', '));
+});
+
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');
   assert.ok(BASCULE.includes('demarrage') && BASCULE.includes('transitions'));
