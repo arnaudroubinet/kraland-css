@@ -30,3 +30,6 @@
 - source_plan: `epic-palette-nation/story-refactor-sweep-plan.md`
   summary: Le contrôle « croix de fermeture, opacité 1 » de `modale-ordre.mjs` (fragment variantes) peut mesurer la croix pendant le fondu d'ouverture de la modale et échouer (opacité effective 0.937, confederation-libre, 1280 px).
   evidence: 1 FAIL au premier `test:all` du 2026-10-23 (ticket 3.8, aucun CSS changé), suite seule verte 3 fois sur 3 puis `test:all` vert (6005 ok) ; attendre la fin de la transition `.fade` avant la mesure réglerait le test.
+- source_plan: `epic-modale-ordre/story-valider-en-couleur-de-nation-sur-mobile-et-onglet-actif-lisi-plan.md`
+  summary: Règles mobiles contradictoires des modales Bootbox (`flex: 2 !important` sur `.btn-primary` ~l.7697, `flex: 1 !important` ~l.7034, pied en colonne ~l.1995, onglet actif bg-elevated ~l.7224) restent en place, battues par la section 9h pour la modale d'ordre.
+  evidence: Revue quick du ticket 2.6 ; à retirer ou réconcilier au nettoyage de l'épopée 2 (2.7).

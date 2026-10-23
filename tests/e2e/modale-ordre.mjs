@@ -39,6 +39,11 @@
 // cliquée en son centre (elementFromPoint : la croix), elle referme la modale sans valider (réponse false de Bootbox, aucun envoi). La
 // croix d'une confirmation hors ordre ne change pas (relevé du bundle 061fd4a : Bootstrap sur ordinateur, règle mobile commune sur
 // mobile).
+// Épopée 2, ticket 6, même socle : sous 768 px, « Valider » prend la paire arm (--kr-arm-bg / --kr-arm-ink, survol --kr-arm-bg-hover /
+// --kr-arm-ink-hover), sans le dégradé ni le halo verts de l'ancien kr-btn-primary-enhanced, pleine largeur sous « Annuler », dans le
+// flux ; au-delà, son rendu ne change pas. L'onglet actif suit un seul modèle aux deux supports : aucun bleu de Bootstrap, fond et texte du
+// thème (--kr-bg-surface, --kr-text-primary), libellé coloré (span.text-danger de Pouvoir) compris, ≥ 4,5:1 dans les 16 variantes ; à
+// 375, 767, 768, 769, 1280 px et en transition 769 / 767 dans le même onglet.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -541,6 +546,102 @@ const CROIX = () => {
     centre: !!h && (h === x || x.contains(h))
   };
 };
+// « Valider » (ticket 6, section 9h), modale telle qu'elle est : fond, texte, image de fond (dégradé) et ombre ; contraste du texte ;
+// paires attendues lues sur une sonde (repos --kr-arm-bg / --kr-arm-ink, survol --kr-arm-bg-hover / --kr-arm-ink-hover, replis du
+// thème) ; largeur de « Valider », d'« Annuler » et de la boîte de contenu du pied (clientWidth moins le rembourrage) ; place par rapport à
+// « Annuler » (dessous ou à droite sur la même ligne) ; position (dans le flux) ; focus (Bootbox le donne à « Valider » à l'ouverture) ;
+// classe kr-btn-primary-enhanced posée par la chaîne mobile. Mesure une fois les transitions du bouton finies (focus de l'ouverture).
+const VALIDER = async () => {
+  const m = window.__modale;
+  const v = m.querySelector('.modal-footer [data-bb-handler="confirm"]');
+  const a = m.querySelector('.modal-footer [data-bb-handler="cancel"]');
+  await Promise.all(v.getAnimations().map(x => x.finished));
+  const pied = m.querySelector('.modal-footer');
+  const s = getComputedStyle(v);
+  const sp = getComputedStyle(pied);
+  const sonde = document.createElement('span');
+  document.body.appendChild(sonde);
+  const paire = (fond, encre) => { sonde.style.backgroundColor = fond; sonde.style.color = encre; const t = getComputedStyle(sonde); return { fond: t.backgroundColor, encre: t.color }; };
+  const repos = paire('var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-ink, var(--kr-white))');
+  const survol = paire('var(--kr-arm-bg-hover, var(--kr-primary-dark))', 'var(--kr-arm-ink-hover, var(--kr-white))');
+  sonde.remove();
+  const rv = v.getBoundingClientRect();
+  const ra = a.getBoundingClientRect();
+  const dixieme = x => Math.round(x * 10) / 10;
+  return {
+    fond: s.backgroundColor,
+    encre: s.color,
+    image: s.backgroundImage,
+    ombre: s.boxShadow,
+    contraste: window.__krContraste.texte(v),
+    repos,
+    survol,
+    largeur: dixieme(rv.width),
+    largeurAnnuler: dixieme(ra.width),
+    interieur: dixieme(pied.clientWidth - parseFloat(sp.paddingLeft) - parseFloat(sp.paddingRight)),
+    dessous: rv.top >= ra.bottom - 0.5,
+    aDroite: Math.abs(rv.top - ra.top) < 1 && rv.left >= ra.right - 0.5,
+    positions: [s.position, sp.position],
+    focus: v.matches(':focus'),
+    renforce: v.classList.contains('kr-btn-primary-enhanced')
+  };
+};
+// Onglet actif (ticket 6, section 9h) : fond, image de fond, ombre et bordures du lien ; pour le lien et chaque descendant qui porte du
+// texte (span.text-danger de Pouvoir compris) : couleur et contraste ; fond et texte du thème (--kr-bg-surface, --kr-text-primary) lus
+// sur une sonde.
+const ONGLET = () => {
+  const a = window.__modale.querySelector('#ajax-order .nav-tabs > li.active > a');
+  if (!a) { return null; }
+  const s = getComputedStyle(a);
+  const sonde = document.createElement('span');
+  sonde.style.backgroundColor = 'var(--kr-bg-surface)';
+  sonde.style.color = 'var(--kr-text-primary)';
+  document.body.appendChild(sonde);
+  const theme = { fond: getComputedStyle(sonde).backgroundColor, texte: getComputedStyle(sonde).color };
+  sonde.remove();
+  const textes = [a, ...a.querySelectorAll('*')].filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
+  return {
+    fond: s.backgroundColor,
+    image: s.backgroundImage,
+    ombre: s.boxShadow,
+    bordures: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor].join(' '),
+    textes: textes.map(e => ({ nom: e.tagName.toLowerCase() + (e.className ? '.' + e.className : ''), couleur: getComputedStyle(e).color, contraste: window.__krContraste.texte(e) })),
+    theme
+  };
+};
+// Bleu de Bootstrap (#428bca, #3071a9, halo rgba(66, 139, 202, .4)) et vert de l'ancien « Valider » renforcé (#5cb85c, #449d44, halo
+// rgba(92, 184, 92, .4)), dans une valeur calculée.
+const BLEU = /66, 139, 202|48, 113, 169/;
+const VERT = /92, 184, 92|68, 157, 68/;
+// « Valider » (ticket 6) : sur mobile (< 768 px), paire arm sans dégradé ni halo vert, texte ≥ 4,5:1, pleine largeur (celle d'« Annuler »
+// et du pied), sous « Annuler », dans le flux ; sur ordinateur, rendu de la base : paire arm, sans dégradé, à droite d'« Annuler ». Paire
+// de repos, ou de survol quand « Valider » a le focus (règles de focus des boutons primaires, inchangées).
+function valide(v, nom, mobile) {
+  const x = n => n.toFixed(2) + ':1';
+  const p = v.focus ? v.survol : v.repos;
+  assert.deepEqual([v.fond, v.encre], [p.fond, p.encre], `${nom} : « Valider »${v.focus ? ' (focus)' : ''} ${JSON.stringify(v)}`);
+  assert.equal(v.image, 'none', `${nom} : image de fond ${v.image}`);
+  assert.ok(!VERT.test(v.ombre), `${nom} : ombre ${v.ombre}`);
+  assert.ok(v.contraste >= 4.5, `${nom} : texte de « Valider » ${x(v.contraste)}`);
+  assert.ok(!v.positions.includes('fixed') && !['absolute', 'fixed'].includes(v.positions[0]), `${nom} : positions (bouton, pied) ${v.positions}`);
+  if (mobile) {
+    assert.ok(Math.abs(v.largeur - v.largeurAnnuler) <= 0.5 && Math.abs(v.largeur - v.interieur) <= 1, `${nom} : largeur de « Valider » ${v.largeur}, d'« Annuler » ${v.largeurAnnuler}, du pied ${v.interieur}`);
+    assert.equal(v.dessous, true, `${nom} : « Valider » n'est pas sous « Annuler »`);
+  } else {
+    assert.equal(v.aDroite, true, `${nom} : « Valider » n'est pas à droite d'« Annuler »`);
+  }
+}
+// Onglet actif (ticket 6) : aucun bleu, fond et texte du thème (span compris), texte ≥ 4,5:1.
+function ongletLisible(o, nom) {
+  assert.ok(o, `${nom} : aucun onglet actif`);
+  assert.ok(![o.fond, o.image, o.ombre, o.bordures].some(c => BLEU.test(c)), `${nom} : bleu dans l'onglet actif ${JSON.stringify(o)}`);
+  assert.equal(o.image, 'none', `${nom} : image de fond ${o.image}`);
+  assert.equal(o.fond, o.theme.fond, `${nom} : fond de l'onglet actif ${o.fond}, bg-surface ${o.theme.fond}`);
+  o.textes.forEach(t => {
+    assert.equal(t.couleur, o.theme.texte, `${nom}, ${t.nom} : couleur ${t.couleur}, texte du thème ${o.theme.texte}`);
+    assert.ok(t.contraste >= 4.5, `${nom}, ${t.nom} : ${t.contraste.toFixed(2)}:1`);
+  });
+}
 // Écritures du socle d'après le journal : pour chaque élément, valeur de class avant et après chaque écriture (après = avant de la
 // suivante, ou valeur actuelle). Ajout ou retrait du repère, ou écriture neutre (valeur inchangée, repère présent) ; enfants des boutons.
 const AUDIT = () => {
@@ -687,6 +788,8 @@ async function scenario(cfg) {
   r.ouvDormir = await page.evaluate(OUVERTURE);
   r.pastDormir = await page.evaluate(PASTILLES, DORMIR);
   r.croix = { Dormir: await page.evaluate(CROIX) };
+  r.valider = { Dormir: await page.evaluate(VALIDER) };
+  r.onglet = { Dormir: await page.evaluate(ONGLET) };
   await capture(page, tag + '-dormir-ouverture');
   r.lienDormir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-dormir');
@@ -727,6 +830,8 @@ async function scenario(cfg) {
   r.ouvPouvoir = await page.evaluate(OUVERTURE);
   r.pastPouvoir = await page.evaluate(PASTILLES, POUVOIR);
   r.croix.Pouvoir = await page.evaluate(CROIX);
+  r.valider.Pouvoir = await page.evaluate(VALIDER);
+  r.onglet.Pouvoir = await page.evaluate(ONGLET);
   await capture(page, tag + '-pouvoir-ouverture');
   r.audits.pouvoir = await page.evaluate(AUDIT);
   r.lienPouvoir = await page.evaluate(LIEN_REGLES);
@@ -752,6 +857,8 @@ async function scenario(cfg) {
   r.audits.horsOrdre = await page.evaluate(AUDIT);
   r.pastHorsOrdre = await page.evaluate(PASTILLES, HORS_ORDRE);
   r.croixHorsOrdre = await page.evaluate(CROIX);
+  r.validerHorsOrdre = await page.evaluate(VALIDER);
+  r.ongletHorsOrdre = await page.evaluate(() => [...window.__modale.querySelectorAll('.nav-tabs > li.active > a')].map(a => { const s = getComputedStyle(a); return [s.backgroundColor, s.backgroundImage, s.boxShadow, s.borderTopColor, s.color].join(' '); }));
   await capture(page, tag + '-hors-ordre');
   await fermer(page);
   await page.evaluate(OUVRIR, enOrdre(SANS_ALERTE));
@@ -880,6 +987,12 @@ const CROIX_HORS_ORDRE = {
 
 function verifier(r) {
   const tag = `${r.cfg.width} px${r.cfg.mobile ? ' (mobile, ' + r.cfg.width + ' × ' + r.cfg.height + ')' : ''}`;
+  check(`${tag} (ticket 6) : « Valider » ${r.cfg.width < 768 ? 'en paire arm, sans dégradé ni halo vert, pleine largeur sous « Annuler », dans le flux' : 'inchangé (paire arm, à droite d\'« Annuler »)'} ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, Pouvoir)`, () => {
+    for (const nom of ['Dormir', 'Pouvoir']) {
+      valide(r.valider[nom], nom, r.cfg.width < 768);
+      ongletLisible(r.onglet[nom], nom);
+    }
+  });
   check(`${tag} Dormir (avertissement avant les onglets) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.dormir, 'Dormir'));
   check(`${tag} Pouvoir (aide puis blocage dans l'onglet, onglet en span.text-danger) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.pouvoir, 'Pouvoir'));
   check(`${tag} contenu de #ajax-order remplacé deux fois (Pouvoir puis Dormir) : marquage refait sur chaque nouveau contenu, sans doublon ; libellés toujours « Annuler » / « Valider »`, () => {
@@ -899,6 +1012,15 @@ function verifier(r) {
     sansPastille(r.pastHorsOrdre, 'hors ordre');
     assert.deepEqual(r.audits.horsOrdre.pastilles, rangee(0), 'écritures de la rangée ' + JSON.stringify(r.audits.horsOrdre.pastilles));
   });
+  if (r.cfg.width < 768) {
+    check(`${tag} confirmation hors ordre (ticket 6, H5.1) : « OK » en paire arm, sans dégradé ni halo vert ; onglet actif éventuel sans bleu de Bootstrap`, () => {
+      const v = r.validerHorsOrdre;
+      const p = v.focus ? v.survol : v.repos;
+      assert.deepEqual([v.fond, v.encre], [p.fond, p.encre], `« OK »${v.focus ? ' (focus)' : ''} ${JSON.stringify(v)}`);
+      assert.ok(!VERT.test(v.image) && !VERT.test(v.ombre), `« OK » : image ${v.image}, ombre ${v.ombre}`);
+      assert.ok(!r.ongletHorsOrdre.some(c => BLEU.test(c)), `onglet actif ${JSON.stringify(r.ongletHorsOrdre)}`);
+    });
+  }
   check(`${tag} envoi natif intact : mêmes boutons (data-bb-handler, classes), même gestionnaire Bootbox du pied, formulaire inchangé ; aucun envoi ni confirmation, aucune requête POST, aucune erreur JavaScript`, () => {
     const etats = { dormir: r.dormir, pouvoir: r.pouvoir, remplace1: r.remplace[0], remplace2: r.remplace[1], horsOrdre: r.horsOrdre };
     assert.deepEqual(Object.entries(etats).filter(([, e]) => !e.natif).map(([k]) => k), [], 'nœuds ou gestionnaires natifs modifiés');
@@ -1100,14 +1222,28 @@ async function teintes(cfg) {
   await attendre(page, true);
   const dormir = await page.evaluate(TEINTES);
   const croix = { Dormir: await page.evaluate(CROIX) };
+  const valider = { Dormir: await page.evaluate(VALIDER) };
+  const onglet = { Dormir: await page.evaluate(ONGLET) };
   if (['kraland', 'empire-brun-dark', 'paladium'].includes(cfg.variante)) { await capture(page, `${cfg.width}${cfg.mobile ? '-mobile' : ''}-${cfg.variante}-dormir`); }
   await page.evaluate(REMPLACER, POUVOIR);
   await frames(page, 2);
   const pouvoir = await page.evaluate(TEINTES);
   croix['contenu remplacé (Pouvoir)'] = await page.evaluate(CROIX);
+  // Pouvoir : « Valider » au repos (focus de Bootbox retiré).
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await frames(page, 2);
+  await styleSettled(page, '.bootbox .modal-footer [data-bb-handler="confirm"]');
+  valider.Pouvoir = await page.evaluate(VALIDER);
+  onglet.Pouvoir = await page.evaluate(ONGLET);
+  // Survol de « Valider » (aucun clic) : pointeur posé dessus, transitions finies.
+  const cible = '.bootbox .modal-footer [data-bb-handler="confirm"]';
+  await page.locator(cible).hover({ timeout: 5000 });
+  await styleSettled(page, cible, { state: ':hover' });
+  valider.survol = await page.evaluate(VALIDER);
+  await page.mouse.move(0, 0);
   await fermer(page);
   await context.close();
-  return { cfg, posee, dormir, pouvoir, croix, errors };
+  return { cfg, posee, dormir, pouvoir, croix, valider, onglet, errors };
 }
 function verifierTeintes(t) {
   const tag = `${t.cfg.width} px${t.cfg.mobile ? ' (mobile)' : ''}, ${t.cfg.variante}`;
@@ -1137,6 +1273,17 @@ function verifierTeintes(t) {
         assert.ok(p.contraste >= 4.5, `${nom}, ${p.titre} : ${x(p.contraste)}`);
       });
     }
+  });
+  check(`${tag} (ticket 6) : « Valider » ${t.cfg.mobile ? 'en paire arm, sans dégradé ni halo vert, pleine largeur sous « Annuler »' : 'inchangé (paire arm, à droite d\'« Annuler »)'}, ≥ 4,5:1 ; au survol, paire --kr-arm-bg-hover / --kr-arm-ink-hover ≥ 4,5:1 ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, puis contenu remplacé par Pouvoir)`, () => {
+    assert.equal(t.valider.Pouvoir.focus, false, 'Pouvoir : « Valider » encore focalisé');
+    for (const nom of ['Dormir', 'Pouvoir']) {
+      valide(t.valider[nom], nom, t.cfg.mobile);
+      ongletLisible(t.onglet[nom], nom);
+    }
+    const s = t.valider.survol;
+    assert.deepEqual([s.fond, s.encre], [s.survol.fond, s.survol.encre], `survol : « Valider » ${JSON.stringify(s)}`);
+    assert.equal(s.image, 'none', `survol : image de fond ${s.image}`);
+    assert.ok(s.contraste >= 4.5, `survol : texte de « Valider » ${s.contraste.toFixed(2)}:1`);
   });
   check(`${tag} : croix de fermeture (ticket 2.5, H2.6) de 44 × 44 px entièrement visibles dans le corps, couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native (Dormir, puis contenu remplacé par Pouvoir)`, () => {
     for (const [nom, c] of Object.entries(t.croix)) { lisible(c, nom); }
@@ -1200,10 +1347,12 @@ async function transition(depart, arrivee) {
     const ouverture = await page.evaluate(OUVERTURE);
     const past = await page.evaluate(PASTILLES, DORMIR);
     const croix = await page.evaluate(CROIX);
+    const valider = await page.evaluate(VALIDER);
+    const onglet = await page.evaluate(ONGLET);
     await fermer(page);
     await page.evaluate(OUVRIR, await page.evaluate(ALLONGER, enOrdre(DORMIR)));
     await attendre(page, true);
-    etats.push({ w, etat, rang, ouverture, past, croix, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
+    etats.push({ w, etat, rang, ouverture, past, croix, valider, onglet, defilement: await page.evaluate(DEFILEMENT), memeDocument: await page.evaluate(() => window.__memeDocument === true) });
     await fermer(page);
   }
   await context.close();
@@ -1229,6 +1378,12 @@ async function transition(depart, arrivee) {
   });
   check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 2.5) : de chaque côté du seuil, croix de Dormir de 44 × 44 px entièrement visibles dans le corps (intersection avec sa boîte de découpe ; sous 768 px sans mobile-mode, le corps n'a pas de rembourrage), couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native`, () => {
     for (const { w, croix } of etats) { lisible(croix, `${w} px`); }
+  });
+  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 6) : de chaque côté du seuil, « Valider » au rendu de son support (pleine largeur sous « Annuler » sous 768 px, à sa droite au-delà), paire arm ; onglet actif sans bleu, fond et texte du thème`, () => {
+    for (const { w, valider, onglet } of etats) {
+      valide(valider, `${w} px`, w < 768);
+      ongletLisible(onglet, `${w} px`);
+    }
   });
 }
 

@@ -124,3 +124,8 @@ La racine reprend les lignes des index sur ordinateur et mobile ; tous les group
 - Décision d'Arnaud : « Pas de focus clavier. On ne gère pas les handicapés. » Ticket abandonné, diff annulé (copie hors dépôt : `/tmp/kr-37-annule/`). Les effets de focus existants (halos rouge, bleu, orange, contours kramail) restent tels quels.
 - Prérequis retirés : 3.8 n'attend plus 3.7 ; l'épopée 4 n'attend plus « anneau de focus ».
 - Hypothèse conservée : les contrastes de texte et les cibles tactiles de 44 px restent (lisibilité, usage au doigt).
+
+## Ticket 2.6 — « Valider » et onglet actif de la modale d'ordre (2026-10-23)
+
+- Effet élargi, accepté en autonomie : sur mobile, le « OK » de toutes les confirmations Bootbox (pas seulement l'ordre, ex. « Retirer ce personnage de vos contacts ? ») perd son dégradé vert et prend la couleur de la nation, comme tout bouton primaire (H5.1). À confirmer.
+- L'onglet actif de la modale d'ordre devient fond et texte du thème sur les deux supports ; le libellé rouge de l'onglet Pouvoir prend la couleur du texte.
