@@ -32,9 +32,9 @@ Pour chaque point, noter « conforme », « écart : … » ou « non vérifiabl
 
 À remplir par Arnaud.
 
-- Date :
+- Date : 2026-10-23 (point E seul, capture d'Arnaud)
 - Appareil, système et version :
-- Navigateur et gestionnaire de scripts :
+- Navigateur et gestionnaire de scripts : Vivaldi Android, clavier SwiftKey
 
 | # | Résultat | Remarque |
 |---|---|---|
@@ -42,6 +42,8 @@ Pour chaque point, noter « conforme », « écart : … » ou « non vérifiabl
 | B | | |
 | C | | |
 | D | | |
-| E | | |
+| E | écart | Rédaction kramail, thème sombre, clavier ouvert : la barre « Envoyer » fixe (pleine largeur, ~70 px) se pose juste au-dessus du clavier et masque le champ « Votre message », dont seule la première ligne reste visible ; le texte saisi est couvert. Confirme la décision CAP-8 : « Envoyer » dans le flux sous le champ, plus de barre fixe. |
 | F | | |
 | G | | |
+
+Décision d'Arnaud (2026-10-23) : on n'attend pas les autres points ; C et D supposés identiques à E (barre fixe qui couvre le champ), corrigés par « Valider »/« Envoyer » dans le flux.
