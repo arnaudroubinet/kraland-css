@@ -70,7 +70,7 @@
 //   ordinateur      barres PV, PM, PP du panneau du plateau, 1280 px : valeur aux mêmes couleurs que sur mobile, ≥ 3:1 sur la même piste ;
 //                   aucun segment en #5cb85c, #f0ad4e, #28a745, #007bff, #ffc107 ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
-// Hors de ces tickets, donc non vérifiés ici : focus (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6), barres de
+// Hors de ces tickets, donc non vérifiés ici : onglet actif et « Valider » de la modale d'ordre (ticket 2.6), barres de
 // PV des cartes de personnages (épopée 5) ; alertes de la modale d'ordre : modale-ordre.mjs.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
 // variantes ouvertes et contrastes mesurés par l'outil partagé (lib/variantes.mjs). Confinement réseau ; gestes : le survol à la souris et
@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -168,7 +168,11 @@ const hexa = h => { const v = h.slice(1); return [0, 2, 4].map(i => parseInt(v.s
 const ecart = (mesure, hex) => { const a = lire(mesure); const b = hexa(hex); return Math.max(...[0, 1, 2].map(i => Math.abs(a[i] - b[i])), Math.abs(a[3] - b[3]) * 255); };
 const egal = (mesure, hex) => ecart(mesure, hex) <= 1 + 1e-9;
 const memeCouleur = (a, b) => { const x = lire(a); const y = lire(b); return [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1e-6) && Math.abs(x[3] - y[3]) <= 1e-6; };
-const rougeKraland = mesure => ROUGES_KRALAND.find(h => { const a = lire(mesure); const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); });
+// Première couleur de `liste` (hexadécimal) égale à `couleur` à 1 près par canal, opacité ignorée ; `opaque` : une couleur entièrement
+// transparente n'en est aucune.
+const parmi = (couleur, liste, { opaque = false } = {}) => { const a = lire(couleur); return (!opaque || a[3] > 0) && liste.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+const mode = v => (v.endsWith('-dark') ? 'sombre' : 'clair');
+const rougeKraland = mesure => parmi(mesure, ROUGES_KRALAND);
 const vu = mesure => (mesure === ABSENT ? 'absent' : mesure);
 
 const browser = await launchBrowser();
@@ -207,7 +211,7 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
 // Mesures au repos : jetons lus sur une sonde, liens, boutons primaires (bordure, ombre), alerte info, page active de la pagination.
 const REPOS = liste => {
   const K = window.__krContraste;
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const sonde = K.sonde;
   const el = id => document.getElementById(id);
   const texte = e => { const s = getComputedStyle(e); return { couleur: s.color, trait: s.textDecorationLine, contraste: K.texte(e), fond: K.fond(e).map(Math.round).join(', '), fondPropre: s.backgroundColor }; };
   // Couleur d'une ombre calculée (« <couleur> 0px 6px 18px 0px »), la couleur en tête.
@@ -633,9 +637,9 @@ const BARRE = 'button.btn-primary.pull-right';
 const CONTACTS = '.input-group-addon input.btn-primary';
 const BALAYER = () => {
   const K = window.__krContraste;
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = K.rgb(getComputedStyle(i).color); i.remove(); return c; };
+  const sonde = expr => K.rgb(K.sonde(expr));
   const nation = ['var(--kr-primary)', 'var(--kr-primary-dark)', 'var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde);
-  const proche = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  const proche = K.procheRgb;
   const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
   const out = { vus: 0, faux: [] };
   for (const e of document.body.querySelectorAll('*')) {
@@ -792,8 +796,8 @@ const MESURES_DUR = ([sels, props]) => Object.fromEntries(sels.map(sel => {
 // celle d'Empire Brun vaut la primaire de Paladium sombre).
 const BALAYER_PRIMAIRE = () => {
   const K = window.__krContraste;
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = K.rgb(getComputedStyle(i).color); i.remove(); return c; };
-  const proche = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  const sonde = expr => K.rgb(K.sonde(expr));
+  const proche = K.procheRgb;
   const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
   const paires = [...primaires, ...['var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde)];
   const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
@@ -819,7 +823,7 @@ async function texteScenario(p, variante, width) {
   const textes = TEXTES.filter(x => x.page === p.nom && x.quand(sombre, mobile));
   const durs = DURS.filter(x => x.page === p.nom && x.quand(sombre, mobile));
   const cle = x => x.sel + (etatDe(x) ? ':' + etatDe(x) : '');
-  const sonde = expr => page.evaluate(e => { const i = document.createElement('i'); i.style.color = e; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; }, expr);
+  const sonde = expr => page.evaluate(e => window.__krContraste.sonde(e), expr);
   const r = { accent: await sonde('var(--kr-text-accent)'), surface: await sonde('var(--kr-bg-surface)'), textes: {}, durs: {}, balayage: [] };
   const mesurer = async etat => {
     const t = textes.filter(x => etatDe(x) === etat);
@@ -979,8 +983,7 @@ const SELS4 = [...PANNEAUX4.map(e => e.sel), ...BS_REPOS.map(([s]) => s), ...BS_
 // Gris de Bootstrap 3.3.7 de ces composants (en-têtes #f5f5f5, #333, #ddd ; bouton standard #ccc, #e6e6e6, #adadad, #8c8c8c, #d4d4d4 ;
 // onglets #555, #eee) : aucun en clair.
 const GRIS_BOOTSTRAP = ['#f5f5f5', '#dddddd', '#333333', '#cccccc', '#e6e6e6', '#adadad', '#8c8c8c', '#d4d4d4', '#555555', '#eeeeee'];
-const SECONDAIRE_CLAIR = '#636a77';
-const commeGris = c => { const a = lire(c); return a[3] > 0 && GRIS_BOOTSTRAP.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+const commeGris = c => parmi(c, GRIS_BOOTSTRAP, { opaque: true });
 // Même couleur à 1 près par canal (opacité ramenée à 0..255).
 const proche = (a, b) => { const x = lire(a); const y = lire(b); return [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1) && Math.abs(x[3] - y[3]) * 255 <= 1; };
 
@@ -996,7 +999,7 @@ const MESURES4 = sels => {
 // Jetons lus sur une sonde et contrastes du texte atténué sur blanc, bg-page, header-tint et info-bg.
 const JETONS4 = absent => {
   const K = window.__krContraste;
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const sonde = K.sonde;
   const j = { surface: sonde('var(--kr-bg-surface)'), primaire: sonde('var(--kr-text-primary)'), secondaire: sonde('var(--kr-text-secondary)'), page: sonde('var(--kr-bg-page)'), tint: sonde(`var(--kr-header-tint, ${absent})`), info: sonde('var(--kr-alert-info-bg)') };
   const opaque = c => { const x = K.rgb(c); return [0, 1, 2].map(i => x[i] * x[3] + 255 * (1 - x[3])); };
   j.contrastes = Object.fromEntries([['blanc', 'rgb(255, 255, 255)'], ['bg-page', j.page], ['header-tint', j.tint], ['info-bg', j.info]].map(([k, c]) => [k, K.rapport(opaque(j.secondaire), opaque(c))]));
@@ -1081,8 +1084,8 @@ function verifierComposants(tag, variante, r) {
       const vues = m => ['couleur', 'fondPropre', ...(m.traits[0] > 0 ? ['haut'] : []), ...(m.traits[1] > 0 ? ['bas'] : [])];
       sansEcart(mesures.filter(([, m]) => m).flatMap(([s, m]) => vues(m).filter(k => commeGris(m[k])).map(k => `${s} : ${k} ${m[k]} (${commeGris(m[k])})`)));
     });
-    check(`${tag} ${variante} : --kr-text-secondary ${SECONDAIRE_CLAIR}, ≥ 4,5:1 sur blanc, bg-page, header-tint et info-bg`, () => {
-      const faux = egal(r.jetons.secondaire, SECONDAIRE_CLAIR) ? [] : [`text-secondary ${r.jetons.secondaire} au lieu de ${SECONDAIRE_CLAIR}`];
+    check(`${tag} ${variante} : --kr-text-secondary ${TEXTE_SECONDAIRE_CLAIR_HEX}, ≥ 4,5:1 sur blanc, bg-page, header-tint et info-bg`, () => {
+      const faux = egal(r.jetons.secondaire, TEXTE_SECONDAIRE_CLAIR_HEX) ? [] : [`text-secondary ${r.jetons.secondaire} au lieu de ${TEXTE_SECONDAIRE_CLAIR_HEX}`];
       Object.entries(r.jetons.contrastes).filter(([, c]) => !(c >= 4.5)).forEach(([k, c]) => faux.push(`sur ${k} : ${c.toFixed(2)}:1`));
       sansEcart(faux);
     });
@@ -1176,7 +1179,7 @@ for (const [frag, width] of [['composants-pages-mobile', 375], ['composants-page
   if (!on(frag)) { continue; }
   const tag = `[${width}]`;
   console.log(`Composants des pages de référence ${width} px, 16 variantes : ${PAGES4.map(p => p.nom).join(', ')}, contre le bundle ${BASELINE4}`);
-  console.log(`  info écart accepté et consigné : --kr-text-secondary ${SECONDAIRE_CLAIR} posé sur le bundle « avant » (Q26, ticket 4)`);
+  console.log(`  info écart accepté et consigné : --kr-text-secondary ${TEXTE_SECONDAIRE_CLAIR_HEX} posé sur le bundle « avant » (Q26, ticket 4)`);
   check(`${tag} bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${BASELINE4})`, () => assert.ok(avant4, 'introuvable'));
   if (!avant4) { continue; }
   const cas = PAGES4.flatMap(p => VARIANTES.map(variante => ({ p, variante })));
@@ -1208,7 +1211,7 @@ const PAGE_ETATS = { url: PAGE, corps: FIXTURE('palette-nation-etats.html') };
 const PAGE_PROFIL = { url: BASE + '/profil/interface', corps: FIXTURE('palette-nation-profil.html') };
 const ETATS = ['success', 'warning', 'danger'];
 const ETATS_DESIGN = { clair: { success: '#2e7d32', warning: '#8a5a00', danger: '#c62828' }, sombre: { success: '#81c784', warning: '#ffb74d', danger: '#ff8a80' } };
-const couleurEtat = (variante, etat) => ETATS_DESIGN[variante.endsWith('-dark') ? 'sombre' : 'clair'][etat];
+const couleurEtat = (variante, etat) => ETATS_DESIGN[mode(variante)][etat];
 // Mélange sRGB (color-mix) : p de a, le reste de b ; a, b : [r, g, b] ; résultat en hexadécimal.
 const melange = (a, b, p) => '#' + [0, 1, 2].map(i => Math.round(a[i] * p + b[i] * (1 - p)).toString(16).padStart(2, '0')).join('');
 const teinte = (variante, etat, surface, p) => melange(hexa(couleurEtat(variante, etat)), lire(surface), p);
@@ -1217,7 +1220,7 @@ const survolEtat = (variante, etat) => melange(hexa(couleurEtat(variante, etat))
 const BOOTSTRAP_ETATS = ['#5cb85c', '#4cae4c', '#449d44', '#398439', '#255625', '#f0ad4e', '#eea236', '#ec971f', '#d58512', '#985f0d', '#d9534f', '#d43f3a',
   '#c9302c', '#ac2925', '#761c19', '#5bc0de', '#46b8da', '#31b0d5', '#269abc', '#1b6d85', '#dff0d8', '#d6e9c6', '#3c763d', '#2b542c', '#c1e2b3', '#fcf8e3',
   '#faebcc', '#8a6d3b', '#66512c', '#f7ecb5', '#f2dede', '#ebccd1', '#a94442', '#843534', '#e4b9b9', '#d9edf7', '#bce8f1', '#31708f', '#245269', '#afd9ee'];
-const commeBootstrap = c => { const a = lire(c); return a[3] > 0 && BOOTSTRAP_ETATS.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+const commeBootstrap = c => parmi(c, BOOTSTRAP_ETATS, { opaque: true });
 // Échantillons de la fixture : alertes et leurs liens, étiquettes, boutons, fonds, textes, panneaux et leurs en-têtes ; hors palette.
 const ALERTES5 = [...ETATS, 'info'];
 const PLEINS5 = [...ETATS.flatMap(e => [`#lb-${e}`, `#bt-${e}`, `#bg-${e}`]), '#lb-success-lien', '#bt-success-a', '#bt-success-vote', '#bt-danger-disabled'];
@@ -1237,7 +1240,7 @@ const MESURES5 = sels => {
   }));
 };
 const JETONS5 = absent => {
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const sonde = window.__krContraste.sonde;
   return { surface: sonde('var(--kr-bg-surface)'), primaire: sonde('var(--kr-text-primary)'), unread: sonde('var(--kr-status-unread)'),
     success: sonde(`var(--kr-success, ${absent})`), warning: sonde(`var(--kr-warning, ${absent})`), danger: sonde(`var(--kr-danger, ${absent})`) };
 };
@@ -1291,7 +1294,7 @@ function verifierEtats(tag, variante, r) {
     assert.deepEqual([...r.erreurs, ...r.erreursProfil], [], 'exceptions : ' + [...r.erreurs, ...r.erreursProfil].join(' | '));
     assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
   });
-  check(`${tag} ${variante} : jetons --kr-success, --kr-warning, --kr-danger égaux à DESIGN.md (${variante.endsWith('-dark') ? 'sombre' : 'clair'})`, () => {
+  check(`${tag} ${variante} : jetons --kr-success, --kr-warning, --kr-danger égaux à DESIGN.md (${mode(variante)})`, () => {
     sansEcart(ETATS.filter(e => !egal(j[e], couleurEtat(variante, e))).map(e => `--kr-${e} ${vu(j[e])} au lieu de ${couleurEtat(variante, e)}`));
   });
   check(`${tag} ${variante} : alertes de succès, d'avertissement et de danger, fond à 12 % et bordure à 35 % de la couleur d'état sur bg-surface, texte text-primary ≥ 4,5:1 ; lien de la couleur du texte, souligné, ≥ 4,5:1`, () => {
@@ -1476,14 +1479,14 @@ const PAGE_JAUGES_CLASSES = { url: PAGE_JAUGES.url, corps: PAGE_JAUGES.corps
   .replace('<div class="progress-bar progress-bar-success" style="width: 100%"><span class="sr-only">25', '<div class="progress-bar progress-bar-warning" style="width: 100%"><span class="sr-only">25') };
 const JAUGES = ['pv', 'pm', 'pp'];
 const JAUGES_DESIGN = { clair: { pv: '#388e3c', pm: '#1565c0', pp: '#e65100' }, sombre: { pv: '#66bb6a', pm: '#64b5f6', pp: '#ffa726' } };
-const couleurJauge = (variante, j) => JAUGES_DESIGN[variante.endsWith('-dark') ? 'sombre' : 'clair'][j];
+const couleurJauge = (variante, j) => JAUGES_DESIGN[mode(variante)][j];
 const PISTE_CLAIRE = '#f5f5f5';
 // Couleurs d'avant le ticket : Bootstrap 3 (ordinateur), Bootstrap 4 (mobile).
 const ANCIENNES_JAUGES = ['#5cb85c', '#f0ad4e', '#28a745', '#007bff', '#ffc107'];
-const ancienneJauge = c => { const a = lire(c); return a[3] > 0 && ANCIENNES_JAUGES.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+const ancienneJauge = c => parmi(c, ANCIENNES_JAUGES, { opaque: true });
 const RELEVER6 = ([jauges, absent]) => {
   const K = window.__krContraste;
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const sonde = K.sonde;
   const texte = c => `rgb(${c.map(Math.round).join(', ')})`;
   // Remplissage sur sa piste : couleur, image, piste effective, contraste du remplissage composé sur la piste, visible (centre non couvert).
   const releve = (fill, piste) => {
@@ -1542,22 +1545,22 @@ const ecartsJauge = (variante, quoi, j, m, eleve) => {
 };
 const ecartsJetonsJauges = (variante, m) => JAUGES.filter(j => !egal(m.jetons[j], couleurJauge(variante, j))).map(j => `--kr-gauge-${j} ${vu(m.jetons[j])} au lieu de ${couleurJauge(variante, j)}`);
 function verifierJauges(tag, variante, r, mobile) {
-  const mode = variante.endsWith('-dark') ? 'sombre' : 'clair';
+  const ton = mode(variante);
   check(`${tag} ${variante} : variante posée, ${mobile ? 'mode mobile' : 'mode ordinateur'}, aucune exception, aucune requête vers le site hors fixture (jauges)`, () => {
     assert.ok(r.posee, 'variante non posée');
     assert.equal(r.plie.mobile, mobile, 'mode mobile');
     assert.deepEqual(r.erreurs, [], 'exceptions : ' + r.erreurs.join(' | '));
     assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
   });
-  check(`${tag} ${variante} : jetons --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp égaux à DESIGN.md (${mode})`, () => sansEcart(ecartsJetonsJauges(variante, r.plie)));
+  check(`${tag} ${variante} : jetons --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp égaux à DESIGN.md (${ton})`, () => sansEcart(ecartsJetonsJauges(variante, r.plie)));
   if (mobile) {
-    check(`${tag} ${variante} : profil mobile plié et déplié, jauges compactes (et complètes, déplié) PV, PM, PP aux couleurs de DESIGN.md (${mode}), visibles, ≥ 3:1 sur leur piste (${mode === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
+    check(`${tag} ${variante} : profil mobile plié et déplié, jauges compactes (et complètes, déplié) PV, PM, PP aux couleurs de DESIGN.md (${ton}), visibles, ≥ 3:1 sur leur piste (${ton === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
       assert.ok(r.deplie, 'profil mobile non déplié');
       sansEcart(JAUGES.flatMap(j => [...ecartsJauge(variante, 'plié, compacte', j, r.plie.compact[j], r.plie.eleve),
         ...ecartsJauge(variante, 'déplié, compacte', j, r.deplie.compact[j], r.deplie.eleve), ...ecartsJauge(variante, 'déplié, complète', j, r.deplie.complet[j], r.deplie.eleve)]));
     });
   } else {
-    check(`${tag} ${variante} : barres PV, PM, PP du panneau aux couleurs du mobile (DESIGN.md, ${mode}), visibles, ≥ 3:1 sur leur piste (${mode === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
+    check(`${tag} ${variante} : barres PV, PM, PP du panneau aux couleurs du mobile (DESIGN.md, ${ton}), visibles, ≥ 3:1 sur leur piste (${ton === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
       sansEcart(JAUGES.flatMap(j => ecartsJauge(variante, 'panneau', j, r.plie.bureau[j], r.plie.eleve)));
     });
     check(`${tag} ${variante} : aucun segment des barres du panneau en ${ANCIENNES_JAUGES.join(', ')} ni en couleur d'état de Bootstrap ; reste transparent`, () => {

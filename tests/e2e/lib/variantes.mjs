@@ -6,6 +6,7 @@
 //   const res = await parVariante(async variante => { ... un contexte neuf par variante ... return mesures; });
 //   await page.evaluate(CONTRASTE);                                    // pose window.__krContraste dans la page
 //   const r = await page.evaluate(() => window.__krContraste.texte(document.querySelector('.btn')));
+//   const c = await page.evaluate(() => window.__krContraste.sonde('var(--kr-primary)'));  // valeur calculée d'une expression de couleur
 //
 // Variantes : « kraland » et les 15 autres classes html.kr-theme-variant-* (CONFIG.THEME_VARIANTS du template, sans high-contrast).
 // Ouverture : le bundle lit la variante dans le stockage local à son évaluation (kr-theme-enabled, kr-theme-variant), comme pour un
@@ -45,7 +46,8 @@ export const JETONS_REDEFINIS = [
  * à poser par-dessus un bundle d'avant ce ticket dans une comparaison figée (poserJetonsRedefinis), seul écart de ce jeton accepté ;
  * consigné dans le plan du ticket (story-mode-clair-theme-comme-le-sombre-bouton-standard, Implementation Notes).
  */
-export const TEXTE_SECONDAIRE_CLAIR = 'html:not([class*="-dark"]) { --kr-text-secondary: #636a77 !important; }';
+export const TEXTE_SECONDAIRE_CLAIR_HEX = '#636a77';
+export const TEXTE_SECONDAIRE_CLAIR = `html:not([class*="-dark"]) { --kr-text-secondary: ${TEXTE_SECONDAIRE_CLAIR_HEX} !important; }`;
 
 /**
  * Composants que l'épopée 3, ticket 4 passe aux jetons qui changent avec le mode (H5.3) : en-tête et pied du panneau standard, en-têtes de
@@ -94,9 +96,11 @@ export function parVariante(scenario, { variantes = VARIANTES, conc } = {}) {
 }
 
 /**
- * À évaluer dans la page (page.evaluate(CONTRASTE)) : pose window.__krContraste = { rgb, fond, texte, rapport }.
+ * À évaluer dans la page (page.evaluate(CONTRASTE)) : pose window.__krContraste = { rgb, fond, texte, rapport, sonde, procheRgb }.
  * rgb(chaîne) -> [r, g, b, a] ; fond(el) -> [r, g, b] effectif ; texte(el) -> rapport du texte de el sur son fond (non arrondi) ;
- * rapport(c1, c2) -> rapport de deux couleurs opaques [r, g, b].
+ * rapport(c1, c2) -> rapport de deux couleurs opaques [r, g, b] ; sonde(expr) -> couleur calculée (chaîne) d'une expression posée en color
+ * sur un élément temporaire du body (var() et replis compris) ; procheRgb(a, b) -> a et b ([r, g, b…]) égaux à 1 près par canal (opacité
+ * ignorée).
  */
 export function CONTRASTE() {
   // « rgb(r, g, b) », « rgba(r, g, b, a) » ou « color(srgb r g b / a) » (sérialisation de color-mix() par Chrome, composantes 0..1).
@@ -121,5 +125,7 @@ export function CONTRASTE() {
   };
   const rapport = (a, b) => { const x = lum(a); const y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   const texte = el => { const b = fond(el); return rapport(sur(rgb(getComputedStyle(el).color), b), b); };
-  window.__krContraste = { rgb, fond, texte, rapport };
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const procheRgb = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  window.__krContraste = { rgb, fond, texte, rapport, sonde, procheRgb };
 }

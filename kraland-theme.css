@@ -3062,7 +3062,8 @@ html.kr-theme-enabled .nav-tabs > li.active > a:focus {
 
 /* === ALERTS === */
 
-/* Fond, bordure et liens des alertes d'état et de l'alerte info : règles communes (section 5, ticket 3.5) */
+/* Sombre : texte des alertes en text-primary. Le fond, la bordure et les liens des alertes d'état et de l'alerte info ne sont pas posés ici :
+   règles communes de la section 5 (ticket 3.5) */
 html[class*="-dark"] .alert {
   color: var(--kr-text-primary) !important;
 }
