@@ -25,7 +25,7 @@ Source numérotée : spec-harmonisation.md, CAP-4 (critères success) ; décisio
 ## Done when
 
 1. Les critères success de CAP-4 tiennent, contrastes vérifiés par l'utilitaire dans les 16 variantes.
-2. Les règles `:focus` propres à la modale (onglets, champ de texte) prennent l'anneau commun.
+2. ~~Les règles `:focus` propres à la modale prennent l'anneau commun.~~ Retiré avec l'entrée 7 (abandonnée).
 3. PR fusionnée sur `feature/next`, bundle et `version.json` régénérés, `npm run test:all` vert avec au moins un test par décision livrée.
 4. Vérifié à 1280, 1440 et 1920 px et à 375×667, sur Kraland clair et Empire Brun sombre au moins ; fixtures synthétiques créées par l'épopée, aucune capture HTML brute dans le dépôt.
 
@@ -50,3 +50,4 @@ Lot 3. Valeurs : DESIGN.md › Colors › Valeurs par variante. Applique la coul
 - Decision: balle traçante = entrée 1 ; entrées chaînées (suite palette-nation.mjs et blocs de variables partagés) (2026-10-23).
 - Decision: l'entrée 1 est le seul déclarant de --kr-arm-ink-hover (Paladium clair) ; l'entrée 7 possède les règles :focus de la modale d'ordre ; le ticket 2.6 garde les fonds et le halo de l'onglet actif (prise en autonomie, 2026-10-23).
 - Assumption: valeurs [ASSUMPTION] de DESIGN.md reprises telles quelles (formules H5.2, états et jauges Q3, info en sombre Q4) ; fonds et bordures des alertes à 12 % et 35 % (maquette) ; Q21 accepté (le libellé et la forme distinguent non-lu et danger) ; Q26 : text-secondary foncé à #636a77 en clair ; Q20 : pas de seuil non textuel pour les bordures décoratives ; texte aujourd'hui en primaire → text-accent ; Q16 : high-contrast hors des 16 variantes, inchangée ; .f4 à .f8 éclaircies jusqu'à 4,5:1 en sombre.
+- Dropped: entrée 7 « Une seule forme de focus clavier » abandonnée sur décision d'Arnaud : pas de focus clavier, l'accessibilité n'est pas un objectif du projet ; diff annulé, état de 137416c conservé (2026-10-23).

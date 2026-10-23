@@ -91,6 +91,6 @@ title = "Refactor sweep"
 description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée."
 verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router conforme, npm run test:all vert après le nettoyage."
 covers = ["CAP-4"]
-after = [1, 2, 3, 4, 5, 6, 7]
+after = [1, 2, 3, 4, 5, 6]
 hitl = false
 risk = "low"

@@ -41,3 +41,4 @@ Lot 7. Reprend le « ••• » posé par l'épopée 6. Non-goals : ceux de la
 - Waits on epic-cartes-pastilles because: carte de section et onglets.
 - Waits on epic-forum because: « ••• » commun.
 - Open question: Q22, Q31 (EXPERIENCE.md) à trancher au plan.
+- Decision: périmètre élargi par Arnaud (2026-10-23) : « Toute la partie kramail doit être revue pour utiliser le même thème que le forum. » Ordinateur et mobile, toutes les pages du kramail (liste des dossiers, lecture, rédaction, contacts) reprennent les composants du forum (liste des sujets, message de sujet, formulaire de réponse, carte de section, onglets, « ••• ») ; la palette privée `--kd-*` est remplacée par les jetons de l'épopée 3. À découper à l'inception de l'épopée.

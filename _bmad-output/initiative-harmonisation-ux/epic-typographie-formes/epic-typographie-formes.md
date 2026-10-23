@@ -39,5 +39,5 @@ Lot 4. Traite les boutons (≥ 44 px sur mobile) ; les autres cibles tactiles re
 ## Notes
 
 - Waits on epic-identite-et-defauts because: P1.
-- Waits on epic-palette-nation because: jetons de couleur et anneau de focus.
+- Waits on epic-palette-nation because: jetons de couleur.
 - Open question: Q8, Q9, Q11, Q12, Q14 (EXPERIENCE.md) à trancher au plan.

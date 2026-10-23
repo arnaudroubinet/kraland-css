@@ -24,7 +24,7 @@ id = 4
 slug = "epic-typographie-formes"
 title = "Même rôle, même taille, même forme"
 covers = ["CAP-5"]
-after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 3, needs = "jetons de couleur et anneau de focus" }]
+after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 3, needs = "jetons de couleur" }]
 
 [[epic]]
 id = 5

@@ -118,3 +118,9 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ### Racine du forum /forum et /forum/ — validation visuelle
 La racine reprend les lignes des index sur ordinateur et mobile ; tous les groupes RP, HRP, etc. restent visibles. Vérifier noms, compteurs et accès au dernier message. Revue indépendante sans constat restant ; contre-épreuve rouge et tests sur fixtures verts. Pas de changement publié sur la modale ou la palette dans cette livraison.
+
+## Ticket 3.7 — focus clavier : abandonné (2026-10-23)
+
+- Décision d'Arnaud : « Pas de focus clavier. On ne gère pas les handicapés. » Ticket abandonné, diff annulé (copie hors dépôt : `/tmp/kr-37-annule/`). Les effets de focus existants (halos rouge, bleu, orange, contours kramail) restent tels quels.
+- Prérequis retirés : 3.8 n'attend plus 3.7 ; l'épopée 4 n'attend plus « anneau de focus ».
+- Hypothèse conservée : les contrastes de texte et les cibles tactiles de 44 px restent (lisibilité, usage au doigt).
