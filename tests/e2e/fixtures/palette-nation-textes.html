@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture texte coloré de la palette de nation (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la suite palette-nation (épopée 3, ticket 3 : texte coloré, rouge Kraland et bleu en dur) : aucune donnée réelle.
+       Servie à /regles/avancees (aucune classe de page). Un échantillon par règle du périmètre qui ne dépend pas d'une page : confirmation
+       Bootbox (libellé, barre d'outils), pagination, barre d'outils de l'éditeur, alertes info, avertissement et danger avec lien, flèche de
+       carrousel, pagination de tableau, onglets mobiles (créés par le template sur /jouer, posés ici tels quels), onglets d'une modale Bootbox
+       (affichée en place), menu déroulant de la barre du haut (ouvert), champ obligatoire, en-tête repliable, modale et historique du
+       changelog (structure du template), carte de forum, bouton du mini-chat et couleurs de nation .f1 à .f9 posées sur bg-surface.
+       Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Règles</span>
+          <a class="list-group-item" href="regles/base">Règles de base</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <h1>Textes colorés d'essai</h1>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <ul class="pagination">
+              <li><a id="page-lien" href="regles/avancees?p=1">1</a></li>
+              <li><span id="page-span">2</span></li>
+              <li class="active"><a href="regles/avancees?p=3">3</a></li>
+            </ul>
+            <div class="dataTables_paginate"><a class="paginate_button current">1</a> <a id="page-tableau" class="paginate_button">2</a></div>
+            <div class="btn-toolbar"><div class="btn-group"><a id="outil" class="btn btn-default" href="#b"><b>B</b></a><a class="btn btn-default" href="#i"><i>I</i></a></div></div>
+            <div id="alerte-info" class="alert alert-info">Information d'essai, <a id="lien-info" href="regles/base">lien d'information</a>.</div>
+            <div class="alert alert-warning">Avertissement d'essai, <a id="lien-avertissement" href="regles/base">lien d'avertissement</a>.</div>
+            <div class="alert alert-danger">Danger d'essai, <a id="lien-danger" href="regles/base">lien de danger</a>.</div>
+            <div style="position: relative; height: 60px;"><a id="carrousel" class="left carousel-control" href="#c">‹</a></div>
+            <div class="form-group"><label for="nom">Nom <span id="obligatoire" class="required">*</span></label><input id="nom" class="form-control" type="text"></div>
+            <a id="repliable" class="accordion-toggle" data-toggle="collapse" href="#corps-repliable">En-tête repliable</a>
+            <div id="corps-repliable" class="panel-collapse collapse"><div class="panel-body">Corps</div></div>
+            <div id="nations" class="panel panel-default" style="background-color: var(--kr-bg-surface);">
+              <span id="f1" class="f1">Nation 1</span> <span id="f2" class="f2">Nation 2</span> <span id="f3" class="f3">Nation 3</span>
+              <span id="f4" class="f4">Nation 4</span> <span id="f5" class="f5">Nation 5</span> <span id="f6" class="f6">Nation 6</span>
+              <span id="f7" class="f7">Nation 7</span> <span id="f8" class="f8">Nation 8</span> <span id="f9" class="f9">Nation 9</span>
+            </div>
+            <div class="forum-card"><a id="carte-forum" class="forum-card-link" href="forum/hrp"><span class="forum-title">Forum d'essai</span></a></div>
+          </div>
+        </div>
+        <ul id="onglets-mobiles" class="nav nav-tabs mobile-tab-bar"><li class="active"><a id="onglet-mobile" href="jouer/plateau"><span>Plateau</span></a></li><li><a href="jouer/perso"><span>Perso</span></a></li></ul>
+        <div class="navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown open">
+              <ul class="dropdown-menu" style="position: static; float: none;">
+                <li><a id="menu-entree" href="regles/base">Entrée de menu</a></li>
+                <li class="active"><a id="menu-actif" href="regles/avancees">Entrée active</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="bootbox modal bootbox-confirm" style="display: block; position: relative; overflow: visible; z-index: auto;">
+          <div class="panel with-nav-tabs">
+            <ul class="nav nav-tabs"><li class="active"><a id="onglet-modale" href="#o1">Onglet actif</a></li><li><a href="#o2">Autre onglet</a></li></ul>
+          </div>
+          <div class="btn-toolbar"><div class="btn-group" aria-label="Mise en forme"><a id="outil-modale" class="btn btn-default" href="#b"><b>B</b></a></div></div>
+          <div class="panel-actions"><input id="case" type="checkbox"> <label id="libelle-confirmation" for="case">Libellé de confirmation</label></div>
+        </div>
+        <button id="mini-chat" class="mini-chat-fab" type="button"><span class="fab-text">MC</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="kr-changelog-modal active">
+    <div class="kr-changelog-overlay" tabindex="-1"></div>
+    <div class="kr-changelog-content" role="dialog" aria-modal="true" aria-label="Mise à jour disponible">
+      <div class="kr-changelog-header"><h2 id="changelog-titre">Mise à jour disponible</h2></div>
+      <div class="kr-changelog-body">
+        <ul class="kr-changelog-list"><li id="changelog-entree">Changement d'essai</li></ul>
+        <div class="kr-changelog-version"><h3 id="version-titre">Version d'essai</h3><ul><li id="version-entree">Changement d'essai</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

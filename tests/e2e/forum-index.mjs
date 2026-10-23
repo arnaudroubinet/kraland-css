@@ -563,6 +563,9 @@ if (on('seuil')) {
 // Écart accepté et consigné (épopée 3, ticket 2) : un élément dont le fond propre est une couleur de nation (primaire, primaire foncée,
 // --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) prend la paire d'action ; son texte, son fond et sa bordure sont remplacés
 // par « paire » dans l'empreinte, ainsi que le texte des éléments transparents posés dessus. Tout autre écart reste détecté.
+// Écart accepté et consigné (épopée 3, ticket 3) : le texte en primaire ou en primaire foncée passe à --kr-text-accent. L'empreinte relève ces
+// éléments (primaires) ; sur ceux du bundle « avant » seulement, le texte, et la bordure basse quand elle suit le texte, sont neutralisés des
+// deux côtés (texteColore). Tout autre écart reste détecté.
 const EMPREINTE = () => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
@@ -573,6 +576,7 @@ const EMPREINTE = () => {
   const fondNation = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0) && nation.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); };
   const opaque = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0); };
   const surNation = el => { for (let e = el; e; e = e.parentElement) { if (opaque(e)) { return fondNation(e); } } return false; };
+  const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
   const col = document.getElementById('col-right');
   const valeur = (el, s, p) => {
     if (fondNation(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'paire'; }
@@ -587,8 +591,25 @@ const EMPREINTE = () => {
       const gen = w => getComputedStyle(el, w).content;
       return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => valeur(el, s, p)), gen('::before'), gen('::after'),
         Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join('|');
-    })
+    }),
+    primaires: [col, ...col.querySelectorAll('*')].map(el => { const c = lire(getComputedStyle(el).color); return primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); })
   };
+};
+// Champs de l'empreinte : balise, classes, puis les propriétés (color en 4e, border-bottom-color en 21e).
+const CHAMP_TEXTE = 5;
+const CHAMP_BORDURE_BASSE = 22;
+const texteColore = (avant, apres) => {
+  const neutre = (x, garderBordure) => { const f = x.split('|'); f[CHAMP_TEXTE] = 'texte coloré'; if (!garderBordure) { f[CHAMP_BORDURE_BASSE] = 'texte coloré'; } return f.join('|'); };
+  const n = { a: [...avant.elements], p: [...apres.elements], nb: 0 };
+  avant.primaires.forEach((prim, j) => {
+    if (!prim || j >= n.p.length) { return; }
+    const f = n.a[j].split('|');
+    const garder = f[CHAMP_BORDURE_BASSE] !== f[CHAMP_TEXTE];
+    n.a[j] = neutre(n.a[j], garder);
+    n.p[j] = neutre(n.p[j], garder);
+    n.nb += 1;
+  });
+  return n;
 };
 
 if (on('hors-perimetre')) {
@@ -675,6 +696,7 @@ if (on('hors-perimetre')) {
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle « avant », ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
     console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant »');
     console.log('  info écart accepté et consigné : texte, fond et bordure des éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2)');
+    console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
@@ -692,8 +714,9 @@ if (on('hors-perimetre')) {
         assert.equal(p.e.html, a.e.html, 'classes de html');
         assert.equal(p.e.corps, a.e.corps, 'classes de body');
         assert.equal(p.e.elements.length, a.e.elements.length, `éléments : ${p.e.elements.length} au lieu de ${a.e.elements.length}`);
-        const k = p.e.elements.findIndex((x, j) => x !== a.e.elements[j]);
-        assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${p.e.elements[k]} au lieu de ${a.e.elements[k]}`);
+        const n = texteColore(a.e, p.e);
+        const k = n.p.findIndex((x, j) => x !== n.a[j]);
+        assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${n.p[k]} au lieu de ${n.a[k]}`);
       });
     });
   }

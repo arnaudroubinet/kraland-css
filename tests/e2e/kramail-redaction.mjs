@@ -232,6 +232,22 @@ const MARQUER_PAIRE = () => {
   }
   return n;
 };
+// Écart accepté et consigné (épopée 3, ticket 3) : le texte en primaire ou en primaire foncée passe à --kr-text-accent (titre du panneau
+// sous 768 px). Ces éléments sont relevés dans le bundle « avant » (index dans l'ordre du DOM), marqués aux mêmes index dans le bundle
+// « après » (même nombre d'éléments, comparé), puis masqués sur les deux captures ; tout autre écart reste détecté.
+const MARQUER_TEXTE_COLORE = releves => {
+  const tous = [...document.querySelectorAll('*')];
+  let index = releves;
+  if (!index) {
+    const lire = s => (s.match(/[\d.]+/g) || []).map(Number);
+    const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
+    const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
+    index = tous.map((e, j) => [e, j]).filter(([e]) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
+      .filter(([e]) => { const c = lire(getComputedStyle(e).color); return primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); }).map(([, j]) => j);
+  }
+  index.forEach(j => { if (tous[j]) { tous[j].setAttribute('data-kr-texte-colore', ''); } });
+  return index;
+};
 
 // ---------- sondes ----------
 const TOOLS = [
@@ -1244,6 +1260,7 @@ if (frag('regression')) {
   console.log('Non-régression : réception, envoi, corbeille, lecture rendues avec le bundle d\'avant et celui d\'après (1280 / 375 / 320)');
   if (JETONS_AVANT) { console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant », antérieur au ticket'); }
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
+  console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1253,6 +1270,7 @@ if (frag('regression')) {
     const compared = await mapLimit(COMBOS, async ({ pg, width }) => {
       const shots = {};
       const doms = {};
+      let texteColore = null;
       for (const bundle of ['avant', 'apres']) {
         // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
         // début du document.
@@ -1264,10 +1282,11 @@ if (frag('regression')) {
           while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
         });
         const paire = await p.evaluate(MARQUER_PAIRE);
+        texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
         doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire]')] });
+        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore]')] });
         let prev = await capture();
         for (let i = 0; i < 6; i++) {
           await p.waitForTimeout(150);

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture accueil de la palette de nation (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la suite palette-nation (épopée 3, ticket 3 : texte coloré) : aucune donnée réelle. Servie à /accueil (classe
+       page-accueil posée par le template). Structure déjà transformée par le template : compteurs (.kraland-metrics, icône et nombre),
+       section forum de la colonne droite (.accueil-forum-section, titre de catégorie .ds_forum h4) et carte ministérielle
+       (.kr-ministerial-card, nom en gras). Rien n'est cliqué ni envoyé. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3">
+        <div class="kraland-metrics list-group">
+          <a class="list-group-item ds_users" href="monde/membres"><span class="pull-right"><i id="compteur-icone" class="fa fa-users"></i></span><h4 id="compteur" class="count">1234</h4><p>Membres actifs</p></a>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="kr-ministerial-card"><strong id="ministre">Ministre d'essai</strong> : communiqué d'essai.</div>
+      </div>
+      <div class="col-md-3">
+        <div class="accueil-forum-section">
+          <h4>Forum</h4>
+          <div class="list-group-item ds_forum"><h4 id="forum-categorie">Catégorie d'essai</h4><a href="forum/hrp">Sujet d'essai</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -23,6 +23,13 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ## Décisions à confirmer
 
+- Ticket 3.3, texte coloré en accent, rouge et bleu en dur (décidé en autonomie le 2026-10-23) :
+  - modale du changelog (point résolu, décision à confirmer) : son fond est noir dans les 16 variantes, où l'accent du clair tombait de 2,01:1 (Paladium) à 3,55:1 (Théocratie Seelienne). Option retenue : titre, version et puces y gardent le texte clair de la modale (hérité) au lieu de l'accent, ≥ 4,5:1 dans les 16 variantes. Alternative : modale sur la surface claire du thème en clair, avec l'accent ;
+  - flèche du carrousel en sombre : opacité passée de 0,7 à 1 (à 0,7, l'accent tombait à 3,4:1 en Kraland sombre) ;
+  - alerte d'avertissement en sombre : fond passé de 15 % à 8 % d'ambre. Avec 15 %, le lien en accent tombait à 4,36:1 en Kraland sombre et à 4,04:1 en Paladium sombre. Avec 8 %, il passe à 5,02:1 et 4,65:1. Les 12 % prévus pour les alertes (maquette) feraient retomber Paladium sombre à 4,30:1 : à arbitrer au ticket 3.5 ;
+  - boutons génériques de la barre BBCode : fond passé de `--kr-surface` (blanc dans les 16 variantes) à `--kr-bg-surface`. En sombre, l'accent sur blanc tombait entre 1,66:1 et 3,34:1 ; le clair ne change pas ;
+  - couleurs de nation `.f1` à `.f9` en sombre : déjà toutes ≥ 6,26:1 sur `bg-surface` et `bg-elevated` dans les 8 variantes sombres, donc aucune valeur changée ; le contrôle est ajouté ;
+  - effets visibles en clair : ces textes passent du vert au rouge en Royaume de Ruthvénie, de l'or au vert en Paladium et au brun `#8a5a00` en Empire Brun.
 - Ticket 3.2, texte posé sur la couleur de nation (décidé en autonomie le 2026-10-23) :
   - fond et encre changent ensemble : tout fond en couleur de nation prend la paire d'action. Au repos, c'est `--kr-arm-bg` / `--kr-arm-ink` ; au survol, à l'appui et sur la primaire foncée, `--kr-arm-bg-hover` / `--kr-arm-ink-hover`. Effets visibles :
     - en clair, le texte des boutons primaires passe du rose (accent inverse) au blanc, et à l'encre sombre en Paladium ;

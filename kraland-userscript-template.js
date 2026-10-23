@@ -5827,7 +5827,7 @@
           const checkIcon = document.createElement('span');
           checkIcon.textContent = '✓';
           checkIcon.style.cssText = `
-            color: var(--kr-primary);
+            color: var(--kr-text-accent);
             font-weight: 700;
           `;
           nameSpan.insertBefore(checkIcon, nameSpan.firstChild);

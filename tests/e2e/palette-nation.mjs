@@ -27,15 +27,28 @@
 //   balayage        fixtures de référence (report, plateau, sujet, sous-forum, index RP, réception du kramail), 375 et 1280 px, 16 variantes :
 //                   tout texte visible dont le fond effectif est une couleur de nation ≥ 4,5:1, au repos et pseudo-classe forcée sur les
 //                   éléments interactifs ; dossier actif du kramail en paire ; barre d'envoi fixe pressée (rédaction, mobile) en paire de survol.
-// Hors de ce ticket, donc non vérifiés ici : liens des alertes en sombre et autres textes en primaire (ticket 3), en-têtes, onglets et bouton
-// standard (ticket 4), alerte info du sombre (ticket 5), focus (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6).
+// Ticket 3 (H5.6, Q2 ; plan story-texte-colore-lisible-plus-de-rouge-kraland-ni-de-bleu-bootst) : tout texte en primaire ou en primaire foncée
+// passe à --kr-text-accent, rouge Kraland et bleu #2196F3 en dur remplacés par des jetons de la nation :
+//   texte coloré    un échantillon par règle effective (TEXTES), dans sa page (fixtures synthétiques palette-nation-textes.html et
+//                   palette-nation-accueil.html, sous-forum, réception et rédaction du kramail), 375 et 1280 px, 16 variantes, au repos ou
+//                   pseudo-classe forcée (survol sur ordinateur, appui ou toucher sur mobile) : --kr-text-accent, ≥ 4,5:1, opacité
+//                   comprise (modale du changelog, noire dans toutes les variantes : texte clair hérité de la modale) ;
+//   sombre          balayage de ces pages et du sujet, repos, survol, appui et focus forcés : aucun texte en primaire ni en primaire foncée
+//                   hors texte posé sur la couleur de nation ; liens des alertes info, avertissement et danger en accent ;
+//   nations         .f1 à .f9 posées sur bg-surface, 8 variantes sombres : ≥ 4,5:1 ;
+//   en dur          barre d'outils d'une confirmation, en-tête repliable, champ au focus, carte du forum, mini-chat, barre
+//                   du kramail (DURS), 15 variantes hors Kraland : aucun rgb(139, 15, 14) ni #2196F3 calculé ; mini-chat en paire d'action,
+//                   contour de la carte du forum au focus en accent ;
+//   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
+// Hors de ces tickets, donc non vérifiés ici : en-têtes, onglets et bouton standard (ticket 4), alerte info du sombre (ticket 5), focus
+// (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6).
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
 // variantes ouvertes et contrastes mesurés par l'outil partagé (lib/variantes.mjs). Confinement réseau ; gestes : le survol à la souris et
 // les pseudo-classes forcées par le protocole du navigateur (CSS.forcePseudoState), aucun clic, aucun envoi.
 //
 // Usage : npm run build && node tests/e2e/palette-nation.mjs   (ou npm run test:zone -- palette-nation)
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, peau-coupee, balayage-mobile,
-//           balayage-bureau (vide = tout).
+//           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -653,6 +666,247 @@ for (const [frag, width] of [['balayage-mobile', 375], ['balayage-bureau', 1280]
     check(`${tag} ${REDACTION.nom} : barre d'envoi fixe en paire au repos et en paire de survol pressée, 16 variantes`, () => {
       sansEcart(VARIANTES.flatMap((v, i) => [...ecartsDePaire(v, `${v} au repos`, barres[i].repos, 'repos'), ...ecartsDePaire(v, `${v} pressée`, barres[i].appui, 'survol')]));
     });
+  }
+}
+
+// ---------- Texte coloré, couleurs de nation, rouge Kraland et bleu en dur (ticket 3) ----------
+// Pages : fixture synthétique des textes (sans classe de page), accueil synthétique, sous-forum, sujet, réception et rédaction du kramail.
+const PAGES_TEXTES = [
+  { nom: 'textes', url: PAGE, corps: FIXTURE('palette-nation-textes.html') },
+  { nom: 'accueil', url: BASE + '/accueil', corps: FIXTURE('palette-nation-accueil.html') },
+  ...PAGES_BALAYAGE.filter(p => ['sous-forum', 'sujet', 'réception du kramail'].includes(p.nom)),
+  REDACTION
+];
+// Texte aujourd'hui en primaire : page, sélecteur (« ::before » : pseudo-élément), nom, quand (sombre, mobile), état forcé (chaîne : les deux
+// supports ; objet : par support ; null : au repos). Attendu : --kr-text-accent, ≥ 4,5:1 sur son fond effectif. herite : modale du
+// changelog, fond noir dans toutes les variantes : texte clair hérité de la modale (couleur de son parent, ou de l'élément pour un
+// pseudo-élément), au lieu de l'accent.
+const T = (page, sel, quoi, quand = TOUS, etat = null, o = {}) => ({ page, sel, quoi, quand, etat, ...o });
+const CLAIR = sombre => !sombre;
+const TEXTES = [
+  T('textes', '#outil', 'barre d\'outils de l\'éditeur'),
+  T('textes', '#outil', 'barre d\'outils de l\'éditeur survolée', TOUS, 'hover'),
+  T('textes', '#page-lien', 'page de la pagination', CLAIR),
+  T('textes', '#page-lien', 'page de la pagination survolée', TOUS, 'hover'),
+  T('textes', '#page-span', 'page de la pagination (span) survolée', SOMBRE, 'hover'),
+  T('textes', '#page-tableau', 'page de tableau survolée', SOMBRE, 'hover'),
+  T('textes', '#lien-info', 'lien d\'une alerte info', SOMBRE),
+  T('textes', '#lien-avertissement', 'lien d\'une alerte d\'avertissement', SOMBRE),
+  T('textes', '#lien-danger', 'lien d\'une alerte de danger', SOMBRE),
+  T('textes', '#menu-actif', 'entrée active du menu de la barre du haut', MOBILE),
+  T('textes', '#menu-entree', 'entrée du menu de la barre du haut pressée', MOBILE, 'active'),
+  T('textes', '#onglet-modale', 'onglet actif d\'une modale', MOBILE),
+  T('textes', '#libelle-confirmation', 'libellé d\'une confirmation touché', MOBILE, 'hover'),
+  T('textes', '#obligatoire', 'astérisque d\'un champ obligatoire', MOBILE),
+  T('textes', '#repliable', 'en-tête repliable touché', MOBILE, 'hover'),
+  T('textes', '#carrousel', 'flèche du carrousel', SOMBRE),
+  T('textes', '#changelog-titre', 'titre du changelog', TOUS, null, { herite: true }),
+  T('textes', '#changelog-entree::before', 'coche d\'une entrée du changelog', TOUS, null, { herite: true }),
+  T('textes', '#version-titre', 'version de l\'historique du changelog', TOUS, null, { herite: true }),
+  T('textes', '#version-entree::before', 'puce de l\'historique du changelog', TOUS, null, { herite: true }),
+  T('accueil', '#compteur', 'compteur de l\'accueil'),
+  T('accueil', '#compteur-icone', 'icône d\'un compteur de l\'accueil', BUREAU),
+  T('accueil', '#ministre', 'nom de la carte ministérielle'),
+  T('accueil', '#forum-categorie', 'catégorie du forum de l\'accueil', BUREAU),
+  T('sous-forum', '.table > tbody > tr > td > a.nomargin', 'lien vers un forum pressé', MOBILE, 'active'),
+  T('sous-forum', 'span.tagforum a', 'étiquette de forum pressée', MOBILE, 'active'),
+  T('réception du kramail', 'h3[class$="title"]', 'titre du panneau du kramail', MOBILE),
+  T('réception du kramail', '.kramail-character-option > div > span:first-child', 'coche du personnage actif', MOBILE),
+  T('réception du kramail', 'h1.page-header .btn-default', 'dossier du kramail survolé', BUREAU, 'hover'),
+  T('rédaction du kramail', 'span.required', 'astérisque d\'un champ obligatoire du kramail')
+];
+// Rouge Kraland et bleu en dur : élément, quand, état forcé ; propriétés lues : texte, fond, bordure, contour, ombre, surbrillance tactile.
+const D = (page, sel, quoi, quand = TOUS, etat = null) => ({ page, sel, quoi, quand, etat });
+const DURS = [
+  D('textes', '#outil-modale', 'barre d\'outils d\'une confirmation pressée', MOBILE, 'active'),
+  D('textes', '#repliable', 'en-tête repliable survolé', MOBILE, 'hover'),
+  D('textes', '#nom', 'champ au focus', MOBILE, 'focus'),
+  D('textes', '#carte-forum', 'carte du forum'),
+  D('textes', '#carte-forum', 'carte du forum au focus', TOUS, 'focus'),
+  D('textes', '#mini-chat', 'bouton du mini-chat', MOBILE),
+  D('rédaction du kramail', '.editeur-text [role="toolbar"] .btn', 'barre d\'outils du kramail pressée', MOBILE, 'active')
+];
+const PROPS_DUR = ['color', 'background-color', 'border-top-color', 'outline-color', 'box-shadow', '-webkit-tap-highlight-color'];
+const ROUGE_DUR = [139, 15, 14];
+const BLEU_DUR = [33, 150, 243];
+const PSEUDOS_TEXTES = ['hover', 'active', 'focus', 'focus-visible'];
+// Balayage du sombre : éléments interactifs forcés ensemble (survol, appui, focus).
+const CIBLES_BALAYAGE = [...INTERACTIFS, '.pagination > li > span'];
+const NATIONS = ['#f1', '#f2', '#f3', '#f4', '#f5', '#f6', '#f7', '#f8', '#f9'];
+
+// À évaluer dans la page : couleur du texte (ou du pseudo-élément), couleur héritée (parent, ou l'élément pour un pseudo-élément), fond effectif
+// et contraste, l'opacité de l'élément et de ses ancêtres comptée dans celle du texte ; aucune exigence de visibilité (menus fermés).
+const MESURES_TEXTE = sels => {
+  const K = window.__krContraste;
+  return Object.fromEntries(sels.map(sel => {
+    const [base, pseudo] = sel.split('::');
+    const e = document.querySelector(base);
+    if (!e) { return [sel, null]; }
+    const c = getComputedStyle(e, pseudo ? '::' + pseudo : null).color;
+    const herite = getComputedStyle(pseudo ? e : e.parentElement).color;
+    const f = K.fond(e);
+    const t = K.rgb(c);
+    let a = t[3];
+    for (let x = e; x; x = x.parentElement) { a *= Number(getComputedStyle(x).opacity); }
+    return [sel, { couleur: c, herite, fond: `rgb(${f.map(Math.round).join(', ')})`, contraste: K.rapport([0, 1, 2].map(i => t[i] * a + f[i] * (1 - a)), f) }];
+  }));
+};
+const MESURES_DUR = ([sels, props]) => Object.fromEntries(sels.map(sel => {
+  const e = document.querySelector(sel);
+  if (!e) { return [sel, null]; }
+  const s = getComputedStyle(e);
+  return [sel, Object.fromEntries(props.map(p => [p, s.getPropertyValue(p)]))];
+}));
+// Balayage : texte (nœud texte, valeur d'un bouton, ::before ou ::after) en primaire ou en primaire foncée, hors texte posé sur la couleur
+// de nation (primaire, primaire foncée, --kr-arm-bg, --kr-arm-bg-hover), qui relève du ticket 2, et hors couleurs de nation .f1 à .f9 (vérifiées à part :
+// celle d'Empire Brun vaut la primaire de Paladium sombre).
+const BALAYER_PRIMAIRE = () => {
+  const K = window.__krContraste;
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = K.rgb(getComputedStyle(i).color); i.remove(); return c; };
+  const proche = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
+  const paires = [...primaires, ...['var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde)];
+  const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
+  const out = { vus: 0, faux: [] };
+  for (const e of document.body.querySelectorAll('*')) {
+    if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'OPTION'].includes(e.tagName)) { continue; }
+    const cas = [];
+    if (e.tagName === 'INPUT' ? ['button', 'submit', 'reset'].includes(e.type) && e.value.trim() : [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) { cas.push(['', getComputedStyle(e).color]); }
+    for (const w of ['::before', '::after']) { const p = getComputedStyle(e, w); if (!['none', 'normal', '""'].includes(p.content)) { cas.push([w, p.color]); } }
+    if (!cas.length || /^f[1-9]$/.test(e.className)) { continue; }
+    if (paires.some(n => proche(K.fond(e), n))) { continue; }
+    out.vus += 1;
+    for (const [w, c] of cas) { if (primaires.some(p => proche(K.rgb(c), p))) { out.faux.push(`${nom(e)}${w} : ${c}`); } }
+  }
+  return out;
+};
+
+async function texteScenario(p, variante, width) {
+  const mobile = width < 768;
+  const sombre = variante.endsWith('-dark');
+  const { context, page, denied, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps });
+  const etatDe = x => (x.etat && typeof x.etat === 'object' ? x.etat[mobile ? 'mobile' : 'bureau'] : x.etat) || null;
+  const textes = TEXTES.filter(x => x.page === p.nom && x.quand(sombre, mobile));
+  const durs = DURS.filter(x => x.page === p.nom && x.quand(sombre, mobile));
+  const cle = x => x.sel + (etatDe(x) ? ':' + etatDe(x) : '');
+  const sonde = expr => page.evaluate(e => { const i = document.createElement('i'); i.style.color = e; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; }, expr);
+  const r = { accent: await sonde('var(--kr-text-accent)'), surface: await sonde('var(--kr-bg-surface)'), textes: {}, durs: {}, balayage: [] };
+  const mesurer = async etat => {
+    const t = textes.filter(x => etatDe(x) === etat);
+    const d = durs.filter(x => x.etat === etat);
+    const mt = await page.evaluate(MESURES_TEXTE, t.map(x => x.sel));
+    const md = await page.evaluate(MESURES_DUR, [d.map(x => x.sel), PROPS_DUR]);
+    t.forEach(x => { r.textes[cle(x)] = mt[x.sel]; });
+    d.forEach(x => { r.durs[x.sel + (x.etat ? ':' + x.etat : '')] = md[x.sel]; });
+    if (sombre && etat !== 'focus-visible') { r.balayage.push([etat || 'repos', await page.evaluate(BALAYER_PRIMAIRE)]); }
+  };
+  await mesurer(null);
+  if (p.nom === 'textes') {
+    r.nations = await page.evaluate(MESURES_TEXTE, NATIONS);
+    r.miniChat = (await page.evaluate(MESURES, ['#mini-chat']))['#mini-chat'];
+  }
+  for (const etat of PSEUDOS_TEXTES) {
+    const avecBalayage = sombre && etat !== 'focus-visible';
+    const cibles = [...new Set([...(avecBalayage ? CIBLES_BALAYAGE : []), ...textes.filter(x => etatDe(x) === etat).map(x => x.sel.split('::')[0]), ...durs.filter(x => x.etat === etat).map(x => x.sel)])];
+    if (cibles.length) { await forcer(page, cibles, etat, () => mesurer(etat)); }
+  }
+  await context.close();
+  return { ...r, erreurs, denied: denied.filter(d => d.url.startsWith(BASE)).map(d => d.url) };
+}
+
+const ecartsTextes = (variante, mobile, res) => {
+  const sombre = variante.endsWith('-dark');
+  const faux = [];
+  for (const [i, p] of PAGES_TEXTES.entries()) {
+    const r = res[i];
+    for (const x of TEXTES.filter(t => t.page === p.nom && t.quand(sombre, mobile))) {
+      const etat = (x.etat && typeof x.etat === 'object' ? x.etat[mobile ? 'mobile' : 'bureau'] : x.etat) || null;
+      const m = r.textes[x.sel + (etat ? ':' + etat : '')];
+      const quoi = `${x.quoi}${etat ? ` (:${etat})` : ''}`;
+      if (!m) { faux.push(`${quoi} : absent`); continue; }
+      if (x.herite) {
+        if (!memeCouleur(m.couleur, m.herite)) { faux.push(`${quoi} : ${m.couleur} au lieu du texte hérité ${m.herite}`); }
+      } else if (!memeCouleur(m.couleur, r.accent) || !egal(m.couleur, attendu(variante, 'text-accent'))) { faux.push(`${quoi} : ${m.couleur} au lieu de --kr-text-accent ${attendu(variante, 'text-accent')}`); }
+      if (!(m.contraste >= 4.5)) { faux.push(`${quoi} : ${m.contraste.toFixed(2)}:1 sur ${m.fond}`); }
+    }
+  }
+  return faux;
+};
+const couleursDe = s => (String(s).match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g) || []).map(lire);
+const ecartsDurs = (variante, mobile, res) => {
+  const sombre = variante.endsWith('-dark');
+  const faux = [];
+  for (const [i, p] of PAGES_TEXTES.entries()) {
+    for (const x of DURS.filter(d => d.page === p.nom && d.quand(sombre, mobile))) {
+      const m = res[i].durs[x.sel + (x.etat ? ':' + x.etat : '')];
+      const quoi = `${x.quoi}${x.etat ? ` (:${x.etat})` : ''}`;
+      if (!m) { faux.push(`${quoi} : absent`); continue; }
+      for (const [k, v] of Object.entries(m)) {
+        for (const c of couleursDe(v)) {
+          if ([0, 1, 2].every(j => Math.abs(c[j] - ROUGE_DUR[j]) <= 1)) { faux.push(`${quoi} : ${k} ${v} (rouge Kraland)`); }
+          if ([0, 1, 2].every(j => Math.abs(c[j] - BLEU_DUR[j]) <= 1)) { faux.push(`${quoi} : ${k} ${v} (#2196F3)`); }
+        }
+      }
+    }
+  }
+  return faux;
+};
+function verifierTextes(tag, variante, res, mobile) {
+  const sombre = variante.endsWith('-dark');
+  const t = res[0];
+  // Requêtes refusées : fixtures synthétiques seulement (les fixtures de référence demandent leurs polices, refusées par le confinement).
+  check(`${tag} ${variante} : pages des textes colorés (${PAGES_TEXTES.map(p => p.nom).join(', ')}), aucune exception ; aucune requête vers le site hors fixture (textes, accueil)`, () => {
+    sansEcart(res.flatMap((r, i) => [...r.erreurs.map(e => `${PAGES_TEXTES[i].nom} : exception ${e}`), ...(i < 2 ? r.denied : []).map(d => `${PAGES_TEXTES[i].nom} : requête ${d}`)]));
+  });
+  const n = TEXTES.filter(x => x.quand(sombre, mobile)).length;
+  check(`${tag} ${variante} : texte coloré (${n} échantillons, repos et ${mobile ? 'appui ou toucher' : 'survol'}) en --kr-text-accent (changelog : texte hérité de la modale), ≥ 4,5:1`, () => sansEcart(ecartsTextes(variante, mobile, res)));
+  if (sombre) {
+    check(`${tag} ${variante} : aucun texte en primaire ni en primaire foncée (${PAGES_TEXTES.length} pages, repos, survol, appui et focus forcés ; ${res.reduce((s, r) => s + r.balayage.reduce((u, [, b]) => u + b.vus, 0), 0)} textes)`, () => {
+      sansEcart(res.flatMap((r, i) => r.balayage.flatMap(([etat, b]) => b.faux.slice(0, 4).map(f => `${PAGES_TEXTES[i].nom} (${etat}) ${f}`))));
+    });
+    check(`${tag} ${variante} : couleurs de nation .f1 à .f9 ≥ 4,5:1 sur bg-surface`, () => {
+      sansEcart(NATIONS.flatMap(s => { const m = t.nations[s]; return !m ? [`${s} : absent`] : [...(memeCouleur(m.fond, t.surface) ? [] : [`${s} : fond ${m.fond} au lieu de bg-surface ${t.surface}`]), ...(m.contraste >= 4.5 ? [] : [`${s} : ${m.couleur} à ${m.contraste.toFixed(2)}:1`])]; }));
+    });
+  }
+  check(`${tag} ${variante} : ${mobile ? 'bouton du mini-chat en paire d\'action, ' : ''}contour de la carte du forum au focus en --kr-text-accent`, () => {
+    const faux = mobile ? ecartsDePaire(variante, 'bouton du mini-chat', t.miniChat, 'repos') : [];
+    const focus = t.durs['#carte-forum:focus'];
+    if (!focus || !memeCouleur(focus['outline-color'], t.accent)) { faux.push(`carte du forum au focus : contour ${focus && focus['outline-color']} au lieu de ${t.accent}`); }
+    sansEcart(faux);
+  });
+  if (variante !== 'kraland') {
+    const nd = DURS.filter(x => x.quand(sombre, mobile)).length;
+    check(`${tag} ${variante} : aucun rouge Kraland rgb(139, 15, 14) ni #2196F3 en dur (${nd} éléments : ${PROPS_DUR.join(', ')})`, () => sansEcart(ecartsDurs(variante, mobile, res)));
+  }
+}
+for (const [frag, width] of [['textes-mobile', 375], ['textes-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Texte coloré ${width} px, 16 variantes : ${PAGES_TEXTES.map(p => p.nom).join(', ')} ; couleurs de nation et balayage en sombre ; rouge et bleu en dur hors Kraland`);
+  const cas = VARIANTES.flatMap(variante => PAGES_TEXTES.map(p => ({ p, variante })));
+  const res = await mapLimit(cas, c => texteScenario(c.p, c.variante, width), 16);
+  VARIANTES.forEach((v, i) => verifierTextes(tag, v, res.slice(i * PAGES_TEXTES.length, (i + 1) * PAGES_TEXTES.length), width < 768));
+}
+if (on('textes-largeurs')) {
+  console.log(`Texte coloré, largeurs ${LARGEURS.join(', ')} px contre 375 et 1280 px : ${VARIANTES_LARGEURS.join(' et ')}`);
+  const cas = VARIANTES_LARGEURS.flatMap(variante => [375, 1280, ...LARGEURS].flatMap(width => PAGES_TEXTES.map(p => ({ p, variante, width }))));
+  const res = await mapLimit(cas, c => texteScenario(c.p, c.variante, c.width), 16);
+  const de = (variante, width) => res.filter((r, i) => cas[i].variante === variante && cas[i].width === width);
+  // Valeurs comparées, à plat (page, clé) pour nommer chaque écart : couleur des textes (leur fond peut changer avec la page : kramail sous
+  // 769 px), propriétés des valeurs en dur, paire du mini-chat.
+  const couleurs = o => Object.fromEntries(Object.entries(o || {}).map(([k, m]) => [k, m && m.couleur]));
+  const valeurs = l => l.flatMap((r, i) => Object.entries({ accent: r.accent, ...couleurs(r.textes), ...r.durs, ...couleurs(r.nations), miniChat: r.miniChat && [r.miniChat.couleur, r.miniChat.fondPropre] })
+    .map(([k, v]) => [`${PAGES_TEXTES[i].nom} ${k}`, JSON.stringify(v)]));
+  const ecartsValeurs = (a, b) => { const m = new Map(b); return a.filter(([k, v]) => m.get(k) !== v).map(([k, v]) => `${k} : ${v} au lieu de ${m.get(k)}`); };
+  for (const variante of VARIANTES_LARGEURS) {
+    for (const width of LARGEURS) {
+      const ref = width < 768 ? 375 : 1280;
+      check(`[largeurs] ${variante} ${width} px : texte coloré, rouge et bleu en dur comme à ${ref} px, mêmes contrôles verts`, () => {
+        const faux = [...ecartsTextes(variante, width < 768, de(variante, width)), ...(variante === 'kraland' ? [] : ecartsDurs(variante, width < 768, de(variante, width)))];
+        sansEcart(faux);
+        sansEcart(ecartsValeurs(valeurs(de(variante, width)), valeurs(de(variante, ref))).map(x => `contre ${ref} px, ${x}`));
+      });
+    }
   }
 }
 

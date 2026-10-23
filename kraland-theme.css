@@ -208,7 +208,7 @@ html[class*="-dark"] {
 
   /* Jetons de rôle en sombre (DESIGN.md › Colors) : teintes = surface surélevée et bordure du thème, texte de la nation = accent (H5.6),
      alerte info = primaire mêlée à bg-surface (15 % et 30 %, Q4). La règle html[class*="-dark"] .alert-info garde pour l'instant son
-     fond et sa bordure (ticket 3.5) : ses liens restent en primaire jusqu'au ticket 3.3. */
+     fond et sa bordure (ticket 3.5) ; ses liens sont en accent (H5.6). */
   --kr-text-nation: var(--kr-highlight);
   --kr-header-tint: var(--kr-bg-elevated);
   --kr-border-tint: var(--kr-border-default);
@@ -1162,7 +1162,7 @@ a.carousel-control.right{
 }
 
 .bootbox-confirm .panel-actions label:hover {
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
 }
 
 /* TABLE OBJETS - Style normal conservé */
@@ -1408,7 +1408,7 @@ a.carousel-control.right{
 
 /* Hover/Active feedback */
 .bootbox-confirm .btn-toolbar .btn:active {
-  background: rgba(139, 15, 14, 0.15) !important;
+  background: color-mix(in srgb, var(--kr-primary) 15%, transparent) !important;
 }
 
 /* Scrollbar discrète */
@@ -2034,11 +2034,11 @@ a.carousel-control.right{
 }
 
 .pagination > li > a{
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
 }
 
 .pagination > li > a:hover{
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
 }
 
 /*
@@ -2550,11 +2550,12 @@ footer .container.white {
    Styles pour les boutons de l'éditeur BBCode
    ============================================================================ */
 
-/* Style de base pour tous les boutons de l'éditeur, sauf la palette de couleurs */
+/* Style de base pour tous les boutons de l'éditeur, sauf la palette de couleurs ; fond de la surface du thème : texte en accent lisible en
+   sombre (H5.6) */
 .btn-toolbar .btn:not(.dropdown-menu *) {
-  background-color: var(--kr-surface) !important;
+  background-color: var(--kr-bg-surface) !important;
   background-image: none !important;
-  color: var(--kr-primary) !important;
+  color: var(--kr-text-accent) !important;
   border: 1px solid rgb(0,0,0,0.06) !important;
   box-shadow: none !important;
 }
@@ -2861,7 +2862,7 @@ html[class*="-dark"] .alert * {
 }
 
 html[class*="-dark"] .alert a {
-  color: var(--kr-primary) !important;
+  color: var(--kr-text-accent) !important;
   text-decoration: underline;
 }
 
@@ -2877,8 +2878,9 @@ html[class*="-dark"] .alert-success {
   color: var(--kr-text-primary);
 }
 
+/* H5.6 : fond à 8 % pour que le lien en accent atteigne 4,5:1 (Paladium sombre : 4,65:1) */
 html[class*="-dark"] .alert-warning {
-  background-color: rgb(245, 158, 11, 0.15);
+  background-color: rgb(245, 158, 11, 0.08);
   border-color: rgb(245, 158, 11, 0.3);
   color: var(--kr-text-primary);
 }
@@ -3223,15 +3225,17 @@ html[class*="-dark"] hr {
 }
 
 /* === CAROUSEL === */
+
+/* Opacité pleine : l'accent atteint 4,5:1 (à 0,7 : 3,4:1 en Kraland sombre) */
 html[class*="-dark"] .carousel-control {
-  color: var(--kr-primary);
-  opacity: 0.7;
+  color: var(--kr-text-accent);
+  opacity: 1;
 }
 
 html[class*="-dark"] .carousel-control:hover,
 html[class*="-dark"] .carousel-control:focus {
   color: var(--kr-highlight);
-  opacity: 0.9;
+  opacity: 1;
 }
 
 html[class*="-dark"] .carousel-indicators li {
@@ -3569,7 +3573,7 @@ html[class*="-dark"] .pagination > li > a:hover,
 html[class*="-dark"] .pagination > li > span:hover {
   background-color: var(--kr-bg-hover) !important;
   border-color: var(--kr-border-strong) !important;
-  color: var(--kr-primary) !important;
+  color: var(--kr-text-accent) !important;
 }
 
 /* Q1 : page active en paire de survol d'action, comme en clair */
@@ -3613,7 +3617,7 @@ html[class*="-dark"] .dataTables_paginate .paginate_button.disabled:hover {
 html[class*="-dark"] .dataTables_paginate .paginate_button:not(.disabled):hover {
   background-color: var(--kr-bg-hover) !important;
   border-color: var(--kr-border-strong) !important;
-  color: var(--kr-primary) !important;
+  color: var(--kr-text-accent) !important;
 }
 
 html[class*="-dark"] .dataTables_paginate .paginate_button.current:hover {
@@ -5246,7 +5250,7 @@ body > map {
     .mobile-tab-bar.nav-tabs > li.active > a,
     .mobile-tab-bar.nav-tabs > li.active > a:hover,
     .mobile-tab-bar.nav-tabs > li.active > a:focus {
-      color: var(--kr-primary);
+      color: var(--kr-text-accent);
       background: transparent;
       border-bottom-color: var(--kr-primary);
       font-weight: 600;
@@ -7030,7 +7034,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:hover,
     body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li.active > a:focus {
       background: var(--kr-bg-elevated) !important;
-      color: var(--kr-primary) !important;
+      color: var(--kr-text-accent) !important;
       border: none !important;
       border-bottom: 3px solid var(--kr-primary) !important;
       font-weight: 600 !important;
@@ -7364,7 +7368,7 @@ body.mobile-mode .building-section-content img.img-responsive {
 
     /* Feedback tactile */
     body.mobile-mode .bootbox.modal .btn-toolbar .btn:active {
-      background: rgba(139, 15, 14, 0.15) !important;
+      background: color-mix(in srgb, var(--kr-primary) 15%, transparent) !important;
     }
 
     /* Scrollbar discrète */
@@ -7741,7 +7745,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* === MODÉRATEURS === */
@@ -7766,7 +7770,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     text-decoration: underline !important;
   }
   
@@ -7853,7 +7857,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     text-decoration: underline !important;
   }
   
@@ -7890,7 +7894,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* Icône flèche dans le lien vers le message - 20x20px */
@@ -7952,7 +7956,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   .navbar-collapse .dropdown.open > .dropdown-menu > li > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     background-color: rgba(0, 0, 0, 0.08) !important;
     border-left-color: var(--kr-primary) !important;
   }
@@ -7980,7 +7984,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   .navbar-collapse .dropdown.open > .dropdown-menu > .active > a,
   .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:hover,
   .navbar-collapse .dropdown.open > .dropdown-menu > .active > a:focus {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     background-color: rgba(0, 0, 0, 0.1) !important;
     border-left-color: var(--kr-primary) !important;
   }
@@ -8063,7 +8067,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   min-height: 100px;
   
   /* Active state feedback */
-  -webkit-tap-highlight-color: rgba(139, 15, 14, 0.05);
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--kr-primary) 5%, transparent);
 }
 
 .forum-card-link:hover,
@@ -8171,7 +8175,7 @@ body.mobile-mode .building-section-content img.img-responsive {
 
 /* Accessibilité: focus visible */
 .forum-card-link:focus {
-  outline: 2px solid #2196F3;
+  outline: 2px solid var(--kr-text-accent);
   outline-offset: 2px;
 }
 
@@ -8183,8 +8187,8 @@ body.mobile-mode .building-section-content img.img-responsive {
   right: 16px;
   width: 56px;
   height: 56px;
-  background: #2196F3;
-  color: white;
+  background: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
   border: none;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -8354,7 +8358,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     font-size: 16px !important;
     font-weight: 600 !important;
     margin: 0 !important;
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* Tableaux du forum en cartes (2e version) : hors index RP, HRP, Communauté et Débats (P1), présentés comme le sous-forum (section
@@ -8435,7 +8439,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* === MODÉRATEURS === */
@@ -8458,7 +8462,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     text-decoration: underline !important;
   }
   
@@ -8539,7 +8543,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a:active,
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     text-decoration: underline !important;
   }
   
@@ -8576,7 +8580,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a:active,
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p > a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* Icône flèche dans le lien vers le message - 20x20px */
@@ -8675,7 +8679,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   /* Feedback tactile sur titre */
   body.page-forum table.dataTable tbody td:nth-child(1) p a:active {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* === ICÔNES ET PAGINATION : MASQUÉES === */
@@ -8772,7 +8776,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* Icône lien vers message */
   body.page-forum table.dataTable tbody td:nth-child(5) p a .glyphicon {
     font-size: 12px !important;
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
   
   /* Feedback tactile zone dernier message */
@@ -9003,7 +9007,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   body.page-kramail .panel-heading h3.panel-title {
     font-size: 16px !important;
     font-weight: 600 !important;
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
   }
 
   /* Icône chevron collapse */
@@ -9469,7 +9473,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   .kramail-msg-recipients a {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     text-decoration: none !important;
   }
 
@@ -9501,7 +9505,7 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   .kramail-msg-body blockquote .fa-quote-left,
   .kramail-msg-body blockquote .text-warning {
-    color: var(--kr-primary) !important;
+    color: var(--kr-text-accent) !important;
     opacity: 0.6 !important;
     margin-right: 6px !important;
     font-size: 12px !important;
@@ -9685,21 +9689,13 @@ body.mobile-mode .building-section-content img.img-responsive {
     flex-shrink: 0;
   }
 
-  .btn-toolbar .btn:hover {
-    background: rgba(139, 15, 14, 0.1);
-    border-color: var(--kr-primary);
-    color: var(--kr-primary);
-  }
-
+  /* Fond, texte, bordure et ombre : ceux de la règle de base des boutons de l'éditeur (!important) */
   .btn-toolbar .btn:active {
-    background: rgba(139, 15, 14, 0.2);
     transform: scale(0.95);
   }
 
   .btn-toolbar .btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
-    border-color: var(--kr-primary);
   }
 
   /* 2. FORM CONTROLS - Inputs, textareas, selects */
@@ -9715,7 +9711,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   .form-control:focus {
     outline: none;
     border-color: var(--kr-primary);
-    box-shadow: 0 0 0 3px rgba(139, 15, 14, 0.1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--kr-primary) 10%, transparent);
   }
 
   /* Textarea - Priorité message */
@@ -9745,7 +9741,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   .form-group label .required {
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
   }
 
   /* 4. CHECKBOXES - Inline avec spacing tactile */
@@ -9844,9 +9840,9 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   .accordion-toggle:hover,
   a[data-toggle="collapse"]:hover {
-    background: rgba(139, 15, 14, 0.05);
+    background: color-mix(in srgb, var(--kr-primary) 5%, transparent);
     border-color: var(--kr-primary);
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
   }
 
   .panel-collapse {
@@ -9896,9 +9892,9 @@ body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) input[ty
   cursor: pointer;
 }
 
-/* Astérisque required en couleur primaire */
+/* Astérisque required en couleur d'accent (H5.6) */
 body.page-kramail .editeur-text .form-group > label.control-label .required {
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
   font-weight: 700;
 }
 
@@ -9911,7 +9907,7 @@ body.page-kramail h1.page-header .btn-default {
 
 body.page-kramail h1.page-header .btn-default:hover {
   border-color: var(--kr-primary);
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
 }
 
 /* --- Styles desktop uniquement --- */
@@ -9945,7 +9941,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   body.page-kramail .editeur-text .input-group-addon i.fa,
   body.page-kramail .editeur-text .input-group-addon i.far,
   body.page-kramail .editeur-text .input-group-addon i.fas {
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
     font-size: 14px;
   }
 
@@ -10341,7 +10337,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
   /* Hover/Active feedback sur toolbar buttons */
   body.page-kramail .editeur-text .btn-toolbar .btn:active {
-    background: rgba(139, 15, 14, 0.15) !important;
+    background: color-mix(in srgb, var(--kr-primary) 15%, transparent) !important;
   }
 
   /* Scrollbar discrète */
@@ -11606,7 +11602,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--kr-primary);
+  color: inherit; /* fond noir dans toutes les variantes : texte clair de la modale, pas l'accent */
 }
 
 /* Le bouton croix n'est plus utilisé : masquer au cas où */
@@ -11642,7 +11638,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--kr-primary);
+  color: inherit;
   font-weight: bold;
   font-size: 16px;
 }
@@ -11703,7 +11699,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 600;
-  color: var(--kr-primary);
+  color: inherit;
   padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -11726,32 +11722,13 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   content: '•';
   position: absolute;
   left: 5px;
-  color: var(--kr-primary);
+  color: inherit;
   font-weight: bold;
 }
 
 /* Bouton sur la page profil */
 .kr-changelog-btn {
   margin-bottom: 16px;
-}
-
-/* Style compact (inline) pour insertion avec le texte d'aide des alertes */
-.kr-changelog-inline {
-  color: var(--kr-primary);
-  text-decoration: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 13px;
-  margin-left: 8px;
-  vertical-align: middle;
-  cursor: pointer;
-  display: inline;
-}
-
-.kr-changelog-inline:hover {
-  color: var(--kr-primary-dark);
-  text-decoration: underline;
 }
 
 /* Responsive mobile */
@@ -11954,13 +11931,13 @@ html[class*='-dark'] .mini.c10 {
 
   .page-accueil .kraland-metrics .list-group-item .pull-right .fa {
     font-size: 20px;
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
   }
 
   .page-accueil .kraland-metrics .list-group-item h4.count {
     font-size: 20px;
     font-weight: 700;
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
     margin: 0;
   }
 
@@ -12074,7 +12051,7 @@ html[class*='-dark'] .mini.c10 {
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
     margin: 0 0 2px;
   }
 
@@ -12141,7 +12118,7 @@ html[class*='-dark'] .mini.c10 {
   }
 
   .page-accueil .kr-ministerial-card strong {
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
   }
 
   .page-accueil .kr-ministerial-card img {
@@ -12252,7 +12229,7 @@ html[class*='-dark'] .mini.c10 {
   }
 
   .page-accueil .kr-ministerial-card strong {
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
   }
 
   .page-accueil .kr-ministerial-card img {
@@ -12433,7 +12410,7 @@ html[class*='-dark'] .mini.c10 {
   .page-accueil .kraland-metrics .list-group-item h4.count {
     font-size: 16px;
     font-weight: 700;
-    color: var(--kr-primary);
+    color: var(--kr-text-accent);
     margin: 0;
     line-height: 1;
   }

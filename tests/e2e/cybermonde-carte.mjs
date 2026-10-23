@@ -314,12 +314,26 @@ if (on('zones')) {
 
 // Panneaux et sélecteurs : géométrie horizontale et style calculé. Ni position verticale (elle peut changer si la carte reprend sa place dans
 // le flux) ni hauteur (les panneaux repliables du mobile la font varier d'une ouverture à l'autre, même bundle).
-const MESURE_PANNEAUX = () => [...document.querySelectorAll('.panel, .center select, #content select')].map(el => {
-  const r = el.getBoundingClientRect();
-  const s = getComputedStyle(el);
-  const titre = el.querySelector('.panel-title');
-  return { nom: titre ? titre.textContent.trim() : '#' + el.id, gauche: Math.round(r.left), largeur: Math.round(r.width), couleur: s.color, fond: s.backgroundColor, police: s.fontSize };
-});
+// Écart accepté et consigné (épopée 3, ticket 3) : le texte en primaire ou en primaire foncée passe à --kr-text-accent (sélecteurs posés dans la
+// pagination). Sur les seuls éléments dont le texte est en primaire dans le bundle « avant » (primaire), la couleur vaut « texte coloré » des
+// deux côtés (texteColore) ; tout autre écart reste détecté.
+const MESURE_PANNEAUX = () => {
+  const lire = c => (c.match(/[\d.]+/g) || []).map(Number);
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
+  const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
+  return [...document.querySelectorAll('.panel, .center select, #content select')].map(el => {
+    const r = el.getBoundingClientRect();
+    const s = getComputedStyle(el);
+    const titre = el.querySelector('.panel-title');
+    const c = lire(s.color);
+    return { nom: titre ? titre.textContent.trim() : '#' + el.id, gauche: Math.round(r.left), largeur: Math.round(r.width), couleur: s.color, fond: s.backgroundColor, police: s.fontSize,
+      primaire: primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)) };
+  });
+};
+const texteColore = (avant, apres) => {
+  const neutre = (m, j) => { const { primaire: _primaire, ...x } = m; return avant[j] && avant[j].primaire ? { ...x, couleur: 'texte coloré' } : x; };
+  return [avant.map(neutre), apres.map(neutre)];
+};
 
 if (on('panneaux')) {
   const avant = bundleAvant();
@@ -332,6 +346,7 @@ if (on('panneaux')) {
     ];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [375, 1280].map(l => ({ ...p, variante: v, largeur: l }))));
     console.log(`Panneaux et sélecteurs comparés au bundle « avant » : ${pages.map(p => p.nom).join(', ')}, 375 et 1280 px, ${VARIANTES.join(', ')}`);
+    console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
@@ -346,7 +361,8 @@ if (on('panneaux')) {
       check(`[${c.variante}] ${c.nom} ${c.largeur} px : panneaux et sélecteurs inchangés (${a.panneaux.length}), aucune exception`, () => {
         assert.ok(a.panneaux.length > 0, 'aucun panneau mesuré');
         assert.deepEqual(p.erreurs, []);
-        assert.deepEqual(p.panneaux, a.panneaux, JSON.stringify(p.panneaux) + ' au lieu de ' + JSON.stringify(a.panneaux));
+        const [na, np] = texteColore(a.panneaux, p.panneaux);
+        assert.deepEqual(np, na, JSON.stringify(np) + ' au lieu de ' + JSON.stringify(na));
       });
     });
   }
