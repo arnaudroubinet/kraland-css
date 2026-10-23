@@ -13,7 +13,7 @@
 //   primaire foncée texte posé sur --kr-primary-dark, qui prend la paire de survol d'action (--kr-arm-bg-hover, --kr-arm-ink-hover) : boutons
 //                   primaires, croix des panneaux mobiles (.kr-mobile-close) et « tout voir » du changelog (.kr-changelog-view-all) survolés
 //                   (16 variantes, 1280 px) : texte ≥ 4,5:1 sur son fond, fond et texte de la paire ;
-//   alerte sombre   .alert-info des 8 variantes sombres : fond et bordure inchangés (rgb(122, 82, 64) à 0,15 et 0,3), repris au ticket 5 ;
+//   alerte sombre   .alert-info des 8 variantes sombres : fond et bordure des jetons --kr-alert-info-* (ticket 5) ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes valeurs qu'à 375 et 1280 px ;
 //   peau coupée     kr-theme-enabled = false : liens et boutons primaires Bootstrap natifs (#337ab7), aucun jeton de la surcharge.
 // Ticket 2 (Q1, H5.1 ; plan story-boutons-primaires-et-texte-pose-sur-la-couleur-de-nation) : tout fond en couleur de nation prend la paire
@@ -34,7 +34,7 @@
 //                   pseudo-classe forcée (survol sur ordinateur, appui ou toucher sur mobile) : --kr-text-accent, ≥ 4,5:1, opacité
 //                   comprise (modale du changelog, noire dans toutes les variantes : texte clair hérité de la modale) ;
 //   sombre          balayage de ces pages et du sujet, repos, survol, appui et focus forcés : aucun texte en primaire ni en primaire foncée
-//                   hors texte posé sur la couleur de nation ; liens des alertes info, avertissement et danger en accent ;
+//                   hors texte posé sur la couleur de nation (liens des alertes : ticket 5) ;
 //   nations         .f1 à .f9 posées sur bg-surface, 8 variantes sombres : ≥ 4,5:1 ;
 //   en dur          barre d'outils d'une confirmation, en-tête repliable, champ au focus, carte du forum, mini-chat, barre
 //                   du kramail (DURS), 15 variantes hors Kraland : aucun rgb(139, 15, 14) ni #2196F3 calculé ; mini-chat en paire d'action,
@@ -51,8 +51,19 @@
 //   pages           sujet, sous-forum, index RP, réception du kramail, plateau, 375 et 1280 px, 16 variantes : composants comparés au bundle
 //                   d'avant le ticket (règles propres à la page gardées), texte des composants ≥ 4,5:1 ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes valeurs qu'à 375 ou 1280 px.
-// Hors de ces tickets, donc non vérifiés ici : en-têtes des panneaux d'état et alertes (ticket 5), focus (ticket 7), onglet actif et
-// « Valider » de la modale d'ordre (ticket 2.6).
+// Ticket 5 (H5.5, R3, Q3, Q4 ; plan story-palette-d-etats-reservee-aux-etats-et-une-seule-couleur-non) : palette d'états réservée aux états :
+//   états           fixture synthétique palette-nation-etats.html, 375 et 1280 px, 16 variantes : jetons --kr-success, --kr-warning,
+//                   --kr-danger de DESIGN.md ; alertes d'état à 12 % (fond) et 35 % (bordure) de leur couleur sur bg-surface, texte
+//                   text-primary ; alerte info en --kr-alert-info-* ; liens d'alerte de la couleur du texte, soulignés ; étiquettes, boutons
+//                   (repos, survol, .active, [disabled]) et fonds en couleur d'état, texte bg-surface, survol mêlé de 15 % de noir ou de
+//                   blanc ; .btn-info en paire d'action ; textes d'état ; panneaux d'état ; aucune couleur d'état de Bootstrap ; PNJ et pièce
+//                   courante du plateau comme avant le ticket ; « Voir l'historique des changements » (palette-nation-profil.html) en bouton
+//                   standard ; texte ≥ 4,5:1 ;
+//   pages           votes du sujet, caractéristiques du plateau, « Bienvenue » de l'index RP en couleurs d'état ; non lu du sous-forum et de
+//                   /report en --kr-status-unread, comme avant le ticket (garde) ;
+//   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes valeurs qu'à 375 ou 1280 px.
+// Hors de ces tickets, donc non vérifiés ici : focus (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6), jauges
+// (ticket 6) ; alertes de la modale d'ordre : modale-ordre.mjs.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
 // variantes ouvertes et contrastes mesurés par l'outil partagé (lib/variantes.mjs). Confinement réseau ; gestes : le survol à la souris et
 // les pseudo-classes forcées par le protocole du navigateur (CSS.forcePseudoState), aucun clic, aucun envoi.
@@ -60,7 +71,8 @@
 // Usage : npm run build && node tests/e2e/palette-nation.mjs   (ou npm run test:zone -- palette-nation)
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, peau-coupee, balayage-mobile,
 //           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs, composants-mobile, composants-bureau, composants-largeurs,
-//           composants-pages-mobile, composants-pages-bureau (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages).
+//           composants-pages-mobile, composants-pages-bureau, etats-mobile, etats-bureau, etats-largeurs, etats-pages-mobile, etats-pages-bureau
+//           (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages) ; KR_SCRIPT_AVANT5 (bundle d'avant le ticket 5).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -156,7 +168,8 @@ const browser = await launchBrowser();
 // Ouvre la fixture dans SON contexte : variante choisie avant le bundle (outil des 16 variantes), ou peau coupée ; mobile sous 768 px.
 // `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué ; `secondaire` : texte atténué du ticket 4 posé
 // sur un bundle d'avant ce ticket.
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false }) {
+// `gmErreur` : GM.xmlHttpRequest répond par une erreur (changelog chargé à vide, bouton du profil posé).
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, gmErreur = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
@@ -166,13 +179,13 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (theme) { await context.addInitScript(choisirVariante, variante); } else { await context.addInitScript(() => localStorage.setItem('kr-theme-enabled', 'false')); }
   if (secondaire) { await context.addInitScript(poserJetonsRedefinis, TEXTE_SECONDAIRE_CLAIR); } // bundle d'avant le ticket 4 : texte atténué de Q26
-  await context.addInitScript(src => {
-    window.GM = { xmlHttpRequest: () => {} };
+  await context.addInitScript(([src, erreur]) => {
+    window.GM = { xmlHttpRequest: o => { if (erreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
     // eslint-disable-next-line no-eval
     const go = () => (0, eval)(src);
     if (document.body) { go(); return; }
     new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-  }, script);
+  }, [script, gmErreur]);
   const page = await context.newPage();
   const erreurs = [];
   page.on('pageerror', e => erreurs.push(e.message));
@@ -267,7 +280,7 @@ const COMPOSANTS = [
   C('#jouer', '« Jouer » de l\'accueil', 'repos', BUREAU, { bureau: 'hover', paire: 'survol' }),
   C('#carte-titre', 'titre d\'encart de carte', 'repos', SOMBRE),
   C('#carte-pied', 'pied d\'encart de carte', 'repos', SOMBRE),
-  C('#bouton-alerte', '.btn-warning', 'repos', SOMBRE, { bureau: 'hover', mobile: 'active', paire: 'libre', paireMobile: 'une' }),
+  C('#bouton-alerte', 'pièce courante du plateau (.btn-warning)', 'repos', SOMBRE, { bureau: 'hover', mobile: 'active', paire: 'libre', paireMobile: 'une' }),
   C('#panneau-primaire-badge', 'badge de l\'en-tête de .panel-primary', 'inverse'),
   C('.forum-new-topic-fab', '« + » du sous-forum', 'repos', MOBILE, { mobile: 'active', paire: 'une' })
 ];
@@ -425,7 +438,7 @@ function survols(tag, variante, m) {
 }
 function consommateurs(tag, variante, m) {
   const sombre = variante.endsWith('-dark');
-  check(`${tag} ${variante} : consommateurs des jetons redéfinis (bordure, ombre et fond au survol des boutons primaires,${sombre ? '' : ' alerte info,'} entrée de liste survolée ≥ 4,5:1), aucun rouge Kraland hors Kraland`, () => {
+  check(`${tag} ${variante} : consommateurs des jetons redéfinis (bordure, ombre et fond au survol des boutons primaires, alerte info, entrée de liste survolée ≥ 4,5:1), aucun rouge Kraland hors Kraland`, () => {
     const faux = [];
     const vus = [];
     const comparer = (quoi, mesure, jeton) => {
@@ -438,11 +451,9 @@ function consommateurs(tag, variante, m) {
       if (!m.survols[k].survole) { faux.push(`${k}.btn-primary : survol non obtenu`); }
       comparer(`${k}.btn-primary : fond au survol`, m.survols[k].fond, 'action-bg-hover');
     }
-    // Alerte info : en sombre, la règle html[class*="-dark"] .alert-info garde son fond et sa bordure (alerteSombre, ticket 5).
-    if (!sombre) {
-      comparer('alerte info : fond', m.alerte.fond, 'info-bg');
-      comparer('alerte info : bordure', m.alerte.bordure, 'info-border');
-    }
+    // Alerte info : jetons de la variante dans les deux modes (ticket 5).
+    comparer('alerte info : fond', m.alerte.fond, 'info-bg');
+    comparer('alerte info : bordure', m.alerte.bordure, 'info-border');
     // Entrée de liste survolée : la règle de survol des entrées de liste (text-accent) en clair ; en sombre, la règle sombre des entrées de
     // liste (texte du thème, hors de ce ticket) l'emporte.
     const l = m.survols.liste;
@@ -521,12 +532,11 @@ function texteSurPrimaireFoncee(tag, variante, m) {
     sansEcart(faux);
   });
 }
-// Alerte info des 8 variantes sombres : règle html[class*="-dark"] .alert-info inchangée, jetons déclarés sans ce consommateur (ticket 5).
-const ALERTE_SOMBRE = { fond: '#7a524026', bordure: '#7a52404c' }; // rgb(122, 82, 64) à 0,15 et à 0,3
+// Alerte info des 8 variantes sombres : fond et bordure des jetons --kr-alert-info-* (ticket 5 : plus de rgb(122, 82, 64) en dur).
 function alerteSombre(tag, variante, m) {
   if (!variante.endsWith('-dark')) { return; }
-  check(`${tag} ${variante} : alerte info, fond et bordure inchangés (rgb(122, 82, 64) à 0,15 et 0,3)`, () => {
-    sansEcart(['fond', 'bordure'].filter(k => !egal(m.alerte[k], ALERTE_SOMBRE[k])).map(k => `${k} ${m.alerte[k]} au lieu de ${ALERTE_SOMBRE[k]}`));
+  check(`${tag} ${variante} : alerte info, fond et bordure en --kr-alert-info-bg / --kr-alert-info-border (plus de rgb(122, 82, 64) en dur)`, () => {
+    sansEcart([['fond', 'info-bg'], ['bordure', 'info-border']].filter(([k, t]) => !egal(m.alerte[k], attendu(variante, t))).map(([k, t]) => `${k} ${m.alerte[k]} au lieu de ${t} ${attendu(variante, t)}`));
   });
 }
 
@@ -705,9 +715,6 @@ const TEXTES = [
   T('textes', '#page-lien', 'page de la pagination survolée', TOUS, 'hover'),
   T('textes', '#page-span', 'page de la pagination (span) survolée', SOMBRE, 'hover'),
   T('textes', '#page-tableau', 'page de tableau survolée', SOMBRE, 'hover'),
-  T('textes', '#lien-info', 'lien d\'une alerte info', SOMBRE),
-  T('textes', '#lien-avertissement', 'lien d\'une alerte d\'avertissement', SOMBRE),
-  T('textes', '#lien-danger', 'lien d\'une alerte de danger', SOMBRE),
   T('textes', '#menu-actif', 'entrée active du menu de la barre du haut', MOBILE),
   T('textes', '#menu-entree', 'entrée du menu de la barre du haut pressée', MOBILE, 'active'),
   T('textes', '#onglet-modale', 'onglet actif d\'une modale', MOBILE),
@@ -1173,6 +1180,278 @@ for (const [frag, width] of [['composants-pages-mobile', 375], ['composants-page
     });
     check(`${tag} ${p.nom} : texte des composants ≥ 4,5:1, 16 variantes (${lignes.reduce((n, [, r]) => n + r.apres.textes.length, 0)} textes)`, () => {
       sansEcart(lignes.flatMap(([c, r]) => r.apres.textes.filter(t => !(t.contraste >= 4.5)).slice(0, 4).map(t => `${c.variante} ${t.nom} : ${t.contraste.toFixed(2)}:1 (${t.couleur})`)));
+    });
+  }
+}
+
+// ---------- Palette d'états réservée aux états (ticket 5) ----------
+// Jetons --kr-success, --kr-warning, --kr-danger (DESIGN.md › Palette d'états), un ton par mode ; alertes d'état à 12 % (fond) et 35 %
+// (bordure) de leur couleur sur bg-surface, texte text-primary ; alerte info en teinte de la nation (--kr-alert-info-*) ; lien d'une
+// alerte de la couleur du texte de l'alerte, souligné ; états pleins (étiquettes, boutons, fonds) en couleur d'état, texte bg-surface,
+// survol mêlé de 15 % de noir (clair) ou de blanc (sombre) ; info pleine en paire d'action ; textes d'état en couleur d'état (info :
+// text-accent) ; panneaux d'état comme les alertes ; aucune couleur de Bootstrap. Hors palette, comparés au bundle d'avant le ticket :
+// marque PNJ et pièce courante du plateau. « Voir l'historique des changements » : bouton standard.
+const BASELINE5 = 'd521cc8';
+const avant5 = (() => {
+  if (process.env.KR_SCRIPT_AVANT5) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT5, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
+  try { return execFileSync('git', ['show', `${BASELINE5}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
+})();
+const PAGE_ETATS = { url: PAGE, corps: FIXTURE('palette-nation-etats.html') };
+const PAGE_PROFIL = { url: BASE + '/profil/interface', corps: FIXTURE('palette-nation-profil.html') };
+const ETATS = ['success', 'warning', 'danger'];
+const ETATS_DESIGN = { clair: { success: '#2e7d32', warning: '#8a5a00', danger: '#c62828' }, sombre: { success: '#81c784', warning: '#ffb74d', danger: '#ff8a80' } };
+const couleurEtat = (variante, etat) => ETATS_DESIGN[variante.endsWith('-dark') ? 'sombre' : 'clair'][etat];
+// Mélange sRGB (color-mix) : p de a, le reste de b ; a, b : [r, g, b] ; résultat en hexadécimal.
+const melange = (a, b, p) => '#' + [0, 1, 2].map(i => Math.round(a[i] * p + b[i] * (1 - p)).toString(16).padStart(2, '0')).join('');
+const teinte = (variante, etat, surface, p) => melange(hexa(couleurEtat(variante, etat)), lire(surface), p);
+const survolEtat = (variante, etat) => melange(hexa(couleurEtat(variante, etat)), variante.endsWith('-dark') ? [255, 255, 255] : [0, 0, 0], 0.85);
+// Couleurs d'état de Bootstrap 3.3.7 (boutons, étiquettes, alertes, fonds, textes, panneaux ; repos, survol, appui) : aucune.
+const BOOTSTRAP_ETATS = ['#5cb85c', '#4cae4c', '#449d44', '#398439', '#255625', '#f0ad4e', '#eea236', '#ec971f', '#d58512', '#985f0d', '#d9534f', '#d43f3a',
+  '#c9302c', '#ac2925', '#761c19', '#5bc0de', '#46b8da', '#31b0d5', '#269abc', '#1b6d85', '#dff0d8', '#d6e9c6', '#3c763d', '#2b542c', '#c1e2b3', '#fcf8e3',
+  '#faebcc', '#8a6d3b', '#66512c', '#f7ecb5', '#f2dede', '#ebccd1', '#a94442', '#843534', '#e4b9b9', '#d9edf7', '#bce8f1', '#31708f', '#245269', '#afd9ee'];
+const commeBootstrap = c => { const a = lire(c); return a[3] > 0 && BOOTSTRAP_ETATS.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+// Échantillons de la fixture : alertes et leurs liens, étiquettes, boutons, fonds, textes, panneaux et leurs en-têtes ; hors palette.
+const ALERTES5 = [...ETATS, 'info'];
+const PLEINS5 = [...ETATS.flatMap(e => [`#lb-${e}`, `#bt-${e}`, `#bg-${e}`]), '#lb-success-lien', '#bt-success-a', '#bt-success-vote', '#bt-danger-disabled'];
+const PLEIN_ETAT = sel => (sel.match(/success|warning|danger/) || [])[0];
+const SURVOLS5 = ['#bt-success', '#bt-warning', '#bt-danger', '#bt-success-a', '#bt-success-vote', '#lb-success-lien', '#bt-info'];
+const TEXTES5 = [...ETATS.map(e => [`#tx-${e}`, e]), ['#tx-danger-lien', 'danger'], ['#tx-info', 'info']];
+const HORS5 = ['#pnj', '#piece'];
+const SELS5 = [...ALERTES5.flatMap(e => [`#al-${e}`, `#al-${e}-lien`]), ...PLEINS5, '#bt-info', '#bt-warning-active', ...TEXTES5.map(([s]) => s),
+  ...ALERTES5.flatMap(e => [`#pn-${e}`, `#pn-${e}-tete`]), '#bg-success-lien', ...HORS5];
+const MESURES5 = sels => {
+  const K = window.__krContraste;
+  return Object.fromEntries(sels.map(sel => {
+    const e = document.querySelector(sel);
+    if (!e) { return [sel, null]; }
+    const s = getComputedStyle(e);
+    return [sel, { classes: e.className, couleur: s.color, fond: `rgb(${K.fond(e).map(Math.round).join(', ')})`, fondPropre: s.backgroundColor, bordure: s.borderTopColor, trait: s.textDecorationLine, contraste: K.texte(e) }];
+  }));
+};
+const JETONS5 = absent => {
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  return { surface: sonde('var(--kr-bg-surface)'), primaire: sonde('var(--kr-text-primary)'), unread: sonde('var(--kr-status-unread)'),
+    success: sonde(`var(--kr-success, ${absent})`), warning: sonde(`var(--kr-warning, ${absent})`), danger: sonde(`var(--kr-danger, ${absent})`) };
+};
+const BOUTON_HISTORIQUE = '#kr-changelog-btn';
+
+async function etatsScenario(variante, width) {
+  const mobile = width < 768;
+  const height = mobile ? 667 : 900;
+  let hors = null;
+  if (avant5) {
+    const a = await ouvrir({ width, height, variante, url: PAGE_ETATS.url, corps: PAGE_ETATS.corps, script: avant5 });
+    hors = { repos: await a.page.evaluate(MESURES5, HORS5), survol: await forcer(a.page, HORS5, 'hover', () => a.page.evaluate(MESURES5, HORS5)) };
+    await a.context.close();
+  }
+  const { context, page, denied, erreurs } = await ouvrir({ width, height, variante, url: PAGE_ETATS.url, corps: PAGE_ETATS.corps });
+  const r = { posee: await page.evaluate(VARIANTE_POSEE, variante), mobile: await page.evaluate(() => document.body.classList.contains('mobile-mode')) };
+  r.jetons = await page.evaluate(JETONS5, ABSENT);
+  r.repos = await page.evaluate(MESURES5, SELS5);
+  r.survol = await forcer(page, [...SURVOLS5, ...HORS5], 'hover', () => page.evaluate(MESURES5, [...SURVOLS5, ...HORS5]));
+  r.hors = hors;
+  if (SHOTS && ['kraland', 'paladium', 'empire-brun-dark', 'paladium-dark'].includes(variante)) {
+    fs.mkdirSync(SHOTS, { recursive: true });
+    await page.screenshot({ path: path.join(SHOTS, `palette-nation-etats-${width}-${variante}.png`), fullPage: true });
+  }
+  await context.close();
+  const p = await ouvrir({ width, height, variante, url: PAGE_PROFIL.url, corps: PAGE_PROFIL.corps, gmErreur: true });
+  await waitState(p.page, sel => !!document.querySelector(sel), BOUTON_HISTORIQUE, { maxMs: 4000 });
+  await p.page.evaluate(CONTRASTE);
+  r.historique = (await p.page.evaluate(MESURES5, [BOUTON_HISTORIQUE]))[BOUTON_HISTORIQUE];
+  r.erreursProfil = p.erreurs;
+  await p.context.close();
+  return { ...r, erreurs, denied: denied.filter(d => d.url.startsWith(BASE)).map(d => d.url) };
+}
+
+// Écarts d'un élément : fond propre, bordure, texte attendus (hexadécimal, ou couleur calculée lue sur une sonde), texte ≥ 4,5:1.
+const ecarts5 = (quoi, m, { fond, bordure, texte, trait }) => {
+  if (!m) { return [`${quoi} : absent`]; }
+  const pareil = (mesure, c) => (c.startsWith('#') ? egal(mesure, c) : proche(mesure, c));
+  const faux = [];
+  if (fond && !pareil(m.fondPropre, fond)) { faux.push(`${quoi} : fond ${m.fondPropre} au lieu de ${fond}`); }
+  if (bordure && !pareil(m.bordure, bordure)) { faux.push(`${quoi} : bordure ${m.bordure} au lieu de ${bordure}`); }
+  if (texte && !pareil(m.couleur, texte)) { faux.push(`${quoi} : texte ${m.couleur} au lieu de ${texte}`); }
+  if (trait && m.trait !== trait) { faux.push(`${quoi} : ${m.trait} au lieu de ${trait}`); }
+  if (!(m.contraste >= 4.5)) { faux.push(`${quoi} : ${m.contraste.toFixed(2)}:1 (${m.couleur} sur ${m.fond})`); }
+  return faux;
+};
+function verifierEtats(tag, variante, r) {
+  const j = r.jetons;
+  check(`${tag} ${variante} : variante posée, aucune exception, aucune requête vers le site hors fixture (états, profil)`, () => {
+    assert.ok(r.posee, 'variante non posée');
+    assert.deepEqual([...r.erreurs, ...r.erreursProfil], [], 'exceptions : ' + [...r.erreurs, ...r.erreursProfil].join(' | '));
+    assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
+  });
+  check(`${tag} ${variante} : jetons --kr-success, --kr-warning, --kr-danger égaux à DESIGN.md (${variante.endsWith('-dark') ? 'sombre' : 'clair'})`, () => {
+    sansEcart(ETATS.filter(e => !egal(j[e], couleurEtat(variante, e))).map(e => `--kr-${e} ${vu(j[e])} au lieu de ${couleurEtat(variante, e)}`));
+  });
+  check(`${tag} ${variante} : alertes de succès, d'avertissement et de danger, fond à 12 % et bordure à 35 % de la couleur d'état sur bg-surface, texte text-primary ≥ 4,5:1 ; lien de la couleur du texte, souligné, ≥ 4,5:1`, () => {
+    sansEcart(ETATS.flatMap(e => {
+      const a = r.repos[`#al-${e}`];
+      return [...ecarts5(`alerte ${e}`, a, { fond: teinte(variante, e, j.surface, 0.12), bordure: teinte(variante, e, j.surface, 0.35), texte: j.primaire }),
+        ...ecarts5(`lien de l'alerte ${e}`, r.repos[`#al-${e}-lien`], { texte: a ? a.couleur : j.primaire, trait: 'underline' })];
+    }));
+  });
+  check(`${tag} ${variante} : alerte info en --kr-alert-info-bg / --kr-alert-info-border (opaques, plus de rgb(122, 82, 64) translucide), texte text-primary ≥ 4,5:1, lien de la couleur du texte, souligné, ≥ 4,5:1`, () => {
+    const a = r.repos['#al-info'];
+    const faux = [...ecarts5('alerte info', a, { fond: attendu(variante, 'info-bg'), bordure: attendu(variante, 'info-border'), texte: j.primaire }),
+      ...ecarts5('lien de l\'alerte info', r.repos['#al-info-lien'], { texte: a ? a.couleur : j.primaire, trait: 'underline' })];
+    if (a && lire(a.fondPropre)[3] < 1) { faux.push(`alerte info : fond translucide ${a.fondPropre}`); }
+    sansEcart(faux);
+  });
+  check(`${tag} ${variante} : états pleins (étiquettes, étiquette lien, boutons button, a, span de vote, [disabled], fonds .bg-* et leur lien) en couleur d'état, texte bg-surface ≥ 4,5:1 ; survol et .active mêlés de 15 % de ${variante.endsWith('-dark') ? 'blanc' : 'noir'}`, () => {
+    const faux = PLEINS5.flatMap(sel => {
+      const e = PLEIN_ETAT(sel);
+      return ecarts5(sel, r.repos[sel], { fond: couleurEtat(variante, e), bordure: sel.startsWith('#bt-') ? couleurEtat(variante, e) : null, texte: j.surface });
+    });
+    faux.push(...ecarts5('#bt-warning-active', r.repos['#bt-warning-active'], { fond: survolEtat(variante, 'warning'), texte: j.surface }));
+    faux.push(...ecarts5('lien d\'un fond de succès', r.repos['#bg-success-lien'], { texte: j.surface }));
+    SURVOLS5.filter(s => s !== '#bt-info').forEach(sel => faux.push(...ecarts5(`${sel}:hover`, r.survol[sel], { fond: survolEtat(variante, PLEIN_ETAT(sel)), texte: j.surface })));
+    sansEcart(faux);
+  });
+  check(`${tag} ${variante} : bouton d'information (.btn-info) en paire d'action au repos, paire de survol survolé, ≥ 4,5:1`, () => {
+    const m = x => x && { ...x, visible: true, fond: x.fondPropre };
+    sansEcart([...ecartsDePaire(variante, '.btn-info', m(r.repos['#bt-info']), 'repos'), ...ecartsDePaire(variante, '.btn-info:hover', m(r.survol['#bt-info']), 'survol')]);
+  });
+  check(`${tag} ${variante} : textes d'état (.text-success, .text-warning, .text-danger, lien .text-danger) en couleur d'état, .text-info en text-accent, ≥ 4,5:1 sur bg-surface`, () => {
+    sansEcart(TEXTES5.flatMap(([sel, e]) => {
+      const m = r.repos[sel];
+      const faux = ecarts5(sel, m, { texte: e === 'info' ? attendu(variante, 'text-accent') : couleurEtat(variante, e) });
+      if (m && !proche(m.fond, j.surface)) { faux.push(`${sel} : posé sur ${m.fond} au lieu de bg-surface ${j.surface}`); }
+      return faux;
+    }));
+  });
+  check(`${tag} ${variante} : panneaux d'état, bordure à 35 % et en-tête à 12 % de la couleur d'état sur bg-surface, texte text-primary ≥ 4,5:1 ; panneau info en --kr-alert-info-*`, () => {
+    sansEcart(ALERTES5.flatMap(e => {
+      const fond = e === 'info' ? attendu(variante, 'info-bg') : teinte(variante, e, j.surface, 0.12);
+      const bordure = e === 'info' ? attendu(variante, 'info-border') : teinte(variante, e, j.surface, 0.35);
+      const p = r.repos[`#pn-${e}`];
+      return [...ecarts5(`en-tête du panneau ${e}`, r.repos[`#pn-${e}-tete`], { fond, bordure, texte: j.primaire }), ...(p && egal(p.bordure, bordure) ? [] : [`panneau ${e} : bordure ${p && p.bordure} au lieu de ${bordure}`])];
+    }));
+  });
+  check(`${tag} ${variante} : aucune couleur d'état de Bootstrap (#5cb85c, #f0ad4e, #d9534f, #5bc0de, #dff0d8, #fcf8e3, #f2dede, #d9edf7…) en texte, fond ou bordure`, () => {
+    const vus = [...Object.entries(r.repos).filter(([s]) => !HORS5.includes(s)), ...Object.entries(r.survol).filter(([s]) => !HORS5.includes(s)).map(([s, m]) => [`${s}:hover`, m])];
+    sansEcart(vus.filter(([, m]) => m).flatMap(([s, m]) => ['couleur', 'fondPropre', 'bordure'].filter(k => commeBootstrap(m[k])).map(k => `${s} : ${k} ${m[k]} (${commeBootstrap(m[k])})`)));
+  });
+  check(`${tag} ${variante} : hors palette, marque PNJ (.btn-danger.xmini) et pièce courante du plateau (.btn-warning à image de pièce) au repos et survolées comme avant le ticket (${BASELINE5})`, () => {
+    assert.ok(r.hors, `bundle « avant » introuvable (KR_SCRIPT_AVANT5 ou commit ${BASELINE5})`);
+    sansEcart(['repos', 'survol'].flatMap(etat => HORS5.flatMap(sel => {
+      const a = r.hors[etat][sel];
+      const p = r[etat][sel];
+      return !a || !p ? [`${sel} (${etat}) : absent`] : ['couleur', 'fondPropre', 'bordure'].filter(k => !proche(p[k], a[k])).map(k => `${sel} (${etat}) : ${k} ${p[k]} au lieu de ${a[k]}`);
+    })));
+  });
+  check(`${tag} ${variante} : « Voir l'historique des changements » (profil) en bouton standard : .btn-default sans .btn-info, fond bg-surface, texte text-nation ≥ 4,5:1`, () => {
+    const h = r.historique;
+    assert.ok(h, 'bouton absent');
+    const faux = [];
+    const classes = h.classes.split(/\s+/);
+    if (!classes.includes('btn-default') || classes.includes('btn-info')) { faux.push(`classes « ${h.classes} »`); }
+    if (!proche(h.fondPropre, j.surface)) { faux.push(`fond ${h.fondPropre} au lieu de bg-surface ${j.surface}`); }
+    if (!egal(h.couleur, attendu(variante, 'text-nation'))) { faux.push(`texte ${h.couleur} au lieu de text-nation ${attendu(variante, 'text-nation')}`); }
+    if (!(h.contraste >= 4.5)) { faux.push(`${h.contraste.toFixed(2)}:1`); }
+    sansEcart(faux);
+  });
+}
+for (const [frag, width] of [['etats-mobile', 375], ['etats-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Palette d'états ${width} px, 16 variantes : jetons, alertes et liens, alerte info, états pleins, textes, panneaux, couleurs de Bootstrap, PNJ et pièce courante, « Voir l'historique »`);
+  const res = await parVariante(variante => etatsScenario(variante, width));
+  VARIANTES.forEach((v, i) => verifierEtats(tag, v, res[i]));
+}
+if (on('etats-largeurs')) {
+  console.log(`Palette d'états, largeurs ${LARGEURS.join(', ')} px contre 375 et 1280 px : ${VARIANTES_LARGEURS.join(' et ')}`);
+  const cas = VARIANTES_LARGEURS.flatMap(variante => [375, 1280, ...LARGEURS].map(width => ({ variante, width })));
+  const res = await mapLimit(cas, c => etatsScenario(c.variante, c.width));
+  const valeurs = r => JSON.stringify({ jetons: r.jetons, repos: r.repos, survol: r.survol, historique: r.historique });
+  for (const variante of VARIANTES_LARGEURS) {
+    const de = width => res[cas.findIndex(c => c.variante === variante && c.width === width)];
+    for (const width of LARGEURS) {
+      const ref = width < 768 ? 375 : 1280;
+      check(`[largeurs] ${variante} ${width} px (${width < 768 ? 'mobile' : 'ordinateur'}) : jetons d'état de DESIGN.md, palette d'états comme à ${ref} px, aucune exception`, () => {
+        const m = de(width);
+        assert.equal(m.mobile, width < 768, 'mode mobile');
+        assert.deepEqual([...m.erreurs, ...m.erreursProfil], [], 'exceptions : ' + [...m.erreurs, ...m.erreursProfil].join(' | '));
+        sansEcart(ETATS.filter(e => !egal(m.jetons[e], couleurEtat(variante, e))).map(e => `--kr-${e} ${vu(m.jetons[e])} au lieu de ${couleurEtat(variante, e)}`));
+        assert.equal(valeurs(m), valeurs(de(ref)));
+      });
+    }
+  }
+}
+
+// Pages de référence, 375 et 1280 px, 16 variantes : votes du sujet (bouton d'état plein ; sur mobile, pastille du score en teinte de
+// succès à 12 % et 35 %, texte text-primary), caractéristiques du plateau (boutons de succès), alerte « Bienvenue » de l'index RP
+// (alerte de succès) : couleurs d'état des jetons, textes ≥ 4,5:1. Non lu (garde) : pastilles du sous-forum et filet de la ligne non lue
+// de /report en --kr-status-unread, comme avant le ticket.
+const PAGES5 = PAGES_BALAYAGE.filter(p => ['sujet', 'plateau', 'index RP', 'sous-forum', 'report'].includes(p.nom));
+const RELEVER5 = () => {
+  const K = window.__krContraste;
+  const nom = e => e.tagName.toLowerCase() + [...e.classList].map(c => '.' + c).join('') + ' « ' + e.textContent.trim().slice(0, 24) + ' »';
+  const releve = e => { const s = getComputedStyle(e); return { nom: nom(e), score: !!e.closest('li.media.kr-msg .pull-right') && document.body.classList.contains('mobile-mode'), couleur: s.color, fondPropre: s.backgroundColor, bordure: s.borderTopColor, contraste: K.texte(e) }; };
+  const textes = el => [el, ...el.querySelectorAll('*')].filter(e => !e.closest('button') && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && e.getBoundingClientRect().width > 0)
+    .map(e => ({ nom: nom(e), contraste: K.texte(e), couleur: getComputedStyle(e).color }));
+  return {
+    votes: [...document.querySelectorAll('span.btn.btn-success')].map(releve),
+    caracteristiques: [...document.querySelectorAll('a.btn.btn-success')].map(releve),
+    alertes: [...document.querySelectorAll('.alert.alert-success')].map(e => ({ ...releve(e), textes: textes(e) })),
+    pastilles: [...document.querySelectorAll('.kr-topic-badge')].map(e => getComputedStyle(e).backgroundColor),
+    filets: [...document.querySelectorAll('html.kr-page-report table > tbody > tr.bg-info > td:first-child')].map(e => getComputedStyle(e).boxShadow)
+  };
+};
+async function pages5(p, variante, width) {
+  const res = {};
+  for (const [cote, script] of [['avant', avant5], ['apres', userscript]]) {
+    if (!script) { continue; }
+    const { context, page, erreurs } = await ouvrir({ width, height: width < 768 ? 667 : 900, variante, url: p.url, corps: p.corps, script });
+    res[cote] = { ...(await page.evaluate(RELEVER5)), jetons: await page.evaluate(JETONS5, ABSENT), erreurs };
+    // Caractéristiques du plateau survolées et pressées (après seulement) : fond de survol de l'état, texte bg-surface.
+    if (cote === 'apres' && p.nom === 'plateau') {
+      for (const etat of ['hover', 'active']) { res.apres[etat] = (await forcer(page, ['a.btn.btn-success'], etat, () => page.evaluate(RELEVER5))).caracteristiques; }
+    }
+    await context.close();
+  }
+  return res;
+}
+const ecartsPage5 = (p, variante, r) => {
+  const a = r.apres;
+  const j = a.jetons;
+  const succes = couleurEtat(variante, 'success');
+  const faux = a.erreurs.map(e => `exception ${e}`);
+  const pleins = [...a.votes, ...a.caracteristiques];
+  if (p.nom === 'sujet' && !a.votes.length) { faux.push('aucun vote'); }
+  if (p.nom === 'plateau' && !a.caracteristiques.length) { faux.push('aucune caractéristique'); }
+  if (p.nom === 'index RP' && !a.alertes.length) { faux.push('aucune alerte de succès'); }
+  pleins.forEach(m => faux.push(...(m.score ? ecarts5(m.nom, m, { fond: teinte(variante, 'success', j.surface, 0.12), bordure: teinte(variante, 'success', j.surface, 0.35), texte: j.primaire }) : ecarts5(m.nom, m, { fond: succes, texte: j.surface }))));
+  if (p.nom === 'plateau') {
+    for (const etat of ['hover', 'active']) {
+      (a[etat] || []).forEach(m => faux.push(...ecarts5(`${m.nom} :${etat}`, m, { fond: survolEtat(variante, 'success'), texte: j.surface })));
+    }
+  }
+  a.alertes.forEach(m => {
+    faux.push(...ecarts5(m.nom, m, { fond: teinte(variante, 'success', j.surface, 0.12), bordure: teinte(variante, 'success', j.surface, 0.35), texte: j.primaire }));
+    m.textes.filter(t => !(t.contraste >= 4.5)).forEach(t => faux.push(`${t.nom} : ${t.contraste.toFixed(2)}:1 (${t.couleur})`));
+  });
+  if (['sous-forum', 'report'].includes(p.nom)) {
+    const v = p.nom === 'sous-forum' ? 'pastilles' : 'filets';
+    if (!a[v].length) { faux.push(`aucun élément non lu (${v})`); }
+    a[v].filter(c => !(couleursDe(c).some(x => proche(`rgba(${x.join(', ')})`, j.unread)))).forEach(c => faux.push(`${v} : ${c} hors --kr-status-unread ${j.unread}`));
+    if (!r.avant) { faux.push(`bundle « avant » introuvable (KR_SCRIPT_AVANT5 ou commit ${BASELINE5})`); } else if (JSON.stringify(a[v]) !== JSON.stringify(r.avant[v])) { faux.push(`${v} : ${a[v].join(' | ')} au lieu de ${r.avant[v].join(' | ')}`); }
+  }
+  return faux;
+};
+for (const [frag, width] of [['etats-pages-mobile', 375], ['etats-pages-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Palette d'états, pages de référence ${width} px, 16 variantes : ${PAGES5.map(p => p.nom).join(', ')}`);
+  const cas = PAGES5.flatMap(p => VARIANTES.map(variante => ({ p, variante })));
+  const res = await mapLimit(cas, c => pages5(c.p, c.variante, width), 16);
+  for (const p of PAGES5) {
+    const lignes = cas.map((c, i) => [c, res[i]]).filter(([c]) => c.p === p);
+    const quoi = { sujet: 'votes en couleur de succès', plateau: 'caractéristiques en couleur de succès (repos, survol et appui)', 'index RP': 'alerte « Bienvenue » en alerte de succès', 'sous-forum': 'pastilles « non lu » en --kr-status-unread, comme avant le ticket', report: 'filet de la ligne non lue en --kr-status-unread, comme avant le ticket' }[p.nom];
+    check(`${tag} ${p.nom} : ${quoi}, textes ≥ 4,5:1, aucune exception, 16 variantes`, () => {
+      sansEcart(lignes.flatMap(([c, r]) => ecartsPage5(p, c.variante, r).slice(0, 4).map(f => `${c.variante} ${f}`)));
     });
   }
 }

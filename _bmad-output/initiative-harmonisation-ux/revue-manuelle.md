@@ -23,6 +23,18 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ## Décisions à confirmer
 
+- Ticket 3.5, palette d'états réservée aux états (décidé en autonomie le 2026-10-23) :
+  - lien dans une alerte (info comprise) : couleur du texte de l'alerte (`text-primary`), souligné. En couleur d'accent, il tombait à 3,80:1 en Paladium sombre sur l'alerte info (Q4) et à 4,30:1 sur l'avertissement à 12 %. Alternative : accent partout sauf Paladium sombre ;
+  - info pleine (`.btn-info`, `.label-info`, `.bg-info`) : paire d'action de la nation, comme les boutons primaires ; `.text-info` en `text-accent` ; panneau info et alerte info en `--kr-alert-info-*`. DESIGN.md ne donne que la teinte de l'alerte info ;
+  - pièce courante du plateau : la règle sombre `.btn-warning` (couleur de nation, ticket 3.2) ne vise plus que le lien natif `.btn-warning` à image de pièce (`img[src*="/bat/bat"]`) ; en clair, la pièce garde l'orange de Bootstrap (hors périmètre). Les autres `.btn-warning` prennent la couleur d'avertissement ;
+  - marque PNJ native (`.btn-danger.xmini`) exclue des boutons de danger (épopée 5) ;
+  - fonds `.bg-success/-warning/-danger` : couleur d'état pleine, texte `bg-surface` (plus de pastel de Bootstrap). Aucun emploi relevé sur les fixtures ;
+  - score des messages sur mobile : teinte de succès à 12 % (fond) et 35 % (bordure), texte du thème, comme une alerte (il était vert translucide) ; votes sur ordinateur : bouton de succès plein ;
+  - alerte info de l'accueil : fond `--kr-alert-info-bg` (et bordure `--kr-alert-info-border` sur ordinateur) au lieu de `bg-elevated`, filet primaire gardé ; en sombre, la règle en dur `rgb(122, 82, 64)` la battait jusqu'ici ;
+  - en sombre, la bordure `border-default` ne vise plus que les alertes sans type (aide de la modale d'ordre sur ordinateur) : posée sur toute `.alert`, elle battait la bordure des alertes info et d'état ;
+  - en-tête des panneaux info de la modale d'ordre sur ordinateur (tableau des actions) : teinte info de la nation au lieu du bleu de Bootstrap (clair) et de `bg-elevated` (sombre) ;
+  - boutons de la page Contacts et « Pas un contact » : non relevés (ni fixture ni classe de page). Ils prennent les règles communes des boutons d'état ; à vérifier, reporté (`deferred-work.md`).
+
 - Ticket 3.4, mode clair thémé comme le sombre, bouton standard (décidé en autonomie le 2026-10-23) :
   - Confédération Libre clair : `text-nation` (sa primaire `#6b7280`) ne fait que 4,38:1 sur `header-tint`, le fond du bouton standard survolé ou pressé. Option retenue : la variante prend son accent `#475369` (7,04:1), comme Paladium (Q2) ; DESIGN.md mis à jour. Alternative : garder la primaire au repos et ne foncer que le survol et l'appui ;
   - « Annuler » de la modale d'ordre mobile : fond `bg-elevated` → `bg-surface`, comme « ? Aide » (en sombre seulement ; en clair les deux sont blancs). Son texte reste `text-secondary` (règle propre à la modale) ;

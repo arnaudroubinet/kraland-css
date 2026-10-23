@@ -20,3 +20,9 @@
 - source_plan: `epic-palette-nation/story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent-plan.md`
   summary: En sombre, l'aide de la modale d'ordre (`.bootbox-confirm .alert-order`) et la ligne d'action cochée du mobile (`.panel-actions .row.form-group:has(input:checked)`) consomment déjà `--kr-alert-info-bg`, qui passe du rouge Kraland à 6 % à la teinte opaque de la nation ; un lien dans l'aide, en primaire (`html[class*="-dark"] .alert a`), tomberait sous 4,5:1 en Théocratie Seelienne (4,35), Paradigme Vert (4,33) et Royaume de Ruthvénie (4,31) sombres.
   evidence: Non vérifié (maybe-false, medium si vrai) : les aides relevées sur le site (Dormir, Pouvoir) n'ont aucun lien. À trancher en relevant, en lecture seule, l'aide d'autres ordres ; à traiter avec la couleur des liens d'alerte (ticket 3.3). Le texte de la ligne cochée reste ≥ 6,27:1.
+
+## Deferred from: ticket 3.5, palette d'états (2026-10-23)
+
+- source_plan: `epic-palette-nation/story-palette-d-etats-reservee-aux-etats-et-une-seule-couleur-non-plan.md`
+  summary: Boutons de la page Contacts et « Pas un contact » (orange) : relever, en lecture seule, leurs classes et leur page, puis les passer au style standard ou primaire (DESIGN.md › Palette d'états : actions ordinaires).
+  evidence: Ni fixture ni classe de page pour les viser. Depuis le ticket 3.5, s'ils portent `.btn-warning`, `.btn-success`, `.btn-danger` ou `.btn-info`, ils prennent les règles communes des boutons d'état (ou la paire d'action pour `.btn-info`), sans vérification.

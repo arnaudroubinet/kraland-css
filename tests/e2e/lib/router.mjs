@@ -60,9 +60,10 @@ export const SUITES = [
   // coupée ; balayage des fixtures de référence (report, plateau, sujet, sous-forum, index RP, kramail) ; texte coloré en accent, couleurs de
   // nation du sombre, rouge et bleu en dur (ticket 3 ; fixtures synthétiques palette-nation-textes.html et palette-nation-accueil.html) ;
   // en-têtes, onglets, bouton standard et hr thémés comme le sombre, texte atténué du clair (ticket 4 ; fixture synthétique
-  // palette-nation-composants.html, pages de référence comparées au bundle d'avant le ticket). Aucun mot-clé : une déclaration de jeton
-  // élargit au total, comme toute déclaration de variable.
-  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau']], needsBootstrap: true }
+  // palette-nation-composants.html, pages de référence comparées au bundle d'avant le ticket) ; palette d'états réservée aux états (ticket 5 ;
+  // fixtures synthétiques palette-nation-etats.html et palette-nation-profil.html, pages de référence, non lu gardé). Aucun mot-clé : une
+  // déclaration de jeton élargit au total, comme toute déclaration de variable.
+  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau'], ['etats-mobile'], ['etats-bureau'], ['etats-largeurs'], ['etats-pages-mobile'], ['etats-pages-bureau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

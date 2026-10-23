@@ -11192,7 +11192,7 @@
       const btn = document.createElement('button');
       btn.id = 'kr-changelog-btn';
       btn.type = 'button';
-      btn.className = 'btn btn-info kr-changelog-btn';
+      btn.className = 'btn btn-default kr-changelog-btn';
       btn.style.display = 'inline-block';
       btn.innerHTML = '📝 Voir l\'historique des changements';
 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture palette d'états (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la suite palette-nation (épopée 3, ticket 5 : palette d'états réservée aux états) : aucune donnée réelle.
+       Servie à /regles/avancees (aucune classe de page). Classes d'état de Bootstrap : alertes de succès, d'avertissement, de danger et
+       d'information, chacune avec un lien ; étiquettes (dont une étiquette lien) ; boutons d'état sur button, a et span (vote du forum),
+       .active et [disabled], bouton d'information ; fonds .bg-* (dont un lien) ; textes .text-* (dont un lien) posés sur un panneau ; panneaux d'état
+       avec en-tête. Étiquettes et boutons hors d'un .panel-body (sur mobile, la règle des articles de commerce y donne aux liens survolés
+       le fond bg-hover). Hors palette : marque PNJ native (span.btn.btn-danger.xmini) et pièce courante du plateau (lien natif .btn-warning à
+       image de pièce). Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Règles</span>
+          <a class="list-group-item" href="regles/base">Règles de base</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <h1>États d'essai</h1>
+        <div id="al-success" class="alert alert-success">Succès d'essai, <a id="al-success-lien" href="regles/base">lien de succès</a>.</div>
+        <div id="al-warning" class="alert alert-warning">Avertissement d'essai, <a id="al-warning-lien" href="regles/base">lien d'avertissement</a>.</div>
+        <div id="al-danger" class="alert alert-danger">Blocage d'essai, <a id="al-danger-lien" href="regles/base">lien de blocage</a>.</div>
+        <div id="al-info" class="alert alert-info">Information d'essai, <a id="al-info-lien" href="regles/base">lien d'information</a>.</div>
+        <p>
+          <span id="lb-success" class="label label-success">Succès</span>
+          <span id="lb-warning" class="label label-warning">Avertissement</span>
+          <span id="lb-danger" class="label label-danger">Blocage</span>
+          <a id="lb-success-lien" class="label label-success" href="regles/base">Étiquette lien</a>
+        </p>
+        <p>
+          <button id="bt-success" class="btn btn-success" type="button">Succès</button>
+          <button id="bt-warning" class="btn btn-warning" type="button">Avertissement</button>
+          <button id="bt-danger" class="btn btn-danger" type="button">Blocage</button>
+          <a id="bt-success-a" class="btn btn-success" href="regles/base">Lien de succès</a>
+          <span id="bt-success-vote" class="btn btn-success">+2&nbsp;</span>
+          <button id="bt-info" class="btn btn-info" type="button">Information</button>
+        </p>
+        <p>
+          <button id="bt-warning-active" class="btn btn-warning active" type="button">Avertissement actif</button>
+          <button id="bt-danger-disabled" class="btn btn-danger" type="button" disabled>Blocage désactivé</button>
+        </p>
+        <p>
+          <span id="bg-success" class="bg-success">Fond de succès, <a id="bg-success-lien" href="regles/base">lien</a></span>
+          <span id="bg-warning" class="bg-warning">Fond d'avertissement</span>
+          <span id="bg-danger" class="bg-danger">Fond de blocage</span>
+        </p>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <p>
+              <span id="tx-success" class="text-success">Texte de succès</span>
+              <span id="tx-warning" class="text-warning">Texte d'avertissement</span>
+              <span id="tx-danger" class="text-danger">Texte de blocage</span>
+              <span id="tx-info" class="text-info">Texte d'information</span>
+              <a id="tx-danger-lien" class="text-danger" href="regles/base">Lien de blocage</a>
+            </p>
+            <p>
+              <span id="pnj" class="btn btn-danger xmini">PNJ</span>
+              <a id="piece" class="btn btn-warning" href="jouer/plateau"><img src="http://img7.kraland.org/2/bat/bat1.gif" width="20" height="20" alt="">Pièce courante</a>
+            </p>
+          </div>
+        </div>
+        <div id="pn-success" class="panel panel-success"><div id="pn-success-tete" class="panel-heading">Panneau de succès</div><div class="panel-body">Corps</div></div>
+        <div id="pn-warning" class="panel panel-warning"><div id="pn-warning-tete" class="panel-heading">Panneau d'avertissement</div><div class="panel-body">Corps</div></div>
+        <div id="pn-danger" class="panel panel-danger"><div id="pn-danger-tete" class="panel-heading">Panneau de blocage</div><div class="panel-body">Corps</div></div>
+        <div id="pn-info" class="panel panel-info"><div id="pn-info-tete" class="panel-heading">Panneau d'information</div><div class="panel-body">Corps</div></div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

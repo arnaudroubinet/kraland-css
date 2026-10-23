@@ -146,6 +146,15 @@
   /* Non lu : forum et notifications. Couleur du statut « non lu » : barre et pastille du sous-forum (L1), barre et teinte de la cellule
      de date sur /report. Suit l'accent du thème, sauf EB clair (voir plus bas). */
   --kr-status-unread: var(--kr-highlight);
+
+  /* Palette d'états (H5.5, DESIGN.md › Palette d'états, Q3) : succès (votes), avertissement, danger (blocages), un ton par mode commun aux
+     8 nations ; l'info suit la nation (alerte : --kr-alert-info-* ; état plein : paire d'action ; texte : --kr-text-accent). Le « non lu »
+     n'en fait pas partie (--kr-status-unread, R3). Survol d'un état plein : couleur d'état mêlée de 15 % de noir en clair, de blanc en
+     sombre (--kr-state-hover-mix). */
+  --kr-success: #2e7d32;
+  --kr-warning: #8a5a00;
+  --kr-danger: #c62828;
+  --kr-state-hover-mix: #000;
 }
 
 html.kr-theme-variant-empire-brun {
@@ -208,13 +217,18 @@ html[class*="-dark"] {
   --kr-nation-9: #c4b958;
 
   /* Jetons de rôle en sombre (DESIGN.md › Colors) : teintes = surface surélevée et bordure du thème, texte de la nation = accent (H5.6),
-     alerte info = primaire mêlée à bg-surface (15 % et 30 %, Q4). La règle html[class*="-dark"] .alert-info garde pour l'instant son
-     fond et sa bordure (ticket 3.5) ; ses liens sont en accent (H5.6). */
+     alerte info = primaire mêlée à bg-surface (15 % et 30 %, Q4), consommée par la règle commune .alert.alert-info (ticket 3.5). */
   --kr-text-nation: var(--kr-highlight);
   --kr-header-tint: var(--kr-bg-elevated);
   --kr-border-tint: var(--kr-border-default);
   --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface));
   --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 30%, var(--kr-bg-surface));
+
+  /* Palette d'états en sombre (DESIGN.md › Palette d'états) */
+  --kr-success: #81c784;
+  --kr-warning: #ffb74d;
+  --kr-danger: #ff8a80;
+  --kr-state-hover-mix: #fff;
 }
 
 html.kr-theme-variant-kraland-dark {
@@ -739,16 +753,142 @@ html.kr-page-report table > tbody > tr.bg-info > td:first-child {
   }
 }
 
-/* Alerts - info variant */
+/* Alerte info, dans les deux modes : teinte de la nation (Q4), texte du thème */
 .alert.alert-info {
   background-color: var(--kr-alert-info-bg);
   border-color: var(--kr-alert-info-border);
-  color: var(--kr-text);
+  color: var(--kr-text-primary);
 }
 
 .alert strong,
 .alert p {
-  color: var(--kr-text);
+  color: var(--kr-text-primary);
+}
+
+/* Palette d'états (H5.5, ticket 3.5), dans les deux modes : chaque classe d'état pose sa couleur (--kr-state), que ses règles emploient.
+   Succès, avertissement et danger seulement : l'info suit la nation. Hors palette : PNJ (.btn-danger.xmini, épopée 5) et pièce courante
+   du plateau (.btn-warning à image de pièce, accent : règle sombre « BOUTONS WARNING »), exclus des boutons sans spécificité ajoutée. */
+html.kr-theme-enabled :is(.alert-success, .label-success, .btn-success, .bg-success, .text-success, .panel-success) {
+  --kr-state: var(--kr-success);
+}
+
+html.kr-theme-enabled :is(.alert-warning, .label-warning, .btn-warning, .bg-warning, .text-warning, .panel-warning) {
+  --kr-state: var(--kr-warning);
+}
+
+html.kr-theme-enabled :is(.alert-danger, .label-danger, .btn-danger, .bg-danger, .text-danger, .panel-danger) {
+  --kr-state: var(--kr-danger);
+}
+
+/* Alertes d'état : fond à 12 % et bordure à 35 % de la couleur d'état sur bg-surface, texte du thème (composant Alerte) */
+html.kr-theme-enabled .alert:is(.alert-success, .alert-warning, .alert-danger) {
+  background-color: color-mix(in srgb, var(--kr-state) 12%, var(--kr-bg-surface));
+  border-color: color-mix(in srgb, var(--kr-state) 35%, var(--kr-bg-surface));
+  color: var(--kr-text-primary);
+}
+
+/* Lien dans une alerte (toutes, info comprise) : couleur du texte de l'alerte, souligné. En accent, il tombait à 3,80:1 en Paladium sombre
+   sur l'alerte info (décision en autonomie, revue-manuelle.md). Boutons et étiquettes posés dans une alerte gardent leurs règles. */
+html.kr-theme-enabled .alert a:where(:not(.btn, .label)) {
+  color: inherit !important;
+  text-decoration: underline;
+}
+
+/* Étiquettes d'état : fond de la couleur d'état, texte bg-surface (Pastille d'état). (0,4,1) et (0,6,2) : battent .label et a.label
+   ((0,3,2) au repos, (0,4,2) survolée) plus haut. */
+html.kr-theme-enabled .label.label:is(.label-success, .label-warning, .label-danger) {
+  background-color: var(--kr-state);
+  border-color: var(--kr-state);
+  color: var(--kr-bg-surface);
+}
+
+html.kr-theme-enabled a.label.label[href]:is(.label-success, .label-warning, .label-danger):is(:hover, :focus) {
+  background-color: color-mix(in srgb, var(--kr-state) 85%, var(--kr-state-hover-mix));
+  color: var(--kr-bg-surface);
+}
+
+/* Boutons d'état : même schéma que les boutons primaires (repos (0,3,1), états (0,4,1), désactivé placé après les états) ; fond et
+   bordure de la couleur d'état, texte bg-surface ; survol, focus, appui et menu ouvert mêlés de 15 % de noir (clair) ou de blanc (sombre). */
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))) {
+  background-color: var(--kr-state);
+  border-color: var(--kr-state);
+  color: var(--kr-bg-surface);
+}
+
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(:hover, :focus, .focus, :active, .active):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))),
+html.kr-theme-enabled .open > .dropdown-toggle.btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini)) {
+  background-color: color-mix(in srgb, var(--kr-state) 85%, var(--kr-state-hover-mix));
+  border-color: color-mix(in srgb, var(--kr-state) 85%, var(--kr-state-hover-mix));
+  color: var(--kr-bg-surface);
+}
+
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(.disabled, [disabled]):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))),
+html.kr-theme-enabled fieldset[disabled] .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))) {
+  background-color: var(--kr-state);
+  border-color: var(--kr-state);
+  color: var(--kr-bg-surface);
+}
+
+/* Badge d'un bouton d'état : paire inverse */
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger) .badge {
+  background-color: var(--kr-bg-surface);
+  color: var(--kr-state);
+}
+
+/* Fonds d'état : couleur d'état pleine, texte bg-surface (plus de pastel de Bootstrap) ; contenu (liens compris) au texte du fond, sauf
+   boutons et étiquettes */
+html.kr-theme-enabled :is(.bg-success, .bg-warning, .bg-danger) {
+  background-color: var(--kr-state);
+  color: var(--kr-bg-surface);
+}
+
+html.kr-theme-enabled :is(.bg-success, .bg-warning, .bg-danger) :where(:not(.btn, .label, .btn *, .label *)) {
+  color: inherit !important;
+}
+
+/* Textes d'état : couleur d'état ; info en texte coloré de la nation. (0,3,1) : bat la règle des liens du sombre (0,2,2). */
+html.kr-theme-enabled .text-success.text-success,
+html.kr-theme-enabled .text-warning.text-warning,
+html.kr-theme-enabled .text-danger.text-danger {
+  color: var(--kr-state);
+}
+
+html.kr-theme-enabled .text-info.text-info {
+  color: var(--kr-text-accent);
+}
+
+/* Panneaux d'état : bordure à 35 %, en-tête à 12 % de la couleur d'état sur bg-surface, texte du thème ; panneau info en teinte de la
+   nation. Badge de l'en-tête : couleur d'état pleine (info : paire d'action). */
+html.kr-theme-enabled .panel:is(.panel-success, .panel-warning, .panel-danger),
+html.kr-theme-enabled .panel:is(.panel-success, .panel-warning, .panel-danger) > .panel-heading + .panel-collapse > .panel-body {
+  border-color: color-mix(in srgb, var(--kr-state) 35%, var(--kr-bg-surface));
+}
+
+html.kr-theme-enabled .panel:is(.panel-success, .panel-warning, .panel-danger) > .panel-heading {
+  background-color: color-mix(in srgb, var(--kr-state) 12%, var(--kr-bg-surface));
+  border-color: color-mix(in srgb, var(--kr-state) 35%, var(--kr-bg-surface));
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-enabled .panel:is(.panel-success, .panel-warning, .panel-danger) > .panel-heading .badge {
+  background-color: var(--kr-state);
+  color: var(--kr-bg-surface);
+}
+
+html.kr-theme-enabled .panel.panel-info,
+html.kr-theme-enabled .panel.panel-info > .panel-heading + .panel-collapse > .panel-body {
+  border-color: var(--kr-alert-info-border);
+}
+
+html.kr-theme-enabled .panel.panel-info > .panel-heading {
+  background-color: var(--kr-alert-info-bg);
+  border-color: var(--kr-alert-info-border);
+  color: var(--kr-text-primary);
+}
+
+html.kr-theme-enabled .panel.panel-info > .panel-heading .badge {
+  background-color: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
 }
 
 /* Masquage du carrousel d'accueil via option */
@@ -790,6 +930,7 @@ html.kr-hide-carousel .carousel {
 .list-group-item.active > .badge,
 .nav-pills > .active > a > .badge,
 .btn-primary .badge,
+.btn-info .badge,
 html.kr-theme-enabled .panel-primary > .panel-heading .badge {
   background-color: var(--kr-arm-ink, var(--kr-white));
   color: var(--kr-arm-bg, var(--kr-primary));
@@ -1896,8 +2037,8 @@ a.carousel-control.right{
    juste sous son titre (h3 du formulaire), avant ses paragraphes et le panneau d'onglets : collés en haut du corps de la modale pendant
    le défilement, jamais repliés (H2.3, R2). top : moins le padding du corps (15 px sur les deux supports), sinon le bloc colle sous ce
    padding et le contenu défile dans une bande de 15 px au-dessus de lui. clear : le bloc commence sous l'image flottante du titre
-   (div.pull-right du h3), qu'il recouvrirait. Fond opaque de la surface : rien ne transparaît sous les teintes d'état
-   semi-transparentes du mode sombre. Au-dessus des zones collantes de la chaîne mobile (onglets 100, titre 110) : rien ne les recouvre.
+   (div.pull-right du h3), qu'il recouvrirait. Fond opaque de la surface : le contenu qui défile ne transparaît pas autour des
+   alertes (marges, coins arrondis). Au-dessus des zones collantes de la chaîne mobile (onglets 100, titre 110) : rien ne les recouvre.
    Seule l'aide (.alert-order) se replie, derrière « ? Aide » (.kr-order-help-toggle, bouton standard btn-default : même fond
    qu'« Annuler », texte de la nation), lisible dans les 16 variantes (H2.4, H5.3).
    ============================================================================ */
@@ -2094,8 +2235,10 @@ a:focus {
 /* Q1, H5.1 : boutons primaires de toute balise (button, a, label, span, input) et de tout état, dans les 16 variantes : paire d'action au
    repos et désactivé, paire de survol au survol, au focus, à l'appui, en .active, .focus et menu ouvert. Bordure en primaire foncée.
    Spécificité : les états de Bootstrap vont jusqu'à (0,4,0) (.open > .dropdown-toggle.btn-primary.focus) et la règle des liens du sombre
-   est en (0,2,2) ; repos (0,3,1), états (0,4,1) et (0,5,1), désactivé (0,4,1) placé après les états. */
-html.kr-theme-enabled .btn-primary.btn-primary {
+   est en (0,2,2) ; repos (0,3,1), états (0,4,1) et (0,5,1), désactivé (0,4,1) placé après les états. Bouton d'information (.btn-info) :
+   l'info suit la nation (H5.5, ticket 3.5), même paire. */
+html.kr-theme-enabled .btn-primary.btn-primary,
+html.kr-theme-enabled .btn-info.btn-info {
   background-color: var(--kr-arm-bg, var(--kr-primary));
   border-color: var(--kr-primary-dark);
   color: var(--kr-arm-ink, var(--kr-white));
@@ -2103,7 +2246,9 @@ html.kr-theme-enabled .btn-primary.btn-primary {
 }
 
 html.kr-theme-enabled .btn-primary.btn-primary:is(:hover, :focus, .focus, :active, .active),
-html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary {
+html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary,
+html.kr-theme-enabled .btn-info.btn-info:is(:hover, :focus, .focus, :active, .active),
+html.kr-theme-enabled .open > .dropdown-toggle.btn-info.btn-info {
   background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
   border-color: var(--kr-primary-dark);
   color: var(--kr-arm-ink-hover, var(--kr-white));
@@ -2111,12 +2256,16 @@ html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary {
 
 /* Pressés : ombre intérieure de Bootstrap (.btn:active, .btn.active, .btn-group.open .dropdown-toggle), que la règle de repos battrait */
 html.kr-theme-enabled .btn-primary.btn-primary:is(:active, .active),
-html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary {
+html.kr-theme-enabled .open > .dropdown-toggle.btn-primary.btn-primary,
+html.kr-theme-enabled .btn-info.btn-info:is(:active, .active),
+html.kr-theme-enabled .open > .dropdown-toggle.btn-info.btn-info {
   box-shadow: inset 0 3px 5px var(--kr-overlay-dark-125);
 }
 
 html.kr-theme-enabled .btn-primary.btn-primary:is(.disabled, [disabled]),
-html.kr-theme-enabled fieldset[disabled] .btn-primary.btn-primary {
+html.kr-theme-enabled fieldset[disabled] .btn-primary.btn-primary,
+html.kr-theme-enabled .btn-info.btn-info:is(.disabled, [disabled]),
+html.kr-theme-enabled fieldset[disabled] .btn-info.btn-info {
   background-color: var(--kr-arm-bg, var(--kr-primary));
   border-color: var(--kr-primary-dark);
   color: var(--kr-arm-ink, var(--kr-white));
@@ -2623,7 +2772,7 @@ html:where(.kr-theme-enabled) .panel-default > .panel-footer {
   color: var(--kr-text-primary);
 }
 
-/* Sombre : en-têtes et pieds des autres panneaux (panneaux d'état : ticket 3.5) */
+/* Sombre : en-têtes et pieds des autres panneaux (en-têtes des panneaux d'état et info : règles communes de la section 5, ticket 3.5) */
 html[class*="-dark"] .panel-heading {
   background-color: var(--kr-bg-elevated);
   border-color: var(--kr-border-default);
@@ -2877,43 +3026,19 @@ html.kr-theme-enabled .nav-tabs > li.active > a:focus {
 }
 
 /* === ALERTS === */
+
+/* Fond, bordure et liens des alertes d'état et de l'alerte info : règles communes (section 5, ticket 3.5) */
 html[class*="-dark"] .alert {
-  border-color: var(--kr-border-default);
   color: var(--kr-text-primary) !important;
+}
+
+/* Alerte sans type (aide de la modale d'ordre sur ordinateur…) : cadre du thème. Les alertes typées gardent leur bordure (règles communes) */
+html[class*="-dark"] .alert:where(:not(.alert-success, .alert-warning, .alert-danger, .alert-info)) {
+  border-color: var(--kr-border-default);
 }
 
 html[class*="-dark"] .alert * {
   color: inherit !important;
-}
-
-html[class*="-dark"] .alert a {
-  color: var(--kr-text-accent) !important;
-  text-decoration: underline;
-}
-
-html[class*="-dark"] .alert-info {
-  background-color: rgb(122, 82, 64, 0.15);
-  border-color: rgb(122, 82, 64, 0.3);
-  color: var(--kr-text-primary);
-}
-
-html[class*="-dark"] .alert-success {
-  background-color: rgb(34, 197, 94, 0.15);
-  border-color: rgb(34, 197, 94, 0.3);
-  color: var(--kr-text-primary);
-}
-
-/* H5.6 : fond à 8 % pour que le lien en accent atteigne 4,5:1 (Paladium sombre : 4,65:1) */
-html[class*="-dark"] .alert-warning {
-  background-color: rgb(245, 158, 11, 0.08);
-  border-color: rgb(245, 158, 11, 0.3);
-  color: var(--kr-text-primary);
-}
-
-html[class*="-dark"] .alert-danger {
-  background-color: rgb(239, 68, 68, 0.15);
-  border-color: rgb(239, 68, 68, 0.3);
-  color: var(--kr-text-primary);
 }
 
 /* === PROGRESS === */
@@ -3305,15 +3430,16 @@ html[class*="-dark"] a.next:hover {
 
 /* === BOUTONS WARNING === */
 
-/* Adaptation des boutons warning pour le thème sombre. Q1 : encre de la paire d'action, avec son fond (l'encre de Kraland et de Khanat
-   Elmérien sombres n'atteint 4,5:1 que sur --kr-arm-bg) ; au survol, fond d'accent et texte inverse inchangés */
-html[class*="-dark"] .btn-warning {
+/* Pièce courante du plateau (lien natif .btn-warning à image de pièce) en sombre. Q1 : encre de la paire d'action, avec son fond (l'encre
+   de Kraland et de Khanat Elmérien sombres n'atteint 4,5:1 que sur --kr-arm-bg) ; au survol, fond d'accent et texte inverse inchangés.
+   Les autres .btn-warning suivent la palette d'états (section 5, ticket 3.5). */
+html[class*="-dark"] .btn-warning:where(:has(> img[src*="/bat/bat"])) {
   background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary-dark) !important;
   color: var(--kr-arm-ink, var(--kr-white)) !important;
 }
 
-html[class*="-dark"] .btn-warning:hover {
+html[class*="-dark"] .btn-warning:hover:where(:has(> img[src*="/bat/bat"])) {
   background-color: var(--kr-highlight) !important;
   border-color: var(--kr-primary) !important;
   color: var(--kr-text-inverse) !important;
@@ -4373,7 +4499,9 @@ body > map {
     border-radius: 4px !important;
   }
   
-  .panel-body a:hover {
+  /* Boutons exclus (sauf la pièce courante, hors palette) : ils gardent leur fond de survol (boutons d'état des caractéristiques du
+     plateau, ticket 3.5) */
+  .panel-body a:where(:not(.btn:not(.btn-warning:has(> img[src*="/bat/bat"])))):hover {
     background-color: var(--kr-bg-hover) !important;
   }
   
@@ -5009,8 +5137,9 @@ body > map {
       overflow: visible !important;
     }
 
-    .mobile-mini-profile .mobile-skill-item:active,
-    .mobile-mini-profile .mobile-characteristic-badge:active {
+    /* Caractéristiques en bouton d'état : leur appui garde le fond de la palette d'états (ticket 3.5) */
+    .mobile-mini-profile .mobile-skill-item:where(:not(.btn-success, .btn-warning, .btn-danger)):active,
+    .mobile-mini-profile .mobile-characteristic-badge:where(:not(.btn-success, .btn-warning, .btn-danger)):active {
       background: var(--kr-bg-hover) !important;
     }
 
@@ -11867,8 +11996,8 @@ html[class*='-dark'] .mini.c10 {
 @media (min-width: 768px) {
   /* --- Alerte stylisée --- */
   .page-accueil .alert-info {
-    background: var(--kr-bg-elevated);
-    border: 1px solid var(--kr-border-default);
+    background: var(--kr-alert-info-bg);
+    border: 1px solid var(--kr-alert-info-border);
     border-left: 4px solid var(--kr-primary);
     color: var(--kr-text-primary);
     border-radius: var(--kr-radius);
@@ -12227,7 +12356,7 @@ html[class*='-dark'] .mini.c10 {
 
   /* --- Alerte stylisée --- */
   .page-accueil .alert-info {
-    background: var(--kr-bg-elevated);
+    background: var(--kr-alert-info-bg);
     border: none;
     border-left: 3px solid var(--kr-primary);
     color: var(--kr-text-primary);
@@ -12592,9 +12721,10 @@ html[class*='-dark'] .mini.c10 {
 }
 
 /* PLT-11 : le survol ne doit jamais baisser le contraste du texte. Bouton standard : règle commune (H5.3), plus spécifique ; ce sélecteur ne
-   sert plus qu'aux boutons de groupe du tableau de bord, qu'elle exclut (survol sur mobile inchangé) */
+   sert plus qu'aux boutons de groupe du tableau de bord, qu'elle exclut (survol sur mobile inchangé). Boutons d'état (caractéristiques du
+   plateau) exclus : survol de la palette d'états (ticket 3.5) */
 html[class*="-dark"] .btn-default:hover,
-html[class*="-dark"] .list-group-item.btn:hover,
+html[class*="-dark"] .list-group-item.btn:where(:not(.btn-success, .btn-warning, .btn-danger)):hover,
 html[class*="-dark"] a.list-group-item.btn-default:hover {
   color: var(--kr-highlight);
   background-color: var(--kr-bg-active);
@@ -15126,8 +15256,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     height: 36px !important;
     min-width: 36px !important;
     padding: 0 8px !important;
-    border-color: rgba(46, 160, 67, 0.55) !important;
-    background: rgba(46, 160, 67, 0.18) !important;
+    border-color: color-mix(in srgb, var(--kr-success) 35%, var(--kr-bg-surface)) !important;
+    background: color-mix(in srgb, var(--kr-success) 12%, var(--kr-bg-surface)) !important;
     cursor: default;
   }
 

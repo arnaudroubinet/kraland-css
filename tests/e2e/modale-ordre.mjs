@@ -457,7 +457,8 @@ const LIBRE = () => {
 // Couleurs (H2.4 ; contrastes), outil des 16 variantes posé dans la page : « ? Aide » (rapport de son texte, fond effectif comparé à celui
 // d'« Annuler », couleur comparée au texte de la nation --kr-text-nation, bouton standard de l'épopée 3, ticket 4) ; plus faible rapport du texte de chaque blocage ou avertissement,
 // et de l'aide dépliée par un clic sur « ? Aide » (repliée ensuite) ; la croix de l'aide, un bouton, n'est pas du texte. Pastilles (ticket
-// 2.4, Q1) : rapport du texte de chacune, fond et texte comparés à la paire --kr-arm-bg / --kr-arm-ink (replis du thème).
+// 2.4, Q1) : rapport du texte de chacune, fond et texte comparés à la paire --kr-arm-bg / --kr-arm-ink (replis du thème). Palette d'états
+// (épopée 3, ticket 5) : fond, bordure et texte de chaque blocage ou avertissement comparés aux mélanges attendus, lus sur la sonde.
 const TEINTES = () => {
   const c = window.__krContraste;
   const m = window.__modale;
@@ -470,21 +471,32 @@ const TEINTES = () => {
   sonde.style.backgroundColor = 'var(--kr-arm-bg, var(--kr-primary))';
   sonde.style.color = 'var(--kr-arm-ink, var(--kr-white))';
   const arm = { fond: getComputedStyle(sonde).backgroundColor, encre: getComputedStyle(sonde).color };
-  sonde.remove();
   const textes = el => [el, ...el.querySelectorAll('*')].filter(e => !e.closest('button') && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
   const pire = el => Math.min(...textes(el).map(c.texte));
   const rond = v => v.map(Math.round).join(',');
   const aide = m.querySelector('#ajax-order .alert-order');
+  sonde.style.color = 'var(--kr-border-default)';
+  const cadreAide = aide ? { couleur: getComputedStyle(aide).borderTopColor, largeur: getComputedStyle(aide).borderTopWidth, attendu: getComputedStyle(sonde).color } : null;
   let texteAide = null;
   if (b && aide) { b.click(); texteAide = pire(aide); b.click(); }
-  return {
+  const r = {
     bouton: b ? { contraste: c.texte(b), fond: rond(c.fond(b)), couleur: getComputedStyle(b).color } : null,
     fondAnnuler: rond(c.fond(annuler)),
     nation,
     alertes: [...m.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order')).map(pire),
+    etats: [...m.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order')).map(a => {
+      const etat = a.matches('.alert-danger') ? 'danger' : 'warning';
+      const s = getComputedStyle(a);
+      const attendus = [12, 35].map(p => { sonde.style.backgroundColor = `color-mix(in srgb, var(--kr-${etat}) ${p}%, var(--kr-bg-surface))`; return getComputedStyle(sonde).backgroundColor; });
+      sonde.style.color = 'var(--kr-text-primary)';
+      return { etat, fond: s.backgroundColor, bordure: s.borderTopColor, couleur: s.color, attendus, texte: getComputedStyle(sonde).color };
+    }),
     aide: texteAide,
+    cadreAide,
     pastilles: [...m.querySelectorAll('.kr-order-badges > *')].map(p => ({ titre: p.title, contraste: c.texte(p), fond: getComputedStyle(p).backgroundColor === arm.fond, encre: getComputedStyle(p).color === arm.encre }))
   };
+  sonde.remove();
+  return r;
 };
 // Croix de fermeture de la modale (ticket 2.5), modale telle qu'elle est : taille ; zone visible (intersection de la croix et de la boîte
 // de découpe du corps de la modale, qui défile : sa boîte de rembourrage, en valeurs fractionnaires, clientWidth étant arrondi à
@@ -1100,7 +1112,7 @@ async function teintes(cfg) {
 function verifierTeintes(t) {
   const tag = `${t.cfg.width} px${t.cfg.mobile ? ' (mobile)' : ''}, ${t.cfg.variante}`;
   const x = v => (typeof v === 'number' ? v.toFixed(2) : String(v)) + ':1';
-  check(`${tag} : « ? Aide » au fond d'« Annuler » et au texte de la nation (--kr-text-nation), ≥ 4,5:1 ; texte de l'avertissement (Dormir), du blocage (Pouvoir) et de l'aide dépliée ≥ 4,5:1`, () => {
+  check(`${tag} : « ? Aide » au fond d'« Annuler » et au texte de la nation (--kr-text-nation), ≥ 4,5:1 ; texte de l'avertissement (Dormir), du blocage (Pouvoir) et de l'aide dépliée ≥ 4,5:1 ; avertissement et blocage à 12 % (fond) et 35 % (bordure) de leur couleur d'état sur bg-surface, texte text-primary ; aide encadrée de border-default (sombre, ordinateur)`, () => {
     assert.equal(t.posee, true, 'variante non appliquée sur <html>');
     for (const [nom, e] of [['Dormir', t.dormir], ['Pouvoir', t.pouvoir]]) {
       assert.ok(e.bouton, `${nom} : aucun « ? Aide »`);
@@ -1109,7 +1121,11 @@ function verifierTeintes(t) {
       assert.ok(e.bouton.contraste >= 4.5, `${nom} : « ? Aide » ${x(e.bouton.contraste)}`);
       assert.equal(e.alertes.length, 1, `${nom} : ${e.alertes.length} blocage(s) ou avertissement(s)`);
       e.alertes.forEach(v => assert.ok(v >= 4.5, `${nom} : texte de l'alerte ${x(v)}`));
+      // Palette d'états (épopée 3, ticket 5) : fond à 12 % et bordure à 35 % de la couleur d'état sur bg-surface, texte text-primary.
+      e.etats.forEach(a => assert.deepEqual([a.fond, a.bordure, a.couleur], [...a.attendus, a.texte], `${nom} : alerte ${a.etat} ${JSON.stringify(a)}`));
       assert.ok(e.aide >= 4.5, `${nom} : texte de l'aide dépliée ${x(e.aide)}`);
+      // Aide (alerte sans type) en sombre sur ordinateur : cadre border-default du thème (épopée 3, ticket 5).
+      if (t.cfg.variante.endsWith('-dark') && !t.cfg.mobile) { assert.deepEqual([e.cadreAide && e.cadreAide.largeur, e.cadreAide && e.cadreAide.couleur], ['1px', e.cadreAide && e.cadreAide.attendu], `${nom} : cadre de l'aide ${JSON.stringify(e.cadreAide)}`); }
     }
     assert.deepEqual(t.errors, [], 'erreurs ' + t.errors.join(' | '));
   });

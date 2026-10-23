@@ -56,6 +56,16 @@ export const TEXTE_SECONDAIRE_CLAIR = 'html:not([class*="-dark"]) { --kr-text-se
 export const COMPOSANTS_TICKET4 = '.panel-default > .panel-heading, .panel-default > .panel-footer, .table th, table.dataTable thead th, table.dataTable tfoot th, .btn-default, .nav-tabs, .nav-tabs > li > a';
 
 /**
+ * Éléments d'état que l'épopée 3, ticket 5 passe à la palette d'états (H5.5) : alertes, boutons, textes et en-têtes de panneau (info
+ * comprise), étiquettes et fonds de succès, d'avertissement et de danger (.label-info et .bg-info, en paire d'action, ne changent pas). Les comparaisons figées, face à un bundle d'avant ce ticket (AVANT_TICKET5), neutralisent leur texte,
+ * leur fond et leur bordure, seul écart accepté (consigné dans le plan du ticket). Écrit ici pour la même raison que COMPOSANTS_TICKET4.
+ */
+export const COMPOSANTS_TICKET5 = ['alert', 'btn', 'text', 'panel'].flatMap(k => ['success', 'warning', 'danger', 'info'].map(e => (k === 'panel' ? `.panel-${e} > .panel-heading` : `.${k}-${e}`)))
+  .concat(['label', 'bg'].flatMap(k => ['success', 'warning', 'danger'].map(e => `.${k}-${e}`))).join(', ');
+/** Bundle d'avant l'épopée 3, ticket 5 : il ne déclare pas encore les jetons d'état. */
+export const AVANT_TICKET5 = bundle => !bundle.includes('--kr-success');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

@@ -36,7 +36,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { COMPOSANTS_TICKET4, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET5, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -572,6 +572,8 @@ if (on('seuil')) {
 // COMPOSANTS_TICKET4) ont leur texte, leur fond et leur bordure basse remplacés par « composant » dans l'empreinte ; leur contenu dont le
 // texte est celui du composant (hérité) dans l'un des deux bundles (herites) a son texte neutralisé des deux côtés, et sa bordure basse
 // quand elle suit le texte (composantsHerites). Tout autre écart reste détecté.
+// Écart accepté et consigné (épopée 3, ticket 5) : face à un bundle « avant » d'avant ce ticket, les éléments d'état passés à la palette
+// d'états (COMPOSANTS_TICKET5 : alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d'état) sont traités comme ces composants.
 const EMPREINTE = composants => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
@@ -715,11 +717,13 @@ if (on('hors-perimetre')) {
     console.log('  info écart accepté et consigné : texte, fond et bordure des éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2)');
     console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
     console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » ; texte, fond et bordure des en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4)');
+    const composants = COMPOSANTS_TICKET4 + (AVANT_TICKET5(avant) ? ', ' + COMPOSANTS_TICKET5 : '');
+    if (AVANT_TICKET5(avant)) { console.log('  info écart accepté et consigné : texte, fond et bordure des éléments d\'état (alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d\'état ; épopée 3, ticket 5)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
         const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant });
-        mesures.push({ e: await page.evaluate(EMPREINTE, COMPOSANTS_TICKET4), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
+        mesures.push({ e: await page.evaluate(EMPREINTE, composants), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }
       return mesures;
