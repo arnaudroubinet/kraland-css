@@ -1,0 +1,123 @@
+# tickets.toml — epic-typographie-formes, dans l'ordre de construction.
+# Balle traçante : entrée 1 (jetons d'échelle déclarés, étiquettes et pastilles en 12 px gras sur le plateau, le forum et le kramail, suite typographie-formes.mjs et sa zone dans le routeur) ;
+# elle ne passe pas par le template JS : les styles en ligne du template sont repris par les entrées 2 et 8.
+# Entrées chaînées par collision, pas par dépendance fonctionnelle : elles partagent la suite typographie-formes.mjs (créée par l'entrée 1 ; palette-nation.mjs n'est pas allongée)
+# et réécrivent les mêmes sections de kraland-theme.css ; les jetons --kr-font-*, --kr-radius-*, --kr-space-* déclarés par l'entrée 1 sont consommés par toutes (décision prise en autonomie, 2026-10-24).
+# Commun : valeurs de DESIGN.md › Typography, Layout & Spacing, Shapes, Components ; tailles écrites en px (Bootstrap 3 fixe html à 10 px : 1 rem = 10 px) ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles qu'elle remplace, sans les battre par spécificité ou !important, et garde par page en :where(html.x) ce qu'elle conserve ;
+# règle commune aux deux supports en liste combinée @media (max-width: 767px), (min-width: 768px) (note P1) ; mobile en max-width: 767px seulement ;
+# chaque plan consigne son rouge avant sur le bundle de sa base, puis une contre-épreuve (mutation → rouge), et range son tri de revue sous ## Review Triage Log ;
+# largeurs et variantes communes : 375×667, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre au moins ; fixtures synthétiques, existantes ou créées par l'entrée qui en a besoin ;
+# chaque entrée qui touche tests/ lance aussi npm run test:router ;
+# hors périmètre : focus clavier (ticket 3.7 abandonné, aucune règle :focus), couleurs (épopée 3), carte de section et familles de pastilles (épopée 5),
+# cibles tactiles hors boutons et marge latérale de 16 px (épopée 9) ; boutons ≥ 44 px sur mobile gardés ; le kramail reçoit les règles communes sans entrée propre (épopée 7).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Jetons d'échelle ; étiquettes et pastilles en 12 px gras"
+description = "Balle traçante : jetons de taille de texte, de rayon et d'espacement de DESIGN.md déclarés sur :root (aucun n'existe aujourd'hui), consommés par les entrées suivantes et par l'épopée 8 ; toute étiquette et pastille (.label, .badge, « ici » de la croix à 10,5 px, « ! » de la cloche à 10 et 11 px, tags du forum à 8 et 9 px, .kr-topic-badge, badges du tableau de bord, puces du kramail) passe en 12 px gras par ces jetons, sans changer ses couleurs (H8.2) ; crée la suite typographie-formes.mjs et sa zone dans le routeur ; met à jour les suites qui figent ces tailles (modale-ordre pour les pastilles, forum-index, sous-forum, palette-nation)."
+verify = "Suite typographie-formes : jetons calculés égaux à DESIGN.md ; sur les fixtures du plateau, du sous-forum, de l'index du forum et du kramail, aux largeurs et variantes communes, chaque étiquette et pastille visible est en 12 px et 700, couleurs égales à la base ; npm run test:router vert."
+covers = ["CAP-5"]
+after = ["1.7", "3.8"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 2
+type = "story"
+title = "Bouton de taille normale : 14 px, 34 px sur ordinateur, au moins 44 px sur mobile"
+description = "Le plan établit d'abord la liste des boutons visés par H6.1 et H6.2 et leurs exclusions (groupes de boutons du tableau de bord, barres BBCode, croix directionnelle, flèches de l'index, votes et pagination laissés à l'entrée 4, modales Bootbox laissées à l'entrée 3) ; tout bouton primaire et standard de la liste, quelle que soit la balise, prend par les jetons de l'entrée 1 14 px et 34 px de haut sur ordinateur, 14 px et au moins 44 px sur mobile, à la place des règles mobiles .btn en 16 px et des tailles propres à .btn-xs, .btn-sm et .btn-lg, retirées ou réécrites ; les tailles posées en ligne par le template pour ces boutons suivent ; les suites qui figent les anciennes tailles (plateau-profil-mobile, forum-mobile, messages-v3) sont mises à jour. Fournisseur des tailles de bouton de l'épopée 9."
+verify = "Suite typographie-formes : sur les fixtures du plateau, du forum, du kramail et de l'interface (palette-nation-profil), chaque bouton de la liste fait 14 px et 34 px de haut à 1280, 1440 et 1920 px, 14 px et au moins 44 px de haut à 375 et 767 px, dans les deux variantes communes, et chaque exclusion garde ses valeurs de la base ; modale-ordre et npm run test:router verts."
+covers = ["CAP-5"]
+after = [1]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Modales Bootbox mobiles : « Valider » de taille normale et règles contradictoires retirées"
+description = "Sur mobile, « Valider » de la modale d'ordre (relevé à 18 px et 52 px de haut, à mesurer au rouge avant) et les boutons des confirmations Bootbox hors ordre prennent le bouton de taille normale de l'entrée 2 ; les règles contradictoires reportées par deferred-work.md (flex: 2 !important ~l.7691, flex: 1 !important ~l.7685 et ~l.7028, pied en colonne ~l.1999 écrit en max-width: 768px, onglet actif bg-elevated ~l.7215-7224 de MODAL PERSONNAGE MOBILE) sont retirées ou réécrites en max-width: 767px, réconciliées avec la section 9h des tickets 2.6 et 2.7 au lieu d'être battues ; la disposition de 2.6 (« Valider » pleine largeur sous « Annuler », paire arm) et l'aspect de l'onglet actif sont conservés ; l'entrée de deferred-work.md reçoit son status."
+verify = "Suites typographie-formes et modale-ordre : à 375 et 767 px, « Valider » et « Annuler » de Dormir, de Pouvoir et d'une confirmation hors ordre font 14 px et au moins 44 px de haut, « Valider » reste pleine largeur sous « Annuler », l'onglet actif garde ses couleurs de la base dans les 16 variantes, et à 768 px le pied n'est plus en colonne ; chaque règle listée est absente de kraland-theme.css ou gardée avec sa raison dans le plan ; npm run test:parler et npm run test:router verts."
+covers = ["CAP-5"]
+after = [2, "2.7"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Bouton compact en 12 px pour les votes et la pagination"
+description = "Sur ordinateur, les boutons de vote et les numéros de pagination, et eux seuls, prennent par les jetons de l'entrée 1 le bouton compact : 12 px, rayon 4 px, hauteur et couleur de la base conservées (Q9, hypothèse) ; sur mobile, ces éléments gardent leurs valeurs de la base (leurs cibles relèvent de l'épopée 9, H9.1) ; étend une fixture du sujet du forum avec des boutons de vote, aucune n'en contenant aujourd'hui."
+verify = "Suite typographie-formes : à 1280, 1440 et 1920 px, votes de la fixture du sujet et pagination du sous-forum et du sujet en 12 px et 4 px de rayon, hauteur et couleur égales à la base, aucun autre bouton en 12 px ; à 375 px, votes et pagination égaux à la base ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [3]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Échelle typographique du plateau, du mini-profil et des en-têtes de panneau"
+description = "Par les jetons de l'entrée 1 : titres de section 17 px (en-têtes de panneau sur les deux supports et sur toutes les pages, forum et kramail compris), noms et valeurs 15 px (h4 de 18 px sur ordinateur), détails 13 px, texte courant 14 px sur ordinateur et 15 px sur mobile (Q8, hypothèse ; champs gardés à 16 px), rien sous 12 px sur le plateau mobile : l'échelle mobile des titres en rem (l.4720-4725) est retirée pour des tailles en px, libellés des onglets de section et texte des jauges du mini-profil à 12 px (Q14), planchers de 11 px de PLT-QU réécrits à 12 px ; le grand titre de page reste à 36 px (H3.1, H11.1) ; l'épopée 5 reprend ces titres de 17 px dans sa carte de section mobile."
+verify = "Suite typographie-formes, fixtures du plateau, aux largeurs et variantes communes : titres 17 px, noms et valeurs 15 px, détails 13 px, texte courant 14 px sur ordinateur et 15 px sur mobile, aucun texte visible sous 12 px à 375 px, libellé « Personnage » de l'onglet entier à 360 et 375 px ; plateau-qualite-usage et plateau-profil-mobile mis à jour au plancher de 12 px et verts ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [4]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Matériel, Personnage, Bâtiments, Employés : échelle et ligne d'objet"
+description = "Les quatre pages de jeu prennent l'échelle de l'entrée 5 (titres 17, noms et valeurs 15, détails 13, rien sous 12 px sur mobile) ; sur mobile, la ligne d'objet du Matériel montre image, nom en 15 px puis charge alignée à droite en 13 px et text-secondary, dans l'ordre de l'ordinateur (H3.1, H3.2) ; crée les fixtures synthétiques de Matériel, de Bâtiments et d'Employés, absentes aujourd'hui, à partir d'un squelette DOM relevé en lecture seule sur mandat d'Arnaud (hitl), et reprend jeu-perso pour Personnage."
+verify = "Suite typographie-formes : sur les fixtures de Matériel, Personnage, Bâtiments et Employés, aux largeurs et variantes communes, tailles égales à l'échelle et aucun texte sous 12 px à 375 px ; à 375 px, chaque ligne d'objet a l'image à gauche, le nom ensuite et la charge alignée au bord droit sur la même ligne ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [5]
+hitl = true
+risk = "medium"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Échelle typographique du forum et du kramail"
+description = "Index, sous-forum, sujet, rédaction et kramail prennent l'échelle par les jetons de l'entrée 1, en reprenant les en-têtes de panneau de 17 px de l'entrée 5 : noms 15 px (le nom de forum en 15 px gras posé par le ticket 6.1 est gardé), détails 13 px (dates, compteurs, dernier message), texte courant 14 px sur ordinateur et 15 px sur mobile, messages du forum gardés à 16 px, rien sous 12 px sur mobile ; le kramail ne reçoit que ces règles communes, sans règle propre, en vue de sa reprise par l'épopée 7."
+verify = "Suite typographie-formes : fixtures de l'index, du sous-forum, du sujet et du kramail, aux largeurs et variantes communes, tailles égales à l'échelle et aucun texte sous 12 px à 375 px ; forum-index (parité index et sous-forum), sous-forum, messages-v3, forum-mobile et kramail-redaction mis à jour aux nouvelles valeurs et verts ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [6]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Trois rayons : 4 px, 8 px et plein"
+description = "Le plan liste les rayons du thème (231 déclarations) et du template, puis chacun passe à un des trois jetons de l'entrée 1, sur ordinateur et mobile (H6.3) : 4 px pour les contrôles (boutons, « Envoyer » du forum aujourd'hui à 8 px, boutons à icône du kramail à 10 px, champs ; le compact de l'entrée 4 est déjà à 4 px), 8 px pour les conteneurs (cartes du forum et du kramail à 12 px, panneaux, modales ; --mobile-radius et --kr-radius repris par les jetons ; la carte de section de l'épopée 5 prendra ce jeton), plein pour les pastilles et étiquettes ; les rayons asymétriques de la croix, les avatars et les images gardent leur forme (Q12, hypothèse) ; forum-index (parité des rayons index et sous-forum) est mis à jour."
+verify = "Suite typographie-formes : sur les fixtures du plateau, du forum, du sous-forum, du kramail et de la modale d'ordre, aux largeurs et variantes communes, chaque élément de la liste du plan a le rayon calculé de son rôle (4 px, 8 px ou plein), et la croix, les avatars et les images gardent leurs valeurs de la base ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [7]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Grille d'espacement au pas de 4 px"
+description = "Le plan liste les composants du périmètre borné par Q11 (hypothèse : .panel-body, .panel-heading, .btn, .form-control, cellules de tableau, sans la gouttière de la grille Bootstrap qui décale les colonnes du plateau) ; leurs marges, retraits et écarts de 10 et 15 px passent aux jetons d'espacement de l'entrée 1 (4 à 32 px) : 15 devient 16, 10 devient 8 ou 12 selon les espacements voisins, chaque choix consigné dans le plan (H11.2) ; la marge latérale de 16 px reste à l'épopée 9."
+verify = "Suite typographie-formes : sur les fixtures du plateau, du forum, du kramail et de la modale d'ordre, aux largeurs et variantes communes, chaque marge, retrait et écart calculé des composants de la liste du plan est un multiple de 4 compris entre 0 et 32 px, les boutons de la liste de l'entrée 2 gardent 34 px et au moins 44 px de haut, et les colonnes du plateau gardent leurs positions de la base à 1280 px ; npm run test:router vert."
+covers = ["CAP-5"]
+after = [8]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée ; le plan commence par la liste des entrées de deferred-work.md qui visent l'épopée, chacune marquée traitée ou rejetée avec sa raison (rétro de l'épopée 2, action 4)."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router vert, npm run test:all vert après le nettoyage."
+covers = ["CAP-5"]
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+hitl = false
+risk = "low"

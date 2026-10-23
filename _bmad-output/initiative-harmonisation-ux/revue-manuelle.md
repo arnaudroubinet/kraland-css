@@ -129,3 +129,20 @@ La racine reprend les lignes des index sur ordinateur et mobile ; tous les group
 
 - Effet élargi, accepté en autonomie : sur mobile, le « OK » de toutes les confirmations Bootbox (pas seulement l'ordre, ex. « Retirer ce personnage de vos contacts ? ») perd son dégradé vert et prend la couleur de la nation, comme tout bouton primaire (H5.1). À confirmer.
 - L'onglet actif de la modale d'ordre devient fond et texte du thème sur les deux supports ; le libellé rouge de l'onglet Pouvoir prend la couleur du texte.
+
+## Inception de l'épopée 4 « Même rôle, même taille, même forme » (2026-10-24)
+
+Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en autonomie. Option retenue pour chaque point, à confirmer ou renverser :
+
+- Découpage : 1 jetons et étiquettes/pastilles 12 px gras (balle traçante) ; 2 bouton de taille normale ; 3 modales Bootbox mobiles (« Valider » de taille normale, règles contradictoires de `deferred-work.md`) ; 4 bouton compact ; 5 échelle du plateau, du mini-profil et des en-têtes ; 6 Matériel, Personnage, Bâtiments, Employés et ligne d'objet ; 7 échelle du forum et du kramail ; 8 trois rayons ; 9 grille de 4 px ; 10 Refactor sweep. Entrées chaînées (suite et sections CSS partagées).
+- L'épopée 4 attend aussi l'épopée 2 (section 9h, tickets 2.6 et 2.7), ajoutée à son `after` dans le `tickets.toml` de l'initiative.
+- Q8 : texte courant mobile 15 px ; messages du forum 16 px ; champs 16 px (anti-zoom iOS).
+- Q9 : compact en 12 px, rayon 4 px ; hauteur 22 px et couleur de succès (ticket 3.5) gardées ; mobile inchangé.
+- Q11 : grille sur `.panel-body`, `.panel-heading`, `.btn`, `.form-control`, cellules de tableau ; gouttière exclue.
+- Q12 : croix, avatars et images gardent leur forme.
+- Q14 : onglets et jauges du mini-profil à 12 px.
+- Kramail : règles communes seulement, sans entrée propre ; recouvrement avec l'épopée 7 (thème du forum).
+- À trancher :
+  - mandat de relevé en lecture seule (squelette DOM de Matériel, Bâtiments, Employés) avant l'entrée 6 ;
+  - pages secondaires sous 12 px (accueil 8-9 px, Événements) : dans l'épopée 4 ou laissées ;
+  - cibles de 44 px des votes et de la pagination sur mobile : épopée 9 (option retenue) ou entrée 4.
