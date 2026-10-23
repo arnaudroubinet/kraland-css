@@ -12,7 +12,7 @@
 // Ticket 2.3 (H2.3, R2, H2.4), même socle, mêmes largeurs, sur les deux supports : les blocages (alert-danger) et avertissements
 // (alert-warning) ne sont jamais repliés ; ils passent en tête de l'ordre, juste sous son titre (h3 du formulaire), avant ses paragraphes et
 // le panneau d'onglets, et restent visibles et non recouverts quand le corps défile. Seule l'aide (alert-order) se replie, derrière
-// « ? Aide », bouton standard (fond d'« Annuler », texte du thème) qui la déplie au toucher ou au clic ; fermée par sa croix
+// « ? Aide », bouton standard (fond d'« Annuler », texte de la nation --kr-text-nation, épopée 3, ticket 4) qui la déplie au toucher ou au clic ; fermée par sa croix
 // (data-dismiss="alert"), elle emporte « ? Aide ». L'ancien repli
 // mobile de la première alerte venue est retiré. « Valider » reste actif. Contrastes de « ? Aide » et du texte des alertes dans les 16
 // variantes (lib/variantes.mjs). « ? Aide » = bouton du corps de la modale dont le texte est « Aide », quelle que soit sa classe (l'ancien
@@ -455,7 +455,7 @@ const LIBRE = () => {
   return !!h && (h === b || b.contains(h));
 };
 // Couleurs (H2.4 ; contrastes), outil des 16 variantes posé dans la page : « ? Aide » (rapport de son texte, fond effectif comparé à celui
-// d'« Annuler », couleur comparée au texte du thème --kr-text-primary) ; plus faible rapport du texte de chaque blocage ou avertissement,
+// d'« Annuler », couleur comparée au texte de la nation --kr-text-nation, bouton standard de l'épopée 3, ticket 4) ; plus faible rapport du texte de chaque blocage ou avertissement,
 // et de l'aide dépliée par un clic sur « ? Aide » (repliée ensuite) ; la croix de l'aide, un bouton, n'est pas du texte. Pastilles (ticket
 // 2.4, Q1) : rapport du texte de chacune, fond et texte comparés à la paire --kr-arm-bg / --kr-arm-ink (replis du thème).
 const TEINTES = () => {
@@ -464,9 +464,9 @@ const TEINTES = () => {
   const b = [...m.querySelectorAll('.modal-body button')].find(x => x.textContent.trim() === 'Aide');
   const annuler = m.querySelector('.modal-footer [data-bb-handler="cancel"]');
   const sonde = document.createElement('span');
-  sonde.style.color = 'var(--kr-text-primary)';
+  sonde.style.color = 'var(--kr-text-nation)';
   document.body.appendChild(sonde);
-  const theme = getComputedStyle(sonde).color;
+  const nation = getComputedStyle(sonde).color;
   sonde.style.backgroundColor = 'var(--kr-arm-bg, var(--kr-primary))';
   sonde.style.color = 'var(--kr-arm-ink, var(--kr-white))';
   const arm = { fond: getComputedStyle(sonde).backgroundColor, encre: getComputedStyle(sonde).color };
@@ -480,7 +480,7 @@ const TEINTES = () => {
   return {
     bouton: b ? { contraste: c.texte(b), fond: rond(c.fond(b)), couleur: getComputedStyle(b).color } : null,
     fondAnnuler: rond(c.fond(annuler)),
-    theme,
+    nation,
     alertes: [...m.querySelectorAll('.alert-danger, .alert-warning')].filter(a => !a.matches('.alert-order')).map(pire),
     aide: texteAide,
     pastilles: [...m.querySelectorAll('.kr-order-badges > *')].map(p => ({ titre: p.title, contraste: c.texte(p), fond: getComputedStyle(p).backgroundColor === arm.fond, encre: getComputedStyle(p).color === arm.encre }))
@@ -1100,12 +1100,12 @@ async function teintes(cfg) {
 function verifierTeintes(t) {
   const tag = `${t.cfg.width} px${t.cfg.mobile ? ' (mobile)' : ''}, ${t.cfg.variante}`;
   const x = v => (typeof v === 'number' ? v.toFixed(2) : String(v)) + ':1';
-  check(`${tag} : « ? Aide » au fond d'« Annuler » et au texte du thème, ≥ 4,5:1 ; texte de l'avertissement (Dormir), du blocage (Pouvoir) et de l'aide dépliée ≥ 4,5:1`, () => {
+  check(`${tag} : « ? Aide » au fond d'« Annuler » et au texte de la nation (--kr-text-nation), ≥ 4,5:1 ; texte de l'avertissement (Dormir), du blocage (Pouvoir) et de l'aide dépliée ≥ 4,5:1`, () => {
     assert.equal(t.posee, true, 'variante non appliquée sur <html>');
     for (const [nom, e] of [['Dormir', t.dormir], ['Pouvoir', t.pouvoir]]) {
       assert.ok(e.bouton, `${nom} : aucun « ? Aide »`);
       assert.equal(e.bouton.fond, e.fondAnnuler, `${nom} : fond de « ? Aide » ${e.bouton.fond}, d'« Annuler » ${e.fondAnnuler}`);
-      assert.equal(e.bouton.couleur, e.theme, `${nom} : texte de « ? Aide » ${e.bouton.couleur}, texte du thème ${e.theme}`);
+      assert.equal(e.bouton.couleur, e.nation, `${nom} : texte de « ? Aide » ${e.bouton.couleur}, texte de la nation ${e.nation}`);
       assert.ok(e.bouton.contraste >= 4.5, `${nom} : « ? Aide » ${x(e.bouton.contraste)}`);
       assert.equal(e.alertes.length, 1, `${nom} : ${e.alertes.length} blocage(s) ou avertissement(s)`);
       e.alertes.forEach(v => assert.ok(v >= 4.5, `${nom} : texte de l'alerte ${x(v)}`));

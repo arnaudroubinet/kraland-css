@@ -32,7 +32,7 @@
   --kr-bg-hover: rgb(0,0,0,0.02);
   --kr-bg-active: rgb(0,0,0,0.05);
   --kr-text-primary: #0f1724;
-  --kr-text-secondary: #6b7280;
+  --kr-text-secondary: #636a77; /* Q26 : #6b7280 tombait sous 4,5:1 sur bg-page, header-tint et info-bg */
   --kr-text-muted: #9ca3af;
   --kr-text-inverse: #fff;
   --kr-border-default: rgb(0,0,0,0.08);
@@ -183,6 +183,7 @@ html.kr-theme-variant-khanat-elmerien {
 html.kr-theme-variant-confederation-libre {
   --kr-primary: #6B7280;
   --kr-highlight: #475369;
+  --kr-text-nation: var(--kr-highlight); /* H5.3, Q2 : la primaire ne fait que 4,38:1 sur header-tint (bouton standard survolé ou pressé) */
 }
 
 html.kr-theme-variant-royaume-ruthvenie {
@@ -1799,8 +1800,9 @@ a.carousel-control.right{
     box-shadow: 0 2px 6px rgba(92, 184, 92, 0.3) !important;
   }
   
+  /* « Annuler » (bouton standard) : fond bg-surface, celui de « ? Aide » (H5.3 ; en clair, bg-elevated et bg-surface sont blancs) */
   .bootbox-confirm .kr-btn-secondary-subtle {
-    background: var(--kr-bg-elevated) !important;
+    background: var(--kr-bg-surface) !important;
     border-color: var(--kr-border-default) !important;
     color: var(--kr-text-secondary) !important;
     font-weight: 500 !important;
@@ -1897,7 +1899,7 @@ a.carousel-control.right{
    (div.pull-right du h3), qu'il recouvrirait. Fond opaque de la surface : rien ne transparaît sous les teintes d'état
    semi-transparentes du mode sombre. Au-dessus des zones collantes de la chaîne mobile (onglets 100, titre 110) : rien ne les recouvre.
    Seule l'aide (.alert-order) se replie, derrière « ? Aide » (.kr-order-help-toggle, bouton standard btn-default : même fond
-   qu'« Annuler », texte du thème), lisible dans les 16 variantes (H2.4).
+   qu'« Annuler », texte de la nation), lisible dans les 16 variantes (H2.4, H5.3).
    ============================================================================ */
 @media (max-width: 767px), (min-width: 768px) {
   .kr-order-form .kr-order-alerts {
@@ -1913,7 +1915,6 @@ a.carousel-control.right{
     align-items: center;
     gap: 6px;
     margin-bottom: 10px;
-    color: var(--kr-text-primary);
   }
 }
 
@@ -2120,6 +2121,33 @@ html.kr-theme-enabled fieldset[disabled] .btn-primary.btn-primary {
   border-color: var(--kr-primary-dark);
   color: var(--kr-arm-ink, var(--kr-white));
   box-shadow: none;
+}
+
+/* H5.3, Q2 : bouton standard (.btn-default, « ? Aide » compris) dans les deux modes : fond bg-surface, bordure border-tint, texte de la
+   nation (text-nation : primaire en clair, sauf Paladium ; accent en sombre) ; survol et appui (:active, .active, menu ouvert) en
+   header-tint ; focus et désactivé gardent le fond de repos. Même spécificité que les boutons primaires : repos (0,3,1), états (0,4,1) et
+   (0,5,1), désactivé (0,4,1) placé après les états ; les règles propres à une page ou plus spécifiques gardent la main. Boutons de groupe
+   du tableau de bord du plateau (.dashboard-group-buttons, liens natifs clonés) exclus sans spécificité ajoutée : leurs règles gardent la
+   main. */
+html.kr-theme-enabled .btn-default.btn-default:where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled .btn-default.btn-default:is(:focus, .focus):where(:not(.dashboard-group-buttons *)) {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-tint);
+  color: var(--kr-text-nation);
+}
+
+html.kr-theme-enabled .btn-default.btn-default:is(:hover, :active, .active):where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled .open > .dropdown-toggle.btn-default.btn-default:where(:not(.dashboard-group-buttons *)) {
+  background-color: var(--kr-header-tint);
+  border-color: var(--kr-border-tint);
+  color: var(--kr-text-nation);
+}
+
+html.kr-theme-enabled .btn-default.btn-default:is(.disabled, [disabled]):where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled fieldset[disabled] .btn-default.btn-default:where(:not(.dashboard-group-buttons *)) {
+  background-color: var(--kr-bg-surface);
+  border-color: var(--kr-border-tint);
+  color: var(--kr-text-nation);
 }
 
 /* ============================================================================
@@ -2585,6 +2613,17 @@ html[class*="-dark"] .panel-default {
   border-color: var(--kr-border-default);
 }
 
+/* H5.3 : en-tête et pied des panneaux .panel-default dans les deux modes, sur les jetons qui changent avec le mode (en sombre,
+   header-tint et border-tint valent bg-elevated et border-default). Spécificité (0,2,1), celle de l'ancienne règle sombre : les règles
+   propres à une page (panneaux mobiles, forum, kramail, groupes repliables) gardent la main. */
+html:where(.kr-theme-enabled) .panel-default > .panel-heading,
+html:where(.kr-theme-enabled) .panel-default > .panel-footer {
+  background-color: var(--kr-header-tint);
+  border-color: var(--kr-border-tint);
+  color: var(--kr-text-primary);
+}
+
+/* Sombre : en-têtes et pieds des autres panneaux (panneaux d'état : ticket 3.5) */
 html[class*="-dark"] .panel-heading {
   background-color: var(--kr-bg-elevated);
   border-color: var(--kr-border-default);
@@ -2718,25 +2757,7 @@ html[class*="-dark"] .input-group-addon {
 }
 
 /* === BUTTONS ===
-   Boutons primaires : règle commune aux deux modes (Q1, H5.1), après les liens */
-
-html[class*="-dark"] .btn-default {
-  background-color: var(--kr-bg-elevated);
-  border-color: var(--kr-border-default);
-  color: var(--kr-text-primary);
-}
-
-html[class*="-dark"] .btn-default:hover {
-  background-color: var(--kr-bg-active);
-  border-color: var(--kr-border-strong);
-}
-
-html[class*="-dark"] .btn-default:focus,
-html[class*="-dark"] .btn-default:active {
-  background-color: var(--kr-bg-hover);
-  border-color: var(--kr-border-strong);
-  color: var(--kr-text-primary);
-}
+   Boutons primaires (Q1, H5.1) et bouton standard (H5.3) : règles communes aux deux modes, après les liens */
 
 /* === LIST GROUPS === */
 html[class*="-dark"] .list-group-item {
@@ -2762,11 +2783,13 @@ html[class*="-dark"] .table {
   color: var(--kr-text-primary);
 }
 
-html[class*="-dark"] .table > thead > tr > th,
-html[class*="-dark"] .table > tbody > tr > th,
-html[class*="-dark"] .table > tfoot > tr > th {
-  background-color: var(--kr-bg-elevated);
-  border-color: var(--kr-border-default);
+/* H5.3 : en-têtes de tableau dans les deux modes (header-tint, border-tint : rendu du sombre inchangé), même spécificité que l'ancienne
+   règle sombre */
+html.kr-theme-enabled .table > thead > tr > th,
+html.kr-theme-enabled .table > tbody > tr > th,
+html.kr-theme-enabled .table > tfoot > tr > th {
+  background-color: var(--kr-header-tint);
+  border-color: var(--kr-border-tint);
   color: var(--kr-text-primary);
 }
 
@@ -2829,25 +2852,27 @@ html.kr-theme-enabled .dropdown-menu > li.active > a:focus {
   flex-shrink: 0 !important; /* Empêche rétrécissement */
 }
 
-/* === NAVIGATION === */
-html[class*="-dark"] .nav-tabs {
-  border-color: var(--kr-border-default);
+/* === NAVIGATION ===
+   H5.3 : onglets dans les deux modes, bordés de border-tint (border-default en sombre), actif sur bg-surface ; même spécificité que les
+   anciennes règles sombres : la barre d'onglets mobile et les onglets des modales gardent la main */
+html.kr-theme-enabled .nav-tabs {
+  border-color: var(--kr-border-tint);
 }
 
-html[class*="-dark"] .nav-tabs > li > a {
+html.kr-theme-enabled .nav-tabs > li > a {
   color: var(--kr-text-primary);
 }
 
-html[class*="-dark"] .nav-tabs > li > a:hover {
+html.kr-theme-enabled .nav-tabs > li > a:hover {
   background-color: var(--kr-bg-hover);
-  border-color: var(--kr-border-default);
+  border-color: var(--kr-border-tint);
 }
 
-html[class*="-dark"] .nav-tabs > li.active > a,
-html[class*="-dark"] .nav-tabs > li.active > a:hover,
-html[class*="-dark"] .nav-tabs > li.active > a:focus {
+html.kr-theme-enabled .nav-tabs > li.active > a,
+html.kr-theme-enabled .nav-tabs > li.active > a:hover,
+html.kr-theme-enabled .nav-tabs > li.active > a:focus {
   background-color: var(--kr-bg-surface);
-  border-color: var(--kr-border-default) var(--kr-border-default) transparent;
+  border-color: var(--kr-border-tint) var(--kr-border-tint) transparent;
   color: var(--kr-text-primary);
 }
 
@@ -3219,8 +3244,9 @@ html[class*="-dark"] #skills-panel {
   border-color: var(--kr-border-default) !important;
 }
 
-/* === SEPARATORS === */
-html[class*="-dark"] hr {
+/* === SEPARATORS ===
+   H5.3 : séparateurs masqués dans les deux modes */
+html.kr-theme-enabled hr {
   display: none;
 }
 
@@ -3664,23 +3690,23 @@ html[class*="-dark"] table.dataTable {
   color: var(--kr-text-primary) !important;
 }
 
-/* DataTables - En-têtes */
-html[class*="-dark"] table.dataTable thead th,
-html[class*="-dark"] table.dataTable thead td {
-  background-color: var(--kr-bg-elevated) !important;
-  border-color: var(--kr-border-default) !important;
+/* DataTables - En-têtes : dans les deux modes (H5.3), header-tint et border-tint (bg-elevated et border-default en sombre) */
+html.kr-theme-enabled table.dataTable thead th,
+html.kr-theme-enabled table.dataTable thead td {
+  background-color: var(--kr-header-tint) !important;
+  border-color: var(--kr-border-tint) !important;
   color: var(--kr-text-primary) !important;
 }
 
-html[class*="-dark"] table.dataTable thead th.sorting,
-html[class*="-dark"] table.dataTable thead th.sorting_asc,
-html[class*="-dark"] table.dataTable thead th.sorting_desc {
-  background-color: var(--kr-bg-elevated) !important;
+html.kr-theme-enabled table.dataTable thead th.sorting,
+html.kr-theme-enabled table.dataTable thead th.sorting_asc,
+html.kr-theme-enabled table.dataTable thead th.sorting_desc {
+  background-color: var(--kr-header-tint) !important;
 }
 
-html[class*="-dark"] table.dataTable thead th.sorting:hover,
-html[class*="-dark"] table.dataTable thead th.sorting_asc:hover,
-html[class*="-dark"] table.dataTable thead th.sorting_desc:hover {
+html.kr-theme-enabled table.dataTable thead th.sorting:hover,
+html.kr-theme-enabled table.dataTable thead th.sorting_asc:hover,
+html.kr-theme-enabled table.dataTable thead th.sorting_desc:hover {
   background-color: var(--kr-bg-hover) !important;
 }
 
@@ -3713,11 +3739,11 @@ html[class*="-dark"] table.dataTable tbody td.dataTables_empty {
   color: var(--kr-text-secondary) !important;
 }
 
-/* DataTables - Footer */
-html[class*="-dark"] table.dataTable tfoot th,
-html[class*="-dark"] table.dataTable tfoot td {
-  background-color: var(--kr-bg-elevated) !important;
-  border-color: var(--kr-border-default) !important;
+/* DataTables - Footer : dans les deux modes (H5.3) */
+html.kr-theme-enabled table.dataTable tfoot th,
+html.kr-theme-enabled table.dataTable tfoot td {
+  background-color: var(--kr-header-tint) !important;
+  border-color: var(--kr-border-tint) !important;
   color: var(--kr-text-primary) !important;
 }
 
@@ -12565,7 +12591,8 @@ html[class*='-dark'] .mini.c10 {
   color: var(--kr-text-secondary) !important;
 }
 
-/* PLT-11 : le survol ne doit jamais baisser le contraste du texte */
+/* PLT-11 : le survol ne doit jamais baisser le contraste du texte. Bouton standard : règle commune (H5.3), plus spécifique ; ce sélecteur ne
+   sert plus qu'aux boutons de groupe du tableau de bord, qu'elle exclut (survol sur mobile inchangé) */
 html[class*="-dark"] .btn-default:hover,
 html[class*="-dark"] .list-group-item.btn:hover,
 html[class*="-dark"] a.list-group-item.btn-default:hover {

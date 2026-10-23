@@ -20,7 +20,9 @@
 // Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT. Les jetons
 // redéfinis depuis par l'épopée 3, ticket 1 (lib/variantes.mjs, JETONS_REDEFINIS) y sont posés par-dessus : seul un écart qui vient d'eux est
 // accepté (consigné dans le plan de ce ticket). Le ticket 2 (paire d'action sur la couleur de nation) exclut de l'empreinte le texte, le fond
-// et la bordure des éléments posés sur la couleur de nation (consigné dans son plan, voir EMPREINTE).
+// et la bordure des éléments posés sur la couleur de nation (consigné dans son plan, voir EMPREINTE). Le ticket 4 (mode clair thémé comme
+// le sombre, bouton standard) pose aussi le texte atténué du clair (TEXTE_SECONDAIRE_CLAIR) et exclut le texte, le fond et la bordure de
+// ses composants (COMPOSANTS_TICKET4) et de leur contenu qui en hérite le texte (consigné dans son plan, voir EMPREINTE).
 //
 // Usage : npm run build && node tests/e2e/forum-index.mjs   (ou : npm run test:zone -- forum)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_SHOTS=/dossier (captures hors dépôt), KR_VERBOSE=1 (détail des écarts),
@@ -34,7 +36,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { JETONS_REDEFINIS, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { COMPOSANTS_TICKET4, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -87,7 +89,7 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
-  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
+  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -566,11 +568,16 @@ if (on('seuil')) {
 // Écart accepté et consigné (épopée 3, ticket 3) : le texte en primaire ou en primaire foncée passe à --kr-text-accent. L'empreinte relève ces
 // éléments (primaires) ; sur ceux du bundle « avant » seulement, le texte, et la bordure basse quand elle suit le texte, sont neutralisés des
 // deux côtés (texteColore). Tout autre écart reste détecté.
-const EMPREINTE = () => {
+// Écart accepté et consigné (épopée 3, ticket 4) : les composants passés aux jetons qui changent avec le mode (`composants` :
+// COMPOSANTS_TICKET4) ont leur texte, leur fond et leur bordure basse remplacés par « composant » dans l'empreinte ; leur contenu dont le
+// texte est celui du composant (hérité) dans l'un des deux bundles (herites) a son texte neutralisé des deux côtés, et sa bordure basse
+// quand elle suit le texte (composantsHerites). Tout autre écart reste détecté.
+const EMPREINTE = composants => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
     'border-bottom-color', 'visibility', 'opacity', 'order', 'flex-direction', 'grid-row'];
-  const lire = c => (c.match(/[\d.]+/g) || []).map(Number);
+  // « color(srgb r g b / a) » (color-mix() : en-têtes du ticket 4) : composantes 0..1 ramenées à 0..255.
+  const lire = c => { const n = (c.match(/[\d.]+/g) || []).map(Number); return c.startsWith('color(srgb') ? [n[0] * 255, n[1] * 255, n[2] * 255, ...n.slice(3)] : n; };
   const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
   const nation = ['var(--kr-primary)', 'var(--kr-primary-dark)', 'var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde);
   const fondNation = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0) && nation.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); };
@@ -578,8 +585,11 @@ const EMPREINTE = () => {
   const surNation = el => { for (let e = el; e; e = e.parentElement) { if (opaque(e)) { return fondNation(e); } } return false; };
   const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
   const col = document.getElementById('col-right');
+  const composant = el => el.matches(composants);
+  const herite = el => { const c = el.closest(composants); return !!c && c !== el && getComputedStyle(el).color === getComputedStyle(c).color; };
   const valeur = (el, s, p) => {
     if (fondNation(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'paire'; }
+    if (composant(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'composant'; }
     if (p === 'color' && surNation(el)) { return 'paire'; }
     return s.getPropertyValue(p);
   };
@@ -592,7 +602,8 @@ const EMPREINTE = () => {
       return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => valeur(el, s, p)), gen('::before'), gen('::after'),
         Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join('|');
     }),
-    primaires: [col, ...col.querySelectorAll('*')].map(el => { const c = lire(getComputedStyle(el).color); return primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); })
+    primaires: [col, ...col.querySelectorAll('*')].map(el => { const c = lire(getComputedStyle(el).color); return primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); }),
+    herites: [col, ...col.querySelectorAll('*')].map(herite)
   };
 };
 // Champs de l'empreinte : balise, classes, puis les propriétés (color en 4e, border-bottom-color en 21e).
@@ -609,6 +620,12 @@ const texteColore = (avant, apres) => {
     n.p[j] = neutre(n.p[j], garder);
     n.nb += 1;
   });
+  return n;
+};
+
+const composantsHerites = (avant, apres, n) => {
+  const neutre = x => { const f = x.split('|'); if (f[CHAMP_BORDURE_BASSE] === f[CHAMP_TEXTE]) { f[CHAMP_BORDURE_BASSE] = 'composant'; } f[CHAMP_TEXTE] = 'composant'; return f.join('|'); };
+  avant.herites.forEach((h, j) => { if ((h || apres.herites[j]) && j < n.p.length) { n.a[j] = neutre(n.a[j]); n.p[j] = neutre(n.p[j]); } });
   return n;
 };
 
@@ -697,11 +714,12 @@ if (on('hors-perimetre')) {
     console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant »');
     console.log('  info écart accepté et consigné : texte, fond et bordure des éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2)');
     console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
+    console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » ; texte, fond et bordure des en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4)');
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
         const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant });
-        mesures.push({ e: await page.evaluate(EMPREINTE), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
+        mesures.push({ e: await page.evaluate(EMPREINTE, COMPOSANTS_TICKET4), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }
       return mesures;
@@ -714,7 +732,7 @@ if (on('hors-perimetre')) {
         assert.equal(p.e.html, a.e.html, 'classes de html');
         assert.equal(p.e.corps, a.e.corps, 'classes de body');
         assert.equal(p.e.elements.length, a.e.elements.length, `éléments : ${p.e.elements.length} au lieu de ${a.e.elements.length}`);
-        const n = texteColore(a.e, p.e);
+        const n = composantsHerites(a.e, p.e, texteColore(a.e, p.e));
         const k = n.p.findIndex((x, j) => x !== n.a[j]);
         assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${n.p[k]} au lieu de ${n.a[k]}`);
       });

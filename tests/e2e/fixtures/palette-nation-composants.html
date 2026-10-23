@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture composants du mode clair de la palette de nation (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la suite palette-nation (épopée 3, ticket 4 : mode clair thémé comme le sombre, bouton standard) : aucune
+       donnée réelle. Servie à /regles/avancees (aucune classe de page). Composants Bootstrap natifs : panneau .panel-default avec en-tête,
+       séparateur hr et pied ; tableau .table (en-tête, cellule d'en-tête de ligne, pied) ; tableau DataTables sans .table (en-tête trié,
+       pied) ; onglets .nav-tabs (actif, inactif) ; boutons standard .btn-default sur button, a et input, états de classe (.active, .focus,
+       .disabled, [disabled]), menu ouvert, ensemble désactivé et « ? Aide » de la modale d'ordre (classes posées par le template) ; bouton
+       de groupe du tableau de bord du plateau (lien natif cloné par le template, règle propre au tableau de bord).
+       Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Règles</span>
+          <a class="list-group-item" href="regles/base">Règles de base</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <h1>Composants d'essai</h1>
+        <div id="panneau" class="panel panel-default">
+          <div id="entete" class="panel-heading"><h3 id="entete-titre" class="panel-title">En-tête d'essai</h3></div>
+          <div class="panel-body">
+            <p>Avant le séparateur.</p>
+            <hr id="separateur">
+            <p>Après le séparateur.</p>
+          </div>
+          <div id="pied" class="panel-footer">Pied d'essai</div>
+        </div>
+        <table id="tableau" class="table">
+          <thead><tr><th id="th-tete">Colonne</th><th>Valeur</th></tr></thead>
+          <tbody><tr><th id="th-ligne">Ligne</th><td>1</td></tr></tbody>
+          <tfoot><tr><th id="th-pied">Total</th><td>1</td></tr></tfoot>
+        </table>
+        <table id="dt" class="dataTable">
+          <thead><tr><th id="dt-tete" class="sorting_asc">Sujet</th><th class="sorting">Réponses</th></tr></thead>
+          <tbody><tr class="odd"><td>Sujet d'essai</td><td>2</td></tr></tbody>
+          <tfoot><tr><th id="dt-pied">Sujet</th><th>Réponses</th></tr></tfoot>
+        </table>
+        <ul id="onglets" class="nav nav-tabs">
+          <li class="active"><a id="onglet-actif" href="regles/avancees#o1">Onglet actif</a></li>
+          <li><a id="onglet-inactif" href="regles/avancees#o2">Autre onglet</a></li>
+        </ul>
+        <p class="bs-ligne">
+          <button id="bs-button" class="btn btn-default" type="button">Bouton</button>
+          <a id="bs-a" class="btn btn-default" href="regles/base">Lien</a>
+          <input id="bs-input" class="btn btn-default" type="button" value="Champ">
+        </p>
+        <p class="bs-ligne">
+          <button id="bs-active" class="btn btn-default active" type="button">Actif</button>
+          <button id="bs-focus" class="btn btn-default focus" type="button">Focus</button>
+          <button id="bs-disabled" class="btn btn-default disabled" type="button">Désactivé</button>
+          <button id="bs-attr-disabled" class="btn btn-default" type="button" disabled>Attribut désactivé</button>
+        </p>
+        <div class="btn-group open"><button id="bs-menu" class="btn btn-default dropdown-toggle" type="button" aria-expanded="true">Menu ouvert</button></div>
+        <fieldset disabled><button id="bs-fieldset" class="btn btn-default" type="button">Ensemble désactivé</button></fieldset>
+        <div class="kr-order-form"><button id="bs-aide" class="btn btn-default kr-order-help-toggle" type="button" aria-expanded="false">? Aide</button></div>
+        <div class="dashboard-section"><div class="dashboard-section-header"><span>Groupe d'essai</span><div class="dashboard-group-buttons"><a id="bs-tableau" class="btn btn-default btn-xs" href="jouer/plateau">Bouton de groupe</a></div></div></div>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

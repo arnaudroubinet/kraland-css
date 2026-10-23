@@ -23,6 +23,12 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 ## Décisions à confirmer
 
+- Ticket 3.4, mode clair thémé comme le sombre, bouton standard (décidé en autonomie le 2026-10-23) :
+  - Confédération Libre clair : `text-nation` (sa primaire `#6b7280`) ne fait que 4,38:1 sur `header-tint`, le fond du bouton standard survolé ou pressé. Option retenue : la variante prend son accent `#475369` (7,04:1), comme Paladium (Q2) ; DESIGN.md mis à jour. Alternative : garder la primaire au repos et ne foncer que le survol et l'appui ;
+  - « Annuler » de la modale d'ordre mobile : fond `bg-elevated` → `bg-surface`, comme « ? Aide » (en sombre seulement ; en clair les deux sont blancs). Son texte reste `text-secondary` (règle propre à la modale) ;
+  - bouton standard en sombre : survol `bg-active` → `header-tint` (`bg-elevated`), focus `bg-hover` → `bg-surface`, bordure des états `border-strong` → `border-default`, selon la matrice du plan (une seule règle pour les deux modes) ;
+  - effets visibles en clair : en-têtes, pieds et en-têtes de tableau teintés de la nation, onglets bordés de la teinte, bouton standard au texte de la nation (il était en accent, par la règle des liens, sur les `a.btn-default`), `hr` masqués partout (séparateurs du plateau et séparateur des filtres d'Événements, `body.page-evenements #col-left form hr`, compris), texte atténué un peu plus foncé.
+
 - Ticket 3.3, texte coloré en accent, rouge et bleu en dur (décidé en autonomie le 2026-10-23) :
   - modale du changelog (point résolu, décision à confirmer) : son fond est noir dans les 16 variantes, où l'accent du clair tombait de 2,01:1 (Paladium) à 3,55:1 (Théocratie Seelienne). Option retenue : titre, version et puces y gardent le texte clair de la modale (hérité) au lieu de l'accent, ≥ 4,5:1 dans les 16 variantes. Alternative : modale sur la surface claire du thème en clair, avec l'accent ;
   - flèche du carrousel en sombre : opacité passée de 0,7 à 1 (à 0,7, l'accent tombait à 3,4:1 en Kraland sombre) ;

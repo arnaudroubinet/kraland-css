@@ -29,7 +29,7 @@ colors:
   bg-surface: '#ffffff'           # --kr-bg-surface
   bg-elevated: '#ffffff'          # --kr-bg-elevated
   text-primary: '#0f1724'         # --kr-text-primary
-  text-secondary: '#6b7280'       # --kr-text-secondary
+  text-secondary: '#636a77'       # --kr-text-secondary (Q26 : #6b7280 foncé, ticket 3.4)
   text-muted: '#9ca3af'           # --kr-text-muted : [ASSUMPTION] éléments indisponibles seulement (Q26)
   border-default: '#00000014'     # --kr-border-default, rgb(0,0,0,0.08)
   border-strong: '#00000026'      # --kr-border-strong, rgb(0,0,0,0.15)
@@ -265,7 +265,7 @@ Q2 étend la règle au clair : tout texte coloré atteint 4,5:1 au moins sur sa
 D'où deux jetons de texte, résolus par variante et par mode :
 
 - `{colors.text-accent}` : texte coloré en accent (liens, auteur du dernier message, compteurs de l'accueil, astérisques du kramail) et anneau de focus. C'est l'accent, sauf en Empire Brun clair (`#8a5a00`).
-- `{colors.text-nation}` : texte du bouton standard. C'est la primaire en clair (H5.3), sauf en Paladium (`#044c17`), et l'accent en sombre (H5.6).
+- `{colors.text-nation}` : texte du bouton standard. C'est la primaire en clair (H5.3), sauf en Paladium (`#044c17`) et en Confédération Libre (`#475369`, son accent : la primaire ne fait que 4,38:1 sur `header-tint`, fond du bouton standard survolé ou pressé ; ticket 3.4, `[ASSUMPTION]` à confirmer), et l'accent en sombre (H5.6).
 
 Contrastes des deux jetons : « Contrastes de référence ».
 
@@ -330,7 +330,7 @@ Entre parenthèses : contraste sur `bg-surface`. En clair, `primary-strong` et 
 | Théocratie Seelienne clair | `#0033a0` | `#002980` | `#2d5fcb` | `#e0e7f7` | `#2d5fcb` (5,82) | `#0033a0` (10,60) |
 | Paradigme Vert clair | `#0b6623` | `#09521c` | `#063803` | `#dae1d9` | `#063803` (13,34) | `#0b6623` (7,15) |
 | Khanat Elmérien clair | `#6a0dad` | `#550a8a` | `#7b4c9c` | `#ebe4f0` | `#7b4c9c` (6,26) | `#6a0dad` (9,24) |
-| Confédération Libre clair | `#6b7280` | `#565b66` | `#475369` | `#e3e5e9` | `#475369` (7,75) | `#6b7280` (4,83) |
+| Confédération Libre clair | `#6b7280` | `#565b66` | `#475369` | `#e3e5e9` | `#475369` (7,75) | `#475369` (7,75, ticket 3.4) |
 | Royaume de Ruthvénie clair | `#0a6b2d` | `#085624` | `#c41e3a` | `#f6dde1` | `#c41e3a` (5,84) | `#0a6b2d` (6,66) |
 | Kraland sombre | `#c45252` | `#8b0f0e` | `#e07070` | `#1a0505` | `#e07070` (5,73) | `#e07070` (5,73) |
 | Empire Brun sombre | `#7a5240` | `#5e3b2d` | `#d4a574` | `#1a0f0a` | `#d4a574` (7,77) | `#d4a574` (7,77) |
@@ -395,7 +395,7 @@ Les 8 variantes claires partagent fonds et textes ; les 8 sombres ont les leur
 
 | Variante | `bg-page` | `bg-surface` | `bg-elevated` | `text-primary` | `text-secondary` | `text-muted` |
 |---|---|---|---|---|---|---|
-| 8 variantes claires | `#f5f5f5` | `#ffffff` | `#ffffff` | `#0f1724` | `#6b7280` | `#9ca3af` |
+| 8 variantes claires | `#f5f5f5` | `#ffffff` | `#ffffff` | `#0f1724` | `#636a77` (Q26) | `#9ca3af` |
 | Kraland sombre | `#120d0d` | `#1e1515` | `#2a1f1f` | `#f5eded` | `#b8a0a0` | `#8a6868` |
 | Empire Brun sombre | `#12100d` | `#1e1a15` | `#2a251f` | `#f5f1ed` | `#b8a997` | `#8a7968` |
 | Paladium sombre | `#0f0e0a` | `#1a1810` | `#252015` | `#f5f3e8` | `#c4b896` | `#938567` |
@@ -415,12 +415,12 @@ Calculés par script (formule WCAG) sur les valeurs des tableaux ci-dessus, pour
 | `action-ink-hover` sur `action-bg-hover` | 4,73 à 12,89:1, avec l'encre `#1e1a15` en Paladium clair (le repli blanc y fait 3,23:1) | ≥ 4,5:1 (Q1) | conforme une fois l'encre déclarée |
 | `text-accent` (liens, texte coloré) sur `bg-surface` | 5,31 à 13,34:1 (sombre : 5,31 à 10,68:1) ; ≥ 4,84:1 sur `bg-page`, `bg-elevated` et `header-tint` (sombre, sur `bg-elevated` : 4,84 à 9,58:1) | ≥ 4,5:1 (H5.6, Q2, R7) | conforme |
 | `text-accent` sur `info-bg` (lien dans une alerte info) | ≥ 4,92:1, sauf Paladium sombre 3,81:1 | ≥ 4,5:1 | Paladium sombre : Q4 |
-| `text-nation` (bouton standard) sur `bg-surface` | 4,83 à 10,68:1 | ≥ 4,5:1 (H5.3, Q2) | conforme |
+| `text-nation` (bouton standard) sur `bg-surface` | 5,31 à 10,68:1 ; ≥ 4,5:1 aussi sur `header-tint` (survol et appui) une fois Confédération Libre clair passée à son accent (ticket 3.4) | ≥ 4,5:1 (H5.3, Q2) | conforme |
 | `bg-surface` sur `status-unread` (pastilles d'état) | 5,31 à 13,34:1 | ≥ 4,5:1 | conforme |
 | `highlight-reverse` sur `highlight` (pastille de niveau, sombre) | 5,44 à 11,36:1 (8 variantes sombres) | ≥ 4,5:1 | conforme |
 | `text-primary` sur `info-bg` | 16,06 à 17,21:1 (clair) ; 11,44 à 13,82:1 (sombre) | ≥ 4,5:1 | conforme |
 | `text-primary` sur `header-tint`, clair | 15,52 à 17,06:1 | ≥ 4,5:1 | conforme |
-| `text-secondary`, clair : sur blanc / `bg-page` / `header-tint` / `info-bg` | 4,83 / 4,43 / 4,17 à 4,59 / 4,32 à 4,63:1 | ≥ 4,5:1 | conforme sur blanc seulement (Q26) |
+| `text-secondary`, clair : sur blanc / `bg-page` / `header-tint` / `info-bg` | 5,44 / 4,99 / 4,70 à 5,17 / 4,86 à 5,21:1 (`#636a77` ; `#6b7280` faisait 4,83 / 4,43 / 4,17 à 4,59 / 4,32 à 4,63:1) | ≥ 4,5:1 | conforme (Q26, décidé en autonomie, ticket 3.4) |
 | `text-secondary` sur `bg-surface`, sombre | 7,31 à 9,35:1 | ≥ 4,5:1 | conforme |
 | `text-muted` | 2,54:1 (clair) ; 3,63 à 4,90:1 (sombre) | — | `[ASSUMPTION]` indisponible seulement (Q26) |
 | Filet primaire de l'onglet actif | 2,10:1 (Paladium clair), 2,56:1 (Empire Brun sombre) ; ailleurs ≥ 3,99:1 | non fixée | Q20 |
@@ -488,7 +488,7 @@ Liste commune avec EXPERIENCE.md (« Component Patterns »), mêmes noms, mêm
 | Composant | Anatomie et aspect | Décisions |
 |---|---|---|
 | **Bouton primaire** | `{components.button-primary}` : fond `{colors.action-bg}`, texte `{colors.action-ink}`, `{rounded.sm}`, `{typography.button}`, 34 px sur ordinateur, `{spacing.touch-target}` sur mobile, ombre `{colors.btn-shadow}`. Quelle que soit la balise (button, a, label, span, input). Survol : fond `{colors.action-bg-hover}`, texte `{colors.action-ink-hover}`. Sur le plateau (ordinateur), les boutons d'action de classe native `btn-primary` en font partie (Dormir, Prier dans la fixture `plateau-qualite-usage.html`). | H5.1, H2.2, H6.1, H6.2, Q1 |
-| **Bouton standard** | `{components.button-standard}` : fond `{colors.bg-surface}`, bordure `{colors.border-tint}`, texte `{colors.text-nation}` (primaire en clair, sauf Paladium ; accent en sombre). Mêmes tailles que le bouton primaire. Sert à « Annuler », « ? Aide » et aux boutons de classe native `btn-default` (Pouvoir sur le plateau). Les actions ordinaires (« Voir l'historique », « Pas un contact », Contacts) prennent ce style ou celui du bouton primaire (H5.5). Maquette : [mockups/h05-clair-composants.html](mockups/h05-clair-composants.html) (voir sa mise en garde, « Teintes du mode clair »). | H5.3, H5.5, H2.4, H6.2, Q2 |
+| **Bouton standard** | `{components.button-standard}` : fond `{colors.bg-surface}`, bordure `{colors.border-tint}`, texte `{colors.text-nation}` (primaire en clair, sauf Paladium et Confédération Libre ; accent en sombre). Mêmes tailles que le bouton primaire. Sert à « Annuler », « ? Aide » et aux boutons de classe native `btn-default` (Pouvoir sur le plateau). Les actions ordinaires (« Voir l'historique », « Pas un contact », Contacts) prennent ce style ou celui du bouton primaire (H5.5). Maquette : [mockups/h05-clair-composants.html](mockups/h05-clair-composants.html) (voir sa mise en garde, « Teintes du mode clair »). | H5.3, H5.5, H2.4, H6.2, Q2 |
 | **Bouton compact** | `{components.button-compact}`. Ordinateur seulement : `{typography.button-compact}`, `{rounded.sm}`. Réservé aux votes et à la pagination. Hauteur et couleur non tranchées (votes : 22 px aujourd'hui, Q9). | H6.2 |
 | **Bouton « Envoyer »** | `{components.send-button}`. Mobile : dans le flux, sous le champ de rédaction, comme l'« Envoyer » actuel du forum (aligné à droite, largeur du libellé, l.14799-14812) : 48 px de haut, fond `{colors.action-bg}`, texte `{colors.action-ink}`, `{typography.button}`, `{rounded.sm}` (texte de 16 px et rayon de 8 px aujourd'hui au forum). Forum (nouveau sujet, réponse) et kramail ; plus aucune barre fixe, celle de 56 px du kramail disparaît (l.10256). Ordinateur : **Bouton primaire** de taille normale. Sur les Règles, « ok » reste un bouton à côté du champ de recherche (H1.2). | R4, H1.2, H6.2, H6.3, Q1 |
 | **Bouton « ••• »** | Glyphe texte « ••• » du forum (L7229-7236) pour tous les boutons « autres actions », kramail compris (au lieu de l'icône « ⋮ » `fa-ellipsis-v`). Bouton à icône de `{spacing.touch-target}` sur mobile. `[ASSUMPTION]` style standard. | H12.2, H13.1 |

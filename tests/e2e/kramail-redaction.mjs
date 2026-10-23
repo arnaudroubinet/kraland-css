@@ -26,7 +26,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
-import { JETONS_REDEFINIS, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { COMPOSANTS_TICKET4, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -216,6 +216,15 @@ const AVANT = bundleAvant();
 // seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
 // ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
 const JETONS_AVANT = AVANT && !AVANT.includes('--kr-text-accent:') ? `(${poserJetonsRedefinis})(${JSON.stringify(JETONS_REDEFINIS)});` : null;
+// Bundle « avant » antérieur à l'épopée 3, ticket 4 : il déclare encore le texte atténué du clair à #6b7280. Sur une base qui contient déjà
+// le ticket, rien n'est posé ni masqué.
+const AVANT_TICKET4 = !!AVANT && AVANT.includes('--kr-text-secondary:#6b7280');
+// Texte atténué du clair à #636a77 (Q26) : posé sur ce bundle « avant », seul écart de ce jeton accepté.
+const SECONDAIRE_AVANT = AVANT_TICKET4 ? `(${poserJetonsRedefinis})(${JSON.stringify(TEXTE_SECONDAIRE_CLAIR)});` : null;
+// Écart accepté et consigné (ticket 4), sur ce bundle « avant » seulement : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard
+// passés aux jetons qui changent avec le mode (COMPOSANTS_TICKET4) : marqués dans les deux bundles, puis masqués sur les deux captures ;
+// tout autre écart reste détecté.
+const MARQUER_COMPOSANTS = sel => { const l = document.querySelectorAll(sel); l.forEach(e => e.setAttribute('data-kr-composant', '')); return l.length; };
 // Écart accepté et consigné (épopée 3, ticket 2) : texte et fond posés sur la couleur de nation passent à la paire d'action (Empire Brun
 // sombre : texte des dossiers #f5f1ed -> blanc). Les éléments dont le fond propre est une couleur de nation (primaire, primaire foncée,
 // --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) sont marqués, puis masqués sur les deux captures ; tout autre écart reste
@@ -1261,6 +1270,10 @@ if (frag('regression')) {
   if (JETONS_AVANT) { console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant », antérieur au ticket'); }
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
+  if (AVANT_TICKET4) {
+    console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » (épopée 3, ticket 4, Q26)');
+    console.log('  info écart accepté et consigné : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4) masqués sur les deux captures');
+  }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1274,7 +1287,8 @@ if (frag('regression')) {
       for (const bundle of ['avant', 'apres']) {
         // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
         // début du document.
-        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init: bundle === 'avant' ? JETONS_AVANT : null });
+        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT].filter(Boolean).join('\n') || null : null;
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
           // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page
@@ -1283,10 +1297,11 @@ if (frag('regression')) {
         });
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
+        const composants = AVANT_TICKET4 ? await p.evaluate(MARQUER_COMPOSANTS, COMPOSANTS_TICKET4) : 0;
         doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore]')] });
+        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore], [data-kr-composant]')] });
         let prev = await capture();
         for (let i = 0; i < 6; i++) {
           await p.waitForTimeout(150);
@@ -1297,6 +1312,7 @@ if (frag('regression')) {
         shots[bundle] = prev;
         if (SHOTS && bundle === 'apres') { fs.writeFileSync(path.join(SHOTS, `regression-${pg}-${width}.png`), shots[bundle]); }
         doms[bundle].paire = paire;
+        doms[bundle].composants = composants;
         doms[bundle].unexpected = unexpected(state);
         doms[bundle].errors = errors.length;
         await context.close();

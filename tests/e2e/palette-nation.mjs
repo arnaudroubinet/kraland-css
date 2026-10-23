@@ -40,16 +40,29 @@
 //                   du kramail (DURS), 15 variantes hors Kraland : aucun rgb(139, 15, 14) ni #2196F3 calculé ; mini-chat en paire d'action,
 //                   contour de la carte du forum au focus en accent ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
-// Hors de ces tickets, donc non vérifiés ici : en-têtes, onglets et bouton standard (ticket 4), alerte info du sombre (ticket 5), focus
-// (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6).
+// Ticket 4 (H5.3, Q26 ; plan story-mode-clair-theme-comme-le-sombre-bouton-standard) : une seule série de règles pour les deux modes, sur les
+// jetons qui changent avec le mode :
+//   composants      fixture synthétique palette-nation-composants.html, 375 et 1280 px, 16 variantes : en-tête et pied du panneau standard,
+//                   en-têtes de tableau (Bootstrap, DataTables) en header-tint, bordure border-tint, texte text-primary (sur mobile, l'en-tête
+//                   garde la carte mobile) ; onglets bordés de border-tint, actif sur bg-surface ; bouton standard (button, a, input, états de
+//                   classe, menu ouvert, désactivés, « ? Aide », :hover, :active, :focus forcés) en bg-surface, survol et appui en header-tint,
+//                   bordure border-tint, texte text-nation ≥ 4,5:1 ; hr masqué ; en clair, aucun gris de Bootstrap et --kr-text-secondary
+//                   #636a77, ≥ 4,5:1 sur blanc, bg-page, header-tint et info-bg ;
+//   pages           sujet, sous-forum, index RP, réception du kramail, plateau, 375 et 1280 px, 16 variantes : composants comparés au bundle
+//                   d'avant le ticket (règles propres à la page gardées), texte des composants ≥ 4,5:1 ;
+//   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes valeurs qu'à 375 ou 1280 px.
+// Hors de ces tickets, donc non vérifiés ici : en-têtes des panneaux d'état et alertes (ticket 5), focus (ticket 7), onglet actif et
+// « Valider » de la modale d'ordre (ticket 2.6).
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
 // variantes ouvertes et contrastes mesurés par l'outil partagé (lib/variantes.mjs). Confinement réseau ; gestes : le survol à la souris et
 // les pseudo-classes forcées par le protocole du navigateur (CSS.forcePseudoState), aucun clic, aucun envoi.
 //
 // Usage : npm run build && node tests/e2e/palette-nation.mjs   (ou npm run test:zone -- palette-nation)
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, peau-coupee, balayage-mobile,
-//           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs (vide = tout).
+//           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs, composants-mobile, composants-bureau, composants-largeurs,
+//           composants-pages-mobile, composants-pages-bureau (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages).
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,7 +70,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante } from './lib/variantes.mjs';
+import { COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -99,7 +112,7 @@ const DESIGN = {
   'theocratie-seelienne': ['#0033a0', '#002980', '#2d5fcb', '#e0e7f7', '#2d5fcb', '#0033a0', '#0033a0', '#ffffff', '#002980', '#ffffff', '#ebeff7', '#d1daee', '#f0f3f9', '#dbe2f2', '#0033a01f'],
   'paradigme-vert': ['#0b6623', '#09521c', '#063803', '#dae1d9', '#063803', '#0b6623', '#0b6623', '#ffffff', '#09521c', '#ffffff', '#ebf3ed', '#d3e3d7', '#f0f6f2', '#ddeae0', '#0b66231f'],
   'khanat-elmerien': ['#6a0dad', '#550a8a', '#7b4c9c', '#ebe4f0', '#7b4c9c', '#6a0dad', '#6a0dad', '#ffffff', '#550a8a', '#ffffff', '#f3ecf8', '#e4d3f0', '#f6f0fa', '#eaddf4', '#6a0dad1f'],
-  'confederation-libre': ['#6b7280', '#565b66', '#475369', '#e3e5e9', '#475369', '#6b7280', '#6b7280', '#ffffff', '#565b66', '#ffffff', '#f3f4f5', '#e4e6e8', '#f6f7f7', '#eaebed', '#6b72801f'],
+  'confederation-libre': ['#6b7280', '#565b66', '#475369', '#e3e5e9', '#475369', '#475369', '#6b7280', '#ffffff', '#565b66', '#ffffff', '#f3f4f5', '#e4e6e8', '#f6f7f7', '#eaebed', '#6b72801f'],
   'royaume-ruthvenie': ['#0a6b2d', '#085624', '#c41e3a', '#f6dde1', '#c41e3a', '#0a6b2d', '#0a6b2d', '#ffffff', '#085624', '#ffffff', '#ebf3ee', '#d3e4d9', '#f0f6f2', '#ddeae2', '#0a6b2d1f'],
   'kraland-dark': ['#c45252', '#8b0f0e', '#e07070', '#1a0505', '#e07070', '#e07070', '#b64c4c', '#f5f1ed', '#8b0f0e', '#f5f1ed', '#2a1f1f', '#ffffff14', '#371e1e', '#502727', '#c452521f'],
   'empire-brun-dark': ['#7a5240', '#5e3b2d', '#d4a574', '#1a0f0a', '#d4a574', '#d4a574', '#7a5240', '#ffffff', '#5e3b2d', '#ffffff', '#2a251f', '#ffffff14', '#2c221b', '#3a2b22', '#7a52401f'],
@@ -141,8 +154,9 @@ const vu = mesure => (mesure === ABSENT ? 'absent' : mesure);
 const browser = await launchBrowser();
 
 // Ouvre la fixture dans SON contexte : variante choisie avant le bundle (outil des 16 variantes), ou peau coupée ; mobile sous 768 px.
-// `url` et `corps` : autre fixture servie à son chemin (balayage).
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html }) {
+// `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué ; `secondaire` : texte atténué du ticket 4 posé
+// sur un bundle d'avant ce ticket.
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
@@ -151,13 +165,14 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (theme) { await context.addInitScript(choisirVariante, variante); } else { await context.addInitScript(() => localStorage.setItem('kr-theme-enabled', 'false')); }
+  if (secondaire) { await context.addInitScript(poserJetonsRedefinis, TEXTE_SECONDAIRE_CLAIR); } // bundle d'avant le ticket 4 : texte atténué de Q26
   await context.addInitScript(src => {
     window.GM = { xmlHttpRequest: () => {} };
     // eslint-disable-next-line no-eval
     const go = () => (0, eval)(src);
     if (document.body) { go(); return; }
     new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-  }, userscript);
+  }, script);
   const page = await context.newPage();
   const erreurs = [];
   page.on('pageerror', e => erreurs.push(e.message));
@@ -907,6 +922,258 @@ if (on('textes-largeurs')) {
         sansEcart(ecartsValeurs(valeurs(de(variante, width)), valeurs(de(variante, ref))).map(x => `contre ${ref} px, ${x}`));
       });
     }
+  }
+}
+
+// ---------- Mode clair thémé comme le sombre, bouton standard (ticket 4) ----------
+// Une seule série de règles pour les deux modes (H5.3), sur les jetons qui changent avec le mode : en-têtes et pieds du panneau standard,
+// en-têtes de tableau (Bootstrap et DataTables) en header-tint, bordure border-tint, texte text-primary ; onglets bordés de border-tint,
+// actif sur bg-surface ; bouton standard (« ? Aide » compris) en bg-surface, survol et appui en header-tint, bordure border-tint, texte
+// text-nation ; hr masqué ; --kr-text-secondary à #636a77 en clair (Q26). Sur mobile, l'en-tête de panneau garde la carte mobile
+// (bg-surface, sans bordure : règle propre au mobile, qui garde la main).
+// Bundle d'avant le ticket 4 (commit de base du plan), sauf KR_SCRIPT_AVANT : comparaisons du tableau de bord et des pages de référence.
+const BASELINE4 = '6685df5';
+const avant4 = (() => {
+  if (process.env.KR_SCRIPT_AVANT) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
+  try { return execFileSync('git', ['show', `${BASELINE4}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
+})();
+const PAGE_COMPOSANTS = { nom: 'composants', url: PAGE, corps: FIXTURE('palette-nation-composants.html') };
+// Élément, nom, fond attendu (tint : header-tint ; surface : bg-surface ; null : non vérifié), bordure vérifiée (haut, bas), texte attendu
+// (primaire : text-primary ; nation : text-nation).
+const E4 = (sel, quoi, fond, bord, texte) => ({ sel, quoi, fond, bord, texte });
+const PANNEAUX4 = [
+  E4('#entete', 'en-tête de panneau', 'tint', 'bas', 'primaire'),
+  E4('#entete-titre', 'titre de l\'en-tête', null, null, 'primaire'),
+  E4('#pied', 'pied de panneau', 'tint', 'haut', 'primaire'),
+  E4('#th-tete', 'en-tête de tableau', 'tint', 'bas', 'primaire'),
+  E4('#th-ligne', 'en-tête de ligne', 'tint', 'haut', 'primaire'),
+  E4('#th-pied', 'pied de tableau', 'tint', 'haut', 'primaire'),
+  E4('#dt-tete', 'en-tête DataTables trié', 'tint', 'bas', 'primaire'),
+  E4('#dt-pied', 'pied DataTables', 'tint', 'haut', 'primaire'),
+  E4('#onglets', 'barre d\'onglets', null, 'bas', null),
+  E4('#onglet-actif', 'onglet actif', 'surface', 'haut', 'primaire'),
+  E4('#onglet-inactif', 'onglet inactif', null, null, 'primaire')
+];
+// Bouton standard : repos et états qui gardent le fond de repos (focus, désactivé), états pressés (header-tint), pseudo-classes forcées sur
+// button, a et input.
+const BS_REPOS = [['#bs-button', 'button'], ['#bs-a', 'a'], ['#bs-input', 'input'], ['#bs-focus', '.focus'], ['#bs-disabled', '.disabled'], ['#bs-attr-disabled', '[disabled]'], ['#bs-fieldset', 'fieldset[disabled]'], ['#bs-aide', '« ? Aide »']];
+const BS_APPUI = [['#bs-active', '.active'], ['#bs-menu', 'menu ouvert']];
+const BS_BASES = ['#bs-button', '#bs-a', '#bs-input'];
+const BS_PSEUDOS = [['hover', 'tint'], ['active', 'tint'], ['focus', 'surface']];
+const SELS4 = [...PANNEAUX4.map(e => e.sel), ...BS_REPOS.map(([s]) => s), ...BS_APPUI.map(([s]) => s), '#separateur'];
+// Gris de Bootstrap 3.3.7 de ces composants (en-têtes #f5f5f5, #333, #ddd ; bouton standard #ccc, #e6e6e6, #adadad, #8c8c8c, #d4d4d4 ;
+// onglets #555, #eee) : aucun en clair.
+const GRIS_BOOTSTRAP = ['#f5f5f5', '#dddddd', '#333333', '#cccccc', '#e6e6e6', '#adadad', '#8c8c8c', '#d4d4d4', '#555555', '#eeeeee'];
+const SECONDAIRE_CLAIR = '#636a77';
+const commeGris = c => { const a = lire(c); return a[3] > 0 && GRIS_BOOTSTRAP.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+// Même couleur à 1 près par canal (opacité ramenée à 0..255).
+const proche = (a, b) => { const x = lire(a); const y = lire(b); return [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1) && Math.abs(x[3] - y[3]) * 255 <= 1; };
+
+const MESURES4 = sels => {
+  const K = window.__krContraste;
+  return Object.fromEntries(sels.map(sel => {
+    const e = document.querySelector(sel);
+    if (!e) { return [sel, null]; }
+    const s = getComputedStyle(e);
+    return [sel, { display: s.display, couleur: s.color, fondPropre: s.backgroundColor, haut: s.borderTopColor, bas: s.borderBottomColor, traits: [s.borderTopWidth, s.borderBottomWidth].map(parseFloat), contraste: K.texte(e) }];
+  }));
+};
+// Jetons lus sur une sonde et contrastes du texte atténué sur blanc, bg-page, header-tint et info-bg.
+const JETONS4 = absent => {
+  const K = window.__krContraste;
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const j = { surface: sonde('var(--kr-bg-surface)'), primaire: sonde('var(--kr-text-primary)'), secondaire: sonde('var(--kr-text-secondary)'), page: sonde('var(--kr-bg-page)'), tint: sonde(`var(--kr-header-tint, ${absent})`), info: sonde('var(--kr-alert-info-bg)') };
+  const opaque = c => { const x = K.rgb(c); return [0, 1, 2].map(i => x[i] * x[3] + 255 * (1 - x[3])); };
+  j.contrastes = Object.fromEntries([['blanc', 'rgb(255, 255, 255)'], ['bg-page', j.page], ['header-tint', j.tint], ['info-bg', j.info]].map(([k, c]) => [k, K.rapport(opaque(j.secondaire), opaque(c))]));
+  return j;
+};
+
+// Bouton de groupe du tableau de bord du plateau (bouton standard natif cloné par le template) : sa règle garde la main, rendu au repos et
+// survolé identique au bundle d'avant le ticket (avant4, plus bas).
+const TABLEAU = '#bs-tableau';
+const mesurerTableau = async page => ({ repos: (await page.evaluate(MESURES4, [TABLEAU]))[TABLEAU], survol: (await forcer(page, [TABLEAU], 'hover', () => page.evaluate(MESURES4, [TABLEAU])))[TABLEAU] });
+
+async function composantsScenario(variante, width) {
+  const mobile = width < 768;
+  let tableauAvant = null;
+  if (avant4) {
+    const a = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: PAGE_COMPOSANTS.url, corps: PAGE_COMPOSANTS.corps, script: avant4, secondaire: true });
+    tableauAvant = await mesurerTableau(a.page);
+    await a.context.close();
+  }
+  const { context, page, denied, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: PAGE_COMPOSANTS.url, corps: PAGE_COMPOSANTS.corps });
+  const r = { posee: await page.evaluate(VARIANTE_POSEE, variante), mobile: await page.evaluate(() => document.body.classList.contains('mobile-mode')) };
+  r.jetons = await page.evaluate(JETONS4, ABSENT);
+  r.repos = await page.evaluate(MESURES4, SELS4);
+  r.etats = {};
+  for (const [pseudo] of BS_PSEUDOS) { r.etats[pseudo] = await forcer(page, BS_BASES, pseudo, () => page.evaluate(MESURES4, BS_BASES)); }
+  r.onglet = (await forcer(page, ['#onglet-inactif'], 'hover', () => page.evaluate(MESURES4, ['#onglet-inactif'])))['#onglet-inactif'];
+  r.tableau = { avant: tableauAvant, apres: await mesurerTableau(page) };
+  if (SHOTS && ['kraland', 'paladium', 'empire-brun-dark'].includes(variante)) {
+    fs.mkdirSync(SHOTS, { recursive: true });
+    await page.screenshot({ path: path.join(SHOTS, `palette-nation-composants-${width}-${variante}.png`), fullPage: true });
+  }
+  await context.close();
+  return { ...r, erreurs, denied: denied.filter(d => d.url.startsWith(BASE)).map(d => d.url) };
+}
+
+// Écarts d'un élément : fond, bordure, texte attendus, texte ≥ 4,5:1.
+const ecarts4 = (variante, quoi, m, j, { fond, bord, texte }) => {
+  if (!m) { return [`${quoi} : absent`]; }
+  const faux = [];
+  if (fond === 'tint' && !egal(m.fondPropre, attendu(variante, 'header-tint'))) { faux.push(`${quoi} : fond ${m.fondPropre} au lieu de header-tint ${attendu(variante, 'header-tint')}`); }
+  if (fond === 'surface' && !proche(m.fondPropre, j.surface)) { faux.push(`${quoi} : fond ${m.fondPropre} au lieu de bg-surface ${j.surface}`); }
+  if (bord && !egal(m[bord], attendu(variante, 'border-tint'))) { faux.push(`${quoi} : bordure ${bord} ${m[bord]} au lieu de border-tint ${attendu(variante, 'border-tint')}`); }
+  if (texte === 'primaire' && !proche(m.couleur, j.primaire)) { faux.push(`${quoi} : texte ${m.couleur} au lieu de text-primary ${j.primaire}`); }
+  if (texte === 'nation' && !egal(m.couleur, attendu(variante, 'text-nation'))) { faux.push(`${quoi} : texte ${m.couleur} au lieu de text-nation ${attendu(variante, 'text-nation')}`); }
+  if (texte && !(m.contraste >= 4.5)) { faux.push(`${quoi} : ${m.contraste.toFixed(2)}:1 (${m.couleur})`); }
+  return faux;
+};
+const BOUTON4 = fond => ({ fond, bord: 'haut', texte: 'nation' });
+function verifierComposants(tag, variante, r) {
+  const sombre = variante.endsWith('-dark');
+  const mobile = r.mobile;
+  check(`${tag} ${variante} : variante posée, aucune exception, aucune requête vers le site hors fixture (composants)`, () => {
+    assert.ok(r.posee, 'variante non posée');
+    assert.deepEqual(r.erreurs, [], 'exceptions : ' + r.erreurs.join(' | '));
+    assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
+  });
+  check(`${tag} ${variante} : en-têtes et pieds de panneau, en-têtes de tableau (Bootstrap, DataTables) en header-tint${mobile ? ' (en-tête de panneau : carte mobile en bg-surface)' : ''}, bordure border-tint, texte text-primary ≥ 4,5:1 ; onglets bordés de border-tint, actif sur bg-surface, survolé ≥ 4,5:1`, () => {
+    const faux = PANNEAUX4.flatMap(e => ecarts4(variante, e.quoi, r.repos[e.sel], r.jetons, mobile && e.sel === '#entete' ? { ...e, fond: 'surface', bord: null } : e));
+    faux.push(...ecarts4(variante, 'onglet inactif survolé', r.onglet, r.jetons, { bord: 'haut', texte: 'primaire' }));
+    sansEcart(faux);
+  });
+  check(`${tag} ${variante} : bouton standard (button, a, input ; .focus, .disabled, [disabled], fieldset[disabled], « ? Aide » ; .active, menu ouvert ; :hover, :active, :focus) : fond bg-surface, survol et appui en header-tint, bordure border-tint, texte text-nation ≥ 4,5:1`, () => {
+    const faux = [
+      ...BS_REPOS.flatMap(([s, q]) => ecarts4(variante, q, r.repos[s], r.jetons, BOUTON4('surface'))),
+      ...BS_APPUI.flatMap(([s, q]) => ecarts4(variante, q, r.repos[s], r.jetons, BOUTON4('tint'))),
+      ...BS_PSEUDOS.flatMap(([ps, fond]) => BS_BASES.map(s => [ps, fond, s]).flatMap(([p, f, s]) => ecarts4(variante, `${s.replace('#bs-', '')}:${p}`, r.etats[p][s], r.jetons, BOUTON4(f))))
+    ];
+    sansEcart(faux);
+  });
+  check(`${tag} ${variante} : bouton de groupe du tableau de bord (règle propre) au repos et survolé comme avant le ticket (${BASELINE4})`, () => {
+    const { avant, apres } = r.tableau;
+    assert.ok(avant, `bundle « avant » introuvable (KR_SCRIPT_AVANT ou commit ${BASELINE4})`);
+    sansEcart(['repos', 'survol'].flatMap(e => (!avant[e] || !apres[e] ? [`${e} : absent`] : ['couleur', 'fondPropre', 'haut', 'bas'].filter(k => !proche(apres[e][k], avant[e][k])).map(k => `${e} : ${k} ${apres[e][k]} au lieu de ${avant[e][k]}`))));
+  });
+  check(`${tag} ${variante} : hr masqué`, () => assert.equal(r.repos['#separateur'] && r.repos['#separateur'].display, 'none'));
+  if (!sombre) {
+    check(`${tag} ${variante} : aucun gris de Bootstrap (${GRIS_BOOTSTRAP.join(', ')}) en texte, fond ou bordure des en-têtes, onglets et boutons standard`, () => {
+      // Texte : seulement sur un élément qui en porte (la barre d'onglets n'en a pas : texte du corps hérité).
+      const sansTexte = PANNEAUX4.filter(e => !e.texte).map(e => e.sel);
+      const mesures = [...Object.entries(r.repos).filter(([s]) => s !== '#separateur').map(([s, m]) => [s, m && sansTexte.includes(s) ? { ...m, couleur: 'rgba(0, 0, 0, 0)' } : m]), ...BS_PSEUDOS.flatMap(([p]) => Object.entries(r.etats[p]).map(([s, m]) => [`${s}:${p}`, m])), ['#onglet-inactif:hover', r.onglet]];
+      // Bordure : seulement quand elle est tracée (une bordure d'épaisseur nulle prend la couleur du texte).
+      const vues = m => ['couleur', 'fondPropre', ...(m.traits[0] > 0 ? ['haut'] : []), ...(m.traits[1] > 0 ? ['bas'] : [])];
+      sansEcart(mesures.filter(([, m]) => m).flatMap(([s, m]) => vues(m).filter(k => commeGris(m[k])).map(k => `${s} : ${k} ${m[k]} (${commeGris(m[k])})`)));
+    });
+    check(`${tag} ${variante} : --kr-text-secondary ${SECONDAIRE_CLAIR}, ≥ 4,5:1 sur blanc, bg-page, header-tint et info-bg`, () => {
+      const faux = egal(r.jetons.secondaire, SECONDAIRE_CLAIR) ? [] : [`text-secondary ${r.jetons.secondaire} au lieu de ${SECONDAIRE_CLAIR}`];
+      Object.entries(r.jetons.contrastes).filter(([, c]) => !(c >= 4.5)).forEach(([k, c]) => faux.push(`sur ${k} : ${c.toFixed(2)}:1`));
+      sansEcart(faux);
+    });
+  }
+}
+for (const [frag, width] of [['composants-mobile', 375], ['composants-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Composants ${width} px, 16 variantes : en-têtes et pieds de panneau, en-têtes de tableau, onglets, bouton standard, hr, texte atténué du clair`);
+  const res = await parVariante(variante => composantsScenario(variante, width));
+  VARIANTES.forEach((v, i) => verifierComposants(tag, v, res[i]));
+}
+if (on('composants-largeurs')) {
+  console.log(`Composants, largeurs ${LARGEURS.join(', ')} px contre 375 et 1280 px : ${VARIANTES_LARGEURS.join(' et ')}`);
+  const cas = VARIANTES_LARGEURS.flatMap(variante => [375, 1280, ...LARGEURS].map(width => ({ variante, width })));
+  const res = await mapLimit(cas, c => composantsScenario(c.variante, c.width));
+  const valeurs = r => JSON.stringify({ jetons: { ...r.jetons, contrastes: undefined }, repos: r.repos, etats: r.etats, onglet: r.onglet }, (k, v) => (k === 'contraste' ? undefined : v));
+  for (const variante of VARIANTES_LARGEURS) {
+    const de = width => res[cas.findIndex(c => c.variante === variante && c.width === width)];
+    for (const width of LARGEURS) {
+      const ref = width < 768 ? 375 : 1280;
+      check(`[largeurs] ${variante} ${width} px (${width < 768 ? 'mobile' : 'ordinateur'}) : composants comme à ${ref} px, aucune exception`, () => {
+        const m = de(width);
+        assert.equal(m.mobile, width < 768, 'mode mobile');
+        assert.deepEqual(m.erreurs, [], 'exceptions : ' + m.erreurs.join(' | '));
+        assert.equal(valeurs(m), valeurs(de(ref)));
+      });
+    }
+  }
+}
+
+// Pages de référence (sujet, sous-forum, index RP, réception du kramail, plateau), 375 et 1280 px, 16 variantes : chaque composant (en-tête
+// et pied du panneau standard, en-tête de tableau, bouton standard, onglets) comparé au bundle d'avant le ticket (BASELINE4) : en sombre,
+// inchangé sauf le fond et le texte du bouton standard, qui passent à bg-surface et text-nation (en clair, son texte venait de la règle des
+// liens : text-accent) ; en clair, seule une valeur native de Bootstrap (un gris ; son blanc en fond du bouton standard et de l'onglet
+// actif ; l'absence de fond d'un en-tête de tableau) peut devenir un jeton du ticket (header-tint, border-tint, text-primary, bg-surface, text-nation) ; une valeur transparente ou autre reste : une règle
+// propre à la page garde la main. Texte ≥ 4,5:1 dans ces
+// composants. Bundle d'avant : texte atténué du clair posé à #636a77 (TEXTE_SECONDAIRE_CLAIR), seul écart de jeton accepté.
+const PAGES4 = PAGES_BALAYAGE.filter(p => ['sujet', 'sous-forum', 'index RP', 'réception du kramail', 'plateau'].includes(p.nom));
+const SEL_COMPOSANTS4 = COMPOSANTS_TICKET4;
+const RELEVER4 = sel => {
+  const K = window.__krContraste;
+  const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
+  const visible = e => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width >= 1 && r.height >= 1 && s.visibility === 'visible' && !e.closest('[aria-hidden="true"]'); };
+  const releves = [...document.querySelectorAll(sel)].map(e => {
+    const s = getComputedStyle(e);
+    return { nom: nom(e), standard: e.matches('.btn-default'), ongletActif: e.matches('.active > a'), th: e.tagName === 'TH', couleur: s.color, fondPropre: s.backgroundColor, haut: parseFloat(s.borderTopWidth) > 0 ? s.borderTopColor : 'aucune', bas: parseFloat(s.borderBottomWidth) > 0 ? s.borderBottomColor : 'aucune' };
+  });
+  const textes = [];
+  for (const e of document.body.querySelectorAll('*')) {
+    if (!e.closest(sel) || ['SCRIPT', 'STYLE', 'OPTION'].includes(e.tagName)) { continue; }
+    const texte = e.tagName === 'INPUT' ? ['button', 'submit', 'reset'].includes(e.type) && e.value.trim() : [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (texte && visible(e)) { textes.push({ nom: nom(e), contraste: K.texte(e), couleur: getComputedStyle(e).color }); }
+  }
+  return { composants: releves, textes };
+};
+async function pages4(p, variante, width) {
+  const mobile = width < 768;
+  const res = {};
+  for (const [cote, script] of [['avant', avant4], ['apres', userscript]]) {
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant' });
+    res[cote] = { ...(await page.evaluate(RELEVER4, SEL_COMPOSANTS4)), jetons: await page.evaluate(JETONS4, ABSENT), erreurs };
+    await context.close();
+  }
+  return res;
+}
+const ecartsPage4 = (variante, r) => {
+  const sombre = variante.endsWith('-dark');
+  const { avant, apres } = r;
+  if (avant.composants.length !== apres.composants.length) { return [`${apres.composants.length} composants au lieu de ${avant.composants.length}`]; }
+  const j = apres.jetons;
+  const nouveaux = { couleur: [j.primaire, attendu(variante, 'text-nation')], fondPropre: [attendu(variante, 'header-tint'), j.surface], haut: [attendu(variante, 'border-tint')], bas: [attendu(variante, 'border-tint')] };
+  // Valeur native de Bootstrap 3.3.7 : un de ses gris ; le blanc seulement en fond du bouton standard et de l'onglet actif ; transparent
+  // seulement en fond d'un en-tête de tableau (Bootstrap ne lui en donne pas). Toute autre valeur vient d'une règle de la page : elle doit
+  // rester. Limite : une règle de page qui poserait un fond transparent sur un th, battue par la règle commune, ne se distingue pas du natif.
+  const natif = (c, k, x) => commeGris(c) || (k === 'fondPropre' && (x.standard || x.ongletActif) && proche(c, 'rgb(255, 255, 255)')) || (k === 'fondPropre' && x.th && lire(c)[3] === 0);
+  const faux = [];
+  avant.composants.forEach((a, i) => {
+    const p = apres.composants[i];
+    for (const k of ['couleur', 'fondPropre', 'haut', 'bas']) {
+      if (a[k] === p[k] || (a[k] !== 'aucune' && p[k] !== 'aucune' && proche(a[k], p[k]))) { continue; }
+      const nouveau = p[k] !== 'aucune' && nouveaux[k].some(c => (c.startsWith('#') ? egal(p[k], c) : proche(p[k], c)));
+      if (p.standard && ['couleur', 'fondPropre'].includes(k) && nouveau) { continue; } // bouton standard : texte de la nation, fond bg-surface
+      if (!sombre && a[k] !== 'aucune' && natif(a[k], k, a) && nouveau) { continue; }
+      faux.push(`${p.nom} : ${k} ${p[k]} au lieu de ${a[k]}`);
+    }
+  });
+  return faux;
+};
+for (const [frag, width] of [['composants-pages-mobile', 375], ['composants-pages-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Composants des pages de référence ${width} px, 16 variantes : ${PAGES4.map(p => p.nom).join(', ')}, contre le bundle ${BASELINE4}`);
+  console.log(`  info écart accepté et consigné : --kr-text-secondary ${SECONDAIRE_CLAIR} posé sur le bundle « avant » (Q26, ticket 4)`);
+  check(`${tag} bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${BASELINE4})`, () => assert.ok(avant4, 'introuvable'));
+  if (!avant4) { continue; }
+  const cas = PAGES4.flatMap(p => VARIANTES.map(variante => ({ p, variante })));
+  const res = await mapLimit(cas, c => pages4(c.p, c.variante, width), 16);
+  for (const p of PAGES4) {
+    const lignes = cas.map((c, i) => [c, res[i]]).filter(([c]) => c.p === p);
+    check(`${tag} ${p.nom} : composants comme avant le ticket, sauf gris et blancs de Bootstrap passés aux jetons du ticket (clair) et fond et texte du bouton standard (sombre), 16 variantes (${lignes[0][1].apres.composants.length} composants), aucune exception`, () => {
+      sansEcart(lignes.flatMap(([c, r]) => [...r.apres.erreurs.map(e => `exception ${e}`), ...ecartsPage4(c.variante, r).slice(0, 4)].map(f => `${c.variante} ${f}`)));
+    });
+    check(`${tag} ${p.nom} : texte des composants ≥ 4,5:1, 16 variantes (${lignes.reduce((n, [, r]) => n + r.apres.textes.length, 0)} textes)`, () => {
+      sansEcart(lignes.flatMap(([c, r]) => r.apres.textes.filter(t => !(t.contraste >= 4.5)).slice(0, 4).map(t => `${c.variante} ${t.nom} : ${t.contraste.toFixed(2)}:1 (${t.couleur})`)));
+    });
   }
 }
 

@@ -58,9 +58,11 @@ export const SUITES = [
   // consommateurs des jetons redéfinis, texte posé sur la primaire foncée ; boutons primaires de toute balise et de tout état et texte posé sur
   // la couleur de nation en paire d'action (ticket 2) ; fixture synthétique palette-nation.html, 375 × 667, 767 à 769, 1280 à 1920 px, peau
   // coupée ; balayage des fixtures de référence (report, plateau, sujet, sous-forum, index RP, kramail) ; texte coloré en accent, couleurs de
-  // nation du sombre, rouge et bleu en dur (ticket 3 ; fixtures synthétiques palette-nation-textes.html et palette-nation-accueil.html). Aucun
-  // mot-clé : une déclaration de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs']], needsBootstrap: true }
+  // nation du sombre, rouge et bleu en dur (ticket 3 ; fixtures synthétiques palette-nation-textes.html et palette-nation-accueil.html) ;
+  // en-têtes, onglets, bouton standard et hr thémés comme le sombre, texte atténué du clair (ticket 4 ; fixture synthétique
+  // palette-nation-composants.html, pages de référence comparées au bundle d'avant le ticket). Aucun mot-clé : une déclaration de jeton
+  // élargit au total, comme toute déclaration de variable.
+  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
