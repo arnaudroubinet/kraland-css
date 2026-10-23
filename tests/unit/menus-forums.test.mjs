@@ -65,11 +65,11 @@ test('chemins : normalisation (barre finale, casse) et catégorie d\'une page', 
   assert.equal(krForumMenuForPath('/forum/sujet/un-1-1'), null);
 });
 
-test('index présentés comme le sous-forum : RP, HRP, Communauté et Débats exactement (barre finale, casse), jamais Staff ni un sous-chemin', () => {
-  for (const p of ['/forum/rp', '/forum/hrp', '/forum/communaute', '/forum/debats', '/forum/RP/', '/forum/debats//']) {
+test('index présentés comme le sous-forum : racine, RP, HRP, Communauté et Débats exactement (barre finale, casse), jamais Staff ni un sous-chemin', () => {
+  for (const p of ['/forum', '/forum/', '/forum/rp', '/forum/hrp', '/forum/communaute', '/forum/debats', '/forum/RP/', '/forum/debats//']) {
     assert.equal(krForumIsIndexPath(p), true, p);
   }
-  for (const p of ['/forum/staff', '/forum', '/forum/', '/forum/rp/taverne-10101', '/forum/rpg', '/forum/sujet/un-1-1', '/forum/post/nouveau-sujet-1-20102', '', null]) {
+  for (const p of ['/forum/staff', '/forum/rp/taverne-10101', '/forum/rpg', '/forum/sujet/un-1-1', '/forum/post/nouveau-sujet-1-20102', '', null]) {
     assert.equal(krForumIsIndexPath(p), false, String(p));
   }
 });

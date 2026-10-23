@@ -7,14 +7,14 @@
 //   forum sans message (« 0 sujets · 0 messages », ni dernier message ni bouton →) ; auteur avec icône (nom et icône conservés, en gras) ;
 //   en-têtes (titre de page, « Tous les forums », en-tête de section) : même rendu que le sous-forum, titre de section jamais en couleur de
 //                     nation (couleur de texte sur mobile) ;
-//   hors périmètre : racine /forum, sous-forum, sujet et index Staff identiques au bundle « avant » ;
+//   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff identiques au bundle « avant » ;
 //   seuil : 767, 768 et 769 px, et aller-retour 767 → 768 → 767 dans le même onglet (rechargement du thème au franchissement) ;
 //   peau coupée : la page native est intacte.
 // « Même rendu que le sous-forum » : le sous-forum « Débuter » (fixture sous-forum-debuter.html) est mesuré dans le même navigateur, à la même
 // largeur et dans la même variante ; les propriétés calculées de chaque composant de l'index sont comparées à celles du composant du sous-forum.
 // Pages = FIXTURES SYNTHÉTIQUES (structure réelle relevée le 2026-10-22, données inventées) : forum-index-rp.html (alerte, 4 forums : description
 // avec <u>, forum sans description, deux modérateurs, auteur avec icône, forum sans message) et forum-index-communaute.html (3 forums, sans
-// alerte, « 1 sujet · 1 message »). Hors périmètre : forum-racine.html (l'index synthétique d'avant le ticket, servi à /forum), le sous-forum,
+// alerte, « 1 sujet · 1 message »). Racine : forum-racine-groupes.html (groupes synthétiques). Hors périmètre : le sous-forum,
 // forum-sujet.html (page de sujet de messages-v3.mjs) et forum-index-rp.html servi à /forum/staff. Vrai Bootstrap 3.3.7 (tests/e2e/vendor).
 // Confinement réseau ; aucun clic : les cibles sont mesurées par elementFromPoint, après un défilement par window.scrollTo.
 // Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT.
@@ -48,8 +48,10 @@ const INDEX = {
   rp: { url: '/forum/rp', html: fixture('forum-index-rp.html'), titre: 'Jeu (RP)' },
   communaute: { url: '/forum/communaute', html: fixture('forum-index-communaute.html'), titre: 'Communauté' }
 };
+INDEX.racineSlash = { url: '/forum/', html: fixture('forum-racine-groupes.html'), titre: 'Forum' };
+INDEX.racine = { url: '/forum', html: fixture('forum-racine-groupes.html'), titre: 'Forum' };
 const SOUS_FORUM = { url: '/forum/hrp/debuter-20102', html: fixture('sous-forum-debuter.html') };
-const RACINE = { url: '/forum', html: fixture('forum-racine.html') };
+const RACINE = { url: '/forum', html: fixture('forum-racine-groupes.html') };
 const SUJET = { url: '/forum/sujet/messages-v3-329425-1', html: fixture('forum-sujet.html') };
 const STAFF = { url: '/forum/staff', html: fixture('forum-index-rp.html') };
 const MOBILE = 375;
@@ -152,7 +154,7 @@ const LIGNES = () => {
   const lienEn = (x, y) => { window.scrollTo(0, 0); const top = Math.max(0, y - 200); window.scrollTo(0, top); const el = document.elementFromPoint(x, y - window.scrollY); const a = el && el.closest('a'); return a ? a.getAttribute('href') : null; };
   const table = document.querySelector('#col-right .panel-default table.table');
   const entete = document.querySelector('#col-right .panel-default > .panel-heading');
-  const lignes = table ? [...table.tBodies[0].rows] : [];
+  const lignes = table ? [...table.tBodies].flatMap(b => [...b.rows]) : [];
   const res = lignes.map(tr => {
     const c = tr.cells;
     const nom = c[0].querySelector(':scope > p > a');
@@ -551,7 +553,7 @@ if (on('seuil')) {
   });
 }
 
-// ---------- Hors périmètre : racine, sous-forum, index Staff ----------
+// ---------- Racine et non-régression : sous-forum, sujet, index Staff ----------
 // Empreinte du rendu de #col-right : pour chaque élément (ordre du DOM), balise, classes et propriétés calculées principales, boîte.
 const EMPREINTE = () => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
@@ -571,10 +573,85 @@ const EMPREINTE = () => {
 };
 
 if (on('hors-perimetre')) {
+  for (const url of ['/forum', '/forum/']) {
+    for (const width of [375, 767, 768, 769, 1440]) {
+      const { context, page, erreurs } = await open({ ...RACINE, url, width });
+      const m = await page.evaluate(() => ({
+        fil: document.querySelector('.forum-mobile-breadcrumb') !== null,
+        index: document.documentElement.classList.contains('kr-page-forum-index'),
+        corps: [...document.querySelectorAll('#col-right table tbody')].map(b => ({
+          lignes: [...b.rows].map(r => getComputedStyle(r).display),
+          unites: b.querySelectorAll('[data-kr-unit]').length,
+          fleches: [...b.querySelectorAll('.btn-group > a')].every(a => a.getAttribute('aria-label'))
+        })),
+        groupes: [...document.querySelectorAll('#col-right table thead th:first-child')].map(h => ({ texte: h.textContent.trim(), visible: h.getBoundingClientRect().height > 0 && getComputedStyle(h).visibility === 'visible' })),
+        blocs: document.querySelectorAll('.permanent-topic-stats').length,
+        debordement: document.documentElement.scrollWidth - window.innerWidth
+      }));
+      check(`${url} ${width} : tous les groupes utilisent la nouvelle présentation, compteurs nommés et catégories visibles`, () => {
+        assert.equal(m.index, true);
+        assert.equal(m.fil, false);
+        assert.ok(m.corps.length >= 2);
+        for (const b of m.corps) {
+          assert.ok(b.lignes.length > 0 && b.lignes.every(d => d === (width < 768 ? 'flex' : 'table-row')));
+          assert.equal(b.unites, b.lignes.length * 2);
+          assert.ok(b.fleches);
+        }
+        assert.ok(m.groupes.length >= 2 && m.groupes.every(d => d.visible));
+        assert.deepEqual(m.groupes.map(g => g.texte), ['Forum - Jeu (RP)', 'Forum - Jeu (HRP)']);
+        assert.equal(m.blocs, 0);
+        assert.equal(m.debordement, 0);
+        assert.deepEqual(erreurs, []);
+      });
+      const lignes = await page.evaluate(LIGNES);
+      check(`${url} ${width} : noms, compteurs, descriptions masquées et boutons natifs utilisables dans les deux groupes`, () => {
+        assert.equal(lignes.lignes.length, 8);
+        assert.deepEqual(lignes.lignes.map(l => l.href), ['rp', 'hrp'].flatMap(c => ['taverne-10101', 'marche-10102', 'royaume-d-essai-10104', 'les-cadets-d-essai-10107'].map(f => `forum/${c}/${f}`)));
+        for (const l of lignes.lignes) {
+          assert.ok(l.visible && l.nomRect && !l.descriptionVisible && !l.moderateursVisible);
+          if (width < 768) {
+            assert.ok(l.texte.includes('sujet') && l.texte.includes('message'), l.texte);
+            assert.ok(l.cibles.length >= 2);
+            for (const [ou, href] of l.cibles) { assert.equal(href, l.href, `${l.nom} : ${ou}`); }
+          }
+          if (l.fleche) {
+            assert.ok(l.fleche.visible && l.fleche.rect.w >= (width < 768 ? 44 : 32));
+            assert.equal(l.fleche.auCentre, l.fleche.href);
+          }
+        }
+      });
+      await shot(page, `racine-${width}-${url.endsWith('/') ? 'slash' : 'simple'}`);
+      await context.close();
+    }
+  }
+
+  for (const url of ['/forum', '/forum/']) {
+    const { context, page, erreurs } = await open({ ...RACINE, url, width: 767, mobile: false });
+    const etats = [];
+    for (const width of [767, 768, 767]) {
+      if (width !== 767 || etats.length) {
+        await page.waitForTimeout(ECART_RECHARGEMENT_MS);
+        const charge = page.waitForEvent('load', { timeout: 15000 });
+        await page.setViewportSize({ width, height: 900 });
+        await charge;
+        await krReady(page, { ready: THEME_READY, label: `racine aller-retour ${width}` });
+      }
+      etats.push(await page.evaluate(() => ({
+        mobile: document.body.classList.contains('mobile-mode'),
+        ligne: getComputedStyle(document.querySelector('tbody tr')).display,
+        groupes: [...document.querySelectorAll('thead th:first-child')].every(h => h.getBoundingClientRect().height > 0)
+      })));
+    }
+    check(`${url} : aller-retour 767 → 768 → 767, catégories toujours visibles`, () => {
+      assert.deepEqual(etats, [{ mobile: true, ligne: 'flex', groupes: true }, { mobile: false, ligne: 'table-row', groupes: true }, { mobile: true, ligne: 'flex', groupes: true }]);
+      assert.deepEqual(erreurs, []);
+    });
+    await context.close();
+  }
   const avant = bundleAvant();
   check(`bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${COMMIT_AVANT}, d'avant le ticket 6.1)`, () => assert.ok(avant, 'introuvable'));
   if (avant) {
-    const pages = [{ nom: 'racine /forum', ...RACINE }, { nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
+    const pages = [{ nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle « avant », ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
     const res = await mapLimit(cas, async c => {
@@ -599,8 +676,8 @@ if (on('hors-perimetre')) {
       });
     });
   }
-  console.log('Classe de page : posée sur les quatre index, jamais sur Staff, la racine ni un sous-forum');
-  const chemins = [['/forum/rp', true], ['/forum/hrp', true], ['/forum/communaute', true], ['/forum/debats', true], ['/forum/staff', false], ['/forum', false], ['/forum/rp/taverne-10101', false]];
+  console.log('Classe de page : posée sur les quatre index et la racine, jamais sur Staff ni un sous-forum');
+  const chemins = [['/forum/rp', true], ['/forum/hrp', true], ['/forum/communaute', true], ['/forum/debats', true], ['/forum/staff', false], ['/forum', true], ['/forum/', true], ['/forum/rp/taverne-10101', false]];
   const res = await mapLimit(chemins, async ([url]) => {
     const html = { '/forum/rp/taverne-10101': SOUS_FORUM.html, '/forum': RACINE.html }[url] || INDEX.rp.html;
     const { context, page } = await open({ url, html, width: MOBILE });
@@ -630,7 +707,7 @@ const COLONNE = () => {
 
 if (on('peau-coupee')) {
   console.log(`Peau coupée (kr-theme-enabled = false) : index RP et Communauté à ${MOBILE} et ${BUREAU} px comparés à la page native`);
-  const cas = ['rp', 'communaute'].flatMap(cle => [MOBILE, BUREAU].map(width => ({ cle, width })));
+  const cas = ['rp', 'communaute', 'racine', 'racineSlash'].flatMap(cle => [MOBILE, BUREAU].map(width => ({ cle, width })));
   const res = await mapLimit(cas, async ({ cle, width }) => {
     const natif = await open({ ...INDEX[cle], width, src: null });
     const n = await natif.page.evaluate(COLONNE);

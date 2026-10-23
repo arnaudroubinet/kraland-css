@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <base href="http://www.kraland.org/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FIXTURE racine du forum (structure réelle, données inventées)</title>
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+  <!--
+    FIXTURE SYNTHÉTIQUE de /forum : plusieurs groupes thead/tbody dans un tableau, comme le relevé public du 2026-10-23. Données inventées.
+    #col-right : alerte éventuelle, h1.page-header (aucun bouton de retour vers la racine elle-même),
+    un panneau (en-tête h3.panel-title avec icône et chevron de repli span.clickable, corps .panel-body > table.table à 4 colonnes).
+    Ligne : 1re cellule = nom (p.nomargin > a), description (p.nomargin.tagforum, facultative, peut contenir <u>), modérateurs (span.tagforum :
+    fa-gavel, « Modérateurs : », liens, étiquette span.label.label-info) ; 2e et 3e = compteurs (td.center) ; 4e = auteur du dernier message
+    (a.nomargin, parfois avec img.icon) puis p.nomargin.mini (bouton → vers le message #msgN, date en texte), vide si le forum n'a aucun message.
+    Cas couverts : description avec <u>, forum sans description, deux modérateurs, auteur avec icône, forum sans message (0 / 0).
+  -->
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/forum">Forum</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="mini-submenu navbar-default">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </div>
+        <div class="list-group">
+          <span class="list-group-item active">
+            Jeu (RP)
+            <span class="pull-right" id="slide-submenu"><i class="fa fa-times"></i></span>
+          </span>
+          <a href="forum/rp/taverne-10101" class="list-group-item"><span class="lefticon"><i class="far fa-comments"></i></span>Taverne</a>
+          <a href="forum/rp/marche-10102" class="list-group-item"><span class="lefticon"><i class="far fa-gem"></i></span>Marché</a>
+          <a href="forum/rp/royaume-d-essai-10104" class="list-group-item"><span class="lefticon"><i class="far fa-flag"></i></span>Royaume d'Essai</a>
+          <a href="forum/rp/les-cadets-d-essai-10107" class="list-group-item"><span class="lefticon"><i class="far fa-handshake"></i></span>Les Cadets d'Essai</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Fermer"><span aria-hidden="true">&times;</span></button><i class="fa fa-info-circle"></i> Bienvenue, Joueur !</div>
+        <h1 class="page-header">Forum</h1>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-comments-o"></i> Forum</h3>
+            <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+          </div>
+          <div class="panel-body">
+            <table class="table">
+              <thead>
+                <tr> <th>Forum - Jeu (RP)</th> <th>Sujets</th> <th>Messages</th> <th>Dernier&nbsp;Message</th> </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/rp/taverne-10101">Taverne</a></p>
+                    <p class="nomargin tagforum">Forum d'essai pour les récits de comptoir et les annonces.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">12</td>
+                  <td class="center">345</td>
+                  <td>
+                    <a href="communaute/membres/aestus-1-911" class="nomargin">Aestus</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/une-histoire-de-comptoir-330001-1#msg6900001" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> Hier (13:20)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/rp/marche-10102">Marché</a></p>
+                    <p class="nomargin tagforum">Forum d'essai pour l'achat et la <u>vente</u> de marchandises.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">7</td>
+                  <td class="center">89</td>
+                  <td>
+                    <a href="communaute/membres/berenice-1-912" class="nomargin">Bérénice</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/vends-charrette-330002-1#msg6900002" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> Aujourd'hui (09:05)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/rp/royaume-d-essai-10104">Royaume d'Essai</a></p>
+                    <p class="nomargin tagforum">Forum d'essai réservé aux <u>citoyens</u> du royaume.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-deux-1-902">ModoDeux</a> , <a href="communaute/membres/modo-trois-1-903">ModoTrois</a></span>
+                  </td>
+                  <td class="center">47</td>
+                  <td class="center">1325</td>
+                  <td>
+                    <a href="communaute/membres/corvin-1-913" class="nomargin"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" alt="[*r]" class="icon">Corvin</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/registre-du-royaume-330003-1#msg6900003" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> 19/10 (21:43)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/rp/les-cadets-d-essai-10107">Les Cadets d'Essai</a></p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">0</td>
+                  <td class="center">0</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            <thead>
+                <tr> <th>Forum - Jeu (HRP)</th> <th>Sujets</th> <th>Messages</th> <th>Dernier&nbsp;Message</th> </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/hrp/taverne-10101">Deuxième groupe</a></p>
+                    <p class="nomargin tagforum">Forum d'essai pour les récits de comptoir et les annonces.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">12</td>
+                  <td class="center">345</td>
+                  <td>
+                    <a href="communaute/membres/aestus-1-911" class="nomargin">Aestus</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/une-histoire-de-comptoir-330001-1#msg6900001" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> Hier (13:20)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/hrp/marche-10102">Marché</a></p>
+                    <p class="nomargin tagforum">Forum d'essai pour l'achat et la <u>vente</u> de marchandises.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">7</td>
+                  <td class="center">89</td>
+                  <td>
+                    <a href="communaute/membres/berenice-1-912" class="nomargin">Bérénice</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/vends-charrette-330002-1#msg6900002" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> Aujourd'hui (09:05)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/hrp/royaume-d-essai-10104">Royaume d'Essai</a></p>
+                    <p class="nomargin tagforum">Forum d'essai réservé aux <u>citoyens</u> du royaume.</p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-deux-1-902">ModoDeux</a> , <a href="communaute/membres/modo-trois-1-903">ModoTrois</a></span>
+                  </td>
+                  <td class="center">47</td>
+                  <td class="center">1325</td>
+                  <td>
+                    <a href="communaute/membres/corvin-1-913" class="nomargin"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSI+PGNpcmNsZSBjeD0iNy41IiBjeT0iNy41IiByPSI3IiBmaWxsPSIjZTBiMDAwIi8+PC9zdmc+" alt="[*r]" class="icon">Corvin</a>
+                    <p class="nomargin mini"><span class="btn-group btn-group-xs"><a href="forum/sujet/registre-du-royaume-330003-1#msg6900003" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="aller au dernier message"><i class="fa fa-arrow-right"></i></a></span> 19/10 (21:43)</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p class="nomargin"><a href="forum/hrp/les-cadets-d-essai-10107">Les Cadets d'Essai</a></p>
+                    <span class="tagforum"><i class="fa fa-gavel"></i> Modérateurs : <a href="communaute/membres/modo-un-1-901">ModoUn</a><span class="label label-info">[mod]</span></span>
+                  </td>
+                  <td class="center">0</td>
+                  <td class="center">0</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="navbar-inverse"><div class="container white"><div class="footer-quote">« FIXTURE citation du pied de page »</div></div></footer>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
