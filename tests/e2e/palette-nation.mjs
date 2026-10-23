@@ -62,8 +62,16 @@
 //   pages           votes du sujet, caractéristiques du plateau, « Bienvenue » de l'index RP en couleurs d'état ; non lu du sous-forum et de
 //                   /report en --kr-status-unread, comme avant le ticket (garde) ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes valeurs qu'à 375 ou 1280 px.
-// Hors de ces tickets, donc non vérifiés ici : focus (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6), jauges
-// (ticket 6) ; alertes de la modale d'ordre : modale-ordre.mjs.
+// Ticket 6 (H5.4, Q3, CAP-4 ; plan story-jauges-une-couleur-par-jauge-identique-sur-ordinateur-et-mob) : une couleur par jauge, la même
+// sur les deux supports, un ton par mode (fixture synthétique palette-nation-jauges.html, structure du panneau relevée en lecture seule) :
+//   jetons          --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp de DESIGN.md › Jauges (clair, sombre), 375 et 1280 px, 16 variantes ;
+//   mobile          profil mobile plié et déplié, 375 × 667 : jauges compactes et complètes aux jetons, visibles, ≥ 3:1 sur leur piste
+//                   (#f5f5f5 en clair, bg-elevated en sombre) ;
+//   ordinateur      barres PV, PM, PP du panneau du plateau, 1280 px : valeur aux mêmes couleurs que sur mobile, ≥ 3:1 sur la même piste ;
+//                   aucun segment en #5cb85c, #f0ad4e, #28a745, #007bff, #ffc107 ;
+//   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
+// Hors de ces tickets, donc non vérifiés ici : focus (ticket 7), onglet actif et « Valider » de la modale d'ordre (ticket 2.6), barres de
+// PV des cartes de personnages (épopée 5) ; alertes de la modale d'ordre : modale-ordre.mjs.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
 // variantes ouvertes et contrastes mesurés par l'outil partagé (lib/variantes.mjs). Confinement réseau ; gestes : le survol à la souris et
 // les pseudo-classes forcées par le protocole du navigateur (CSS.forcePseudoState), aucun clic, aucun envoi.
@@ -71,8 +79,8 @@
 // Usage : npm run build && node tests/e2e/palette-nation.mjs   (ou npm run test:zone -- palette-nation)
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, peau-coupee, balayage-mobile,
 //           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs, composants-mobile, composants-bureau, composants-largeurs,
-//           composants-pages-mobile, composants-pages-bureau, etats-mobile, etats-bureau, etats-largeurs, etats-pages-mobile, etats-pages-bureau
-//           (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages) ; KR_SCRIPT_AVANT5 (bundle d'avant le ticket 5).
+//           composants-pages-mobile, composants-pages-bureau, etats-mobile, etats-bureau, etats-largeurs, etats-pages-mobile, etats-pages-bureau,
+//           jauges-mobile, jauges-bureau, jauges-largeurs (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages) ; KR_SCRIPT_AVANT5 (bundle d'avant le ticket 5).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -1453,6 +1461,147 @@ for (const [frag, width] of [['etats-pages-mobile', 375], ['etats-pages-bureau',
     check(`${tag} ${p.nom} : ${quoi}, textes ≥ 4,5:1, aucune exception, 16 variantes`, () => {
       sansEcart(lignes.flatMap(([c, r]) => ecartsPage5(p, c.variante, r).slice(0, 4).map(f => `${c.variante} ${f}`)));
     });
+  }
+}
+
+// ---------- Ticket 6 : jauges (H5.4, Q3, CAP-4) ----------
+// Fixture synthétique palette-nation-jauges.html servie à /jouer/plateau : jauges du panneau (structure relevée en lecture seule sur le site
+// réel, valeurs inventées), vrai Bootstrap 3.3.7. Ordinateur : les trois .progress du panneau, dans l'ordre PV, PM, PP ; segment
+// 1er segment = remplissage (.progress-bar-success dans le relevé), segment suivant (.progress-bar-warning) = reste de la piste. Variante
+// « classes » (ordinateur) : valeur de PV en .progress-bar-danger et de PM en .progress-bar-warning, au cas où le site change la classe avec
+// le niveau. Mobile : jauges compactes (profil mobile plié et déplié) et complètes (déplié) du profil mobile.
+const PAGE_JAUGES = { url: BASE + '/jouer/plateau', corps: FIXTURE('palette-nation-jauges.html') };
+const PAGE_JAUGES_CLASSES = { url: PAGE_JAUGES.url, corps: PAGE_JAUGES.corps
+  .replace('<div class="progress-bar progress-bar-success" style="width: 60%">', '<div class="progress-bar progress-bar-danger" style="width: 60%">')
+  .replace('<div class="progress-bar progress-bar-success" style="width: 100%"><span class="sr-only">25', '<div class="progress-bar progress-bar-warning" style="width: 100%"><span class="sr-only">25') };
+const JAUGES = ['pv', 'pm', 'pp'];
+const JAUGES_DESIGN = { clair: { pv: '#388e3c', pm: '#1565c0', pp: '#e65100' }, sombre: { pv: '#66bb6a', pm: '#64b5f6', pp: '#ffa726' } };
+const couleurJauge = (variante, j) => JAUGES_DESIGN[variante.endsWith('-dark') ? 'sombre' : 'clair'][j];
+const PISTE_CLAIRE = '#f5f5f5';
+// Couleurs d'avant le ticket : Bootstrap 3 (ordinateur), Bootstrap 4 (mobile).
+const ANCIENNES_JAUGES = ['#5cb85c', '#f0ad4e', '#28a745', '#007bff', '#ffc107'];
+const ancienneJauge = c => { const a = lire(c); return a[3] > 0 && ANCIENNES_JAUGES.find(h => { const b = hexa(h); return [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1); }); };
+const RELEVER6 = ([jauges, absent]) => {
+  const K = window.__krContraste;
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const texte = c => `rgb(${c.map(Math.round).join(', ')})`;
+  // Remplissage sur sa piste : couleur, image, piste effective, contraste du remplissage composé sur la piste, visible (centre non couvert).
+  const releve = (fill, piste) => {
+    if (!fill || !piste) { return null; }
+    const s = getComputedStyle(fill);
+    const p = K.fond(piste);
+    const f = K.rgb(s.backgroundColor);
+    const compose = [0, 1, 2].map(i => f[i] * f[3] + p[i] * (1 - f[3]));
+    const r = fill.getBoundingClientRect();
+    const haut = r.width > 0 && r.height > 0 ? document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) : null;
+    return { fond: s.backgroundColor, image: s.backgroundImage, piste: texte(p), contraste: K.rapport(compose, p), visible: !!haut && (haut === fill || fill.contains(haut)) };
+  };
+  const progres = [...document.querySelectorAll('.progress')];
+  return {
+    mobile: document.body.classList.contains('mobile-mode'),
+    jetons: Object.fromEntries(jauges.map(j => [j, sonde(`var(--kr-gauge-${j}, ${absent})`)])),
+    eleve: sonde('var(--kr-bg-elevated)'),
+    compact: Object.fromEntries(jauges.map(j => { const f = document.querySelector(`.mobile-gauge-compact-fill.${j}`); return [j, releve(f, f && f.closest('.mobile-gauge-compact-bar'))]; })),
+    complet: Object.fromEntries(jauges.map(j => { const f = document.querySelector(`.mobile-gauge-full-fill.${j}`); return [j, releve(f, f && f.closest('.mobile-gauge-full-bar'))]; })),
+    bureau: Object.fromEntries(jauges.map((j, i) => [j, progres[i] ? releve(progres[i].querySelector('.progress-bar'), progres[i]) : null])),
+    segments: progres.flatMap(p => [...p.querySelectorAll('.progress-bar')].map((b, i) => ({ rang: i, classes: b.className, fond: getComputedStyle(b).backgroundColor, image: getComputedStyle(b).backgroundImage })))
+  };
+};
+async function jaugesScenario(variante, width, fixture = PAGE_JAUGES) {
+  const mobile = width < 768;
+  const { context, page, denied, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: fixture.url, corps: fixture.corps });
+  const r = { posee: await page.evaluate(VARIANTE_POSEE, variante) };
+  r.plie = await page.evaluate(RELEVER6, [JAUGES, ABSENT]);
+  if (mobile) {
+    await page.tap('.mobile-mini-profile-header');
+    await waitState(page, () => {
+      const d = document.querySelector('.mobile-mini-profile-details');
+      return !!d && d.parentElement.classList.contains('expanded') && d.getBoundingClientRect().height > 0 && d.parentElement.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+    }, null, { maxMs: 3000 });
+    await frames(page, 1);
+    r.deplie = await page.evaluate(RELEVER6, [JAUGES, ABSENT]);
+  }
+  if (SHOTS && ['kraland', 'empire-brun', 'kraland-dark', 'empire-brun-dark'].includes(variante)) {
+    fs.mkdirSync(SHOTS, { recursive: true });
+    await page.screenshot({ path: path.join(SHOTS, `palette-nation-jauges-${width}-${variante}.png`) });
+  }
+  await context.close();
+  return { ...r, erreurs, denied: denied.filter(d => d.url.startsWith(BASE)).map(d => d.url) };
+}
+// Écarts d'un remplissage : couleur de DESIGN.md, sans image, visible, ≥ 3:1 sur sa piste, piste #f5f5f5 en clair et bg-elevated en sombre.
+const ecartsJauge = (variante, quoi, j, m, eleve) => {
+  if (!m) { return [`${quoi} ${j} : absent`]; }
+  const faux = [];
+  const piste = variante.endsWith('-dark') ? eleve : PISTE_CLAIRE;
+  if (!egal(m.fond, couleurJauge(variante, j))) { faux.push(`${quoi} ${j} : ${m.fond} au lieu de ${couleurJauge(variante, j)}`); }
+  if (m.image !== 'none') { faux.push(`${quoi} ${j} : image ${m.image}`); }
+  if (!m.visible) { faux.push(`${quoi} ${j} : couvert ou invisible`); }
+  if (!(piste.startsWith('#') ? egal(m.piste, piste) : proche(m.piste, piste))) { faux.push(`${quoi} ${j} : piste ${m.piste} au lieu de ${piste}`); }
+  if (!(m.contraste >= 3)) { faux.push(`${quoi} ${j} : ${m.contraste.toFixed(2)}:1 sur sa piste ${m.piste}`); }
+  return faux;
+};
+const ecartsJetonsJauges = (variante, m) => JAUGES.filter(j => !egal(m.jetons[j], couleurJauge(variante, j))).map(j => `--kr-gauge-${j} ${vu(m.jetons[j])} au lieu de ${couleurJauge(variante, j)}`);
+function verifierJauges(tag, variante, r, mobile) {
+  const mode = variante.endsWith('-dark') ? 'sombre' : 'clair';
+  check(`${tag} ${variante} : variante posée, ${mobile ? 'mode mobile' : 'mode ordinateur'}, aucune exception, aucune requête vers le site hors fixture (jauges)`, () => {
+    assert.ok(r.posee, 'variante non posée');
+    assert.equal(r.plie.mobile, mobile, 'mode mobile');
+    assert.deepEqual(r.erreurs, [], 'exceptions : ' + r.erreurs.join(' | '));
+    assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
+  });
+  check(`${tag} ${variante} : jetons --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp égaux à DESIGN.md (${mode})`, () => sansEcart(ecartsJetonsJauges(variante, r.plie)));
+  if (mobile) {
+    check(`${tag} ${variante} : profil mobile plié et déplié, jauges compactes (et complètes, déplié) PV, PM, PP aux couleurs de DESIGN.md (${mode}), visibles, ≥ 3:1 sur leur piste (${mode === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
+      assert.ok(r.deplie, 'profil mobile non déplié');
+      sansEcart(JAUGES.flatMap(j => [...ecartsJauge(variante, 'plié, compacte', j, r.plie.compact[j], r.plie.eleve),
+        ...ecartsJauge(variante, 'déplié, compacte', j, r.deplie.compact[j], r.deplie.eleve), ...ecartsJauge(variante, 'déplié, complète', j, r.deplie.complet[j], r.deplie.eleve)]));
+    });
+  } else {
+    check(`${tag} ${variante} : barres PV, PM, PP du panneau aux couleurs du mobile (DESIGN.md, ${mode}), visibles, ≥ 3:1 sur leur piste (${mode === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
+      sansEcart(JAUGES.flatMap(j => ecartsJauge(variante, 'panneau', j, r.plie.bureau[j], r.plie.eleve)));
+    });
+    check(`${tag} ${variante} : aucun segment des barres du panneau en ${ANCIENNES_JAUGES.join(', ')} ni en couleur d'état de Bootstrap ; reste transparent`, () => {
+      assert.equal(r.plie.segments.length, 6, `${r.plie.segments.length} segments`);
+      sansEcart(r.plie.segments.filter(s => ancienneJauge(s.fond) || commeBootstrap(s.fond) || /rgb/.test(s.image) || (s.rang > 0 && lire(s.fond)[3] > 0))
+        .map(s => `${s.classes} (segment ${s.rang + 1}) : ${s.fond} ${s.image}`));
+    });
+  }
+}
+for (const [frag, width] of [['jauges-mobile', 375], ['jauges-bureau', 1280]]) {
+  if (!on(frag)) { continue; }
+  const tag = `[${width}]`;
+  console.log(`Jauges ${width} px, 16 variantes : jetons, ${width < 768 ? 'profil mobile plié et déplié' : 'barres du panneau du plateau'}, contraste sur la piste`);
+  const res = await parVariante(variante => jaugesScenario(variante, width));
+  VARIANTES.forEach((v, i) => verifierJauges(tag, v, res[i], width < 768));
+  if (width >= 768) {
+    console.log(`Jauges ${width} px, 16 variantes, valeur de PV en .progress-bar-danger et de PM en .progress-bar-warning`);
+    const classes = await parVariante(variante => jaugesScenario(variante, width, PAGE_JAUGES_CLASSES));
+    VARIANTES.forEach((v, i) => verifierJauges(`${tag} [classes]`, v, classes[i], false));
+  }
+}
+if (on('jauges-largeurs')) {
+  console.log(`Jauges, largeurs ${LARGEURS.join(', ')} px contre 375 et 1280 px : ${VARIANTES_LARGEURS.join(' et ')}`);
+  const cas = VARIANTES_LARGEURS.flatMap(variante => [375, 1280, ...LARGEURS].map(width => ({ variante, width })));
+  const res = await mapLimit(cas, c => jaugesScenario(c.variante, c.width));
+  const couleurs = (m, mobile) => JSON.stringify(mobile
+    ? JAUGES.map(j => [m.plie.compact[j] && m.plie.compact[j].fond, m.deplie.compact[j] && m.deplie.compact[j].fond, m.deplie.complet[j] && m.deplie.complet[j].fond])
+    : JAUGES.map(j => m.plie.bureau[j] && m.plie.bureau[j].fond));
+  for (const variante of VARIANTES_LARGEURS) {
+    const de = width => res[cas.findIndex(c => c.variante === variante && c.width === width)];
+    for (const width of LARGEURS) {
+      const mobile = width < 768;
+      const ref = mobile ? 375 : 1280;
+      check(`[largeurs] ${variante} ${width} px (${mobile ? 'mobile' : 'ordinateur'}) : jetons des jauges de DESIGN.md, jauges aux mêmes couleurs qu'à ${ref} px, aucune exception`, () => {
+        const m = de(width);
+        assert.equal(m.plie.mobile, mobile, 'mode mobile');
+        assert.deepEqual(m.erreurs, [], 'exceptions : ' + m.erreurs.join(' | '));
+        sansEcart(ecartsJetonsJauges(variante, m.plie));
+        if (mobile) { assert.ok(m.deplie, 'profil mobile non déplié'); }
+        assert.equal(couleurs(m, mobile), couleurs(de(ref), mobile));
+        sansEcart(JAUGES.flatMap(j => (mobile ? [['plié, compacte', m.plie.compact[j]], ['déplié, complète', m.deplie.complet[j]]] : [['panneau', m.plie.bureau[j]]])
+          .flatMap(([quoi, x]) => ecartsJauge(variante, quoi, j, x, m.plie.eleve))));
+      });
+    }
   }
 }
 

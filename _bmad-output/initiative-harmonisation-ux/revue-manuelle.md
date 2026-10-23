@@ -91,12 +91,16 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 - Plan du ticket 6.1 approuvé en autonomie (checkpoint 1).
 - Clore l'épopée 1 (`bmad-ticket`) : verdict de rétrospective « accepted-with-open-items ». Option retenue : laissée ouverte jusqu'à ta confirmation.
 - Règle commune aux deux supports en liste combinée `@media (max-width: 767px), (min-width: 768px)` (note P1). Option retenue : oui.
+- Ticket 3.6, jauges du panneau sur ordinateur : chaque barre a deux segments, la valeur (`.progress-bar-success`) et le reste (`.progress-bar-warning`, largeurs complémentaires dans le relevé). La valeur prend la couleur de la jauge ; le reste devient transparent et laisse voir la piste, comme sur mobile. Le « #f0ad4e de PP » de DESIGN.md était ce reste (PP à 0 dans le relevé). Option retenue : reste fondu dans la piste ; alternative : reste dans une teinte claire de la couleur de la jauge. La valeur est le 1er segment, quelle que soit sa classe (danger ou warning compris) ; les segments suivants sont transparents.
+- Ticket 3.6, piste des jauges sur mobile : la piste (`#f5f5f5` en clair, bg-elevated en sombre) posée sur bg-surface s'en distingue à peine (≈ 1,09:1) ; la partie vide de la jauge se voit mal. Point de validation visuelle pour toi. Option : un filet de 1 px en border-tint autour de la piste.
 
 ## Hors autonomie
 
 - Push et PR de `feature/next` : aucun push fait.
 
 ## Visites du site réel faites en autonomie (lecture seule)
+
+- 2026-10-23 : `/jouer/plateau` à 1280 px (Chrome dédié, CDP 9223), squelette du DOM des jauges du panneau seulement (classes, largeurs en ligne), relevé hors dépôt ; aucun clic, aucune action de jeu, variante non modifiée.
 
 - 2026-10-23 : captures de validation du ticket 2.5 (modale Dormir, 4 ouvertures annulées), variante restaurée.
 
