@@ -17,7 +17,7 @@ id = 3
 slug = "epic-palette-nation"
 title = "Couleurs de nation et contrastes"
 covers = ["CAP-4"]
-after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }]
+after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 2, needs = "outil des 16 variantes et fixture de la modale d'ordre (ticket 2.3)" }]
 
 [[epic]]
 id = 4

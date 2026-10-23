@@ -1,0 +1,96 @@
+# tickets.toml — epic-palette-nation, dans l'ordre de construction.
+# Balle traçante : entrée 1. Entrées chaînées : elles partagent la suite palette-nation.mjs (créée par l'entrée 1) et les blocs de variables du thème.
+# Commun : valeurs de DESIGN.md › Colors (Rôles, Dériver une variante, Teintes du mode clair, Palette d'états, Jauges, Valeurs par variante) ;
+# les valeurs marquées [ASSUMPTION] dans DESIGN.md (formules H5.2, états et jauges Q3, info en sombre Q4, anneau ≥ 3:1) sont reprises telles quelles,
+# décision prise en autonomie et soumise à Arnaud (revue-manuelle.md) ; contrastes vérifiés dans les 16 variantes avec tests/e2e/lib/variantes.mjs
+# (créé par le ticket 2.3) ; P1 option 4 ; vérifié à 375×667, 767, 768, 769, 1280, 1440, 1920 px ; pages de référence = zones du lot 3 (report,
+# plateau, forum, croix), sur fixtures existantes ou créées par l'entrée qui en a besoin (aucune fixture d'accueil, d'Événements, de Contacts ni
+# d'Interface n'existe).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Jetons de rôle des 16 variantes et liens en couleur d'accent"
+description = "Balle traçante : jetons de rôle de DESIGN.md définis pour les 16 variantes (text-accent, text-nation, header-tint, border-tint, action-bg/ink et leurs survols, dont le seul --kr-arm-ink-hover de Paladium clair que le ticket 2.6 reprendra, nuances dérivées du clair selon H5.2, info-bg/border, btn-shadow) ; les liens les consomment : couleur d'accent, conservée au survol, soulignés au survol (R7). Crée la suite palette-nation et sa zone dans le routeur. Fournisseur de l'épopée 4."
+verify = "Suite palette-nation : valeurs calculées des jetons égales aux tableaux de DESIGN.md dans les 16 variantes ; liens en text-accent ≥ 4,5:1 sur leur fond, soulignés au survol, sans bascule en primaire ; consommateurs des jetons redéfinis (--kr-primary-dark, --kr-alert-info-*, --kr-btn-shadow) vérifiés."
+covers = ["CAP-4"]
+after = ["1.7", "2.3"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 2
+type = "story"
+title = "Boutons primaires et texte posé sur la couleur de nation"
+description = "Tout bouton primaire (button, a, label, span, input) prend action-bg / action-ink dans les 16 variantes, fin du bleu Bootstrap en clair (H5.1) ; tout texte posé sur la couleur de nation passe par la paire arm, au repos et au survol (Q1), dont : titre actif des listes latérales, bandeau bg-primary de /report, page active de la pagination, onglets et menus actifs, dossiers du kramail (remplacés plus tard par H13.1), bouton « Jouer » de l'accueil, .label et .badge, .bg-info, en-têtes du tableau de bord, liens #flap, croix mobile, « tout voir » du changelog, « + » du sous-forum mobile. L'onglet actif de la modale reste au ticket 2.6."
+verify = "Suite palette-nation : aucun #337ab7 / #286090 calculé sur un bouton primaire en clair ; balayage des pages de référence : tout fond calculé égal à la primaire porte un texte ≥ 4,5:1, au repos et au survol, dans les 16 variantes."
+covers = ["CAP-4"]
+after = [1]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Texte coloré lisible ; plus de rouge Kraland ni de bleu Bootstrap résiduels"
+description = "Les textes en --kr-primary ou --kr-primary-dark (47 déclarations, plus la coche du sélecteur du template) passent à text-accent ; en sombre la primaire ne sert qu'aux fonds et filets (H5.6) ; en clair tout texte coloré atteint 4,5:1 avec la nuance de la nation (Q2) ; les couleurs de nation .f4 à .f8 en sombre sont éclaircies jusqu'à 4,5:1 ; les valeurs en dur rgba(139,15,14,…) et #2196F3 sont remplacées par les jetons."
+verify = "Suite palette-nation : aucune couleur de texte calculée égale à la primaire ou à la primaire foncée en sombre ; texte coloré ≥ 4,5:1 dans les 16 variantes ; aucune valeur rgba(139,15,14,…) ni #2196F3 calculée dans les 15 variantes hors Kraland."
+covers = ["CAP-4"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Mode clair thémé comme le sombre ; bouton standard"
+description = "En clair, en-têtes de panneau, en-têtes de tableau, bouton standard et onglets prennent les composants thémés du sombre au lieu du rendu Bootstrap : fonds header-tint (primaire à 8 %), bordures border-tint (18 %) (H5.3), avec les propriétés non chromatiques du sombre (ex. hr) ; le bouton standard prend bordure border-tint et texte text-nation dans les deux modes, fond bg-surface en sombre (DESIGN › Bouton standard) ; text-secondary foncé à #636a77 en clair (Q26). Le « ? Aide » de la modale suit (passation avec le ticket 2.3, contrôle de modale-ordre.mjs mis à jour)."
+verify = "Suite palette-nation : en clair, plus de #f5f5f5 / #ddd Bootstrap sur ces composants ; valeurs égales aux jetons ; textes ≥ 4,5:1 dans les 16 variantes ; modale-ordre vert."
+covers = ["CAP-4"]
+after = [3]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Palette d'états réservée aux états et une seule couleur « non lu »"
+description = "Jetons d'état (succès, avertissement, danger : un ton par mode ; info : teinte de la nation, Q4) ; fonds et bordures des alertes à 12 % et 35 % (maquette, Q3) ; réservés aux états (votes, avertissements, blocages, informations) ; les boutons d'action ordinaires (« Voir l'historique », « Pas un contact », boutons de Contacts) passent au style standard ou primaire (H5.5) ; tout « non lu / nouveau » prend status-unread, le rouge danger étant réservé aux blocages (R3, déjà en place sur le sous-forum et /report ; « PNJ » et badge du kramail : épopée 5 ; cloche et enveloppe : épopée 5)."
+verify = "Suite palette-nation : couleurs d'état égales aux jetons, textes ≥ 4,5:1 dans les 16 variantes ; aucun bouton d'action ordinaire en couleur d'état ; pastilles et filets non lus en status-unread."
+covers = ["CAP-4"]
+after = [4]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Jauges : une couleur par jauge, identique sur ordinateur et mobile"
+description = "Jetons de jauge et rendu : PV vert, PM bleu, PP orange, un ton pour le clair et un pour le sombre, sur ordinateur et mobile (H5.4 ; barres de PV des cartes : épopée 5, Q30)."
+verify = "Suite palette-nation : couleurs des jauges égales aux jetons sur ordinateur et mobile, remplissage ≥ 3:1 sur son fond dans les 16 variantes."
+covers = ["CAP-4"]
+after = [5]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 7
+type = "story"
+title = "Une seule forme de focus clavier"
+description = "Un seul anneau de focus clavier (:focus-visible) partout : 2 px en text-accent, décalé de 2 px, à la place des 8 formes du CSS, des outline: none !important et de l'anneau bleu du navigateur, règles :focus propres à la modale d'ordre comprises (H5.7 ; fonds et halo de l'onglet actif : ticket 2.6). Fournisseur de l'épopée 4."
+verify = "Suite palette-nation : au clavier, sur les éléments focalisables des pages de référence et de la modale d'ordre, outline 2 px text-accent, décalage 2 px, aucun halo bleu, ≥ 3:1 dans les 16 variantes."
+covers = ["CAP-4"]
+after = [6]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router conforme, npm run test:all vert après le nettoyage."
+covers = ["CAP-4"]
+after = [1, 2, 3, 4, 5, 6, 7]
+hitl = false
+risk = "low"
