@@ -1953,7 +1953,7 @@ a.carousel-control.right{
   .bootbox-confirm .kraland-modal-header select optgroup {
     font-weight: 700 !important;
     font-size: 14px !important;
-    color: #428bca !important;
+    color: var(--kr-text-accent) !important;
     padding: 8px 0 !important;
   }
   
@@ -2019,12 +2019,6 @@ a.carousel-control.right{
   border-radius: var(--mobile-radius);
   font-weight: 500;
 }
-
-.bootbox-confirm .modal-footer > div {
-  display: flex;
-  gap: var(--mobile-spacing-md);
-  justify-content: flex-end;
-}
 } /* Fin @media (max-width: 767px) pour BOOTBOX ORDER MODAL */
 
 /* ============================================================================
@@ -2066,11 +2060,10 @@ a.carousel-control.right{
 /* ============================================================================
    9f. MODALE D'ORDRE - PASTILLES COÛT, DURÉE, POTENTIEL (ORDINATEUR ET MOBILE)
    Socle commun (kr-order-modal, template : showOrderCosts). Rangée de pastilles (.kr-order-badges) en tête du pied de la modale, juste
-   au-dessus des boutons, hors de la zone qui défile : toujours visible, elle ne recouvre rien (H2.5). Spécificité (0,3,0) : bat la
-   règle mobile .bootbox-confirm .modal-footer > div (alignement à droite). Le pied du panneau d'onglets qui ne contient plus que la
-   ligne native masquée disparaît avec elle (pas de bande vide). Style de l'étiquette de catégorie (Q5) : icône et valeur, 12 px gras,
-   arrondi complet, fond --kr-arm-bg et texte --kr-arm-ink (Q1, ≥ 4,5:1 dans les 16 variantes ; replis : primaire et blanc). Sans
-   nowrap : une valeur trop longue pour la largeur passe à la ligne au lieu de déborder.
+   au-dessus des boutons, hors de la zone qui défile : toujours visible, elle ne recouvre rien (H2.5). Le pied du panneau d'onglets qui
+   ne contient plus que la ligne native masquée disparaît avec elle (pas de bande vide). Style de l'étiquette de catégorie (Q5) : icône
+   et valeur, 12 px gras, arrondi complet, fond --kr-arm-bg et texte --kr-arm-ink (Q1, ≥ 4,5:1 dans les 16 variantes ; replis : primaire
+   et blanc). Sans nowrap : une valeur trop longue pour la largeur passe à la ligne au lieu de déborder.
    ============================================================================ */
 @media (max-width: 767px), (min-width: 768px) {
   .kr-order-modal .modal-footer > .kr-order-badges {

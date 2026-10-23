@@ -40,10 +40,13 @@
 // croix d'une confirmation hors ordre ne change pas (relevé du bundle 061fd4a : Bootstrap sur ordinateur, règle mobile commune sur
 // mobile).
 // Épopée 2, ticket 6, même socle : sous 768 px, « Valider » prend la paire arm (--kr-arm-bg / --kr-arm-ink, survol --kr-arm-bg-hover /
-// --kr-arm-ink-hover), sans le dégradé ni le halo verts de l'ancien kr-btn-primary-enhanced, pleine largeur sous « Annuler », dans le
+// --kr-arm-ink-hover), sans dégradé ni halo vert, pleine largeur sous « Annuler », dans le
 // flux ; au-delà, son rendu ne change pas. L'onglet actif suit un seul modèle aux deux supports : aucun bleu de Bootstrap, fond et texte du
 // thème (--kr-bg-surface, --kr-text-primary), libellé coloré (span.text-danger de Pouvoir) compris, ≥ 4,5:1 dans les 16 variantes ; à
 // 375, 767, 768, 769, 1280 px et en transition 769 / 767 dans le même onglet.
+// Épopée 2, ticket 7, sur mobile (375 et 767 px, 16 variantes à 375) : les groupes PJ / PNJ que la chaîne mobile pose dans le sélecteur de
+// personnage (optgroup, groupSelectOptions) ont leur libellé en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1. Ordre : Dormir avec le
+// sélecteur de la fixture selecteur.html inséré avant le titre de l'ordre.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -72,6 +75,7 @@ const lire = f => fs.readFileSync(path.join(FIXTURES, f), 'utf8').replace(/^<!--
 const PLATEAU = lire('plateau.html');
 const DORMIR = lire('dormir.html');
 const POUVOIR = lire('pouvoir.html');
+const SELECTEUR = lire('selecteur.html');
 const SHOTS = process.env.KR_SHOTS || '';
 const BASE = 'http://www.kraland.org';
 const PAGE = BASE + '/jouer/plateau';
@@ -93,6 +97,9 @@ const enOrdre = html => `<div id="ajax-order">${html}</div>`;
 const SANS_ALERTE = DORMIR.replace(/\s*<div class="alert alert-warning[^>]*>[\s\S]*?<\/div>/, '');
 if (SANS_ALERTE === DORMIR || /alert-(warning|danger)/.test(SANS_ALERTE)) { throw new Error('fixture Dormir : avertissement introuvable'); }
 // Formulaire sans onglet actif (structure inconnue) : Dormir sans .tab-content ni .tab-pane, le contenu de l'onglet reste dans le panneau.
+// Ordre avec sélecteur de personnage (ticket 7) : Dormir, sélecteur inséré avant le titre de l'ordre (h3 du formulaire).
+const AVEC_SELECTEUR = DORMIR.replace('<h3>', SELECTEUR.trim() + '\n  <h3>');
+if (AVEC_SELECTEUR === DORMIR) { throw new Error('fixture Dormir : titre introuvable'); }
 const SANS_ONGLET = DORMIR.replace('<div class="tab-content">', '<div>').replace('<div class="tab-pane active">', '<div>');
 if (/tab-(content|pane)/.test(SANS_ONGLET)) { throw new Error('fixture Dormir : onglet introuvable'); }
 // Ordre sans ligne de coût (ticket 2.4) : Dormir sans avertissement ni pied de panneau (aucun .panel-footer p.mini).
@@ -509,11 +516,14 @@ const TEINTES = () => {
 // mesurés depuis le bord droit et le haut de .modal-content ; place native (premier enfant du corps, flottante à droite, marge en ligne
 // de Bootbox intacte) ; styles relevés ; couleur du texte du thème (--kr-text-primary) ; opacité effective (produit des opacités de ses
 // ancêtres) ; contraste de la croix sur le fond de la modale (outil des variantes, qui ignore l'opacité) ; centre : elementFromPoint en
-// son centre touche la croix.
-const CROIX = () => {
+// son centre touche la croix. Mesure une fois finies les transitions de la croix et de ses ancêtres (fondu .fade de la modale compris).
+const CROIX = async () => {
   const m = window.__modale;
   const x = m.querySelector('.bootbox-close-button');
   if (!x) { return null; }
+  const chaine = [];
+  for (let e = x; e; e = e.parentElement) { chaine.push(e); }
+  await Promise.all(chaine.flatMap(e => e.getAnimations()).map(a => a.finished.catch(() => {})));
   const s = getComputedStyle(x);
   const r = x.getBoundingClientRect();
   const c = m.querySelector('.modal-content').getBoundingClientRect();
@@ -549,13 +559,13 @@ const CROIX = () => {
 // « Valider » (ticket 6, section 9h), modale telle qu'elle est : fond, texte, image de fond (dégradé) et ombre ; contraste du texte ;
 // paires attendues lues sur une sonde (repos --kr-arm-bg / --kr-arm-ink, survol --kr-arm-bg-hover / --kr-arm-ink-hover, replis du
 // thème) ; largeur de « Valider », d'« Annuler » et de la boîte de contenu du pied (clientWidth moins le rembourrage) ; place par rapport à
-// « Annuler » (dessous ou à droite sur la même ligne) ; position (dans le flux) ; focus (Bootbox le donne à « Valider » à l'ouverture) ;
-// classe kr-btn-primary-enhanced posée par la chaîne mobile. Mesure une fois les transitions du bouton finies (focus de l'ouverture).
+// « Annuler » (dessous ou à droite sur la même ligne) ; position (dans le flux) ; focus (Bootbox le donne à « Valider » à l'ouverture).
+// Mesure une fois les transitions du bouton finies (focus de l'ouverture).
 const VALIDER = async () => {
   const m = window.__modale;
   const v = m.querySelector('.modal-footer [data-bb-handler="confirm"]');
   const a = m.querySelector('.modal-footer [data-bb-handler="cancel"]');
-  await Promise.all(v.getAnimations().map(x => x.finished));
+  await Promise.all(v.getAnimations().map(x => x.finished.catch(() => {})));
   const pied = m.querySelector('.modal-footer');
   const s = getComputedStyle(v);
   const sp = getComputedStyle(pied);
@@ -582,8 +592,7 @@ const VALIDER = async () => {
     dessous: rv.top >= ra.bottom - 0.5,
     aDroite: Math.abs(rv.top - ra.top) < 1 && rv.left >= ra.right - 0.5,
     positions: [s.position, sp.position],
-    focus: v.matches(':focus'),
-    renforce: v.classList.contains('kr-btn-primary-enhanced')
+    focus: v.matches(':focus')
   };
 };
 // Onglet actif (ticket 6, section 9h) : fond, image de fond, ombre et bordures du lien ; pour le lien et chaque descendant qui porte du
@@ -609,7 +618,7 @@ const ONGLET = () => {
     theme
   };
 };
-// Bleu de Bootstrap (#428bca, #3071a9, halo rgba(66, 139, 202, .4)) et vert de l'ancien « Valider » renforcé (#5cb85c, #449d44, halo
+// Bleu de Bootstrap (#428bca, #3071a9, halo rgba(66, 139, 202, .4)) et vert de l'ancien « Valider » (#5cb85c, #449d44, halo
 // rgba(92, 184, 92, .4)), dans une valeur calculée.
 const BLEU = /66, 139, 202|48, 113, 169/;
 const VERT = /92, 184, 92|68, 157, 68/;
@@ -641,6 +650,33 @@ function ongletLisible(o, nom) {
     assert.equal(t.couleur, o.theme.texte, `${nom}, ${t.nom} : couleur ${t.couleur}, texte du thème ${o.theme.texte}`);
     assert.ok(t.contraste >= 4.5, `${nom}, ${t.nom} : ${t.contraste.toFixed(2)}:1`);
   });
+}
+// Groupes du sélecteur de personnage (ticket 7) : libellé, couleur et contraste de chaque optgroup du sélecteur de l'en-tête mobile ; texte
+// d'accent du thème (--kr-text-accent) lu sur une sonde.
+const GROUPES = () => {
+  const groupes = [...window.__modale.querySelectorAll('.kraland-modal-header select optgroup')];
+  const sonde = document.createElement('span');
+  sonde.style.color = 'var(--kr-text-accent)';
+  document.body.appendChild(sonde);
+  const accent = getComputedStyle(sonde).color;
+  sonde.remove();
+  return { accent, groupes: groupes.map(g => ({ libelle: g.label, couleur: getComputedStyle(g).color, contraste: window.__krContraste.texte(g) })) };
+};
+// Groupes attendus (ticket 7) : PJ puis PNJ, libellé en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1.
+function groupesLisibles(g, nom) {
+  assert.deepEqual(g.groupes.map(x => x.libelle), ['Personnages Joueurs', 'Personnages Non-Joueurs'], `${nom}, groupes du sélecteur : ${JSON.stringify(g)}`);
+  g.groupes.forEach(x => {
+    assert.ok(!BLEU.test(x.couleur), `${nom}, ${x.libelle} : bleu ${x.couleur}`);
+    assert.equal(x.couleur, g.accent, `${nom}, ${x.libelle} : couleur ${x.couleur}, texte d'accent ${g.accent}`);
+    assert.ok(x.contraste >= 4.5, `${nom}, ${x.libelle} : ${x.contraste.toFixed(2)}:1`);
+  });
+}
+async function mesurerGroupes(page) {
+  await page.evaluate(OUVRIR, enOrdre(AVEC_SELECTEUR));
+  await attendre(page, true);
+  const g = await page.evaluate(GROUPES);
+  await fermer(page);
+  return g;
 }
 // Écritures du socle d'après le journal : pour chaque élément, valeur de class avant et après chaque écriture (après = avant de la
 // suivante, ou valeur actuelle). Ajout ou retrait du repère, ou écriture neutre (valeur inchangée, repère présent) ; enfants des boutons.
@@ -879,6 +915,7 @@ async function scenario(cfg) {
     await capture(page, `${tag}-defilement-${nom.toLowerCase()}`);
     await fermer(page);
   }
+  if (r.mobileMode) { r.groupes = await mesurerGroupes(page); }
   r.fermetureCroix = await fermerParLaCroix(page, !!cfg.mobile);
   r.envoi = await page.evaluate(() => ({ submits: window.__submits, confirmations: window.__confirmations }));
   r.posts = denied.filter(d => d.method !== 'GET').map(d => d.method + ' ' + d.url);
@@ -993,6 +1030,9 @@ function verifier(r) {
       ongletLisible(r.onglet[nom], nom);
     }
   });
+  if (r.mobileMode) {
+    check(`${tag} (ticket 7) : groupes PJ / PNJ du sélecteur de personnage en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1`, () => groupesLisibles(r.groupes, 'Dormir avec sélecteur'));
+  }
   check(`${tag} Dormir (avertissement avant les onglets) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.dormir, 'Dormir'));
   check(`${tag} Pouvoir (aide puis blocage dans l'onglet, onglet en span.text-danger) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.pouvoir, 'Pouvoir'));
   check(`${tag} contenu de #ajax-order remplacé deux fois (Pouvoir puis Dormir) : marquage refait sur chaque nouveau contenu, sans doublon ; libellés toujours « Annuler » / « Valider »`, () => {
@@ -1242,8 +1282,9 @@ async function teintes(cfg) {
   valider.survol = await page.evaluate(VALIDER);
   await page.mouse.move(0, 0);
   await fermer(page);
+  const groupes = cfg.mobile ? await mesurerGroupes(page) : null;
   await context.close();
-  return { cfg, posee, dormir, pouvoir, croix, valider, onglet, errors };
+  return { cfg, posee, dormir, pouvoir, croix, valider, onglet, groupes, errors };
 }
 function verifierTeintes(t) {
   const tag = `${t.cfg.width} px${t.cfg.mobile ? ' (mobile)' : ''}, ${t.cfg.variante}`;
@@ -1285,6 +1326,9 @@ function verifierTeintes(t) {
     assert.equal(s.image, 'none', `survol : image de fond ${s.image}`);
     assert.ok(s.contraste >= 4.5, `survol : texte de « Valider » ${s.contraste.toFixed(2)}:1`);
   });
+  if (t.groupes) {
+    check(`${tag} (ticket 7) : groupes PJ / PNJ du sélecteur de personnage en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1`, () => groupesLisibles(t.groupes, 'Dormir avec sélecteur'));
+  }
   check(`${tag} : croix de fermeture (ticket 2.5, H2.6) de 44 × 44 px entièrement visibles dans le corps, couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native (Dormir, puis contenu remplacé par Pouvoir)`, () => {
     for (const [nom, c] of Object.entries(t.croix)) { lisible(c, nom); }
   });

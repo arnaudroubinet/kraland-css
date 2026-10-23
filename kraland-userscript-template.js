@@ -9572,7 +9572,7 @@
   }
 
   /**
-   * UX AMÉLIORATION #5: Renforce visuellement le bouton OK
+   * UX AMÉLIORATION #5: Atténue le bouton Annuler
    */
   function enhanceOkButton(modal) {
     if (!modal) {return;}
@@ -9581,18 +9581,13 @@
     const modalFooter = modal.querySelector('.kraland-modal-footer');
     if (!modalFooter) {return;}
 
-    const okButton = modalFooter.querySelector('.btn-primary');
     const cancelButton = modalFooter.querySelector('.btn-default');
-
-    if (okButton) {
-      okButton.classList.add('kr-btn-primary-enhanced');
-    }
 
     if (cancelButton) {
       cancelButton.classList.add('kr-btn-secondary-subtle');
     }
 
-    console.log('[Order Modal] Boutons OK/Cancel améliorés');
+    console.log('[Order Modal] Bouton Cancel atténué');
   }
 
   /**
@@ -9728,7 +9723,7 @@
 
     // #4 (pastilles coût, durée, potentiel) : socle commun aux deux supports, showOrderCosts
 
-    // #5: Bouton OK renforcé
+    // #5: Bouton Annuler atténué (Valider : section 9h du thème)
     enhanceOkButton(modal);
 
     // #6: Select groupé
