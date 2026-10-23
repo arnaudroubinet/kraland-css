@@ -47,7 +47,8 @@ Lot 2. Les règles propres à la modale (`.bootbox-confirm`, en dur et en `!impo
 - Decision: balle traçante = entrée 2 ; P2 reste en entrée 1 et ne bloque que l'entrée 6 (prise en autonomie le 2026-10-22, à confirmer : revue-manuelle.md).
 - Decision: entrées 3 à 6 chaînées (elles partagent la suite modale-ordre, le bloc CSS `.bootbox-confirm` et la chaîne du module) (2026-10-22).
 - Decision: commits sur `feature/next` comme pour le lot 1 ; push et PR soumis à Arnaud (revue-manuelle.md) (2026-10-22).
-- Assumption: Q5 (pastilles) : style des étiquettes de catégorie, icône et valeur, 12 px gras ; Q25.2 : alertes sous le titre de l'ordre (h4) ; Q25.3 : aide repliée aussi sur ordinateur (maquette) ; Q25.4 : croix laissée à sa place native.
+- Assumption: Q5 (pastilles) : style des étiquettes de catégorie, icône et valeur, 12 px gras ; Q25.2 : alertes sous le titre de l'ordre (h3), avant les caractéristiques et les onglets (tickets 2.3 et 2.4) ; Q25.3 : aide repliée aussi sur ordinateur (maquette) ; Q25.4 : croix laissée à sa place native.
 - Assumption: l'outil de vérification des 16 variantes est créé par l'entrée 3 (et non par l'épopée 3).
 - Constat du 2026-10-22 (site réel, lecture seule, modales annulées) : structure native relevée hors dépôt dans `.tmp/captures/modale-ordre/squelettes.txt`.
 - Decision: le repli de l'aide et les pastilles passent aux deux supports aux entrées 3 et 4 (règles corrigées), pas à l'entrée 2, pour ne pas étendre à l'ordinateur le repli de la première alerte (2026-10-22).
+- Decision: P2 clos sur décision d'Arnaud (option B, 2026-10-23) : seul le point E vérifié sur téléphone (Vivaldi Android, kramail) ; B à D supposés du même défaut (barre fixe qui couvre le champ), corrigé par des boutons dans le flux ; le point C reste lié au backlog 6 (modules inactifs au démarrage réel).

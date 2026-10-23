@@ -34,3 +34,4 @@
 - source_plan: `epic-modale-ordre/story-valider-en-couleur-de-nation-sur-mobile-et-onglet-actif-lisi-plan.md`
   summary: Règles mobiles contradictoires des modales Bootbox (`flex: 2 !important` sur `.btn-primary` ~l.7697, `flex: 1 !important` ~l.7034, pied en colonne ~l.1995, onglet actif bg-elevated ~l.7224) restent en place, battues par la section 9h pour la modale d'ordre.
   evidence: Revue quick du ticket 2.6 ; à retirer ou réconcilier au nettoyage de l'épopée 2 (2.7).
+  status: non repris par 2.7 (retrait sans effet hors ordre non démontré) ; reporté à l'épopée 4, qui reprend « Valider » (taille normale) et les boutons des modales (rétro épopée 2, A2, 2026-10-24).
