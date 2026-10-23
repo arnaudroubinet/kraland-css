@@ -50,6 +50,27 @@ check('Notifications /report (kr-page-report) : zone report, fixture et suite ->
   assert.deepEqual(f.units, ['report-non-lu']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
 });
+check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation seule', () => {
+  assert.deepEqual(zonesOf('palette-nation.mjs'), ['palette-nation']);
+  const theme = [
+    ':root {', '  --kr-primary: #8b0f0e;', '  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000);', '  --kr-text-accent: var(--kr-highlight); /* palette-nation */', '}',
+    'html.kr-theme-variant-paladium {', '  --kr-arm-ink: #1e1a15;', '  --kr-arm-ink-hover: #1e1a15;', '}',
+    'html[class*="-dark"] {', '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface));', '}'
+  ].join('\n');
+  for (const [quoi, h] of [
+    [':root', hunkAt(3, '  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000);', '  --kr-text-accent: var(--kr-highlight); /* palette-nation */')],
+    ['Paladium clair', hunkAt(8, '  --kr-arm-ink-hover: #1e1a15;')],
+    ['sombre', hunkAt(11, '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface));')]
+  ]) {
+    const d = route('kraland-theme.css', h, theme);
+    assert.equal(d.widened, true, `${quoi} : ${d.reasons.join(' ; ')}`);
+    assert.ok(d.zones.includes('palette-nation'), quoi);
+  }
+  assert.equal(route('kraland-theme.css', hunk('.x {', '.rien-de-connu { color: var(--kr-text-accent); }')).widened, true);
+  const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/palette-nation.html': [] }), readWith({}));
+  assert.equal(f.widened, false);
+  assert.deepEqual(f.units, ['palette-nation']);
+});
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');

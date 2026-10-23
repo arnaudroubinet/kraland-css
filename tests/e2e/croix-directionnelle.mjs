@@ -398,7 +398,9 @@ if (frag('ordre')) {
 // ---------- M1 : contraste du texte des touches, 16 thèmes × normal/survol/actif ----------
 const VARIANTS = ['kraland', 'empire-brun', 'paladium', 'theocratie-seelienne', 'paradigme-vert', 'khanat-elmerien', 'confederation-libre', 'royaume-ruthvenie',
   'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark', 'paradigme-vert-dark', 'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
-const parseRgb = (s) => { const v = s.match(/[\d.]+/g).map(Number); return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 }; };
+// « rgb(…) », « rgba(…) » ou « color(srgb r g b / a) » : sérialisation de color-mix() (composantes 0..1), celle de --kr-primary-dark et des
+// replis qui l'emploient depuis l'épopée 3 (ticket 1).
+const parseRgb = (s) => { const v = s.match(/[\d.]+/g).map(Number); const k = s.startsWith('color(srgb') ? 255 : 1; return { r: v[0] * k, g: v[1] * k, b: v[2] * k, a: v.length > 3 ? v[3] : 1 }; };
 const luminance = ({ r, g, b }) => { const [R, G, B] = [r, g, b].map(v => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }); return 0.2126 * R + 0.7152 * G + 0.0722 * B; };
 const contrast = (fg, bg) => { const a = luminance(parseRgb(fg)); const b = luminance(parseRgb(bg)); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
 const armColors = (page, dir) => page.evaluate((d) => { const a = document.querySelector(`.kr-arm[data-dir="${d}"]`); const cs = getComputedStyle(a); const r = a.getBoundingClientRect(); return { color: cs.color, bg: cs.backgroundColor, x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, dir);

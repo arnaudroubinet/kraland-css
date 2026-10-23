@@ -17,7 +17,9 @@
 // alerte, « 1 sujet · 1 message »). Hors périmètre : forum-racine.html (l'index synthétique d'avant le ticket, servi à /forum), le sous-forum,
 // forum-sujet.html (page de sujet de messages-v3.mjs) et forum-index-rp.html servi à /forum/staff. Vrai Bootstrap 3.3.7 (tests/e2e/vendor).
 // Confinement réseau ; aucun clic : les cibles sont mesurées par elementFromPoint, après un défilement par window.scrollTo.
-// Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT.
+// Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT. Les jetons
+// redéfinis depuis par l'épopée 3, ticket 1 (lib/variantes.mjs, JETONS_REDEFINIS) y sont posés par-dessus : seul un écart qui vient d'eux est
+// accepté (consigné dans le plan de ce ticket).
 //
 // Usage : npm run build && node tests/e2e/forum-index.mjs   (ou : npm run test:zone -- forum)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_SHOTS=/dossier (captures hors dépôt), KR_VERBOSE=1 (détail des écarts),
@@ -31,6 +33,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
+import { JETONS_REDEFINIS, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -74,13 +77,14 @@ const browser = await launchBrowser();
 
 // Ouvre `url` servie par `html`. `src` : bundle injecté (null : page native, sans userscript) ; `theme` : kr-theme-enabled ; `mobile` :
 // émulation tactile (par défaut sous 768 px).
-async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript }) {
+async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript, jetons = false }) {
   const context = await browser.newContext({ viewport: { width, height: height || (mobile ? 667 : 900) }, isMobile: mobile, hasTouch: mobile });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   await context.route(BASE + url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
+  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -577,10 +581,11 @@ if (on('hors-perimetre')) {
     const pages = [{ nom: 'racine /forum', ...RACINE }, { nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle « avant », ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
+    console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant »');
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
-        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src });
+        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant });
         mesures.push({ e: await page.evaluate(EMPREINTE), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }

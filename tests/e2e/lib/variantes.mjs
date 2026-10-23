@@ -19,6 +19,38 @@ export const VARIANTES = ['kraland', 'empire-brun', 'paladium', 'theocratie-seel
   'confederation-libre', 'royaume-ruthvenie', 'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark',
   'paradigme-vert-dark', 'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
 
+/**
+ * Jetons redéfinis par l'épopée 3, ticket 1 (H5.2 : primaire foncée, accent inverse et alerte info du clair tirées de la nation ; alerte
+ * info du sombre et ombre des boutons dérivées de la primaire) : leurs nouvelles définitions, en !important, à poser par-dessus un bundle
+ * d'avant ce ticket dans une comparaison figée (poserJetonsRedefinis). Seuls les écarts qui viennent de ces jetons sont ainsi acceptés, tout
+ * autre écart reste détecté ; écart consigné dans le plan du ticket (story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent,
+ * Implementation Notes). Les variantes sombres gardent leurs primaire foncée et accent inverse littéraux.
+ */
+export const JETONS_REDEFINIS = [
+  'html:not([class*="-dark"]) {',
+  '  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000) !important;',
+  '  --kr-highlight-reverse: color-mix(in srgb, var(--kr-highlight) 15%, #fff) !important;',
+  '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff) !important;',
+  '  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff) !important;',
+  '}',
+  'html[class*="-dark"] {',
+  '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface)) !important;',
+  '  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 30%, var(--kr-bg-surface)) !important;',
+  '}',
+  'html { --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent) !important; }'
+].join('\n');
+
+/**
+ * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
+ * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
+ * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).
+ */
+export function poserJetonsRedefinis(css) {
+  const feuille = new window.CSSStyleSheet();
+  feuille.replaceSync(css);
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, feuille];
+}
+
 /** Script d'initialisation (context.addInitScript(choisirVariante, variante)) : thème activé et variante choisie avant le bundle. */
 export function choisirVariante(variante) {
   localStorage.setItem('kr-theme-enabled', 'true');

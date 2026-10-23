@@ -3,17 +3,27 @@
    ============================================================================ */
 
 :root {
+  /* Nuances tirées de la nation (H5.2, DESIGN.md › Colors) : primaire foncée = primaire mêlée de 20 % de noir, accent inverse = accent à
+     15 % sur blanc. Formules résolues sur <html>, qui porte la classe de la variante : chaque variante claire, Kraland compris, les tire
+     de sa primaire et de son accent ; les variantes sombres gardent leurs valeurs littérales. */
   --kr-primary: #8b0f0e;
-  --kr-primary-dark: #700b09;
+  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000);
   --kr-gold: #C69100;
   --kr-highlight: #c41e3a;
-  --kr-highlight-reverse: #f9d9de;
+  --kr-highlight-reverse: color-mix(in srgb, var(--kr-highlight) 15%, #fff);
   --kr-surface: #fff;
   --kr-text: #0f1724;
   --kr-muted: #6b7280;
   --kr-navbar-bg: #111315;
   --kr-radius: .5rem;
   --kr-avatar-size: 120px;
+
+  /* Jetons de rôle (DESIGN.md › Colors › Rôles) : texte coloré (liens) en accent, texte de la nation (bouton standard) en primaire,
+     teintes d'en-tête et de bordure à 8 % et 18 % de la primaire sur blanc (H5.3). */
+  --kr-text-accent: var(--kr-highlight);
+  --kr-text-nation: var(--kr-primary);
+  --kr-header-tint: color-mix(in srgb, var(--kr-primary) 8%, #fff);
+  --kr-border-tint: color-mix(in srgb, var(--kr-primary) 18%, #fff);
 
   /* Variables pour le dark mode */
   --kr-bg-page: #f5f5f5;
@@ -35,9 +45,9 @@
   --kr-white: #fff;
   --kr-focus-ring: rgb(164,18,13,0.22);
   --kr-focus-ring-light: rgb(164,18,13,0.18);
-  --kr-alert-info-bg: rgb(164,18,13,0.06);
-  --kr-alert-info-border: rgb(164,18,13,0.14);
-  --kr-btn-shadow: rgb(165,18,13,0.12);
+  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff); /* H5.2 : alerte info (6 % et 14 %) et ombre des boutons (12 %) tirées de la primaire */
+  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff);
+  --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent);
   --kr-badge-danger: #dc3545;
   --kr-badge-danger-border: #bd2130;
   --kr-badge-pnj: #d9534f;
@@ -141,6 +151,7 @@
 html.kr-theme-variant-empire-brun {
   --kr-primary: #5E3B2D;
   --kr-highlight: #C69100;
+  --kr-text-accent: #8a5a00; /* Q2 : texte coloré en brun (5,93:1 sur blanc) ; l'or reste aux fonds et aux filets */
   --kr-level-fg: var(--kr-text); /* PLT-QU : l'accent doré clair demande un texte sombre */
   --kr-status-unread: #8a5a00; /* non lu (forum et notifications) : l'or #C69100 ne fait que 2,82:1 sur blanc, ce brun fait 5,93:1 */
 }
@@ -148,8 +159,10 @@ html.kr-theme-variant-empire-brun {
 html.kr-theme-variant-paladium {
   /* CX2 : texte des touches de la croix >= 4,5:1 (cf. E3) */
   --kr-arm-ink: #1e1a15;
+  --kr-arm-ink-hover: #1e1a15; /* Q1 : sur la primaire foncée #aa8c2c, le repli blanc ne fait que 3,23:1 */
   --kr-primary: #D4AF37; 
   --kr-highlight: #044c17; 
+  --kr-text-nation: var(--kr-highlight); /* Q2 : texte de la nation en vert (10,24:1) ; l'or (2,10:1) reste aux fonds */
 }
 
 html.kr-theme-variant-theocratie-seelienne {
@@ -192,6 +205,15 @@ html[class*="-dark"] {
   --kr-nation-1: #ff8080;
   --kr-nation-3: #ffe066;
   --kr-nation-9: #c4b958;
+
+  /* Jetons de rôle en sombre (DESIGN.md › Colors) : teintes = surface surélevée et bordure du thème, texte de la nation = accent (H5.6),
+     alerte info = primaire mêlée à bg-surface (15 % et 30 %, Q4). La règle html[class*="-dark"] .alert-info garde pour l'instant son
+     fond et sa bordure (ticket 3.5) : ses liens restent en primaire jusqu'au ticket 3.3. */
+  --kr-text-nation: var(--kr-highlight);
+  --kr-header-tint: var(--kr-bg-elevated);
+  --kr-border-tint: var(--kr-border-default);
+  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface));
+  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 30%, var(--kr-bg-surface));
 }
 
 html.kr-theme-variant-kraland-dark {
@@ -748,7 +770,7 @@ html.kr-hide-carousel .carousel {
 
 /* Keep hover for non-active items subtle and themed */
 .list-group-item:hover {
-  color: var(--kr-primary-dark);
+  color: var(--kr-text-accent);
   background-color: rgb(0,0,0,0.02);
 }
 
@@ -1975,9 +1997,11 @@ a.carousel-control.right{
 /*
   Pagination est utilisé dans les rapports
 */
+
+/* Q1 : texte posé sur la primaire foncée = paire de survol d'action (encre de Paladium clair : 5,35:1 sur #aa8c2c) */
 .pagination > li.active > a{
-  color: var(--kr-surface);
-  background-color: var(--kr-primary-dark);
+  color: var(--kr-arm-ink-hover, var(--kr-surface));
+  background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
   border-color: var(--kr-primary-dark);
 }
 
@@ -2003,16 +2027,17 @@ a.carousel-control.right{
   color: var(--kr-surface) !important;
 }
 
+/* Liens (R7) : texte coloré de la nation (--kr-text-accent) au repos comme au survol ; le survol souligne au lieu de changer la couleur */
 a:link,
 a:visited {
-  color: var(--kr-highlight);
+  color: var(--kr-text-accent);
   text-decoration: none;
   transition: color .12s ease, opacity .12s ease;
 }
 
 a:hover,
 a:focus {
-  color: var(--kr-primary-dark);
+  color: var(--kr-text-accent);
   text-decoration: underline;
   outline: none;
 }
@@ -2025,11 +2050,13 @@ a.btn-primary {
   box-shadow: 0 6px 18px var(--kr-btn-shadow);
 }
 
+/* Q1 : paire de survol d'action ; repli du texte = le blanc que posait jusqu'ici .btn-primary:hover de Bootstrap */
 button.btn-primary:hover,
 button.btn-primary:focus,
 a.btn-primary:hover,
 a.btn-primary:focus {
-  background-color: var(--kr-primary-dark);
+  background-color: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+  color: var(--kr-arm-ink-hover, var(--kr-white));
 }
 
 /* ============================================================================
@@ -3166,14 +3193,17 @@ html[class*="-dark"] .carousel-indicators .active {
 }
 
 /* === LIENS === */
+
+/* R7 : accent de la nation au repos comme au survol (la primaire en texte tombait à 2,56:1 en Empire Brun) ; soulignés au survol par la
+   règle commune */
 html[class*="-dark"] a:link,
 html[class*="-dark"] a:visited {
-  color: var(--kr-highlight);
+  color: var(--kr-text-accent);
 }
 
 html[class*="-dark"] a:hover,
 html[class*="-dark"] a:focus {
-  color: var(--kr-primary);
+  color: var(--kr-text-accent);
 }
 
 /* === BOUTONS DE NAVIGATION PREV/NEXT === */
@@ -4526,8 +4556,10 @@ body > map {
   font-size: 20px;
 }
 
+/* Q1 : paire de survol d'action (Paladium sombre : 8,23:1 au lieu de 2,10:1) */
 .kr-mobile-close:hover {
-  background: var(--kr-primary-dark);
+  background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+  color: var(--kr-arm-ink-hover, white);
 }
 
 /* Bouton pour ouvrir le panneau de compétences sur mobile */
@@ -11586,9 +11618,11 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   border-color: var(--kr-primary) !important;
 }
 
+/* Q1 : paire de survol d'action (Paladium sombre : 8,23:1 au lieu de 2,10:1) */
 .kr-changelog-view-all:hover {
-  background: var(--kr-primary-dark) !important;
+  background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
   border-color: var(--kr-primary-dark) !important;
+  color: var(--kr-arm-ink-hover, white) !important;
 }
 
 .kr-changelog-close-btn:hover {

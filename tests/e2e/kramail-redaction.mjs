@@ -26,12 +26,15 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
+import { JETONS_REDEFINIS, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-// Bundle « avant » : celui de la base (feature/next) tel que commité, sauf KR_SCRIPT_AVANT.
+// Bundle « avant » : celui de la base (feature/next) tel que commité, sauf KR_SCRIPT_AVANT. Non-régression (regression) : sur une base
+// antérieure à l'épopée 3, ticket 1, les jetons que ce ticket redéfinit (lib/variantes.mjs, JETONS_REDEFINIS) sont posés par-dessus : seul
+// un écart qui vient d'eux est accepté (consigné dans le plan de ce ticket).
 function bundleAvant() {
   if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
   for (const ref of ['origin/feature/next', 'feature/next']) {
@@ -209,6 +212,10 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
   return { context, page: p, state, errors };
 }
 const AVANT = bundleAvant();
+// Jetons redéfinis par l'épopée 3, ticket 1, en feuille adoptée (lib/variantes.mjs) : code d'initialisation du bundle « avant » (regression),
+// seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
+// ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
+const JETONS_AVANT = AVANT && !AVANT.includes('--kr-text-accent:') ? `(${poserJetonsRedefinis})(${JSON.stringify(JETONS_REDEFINIS)});` : null;
 
 // ---------- sondes ----------
 const TOOLS = [
@@ -1219,6 +1226,7 @@ if (frag('indicatif')) {
 // =====================================================================================================
 if (frag('regression')) {
   console.log('Non-régression : réception, envoi, corbeille, lecture rendues avec le bundle d\'avant et celui d\'après (1280 / 375 / 320)');
+  if (JETONS_AVANT) { console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant », antérieur au ticket'); }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1229,7 +1237,9 @@ if (frag('regression')) {
       const shots = {};
       const doms = {};
       for (const bundle of ['avant', 'apres']) {
-        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
+        // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
+        // début du document.
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init: bundle === 'avant' ? JETONS_AVANT : null });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
           // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page

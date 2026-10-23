@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture palette de nation (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la suite palette-nation (épopée 3, ticket 1) : aucune donnée réelle. Page des Règles (/regles/avancees),
+       structure reprise de regles-recherche.html. Colonne gauche : liste latérale (titre actif, deux liens, une entrée sans lien).
+       Colonne droite : texte et lien posés sur le fond de page, puis un panneau avec texte et lien, une alerte info, un button.btn-primary et
+       un a.btn-primary, une pagination à page active (comme celle des rapports), puis la croix d'un panneau mobile (button.kr-mobile-close,
+       créé par le template dans le panneau de compétences et le mini-chat) et le bouton « tout voir » du changelog
+       (button.kr-changelog-view-all). Les identifiants sont des repères de la suite ; rien n'est cliqué ni envoyé. -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/regles">Règles</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/kramail">Kramail</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Règles</span>
+          <a class="list-group-item" href="regles/base">Règles de base</a>
+          <a class="list-group-item" href="regles/avancees">Règles avancées</a>
+          <div id="entree-liste" class="list-group-item">Entrée de liste sans lien</div>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <p id="texte-page">Texte d'essai posé sur le fond de page, avec <a id="lien-page" href="regles/base">un lien d'essai</a>.</p>
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">Règles avancées</h3></div>
+          <div class="panel-body">
+            <p id="texte-panneau">Texte d'essai dans un panneau, avec <a id="lien-panneau" href="regles/base">un autre lien d'essai</a>.</p>
+            <div id="alerte-info" class="alert alert-info">Alerte d'information d'essai.</div>
+            <button id="bouton-primaire" type="button" class="btn btn-primary">Bouton d'essai</button>
+            <a id="lien-bouton-primaire" class="btn btn-primary" href="regles/base">Lien bouton d'essai</a>
+            <ul class="pagination">
+              <li><a href="regles/avancees?p=1">1</a></li>
+              <li class="active"><a id="page-active" href="regles/avancees?p=2">2</a></li>
+              <li><a href="regles/avancees?p=3">3</a></li>
+            </ul>
+          </div>
+        </div>
+        <div id="panneau-mobile" class="panel panel-default" style="position: relative; min-height: 60px;">
+          <button id="croix-mobile" class="kr-mobile-close" type="button" aria-label="Fermer">×</button>
+        </div>
+        <button id="tout-voir" class="kr-changelog-view-all" type="button">Voir tous les changements</button>
+      </div>
+    </div>
+  </div>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

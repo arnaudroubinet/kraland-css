@@ -8,3 +8,15 @@
 
 - Sous-chemins `/jouer/bat/<id>` et `/jouer/materiel/<x>` : infirmé, aucune page réelle n'y mène (point clos).
 - Rédaction kramail sans `textarea#dest[name="c[3]"]` : toujours ouvert, non vérifiable sans marquer un message comme lu (boîte d'envoi vide, un seul message reçu non lu).
+
+## Deferred from: revue du ticket 3.1, jetons de rôle (2026-10-23)
+
+- source_plan: `epic-palette-nation/story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent-plan.md`
+  summary: Les entrées-liens des listes latérales (`a.list-group-item`) prennent au survol le `#555` de Bootstrap, sans soulignement ; décider si ces entrées de navigation suivent R7 (accent et soulignement au survol).
+  evidence: `a.list-group-item:hover` de Bootstrap 3.3.7 (spécificité 0,2,1) l'emporte sur `a:hover` (0,1,1) et `.list-group-item:hover` (0,2,0), avant comme après le ticket 3.1 ; en sombre, la couleur d'accent tient (`html[class*="-dark"] a:hover`), le soulignement non. Question de produit, listée dans `revue-manuelle.md`.
+- source_plan: `epic-palette-nation/story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent-plan.md`
+  summary: Alerte info en sombre : faire consommer `--kr-alert-info-bg` et `--kr-alert-info-border` par `html[class*="-dark"] .alert-info` (fond et bordure encore en dur, `rgb(122, 82, 64)`), en même temps que la couleur des liens d'alerte (ticket 3.3) et Q4 (ticket 3.5).
+  evidence: Avec les liens d'alerte en primaire, la teinte de la nation les met sous 4,5:1 en Théocratie Seelienne (4,35), Paradigme Vert (4,33) et Royaume de Ruthvénie (4,31) sombres ; en `text-accent`, Paladium sombre tombe à 3,80:1 (Q4). Calcul de la revue du ticket 3.1.
+- source_plan: `epic-palette-nation/story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent-plan.md`
+  summary: En sombre, l'aide de la modale d'ordre (`.bootbox-confirm .alert-order`) et la ligne d'action cochée du mobile (`.panel-actions .row.form-group:has(input:checked)`) consomment déjà `--kr-alert-info-bg`, qui passe du rouge Kraland à 6 % à la teinte opaque de la nation ; un lien dans l'aide, en primaire (`html[class*="-dark"] .alert a`), tomberait sous 4,5:1 en Théocratie Seelienne (4,35), Paradigme Vert (4,33) et Royaume de Ruthvénie (4,31) sombres.
+  evidence: Non vérifié (maybe-false, medium si vrai) : les aides relevées sur le site (Dormir, Pouvoir) n'ont aucun lien. À trancher en relevant, en lecture seule, l'aide d'autres ordres ; à traiter avec la couleur des liens d'alerte (ticket 3.3). Le texte de la ligne cochée reste ≥ 6,27:1.
