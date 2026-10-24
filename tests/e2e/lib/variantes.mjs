@@ -283,6 +283,24 @@ export const ESPACEMENT_TICKET49 = [
   '  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-body { padding: 8px 16px 8px !important; }',
   '}'
 ].join('\n');
+/**
+ * Écart accepté et consigné (épopée 4, ticket 10, story-refactor-sweep) : médias de l'éditeur du kramail et du changelog ramenés au seuil
+ * 767/768 (à 768 px, rendu d'ordinateur au lieu du rendu mobile). Transformation de chaîne du bundle de base (médias minifiés), posée
+ * seulement sur un bundle de base antérieur au ticket (AVANT_TICKET410), jamais sur le bundle courant ; tout autre écart reste détecté.
+ * Écart consigné dans le plan du ticket (Plan Change Log).
+ */
+export const MEDIAS_TICKET410 = bundle => bundle.split('@media (width<=768px){').join('@media (width<=767px){').split('@media (width>=769px){').join('@media (width>=768px){');
+/** Bundle d'avant l'épopée 4, ticket 10 : l'éditeur du kramail y est encore sous le média minifié (width>=769px). */
+export const AVANT_TICKET410 = src => src.includes('(width>=769px)');
+/** Champs de saisie d'une ligne mesurés par le fragment nettoyage (ticket 10, retrait R4) : 44 px de haut, retraits 12 px, police 16 px. */
+export const CHAMPS_TICKET410 = 'input[type="text"].form-control';
+/**
+ * Lignes du forum en cartes forcées en :active par le fragment nettoyage (ticket 10, retrait R5). Ici et non dans la suite : cité par une
+ * 4e suite, chacun de ces repères deviendrait transverse pour le routeur (MAX_CITING).
+ */
+export const LIGNES_FORUM_TICKET410 = '.panel-default .table > tbody > tr';
+/** Classes de la racine du forum (ticket 10, A3) : [classe d'index sur <html>, classe de racine sur <body>, classe du forum sur <body>]. */
+export const CLASSES_RACINE_TICKET410 = ['kr-page-forum-index', 'page-forum-racine', 'page-forum'];
 /** Bundle d'avant l'épopée 4, ticket 9 : le corps de panneau natif n'y emploie pas encore le jeton d'espacement (règle minifiée du bundle). */
 export const AVANT_TICKET49 = bundle => !bundle.includes('.panel-body{padding:var(--kr-space-4)}');
 /** Bundle d'avant l'épopée 4, ticket 8 : il déclare encore --mobile-radius sur :root (règle minifiée du bundle). */

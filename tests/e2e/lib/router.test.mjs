@@ -161,6 +161,16 @@ check('typographie et formes : grille d\'espacement (ticket 9) -> typographie-fo
     assert.deepEqual(sorted(d.zones), ['cybermonde', 'forum', 'kramail', 'modale-ordre', 'plateau', 'sous-forum', 'typographie-formes']);
   }
 });
+check('typographie et formes : nettoyage (ticket 10), ligne de média seule -> total ; carte du forum -> forum, sous-forum, typographie-formes', () => {
+  for (const ligne of ['@media (max-width: 767px) {', '@media (min-width: 768px) {']) {
+    const d = route('kraland-theme.css', hunkAt(1727, ligne));
+    assert.equal(d.widened, true, `${ligne} : ${d.reasons.join(' ; ')}`);
+  }
+  const d = route('kraland-theme.css', hunk('  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr {', '    box-shadow: var(--kr-shadow-sm) !important;'));
+  assert.equal(d.widened, false, d.reasons.join(' ; '));
+  assert.ok(d.zones.includes('forum'), d.zones.join(', '));
+  for (const u of ['sous-forum', 'typographie-formes']) { assert.ok(d.units.includes(u), `${u} absente : ${d.units.join(', ')}`); }
+});
 check('typographie et formes : échelle (en-têtes, noms, onglets et jauges du mini-profil) -> typographie-formes', () => {
   for (const h of [
     hunk('.dashboard-card-name {', '  font-size: var(--kr-font-name);'),

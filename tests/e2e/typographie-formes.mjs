@@ -61,6 +61,13 @@
 //                   colonnes du plateau) égales au bundle de base (COMMIT_ESPACEMENT) ; boutons de l'entrée 2 à 34 px / ≥ 44 px ; jetons
 //                   redéfinis (5, 9, 13, 17 px) suivis, 375 et 1280 px ; mini-profil plié et déplié, 375 et 700 px ; bascule 767, 768, 767 px ;
 //                   contrôle statique des 13 déclarations réécrites, des 4 règles de rôle et du bouton d'import du template.
+// Nettoyage des déclarations mortes et des médias au seuil 768/769 (ticket 10, story-refactor-sweep-plan) :
+//   nettoyage       plateau (deux fixtures), champ de saisie, modale d'ordre, forum (sous-forum, staff, sujet, rédaction), kramail (nouveau,
+//                   répondre), Interface (changelog ouvert) et composants : 375, 767, 768, 769, 1280 px, Kraland clair et Empire Brun sombre :
+//                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE), sauf à
+//                   768 px sur les pages des blocs M1 et M2 (propriétés de ces blocs égales à la base à 769 px) ; hamburger survolé et en
+//                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
+//                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum.
 // Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
@@ -79,8 +86,9 @@
 //           KR_SCRIPT_AVANT_TICKET6 (bundle de base du plateau inchangé par le ticket 6, défaut : celui du commit COMMIT_TICKET6),
 //           KR_SCRIPT_AVANT_RAYONS (bundle de base des rayons, défaut : celui du commit COMMIT_RAYONS),
 //           KR_SCRIPT_AVANT_ESPACEMENT (bundle de base de l'espacement, défaut : celui du commit COMMIT_ESPACEMENT),
+//           KR_SCRIPT_AVANT_NETTOYAGE (bundle de base du nettoyage, défaut : celui du commit COMMIT_NETTOYAGE),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons,
-//           espacement
+//           espacement, nettoyage
 //           (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -92,7 +100,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -979,8 +987,10 @@ if (on('echelle')) {
 // messages-v3.mjs réduit), réception, lecture et nouveau kramail. Rôles : nom 15 px (nom de forum de l'index en 400, ticket 6.1), détail
 // 13 px, texte courant 15 px sur mobile, libellés de rédaction 13 px, champ de rédaction 16 px, corps des messages 16 px sur mobile.
 const COMMIT_ECHELLE_FORUM = 'd953969';
-const avantEchelleForum = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Bundle de base d'avant le ticket 10 : médias au seuil 768/769 décalés en 767/768 (MEDIAS_TICKET410), M1 et M2 changent le rendu à 768 px.
+const medias410 = src => (AVANT_TICKET410(src) ? MEDIAS_TICKET410(src) : src);
+const avantEchelleForum = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const IDX = '#col-right .table > tbody > tr';
 const SF = '#topics tbody tr';
 // [rôle, sélecteur, taille attendue, graisse, support] : support m = mobile seulement, b = ordinateur seulement, rien = les deux.
@@ -1191,8 +1201,8 @@ if (on('echelle-forum')) {
 // Cas : [clé, sélecteur, rôle, support, cache] ; support m = mobile seulement, b = ordinateur seulement ; cache = mesuré même masqué
 // (menu fermé : rayon calculé sans rendu).
 const COMMIT_RAYONS = '5ff22d3';
-const avantRayons = sansEntete(process.env.KR_SCRIPT_AVANT_RAYONS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_RAYONS, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_RAYONS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const avantRayons = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_RAYONS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_RAYONS, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_RAYONS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const ACCUEIL_RAYONS = ACCUEIL_BOUTONS.replace('<div class="col-md-6">centre</div>', '<div class="col-md-6"><div class="alert alert-info alert-dismissible">Ministre d\'essai '
   + ': communiqué. <img src="http://img7.kraland.org/2/ministre.gif" width="40" height="40"></div><img class="img-circle" src="http://img7.kraland.org/2/cercle.gif" width="40" height="40">'
   + '<div class="dashboard-card"><img class="dashboard-card-avatar" src="http://img7.kraland.org/2/avatar.gif" width="40" height="40"></div></div>')
@@ -1450,8 +1460,8 @@ if (on('rayons')) {
 // Cas : [clé, sélecteur, rôle, support, attendu] ; support m = mobile seulement, b = ordinateur seulement ; attendu R/N { propriété : n }
 // (jeton --kr-space-n), E [propriétés].
 const COMMIT_ESPACEMENT = '62fd47d';
-const avantEspacement = sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const avantEspacement = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const PAGES_ESPACEMENT = Object.fromEntries(Object.entries({
   plateau: PAGES_ECHELLE.plateau,
   'plateau-typo': PAGES_ECHELLE.materiel,
@@ -1616,6 +1626,422 @@ if (on('espacement')) {
   const statique = await declarationsEspacement(userscript);
   check('espacement : 13 déclarations de l\'annexe et 4 règles de rôle au jeton, rôle sans !important (liste combinée, en-tête du sous-forum sur ordinateur), import du template au jeton',
     () => assert.deepEqual(statique, [], `${statique.length} : ${statique.slice(0, 6).join(' ; ')}`));
+}
+
+// ---------- Nettoyage (ticket 10, story-refactor-sweep-plan) ----------
+// Retraits R1 à R6 (déclarations mortes, médias imbriqués) : chaque élément visible, ses ::before et ::after (contenu posé), toutes
+// propriétés calculées (getComputedStyle, variables exclues) égaux au bundle de base (COMMIT_NETTOYAGE). Transitions et animations figées
+// dans les deux bundles (couche @layer : un !important de couche bat tout !important hors couche). Corrections de média M1 (éditeur du
+// kramail) et M2 (changelog) : à 768 px, la référence est la base aux médias décalés (MEDIAS_TICKET410 : (width<=768px) en (width<=767px),
+// (width>=769px) en (width>=768px), rien d'autre), tout égal ; sur les pages des blocs M, le rendu à 768 px diffère de la base non décalée
+// (correction effective) ; et (A8) chaque élément visé par les blocs M1/M2 est égal à la base relevée à 769 px pour les propriétés que
+// ces blocs déclarent, sauf les exclusions nommées d'EXCLUES_A8 (valeurs qui suivent la largeur). Ailleurs, tout égal à la base. Comparaison par empreinte d'élément (chemin DOM), détail des écarts relu dans les
+// deux pages. Cartes du forum (R5) : racine page-forum-racine et index kr-page-forum-index (repères cités, ils lancent ce fragment).
+const COMMIT_NETTOYAGE = '00b0786';
+const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const avantNettoyageDecale = medias410(avantNettoyage);
+const GEL_NETTOYAGE = '@layer kr-gel { *, *::before, *::after { transition: none !important; animation: none !important; } }';
+// Préparations (après le chargement) : modale d'ordre ouverte, changelog ouvert.
+const OUVRIR_CHANGELOG = async page => {
+  await page.$eval('#kr-changelog-btn', b => b.click());
+  await page.waitForFunction(() => document.querySelector('.kr-changelog-footer button') && document.querySelector('.kr-changelog-footer button').getClientRects().length, null, { timeout: 5000 });
+  await page.waitForTimeout(200);
+};
+// Pages : def, prep, m (bloc M1 ou M2 : rendu à 768 px changé par rapport à la base non décalée), lignes (tr:active du forum mobile).
+const PAGES_NETTOYAGE = {
+  plateau: { def: PAGES_ECHELLE.plateau },
+  'plateau-minimal': { def: { url: BASE + '/jouer/plateau', html: lire('plateau-minimal.html') } },
+  champ: { def: PAGES_ECHELLE.materiel },
+  'modale-ordre': { def: PAGES_BOUTONS['modale-ordre'], prep: page => ouvrirModaleOrdre(page, PAGES_BOUTONS['modale-ordre']) },
+  'sous-forum': { def: PAGES_FORUM['sous-forum'], lignes: true },
+  staff: { def: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') }, lignes: true },
+  racine: { def: PAGES_FORUM.racine, lignes: true },
+  sujet: { def: PAGES_FORUM.sujet },
+  'redaction-forum': { def: PAGES_FORUM.redaction },
+  reception: { def: PAGES_FORUM.reception, m: true },
+  nouveau: { def: PAGES_FORUM.nouveau, m: true },
+  repondre: { def: PAGES_RAYONS.accordeon.def, m: true },
+  interface: { def: PAGES_BOUTONS.interface, prep: OUVRIR_CHANGELOG, m: true },
+  composants: { def: PAGES_BOUTONS.tableau }
+};
+const LARGEURS_NETTOYAGE = [375, 767, 768, 769, 1280];
+// A8 (bloc figé, critère 2) : dans la base relevée à 769 px, blocs de médias M1 et M2 (médias (width<=768px) et (width>=769px) de premier
+// niveau ; ceux de R1, imbriqués dans un bloc (width<=767px), ne comptent pas) : propriétés déclarées (longues, variables exclues) et
+// sélecteurs (règles imbriquées composées avec leur parent).
+const BLOCS_M = () => {
+  const media = /^\(\s*(?:width\s*(?:<=\s*768|>=\s*769)px|max-width:\s*768px|min-width:\s*769px)\s*\)$/;
+  const blocs = [];
+  for (const f of document.styleSheets) {
+    for (const r of f.cssRules) { if (r.constructor.name === 'CSSMediaRule' && media.test(r.conditionText)) { blocs.push(r); } }
+  }
+  const props = new Set();
+  const sels = new Set();
+  const parcourir = (regles, parent) => {
+    for (const r of regles) {
+      if (r.constructor.name === 'CSSStyleRule') {
+        const s = !parent ? r.selectorText : r.selectorText.includes('&') ? r.selectorText.replaceAll('&', `:is(${parent})`) : `:is(${parent}) ${r.selectorText}`;
+        sels.add(s);
+        for (let i = 0; i < r.style.length; i++) { if (!r.style[i].startsWith('--')) { props.add(r.style[i]); } }
+        parcourir(r.cssRules, s);
+      } else if (r.cssRules) { parcourir(r.cssRules, parent); }
+    }
+  };
+  for (const b of blocs) { parcourir(b.cssRules, ''); }
+  return { n: blocs.length, props: [...props].sort(), sels: [...sels] };
+};
+// Dans la page : pour chaque élément visible visé par un sélecteur des blocs M (pseudo-éléments et états retirés), et ses ::before / ::after
+// à contenu posé, valeurs calculées des propriétés déclarées par ces blocs ; exclues : propriété -> sélecteur des éléments où elle est exclue.
+const PROPRIETES_M = ({ props, sels, exclues }) => {
+  const nettoyer = s => s.replace(/::?(?:before|after|placeholder|selection|marker|-webkit-[a-z-]+|-moz-[a-z-]+)/g, '').replace(/:(?:hover|focus-visible|focus-within|focus|active|visited)/g, '');
+  const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
+  const els = new Set();
+  let ignores = 0;
+  for (const s of sels) {
+    try { document.querySelectorAll(nettoyer(s)).forEach(e => els.add(e)); } catch { ignores++; }
+  }
+  const out = {};
+  for (const e of els) {
+    if (!e.getClientRects().length) { continue; }
+    for (const pseudo of ['', '::before', '::after']) {
+      const st = getComputedStyle(e, pseudo || null);
+      if (pseudo && (st.content === 'none' || st.content === 'normal')) { continue; }
+      const o = {};
+      for (const p of props) { if (!(p in exclues && e.matches(exclues[p]))) { o[p] = st.getPropertyValue(p); } }
+      out[chemin(e) + pseudo] = { quoi: `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].slice(0, 3).join('.')}${pseudo}`, o };
+    }
+  }
+  return { ignores, out };
+};
+// Propriétés exclues de A8 : elles suivent la largeur de la fenêtre (1 px de plus à 769). Propriété -> [éléments concernés, raison].
+const EXCLUES_A8 = {
+  width: ['*', 'largeurs du flux et des colonnes Bootstrap en % : chaque conteneur a 1 px de moins à 768 (675 au lieu de 676 px)'],
+  'padding-right': ['.kd-label', 'retrait clamp(0px, calc(16.6667% - 103px), 15px) du libellé des destinataires (≥ 768) : 3,5 au lieu de 3,66 px'],
+  left: ['.kr-changelog-content', 'changelog centré par left: 50% et translate(-50%, -50%) : 384 au lieu de 384,5 px'],
+  right: ['.kr-changelog-content', 'valeur calculée de right, déduite de left et de la largeur de la fenêtre : -216 au lieu de -215,5 px']
+};
+const EXCLUSIONS_A8 = Object.fromEntries(Object.entries(EXCLUES_A8).map(([p, [sel]]) => [p, sel]));
+const ecartsA8 = (ha, hb) => {
+  const cles = [...new Set([...Object.keys(ha), ...Object.keys(hb)])];
+  const ecarts = [];
+  for (const k of cles) {
+    if (!ha[k] || !hb[k]) { ecarts.push(`${k} ${(ha[k] || hb[k]).quoi} absent ${ha[k] ? 'de la base à 769 px' : 'à 768 px'}`); continue; }
+    for (const p of Object.keys(ha[k].o)) {
+      if (ha[k].o[p] !== hb[k].o[p]) { ecarts.push(`${ha[k].quoi} ${p} ${ha[k].o[p]} au lieu de ${hb[k].o[p]}`); }
+    }
+  }
+  return { n: cles.length, ecarts };
+};
+// Dans la page : empreinte (FNV-1a) des propriétés calculées de chaque élément visible (racine : sous-arbres des éléments visés) et de ses
+// ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair.
+const EMPREINTES = ({ racine, cles, detail }) => {
+  const garder = p => !p.startsWith('--');
+  const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
+  const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && n.children[Number(i)]; } return n; };
+  const proprietes = s => { const o = {}; for (let i = 0; i < s.length; i++) { const p = s[i]; if (garder(p)) { o[p] = s.getPropertyValue(p); } } return o; };
+  const fnv = t => { let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
+  const valeur = (e, pseudo) => {
+    const o = proprietes(getComputedStyle(e, pseudo || null));
+    return detail ? { quoi: `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].slice(0, 3).join('.')}${pseudo || ''}`, o } : fnv(Object.entries(o).map(([p, v]) => p + ':' + v).join(';'));
+  };
+  const out = {};
+  if (cles) {
+    for (const k of cles) {
+      const [c, pseudo] = k.split('|');
+      const e = trouver(c);
+      out[k] = e ? valeur(e, pseudo) : '∅';
+    }
+    return out;
+  }
+  const racines = racine ? [...document.querySelectorAll(racine)] : [document.documentElement];
+  const vus = new Set();
+  for (const r of racines) {
+    for (const e of [r, ...r.querySelectorAll('*')]) {
+      if (vus.has(e) || !(e === document.documentElement || e.getClientRects().length)) { continue; }
+      vus.add(e);
+      const c = chemin(e);
+      out[c] = valeur(e);
+      for (const pseudo of ['::before', '::after']) {
+        const contenu = getComputedStyle(e, pseudo).content;
+        if (contenu !== 'none' && contenu !== 'normal') { out[c + '|' + pseudo] = valeur(e, pseudo); }
+      }
+    }
+  }
+  return out;
+};
+// Compare la page testée (pa) à la page de base (pb) : clés visibles de l'une ou de l'autre, détail des 4 premiers écarts.
+// Un écart passager (focus posé après l'ouverture d'une modale, menu en cours d'affichage) est relu jusqu'à deux fois à 300 ms d'intervalle ;
+// un écart de cascade reste.
+async function comparerNettoyage(pa, pb, opts = {}) {
+  let r = await comparerUneFois(pa, pb, opts);
+  for (let essai = 0; essai < 2 && r.diff; essai++) {
+    await pa.waitForTimeout(300);
+    r = await comparerUneFois(pa, pb, opts);
+  }
+  return r;
+}
+async function comparerUneFois(pa, pb, opts) {
+  const [ha, hb] = await Promise.all([pa.evaluate(EMPREINTES, opts), pb.evaluate(EMPREINTES, opts)]);
+  const manque = (h, autre) => Object.keys(autre).filter(k => !(k in h));
+  const [ma, mb] = [manque(ha, hb), manque(hb, ha)];
+  if (ma.length) { Object.assign(ha, await pa.evaluate(EMPREINTES, { ...opts, cles: ma })); }
+  if (mb.length) { Object.assign(hb, await pb.evaluate(EMPREINTES, { ...opts, cles: mb })); }
+  const cles = Object.keys(ha);
+  const diff = cles.filter(k => ha[k] !== hb[k]);
+  const ecarts = [];
+  if (diff.length) {
+    const premiers = diff.slice(0, 4);
+    const [da, db] = await Promise.all([pa.evaluate(EMPREINTES, { ...opts, cles: premiers, detail: true }), pb.evaluate(EMPREINTES, { ...opts, cles: premiers, detail: true })]);
+    for (const k of premiers) {
+      if (da[k] === '∅' || db[k] === '∅') { ecarts.push(`${k} absent ${da[k] === '∅' ? 'du bundle testé' : 'de la base'}`); continue; }
+      const props = [...new Set([...Object.keys(da[k].o), ...Object.keys(db[k].o)])].filter(p => da[k].o[p] !== db[k].o[p]);
+      ecarts.push(`${da[k].quoi} ${props.length ? '' : '(écart passager, propriétés égales à la relecture) '}${props.slice(0, 3).map(p => `${p} ${da[k].o[p]} au lieu de ${db[k].o[p]}`).join(', ')}`);
+    }
+  }
+  return { n: cles.length, diff: diff.length, ecarts };
+}
+const verifierNettoyage = (libelle, r) => check(libelle, () => {
+  assert.ok(r.n > 0, 'aucun élément mesuré');
+  assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
+});
+const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
+  const p = PAGES_NETTOYAGE[nom];
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile });
+  if (p.prep) { await p.prep(o.page); }
+  return o;
+};
+// Force un état (:hover, :focus, :active) sur les éléments d'un sélecteur (CDP, sans geste).
+async function forcerEtat(context, page, selecteur, etats) {
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('DOM.enable');
+  await cdp.send('CSS.enable');
+  const { root: doc } = await cdp.send('DOM.getDocument', { depth: -1 });
+  const { nodeIds } = await cdp.send('DOM.querySelectorAll', { nodeId: doc.nodeId, selector: selecteur });
+  for (const nodeId of nodeIds) { await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: etats }); }
+  await page.waitForTimeout(50);
+  return nodeIds.length;
+}
+// Bascule de support dans le même onglet (seuil 768) : attend le rechargement et la peau.
+async function basculer(page, width, label) {
+  await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+  const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+  await page.setViewportSize({ width, height: 720 });
+  await charge;
+  await krReady(page, { ready: THEME_READY, label });
+  await styleSettled(page, 'body');
+}
+if (on('nettoyage')) {
+  console.log('\n== nettoyage ==');
+  check('nettoyage : base décalée différente de la base (médias (width<=768px) et (width>=769px) présents dans la base)', () => assert.notEqual(avantNettoyageDecale, avantNettoyage));
+  const cas = Object.keys(PAGES_NETTOYAGE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_NETTOYAGE.map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => {
+    const p = PAGES_NETTOYAGE[c.nom];
+    const a = await ouvrirNettoyage({ ...c, script: userscript });
+    const b = await ouvrirNettoyage({ ...c, script: c.width === 768 ? avantNettoyageDecale : avantNettoyage });
+    const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
+    try {
+      out.comparaisons.push([c.width === 768 ? 'styles calculés égaux à la base aux médias décalés' : 'styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
+      if (p.m && c.width === 768) {
+        const b0 = await ouvrirNettoyage({ ...c, script: avantNettoyage });
+        out.change = (await comparerUneFois(a.page, b0.page, {})).diff;
+        await b0.context.close();
+      }
+      if (p.m && c.width === 768) {
+        // A8 : à 768 px, l'éditeur du kramail et le changelog égaux à la base relevée à 769 px, pour les propriétés déclarées par M1 et M2.
+        const b769 = await ouvrirNettoyage({ ...c, width: 769, script: avantNettoyage });
+        try {
+          const blocs = await b769.page.evaluate(BLOCS_M);
+          const [ma, mb] = await Promise.all([a.page.evaluate(PROPRIETES_M, { ...blocs, exclues: EXCLUSIONS_A8 }), b769.page.evaluate(PROPRIETES_M, { ...blocs, exclues: EXCLUSIONS_A8 })]);
+          out.a8 = { blocs: blocs.n, props: blocs.props.length, ignores: ma.ignores, ...ecartsA8(ma.out, mb.out) };
+        } finally {
+          await b769.context.close();
+        }
+      }
+      if (p.m && (c.width === 768 || c.width === 769)) {
+        // Risque de M1 à 768 px : un bouton dont le texte passe à la ligne ou déborde, ou un groupe de boutons sur deux rangées (relevé à 768 et 769).
+        out.boutons = await a.page.$$eval('.btn', l => l.filter(e => e.getClientRects().length).map(e => {
+          const r = document.createRange();
+          r.selectNodeContents(e);
+          const lignes = new Set([...r.getClientRects()].filter(x => x.width && x.height).map(x => Math.round(x.top))).size;
+          const g = e.parentElement.closest('.btn-group, .btn-toolbar');
+          const rangees = g ? new Set([...g.querySelectorAll('.btn')].filter(x => x.getClientRects().length).map(x => Math.round(x.getBoundingClientRect().top))).size : 1;
+          const deborde = e.scrollWidth > e.clientWidth + 1 ? ' débord' : '';
+          return `${(e.textContent || e.title || '').trim().slice(0, 20) || e.className} ${lignes <= 1 ? 1 : lignes}/${rangees}${deborde}`;
+        }));
+      }
+      const mobile = c.width < 768;
+      if (mobile && ['plateau', 'plateau-minimal', 'champ'].includes(c.nom)) {
+        // Hamburger (R2) : survol et focus forcés ; order: 1 gardé.
+        for (const etat of ['hover', 'focus']) {
+          const n = await forcerEtat(a.context, a.page, '.navbar-toggle', [etat]);
+          await forcerEtat(b.context, b.page, '.navbar-toggle', [etat]);
+          const r = n ? await comparerNettoyage(a.page, b.page, { racine: '.navbar-toggle' }) : { n: 0 };
+          out.etats.push([`hamburger :${etat}`, r.n]);
+          if (r.n) { out.comparaisons.push([`hamburger :${etat} égal à la base`, r]); }
+          await forcerEtat(a.context, a.page, '.navbar-toggle', []);
+          await forcerEtat(b.context, b.page, '.navbar-toggle', []);
+        }
+        // Hamburger visible en mode mobile seulement (plateau-minimal à 767 px : mode mobile non posé, base comprise).
+        out.ordre = await a.page.$$eval('.navbar-toggle', l => l.filter(e => e.getClientRects().length && document.body.classList.contains('mobile-mode')).map(e => getComputedStyle(e).order));
+      }
+      if (mobile && p.lignes) {
+        const n = await forcerEtat(a.context, a.page, LIGNES_FORUM_TICKET410, ['active']);
+        await forcerEtat(b.context, b.page, LIGNES_FORUM_TICKET410, ['active']);
+        const r = n ? await comparerNettoyage(a.page, b.page, { racine: LIGNES_FORUM_TICKET410 }) : { n: 0 };
+        out.etats.push(['lignes du forum :active', r.n]);
+        if (r.n) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
+      }
+      if (mobile && ['champ', 'nouveau', 'repondre'].includes(c.nom)) {
+        out.champs = await a.page.$$eval(CHAMPS_TICKET410, l => l.filter(e => e.getClientRects().length).map(e => {
+          const s = getComputedStyle(e);
+          return `${e.id || e.name} ${Math.round(e.getBoundingClientRect().height * 10) / 10}/${s.paddingTop}/${s.paddingLeft}/${s.fontSize}`;
+        }));
+      }
+    } finally {
+      await a.context.close();
+      await b.context.close();
+    }
+    return out;
+  });
+  // États forcés et ordre du hamburger : un état sans élément mesuré sur une page échoue (sélecteur faussé, élément absent de la fixture).
+  // Par page, sur l'ensemble des cas mobiles : un cas peut ne rien mesurer (plateau-minimal à 767 px, sans mode mobile), la page non.
+  const parPage = new Map();
+  for (const { c, etats, ordre } of res) {
+    for (const [quoi, n] of etats) { const k = `${c.nom}|${quoi}`; parPage.set(k, (parPage.get(k) || 0) + n); }
+    if (ordre) { const k = `${c.nom}|hamburger visible en mode mobile`; parPage.set(k, (parPage.get(k) || 0) + ordre.length); }
+  }
+  for (const nom of ['plateau', 'plateau-minimal', 'champ']) {
+    for (const quoi of ['hamburger :hover', 'hamburger :focus', 'hamburger visible en mode mobile']) {
+      check(`nettoyage ${nom} : ${quoi}, au moins un élément mesuré (375 et 767 px)`, () => assert.ok(parPage.get(`${nom}|${quoi}`) > 0, 'aucun élément'));
+    }
+  }
+  for (const nom of Object.keys(PAGES_NETTOYAGE).filter(k => PAGES_NETTOYAGE[k].lignes)) {
+    check(`nettoyage ${nom} : lignes du forum :active, au moins un élément mesuré (375 et 767 px)`, () => assert.ok(parPage.get(`${nom}|lignes du forum :active`) > 0, 'aucun élément'));
+  }
+  for (const { c, boutons } of res.filter(r => r.c.width === 768 && r.boutons)) {
+    const ref = res.find(r => r.c.nom === c.nom && r.c.variante === c.variante && r.c.width === 769);
+    check(`nettoyage ${etiquette(c)} : aucun bouton à la ligne ou en débord ni groupe sur deux rangées de plus qu'à 769 px (M1/M2)`, () => {
+      assert.ok(boutons.length, 'aucun bouton');
+      assert.deepEqual(boutons.filter(x => !x.endsWith(' 1/1')).sort(), ref.boutons.filter(x => !x.endsWith(' 1/1')).sort(), boutons.join(' ; '));
+    });
+  }
+  for (const { c, erreurs, comparaisons, ordre, champs, change, a8 } of res) {
+    for (const [quoi, r] of comparaisons) { verifierNettoyage(`nettoyage ${etiquette(c)} : ${quoi}`, r); }
+    if (a8) {
+      check(`nettoyage ${etiquette(c)} : éléments des blocs M1/M2 égaux à la base relevée à 769 px, propriétés déclarées par ces blocs (A8)`, () => {
+        assert.equal(a8.blocs, 3, 'blocs M1 et M2 attendus : 3');
+        assert.ok(a8.n > 0, 'aucun élément mesuré');
+        assert.equal(a8.ecarts.length, 0, `${a8.ecarts.length} écart(s) sur ${a8.n} élément(s), ${a8.props} propriétés : ${a8.ecarts.slice(0, 8).join(' ; ')}`);
+      });
+    }
+    if (change !== undefined) { check(`nettoyage ${etiquette(c)} : rendu changé par M1/M2 (écart avec la base non décalée)`, () => assert.ok(change > 0, 'aucun écart')); }
+    if (ordre && ordre.length) { check(`nettoyage ${etiquette(c)} : hamburger order 1 (R2)`, () => assert.deepEqual(ordre.filter(o => o !== '1'), [], ordre.join(' '))); }
+    if (champs) {
+      check(`nettoyage ${etiquette(c)} : champs d'une ligne 44 px, retraits 12 px, police 16 px (R4)`, () => {
+        assert.ok(champs.length, 'aucun champ');
+        assert.deepEqual(champs.filter(x => !x.endsWith(' 44/12px/12px/16px')), [], champs.join(' ; '));
+      });
+    }
+    check(`nettoyage ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Fenêtre rétrécie sans mode mobile (bloc Bootbox sans mobile-mode, R1) : modale d'ordre ouverte à 1280 px, saisie en cours (pas de
+  // rechargement), fenêtre passée à 767 px.
+  const resRetreci = await mapLimit(VARIANTES, async variante => {
+    const ouvrirRetreci = async script => {
+      const o = await ouvrirNettoyage({ nom: 'modale-ordre', width: 1280, variante, script });
+      await o.page.evaluate(() => { document.querySelector('#champ-saisie').value = 'Saisie en cours'; });
+      await o.page.setViewportSize({ width: 767, height: 667 });
+      await o.page.waitForTimeout(1200);
+      await styleSettled(o.page, 'body');
+      o.mobile = await o.page.evaluate(() => document.body.classList.contains('mobile-mode'));
+      return o;
+    };
+    const a = await ouvrirRetreci(userscript);
+    const b = await ouvrirRetreci(avantNettoyage);
+    const r = await comparerNettoyage(a.page, b.page);
+    await a.context.close();
+    await b.context.close();
+    return { variante, r, mobile: a.mobile };
+  });
+  for (const { variante, r, mobile } of resRetreci) {
+    check(`nettoyage modale-ordre ${variante} 1280 puis 767 px sans mode mobile : mode bureau gardé`, () => assert.equal(mobile, false));
+    verifierNettoyage(`nettoyage modale-ordre ${variante} 1280 puis 767 px sans mode mobile : styles calculés égaux à la base`, r);
+  }
+  // Menu de personnage du kramail (R6) ouvert à 375 px sur la réception (la rédaction le masque), puis fenêtre passée à 1280 px (saisie en
+  // cours dans un champ sonde ajouté des deux côtés : pas de rechargement, menu gardé) : rayon md aux quatre coins à chaque pas, menu égal
+  // à la base.
+  const resMenu = await mapLimit(VARIANTES, async variante => {
+    const ouvrirMenu = async script => {
+      const o = await ouvrirNettoyage({ nom: 'reception', width: 375, variante, script });
+      await o.page.evaluate(() => document.querySelector('.kramail-character-selector').click());
+      await o.page.waitForFunction(() => { const m = document.querySelector('.kramail-character-dropdown'); return m && m.getClientRects().length; }, null, { timeout: 5000 });
+      await o.page.waitForTimeout(200);
+      return o;
+    };
+    const rayons = page => page.$eval('.kramail-character-dropdown', e => { const s = getComputedStyle(e); return [e.getClientRects().length ? 'ouvert' : 'fermé', s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius].join(' '); });
+    const a = await ouvrirMenu(userscript);
+    const b = await ouvrirMenu(avantNettoyage);
+    const pas = [{ width: 375, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown' }) }];
+    for (const o of [a, b]) {
+      await o.page.evaluate(() => { const i = document.createElement('input'); i.type = 'text'; i.id = 'kr-sonde-saisie'; document.body.appendChild(i); i.value = 'Saisie en cours'; });
+      await o.page.setViewportSize({ width: 1280, height: 900 });
+    }
+    await a.page.waitForTimeout(1200);
+    const mobile = await a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
+    pas.push({ width: 1280, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown' }) });
+    await a.context.close();
+    await b.context.close();
+    return { variante, pas, mobile };
+  });
+  for (const { variante, pas, mobile } of resMenu) {
+    check(`nettoyage menu-personnage ${variante} 375 puis 1280 px : même onglet, sans rechargement`, () => assert.equal(mobile, true));
+    for (const p of pas) {
+      check(`nettoyage menu-personnage ${variante} ${p.width} px : ouvert, rayon md (8 px) aux quatre coins (R6)`, () => assert.equal(p.rayons, 'ouvert 8px 8px 8px 8px', p.rayons));
+      verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base`, p.r);
+    }
+  }
+  // Bascule 767, 768 puis 767 px dans le même onglet (rédaction du kramail, M1), base aux médias décalés basculée de même (identique à la
+  // base sous 768 px) : mode suivi, tout égal à chaque pas.
+  const resBascule = await mapLimit(VARIANTES, async variante => {
+    const nom = 'nouveau';
+    const a = await ouvrirNettoyage({ nom, width: 767, variante, script: userscript, tactile: false });
+    const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyageDecale, tactile: false });
+    const pas = [];
+    const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
+    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]] });
+    for (const width of [768, 767]) {
+      await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
+      const comparaisons = [[width === 768 ? 'styles calculés égaux à la base aux médias décalés' : 'styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]];
+      pas.push({ width, mobile: await mode(), comparaisons });
+    }
+    await a.context.close();
+    await b.context.close();
+    return { variante, pas };
+  });
+  for (const { variante, pas } of resBascule) {
+    pas.forEach((p, n) => {
+      check(`nettoyage bascule nouveau ${variante} pas ${n + 1} (${p.width} px) : mode ${p.width < 768 ? 'mobile' : 'bureau'}`, () => assert.equal(p.mobile, p.width < 768));
+      for (const [quoi, r] of p.comparaisons) { verifierNettoyage(`nettoyage bascule nouveau ${variante} pas ${n + 1} (${p.width} px) : ${quoi}`, r); }
+    });
+  }
+  // Contrôles statiques du bundle testé : aucun média au seuil 768/769 (M1, M2, R1) ; classe de racine du forum ajoutée une seule fois.
+  // Racine /forum chargée : classe de racine sous la classe d'index de <html> (A3 : le préfixe de R5 exclut l'index, donc la racine).
+  const [INDEX_FORUM, RACINE_FORUM, CLASSE_FORUM] = CLASSES_RACINE_TICKET410;
+  const { css: cssNet, js: jsNet } = cssDuBundle(userscript);
+  const medias = cssNet.match(/@media[^{]*(width<=768px|width>=769px|max-width: ?768px|min-width: ?769px)[^{]*\{/g) || [];
+  check('nettoyage : aucun média (max-width: 768px) ni (min-width: 769px) dans le thème du bundle testé', () => assert.deepEqual(medias, []));
+  check('nettoyage : classe de racine du forum ajoutée par un seul appel du template (A3)', () => {
+    assert.equal((jsNet.match(new RegExp(`classList\\.add\\(["']${RACINE_FORUM}["']\\)`, 'g')) || []).length, 1, `ajouts de ${RACINE_FORUM}`);
+  });
+  const resRacine = await mapLimit(VARIANTES, async variante => {
+    const o = await ouvrirNettoyage({ nom: 'racine', width: 375, variante, script: userscript });
+    const classes = await o.page.evaluate(([i, r, f]) => [document.documentElement.classList.contains(i), document.body.classList.contains(r), document.body.classList.contains(f)], [INDEX_FORUM, RACINE_FORUM, CLASSE_FORUM]);
+    await o.context.close();
+    return { variante, classes };
+  });
+  for (const { variante, classes } of resRacine) {
+    check(`nettoyage racine ${variante} 375 px : classe de racine sous la classe d'index, sans classe du forum (A3, portée de R5)`, () => assert.deepEqual(classes, [true, true, false]));
+  }
 }
 
 await browser.close();

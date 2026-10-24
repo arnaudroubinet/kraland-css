@@ -218,3 +218,9 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - **À trancher (bloc figé)** : le plan disait que les cellules du forum (index et sous-forum) passent à 8 px sur les 4 côtés. Mesuré : les lignes permanentes du sous-forum passent à 62 px (seuil L6 : 60), et le 1er sujet arrive à 693 px (seuil : 684). J'ai mis 4 px en haut et en bas, 8 px sur les côtés : les seuils tiennent. Option inverse : 8/8 avec des seuils L6 assouplis.
 - Boutons sur ordinateur : leur retrait vertical de 6 px est gardé, hors du pas de 4, pour tenir la hauteur de 34 px.
 - Les en-têtes de panneau passent de 40 à 44 px de haut sur ordinateur.
+
+## Ticket 4.10 — Refactor sweep (built, 2026-10-24)
+
+- Seuils 768/769 réalignés sur 767/768 (éditeur du kramail, changelog) : à 768 px, ces pages prennent désormais le rendu ordinateur. Vérifié égal à la base relevée à 769 px.
+- Règles mortes retirées : rayon du menu de personnage du kramail, propriétés du hamburger hors `order`, premier bloc de cartes du forum réduit à l'ombre et à l'appui.
+- `height: 44px` des champs mobiles gardé : sans effet mesuré (le `min-height` de 44 px l'emporte), consigné comme candidat mort dans `deferred-work.md`.
