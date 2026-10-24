@@ -73,8 +73,6 @@
   --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff);
   --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent);
   --kr-badge-danger: #dc3545;
-  --kr-badge-danger-border: #bd2130;
-  --kr-badge-pnj: #d9534f;
   --kr-bootstrap-blue: #337ab7;
   
   /* Couleurs nations (.f1-.f9) */

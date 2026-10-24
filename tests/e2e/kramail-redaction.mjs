@@ -26,7 +26,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET48, AVANT_TICKET49, AVANT_TICKET51, CARTES_TICKET51, COMPOSANTS_TICKET4, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, JETONS_REDEFINIS, RAYONS_TICKET48, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET48, AVANT_TICKET49, COMPOSANTS_TICKET4, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, JETONS_REDEFINIS, RAYONS_TICKET48, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -235,9 +235,6 @@ const RAYONS_AVANT = AVANT && AVANT_TICKET48(AVANT) ? `(${poserJetonsRedefinis})
 // Écart accepté et consigné (épopée 4, ticket 9) : grille d'espacement au pas de 4 px, posée sur un bundle « avant » antérieur au ticket
 // (ESPACEMENT_TICKET49) ; sur une base qui la contient déjà, rien n'est posé.
 const ESPACEMENT_AVANT = AVANT && AVANT_TICKET49(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(ESPACEMENT_TICKET49)});` : null;
-// Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section, kramail par les règles communes (CARTES_TICKET51),
-// posés sur un bundle « avant » antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé.
-const CARTES_AVANT = AVANT && AVANT_TICKET51(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(CARTES_TICKET51)});` : null;
 // Écart accepté et consigné (ticket 4), sur ce bundle « avant » seulement : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard
 // passés aux jetons qui changent avec le mode (COMPOSANTS_TICKET4) : marqués dans les deux bundles, puis masqués sur les deux captures ;
 // tout autre écart reste détecté.
@@ -1295,7 +1292,6 @@ if (frag('regression')) {
   if (ECHELLE_FORUM_AVANT) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d\'un kramail lu 15 px sur mobile) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
   if (RAYONS_AVANT) { console.log('  info écart accepté et consigné : rayons des pages du kramail aux trois rôles (contrôles 4 px, cartes et panneaux 8 px, en-tête de panneau 7 px sur ordinateur) posés sur le bundle « avant » (épopée 4, ticket 8)'); }
   if (ESPACEMENT_AVANT) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
-  if (CARTES_AVANT) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section, kramail par les règles communes, posés sur le bundle « avant » (épopée 5, entrée 1)'); }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1309,7 +1305,7 @@ if (frag('regression')) {
       for (const bundle of ['avant', 'apres']) {
         // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
         // début du document.
-        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT, ECHELLE_AVANT, ECHELLE_FORUM_AVANT, RAYONS_AVANT, ESPACEMENT_AVANT, CARTES_AVANT].filter(Boolean).join('\n') || null : null;
+        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT, ECHELLE_AVANT, ECHELLE_FORUM_AVANT, RAYONS_AVANT, ESPACEMENT_AVANT].filter(Boolean).join('\n') || null : null;
         const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });

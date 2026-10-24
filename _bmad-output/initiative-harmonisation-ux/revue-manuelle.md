@@ -314,3 +314,19 @@ Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autono
 - Décidé en autonomie (`#col-leftest-stats .btn-success`) : les caractéristiques sont repérées par ce sélecteur ; la fixture n'a pas `alert12x`.
 - Décidé en autonomie (bases antérieures) : le fragment `nettoyage` de typographie-formes (base `00b0786`) pose le masque `CARTES_TICKET55` sur sa base. Le fragment `groupes` de cartes-pastilles (base `a7f0463`) ne peut pas recevoir de css (P8) : fond, bordure et couleur du « PNJ » des cartes y sont neutralisés des deux côtés (`sansPnj55`), la géométrie reste comparée. Les deux sont à retirer quand ces bases contiennent l'entrée 5.
 - À regarder sur capture (375×667 et 1280×720, Kraland clair et Empire Brun sombre) : lisibilité de « PNJ » sur la carte, contour de la marque sur la couleur de nation, compteur de groupe à côté de « guilde » et « [mod] ».
+
+## Ticket 5.6 — refactor sweep (construit, 2026-10-24)
+
+- Retraits inertes seulement, sans changement de rendu : `--kr-badge-danger-border` et `--kr-badge-pnj` retirés de `:root` (aucun lecteur avant, ni en CSS, ni en JS, ni dans les tests) ; masque `CARTES_TICKET51` éteint dans `cybermonde-carte.mjs` et `kramail-redaction.mjs` (base `origin/feature/next`, qui contient 5.1 : le masque ne posait rien) ; condition de retrait écrite pour `sansPosition55`.
+- Décidé en autonomie (Ask First « `var(` trouvé au relevé avant ») : sans objet. Le relevé avant ne trouve que les deux déclarations (l.76 et l.77), aucun `var(` dans la feuille, le template, les tests ou les fixtures. Les deux jetons sont retirés.
+- Décidé en autonomie (Ask First « écart d'une suite après T2 à T5 ») : sans objet. `KR_FRAG=panneaux node tests/e2e/cybermonde-carte.mjs` (13 ok) et `node tests/e2e/kramail-redaction.mjs` (340 ok) donnent les mêmes lignes ok/FAIL avant et après ; zones `cartes-pastilles`, `kramail`, `cybermonde` vertes.
+- Décidé en autonomie (`--kr-badge-danger`) : gardé, nom et valeur. Seul lecteur : `.kd-field.is-invalid` de la rédaction du kramail.
+- Décidé en autonomie (T3, T4) : les deux suites sont reprises telles qu'en `458dc03` (inverse exact des hunks de `21fed8d`, seul commit à les toucher depuis) ; `git diff 458dc03` vide pour chacune.
+- Rappel, en attente de ta décision (aucune question nouvelle) :
+  - D12 : bureau compact 768 à 991 px, cloche et enveloppe invisibles menu fermé (ticket 5.4).
+  - D14 : `span.tagforum`, famille des étiquettes ou non (ticket 5.5).
+  - D15 : marque PNJ mobile en 14 px / 46 px au lieu de 12 px (ticket 5.5).
+  - Jetons A5 de la rétro 4 non lus par la peau : `--kr-font-page-title`, `--kr-space-5`, `--kr-space-6`, `--kr-margin-mobile`, `--kr-touch-target-dpad` (Bug 10).
+  - O1 : fond de page teinté en clair (5.1, 5.2).
+  - O2 : « À regarder sur capture » des tickets 5.2 à 5.5.
+  - O3 : barres de PV des cartes de personnages en couleurs en dur (`#5cb85c`, `#f0ad4e`, `#d9534f`), renvoyées à « l'épopée 5 » par `palette-nation.mjs` ; aucun ticket 5.x ne les a prises.

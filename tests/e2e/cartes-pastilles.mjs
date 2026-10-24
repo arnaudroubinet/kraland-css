@@ -1451,6 +1451,7 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
   return e.length ? [`${quoi} « ${x.texte} » : ${e.join(', ')}`] : [];
 }
 // Palette d'états : la marque PNJ passe en 700 et s'élargit, sa voisine #piece glisse d'un pixel ; sa position seule reste hors champ.
+// Condition de retrait : quand le bundle de base du fragment etiquettes (COMMIT_AVANT_55) contient l'entrée 5.5.
 const sansPosition55 = (c, k, x) => (c.nom === 'etats' && k === '#piece' ? { ...x, geo: x.geo.replace(/\[[^,]+,[^,]+,/, '[') } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
 const BUREAU55 = ['(min-width: 768px)', '(width >= 768px)'];
