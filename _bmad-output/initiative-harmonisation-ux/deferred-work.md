@@ -91,3 +91,12 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - Accordéon (`.panel-group`) ou modale `.panel-default` posé sur une page `/forum/*` : la règle forum ne bat plus la copie de base, il prendrait fond surface et rayon md. Aucune fixture du forum n'en contient ; à vérifier sur le site réel.
 - Bascule 767 ↔ 768 du forum non couverte par `cartes-pastilles` (fragment `bascule` sur Bâtiments). Risque faible : le forum recharge la page au changement de seuil.
 - Pages `/forum/*` hors fixtures (réponse, nouveau sujet, recherche, modération) : leurs `.panel-default` entrent dans la carte (48 px, corps à 0). À regarder sur capture.
+
+## Reports du ticket 5.3, groupes du plateau dans la carte (2026-10-24)
+
+- source_plan: `epic-cartes-pastilles/story-groupes-du-plateau-mobile-dans-la-carte-de-section-plan.md`
+  summary: P10 : les boutons de groupe de l'en-tête (`.dashboard-group-buttons a.btn`) mesurent 28 px, sous la cible tactile de 44 px. Hors périmètre (épopée 9), sans correctif.
+  evidence: Mesure sur `plateau-qualite-usage.html` à 375 px. Le fragment `groupes` de `cartes-pastilles.mjs` les touche par `elementFromPoint` sans changer l'état du groupe.
+- source_plan: `epic-cartes-pastilles/story-groupes-du-plateau-mobile-dans-la-carte-de-section-plan.md`
+  summary: Chevron de l'accordéon : le retrait vertical de la grille (`padding-top/bottom: 0` au repli) change sans transition, comme pour le module (report 5.1). La grille saute de 16 px avant l'animation.
+  evidence: Option : ajouter `padding` à la `transition` des deux accordéons en même temps.

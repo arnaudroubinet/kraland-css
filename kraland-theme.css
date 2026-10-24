@@ -5753,6 +5753,8 @@ body > map {
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-section-header-accordion {
     position: relative;
+    min-height: 48px;
+    padding: 0 var(--kr-space-4);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -5770,10 +5772,8 @@ body > map {
 /* --- 4b. Accordéon : Icône chevron --- */
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-section-header-accordion .accordion-icon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%) rotate(0deg);
+    margin-left: auto;
+    transform: rotate(0deg);
     transition: transform var(--transition-normal);
     color: var(--kr-text-secondary);
     font-size: 14px;
@@ -5784,7 +5784,7 @@ body > map {
 /* --- 4b. Accordéon : Rotation chevron quand ouvert --- */
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-section-header-accordion.expanded .accordion-icon {
-    transform: translateY(-50%) rotate(-180deg);
+    transform: rotate(-180deg);
   }
 }
 
@@ -5806,22 +5806,28 @@ body > map {
     max-height: 0;
     opacity: 0;
     margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     pointer-events: none;
   }
 }
 
-/* --- 4d. Sections : Espacement et style "Mon groupe" --- */
+/* --- 4d. Sections : carte de section (8 px des bords, fond surface, sans ombre), comme les panneaux --- */
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-section {
-    margin-bottom: 10px;
+    margin: 0 var(--kr-space-2) 10px;
+    background: var(--kr-bg-surface);
+    box-shadow: none;
   }
 }
 
-/* --- 4d. Sections : Style "Mon groupe" --- */
+/* --- 4d. Sections : titre du groupe en titre de section (casse normale) --- */
 @media (max-width: 767px) {
-  body.mobile-mode .dashboard-section-mygroup .dashboard-section-header {
-    background: var(--kr-bg-hover);
-    border-left: 3px solid var(--kr-primary);
+  body.mobile-mode .dashboard-group-title {
+    font-size: var(--kr-font-section-title);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: normal;
   }
 }
 
@@ -5831,7 +5837,7 @@ body > map {
     display: grid;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
-    padding: 8px 6px;
+    padding: var(--kr-space-2);
     background: transparent;
   }
 }
@@ -13226,7 +13232,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* --- En-têtes de groupe calmes : surface du thème + filet d'accent, au lieu de l'aplat plein --- */
+/* --- En-têtes de groupe calmes : surface du thème + filet d'accent (bureau et mobile sans mobile-mode ; carte de section sans filet en mobile-mode), au lieu de l'aplat plein --- */
 @media (min-width: 768px) {
   .dashboard-section-header {
     border-left: 4px solid var(--kr-primary);
@@ -13254,10 +13260,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 }
 
 @media (max-width: 767px) {
-  .dashboard-section-header,
-  .dashboard-section-header-accordion {
+  :where(body:not(.mobile-mode)) .dashboard-section-header,
+  :where(body:not(.mobile-mode)) .dashboard-section-header-accordion {
     border-left: 4px solid var(--kr-primary);
     background: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
+  }
+
+  :where(body.mobile-mode) .dashboard-section-header,
+  :where(body.mobile-mode) .dashboard-section-header-accordion {
+    background: var(--kr-bg-surface);
     color: var(--kr-text-primary);
   }
 

@@ -106,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1579,8 +1579,11 @@ if (on('espacement')) {
   console.log('\n== espacement ==');
   const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
   const base = new Map();
+  // Écart accepté et consigné (épopée 5, entrée 3) : groupes du plateau mobile en carte de section, cartes de personnages plus étroites ;
+  // la base reçoit CARTES_TICKET53 tant qu'elle précède l'entrée (AVANT_TICKET53).
+  const cssAvantEspacement = AVANT_TICKET53(avantEspacement) ? CARTES_TICKET53 : undefined;
   const res = await mapLimit(cas, async c => {
-    const a = await releverEspacement({ ...c, script: avantEspacement });
+    const a = await releverEspacement({ ...c, script: avantEspacement, css: cssAvantEspacement });
     base.set(etiquette(c), a);
     return { c, r: await releverEspacement({ ...c, script: userscript }), a };
   });
@@ -1609,7 +1612,7 @@ if (on('espacement')) {
   for (const { c, r, a } of resJetons) { verifierEspacement(c, c.nom, c.width, r.res, a.res, [5, 9, 13, 17]); }
   // Mini-profil du plateau plié puis déplié, 375 et 700 px : tuiles (E8) et écart de la liste (E9) égaux à la base.
   const casMini = VARIANTES.flatMap(variante => [375, 700].map(width => ({ nom: 'plateau', variante, width })));
-  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, deplier: true }), a: await releverEspacement({ ...c, script: avantEspacement, deplier: true }) }));
+  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, deplier: true }), a: await releverEspacement({ ...c, script: avantEspacement, css: cssAvantEspacement, deplier: true }) }));
   for (const { c, r, a } of resMini) {
     for (const [etat, cle] of [['plié', 'res'], ['déplié', 'deplie']]) { verifierEspacement(c, c.nom, c.width, r[cle], a[cle], [4, 8, 12, 16], ` ${etat}`); }
   }
@@ -1861,10 +1864,11 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
   // Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section (CARTES_TICKET51), posés sur un bundle de base
   // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé. Idem pour l'entrée 2 (CARTES_TICKET52,
-  // AVANT_TICKET52 : forum compris), empilée après.
+  // AVANT_TICKET52 : forum compris), empilée après, puis de l'entrée 3 (CARTES_TICKET53, AVANT_TICKET53 : groupes du plateau).
   const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
     + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '')
-    + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '');
+    + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '')
+    + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '');
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }

@@ -431,6 +431,41 @@ export const CARTES_TICKET52 = [
 export const AVANT_TICKET52 = bundle => !bundle.includes('body.page-forum .panel-default>.panel-body,body.page-forum-racine .panel-default>.panel-body{padding:0');
 
 /**
+ * Groupes du plateau mobile (épopée 5, entrée 3, story-groupes-du-plateau-mobile-dans-la-carte-de-section) : repères de cartes-pastilles.mjs
+ * écrits ici, hors de la suite (routeur, MAX_CITING) : section de groupe, en-tête, titre, chevron, grille et cartes de personnages, boutons
+ * de groupe, mini-profil (cité par plus de trois suites) et son en-tête.
+ */
+export const GROUPES_TICKET53 = {
+  section: '.dashboard-section', entete: '.dashboard-section-header', titre: '.dashboard-group-title', chevron: '.accordion-icon',
+  grille: '.dashboard-cards-grid', carte: '.dashboard-card', boutons: '.dashboard-group-buttons', miniProfil: '.mobile-mini-profile',
+  miniProfilEntete: '.mobile-mini-profile-header'
+};
+/**
+ * Écart accepté et consigné (épopée 5, entrée 3, story-groupes-du-plateau-mobile-dans-la-carte-de-section) : groupes mobiles du plateau en
+ * carte de section (8 px des bords, fond surface, sans ombre ; en-tête de 48 px, retrait 0 16 px, fond surface, sans filet, « mon groupe »
+ * compris ; titre 17 px 700 sans capitales ; chevron dans le flux de l'en-tête ; grille en retrait de 8 px, repliée sans retrait vertical).
+ * Feuille miroir en valeurs littérales, posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET53), jamais sur le bundle courant ;
+ * empilable avec CARTES_TICKET51 et CARTES_TICKET52 (posées avant elle) ; tout autre écart reste détecté. Écart consigné dans le plan de
+ * l'entrée (Plan Change Log).
+ * Condition de retrait : quand le bundle de base de la suite contient l'entrée 5.3 (le détecteur l'éteint de lui-même).
+ */
+export const CARTES_TICKET53 = [
+  '@media (max-width: 767px) {',
+  '  .dashboard-section-header, .dashboard-section-header-accordion { background: var(--kr-bg-surface); border-left: none; }',
+  '  body.mobile-mode .dashboard-section-mygroup .dashboard-section-header { background: var(--kr-bg-surface); border-left: none; }',
+  '  body.mobile-mode .dashboard-section-header-accordion { min-height: 48px; padding: 0 16px; }',
+  '  body.mobile-mode .dashboard-section-header-accordion .accordion-icon { position: static; top: auto; right: auto; margin-left: auto; transform: rotate(0deg); }',
+  '  body.mobile-mode .dashboard-section-header-accordion.expanded .accordion-icon { transform: rotate(-180deg); }',
+  '  body.mobile-mode .dashboard-section { margin: 0 8px 10px; background: var(--kr-bg-surface); box-shadow: none; }',
+  '  body.mobile-mode .dashboard-group-title { font-size: 17px; font-weight: 700; text-transform: none; letter-spacing: normal; }',
+  '  body.mobile-mode .dashboard-cards-grid { padding: 8px; }',
+  '  body.mobile-mode .dashboard-cards-grid.collapsed { padding-top: 0; padding-bottom: 0; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 5, entrée 3 : la règle mobile du titre de groupe n'y figure pas (règle minifiée du bundle). */
+export const AVANT_TICKET53 = bundle => !bundle.includes('body.mobile-mode .dashboard-group-title{');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

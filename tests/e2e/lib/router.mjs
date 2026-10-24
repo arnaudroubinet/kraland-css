@@ -86,8 +86,9 @@ export const SUITES = [
   // contrôles statiques ; ordinateur (768 à 1920) égal au bundle de base, bascule 767/768 dans les deux sens, contraste des 16 variantes.
   // Entrée 2 : forum (sous-forum, index, Staff, racine) en carte de section à 375 et 767, fil de sujet, accordéon et modales égaux à la base ;
   // lignes de tableau dans la carte, égales à la base ; repli au chevron. Fixtures synthétiques des pages de jeu, du kramail, des règles, du
-  // Cybermonde et fixtures du forum.
-  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['contraste']], needsBootstrap: true }
+  // Cybermonde et fixtures du forum. Entrée 3 : groupes du plateau en carte de section à 375 et 767 (accordéon, boutons, ordre et contenu
+  // des cartes égaux à la base), mini-profil égal à la base, ordinateur et bascule égaux à la base (fixture plateau-qualite-usage).
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['contraste']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -116,6 +117,8 @@ export const FILE_RULES = [
   [/^package\.json$/, 'package'],
   [/^tests\/e2e\/lib\//, 'all'],
   [/^tests\/e2e\/[\w-]+\.mjs$/, 'suite'],
+  // Fixtures des groupes et du mini-profil, lues aussi par cartes-pastilles (fragment groupes, épopée 5, entrée 3).
+  [/^tests\/e2e\/fixtures\/plateau-(?:qualite-usage|minimal)\.html$/, ['plateau', 'cartes-pastilles']],
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
   [/^tests\/e2e\/fixtures\/parler\//, ['parler']],
   [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre']],
@@ -179,6 +182,9 @@ export const KEYWORDS = [
   [/panel-heading|panel-title|list-group-item-heading/, ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes', 'cartes-pastilles']],
   // Module « Panel Sections Collapse » (sections repliables du jeu, épopée 5, entrée 1) : en-tête, corps et chevron mesurés par cartes-pastilles.
   [/building-section|accordion-icon/, ['cartes-pastilles']],
+  // Groupes du plateau (épopée 5, entrée 3) : section, grille, titre et chevron de l'accordéon, mesurés par cartes-pastilles (fragment groupes),
+  // plateau-qualite-usage (bureau) et typographie-formes (formes, nettoyage).
+  [/dashboard-section|dashboard-cards-grid|dashboard-group-title|accordion-icon/, ['cartes-pastilles', 'plateau', 'typographie-formes']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES]
 ];

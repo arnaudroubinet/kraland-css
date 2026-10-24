@@ -24,12 +24,21 @@
 //   bureau      toutes les pages à 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : égales au bundle de base ;
 //   bascule     Bâtiments, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet (section repliée avant chaque passage) : carte à 767,
 //               égal au bundle de base (même parcours) à 768 ;
-//   contraste   16 variantes, Bâtiments et réception à 375 px : titre de chaque carte ≥ 4,5:1 sur son fond ; coins de la carte et coins bas
-//               du dernier corps à 8 px.
+//   groupes     (entrée 3) groupes du plateau (plateau-qualite-usage, .dashboard natif de deux groupes) à 375 et 767 px, Kraland clair et
+//               Empire Brun sombre : chaque groupe en carte (8 px des bords, fond surface, rayons 8 px, sans ombre ; en-tête de 48 px au
+//               moins, retrait 0 16 px, fond surface, sans filet ; titre 17 px 700 text-primary sans capitales ; chevron dans le flux à 16 px
+//               du bord droit ; cartes de personnages à 8 px des bords), aucun débordement ; « mon groupe » ouvert, l'autre réduit à son
+//               en-tête de 48 px (grille de 0 px sans cible, cartes dans le DOM) ; deux taps par en-tête (scrollTo puis elementFromPoint) :
+//               état et aria-expanded inversés puis rétablis ; tap sur un bouton de groupe sans effet ; ordre des groupes et contenu des
+//               cartes égaux au bundle de base (a7f0463) ; mini-profil plié et déplié à 375 et 700 px (plateau-minimal, plateau-qualite-usage)
+//               égal à la base ; 768, 769, 1280, 1440 et 1920 px égaux à la base ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le
+//               même onglet : carte à 767, base à 768 ; contrôle statique : règles des groupes sans !important, dans le média mobile ;
+//   contraste   16 variantes, Bâtiments, réception, sous-forum, index RP et groupes du plateau à 375 px : titre de chaque carte ≥ 4,5:1 sur
+//               son fond ; coins de la carte et coins bas du dernier corps à 8 px.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d), KR_FRAG = carte, module, kramail,
-// forum, lignes, chevron, bureau, bascule, contraste (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d, a7f0463 pour groupes), KR_FRAG = carte,
+// module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -40,7 +49,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, DOSSIER_MODALE_TICKET51, PANNEAU_TICKET51, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { CONTRASTE, DOSSIER_MODALE_TICKET51, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -49,6 +58,10 @@ const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join
 const COMMIT_AVANT = '21fed8d';
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Groupes du plateau (entrée 3, A6) : base dédiée, la carte des panneaux (21fed8d) restant celle des autres fragments.
+const COMMIT_AVANT_53 = 'a7f0463';
+const avant53 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_AVANT_53}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const ordre = f => lire(path.join(DOSSIER_MODALE_TICKET51, f)).replace(/^<!--[\s\S]*?-->\s*/, '');
 // Styles et scripts natifs du site pour les modales d'ordre (vendor/parler, comme la suite de la modale d'ordre).
@@ -95,8 +108,14 @@ const PAGES = {
   repondre: { url: '/kramail/post/sujet-fictif-de-lecture-5-9000002', html: lire('kramail-repondre.html'), famille: 'exclus', racine: '.panel-group' },
   echelle: { url: '/jouer/materiel', html: lire('typographie-echelle.html'), famille: 'exclus', racine: '.panel-group' },
   'modale-dormir': { url: '/jouer/plateau', html: ordre('plateau.html'), famille: 'exclus', racine: '.bootbox', ordre: ordre('dormir.html') },
-  'modale-pouvoir': { url: '/jouer/plateau', html: ordre('plateau.html'), famille: 'exclus', racine: '.bootbox', ordre: ordre('pouvoir.html') }
+  'modale-pouvoir': { url: '/jouer/plateau', html: ordre('plateau.html'), famille: 'exclus', racine: '.bootbox', ordre: ordre('pouvoir.html') },
+  // Groupes du plateau (entrée 3) : fixtures sans feuille Bootstrap, liée ici pour la cascade réelle (vendor). plateau-minimal : mini-profil seul.
+  groupes: { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes' },
+  'plateau-minimal': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-minimal.html')), famille: 'groupes' },
+  // P4 : groupes à innerWidth 791 (barre de navigation qui déborde, relevé sur plateau-minimal) : mobile-mode absent, média mobile valide.
+  'groupes-nu': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes', innerWidth: 791 }
 };
+function avecBootstrap(h) { return h.replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>'); }
 const DE = famille => Object.keys(PAGES).filter(k => PAGES[k].famille === famille);
 
 let failures = 0;
@@ -126,6 +145,8 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
+  // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
+  if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
     window.GM = { xmlHttpRequest: () => {} };
     // Soumission neutralisée (aucun envoi, même depuis une fixture).
@@ -682,7 +703,7 @@ if (on('chevron')) {
 
 if (on('bureau')) {
   console.log('\n== bureau ==');
-  await comparer('bureau', Object.keys(PAGES).filter(k => PAGES[k].famille !== 'exclus').flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
+  await comparer('bureau', Object.keys(PAGES).filter(k => !['exclus', 'groupes'].includes(PAGES[k].famille)).flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
 }
 
 // ---------- bascule dans le même onglet ----------
@@ -730,6 +751,347 @@ if (on('bascule')) {
   }
 }
 
+// ---------- groupes du plateau (entrée 3) ----------
+// Mesure des groupes (dans la page) : section, en-tête, titre, chevron, grille et cartes de personnages ; G : repères (lib/variantes.mjs).
+const MESURE_GROUPES = ([Q, texte]) => {
+  const boite = e => { const b = e.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height, d: b.right, bas: b.bottom }; };
+  const coins = s => [s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius];
+  const C = window.__krContraste;
+  return {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    vw: document.documentElement.clientWidth,
+    sw: document.documentElement.scrollWidth,
+    surface: C.sonde('var(--kr-bg-surface)'),
+    primaire: C.sonde(texte),
+    sections: [...document.querySelectorAll(Q.section)].map(s => {
+      const ss = getComputedStyle(s);
+      const h = s.querySelector(Q.entete);
+      const hs = getComputedStyle(h);
+      const t = h.querySelector(Q.titre);
+      const ts = getComputedStyle(t);
+      const ic = h.querySelector(Q.chevron);
+      const g = s.querySelector(Q.grille);
+      // Lignes du titre : sommets distincts des boîtes de ses nœuds texte (au demi-pixel près).
+      const plage = document.createRange();
+      const sommets = new Set([...t.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim()).flatMap(n => {
+        plage.selectNodeContents(n);
+        return [...plage.getClientRects()].filter(b => b.width > 0).map(b => Math.round(b.top * 2));
+      }));
+      const textes = [...t.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
+      plage.selectNodeContents(textes[0] || t);
+      const debut = plage.getClientRects()[0];
+      return {
+        nom: t.textContent.trim().replace(/\s+/g, ' ').slice(0, 30), p: boite(s), fond: ss.backgroundColor, coins: coins(ss), ombre: ss.boxShadow,
+        h: boite(h), aria: h.getAttribute('aria-expanded'), hfond: hs.backgroundColor, hmin: hs.minHeight,
+        lignes: sommets.size, deborde: t.scrollWidth > t.clientWidth, debutTexte: debut ? debut.left : null,
+        icones: [...t.querySelectorAll('img')].map(boite),
+        filets: [hs.borderTopWidth, hs.borderRightWidth, hs.borderBottomWidth, hs.borderLeftWidth], retrait: [hs.paddingTop, hs.paddingRight, hs.paddingBottom, hs.paddingLeft],
+        titre: { ...boite(t), taille: ts.fontSize, graisse: ts.fontWeight, couleur: ts.color, casse: ts.textTransform, espacement: ts.letterSpacing, rapport: C.texte(t) },
+        chevron: ic ? { ...boite(ic), position: getComputedStyle(ic).position, transform: getComputedStyle(ic).transform } : null,
+        grille: g ? { ...boite(g), replie: g.classList.contains('collapsed'), cible: getComputedStyle(g).pointerEvents } : null,
+        cartes: [...s.querySelectorAll(Q.carte)].map(boite)
+      };
+    })
+  };
+};
+// Ordre et contenu (dans la page) : groupes, enfants de l'en-tête, puis chaque carte (texte, structure, images) dans l'ordre DOM.
+const CONTENU_GROUPES = Q => [...document.querySelectorAll(Q.section)].map(s => ({
+  cls: s.className,
+  entete: [...s.querySelector(Q.entete).children].map(e => `${e.tagName}.${[...e.classList].join('.')} ${e.textContent.trim().replace(/\s+/g, ' ')}`),
+  cartes: [...s.querySelectorAll(Q.carte)].map(c => ({
+    texte: c.textContent.trim().replace(/\s+/g, ' '),
+    structure: [...c.querySelectorAll('*')].map(e => `${e.tagName}.${[...e.classList].join('.')}`).join(' '),
+    images: [...c.querySelectorAll('img')].map(i => i.getAttribute('src'))
+  }))
+}));
+// Groupe touché (dans la page) : en-tête i défilé à 200 px du haut (scrollTo), puis point visé ; null si l'élément attendu y est couvert.
+async function viser(page, i, quoi) {
+  await page.evaluate(([g, k]) => { const h = document.querySelectorAll(g.entete)[k]; window.scrollTo(0, 0); window.scrollTo(0, h.getBoundingClientRect().top - 200); }, [G, i]);
+  await styleSettled(page, 'body');
+  return page.evaluate(([g, k, q]) => {
+    const h = document.querySelectorAll(g.entete)[k];
+    const cible = q === 'bouton' ? h.querySelector(`${g.boutons} a.btn`) : h.querySelector(g.titre);
+    if (!cible) { return null; }
+    const b = cible.getBoundingClientRect();
+    const x = b.left + b.width / 2;
+    const y = b.top + b.height / 2;
+    const e = document.elementFromPoint(x, y);
+    const ok = q === 'bouton' ? e?.closest('a.btn') === cible : e?.closest(g.entete) === h && !e.closest(g.boutons);
+    return ok ? { x, y } : null;
+  }, [G, i, quoi]);
+}
+async function taperGroupe(page, i, quoi) {
+  const pt = await viser(page, i, quoi);
+  if (pt) { await page.touchscreen.tap(pt.x, pt.y); }
+  await styleSettled(page, G.grille, { index: i });
+  await styleSettled(page, G.entete, { index: i });
+  return { touche: !!pt, m: await page.evaluate(MESURE_GROUPES, [G, TEXTE_TICKET51]) };
+}
+function controlerGroupes(m) {
+  assert.ok(m.theme, 'kr-theme-enabled absent');
+  assert.ok(m.mobile, 'mobile-mode absent');
+  assert.equal(m.sections.length, 2, `${m.sections.length} groupe(s)`);
+  assert.ok(m.sw <= m.vw, `débordement horizontal : ${m.sw} > ${m.vw}`);
+  const ecarts = [];
+  for (const c of m.sections) {
+    const e = [];
+    if (!pres(c.p.x, 8) || !pres(c.p.w, m.vw - 16)) { e.push(`boîte x ${r1(c.p.x)} largeur ${r1(c.p.w)} (vw ${m.vw})`); }
+    if (c.fond !== m.surface) { e.push(`fond ${c.fond} ≠ ${m.surface}`); }
+    if (c.coins.some(v => v !== '8px')) { e.push(`rayons ${c.coins.join(' ')}`); }
+    if (c.ombre !== 'none') { e.push(`ombre ${c.ombre}`); }
+    if (!pres(c.h.y, c.p.y) || !pres(c.h.x, c.p.x) || !pres(c.h.w, c.p.w)) { e.push(`en-tête décalé [${r1(c.h.x)},${r1(c.h.y)},${r1(c.h.w)}]`); }
+    if (c.h.h < 47.5) { e.push(`en-tête ${r1(c.h.h)} px`); }
+    if (!(parseFloat(c.hmin) >= 48)) { e.push(`min-height de l'en-tête ${c.hmin}`); }
+    if (c.retrait.join(' ') !== '0px 16px 0px 16px') { e.push(`retrait ${c.retrait.join(' ')}`); }
+    if (c.filets.some(v => v !== '0px')) { e.push(`filets ${c.filets.join(' ')}`); }
+    if (c.hfond !== m.surface) { e.push(`fond de l'en-tête ${c.hfond} ≠ ${m.surface}`); }
+    const t = c.titre;
+    if (t.taille !== '17px' || t.graisse !== '700' || t.couleur !== m.primaire || t.casse !== 'none' || t.espacement !== 'normal') {
+      e.push(`titre ${t.taille}/${t.graisse} ${t.couleur} ${t.casse} ${t.espacement} (attendu 17px/700 ${m.primaire} none normal)`);
+    }
+    if (t.d > c.h.d - 16 + 0.5 || t.y < c.h.y - 0.5 || t.bas > c.h.bas + 0.5) { e.push(`titre hors de l'en-tête [${r1(t.x)}..${r1(t.d)}, ${r1(t.y)}..${r1(t.bas)}]`); }
+    // Chevron de 0 x 0 sans la police FA (P5) : son bord droit et son centre vertical sont mesurés.
+    if (!c.chevron) { e.push('chevron absent'); } else if (c.chevron.position !== 'static' || !pres(c.h.d - c.chevron.d, 16) || c.chevron.y < c.h.y - 0.5 || c.chevron.bas > c.h.bas + 0.5) {
+      e.push(`chevron ${c.chevron.position} à ${r1(c.h.d - c.chevron.d)} px du bord, [${r1(c.chevron.y)},${r1(c.chevron.bas)}] hors de [${r1(c.h.y)},${r1(c.h.bas)}]`);
+    }
+    if (!c.grille || !c.cartes.length) { e.push('grille ou cartes absentes'); } else if (!c.grille.replie) {
+      const g = Math.min(...c.cartes.map(k => k.x));
+      const d = Math.max(...c.cartes.map(k => k.d));
+      const haut = Math.min(...c.cartes.map(k => k.y));
+      const bas = Math.max(...c.cartes.map(k => k.bas));
+      if (!pres(g - c.p.x, 8) || !pres(c.p.d - d, 8) || !pres(haut - c.h.bas, 8) || !pres(c.p.bas - bas, 8)) {
+        e.push(`cartes à ${r1(g - c.p.x)} / ${r1(c.p.d - d)} / ${r1(haut - c.h.bas)} / ${r1(c.p.bas - bas)} px des bords (gauche, droite, haut, bas)`);
+      }
+    }
+    if (e.length) { ecarts.push(`« ${c.nom} » : ${e.join(', ')}`); }
+  }
+  assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+}
+// Ouvert : grille dépliée, aria-expanded true, carte plus haute que l'en-tête ; fermé : grille repliée de 0 px sans cible, carte réduite à
+// l'en-tête, cartes de personnages toujours dans le DOM.
+function etatGroupe(c, ouvert) {
+  if (ouvert) {
+    assert.ok(!c.grille.replie && c.aria === 'true' && c.grille.h > 0 && c.p.h > c.h.h + 0.5, `replié ${c.grille.replie}, aria ${c.aria}, grille ${r1(c.grille.h)} px, carte ${r1(c.p.h)} px`);
+  } else {
+    assert.ok(c.grille.replie && c.aria === 'false', `replié ${c.grille.replie}, aria ${c.aria}`);
+    assert.ok(pres(c.grille.h, 0) && c.grille.cible === 'none', `grille ${r1(c.grille.h)} px, pointer-events ${c.grille.cible}`);
+    assert.ok(pres(c.p.h, c.h.h), `carte ${r1(c.p.h)} px, en-tête ${r1(c.h.h)} px`);
+    assert.ok(c.cartes.length > 0, 'cartes retirées du DOM');
+  }
+}
+if (on('groupes')) {
+  console.log('\n== groupes ==');
+  const rs = await regles();
+  check('statique : règles des groupes (dashboard-section, en-têtes, titre, chevron, grille) sans !important hors grille, mobiles dans le média mobile, sans rayon littéral', () => {
+    const l = rs.filter(r => /dashboard-(?:section|group-title|cards-grid)/.test(r.sel) && !/dashboard-card[^s]|dashboard-group-buttons|\.badge/.test(r.sel));
+    const ecarts = l.flatMap(r => {
+      const e = [];
+      const mobile = /body\.mobile-mode|accordion/.test(r.sel);
+      if (mobile && !MOBILE.includes(r.media)) { e.push(`${r.media || 'global'} ${r.sel}`); }
+      for (const [p, [v, prio]] of Object.entries(r.d)) {
+        if (prio && MOBILE.includes(r.media) && !(/dashboard-cards-grid$/.test(r.sel) && ['grid-template-columns', 'gap', 'row-gap', 'column-gap'].includes(p))) { e.push(`${r.sel} { ${p}: ${v} !important }`); }
+        if (/radius/.test(p) && /\d+px/.test(v) && !/var\(/.test(v)) { e.push(`${r.sel} { ${p}: ${v} }`); }
+      }
+      return e;
+    });
+    assert.ok(l.length >= 8, `${l.length} règle(s)`);
+    assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+  });
+  // Carte, état initial, accordéon, boutons de groupe, ordre et contenu.
+  const cas = MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom: 'groupes', width, variante })));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    const m = await page.evaluate(MESURE_GROUPES, [G, TEXTE_TICKET51]);
+    const contenu = await page.evaluate(CONTENU_GROUPES, G);
+    const taps = [];
+    for (let i = 0; i < m.sections.length; i += 1) {
+      const t1 = await taperGroupe(page, i, 'titre');
+      const t2 = await taperGroupe(page, i, 'titre');
+      const b = await taperGroupe(page, i, 'bouton');
+      taps.push({ t1, t2, b });
+    }
+    await context.close();
+    const base = await ouvrir({ ...c, script: avant53 });
+    const contenuBase = await base.page.evaluate(CONTENU_GROUPES, G);
+    const themeBase = await base.page.evaluate(() => document.documentElement.classList.contains('kr-theme-enabled'));
+    await base.context.close();
+    return { c, m, contenu, contenuBase, themeBase, taps, erreurs };
+  });
+  for (const { c, m, contenu, contenuBase, themeBase, taps, erreurs } of res) {
+    const lab = `groupes ${c.variante} ${c.width} px`;
+    check(`${lab} : 2 groupes en carte (8 px des bords, fond surface, rayons 8 px, sans ombre ; en-tête ≥ 48 px, retrait 0 16 px, fond surface, sans filet ; titre 17 px 700 text-primary sans capitales ; chevron dans le flux à 16 px du bord droit ; cartes à 8 px des bords), sans débordement`, () => controlerGroupes(m));
+    check(`${lab} : « mon groupe » ouvert, second groupe réduit à son en-tête (48 px au moins ; grille de 0 px sans cible, cartes dans le DOM)`, () => {
+      assert.ok(/dashboard-section-mygroup/.test(contenu[0].cls), contenu[0].cls);
+      etatGroupe(m.sections[0], true);
+      etatGroupe(m.sections[1], false);
+      assert.ok(m.sections[1].h.h >= 47.5, `second groupe ${r1(m.sections[1].p.h)} px`);
+    });
+    check(`${lab} : titre long sur un en-tête plus haut que 48 px au besoin, dans la carte (titres ${m.sections.map(s => `${r1(s.h.h)} px`).join(', ')})`, () => {
+      assert.ok(m.sections[1].nom.length > 25, m.sections[1].nom);
+      assert.ok(m.sections.every(s => s.titre.bas <= s.h.bas + 0.5 && s.h.h >= 47.5), 'titre hors de l\'en-tête');
+      assert.ok(m.sections.every(s => !s.deborde), `titre tronqué (scrollWidth > clientWidth) : ${m.sections.filter(s => s.deborde).map(s => s.nom).join(', ')}`);
+      assert.ok(m.sw <= m.vw, `débordement ${m.sw}`);
+      // À 375 px, le titre long passe à la ligne et l'en-tête grandit au-delà de 48 px.
+      if (c.width === 375) {
+        const l = m.sections[1];
+        assert.ok(l.lignes > 1 && l.h.h > 48.5, `titre long sur ${l.lignes} ligne(s), en-tête ${r1(l.h.h)} px`);
+      }
+    });
+    check(`${lab} : en-tête d'un groupe au titre d'une ligne à 48 px (min-height ${m.sections[0].hmin})`, () => {
+      const c0 = m.sections[0];
+      assert.equal(c0.lignes, 1, `${c0.lignes} ligne(s)`);
+      assert.ok(pres(c0.h.h, 48), `en-tête ${r1(c0.h.h)} px`);
+    });
+    check(`${lab} : icône native (img) du titre à gauche du texte, dans l'en-tête`, () => {
+      const c0 = m.sections[0];
+      assert.equal(c0.icones.length, 1, `${c0.icones.length} icône(s)`);
+      const ic = c0.icones[0];
+      assert.ok(ic.w > 0 && ic.h > 0, `icône ${r1(ic.w)} x ${r1(ic.h)}`);
+      assert.ok(c0.debutTexte !== null && ic.d <= c0.debutTexte + 0.5, `icône [${r1(ic.x)}..${r1(ic.d)}], texte à ${r1(c0.debutTexte)}`);
+      assert.ok(ic.x >= c0.h.x + 16 - 0.5 && ic.y >= c0.h.y - 0.5 && ic.bas <= c0.h.bas + 0.5, `icône hors de l'en-tête [${r1(ic.x)},${r1(ic.y)},${r1(ic.bas)}]`);
+    });
+    taps.forEach(({ t1, t2, b }, i) => {
+      const depart = i === 0;
+      check(`${lab} groupe ${i + 1} : 1er tap sur l'en-tête (scrollTo, elementFromPoint) : ${depart ? 'replié' : 'déplié'}, aria-expanded ${!depart}, chevron ${depart ? '0' : '-180'}°`, () => {
+        assert.ok(t1.touche, 'en-tête couvert au point du tap');
+        etatGroupe(t1.m.sections[i], !depart);
+        const tr = t1.m.sections[i].chevron.transform;
+        assert.ok(depart ? /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/.test(tr) : /^matrix\(-1, /.test(tr), `transform ${tr}`);
+      });
+      check(`${lab} groupe ${i + 1} : 2e tap : état d'origine, hauteur d'origine (${r1(m.sections[i].p.h)} px), sans débordement`, () => {
+        assert.ok(t2.touche, 'en-tête couvert au point du tap');
+        etatGroupe(t2.m.sections[i], depart);
+        assert.ok(pres(t2.m.sections[i].p.h, m.sections[i].p.h), `carte ${r1(t2.m.sections[i].p.h)} px`);
+        assert.ok(t2.m.sw <= t2.m.vw, `débordement ${t2.m.sw}`);
+      });
+      check(`${lab} groupe ${i + 1} : tap sur un bouton de groupe (elementFromPoint) sans effet sur l'état`, () => {
+        assert.ok(b.touche, 'bouton couvert au point du tap');
+        etatGroupe(b.m.sections[i], depart);
+      });
+    });
+    check(`${lab} : ordre des groupes, en-têtes et contenu des cartes (niveau, PNJ, PV, statut) égaux au bundle de base (${COMMIT_AVANT_53})`, () => {
+      assert.ok(themeBase, 'kr-theme-enabled absent (base)');
+      assert.deepEqual(contenu, contenuBase);
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Mini-profil plié et déplié, égal à la base (plateau-minimal et plateau-qualite-usage, 375 et 700 px).
+  const miniProfil = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script });
+    const etat = async cls => {
+      await waitState(page, ([sel, k]) => { const mp = document.querySelector(sel); return !!mp && mp.classList.contains(k) && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, [G.miniProfil, cls], { maxMs: 3000 });
+      await styleSettled(page, G.miniProfil);
+      return page.evaluate(RELEVE, [G.miniProfil, ['', '*']]);
+    };
+    const plie = await etat('collapsed');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.tap(G.miniProfilEntete);
+    const deplie = await etat('expanded');
+    await context.close();
+    return { plie, deplie, erreurs };
+  };
+  const casMp = ['plateau-minimal', 'groupes'].flatMap(nom => [375, 700].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  const resMp = await mapLimit(casMp, async c => ({ c, teste: await miniProfil(c, userscript), base: await miniProfil(c, avant53) }));
+  for (const { c, teste, base } of resMp) {
+    for (const k of ['plie', 'deplie']) {
+      check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${k === 'plie' ? 'plié' : 'déplié'} : égal au bundle de base (${teste[k].l.length} éléments)`, () => {
+        assert.ok(teste[k].theme && base[k].theme, `kr-theme-enabled testé ${teste[k].theme} / base ${base[k].theme}`);
+        assert.ok(teste[k].mobile, 'mobile-mode absent');
+        assert.ok(teste[k].l.length > 1, 'mini-profil absent');
+        const d = premierEcart(teste[k].l, base[k].l);
+        assert.equal(d, '', d);
+      });
+    }
+    check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+  // Bureau : groupes égaux à la base, filet gauche de 4 px compris.
+  const SELS_GROUPES = [G.section, `${G.section} *`];
+  const resBureau = await mapLimit(BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom: 'groupes', width, variante }))), async c => {
+    const out = {};
+    for (const [cle, script] of [['teste', userscript], ['base', avant53]]) {
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      out[cle] = { r: await page.evaluate(RELEVE, ['html', SELS_GROUPES]), erreurs };
+      await context.close();
+    }
+    return { c, ...out };
+  });
+  for (const { c, teste, base } of resBureau) {
+    check(`groupes bureau ${c.variante} ${c.width} px : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
+      assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
+      assert.equal(teste.r.mobile, false, 'mode mobile');
+      assert.ok(teste.r.l.length > 0, 'aucun élément');
+      const d = premierEcart(teste.r.l, base.r.l);
+      assert.equal(d, '', d);
+      assert.equal(teste.r.sw, base.r.sw, 'largeur défilable');
+    });
+    check(`groupes bureau ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+  // P4 : à 767 px sans mobile-mode (média mobile valide), groupes égaux à la base : ni carte partielle, ni filet ou fond retiré seuls.
+  const resP4 = await mapLimit(VARIANTES.map(variante => ({ nom: 'groupes-nu', width: 767, variante })), async c => {
+    const out = {};
+    for (const [cle, script] of [['teste', userscript], ['base', avant53]]) {
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      const media = await page.evaluate(() => window.matchMedia('(max-width: 767px)').matches);
+      out[cle] = { r: await page.evaluate(RELEVE, ['html', SELS_GROUPES]), media, erreurs };
+      await context.close();
+    }
+    return { c, ...out };
+  });
+  for (const { c, teste, base } of resP4) {
+    check(`groupes sans mobile-mode ${c.variante} 767 px (média mobile valide) : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
+      assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
+      assert.equal(teste.r.mobile, false, 'mobile-mode présent : état P4 non reproduit');
+      assert.ok(teste.media, 'média (max-width: 767px) non valide');
+      assert.ok(teste.r.l.length > 0, 'aucun élément');
+      const d = premierEcart(teste.r.l, base.r.l);
+      assert.equal(d, '', d);
+    });
+    check(`groupes sans mobile-mode ${c.variante} 767 px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+  // Bascule dans le même onglet : carte à 767, base (même parcours) à 768.
+  const parcoursGroupes = async (script, variante, largeurs) => {
+    const { context, page, erreurs } = await ouvrir({ nom: 'groupes', width: largeurs[0], variante, script, tactile: false });
+    const etapes = [];
+    for (let i = 0; i < largeurs.length; i += 1) {
+      const width = largeurs[i];
+      if (i > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+        await page.setViewportSize({ width, height: 667 });
+        await charge;
+        await prete(page, `bascule groupes ${variante} ${width} px`);
+      }
+      etapes.push({ width, m: width < 768 ? await page.evaluate(MESURE_GROUPES, [G, TEXTE_TICKET51]) : null, r: await page.evaluate(RELEVE, ['html', SELS_GROUPES]) });
+    }
+    await context.close();
+    return { etapes, erreurs };
+  };
+  const casB = VARIANTES.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
+  const resB = await mapLimit(casB, async c => ({ c, teste: await parcoursGroupes(userscript, c.variante, c.largeurs), base: await parcoursGroupes(avant53, c.variante, c.largeurs) }));
+  for (const { c, teste, base } of resB) {
+    const lab = `groupes bascule ${c.variante} ${c.largeurs.join(' -> ')}`;
+    teste.etapes.forEach((e, i) => {
+      if (e.width < 768) {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : groupes en carte, « mon groupe » ouvert, second groupe fermé`, () => {
+          controlerGroupes(e.m);
+          etatGroupe(e.m.sections[0], true);
+          etatGroupe(e.m.sections[1], false);
+        });
+      } else {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : égal au bundle de base (même parcours), aucun état replié`, () => {
+          assert.ok(e.r.theme && base.etapes[i].r.theme, 'kr-theme-enabled absent');
+          assert.equal(e.r.mobile, false, 'mode mobile à 768 px');
+          const d = premierEcart(e.r.l, base.etapes[i].r.l);
+          assert.equal(d, '', d);
+          assert.ok(!e.r.l.some(x => /collapsed/.test(x.split(' ')[1])), 'grille repliée à 768 px');
+        });
+      }
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
 // ---------- contraste (16 variantes) ----------
 if (on('contraste')) {
   console.log('\n== contraste ==');
@@ -755,6 +1117,26 @@ if (on('contraste')) {
       assert.deepEqual(ecarts, [], ecarts.join(' ; '));
     });
     check(`contraste ${c.nom} ${c.variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Groupes du plateau (entrée 3) : titre de chaque groupe sur le fond surface de son en-tête, coins de la carte à 8 px.
+  const resG = await mapLimit(TOUTES.map(variante => ({ nom: 'groupes', variante, width: 375 })), async c => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    const m = await page.evaluate(MESURE_GROUPES, [G, TEXTE_TICKET51]);
+    await context.close();
+    return { c, m, erreurs };
+  });
+  for (const { c, m, erreurs } of resG) {
+    check(`contraste groupes ${c.variante} : titre de chaque groupe ≥ 4,5:1 sur le fond surface, coins de la carte à 8 px`, () => {
+      assert.ok(m.theme, 'kr-theme-enabled absent');
+      assert.equal(m.sections.length, 2, 'groupes');
+      const ecarts = m.sections.flatMap(s => [
+        ...(s.titre.rapport < 4.5 ? [`« ${s.nom} » ${s.titre.rapport.toFixed(2)}:1`] : []),
+        ...(s.hfond !== m.surface ? [`« ${s.nom} » fond ${s.hfond}`] : []),
+        ...(s.coins.some(v => v !== '8px') ? [`« ${s.nom} » rayons ${s.coins.join(' ')}`] : [])
+      ]);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    check(`contraste groupes ${c.variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
 

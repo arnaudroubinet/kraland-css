@@ -218,10 +218,26 @@ check('panneaux du forum, du sous-forum et de la racine -> cartes-pastilles, en 
   }
   assert.ok(!route('kraland-theme.css', hunk('  body.page-forum .forum-msg {', '    margin: 0;')).zones.includes('cartes-pastilles'), 'forum hors panneau');
 });
-check('cartes-pastilles enregistrée (9 fragments, Bootstrap embarqué)', () => {
+check('groupes du plateau (dashboard-section, grille, titre, chevron) -> cartes-pastilles, plateau et typographie-formes (épopée 5, entrée 3)', () => {
+  for (const h of [
+    hunk('  body.mobile-mode .dashboard-section {', '    margin: 0 var(--kr-space-2) 10px;'),
+    hunk('  body.mobile-mode .dashboard-cards-grid.collapsed {', '    padding-top: 0;'),
+    hunk('  body.mobile-mode .dashboard-group-title {', '    font-weight: 700;'),
+    hunk('  body.mobile-mode .dashboard-section-header-accordion .accordion-icon {', '    margin-left: auto;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    for (const z of ['cartes-pastilles', 'plateau', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
+  }
+  for (const f of ['tests/e2e/fixtures/plateau-qualite-usage.html', 'tests/e2e/fixtures/plateau-minimal.html']) {
+    assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ [f]: [] }), readWith({})).zones), ['cartes-pastilles', 'plateau'], f);
+  }
+  assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/plateau-navbar-large.html': [] }), readWith({})).zones, ['plateau']);
+});
+check('cartes-pastilles enregistrée (10 fragments, Bootstrap embarqué)', () => {
   const s = SUITES.find(x => x.name === 'cartes-pastilles');
   assert.ok(s, 'suite absente du registre');
-  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'contraste']);
+  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'groupes', 'contraste']);
   assert.equal(s.needsBootstrap, true);
 });
 
