@@ -163,8 +163,26 @@ export const LEGENDES_TICKET45 = [
   '  body.mobile-mode .mobile-mini-profile .kr-skill-caption { font-size: 12px !important; }',
   '}'
 ].join('\n');
-/** Bundle d'avant l'épopée 4, ticket 5 : l'échelle mobile des titres n'y emploie pas encore le jeton (règle minifiée du bundle). */
-export const AVANT_TICKET45 = bundle => !bundle.includes('h1,h2,h3{font-size:var(--kr-font-section-title)!important}');
+/**
+ * Bundle d'avant l'épopée 4, ticket 5 : l'échelle mobile des titres n'y emploie pas encore le jeton (règle minifiée du bundle). Deux formes
+ * reconnues : celle du ticket 5 et celle du bug 10, qui en exclut le nom de forum des cartes (TITRE_FORUM_REGLE_BUG10).
+ */
+export const AVANT_TICKET45 = bundle => !bundle.includes('h1,h2,h3{font-size:var(--kr-font-section-title)!important}') && !bundle.includes(TITRE_FORUM_REGLE_BUG10);
+/** Règle mobile des titres h1-h3 réécrite par le bug 10, telle que minifiée dans le bundle : le nom de forum des cartes en est exclu. */
+export const TITRE_FORUM_REGLE_BUG10 = ':is(h1,h2,h3):where(:not(.forum-title)){font-size:var(--kr-font-section-title)!important}';
+/**
+ * Écart accepté et consigné (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15) : sur mobile, le nom de forum des cartes
+ * (h3.forum-title) passe de 17 px (titres h1-h3 en !important) à 15 px (--kr-font-forum-name). Masque miroir en feuille adoptée ((0,1,0)
+ * en !important : bat la règle des titres et ECHELLE_TICKET45), posé sur un bundle de base antérieur au bug (AVANT_BUG10), jamais sur le
+ * bundle courant ; tout autre écart reste détecté.
+ */
+export const TITRE_FORUM_BUG10 = [
+  '@media (max-width: 767px) {',
+  '  .forum-title { font-size: 15px !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant le bug 10 : la règle mobile des titres h1-h3 n'y exclut pas encore le nom de forum (TITRE_FORUM_REGLE_BUG10 absente). */
+export const AVANT_BUG10 = bundle => !bundle.includes(TITRE_FORUM_REGLE_BUG10);
 /**
  * Échelle typographique du forum et du kramail (épopée 4, ticket 7 ; DESIGN.md › Typography). Masque miroir : chaque règle reprend le
  * sélecteur, le média et le drapeau !important de la règle dont le bundle réécrit la taille (ou à laquelle il l'ajoute : auteur du dernier

@@ -98,6 +98,7 @@ check('typographie et formes : échelle du forum et du kramail (fil d\'Ariane, c
     hunk('.kramail-msg-date {', '    font-size: var(--kr-font-detail) !important;'),
     hunk('body.page-kramail-compose form[name="post_msg"] .kd-help {', '    font-size: var(--kr-font-detail);'),
     hunk('  .forum-title {', '    font-size: var(--kr-font-forum-name);'),
+    hunk('@media (max-width: 767px) {', '  :is(h1, h2, h3):where(:not(.forum-title)) { font-size: var(--kr-font-section-title) !important; }'),
     hunk('  body.page-kramail-compose form[name="post_msg"] .kd-warn {', '    font-size: var(--kr-font-body-mobile);')
   ]) {
     const d = route('kraland-theme.css', h);

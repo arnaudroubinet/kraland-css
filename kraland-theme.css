@@ -2232,7 +2232,10 @@ a.carousel-control.right{
    focus et appui en --kr-arm-bg-hover / --kr-arm-ink-hover, section des boutons) : l'ancien dégradé vert et son halo sont retirés. Mobile :
    un seul modèle de pied pour toute modale Bootbox (ordre ou confirmation hors ordre, épopée 4, ticket 3), en colonne, chaque bouton
    pleine largeur, ordre natif gardé (« Annuler » puis « Valider »), dans le flux ; aucune autre règle ne pose de flex sur ces boutons,
-   et les règles order de body.mobile-mode .modal-footer (.btn-default 1, .btn-primary 2) reproduisent l'ordre natif. Taille : bouton de taille normale (14 px, cible de 44 px, règle mobile .btn), aucune règle propre aux modales.
+   et les règles order de body.mobile-mode .modal-footer (toute modale mobile, Bootbox ou non) rangent .btn-default (1) puis
+   .btn-primary (2) : elles ne couvrent que ces deux classes. Tout autre enfant du pied garde order: 0 et passe avant eux, dans l'ordre du
+   DOM : la rangée de pastilles de la modale d'ordre (.kr-order-badges, première enfant) puis un autre bouton (.btn-danger, .btn-success,
+   .btn-warning). Taille : bouton de taille normale (14 px, cible de 44 px, règle mobile .btn), aucune règle propre aux modales.
    Ordinateur : rendu inchangé.
    Onglet actif : un seul modèle aux deux supports, fond et texte du thème (--kr-bg-surface, --kr-text-primary, comme la règle des onglets
    du bureau), sans le bleu de Bootstrap ni son halo ; libellé coloré (span.text-danger de Pouvoir) au texte de l'onglet ; la forme
@@ -4778,8 +4781,9 @@ body > map {
   }
   
   /* Typographie mobile, en px (DESIGN.md › Typography : aucun titre plus petit que le texte courant) ; titres d'en-tête de panneau
-     (hors accordéon et modale) exclus de h4-h6 : ils sont titres de section (règle .panel-heading de la section 6) */
-  h1, h2, h3 { font-size: var(--kr-font-section-title) !important; }
+     (hors accordéon et modale) exclus de h4-h6 : ils sont titres de section (règle .panel-heading de la section 6) ; nom de forum des
+     cartes (h3.forum-title du template) exclu de h1-h3 : c'est un nom (règle .forum-title des cartes, --kr-font-forum-name) */
+  :is(h1, h2, h3):where(:not(.forum-title)) { font-size: var(--kr-font-section-title) !important; }
   :is(h4, h5, h6):where(:not(.panel-heading > *), .panel-group *, .modal *) { font-size: var(--kr-font-name) !important; }
   
   /* Espacement vertical */
@@ -15046,7 +15050,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     color: var(--kr-text-secondary) !important;
 
     /* Exclusion des boutons de taille normale (4.2) : 16 px rendus jusqu'ici par la règle mobile globale des .btn (le 12 px de cette
-       règle n'a jamais pris effet), gardés tels quels ; leur taille relève des compacts (4.3). */
+       règle n'a jamais pris effet), gardés tels quels ; leur taille relève des compacts (4.4). */
     font-size: 16px !important;
     line-height: 18px;
     opacity: 1;

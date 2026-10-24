@@ -77,9 +77,10 @@ export const SUITES = [
   // rédaction, index RP, sous-forum, kramail, modale d'ordre ; rôles 4 px, 8 px, 7 px et plein mesurés, jetons redéfinis suivis, bascule,
   // contrôle statique des littéraux. Grille d'espacement (ticket 9, fragment espacement) : plateau, forum, kramail, modale d'ordre,
   // Interface, composants ; retraits, marges et écarts au jeton, exceptions égales au bundle de base, jetons redéfinis suivis. Nettoyage (ticket 10,
-  // fragment nettoyage) : styles calculés égaux au bundle de base après retrait des déclarations mortes, médias au seuil 767/768. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
+  // fragment nettoyage) : styles calculés égaux au bundle de base après retrait des déclarations mortes, médias au seuil 767/768. Nom de forum
+  // des cartes mobiles (bug 10, fragment titre-forum) : h3.forum-title de Staff en 15 px, autres titres h1-h3 égaux au bundle de base. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
   // de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage']], needsBootstrap: true }
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

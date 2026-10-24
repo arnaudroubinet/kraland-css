@@ -68,6 +68,11 @@
 //                   768 px sur les pages des blocs M1 et M2 (propriétés de ces blocs égales à la base à 769 px) ; hamburger survolé et en
 //                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
 //                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum.
+// Nom de forum des cartes mobiles à 15 px (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) :
+//   titre-forum     index Staff (forum-index-rp.html servi à /forum/staff, cartes du template) : 375 et 767 px, Kraland clair et Empire Brun
+//                   sombre : chaque .forum-card h3.forum-title en 15 px / 700, au moins une carte ; h1-h3 visibles de #col-right hors
+//                   .forum-title égaux au bundle de base (COMMIT_TITRE_FORUM), 375, 767, 768 et 1280 px ; aucune carte à 768 et 1280 px ;
+//                   bascule 767, 768, 767 px (15 px, sans carte, 15 px) ; contrôle statique de la règle des titres h1-h3 du bundle.
 // Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
@@ -87,8 +92,9 @@
 //           KR_SCRIPT_AVANT_RAYONS (bundle de base des rayons, défaut : celui du commit COMMIT_RAYONS),
 //           KR_SCRIPT_AVANT_ESPACEMENT (bundle de base de l'espacement, défaut : celui du commit COMMIT_ESPACEMENT),
 //           KR_SCRIPT_AVANT_NETTOYAGE (bundle de base du nettoyage, défaut : celui du commit COMMIT_NETTOYAGE),
+//           KR_SCRIPT_AVANT_TITRE_FORUM (bundle de base du nom de forum des cartes, défaut : celui du commit COMMIT_TITRE_FORUM),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons,
-//           espacement, nettoyage
+//           espacement, nettoyage, titre-forum
 //           (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -100,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1168,7 +1174,7 @@ if (on('echelle-forum')) {
   }
 
   // Masque miroir ECHELLE_TICKET47 (lib/variantes.mjs) : posé sur le bundle de base, il rend chaque texte de #col-right à la taille du
-  // bundle d'après. Pages comparées hors périmètre par forum-index.mjs (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception,
+  // bundle d'après. Nom de forum des cartes mobiles de Staff : masque TITRE_FORUM_BUG10 en plus, sur une base d'avant le bug 10. Pages comparées hors périmètre par forum-index.mjs (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception,
   // lecture), plus l'index et le nouveau kramail.
   const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
@@ -1179,9 +1185,9 @@ if (on('echelle-forum')) {
     await context.close();
     return l;
   };
-  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '') }));
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : ''].join('\n')) }));
   for (const { c, apres, masque } of resMiroir) {
-    check(`echelle-forum ${etiquette(c)} : masque ECHELLE_TICKET47 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
+    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47 et TITRE_FORUM_BUG10 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
       assert.ok(AVANT_TICKET47(avantEchelleForum), `bundle de base (${COMMIT_ECHELLE_FORUM}) déjà au ticket 7`);
       assert.equal(masque.length, apres.length, 'nombre d\'éléments');
       const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
@@ -1804,9 +1810,11 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
+// Base d'avant le bug 10 (jamais le bundle testé) : masque TITRE_FORUM_BUG10, nom de forum des cartes mobiles à 15 px comme après le bug.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile });
+  const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '');
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile });
   if (p.prep) { await p.prep(o.page); }
   return o;
 };
@@ -2041,6 +2049,76 @@ if (on('nettoyage')) {
   });
   for (const { variante, classes } of resRacine) {
     check(`nettoyage racine ${variante} 375 px : classe de racine sous la classe d'index, sans classe du forum (A3, portée de R5)`, () => assert.deepEqual(classes, [true, true, false]));
+  }
+}
+
+// ---------- Nom de forum des cartes mobiles (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) ----------
+// La règle mobile des titres h1-h3 (!important) exclut le nom de forum des cartes (h3.forum-title créé par le template) : il prend les 15 px
+// de .forum-title (--kr-font-forum-name). Les autres titres h1-h3 de #col-right restent égaux au bundle de base (COMMIT_TITRE_FORUM).
+const COMMIT_TITRE_FORUM = '2db3b4c';
+const avantTitreForum = sansEntete(process.env.KR_SCRIPT_AVANT_TITRE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_TITRE_FORUM, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_TITRE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const STAFF_TITRE_FORUM = { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') };
+const MESURE_TITRE_FORUM = () => ({
+  cartes: [...document.querySelectorAll('.forum-card h3.forum-title')].map(e => { const s = getComputedStyle(e); return `${s.fontSize}/${s.fontWeight}`; }),
+  titres: [...document.querySelectorAll('#col-right :is(h1, h2, h3):not(.forum-title)')].filter(e => e.getClientRects().length)
+    .map(e => `${e.tagName}.${e.className} ${getComputedStyle(e).fontSize}`)
+});
+if (on('titre-forum')) {
+  console.log('\n== titre-forum ==');
+  check('titre-forum : bundle testé, règle mobile des titres h1-h3 avec :where(:not(.forum-title)), ancienne règle absente, AVANT_TICKET45 et AVANT_BUG10 faux', () => {
+    assert.ok(userscript.includes(TITRE_FORUM_REGLE_BUG10), 'règle réécrite absente');
+    assert.ok(!userscript.includes('h1,h2,h3{font-size:var(--kr-font-section-title)!important}'), 'ancienne règle présente');
+    assert.equal(AVANT_TICKET45(userscript), false, 'AVANT_TICKET45');
+    assert.equal(AVANT_BUG10(userscript), false, 'AVANT_BUG10');
+  });
+  const cas = VARIANTES.flatMap(variante => [375, 767, 768, 1280].map(width => ({ nom: 'staff', variante, width })));
+  const res = await mapLimit(cas, async c => {
+    const mesurer = async script => {
+      const { context, page, erreurs } = await ouvrir({ ...c, height: c.width < 768 ? 667 : 900, script, def: STAFF_TITRE_FORUM });
+      const m = await page.evaluate(MESURE_TITRE_FORUM);
+      await context.close();
+      return { ...m, erreurs };
+    };
+    return { c, a: await mesurer(userscript), b: await mesurer(avantTitreForum) };
+  });
+  for (const { c, a, b } of res) {
+    if (c.width < 768) {
+      check(`titre-forum ${etiquette(c)} : chaque nom de carte (h3.forum-title) en 15 px / 700`, () => {
+        assert.ok(a.cartes.length > 0, 'aucune carte');
+        assert.deepEqual(a.cartes.filter(x => x !== '15px/700'), [], a.cartes.join(' ; '));
+      });
+    } else {
+      check(`titre-forum ${etiquette(c)} : aucune carte de forum`, () => assert.deepEqual(a.cartes, []));
+    }
+    check(`titre-forum ${etiquette(c)} : titres h1-h3 de #col-right hors .forum-title égaux à la base (${COMMIT_TITRE_FORUM})`, () => {
+      assert.ok(b.titres.length > 0, 'aucun titre mesuré');
+      assert.deepEqual(a.titres, b.titres, `${a.titres.join(' ; ')} au lieu de ${b.titres.join(' ; ')}`);
+    });
+    check(`titre-forum ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(a.erreurs, []));
+  }
+  // Bascule 767, 768 puis 767 px dans le même onglet : 15 px, sans carte, 15 px.
+  const resBascule = await mapLimit(VARIANTES, async variante => {
+    const { context, page } = await ouvrir({ nom: 'staff', width: 767, variante, script: userscript, def: STAFF_TITRE_FORUM, tactile: false });
+    const pas = [{ width: 767, cartes: (await page.evaluate(MESURE_TITRE_FORUM)).cartes }];
+    for (const width of [768, 767]) {
+      await basculer(page, width, `titre-forum bascule ${variante} ${width} px`);
+      pas.push({ width, cartes: (await page.evaluate(MESURE_TITRE_FORUM)).cartes });
+    }
+    await context.close();
+    return { variante, pas };
+  });
+  for (const { variante, pas } of resBascule) {
+    pas.forEach((p, n) => {
+      check(`titre-forum bascule staff ${variante} pas ${n + 1} (${p.width} px) : ${p.width < 768 ? 'noms de carte en 15 px / 700' : 'aucune carte'}`, () => {
+        if (p.width < 768) {
+          assert.ok(p.cartes.length > 0, 'aucune carte');
+          assert.deepEqual(p.cartes.filter(x => x !== '15px/700'), [], p.cartes.join(' ; '));
+        } else {
+          assert.deepEqual(p.cartes, []);
+        }
+      });
+    });
   }
 }
 

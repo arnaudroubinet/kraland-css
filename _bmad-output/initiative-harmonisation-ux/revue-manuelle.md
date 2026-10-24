@@ -248,3 +248,10 @@ Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autono
   - livrer les épopées 3 et 4 (push, PR) avant l'épopée 5 (rétro de l'épopée 4, A1) ?
   - `tickets.toml` de l'initiative (hors écritures permises) : épingler l'épopée 6 sur 5.2 et l'épopée 7 sur 5.1, et retirer « onglets » de ce que l'épopée 7 attend de la 5 (CAP-8, aucune entrée).
   - DESIGN.md périmé : titre du kramail (« primary à 2,56:1 », en fait accent), titre du jeu (« 20 px », en fait 17 px), enveloppe (« grise », en fait rouge).
+
+## Bug 10 — nom de forum mobile (built, 2026-10-24)
+
+- Sur mobile, le nom des cartes de forum (Staff) repasse de 17 à 15 px : la règle des titres h1-h3 exclut `.forum-title`, sans `!important` nouveau.
+- Pied des modales mobiles : rien ne change. Le commentaire dit maintenant que seuls `.btn-default` et `.btn-primary` sont rangés ; un `.btn-danger` ou `.btn-success` passerait avant eux. À vérifier si le site en met dans une modale.
+- Jetons inutilisés (`--kr-font-page-title`, `--kr-space-5`, `--kr-space-6`, `--kr-margin-mobile`, `--kr-touch-target-dpad`) gardés : DESIGN.md les déclare et le test du 4.1 les vérifie. Les retirer : ta décision.
+- `test:all` final passé machine chargée : 2 FAIL de charge, verts rejoués seuls. Le fragment `nettoyage` flanche sous charge de façon répétée : à fiabiliser (rétro 4, A10).
