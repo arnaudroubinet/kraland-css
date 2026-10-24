@@ -83,9 +83,11 @@ export const SUITES = [
   { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum']], needsBootstrap: true },
   // Cartes et pastilles (épopée 5, entrée 1) : carte de section mobile des pages de jeu, du kramail et des règles (8 px des bords, en-tête de
   // 48 px collé au contenu, titre en couleur du texte), module « Panel Sections Collapse » (chevron dans le flux, repli en 48 px, tap mesuré),
-  // contrôles statiques ; forum (375, 767) et ordinateur (768 à 1920) égaux au bundle de base, bascule 767/768 dans les deux sens, contraste
-  // des 16 variantes. Fixtures synthétiques des pages de jeu, du kramail, des règles, du Cybermonde et du forum.
-  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['bureau'], ['bascule'], ['contraste']], needsBootstrap: true }
+  // contrôles statiques ; ordinateur (768 à 1920) égal au bundle de base, bascule 767/768 dans les deux sens, contraste des 16 variantes.
+  // Entrée 2 : forum (sous-forum, index, Staff, racine) en carte de section à 375 et 767, fil de sujet, accordéon et modales égaux à la base ;
+  // lignes de tableau dans la carte, égales à la base ; repli au chevron. Fixtures synthétiques des pages de jeu, du kramail, des règles, du
+  // Cybermonde et fixtures du forum.
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['contraste']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -146,6 +148,9 @@ export const KEYWORDS = [
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
   [/kramail|post_msg|\.kd-|kd-natif|btn-toolbar|Destinataires/i, ['kramail']],
   [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic|forum-thread-action-new/i, ['sous-forum']],
+  // Panneaux du forum, du sous-forum et de la racine (page-forum, page-forum-racine, kr-page-forum-index, kr-subforum suivis de .panel…) : carte
+  // de section mesurée par cartes-pastilles (épopée 5, entrée 2 : fragments forum, lignes, chevron), en plus des zones du forum.
+  [/(?:page-forum(?:-racine)?|kr-page-forum-index|kr-subforum)\b[^{]*\.panel/, ['cartes-pastilles']],
   [/cybermonde/i, ['cybermonde']],
   [/medieval|map-image|carte|MEDIEVAL_MAP|image-fallback|fallback/i, ['images']],
   [/croix|dpad|directionnel|d-pad/i, ['croix']],

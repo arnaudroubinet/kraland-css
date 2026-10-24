@@ -7830,17 +7830,15 @@ body > map {
      Inspiré de la section "Recommandées pour toi" de Reddit
      ============================================================================ */
   
-  /* Conteneur des panneaux mobiles du forum et de sa racine, des panneaux d'accordéon (.panel-group, entrée 3) et des
-     modales : valeurs d'avant la carte de section, jusqu'à l'entrée 2 (épopée 5) */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default,
+  /* Conteneur des panneaux mobiles d'accordéon (.panel-group, entrée 3) et des modales : valeurs d'avant la carte de section ; le forum
+     est passé dans la carte à l'entrée 2 (épopée 5) */
   body.mobile-mode .panel-default:where(.panel-group > *, .modal *) {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
   }
   
-  /* En-tête des panneaux mobiles du forum, de sa racine, de l'accordéon et des modales, jusqu'à l'entrée 2 (épopée 5) */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default > .panel-heading,
+  /* En-tête des panneaux mobiles de l'accordéon et des modales (hors carte de section) */
   body.mobile-mode .panel-default:where(.panel-group > *, .modal *) > .panel-heading {
     background: var(--kr-bg-surface) !important;
     border: none !important;
@@ -7850,8 +7848,7 @@ body > map {
     align-items: center !important;
   }
   
-  /* Titre de l'en-tête des panneaux mobiles du forum, de sa racine, de l'accordéon et des modales, jusqu'à l'entrée 2 (épopée 5) */
-  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default > .panel-heading h3,
+  /* Titre de l'en-tête des panneaux mobiles de l'accordéon et des modales (hors carte de section) */
   body.mobile-mode .panel-default:where(.panel-group > *, .modal *) > .panel-heading h3 {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
@@ -7859,9 +7856,9 @@ body > map {
     color: var(--kr-text-primary) !important;
   }
   
-  /* Carte de section (H4.1, DESIGN.md › Carte de section) : panneaux mobiles hors forum, hors accordéon et hors modale, en-tête de 48 px et contenu
-     dans la même carte, en retrait de 8 px des bords */
-  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) {
+  /* Carte de section (H4.1, DESIGN.md › Carte de section) : panneaux mobiles hors accordéon et hors modale, forum compris (entrée 2),
+     en-tête de 48 px et contenu dans la même carte, en retrait de 8 px des bords */
+  body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *)) {
     background: var(--kr-bg-surface) !important;
     border: none !important;
     box-shadow: none !important;
@@ -7870,7 +7867,7 @@ body > map {
   }
   
   /* En-tête de la carte de section : 48 px au moins (un titre sur deux lignes l'agrandit), sans écart avec le contenu */
-  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading {
+  body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading {
     background: var(--kr-bg-surface) !important;
     border: none !important;
     border-radius: var(--kr-radius-md) !important;
@@ -7881,7 +7878,7 @@ body > map {
   }
   
   /* Titre de l'en-tête de la carte de section */
-  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading h3 {
+  body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading h3 {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
     margin: 0 !important;
@@ -7889,23 +7886,13 @@ body > map {
   }
   
   /* Dernier corps de la carte : coins bas arrondis (le corps porte le fond surface en sombre) */
-  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-body:last-child {
+  body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-body:last-child {
     border-radius: 0 0 var(--kr-radius-md) var(--kr-radius-md);
   }
   
-  /* Tableaux du forum en cartes (1re version) : sous-forum et index Staff ; la racine du forum porte kr-page-forum-index et en est exclue.
-     Les cartes sont posées par la 2e version (section « INDEX DU FORUM », body.page-forum) ; restent ici l'ombre et l'effet au tap. Hors index
-     RP, HRP, Communauté et Débats (P1) : leur présentation est celle du sous-forum. */
-
-  /* Ombre de la carte (la 2e version pose la carte elle-même) */
-  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr {
-    box-shadow: var(--kr-shadow-sm) !important;
-  }
-  
-  /* Effet au tap sur la card */
-  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr:active {
-    transform: scale(0.98) !important;
-  }
+  /* Tableaux du forum en cartes (1re version, ombre et effet d'échelle au tap) : retirés à l'entrée 2 de l'épopée 5, les lignes étant dans
+     la carte de section. Les cartes de ligne restantes sont posées par la 2e version (section « INDEX DU FORUM », body.page-forum) ; le
+     retour au tap est leur fond :active. */
 }
 
 /* ============================================================================
@@ -8325,26 +8312,22 @@ body > map {
      Inspiré de la section "Recommandées pour toi" de Reddit
      ============================================================================ */
   
-  /* Conteneur principal du forum */
+  /* Conteneur principal du forum : la carte de section (fond surface, 8 px des bords) vient de la règle commune (entrée 2, épopée 5) */
   body.page-forum .panel-default {
-    background: transparent !important;
     border: none !important;
     box-shadow: none !important;
   }
   
-  /* Header du panel - harmonisé avec kramail (transparent + cuivre) */
+  /* En-tête du panneau : fond, rayon et retrait de la carte de section, sans filet bas ; collé à la liste */
   body.page-forum .panel-default > .panel-heading {
-    background: transparent !important;
     border: none !important;
-    border-bottom: 1px solid var(--kr-border-default) !important;
-    border-radius: 0 !important;
-    padding: 12px 16px !important;
     margin-bottom: 0 !important;
     align-items: center !important;
   }
 
-  /* Panel body - harmonisé kramail (pas de padding) */
-  body.page-forum .panel-default > .panel-body {
+  /* Corps du panneau sans retrait : la liste touche les bords internes de la carte (sous-forum, index, racine) */
+  body.page-forum .panel-default > .panel-body,
+  body.page-forum-racine .panel-default > .panel-body {
     padding: 0 !important;
   }
   
@@ -8352,7 +8335,6 @@ body > map {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
     margin: 0 !important;
-    color: var(--kr-text-accent) !important;
   }
   
   /* Tableaux du forum en cartes (2e version) : hors index RP, HRP, Communauté et Débats (P1), présentés comme le sous-forum (section
@@ -8381,7 +8363,6 @@ body > map {
     padding: 12px !important;
     transition: background var(--transition-fast) !important;
     position: relative !important;
-    min-height: auto !important;
   }
   
   /* Effet au tap sur la card */
@@ -8395,7 +8376,6 @@ body > map {
     display: block !important;
     border: none !important;
     padding: 0 !important;
-    width: 100% !important;
   }
   
   /* === CELLULE 1 : Titre, Modérateurs, (Description cachée ici) === */
@@ -8427,7 +8407,6 @@ body > map {
     font-size: var(--kr-font-forum-name) !important;
     font-weight: 700 !important;
     color: var(--kr-text-primary) !important;
-    text-decoration: none !important;
     line-height: 1.1 !important;
     display: block !important;
   }
@@ -8439,8 +8418,6 @@ body > map {
   /* === MODÉRATEURS === */
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
-    margin: 0 !important;
-    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.2 !important;
   }
@@ -8451,7 +8428,6 @@ body > map {
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum a {
     color: var(--kr-text-secondary) !important;
-    text-decoration: none !important;
     font-weight: 500 !important;
   }
   
@@ -8480,22 +8456,13 @@ body > map {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
     display: inline !important;
-    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     order: 2 !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
   
   /* Stats wrapper */
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper {
     margin: 0 0 2px !important;
-  }
-  
-  /* Ajouter "sujets · " après le premier nombre */
-  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2)::after,
-  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td:first-child::after {
-    content: " sujets · " !important;
   }
   
   /* Ajouter "messages" après le second nombre */
@@ -8510,8 +8477,6 @@ body > map {
     order: 5 !important;
     padding-top: 3px !important;
     border-top: 1px solid var(--kr-border-default) !important;
-    margin-top: 0 !important;
-    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     display: block !important;
   }
@@ -8520,8 +8485,6 @@ body > map {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4)::before,
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child::before {
     content: "→ " !important;
-    color: var(--kr-text-secondary) !important;
-    font-weight: 400 !important;
     margin-right: 4px !important;
   }
   
@@ -8531,7 +8494,6 @@ body > map {
     font-size: var(--kr-font-detail) !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
-    text-decoration: none !important;
     display: inline !important;
   }
   
@@ -8554,8 +8516,6 @@ body > map {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
     display: inline !important;
     margin: 0 !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-secondary) !important;
   }
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > p > a,
@@ -13783,7 +13743,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 12px 16px 4px !important;
+    padding: 6px 16px 4px !important;
     overflow: visible !important;
   }
 
@@ -13840,7 +13800,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate {
     order: 5;
-    flex: 0 0 100%;
+    flex: 0 0 calc(100% + 32px);
   }
 
   body.page-forum.kr-subforum #topics {
@@ -14174,9 +14134,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    mène au sujet (lien du titre étiré). Compteurs, auteur et pages restent dans le sujet : leurs cellules natives sont masquées, pas déplacées.
    Spécificité volontairement haute : les anciennes règles « cartes » des permanents (body.mobile-mode / body.page-forum .panel-default .table …) sont en !important. */
 @media (max-width: 767px) {
-  /* Chevrons de repli natifs (span.clickable, mécanisme du site) : cible de 44 x 44 ; en-tête de panneau de 44 px. */
+  /* Chevrons de repli natifs (span.clickable, mécanisme du site) : cible de 44 x 44 ; en-tête de panneau de 48 px (carte de section, entrée 2 de l'épopée 5). */
   body.page-forum.kr-subforum .panel-default > .panel-heading {
-    min-height: 44px;
+    min-height: 48px;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -14321,7 +14281,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     align-items: center;
     justify-content: center !important;
     gap: 4px !important;
-    margin: 8px 0 0 !important;
+    margin: 8px -16px 0 !important;
     overflow: visible;
   }
 
@@ -14649,7 +14609,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading {
-    min-height: 44px;
+    min-height: 48px;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }

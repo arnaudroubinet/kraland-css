@@ -2,12 +2,14 @@
 // ordinateur et sur mobile. Une vérification par ligne de la matrice du plan (story-l-index-du-forum-reprend-la-presentation-du-sous-forum) :
 //   bureau (1440 px)  colonnes Forum, Sujets, Messages, Dernier Message comme celles du sous-forum ; nom seul ; auteur en gras, heure atténuée
 //                     dessous ; bouton → au bout de la ligne ; ni description ni modérateurs ;
-//   mobile (375 px)   une seule présentation (ni cartes ni tableau doublé) : lignes pleine largeur sous l'en-tête de section ; nom ;
+//   mobile (375 px)   une seule présentation (ni cartes ni tableau doublé) : lignes dans la carte de section (épopée 5,
+//                     entrée 2 : à 8 px des bords de l'écran), sous son en-tête ; nom ;
 //                     « Dernier : auteur, heure » ; « N sujets · N messages » ; bouton → de 44 px ; toute la ligne ouvre le forum ;
 //   forum sans message (« 0 sujets · 0 messages », ni dernier message ni bouton →) ; auteur avec icône (nom et icône conservés, en gras) ;
 //   en-têtes (titre de page, « Tous les forums », en-tête de section) : même rendu que le sous-forum, titre de section jamais en couleur de
 //                     nation (couleur de texte sur mobile) ;
-//   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff identiques au bundle « avant » ;
+//   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff identiques au bundle « avant »
+//                     (cartes de section des entrées 5.1 et 5.2 masquées sur ce bundle) ;
 //   seuil : 767, 768 et 769 px, et aller-retour 767 → 768 → 767 dans le même onglet (rechargement du thème au franchissement) ;
 //   peau coupée : la page native est intacte.
 // « Même rendu que le sous-forum » : le sous-forum « Débuter » (fixture sous-forum-debuter.html) est mesuré dans le même navigateur, à la même
@@ -36,7 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -89,7 +91,7 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
-  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '') + (AVANT_TICKET44(src) ? '\n' + PAGINATION_TICKET44 : '') + (AVANT_TICKET45(src) ? '\n' + ECHELLE_TICKET45 : '') + (AVANT_TICKET47(src) ? '\n' + ECHELLE_TICKET47 : '') + (AVANT_TICKET49(src) ? '\n' + ESPACEMENT_TICKET49 : '') + (AVANT_BUG10(src) ? '\n' + TITRE_FORUM_BUG10 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
+  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '') + (AVANT_TICKET44(src) ? '\n' + PAGINATION_TICKET44 : '') + (AVANT_TICKET45(src) ? '\n' + ECHELLE_TICKET45 : '') + (AVANT_TICKET47(src) ? '\n' + ECHELLE_TICKET47 : '') + (AVANT_TICKET49(src) ? '\n' + ESPACEMENT_TICKET49 : '') + (AVANT_BUG10(src) ? '\n' + TITRE_FORUM_BUG10 : '') + (AVANT_TICKET51(src) ? '\n' + CARTES_TICKET51 : '') + (AVANT_TICKET52(src) ? '\n' + CARTES_TICKET52 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -207,6 +209,7 @@ const LIGNES = () => {
   return {
     lignes: res,
     entete: entete ? rect(entete) : null,
+    panneau: entete ? rect(entete.parentElement) : null,
     tableauxVisibles: [...document.querySelectorAll('#col-right table')].filter(visible).length,
     cartes: document.querySelectorAll('.forums-cards-container, .forum-card').length,
     blocsPermanents: document.querySelectorAll('.permanent-topic-stats').length,
@@ -252,7 +255,7 @@ const COMPOSANTS_MOBILE = {
   'séparateur du fil d\'Ariane': ['h1 .forum-mobile-breadcrumb-sep', 'h1 .forum-mobile-breadcrumb-sep', ['color', 'font-size']],
   'élément courant du fil d\'Ariane': ['h1 .forum-mobile-breadcrumb-current', 'h1 .forum-mobile-breadcrumb-current', ['color', 'font-size']],
   'titre': ['h1 .forum-subforum-title', 'h1 .forum-subforum-title', ['font-size', 'font-weight', 'color', 'line-height']],
-  'panneau': ['#col-right .panel-default', '#fx-permanents', P_RAYONS],
+  'panneau': ['#col-right .panel-default', '#fx-permanents', ['background-color', 'margin-left', 'margin-right', ...P_RAYONS]],
   'en-tête de section': ['#col-right .panel-default > .panel-heading', '#fx-permanents > .panel-heading', ['display', 'align-items', 'min-height', ...P_BOITE, 'background-color', 'border-bottom-width', 'border-bottom-style', 'border-bottom-color', ...P_RAYONS]],
   'titre de section': ['#col-right .panel-default > .panel-heading h3', '#fx-permanents > .panel-heading h3', ['font-size', 'font-weight', 'color', 'margin-top', 'margin-bottom']],
   'chevron de repli': ['#col-right .panel-default > .panel-heading span.clickable', '#fx-permanents > .panel-heading span.clickable', ['display', 'min-width', 'min-height', 'margin-right']],
@@ -352,8 +355,10 @@ if (on('mobile')) {
       const ys = L.lignes.map(l => l.ligne.y);
       assert.deepEqual(ys, [...ys].sort((a, b) => a - b), 'ordre vertical ' + ys.join(','));
     });
-    check(`${tag} : lignes pleine largeur sous l'en-tête de section (de 0 à ${MOBILE} px), en-têtes de colonnes masqués, aucun débordement horizontal`, () => {
-      assert.ok(L.lignes.every(l => l.ligne.x <= 0 && l.ligne.r >= m.socle.iw), JSON.stringify(L.lignes.map(l => [l.ligne.x, l.ligne.r])));
+    // Épopée 5, entrée 2 : le panneau est une carte de section, les lignes restent dans la carte (avant : pleine largeur, de 0 à la largeur d'écran).
+    check(`${tag} : lignes dans la carte de section (à 8 px des bords de l'écran au moins), sous son en-tête, en-têtes de colonnes masqués, aucun débordement horizontal`, () => {
+      assert.ok(L.panneau && L.panneau.x >= 8 && L.panneau.r <= m.socle.iw - 8, `carte [${L.panneau && L.panneau.x}..${L.panneau && L.panneau.r}] à moins de 8 px des bords (écran ${m.socle.iw})`);
+      assert.ok(L.lignes.every(l => l.ligne.x >= L.panneau.x && l.ligne.r <= L.panneau.r), JSON.stringify({ panneau: L.panneau, lignes: L.lignes.map(l => [l.ligne.x, l.ligne.r]) }));
       assert.ok(L.entete && L.lignes[0].ligne.y >= L.entete.b - 1, `1re ligne y=${L.lignes[0].ligne.y}, en-tête bas=${L.entete && L.entete.b}`);
       assert.equal(L.thead.visible, false);
       assert.equal(m.socle.overflowX, 0);
@@ -730,6 +735,7 @@ if (on('hors-perimetre')) {
     if (AVANT_TICKET47(avant)) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (noms 15 px, détails 13 px, texte courant 15 px sur mobile, champ de rédaction 16 px ; sous-forum, sujet, Staff) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
     if (AVANT_TICKET49(avant)) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (cellules du sous-forum et de l\'index, en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
     if (AVANT_BUG10(avant)) { console.log('  info écart accepté et consigné : nom de forum des cartes mobiles (h3.forum-title, Staff) en 15 px au lieu de 17 px, posé sur le bundle « avant » (bug 10)'); }
+    if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {

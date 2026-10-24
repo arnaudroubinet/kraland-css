@@ -206,10 +206,22 @@ check('module « Panel Sections Collapse » (building-section, accordion-icon) -
     assert.ok(d.zones.includes('cartes-pastilles'), d.zones.join(', '));
   }
 });
-check('cartes-pastilles enregistrée (7 fragments, Bootstrap embarqué)', () => {
+check('panneaux du forum, du sous-forum et de la racine -> cartes-pastilles, en plus du forum (carte de section, épopée 5, entrée 2)', () => {
+  for (const h of [
+    hunk('  body.page-forum .panel-default > .panel-heading {', '    margin-bottom: 0 !important;'),
+    hunk('  body.page-forum-racine .panel-default > .panel-body {', '    padding: 0 !important;'),
+    hunk('  body.page-forum.kr-subforum .panel-default > .panel-heading {', '    min-height: 48px;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('cartes-pastilles') && d.zones.includes('forum'), d.zones.join(', '));
+  }
+  assert.ok(!route('kraland-theme.css', hunk('  body.page-forum .forum-msg {', '    margin: 0;')).zones.includes('cartes-pastilles'), 'forum hors panneau');
+});
+check('cartes-pastilles enregistrée (9 fragments, Bootstrap embarqué)', () => {
   const s = SUITES.find(x => x.name === 'cartes-pastilles');
   assert.ok(s, 'suite absente du registre');
-  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'bureau', 'bascule', 'contraste']);
+  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'contraste']);
   assert.equal(s.needsBootstrap, true);
 });
 

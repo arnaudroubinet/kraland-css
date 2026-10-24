@@ -10,9 +10,17 @@
 //               48 px, corps de 0 px ; un 2e tap déplie : hauteur d'origine ; contrôle statique : règles du module dans le média mobile ;
 //   kramail     réception et envoyés à 375 et 767 px : même carte, corps sans retrait (lignes pleine largeur) ; contrôle statique : règles de la
 //               carte (priorités) et règles du kramail ciblées sans marge, fond ni couleur propres ;
-//   forum       sous-forum, index RP et racine à 375 et 767 px, Kraland clair et Empire Brun sombre : égaux au bundle de base (317b5b7),
-//               propriété par propriété ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
+//   forum       (entrée 2) sous-forum, index RP, Communauté, Staff, racine et racine-groupes à 375 et 767 px, Kraland clair et Empire Brun
+//               sombre : même carte (corps sans retrait, chevron natif de 44 x 44 dans la carte), tout élément des panneaux dans la carte,
+//               aucun débordement (Staff : largeur défilable égale à la base, sa croix d'alerte débordant déjà) ; contrôle statique : règles du
+//               forum ciblées sans fond transparent, filet, rayon, retrait propre ni --kr-text-accent ; fil de sujet : messages égaux au
+//               bundle de base (21fed8d) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
 //               (.panel-group) de Répondre (kramail) et de la page de l'échelle, panneau à onglets des modales d'ordre Dormir et Pouvoir ;
+//   lignes      mêmes pages du forum, largeurs et variantes : chaque ligne de tableau dans la carte, sans ombre ; hauteur, retraits, filets
+//               (gauche de 4 px des non lus, bas), fond, icônes d'état et cadenas, pastilles, flèche « dernier message » et cibles
+//               (elementFromPoint au centre, en haut, en bas, à droite et sur le filet) égaux au bundle de base ;
+//   chevron     sous-forum à 375 et 767 px : chevron natif de 44 x 44 dans la carte, touché au centre (elementFromPoint) ; 1er tap : carte
+//               réduite à l'en-tête ; 2e tap : hauteur d'origine ;
 //   bureau      toutes les pages à 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : égales au bundle de base ;
 //   bascule     Bâtiments, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet (section repliée avant chaque passage) : carte à 767,
 //               égal au bundle de base (même parcours) à 768 ;
@@ -20,8 +28,8 @@
 //               du dernier corps à 8 px.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 317b5b7), KR_FRAG = carte, module, kramail,
-// forum, bureau, bascule, contraste (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d), KR_FRAG = carte, module, kramail,
+// forum, lignes, chevron, bureau, bascule, contraste (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -32,13 +40,13 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, DOSSIER_MODALE_TICKET51, PANNEAU_TICKET51, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET51, REGLES_KRAMAIL_TICKET51, TEXTE_TICKET51, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { CONTRASTE, DOSSIER_MODALE_TICKET51, PANNEAU_TICKET51, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '317b5b7';
+const COMMIT_AVANT = '21fed8d';
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
@@ -61,7 +69,8 @@ const VARIANTES = ['kraland', 'empire-brun-dark'];
 const MOBILES = [375, 767];
 const BUREAUX = [768, 769, 1280, 1440, 1920];
 
-// Pages : adresse, fixture, famille (jeu, kramail, forum) et en-têtes marqués par le module (titres attendus).
+// Pages : adresse, fixture, famille (jeu, kramail, forum, sujet, exclus), en-têtes marqués par le module (titres attendus) et éléments
+// comparés au bundle de base (releve, défaut : panneaux).
 const PAGES = {
   materiel: { url: '/jouer/materiel', html: lire('jeu-materiel.html'), famille: 'jeu' },
   perso: { url: '/jouer/perso', html: lire('jeu-perso.html'), famille: 'jeu' },
@@ -74,7 +83,13 @@ const PAGES = {
   envoi: { url: '/kramail/personnage-fictif-2000-1', html: lire('kramail-envoi.html'), famille: 'kramail' },
   'sous-forum': { url: '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html'), famille: 'forum' },
   'index-rp': { url: '/forum/rp', html: lire('forum-index-rp.html'), famille: 'forum' },
+  'index-communaute': { url: '/forum/communaute', html: lire('forum-index-communaute.html'), famille: 'forum' },
+  // Staff : la fixture de l'index RP servie à /forum/staff (page-forum sans la classe d'index, lignes en cartes A13).
+  staff: { url: '/forum/staff', html: lire('forum-index-rp.html'), famille: 'forum' },
   racine: { url: '/forum', html: lire('forum-racine.html'), famille: 'forum' },
+  'racine-groupes': { url: '/forum', html: lire('forum-racine-groupes.html'), famille: 'forum' },
+  // Fil de sujet : aucun panneau ; ses messages (.media) sont comparés au bundle de base.
+  sujet: { url: '/forum/sujet/messages-v3-329425-1', html: lire(SUJET_TICKET52), famille: 'sujet', releve: ['.media', '.media *'] },
   // Exclus de la carte, mesurés sous leur racine (racine) : accordéon (.panel-group) du kramail et de la page synthétique de l'échelle,
   // panneau à onglets des modales d'ordre (Dormir, Pouvoir) ouvertes par bootbox.confirm sur le plateau, styles natifs du site (vendor/parler).
   repondre: { url: '/kramail/post/sujet-fictif-de-lecture-5-9000002', html: lire('kramail-repondre.html'), famille: 'exclus', racine: '.panel-group' },
@@ -172,22 +187,29 @@ const MESURE = ([sel, texte]) => {
       const corps = [...p.children].filter(c => c.classList.contains('panel-body') && vis(c));
       const dernier = p.lastElementChild;
       const chevrons = [...h.querySelectorAll(':scope > .accordion-icon, :scope > .pull-right.clickable')].filter(vis).map(c => ({ ...boite(c), cls: c.className }));
+      // Éléments du panneau sortis de la carte (bords gauche et droit), 5 au plus. Le contenu d'un défileur du panneau (barre de tri
+      // DataTables, `overflow-x: auto` natif) est exclu : le défileur lui-même est contrôlé.
+      const pb = p.getBoundingClientRect();
+      const defile = e => { for (let o = e.parentElement; o && o !== p; o = o.parentElement) { if (getComputedStyle(o).overflowX !== 'visible') { return true; } } return false; };
+      const hors = [...p.querySelectorAll('*')].filter(e => vis(e) && !defile(e)).map(e => [e, e.getBoundingClientRect()])
+        .filter(([, b]) => b.width > 0 && (b.left < pb.left - 0.5 || b.right > pb.right + 0.5)).slice(0, 5)
+        .map(([e, b]) => `${e.tagName}.${[...e.classList].join('.')} [${Math.round(b.left * 10) / 10}..${Math.round(b.right * 10) / 10}]`);
       return {
         nom: (titre ? titre.textContent : h.textContent).trim().replace(/\s+/g, ' ').slice(0, 30),
         p: boite(p), fond: s.backgroundColor, coins: coins(s),
-        h: boite(h), retrait: [hs.paddingTop, hs.paddingRight, hs.paddingBottom, hs.paddingLeft], contenu: contenu + px(hs.paddingTop) + px(hs.paddingBottom),
+        h: boite(h), filet: hs.borderBottomWidth, retrait: [hs.paddingTop, hs.paddingRight, hs.paddingBottom, hs.paddingLeft], contenu: contenu + px(hs.paddingTop) + px(hs.paddingBottom),
         titre: titre ? { tag: titre.tagName, taille: ts.fontSize, graisse: ts.fontWeight, couleur: ts.color, rapport: C.texte(titre) } : null,
         suite: suite.length ? boite(suite[0]) : null,
         corps: corps.map(c => { const cs = getComputedStyle(c); return [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft]; }),
         dernier: dernier && dernier.classList.contains('panel-body') && vis(dernier) && dernier !== h ? coins(getComputedStyle(dernier)).slice(2) : null,
-        chevrons
+        chevrons, hors
       };
     })
   };
 };
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
-const RELEVE = (racine = 'html') => {
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon']] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
@@ -198,7 +220,7 @@ const RELEVE = (racine = 'html') => {
     theme: document.documentElement.classList.contains('kr-theme-enabled'),
     mobile: document.body.classList.contains('mobile-mode'),
     sw: document.documentElement.scrollWidth,
-    l: [...document.querySelectorAll(['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'].map(x => `${racine} ${x}`).join(', '))].map((e, i) => {
+    l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].map((e, i) => {
       const b = e.getBoundingClientRect();
       const s = getComputedStyle(e);
       return `${i} ${e.tagName}.${[...e.classList].join('.')} [${e.getClientRects().length ? [b.left, b.top - haut, b.width, b.height].map(r).join(',') : 'sans boîte'}] ` + props.map(p => s[p]).join('|');
@@ -213,11 +235,20 @@ const premierEcart = (a, b) => {
 };
 
 const pres = (a, b, tol = 0.5) => Math.abs(a - b) <= tol;
-function controlerCarte(m, famille) {
+const r1 = v => Math.round(v * 10) / 10;
+// Forum (entrée 2) : corps sans retrait, chevron natif de 44 x 44 dans la carte (marge droite d'origine), tout élément du panneau dans la
+// carte. swBase : largeur défilable du bundle de base ; si la base déborde déjà (Staff : croix de l'alerte hors panneau), la page testée
+// garde la même largeur défilable, sans élément de panneau sorti. chevronsBase : chevrons du bundle de base ; chevronNatif (Staff seul,
+// sans règle de sous-forum ni d'index, A6) : un chevron de base sous 44 x 44 garde sa taille, dans la carte et dans l'en-tête ; partout
+// ailleurs, 44 x 44 exigé.
+function controlerCarte(m, famille, swBase, chevronsBase = [], chevronNatif = false) {
   assert.ok(m.theme, 'kr-theme-enabled absent');
   assert.ok(m.mobile, 'mobile-mode absent');
   assert.ok(m.panneaux.length > 0, 'aucun panneau à en-tête');
-  assert.ok(m.sw <= m.vw, `débordement horizontal : ${m.sw} > ${m.vw}`);
+  const forum = famille === 'forum';
+  if (forum && swBase > m.vw) { assert.equal(m.sw, swBase, `largeur défilable ${m.sw} (base ${swBase}, vw ${m.vw})`); } else {
+    assert.ok(m.sw <= m.vw, `débordement horizontal : ${m.sw} > ${m.vw}`);
+  }
   const ecarts = [];
   for (const c of m.panneaux) {
     const e = [];
@@ -227,16 +258,22 @@ function controlerCarte(m, famille) {
     if (!pres(c.h.y, c.p.y) || !pres(c.h.x, c.p.x) || !pres(c.h.w, c.p.w)) { e.push(`en-tête décalé [${c.h.x},${c.h.y},${c.h.w}]`); }
     if (c.h.h < 47.5 || (c.h.h > 48.5 && c.contenu < c.h.h - 0.5)) { e.push(`en-tête ${c.h.h} px (contenu ${c.contenu})`); }
     if (c.retrait.join(' ') !== '0px 16px 0px 16px') { e.push(`retrait ${c.retrait.join(' ')}`); }
+    if (c.filet !== '0px') { e.push(`filet sous l'en-tête ${c.filet}`); }
     if (c.suite && !pres(c.suite.y, c.h.bas)) { e.push(`écart de ${Math.round((c.suite.y - c.h.bas) * 10) / 10} px sous l'en-tête`); }
-    const attendu = famille === 'kramail' ? '0px 0px 0px 0px' : '16px 16px 16px 16px';
+    const attendu = famille === 'jeu' ? '16px 16px 16px 16px' : '0px 0px 0px 0px';
     if (c.corps.some(v => v.join(' ') !== attendu)) { e.push(`corps ${c.corps.map(v => v.join(' ')).join(' ; ')}`); }
     if (c.dernier && c.dernier.some(v => v !== '8px')) { e.push(`coins bas du dernier corps ${c.dernier.join(' ')}`); }
     if (!c.titre || c.titre.tag !== 'H3') { e.push(`titre ${c.titre ? c.titre.tag : 'absent'}`); } else if (c.titre.taille !== '17px' || c.titre.graisse !== '700' || c.titre.couleur !== m.primaire) {
       e.push(`titre ${c.titre.taille}/${c.titre.graisse} ${c.titre.couleur} (attendu 17px/700 ${m.primaire})`);
     }
     for (const v of c.chevrons) {
-      if (!pres(c.h.d - v.d, 16) || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} à ${Math.round((c.h.d - v.d) * 10) / 10} px du bord, [${v.y},${v.bas}] hors de [${c.h.y},${c.h.bas}]`); }
+      const vb = chevronsBase[m.panneaux.flatMap(q => q.chevrons).indexOf(v)];
+      const petit = chevronNatif && vb && (vb.w < 43.5 || vb.h < 43.5);
+      if (forum) {
+        if ((petit ? !pres(v.w, vb.w) || !pres(v.h, vb.h) : v.w < 43.5 || v.h < 43.5) || v.x < c.p.x - 0.5 || v.d > c.p.d + 0.5 || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} ${v.w} x ${v.h} [${v.x}..${v.d}, ${v.y}..${v.bas}] hors de la carte ou de l'en-tête`); }
+      } else if (!pres(c.h.d - v.d, 16) || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} à ${Math.round((c.h.d - v.d) * 10) / 10} px du bord, [${v.y},${v.bas}] hors de [${c.h.y},${c.h.bas}]`); }
     }
+    if (forum && c.hors.length) { e.push(`hors de la carte : ${c.hors.join(', ')}`); }
     if (e.length) { ecarts.push(`« ${c.nom} » : ${e.join(', ')}`); }
   }
   assert.deepEqual(ecarts, [], ecarts.join(' ; '));
@@ -254,7 +291,7 @@ for (const [frag, famille] of [['carte', 'jeu'], ['kramail', 'kramail']]) {
     return { c, m, erreurs };
   });
   for (const { c, m, erreurs } of res) {
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons à 16 px du bord droit, sans débordement`, () => controlerCarte(m, famille));
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons à 16 px du bord droit, sans débordement`, () => controlerCarte(m, famille));
     check(`${frag} ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
@@ -296,8 +333,8 @@ const MOBILE = ['(max-width: 767px)', '(width <= 767px)'];
 
 if (on('kramail')) {
   const rs = await regles();
-  check(`statique : ${REGLES_CARTE_TICKET51.length} déclarations réécrites (fond et marges latérales de la carte ; retrait, marge basse et hauteur de l'en-tête ; couleur du titre ; rayon du dernier corps ; retrait du corps replié) présentes, dans le média mobile seulement, à la priorité d'origine`, () => {
-    const ecarts = REGLES_CARTE_TICKET51.flatMap(([sel, p, prio]) => {
+  check(`statique : ${REGLES_CARTE_TICKET52.length} déclarations réécrites (fond et marges latérales de la carte ; retrait, marge basse et hauteur de l'en-tête ; couleur du titre ; rayon du dernier corps ; retrait du corps replié) présentes, sans garde du forum, dans le média mobile seulement, à la priorité d'origine`, () => {
+    const ecarts = REGLES_CARTE_TICKET52.flatMap(([sel, p, prio]) => {
       const l = rs.filter(r => r.sel === sel && r.d[p]);
       if (!l.length) { return [`${sel} { ${p} } absente`]; }
       return l.filter(r => !MOBILE.includes(r.media) || r.d[p][1] !== prio).map(r => `${r.media || 'global'} ${sel} { ${p}: ${r.d[p].join(' !')} }`);
@@ -401,14 +438,15 @@ async function comparer(frag, cas) {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       const { context, page, erreurs } = await ouvrir({ ...c, script });
-      out[cle] = { r: await page.evaluate(RELEVE, PAGES[c.nom].racine), erreurs };
+      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
   for (const { c, teste, base } of res) {
     const sous = PAGES[c.nom].racine ? ` sous ${PAGES[c.nom].racine}` : '';
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : panneaux, en-têtes, titres et corps${sous} égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
+    const quoi = PAGES[c.nom].releve ? 'messages' : 'panneaux, en-têtes, titres et corps';
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${quoi}${sous} égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
       assert.equal(teste.r.mobile, c.width < 768, 'mode');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
@@ -421,8 +459,227 @@ async function comparer(frag, cas) {
 }
 if (on('forum')) {
   console.log('\n== forum ==');
-  await comparer('forum', [...DE('forum'), ...DE('exclus')].flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
+  const rs = await regles();
+  check('statique : règles du forum ciblées (panneau, en-tête, corps, titre) présentes, dans le média mobile seulement, sans fond ni rayon ni retrait propres à l\'en-tête, sans fond transparent, filet ni --kr-text-accent', () => {
+    const ecarts = REGLES_FORUM_TICKET52.flatMap(([sel, absentes]) => {
+      const l = rs.filter(r => r.sel === sel);
+      if (!l.length) { return [`${sel} absente`]; }
+      return l.flatMap(r => [...(MOBILE.includes(r.media) ? [] : [`${r.media || 'global'} ${sel}`]),
+        ...absentes.filter(p => r.d[p]).map(p => `${sel} { ${p}: ${r.d[p][0]} }`),
+        ...Object.entries(r.d).filter(([, [v]]) => VALEURS_FORUM_TICKET52.some(x => v.includes(x))).map(([p, [v]]) => `${sel} { ${p}: ${v} }`)]);
+    });
+    assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+  });
+  const cas = DE('forum').flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  const res = await mapLimit(cas, async c => {
+    const t = await ouvrir({ ...c, script: userscript });
+    const m = await t.page.evaluate(MESURE, [PANNEAU_TICKET51, TEXTE_TICKET51]);
+    await t.context.close();
+    const b = await ouvrir({ ...c, script: avant });
+    const mb = await b.page.evaluate(MESURE, [PANNEAU_TICKET51, TEXTE_TICKET51]);
+    await b.context.close();
+    return { c, m, swBase: mb.sw, chevronsBase: mb.panneaux.flatMap(p => p.chevrons), erreurs: t.erreurs };
+  });
+  for (const { c, m, swBase, chevronsBase, erreurs } of res) {
+    check(`forum ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps sans retrait, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevron de 44 x 44 dans la carte, éléments des panneaux dans la carte, sans débordement (base : ${swBase} px)`, () => controlerCarte(m, 'forum', swBase, chevronsBase, c.nom === 'staff'));
+    check(`forum ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  await comparer('forum', [...DE('sujet'), ...DE('exclus')].flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
 }
+// ---------- lignes de tableau du forum (dans la carte, égales au bundle de base) ----------
+// Relevé dans la page : chaque ligne visible des panneaux (hors accordéon), amenée à 150 px du haut avant les sondes elementFromPoint. Boîtes
+// des icônes et flèches relatives à la ligne : ordonnée, taille, écarts gauche et droit. La carte raccourcit la ligne de 16 px : un élément
+// garde un de ses deux écarts (ou perd 8 px de chaque côté, centré dans un élément étiré), et sa largeur ou sa largeur moins ces 16 px
+// (élément étiré). Pastilles sans abscisse (elles suivent le titre).
+// Le texte que la carte fait passer à la ligne (« Gagner des PA » à 375 px) grandit la ligne : hauteur et ordonnées ne sont alors comparées
+// qu'au sens (plus haute que la base, plus de rangées de texte).
+const LIGNES = ([sel, pastille]) => {
+  const vis = e => !!e && e.getClientRects().length > 0 && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden';
+  const r = v => Math.round(v * 10) / 10;
+  const out = [];
+  for (const p of [...document.querySelectorAll(sel)].filter(e => vis(e) && !e.closest('.panel-group'))) {
+    for (const tr of [...p.querySelectorAll('tbody > tr')].filter(vis)) {
+      window.scrollTo(0, 0);
+      window.scrollTo(0, tr.getBoundingClientRect().top - 150);
+      const pb = p.getBoundingClientRect();
+      const b = tr.getBoundingClientRect();
+      const s = getComputedStyle(tr);
+      const rel = e => { const c = e.getBoundingClientRect(); return { y: r(c.top - b.top), w: r(c.width), h: r(c.height), g: r(c.left - b.left), d: r(b.right - c.right) }; };
+      // Rangées de texte : ordonnées des fragments de texte visibles, regroupées à 4 px près (le passage à la ligne d'un bloc entier,
+      // comme l'auteur, ajoute une rangée sans ajouter de fragment).
+      const textes = document.createTreeWalker(tr, NodeFilter.SHOW_TEXT);
+      const hauts = [];
+      for (let n = textes.nextNode(); n; n = textes.nextNode()) {
+        if (!n.textContent.trim()) { continue; }
+        const plage = document.createRange();
+        plage.selectNodeContents(n);
+        hauts.push(...[...plage.getClientRects()].filter(c => c.width > 0).map(c => c.top));
+      }
+      hauts.sort((x, y) => x - y);
+      const lignesTexte = hauts.filter((y, i) => i === 0 || y - hauts[i - 1] > 4).length;
+      const cible = (x, y) => {
+        const e = document.elementFromPoint(x, y);
+        if (!e) { return 'rien'; }
+        const a = e.closest('a');
+        return a ? `a ${a.getAttribute('href')}` : (e.closest('tr') === tr ? 'tr' : e.tagName);
+      };
+      const mx = (b.left + b.right) / 2;
+      const my = (b.top + b.bottom) / 2;
+      const fleches = [...tr.querySelectorAll('a.btn')].filter(vis);
+      out.push({
+        nom: (tr.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30),
+        dans: b.left >= pb.left - 0.5 && b.right <= pb.right + 0.5, x: `[${r(b.left)}..${r(b.right)}] carte [${r(pb.left)}..${r(pb.right)}]`,
+        ombre: s.boxShadow,
+        tailles: fleches.map(e => [e.getBoundingClientRect().width, e.getBoundingClientRect().height]),
+        largeur: r(b.width), hauteur: r(b.height), lignesTexte,
+        boites: {
+          icones: [...tr.querySelectorAll('i')].filter(vis).map(i => ({ nom: i.className, ...rel(i) })),
+          fleches: fleches.map(e => ({ nom: 'a.btn', ...rel(e) }))
+        },
+        egal: {
+          ligne: [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft, s.borderLeftWidth, s.borderLeftStyle, s.borderLeftColor,
+            s.borderBottomWidth, s.borderBottomColor, s.backgroundColor, s.borderTopLeftRadius, s.borderBottomRightRadius, tr.className].join('|'),
+          icones: [...tr.querySelectorAll('i')].map(i => `${i.className} ${vis(i) ? 'visible' : 'masquée'}`),
+          pastilles: [...tr.querySelectorAll(pastille)].map(e => { const cs = getComputedStyle(e); const c = rel(e); return `${e.textContent.trim() || getComputedStyle(e, '::before').content} ${vis(e) ? [c.w, c.h].join(',') : 'masquée'} ${cs.backgroundColor} ${cs.color}`; }),
+          cibles: [cible(mx, my), cible(mx, b.top + 3), cible(mx, b.bottom - 3), cible(b.right - 3, my), cible(b.left + 2, my)]
+        }
+      });
+    }
+  }
+  window.scrollTo(0, 0);
+  return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), lignes: out };
+};
+if (on('lignes')) {
+  console.log('\n== lignes ==');
+  const cas = DE('forum').flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  const res = await mapLimit(cas, async c => {
+    const out = {};
+    for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      out[cle] = { l: await page.evaluate(LIGNES, [PANNEAU_TICKET51, PASTILLE_TICKET52]), erreurs };
+      await context.close();
+    }
+    return { c, ...out };
+  });
+  for (const { c, teste, base } of res) {
+    const lab = `lignes ${c.nom} ${c.variante} ${c.width} px`;
+    const t = teste.l.lignes;
+    check(`${lab} : ${t.length} ligne(s) dans la carte, sans ombre`, () => {
+      assert.ok(teste.l.theme && base.l.theme && teste.l.mobile, `kr-theme-enabled testé ${teste.l.theme} / base ${base.l.theme}, mobile ${teste.l.mobile}`);
+      assert.ok(t.length > 0, 'aucune ligne');
+      const ecarts = t.filter(l => !l.dans || l.ombre !== 'none').map(l => `« ${l.nom} » ${l.x} ombre ${l.ombre}`);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    check(`${lab} : hauteur, retraits, filets, fond, icônes d'état et cadenas, pastilles, flèches et cibles (centre, haut, bas, droite, filet) égaux au bundle de base`, () => {
+      assert.equal(t.length, base.l.lignes.length, 'nombre de lignes');
+      const ecarts = [];
+      t.forEach((l, k) => {
+        const z = base.l.lignes[k];
+        for (const [cle, v] of Object.entries(l.egal)) {
+          if (JSON.stringify(v) !== JSON.stringify(z.egal[cle])) { ecarts.push(`« ${l.nom} » ${cle} : testé ${JSON.stringify(v)} / base ${JSON.stringify(z.egal[cle])}`); }
+        }
+        // Même habillage : hauteur et ordonnées égales ; texte passé à la ligne : ligne plus haute, ordonnées non comparées.
+        const habillage = l.lignesTexte !== z.lignesTexte;
+        if (habillage ? !(l.lignesTexte > z.lignesTexte && l.hauteur > z.hauteur) : l.hauteur !== z.hauteur) {
+          ecarts.push(`« ${l.nom} » hauteur : testé ${l.hauteur} (${l.lignesTexte} rangée(s) de texte) / base ${z.hauteur} (${z.lignesTexte})`);
+        }
+        const delta = r1(z.largeur - l.largeur);
+        for (const cle of ['icones', 'fleches']) {
+          const a = l.boites[cle];
+          const bz = z.boites[cle];
+          if (a.length !== bz.length) { ecarts.push(`« ${l.nom} » ${cle} : ${a.length} / base ${bz.length}`); continue; }
+          a.forEach((e, i) => {
+            const o = bz[i];
+            const largeur = e.w === o.w || r1(o.w - e.w) === delta;
+            // Ancré à gauche, à droite, ou centré dans un élément étiré (les deux écarts perdent la moitié du raccourcissement).
+            const ancre = e.g === o.g || e.d === o.d || (pres(o.g - e.g, delta / 2, 0.15) && pres(o.d - e.d, delta / 2, 0.15));
+            if (e.nom !== o.nom || e.h !== o.h || !largeur || !ancre || (!habillage && e.y !== o.y)) {
+              ecarts.push(`« ${l.nom} » ${cle} ${e.nom} : testé ${JSON.stringify(e)} / base ${JSON.stringify(o)} (ligne raccourcie de ${delta} px)`);
+            }
+          });
+        }
+      });
+      assert.deepEqual(ecarts.slice(0, 3), [], `${ecarts.length} écart(s) : ${ecarts.slice(0, 3).join(' ; ')}`);
+    });
+    check(`${lab} : flèches « dernier message » d'au moins 44 x 44`, () => {
+      const petites = t.flatMap(l => l.tailles.filter(([w, h]) => w < 43.5 || h < 43.5).map(([w, h]) => `« ${l.nom} » ${w} x ${h}`));
+      assert.deepEqual(petites, [], petites.join(' ; '));
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
+// ---------- chevron natif du forum (repli et dépliage) ----------
+if (on('chevron')) {
+  console.log('\n== chevron ==');
+  const CHEVRON = '.panel-heading > .pull-right.clickable';
+  // Chevrons natifs attendus par page : 2 au sous-forum (permanents, sujets), 1 à l'index et à la racine-groupes (la racine n'en a pas,
+  // Staff garde son chevron natif de 10 x 14, A6).
+  const ATTENDUS = { 'sous-forum': 2, 'index-rp': 1, 'racine-groupes': 1 };
+  // Repli natif des panneaux (main.js du site, recopié de sous-forum-debuter.html) : les fixtures de l'index et de la racine ne
+  // l'embarquent pas ; il est posé après le chargement, sur ces pages seulement.
+  const REPLI_NATIF = () => {
+    window.jQuery(document).on('click', '.panel-heading span.clickable', function () {
+      const $this = window.jQuery(this); const body = $this.parents('.panel').find('.panel-body');
+      if (!$this.hasClass('panel-collapsed')) { body.hide(); $this.addClass('panel-collapsed'); } else { body.show(); $this.removeClass('panel-collapsed'); }
+    });
+  };
+  const cas = Object.keys(ATTENDUS).flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    if (c.nom !== 'sous-forum') { await page.evaluate(REPLI_NATIF); }
+    const n = await page.evaluate(sel => document.querySelectorAll(sel).length, CHEVRON);
+    const chevrons = [];
+    for (let i = 0; i < n; i += 1) {
+      const etat = () => page.evaluate(([sel, k]) => {
+        const ch = document.querySelectorAll(sel)[k];
+        const p = ch.closest('.panel');
+        const b = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, d: r.right, bas: r.bottom }; };
+        return { p: b(p), h: b(p.querySelector(':scope > .panel-heading')), ch: b(ch), titre: p.querySelector(':scope > .panel-heading').textContent.trim() };
+      }, [CHEVRON, i]);
+      await page.evaluate(([sel, k]) => { window.scrollTo(0, 0); window.scrollTo(0, document.querySelectorAll(sel)[k].getBoundingClientRect().top - 150); }, [CHEVRON, i]);
+      await styleSettled(page, 'body');
+      const depart = await etat();
+      const taper = async () => {
+        const e = await etat();
+        const x = e.ch.x + e.ch.w / 2;
+        const y = e.ch.y + e.ch.h / 2;
+        const touche = await page.evaluate(([sel, k, px, py]) => document.elementFromPoint(px, py)?.closest('.clickable') === document.querySelectorAll(sel)[k], [CHEVRON, i, x, y]);
+        if (touche) { await page.touchscreen.tap(x, y); }
+        await styleSettled(page, 'body');
+        return touche;
+      };
+      const touche1 = await taper();
+      const replie = await etat();
+      const touche2 = await taper();
+      const deplie = await etat();
+      chevrons.push({ depart, touche1, replie, touche2, deplie });
+    }
+    await context.close();
+    return { c, chevrons, erreurs };
+  });
+  for (const { c, chevrons, erreurs } of res) {
+    const lab = `chevron ${c.nom} ${c.variante} ${c.width} px`;
+    check(`${lab} : ${ATTENDUS[c.nom]} chevron(s) natif(s)`, () => assert.equal(chevrons.length, ATTENDUS[c.nom]));
+    for (const s of chevrons) {
+      const a = s.depart;
+      check(`${lab} « ${a.titre} » : chevron de 44 x 44 dans l'en-tête et dans la carte`, () => {
+        assert.ok(a.ch.w >= 43.5 && a.ch.h >= 43.5, `${a.ch.w} x ${a.ch.h}`);
+        assert.ok(a.ch.x >= a.p.x - 0.5 && a.ch.d <= a.p.d + 0.5 && a.ch.y >= a.h.y - 0.5 && a.ch.bas <= a.h.bas + 0.5, `chevron [${a.ch.x}..${a.ch.d}, ${a.ch.y}..${a.ch.bas}], carte [${a.p.x}..${a.p.d}], en-tête [${a.h.y}..${a.h.bas}]`);
+      });
+      check(`${lab} « ${a.titre} » : 1er tap au centre (elementFromPoint) : carte réduite à l'en-tête`, () => {
+        assert.ok(s.touche1, 'chevron couvert au point du tap');
+        assert.ok(pres(s.replie.p.h, s.replie.h.h), `carte ${s.replie.p.h} px, en-tête ${s.replie.h.h} px`);
+      });
+      check(`${lab} « ${a.titre} » : 2e tap : hauteur d'origine (${Math.round(a.p.h * 10) / 10} px)`, () => {
+        assert.ok(s.touche2, 'chevron couvert au point du tap');
+        assert.ok(pres(s.deplie.p.h, a.p.h), `carte ${s.deplie.p.h} px`);
+      });
+    }
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+}
+
 if (on('bureau')) {
   console.log('\n== bureau ==');
   await comparer('bureau', Object.keys(PAGES).filter(k => PAGES[k].famille !== 'exclus').flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
@@ -476,7 +733,7 @@ if (on('bascule')) {
 // ---------- contraste (16 variantes) ----------
 if (on('contraste')) {
   console.log('\n== contraste ==');
-  const cas = ['bat', 'reception'].flatMap(nom => TOUTES.map(variante => ({ nom, variante, width: 375 })));
+  const cas = ['bat', 'reception', 'sous-forum', 'index-rp'].flatMap(nom => TOUTES.map(variante => ({ nom, variante, width: 375 })));
   const res = await mapLimit(cas, async c => {
     const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
     const m = await page.evaluate(MESURE, [PANNEAU_TICKET51, TEXTE_TICKET51]);

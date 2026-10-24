@@ -73,3 +73,21 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 
 - Cybermonde, panneau « Fonctionnaires » : le chevron natif est dans le `h3`, juste après le texte (~222 px du bord), au lieu d'être à 16 px du bord droit de l'en-tête. Identique à la base. Le contrôle de `cartes-pastilles.mjs` ne lit que les enfants directs, et la police Font Awesome est coupée dans la fixture (`i.fa` à 0 px).
 - Module « Panel Sections Collapse » : le retrait du corps (`padding-top/bottom: 0` au repli) change sans transition, ce qui fait sauter le contenu de 32 px avant l'animation. Option : ajouter `padding` à la `transition`.
+
+## Reports du ticket 5.2, liste des sujets du forum dans la carte (2026-10-24)
+
+- source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
+  summary: A13, 2e version des cartes de ligne (section « INDEX DU FORUM », `:where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table …`) : gardée, elle gagne sur Staff (A6). 17 déclarations prouvées inertes retirées ; restent le fond de ligne, la couleur du lien de titre et 3 `display` (inertes une à une, effectives ensemble : leur retrait groupé masque des cellules).
+  evidence: Bisection, une déclaration à la fois : styles calculés complets égaux avant et après sur 7 pages × 375/767 × clair/sombre. Pour l'alignement de Staff sur l'index (autre ticket) : retirer la 2e version entière et mesurer Staff.
+- source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
+  summary: Staff (`/forum/staff`) : chevron natif de 10 × 14 px (pas de règle de sous-forum ni d'index, A6), sous la cible tactile de 44 px. Identique à la base. La croix de `.alert-dismissible` sort de l'écran de 5 px (`scrollWidth` 380 à 375 px, 772 à 767 px), hors panneau, identique à la base.
+  evidence: Mesures `cartes-pastilles.mjs`, fragment `forum` (chevron égal à la base, largeur défilable égale à la base). À traiter avec l'alignement de Staff.
+- source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
+  summary: Racine du forum (`forum-racine.html`, sans `.panel-body`) en sombre : la dernière ligne, opaque et à coins carrés, recouvre les coins bas arrondis de la carte (A8). Rendu de base gardé, aucun `overflow: hidden` ajouté.
+  evidence: Option à trancher : rayon bas sur la dernière ligne, ou `overflow: hidden` sur la carte de la racine (vérifier alors le chevron et les cibles).
+
+## Reports de la revue du ticket 5.2 (2026-10-24)
+
+- Accordéon (`.panel-group`) ou modale `.panel-default` posé sur une page `/forum/*` : la règle forum ne bat plus la copie de base, il prendrait fond surface et rayon md. Aucune fixture du forum n'en contient ; à vérifier sur le site réel.
+- Bascule 767 ↔ 768 du forum non couverte par `cartes-pastilles` (fragment `bascule` sur Bâtiments). Risque faible : le forum recharge la page au changement de seuil.
+- Pages `/forum/*` hors fixtures (réponse, nouveau sujet, recherche, modération) : leurs `.panel-default` entrent dans la carte (48 px, corps à 0). À regarder sur capture.

@@ -382,6 +382,55 @@ export const CARTES_TICKET51 = [
 export const AVANT_TICKET51 = bundle => !bundle.includes('.building-section-content.collapsed{opacity:0;padding-top:0');
 
 /**
+ * Carte de section au forum (épopée 5, entrée 2, story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect) : repères de
+ * cartes-pastilles.mjs écrits ici, hors de la suite (routeur, MAX_CITING). Sélecteur de la carte sans la garde du forum (règles du bundle
+ * courant, lues par le contrôle statique), pastille des lignes de sujet (citée par trois suites), fixture du fil de sujet (citée par trois
+ * suites), règles du forum ciblées (sélecteur sérialisé par le CSSOM, propriétés absentes) et valeurs interdites dans toutes leurs déclarations
+ * (couleur d'accent, fond transparent, filet de l'en-tête).
+ */
+const CARTE_TICKET52 = 'body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *))';
+export const REGLES_CARTE_TICKET52 = REGLES_CARTE_TICKET51.map(([sel, p, prio]) => [sel.replace(CARTE_TICKET51, CARTE_TICKET52), p, prio]);
+export const PASTILLE_TICKET52 = '.kr-topic-badge';
+export const SUJET_TICKET52 = 'forum-sujet.html';
+export const REGLES_FORUM_TICKET52 = [
+  ['body.page-forum .panel-default', ['background', 'background-color']],
+  ['body.page-forum .panel-default > .panel-heading', ['background', 'background-color', 'border-radius', 'padding']],
+  ['body.page-forum .panel-default > .panel-heading h3', ['color']],
+  ['body.page-forum .panel-default > .panel-body, body.page-forum-racine .panel-default > .panel-body', []]
+];
+export const VALEURS_FORUM_TICKET52 = ['--kr-text-accent', 'transparent', '--kr-border-default'];
+/**
+ * Écart accepté et consigné (épopée 5, entrée 2, story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect) : panneaux mobiles
+ * du forum (sous-forum, index, Staff, racine) en carte de section (fond surface, 8 px des bords, en-tête de 48 px sans filet, titre en
+ * couleur du texte, corps sans retrait, racine comprise ; contrôles DataTables du sous-forum à 6 px sous l'en-tête, pagination étendue à
+ * la largeur de la carte), lignes de sujet sans l'ombre ni l'effet d'échelle au tap de la 1re version A13.
+ * Feuille miroir en valeurs littérales, posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET52), jamais sur le bundle courant ;
+ * empilable avec CARTES_TICKET51 (posée avant elle) sur une base antérieure à l'entrée 1 ; tout autre écart reste détecté. Écart consigné
+ * dans le plan de l'entrée (Plan Change Log).
+ * Condition de retrait : quand le bundle de base de la suite contient l'entrée 5.2 (le détecteur l'éteint de lui-même).
+ */
+export const CARTES_TICKET52 = [
+  '@media (max-width: 767px) {',
+  `  ${CARTE_TICKET52} { background: var(--kr-bg-surface) !important; border: none !important; box-shadow: none !important; margin-left: 8px; margin-right: 8px; }`,
+  `  ${CARTE_TICKET52} > .panel-heading { background: var(--kr-bg-surface) !important; border: none !important; border-radius: 8px !important; padding: 0 16px !important; margin-bottom: 0 !important; min-height: 48px; align-items: center !important; }`,
+  `  ${CARTE_TICKET52} > .panel-heading h3 { font-size: 17px !important; font-weight: 700 !important; margin: 0 !important; color: var(--kr-text-primary) !important; }`,
+  `  ${CARTE_TICKET52} > .panel-body:last-child { border-radius: 0 0 8px 8px; }`,
+  '  body.page-forum .panel-default { background: var(--kr-bg-surface) !important; }',
+  '  body.page-forum .panel-default > .panel-heading { background: var(--kr-bg-surface) !important; border-bottom: none !important; border-radius: 8px !important; padding: 0 16px !important; }',
+  '  body.page-forum .panel-default > .panel-body, body.page-forum-racine .panel-default > .panel-body { padding: 0 !important; }',
+  '  body.page-forum .panel-default > .panel-heading h3 { color: var(--kr-text-primary) !important; }',
+  '  body.page-forum.kr-subforum .panel-default > .panel-heading { min-height: 48px; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading { min-height: 48px; }',
+  '  body.page-forum.kr-subforum #topics_wrapper { padding-top: 6px !important; }',
+  '  body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate { flex: 0 0 calc(100% + 32px); margin: 8px -16px 0 !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr { box-shadow: none !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr:active { transform: none !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 5, entrée 2 : le corps de la racine du forum sans retrait n'y figure pas (règle minifiée du bundle). */
+export const AVANT_TICKET52 = bundle => !bundle.includes('body.page-forum .panel-default>.panel-body,body.page-forum-racine .panel-default>.panel-body{padding:0');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

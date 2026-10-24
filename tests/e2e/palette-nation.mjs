@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -181,7 +181,7 @@ const browser = await launchBrowser();
 // `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué ; `secondaire` : texte atténué du ticket 4 posé
 // sur un bundle d'avant ce ticket.
 // `gmErreur` : GM.xmlHttpRequest répond par une erreur (changelog chargé à vide, bouton du profil posé).
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, gmErreur = false }) {
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, cartes = false, gmErreur = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
@@ -191,6 +191,9 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (theme) { await context.addInitScript(choisirVariante, variante); } else { await context.addInitScript(() => localStorage.setItem('kr-theme-enabled', 'false')); }
   if (secondaire) { await context.addInitScript(poserJetonsRedefinis, TEXTE_SECONDAIRE_CLAIR); } // bundle d'avant le ticket 4 : texte atténué de Q26
+  // Écart accepté et consigné (épopée 5, entrées 1 et 2) : panneaux mobiles en carte de section, forum compris (CARTES_TICKET51, puis
+  // CARTES_TICKET52), posés sur un bundle d'avant ces entrées (`cartes`, pages4 seulement), jamais sur le bundle testé.
+  if (cartes && script !== userscript && AVANT_TICKET52(script)) { await context.addInitScript(poserJetonsRedefinis, (AVANT_TICKET51(script) ? CARTES_TICKET51 + '\n' : '') + CARTES_TICKET52); }
   await context.addInitScript(([src, erreur]) => {
     window.GM = { xmlHttpRequest: o => { if (erreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
     // eslint-disable-next-line no-eval
@@ -1144,7 +1147,7 @@ async function pages4(p, variante, width) {
   const mobile = width < 768;
   const res = {};
   for (const [cote, script] of [['avant', avant4], ['apres', userscript]]) {
-    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant' });
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant', cartes: cote === 'avant' });
     res[cote] = { ...(await page.evaluate(RELEVER4, SEL_COMPOSANTS4)), jetons: await page.evaluate(JETONS4, ABSENT), erreurs };
     await context.close();
   }

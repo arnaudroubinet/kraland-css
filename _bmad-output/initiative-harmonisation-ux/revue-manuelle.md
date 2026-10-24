@@ -265,3 +265,16 @@ Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autono
 - Modale d'ordre : exclue de la carte (`.modal *`) après revue ; elle garde le rendu de base (égalité prouvée à 375 et 767 par `cartes-pastilles`, fragment `forum`).
 - Cybermonde « Fonctionnaires » : le chevron natif est dans le titre, à 222 px du bord, comme avant. Non corrigé.
 - Push autorisé par Arnaud le 2026-10-24 : `feature/next` poussé jusqu'à `317b5b7` (épopées 2 à 4, bug 10).
+
+## Ticket 5.2 — liste des sujets du forum dans la carte (construit, 2026-10-24)
+
+- Décidé en autonomie (A1, fil de sujet) : rien à décider. La fixture `forum-sujet.html` n'a aucun `.panel` ; le fil est comparé à la base à 375 et 767 px, clair et sombre, et reste égal.
+- Décidé en autonomie (A8, coins de la racine) : en sombre, la dernière ligne de `forum-racine.html` (opaque, coins carrés, sans `.panel-body`) recouvre les coins bas arrondis de la carte. Rendu de base gardé : aucun `overflow: hidden` ni rayon ajouté. Report dans `deferred-work.md`.
+- Décidé en autonomie (P7, carte blanche en clair) : rien ajouté, comme en 5.1. La carte blanche ne se détache pas du fond blanc de page en Kraland clair. Le point « fond de page teinté » du ticket 5.1 reste ouvert.
+- Décidé en autonomie (hauteur des lignes) : la carte raccourcit les lignes de 16 px. À 375 px, deux sujets du sous-forum (« Gagner des PA », « Kayak Portable ») voient l'auteur du dernier message passer à la ligne : 127,1 px au lieu de 106,9. Accepté, c'est l'effet direct du retrait de 8 px demandé. Le test exige l'égalité de hauteur sauf quand une rangée de texte s'ajoute ; il exige alors une ligne plus haute.
+- Staff (A6) : chevron natif de 10 × 14 px et croix d'alerte qui sort de 5 px de l'écran, tous deux comme la base. Le test les compare à la base au lieu d'imposer 44 px. Report dans `deferred-work.md`.
+- A13, 2e version : 17 déclarations inertes retirées après bisection ; le reste est gardé (Staff). Report dans `deferred-work.md`.
+- `#topics` : non touché. Ses marges négatives compensent le retrait de 16 px de `#topics_wrapper`, et les lignes s'arrêtent déjà aux bords internes de la carte.
+- La barre de tri DataTables (`thead tr`, `overflow: auto hidden` natif de la peau) défile dans la carte : ses puces au-delà du bord sont coupées, comme dans la base. Le test exclut le contenu des défileurs et contrôle le défileur lui-même.
+- Décidé en autonomie (sous-forum, 1er sujet à 0,95 écran, `sous-forum.mjs` l.668) : les deux en-têtes de 48 px (au lieu de 45) poussent le 1er sujet à 636 px sur 667 (0,954), au-delà du seuil. Seuil inchangé. Le retrait haut des contrôles DataTables (`#topics_wrapper`) passe de 12 à 6 px : 1er sujet à 630 px, comme la base. La recherche est donc à 6 px sous l'en-tête de la carte, sans filet entre eux. À regarder sur capture.
+- Décidé en autonomie (pagination à 320 px) : la pagination L5 mesure 304 px, et la carte ne laisse que 272 px de contenu à 320 px : 8 px de débordement d'écran. Correctif : la pagination s'étend sur toute la largeur de la carte (marges de −16 px, comme `#topics`). Elle reste centrée et à la même place que la base de 336 à 767 px. À 320 px, « ‹ » et « › » touchent les bords internes de la carte.
