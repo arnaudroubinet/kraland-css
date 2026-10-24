@@ -224,3 +224,9 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Seuils 768/769 réalignés sur 767/768 (éditeur du kramail, changelog) : à 768 px, ces pages prennent désormais le rendu ordinateur. Vérifié égal à la base relevée à 769 px.
 - Règles mortes retirées : rayon du menu de personnage du kramail, propriétés du hamburger hors `order`, premier bloc de cartes du forum réduit à l'ombre et à l'appui.
 - `height: 44px` des champs mobiles gardé : sans effet mesuré (le `min-height` de 44 px l'emporte), consigné comme candidat mort dans `deferred-work.md`.
+
+## Rétrospective de l'épopée 4 (2026-10-24)
+
+- Verdict « rejected » pour une seule raison : rien n'est poussé ni fusionné (Done when 3). Le reste tient sur fixtures. Livraison des épopées 2 à 4 : attend ton accord pour le push et la PR.
+- Constats à corriger, traités dans un ticket de suivi : nom de forum mobile à 17 px au lieu de 15 (F2, `h1, h2, h3 !important` bat `.forum-title`) ; ordre du pied Bootbox mobile limité à `.btn-default`/`.btn-primary` (F3) ; jetons jamais lus et commentaire « 4.3 » à corriger en « 4.4 » (F5).
+- À corriger dans l'épopée (fichier réservé) : la note « aucun bouton de vote dans les fixtures du sujet » est fausse, `forum-sujet.html` l.26-28 en a (F9).
