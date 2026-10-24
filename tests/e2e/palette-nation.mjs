@@ -743,7 +743,6 @@ const TEXTES = [
   T('accueil', '#forum-categorie', 'catégorie du forum de l\'accueil', BUREAU),
   T('sous-forum', '.table > tbody > tr > td > a.nomargin', 'lien vers un forum pressé', MOBILE, 'active'),
   T('sous-forum', 'span.tagforum a', 'étiquette de forum pressée', MOBILE, 'active'),
-  T('réception du kramail', 'h3[class$="title"]', 'titre du panneau du kramail', MOBILE),
   T('réception du kramail', '.kramail-character-option > div > span:first-child', 'coche du personnage actif', MOBILE),
   T('réception du kramail', 'h1.page-header .btn-default', 'dossier du kramail survolé', BUREAU, 'hover'),
   T('rédaction du kramail', 'span.required', 'astérisque d\'un champ obligatoire du kramail')

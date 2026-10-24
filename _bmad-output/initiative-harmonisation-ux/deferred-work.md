@@ -68,3 +68,8 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - `insertChangelogButton` et le `setTimeout` de 150 ms de la modale d'ordre mobile tournent hors `InitQueue` : `data-kr-ready` ne les attend pas.
 - `.kr-mobile-overlay` est ajouté en fin de `body` pendant l'analyse HTML, à un rang variable parmi les enfants de `body`.
 - Le fragment `nettoyage` injecte maintenant le bundle à un point fixe (fin de `body`) ; les autres fragments qui comparent des chemins DOM restent exposés à ce timing.
+
+## Reports de la revue du ticket 5.1 (2026-10-24)
+
+- Cybermonde, panneau « Fonctionnaires » : le chevron natif est dans le `h3`, juste après le texte (~222 px du bord), au lieu d'être à 16 px du bord droit de l'en-tête. Identique à la base. Le contrôle de `cartes-pastilles.mjs` ne lit que les enfants directs, et la police Font Awesome est coupée dans la fixture (`i.fa` à 0 px).
+- Module « Panel Sections Collapse » : le retrait du corps (`padding-top/bottom: 0` au repli) change sans transition, ce qui fait sauter le contenu de 32 px avant l'animation. Option : ajouter `padding` à la `transition`.

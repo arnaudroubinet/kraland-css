@@ -106,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, CARTES_TICKET51, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1859,7 +1859,10 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 // Base d'avant le bug 10 (jamais le bundle testé) : masque TITRE_FORUM_BUG10, nom de forum des cartes mobiles à 15 px comme après le bug.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
-  const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '');
+  // Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section (CARTES_TICKET51), posés sur un bundle de base
+  // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé.
+  const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
+    + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '');
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }

@@ -184,7 +184,7 @@ check('typographie et formes : échelle (en-têtes, noms, onglets et jauges du m
   }
 });
 check('composants génériques (en-tête de panneau, .panel-title, titre d\'élément de liste) -> toutes les zones qui les rendent', () => {
-  const attendues = ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes'];
+  const attendues = ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes', 'cartes-pastilles'];
   for (const h of [
     hunk('  body.page-forum .panel-default > .panel-heading h3 {', '    font-size: var(--kr-font-section-title) !important;'),
     hunk('  .panel-title {', '    font-size: var(--kr-font-section-title);'),
@@ -194,6 +194,23 @@ check('composants génériques (en-tête de panneau, .panel-title, titre d\'él�
     assert.equal(d.widened, false, d.reasons.join(' ; '));
     for (const z of attendues) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
   }
+});
+
+check('module « Panel Sections Collapse » (building-section, accordion-icon) -> cartes-pastilles', () => {
+  for (const h of [
+    hunk('  body.mobile-mode .building-section-header .accordion-icon {', '    margin-left: auto;'),
+    hunk('  body.mobile-mode .building-section-content.collapsed {', '    padding-top: 0;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('cartes-pastilles'), d.zones.join(', '));
+  }
+});
+check('cartes-pastilles enregistrée (7 fragments, Bootstrap embarqué)', () => {
+  const s = SUITES.find(x => x.name === 'cartes-pastilles');
+  assert.ok(s, 'suite absente du registre');
+  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'bureau', 'bascule', 'contraste']);
+  assert.equal(s.needsBootstrap, true);
 });
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {

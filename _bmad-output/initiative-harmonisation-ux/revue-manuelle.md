@@ -255,3 +255,13 @@ Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autono
 - Pied des modales mobiles : rien ne change. Le commentaire dit maintenant que seuls `.btn-default` et `.btn-primary` sont rangés ; un `.btn-danger` ou `.btn-success` passerait avant eux. À vérifier si le site en met dans une modale.
 - Jetons inutilisés (`--kr-font-page-title`, `--kr-space-5`, `--kr-space-6`, `--kr-margin-mobile`, `--kr-touch-target-dpad`) gardés : DESIGN.md les déclare et le test du 4.1 les vérifie. Les retirer : ta décision.
 - `test:all` final passé machine chargée : 2 FAIL de charge, verts rejoués seuls. Le fragment `nettoyage` flanche sous charge de façon répétée : à fiabiliser (rétro 4, A10).
+
+## Ticket 5.1 — carte de section mobile (construit, 2026-10-24)
+
+- À trancher : en clair, le fond de page est blanc (Bootstrap), donc la carte blanche ne se détache pas. Le plan n'ajoute ni fond de page ni filet (maquette h04 : filet). Option : fond de page teinté en clair.
+- Portée : la carte vaut là où valait la règle d'origine. Elle s'applique donc aussi aux pages Règles, Cybermonde, Interface, et au kramail, sauf aux panneaux d'accordéon (`.panel-group`) et de modale. Aucune garde « jeu » n'est fiable, car `#col-leftest` manque sur Matériel, Bâtiments et Employés.
+- Forum, sous-forum et racine gardent leur rendu actuel (règle scindée).
+- Décidé en autonomie : la déclaration `padding: 10px 15px !important` des en-têtes mobiles (l.4337) est gardée. Elle ne gagne que sur les panneaux d'état (`.panel-success`, `-warning`, `-danger`, `-info`, `-primary`), jamais sur un `.panel-default`. La retirer changerait ces panneaux.
+- Modale d'ordre : exclue de la carte (`.modal *`) après revue ; elle garde le rendu de base (égalité prouvée à 375 et 767 par `cartes-pastilles`, fragment `forum`).
+- Cybermonde « Fonctionnaires » : le chevron natif est dans le titre, à 222 px du bord, comme avant. Non corrigé.
+- Push autorisé par Arnaud le 2026-10-24 : `feature/next` poussé jusqu'à `317b5b7` (épopées 2 à 4, bug 10).

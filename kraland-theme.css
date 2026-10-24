@@ -4349,7 +4349,8 @@ body > map {
     align-items: center !important;
   }
   
-  .panel-body {
+  /* Hors corps replié d'une section du module « Panel Sections Collapse » (retrait vertical 0, carte de 48 px) */
+  .panel-body:where(:not(.building-section-content.collapsed)) {
     padding: var(--kr-space-4) !important;
   }
   
@@ -6366,57 +6367,58 @@ body > map {
  * ============================================================================
  */
 
-/* Header de section bâtiment cliquable */
-body.mobile-mode .building-section-header {
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  transition: background-color var(--transition-fast);
-}
+@media (max-width: 767px) {
+  /* Header de section bâtiment cliquable */
+  body.mobile-mode .building-section-header {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    transition: background-color var(--transition-fast);
+  }
 
-body.mobile-mode .building-section-header:hover {
-  background-color: var(--kr-bg-hover);
-}
+  body.mobile-mode .building-section-header:hover {
+    background-color: var(--kr-bg-hover);
+  }
 
-body.mobile-mode .building-section-header:active {
-  background-color: var(--kr-bg-active);
-}
+  body.mobile-mode .building-section-header:active {
+    background-color: var(--kr-bg-active);
+  }
 
-/* Icône chevron */
-body.mobile-mode .building-section-header .accordion-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: transform var(--transition-normal);
-  font-size: 14px;
-  color: var(--kr-text-secondary);
-}
+  /* Icône chevron : dans le flux de l'en-tête, au bord droit de son retrait (16 px) */
+  body.mobile-mode .building-section-header .accordion-icon {
+    margin-left: auto;
+    transition: transform var(--transition-normal);
+    font-size: 14px;
+    color: var(--kr-text-secondary);
+  }
 
-body.mobile-mode .building-section-header.expanded .accordion-icon {
-  transform: translateY(-50%) rotate(-180deg);
-}
+  body.mobile-mode .building-section-header.expanded .accordion-icon {
+    transform: rotate(-180deg);
+  }
 
-/* Contenu collapsible */
-body.mobile-mode .building-section-content {
-  max-height: 5000px;
-  opacity: 1;
-  overflow: hidden;
-  transition: max-height var(--transition-normal), opacity var(--transition-normal);
-}
+  /* Contenu collapsible : replié, sans retrait vertical (carte réduite à son en-tête de 48 px) */
+  body.mobile-mode .building-section-content {
+    max-height: 5000px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height var(--transition-normal), opacity var(--transition-normal);
+  }
 
-body.mobile-mode .building-section-content.collapsed {
-  max-height: 0 !important;
-  opacity: 0;
-}
+  body.mobile-mode .building-section-content.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
 
-/* Fix: Contraindre l'image illustrative du bâtiment sur mobile
-   (override de la règle trop large [id^="c"] img { max-width: none }) */
-body.mobile-mode .building-section-content img.img-responsive {
-  max-width: 100% !important;
-  height: auto !important;
-  display: block;
+  /* Fix: Contraindre l'image illustrative du bâtiment sur mobile
+     (override de la règle trop large [id^="c"] img { max-width: none }) */
+  body.mobile-mode .building-section-content img.img-responsive {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
 }
 
 /* ============================================================================
@@ -7828,15 +7830,18 @@ body.mobile-mode .building-section-content img.img-responsive {
      Inspiré de la section "Recommandées pour toi" de Reddit
      ============================================================================ */
   
-  /* Conteneur des panneaux mobiles, toutes pages (sans garde de page jusqu'au lot 5, H4.1) */
-  body.mobile-mode .panel-default {
+  /* Conteneur des panneaux mobiles du forum et de sa racine, des panneaux d'accordéon (.panel-group, entrée 3) et des
+     modales : valeurs d'avant la carte de section, jusqu'à l'entrée 2 (épopée 5) */
+  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default,
+  body.mobile-mode .panel-default:where(.panel-group > *, .modal *) {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
   }
   
-  /* En-tête des panneaux mobiles, toutes pages (sans garde de page jusqu'au lot 5, H4.1) */
-  body.mobile-mode .panel-default > .panel-heading {
+  /* En-tête des panneaux mobiles du forum, de sa racine, de l'accordéon et des modales, jusqu'à l'entrée 2 (épopée 5) */
+  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default > .panel-heading,
+  body.mobile-mode .panel-default:where(.panel-group > *, .modal *) > .panel-heading {
     background: var(--kr-bg-surface) !important;
     border: none !important;
     border-radius: var(--kr-radius-md) !important;
@@ -7845,12 +7850,47 @@ body.mobile-mode .building-section-content img.img-responsive {
     align-items: center !important;
   }
   
-  /* Titre de l'en-tête des panneaux mobiles, toutes pages (sans garde de page jusqu'au lot 5, H4.1) */
-  body.mobile-mode .panel-default > .panel-heading h3 {
+  /* Titre de l'en-tête des panneaux mobiles du forum, de sa racine, de l'accordéon et des modales, jusqu'à l'entrée 2 (épopée 5) */
+  body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default > .panel-heading h3,
+  body.mobile-mode .panel-default:where(.panel-group > *, .modal *) > .panel-heading h3 {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
     margin: 0 !important;
     color: var(--kr-text-primary) !important;
+  }
+  
+  /* Carte de section (H4.1, DESIGN.md › Carte de section) : panneaux mobiles hors forum, hors accordéon et hors modale, en-tête de 48 px et contenu
+     dans la même carte, en retrait de 8 px des bords */
+  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) {
+    background: var(--kr-bg-surface) !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin-left: var(--kr-space-2);
+    margin-right: var(--kr-space-2);
+  }
+  
+  /* En-tête de la carte de section : 48 px au moins (un titre sur deux lignes l'agrandit), sans écart avec le contenu */
+  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading {
+    background: var(--kr-bg-surface) !important;
+    border: none !important;
+    border-radius: var(--kr-radius-md) !important;
+    padding: 0 var(--kr-space-4) !important;
+    margin-bottom: 0 !important;
+    min-height: 48px;
+    align-items: center !important;
+  }
+  
+  /* Titre de l'en-tête de la carte de section */
+  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading h3 {
+    font-size: var(--kr-font-section-title) !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    color: var(--kr-text-primary) !important;
+  }
+  
+  /* Dernier corps de la carte : coins bas arrondis (le corps porte le fond surface en sombre) */
+  body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-body:last-child {
+    border-radius: 0 0 var(--kr-radius-md) var(--kr-radius-md);
   }
   
   /* Tableaux du forum en cartes (1re version) : sous-forum et index Staff ; la racine du forum porte kr-page-forum-index et en est exclue.
@@ -8949,20 +8989,11 @@ body.mobile-mode .building-section-content img.img-responsive {
   body.page-kramail .panel.panel-default {
     border: none !important;
     box-shadow: none !important;
-    margin: 0 !important;
-    background: transparent !important;
-  }
-
-  body.page-kramail .panel-heading {
-    padding: 12px 16px !important;
-    background: transparent !important;
-    border-bottom: 1px solid var(--kr-border-default) !important;
   }
 
   body.page-kramail .panel-heading h3.panel-title {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
-    color: var(--kr-text-accent) !important;
   }
 
   /* Icône chevron collapse */

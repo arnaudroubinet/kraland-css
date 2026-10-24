@@ -38,6 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, waitState } from './lib/settle.mjs';
+import { AVANT_TICKET51, CARTES_TICKET51, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -95,8 +96,9 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function open(url, html, variante, dev, src = userscript) {
+async function open(url, html, variante, dev, src = userscript, css = null) {
   const context = await browser.newContext(dev);
+  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
   await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   await context.route(BASE + '/**', route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!DOCTYPE html><html><body>destination</body></html>' }));
   await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
@@ -347,10 +349,14 @@ if (on('panneaux')) {
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [375, 1280].map(l => ({ ...p, variante: v, largeur: l }))));
     console.log(`Panneaux et sélecteurs comparés au bundle « avant » : ${pages.map(p => p.nom).join(', ')}, 375 et 1280 px, ${VARIANTES.join(', ')}`);
     console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
+    // Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section (CARTES_TICKET51), posés sur un bundle « avant »
+    // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé.
+    const cartesAvant = AVANT_TICKET51(avant) ? CARTES_TICKET51 : null;
+    if (cartesAvant) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section posés sur le bundle « avant » (épopée 5, entrée 1)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
-      for (const src of [avant, userscript]) {
-        const { context, page, erreurs } = await open(c.url, c.html, c.variante, device(c.largeur), src);
+      for (const [src, css] of [[avant, cartesAvant], [userscript, null]]) {
+        const { context, page, erreurs } = await open(c.url, c.html, c.variante, device(c.largeur), src, css);
         mesures.push({ panneaux: await page.evaluate(MESURE_PANNEAUX), erreurs });
         await context.close();
       }

@@ -80,7 +80,12 @@ export const SUITES = [
   // fragment nettoyage) : styles calculés égaux au bundle de base après retrait des déclarations mortes, médias au seuil 767/768. Nom de forum
   // des cartes mobiles (bug 10, fragment titre-forum) : h3.forum-title de Staff en 15 px, autres titres h1-h3 égaux au bundle de base. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
   // de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum']], needsBootstrap: true }
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum']], needsBootstrap: true },
+  // Cartes et pastilles (épopée 5, entrée 1) : carte de section mobile des pages de jeu, du kramail et des règles (8 px des bords, en-tête de
+  // 48 px collé au contenu, titre en couleur du texte), module « Panel Sections Collapse » (chevron dans le flux, repli en 48 px, tap mesuré),
+  // contrôles statiques ; forum (375, 767) et ordinateur (768 à 1920) égaux au bundle de base, bascule 767/768 dans les deux sens, contraste
+  // des 16 variantes. Fixtures synthétiques des pages de jeu, du kramail, des règles, du Cybermonde et du forum.
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['bureau'], ['bascule'], ['contraste']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -164,8 +169,11 @@ export const KEYWORDS = [
   [/--kr-space-\d/, ['typographie-formes', 'forum', 'sous-forum', 'kramail', 'plateau', 'modale-ordre', 'cybermonde']],
   // Composants génériques de Bootstrap (en-têtes de panneau, titres d'élément de liste) : cités par plus de MAX_CITING suites, ils lancent
   // toutes les zones qui les rendent ou les comparent (forum-index, sous-forum, kramail-redaction, modale-ordre, cybermonde-carte,
-  // jeu-identite, palette-nation par COMPOSANTS_TICKET4, plateau, mini-profil, typographie-formes ; échelle typographique, ticket 5).
-  [/panel-heading|panel-title|list-group-item-heading/, ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes']],
+  // jeu-identite, palette-nation par COMPOSANTS_TICKET4, plateau, mini-profil, typographie-formes ; échelle typographique, ticket 5 ; carte de
+  // section, cartes-pastilles, épopée 5).
+  [/panel-heading|panel-title|list-group-item-heading/, ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes', 'cartes-pastilles']],
+  // Module « Panel Sections Collapse » (sections repliables du jeu, épopée 5, entrée 1) : en-tête, corps et chevron mesurés par cartes-pastilles.
+  [/building-section|accordion-icon/, ['cartes-pastilles']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES]
 ];

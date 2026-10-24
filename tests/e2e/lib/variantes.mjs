@@ -327,6 +327,61 @@ export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
 export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important');
 
 /**
+ * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum
+ * et kr-page-forum-index, déjà cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
+ * De même pour la couleur du texte (--kr-text-primary) et le raccourci de rayon, cités par trois suites. Panneau mesuré, couleur attendue du
+ * titre, raccourcis lus par le contrôle statique, règles de la carte (sélecteur sérialisé par le CSSOM, propriété, priorité attendue) et
+ * règles du kramail ciblées (sélecteur, propriétés absentes ; null : règle absente).
+ */
+export const PANNEAU_TICKET51 = '.panel-default';
+/** Dossier des fixtures de la modale d'ordre (repère cité par trois suites, routeur MAX_CITING). */
+export const DOSSIER_MODALE_TICKET51 = 'modale-ordre';
+export const TEXTE_TICKET51 = 'var(--kr-text-primary)';
+export const RACCOURCIS_TICKET51 = ['padding', 'margin', 'background', 'border-radius'];
+const CARTE_TICKET51 = 'body.mobile-mode:where(:not(.page-forum, .page-forum-racine)) .panel-default:where(:not(.panel-group > *, .modal *))';
+export const REGLES_CARTE_TICKET51 = [
+  [CARTE_TICKET51, 'background', 'important'],
+  [CARTE_TICKET51, 'margin-left', ''],
+  [CARTE_TICKET51, 'margin-right', ''],
+  [CARTE_TICKET51 + ' > .panel-heading', 'padding', 'important'],
+  [CARTE_TICKET51 + ' > .panel-heading', 'margin-bottom', 'important'],
+  [CARTE_TICKET51 + ' > .panel-heading', 'min-height', ''],
+  [CARTE_TICKET51 + ' > .panel-heading h3', 'color', 'important'],
+  [CARTE_TICKET51 + ' > .panel-body:last-child', 'border-radius', ''],
+  ['body.mobile-mode .building-section-content.collapsed', 'padding-top', ''],
+  ['body.mobile-mode .building-section-content.collapsed', 'padding-bottom', '']
+];
+export const REGLES_KRAMAIL_TICKET51 = [
+  ['body.page-kramail .panel.panel-default', ['margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'background', 'background-color']],
+  ['body.page-kramail .panel-heading h3.panel-title', ['color']],
+  ['body.page-kramail .panel-heading', null]
+];
+/**
+ * Écart accepté et consigné (épopée 5, entrée 1, story-carte-de-section-mobile-des-pages-de-jeu-kramail-par-les-reg) : panneaux mobiles
+ * hors forum, hors accordéon et hors modale en carte de section (fond surface, 8 px des bords, en-tête de 48 px collé au corps, titre
+ * en couleur du texte, coins bas du dernier corps), kramail par les règles communes, chevron du module dans le flux de l'en-tête, corps
+ * replié sans retrait. Feuille miroir en valeurs littérales, posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET51), jamais sur le bundle
+ * courant ; tout autre écart reste détecté. Écart consigné dans le plan de l'entrée (Plan Change Log).
+ * Condition de retrait : quand le bundle de base de la suite contient l'entrée 5.1 (le détecteur l'éteint de lui-même).
+ */
+export const CARTES_TICKET51 = [
+  '@media (max-width: 767px) {',
+  `  ${CARTE_TICKET51} { background: var(--kr-bg-surface) !important; margin-left: 8px; margin-right: 8px; }`,
+  `  ${CARTE_TICKET51} > .panel-heading { padding: 0 16px !important; margin-bottom: 0 !important; min-height: 48px; }`,
+  `  ${CARTE_TICKET51} > .panel-heading h3 { color: var(--kr-text-primary) !important; }`,
+  `  ${CARTE_TICKET51} > .panel-body:last-child { border-radius: 0 0 8px 8px; }`,
+  '  body.page-kramail .panel.panel-default:where(:not(.panel-group > *)) { margin: 0 8px 16px !important; background: var(--kr-bg-surface) !important; }',
+  '  body.page-kramail .panel-heading h3.panel-title { color: var(--kr-text-primary) !important; }',
+  '  body.mobile-mode .building-section-header .accordion-icon { position: static !important; top: auto !important; right: auto !important; transform: none !important; margin-left: auto; }',
+  '  body.mobile-mode .building-section-header.expanded .accordion-icon { transform: rotate(-180deg) !important; }',
+  '  body.mobile-mode .building-section-content.collapsed { padding-top: 0 !important; padding-bottom: 0 !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 5, entrée 1 : le corps replié du module sans retrait vertical n'y figure pas (règle minifiée du bundle, que les
+ * entrées 2 et 3 ne touchent pas). */
+export const AVANT_TICKET51 = bundle => !bundle.includes('.building-section-content.collapsed{opacity:0;padding-top:0');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).
@@ -505,7 +560,7 @@ export const DECLARATIONS_ESPACEMENT_TICKET49 = [
   [COMBINEE, '.kr-order-form .kr-order-help-toggle', 'margin-bottom', 'var(--kr-space-2)', ''],
   [MOBILE, '.panel', 'margin-bottom', 'var(--kr-space-4)', 'important'],
   [MOBILE, '.panel-heading', 'gap', 'var(--kr-space-2)', 'important'],
-  [MOBILE, '.panel-body', 'padding', 'var(--kr-space-4)', 'important'],
+  [MOBILE, '.panel-body:where(:not(.building-section-content.collapsed))', 'padding', 'var(--kr-space-4)', 'important'],
   [MOBILE, '.panel-body a', 'gap', 'var(--kr-space-2)', 'important'],
   [MOBILE, '.panel-body a', 'margin-bottom', 'var(--kr-space-1)', 'important'],
   [BUREAU, 'html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td', 'padding', 'var(--kr-space-1) var(--kr-space-2)', 'important'],
