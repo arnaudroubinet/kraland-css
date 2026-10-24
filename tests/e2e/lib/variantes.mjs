@@ -254,6 +254,37 @@ export const RAYONS_TICKET48 = [
   '  #col-right > form > .panel.panel-default > .panel-heading { border-radius: 7px 7px 0 0 !important; }',
   '}'
 ].join('\n');
+/**
+ * Écart accepté et consigné (épopée 4, ticket 9) : grille d'espacement au pas de 4 px (story-grille-d-espacement-au-pas-de-4-px,
+ * annexe d'inventaire, sections 1 à 3). Feuille miroir en valeurs littérales, posée sur un bundle de base antérieur au ticket
+ * (AVANT_TICKET49), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du ticket.
+ */
+export const ESPACEMENT_TICKET49 = [
+  '@media (max-width: 767px), (min-width: 768px) {',
+  '  .panel-body { padding: 16px; }',
+  '  .panel-heading { padding: 12px 16px; }',
+  '  .modal-footer .btn + .btn { margin-left: 4px; }',
+  '  .kr-order-form .kr-order-help-toggle { gap: 4px; margin-bottom: 8px; }',
+  '}',
+  '@media (max-width: 767px) {',
+  '  .panel { margin-bottom: 16px !important; }',
+  '  .panel-heading { gap: 8px !important; }',
+  '  .panel-body { padding: 16px !important; }',
+  '  .panel-body a { gap: 8px !important; margin-bottom: 4px !important; }',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn { gap: 4px; }',
+  '  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus { padding: 0 8px !important; }',
+  '}',
+  '@media (min-width: 768px) {',
+  '  #kr-config-import-btn { margin-left: 4px !important; }',
+  '  :where(html body.page-forum.kr-subforum) table.dataTable thead th { padding: 8px; }',
+  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td { padding: 4px 8px !important; }',
+  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body { padding: 8px 16px 8px !important; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td { padding: 4px 8px !important; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-body { padding: 8px 16px 8px !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 9 : le corps de panneau natif n'y emploie pas encore le jeton d'espacement (règle minifiée du bundle). */
+export const AVANT_TICKET49 = bundle => !bundle.includes('.panel-body{padding:var(--kr-space-4)}');
 /** Bundle d'avant l'épopée 4, ticket 8 : il déclare encore --mobile-radius sur :root (règle minifiée du bundle). */
 export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
 /** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle). */
@@ -336,3 +367,119 @@ export const SECONDAIRE_TICKET6 = 'var(--kr-text-secondary)';
  * (routeur, MAX_CITING).
  */
 export const PROPRIETES_RAYON_TICKET48 = ['border-radius', ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius']];
+
+/**
+ * Espacement (épopée 4, ticket 9) : cas du fragment espacement de typographie-formes.mjs, par page, et déclarations lues par son contrôle
+ * statique. Écrits ici, hors des suites : plusieurs de ces repères (btn-xs, form-control, list-group-item, panel-default, page-forum), déjà
+ * cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
+ * Cas : [clé, sélecteur, rôle, support, attendu] ; rôle R (déclaration de la peau réécrite au jeton), N (natif de Bootstrap réécrit au rôle),
+ * E (exception égale au bundle de base) ; support m = mobile seulement, b = ordinateur seulement ; attendu R/N { propriété : n } (jeton
+ * --kr-space-n), E [propriétés] (hauteur, droite, x, largeur : boîte arrondie au dixième).
+ */
+const RETRAIT = (h, d = h, b = h, g = d) => ({ 'padding-top': h, 'padding-right': d, 'padding-bottom': b, 'padding-left': g });
+const ECART = n => ({ 'row-gap': n, 'column-gap': n });
+export const RETRAITS_TICKET49 = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
+export const ECARTS_TICKET49 = ['row-gap', 'column-gap'];
+// Cas communs aux panneaux mobiles (« Panels responsive ») et aux natifs sur ordinateur ; null retire le cas. Hors portée (battus dans la
+// base comme dans le bundle testé) : panneaux d'un accordéon (.panel-group, marge 0), corps du kramail (0), corps de la commande (16 px
+// littéral, déjà au pas), corps d'une liste d'objets (.list-group, 10 px), corps à champ « c… » (l.4508, 10 px, exception E ci-dessous).
+const PANNEAUX = ({ panneau = '.panel:not(.panel-group > .panel)', entete = '.panel-heading', corps = '.panel-body', corpsMobile = corps, liens = '.panel-body a' } = {}) => [
+  panneau && ['panneau', panneau, 'R', 'm', { 'margin-bottom': 4 }], entete && ['entete', entete, 'R', 'm', ECART(2)],
+  corpsMobile && ['corps', corpsMobile, 'R', 'm', RETRAIT(4)], liens && ['liens', liens, 'R', 'm', ECART(2)],
+  liens && ['liens-marge', `${liens}:not(.btn-group a, p.nomargin a)`, 'R', 'm', { 'margin-bottom': 1 }],
+  corps && ['corps', corps, 'N', 'b', RETRAIT(4)], entete && ['entete', entete, 'N', 'b', RETRAIT(3, 4)]
+].filter(Boolean);
+const MARGES = ['margin-top', 'margin-right', 'margin-bottom', 'margin-left'];
+// Exception E : chaque propriété d'espacement et la hauteur égales à la base ; SAUF retire une propriété déjà couverte par un cas R ou N, ou
+// une marge automatique (sa valeur calculée suit la largeur de l'élément).
+const EXCEPTION = [...RETRAITS_TICKET49, ...MARGES, ...ECARTS_TICKET49, 'hauteur'];
+const SAUF = (...p) => EXCEPTION.filter(x => !p.includes(x));
+const BOUTONS_BUREAU = EXCEPTION;
+// Colonnes : la hauteur suit le contenu (rangées R plus hautes ou plus basses), x et largeur restent fixes.
+const COLONNES = ['colonnes', '[id^="col-"]', 'E', null, ['x', 'largeur', ...SAUF('hauteur')]];
+export const CAS_ESPACEMENT_TICKET49 = {
+  plateau: [
+    ...PANNEAUX({ entete: null, corps: '.panel-body:not(.grid-transformed)' }),
+    ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION],
+    ['boutons', '.kr-action-grid > .btn, .kr-quick-access-buttons > .btn', 'E', 'b', BOUTONS_BUREAU],
+    // Mobile : accès rapides et actions rapides dans un .panel-body, écarts et marge basse couverts par les cas R liens et liens-marge.
+    ['boutons', '.kr-quick-access-buttons > .btn, .mobile-quick-actions .btn', 'E', 'm', SAUF('margin-bottom', ...ECARTS_TICKET49)],
+    ['tuiles', '.mobile-mini-profile .mobile-skill-item, .mobile-mini-profile .mobile-characteristic-badge', 'E', 'm', EXCEPTION],
+    ['liste', '.list-group-item', 'E', null, EXCEPTION], COLONNES
+  ],
+  'plateau-typo': [
+    ...PANNEAUX({ corps: '.panel-body:not(.grid-transformed)', corpsMobile: '.panel-body:not(.grid-transformed, :has([id^="c"]))' }),
+    ['corps-champ', '.panel-body:has([id^="c"])', 'E', 'm', EXCEPTION], ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES
+  ],
+  sujet: [
+    ['messages', 'ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn', 'R', 'm', ECART(1)],
+    ['plus', '.kr-msg-more', 'E', 'm', [...SAUF('margin-left', ...ECARTS_TICKET49), 'droite']],
+    ['entete', '.forum-top .pull-right > .btn', 'E', 'b', BOUTONS_BUREAU],
+    ['compacts', '.btn-xs, .btn-group-xs > .btn', 'E', 'b', BOUTONS_BUREAU], ['groupes', '.btn-group .btn + .btn', 'E', 'b', EXCEPTION]
+  ],
+  redaction: [
+    ['plus', '.kr-tools-plus', 'R', 'm', { 'padding-left': 2, 'padding-right': 2 }],
+    ['plus-marges', '.kr-tools-plus', 'E', 'm', [...SAUF('padding-left', 'padding-right', 'margin-left'), 'droite']],
+    ['envoyer', 'form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right', 'E', 'm', [...SAUF('margin-left'), 'droite']],
+    ['envoyer', 'div.col-sm-12 > button.btn.btn-primary.pull-right', 'E', 'b', BOUTONS_BUREAU], ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU],
+    ['compacts', '.btn-xs, .btn-group-xs > .btn', 'E', 'b', BOUTONS_BUREAU], ['groupes', '.btn-group .btn + .btn', 'E', 'b', EXCEPTION]
+  ],
+  'index-rp': [
+    ['cellules', '#col-right .panel-default .table > tbody > tr > td:not(:nth-child(4))', 'R', 'b', RETRAIT(1, 2)],
+    ['fleches', '#col-right .panel-default .table > tbody > tr > td:nth-child(4)', 'R', 'b', { 'padding-top': 1, 'padding-bottom': 1, 'padding-left': 2 }],
+    ['corps', '#col-right .panel-default > .panel-body', 'R', 'b', RETRAIT(2, 4)]
+  ],
+  'sous-forum': [
+    ['cellules', '.panel-default tbody > tr > td:not(:nth-child(5))', 'R', 'b', RETRAIT(1, 2)],
+    ['fleches', '.panel-default tbody > tr > td:nth-child(5)', 'R', 'b', { 'padding-top': 1, 'padding-bottom': 1, 'padding-left': 2 }],
+    ['corps', ':is(#fx-permanents, #fx-sujets) > .panel-body', 'R', 'b', RETRAIT(2, 4)], ['titres', '#topics thead th', 'N', 'b', RETRAIT(2)]
+  ],
+  reception: PANNEAUX({ panneau: null, corpsMobile: null }),
+  lecture: [['compacts', '.btn-xs, .btn-group-xs > .btn', 'E', 'b', BOUTONS_BUREAU]],
+  nouveau: [
+    ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU], ['bbcode', 'form[name="post_msg"] .btn-toolbar .btn', 'E', null, EXCEPTION]
+  ],
+  repondre: [
+    ...PANNEAUX({ panneau: null, corps: null, liens: null }), ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU],
+    ['bbcode', 'form[name="post_msg"] .btn-toolbar .btn', 'E', null, EXCEPTION]
+  ],
+  'modale-ordre': [
+    ...PANNEAUX({ corps: '.panel-body:not(.grid-transformed, .list-group > .panel-body)', corpsMobile: null }),
+    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', null, { ...ECART(1), 'margin-bottom': 2 }],
+    ['pied', '.modal-footer .btn + .btn', 'N', 'b', { 'margin-left': 1 }], ['pied-boutons', '.modal-footer .btn:not(.btn + .btn)', 'E', 'b', BOUTONS_BUREAU],
+    ['pied-boutons', '.modal-footer .btn + .btn', 'E', 'b', SAUF('margin-left')],
+    ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU], ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES
+  ],
+  interface: [
+    ['import', '#kr-config-import-btn', 'R', 'b', { 'margin-left': 1 }], ['petits', '.btn-sm:not(#kr-config-import-btn)', 'E', 'b', BOUTONS_BUREAU], ['petits', '#kr-config-import-btn', 'E', 'b', SAUF('margin-left')]
+  ],
+  composants: [
+    ...PANNEAUX({ liens: null }), ['aide', '.kr-order-form .kr-order-help-toggle', 'R', null, { ...ECART(1), 'margin-bottom': 2 }],
+    ['boutons', '[id^="bs-"].btn:not(.btn-xs, .btn-sm, .kr-order-help-toggle)', 'E', null, BOUTONS_BUREAU], ['tableau', '#dt thead th', 'E', null, EXCEPTION]
+  ]
+};
+export const PROPRIETES_ESPACEMENT_TICKET49 = [...RETRAITS_TICKET49, 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', ...ECARTS_TICKET49];
+
+// Déclarations au jeton : [média, sélecteur, propriété, valeur, priorité].
+const COMBINEE = '(width <= 767px), (width >= 768px)';
+const MOBILE = '(width <= 767px)';
+const BUREAU = '(width >= 768px)';
+export const DECLARATIONS_ESPACEMENT_TICKET49 = [
+  [COMBINEE, '.kr-order-form .kr-order-help-toggle', 'gap', 'var(--kr-space-1)', ''],
+  [COMBINEE, '.kr-order-form .kr-order-help-toggle', 'margin-bottom', 'var(--kr-space-2)', ''],
+  [MOBILE, '.panel', 'margin-bottom', 'var(--kr-space-4)', 'important'],
+  [MOBILE, '.panel-heading', 'gap', 'var(--kr-space-2)', 'important'],
+  [MOBILE, '.panel-body', 'padding', 'var(--kr-space-4)', 'important'],
+  [MOBILE, '.panel-body a', 'gap', 'var(--kr-space-2)', 'important'],
+  [MOBILE, '.panel-body a', 'margin-bottom', 'var(--kr-space-1)', 'important'],
+  [BUREAU, 'html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td', 'padding', 'var(--kr-space-1) var(--kr-space-2)', 'important'],
+  [BUREAU, 'html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body', 'padding', 'var(--kr-space-2) var(--kr-space-4) var(--kr-space-2)', 'important'],
+  [BUREAU, ':where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td', 'padding', 'var(--kr-space-1) var(--kr-space-2)', 'important'],
+  [BUREAU, ':where(html.kr-page-forum-index) #col-right .panel-default > .panel-body', 'padding', 'var(--kr-space-2) var(--kr-space-4) var(--kr-space-2)', 'important'],
+  [MOBILE, 'body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn', 'gap', 'var(--kr-space-1)', ''],
+  [MOBILE, 'body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus', 'padding', '0 var(--kr-space-2)', 'important'],
+  [COMBINEE, '.panel-body', 'padding', 'var(--kr-space-4)', ''],
+  [COMBINEE, '.panel-heading', 'padding', 'var(--kr-space-3) var(--kr-space-4)', ''],
+  [COMBINEE, '.modal-footer .btn + .btn', 'margin-left', 'var(--kr-space-1)', ''],
+  [BUREAU, ':where(html body.page-forum.kr-subforum) table.dataTable thead th', 'padding', 'var(--kr-space-2)', '']
+];

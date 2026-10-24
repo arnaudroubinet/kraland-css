@@ -648,6 +648,29 @@ html.kr-hide-footer-quote .footer-quote {
   font-size: .95rem;
 }
 
+/* Grille d'espacement au pas de 4 px (H11.2) : natifs de Bootstrap sans règle d'origine dans la peau, réécrits au rôle. Inerte sur mobile
+   (règles mobiles de la peau en !important). */
+@media (max-width: 767px), (min-width: 768px) {
+  .panel-body {
+    padding: var(--kr-space-4);
+  }
+
+  .panel-heading {
+    padding: var(--kr-space-3) var(--kr-space-4);
+  }
+
+  .modal-footer .btn + .btn {
+    margin-left: var(--kr-space-1);
+  }
+}
+
+/* En-têtes du tableau du sous-forum (natif dataTables) : garde de page sans spécificité ; le #dt des composants reste natif. */
+@media (min-width: 768px) {
+  :where(html body.page-forum.kr-subforum) table.dataTable thead th {
+    padding: var(--kr-space-2);
+  }
+}
+
 .form-control:focus {
   box-shadow: 0 0 0 .18rem var(--kr-focus-ring);
   border-color: var(--kr-primary);
@@ -2096,8 +2119,8 @@ a.carousel-control.right{
   .kr-order-form .kr-order-help-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 10px;
+    gap: var(--kr-space-1);
+    margin-bottom: var(--kr-space-2);
   }
 }
 
@@ -4305,7 +4328,7 @@ body > map {
   
   /* Panels responsive */
   .panel {
-    margin-bottom: 15px !important;
+    margin-bottom: var(--kr-space-4) !important;
   }
   
   .panel-heading {
@@ -4313,7 +4336,7 @@ body > map {
     display: flex !important;
     align-items: center !important;
     flex-wrap: wrap !important;
-    gap: 10px !important;
+    gap: var(--kr-space-2) !important;
   }
   
   .panel-heading .pull-right {
@@ -4324,7 +4347,7 @@ body > map {
   }
   
   .panel-body {
-    padding: 15px !important;
+    padding: var(--kr-space-4) !important;
   }
   
   /* Réduire l'espace entre pagination et messages sur les pages de forum */
@@ -4572,9 +4595,9 @@ body > map {
     display: flex !important;
     align-items: center !important;
     padding: 8px !important;
-    gap: 10px !important;
+    gap: var(--kr-space-2) !important;
     font-size: 14px !important;
-    margin-bottom: 5px !important;
+    margin-bottom: var(--kr-space-1) !important;
     border-radius: var(--kr-radius-sm) !important;
   }
   
@@ -14583,7 +14606,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    icône dossier native masquée (le statut est la barre + la pastille NON LU), permanents compacts. Spécificité haute : règles desktop existantes en !important. */
 @media (min-width: 768px) {
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td {
-    padding: 6px 10px !important;
+    padding: var(--kr-space-1) var(--kr-space-2) !important;
     vertical-align: middle !important;
   }
 
@@ -14724,7 +14747,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body {
-    padding: 8px 15px 10px !important;
+    padding: var(--kr-space-2) var(--kr-space-4) var(--kr-space-2) !important;
   }
 
   /* « Afficher N sujets » à gauche et « Rechercher » à droite sur une seule ligne (comme la maquette), le tableau en dessous. */
@@ -15079,7 +15102,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    couleur de texte (15 px), chiffres à droite, auteur en gras et heure secondaire dessous, bouton → de 32 px au bout de la ligne. */
 @media (min-width: 768px) {
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td {
-    padding: 6px 10px !important;
+    padding: var(--kr-space-1) var(--kr-space-2) !important;
     vertical-align: middle !important;
   }
 
@@ -15173,7 +15196,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default > .panel-body {
-    padding: 8px 15px 10px !important;
+    padding: var(--kr-space-2) var(--kr-space-4) var(--kr-space-2) !important;
   }
 }
 
@@ -15349,7 +15372,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--kr-space-1);
     box-sizing: border-box;
     float: none;
     width: auto !important;
@@ -15548,7 +15571,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     min-width: 56px !important;
     height: 44px !important;
     margin: 0 0 0 auto !important;
-    padding: 0 10px !important;
+    padding: 0 var(--kr-space-2) !important;
     border: 1px solid var(--kr-border-default) !important;
     border-radius: var(--kr-radius-sm) !important;
     background: transparent !important;

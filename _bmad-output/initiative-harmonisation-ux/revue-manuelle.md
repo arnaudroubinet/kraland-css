@@ -212,3 +212,9 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Assumptions à relire (détail dans le plan) : la recherche et le tri en pilule passent à 4 px ; les onglets, ceux de la modale d'ordre compris, sont à 4 px ; la barre fixe d'envoi du kramail reste sans rayon (épopée 7) ; les boutons ronds passent à plein.
 - Tolérance du test pixel du kramail : l'écart par canal passe de 2 à 4, mesuré en A/A. C'est du bruit de rendu sur le nouveau coin à 8 px de la carte de lecture.
 - Restent natifs à 4 px : `nav.navbar`, la pagination, les onglets natifs et `input-group-addon` (sans règle de la peau).
+
+## Ticket 4.9 — Grille d'espacement (2026-10-24)
+
+- **À trancher (bloc figé)** : le plan disait que les cellules du forum (index et sous-forum) passent à 8 px sur les 4 côtés. Mesuré : les lignes permanentes du sous-forum passent à 62 px (seuil L6 : 60), et le 1er sujet arrive à 693 px (seuil : 684). J'ai mis 4 px en haut et en bas, 8 px sur les côtés : les seuils tiennent. Option inverse : 8/8 avec des seuils L6 assouplis.
+- Boutons sur ordinateur : leur retrait vertical de 6 px est gardé, hors du pas de 4, pour tenir la hauteur de 34 px.
+- Les en-têtes de panneau passent de 40 à 44 px de haut sur ordinateur.

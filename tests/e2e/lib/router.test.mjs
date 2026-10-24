@@ -150,6 +150,17 @@ check('typographie et formes : rayons (ticket 8) -> typographie-formes et kramai
     assert.ok(d.zones.includes('typographie-formes') && d.zones.includes('kramail'), d.zones.join(', '));
   }
 });
+check('typographie et formes : grille d\'espacement (ticket 9) -> typographie-formes, forum, sous-forum, kramail, plateau, modale-ordre, cybermonde', () => {
+  for (const h of [
+    hunk('  .kr-espace-fictif {', '    padding: var(--kr-space-2) var(--kr-space-4) !important;'),
+    hunk('  .kr-espace-fictif {', '    gap: var(--kr-space-1);'),
+    hunk('.kr-espace-fictif {', '    margin-bottom: var(--kr-space-6);')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.deepEqual(sorted(d.zones), ['cybermonde', 'forum', 'kramail', 'modale-ordre', 'plateau', 'sous-forum', 'typographie-formes']);
+  }
+});
 check('typographie et formes : échelle (en-têtes, noms, onglets et jauges du mini-profil) -> typographie-formes', () => {
   for (const h of [
     hunk('.dashboard-card-name {', '  font-size: var(--kr-font-name);'),

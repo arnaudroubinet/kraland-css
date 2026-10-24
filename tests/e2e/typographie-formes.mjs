@@ -53,7 +53,15 @@
 //                   contrôles 4 px, conteneurs 8 px, en-têtes de panneau 7 px, pastilles pleines, coins carrés de la base conservés,
 //                   exceptions (croix, avatars, images) égales au bundle de base (COMMIT_RAYONS) ; jetons redéfinis (7 px, 11 px) suivis,
 //                   375 et 1280 px ; bascule 767, 768, 767 px ; contrôle statique : aucun rayon littéral non nul hors exceptions.
-// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : espacement (4.9).
+// Grille d'espacement au pas de 4 px (ticket 9, story-grille-d-espacement-au-pas-de-4-px-plan) :
+//   espacement      plateau (deux fixtures), forum (sujet, rédaction, index RP, sous-forum), kramail (réception, lecture, nouveau, répondre),
+//                   modale d'ordre, Interface et composants : 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre :
+//                   retraits, marges et écarts des éléments R (réécrits au jeton) et N (natifs réécrits au rôle) égaux au jeton --kr-space-n,
+//                   multiples de 4 entre 0 et 32 px ; exceptions E (boutons, champs, compacts, BBCode, tuiles du mini-profil, marges auto,
+//                   colonnes du plateau) égales au bundle de base (COMMIT_ESPACEMENT) ; boutons de l'entrée 2 à 34 px / ≥ 44 px ; jetons
+//                   redéfinis (5, 9, 13, 17 px) suivis, 375 et 1280 px ; mini-profil plié et déplié, 375 et 700 px ; bascule 767, 768, 767 px ;
+//                   contrôle statique des 13 déclarations réécrites, des 4 règles de rôle et du bouton d'import du template.
+// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
 // kramail fictif (ajaxsearch.php émulé, noms inventés). Confinement réseau ; gestes : saisie au clavier dans le champ Destinataires,
@@ -70,7 +78,9 @@
 //           COMMIT_ECHELLE_FORUM),
 //           KR_SCRIPT_AVANT_TICKET6 (bundle de base du plateau inchangé par le ticket 6, défaut : celui du commit COMMIT_TICKET6),
 //           KR_SCRIPT_AVANT_RAYONS (bundle de base des rayons, défaut : celui du commit COMMIT_RAYONS),
-//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons
+//           KR_SCRIPT_AVANT_ESPACEMENT (bundle de base de l'espacement, défaut : celui du commit COMMIT_ESPACEMENT),
+//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons,
+//           espacement
 //           (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -82,7 +92,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1429,6 +1439,183 @@ if (on('rayons')) {
   }
   const litteraux = await litterauxBundle(userscript);
   check('rayons : aucune valeur de rayon littérale non nulle hors exceptions X (thème et template du bundle testé)', () => assert.deepEqual(litteraux, [], `${litteraux.length} : ${litteraux.slice(0, 6).join(' ; ')}`));
+}
+
+
+// ---------- Espacement (ticket 9, story-grille-d-espacement-au-pas-de-4-px-plan) ----------
+// Grille au pas de 4 px (H11.2) : chaque élément R (déclaration de la peau réécrite au jeton) et N (natif de Bootstrap réécrit au rôle) a,
+// pour chaque propriété listée, la valeur du jeton --kr-space-n attendu (multiple de 4 entre 0 et 32 px) et le suit sous jetons redéfinis.
+// E (exception de l'annexe) : propriétés listées égales au bundle de base (COMMIT_ESPACEMENT) ; hauteur, bord droit (marge automatique, E11
+// à E13 : le côté auto se résout autrement quand un voisin bouge), x et largeur (colonnes du plateau, E14) arrondis au dixième.
+// Cas : [clé, sélecteur, rôle, support, attendu] ; support m = mobile seulement, b = ordinateur seulement ; attendu R/N { propriété : n }
+// (jeton --kr-space-n), E [propriétés].
+const COMMIT_ESPACEMENT = '62fd47d';
+const avantEspacement = sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const PAGES_ESPACEMENT = Object.fromEntries(Object.entries({
+  plateau: PAGES_ECHELLE.plateau,
+  'plateau-typo': PAGES_ECHELLE.materiel,
+  sujet: PAGES_FORUM.sujet,
+  redaction: PAGES_FORUM.redaction,
+  'index-rp': PAGES_FORUM['index-rp'],
+  'sous-forum': PAGES_FORUM['sous-forum'],
+  reception: PAGES_FORUM.reception,
+  lecture: PAGES_FORUM.lecture,
+  nouveau: PAGES_FORUM.nouveau,
+  repondre: PAGES_RAYONS.accordeon.def,
+  'modale-ordre': PAGES_BOUTONS['modale-ordre'],
+  interface: PAGES_BOUTONS.interface,
+  composants: PAGES_BOUTONS.tableau
+}).map(([nom, def]) => [nom, { def, cas: CAS_ESPACEMENT_TICKET49[nom] }]));
+const LARGEURS_ESPACEMENT = [375, 767, 768, 769, 1280, 1440, 1920];
+const JETONS_ESPACEMENT = ':root { --kr-space-1: 5px !important; --kr-space-2: 9px !important; --kr-space-3: 13px !important; --kr-space-4: 17px !important; }';
+const MESURE_ESPACEMENT = ([liste, proprietes]) => liste.map(([cle, sel]) => [cle, [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length).map(e => {
+  const s = getComputedStyle(e);
+  const r = e.getBoundingClientRect();
+  const dixieme = v => Math.round(v * 10) / 10;
+  return { ...Object.fromEntries(proprietes.map(p => [p, s.getPropertyValue(p)])), hauteur: dixieme(r.height), droite: dixieme(r.right), x: dixieme(r.x), largeur: dixieme(r.width),
+    vide: !(e.textContent || e.value || '').trim(),
+    texte: `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].slice(0, 3).join('.')} « ${(e.textContent || e.value || '').trim().replace(/\s+/g, ' ').slice(0, 20)} »` };
+})]);
+const casEspacement = (nom, mobile) => PAGES_ESPACEMENT[nom].cas.filter(([, , , sup]) => !sup || sup === (mobile ? 'm' : 'b'));
+const mesurerEspacement = (page, nom, width) => page.evaluate(MESURE_ESPACEMENT, [casEspacement(nom, width < 768).map(([k, s], i) => [`${k}#${i}`, s]), PROPRIETES_ESPACEMENT_TICKET49])
+  .then(Object.fromEntries);
+async function releverEspacement({ nom, width, variante, script, css, deplier = false }) {
+  const { def } = PAGES_ESPACEMENT[nom];
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css });
+  if (def.modale) { await ouvrirModaleOrdre(page, def); }
+  const res = await mesurerEspacement(page, nom, width);
+  let deplie = null;
+  if (deplier) {
+    await page.waitForFunction(() => { const mp = document.querySelector('.mobile-mini-profile'); return mp && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, null, { timeout: 5000 });
+    await page.tap('.mobile-mini-profile-header');
+    await page.waitForFunction(() => { const mp = document.querySelector('.mobile-mini-profile'); return mp && mp.classList.contains('expanded') && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, null, { timeout: 5000 });
+    deplie = await mesurerEspacement(page, nom, width);
+  }
+  await context.close();
+  return { res, deplie, erreurs };
+}
+// Écarts au rôle pour un relevé (l) et la base (b) ; jetons : valeurs en px de --kr-space-1 à -4.
+function ecartsEspacement(role, attendu, l, b, jetons) {
+  if (!l.length) { return ['aucun élément']; }
+  if (l.length !== b.length) { return [`${l.length} élément(s) contre ${b.length} dans la base`]; }
+  const ecarts = [];
+  l.forEach((m, i) => {
+    if (role === 'E') {
+      for (const p of attendu) { if (m[p] !== b[i][p]) { ecarts.push(`${m.texte} ${p} ${m[p]} au lieu de ${b[i][p]}`); } }
+      return;
+    }
+    for (const [p, n] of Object.entries(attendu)) {
+      const v = `${jetons[n - 1]}px`;
+      if (m[p] !== v) { ecarts.push(`${m.texte} ${p} ${m[p]} au lieu de ${v} (--kr-space-${n})`); }
+      if (jetons[0] === 4 && !(parseFloat(m[p]) % 4 === 0 && parseFloat(m[p]) >= 0 && parseFloat(m[p]) <= 32)) { ecarts.push(`${m.texte} ${p} ${m[p]} hors de la grille`); }
+    }
+  });
+  return ecarts;
+}
+const LIBELLES_ESPACEMENT = { R: 'réécrit au jeton', N: 'natif au rôle', E: 'exception égale à la base' };
+const verifierEspacement = (c, nom, width, r, a, jetons, suffixe = '') => casEspacement(nom, width < 768).forEach(([k, , role, , attendu], i) => {
+  if (jetons[0] !== 4 && role === 'E') { return; }
+  check(`espacement ${etiquette(c)}${suffixe} ${k} : ${LIBELLES_ESPACEMENT[role]}${jetons[0] !== 4 ? ' (jetons redéfinis 5/9/13/17 suivis)' : ''}`, () => {
+    const ecarts = ecartsEspacement(role, attendu, r[`${k}#${i}`] || [], a[`${k}#${i}`] || [], jetons);
+    assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
+  });
+});
+// Contrôle statique : les 13 déclarations de l'annexe (section 1) et les 4 règles de rôle (section 3), lues par le CSSOM dans le thème du
+// bundle testé, portent le jeton (aucun littéral) ; les règles de rôle sont sans !important, 3 dans la liste combinée et l'en-tête du tableau du sous-forum sur ordinateur ; le template pose
+// l'écart du bouton d'import au jeton.
+const DECLARATIONS_CSS = ([css, cibles]) => {
+  const feuille = new window.CSSStyleSheet();
+  feuille.replaceSync(css);
+  const trouvees = [];
+  const parcourir = (regles, media) => { for (const r of regles) {
+    if (r.media) { parcourir(r.cssRules, r.media.mediaText); continue; }
+    if (!r.selectorText) { if (r.cssRules) { parcourir(r.cssRules, media); } continue; }
+    for (const [m, sel, p] of cibles) { if (m === media && sel === r.selectorText && r.style.getPropertyValue(p)) { trouvees.push([m, sel, p, r.style.getPropertyValue(p), r.style.getPropertyPriority(p)]); } }
+  } };
+  parcourir(feuille.cssRules, '');
+  return trouvees;
+};
+async function declarationsEspacement(src) {
+  const { css, js } = cssDuBundle(src);
+  const context = await browser.newContext();
+  await confineNetwork(context);
+  const page = await context.newPage();
+  // eslint-disable-next-line no-eval
+  const trouvees = await page.evaluate(DECLARATIONS_CSS, [(0, eval)(`'${css}'`), DECLARATIONS_ESPACEMENT_TICKET49]);
+  await context.close();
+  // Une même règle peut exister plusieurs fois dans un média (ex. .panel-body mobile, var(--mobile-spacing-lg)) : la déclaration au jeton doit
+  // exister, et aucune déclaration de ce sélecteur ne garde une valeur littérale.
+  const ecarts = DECLARATIONS_ESPACEMENT_TICKET49.flatMap(([m, sel, p, v, prio]) => {
+    const l = trouvees.filter(t => t[0] === m && t[1] === sel && t[2] === p);
+    const manque = l.some(t => t[3] === v && t[4] === prio) ? [] : [`${m} ${sel} { ${p}: ${v}${prio ? ' !important' : ''} } absente`];
+    return [...manque, ...l.filter(t => /\d/.test(t[3].replace(/var\([^)]*\)/g, '').replace(/(^|\s)0(?=\s|$)/g, ''))).map(t => `${m} ${sel} { ${p}: ${t[3]} } littérale`)];
+  });
+  if (!/id="kr-config-import-btn" style="margin-left:var\(--kr-space-1\)"/.test(js)) { ecarts.push('template : #kr-config-import-btn sans margin-left:var(--kr-space-1)'); }
+  return ecarts;
+}
+if (on('espacement')) {
+  console.log('\n== espacement ==');
+  const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
+  const base = new Map();
+  const res = await mapLimit(cas, async c => {
+    const a = await releverEspacement({ ...c, script: avantEspacement });
+    base.set(etiquette(c), a);
+    return { c, r: await releverEspacement({ ...c, script: userscript }), a };
+  });
+  for (const { c, r, a } of res) {
+    verifierEspacement(c, c.nom, c.width, r.res, a.res, [4, 8, 12, 16]);
+    check(`espacement ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+  // Boutons de la liste de l'entrée 2 (plateau, sujet, rédaction, modale, composants) : 34 px de haut sur ordinateur (± 0,5), ≥ 44 px sur mobile
+  // (boutons-icônes sans texte exclus, comme dans le fragment boutons).
+  const hauteurs = res.filter(({ c }) => ['plateau', 'sujet', 'redaction', 'modale-ordre', 'composants'].includes(c.nom));
+  for (const { c, r } of hauteurs) {
+    const mobile = c.width < 768;
+    const cles = { plateau: ['boutons'], sujet: mobile ? ['messages'] : ['entete'], redaction: ['envoyer'],
+      'modale-ordre': mobile ? ['aide'] : ['pied-boutons', 'aide'], composants: ['boutons', 'aide'] }[c.nom];
+    if (!cles.length) { continue; }
+    check(`espacement ${etiquette(c)} : boutons de l'entrée 2 ${mobile ? 'hauteur ≥ 44 px' : 'hauteur 34 px'}`, () => {
+      const l = casEspacement(c.nom, mobile).flatMap(([k], i) => (cles.includes(k) ? r.res[`${k}#${i}`] || [] : []));
+      const hors = l.filter(m => !m.vide && (mobile ? m.hauteur < 43.5 : Math.abs(m.hauteur - 34) > 0.5)).map(m => `${m.texte} ${m.hauteur}`);
+      assert.ok(l.length, 'aucun bouton');
+      assert.deepEqual(hors, [], hors.slice(0, 4).join(' ; '));
+    });
+  }
+  // Jetons redéfinis par une feuille adoptée (--kr-space-1..4 à 5/9/13/17 px) : chaque élément R et N suit son jeton.
+  const casJetons = Object.keys(PAGES_ESPACEMENT).flatMap(nom => [375, 1280].map(width => ({ nom, variante: 'kraland', width })));
+  const resJetons = await mapLimit(casJetons, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, css: JETONS_ESPACEMENT }), a: base.get(etiquette(c)) }));
+  for (const { c, r, a } of resJetons) { verifierEspacement(c, c.nom, c.width, r.res, a.res, [5, 9, 13, 17]); }
+  // Mini-profil du plateau plié puis déplié, 375 et 700 px : tuiles (E8) et écart de la liste (E9) égaux à la base.
+  const casMini = VARIANTES.flatMap(variante => [375, 700].map(width => ({ nom: 'plateau', variante, width })));
+  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, deplier: true }), a: await releverEspacement({ ...c, script: avantEspacement, deplier: true }) }));
+  for (const { c, r, a } of resMini) {
+    for (const [etat, cle] of [['plié', 'res'], ['déplié', 'deplie']]) { verifierEspacement(c, c.nom, c.width, r[cle], a[cle], [4, 8, 12, 16], ` ${etat}`); }
+  }
+  // Bascule dans le même onglet (767, 768 puis 767 px) sur le plateau de jeu : à chaque pas, chaque élément a la valeur de son rôle.
+  const releverBascule = async (variante, script) => {
+    const nom = 'plateau-typo';
+    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def: PAGES_ESPACEMENT[nom].def, tactile: false });
+    const pas = [{ width: 767, res: await mesurerEspacement(page, nom, 767) }];
+    for (const width of [768, 767]) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+      await page.setViewportSize({ width, height: 720 });
+      await charge;
+      await krReady(page, { ready: THEME_READY, label: `espacement bascule ${nom} ${variante} ${width} px` });
+      await styleSettled(page, 'body');
+      pas.push({ width, res: await mesurerEspacement(page, nom, width) });
+    }
+    await context.close();
+    return pas;
+  };
+  const resBascule = await mapLimit(VARIANTES, async variante => ({ variante, r: await releverBascule(variante, userscript), a: await releverBascule(variante, avantEspacement) }));
+  for (const { variante, r, a } of resBascule) {
+    r.forEach((p, n) => verifierEspacement({ nom: 'plateau-typo', variante, width: p.width }, 'plateau-typo', p.width, p.res, a[n].res, [4, 8, 12, 16], ` bascule pas ${n + 1}`));
+  }
+  const statique = await declarationsEspacement(userscript);
+  check('espacement : 13 déclarations de l\'annexe et 4 règles de rôle au jeton, rôle sans !important (liste combinée, en-tête du sous-forum sur ordinateur), import du template au jeton',
+    () => assert.deepEqual(statique, [], `${statique.length} : ${statique.slice(0, 6).join(' ; ')}`));
 }
 
 await browser.close();

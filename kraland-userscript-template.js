@@ -8717,7 +8717,7 @@
                 <button type="button" class="btn btn-primary btn-sm" id="kr-config-export-btn">
                   <i class="fa fa-cloud-upload-alt"></i> Sauvegarder
                 </button>
-                <button type="button" class="btn btn-default btn-sm" id="kr-config-import-btn" style="margin-left:6px">
+                <button type="button" class="btn btn-default btn-sm" id="kr-config-import-btn" style="margin-left:var(--kr-space-1)">
                   <i class="fa fa-cloud-download-alt"></i> Importer
                 </button>
                 <div id="kr-sync-feedback" style="margin-top:8px"></div>
