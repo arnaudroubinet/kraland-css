@@ -5576,7 +5576,7 @@
         width: 44px;
         height: 44px;
         min-width: 44px;
-        border-radius: 50%;
+        border-radius: var(--kr-radius-full);
         background: var(--kr-arm-bg, var(--kr-primary));
         color: var(--kr-arm-ink, white);
         display: flex;
@@ -5790,7 +5790,7 @@
         right: 0;
         background: var(--kr-bg-surface);
         border: 1px solid var(--kr-border-default);
-        border-radius: var(--mobile-radius);
+        border-radius: var(--kr-radius-md);
         box-shadow: var(--kr-shadow-lg);
         margin-top: 8px;
         z-index: 1000;
@@ -5882,7 +5882,7 @@
         user-select: none;
         padding: 8px 12px;
         margin: -8px -12px;
-        border-radius: var(--mobile-radius);
+        border-radius: var(--kr-radius-sm);
         transition: background var(--transition-fast);
       `;
 
@@ -9416,7 +9416,7 @@
           link.style.setProperty('min-height', '44px', 'important');
           link.style.setProperty('padding', '12px 16px', 'important');
           link.style.setProperty('text-align', 'center', 'important');
-          link.style.setProperty('border-radius', '8px', 'important');
+          link.style.setProperty('border-radius', 'var(--kr-radius-sm)', 'important');
           link.style.setProperty('margin', '0', 'important');
           link.style.setProperty('box-sizing', 'border-box', 'important');
         }
@@ -9668,7 +9668,7 @@
               dropdownMenu.style.setProperty('left', '8px', 'important');
               dropdownMenu.style.setProperty('right', '8px', 'important');
               dropdownMenu.style.setProperty('bottom', '60px', 'important');
-              dropdownMenu.style.setProperty('border-radius', 'var(--mobile-radius) var(--mobile-radius) 0 0', 'important');
+              dropdownMenu.style.setProperty('border-radius', 'var(--kr-radius-md) var(--kr-radius-md) 0 0', 'important');
               dropdownMenu.style.setProperty('box-shadow', '0 -4px 24px rgba(0,0,0,0.4)', 'important');
               dropdownMenu.style.setProperty('z-index', '1050', 'important');
               dropdownMenu.style.setProperty('background', 'var(--kr-bg-surface)', 'important');

@@ -243,6 +243,8 @@ const ENTETES = () => {
 
 // Composants comparés au sous-forum : [sélecteur dans l'index, sélecteur dans le sous-forum, propriétés, pseudo facultatif].
 const P_BOITE = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
+// Rayons aux quatre coins (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) : parité entre index et sous-forum.
+const P_RAYONS = ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'];
 const COMPOSANTS_MOBILE = {
   'titre de page (h1)': ['#col-right > h1.page-header', '#col-right > h1.page-header', ['margin-top', 'margin-right', 'margin-bottom', 'margin-left', ...P_BOITE, 'border-bottom-width', 'background-color']],
   'fil d\'Ariane': ['h1 .forum-mobile-breadcrumb', 'h1 .forum-mobile-breadcrumb', ['display', 'flex-wrap', 'align-items', 'column-gap', 'margin-bottom', 'color', 'font-size']],
@@ -250,10 +252,11 @@ const COMPOSANTS_MOBILE = {
   'séparateur du fil d\'Ariane': ['h1 .forum-mobile-breadcrumb-sep', 'h1 .forum-mobile-breadcrumb-sep', ['color', 'font-size']],
   'élément courant du fil d\'Ariane': ['h1 .forum-mobile-breadcrumb-current', 'h1 .forum-mobile-breadcrumb-current', ['color', 'font-size']],
   'titre': ['h1 .forum-subforum-title', 'h1 .forum-subforum-title', ['font-size', 'font-weight', 'color', 'line-height']],
-  'en-tête de section': ['#col-right .panel-default > .panel-heading', '#fx-permanents > .panel-heading', ['display', 'align-items', 'min-height', ...P_BOITE, 'background-color', 'border-bottom-width', 'border-bottom-style', 'border-bottom-color']],
+  'panneau': ['#col-right .panel-default', '#fx-permanents', P_RAYONS],
+  'en-tête de section': ['#col-right .panel-default > .panel-heading', '#fx-permanents > .panel-heading', ['display', 'align-items', 'min-height', ...P_BOITE, 'background-color', 'border-bottom-width', 'border-bottom-style', 'border-bottom-color', ...P_RAYONS]],
   'titre de section': ['#col-right .panel-default > .panel-heading h3', '#fx-permanents > .panel-heading h3', ['font-size', 'font-weight', 'color', 'margin-top', 'margin-bottom']],
   'chevron de repli': ['#col-right .panel-default > .panel-heading span.clickable', '#fx-permanents > .panel-heading span.clickable', ['display', 'min-width', 'min-height', 'margin-right']],
-  'ligne': ['#col-right .panel-default .table > tbody > tr', '#topics tbody tr:not(.kr-topic-unread):not(.kr-topic-newmsg)', ['display', 'flex-wrap', 'align-items', 'row-gap', 'column-gap', ...P_BOITE, 'border-bottom-width', 'border-bottom-style', 'border-bottom-color', 'border-left-width', 'background-color', 'position']],
+  'ligne': ['#col-right .panel-default .table > tbody > tr', '#topics tbody tr:not(.kr-topic-unread):not(.kr-topic-newmsg)', ['display', 'flex-wrap', 'align-items', 'row-gap', 'column-gap', ...P_BOITE, 'border-bottom-width', 'border-bottom-style', 'border-bottom-color', 'border-left-width', 'background-color', 'position', ...P_RAYONS]],
   'nom (lien de la ligne)': ['#col-right .panel-default .table > tbody > tr > td:first-child > p > a', '#topics tbody tr:not(.kr-topic-unread):not(.kr-topic-newmsg) td:first-child p > a', ['display', 'font-size', 'font-weight', 'color', 'line-height', 'text-decoration-line']],
   'lien étiré sur la ligne': ['#col-right .panel-default .table > tbody > tr > td:first-child > p > a', '#topics tbody tr:not(.kr-topic-unread):not(.kr-topic-newmsg) td:first-child p > a', ['content', 'position', 'top', 'right', 'bottom', 'left', 'z-index'], '::after'],
   'auteur du dernier message': ['#col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin', '#topics tbody tr td:nth-child(5) > a.nomargin', ['font-size', 'font-weight', 'color', 'pointer-events', 'text-decoration-line']],
@@ -267,10 +270,11 @@ const COMPOSANTS_MOBILE = {
 };
 const COMPOSANTS_BUREAU = {
   'titre de page (h1)': ['#col-right > h1.page-header', '#col-right > h1.page-header', ['margin-top', 'margin-bottom', 'padding-bottom', 'font-size', 'font-weight', 'color', 'border-bottom-width', 'border-bottom-color']],
-  'bouton du titre': ['#col-right > h1.page-header > .pull-right > a.btn', '#col-right > h1.page-header > .pull-right > a.btn', ['font-size', ...P_BOITE, 'border-top-color', 'background-color', 'color', 'line-height']],
-  'en-tête de section': ['#col-right .panel-default > .panel-heading', '#fx-permanents > .panel-heading', [...P_BOITE, 'background-color', 'border-bottom-width', 'border-bottom-color']],
+  'bouton du titre': ['#col-right > h1.page-header > .pull-right > a.btn', '#col-right > h1.page-header > .pull-right > a.btn', ['font-size', ...P_BOITE, 'border-top-color', 'background-color', 'color', 'line-height', ...P_RAYONS]],
+  'en-tête de section': ['#col-right .panel-default > .panel-heading', '#fx-permanents > .panel-heading', [...P_BOITE, 'background-color', 'border-bottom-width', 'border-bottom-color', ...P_RAYONS]],
   'titre de section': ['#col-right .panel-default > .panel-heading h3', '#fx-permanents > .panel-heading h3', ['font-size', 'font-weight', 'color']],
-  'panneau': ['#col-right .panel-default', '#fx-permanents', ['margin-bottom', 'background-color']],
+  'panneau': ['#col-right .panel-default', '#fx-permanents', ['margin-bottom', 'background-color', ...P_RAYONS]],
+  'ligne': ['#col-right .panel-default .table > tbody > tr', '#topics tbody tr:not(.kr-topic-unread):not(.kr-topic-newmsg)', P_RAYONS],
   'corps du panneau': ['#col-right .panel-default > .panel-body', '#fx-permanents > .panel-body', P_BOITE],
   'en-tête de colonne': ['#col-right .panel-default .table > thead th', '#fx-permanents thead th', ['font-weight', 'color', 'background-color', ...P_BOITE]],
   'en-tête de colonne chiffrée': ['#col-right .panel-default .table > thead th:nth-child(2)', '#fx-permanents thead th:nth-child(2)', ['text-align']],

@@ -26,7 +26,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, COMPOSANTS_TICKET4, ECHELLE_TICKET45, ECHELLE_TICKET47, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET48, COMPOSANTS_TICKET4, ECHELLE_TICKET45, ECHELLE_TICKET47, JETONS_REDEFINIS, RAYONS_TICKET48, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -109,10 +109,12 @@ const DARK = 'empire-brun-dark';
 // Calibrage (A/A : même bundle des deux côtés, 12 exécutions du fragment regression par révision, t_292a52e1) :
 //   chrome-headless-shell 1224 (Chromium 149) : au plus 1 pixel, écart 2 (coin arrondi, en 5-7, 230) ;
 //   chrome-headless-shell 1248 (Chromium 156) : au plus 9 pixels, écart 2 ; « lecture 1280 » varie de 9 pixels, écart 1, en (357-432, 265-267).
-// Borne du nombre de pixels = plus de 2 x le maximum mesuré (9) ; borne d'écart = maximum mesuré (2). Le bruit est de quelques pixels :
-// un voile à écart 2 sur toute la page (~300 000 px), un pixel franc (écart 255), une hauteur +1 px (dimensions) restent détectés.
+//   ticket 4.8 (A/A sous charge, 28 passes, bundle 4.8 des deux côtés) : coin haut droit de la carte li.media.well de « lecture 1280 »
+//   (rayon 8 px sur un bord fractionnaire, 917,6 px) : 2 pixels, écart 4, en (916-917, 176), 4 passes sur 28.
+// Borne du nombre de pixels = plus de 2 x le maximum mesuré (9) ; borne d'écart = maximum mesuré (4). Le bruit est de quelques pixels :
+// un voile à écart 4 sur toute la page (~300 000 px), un pixel franc (écart 255), une hauteur +1 px (dimensions) restent détectés.
 const PIX_MAX_PIXELS = 20;
-const PIX_MAX_CANAL = 2;
+const PIX_MAX_CANAL = 4;
 /* global atob, createImageBitmap, Blob -- utilisés dans pg.evaluate, donc dans le navigateur */
 async function comparePixels(a, b) {
   const ctx = await browser.newContext();
@@ -227,6 +229,9 @@ const ECHELLE_AVANT = AVANT && AVANT_TICKET45(AVANT) ? `(${poserJetonsRedefinis}
 // Écart accepté et consigné (épopée 4, ticket 7) : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d'un kramail
 // lu 15 px sur mobile), posée sur un bundle « avant » antérieur au ticket (ECHELLE_TICKET47) ; sur une base qui le contient déjà, rien n'est posé.
 const ECHELLE_FORUM_AVANT = AVANT && AVANT_TICKET47(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(ECHELLE_TICKET47)});` : null;
+// Écart accepté et consigné (épopée 4, ticket 8) : rayons ramenés aux trois rôles (contrôles 4 px, cartes et panneaux 8 px), posés sur un
+// bundle « avant » antérieur au ticket (RAYONS_TICKET48) ; sur une base qui le contient déjà, rien n'est posé.
+const RAYONS_AVANT = AVANT && AVANT_TICKET48(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(RAYONS_TICKET48)});` : null;
 // Écart accepté et consigné (ticket 4), sur ce bundle « avant » seulement : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard
 // passés aux jetons qui changent avec le mode (COMPOSANTS_TICKET4) : marqués dans les deux bundles, puis masqués sur les deux captures ;
 // tout autre écart reste détecté.
@@ -1282,6 +1287,7 @@ if (frag('regression')) {
   }
   if (ECHELLE_AVANT) { console.log('  info écart accepté et consigné : titres des en-têtes de panneau en 17 px / 700 et échelle mobile des titres en px (h1-h3 17 px, h4-h6 15 px), .xmini et liens du pied de page en 12 px, posés sur le bundle « avant » (épopée 4, ticket 5)'); }
   if (ECHELLE_FORUM_AVANT) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d\'un kramail lu 15 px sur mobile) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
+  if (RAYONS_AVANT) { console.log('  info écart accepté et consigné : rayons des pages du kramail aux trois rôles (contrôles 4 px, cartes et panneaux 8 px, en-tête de panneau 7 px sur ordinateur) posés sur le bundle « avant » (épopée 4, ticket 8)'); }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1295,7 +1301,7 @@ if (frag('regression')) {
       for (const bundle of ['avant', 'apres']) {
         // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
         // début du document.
-        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT, ECHELLE_AVANT, ECHELLE_FORUM_AVANT].filter(Boolean).join('\n') || null : null;
+        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT, ECHELLE_AVANT, ECHELLE_FORUM_AVANT, RAYONS_AVANT].filter(Boolean).join('\n') || null : null;
         const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });

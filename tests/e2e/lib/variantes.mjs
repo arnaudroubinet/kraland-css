@@ -237,6 +237,25 @@ export const ECHELLE_TICKET47 = [
   '  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche { font-size: 13px; }',
   '}'
 ].join('\n');
+/**
+ * Écart accepté et consigné (épopée 4, ticket 8) : rayons des pages du kramail ramenés aux trois rôles (contrôles 4 px, cartes et panneaux
+ * 8 px, en-tête de panneau 7 px sur ordinateur). Feuille miroir posée sur un bundle « avant » antérieur au ticket (AVANT_TICKET48) par le
+ * fragment regression de kramail-redaction.mjs, jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan
+ * du ticket (story-trois-rayons-4-px-8-px-et-plein, Plan Change Log).
+ */
+export const RAYONS_TICKET48 = [
+  '@media (max-width: 767px) {',
+  '  .navbar-header > .navbar-toggle, #col-right > h1.page-header > .kramail-character-selector, #col-right > h1.page-header > span.pull-right .btn, body.mobile-mode .center > ul.pagination.t > li > a { border-radius: 4px !important; }',
+  '  #col-right > form > .panel.panel-default, body.page-kramail #topics > tbody > tr, #col-right > ul.media-list > li.media.well { border-radius: 8px !important; }',
+  '}',
+  '@media (min-width: 768px) {',
+  '  #col-right > h1.page-header > span.pull-right .btn, li.media.well .btn-group-xs > span.btn { border-radius: 4px !important; }',
+  '  #col-right > form > .panel.panel-default, #col-right > ul.media-list > li.media.well { border-radius: 8px !important; }',
+  '  #col-right > form > .panel.panel-default > .panel-heading { border-radius: 7px 7px 0 0 !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 8 : il déclare encore --mobile-radius sur :root (règle minifiée du bundle). */
+export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
 /** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle). */
 export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important');
 
@@ -310,3 +329,10 @@ export function CONTRASTE() {
  */
 export const LIGNE_OBJET_TICKET6 = '#col-right .panel-body > a.list-group-item';
 export const SECONDAIRE_TICKET6 = 'var(--kr-text-secondary)';
+
+/**
+ * Rayons (épopée 4, ticket 8) : propriétés lues par le contrôle statique du fragment rayons de typographie-formes.mjs (raccourci, puis les
+ * quatre coins). Écrites ici, hors des suites : ces repères, déjà cités par trois suites, compteraient sinon une quatrième citation
+ * (routeur, MAX_CITING).
+ */
+export const PROPRIETES_RAYON_TICKET48 = ['border-radius', ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius']];

@@ -2,7 +2,7 @@
 // Une vérification par ligne de la matrice du plan (story-jetons-d-echelle-etiquettes-et-pastilles-en-12-px-gras) :
 //   jetons          --kr-font-*, --kr-radius-sm/-md/-full, --kr-space-1 à -6, --kr-margin-mobile, --kr-touch-target(-dpad) calculés sur
 //                   :root égaux à DESIGN.md (frontmatter : typography, rounded, spacing ; 1 rem = 10 px), Kraland clair et Empire Brun
-//                   sombre, 375 et 1280 px ; --kr-radius inchangé ;
+//                   sombre, 375 et 1280 px ; --kr-radius, --mobile-radius et --mobile-radius-lg absents (retirés par le ticket 8) ;
 //   étiquettes      .label, .badge, « ! » de la cloche, « ici » de la croix, tags du forum, .kr-topic-badge, pastille d'en-tête et PNJ
 //                   du tableau de bord, .kd-opt-tag du kramail (groupe de l'annuaire, « déjà ajouté », « ajouter tel quel »),
 //                   .kr-stat-badge, .kr-skill-badge, pastilles de la modale d'ordre ; 375, 767, 768, 769 et 1280 px, Kraland clair et Empire Brun sombre :
@@ -28,6 +28,7 @@
 //                   1440 et 1920 px, Kraland clair et Empire Brun sombre : 12 px, rayon 4 px aux coins arrondis par la base (coins
 //                   carrés conservés), hauteur (± 0,5) et couleurs égales au bundle de base (COMMIT_COMPACT) ; 375 et 767 px : égaux
 //                   à la base ; autres boutons des messages (date, profil, kramail, signaler…) égaux à la base à toutes les largeurs ;
+//                   rayons des éléments non visés : valeur du rôle (4 px aux coins arrondis par la base, ticket 8) ;
 //                   padding des éléments visés égal à la base ; jetons redéfinis (13 px, rayon 7 px) suivis à 1280 px.
 // Matériel, Personnage, Bâtiments, Employés (ticket 6, story-materiel-personnage-batiments-employes-echelle-et-ligne-d-ob-plan) :
 //   echelle         fragment étendu aux FIXTURES SYNTHÉTIQUES jeu-materiel.html, jeu-batiments.html et jeu-employes.html (/jouer/materiel,
@@ -46,7 +47,13 @@
 //                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
 //                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
 //                   masque miroir ECHELLE_TICKET47 sur le bundle de base (COMMIT_ECHELLE_FORUM) égal au bundle d'après, 375, 768, 1280 px.
-// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : rayons (4.8), espacement (4.9).
+// Trois rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) :
+//   rayons          plateau, forum (sujet, rédaction, index RP), sous-forum, kramail (réception, lecture, nouveau) et modale d'ordre :
+//                   375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, rayon calculé aux quatre coins :
+//                   contrôles 4 px, conteneurs 8 px, en-têtes de panneau 7 px, pastilles pleines, coins carrés de la base conservés,
+//                   exceptions (croix, avatars, images) égales au bundle de base (COMMIT_RAYONS) ; jetons redéfinis (7 px, 11 px) suivis,
+//                   375 et 1280 px ; bascule 767, 768, 767 px ; contrôle statique : aucun rayon littéral non nul hors exceptions.
+// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : espacement (4.9).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
 // kramail fictif (ajaxsearch.php émulé, noms inventés). Confinement réseau ; gestes : saisie au clavier dans le champ Destinataires,
@@ -62,7 +69,9 @@
 //           KR_SCRIPT_AVANT_ECHELLE_FORUM (bundle de base de l'échelle du forum et du kramail, défaut : celui du commit
 //           COMMIT_ECHELLE_FORUM),
 //           KR_SCRIPT_AVANT_TICKET6 (bundle de base du plateau inchangé par le ticket 6, défaut : celui du commit COMMIT_TICKET6),
-//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum (vide = tout).
+//           KR_SCRIPT_AVANT_RAYONS (bundle de base des rayons, défaut : celui du commit COMMIT_RAYONS),
+//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons
+//           (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -73,7 +82,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -108,9 +117,10 @@ const JETONS = {
   '--kr-font-page-title': '36px', '--kr-font-button': '14px',
   '--kr-radius-sm': '4px', '--kr-radius-md': '8px', '--kr-radius-full': '9999px',
   '--kr-space-1': '4px', '--kr-space-2': '8px', '--kr-space-3': '12px', '--kr-space-4': '16px', '--kr-space-5': '24px', '--kr-space-6': '32px',
-  '--kr-margin-mobile': '16px', '--kr-touch-target': '44px', '--kr-touch-target-dpad': '48px', '--kr-button-height': '34px',
-  '--kr-radius': '.5rem'
+  '--kr-margin-mobile': '16px', '--kr-touch-target': '44px', '--kr-touch-target-dpad': '48px', '--kr-button-height': '34px'
 };
+// Variables de rayon retirées par le ticket 8 (reprises par --kr-radius-sm/-md/-full) : absentes de :root.
+const JETONS_RETIRES = ['--kr-radius', '--mobile-radius', '--mobile-radius-lg'];
 const VARIANTES = ['kraland', 'empire-brun-dark'];
 
 // Pages et éléments mesurés : [clé, sélecteur, mobile seulement].
@@ -237,8 +247,9 @@ async function relever(opts) {
   let res;
   if (def.kramail) { res = kd; } else { res = await page.evaluate(MESURE, attendus.map(([k, s]) => [k, s])); }
   const jetons = await page.evaluate(noms => Object.fromEntries(noms.map(n => [n, getComputedStyle(document.documentElement).getPropertyValue(n).trim()])), Object.keys(JETONS));
+  const retires = await page.evaluate(noms => noms.filter(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() !== ''), JETONS_RETIRES);
   await context.close();
-  return { mesures: Object.fromEntries(res), attendus: attendus.map(([k]) => k), jetons, erreurs };
+  return { mesures: Object.fromEntries(res), attendus: attendus.map(([k]) => k), jetons, retires, erreurs };
 }
 
 const etiquette = o => `${o.nom} ${o.variante} ${o.width} px`;
@@ -249,6 +260,7 @@ if (on('jetons')) {
   const res = await mapLimit(cas, async c => ({ c, r: await relever({ ...c, script: userscript }), r13: await relever({ ...c, script: userscript, label13: true }) }));
   for (const { c, r, r13 } of res) {
     check(`${etiquette(c)} : jetons de :root égaux à DESIGN.md`, () => assert.deepEqual(r.jetons, JETONS, JSON.stringify(r.jetons)));
+    check(`${etiquette(c)} : --kr-radius, --mobile-radius et --mobile-radius-lg absents de :root (ticket 8)`, () => assert.deepEqual(r.retires, [], r.retires.join(', ')));
     check(`${etiquette(c)} : --kr-font-label à 13 px suivi par toutes les étiquettes et pastilles`, () => {
       const vides = r13.attendus.filter(k => !(r13.mesures[k] || []).length);
       assert.deepEqual(vides, [], `éléments absents : ${vides.join(', ')}`);
@@ -585,7 +597,7 @@ if (on('compact')) {
       const l = r.res[k] || [];
       const b = a.res[k] || [];
       const cible = vise && !mobile;
-      check(`compact ${etiquette(c)} ${k} : ${cible ? '12 px, rayon 4 px aux coins arrondis, hauteur et couleurs de la base' : 'égal au bundle de base'}`, () => {
+      check(`compact ${etiquette(c)} ${k} : ${cible ? '12 px, rayon 4 px aux coins arrondis, hauteur et couleurs de la base' : 'égal au bundle de base, rayon du rôle (4 px, ticket 8)'}`, () => {
         if (!(mobile && bureauSeul)) { assert.ok(l.length > 0, 'aucun élément'); }
         assert.equal(l.length, b.length, `${l.length} élément(s) contre ${b.length}`);
         const ecarts = [];
@@ -601,7 +613,9 @@ if (on('compact')) {
             if (JSON.stringify(m.rayons) !== JSON.stringify(attendus)) { ecarts.push(`« ${m.texte} » rayons ${m.rayons.join(' ')} au lieu de ${attendus.join(' ')}`); }
           } else {
             ['taille', 'hauteur', 'padding'].forEach(p => { if (m[p] !== o[p]) { d(p); } });
-            if (JSON.stringify(m.rayons) !== JSON.stringify(o.rayons)) { d('rayons'); }
+            // Ticket 8 (rayons, story-trois-rayons-4-px-8-px-et-plein-plan) : contrôles à 4 px (rôle C4) aux coins arrondis par la base.
+            const role = o.rayons.map(x => (parseFloat(x) > 0 ? '4px' : '0px'));
+            if (JSON.stringify(m.rayons) !== JSON.stringify(role)) { ecarts.push(`« ${m.texte} » rayons ${m.rayons.join(' ')} au lieu de ${role.join(' ')}`); }
           }
         });
         if (cible) { assert.ok(b.some(o => o.rayons.some(x => parseFloat(x) > 0)), 'aucun coin arrondi dans la base'); }
@@ -1154,6 +1168,267 @@ if (on('echelle-forum')) {
       assert.deepEqual(ecarts, [], ecarts.slice(0, 5).join(' ; '));
     });
   }
+}
+
+// ---------- Rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) ----------
+// Trois rôles (H6.3) : contrôle C4 = --kr-radius-sm (4 px), conteneur K8 = --kr-radius-md (8 px), en-tête ou pied de panneau K7 =
+// --kr-radius-md - 1 px (7 px, coins de son bord), pastille P = plein (rayon ≥ min(largeur, hauteur) / 2). Un coin carré dans la base
+// (coin intérieur d'un groupe, barre BBCode collée au champ) reste carré. Exceptions X (croix, avatars, images, jauges) : égales au
+// bundle de base (COMMIT_RAYONS). N4 : contrôle natif de Bootstrap déjà à 4 px sans règle de la peau (pagination, onglets, input-group-addon ;
+// annexe d'inventaire, section 3, dernière ligne), à 4 px même sous jetons redéfinis.
+// Rôle H : coins hauts d'un en-tête égaux au rayon de son panneau moins 1 px (panneau arrondi exigé). Sélecteur terminé par ::before
+// ou ::after : mesure du pseudo-élément. clics : clics DOM avant la mesure (m mobile, b ordinateur).
+// Cas : [clé, sélecteur, rôle, support, cache] ; support m = mobile seulement, b = ordinateur seulement ; cache = mesuré même masqué
+// (menu fermé : rayon calculé sans rendu).
+const COMMIT_RAYONS = '5ff22d3';
+const avantRayons = sansEntete(process.env.KR_SCRIPT_AVANT_RAYONS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_RAYONS, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_RAYONS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const ACCUEIL_RAYONS = ACCUEIL_BOUTONS.replace('<div class="col-md-6">centre</div>', '<div class="col-md-6"><div class="alert alert-info alert-dismissible">Ministre d\'essai '
+  + ': communiqué. <img src="http://img7.kraland.org/2/ministre.gif" width="40" height="40"></div><img class="img-circle" src="http://img7.kraland.org/2/cercle.gif" width="40" height="40">'
+  + '<div class="dashboard-card"><img class="dashboard-card-avatar" src="http://img7.kraland.org/2/avatar.gif" width="40" height="40"></div></div>')
+  .replace('<h4>Personnage d\'essai</h4>', '<span class="pull-right"><img src="http://img7.kraland.org/2/perso.gif" width="60" height="60"></span><h4>Personnage d\'essai</h4>');
+const MODALE_FEUILLE = '<p>Message</p><div class="btn-toolbar"><div class="btn-group btn-group-xs dropdown"><button type="button" class="btn btn-default dropdown-toggle" '
+  + 'data-toggle="dropdown">Couleurs</button><div class="dropdown-menu"><div class="btn-group"><button type="button" class="btn btn-default">Rouge</button></div></div></div></div>';
+const PAGES_RAYONS = {
+  plateau: { def: PAGES.plateau, cas: [
+    ['label', '.label', 'P'], ['badge', '.badge', 'P'], ['hamburger', '.navbar-toggle', 'C4', 'm'], ['icone-hamburger', '.navbar-toggle .icon-bar', 'X', 'm'],
+    ['retour', '.kraland-back-to-top', 'K8'], ['carte', '.dashboard-card', 'K8'], ['entete', '.panel > .panel-heading', 'K7', 'b'],
+    ['croix', '.kr-nav-v2 :is(.kr-n, .kr-s, .kr-w, .kr-e, .kr-hub)', 'X', 'm'], ['ici', '.kr-room-here', 'P', 'm'], ['competences', '#skills-panel', 'K8', 'b']
+  ] },
+  'plateau-jeu': { def: PAGES_ECHELLE.plateau, cas: [
+    ['mini-profil', '.mobile-mini-profile-gauges-full, .mobile-mini-profile-characteristics, .mobile-mini-profile-skills', 'K8', 'm'],
+    ['panneau-joueur', '#player-main-panel', 'K8'], ['stats', '#col-leftest-stats', 'K8', 'b'], ['acces', '.kr-quick-access-buttons > .btn', 'C4'],
+    ['actions', '.kr-action-grid > .btn', 'C4', 'b'], ['pastilles', '.kr-stat-badge, .kr-skill-badge', 'P']
+  ] },
+  sujet: { def: PAGES_FORUM.sujet, cas: [
+    ['actions', '.forum-thread-action', 'C4', 'm'], ['carte', 'ul.media-list.forum > li.media', 'K8'], ['avatar', 'ul.media-list.forum img.avatar', 'X'],
+    ['boutons', 'ul.media-list.forum .btn-group-xs > .btn', 'C4'], ['plus', '.kr-msg-more', 'C4', 'm'], ['pagination', '.center > ul.pagination > li > a', 'N4', 'm'],
+    ['pagination', '.center > ul.pagination > li > a', 'C4', 'b'],
+    ['entete', '.forum-top .pull-right > .btn', 'C4', 'b']
+  ] },
+  redaction: { def: PAGES_FORUM.redaction, cas: [
+    ['envoyer', 'div.col-sm-12 > button.btn.btn-primary.pull-right', 'C4'], ['champ', '#message', 'C4'], ['barre', '.btn-toolbar.kr-tools-ready', 'C4', 'm'],
+    ['liste', '.input-group > select', 'C4'], ['bbcode', '.btn-toolbar .btn-group-xs > .btn', 'C4'],
+    ['defilement', '.btn-toolbar::-webkit-scrollbar-thumb', 'X', 'm']
+  ] },
+  'index-rp': { def: PAGES_FORUM['index-rp'], cas: [
+    ['alerte', '#col-right > .alert', 'K8'], ['panneau', '#col-right > .panel', 'K8'], ['entete', '#col-right > .panel > .panel-heading', 'K7', 'b'],
+    ['boutons', '#col-right .btn-group-xs > .btn', 'C4']
+  ] },
+  'sous-forum': { def: PAGES_FORUM['sous-forum'], cas: [
+    ['panneau', '#fx-permanents, #fx-sujets', 'K8'], ['entete', ':is(#fx-permanents, #fx-sujets) > .panel-heading', 'K7', 'b'], ['pastille', '.kr-topic-badge', 'P'],
+    ['tri', '#topics th.sorting, #topics th.sorting_desc', 'C4', 'm'], ['recherche', '.dataTables_wrapper label > :is(input, select)', 'C4', 'm'],
+    ['pagination', '.dataTables_paginate .paginate_button', 'C4', 'm'], ['fleches', '#topics .btn-group-xs > .btn', 'C4'], ['nouveau', '.forum-thread-action', 'C4', 'm']
+  ] },
+  reception: { def: PAGES_FORUM.reception, cas: [
+    ['titre', '.kramail-character-selector', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4'], ['actions', '.kramail-actions-mobile > .btn', 'C4', 'm'],
+    ['panneau', 'form > .panel', 'K8'], ['entete', 'form > .panel > .panel-heading', 'K8', 'm'],
+    ['entete', 'form > .panel > .panel-heading', 'K7', 'b'], ['ligne', 'form > .panel tbody > tr', 'K8', 'm']
+  ] },
+  lecture: { def: PAGES_FORUM.lecture, cas: [
+    ['carte', 'ul.media-list.forum > li.media', 'K8'], ['avatar', '.kramail-msg-avatar', 'X', 'm'], ['avatar', '.user-info img.avatar', 'X', 'b'],
+    ['menu', '.kramail-post-kebab > .btn', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4', 'm'], ['icones', 'span.pull-right > .btn', 'C4', 'b'],
+    ['pagination', '.center > ul.pagination > li > a', 'C4', 'm'], ['pagination', '.center > ul.pagination > li > a', 'N4', 'b']
+  ] },
+  nouveau: { def: PAGES_FORUM.nouveau, cas: [
+    ['titre', '.kramail-character-selector', 'C4', 'm'], ['groupe', '.col-sm-10 > .input-group', 'C4', 'm'],
+    ['champ-groupe', '.input-group > :is(input, select)', 'C4'], ['addon', '.input-group > .input-group-addon', 'C4', 'm'],
+    ['addon', '.input-group > .input-group-addon', 'N4', 'b'], ['contacts', '.kd-contacts', 'C4'],
+    ['bbcode', '.btn-toolbar .btn-group-xs > .btn', 'C4'], ['champ', '#message', 'C4'], ['formulaire', 'form.editeur-text', 'K8', 'b'],
+    ['bloc', 'form.editeur-text > .form-group', 'K8'], ['envoyer', 'div.col-sm-12 > button.btn.btn-primary.pull-right', 'C4', 'b'],
+    ['defilement', '.editeur-text .btn-toolbar::-webkit-scrollbar-thumb', 'X', 'm']
+  ] },
+  // Accordéon (« Message auquel vous répondez ») : sur ordinateur, panneau à 8 px et en-tête égal au panneau moins 1 px (rôle H) ; sur mobile,
+  // en-tête et volet repliable en cartes à 8 px. Volet déplié avant la mesure ; menu du sélecteur de personnage mesuré fermé.
+  accordeon: { def: { url: BASE + '/kramail/post/sujet-fictif-de-lecture-5-9000002', html: lire('kramail-repondre.html') },
+    clics: { m: ['.panel-group .panel-heading a'], b: ['.panel-group .panel-heading a'] }, cas: [
+      ['panneau', '.panel-group > .panel', 'K8', 'b'], ['entete', '.panel-group > .panel > .panel-heading', 'H', 'b'],
+      ['entete', '.panel-group > .panel > .panel-heading', 'K8', 'm'], ['bascule', '.panel-group a[data-toggle="collapse"]', 'K8'],
+      ['volet', '.panel-group .panel-collapse', 'K8'], ['puits', '.well', 'K8'], ['menu-personnage', '.kramail-character-dropdown', 'K8', 'm', 'cache']
+    ] },
+  // Matériel (fixture synthétique typographie-echelle.html) : accordéon #accordeon-essai, horloge .c100 et ses cercles, jauges compactes.
+  materiel: { def: PAGES_ECHELLE.materiel, cas: [
+    ['panneau', '#accordeon-essai > .panel', 'K8', 'b'], ['entete', '#accordeon-essai > .panel > .panel-heading', 'H', 'b'],
+    ['horloge', '.c100', 'X'], ['horloge-avant', '.c100::before', 'X'], ['horloge-apres', '.c100::after', 'X'],
+    ['jauge-compacte', '.mobile-gauge-compact-bar', 'X', 'm'], ['puits', '.well', 'K8']
+  ] },
+  objets: { def: PLATEAU_OBJETS, cas: [['jauge-pleine', '.mobile-gauge-full-bar', 'X', 'm'], ['jauge-compacte', '.mobile-gauge-compact-bar', 'X', 'm']] },
+  vignettes: { def: PAGES.plateau, cas: [['vignette', '.kr-room-thumb', 'X', 'm'], ['vignette-image', '.kr-room-thumb img', 'X', 'm']] },
+  // Images rondes ou arrondies (fixture synthétique ACCUEIL_RAYONS) : exceptions égales à la base.
+  accueil: { def: { url: BASE + '/accueil', html: ACCUEIL_RAYONS }, cas: [
+    ['ministre', '.kr-ministerial-card img', 'X'], ['personnage', '.ds_user .pull-right img', 'X'], ['cercle', 'img.img-circle', 'X'],
+    ['avatar-carte', '.dashboard-card-avatar', 'X']
+  ] },
+  pied: { def: PAGES_BOUTONS.tableau, cas: [['pied', '.panel > .panel-footer', 'K7']] },
+  // Menus déroulants : actions du kramail ouvertes sur mobile ; barre de navigation mesurée fermée sur ordinateur (coins hauts carrés dans la base).
+  menus: { def: PAGES_FORUM.reception, clics: { m: ['.kramail-actions-mobile > .dropdown-toggle'] }, cas: [
+    ['menu', '.kramail-actions-mobile .dropdown-menu', 'K8', 'm'], ['menu', '.navbar .dropdown-menu', 'K8', 'b', 'cache']
+  ] },
+  // Bouton rond « nouveau sujet » : créé sur mobile pour un titre de forum à liens (fixture synthétique des composants, titre remplacé).
+  'bouton-rond': { def: { ...PAGES_BOUTONS.tableau, html: PAGES_BOUTONS.tableau.html.replace('<h1>Composants d\'essai</h1>',
+    '<h1>Forum d\'essai <a href="forum/hrp">Jeu (HRP)</a> <a href="forum/hrp/essai-1/nouveau">nouveau sujet</a></h1>') }, cas: [['nouveau-sujet', '.forum-new-topic-fab', 'P', 'm']] },
+  // Feuille du bas (menu d'une barre BBCode de modale sur mobile, CSS et template) : coins hauts à 8 px, bas carrés.
+  'feuille-bas': { def: { ...PAGES_BOUTONS['modale-bbcode'], modale: MODALE_FEUILLE }, clics: { m: ['.modal .btn-toolbar .dropdown-toggle'] }, cas: [
+    ['feuille', '.modal .btn-toolbar .dropdown-menu', 'K8', 'm'], ['defilement', '.modal .btn-toolbar::-webkit-scrollbar-thumb', 'X', 'm']
+  ] },
+  'modale-ordre': { def: PAGES_BOUTONS['modale-ordre'], cas: [
+    ['modale', '.modal-content', 'K8'], ['alerte', '.kr-order-alerts .alert', 'K8'], ['panneau', '.kr-order-form > .panel', 'K8'],
+    ['entete', '.kr-order-form > .panel > .panel-heading', 'K7', 'b'], ['onglets', '.kr-order-form .nav-tabs > li > a', 'C4', 'm'],
+    ['onglets', '.kr-order-form .nav-tabs > li > a', 'N4', 'b'],
+    ['aide', '.kr-order-help-toggle', 'C4'], ['pied', '.modal-footer .btn', 'C4'], ['pastilles', '.kr-order-badge', 'P'], ['image', '.kr-order-form .pull-right > img', 'X', 'm']
+  ] }
+};
+const LARGEURS_RAYONS = [375, 767, 768, 769, 1280, 1440, 1920];
+const JETONS_RAYONS = ':root { --kr-radius-sm: 7px !important; --kr-radius-md: 11px !important; }';
+// Sélecteur terminé par ::before ou ::after : rayons du pseudo-élément. parent : rayons de l'élément parent (rôle H).
+const MESURE_RAYONS = liste => liste.map(([cle, selecteur, cache]) => [cle, (([sel, pseudo]) => [...document.querySelectorAll(sel)].filter(e => cache || e.getClientRects().length).map(e => {
+  const coins = c => [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius];
+  const s = getComputedStyle(e, pseudo || null);
+  const r = e.getBoundingClientRect();
+  return { rayons: coins(s), parent: coins(getComputedStyle(e.parentElement)), l: r.width, h: r.height,
+    texte: `${e.tagName.toLowerCase()}.${[...e.classList].slice(0, 3).join('.')}${pseudo || ''} « ${(e.textContent || e.value || '').trim().slice(0, 20)} »` };
+}))(selecteur.split(/(?=::)/))]);
+const casRayons = (nom, mobile) => PAGES_RAYONS[nom].cas.filter(([, , , sup]) => !sup || sup === (mobile ? 'm' : 'b'));
+const ouvrirModaleOrdre = async (page, def) => {
+  await page.waitForFunction(() => window.bootbox, null, { timeout: 5000 });
+  await page.evaluate(m => { window.bootbox.confirm(m, () => false); }, def.modale);
+  await page.waitForFunction(() => document.querySelector('.modal.in'), null, { timeout: 5000 });
+  await page.waitForTimeout(400);
+};
+async function releverRayons({ nom, width, variante, script, css }) {
+  const { def } = PAGES_RAYONS[nom];
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css });
+  if (def.modale) { await ouvrirModaleOrdre(page, def); }
+  for (const sel of (PAGES_RAYONS[nom].clics || {})[width < 768 ? 'm' : 'b'] || []) {
+    // Clic DOM (action locale de Bootstrap ou du thème, aucune requête) : la barre de navigation fixe recouvre parfois la cible.
+    await page.evaluate(c => { const e = document.querySelector(c); if (e) { e.click(); } }, sel);
+    await page.waitForTimeout(500);
+  }
+  const res = Object.fromEntries((await page.evaluate(MESURE_RAYONS, casRayons(nom, width < 768).map(([k, s, , , cache], i) => [`${k}#${i}`, s, cache === 'cache']))));
+  await context.close();
+  return { res, erreurs };
+}
+// Écarts au rôle pour un relevé (l) et la base (b) ; jetons { sm, md } en px.
+function ecartsRayons(role, l, b, jetons) {
+  const ecarts = [];
+  if (!l.length) { return ['aucun élément']; }
+  if (l.length !== b.length) { return [`${l.length} élément(s) contre ${b.length} dans la base`]; }
+  l.forEach((m, i) => {
+    const o = b[i];
+    let attendus;
+    if (role === 'X') { attendus = o.rayons; } else if (role === 'H') {
+      if (!m.parent.slice(0, 2).every(x => parseFloat(x) > 1)) { ecarts.push(`${m.texte} panneau sans rayon (${m.parent.join(' ')})`); }
+      attendus = o.rayons.map((x, n) => (parseFloat(x) > 0 ? `${parseFloat(m.parent[n]) - 1}px` : '0px'));
+    } else if (role === 'P') {
+      const demi = Math.min(m.l, m.h) / 2;
+      if (!m.rayons.every(x => parseFloat(x) > 0 && parseFloat(x) >= demi)) { ecarts.push(`${m.texte} rayons ${m.rayons.join(' ')} sous la moitié de ${Math.round(Math.min(m.l, m.h))} px`); }
+      return;
+    } else {
+      const v = { C4: jetons.sm, N4: 4, K8: jetons.md, K7: jetons.md - 1 }[role];
+      attendus = o.rayons.map(x => (parseFloat(x) > 0 ? `${v}px` : '0px'));
+    }
+    if (JSON.stringify(m.rayons) !== JSON.stringify(attendus)) { ecarts.push(`${m.texte} rayons ${m.rayons.join(' ')} au lieu de ${attendus.join(' ')}`); }
+  });
+  return ecarts;
+}
+// Contrôle statique du bundle testé : feuille du thème lue par le CSSOM (une valeur var() reste telle qu'écrite), plus les rayons posés par
+// le template (cssText et setProperty). Après retrait des jetons (var(--kr-radius-*), calc(var(--kr-radius-md) - 1px)), aucune valeur
+// non nulle ne doit rester, hors sélecteurs X (dernier composé : image, avatar, barre de défilement, cercle .c100, dessin du hamburger,
+// croix, vignette de pièce, jauge).
+const X_RAYONS = /(^|[\s>+~])img\b|::-webkit-scrollbar|\.img-circle|avatar|\.c100|\.icon-bar|\.kr-pad::before|^\.kr-(n|s|w|e|hub)$|\.kr-room-thumb|gauge-(compact|full)-bar/;
+const LITTERAL = v => /(^|[\s/(,])(?!0(?![.\d]))\.?\d[\d.]*[a-z%]*/.test(v.replace(/calc\(var\(--kr-radius-md\) - 1px\)|var\(--kr-radius-(sm|md|full)\)/g, ' '));
+function cssDuBundle(src) {
+  const i = src.indexOf('BUNDLED_CSS:\'') + 13;
+  let j = i;
+  while (src[j] !== '\'') { j += src[j] === '\\' ? 2 : 1; }
+  return { css: src.slice(i, j), js: src.slice(0, i) + src.slice(j) };
+}
+const LITTERAUX_CSS = ([css, [raccourci, coins]]) => {
+  const feuille = new window.CSSStyleSheet();
+  feuille.replaceSync(css);
+  const out = [];
+  const parcourir = regles => { for (const r of regles) {
+    if (!r.selectorText) { if (r.cssRules) { parcourir(r.cssRules); } continue; }
+    const court = r.style.getPropertyValue(raccourci);
+    const valeurs = court ? [[raccourci, court]] : coins.map(p => [p, r.style.getPropertyValue(p)]).filter(([, v]) => v);
+    for (const [p, v] of valeurs) { out.push([r.selectorText, p, v]); }
+  } };
+  parcourir(feuille.cssRules);
+  return out;
+};
+async function litterauxBundle(src) {
+  const { css, js } = cssDuBundle(src);
+  const context = await browser.newContext();
+  await confineNetwork(context);
+  const page = await context.newPage();
+  // eslint-disable-next-line no-eval
+  const decl = await page.evaluate(LITTERAUX_CSS, [(0, eval)(`'${css}'`), PROPRIETES_RAYON_TICKET48]);
+  await context.close();
+  const horsX = decl.filter(([sel, , v]) => LITTERAL(v) && !sel.split(',').every(s => X_RAYONS.test(s.trim().split(/\s*[\s>+~]\s*/).pop()) || X_RAYONS.test(s.trim())))
+    .map(([sel, p, v]) => `${sel} { ${p}: ${v} }`);
+  const template = [...js.matchAll(/border(?:-[a-z]+)*-radius(?::\s*|",\s*")([^;"\\]+)/g)].map(m => m[1].trim()).filter(LITTERAL).map(v => `template : rayon ${v}`);
+  return [...horsX, ...template];
+}
+if (on('rayons')) {
+  console.log('\n== rayons ==');
+  const cas = Object.keys(PAGES_RAYONS).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_RAYONS.map(width => ({ nom, variante, width }))));
+  const base = new Map();
+  const res = await mapLimit(cas, async c => {
+    const a = await releverRayons({ ...c, script: avantRayons });
+    base.set(etiquette(c), a);
+    return { c, r: await releverRayons({ ...c, script: userscript }), a };
+  });
+  for (const { c, r, a } of res) {
+    casRayons(c.nom, c.width < 768).forEach(([k, , role], i) => {
+      check(`rayons ${etiquette(c)} ${k} : ${{ C4: 'contrôle 4 px', N4: 'contrôle natif 4 px', K8: 'conteneur 8 px', K7: 'en-tête de panneau 7 px', P: 'pastille pleine', X: 'exception égale à la base', H: 'en-tête égal à son panneau moins 1 px' }[role]}`, () => {
+        const ecarts = ecartsRayons(role, r.res[`${k}#${i}`] || [], a.res[`${k}#${i}`] || [], { sm: 4, md: 8 });
+        assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
+      });
+    });
+    check(`rayons ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+  // Jetons redéfinis par une feuille adoptée (--kr-radius-sm 7 px, --kr-radius-md 11 px) : C4 à 7, K8 à 11, K7 à 10, X égales à la base.
+  const casJetons = Object.keys(PAGES_RAYONS).flatMap(nom => [375, 1280].map(width => ({ nom, variante: 'kraland', width })));
+  const resJetons = await mapLimit(casJetons, async c => ({ c, r: await releverRayons({ ...c, script: userscript, css: JETONS_RAYONS }), a: base.get(etiquette(c)) }));
+  for (const { c, r, a } of resJetons) {
+    casRayons(c.nom, c.width < 768).forEach(([k, , role], i) => {
+      check(`rayons ${etiquette(c)} ${k} : jetons redéfinis (7 px, 11 px) suivis (${role})`, () => {
+        const ecarts = ecartsRayons(role, r.res[`${k}#${i}`] || [], a.res[`${k}#${i}`] || [], { sm: 7, md: 11 });
+        assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
+      });
+    });
+  }
+  // Bascule dans le même onglet (767, 768 puis 767 px), bundle testé et base : à chaque pas, chaque élément a le rayon de son rôle.
+  const releverBascule = async (nom, variante, script) => {
+    const { def } = PAGES_RAYONS[nom];
+    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def, tactile: false });
+    const pas = [];
+    const relevé = async width => pas.push({ width, res: Object.fromEntries(await page.evaluate(MESURE_RAYONS, casRayons(nom, width < 768).map(([k, s, , , cache], i) => [`${k}#${i}`, s, cache === 'cache']))) });
+    await relevé(767);
+    for (const width of [768, 767]) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+      await page.setViewportSize({ width, height: 720 });
+      await charge;
+      await krReady(page, { ready: THEME_READY, label: `rayons bascule ${nom} ${variante} ${width} px` });
+      await styleSettled(page, 'body');
+      await relevé(width);
+    }
+    await context.close();
+    return pas;
+  };
+  const casBascule = ['plateau', 'sujet', 'reception'].flatMap(nom => VARIANTES.map(variante => ({ nom, variante })));
+  const resBascule = await mapLimit(casBascule, async c => ({ c, r: await releverBascule(c.nom, c.variante, userscript), a: await releverBascule(c.nom, c.variante, avantRayons) }));
+  for (const { c, r, a } of resBascule) {
+    r.forEach((p, n) => {
+      check(`rayons bascule ${c.nom} ${c.variante} pas ${n + 1} (${p.width} px) : rayon du rôle pour chaque élément`, () => {
+        const ecarts = casRayons(c.nom, p.width < 768).flatMap(([k, , role], i) => ecartsRayons(role, p.res[`${k}#${i}`] || [], a[n].res[`${k}#${i}`] || [], { sm: 4, md: 8 }).map(e => `${k} ${e}`));
+        assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
+      });
+    });
+  }
+  const litteraux = await litterauxBundle(userscript);
+  check('rayons : aucune valeur de rayon littérale non nulle hors exceptions X (thème et template du bundle testé)', () => assert.deepEqual(litteraux, [], `${litteraux.length} : ${litteraux.slice(0, 6).join(' ; ')}`));
 }
 
 await browser.close();

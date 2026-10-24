@@ -35,3 +35,15 @@
   summary: Règles mobiles contradictoires des modales Bootbox (`flex: 2 !important` sur `.btn-primary` ~l.7697, `flex: 1 !important` ~l.7034, pied en colonne ~l.1995, onglet actif bg-elevated ~l.7224) restent en place, battues par la section 9h pour la modale d'ordre.
   evidence: Revue quick du ticket 2.6 ; à retirer ou réconcilier au nettoyage de l'épopée 2 (2.7).
   status: non repris par 2.7 (retrait sans effet hors ordre non démontré) ; reporté à l'épopée 4, qui reprend « Valider » (taille normale) et les boutons des modales (rétro épopée 2, A2, 2026-10-24) ; traité par `epic-typographie-formes/story-modales-bootbox-mobiles-valider-de-taille-normale-et-regles-plan.md` (2026-10-24) : `flex: 1`, `flex: 2`, tailles 16 px / 50-56 px retirés, pied en colonne porté par la seule section 9h élargie à toute Bootbox ; onglet actif bg-elevated gardé, avec sa raison (modales à onglets hors ordre).
+
+## Deferred from: ticket 4.8, trois rayons (2026-10-24)
+
+- source_plan: `epic-typographie-formes/story-trois-rayons-4-px-8-px-et-plein-plan.md`
+  summary: Éditeur du kramail sous des médias hors convention, `@media (min-width: 769px)` (~l.10098-10271) et `@media (max-width: 768px)` (~l.10287-10589) ; à 768 px, les règles mobiles du formulaire s'appliquent sur ordinateur. Mêmes médias à ~l.1704, ~l.1982 et ~l.11931.
+  evidence: Signalés seulement (Never du ticket 4.8) ; rayons réécrits au jeton sans toucher aux médias. Pour l'entrée 10 : passer en `max-width: 767px` / `min-width: 768px`, puis tester 767, 768 et 769 px.
+- source_plan: `epic-typographie-formes/story-trois-rayons-4-px-8-px-et-plein-plan.md`
+  summary: Doublons réécrits au jeton sans retrait (A13) : Bootbox ordinateur (~l.1191-2036 du plan) contre Bootbox mobile (~l.6856-7659 du plan) ; cartes de ligne du forum, 1re version (~l.7848) et 2e version (~l.8542) ; `.modal` l.1287 battu par l.7319 ; bouton l.5500 battu par l.4085 (lignes du plan).
+  evidence: Retirer un doublon peut révéler un défaut natif ; hors objet du ticket 4.8 (Ask First). Pour l'entrée 10 : retrait un par un, rendu vérifié après chaque retrait.
+- source_plan: `epic-typographie-formes/story-trois-rayons-4-px-8-px-et-plein-plan.md`
+  summary: `.kramail-character-dropdown` porte son rayon deux fois : `style.cssText` du template (~l.5793, `border-radius: var(--kr-radius-md)`) et `kraland-theme.css` ~l.9474 (`border-radius: var(--kr-radius-md) !important`), qui bat le style en ligne.
+  evidence: Les deux déclarations réécrites au même jeton (8 px mesuré, fragment `rayons`, cas `accordeon` › `menu-personnage`). Pour l'entrée 10 : garder une seule source, de préférence la feuille.

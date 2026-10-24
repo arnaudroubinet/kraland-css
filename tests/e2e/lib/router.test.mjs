@@ -140,6 +140,16 @@ check('typographie et formes : bouton compact (pagination du sujet, pages du sou
     assert.ok(d.zones.includes('typographie-formes'), d.zones.join(', '));
   }
 });
+check('typographie et formes : rayons (ticket 8) -> typographie-formes et kramail', () => {
+  for (const h of [
+    hunk('  .kr-rayon-fictif {', '    border-radius: var(--kr-radius-sm);'),
+    hunk('  .kr-rayon-fictif {', '    border-top-left-radius: var(--kr-radius-md) !important;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('typographie-formes') && d.zones.includes('kramail'), d.zones.join(', '));
+  }
+});
 check('typographie et formes : échelle (en-têtes, noms, onglets et jauges du mini-profil) -> typographie-formes', () => {
   for (const h of [
     hunk('.dashboard-card-name {', '  font-size: var(--kr-font-name);'),

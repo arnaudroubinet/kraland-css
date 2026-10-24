@@ -205,3 +205,10 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - À trancher : sur ordinateur, le panneau Matériel du plateau (`.kr-materiel-moved`) passe de 10,6 à 13 px. Le plan l'exige (Always), ce qui contredit « ne pas toucher au plateau ». Je l'ai gardé.
 - Ligne d'objet mobile : image, puis le nom, puis la charge en gris secondaire. Sans image, le nom part du bord.
 - Les fixtures Bâtiments, Employés et la partie plateau Commerce/Matériel sont reconstruites, pas relevées ligne par ligne : à comparer visuellement au vrai site.
+
+## Ticket 4.8 — Trois rayons (built, 2026-10-24)
+
+- Rayons : contrôles à 4 px (« Envoyer » du forum : 8 → 4 ; boutons à icône du kramail : 10 → 4) ; cartes, panneaux et modales à 8 px (cartes du forum et du kramail : 12 → 8) ; pastilles et étiquettes pleines. La croix, les avatars, les images, les jauges et l'horloge gardent leur forme (Q12).
+- Assumptions à relire (détail dans le plan) : la recherche et le tri en pilule passent à 4 px ; les onglets, ceux de la modale d'ordre compris, sont à 4 px ; la barre fixe d'envoi du kramail reste sans rayon (épopée 7) ; les boutons ronds passent à plein.
+- Tolérance du test pixel du kramail : l'écart par canal passe de 2 à 4, mesuré en A/A. C'est du bruit de rendu sur le nouveau coin à 8 px de la carte de lecture.
+- Restent natifs à 4 px : `nav.navbar`, la pagination, les onglets natifs et `input-group-addon` (sans règle de la peau).
