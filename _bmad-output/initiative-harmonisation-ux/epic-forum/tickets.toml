@@ -1,5 +1,20 @@
 # tickets.toml — epic-forum, dans l'ordre de construction.
-# Inception partielle (décision d'Arnaud, 2026-10-22) : l'entrée 1 est avancée en tête de l'initiative ; les autres entrées seront planifiées à l'inception complète de l'épopée.
+# Inception partielle (décision d'Arnaud, 2026-10-22) : l'entrée 1 est avancée en tête de l'initiative et construite avant l'épopée 5 ;
+# inception complète le 2026-10-25 (autonome) : entrées 2 à 7.
+# Balle traçante : entrée 2 (index mobile dans la carte de section de 5.2, ligne ≥ 72 px, flèche et « premier non lu » qui mènent au message,
+# suite forum-activite.mjs et sa zone dans le routeur) ; l'entrée 1 étant construite, l'épingle sur 5.2 porte sur l'entrée 2.
+# L'entrée la moins sûre vient ensuite : un seul fil d'Ariane pour l'index, le sous-forum et le sujet (H12.3, trois implémentations à fusionner).
+# Entrées chaînées par collision, pas par dépendance fonctionnelle : elles partagent la suite forum-activite.mjs (créée par l'entrée 2),
+# la section « INDEX DU FORUM » de kraland-theme.css et les modules ForumHeader/ForumIndex/ForumThread du template (décision prise en autonomie, 2026-10-25).
+# Commun : valeurs de DESIGN.md › Components (Ligne de forum, Fil d'Ariane, En-tête de sujet, Bouton « ••• », Carte de section) ; DESIGN et EXPERIENCE priment sur les maquettes ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles qu'elle remplace, sans les battre par spécificité ou !important (aucun nouvel !important), et garde par page en :where(html.x) ce qu'elle conserve ;
+# règle commune aux deux supports en liste combinée @media (max-width: 767px), (min-width: 768px) ; mobile en max-width: 767px seulement ;
+# chaque plan consigne son rouge avant sur le bundle de sa base (classe kr-theme-enabled vérifiée), puis une contre-épreuve (mutation → rouge), et range son tri de revue sous ## Review Triage Log ;
+# chaque masque de test ajouté porte sa condition de retrait, qui nomme un événement qui arrivera (rétro de l'épopée 5, F4) ; toute règle de couleur est vérifiée dans les 16 variantes ;
+# largeurs et variantes communes : 375×667, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre au moins ; transition 767 ↔ 768 dans le même onglet dans les deux sens ;
+# fixtures synthétiques, existantes ou créées par l'entrée qui en a besoin ; aucune capture HTML brute dans le dépôt ; chaque entrée qui touche tests/ lance aussi npm run test:router ;
+# hors périmètre : focus clavier (aucune règle :focus), ARIA, signal lu/non lu par forum, tri par activité (non-goals de la spec), thème du forum pour le kramail et barre d'envoi (épopée 7),
+# marge latérale de 16 px et cibles hors forum (épopée 9), index Staff (exclu par 6.1, en attente d'Arnaud).
 
 [[entry]]
 id = 1
@@ -13,3 +28,74 @@ hitl = true
 risk = "high"
 references = ["ux-harmonisation/mockups/h12-index-forum.html", ".tmp/captures/forum-index-vs-sousforum/ (hors git, relevé du 2026-10-22)"]
 notes = ["http://www.kraland.org/forum/rp doit être aligné sur http://www.kraland.org/forum/rp/royaume-de-ruthvenie-101118 en terme d'affichage."]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Index mobile dans la carte de section ; la flèche et « premier non lu » mènent au message"
+description = "Balle traçante : sur mobile, les index RP, HRP, Communauté et Débats entrent dans la carte de section du forum mobile livrée par 5.2, une ligne par forum de 72 px au moins, ligne entière touchable vers le forum et flèche de 44 px vers le dernier message ; le correctif d'ancres mobile du template (~l.2883-2905, innerWidth < 768, replaceState puis scrollTo(0, 0)) est réécrit pour conserver #msg… (dernier message de l'index, « premier non lu » du sous-forum) et ne garder que son effet voulu (H10) ; les règles mobiles de la section « INDEX DU FORUM » (~l.14583-14869, min-height 44/48 px) sont réécrites, pas battues ; crée la suite forum-activite.mjs et sa zone dans le routeur ; met à jour forum-index.mjs et sous-forum.mjs là où elles figent l'ancien rendu, chaque masque avec sa condition de retrait."
+verify = "Suite forum-activite, fixtures forum-index-rp, forum-index-communaute et sous-forum-debuter, à 375×667 et 767 px : lignes ≥ 72 px dans la carte de 5.2, elementFromPoint au centre de la ligne et de la flèche donne leur lien, flèche ≥ 44 px ; une page ouverte avec #msgNNN garde son hash et place ce message dans la fenêtre, que la largeur lue à l'évaluation soit 980 (vrai téléphone, H10) ou 375 ; à 768, 769 et 1280 px, rendu égal à la base ; npm run test:router vert."
+covers = ["CAP-7"]
+after = ["5.2"]
+hitl = false
+risk = "high"
+references = ["ux-harmonisation/review-faisabilite.md (H10)", "ux-harmonisation/notes-implementation.md, Ancres sur mobile", "ux-harmonisation/DESIGN.md › Ligne de forum, Carte de section"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Un seul fil d'Ariane « Catégorie › Forum › Sujet » pour l'index, le sous-forum et le sujet (H12.3)"
+description = "Les trois fils d'Ariane mobiles (transformSubforumHeader de ForumHeader:MobileBreadcrumb, celui de ForumIndex:Presentation, ForumThread:MobileBreadcrumb) deviennent une seule fonction et une seule famille de classes : format « Catégorie › Forum › Sujet », séparateur « › », élément courant atténué, tronqué et non lien, sans « ⏪ » au sous-forum ; liens en couleur du texte et cibles de 44 px (hypothèse Q28.1 et Q28.2) ; l'ancienne branche post/FAB en cssText est retirée si elle n'a plus d'emploi ; la catégorie est lue dans l'entrée active de la liste latérale native (#col-left .list-group > .list-group-item.active, L4), plus en dur ; c'est cette fonction que l'entrée 4 reprend pour l'en-tête de sujet."
+verify = "Suite forum-activite, fixtures forum-index-rp, forum-index-communaute, sous-forum-debuter et forum-sujet, à 375 et 767 px : un seul conteneur de fil d'Ariane par page, même classe et même rendu aux trois niveaux, élément courant sans lien et tronqué sur une ligne, liens ≥ 44 px de haut, contraste ≥ 4,5:1 dans les 16 variantes, aucun « ⏪ » au sous-forum ; contre-épreuve : un libellé de catégorie changé dans la liste latérale de la fixture change le fil d'Ariane ; npm run test:router vert."
+covers = ["CAP-7"]
+after = [2]
+hitl = false
+risk = "high"
+references = ["ux-harmonisation/review-faisabilite.md (H12.3, L4)", "ux-harmonisation/DESIGN.md › Fil d'Ariane", "ux-harmonisation/EXPERIENCE.md, Q28"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "En-tête de sujet mobile dans Communauté, Débats et Staff (H12.4)"
+description = "Sur mobile, l'en-tête de sujet (fil d'Ariane de l'entrée 3, puis « Répondre » en bouton primaire et « Nouveau sujet » en bouton standard, 44 px, rayon sm) s'applique à tout sujet de /forum/, plus seulement à forum/rp/ et forum/hrp/ ; un sujet fermé n'a pas de « Répondre » ; la barre du bas suit le même rendu (hypothèse Q28.3) ; crée les fixtures synthétiques de sujet Communauté, Débats et Staff, dont un sujet fermé, sur la structure relevée en lecture seule sur le site réel (aucune capture brute dans le dépôt)."
+verify = "Suite forum-activite, fixtures forum-sujet et nouvelles fixtures de sujet Communauté, Débats, Staff et sujet fermé, à 375 et 767 px : en-tête présent en haut et en bas, « Répondre » primaire et « Nouveau sujet » standard de 44 px quand la page les a, aucun « Répondre » sur le sujet fermé, aucun débordement horizontal ; à 768 et 1280 px, rendu égal à la base ; relevé de structure des trois catégories validé par Arnaud ; npm run test:router vert."
+covers = ["CAP-7"]
+after = [3]
+hitl = true
+risk = "high"
+references = ["ux-harmonisation/review-faisabilite.md (L4)", "ux-harmonisation/DESIGN.md › En-tête de sujet (mobile)", "ux-harmonisation/EXPERIENCE.md, En-tête de sujet, Sujet fermé"]
+
+[[entry]]
+id = 5
+type = "story"
+title = "Bouton « ••• » commun au forum et au kramail (H12.2)"
+description = "Un seul bouton « ••• » (une fonction et une classe communes) : glyphe texte du forum, style de bouton standard, 44 px sur mobile, menu au-dessus de .dropdown-backdrop (z-index 990) sur tactile ; Messages:V3 (kr-msg-more) et les deux boutons du kramail (fa-ellipsis-v de Kramail:MobileEnhancer ~l.6029 et Kramail:PostMobileEnhancer ~l.6174, L5) le prennent, le kramail pour le glyphe et la taille seulement ; c'est le bouton que l'épopée 7 reprend."
+verify = "Suites forum-activite, messages-v3 et kramail-redaction, fixtures forum-sujet, kramail-reception et kramail-lecture, à 375 et 767 px : un seul sélecteur de bouton « ••• » sur les trois pages, glyphe texte « ••• » et aucun fa-ellipsis-v, cible ≥ 44 px, menu ouvert au toucher et elementFromPoint sur son premier item donne cet item malgré .dropdown-backdrop ; à 1280 px, forum égal à la base ; npm run test:router vert."
+covers = ["CAP-7"]
+after = [4]
+hitl = false
+risk = "medium"
+references = ["ux-harmonisation/review-faisabilite.md (L5)", "ux-harmonisation/DESIGN.md › Bouton « ••• »"]
+
+[[entry]]
+id = 6
+type = "story"
+title = "Ligne de forum : icône lue dans la liste latérale, forum sans message, compteurs et flèche sur ordinateur (Q27)"
+description = "Sur les deux supports, la ligne de forum prend l'icône du forum dans la liste latérale native par correspondance d'URL, avec repli sur l'icône native (M13, Q27.3), garde l'heure native « Aujourd'hui (HH:MM) » (Q27.1), et rend un forum sans dernier message sans flèche ni ligne vide (Q27.2) ; sur ordinateur, compteurs « N sujets · N messages » en text-secondary, dernier message et flèche de 34 px alignés à droite, auteur en text-accent, sauf où une décision d'Arnaud sur 6.1 (colonnes Sujets et Messages) dit autrement ; le module ne s'exécute qu'avec la peau active."
+verify = "Suite forum-activite, fixtures forum-index-rp, forum-index-communaute et forum-colonne-native-rp, à 375, 1280, 1440 et 1920 px : chaque ligne porte l'icône de son forum dans la liste latérale, une URL absente de la liste garde l'icône native, un forum sans dernier message n'a ni flèche ni case vide, heure native inchangée ; sur ordinateur flèche de 34 px et compteurs alignés à droite, auteur ≥ 4,5:1 dans les 16 variantes ; sans la classe kr-theme-enabled, aucune icône remplacée ; npm run test:router vert."
+covers = ["CAP-7"]
+after = [5]
+hitl = false
+risk = "medium"
+references = ["ux-harmonisation/review-faisabilite.md (M13)", "ux-harmonisation/DESIGN.md › Ligne de forum", "ux-harmonisation/EXPERIENCE.md, Q27"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée ; le plan commence par la liste des entrées de deferred-work.md qui visent l'épopée, chacune marquée traitée ou rejetée avec sa raison (cellules mobiles en padding-top 3px ~l.8011 et ~l.8695, flèches de tri ~l.14109 et ~l.14114, 2e version des cartes de ligne gardée pour Staff (A13), coins bas de la carte racine en sombre, accordéon et modale .panel-default sur /forum/*, bascule 767 ↔ 768 du forum) ; il cherche aussi les règles et fonctions devenues mortes après les entrées 2 à 6 et les masques de test de l'épopée, chacun gardé avec sa condition de retrait ou retiré."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router vert, npm run test:all vert après le nettoyage."
+covers = ["CAP-7"]
+after = [1, 2, 3, 4, 5, 6]
+hitl = false
+risk = "low"

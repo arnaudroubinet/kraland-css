@@ -38,7 +38,7 @@ id = 6
 slug = "epic-forum"
 title = "Forum : activité et repères"
 covers = ["CAP-7"]
-after = [{ epic = 5, needs = "carte de section mobile" }]
+after = [{ epic = 5, needs = "carte de section du forum mobile (5.2)" }]
 
 [[epic]]
 id = 7

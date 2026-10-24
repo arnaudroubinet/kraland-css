@@ -343,3 +343,25 @@ Rapport : `epic-cartes-pastilles/epic-cartes-pastilles-retrospective.md`. Verdic
 - **A6 (barres de PV en dur, template l.4345-4352).** Question pour toi : faut-il un ticket, et dans quelle épopée, sachant qu'il change le rendu ?
 - **F10 et A5 (décisions en attente).** Marque PNJ mobile en 14 px, pastille du menu compact entre 768 et 991 px, `span.tagforum`, carte blanche sur page blanche en clair.
 - **F5, F6, F7, F12 et A9 (reportés).** Les pages hors fixtures et les autres emplois de `.badge-danger` et `.btn-danger.xmini` seront relevés à l'épopée 9, ou à la prochaine capture sur le site réel.
+
+## Inception de l'épopée 6 « Forum : activité et repères » (2026-10-25)
+
+Découpe publiée dans `epic-forum/tickets.toml` (7 entrées). Elle a été faite en autonomie. Les hypothèses sont dans les Notes de `epic-forum/epic-forum.md`.
+
+- Décidé en autonomie : la balle traçante est l'entrée 2, parce que l'entrée 1 est déjà construite. L'épingle sur `5.2` porte sur l'entrée 2.
+- Décidé en autonomie : l'entrée la moins sûre, en 3, fusionne les trois fils d'Ariane (H12.3).
+- Décidé en autonomie : une suite propre, `forum-activite.mjs`, avec sa zone dans le routeur.
+- Hypothèses à confirmer :
+  - Q27.1 : l'heure native est gardée.
+  - Q27.2 : un forum sans message n'a pas de flèche.
+  - Q27.3 : l'icône vient de la liste latérale, avec repli sur l'icône native.
+  - Q27.4 : flèche vers le dernier message, ligne de sujet vers le premier non lu.
+  - Q28.1 et Q28.2 : liens du fil d'Ariane en couleur du texte, cibles de 44 px.
+  - Q28.3 : la barre du bas suit l'en-tête.
+- À trancher :
+  - Q27.5 et Q27.6 : « Jeu (RP) » répété ; description et modérateurs du sous-forum. Aucune entrée ne les change.
+  - Accès du compte aux sujets Staff, pour le relevé en lecture seule de l'entrée 4 (hitl).
+  - Essai des ancres `#msg…` sur vrai téléphone, l'émulation donnant l'inverse (H10).
+- Rappel, en attente de ta décision :
+  - choix de 6.1 : Staff exclu, colonnes Sujets et Messages sur ordinateur. L'entrée 6 s'y plie.
+  - D14 : `span.tagforum` et « guilde ».
