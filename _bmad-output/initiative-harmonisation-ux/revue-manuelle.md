@@ -154,3 +154,12 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Plan de plus de 1600 jetons gardé entier (la balle traçante regroupe jetons, suite et routeur).
 - Icône `.forum-tags .glyphicon` laissée à 8 px (icône, pas texte d'étiquette). Alternative : 12 px.
 - Tout `.label` est désormais à 12 px fixe, même dans un titre (avant : 75 % du titre).
+
+## Ticket 4.2 — bouton de taille normale (2026-10-24)
+
+- Envoyer sur mobile laissé à sa taille (`send-button` 48 px, R4, épopée 7) ; sur ordinateur, Envoyer du kramail passe de 15 px / 47 px à 14 px / 34 px (EXPERIENCE.md :280).
+- Exclus de la taille normale : boutons-images du plateau (bâtiments), boutons-icônes (en-tête du kramail, œil d'Interface), bandeau de redimensionnement.
+- « Jouer » de l'accueil et pied du changelog suivent la taille normale sans fixture (aucune fixture d'accueil).
+- L'épopée note « aucun bouton de vote dans les fixtures du sujet » (l.57) : faux, `forum-sujet.html:26-28` en a ; à corriger dans la rétro.
+- Boutons à icône seule de l'en-tête du sujet (lien, liste des messages) et de l'index (« Tous les forums ») : leur icône passe de 16 à 14 px sur mobile avec la taille normale. Les garder à 16 px demande une classe posée par le JS. Accepté en l'état, à confirmer.
+- À 768 px, le « + » des contacts prend le style ordinateur alors que le champ Destinataires natif garde ses règles `max-width: 768px` ; le champ natif est masqué par le widget, rendu mixte non vérifié visuellement.

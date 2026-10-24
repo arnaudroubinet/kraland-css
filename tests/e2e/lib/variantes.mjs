@@ -89,6 +89,23 @@ export const ETIQUETTES_TICKET41 = [
 export const AVANT_TICKET41 = bundle => !bundle.includes('--kr-font-label');
 
 /**
+ * Boutons d'en-tête du sujet et de l'index du forum (« Tous les forums ») et actions « Répondre » / « Nouveau sujet » du mobile
+ * (.forum-thread-action) que l'épopée 4, ticket 2 passe à la taille normale sur mobile (14 px au lieu de 16 px, règle globale des .btn,
+ * et de 15 px pour les actions ; H6.1). À poser par-dessus un bundle d'avant ce ticket (AVANT_TICKET42), comme ETIQUETTES_TICKET41 : seule la taille de ces boutons
+ * est neutralisée (la hauteur de ligne de Bootstrap la suit), tout autre écart reste détecté. Écart consigné dans le plan du ticket
+ * (story-bouton-de-taille-normale-14-px-34-px-sur-ordinateur-au-moins, Implementation Notes).
+ */
+export const BOUTONS_TICKET42 = [
+  '@layer kr-ticket42 {',
+  '  @media (max-width: 767px) {',
+  '    .forum-top .pull-right > .btn, #col-right > .pull-right > .btn, .forum-thread-action { font-size: 14px !important; }',
+  '  }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 2 : il ne déclare pas encore le jeton de hauteur des boutons. */
+export const AVANT_TICKET42 = bundle => !bundle.includes('--kr-button-height');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

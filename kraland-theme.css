@@ -40,6 +40,7 @@
   --kr-space-6: 32px;
   --kr-margin-mobile: 16px;
   --kr-touch-target: 44px;
+  --kr-button-height: 34px;
   --kr-touch-target-dpad: 48px;
 
   /* Jetons de rôle (DESIGN.md › Colors › Rôles) : texte coloré (liens) en accent, texte de la nation (bouton standard) en primaire,
@@ -604,8 +605,9 @@ html.kr-hide-footer-quote .footer-quote {
 
   /* Boutons actions */
   #player-actions-section .btn {
-    font-size: 13px;
-    padding: 8px 14px;
+    font-size: var(--kr-font-button);
+    padding-right: 14px;
+    padding-left: 14px;
   }
 
   /* Navigation tabs (Agir, Matériel, etc.) */
@@ -2081,6 +2083,11 @@ a.carousel-control.right{
   body:not(.mobile-mode) .kr-order-form .kr-order-alerts {
     top: 0;
   }
+
+  /* Exclusion des boutons de taille normale (4.2) : « ? Aide » des modales garde les 16 px de la règle mobile globale (modales : 4.3) */
+  .kr-order-form .kr-order-help-toggle {
+    font-size: 16px !important;
+  }
 }
 
 /* ============================================================================
@@ -2913,6 +2920,14 @@ html[class*="-dark"] .kr-tamper-theme h5 {
 .kr-options-section-content.collapsed {
   max-height: 0;
   opacity: 0;
+}
+
+/* Sauvegarder / Importer (.btn-sm) : taille normale des boutons sur ordinateur (mobile : règle globale des .btn) */
+@media (min-width: 768px) {
+  #kr-sync-section .btn {
+    min-height: var(--kr-button-height);
+    font-size: var(--kr-font-button);
+  }
 }
 
 /* === MODALS === */
@@ -4609,28 +4624,16 @@ body > map {
     justify-content: center !important;
   }
   
-  /* Boutons de formulaire */
+  /* Boutons de formulaire : taille normale (14 px, cible de 44 px ci-dessus), .btn-sm et .btn-lg compris */
   .btn {
     padding: 12px 20px !important;
-    font-size: 16px !important;
+    font-size: var(--kr-font-button) !important;
   }
   
   .btn-xs {
     min-height: 32px !important;
     padding: 6px 12px !important;
     font-size: 14px !important;
-  }
-  
-  .btn-sm {
-    min-height: 38px !important;
-    padding: 8px 16px !important;
-    font-size: 14px !important;
-  }
-  
-  .btn-lg {
-    min-height: 50px !important;
-    padding: 14px 24px !important;
-    font-size: 18px !important;
   }
   
   /* Formulaires */
@@ -9985,7 +9988,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     margin: 0 !important;
     padding: 12px 16px !important;
     border-radius: 0 !important;
-    font-size: 16px;
+    font-size: 16px !important; /* exclusion des boutons de taille normale (4.2) : Envoyer mobile garde sa taille (épopée 7) */
     font-weight: 600;
     border: none !important;
   }
@@ -10137,16 +10140,6 @@ body.page-kramail h1.page-header .btn-default:hover {
     font-size: 14px;
   }
 
-  /* 4. BOUTON "+" CONTACTS — plus gros, plus accessible (Fitts) */
-  body.page-kramail .editeur-text .input-group-addon .btn.btn-primary {
-    min-width: 36px;
-    min-height: 32px;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 4px;
-  }
-
   /* 5. SECTION DESTINATAIRE — meilleure lisibilité */
   body.page-kramail .editeur-text .form-group label[for],
   body.page-kramail .editeur-text .form-group > label.col-sm-1 {
@@ -10191,8 +10184,9 @@ body.page-kramail h1.page-header .btn-default:hover {
   body.page-kramail .editeur-text button.btn-primary.pull-right {
     float: none !important;
     min-width: 180px;
-    padding: 12px 32px;
-    font-size: 15px;
+    height: var(--kr-button-height);
+    padding: 0 32px;
+    font-size: var(--kr-font-button);
     font-weight: 600;
     letter-spacing: 0.3px;
     border-radius: var(--kr-radius);
@@ -10287,6 +10281,19 @@ body.page-kramail h1.page-header .btn-default:hover {
 
 } /* fin @media (min-width: 769px) — Kramail formulaire desktop */
 
+/* Bouton « + » des contacts : taille normale des boutons dès 768 (ordinateur) */
+@media (min-width: 768px) {
+  /* 4. BOUTON "+" CONTACTS — plus gros, plus accessible (Fitts) */
+  body.page-kramail .editeur-text .input-group-addon .btn.btn-primary {
+    min-width: 36px;
+    min-height: var(--kr-button-height);
+    font-size: var(--kr-font-button);
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 4px;
+  }
+}
+
 /* --- Styles mobile uniquement --- */
 @media (max-width: 768px) {
   /* =============================================
@@ -10325,18 +10332,6 @@ body.page-kramail h1.page-header .btn-default:hover {
     width: auto !important;
     flex-shrink: 0;
     margin-left: auto;
-  }
-
-  /* Bouton retour Réception — taille tactile (formulaire uniquement) */
-  body.page-kramail-compose h1.page-header .pull-right .btn {
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px;
-    font-size: 14px;
-    white-space: nowrap;
   }
 
   /* =============================================
@@ -10381,25 +10376,6 @@ body.page-kramail h1.page-header .btn-default:hover {
     height: 44px !important;
     border-radius: 0 var(--mobile-radius) var(--mobile-radius) 0 !important;
     border-left: none !important;
-  }
-
-  /* Bouton "+" contacts — même largeur 44px que les addons */
-  body.page-kramail .editeur-text .input-group-addon .btn {
-    width: 44px !important;
-    height: 44px !important;
-    max-width: 44px !important;
-    min-width: 44px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    border: none !important;
-    background: transparent !important;
-    color: inherit;
-    box-shadow: none;
   }
 
   /* =============================================
@@ -10622,6 +10598,39 @@ body.page-kramail h1.page-header .btn-default:hover {
   }
 
 } /* fin @media (max-width: 768px) — Kramail formulaire mobile */
+
+/* Bouton retour Réception — taille tactile (formulaire uniquement) : mobile seul, à 768 px il garde la taille normale d'ordinateur */
+@media (max-width: 767px) {
+  body.page-kramail-compose h1.page-header .pull-right .btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* Bouton "+" contacts — même largeur 44px que les addons */
+  body.page-kramail .editeur-text .input-group-addon .btn {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--kr-font-button);
+    font-weight: 700;
+    border: none !important;
+    background: transparent !important;
+    color: inherit;
+    box-shadow: none;
+  }
+}
 
 /* ============================================================================
    KRAMAIL RÉDACTION — barre d'outils fidèle et champ « Destinataires » (t_abf9ccd4)
@@ -11352,9 +11361,9 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
-    height: 26px;
+    height: var(--kr-button-height);
     padding: 0 12px;
-    font-size: 13px;
+    font-size: var(--kr-font-button);
   }
 }
 
@@ -11615,13 +11624,13 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     font-size: 14px;
   }
 
-  /* Cibles de 40 px au toucher ; les deux boutons passent sous le texte quand la ligne est trop courte */
+  /* Cibles de 44 px au toucher ; les deux boutons passent sous le texte quand la ligne est trop courte */
   body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
     min-width: 88px;
-    height: 40px;
-    min-height: 40px !important;
+    height: var(--kr-touch-target);
+    min-height: var(--kr-touch-target) !important;
     padding: 0 14px;
-    font-size: 14px;
+    font-size: var(--kr-font-button);
   }
 
   /* Répondre / Transférer : « Message auquel vous répondez » (accordéon natif sous le formulaire). La règle mobile générale des
@@ -11850,9 +11859,17 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--kr-font-button);
   font-weight: 500;
   transition: all 0.2s;
+}
+
+/* Taille normale des boutons sur ordinateur (mobile : 44 px de la règle globale) */
+@media (min-width: 768px) {
+  .kr-changelog-footer button {
+    min-height: var(--kr-button-height);
+    padding: 0 16px;
+  }
 }
 
 .kr-changelog-view-all {
@@ -12172,13 +12189,17 @@ html[class*='-dark'] .mini.c10 {
 
   /* --- Bouton Jouer --- */
   .accueil-play-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: var(--kr-button-height);
     background: var(--kr-arm-bg, var(--kr-primary));
     color: var(--kr-arm-ink, #fff) !important;
     text-align: center;
-    padding: 10px;
+    padding: 0 10px;
     border-radius: var(--kr-radius);
-    font-size: 15px;
+    font-size: var(--kr-font-button);
     font-weight: 600;
     text-decoration: none !important;
     margin-bottom: 10px;
@@ -12438,7 +12459,7 @@ html[class*='-dark'] .mini.c10 {
     color: var(--kr-arm-ink, #fff) !important;
     text-align: center;
     padding: 14px 16px;
-    font-size: 18px;
+    font-size: var(--kr-font-button);
     font-weight: 700;
     text-decoration: none !important;
     letter-spacing: 0.5px;
@@ -13229,6 +13250,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     min-width: 64px;
     min-height: 56px;
     padding: 4px 2px;
+    font-size: 16px !important; /* exclusion des boutons de taille normale (4.2) : taille de base gardée */
   }
 
   .kr-skill-caption {
@@ -13282,8 +13304,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 4px;
     box-sizing: border-box;
     width: 100%;
-    min-height: 34px;
+    min-height: var(--kr-button-height);
     margin: 0;
+    font-size: var(--kr-font-button);
     line-height: 1.2;
     text-align: center;
     white-space: normal;
@@ -13299,7 +13322,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 @media (min-width: 768px) and (pointer: coarse) {
   .kr-action-grid > .btn,
   .kr-quick-access-buttons > .btn {
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
   }
 }
 
@@ -13323,7 +13346,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 4px;
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     margin: 0;
     line-height: 1.2;
     text-align: center;
@@ -13501,7 +13524,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0 14px;
     border: 2px solid var(--kr-primary);
     border-radius: var(--mobile-radius, 8px);
-    font-size: 15px;
+    font-size: var(--kr-font-button);
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
@@ -15176,7 +15199,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border: 0 !important;
     background: transparent !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 12px;
+
+    /* Exclusion des boutons de taille normale (4.2) : 16 px rendus jusqu'ici par la règle mobile globale des .btn (le 12 px de cette
+       règle n'a jamais pris effet), gardés tels quels ; leur taille relève des compacts (4.3). */
+    font-size: 16px !important;
     line-height: 18px;
     opacity: 1;
     text-align: left;

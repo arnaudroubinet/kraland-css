@@ -36,7 +36,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET41, AVANT_TICKET5, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, ETIQUETTES_TICKET41, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET5, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ETIQUETTES_TICKET41, JETONS_REDEFINIS, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -89,7 +89,7 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
-  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
+  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -720,6 +720,7 @@ if (on('hors-perimetre')) {
     const composants = COMPOSANTS_TICKET4 + (AVANT_TICKET5(avant) ? ', ' + COMPOSANTS_TICKET5 : '');
     if (AVANT_TICKET5(avant)) { console.log('  info écart accepté et consigné : texte, fond et bordure des éléments d\'état (alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d\'état ; épopée 3, ticket 5)'); }
     if (AVANT_TICKET41(avant)) { console.log('  info écart accepté et consigné : étiquettes et pastilles (.label, .badge, pastille du sous-forum…) en 12 px gras posées sur le bundle « avant » (épopée 4, ticket 1)'); }
+    if (AVANT_TICKET42(avant)) { console.log('  info écart accepté et consigné : boutons d\'en-tête du sujet et de l\'index, actions « Répondre » / « Nouveau sujet », en 14 px sur mobile posés sur le bundle « avant » (épopée 4, ticket 2)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
