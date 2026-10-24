@@ -102,6 +102,29 @@ check('typographie et formes : bouton compact (pagination du sujet, pages du sou
     assert.ok(d.zones.includes('typographie-formes'), d.zones.join(', '));
   }
 });
+check('typographie et formes : échelle (en-têtes, noms, onglets et jauges du mini-profil) -> typographie-formes', () => {
+  for (const h of [
+    hunk('.dashboard-card-name {', '  font-size: var(--kr-font-name);'),
+    hunk('  .mobile-tab-label {', '    font-size: var(--kr-font-label) !important;'),
+    hunk('  .mobile-mini-profile-gauges-compact {', '    font-size: var(--kr-font-label) !important;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('typographie-formes'), d.zones.join(', '));
+  }
+});
+check('composants génériques (en-tête de panneau, .panel-title, titre d\'élément de liste) -> toutes les zones qui les rendent', () => {
+  const attendues = ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes'];
+  for (const h of [
+    hunk('  body.page-forum .panel-default > .panel-heading h3 {', '    font-size: var(--kr-font-section-title) !important;'),
+    hunk('  .panel-title {', '    font-size: var(--kr-font-section-title);'),
+    hunk('  .panel-body h4.list-group-item-heading {', '    font-weight: 600;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    for (const z of attendues) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
+  }
+});
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');

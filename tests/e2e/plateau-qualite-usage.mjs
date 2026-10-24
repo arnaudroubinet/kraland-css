@@ -122,7 +122,7 @@ check('mêmes bords gauches (≤ 1 px) et mêmes largeurs que la grille d\'actio
 check('nombre impair : la dernière commande reste alignée à gauche', () => assert.ok(Math.abs(s.quickRects[4].x - s.quickRects[0].x) <= 1));
 
 console.log('Textes et en-têtes');
-check('en-tête de groupe ≥ 11 px (12 px), statut ≥ 11 px (12 px)', () => { assert.ok(s.fonts.header >= 11 && s.fonts.status >= 11, JSON.stringify(s.fonts)); });
+check('en-tête de groupe ≥ 12 px, statut ≥ 12 px', () => { assert.ok(s.fonts.header >= 12 && s.fonts.status >= 12, JSON.stringify(s.fonts)); });
 check('en-tête de groupe : fond surface + filet, plus d\'aplat saturé', () => { assert.notEqual(s.headerBg, 'rgb(122, 82, 64)'); assert.equal(s.headerBorder, '4px'); });
 check('pas de débordement horizontal', () => assert.equal(s.overflowX, 0, `${s.overflowX} px`));
 
@@ -150,7 +150,7 @@ await frames(page);
 await waitState(page, () => window.matchMedia('(hover: none)').matches && [...document.querySelectorAll('#skills-panel .kr-skill-caption')].every(c => getComputedStyle(c).display !== 'none'), null, { maxMs: 3000 });
 await frames(page);
 const t = await snapshot();
-check('légende du nom visible sans survol, ≥ 11 px', () => assert.ok(t.skills.every(k => k.captionDisplay !== 'none' && k.captionFont >= 11), JSON.stringify(t.skills.map(k => [k.captionDisplay, k.captionFont]))));
+check('légende du nom visible sans survol, ≥ 12 px', () => assert.ok(t.skills.every(k => k.captionDisplay !== 'none' && k.captionFont >= 12), JSON.stringify(t.skills.map(k => [k.captionDisplay, k.captionFont]))));
 check('légendes = noms des compétences', () => assert.deepEqual(t.skills.map(k => k.caption), ['Baratin', 'Combat Mains Nues', 'Vol', 'Pouvoir']));
 check('plus d\'étiquette de survol (remplacée par la légende)', () => assert.ok(t.skills.every(k => k.afterDisplay === 'none')));
 check('aucun chevauchement entre cellules voisines (légendes comprises)', () => {

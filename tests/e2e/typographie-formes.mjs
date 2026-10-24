@@ -41,7 +41,8 @@
 //           KR_SCRIPT_AVANT_BOUTONS (bundle de base des boutons, défaut : celui du commit COMMIT_BOUTONS),
 //           KR_SCRIPT_AVANT_MODALES (bundle de base des modales, défaut : celui du commit COMMIT_MODALES),
 //           KR_SCRIPT_AVANT_COMPACT (bundle de base du bouton compact, défaut : celui du commit COMMIT_COMPACT),
-//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact (vide = tout).
+//           KR_SCRIPT_AVANT_ECHELLE (bundle de base de l'échelle typographique, défaut : celui du commit COMMIT_ECHELLE),
+//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -52,7 +53,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, ECHELLE_TICKET45, LEGENDES_TICKET45, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -401,10 +402,10 @@ const pourSupport = (liste, mobile) => liste.filter(([, , sup]) => !sup || sup =
 // Clé unique par support (deux entrées de même clé ne coexistent jamais sur un même support).
 const filtrer = (l, texte) => (texte === undefined ? l : l.filter(m => Boolean(m.texte) === texte));
 
-async function releverBoutons({ nom, width, variante, script, toucher }) {
+async function releverBoutons({ nom, width, variante, script, toucher, css }) {
   const def = PAGES_BOUTONS[nom];
   const mobile = width < 768;
-  const { context, page, erreurs } = await ouvrir({ nom, width, height: mobile ? 667 : 900, variante, script, def, toucher });
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: mobile ? 667 : 900, variante, script, def, toucher, css });
   if (def.blocage) {
     // Saisie non validée dans Destinataires puis « Envoyer » : l'envoi est bloqué, « Ajouter » et « Effacer » s'affichent (aucun envoi).
     await page.fill('input[name="c[1]"]', 'Sujet de test');
@@ -464,8 +465,12 @@ function verifierExclus(r, a) {
 if (on('boutons')) {
   console.log('\n== boutons ==');
   const cas = Object.keys(PAGES_BOUTONS).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_BOUTONS.map(width => ({ nom, variante, width }))));
+  // Écart accepté et consigné (ticket 5) : légendes des compétences en 12 px posées sur un bundle de base antérieur (LEGENDES_TICKET45).
+  const baseBoutons = nom => (PAGES_BOUTONS[nom].base === 'modales' ? avantModales : avantBoutons);
+  const masqueBoutons = nom => (PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET45(baseBoutons(nom)) ? LEGENDES_TICKET45 : '');
+  for (const nom of Object.keys(PAGES_BOUTONS).filter(masqueBoutons)) { console.log(`  info écart accepté et consigné : ${nom}, légendes des compétences en 12 px (plancher PLT-QU, épopée 4, ticket 5) posées sur le bundle de base`); }
   const res = await mapLimit(cas, async c => ({ c, r: await releverBoutons({ ...c, script: userscript }),
-    a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: PAGES_BOUTONS[c.nom].base === 'modales' ? avantModales : avantBoutons }) : null }));
+    a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: baseBoutons(c.nom), css: masqueBoutons(c.nom) }) : null }));
   for (const { c, r, a } of res) {
     const mobile = c.width < 768;
     if (pourSupport(PAGES_BOUTONS[c.nom].vises, mobile).length) {
@@ -605,6 +610,194 @@ if (on('compact')) {
         assert.deepEqual(ecarts, [], ecarts.join(' ; '));
       });
     }
+  }
+}
+
+// ---------- Échelle typographique (ticket 5) ----------
+// Pages de jeu : Matériel (FIXTURE SYNTHÉTIQUE typographie-echelle.html : en-têtes, noms et valeurs, carte du tableau de bord, texte
+// courant, champ, jauges du mini-profil), Personnage (jeu-perso.html) et plateau (plateau-qualite-usage.html, avec le vrai Bootstrap) ;
+// hors jeu : sous-forum (sous-forum-debuter.html) et réception du kramail (kramail-reception.html). Le sujet du forum (forum-sujet.html)
+// n'a pas d'en-tête de panneau.
+const COMMIT_ECHELLE = 'fe77411';
+const avantEchelle = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const PAGES_ECHELLE = {
+  materiel: { url: BASE + '/jouer/materiel', html: lire('typographie-echelle.html'), jeu: true },
+  perso: { url: BASE + '/jouer/perso', html: lire('jeu-perso.html'), jeu: true },
+  plateau: { url: BASE + '/jouer/plateau', html: AVEC_BOOTSTRAP(lire('plateau-qualite-usage.html')), jeu: true, sansTitre: true },
+  'sous-forum': { url: BASE + '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html') },
+  kramail: { url: BASE + '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html') }
+};
+// En-tête de panneau : titre de premier niveau de .panel-heading, hors accordéon (.panel-group) et hors modale.
+const SEL_TITRES = '.panel:not(.panel-group .panel):not(.modal .panel) > .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6)';
+const SEL_ECHELLE = {
+  titres: SEL_TITRES,
+  noms: '#col-right .panel-body .list-group-item-heading, .dashboard-card-name',
+  details: '.dashboard-card-status',
+  texte: '#texte-courant',
+  champ: '#champ-essai',
+  onglets: '.mobile-tab-bar .mobile-tab-label',
+  jauges: '.mobile-gauge-compact-label, .mobile-gauge-compact-value',
+  batiment: '.building-section-content h4.list-group-item-heading'
+};
+const MESURE_ECHELLE = sels => {
+  const vu = e => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+  const res = Object.fromEntries(Object.entries(sels).map(([k, sel]) => [k, [...document.querySelectorAll(sel)].filter(vu).map(e => {
+    const s = getComputedStyle(e);
+    return { taille: s.fontSize, graisse: s.fontWeight, sw: e.scrollWidth, cw: e.clientWidth, texte: (e.textContent || e.value || '').trim().slice(0, 30) };
+  })]));
+  // Plancher : tout élément visible portant lui-même du texte (nœud texte non vide), boîte de plus de 1 px (hors .sr-only).
+  res.plancher = [...document.body.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE'].includes(e.tagName) && vu(e)
+    && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+    && (r => r.width > 1 && r.height > 1)(e.getBoundingClientRect())
+    && e.checkVisibility({ opacityProperty: true, visibilityProperty: true }))
+    .map(e => ({ taille: getComputedStyle(e).fontSize, texte: [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').slice(0, 30), cls: e.className && e.className.baseVal === undefined ? String(e.className).slice(0, 40) : e.tagName }));
+  res.mobile = document.body.classList.contains('mobile-mode');
+  return res;
+};
+async function releverEchelle({ nom, width, variante, script, css, deplier = false }) {
+  const def = PAGES_ECHELLE[nom];
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css });
+  const res = { replie: await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE) };
+  if (deplier) {
+    await page.waitForFunction(() => { const mp = document.querySelector('.mobile-mini-profile'); return mp && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, null, { timeout: 5000 });
+    await page.tap('.mobile-mini-profile-header');
+    await page.waitForFunction(() => { const mp = document.querySelector('.mobile-mini-profile'); return mp && mp.classList.contains('expanded') && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, null, { timeout: 5000 });
+    res.deplie = await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE);
+  }
+  await context.close();
+  return { ...res, erreurs };
+}
+const tailles = (l, taille, graisse) => l.filter(m => m.taille !== taille || (graisse && m.graisse !== graisse)).map(m => `« ${m.texte} » ${m.taille}/${m.graisse}`);
+const sousPlancher = (l, min) => l.filter(m => parseFloat(m.taille) < min).map(m => `« ${m.texte} » (${m.cls}) ${m.taille}`);
+if (on('echelle')) {
+  console.log('\n== echelle ==');
+  const LARGEURS = [375, 767, 768, 769, 1280, 1440, 1920];
+  const cas = Object.keys(PAGES_ECHELLE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS.map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => ({ c, r: await releverEchelle({ ...c, script: userscript }),
+    a: c.nom === 'materiel' ? await releverEchelle({ ...c, script: avantEchelle }) : null }));
+  for (const { c, r, a } of res) {
+    const mobile = c.width < 768;
+    const m = r.replie;
+    const def = PAGES_ECHELLE[c.nom];
+    check(`echelle ${etiquette(c)} : mode ${mobile ? 'mobile' : 'bureau'}, en-têtes de panneau en 17 px / 700`, () => {
+      assert.equal(m.mobile, mobile, 'mode');
+      assert.ok(def.sansTitre ? m.titres.length === 0 : m.titres.length > 0, `${m.titres.length} en-tête(s)`);
+      const hors = tailles(m.titres, '17px', '700');
+      assert.deepEqual(hors, [], hors.join(' ; '));
+    });
+    if (c.nom === 'materiel') {
+      check(`echelle ${etiquette(c)} : noms et valeurs en 15 px / 600, détails en 13 px`, () => {
+        assert.ok(m.noms.length >= 3 && m.details.length >= 1, `${m.noms.length} nom(s), ${m.details.length} détail(s)`);
+        const hors = [...tailles(m.noms, '15px', '600'), ...tailles(m.details, '13px')];
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+      check(`echelle ${etiquette(c)} : en-tête en h4.panel-title compris${mobile ? ', nom de bâtiment (section repliable) en 15 px / 600' : ''}`, () => {
+        assert.ok(m.titres.some(t => t.texte === 'Titre en h4'), 'en-tête h4.panel-title absent');
+        if (mobile) {
+          assert.equal(m.batiment.length, 1, 'nom de bâtiment absent (.building-section-content)');
+          const hors = tailles(m.batiment, '15px', '600');
+          assert.deepEqual(hors, [], hors.join(' ; '));
+        }
+      });
+      check(`echelle ${etiquette(c)} : texte courant en ${mobile ? '15' : '14'} px, champ ${mobile ? 'en 16 px' : 'égal au bundle de base'}`, () => {
+        const hors = [...tailles(m.texte, mobile ? '15px' : '14px'), ...tailles(m.champ, mobile ? '16px' : a.replie.champ[0].taille)];
+        assert.ok(m.texte.length === 1 && m.champ.length === 1, 'texte ou champ absent');
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    if (def.jeu && mobile) {
+      check(`echelle ${etiquette(c)} : aucun texte visible sous 12 px, onglets de section en 12 px`, () => {
+        const hors = [...sousPlancher(m.plancher, 12), ...tailles(m.onglets, '12px')];
+        assert.ok(m.onglets.length === 5, `${m.onglets.length} onglet(s)`);
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    check(`echelle ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+
+  // Onglet « Personnage » entier (12 px, sans ellipse ni coupure) à 360 et 375 px ; jauges du mini-profil en 12 px, plié et déplié,
+  // à 375 et 700 px.
+  const casMini = VARIANTES.flatMap(variante => [360, 375, 700].map(width => ({ nom: 'materiel', variante, width })));
+  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEchelle({ ...c, script: userscript, deplier: true }) }));
+  for (const { c, r } of resMini) {
+    for (const [etat, m] of [['plié', r.replie], ['déplié', r.deplie]]) {
+      check(`echelle ${etiquette(c)} ${etat} : jauges du mini-profil en 12 px, onglets entiers en 12 px`, () => {
+        assert.ok(m.jauges.length === 6, `${m.jauges.length} libellé(s) de jauge`);
+        const perso = m.onglets.find(o => o.texte === 'Personnage');
+        assert.ok(perso, 'onglet « Personnage » absent');
+        const hors = [...tailles(m.jauges, '12px'), ...tailles(m.onglets, '12px'), ...m.onglets.filter(o => o.sw > o.cw).map(o => `« ${o.texte} » coupé ${o.sw} > ${o.cw}`)];
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    check(`echelle ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+
+  // Consommation des jetons : redéfinis par une feuille adoptée, 375 et 1280 px, tous les éléments visés suivent.
+  const REDEFINIS = ':root { --kr-font-section-title: 19px !important; --kr-font-name: 16px !important; --kr-font-detail: 14px !important; --kr-font-body-mobile: 16px !important; --kr-font-label: 13px !important; }';
+  const casJetons = ['materiel', 'sous-forum', 'kramail'].flatMap(nom => [375, 1280].map(width => ({ nom, variante: 'kraland', width })));
+  const resJetons = await mapLimit(casJetons, async c => ({ c, r: await releverEchelle({ ...c, script: userscript, css: REDEFINIS }) }));
+  for (const { c, r } of resJetons) {
+    const mobile = c.width < 768;
+    const m = r.replie;
+    check(`echelle ${etiquette(c)} : jetons redéfinis suivis`, () => {
+      const hors = [...tailles(m.titres, '19px')];
+      if (c.nom === 'materiel') {
+        hors.push(...tailles(m.noms, '16px'), ...tailles(m.details, '14px'));
+        if (mobile) { hors.push(...tailles(m.texte, '16px'), ...tailles(m.onglets, '13px'), ...tailles(m.jauges, '13px')); }
+      }
+      assert.ok(m.titres.length > 0, 'aucun en-tête');
+      assert.deepEqual(hors, [], hors.join(' ; '));
+    });
+  }
+
+  // Masque miroir ECHELLE_TICKET45 (lib/variantes.mjs) : posé sur le bundle de base, il rend les titres comme le bundle d'après, sans
+  // toucher ce que le bundle laisse inchangé (titre d'accordéon .panel-group .panel-title, titre de modale). Éléments mesurés même masqués
+  // (taille et graisse calculées). Matériel : titres d'en-tête, d'accordéon et de modale seulement (le reste relève des pages de jeu).
+  const MESURE_MIROIR = sel => [...document.querySelectorAll(sel)].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${e.className} « ${(e.textContent || '').trim().slice(0, 20)} » ${st.fontSize}/${st.fontWeight}`; });
+  const SEL_MIROIR = { materiel: '.panel-heading > *, .panel-group .panel-title, .modal-title', autre: 'h1, h2, h3, h4, h5, h6, .panel-title, .modal-title, .xmini, footer a' };
+  const casMiroir = ['materiel', 'sous-forum', 'kramail'].flatMap(nom => VARIANTES.flatMap(variante => [375, 767, 768, 1280].map(width => ({ nom, variante, width }))));
+  const releverMiroir = async (c, script, css) => {
+    const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_ECHELLE[c.nom], css });
+    const l = await page.evaluate(MESURE_MIROIR, SEL_MIROIR[c.nom === 'materiel' ? 'materiel' : 'autre']);
+    await context.close();
+    return l;
+  };
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverMiroir(c, userscript), masque: await releverMiroir(c, avantEchelle, ECHELLE_TICKET45) }));
+  for (const { c, apres, masque } of resMiroir) {
+    check(`echelle ${etiquette(c)} : masque ECHELLE_TICKET45 sur le bundle de base = bundle d'après (titres, accordéon, modale)`, () => {
+      assert.ok(apres.length > 0, 'aucun titre mesuré');
+      if (c.nom === 'materiel') { assert.ok(apres.some(x => /Accordéon/.test(x)) && apres.some(x => /Modale/.test(x)), 'accordéon ou modale absent'); }
+      const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
+      assert.equal(masque.length, apres.length, 'nombre d\'éléments');
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+  }
+
+  // Bascule dans le même onglet (767, 768, 769, 768, 767 px) : valeurs du support à chaque pas.
+  for (const variante of VARIANTES) {
+    const { context, page, erreurs } = await ouvrir({ nom: 'materiel', width: 767, variante, script: userscript, def: PAGES_ECHELLE.materiel, tactile: false });
+    const releves = [{ width: 767, m: await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE) }];
+    for (const width of [768, 769, 768, 767]) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+      await page.setViewportSize({ width, height: 720 });
+      if ((width < 768) !== (releves[releves.length - 1].width < 768)) { await charge; }
+      await krReady(page, { ready: THEME_READY, label: `echelle bascule ${variante} ${width} px` });
+      await styleSettled(page, 'body');
+      releves.push({ width, m: await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE) });
+    }
+    await context.close();
+    for (const { width, m } of releves) {
+      const mobile = width < 768;
+      check(`echelle bascule ${variante} ${width} px : mode ${mobile ? 'mobile' : 'bureau'}, en-têtes 17 px / 700, noms 15 px / 600, texte ${mobile ? 15 : 14} px`, () => {
+        assert.equal(m.mobile, mobile, 'mode');
+        const hors = [...tailles(m.titres, '17px', '700'), ...tailles(m.noms, '15px', '600'), ...tailles(m.texte, mobile ? '15px' : '14px')];
+        assert.ok(m.titres.length > 0 && m.noms.length > 0, 'éléments absents');
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    check(`echelle bascule ${variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
 

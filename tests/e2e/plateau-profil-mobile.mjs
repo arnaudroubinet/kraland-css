@@ -156,7 +156,7 @@ async function runWidth(width, expectedSkillCols) {
   check('aucun chevauchement entre les 24 cellules', () => assert.deepEqual(overlaps(s.cells), []));
   check('aucune cellule ne déborde du conteneur ni de l\'écran', () => assert.ok(s.cells.every((c) => c.rect.x >= 0 && c.rect.r <= width + 0.5)));
   check('contenu de chaque cellule dans sa boîte (pas de débordement)', () => assert.ok(s.cells.every((c) => c.scrollW <= c.clientW + 1), JSON.stringify(s.cells.filter((c) => c.scrollW > c.clientW + 1).map((c) => c.cap.text))));
-  check('légendes ≥ 11 px et visibles', () => assert.ok(s.cells.every((c) => c.cap && c.cap.display !== 'none' && c.cap.font >= 11)));
+  check('légendes ≥ 12 px et visibles', () => assert.ok(s.cells.every((c) => c.cap && c.cap.display !== 'none' && c.cap.font >= 12)));
   check('légendes : mots entiers (aucun mot coupé ni tronqué)', () => assert.ok(s.cells.every((c) => c.cap.scrollW <= c.cap.clientW + 1), JSON.stringify(s.cells.filter((c) => c.cap.scrollW > c.cap.clientW + 1).map((c) => c.cap.text))));
   check('légendes sur 2 lignes au plus', () => assert.ok(s.cells.every((c) => c.cap.lines <= 2), JSON.stringify(s.cells.filter((c) => c.cap.lines > 2).map((c) => [c.cap.text, c.cap.lines]))));
   check('légende dans la cellule', () => assert.ok(s.cells.every((c) => c.cap.rect.x >= c.rect.x - 0.5 && c.cap.rect.r <= c.rect.r + 0.5 && c.cap.rect.b <= c.rect.b + 0.5)));

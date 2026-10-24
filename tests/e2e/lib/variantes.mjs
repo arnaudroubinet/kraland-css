@@ -122,6 +122,51 @@ export const PAGINATION_TICKET44 = [
 export const AVANT_TICKET44 = bundle => !bundle.includes('.center>ul.pagination:not(:has(select))>li>:is(a,span){font-size:var(--kr-font-button-compact)');
 
 /**
+ * Échelle typographique que l'épopée 4, ticket 5 pose hors des pages de jeu (DESIGN.md › Typography). Masque miroir : chaque règle reprend le
+ * sélecteur et le drapeau !important de la règle que le bundle réécrit ou ajoute, avec la valeur du jeton (feuille adoptée, hors couche, après
+ * les feuilles du document : à spécificité égale, elle remplace la règle d'origine ; une règle plus forte du bundle « avant » garde la main,
+ * comme dans le bundle d'après). Seule exception : les titres h4-h6 d'en-tête de panneau, que l'échelle mobile d'avant fixe en !important et
+ * que le bundle d'après exclut de cette échelle, reçoivent 17 px en !important. Règles de pages de jeu (garde body:has(#col-leftest), tableau
+ * de bord, commerce, mini-profil) absentes : les pages comparées n'en ont pas. À poser par-dessus un bundle d'avant ce ticket
+ * (AVANT_TICKET45), comme PAGINATION_TICKET44 ; tout autre écart reste détecté. Écart consigné dans le plan du ticket
+ * (story-echelle-typographique-du-plateau-du-mini-profil-et-des-en-te, Implementation Notes).
+ */
+export const ECHELLE_TICKET45 = [
+  '@media (min-width: 768px) {',
+  '  .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px; font-weight: 700; }',
+  '  .xmini, footer a { font-size: 12px; }',
+  '}',
+  '@media (max-width: 767px) {',
+  '  .dashboard-card h4 { font-size: 15px !important; }',
+  '  .panel-body h4 { font-size: 15px !important; }',
+  '  h1, h2, h3 { font-size: 17px !important; }',
+  '  :is(h4, h5, h6):where(:not(.panel-heading > *), .panel-group *, .modal *) { font-size: 15px !important; }',
+  '  .panel-heading > :is(h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px !important; }',
+  '  body.mobile-mode .panel-default > .panel-heading h3 { font-size: 17px !important; }',
+  '  body.page-forum .panel-default > .panel-heading h3 { font-size: 17px !important; font-weight: 700 !important; }',
+  '  body.page-kramail .panel-heading h3.panel-title { font-size: 17px !important; font-weight: 700 !important; }',
+  '  .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px; font-weight: 700; }',
+  '  footer a, .xmini { font-size: 12px; }',
+  '}'
+].join('\n');
+/**
+ * Légendes des compétences (.kr-skill-caption) que l'épopée 4, ticket 5 passe du plancher PLT-QU de 11 px à 12 px (--kr-font-label) : la
+ * cellule d'icône qui les contient grandit d'autant. Masque miroir des trois règles réécrites (mêmes sélecteurs, même drapeau !important),
+ * à poser par-dessus un bundle d'avant ce ticket (AVANT_TICKET45) dans une comparaison des cellules d'icône ; tout autre écart reste détecté.
+ */
+export const LEGENDES_TICKET45 = [
+  '@media (min-width: 768px) and (hover: none) {',
+  '  #col-leftest .kr-skill-caption { font-size: 12px; }',
+  '}',
+  '@media (max-width: 767px) {',
+  '  .kr-skill-caption { font-size: 12px; }',
+  '  body.mobile-mode .mobile-mini-profile .kr-skill-caption { font-size: 12px !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 5 : l'échelle mobile des titres n'y emploie pas encore le jeton (règle minifiée du bundle). */
+export const AVANT_TICKET45 = bundle => !bundle.includes('h1,h2,h3{font-size:var(--kr-font-section-title)!important}');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

@@ -175,3 +175,13 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 
 - Rayon de 4 px posé seulement aux coins déjà arrondis (extrémités des groupes de vote et de la pagination), coins intérieurs carrés.
 - Les autres petits boutons des messages (date, profil, kramail, signaler) restent en 12 px natif : ils ne sont ni compacts ni normaux au sens de l'épopée.
+
+## Ticket 4.5 — échelle typographique (2026-10-24)
+
+- Titres mobiles en px : h1 à h3 à 17 px, h4 à h6 à 15 px (l'ancienne échelle en rem donnait 17,5 / 15 / 12,5 / 11 / 10 / 9 px).
+- Texte courant à 15 px appliqué au plateau mobile seulement ; forum (messages 16 px), kramail et accueil inchangés.
+- Titres de modale (18 px) et en-têtes d'accordéon hors du titre de section 17 px.
+- Les 11 px du forum, du kramail et de l'accueil sur mobile ne sont pas traités ici (question ouverte des pages secondaires).
+- Pages de jeu repérées par la présence de `#col-leftest` (aucune classe de page pour le plateau) : à confirmer sur le site.
+- Nom des cartes du tableau de bord à 15 px dans des cartes de 140-160 px (2 lignes max, ellipse) : rendu à regarder.
+- `.xmini` et liens du pied de page passent à 12 px sur toutes les pages (planchers PLT-QU) ; `h1.page-header` mobile 17,5 → 17 px.
