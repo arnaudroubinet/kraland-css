@@ -21,7 +21,7 @@ Le joueur reconnaît une section et le sens d'une pastille d'un coup d'œil ; in
 ## Done when
 
 1. Les critères success de CAP-6 tiennent sur le jeu, le forum, le sous-forum et le kramail.
-2. La suite `sous-forum` est mise à jour pour R6 (fin de la pleine largeur).
+2. La suite `forum-index` est mise à jour pour R6 (fin de la pleine largeur ; l'assertion vit dans `forum-index.mjs`, pas dans `sous-forum.mjs`).
 3. PR fusionnée sur `feature/next`, bundle et `version.json` régénérés, `npm run test:all` vert avec au moins un test par décision livrée.
 4. Vérifié à 1280, 1440 et 1920 px et à 375×667, sur Kraland clair et Empire Brun sombre au moins ; fixtures synthétiques créées par l'épopée, aucune capture HTML brute dans le dépôt.
 
@@ -65,3 +65,4 @@ Lot 5. Applique la couleur « non lu » de l'épopée 3 à la cloche et à l'env
 - Open question: confirmer Q10 (retrait de 8 px) et Q30.1, Q30.4 (niveau, « ici », caractéristiques hors familles).
 - Open question: rétro de l'épopée 4, A1 — livrer les épopées 3 et 4 (push, PR) avant de démarrer l'épopée 5 ?
 - Open question: le `tickets.toml` de l'initiative reste à mettre à jour (hors écritures permises) : l'`after` de l'épopée 6 sur l'épopée entière (« carte de section mobile », `unpinned_after`) devient l'entrée 5.2 ; celui de l'épopée 7 (« carte de section et onglets ») devient 5.1 pour la carte, les onglets relevant de CAP-8 et d'aucune entrée de l'épopée 5.
+- Decision: Done when 2 réécrit pour citer `forum-index` à la place de `sous-forum` (source conflict ci-dessus, rétro de l'épopée 5, F9 et A7) (2026-10-25).

@@ -330,3 +330,16 @@ Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autono
   - O1 : fond de page teinté en clair (5.1, 5.2).
   - O2 : « À regarder sur capture » des tickets 5.2 à 5.5.
   - O3 : barres de PV des cartes de personnages en couleurs en dur (`#5cb85c`, `#f0ad4e`, `#d9534f`), renvoyées à « l'épopée 5 » par `palette-nation.mjs` ; aucun ticket 5.x ne les a prises.
+
+## Rétro de l'épopée 5 — cartes et pastilles (2026-10-25)
+
+Rapport : `epic-cartes-pastilles/epic-cartes-pastilles-retrospective.md`. Verdict machine : **rejected**. Tri de l'orchestrateur :
+
+- **F1 (pas de fusion vers main), contesté.** Le Done when 3 dit « PR fusionnée sur `feature/next` ». `feature/next` est poussée à `55b14f0`, et la fusion vers `main` n'est pas un critère de l'épopée. Le verdict dépend de cette lecture : à toi de trancher, accepted-with-open-items ou rejected.
+- **F2 (plan 5.6 contradictoire), corrigé.** Le gabarit vide en double est retiré, et la note T8 porte le `test:all` réel : 12777 ok, 0 FAIL, log `/tmp/kr-56-all.log`.
+- **F3 (base auto-référente), rejeté.** `origin/feature/next` est la base voulue : on compare au dernier état poussé. Pendant le 5.6, elle valait `ca73215`, et non l'arbre testé. Le vide de comparaison n'existe qu'entre un push et la modification suivante.
+- **F9 et A7, faits.** Le Done when 2 cite maintenant `forum-index`.
+- **A8 (épinglage sur 5.2).** Il se fera à l'inception de l'épopée 6, dans son propre `tickets.toml`.
+- **A6 (barres de PV en dur, template l.4345-4352).** Question pour toi : faut-il un ticket, et dans quelle épopée, sachant qu'il change le rendu ?
+- **F10 et A5 (décisions en attente).** Marque PNJ mobile en 14 px, pastille du menu compact entre 768 et 991 px, `span.tagforum`, carte blanche sur page blanche en clair.
+- **F5, F6, F7, F12 et A9 (reportés).** Les pages hors fixtures et les autres emplois de `.badge-danger` et `.btn-danger.xmini` seront relevés à l'épopée 9, ou à la prochaine capture sur le site réel.

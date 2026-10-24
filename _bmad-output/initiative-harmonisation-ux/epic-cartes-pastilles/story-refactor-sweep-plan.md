@@ -176,6 +176,7 @@ Hors liste, aussi traités par ce ticket : masque `CARTES_TICKET51` éteint dans
   - T6 : dans `deferred-work.md`, la preuve `grep` est ajoutée à la fin de l'`evidence` existante des deux entrées (pas de seconde clé `evidence`), puis une ligne `status`.
   - T7 : section « Ticket 5.6 » de `revue-manuelle.md` : Ask First tranchés (tous sans objet) et rappel D12, D14, D15, jetons A5 de la rétro 4, O1 à O3.
   - T8 : `npm run test:all` non lancé dans cette passe (consigne de l'orchestrateur) ; il reste à lancer une fois, machine calme, avant la livraison.
+  - T8 (orchestrateur, 2026-10-25) : `npm run test:all` lancé sur l'arbre de `55b14f0` avant commit, log `/tmp/kr-56-all.log` : 12777 ok, 0 FAIL. Même total que 5.5 : le ticket ne retire que des lignes d'info, aucun contrôle.
 
 ## Plan Change Log
 
@@ -217,15 +218,6 @@ Hors liste, aussi traités par ce ticket : masque `CARTES_TICKET51` éteint dans
   - `grep -c '!important' kraland-theme.css` → 3292 ;
   - `git diff 458dc03 -- tests/e2e/cybermonde-carte.mjs tests/e2e/kramail-redaction.mjs` → vide.
 - `npm run test:all`, une seule fois, à la fin, machine calme -- 0 FAIL. Un FAIL isolé sous charge se rejoue seul avant toute conclusion.
-
-## Review Triage Log
-
-| # | Lens | Location | Claim | Verdict | Route | Evidence |
-|---|---|---|---|---|---|---|
-
-## Result
-
-(à remplir à la livraison : SHA exact, commandes et comptes, cible de la PR `feature/next`)
 
 ## Review Triage Log
 
