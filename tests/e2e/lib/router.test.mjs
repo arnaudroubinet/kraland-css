@@ -113,6 +113,22 @@ check('typographie et formes : échelle du forum et du kramail (fil d\'Ariane, c
     assert.ok(!d.zones.includes('typographie-formes'), d.zones.join(', '));
   }
 });
+check('typographie et formes : détails de ligne des pages de jeu, objets déplacés du Matériel, garde du plateau (ticket 6) -> typographie-formes et plateau', () => {
+  for (const h of [
+    hunk(':where(body:has(#col-leftest)) .list-group-item-text {', '    font-size: var(--kr-font-detail) !important;'),
+    hunk('  .kr-materiel-moved .panel-body a.list-group-item {', '    font-size: var(--kr-font-detail);'),
+    hunk('  :where(html:not(.kr-page-plateau) body:has(#col-leftest)) #col-right .dashboard > .well {', '    font-size: var(--kr-font-detail);')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('typographie-formes') && d.zones.includes('plateau'), d.zones.join(', '));
+  }
+});
+check('classe de page du plateau posée par le template (ticket 6) -> typographie-formes et plateau', () => {
+  const d = route(T, hunk('function applyVariant() {', "document.documentElement.classList.toggle('kr-page-plateau', krActiveGameSection(location.pathname) === '/jouer/plateau');"));
+  assert.equal(d.widened, false, d.reasons.join(' ; '));
+  assert.ok(d.zones.includes('typographie-formes') && d.zones.includes('plateau'), d.zones.join(', '));
+});
 check('typographie et formes : bouton compact (pagination du sujet, pages du sous-forum, votes) -> typographie-formes', () => {
   for (const h of [
     hunk(':where(body.page-forum) .center > ul.pagination:not(:has(select)) > li > :is(a, span) {', '    font-size: var(--kr-font-button-compact);'),

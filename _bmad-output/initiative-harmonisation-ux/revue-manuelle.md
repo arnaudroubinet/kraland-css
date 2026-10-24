@@ -198,3 +198,10 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Mandat donné par Arnaud le 2026-10-24 (« Tu as le droit d'aller sur le site juste pas faire des actions ») : HTML natif de `/jouer/materiel`, `/jouer/bat`, `/jouer/pnj` relevé en lecture seule (GET, hors dépôt) ; 4.6 débloqué, construit après 4.7.
 - 4.7 : nom de forum de l'index en 15 px, graisse 400 (ticket 6.1) alors que DESIGN.md dit 700 : à trancher.
 - 4.7 : cartouche de l'auteur du sujet sur ordinateur passée en détail 13 px (14 natif avant) ; textarea de la rédaction mobile 15 → 16 px (anti-zoom).
+
+## Ticket 4.6 — Matériel, Personnage, Bâtiments, Employés (built, 2026-10-24)
+
+- Plateau mobile inchangé : exclu par la nouvelle classe `html.kr-page-plateau`, posée par le template. Le commerce reste à 12 px.
+- À trancher : sur ordinateur, le panneau Matériel du plateau (`.kr-materiel-moved`) passe de 10,6 à 13 px. Le plan l'exige (Always), ce qui contredit « ne pas toucher au plateau ». Je l'ai gardé.
+- Ligne d'objet mobile : image, puis le nom, puis la charge en gris secondaire. Sans image, le nom part du bord.
+- Les fixtures Bâtiments, Employés et la partie plateau Commerce/Matériel sont reconstruites, pas relevées ligne par ligne : à comparer visuellement au vrai site.

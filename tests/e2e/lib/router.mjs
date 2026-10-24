@@ -148,6 +148,9 @@ export const KEYWORDS = [
   // Échelle du forum et du kramail (ticket 7, fragment echelle-forum) : composants mesurés des index, du sous-forum, du sujet, de la rédaction et
   // du kramail (les repères déjà cités par la suite l'y ajoutent d'eux-mêmes, voir MAX_CITING).
   [/forum-mobile-breadcrumb|cartouche|tagforum|kr-sender-row|kr-message-row|kramail-msg-(?:sender|date|body)|kd-help|kd-contacts|kd-label|permanent-topic-stats|(?<![\w-])(?:forum-title|forum-description|forum-moderators|last-time|kd-(?:sec|warn|empty|foot|msg))(?![\w-])/, ['typographie-formes']],
+  // Matériel, Bâtiments, Employés (ticket 6, fragment echelle) : détails de ligne des pages de jeu (aussi les lignes du commerce du plateau)
+  // et objets déplacés du panneau Matériel du plateau ; classe de page du plateau (exclu de ces règles, posée par le template).
+  [/list-group-item-text|kr-materiel-moved|kr-page-plateau/, ['typographie-formes', 'plateau']],
   // Composants génériques de Bootstrap (en-têtes de panneau, titres d'élément de liste) : cités par plus de MAX_CITING suites, ils lancent
   // toutes les zones qui les rendent ou les comparent (forum-index, sous-forum, kramail-redaction, modale-ordre, cybermonde-carte,
   // jeu-identite, palette-nation par COMPOSANTS_TICKET4, plateau, mini-profil, typographie-formes ; échelle typographique, ticket 5).

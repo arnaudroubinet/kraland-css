@@ -29,6 +29,17 @@
 //                   carrés conservés), hauteur (± 0,5) et couleurs égales au bundle de base (COMMIT_COMPACT) ; 375 et 767 px : égaux
 //                   à la base ; autres boutons des messages (date, profil, kramail, signaler…) égaux à la base à toutes les largeurs ;
 //                   padding des éléments visés égal à la base ; jetons redéfinis (13 px, rayon 7 px) suivis à 1280 px.
+// Matériel, Personnage, Bâtiments, Employés (ticket 6, story-materiel-personnage-batiments-employes-echelle-et-ligne-d-ob-plan) :
+//   echelle         fragment étendu aux FIXTURES SYNTHÉTIQUES jeu-materiel.html, jeu-batiments.html et jeu-employes.html (/jouer/materiel,
+//                   /jouer/bat, /jouer/pnj) : 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : noms et
+//                   valeurs 15 px / 600, détails (texte de ligne, charge, well « Charge … », alerte des Employés) 13 px ; rien sous 12 px
+//                   dans #content (mobile) ou #col-right (ordinateur) ; ligne d'objet du Matériel à 375 et 767 px : image à gauche, charge
+//                   au bord droit (≤ 1 px) sur la ligne du nom, sans chevauchement, en couleur de texte secondaire ; charge premier enfant et
+//                   cible de la ligne conservées à toutes les largeurs ; objets déplacés (.kr-materiel-moved, typographie-echelle.html) :
+//                   nom 15 px / 600, détail et charge 13 px sur ordinateur ; ligne sans image : nom au bord ; texte réel du nom (Range)
+//                   sans chevauchement de la charge ; Personnage : plancher de 12 px dans #content ; plateau (FIXTURE SYNTHÉTIQUE
+//                   jeu-plateau-objets.html : Commerce, Matériel) égal au bundle de base (COMMIT_TICKET6), 375, 767, 768, 1280 px ;
+//                   bascule 767, 768, 767 px.
 // Échelle du forum et du kramail (ticket 7, story-echelle-typographique-du-forum-et-du-kramail-plan) :
 //   echelle-forum   index RP, Communauté et racine, sous-forum, sujet, rédaction (FIXTURE SYNTHÉTIQUE typographie-forum-redaction.html),
 //                   réception, lecture et nouveau kramail : 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre :
@@ -50,6 +61,7 @@
 //           KR_SCRIPT_AVANT_ECHELLE (bundle de base de l'échelle typographique, défaut : celui du commit COMMIT_ECHELLE),
 //           KR_SCRIPT_AVANT_ECHELLE_FORUM (bundle de base de l'échelle du forum et du kramail, défaut : celui du commit
 //           COMMIT_ECHELLE_FORUM),
+//           KR_SCRIPT_AVANT_TICKET6 (bundle de base du plateau inchangé par le ticket 6, défaut : celui du commit COMMIT_TICKET6),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -61,7 +73,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, SECONDAIRE_TICKET6, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -629,12 +641,23 @@ if (on('compact')) {
 const COMMIT_ECHELLE = 'fe77411';
 const avantEchelle = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_ECHELLE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Base du ticket 6 (plateau inchangé) : bundle d'avant le ticket.
+const COMMIT_TICKET6 = '1590761';
+const avantTicket6 = sansEntete(process.env.KR_SCRIPT_AVANT_TICKET6 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_TICKET6, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_TICKET6}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const PLATEAU_OBJETS = { url: BASE + '/jouer/plateau', html: lire('jeu-plateau-objets.html') };
 const PAGES_ECHELLE = {
   materiel: { url: BASE + '/jouer/materiel', html: lire('typographie-echelle.html'), jeu: true },
-  perso: { url: BASE + '/jouer/perso', html: lire('jeu-perso.html'), jeu: true },
+  perso: { url: BASE + '/jouer/perso', html: lire('jeu-perso.html'), jeu: true, plancherContenu: true },
   plateau: { url: BASE + '/jouer/plateau', html: AVEC_BOOTSTRAP(lire('plateau-qualite-usage.html')), jeu: true, sansTitre: true },
   'sous-forum': { url: BASE + '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html') },
-  kramail: { url: BASE + '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html') }
+  kramail: { url: BASE + '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html') },
+  // Ticket 6 : Matériel, Bâtiments et Employés (FIXTURES SYNTHÉTIQUES jeu-materiel.html, jeu-batiments.html, jeu-employes.html, squelette
+  // relevé, lignes de Bâtiments et d'Employés reconstruites) ; plancher mesuré dans #content à toutes les largeurs (pied de page du site en
+  // 10 px en style en ligne), Personnage compris (plancherContenu).
+  'jeu-materiel': { url: BASE + '/jouer/materiel', html: lire('jeu-materiel.html'), jeu: true, objets: true },
+  bat: { url: BASE + '/jouer/bat', html: lire('jeu-batiments.html'), jeu: true, objets: true },
+  pnj: { url: BASE + '/jouer/pnj', html: lire('jeu-employes.html'), jeu: true, objets: true }
 };
 // En-tête de panneau : titre de premier niveau de .panel-heading, hors accordéon (.panel-group) et hors modale.
 const SEL_TITRES = '.panel:not(.panel-group .panel):not(.modal .panel) > .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6)';
@@ -646,9 +669,16 @@ const SEL_ECHELLE = {
   champ: '#champ-essai',
   onglets: '.mobile-tab-bar .mobile-tab-label',
   jauges: '.mobile-gauge-compact-label, .mobile-gauge-compact-value',
-  batiment: '.building-section-content h4.list-group-item-heading'
+  batiment: '#panneau-batiment .building-section-content h4.list-group-item-heading',
+  // Ticket 6 : détails des pages de jeu (texte de ligne, charge, cadre de charge, alerte d'Employés) et objets déplacés du plateau.
+  detailsJeu: `${LIGNE_OBJET_TICKET6} > :is(.list-group-item-text, .mention), #col-right .dashboard > .well, #col-right .panel-body > .alert`,
+  deplaces: '.kr-materiel-moved .panel-body .list-group-item-heading',
+  deplacesDetails: '.kr-materiel-moved .panel-body :is(.list-group-item-text, .mention)',
+  // Lignes d'objet et couleur secondaire attendue de la charge (lib/variantes.mjs), lues à part par MESURE_ECHELLE.
+  ligne: LIGNE_OBJET_TICKET6,
+  secondaire: SECONDAIRE_TICKET6
 };
-const MESURE_ECHELLE = sels => {
+const MESURE_ECHELLE = ({ ligne, secondaire: couleurSecondaire, ...sels }) => {
   const vu = e => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
   const res = Object.fromEntries(Object.entries(sels).map(([k, sel]) => [k, [...document.querySelectorAll(sel)].filter(vu).map(e => {
     const s = getComputedStyle(e);
@@ -659,8 +689,39 @@ const MESURE_ECHELLE = sels => {
     && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
     && (r => r.width > 1 && r.height > 1)(e.getBoundingClientRect())
     && e.checkVisibility({ opacityProperty: true, visibilityProperty: true }))
-    .map(e => ({ taille: getComputedStyle(e).fontSize, texte: [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').slice(0, 30), cls: e.className && e.className.baseVal === undefined ? String(e.className).slice(0, 40) : e.tagName }));
+    .map(e => ({ taille: getComputedStyle(e).fontSize, texte: [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').slice(0, 30), cls: e.className && e.className.baseVal === undefined ? String(e.className).slice(0, 40) : e.tagName,
+      contenu: Boolean(e.closest('#content')), droite: Boolean(e.closest('#col-right, .kr-materiel-moved')) }));
   res.mobile = document.body.classList.contains('mobile-mode');
+  // Lignes d'objet (ticket 6) : élément de liste enfant de .panel-body de #col-right, avec une charge non vide ; chaque ligne est amenée
+  // au milieu de l'écran (scrollTo) avant la mesure de la cible (elementFromPoint au centre de la charge).
+  const sonde = document.createElement('span');
+  sonde.style.color = couleurSecondaire;
+  (document.getElementById('col-right') || document.body).appendChild(sonde);
+  const secondaire = getComputedStyle(sonde).color;
+  sonde.remove();
+  res.lignes = [...document.querySelectorAll(ligne)].filter(a => vu(a)).map(a => {
+    const ch = a.querySelector(':scope > .mention');
+    if (!ch || !(ch.textContent.trim() || ch.querySelector('img'))) { return null; }
+    window.scrollTo(0, window.scrollY + a.getBoundingClientRect().top - window.innerHeight / 2);
+    const img = a.querySelector(':scope > img');
+    const nom = a.querySelector(':scope > .list-group-item-heading');
+    const [ra, rc, rn] = [a, ch, nom].map(e => e.getBoundingClientRect());
+    const s = getComputedStyle(a);
+    const cible = document.elementFromPoint(rc.left + rc.width / 2, rc.top + rc.height / 2);
+    // Texte réel du nom (Range), pas la boîte du titre : un mot qui déborde de sa piste de grille passe sous la charge.
+    const plage = document.createRange();
+    plage.selectNodeContents(nom);
+    const textes = [...plage.getClientRects()].filter(r => r.width > 0 && r.height > 0);
+    return { texte: nom.textContent.trim().slice(0, 30), premier: a.firstElementChild === ch, image: Boolean(img),
+      imageAGauche: img ? img.getBoundingClientRect().right <= rn.left + 0.5 : null,
+      nomAuBord: Math.abs(rn.left - ra.left - parseFloat(s.paddingLeft) - parseFloat(s.borderLeftWidth)),
+      ecartDroit: Math.abs(ra.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - rc.right),
+      memeLigne: rc.top < rn.bottom && rn.top < rc.bottom,
+      chevauchement: textes.length === 0 || textes.some(r => r.right > rc.left + 0.5 && r.left < rc.right - 0.5 && r.top < rc.bottom && rc.top < r.bottom)
+        || Math.max(...textes.map(r => r.right)) > ra.right - parseFloat(s.paddingRight) + 0.5,
+      couleur: getComputedStyle(ch).color, secondaire, cible: Boolean(cible && cible.closest('a') === a) };
+  }).filter(Boolean);
+  window.scrollTo(0, 0);
   return res;
 };
 async function releverEchelle({ nom, width, variante, script, css, deplier = false }) {
@@ -714,9 +775,50 @@ if (on('echelle')) {
         assert.deepEqual(hors, [], hors.join(' ; '));
       });
     }
+    if (def.objets) {
+      check(`echelle ${etiquette(c)} : noms et valeurs en 15 px / 600, détails (texte de ligne, charge, cadre, alerte) en 13 px`, () => {
+        assert.ok(m.noms.length >= 2 && m.detailsJeu.length >= 2, `${m.noms.length} nom(s), ${m.detailsJeu.length} détail(s)`);
+        if (c.nom === 'jeu-materiel') { assert.ok(m.noms.some(n => n.texte === '22467 FK') && m.detailsJeu.some(d => /^Charge /.test(d.texte)), 'Argent ou cadre de charge absent'); }
+        if (c.nom === 'pnj') { assert.ok(m.detailsJeu.some(d => /^Engagés aujourd'hui/.test(d.texte)), 'alerte « Engagés aujourd\'hui » absente'); }
+        const hors = [...tailles(m.noms, '15px', '600'), ...tailles(m.detailsJeu, '13px')];
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    if (def.objets || def.plancherContenu) {
+      const zone = m.plancher.filter(e => e.contenu);
+      check(`echelle ${etiquette(c)} : aucun texte visible sous 12 px (#content)`, () => {
+        assert.ok(zone.length > 5, `${zone.length} élément(s) mesuré(s)`);
+        const hors = sousPlancher(zone, 12);
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    if (c.nom === 'jeu-materiel') {
+      check(`echelle ${etiquette(c)} : ligne d'objet ${mobile ? 'image, nom, charge au bord droit sur la même ligne, charge en text-secondary' : 'en ordre natif'}`, () => {
+        assert.ok(m.lignes.length >= 7 && m.lignes.some(l => !l.image), `${m.lignes.length} ligne(s) d'objet, ligne sans image ${m.lignes.some(l => !l.image) ? 'présente' : 'absente'}`);
+        const ecarts = m.lignes.flatMap(l => [
+          l.premier ? null : `« ${l.texte} » charge déplacée dans le DOM`,
+          l.cible ? null : `« ${l.texte} » charge hors de la cible de la ligne`,
+          ...(mobile ? [
+            l.image ? (l.imageAGauche ? null : `« ${l.texte} » image pas à gauche du nom`) : (l.nomAuBord <= 1 ? null : `« ${l.texte} » sans image : nom à ${l.nomAuBord.toFixed(1)} px du bord`),
+            l.ecartDroit <= 1 ? null : `« ${l.texte} » charge à ${l.ecartDroit.toFixed(1)} px du bord droit`,
+            l.memeLigne ? null : `« ${l.texte} » charge hors de la ligne du nom`,
+            l.chevauchement ? `« ${l.texte} » texte du nom sur la charge ou hors de la ligne` : null,
+            l.couleur === l.secondaire ? null : `« ${l.texte} » charge en ${l.couleur} au lieu de ${l.secondaire}`
+          ] : [])
+        ]).filter(Boolean);
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
+    if (c.nom === 'materiel' && !mobile) {
+      check(`echelle ${etiquette(c)} : objets déplacés (kr-materiel-moved) : nom 15 px / 600, détail et charge 13 px`, () => {
+        assert.ok(m.deplaces.length === 1 && m.deplacesDetails.length === 2, `${m.deplaces.length} nom(s), ${m.deplacesDetails.length} détail(s) déplacé(s)`);
+        const hors = [...tailles(m.deplaces, '15px', '600'), ...tailles(m.deplacesDetails, '13px')];
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
     if (def.jeu && mobile) {
       check(`echelle ${etiquette(c)} : aucun texte visible sous 12 px, onglets de section en 12 px`, () => {
-        const hors = [...sousPlancher(m.plancher, 12), ...tailles(m.onglets, '12px')];
+        const hors = [...sousPlancher(def.objets ? m.plancher.filter(e => e.contenu) : m.plancher, 12), ...tailles(m.onglets, '12px')];
         assert.ok(m.onglets.length === 5, `${m.onglets.length} onglet(s)`);
         assert.deepEqual(hors, [], hors.join(' ; '));
       });
@@ -743,7 +845,7 @@ if (on('echelle')) {
 
   // Consommation des jetons : redéfinis par une feuille adoptée, 375 et 1280 px, tous les éléments visés suivent.
   const REDEFINIS = ':root { --kr-font-section-title: 19px !important; --kr-font-name: 16px !important; --kr-font-detail: 14px !important; --kr-font-body-mobile: 16px !important; --kr-font-label: 13px !important; }';
-  const casJetons = ['materiel', 'sous-forum', 'kramail'].flatMap(nom => [375, 1280].map(width => ({ nom, variante: 'kraland', width })));
+  const casJetons = ['materiel', 'jeu-materiel', 'sous-forum', 'kramail'].flatMap(nom => [375, 1280].map(width => ({ nom, variante: 'kraland', width })));
   const resJetons = await mapLimit(casJetons, async c => ({ c, r: await releverEchelle({ ...c, script: userscript, css: REDEFINIS }) }));
   for (const { c, r } of resJetons) {
     const mobile = c.width < 768;
@@ -754,6 +856,7 @@ if (on('echelle')) {
         hors.push(...tailles(m.noms, '16px'), ...tailles(m.details, '14px'));
         if (mobile) { hors.push(...tailles(m.texte, '16px'), ...tailles(m.onglets, '13px'), ...tailles(m.jauges, '13px')); }
       }
+      if (c.nom === 'jeu-materiel') { hors.push(...tailles(m.noms, '16px'), ...tailles(m.detailsJeu, '14px')); }
       assert.ok(m.titres.length > 0, 'aucun en-tête');
       assert.deepEqual(hors, [], hors.join(' ; '));
     });
@@ -782,30 +885,68 @@ if (on('echelle')) {
     });
   }
 
+  // Plateau inchangé par le ticket 6 (FIXTURE SYNTHÉTIQUE jeu-plateau-objets.html, /jouer/plateau) : produits du Commerce et panneau
+  // Matériel (déplacé dans la colonne gauche sur ordinateur) égaux au bundle d'avant le ticket (COMMIT_TICKET6) ; détail du Commerce en 12 px sur mobile.
+  // Seul écart voulu (plan, Always) : sur ordinateur, la taille du panneau Matériel déplacé (ligne, charge, détail ; 10,6 px avant) passe
+  // à 13 px (--kr-font-detail) ; le reste de sa valeur (graisse, couleur, display, float) reste égal.
+  const MESURE_PLATEAU = () => [...document.querySelectorAll('#panneau-commerce a, #panneau-materiel-plateau a')].flatMap(a => [a, ...a.children]).map(e => {
+    const st = getComputedStyle(e);
+    return { cle: `${e.closest('.panel').id} ${e.tagName}.${[...e.classList].join('.')} « ${(e.textContent || '').trim().slice(0, 20)} »`,
+      valeur: `${st.fontSize}/${st.fontWeight} ${st.color} ${st.display} ${st.cssFloat}`, reste: `${st.fontWeight} ${st.color} ${st.display} ${st.cssFloat}`,
+      taille: st.fontSize, detail: e.matches('#panneau-commerce p'), deplace: e.matches('#panneau-materiel-plateau :is(a, a > :not(h4))') };
+  });
+  const casPlateau = VARIANTES.flatMap(variante => [375, 767, 768, 1280].map(width => ({ nom: 'plateau-objets', variante, width })));
+  const releverPlateau = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PLATEAU_OBJETS });
+    const l = await page.evaluate(MESURE_PLATEAU);
+    await context.close();
+    return { l, erreurs };
+  };
+  const resPlateau = await mapLimit(casPlateau, async c => ({ c, apres: await releverPlateau(c, userscript), base: await releverPlateau(c, avantTicket6) }));
+  for (const { c, apres, base } of resPlateau) {
+    check(`echelle ${etiquette(c)} : plateau (Commerce, Matériel) égal au bundle d'avant le ticket 6${c.width < 768 ? ', détail du Commerce en 12 px' : ''}`, () => {
+      assert.ok(apres.l.length >= 12 && apres.l.filter(x => x.detail).length === 2, `${apres.l.length} élément(s) mesuré(s)`);
+      assert.equal(apres.l.length, base.l.length, 'nombre d\'éléments');
+      const voulu = (x, b) => c.width >= 768 && x.deplace && b.taille === '10.6px' && x.taille === '13px' && x.reste === b.reste;
+      const ecarts = apres.l.map((x, i) => (x.cle === base.l[i].cle && (x.valeur === base.l[i].valeur || voulu(x, base.l[i])) ? null : `${x.cle} ${x.valeur} au lieu de ${base.l[i].valeur}`)).filter(Boolean);
+      if (c.width < 768) { ecarts.push(...apres.l.filter(x => x.detail && x.taille !== '12px').map(x => `${x.cle} ${x.taille}`)); }
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    check(`echelle ${etiquette(c)} : plateau, aucune erreur de page`, () => assert.deepEqual(apres.erreurs, []));
+  }
+
   // Bascule dans le même onglet (767, 768, 769, 768, 767 px) : valeurs du support à chaque pas.
-  for (const variante of VARIANTES) {
-    const { context, page, erreurs } = await ouvrir({ nom: 'materiel', width: 767, variante, script: userscript, def: PAGES_ECHELLE.materiel, tactile: false });
+  for (const [nomPage, variante] of ['materiel', 'jeu-materiel'].flatMap(n => VARIANTES.map(v => [n, v]))) {
+    const { context, page, erreurs } = await ouvrir({ nom: nomPage, width: 767, variante, script: userscript, def: PAGES_ECHELLE[nomPage], tactile: false });
     const releves = [{ width: 767, m: await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE) }];
     for (const width of [768, 769, 768, 767]) {
       await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
       const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
       await page.setViewportSize({ width, height: 720 });
       if ((width < 768) !== (releves[releves.length - 1].width < 768)) { await charge; }
-      await krReady(page, { ready: THEME_READY, label: `echelle bascule ${variante} ${width} px` });
+      await krReady(page, { ready: THEME_READY, label: `echelle bascule ${nomPage} ${variante} ${width} px` });
       await styleSettled(page, 'body');
       releves.push({ width, m: await page.evaluate(MESURE_ECHELLE, SEL_ECHELLE) });
     }
     await context.close();
+    const bascule = nomPage === 'materiel' ? '' : `${nomPage} `;
     for (const { width, m } of releves) {
       const mobile = width < 768;
-      check(`echelle bascule ${variante} ${width} px : mode ${mobile ? 'mobile' : 'bureau'}, en-têtes 17 px / 700, noms 15 px / 600, texte ${mobile ? 15 : 14} px`, () => {
+      if (nomPage === 'jeu-materiel') {
+        check(`echelle bascule ${bascule}${variante} ${width} px : détails en 13 px, charge ${mobile ? 'au bord droit sur la ligne du nom' : 'en ordre natif'}`, () => {
+          assert.ok(m.detailsJeu.length > 0 && m.lignes.length > 0, 'éléments absents');
+          const hors = [...tailles(m.detailsJeu, '13px'), ...m.lignes.filter(l => !l.premier || (mobile && (l.ecartDroit > 1 || !l.memeLigne))).map(l => `« ${l.texte} » charge mal placée`)];
+          assert.deepEqual(hors, [], hors.join(' ; '));
+        });
+      }
+      check(`echelle bascule ${bascule}${variante} ${width} px : mode ${mobile ? 'mobile' : 'bureau'}, en-têtes 17 px / 700, noms 15 px / 600, texte ${mobile ? 15 : 14} px`, () => {
         assert.equal(m.mobile, mobile, 'mode');
         const hors = [...tailles(m.titres, '17px', '700'), ...tailles(m.noms, '15px', '600'), ...tailles(m.texte, mobile ? '15px' : '14px')];
         assert.ok(m.titres.length > 0 && m.noms.length > 0, 'éléments absents');
         assert.deepEqual(hors, [], hors.join(' ; '));
       });
     }
-    check(`echelle bascule ${variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+    check(`echelle bascule ${bascule}${variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
 

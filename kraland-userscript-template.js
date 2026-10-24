@@ -3750,6 +3750,9 @@
       const isReport = /^\/report(?:\/|$)/.test(location?.pathname || '');
       document.documentElement.classList.toggle('kr-page-report', isReport);
 
+      // Plateau (/jouer/plateau et sous-chemins) : exclu de l'échelle des détails de Matériel, Personnage, Bâtiments et Employés (voir le CSS)
+      document.documentElement.classList.toggle('kr-page-plateau', krActiveGameSection(location?.pathname || '') === '/jouer/plateau');
+
       // Index RP, HRP, Communauté et Débats : présentation du sous-forum (module ForumIndex:Presentation et CSS « INDEX DU FORUM »)
       document.documentElement.classList.toggle('kr-page-forum-index', krForumIsIndexPath(location?.pathname || ''));
       PerfLog.end('css:applyVariant');

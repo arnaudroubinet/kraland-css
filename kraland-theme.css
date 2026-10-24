@@ -4517,6 +4517,11 @@ body > map {
   .list-group-item-text {
     font-size: 12px !important;
   }
+
+  /* Détail : 13 px (jeton) sur les pages de jeu hors plateau (colonne des caractéristiques présente) */
+  :where(html:not(.kr-page-plateau) body:has(#col-leftest)) .list-group-item-text {
+    font-size: var(--kr-font-detail) !important;
+  }
   
   /* === PANNEAU COMMERCE === */
 
@@ -6290,7 +6295,8 @@ body > map {
   }
 
   .kr-materiel-moved .panel-body a.list-group-item {
-    font-size: 1.06rem;
+    /* Détail et charge (le nom porte --kr-font-name : échelle typographique des pages de jeu) */
+    font-size: var(--kr-font-detail);
   }
 
   .kr-materiel-moved .panel-body a.list-group-item > img {
@@ -6305,7 +6311,8 @@ body > map {
 }
 
 @media (max-width: 767px) {
-  .kr-materiel-moved .panel-body a.list-group-item .mention img {
+  .kr-materiel-moved .panel-body a.list-group-item .mention img,
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item > .mention img {
     width: 14px !important;
     height: 14px !important;
   }
@@ -13358,6 +13365,13 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-name);
     font-weight: 600;
   }
+
+  /* Détails des pages de jeu hors plateau : texte de ligne, charge, cadre de charge du Matériel, alerte des Employés */
+  :where(html:not(.kr-page-plateau) body:has(#col-leftest)) #col-right .panel-body > a.list-group-item > :is(.list-group-item-text, .mention),
+  :where(html:not(.kr-page-plateau) body:has(#col-leftest)) #col-right .dashboard > .well,
+  :where(html:not(.kr-page-plateau) body:has(#col-leftest)) #col-right .panel-body > .alert {
+    font-size: var(--kr-font-detail);
+  }
 }
 
 @media (max-width: 767px) {
@@ -13369,6 +13383,49 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Noms et valeurs des objets : taille portée par .panel-body h4 (--kr-font-name), graisse ici */
   :where(body.mobile-mode:has(#col-leftest)) #col-right .panel-body .list-group-item-heading {
     font-weight: 600;
+  }
+
+  /* Détails des pages de jeu hors plateau : charge, cadre de charge du Matériel, alerte des Employés (texte de ligne : .list-group-item-text) */
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item > .mention,
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .dashboard > .well,
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > .alert {
+    font-size: var(--kr-font-detail);
+  }
+
+  /* Ligne d'objet (Matériel) : image à gauche, nom, charge au bord droit sur la ligne du nom, détail dessous ; sans image, le nom part du
+     bord. La charge reste premier enfant (DOM natif) : placement par la grille. Hors plateau et hors panneau Matériel déplacé. */
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) {
+    display: grid !important;
+    grid-template: "nom charge" auto "texte texte" auto / minmax(0, 1fr) auto;
+    align-items: center !important;
+    gap: 2px 10px !important;
+  }
+
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *):has(> img) {
+    grid-template: "image nom charge" auto "image texte texte" auto / auto minmax(0, 1fr) auto;
+  }
+
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) > .mention {
+    grid-area: charge;
+    color: var(--kr-text-secondary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) > img {
+    grid-area: image;
+    margin: 0 !important;
+  }
+
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) > .list-group-item-heading {
+    grid-area: nom;
+    margin: 0 !important;
+    overflow-wrap: anywhere;
+  }
+
+  :where(html:not(.kr-page-plateau) body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) > .list-group-item-text {
+    grid-area: texte;
+    margin: 0;
   }
 }
 

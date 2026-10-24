@@ -302,3 +302,11 @@ export function CONTRASTE() {
   const procheRgb = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
   window.__krContraste = { rgb, fond, texte, rapport, sonde, procheRgb };
 }
+
+/**
+ * Épopée 4, ticket 6 (Matériel, Bâtiments, Employés) : ligne d'objet des pages de jeu (élément de liste enfant direct du corps de panneau
+ * de #col-right) et couleur de texte secondaire attendue de sa charge sur mobile. Écrits ici, hors des suites : ces repères, déjà cités par
+ * trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
+ */
+export const LIGNE_OBJET_TICKET6 = '#col-right .panel-body > a.list-group-item';
+export const SECONDAIRE_TICKET6 = 'var(--kr-text-secondary)';
