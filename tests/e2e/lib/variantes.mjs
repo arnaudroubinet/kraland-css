@@ -106,6 +106,22 @@ export const BOUTONS_TICKET42 = [
 export const AVANT_TICKET42 = bundle => !bundle.includes('--kr-button-height');
 
 /**
+ * Numéros de pagination du sujet que l'épopée 4, ticket 4 passe au bouton compact sur ordinateur (12 px au lieu de 14 px, hauteur de ligne
+ * de 20 px qui garde la hauteur native). À poser par-dessus un bundle d'avant ce ticket (AVANT_TICKET44), comme BOUTONS_TICKET42 : seules
+ * la taille et la hauteur de ligne de ces numéros sont neutralisées, tout autre écart reste détecté. Écart consigné dans le plan du ticket
+ * (story-bouton-compact-en-12-px-pour-les-votes-et-la-pagination, Implementation Notes).
+ */
+export const PAGINATION_TICKET44 = [
+  '@layer kr-ticket44 {',
+  '  @media (min-width: 768px) {',
+  '    :where(body.page-forum) .center > ul.pagination:not(:has(select)) > li > :is(a, span) { font-size: 12px !important; line-height: 20px !important; }',
+  '  }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 4 : la pagination du sujet n'y emploie pas encore le jeton du bouton compact (règle minifiée du bundle). */
+export const AVANT_TICKET44 = bundle => !bundle.includes('.center>ul.pagination:not(:has(select))>li>:is(a,span){font-size:var(--kr-font-button-compact)');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

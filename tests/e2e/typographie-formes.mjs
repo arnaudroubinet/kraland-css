@@ -23,8 +23,13 @@
 //                   avec barre BBCode, fixture modale-ordre/ : 375 et 767 px, boutons du pied et « ? Aide » en 14 px, hauteur ≥ 44 px ;
 //                   barre BBCode et croix (et tous les boutons à partir de 768 px) égales au bundle de base (COMMIT_MODALES) ;
 //   boutons-bascule même onglet 767, 768 puis 767 px : accès rapides du plateau du bon côté à chaque pas.
-// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : boutons compacts et
-// pagination (4.3, 4.4), rayons (4.8), espacement (4.9).
+// Bouton compact (ticket 4, story-bouton-compact-en-12-px-pour-les-votes-et-la-pagination-plan) :
+//   compact         votes des messages (j'aime, je n'aime pas, score) et numéros de pagination du sujet et du sous-forum : 768, 1280,
+//                   1440 et 1920 px, Kraland clair et Empire Brun sombre : 12 px, rayon 4 px aux coins arrondis par la base (coins
+//                   carrés conservés), hauteur (± 0,5) et couleurs égales au bundle de base (COMMIT_COMPACT) ; 375 et 767 px : égaux
+//                   à la base ; autres boutons des messages (date, profil, kramail, signaler…) égaux à la base à toutes les largeurs ;
+//                   padding des éléments visés égal à la base ; jetons redéfinis (13 px, rayon 7 px) suivis à 1280 px.
+// Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : rayons (4.8), espacement (4.9).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
 // kramail fictif (ajaxsearch.php émulé, noms inventés). Confinement réseau ; gestes : saisie au clavier dans le champ Destinataires,
@@ -35,7 +40,8 @@
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : kraland-userscript-main.user.js du commit COMMIT_AVANT),
 //           KR_SCRIPT_AVANT_BOUTONS (bundle de base des boutons, défaut : celui du commit COMMIT_BOUTONS),
 //           KR_SCRIPT_AVANT_MODALES (bundle de base des modales, défaut : celui du commit COMMIT_MODALES),
-//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule (vide = tout).
+//           KR_SCRIPT_AVANT_COMPACT (bundle de base du bouton compact, défaut : celui du commit COMMIT_COMPACT),
+//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -62,6 +68,10 @@ const avantBoutons = sansEntete(process.env.KR_SCRIPT_AVANT_BOUTONS ? fs.readFil
 const COMMIT_MODALES = '8631c45';
 const avantModales = sansEntete(process.env.KR_SCRIPT_AVANT_MODALES ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_MODALES, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_MODALES}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Base du bouton compact (ticket 4) : votes et pagination avant le ticket.
+const COMMIT_COMPACT = '3b1da55';
+const avantCompact = sansEntete(process.env.KR_SCRIPT_AVANT_COMPACT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_COMPACT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_COMPACT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
@@ -126,7 +136,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, tactile = width < 768, def: defBoutons, toucher = tactile }) {
+async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, css = '', tactile = width < 768, def: defBoutons, toucher = tactile }) {
   const def = defBoutons || (nom === 'mini-profil' ? MINI_PROFIL : PAGES[nom]);
   const mobile = tactile;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: toucher, deviceScaleFactor: 1 });
@@ -146,6 +156,7 @@ async function ouvrir({ nom, width, height = 720, variante, script, label13 = fa
   });
   await context.addInitScript(choisirVariante, variante);
   if (label13) { await context.addInitScript(poserJetonsRedefinis, ':root { --kr-font-label: 13px !important; }'); }
+  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
   await context.addInitScript(({ src, gmErreur }) => {
     // gmErreur (Interface) : GM.xmlHttpRequest répond par une erreur, le changelog est chargé à vide et « Voir l'historique » est posé.
     window.GM = { xmlHttpRequest: o => { if (gmErreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
@@ -509,6 +520,91 @@ if (on('boutons-bascule')) {
       });
     }
     check(`boutons-bascule ${variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+}
+
+// ---------- Bouton compact (ticket 4) ----------
+// [clé, sélecteur, visé, affiché sur ordinateur seulement] : visé = 12 px et rayon sm sur ordinateur ; sinon égal à la base partout.
+// Sous-forum mobile : lignes en cartes, pages du sujet masquées (aussi dans la base) ; seul le nombre d'éléments affichés est comparé.
+const PAGES_COMPACT = {
+  sujet: { url: BASE + '/forum/sujet/messages-v3-329425-1', html: lire('forum-sujet.html'), elements: [
+    ['votes', `${MESSAGE} > .pull-right > .btn-group-xs[id^="ajax-"] > .btn`, true],
+    ['pagination', '.center > ul.pagination:not(:has(select)) > li > :is(a, span)', true],
+    ['autres', `${MESSAGE} .btn-group-xs:not([id^="ajax-"]) > .btn`, false]
+  ] },
+  'sous-forum': { url: BASE + '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html'), elements: [
+    ['pagination', '#topics tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li > a', true, true]
+  ] }
+};
+const MESURE_COMPACT = liste => liste.map(([cle, sel]) => [cle, [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length).map(e => {
+  const s = getComputedStyle(e);
+  return { taille: s.fontSize, hauteur: Math.round(e.getBoundingClientRect().height * 10) / 10,
+    rayons: [s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius],
+    couleur: s.color, fond: s.backgroundColor, bordure: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor].join(' '),
+    padding: s.padding, texte: (e.textContent || '').trim().slice(0, 30) };
+})]);
+async function releverCompact({ nom, width, variante, script, css }) {
+  const def = PAGES_COMPACT[nom];
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css });
+  const res = Object.fromEntries(await page.evaluate(MESURE_COMPACT, def.elements.map(([k, s]) => [k, s])));
+  await context.close();
+  return { res, erreurs };
+}
+if (on('compact')) {
+  console.log('\n== compact ==');
+  const cas = Object.keys(PAGES_COMPACT).flatMap(nom => VARIANTES.flatMap(variante => [375, 767, 768, 1280, 1440, 1920].map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => ({ c, r: await releverCompact({ ...c, script: userscript }), a: await releverCompact({ ...c, script: avantCompact }) }));
+  for (const { c, r, a } of res) {
+    const mobile = c.width < 768;
+    for (const [k, , vise, bureauSeul] of PAGES_COMPACT[c.nom].elements) {
+      const l = r.res[k] || [];
+      const b = a.res[k] || [];
+      const cible = vise && !mobile;
+      check(`compact ${etiquette(c)} ${k} : ${cible ? '12 px, rayon 4 px aux coins arrondis, hauteur et couleurs de la base' : 'égal au bundle de base'}`, () => {
+        if (!(mobile && bureauSeul)) { assert.ok(l.length > 0, 'aucun élément'); }
+        assert.equal(l.length, b.length, `${l.length} élément(s) contre ${b.length}`);
+        const ecarts = [];
+        l.forEach((m, i) => {
+          const o = b[i];
+          const d = p => ecarts.push(`« ${m.texte} » ${p} ${JSON.stringify(m[p])} au lieu de ${JSON.stringify(o[p])}`);
+          ['couleur', 'fond', 'bordure'].forEach(p => { if (m[p] !== o[p]) { d(p); } });
+          if (cible) {
+            if (m.taille !== '12px') { ecarts.push(`« ${m.texte} » taille ${m.taille}`); }
+            if (Math.abs(m.hauteur - o.hauteur) > 0.5) { d('hauteur'); }
+            if (m.padding !== o.padding) { d('padding'); }
+            const attendus = o.rayons.map(x => (parseFloat(x) > 0 ? '4px' : '0px'));
+            if (JSON.stringify(m.rayons) !== JSON.stringify(attendus)) { ecarts.push(`« ${m.texte} » rayons ${m.rayons.join(' ')} au lieu de ${attendus.join(' ')}`); }
+          } else {
+            ['taille', 'hauteur', 'padding'].forEach(p => { if (m[p] !== o[p]) { d(p); } });
+            if (JSON.stringify(m.rayons) !== JSON.stringify(o.rayons)) { d('rayons'); }
+          }
+        });
+        if (cible) { assert.ok(b.some(o => o.rayons.some(x => parseFloat(x) > 0)), 'aucun coin arrondi dans la base'); }
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
+    check(`compact ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+  // Consommation des jetons : --kr-font-button-compact à 13 px et --kr-radius-sm à 7 px redéfinis par une feuille adoptée, 1280 px :
+  // éléments visés en 13 px, coins arrondis par la base à 7 px, coins carrés conservés.
+  const REDEFINIS = ':root { --kr-font-button-compact: 13px !important; --kr-radius-sm: 7px !important; }';
+  const casJetons = Object.keys(PAGES_COMPACT).map(nom => ({ nom, variante: 'kraland', width: 1280 }));
+  const resJetons = await mapLimit(casJetons, async c => ({ c, r: await releverCompact({ ...c, script: userscript, css: REDEFINIS }), a: await releverCompact({ ...c, script: avantCompact }) }));
+  for (const { c, r, a } of resJetons) {
+    for (const [k, , vise] of PAGES_COMPACT[c.nom].elements.filter(([, , v]) => v)) {
+      check(`compact ${etiquette(c)} ${k} : jetons redéfinis (13 px, rayon 7 px) suivis`, () => {
+        const l = r.res[k] || [];
+        const b = a.res[k] || [];
+        assert.ok(vise && l.length > 0 && l.length === b.length, `${l.length} élément(s) contre ${b.length}`);
+        const ecarts = [];
+        l.forEach((m, i) => {
+          if (m.taille !== '13px') { ecarts.push(`« ${m.texte} » taille ${m.taille}`); }
+          const attendus = b[i].rayons.map(x => (parseFloat(x) > 0 ? '7px' : '0px'));
+          if (JSON.stringify(m.rayons) !== JSON.stringify(attendus)) { ecarts.push(`« ${m.texte} » rayons ${m.rayons.join(' ')} au lieu de ${attendus.join(' ')}`); }
+        });
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
   }
 }
 

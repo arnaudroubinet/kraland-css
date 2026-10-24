@@ -91,6 +91,17 @@ check('typographie et formes : composant mesuré -> typographie-formes (en plus 
   const k = route('kraland-theme.css', hunk('.kd-opt-tag {', '.kd-opt-tag { font-weight: 600; }'));
   assert.ok(k.zones.includes('typographie-formes') && k.zones.includes('kramail'), k.zones.join(', '));
 });
+check('typographie et formes : bouton compact (pagination du sujet, pages du sous-forum, votes) -> typographie-formes', () => {
+  for (const h of [
+    hunk(':where(body.page-forum) .center > ul.pagination:not(:has(select)) > li > :is(a, span) {', '    font-size: var(--kr-font-button-compact);'),
+    hunk('html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li:first-child > a {', '    border-top-left-radius: var(--kr-radius-sm);'),
+    hunk(':where(body.page-forum) ul.media-list.forum > li.media > .media-body > .pull-right > .btn-group-xs[id^="ajax-"] > .btn {', '    font-size: var(--kr-font-button-compact);')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('typographie-formes'), d.zones.join(', '));
+  }
+});
 
 check('la bascule est visée par demarrage ET par les zones de breakpoint-switch', () => {
   assert.ok(zonesOf('breakpoint-switch.mjs').length >= 2, 'breakpoint-switch doit porter au moins deux zones');

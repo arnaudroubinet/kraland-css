@@ -71,7 +71,7 @@ export const SUITES = [
   // de base ; mini-profil replié et déplié, bascule 767/768/767. Boutons de taille normale (ticket 2) : 14 px et 34 px sur ordinateur, ≥ 44 px
   // sur mobile, exclusions comparées au bundle de base, bascule. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
   // de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule']], needsBootstrap: true }
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -138,7 +138,8 @@ export const KEYWORDS = [
   [/mini-profil|mobile-mini-profile|profil/i, ['profil']],
   // Étiquettes et pastilles (épopée 4, ticket 1) : emploi du jeton et composants mesurés. Une déclaration du jeton (sans var()) élargit au total.
   // Boutons de taille normale (ticket 2) : boutons d'action et d'accès rapide du plateau, Ajouter / Effacer du kramail.
-  [/kr-topic-badge|kd-opt-tag|kr-room-here|dashboard-card-pnj|kr-skill-badge|kr-stat-badge|kr-action-grid|kr-quick-access-buttons|kd-msg-btn/, ['typographie-formes']],
+  // Bouton compact (ticket 4) : votes des messages, pagination du sujet et pages du sujet dans le sous-forum.
+  [/kr-topic-badge|kd-opt-tag|kr-room-here|dashboard-card-pnj|kr-skill-badge|kr-stat-badge|kr-action-grid|kr-quick-access-buttons|kd-msg-btn|\.center\s*>\s*ul\.pagination|ul\.pagination:not\(:first-of-type\)|btn-group-xs\[id\^="?ajax-/, ['typographie-formes']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES]
 ];

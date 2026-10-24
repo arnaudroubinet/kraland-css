@@ -14565,8 +14565,19 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li > a {
     min-width: 24px;
     padding: 1px 6px !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-button-compact) !important;
     line-height: 1.5 !important;
+  }
+
+  /* Coins extérieurs au rayon sm (bouton compact) ; coins intérieurs carrés (Bootstrap). */
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li:first-child > a {
+    border-top-left-radius: var(--kr-radius-sm);
+    border-bottom-left-radius: var(--kr-radius-sm);
+  }
+
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > ul.pagination:not(:first-of-type) > li:last-child > a {
+    border-top-right-radius: var(--kr-radius-sm);
+    border-bottom-right-radius: var(--kr-radius-sm);
   }
 
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) {
@@ -15504,5 +15515,39 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus {
     min-width: 48px !important;
     padding: 0 6px !important;
+  }
+}
+
+/* Bouton compact (DESIGN.md › button-compact : 12 px, rayon sm) sur ordinateur : votes des messages (j'aime, je n'aime pas, score) et numéros
+   de pagination du sujet. Hauteur et couleurs natives conservées (line-height de 20 px = 14 px × 1,42857 de Bootstrap) ; rayon posé sur les
+   seuls coins extérieurs que Bootstrap arrondit, les coins intérieurs restent carrés. Pages du sous-forum : règles L6. */
+@media (min-width: 768px) {
+  :where(body.page-forum) ul.media-list.forum > li.media > .media-body > .pull-right > .btn-group-xs[id^="ajax-"] > .btn {
+    font-size: var(--kr-font-button-compact);
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media > .media-body > .pull-right > .btn-group-xs[id^="ajax-"] > .btn:first-child {
+    border-top-left-radius: var(--kr-radius-sm);
+    border-bottom-left-radius: var(--kr-radius-sm);
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media > .media-body > .pull-right > .btn-group-xs[id^="ajax-"] > .btn:last-child {
+    border-top-right-radius: var(--kr-radius-sm);
+    border-bottom-right-radius: var(--kr-radius-sm);
+  }
+
+  :where(body.page-forum) .center > ul.pagination:not(:has(select)) > li > :is(a, span) {
+    font-size: var(--kr-font-button-compact);
+    line-height: 20px;
+  }
+
+  :where(body.page-forum) .center > ul.pagination:not(:has(select)) > li:first-child > :is(a, span) {
+    border-top-left-radius: var(--kr-radius-sm);
+    border-bottom-left-radius: var(--kr-radius-sm);
+  }
+
+  :where(body.page-forum) .center > ul.pagination:not(:has(select)) > li:last-child > :is(a, span) {
+    border-top-right-radius: var(--kr-radius-sm);
+    border-bottom-right-radius: var(--kr-radius-sm);
   }
 }

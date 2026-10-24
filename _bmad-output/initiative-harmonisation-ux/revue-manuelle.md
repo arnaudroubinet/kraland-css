@@ -170,3 +170,8 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - « ? Aide » de la modale d'ordre passe aussi à la taille normale (16 → 14 px sur mobile).
 - L'onglet actif des modales à onglets hors ordre (bg-elevated, accent) est gardé tel quel.
 - Les modales non Bootbox en mobile-mode perdent l'étirement `flex:1` de leurs boutons (aucune n'est connue sur le site) ; `bootbox.alert` et `prompt` prennent aussi le pied en colonne.
+
+## Ticket 4.4 — bouton compact (2026-10-24)
+
+- Rayon de 4 px posé seulement aux coins déjà arrondis (extrémités des groupes de vote et de la pagination), coins intérieurs carrés.
+- Les autres petits boutons des messages (date, profil, kramail, signaler) restent en 12 px natif : ils ne sont ni compacts ni normaux au sens de l'épopée.
