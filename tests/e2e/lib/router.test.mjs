@@ -246,7 +246,7 @@ check('pastilles d\'état de la barre (épopée 5, entrée 4) : règle réécrit
     assert.equal(d.widened, false, d.reasons.join(' ; '));
     for (const z of ['cartes-pastilles', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
   }
-  for (const [f, z] of [['tests/e2e/fixtures/kramail-reception.html', ['cartes-pastilles', 'kramail']], ['tests/e2e/fixtures/sous-forum-debuter.html', ['cartes-pastilles', 'sous-forum']]]) {
+  for (const [f, z] of [['tests/e2e/fixtures/kramail-reception.html', ['cartes-pastilles', 'kramail']], ['tests/e2e/fixtures/sous-forum-debuter.html', ['cartes-pastilles', 'forum-activite', 'sous-forum']]]) {
     assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ [f]: [] }), readWith({})).zones), z, f);
   }
   const t = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/typographie-formes.html': [] }), readWith({}));
@@ -351,10 +351,11 @@ check('hunk commun forum + sous-forum : les deux zones', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
   assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
 });
-check('fixture du sous-forum modifiée : zones sous-forum et cartes-pastilles', () => {
+check('fixture du sous-forum modifiée : zones sous-forum, cartes-pastilles et forum-activite', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/sous-forum-debuter.html': [] }));
   assert.equal(r.widened, false);
-  assert.deepEqual(sorted(r.zones), ['cartes-pastilles', 'sous-forum']); // fixture lue aussi par cartes-pastilles (épopée 5, entrée 4)
+  // fixture lue aussi par cartes-pastilles (épopée 5, entrée 4) et forum-activite (épopée 6, entrée 2 : parcours « premier non lu »)
+  assert.deepEqual(sorted(r.zones), ['cartes-pastilles', 'forum-activite', 'sous-forum']);
 });
 check('suite sous-forum.mjs modifiée : cette suite seule (+ garde du confinement), pas les autres suites de sa zone', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/sous-forum.mjs': [] }));
@@ -517,6 +518,24 @@ check('modale d\'ordre : module des modales, repères du socle et .bootbox-confi
   assert.deepEqual(sorted(css.zones), ['modale-ordre', 'parler']);
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/modale-ordre/dormir.html': [] })).zones, ['modale-ordre']);
   assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ 'tests/e2e/vendor/parler/bootbox.min.js': [] })).zones), ['modale-ordre', 'parler']);
+});
+check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, correctif « FIX MOBILE » et fichier de suite -> forum-activite', () => {
+  assert.deepEqual(zonesOf('forum-activite.mjs'), ['forum-activite']);
+  const css = route('kraland-theme.css', hunk('.x {', ':where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr { min-height: 72px; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.ok(css.zones.includes('forum-activite') && css.zones.includes('forum'), css.zones.join(','));
+  assert.ok(css.units.includes('forum-index'), css.units.join(','));
+  const t = tpl(['FIX MOBILE : Empêcher le scroll automatique vers #flap (mini-chat)', ['  if (x) {', '    return 6;', '  }']]);
+  const sansMot = route(T, hunkAt(at(t, 'return 6'), '    const n = 6;'), t);
+  assert.equal(sansMot.widened, false, sansMot.reasons.join(' ; '));
+  assert.deepEqual(sansMot.zones, ['forum-activite']);
+  const mot = route(T, hunk('function x() {', "  if (window.location.hash === '#flap') { history.scrollRestoration = 'manual'; }"));
+  assert.equal(mot.widened, false, mot.reasons.join(' ; '));
+  assert.ok(mot.zones.includes('forum-activite'), mot.zones.join(','));
+  const suite = zonesFromDiff('REF', fakeGit({ 'tests/e2e/forum-activite.mjs': [] }));
+  assert.equal(suite.widened, false);
+  assert.deepEqual(suite.zones, []);
+  assert.deepEqual(sorted(suite.units), ['confinement-reseau', 'forum-activite']);
 });
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);

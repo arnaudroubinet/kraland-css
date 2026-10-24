@@ -90,7 +90,12 @@ export const SUITES = [
   // des cartes égaux à la base), mini-profil égal à la base, ordinateur et bascule égaux à la base (fixture plateau-qualite-usage).
   // Entrée 5 (fragment etiquettes) : « PNJ » des cartes, marque native PNJ, compteur de groupe et tags mobiles en étiquette de catégorie,
   // compteurs de contact du kramail en pastille d'état ; pièce courante, états, hors familles et tags natifs égaux à la base.
-  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['pastilles'], ['etiquettes'], ['contraste']], needsBootstrap: true }
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['pastilles'], ['etiquettes'], ['contraste']], needsBootstrap: true },
+  // Activité du forum (épopée 6, entrée 2) : fil de sujet ouvert sur une ancre de message (#msg) à 375, 767, 768 et 1280, dans les deux
+  // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
+  // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
+  // ordinateur et Staff égaux au bundle de base.
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -126,7 +131,8 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre']],
   [/^tests\/e2e\/vendor\/parler\//, ['parler', 'modale-ordre']], // harnais Bootbox natif, repris par la suite de la modale d'ordre
   // Fixtures lues aussi par cartes-pastilles (fragment pastilles, épopée 5, entrée 4 : référence du sous-forum, pastilles vides de la réception).
-  [/^tests\/e2e\/fixtures\/sous-forum-debuter\.html$/, ['sous-forum', 'cartes-pastilles']],
+  // Parcours « premier non lu » de forum-activite (épopée 6, entrée 2) : titre du sujet « Gagner des PA ».
+  [/^tests\/e2e\/fixtures\/sous-forum-debuter\.html$/, ['sous-forum', 'cartes-pastilles', 'forum-activite']],
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
   [/^tests\/e2e\/fixtures\/kramail-reception\.html$/, ['kramail', 'cartes-pastilles']],
@@ -197,7 +203,10 @@ export const KEYWORDS = [
   // plateau-qualite-usage (bureau) et typographie-formes (formes, nettoyage).
   [/dashboard-section|dashboard-cards-grid|dashboard-group-title|accordion-icon/, ['cartes-pastilles', 'plateau', 'typographie-formes']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
-  [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES]
+  [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES],
+  // Activité du forum (épopée 6, entrée 2) : ligne de l'index mobile (72 px au moins), ancres de message et mini-chat, lien « premier non
+  // lu » du sous-forum, vérifiés par forum-activite.
+  [/kr-page-forum-index\b[^{]*tbody\s*>\s*tr|location\.hash|scrollRestoration|flap|smart-redirect/, ['forum-activite']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de
@@ -214,7 +223,9 @@ export const SECTIONS = [
   [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],
   [/^CYBERMONDE/, ['cybermonde']],
   // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : seules ces deux suites ouvrent une modale Bootbox.
-  [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler']]
+  [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler']],
+  // Correctifs mobiles du chargement (« FIX MOBILE : … » : défilement vers #flap) : ancres vérifiées par forum-activite.
+  [/^FIX MOBILE : /, ['forum-activite']]
 ];
 // Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
 // qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc

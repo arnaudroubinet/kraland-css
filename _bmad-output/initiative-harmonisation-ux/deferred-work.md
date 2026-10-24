@@ -123,3 +123,9 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
   summary: Marque native PNJ sous 768 px : 14 px et 46 px de haut (règle `.btn` mobile de la peau en priorité forcée), au lieu des 12 px de la famille.
   evidence: Fragment `etiquettes`, page `etats` : taille égale à la base à 375 et 767 px ; 12 px au bureau.
+
+## Reports du ticket 6.2, index mobile : ligne de 72 px, flèche et « premier non lu » (2026-10-25)
+
+- source_plan: `epic-forum/story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n-plan.md`
+  summary: Le correctif d'ancres mobile ne retire plus que `#flap`. Les autres ancres (kramail, plateau, etc.) ne sont plus effacées quand la largeur lue à l'évaluation est < 768. Seul le fil de sujet (`#msg…`) le prouve ; aucune suite ne vérifie une ancre du kramail ou du plateau.
+  evidence: Ce comportement est déjà celui du vrai téléphone : la largeur lue à l'évaluation y vaut 981, donc l'ancienne condition n'effaçait rien (H10, inventaire §1.1 et §1.3). Aucun autre code ne dépend de l'effacement (revue du ticket 6.2, constat 4). Fragment `ancres` de `forum-activite.mjs` : fil de sujet seulement.

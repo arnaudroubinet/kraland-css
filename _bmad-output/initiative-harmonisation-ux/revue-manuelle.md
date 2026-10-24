@@ -365,3 +365,20 @@ Découpe publiée dans `epic-forum/tickets.toml` (7 entrées). Elle a été fait
 - Rappel, en attente de ta décision :
   - choix de 6.1 : Staff exclu, colonnes Sujets et Messages sur ordinateur. L'entrée 6 s'y plie.
   - D14 : `span.tagforum` et « guilde ».
+
+## Ticket 6.2 — index mobile : ligne de 72 px, flèche et « premier non lu » (construit, 2026-10-25)
+
+Points « Ask First » du plan tranchés en autonomie, option conservatrice à chaque fois :
+
+- **Correctif d'ancres non retiré.** Il est réduit à `#flap` sous 768 px (largeur lue à l'évaluation). Les ancres `#msg…` ne sont plus touchées. Le retirer en entier reste possible, mais c'est un retrait de comportement : à toi de trancher.
+- **Pas de `scroll-padding-top` ni de `scroll-margin-top`.** L'en-tête du message ancré peut rester sous la barre fixe de 60 px. C'est déjà le cas sur ordinateur dans la base. La suite vérifie que le message est dans la fenêtre, pas que son en-tête est visible.
+- **Pas de primauté de l'ancre après une bascule de seuil.** `restoreScrollAfterReload` remet le défilement en pixels. Le hash est gardé, et le défilement est égal à la base.
+- **Ligne de sujet du sous-forum et Staff non touchés.** Staff à 375 px est égal à la base (vérifié).
+- **Racine `/forum` gardée dans la règle.** Elle porte `kr-page-forum-index` et reçoit les 72 px.
+- **Pas de JS de repositionnement après Messages:V3.** Le message ancré reste dans la fenêtre sans aide (fixtures, deux injections).
+- **Aucun seuil ni tolérance changé.** `typographie-formes.mjs` (`nettoyage`) a reçu le masque `LIGNE_INDEX_TICKET62` sur sa base, comme pour les entrées 5.x. Voir le Plan Change Log.
+
+À vérifier par toi :
+
+- Essai sur vrai téléphone (H10) : ouvre une flèche de l'index et un « premier non lu ». Le message doit être à l'écran. Son en-tête peut être sous la barre.
+- Captures à 375×667, clair et sombre : forum sans message de l'index RP, racine-groupes, sujet ouvert sur `#msg6801395`.

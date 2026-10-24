@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -167,7 +167,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768 }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -187,6 +187,7 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
+  if (masque) { await context.addInitScript(poserJetonsRedefinis, masque); }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
@@ -619,7 +620,9 @@ if (on('lignes')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      // Bundle de base : ligne d'index du ticket 6.2 (72 px au moins, texte centré) posée par masque, sinon la hauteur diffère.
+      const masque = cle === 'base' && AVANT_TICKET62(avant) ? LIGNE_INDEX_TICKET62 : null;
+      const { context, page, erreurs } = await ouvrir({ ...c, script, masque });
       out[cle] = { l: await page.evaluate(LIGNES, [PANNEAU_TICKET51, PASTILLE_TICKET52]), erreurs };
       await context.close();
     }

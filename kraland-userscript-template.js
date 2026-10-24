@@ -2880,9 +2880,12 @@
   })();
 
   // ============================================================================
-  // FIX MOBILE : Empêcher le scroll automatique vers #flap ou autres ancres
+  // FIX MOBILE : Empêcher le scroll automatique vers #flap (mini-chat)
   // ============================================================================
-  if (window.innerWidth < 768 && window.location.hash && window.location.hash !== '#top') {
+  // Seul #flap est retiré, et seulement si la largeur lue à l'évaluation est < 768 : sur ordinateur, #flap ouvre le mini-chat (:target).
+  // Une ancre de message (#msgNNN : flèche « dernier message », « premier non lu ») n'est jamais touchée, quelle que soit la largeur
+  // lue à l'évaluation (H10, ticket 6.2) : le joueur arrive sur le message, en émulation comme sur un vrai téléphone.
+  if (window.innerWidth < 768 && window.location.hash === '#flap') {
     // Sauvegarder la position actuelle avant que le navigateur ne scrolle
     const initialScrollRestoration = history.scrollRestoration;
     history.scrollRestoration = 'manual';

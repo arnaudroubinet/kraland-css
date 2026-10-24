@@ -542,6 +542,40 @@ export const CARTES_TICKET55 = [
 export const AVANT_TICKET55 = bundle => !bundle.includes('.dashboard-card-pnj{background:var(--kr-arm-bg');
 
 /**
+ * Activité du forum (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : repères de
+ * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures du fil de sujet et des index (citées par trois suites),
+ * classes de l'index et du forum, carte de section, ligne de l'index et flèche « dernier message ».
+ */
+export const ACTIVITE_TICKET62 = {
+  sujet: 'forum-sujet.html',
+  indexRp: 'forum-index-rp.html',
+  indexCommunaute: 'forum-index-communaute.html',
+  racineGroupes: 'forum-racine-groupes.html',
+  sousForum: 'sous-forum-debuter.html',
+  classeIndex: 'kr-page-forum-index',
+  classeForum: 'page-forum',
+  panneau: '#col-right .panel-default',
+  ligne: '#col-right .panel-default table.table > tbody > tr',
+  fleche: '.btn-group > a.btn'
+};
+/**
+ * Écart accepté et consigné (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : ligne mobile de
+ * l'index du forum (et de la racine) d'au moins 72 px, bloc de texte centré. Feuille miroir en valeurs littérales des deux déclarations
+ * ajoutées à la règle d'origine, mêmes sélecteur et média, sans !important ; posée sur un bundle de base antérieur au ticket
+ * (AVANT_TICKET62), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du ticket (Plan Change Log).
+ * Condition de retrait : retirer quand `COMMIT_AVANT` de la suite est réaligné sur un SHA qui contient 6.2 ; le réalignement est porté par
+ * le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ */
+export const LIGNE_INDEX_TICKET62 = [
+  '@media (max-width: 767px) {',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr { min-height: 72px; align-content: center; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 6, ticket 2 : la ligne de l'index n'y a ni hauteur minimale ni bloc centré (règle minifiée du bundle, relevée
+ * dans le bundle construit ; absente de 21fed8d et de 0523d7f). */
+export const AVANT_TICKET62 = bundle => !bundle.includes('align-content:center;align-items:baseline;gap:2px 6px;min-height:72px');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).
