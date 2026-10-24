@@ -59,3 +59,12 @@
 - source_plan: `epic-typographie-formes/story-refactor-sweep-plan.md`
   summary: `.form-control { height: 44px !important; }` (`kraland-theme.css` l.4674, `@media (max-width: 767px)`) est une candidate morte. Elle est gardée (R4 ne retire que `padding` et `font-size`) et sortie du sweep.
   evidence: Contre-épreuve sans FAIL (bundle sans la déclaration, fragment `nettoyage`). Sonde CDP `CSS.getMatchedStylesForNode` sur toutes les pages du fragment à 375 et 767 px : chaque `input`/`select.form-control` garde 44 px. Raison : hauteur native de Bootstrap `34px`, battue par `.form-control { min-height: var(--mobile-touch-target) !important }` (l.9653, même média ; `--mobile-touch-target: 44px` défini sur `:root` seulement, l.129). Seul cas où la déclaration déciderait : un `.form-control` à hauteur propre au-dessus de 44 px, ramené à 44 (`input-lg` de Bootstrap à 46 px, `height` en ligne). Aucun dans les fixtures (37 `class="form-control"` nus), ni dans le template et la feuille. Pour la suite : vérifier sur le site réel (lecture seule) l'absence d'`input-lg` et de hauteur en ligne, puis retirer avec rouge/vert ; sinon, ajouter le cas réel à une fixture.
+
+## Défauts d'initialisation relevés par la fiabilisation du fragment `nettoyage` (2026-10-24)
+
+Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template était hors périmètre.
+- `initCharacterModalMobile` est appelé deux fois : `.kr-tabs-indicator` en double, deux passes d'`enhanceCharacterModal`.
+- La place du bouton palette (`insertToggleCSSButton`) dépend de l'avancée de l'analyse HTML : `navRight` ou `.navbar-header-buttons-left`.
+- `insertChangelogButton` et le `setTimeout` de 150 ms de la modale d'ordre mobile tournent hors `InitQueue` : `data-kr-ready` ne les attend pas.
+- `.kr-mobile-overlay` est ajouté en fin de `body` pendant l'analyse HTML, à un rang variable parmi les enfants de `body`.
+- Le fragment `nettoyage` injecte maintenant le bundle à un point fixe (fin de `body`) ; les autres fragments qui comparent des chemins DOM restent exposés à ce timing.

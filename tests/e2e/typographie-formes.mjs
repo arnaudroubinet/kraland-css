@@ -105,7 +105,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
-import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
+import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -191,15 +191,19 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, css = '', tactile = width < 768, def: defBoutons, toucher = tactile }) {
+// injection : 'corps' (défaut) évalue le bundle dès que <body> existe, au rappel d'un MutationObserver, donc à une avancée de l'analyse
+// qui dépend de la charge machine ; 'fin' l'évalue à un point fixe, par un script en ligne placé avant </body> (aussitôt retiré).
+async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, css = '', tactile = width < 768, def: defBoutons, toucher = tactile, injection = 'corps' }) {
   const def = defBoutons || (nom === 'mini-profil' ? MINI_PROFIL : PAGES[nom]);
+  const fin = injection === 'fin' && /<\/body>/i.test(def.html);
+  const html = fin ? def.html.replace(/<\/body>(?![\s\S]*<\/body>)/i, '<script>document.currentScript.remove(); window.__krInjecter();</script></body>') : def.html;
   const mobile = tactile;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: toucher, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
   await context.route(BASE + '/**', route => {
     const u = new URL(route.request().url());
-    if (u.href.split('#')[0] === def.url) { return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: def.html }); }
+    if (u.href.split('#')[0] === def.url) { return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }); }
     if (u.pathname === '/ajaxsearch.php') { return route.fulfill({ status: 200, contentType: 'text/html', body: annuaire(u.searchParams.get('c[1]') || '') }); }
     if (u.pathname === '/lib/bootbox-4.4.0/bootbox.min.js') { return route.fulfill({ path: path.join(here, 'vendor/parler/bootbox.min.js'), contentType: 'application/javascript' }); }
     if (u.pathname.startsWith('/lib/bootstrap') || u.pathname.startsWith('/lib/jquery')) {
@@ -212,16 +216,17 @@ async function ouvrir({ nom, width, height = 720, variante, script, label13 = fa
   await context.addInitScript(choisirVariante, variante);
   if (label13) { await context.addInitScript(poserJetonsRedefinis, ':root { --kr-font-label: 13px !important; }'); }
   if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
-  await context.addInitScript(({ src, gmErreur }) => {
+  await context.addInitScript(({ src, gmErreur, aLaFin }) => {
     // gmErreur (Interface) : GM.xmlHttpRequest répond par une erreur, le changelog est chargé à vide et « Voir l'historique » est posé.
     window.GM = { xmlHttpRequest: o => { if (gmErreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
     // Soumission neutralisée (aucun envoi, même depuis une fixture).
     window.addEventListener('submit', e => e.preventDefault(), true);
     // eslint-disable-next-line no-eval
     const go = () => (0, eval)(src);
+    if (aLaFin) { window.__krInjecter = go; return; }
     if (document.body) { go(); return; }
     new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-  }, { src: script, gmErreur: Boolean(def.gmErreur) });
+  }, { src: script, gmErreur: Boolean(def.gmErreur), aLaFin: fin });
   const page = await context.newPage();
   const erreurs = [];
   page.on('pageerror', e => erreurs.push(e.message));
@@ -1649,17 +1654,26 @@ const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.rea
 const avantNettoyageDecale = medias410(avantNettoyage);
 const GEL_NETTOYAGE = '@layer kr-gel { *, *::before, *::after { transition: none !important; animation: none !important; } }';
 // Préparations (après le chargement) : modale d'ordre ouverte, changelog ouvert.
+// Bouton posé par insertChangelogButton (template) après le chargement du changelog, hors InitQueue : data-kr-ready ne l'attend pas.
 const OUVRIR_CHANGELOG = async page => {
+  await page.waitForSelector('#kr-changelog-btn', { state: 'attached', timeout: PRET_MS });
   await page.$eval('#kr-changelog-btn', b => b.click());
   await page.waitForFunction(() => document.querySelector('.kr-changelog-footer button') && document.querySelector('.kr-changelog-footer button').getClientRects().length, null, { timeout: 5000 });
   await page.waitForTimeout(200);
+};
+// Mode mobile : enhanceCharacterModal (template) retouche la modale 150 ms après son ajout, une fois par observateur posé
+// (initCharacterModalMobile est appelé deux fois), hors InitQueue. Attendre la première retouche (.kr-tabs-indicator), puis un DOM calme.
+const modaleMobileFinie = async page => {
+  if (!await page.evaluate(() => document.body.classList.contains('mobile-mode'))) { return; }
+  await waitState(page, () => document.querySelector('.modal.in .kr-tabs-indicator'), null, { maxMs: PRET_MS });
+  await domQuiet(page, { quietMs: 300, maxMs: PRET_MS, label: 'modale d\'ordre mobile' });
 };
 // Pages : def, prep, m (bloc M1 ou M2 : rendu à 768 px changé par rapport à la base non décalée), lignes (tr:active du forum mobile).
 const PAGES_NETTOYAGE = {
   plateau: { def: PAGES_ECHELLE.plateau },
   'plateau-minimal': { def: { url: BASE + '/jouer/plateau', html: lire('plateau-minimal.html') } },
   champ: { def: PAGES_ECHELLE.materiel },
-  'modale-ordre': { def: PAGES_BOUTONS['modale-ordre'], prep: page => ouvrirModaleOrdre(page, PAGES_BOUTONS['modale-ordre']) },
+  'modale-ordre': { def: PAGES_BOUTONS['modale-ordre'], prep: async page => { await ouvrirModaleOrdre(page, PAGES_BOUTONS['modale-ordre']); await modaleMobileFinie(page); } },
   'sous-forum': { def: PAGES_FORUM['sous-forum'], lignes: true },
   staff: { def: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') }, lignes: true },
   racine: { def: PAGES_FORUM.racine, lignes: true },
@@ -1786,7 +1800,38 @@ async function comparerNettoyage(pa, pb, opts = {}) {
   }
   return r;
 }
+// État prêt avant tout relevé (A10), dans la page : conditions non remplies (vide = prête). Fin d'initialisation (data-kr-ready), peau
+// posée (kr-theme-enabled), variante attendue, anti-FOUC levé (opacity de <html>), #content visible ; aucun voile : overlay mobile
+// rendu (.kr-mobile-overlay, display: none sauf .active), backdrop Bootstrap en fondu (sans .in) ou sans modale ouverte (.modal.in),
+// .dropdown-backdrop (Bootstrap 3 tactile, menu en cours).
+const ETAT_NETTOYAGE = variante => {
+  const h = document.documentElement;
+  const vus = s => [...document.querySelectorAll(s)].filter(e => e.getClientRects().length);
+  const c = document.querySelector('#content');
+  const manque = [];
+  if (!h.hasAttribute('data-kr-ready')) { manque.push('html[data-kr-ready] absent'); }
+  if (!h.classList.contains('kr-theme-enabled')) { manque.push('html.kr-theme-enabled absent'); }
+  if (!h.classList.contains('kr-theme-variant-' + variante)) { manque.push(`html.kr-theme-variant-${variante} absent`); }
+  if (h.style.opacity === '0') { manque.push('anti-FOUC non levé (opacity 0)'); }
+  if (!c || !c.getClientRects().length || getComputedStyle(c).visibility === 'hidden') { manque.push(c ? `#content invisible (display ${getComputedStyle(c).display})` : '#content absent'); }
+  if (vus('.kr-mobile-overlay').length) { manque.push('voile .kr-mobile-overlay affiché'); }
+  const fondus = [...document.querySelectorAll('.modal-backdrop:not(.in), .modal.fade:not(.in)')].filter(e => e.getClientRects().length);
+  if (fondus.length) { manque.push(`fondu de modale en cours (${fondus.map(e => e.className).join(', ')})`); }
+  if (document.querySelector('.modal-backdrop') && !vus('.modal.in').length) { manque.push('.modal-backdrop sans modale ouverte'); }
+  if (document.querySelector('.dropdown-backdrop')) { manque.push('.dropdown-backdrop présent'); }
+  return manque;
+};
+const PRET_MS = 10000;
+const VARIANTE_PAGE = new WeakMap();
+// Attend l'état prêt (au plus PRET_MS) ; renvoie null, ou les conditions non remplies à l'échéance.
+async function nonPrete(page) {
+  const variante = VARIANTE_PAGE.get(page);
+  const ok = await page.waitForFunction(`(${ETAT_NETTOYAGE})(${JSON.stringify(variante)}).length === 0`, null, { timeout: PRET_MS }).then(() => true, () => false);
+  return ok ? null : (await page.evaluate(ETAT_NETTOYAGE, variante).catch(e => [String(e.message).split('\n')[0]])).join(', ');
+}
 async function comparerUneFois(pa, pb, opts) {
+  const [npa, npb] = await Promise.all([nonPrete(pa), nonPrete(pb)]);
+  if (npa || npb) { return { n: 0, nonPret: [npb && `base non prête : ${npb}`, npa && `page testée non prête : ${npa}`].filter(Boolean).join(' ; ') }; }
   const [ha, hb] = await Promise.all([pa.evaluate(EMPREINTES, opts), pb.evaluate(EMPREINTES, opts)]);
   const manque = (h, autre) => Object.keys(autre).filter(k => !(k in h));
   const [ma, mb] = [manque(ha, hb), manque(hb, ha)];
@@ -1807,6 +1852,7 @@ async function comparerUneFois(pa, pb, opts) {
   return { n: cles.length, diff: diff.length, ecarts };
 }
 const verifierNettoyage = (libelle, r) => check(libelle, () => {
+  assert.ok(!r.nonPret, r.nonPret);
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
@@ -1814,7 +1860,8 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
   const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '');
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile });
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile, injection: 'fin' });
+  VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;
 };
@@ -1851,7 +1898,8 @@ if (on('nettoyage')) {
       out.comparaisons.push([c.width === 768 ? 'styles calculés égaux à la base aux médias décalés' : 'styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
       if (p.m && c.width === 768) {
         const b0 = await ouvrirNettoyage({ ...c, script: avantNettoyage });
-        out.change = (await comparerUneFois(a.page, b0.page, {})).diff;
+        const rc = await comparerUneFois(a.page, b0.page, {});
+        out.change = rc.nonPret || rc.diff;
         await b0.context.close();
       }
       if (p.m && c.width === 768) {
@@ -1885,7 +1933,7 @@ if (on('nettoyage')) {
           await forcerEtat(b.context, b.page, '.navbar-toggle', [etat]);
           const r = n ? await comparerNettoyage(a.page, b.page, { racine: '.navbar-toggle' }) : { n: 0 };
           out.etats.push([`hamburger :${etat}`, r.n]);
-          if (r.n) { out.comparaisons.push([`hamburger :${etat} égal à la base`, r]); }
+          if (r.n || r.nonPret) { out.comparaisons.push([`hamburger :${etat} égal à la base`, r]); }
           await forcerEtat(a.context, a.page, '.navbar-toggle', []);
           await forcerEtat(b.context, b.page, '.navbar-toggle', []);
         }
@@ -1897,7 +1945,7 @@ if (on('nettoyage')) {
         await forcerEtat(b.context, b.page, LIGNES_FORUM_TICKET410, ['active']);
         const r = n ? await comparerNettoyage(a.page, b.page, { racine: LIGNES_FORUM_TICKET410 }) : { n: 0 };
         out.etats.push(['lignes du forum :active', r.n]);
-        if (r.n) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
+        if (r.n || r.nonPret) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
       }
       if (mobile && ['champ', 'nouveau', 'repondre'].includes(c.nom)) {
         out.champs = await a.page.$$eval(CHAMPS_TICKET410, l => l.filter(e => e.getClientRects().length).map(e => {
@@ -1942,7 +1990,7 @@ if (on('nettoyage')) {
         assert.equal(a8.ecarts.length, 0, `${a8.ecarts.length} écart(s) sur ${a8.n} élément(s), ${a8.props} propriétés : ${a8.ecarts.slice(0, 8).join(' ; ')}`);
       });
     }
-    if (change !== undefined) { check(`nettoyage ${etiquette(c)} : rendu changé par M1/M2 (écart avec la base non décalée)`, () => assert.ok(change > 0, 'aucun écart')); }
+    if (change !== undefined) { check(`nettoyage ${etiquette(c)} : rendu changé par M1/M2 (écart avec la base non décalée)`, () => assert.ok(typeof change === 'number' && change > 0, typeof change === 'string' ? change : 'aucun écart')); }
     if (ordre && ordre.length) { check(`nettoyage ${etiquette(c)} : hamburger order 1 (R2)`, () => assert.deepEqual(ordre.filter(o => o !== '1'), [], ordre.join(' '))); }
     if (champs) {
       check(`nettoyage ${etiquette(c)} : champs d'une ligne 44 px, retraits 12 px, police 16 px (R4)`, () => {
