@@ -88,7 +88,9 @@ export const SUITES = [
   // lignes de tableau dans la carte, égales à la base ; repli au chevron. Fixtures synthétiques des pages de jeu, du kramail, des règles, du
   // Cybermonde et fixtures du forum. Entrée 3 : groupes du plateau en carte de section à 375 et 767 (accordéon, boutons, ordre et contenu
   // des cartes égaux à la base), mini-profil égal à la base, ordinateur et bascule égaux à la base (fixture plateau-qualite-usage).
-  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['pastilles'], ['contraste']], needsBootstrap: true }
+  // Entrée 5 (fragment etiquettes) : « PNJ » des cartes, marque native PNJ, compteur de groupe et tags mobiles en étiquette de catégorie,
+  // compteurs de contact du kramail en pastille d'état ; pièce courante, états, hors familles et tags natifs égaux à la base.
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['pastilles'], ['etiquettes'], ['contraste']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -166,6 +168,9 @@ export const KEYWORDS = [
   // Bouton compact (ticket 4) : votes des messages, pagination du sujet et pages du sujet dans le sous-forum.
   // Échelle typographique (ticket 5) : noms et détails du plateau, onglets et jauges du mini-profil, légendes des compétences.
   [/dashboard-card-name|dashboard-card-status|mobile-tab-label|mobile-(?:mini-profile-)?gauges?-compact|kr-skill-caption|kr-topic-badge|kd-opt-tag|kr-room-here|dashboard-card-pnj|kr-skill-badge|kr-stat-badge|kr-action-grid|kr-quick-access-buttons|kd-msg-btn|\.center\s*>\s*ul\.pagination|ul\.pagination:not\(:first-of-type\)|btn-group-xs\[id\^="?ajax-/, ['typographie-formes']],
+  // Étiquettes de catégorie (épopée 5, entrée 5) : marque native PNJ, « PNJ » des cartes, tags du forum. dashboard-card-pnj reste aussi dans la
+  // règle de l'épopée 4 ci-dessus (doublon sans effet : les zones s'ajoutent).
+  [/xmini|dashboard-card-pnj|forum-tags/, ['cartes-pastilles', 'typographie-formes', 'palette-nation']],
   // Échelle du forum et du kramail (ticket 7, fragment echelle-forum) : composants mesurés des index, du sous-forum, du sujet, de la rédaction et
   // du kramail (les repères déjà cités par la suite l'y ajoutent d'eux-mêmes, voir MAX_CITING).
   [/forum-mobile-breadcrumb|cartouche|tagforum|kr-sender-row|kr-message-row|kramail-msg-(?:sender|date|body)|kd-help|kd-contacts|kd-label|permanent-topic-stats|(?<![\w-])(?:forum-title|forum-description|forum-moderators|last-time|kd-(?:sec|warn|empty|foot|msg))(?![\w-])/, ['typographie-formes']],

@@ -56,8 +56,8 @@
 //                   --kr-danger de DESIGN.md ; alertes d'état à 12 % (fond) et 35 % (bordure) de leur couleur sur bg-surface, texte
 //                   text-primary ; alerte info en --kr-alert-info-* ; liens d'alerte de la couleur du texte, soulignés ; étiquettes, boutons
 //                   (repos, survol, .active, [disabled]) et fonds en couleur d'état, texte bg-surface, survol mêlé de 15 % de noir ou de
-//                   blanc ; .btn-info en paire d'action ; textes d'état ; panneaux d'état ; aucune couleur d'état de Bootstrap ; PNJ et pièce
-//                   courante du plateau comme avant le ticket ; « Voir l'historique des changements » (palette-nation-profil.html) en bouton
+//                   blanc ; .btn-info en paire d'action ; textes d'état ; panneaux d'état ; aucune couleur d'état de Bootstrap ; marque PNJ en
+//                   étiquette de catégorie (épopée 5, entrée 5), survol égal au repos ; pièce courante du plateau comme avant le ticket ; « Voir l'historique des changements » (palette-nation-profil.html) en bouton
 //                   standard ; texte ≥ 4,5:1 ;
 //   pages           votes du sujet, caractéristiques du plateau, « Bienvenue » de l'index RP en couleurs d'état ; non lu du sous-forum et de
 //                   /report en --kr-status-unread, comme avant le ticket (garde) ;
@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1228,9 +1228,10 @@ const PLEINS5 = [...ETATS.flatMap(e => [`#lb-${e}`, `#bt-${e}`, `#bg-${e}`]), '#
 const PLEIN_ETAT = sel => (sel.match(/success|warning|danger/) || [])[0];
 const SURVOLS5 = ['#bt-success', '#bt-warning', '#bt-danger', '#bt-success-a', '#bt-success-vote', '#lb-success-lien', '#bt-info'];
 const TEXTES5 = [...ETATS.map(e => [`#tx-${e}`, e]), ['#tx-danger-lien', 'danger'], ['#tx-info', 'info']];
-const HORS5 = ['#pnj', '#piece'];
+// #pnj (marque native PNJ) est une étiquette de catégorie depuis l'épopée 5, entrée 5 : seule la pièce courante reste hors palette.
+const HORS5 = ['#piece'];
 const SELS5 = [...ALERTES5.flatMap(e => [`#al-${e}`, `#al-${e}-lien`]), ...PLEINS5, '#bt-info', '#bt-warning-active', ...TEXTES5.map(([s]) => s),
-  ...ALERTES5.flatMap(e => [`#pn-${e}`, `#pn-${e}-tete`]), '#bg-success-lien', ...HORS5];
+  ...ALERTES5.flatMap(e => [`#pn-${e}`, `#pn-${e}-tete`]), '#bg-success-lien', '#pnj', ...HORS5];
 const MESURES5 = sels => {
   const K = window.__krContraste;
   return Object.fromEntries(sels.map(sel => {
@@ -1240,9 +1241,10 @@ const MESURES5 = sels => {
     return [sel, { classes: e.className, couleur: s.color, fond: `rgb(${K.fond(e).map(Math.round).join(', ')})`, fondPropre: s.backgroundColor, bordure: s.borderTopColor, trait: s.textDecorationLine, contraste: K.texte(e) }];
   }));
 };
-const JETONS5 = absent => {
+const JETONS5 = ([absent, et]) => {
   const sonde = window.__krContraste.sonde;
   return { surface: sonde('var(--kr-bg-surface)'), primaire: sonde('var(--kr-text-primary)'), unread: sonde('var(--kr-status-unread)'),
+    categorie: sonde(et.fond), encre: sonde(et.texte),
     success: sonde(`var(--kr-success, ${absent})`), warning: sonde(`var(--kr-warning, ${absent})`), danger: sonde(`var(--kr-danger, ${absent})`) };
 };
 const BOUTON_HISTORIQUE = '#kr-changelog-btn';
@@ -1258,9 +1260,9 @@ async function etatsScenario(variante, width) {
   }
   const { context, page, denied, erreurs } = await ouvrir({ width, height, variante, url: PAGE_ETATS.url, corps: PAGE_ETATS.corps });
   const r = { posee: await page.evaluate(VARIANTE_POSEE, variante), mobile: await page.evaluate(() => document.body.classList.contains('mobile-mode')) };
-  r.jetons = await page.evaluate(JETONS5, ABSENT);
+  r.jetons = await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]);
   r.repos = await page.evaluate(MESURES5, SELS5);
-  r.survol = await forcer(page, [...SURVOLS5, ...HORS5], 'hover', () => page.evaluate(MESURES5, [...SURVOLS5, ...HORS5]));
+  r.survol = await forcer(page, [...SURVOLS5, '#pnj', ...HORS5], 'hover', () => page.evaluate(MESURES5, [...SURVOLS5, '#pnj', ...HORS5]));
   r.hors = hors;
   if (SHOTS && ['kraland', 'paladium', 'empire-brun-dark', 'paladium-dark'].includes(variante)) {
     fs.mkdirSync(SHOTS, { recursive: true });
@@ -1346,7 +1348,15 @@ function verifierEtats(tag, variante, r) {
     const vus = [...Object.entries(r.repos).filter(([s]) => !HORS5.includes(s)), ...Object.entries(r.survol).filter(([s]) => !HORS5.includes(s)).map(([s, m]) => [`${s}:hover`, m])];
     sansEcart(vus.filter(([, m]) => m).flatMap(([s, m]) => ['couleur', 'fondPropre', 'bordure'].filter(k => commeBootstrap(m[k])).map(k => `${s} : ${k} ${m[k]} (${commeBootstrap(m[k])})`)));
   });
-  check(`${tag} ${variante} : hors palette, marque PNJ (.btn-danger.xmini) et pièce courante du plateau (.btn-warning à image de pièce) au repos et survolées comme avant le ticket (${BASELINE5})`, () => {
+  check(`${tag} ${variante} : marque PNJ (.btn-danger.xmini) en étiquette de catégorie (épopée 5, entrée 5) au repos et survolée : fond et bordure ${j.categorie}, texte ${j.encre} (rgb exacts), ≥ 4,5:1`, () => {
+    sansEcart(['repos', 'survol'].flatMap(etat => {
+      const m = r[etat]['#pnj'];
+      if (!m) { return [`#pnj (${etat}) : absent`]; }
+      return [...[['fondPropre', j.categorie], ['bordure', j.categorie], ['couleur', j.encre]].filter(([k, v]) => m[k] !== v).map(([k, v]) => `#pnj (${etat}) : ${k} ${m[k]} au lieu de ${v}`),
+        ...(m.contraste >= 4.5 ? [] : [`#pnj (${etat}) : ${m.contraste}:1`])];
+    }));
+  });
+  check(`${tag} ${variante} : hors palette, pièce courante du plateau (.btn-warning à image de pièce) au repos et survolée comme avant le ticket (${BASELINE5})`, () => {
     assert.ok(r.hors, `bundle « avant » introuvable (KR_SCRIPT_AVANT5 ou commit ${BASELINE5})`);
     sansEcart(['repos', 'survol'].flatMap(etat => HORS5.flatMap(sel => {
       const a = r.hors[etat][sel];
@@ -1417,7 +1427,7 @@ async function pages5(p, variante, width) {
   for (const [cote, script] of [['avant', avant5], ['apres', userscript]]) {
     if (!script) { continue; }
     const { context, page, erreurs } = await ouvrir({ width, height: width < 768 ? 667 : 900, variante, url: p.url, corps: p.corps, script });
-    res[cote] = { ...(await page.evaluate(RELEVER5)), jetons: await page.evaluate(JETONS5, ABSENT), erreurs };
+    res[cote] = { ...(await page.evaluate(RELEVER5)), jetons: await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]), erreurs };
     // Caractéristiques du plateau survolées et pressées (après seulement) : fond de survol de l'état, texte bg-surface.
     if (cote === 'apres' && p.nom === 'plateau') {
       for (const etat of ['hover', 'active']) { res.apres[etat] = (await forcer(page, ['a.btn.btn-success'], etat, () => page.evaluate(RELEVER5))).caracteristiques; }

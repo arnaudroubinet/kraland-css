@@ -793,8 +793,9 @@ html.kr-page-report table > tbody > tr.bg-info > td:first-child {
   background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
 }
 
-/* Pastille d'état (DESIGN › badge-state) : cloche et enveloppe en non lu, toutes variantes */
+/* Pastille d'état (DESIGN › badge-state) : cloche, enveloppe et compteurs de contact du kramail en non lu, toutes variantes */
 @media (max-width: 767px), (min-width: 768px) {
+  a.list-group-item[href^="kramail/"] > .badge:not(:empty),
   .badge-danger,
   .navbar-right a[href="kramail"] .badge:not(:empty),
   .navbar-header-buttons-left a[href="kramail"] .badge:not(:empty),
@@ -856,8 +857,8 @@ html.kr-page-report table > tbody > tr.bg-info > td:first-child {
 }
 
 /* Palette d'états (H5.5, ticket 3.5), dans les deux modes : chaque classe d'état pose sa couleur (--kr-state), que ses règles emploient.
-   Succès, avertissement et danger seulement : l'info suit la nation. Hors palette : PNJ (.btn-danger.xmini, épopée 5) et pièce courante
-   du plateau (.btn-warning à image de pièce, accent : règle sombre « BOUTONS WARNING »), exclus des boutons sans spécificité ajoutée. */
+   Succès, avertissement et danger seulement : l'info suit la nation. Hors palette : la marque PNJ (.btn-danger.xmini ;
+   PNJ : étiquette de catégorie (épopée 5, entrée 5)) et la pièce courante du plateau (.btn-warning à image de pièce, accent : règle sombre « BOUTONS WARNING »), exclus des boutons sans spécificité ajoutée. */
 html.kr-theme-enabled :is(.alert-success, .label-success, .btn-success, .bg-success, .text-success, .panel-success) {
   --kr-state: var(--kr-success);
 }
@@ -917,6 +918,18 @@ html.kr-theme-enabled fieldset[disabled] .btn:is(.btn-success, .btn-warning, .bt
   background-color: var(--kr-state);
   border-color: var(--kr-state);
   color: var(--kr-bg-surface);
+}
+
+/* PNJ natif (.btn-danger.xmini) : étiquette de catégorie (DESIGN › label-category, épopée 5, entrée 5). (0,3,1) sans pseudo-classe :
+   bat .btn-danger:hover (0,2,0) et :active:hover (0,3,0) de Bootstrap, le survol garde les couleurs du repos. */
+@media (max-width: 767px), (min-width: 768px) {
+  html.kr-theme-enabled .btn.btn-danger.xmini {
+    background-color: var(--kr-arm-bg, var(--kr-primary));
+    border-color: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
+    font-weight: 700;
+    border-radius: var(--kr-radius-full);
+  }
 }
 
 /* Badge d'un bouton d'état : paire inverse */
@@ -2670,13 +2683,13 @@ footer .container.white {
   border-radius: 0;
 }
 
-/* Badge PNJ */
+/* Badge PNJ : étiquette de catégorie (DESIGN › label-category, épopée 5, entrée 5) */
 .dashboard-card-pnj {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #c9302c; /* PLT-10 : blanc sur #c9302c = 5,9:1 */
-  color: var(--kr-white);
+  background: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
   font-size: var(--kr-font-label);
   font-weight: 700;
   padding: 2px 5px;
@@ -8674,15 +8687,19 @@ body > map {
     padding: 1px 4px !important;
     font-size: var(--kr-font-label) !important;
     font-weight: 700 !important;
-    color: var(--kr-text-secondary) !important;
-    background: var(--kr-bg-hover) !important;
+    color: var(--kr-arm-ink, var(--kr-white)) !important;
+    background: var(--kr-arm-bg, var(--kr-primary)) !important;
     border-radius: var(--kr-radius-full) !important;
     text-decoration: none !important;
     transition: all var(--transition-fast) !important;
   }
   
+  /* Appui : survol d'étiquette de catégorie (épopée 5, entrée 5). L'encre passe par --kr-arm-ink, que la couleur du tag lit déjà en
+     priorité forcée : aucune priorité forcée de plus. */
   body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a:active {
-    background: var(--kr-bg-active) !important;
+    --kr-arm-ink: var(--kr-arm-ink-hover, var(--kr-white));
+
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
   }
   
   /* === STATS TOPICS MOBILE (injectées par JS) — style harmonisé kramail === */
@@ -13254,9 +13271,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   .dashboard-section-header .badge {
-    border-color: var(--kr-border-strong);
-    background-color: var(--kr-bg-active);
-    color: var(--kr-text-primary);
+    border-color: var(--kr-arm-bg, var(--kr-primary));
+    background-color: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
   }
 }
 
@@ -13281,9 +13298,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   .dashboard-section-header .badge {
-    border-color: var(--kr-border-strong);
-    background-color: var(--kr-bg-active);
-    color: var(--kr-text-primary);
+    border-color: var(--kr-arm-bg, var(--kr-primary));
+    background-color: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
   }
 
   /* L'accordéon se manipule aussi au clavier : focus visible */

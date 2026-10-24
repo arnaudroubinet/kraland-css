@@ -39,14 +39,26 @@
 //               1920 px, Kraland clair et Empire Brun sombre : pastille visible portée par le clone (375, 767) ou par l'original (768 et
 //               au-delà), touchée au centre (elementFromPoint, sans tap) ; toutes les pastilles remplies, originaux et clones, en pastille
 //               d'état (fond non lu, texte surface, 12 px 700, rayon plein, bordures de largeur 0) ; géométrie des pastilles et des liens,
-//               animation des icônes et emplois hors liste (pastille de panneau, de groupe) égaux au bundle de base (601ab19) ; pastilles
+//               animation des icônes et emplois hors liste (pastille de panneau ; de groupe : entrée 5) égaux à la base (601ab19) ; pastilles
 //               vides (kramail-reception.html) invisibles, originaux et clones, icônes sans animation ; 16 variantes à 375, 1280, 1440 et
 //               1920 px : fond égal au jeton calculé et au fond de « NOUVEAU MESSAGE » du sous-forum (même largeur, même variante), texte
 //               idem, ≥ 4,5:1 ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet ; contrôle statique de la règle réécrite.
+//   etiquettes  (entrée 5) étiquettes de catégorie : « PNJ » des cartes (typographie-formes.html, plateau-qualite-usage), marque native
+//               PNJ (palette-nation-etats.html, repos et survol forcé), compteur de groupe, tags du sujet (typographie-formes.html à une
+//               adresse de forum ; appui forcé), à 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : fond et
+//               texte égaux aux jetons de catégorie calculés, bordure du fond, 12 px 700 (marque : taille de .xmini égale à la base), rayon
+//               plein, aucune couleur d'état ; position, boîte, retrait, casse et espacement égaux au bundle de base (59567f0) ; tags égaux
+//               à la base à 768 et au-delà ; compteurs de contact du kramail (réception dérivée, contact actif compris) en pastille d'état
+//               comme « NOUVEAU MESSAGE » du sous-forum, vides invisibles ; « guilde », « [mod] », « Arme en main », pastilles d'ordre,
+//               éléments hors familles, étiquettes d'état, pièce courante et tags natifs égaux à la base ; fil de sujet sans étiquette ;
+//               16 variantes à 375, 1280, 1440 et 1920 px : mêmes couleurs, ≥ 4,5:1 (rapport exact) ; bascule 767 -> 768 -> 767 et 768 ->
+//               767 -> 768 dans le même onglet ; contrôles statiques (priorités forcées et règles :focus en nombre égal à la base, aucune
+//               couleur littérale, règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d, a7f0463 pour groupes, 601ab19 pour
-// pastilles), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste, pastilles (vide = tout).
+// pastilles, 59567f0 pour etiquettes), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste,
+// pastilles, etiquettes (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -57,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, DOSSIER_MODALE_TICKET51, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -74,6 +86,10 @@ const avant53 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process
 const COMMIT_AVANT_54 = '601ab19';
 const avant54 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT_54}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Étiquettes de catégorie (entrée 5) : base dédiée.
+const COMMIT_AVANT_55 = '59567f0';
+const avant55 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_AVANT_55}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const ordre = f => lire(path.join(DOSSIER_MODALE_TICKET51, f)).replace(/^<!--[\s\S]*?-->\s*/, '');
 // Styles et scripts natifs du site pour les modales d'ordre (vendor/parler, comme la suite de la modale d'ordre).
@@ -128,7 +144,18 @@ const PAGES = {
   'groupes-nu': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes', innerWidth: 791 },
   // Pastilles de la barre (entrée 4) : cloche « ! » et enveloppe « 3 » remplies (clic neutralisé dans la fixture, jamais tapées) ; les
   // pastilles vides viennent de la réception, la référence « NOUVEAU MESSAGE » du sous-forum. Bootstrap servi par la route (vendor).
-  barre: { url: '/jouer/plateau', html: lire('typographie-formes.html'), famille: 'pastilles' }
+  barre: { url: '/jouer/plateau', html: lire('typographie-formes.html'), famille: 'pastilles' },
+  // Étiquettes de catégorie (entrée 5) : tags du sujet (la même fixture servie à une adresse de forum), marque native PNJ (palette d'états,
+  // Bootstrap servi par la route), réception dérivée (A5, aucune fixture modifiée) : compteur du contact 1000 rempli « 2 », contact 2000
+  // actif rempli « 1 » (P6 : aucun contact actif dans la fixture).
+  tags: { url: '/forum/hrp/fixture-typographie-1', html: lire('typographie-formes.html'), famille: 'etiquettes' },
+  etats: { url: '/regles/avancees', html: lire('palette-nation-etats.html'), famille: 'etiquettes' },
+  'reception-remplie': {
+    url: '/kramail/personnage-fictif-2000-0', famille: 'etiquettes',
+    html: lire('kramail-reception.html').replace('id="badge1000"></span>', 'id="badge1000">2</span>')
+      .replace('<a href="kramail/personnage-fictif-2000-0" class="list-group-item">', '<a href="kramail/personnage-fictif-2000-0" class="list-group-item active">')
+      .replace('id="badge2000"></span>', 'id="badge2000">1</span>')
+  }
 };
 function avecBootstrap(h) { return h.replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>'); }
 const DE = famille => Object.keys(PAGES).filter(k => PAGES[k].famille === famille);
@@ -354,16 +381,17 @@ const REGLES_CSS = ([css, raccourcis]) => {
   parcourir(feuille.cssRules, '');
   return out;
 };
-let reglesTestees = null;
-async function regles() {
-  if (reglesTestees) { return reglesTestees; }
+// Règles du bundle testé (défaut) ou d'un bundle de base (entrée 5 : décompte des priorités forcées et des règles :focus).
+const reglesLues = new Map();
+async function regles(src = userscript) {
+  if (reglesLues.has(src)) { return reglesLues.get(src); }
   const context = await browser.newContext();
   await confineNetwork(context);
   const page = await context.newPage();
   // eslint-disable-next-line no-eval
-  reglesTestees = await page.evaluate(REGLES_CSS, [(0, eval)(`'${cssDuBundle(userscript)}'`), RACCOURCIS_TICKET51]);
+  reglesLues.set(src, await page.evaluate(REGLES_CSS, [(0, eval)(`'${cssDuBundle(src)}'`), RACCOURCIS_TICKET51]));
   await context.close();
-  return reglesTestees;
+  return reglesLues.get(src);
 }
 const MOBILE = ['(max-width: 767px)', '(width <= 767px)'];
 
@@ -718,7 +746,7 @@ if (on('chevron')) {
 
 if (on('bureau')) {
   console.log('\n== bureau ==');
-  await comparer('bureau', Object.keys(PAGES).filter(k => !['exclus', 'groupes', 'pastilles'].includes(PAGES[k].famille)).flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
+  await comparer('bureau', Object.keys(PAGES).filter(k => !['exclus', 'groupes', 'pastilles', 'etiquettes'].includes(PAGES[k].famille)).flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
 }
 
 // ---------- bascule dans le même onglet ----------
@@ -1031,12 +1059,16 @@ if (on('groupes')) {
     }
     return { c, ...out };
   });
+  // Écart accepté et consigné (épopée 5, entrée 5) : fond et texte du « PNJ » des cartes passent en étiquette de catégorie ; ils sont vérifiés
+  // par le fragment etiquettes, et neutralisés ici des deux côtés (ouvrir n'a pas de masque, P8). Le reste de l'élément reste comparé.
+  // Condition de retrait : quand le bundle de base du fragment (COMMIT_AVANT_53) contient l'entrée 5.
+  const sansPnj55 = l => l.map(x => (/ SPAN\.dashboard-card-pnj /.test(x) ? x.replace(/^(.*?\] [^|]*\|[^|]*\|)[^|]*\|[^|]*\|/, '$1(entrée 5.5)|') : x));
   for (const { c, teste, base } of resBureau) {
     check(`groupes bureau ${c.variante} ${c.width} px : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
       assert.equal(teste.r.mobile, false, 'mode mobile');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
-      const d = premierEcart(teste.r.l, base.r.l);
+      const d = premierEcart(sansPnj55(teste.r.l), sansPnj55(base.r.l));
       assert.equal(d, '', d);
       assert.equal(teste.r.sw, base.r.sw, 'largeur défilable');
     });
@@ -1059,7 +1091,7 @@ if (on('groupes')) {
       assert.equal(teste.r.mobile, false, 'mobile-mode présent : état P4 non reproduit');
       assert.ok(teste.media, 'média (max-width: 767px) non valide');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
-      const d = premierEcart(teste.r.l, base.r.l);
+      const d = premierEcart(sansPnj55(teste.r.l), sansPnj55(base.r.l));
       assert.equal(d, '', d);
     });
     check(`groupes sans mobile-mode ${c.variante} 767 px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
@@ -1097,7 +1129,7 @@ if (on('groupes')) {
         check(`${lab}, étape ${i + 1} (${e.width} px) : égal au bundle de base (même parcours), aucun état replié`, () => {
           assert.ok(e.r.theme && base.etapes[i].r.theme, 'kr-theme-enabled absent');
           assert.equal(e.r.mobile, false, 'mode mobile à 768 px');
-          const d = premierEcart(e.r.l, base.etapes[i].r.l);
+          const d = premierEcart(sansPnj55(e.r.l), sansPnj55(base.etapes[i].r.l));
           assert.equal(d, '', d);
           assert.ok(!e.r.l.some(x => /collapsed/.test(x.split(' ')[1])), 'grille repliée à 768 px');
         });
@@ -1186,7 +1218,8 @@ if (on('pastilles')) {
   console.log('\n== pastilles ==');
   const rs = await regles();
   check('statique : règle réécrite de la cloche et de l\'enveloppe dans le média combiné (deux supports), fond non lu et texte surface à la priorité d\'origine, sans couleur de bordure ni couleur littérale', () => {
-    const l = rs.filter(r => r.sel.startsWith(P.regle));
+    // Entrée 5 : les compteurs de contact du kramail sont ajoutés en tête de la règle (P14) ; elle se repère à son début d'origine.
+    const l = rs.filter(r => r.sel.includes(P.regle));
     assert.equal(l.length, 1, `${l.length} règle(s)`);
     const [r] = l;
     assert.ok(['(max-width: 767px), (min-width: 768px)', '(width <= 767px), (width >= 768px)'].includes(r.media), `média « ${r.media || 'global'} »`);
@@ -1239,7 +1272,7 @@ if (on('pastilles')) {
       assert.ok(vis.length === 2 && vis.every(p => p.animation === 'kr-bell-swing'), vis.map(p => `${p.cle} ${p.animation}`).join(', ') || 'aucune pastille visible');
       assert.deepEqual(m.pastilles.map(p => p.animation), b.pastilles.map(p => p.animation));
     });
-    check(`${lab} : emplois hors liste (pastille de panneau, de groupe) égaux à la base`, () => {
+    check(`${lab} : emplois hors liste (pastille de panneau) égaux à la base`, () => {
       assert.ok(m.hors.every(x => !/absent$/.test(x)), m.hors.join(' ; '));
       assert.deepEqual(m.hors, b.hors);
     });
@@ -1327,6 +1360,296 @@ if (on('pastilles')) {
       }
     });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+}
+
+// ---------- étiquettes de catégorie (entrée 5) ----------
+// Listes par page : clé, sélecteur, sort attendu. categorie : réécrite en étiquette de catégorie ; marque : marque native PNJ (taille de
+// .xmini égale à la base) ; tags : catégorie sous 768 px, base au-delà ; conforme : déjà en catégorie, égale à la base ; egal : égal à la
+// base (hors familles, états, pièce courante, tags natifs) ; contact : compteur de contact du kramail, pastille d'état ; absent : aucune.
+// Quatrième terme facultatif, 'mobile' : élément rendu sous 768 px seulement (exigé présent là, égal à la base au-delà) ; sinon exigé partout.
+const horsFamilles55 = page => E.horsFamilles.filter(s => s !== E.horsFamillesAbsent[page]).map(s => [s, s, 'egal', ...(s === E.horsFamillesMobile[page] ? ['mobile'] : [])]);
+const LISTES55 = {
+  barre: [['pnj', E.pnj, 'categorie'], ['groupe', E.groupe, 'categorie'], ...E.conformes.map(s => [s, s, 'conforme']), ...horsFamilles55('barre')],
+  tags: [['tags', E.tags, 'tags'], ['pnj', E.pnj, 'categorie'], ['groupe', E.groupe, 'categorie']],
+  groupes: [['pnj', E.pnj, 'categorie'], ...horsFamilles55('groupes')],
+  etats: [['marque', E.marque, 'marque'], ...E.etat.map(s => [s, s, 'egal'])],
+  'reception-remplie': [['contact', E.contact, 'contact']],
+  reception: [['contact', E.contact, 'contact']],
+  ...Object.fromEntries(Object.entries(E.conformesPages).map(([nom, s]) => [nom, [[s, s, 'conforme']]])),
+  'sous-forum': [['tagforum', E.tagforum, 'egal']],
+  sujet: [['absents', E.absents, 'absent']]
+};
+// Mesure (dans la page) : éléments de chaque clé (styles calculés, boîte, contraste), jetons sondés (catégorie, survol, états, surface),
+// conteneur des tags et référence « NOUVEAU MESSAGE » du sous-forum.
+const MESURE_ETIQUETTES = ([R, Q, cles]) => {
+  const C = window.__krContraste;
+  const r = v => Math.round(v * 10) / 10;
+  const un = e => {
+    const s = getComputedStyle(e);
+    const b = e.getBoundingClientRect();
+    const boite = b.width > 0 && b.height > 0;
+    const largeurs = [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth];
+    return {
+      texte: e.textContent.trim().slice(0, 24), display: s.display, boite, fond: s.backgroundColor, couleur: s.color,
+      bordures: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor], largeurs, taille: s.fontSize, graisse: s.fontWeight,
+      rayons: [s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius],
+      rapport: C.texte(e),
+      cadre: `${s.display} ${s.padding} ${s.minHeight} ${s.fontSize} ${s.lineHeight} ${largeurs.join(' ')} ${s.textTransform} ${s.letterSpacing}`,
+      geo: `${s.display} [${[b.left, b.top, b.width, b.height].map(r)}] ${s.position} ${s.top} ${s.right} ${s.padding} ${s.margin} ${s.minHeight} ${s.fontSize} ${s.lineHeight} ${largeurs.join(' ')} ${s.textTransform} ${s.letterSpacing}`
+    };
+  };
+  const ref = document.querySelector(Q.reference);
+  const conteneur = document.querySelector(R.tagsConteneur);
+  return {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    jetons: { fond: C.sonde(R.fond), texte: C.sonde(R.texte), fondSurvol: C.sonde(R.fondSurvol), texteSurvol: C.sonde(R.texteSurvol), unread: C.sonde(Q.fond), surface: C.sonde(Q.texte), etats: R.etats.map(C.sonde) },
+    el: Object.fromEntries(cles.map(([k, sel]) => [k, [...document.querySelectorAll(sel)].map(un)])),
+    conteneur: conteneur ? `${getComputedStyle(conteneur).display} ${getComputedStyle(conteneur).gap} ${getComputedStyle(conteneur).marginTop}` : null,
+    reference: ref ? { fond: getComputedStyle(ref).backgroundColor, couleur: getComputedStyle(ref).color } : null
+  };
+};
+// Pseudo-classe forcée par le protocole du navigateur (aucun geste, aucun clic), transitions finies, puis mesure.
+async function forcerEtat55(page, sel, etat, mesure) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send('DOM.enable');
+    await cdp.send('CSS.enable');
+    const { root: doc } = await cdp.send('DOM.getDocument', { depth: 0 });
+    const { nodeIds } = await cdp.send('DOM.querySelectorAll', { nodeId: doc.nodeId, selector: sel });
+    for (const nodeId of nodeIds) { await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [etat] }); }
+    await page.evaluate(() => new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok))));
+    await waitState(page, () => document.getAnimations().every(a => a.playState !== 'running'), null, { maxMs: 3000 });
+    return await mesure();
+  } finally { await cdp.detach(); }
+}
+// Relevé d'une page : repos ; marque PNJ survolée ; tags en appui sous 768 px.
+async function releverEtiquettes(c, script) {
+  const cles = LISTES55[c.nom];
+  const { context, page, erreurs } = await ouvrir({ ...c, script });
+  const mesure = () => page.evaluate(MESURE_ETIQUETTES, [E, P, cles]);
+  const m = await mesure();
+  const survol = c.nom === 'etats' ? await forcerEtat55(page, E.marque, 'hover', mesure) : null;
+  const appui = c.nom === 'tags' && c.width < 768 ? await forcerEtat55(page, E.tags, 'active', mesure) : null;
+  await context.close();
+  return { m, survol, appui, erreurs };
+}
+// Écarts d'une étiquette de catégorie : fond et texte égaux aux jetons calculés (rgb exacts, P2), aucune couleur d'état ni rouge de
+// Bootstrap, bordure (si elle a une largeur) de la couleur du fond ; forme 12 px 700 et rayon plein (marque : taille égale à la base).
+const ROUGES_BOOTSTRAP = ['rgb(217, 83, 79)', 'rgb(201, 48, 44)', 'rgb(212, 63, 58)', 'rgb(172, 41, 37)'];
+function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = true, taille = '12px' } = {}) {
+  const e = [];
+  if (x.fond !== fond) { e.push(`fond ${x.fond} ≠ ${fond}`); }
+  if (x.couleur !== texte) { e.push(`texte ${x.couleur} ≠ ${texte}`); }
+  if ([...j.etats, ...ROUGES_BOOTSTRAP].includes(x.fond)) { e.push(`fond en couleur d'état ${x.fond}`); }
+  if (x.largeurs.some(v => v !== '0px') && x.bordures.some(b => b !== x.fond)) { e.push(`bordures ${x.bordures.join(' ')} ≠ fond`); }
+  if (forme) {
+    if (x.taille !== taille || x.graisse !== '700') { e.push(`${x.taille}/${x.graisse} (attendu ${taille}/700)`); }
+    if (x.rayons.some(v => v !== '9999px')) { e.push(`rayons ${x.rayons.join(' ')}`); }
+  }
+  return e.length ? [`${quoi} « ${x.texte} » : ${e.join(', ')}`] : [];
+}
+// Palette d'états : la marque PNJ passe en 700 et s'élargit, sa voisine #piece glisse d'un pixel ; sa position seule reste hors champ.
+const sansPosition55 = (c, k, x) => (c.nom === 'etats' && k === '#piece' ? { ...x, geo: x.geo.replace(/\[[^,]+,[^,]+,/, '[') } : x);
+const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+const BUREAU55 = ['(min-width: 768px)', '(width >= 768px)'];
+const MEDIA_COMBINE = ['(max-width: 767px), (min-width: 768px)', '(width <= 767px), (width >= 768px)'];
+const LITTERALE = v => /#[0-9a-f]{3,8}\b|rgb|hsl/i.test(v);
+if (on('etiquettes')) {
+  console.log('\n== etiquettes ==');
+  const rs = await regles();
+  const rb = await regles(avant55);
+  const forcees = l => l.reduce((n, r) => n + Object.values(r.d).filter(([, p]) => p === 'important').length, 0);
+  const focus = l => l.filter(r => r.sel.includes(':focus')).length;
+  check(`statique : autant de priorités forcées (${forcees(rs)}) et de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT_55}) ; aucun #c9302c`, () => {
+    assert.equal(forcees(rs), forcees(rb), 'priorités forcées');
+    assert.equal(focus(rs), focus(rb), 'règles :focus');
+    assert.ok(!/c9302c/i.test(cssDuBundle(userscript)), '#c9302c présent');
+  });
+  const net = v => v.replace(/\s+/g, '');
+  check('statique : règles réécrites (PNJ des cartes, compteur de groupe bureau et mobile, tags et appui mobiles) aux jetons de la catégorie, sans couleur littérale', () => {
+    const pnj = rs.filter(r => r.sel === E.pnj);
+    const groupe = rs.filter(r => r.sel === E.groupe && r.media);
+    const tags = rs.filter(r => r.sel.startsWith(E.regleTags));
+    assert.equal(pnj.length, 1, `PNJ : ${pnj.length} règle(s)`);
+    assert.ok(groupe.some(r => MOBILE.includes(r.media)) && groupe.some(r => BUREAU55.includes(r.media)), `compteur de groupe : ${groupe.map(r => r.media).join(', ')}`);
+    assert.ok(tags.length >= 2 && tags.every(r => MOBILE.includes(r.media)), `tags : ${tags.map(r => r.media).join(', ')}`);
+    const ecarts = [...pnj, ...groupe, ...tags].flatMap(r => Object.entries(r.d).filter(([p, [v]]) => /color|background/.test(p) && LITTERALE(v)).map(([p, [v]]) => `${r.sel} ${p} ${v}`));
+    const voulu = [[pnj[0], 'background', E.fond], [pnj[0], 'color', E.texte], ...groupe.flatMap(r => [[r, 'background-color', E.fond], [r, 'color', E.texte]]),
+      ...tags.filter(r => !r.sel.endsWith(':active')).flatMap(r => [[r, 'background', E.fond], [r, 'color', E.texte]]), ...tags.filter(r => r.sel.endsWith(':active')).map(r => [r, 'background', E.fondSurvol])];
+    voulu.forEach(([r, p, v]) => { if (!r.d[p] || net(r.d[p][0]) !== net(v)) { ecarts.push(`${r.sel} (${r.media || 'global'}) ${p} ${JSON.stringify(r.d[p])} ≠ ${v}`); } });
+    sansEcart55(ecarts);
+  });
+  check('statique : marque native PNJ, règle unique dans le média combiné (fond, bordure, texte, graisse, rayon ; taille laissée à l\'origine .xmini), sans priorité forcée', () => {
+    const l = rs.filter(r => r.sel === E.regleMarque);
+    assert.equal(l.length, 1, `${l.length} règle(s)`);
+    const [r] = l;
+    assert.ok(MEDIA_COMBINE.includes(r.media), `média « ${r.media || 'global'} »`);
+    const att = { 'background-color': E.fond, color: E.texte, 'font-weight': '700', 'border-radius': 'var(--kr-radius-full)', 'border-top-color': null };
+    sansEcart55([
+      ...Object.entries(att).filter(([p, v]) => !r.d[p] || (v !== null && net(r.d[p][0]) !== net(v))).map(([p, v]) => `${p} ${JSON.stringify(r.d[p])} ≠ ${v}`),
+      ...Object.entries(r.d).filter(([, [v, prio]]) => prio || LITTERALE(v)).map(([p, [v, prio]]) => `${p} ${v} ${prio}`)
+    ]);
+  });
+  check('statique : compteurs de contact du kramail en tête de la règle d\'état (média combiné, fond non lu, texte surface) ; détecteurs 5.4 et 5.5 justes', () => {
+    const l = rs.filter(r => r.sel.startsWith(E.regleContacts));
+    assert.equal(l.length, 1, `${l.length} règle(s)`);
+    assert.ok(l[0].sel.includes(P.regle), 'règle d\'état de l\'entrée 4');
+    assert.ok(MEDIA_COMBINE.includes(l[0].media), `média « ${l[0].media} »`);
+    assert.deepEqual(l[0].d, { 'background-color': [P.fond, 'important'], color: [P.texte, 'important'] }, JSON.stringify(l[0].d));
+    assert.equal(AVANT_TICKET54(userscript), false, 'AVANT_TICKET54(bundle testé)');
+    assert.equal(AVANT_TICKET55(userscript), false, 'AVANT_TICKET55(bundle testé)');
+    if (!process.env.KR_SCRIPT_AVANT) { assert.equal(AVANT_TICKET55(avant55), true, `AVANT_TICKET55(${COMMIT_AVANT_55})`); }
+  });
+  // Géométrie et égalités à la base : 7 largeurs, Kraland clair et Empire Brun sombre, toutes les pages.
+  const PAGES55 = Object.keys(LISTES55);
+  const cas = [...MOBILES, ...BUREAUX].flatMap(width => VARIANTES.flatMap(variante => PAGES55.map(nom => ({ nom, width, variante }))));
+  const res = await mapLimit(cas, async c => ({ c, t: await releverEtiquettes(c, userscript), b: await releverEtiquettes(c, avant55) }));
+  const refs = new Map(res.filter(({ c }) => c.nom === 'sous-forum').map(({ c, t }) => [`${c.variante} ${c.width}`, t.m.reference]));
+  for (const { c, t, b } of res) {
+    const lab = `etiquettes ${c.nom} ${c.variante} ${c.width} px`;
+    const j = t.m.jetons;
+    check(`${lab} : kr-theme-enabled (testé et base), mobile-mode ${c.width < 768}, aucune erreur de page`, () => {
+      assert.ok(t.m.theme && b.m.theme, 'kr-theme-enabled absent');
+      assert.equal(t.m.mobile, c.width < 768, `mobile-mode ${t.m.mobile}`);
+      assert.deepEqual(t.erreurs, []);
+    });
+    for (const [k, , sort, rendu] of LISTES55[c.nom]) {
+      const l = t.m.el[k];
+      const lb = b.m.el[k];
+      const tagsBase = sort === 'tags' && c.width >= 768;
+      if (sort === 'absent') {
+        check(`${lab} : aucune étiquette ni pastille (${E.absents}), comme la base`, () => assert.deepEqual([l.length, lb.length], [0, 0]));
+        continue;
+      }
+      if (sort === 'egal' || sort === 'conforme' || tagsBase) {
+        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT_55})${tagsBase ? ', sans règle bureau' : ''}`, () => {
+          if (rendu !== 'mobile' || c.width < 768) { assert.ok(l.length > 0, 'absent'); }
+          const d = premierEcart(l.map(x => JSON.stringify(sansPosition55(c, k, x))), lb.map(x => JSON.stringify(sansPosition55(c, k, x))));
+          assert.equal(d, '', d);
+          if (sort === 'conforme') { sansEcart55(l.flatMap(x => ecartsCategorie(k, x, j))); }
+        });
+        continue;
+      }
+      if (sort === 'contact') {
+        check(`${lab} : compteurs de contact remplis en pastille d'état (fond ${j.unread}, texte ${j.surface}) comme « NOUVEAU MESSAGE » du sous-forum, contact actif compris ; vides invisibles ; géométrie égale à la base`, () => {
+          const ref = refs.get(`${c.variante} ${c.width}`);
+          assert.ok(ref, '« NOUVEAU MESSAGE » absent du sous-forum');
+          assert.equal(l.length, 2, 'compteurs');
+          const pleins = l.filter(x => x.texte);
+          assert.equal(pleins.length, c.nom === 'reception' ? 0 : 2, 'compteurs remplis');
+          sansEcart55([
+            ...pleins.flatMap(x => (x.fond === j.unread && x.couleur === j.surface && x.fond === ref.fond && x.couleur === ref.couleur ? [] : [`« ${x.texte} » ${x.couleur} sur ${x.fond} (jetons ${j.surface} sur ${j.unread}, référence ${ref.couleur} sur ${ref.fond})`])),
+            ...l.filter(x => !x.texte && (x.display !== 'none' || x.boite)).map(x => `vide ${x.display} boîte ${x.boite}`)
+          ]);
+          const d = premierEcart(l.map(x => x.geo), lb.map(x => x.geo));
+          assert.equal(d, '', d);
+        });
+        continue;
+      }
+      check(`${lab} : ${k} (${l.length}) en étiquette de catégorie (fond ${j.fond}, texte ${j.texte}, bordure du fond), ${sort === 'marque' ? 'taille de .xmini égale à la base' : '12 px'}, 700, rayon plein, aucune couleur d'état`, () => {
+        assert.ok(l.length > 0 && l.length === lb.length, `${l.length} / ${lb.length} éléments`);
+        sansEcart55(l.flatMap((x, i) => ecartsCategorie(k, x, j, { taille: sort === 'marque' ? lb[i].taille : '12px' })));
+      });
+      check(`${lab} : ${k} : ${sort === 'marque' ? 'cadre (affichage, retrait, hauteur minimale, taille, bordures, casse)' : 'position, boîte, retrait, casse et espacement'} égaux à la base${sort === 'tags' ? ', conteneur (gap, marge) compris' : ''}`, () => {
+        const champ = sort === 'marque' ? 'cadre' : 'geo';
+        const d = premierEcart(l.map(x => x[champ]), lb.map(x => x[champ]));
+        assert.equal(d, '', d);
+        if (sort === 'tags') { assert.equal(t.m.conteneur, b.m.conteneur, 'conteneur'); }
+      });
+      if (sort === 'marque') {
+        check(`${lab} : marque PNJ survolée (forcé) aux couleurs du repos`, () => sansEcart55(t.survol.el[k].flatMap((x, i) => (x.fond === l[i].fond && x.couleur === l[i].couleur && x.bordures.join() === l[i].bordures.join() ? [] : [`survol ${x.couleur} sur ${x.fond} (bordures ${x.bordures.join(' ')})`]))));
+      }
+      if (sort === 'tags' && t.appui) {
+        check(`${lab} : tags en appui (forcé) au survol de catégorie (fond ${j.fondSurvol}, texte ${j.texteSurvol}), ≥ 4,5:1`, () => sansEcart55(t.appui.el[k].flatMap(x => [
+          ...ecartsCategorie(`${k}:active`, x, j, { fond: j.fondSurvol, texte: j.texteSurvol }),
+          ...(x.rapport !== null && x.rapport < 4.5 ? [`« ${x.texte} » ${x.rapport.toFixed(2)}:1`] : [])
+        ])));
+      }
+    }
+  }
+  // Thèmes : 16 variantes, couleurs aux jetons calculés, contraste ≥ 4,5:1 (rapport exact, P1).
+  const PAGES_T = ['barre', 'tags', 'groupes', 'etats', 'reception-remplie', 'sous-forum'];
+  const casT = [375, 1280, 1440, 1920].flatMap(width => TOUTES.flatMap(variante => PAGES_T.filter(nom => nom !== 'tags' || width < 768).map(nom => ({ nom, width, variante }))));
+  const resT = await mapLimit(casT, async c => ({ c, ...await releverEtiquettes(c, userscript) }));
+  const refsT = new Map(resT.filter(({ c }) => c.nom === 'sous-forum').map(({ c, m }) => [`${c.variante} ${c.width}`, m.reference]));
+  for (const { c, m, survol, appui, erreurs } of resT.filter(x => x.c.nom !== 'sous-forum')) {
+    const lab = `etiquettes ${c.nom} ${c.variante} ${c.width} px`;
+    const j = m.jetons;
+    check(`${lab} : étiquettes de catégorie au fond ${j.fond} et texte ${j.texte} calculés, ≥ 4,5:1 (rapport exact), aucune en couleur d'état ; compteurs de contact comme « NOUVEAU MESSAGE » ; aucune erreur de page`, () => {
+      assert.ok(m.theme, 'kr-theme-enabled absent');
+      assert.deepEqual(erreurs, []);
+      const ecarts = [];
+      for (const [k, , sort] of LISTES55[c.nom]) {
+        const l = m.el[k];
+        if (['categorie', 'marque', 'tags', 'conforme'].includes(sort)) {
+          if (!l.length) { ecarts.push(`${k} absent`); }
+          l.forEach(x => {
+            ecarts.push(...ecartsCategorie(k, x, j, { forme: false }));
+            if (x.rapport !== null && x.rapport < 4.5) { ecarts.push(`${k} « ${x.texte} » ${x.rapport.toFixed(2)}:1`); }
+          });
+          if (sort !== 'tags' && l.length && l.every(x => !x.boite)) { ecarts.push(`${k} sans boîte`); }
+        }
+        if (sort === 'contact') {
+          const ref = refsT.get(`${c.variante} ${c.width}`);
+          if (!ref) { ecarts.push('« NOUVEAU MESSAGE » absent'); }
+          l.filter(x => x.texte).forEach(x => {
+            if (!ref || x.fond !== j.unread || x.couleur !== j.surface || x.fond !== ref.fond || x.couleur !== ref.couleur) { ecarts.push(`contact « ${x.texte} » ${x.couleur} sur ${x.fond}`); }
+            if (x.rapport !== null && x.rapport < 4.5) { ecarts.push(`contact « ${x.texte} » ${x.rapport.toFixed(2)}:1`); }
+          });
+        }
+      }
+      if (survol) { survol.el.marque.forEach((x, i) => { if (x.fond !== m.el.marque[i].fond || x.couleur !== m.el.marque[i].couleur) { ecarts.push(`marque survolée ${x.couleur} sur ${x.fond}`); } }); }
+      if (appui) {
+        appui.el.tags.forEach(x => {
+          ecarts.push(...ecartsCategorie('tags:active', x, j, { fond: j.fondSurvol, texte: j.texteSurvol, forme: false }));
+          if (x.rapport !== null && x.rapport < 4.5) { ecarts.push(`tags:active « ${x.texte} » ${x.rapport.toFixed(2)}:1`); }
+        });
+      }
+      sansEcart55(ecarts);
+    });
+  }
+  // Bascule dans le même onglet : PNJ, compteur de groupe et tags (page de sujet), marque (palette d'états) ; tags en catégorie à 767,
+  // égaux au même parcours de la base à 768.
+  const parcoursEtiquettes = async (nom, variante, largeurs, script) => {
+    const { context, page, erreurs } = await ouvrir({ nom, width: largeurs[0], variante, script, tactile: false });
+    const etapes = [];
+    for (let i = 0; i < largeurs.length; i += 1) {
+      if (i > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+        await page.setViewportSize({ width: largeurs[i], height: 667 });
+        await charge;
+        await prete(page, `bascule etiquettes ${nom} ${variante} ${largeurs[i]} px`);
+      }
+      etapes.push({ width: largeurs[i], m: await page.evaluate(MESURE_ETIQUETTES, [E, P, LISTES55[nom]]) });
+    }
+    await context.close();
+    return { etapes, erreurs };
+  };
+  const casB = VARIANTES.flatMap(variante => ['tags', 'etats'].flatMap(nom => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ nom, variante, largeurs }))));
+  const resB = await mapLimit(casB, async c => ({ c, t: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, userscript), b: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, avant55) }));
+  for (const { c, t, b } of resB) {
+    const lab = `etiquettes bascule ${c.nom} ${c.variante} ${c.largeurs.join(' -> ')}`;
+    t.etapes.forEach((e, i) => {
+      check(`${lab}, étape ${i + 1} (${e.width} px) : ${c.nom === 'tags' ? `PNJ et compteur de groupe en catégorie, tags ${e.width < 768 ? 'en catégorie' : 'égaux à la base'}` : 'marque PNJ en catégorie'}`, () => {
+        assert.ok(e.m.theme, 'kr-theme-enabled absent');
+        assert.equal(e.m.mobile, e.width < 768, `mobile-mode ${e.m.mobile}`);
+        const ecarts = [];
+        for (const [k, , sort] of LISTES55[c.nom]) {
+          if (sort === 'tags' && e.width >= 768) {
+            const d = premierEcart(e.m.el[k].map(x => JSON.stringify(x)), b.etapes[i].m.el[k].map(x => JSON.stringify(x)));
+            if (d) { ecarts.push(`tags : ${d}`); }
+          } else if (['categorie', 'marque', 'tags'].includes(sort)) {
+            if (!e.m.el[k].length) { ecarts.push(`${k} absent`); }
+            e.m.el[k].forEach((x, n) => ecarts.push(...ecartsCategorie(k, x, e.m.jetons, { taille: sort === 'marque' ? b.etapes[i].m.el[k][n].taille : '12px' })));
+          }
+        }
+        sansEcart55(ecarts);
+      });
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(t.erreurs, []));
   }
 }
 

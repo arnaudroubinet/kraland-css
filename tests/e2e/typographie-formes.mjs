@@ -106,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -315,7 +315,10 @@ async function largeurs(titre, widths) {
   const cas = Object.keys(PAGES).flatMap(nom => VARIANTES.flatMap(variante => widths.filter(w => nom !== 'forum' || w < 768).map(width => ({ nom, variante, width }))));
   // Écart accepté et consigné (épopée 5, entrée 4) : cloche et enveloppe en pastille d'état (fond non lu, texte surface) ; la base reçoit
   // CARTES_TICKET54 tant qu'elle précède l'entrée (AVANT_TICKET54). À retirer quand le bundle de base de la suite contient l'entrée 4.
-  const cssAvant = AVANT_TICKET54(avant) ? CARTES_TICKET54 : '';
+  // Écart accepté et consigné (épopée 5, entrée 5) : « PNJ » des cartes, compteur de groupe et tags mobiles en étiquette de catégorie,
+  // compteurs de contact du kramail en pastille d'état ; la base reçoit CARTES_TICKET55 tant qu'elle précède l'entrée (AVANT_TICKET55).
+  // À retirer quand le bundle de base de la suite contient l'entrée 5.
+  const cssAvant = (AVANT_TICKET54(avant) ? CARTES_TICKET54 : '') + (AVANT_TICKET55(avant) ? CARTES_TICKET55 : '');
   const res = await mapLimit(cas, async c => ({ c, r: await relever({ ...c, script: userscript }), a: await relever({ ...c, script: avant, css: cssAvant }) }));
   for (const { c, r, a } of res) {
     check(`${etiquette(c)} : étiquettes et pastilles présentes, 12 px gras`, () => {
@@ -1867,11 +1870,13 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
   // Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section (CARTES_TICKET51), posés sur un bundle de base
   // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé. Idem pour l'entrée 2 (CARTES_TICKET52,
-  // AVANT_TICKET52 : forum compris), empilée après, puis de l'entrée 3 (CARTES_TICKET53, AVANT_TICKET53 : groupes du plateau).
+  // AVANT_TICKET52 : forum compris), empilée après, puis de l'entrée 3 (CARTES_TICKET53, AVANT_TICKET53 : groupes du plateau), puis de
+  // l'entrée 5 (CARTES_TICKET55, AVANT_TICKET55 : « PNJ » des cartes en étiquette de catégorie).
   const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
     + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '')
     + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '')
-    + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '');
+    + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '')
+    + (script !== userscript && AVANT_TICKET55(script) ? '\n' + CARTES_TICKET55 : '');
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }

@@ -109,3 +109,15 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-cartes-pastilles/story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3-plan.md`
   summary: Bureau compact (768 à 991 px, PLT-04) : la cloche et l'enveloppe sont dans le menu repliable, sans clone ; menu fermé, aucune n'est visible (comme la base). Un message non lu ne se voit qu'en ouvrant le menu. Hors périmètre de 5.4.
   evidence: Fragment `pastilles` de `cartes-pastilles.mjs` à 768 et 769 px : menu fermé, boîte 0 × 0 ; menu ouvert (bouton de la barre), pastille d'état visible.
+
+## Reports du ticket 5.5, étiquettes de catégorie (2026-10-24)
+
+- source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
+  summary: `--kr-badge-pnj` (`#d9534f`) n'est plus lu par la peau (P12) ; son retrait revient au sweep 5.6, avec `--kr-badge-danger-border`.
+  evidence: « PNJ » des cartes et marque native PNJ lisent `--kr-arm-bg` / `--kr-arm-ink` depuis 5.5.
+- source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
+  summary: A4 : les tags natifs du forum (`span.tagforum`, « · #tag ») gardent leur rendu, hors famille des étiquettes. `.forum-tags` n'existe que dans la fixture synthétique. Décision de famille à prendre par Arnaud.
+  evidence: Fragment `etiquettes` de `cartes-pastilles.mjs`, page `sous-forum` : `span.tagforum` égal à la base `59567f0`.
+- source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
+  summary: Marque native PNJ sous 768 px : 14 px et 46 px de haut (règle `.btn` mobile de la peau en priorité forcée), au lieu des 12 px de la famille.
+  evidence: Fragment `etiquettes`, page `etats` : taille égale à la base à 375 et 767 px ; 12 px au bureau.

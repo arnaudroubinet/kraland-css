@@ -470,12 +470,13 @@ export const AVANT_TICKET53 = bundle => !bundle.includes('body.mobile-mode .dash
  * cartes-pastilles.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : pastille de la cloche, pastille de l'enveloppe, barre d'origine,
  * conteneur des clones mobiles, référence « NOUVEAU MESSAGE » du sous-forum (pastille citée par trois suites), jetons attendus du fond et du
  * texte (le jeton du non lu serait une troisième citation), règle réécrite (début du sélecteur sérialisé par le CSSOM) et emplois hors liste
- * (pastille de panneau et de groupe de typographie-formes.html).
+ * (pastille de panneau de typographie-formes.html ; la pastille de groupe en est sortie à l'entrée 5.5, qui la réécrit en étiquette de
+ * catégorie et la contrôle).
  */
 export const PASTILLES_TICKET54 = {
   cloche: '.fa-bell ~ .badge', enveloppe: 'a[href*="kramail"] .badge', barre: '.navbar-right', clones: '.navbar-header-buttons-left',
   reference: '.kr-topic-badge[data-kr-label="NOUVEAU MESSAGE"]', fond: 'var(--kr-status-unread)', texte: 'var(--kr-bg-surface)',
-  regle: '.badge-danger, .navbar-right a[href="kramail"] .badge:not(:empty)', horsListe: ['#pastille-titre', '#pastille-groupe']
+  regle: '.badge-danger, .navbar-right a[href="kramail"] .badge:not(:empty)', horsListe: ['#pastille-titre']
 };
 /**
  * Écart accepté et consigné (épopée 5, entrée 4, story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3) : pastilles de la cloche
@@ -494,6 +495,51 @@ export const CARTES_TICKET54 = [
 ].join('\n');
 /** Bundle d'avant l'épopée 5, entrée 4 : la pastille de l'enveloppe des clones n'y est pas en fond non lu (règle minifiée du bundle). */
 export const AVANT_TICKET54 = bundle => !bundle.includes('a[href*=kramail] .badge:not(:empty){background-color:var(--kr-status-unread)!important');
+
+/**
+ * Étiquettes de catégorie (épopée 5, entrée 5, story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1) : repères de
+ * cartes-pastilles.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : étiquettes réécrites (PNJ des cartes, marque native, compteur
+ * de groupe, tags du sujet et leur conteneur), compteurs de contact du kramail (pastilles d'état) et le sélecteur ajouté en tête de la
+ * règle d'état, étiquettes déjà conformes, éléments hors familles, étiquettes d'état et pièce courante, tags natifs du sous-forum,
+ * étiquettes et pastilles cherchées sur le fil de sujet (absence), jetons de la famille (fond, texte, survol) et couleurs d'état.
+ */
+export const ETIQUETTES_TICKET55 = {
+  pnj: '.dashboard-card-pnj', marque: '.btn.btn-danger.xmini', groupe: '.dashboard-section-header .badge', tags: '.forum-tags a',
+  tagsConteneur: '.forum-tags', contact: 'a.list-group-item[href^="kramail/"] > .badge',
+  regleContacts: 'a.list-group-item[href^="kramail/"] > .badge:not(:empty)', regleMarque: 'html.kr-theme-enabled .btn.btn-danger.xmini',
+  // Sélecteur des tags tel que le bundle minifié le sert (td:nth-child(1) devient td:first-child).
+  regleTags: 'body.page-forum table.dataTable tbody td:first-child .forum-tags a',
+  conformes: ['#etiquette-rang', '#etiquette-mod', '.kr-order-badge'], conformesPages: { 'index-rp': '.label', materiel: '.label-primary' },
+  horsFamilles: ['.kr-stat-badge', '.kr-skill-badge', '.kr-room-here', '#col-leftest-stats .btn-success', '.mobile-characteristic-badge'],
+  // Présence dans les fixtures : hors familles absent de la page (non listé), ou rendu sous 768 px seulement (exigé sous 768 px).
+  horsFamillesAbsent: { barre: '.mobile-characteristic-badge', groupes: '.kr-room-here' },
+  horsFamillesMobile: { barre: '.kr-room-here', groupes: '.mobile-characteristic-badge' },
+  etat: ['.label-success', '.label-warning', '.label-danger', '#piece'], tagforum: 'span.tagforum', absents: '.label, .badge',
+  fond: 'var(--kr-arm-bg, var(--kr-primary))', texte: 'var(--kr-arm-ink, var(--kr-white))',
+  fondSurvol: 'var(--kr-arm-bg-hover, var(--kr-primary-dark))', texteSurvol: 'var(--kr-arm-ink-hover, var(--kr-white))',
+  etats: ['var(--kr-status-unread)', 'var(--kr-success)', 'var(--kr-warning)', 'var(--kr-danger)']
+};
+/**
+ * Écart accepté et consigné (épopée 5, entrée 5, story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1) : « PNJ » des cartes,
+ * compteur de groupe et tags du sujet (mobile) en étiquette de catégorie (fond --kr-arm-bg, texte --kr-arm-ink, bordure du compteur de la
+ * couleur du fond) ; compteurs de contact du kramail remplis en pastille d'état (fond --kr-status-unread, texte --kr-bg-surface). Feuille
+ * miroir des règles réécrites, mêmes sélecteurs ; elle porte !important, sans quoi la règle de la base la bat (elle vit dans le test, pas
+ * dans la peau). Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET55), jamais sur le bundle courant ; empilable avec
+ * CARTES_TICKET54 (posée avant elle) ; tout autre écart reste détecté. Écart consigné dans le plan de l'entrée (Plan Change Log).
+ * Condition de retrait : quand le bundle de base de la suite contient l'entrée 5.5 (le détecteur l'éteint de lui-même).
+ */
+export const CARTES_TICKET55 = [
+  '.dashboard-card-pnj { background: var(--kr-arm-bg, var(--kr-primary)) !important; color: var(--kr-arm-ink, var(--kr-white)) !important; }',
+  '@media (max-width: 767px), (min-width: 768px) {',
+  '  .dashboard-section-header .badge { border-color: var(--kr-arm-bg, var(--kr-primary)) !important; background-color: var(--kr-arm-bg, var(--kr-primary)) !important; color: var(--kr-arm-ink, var(--kr-white)) !important; }',
+  '  a.list-group-item[href^="kramail/"] > .badge:not(:empty) { background-color: var(--kr-status-unread) !important; color: var(--kr-bg-surface) !important; }',
+  '}',
+  '@media (max-width: 767px) {',
+  '  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a { color: var(--kr-arm-ink, var(--kr-white)) !important; background: var(--kr-arm-bg, var(--kr-primary)) !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 5, entrée 5 : le « PNJ » des cartes n'y est pas en fond de catégorie (règle minifiée du bundle). */
+export const AVANT_TICKET55 = bundle => !bundle.includes('.dashboard-card-pnj{background:var(--kr-arm-bg');
 
 /**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le

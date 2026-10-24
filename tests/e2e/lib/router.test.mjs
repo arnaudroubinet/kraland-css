@@ -252,10 +252,26 @@ check('pastilles d\'état de la barre (épopée 5, entrée 4) : règle réécrit
   const t = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/typographie-formes.html': [] }), readWith({}));
   assert.deepEqual(sorted(t.units), ['cartes-pastilles', 'typographie-formes'], JSON.stringify(t.units)); // règle « fixture » : suites qui la citent
 });
-check('cartes-pastilles enregistrée (11 fragments, Bootstrap embarqué)', () => {
+check('étiquettes de catégorie (épopée 5, entrée 5) : marque native PNJ, tags et compteurs de contact -> cartes-pastilles, typographie-formes, palette-nation ; fixtures lues', () => {
+  for (const [h, zones] of [
+    [hunk('@media (max-width: 767px), (min-width: 768px) {', '  html.kr-theme-enabled .btn.btn-danger.xmini {', '    background-color: var(--kr-arm-bg, var(--kr-primary));', '  }'), ['cartes-pastilles', 'typographie-formes', 'palette-nation']],
+    [hunk('  body.page-forum table.dataTable tbody td:nth-child(1) .forum-tags a {', '    color: var(--kr-arm-ink, var(--kr-white)) !important;', '  }'), ['cartes-pastilles', 'typographie-formes', 'palette-nation']],
+    [hunk('.dashboard-card-pnj {', '  background: var(--kr-arm-bg, var(--kr-primary));', '}'), ['cartes-pastilles', 'typographie-formes', 'palette-nation']],
+    [hunk('@media (max-width: 767px), (min-width: 768px) {', '  a.list-group-item[href^="kramail/"] > .badge:not(:empty),', '  .badge-danger,'), ['cartes-pastilles', 'typographie-formes']]
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    for (const z of zones) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
+  }
+  for (const f of ['palette-nation-etats.html', 'forum-index-rp.html', 'jeu-materiel.html']) {
+    const t = zonesFromDiff('REF', fakeGit({ [`tests/e2e/fixtures/${f}`]: [] }), readWith({}));
+    assert.ok(t.units.includes('cartes-pastilles'), `${f} : ${JSON.stringify(t.units)}`);
+  }
+});
+check('cartes-pastilles enregistrée (12 fragments, Bootstrap embarqué)', () => {
   const s = SUITES.find(x => x.name === 'cartes-pastilles');
   assert.ok(s, 'suite absente du registre');
-  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'groupes', 'pastilles', 'contraste']);
+  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'groupes', 'pastilles', 'etiquettes', 'contraste']);
   assert.equal(s.needsBootstrap, true);
 });
 
