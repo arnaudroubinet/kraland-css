@@ -1,0 +1,80 @@
+# tickets.toml — epic-cartes-pastilles, dans l'ordre de construction.
+# Balle traçante : entrée 1 (carte de section mobile des pages de jeu, kramail par les mêmes règles communes, suite cartes-pastilles.mjs et sa zone dans le routeur) ;
+# l'entrée la moins sûre vient ensuite : la liste des sujets du forum entre dans la carte (R6), qui retire la pleine largeur figée par le ticket 6.1.
+# Entrées chaînées par collision, pas par dépendance fonctionnelle : elles partagent la suite cartes-pastilles.mjs (créée par l'entrée 1)
+# et réécrivent les sections mobiles des panneaux et des pastilles de kraland-theme.css (décision prise en autonomie, 2026-10-24).
+# Commun : valeurs de DESIGN.md › Components (Carte de section, Pastille d'état, Étiquette de catégorie) ; DESIGN et EXPERIENCE priment sur les maquettes ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles qu'elle remplace, sans les battre par spécificité ou !important, et garde par page en :where(html.x) ce qu'elle conserve ;
+# règle commune aux deux supports en liste combinée @media (max-width: 767px), (min-width: 768px) ; mobile en max-width: 767px seulement ;
+# chaque plan consigne son rouge avant sur le bundle de sa base (classe kr-theme-enabled vérifiée), puis une contre-épreuve (mutation → rouge), et range son tri de revue sous ## Review Triage Log ;
+# chaque masque de test ajouté porte sa condition de retrait ; toute règle de couleur est vérifiée dans les 16 variantes ;
+# largeurs et variantes communes : 375×667, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre au moins ; fixtures synthétiques, existantes ou créées par l'entrée qui en a besoin ;
+# chaque entrée qui touche tests/ lance aussi npm run test:router ;
+# hors périmètre : focus clavier (aucune règle :focus), kramail au-delà des règles communes (thème du forum, épopée 7), lignes de l'index ≥ 72 px (épopée 6),
+# onglets (CAP-8), marge latérale de 16 px et cibles hors en-têtes (épopée 9) ; aucune icône ajoutée là où le site n'en a pas (Q30.7).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Carte de section mobile des pages de jeu ; kramail par les règles communes"
+description = "Balle traçante : sur mobile, chaque panneau .panel-default des pages de jeu (Matériel, Personnage, Bâtiments, Employés, panneaux Commerce et Matériel du plateau) devient une carte de section : en-tête de 48 px et contenu dans la même carte --kr-radius-md sur bg-surface, en retrait de 8 px des bords, contenu à 16 px de marge intérieure (Q10, hypothèse), titre 17 px gras en text-primary, icône native à gauche ; chevron du module « Panel Sections Collapse » sur Bâtiment, Commerce et Matériel, chevron natif ailleurs s'il existe, aucun ajouté, placé dans les 48 px ; les règles qui détachent l'en-tête (~l.7829-7845 : marge de 12 px, rayon et retrait propres), celles du module (.building-section-header ~l.6067 et ~l.6368-6395, globales hors media query) et les .panel-heading mobiles toujours battues de deferred-work.md (A12, `10px 15px`), si encore présentes, sont réécrites, pas battues ; le kramail prend cette carte par les mêmes règles communes et ne perd que ses déclarations contraires (titre en accent ~l.8958, retraits ~l.8952), sans règle propre, et la livre ainsi à l'épopée 7 ; cette règle de carte mobile est celle que reprennent les entrées 2 et 3 ; crée la suite cartes-pastilles.mjs et sa zone dans le routeur ; met à jour les suites qui figent ces en-têtes (fragments rayons et espacement de typographie-formes qui figent les panneaux de jeu et la réception mobile, masques du fragment regression de kramail-redaction), chaque masque avec sa condition de retrait."
+verify = "Suite cartes-pastilles, fixtures jeu-materiel, jeu-perso, jeu-batiments, jeu-employes, jeu-plateau-objets et kramail-reception, à 375 et 767 px : en-tête de 48 px dans la même boîte arrondie à 8 px que le contenu, carte à 8 px des bords, titre 17 px 700 en couleur du texte ≥ 4,5:1 sur bg-surface dans les 16 variantes, repli qui plie et déplie au toucher de l'en-tête sur les panneaux gérés par le module ; à 768, 769 et 1280 px, en-têtes égaux à la base, transition 767 ↔ 768 dans le même onglet dans les deux sens ; npm run test:router vert."
+covers = ["CAP-6"]
+after = ["3.8", "4.10"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 2
+type = "story"
+title = "Forum mobile : la liste des sujets entre dans la carte de section (R6)"
+description = "Sur mobile, les en-têtes du forum (bande transparente ~l.8292, sous-forum body.page-forum.kr-subforum .panel-default > .panel-heading ~l.14143, index et racine copiés du sous-forum par le ticket 6.1 ~l.14616) prennent la carte de section de l'entrée 1 ; sujets permanents et liste des sujets entrent dans la carte et quittent la pleine largeur (R6) ; la ligne de sujet garde son rendu (icônes d'état natives, pastilles, filet non lu, ligne entière touchable) ; index et racine suivent le sous-forum pour garder la parité du ticket 6.1, et la carte du forum ainsi posée sert de base à l'épopée 6 (lignes de l'index ≥ 72 px) ; les doublons des cartes de ligne du forum de deferred-work.md (A13, 1re et 2e version), si encore présents, sont retirés un par un, rendu vérifié après chaque retrait ; forum-index.mjs (lignes pleine largeur ~l.355-357, parité ~l.256-275), sous-forum.mjs (en-tête, cibles, seuils de position) et les fragments rayons et espacement de typographie-formes qui figent les en-têtes du sous-forum (K7, K8) sont mis à jour."
+verify = "Suites cartes-pastilles, sous-forum et forum-index, fixtures sous-forum-debuter, forum-index-rp, forum-index-communaute, forum-racine et forum-racine-groupes, à 375 et 767 px : en-tête de 48 px, titre 17 px 700 en couleur du texte ≥ 4,5:1 sur bg-surface dans les 16 variantes, liste dans la carte à 8 px des bords, chaque ligne de sujet entièrement touchable avec sa pastille et son filet, chevron d'au moins 44×44 qui replie ; parité index et sous-forum verte ; à 768 et 1440 px égal à la base ; npm run test:router vert."
+covers = ["CAP-6"]
+after = [1]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Groupes du plateau mobile dans la carte de section"
+description = "Sur le plateau mobile, les groupes de l'accordéon (.dashboard-section-header-accordion, posé par le JS ~l.2258-2300 du template ; CSS ~l.5749-5790) prennent la carte de section de l'entrée 1 : en-tête de 48 px, icône native, chevron à droite, grille des cartes de personnages dans la même carte (maquette key-plateau-mobile) ; accordéon, état initial « autres groupes fermés », ordre DOM et cartes de personnages inchangés ; aucune icône ajoutée aux en-têtes qui n'en ont pas (Q30.7, hypothèse) ; l'entrée étend plateau-qualite-usage d'un second groupe pour tester l'accordéon à plusieurs groupes."
+verify = "Suites cartes-pastilles et plateau-qualite-usage, fixture plateau-qualite-usage étendue, à 375 et 767 px : en-tête de groupe de 48 px, titre 17 px 700 en couleur du texte ≥ 4,5:1 sur bg-surface dans les 16 variantes, cartes de personnages dans la carte à 8 px des bords, second groupe fermé au chargement, accordéon qui plie et déplie dans les deux sens ; mini-profil (fixture plateau-minimal) plié et déplié à 375 et 700 px égal à la base ; npm run test:router vert."
+covers = ["CAP-6"]
+after = [2]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Pastilles d'état : cloche et enveloppe en couleur « non lu » (R3)"
+description = "La pastille « ! » de la cloche et celle de l'enveloppe du kramail (.badge-danger et a[href=\"kramail\"] .badge:not(:empty), ~l.797-803, aujourd'hui --kr-badge-danger #dc3545), sur les deux supports et sur leurs clones mobiles, prennent la pastille d'état de .kr-topic-badge : fond --kr-status-unread (ticket 3.5), texte --kr-bg-surface, 12 px 700, rayon plein ; l'animation reste ; le plan liste les autres emplois de .badge-danger avant d'y toucher ; le rouge danger ne sert plus qu'aux blocages ; cette pastille d'état est celle que reprend l'entrée 5 pour toute pastille d'état de son relevé ; met à jour le contrôle couleurs de typographie-formes (éléments cloche et badge) pour les éléments repeints, avec sa condition de retrait."
+verify = "Suite cartes-pastilles, fixtures typographie-formes, kramail-reception et sous-forum-debuter, à 375, 1280, 1440 et 1920 px dans les 16 variantes : pastilles remplies de la cloche et de l'enveloppe en status-unread, texte bg-surface ≥ 4,5:1, même fond que « NOUVEAU MESSAGE » du sous-forum ; pastille vide toujours invisible ; emplois de .badge-danger hors liste du plan égaux à la base ; npm run test:router vert."
+covers = ["CAP-6"]
+after = [3, "3.5"]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Étiquettes de catégorie : un seul style, « PNJ » compris (H8.1)"
+description = "Le plan liste chaque étiquette et pastille restante avec sa famille (.label et .badge servent aux deux) ; toute étiquette de catégorie prend le style de .label et .badge (~l.713-720, déjà celui de « guilde » et « [mod] ») : fond --kr-arm-bg, texte --kr-arm-ink, 12 px 700, rayon plein ; toute pastille d'état du relevé (compteurs du kramail par exemple) prend la pastille d'état de l'entrée 4 ; « PNJ » des cartes du tableau de bord (.dashboard-card-pnj, #c9302c en dur ~l.2670) et marque native span.btn.btn-danger.xmini (exclue des boutons d'état par le ticket 3.5) quittent le rouge ; tags du sujet (.forum-tags, hypothèse) suivent ; « article » et « Dernier sujet », absents du code et des fixtures, sont relevés en lecture seule ou consignés absents ; pastille de niveau, « ici » de la croix et caractéristiques gardent leur rendu (Q30.1 et Q30.4, hypothèse) ; la garde PNJ de palette-nation.mjs (~l.1347) et le contrôle couleurs de typographie-formes (éléments pnj, tags, groupe, label) sont mis à jour, chaque masque avec sa condition de retrait."
+verify = "Suites cartes-pastilles, palette-nation et typographie-formes, fixtures typographie-formes, palette-nation-etats, forum-index-rp, sous-forum-debuter et forum-sujet, à 375, 1280, 1440 et 1920 px dans les 16 variantes : chaque étiquette de catégorie de la liste du plan a le fond arm-bg, le texte arm-ink ≥ 4,5:1, 12 px 700 et le rayon plein, aucune en couleur d'état ; chaque pastille d'état du relevé en status-unread ; pastille de niveau et « ici » égales à la base ; npm run test:router vert."
+covers = ["CAP-6"]
+after = [4, "3.5"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage décidé au démarrage à partir des plans et des constats de revue différés pendant l'épopée ; le plan commence par la liste des entrées de deferred-work.md qui visent l'épopée, chacune marquée traitée ou rejetée avec sa raison ; il cherche aussi les jetons devenus morts (--kr-badge-pnj, --kr-badge-danger) et les masques de test de l'épopée, chacun gardé avec sa condition de retrait ou retiré (rétro de l'épopée 4, A5 et A6)."
+verify = "npm run lint:css et npm run lint:js à 0 erreur, npm run test:router vert, npm run test:all vert après le nettoyage."
+covers = ["CAP-6"]
+after = [1, 2, 3, 4, 5]
+hitl = false
+risk = "low"

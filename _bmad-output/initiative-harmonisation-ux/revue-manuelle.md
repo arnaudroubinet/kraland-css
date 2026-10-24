@@ -230,3 +230,21 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Verdict « rejected » pour une seule raison : rien n'est poussé ni fusionné (Done when 3). Le reste tient sur fixtures. Livraison des épopées 2 à 4 : attend ton accord pour le push et la PR.
 - Constats à corriger, traités dans un ticket de suivi : nom de forum mobile à 17 px au lieu de 15 (F2, `h1, h2, h3 !important` bat `.forum-title`) ; ordre du pied Bootbox mobile limité à `.btn-default`/`.btn-primary` (F3) ; jetons jamais lus et commentaire « 4.3 » à corriger en « 4.4 » (F5).
 - À corriger dans l'épopée (fichier réservé) : la note « aucun bouton de vote dans les fixtures du sujet » est fausse, `forum-sujet.html` l.26-28 en a (F9).
+
+## Inception de l'épopée 5 « Cartes de section et familles de pastilles » (2026-10-24)
+
+Breakdown en 6 entrées (`epic-cartes-pastilles/tickets.toml`), écrit en autonomie. Option retenue pour chaque point, à confirmer ou renverser :
+
+- Découpage : 1 carte de section mobile des pages de jeu, kramail par les règles communes (balle traçante) ; 2 liste des sujets du forum dans la carte (R6, risque élevé) ; 3 groupes du plateau mobile dans la carte ; 4 cloche et enveloppe en couleur « non lu » ; 5 étiquettes de catégorie, « PNJ » compris ; 6 Refactor sweep. Entrées chaînées par collision.
+- Q10 : carte en retrait de 8 px, contenu à 16 px (texte à 24 px du bord ; forum et sous-forum perdent 16 px).
+- Q30.7 : aucune icône ajoutée aux en-têtes sans icône native. Q30.1 : pastille de niveau et « ici » gardent `--kr-level-*`. Q30.4 : caractéristiques et malus hors CAP-6. Q30.2, .3, .5, .6 : hors CAP-6.
+- Tags du sujet comptés comme étiquettes de catégorie ; index et racine suivent le sous-forum (parité 6.1) ; repli des panneaux gardé tel quel.
+- Cloche et enveloppe en « non lu » sur les deux supports.
+- Kramail : règles communes seulement, déclarations contraires retirées sans règle propre (épopée 7).
+- L'entrée 2 part du code de 6.1 sans l'épingler : l'épingle créait un conflit d'ordre 5 ↔ 6.
+- À trancher :
+  - « article » et « Dernier sujet » (CAP-6) : introuvables dans le code et les fixtures ; où sont-ils sur le site ?
+  - lignes de sujet mobiles : cartes détachées gardées dans la carte (option retenue) ou lignes à filet comme la maquette h04 ?
+  - livrer les épopées 3 et 4 (push, PR) avant l'épopée 5 (rétro de l'épopée 4, A1) ?
+  - `tickets.toml` de l'initiative (hors écritures permises) : épingler l'épopée 6 sur 5.2 et l'épopée 7 sur 5.1, et retirer « onglets » de ce que l'épopée 7 attend de la 5 (CAP-8, aucune entrée).
+  - DESIGN.md périmé : titre du kramail (« primary à 2,56:1 », en fait accent), titre du jeu (« 20 px », en fait 17 px), enveloppe (« grise », en fait rouge).

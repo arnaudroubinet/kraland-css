@@ -45,7 +45,7 @@ id = 7
 slug = "epic-kramail-mobile"
 title = "Kramail mobile"
 covers = ["CAP-8"]
-after = [{ epic = 2, needs = "résultat P2 (vrai téléphone)" }, { epic = 5, needs = "carte de section et onglets" }, { epic = 6, needs = "bouton « ••• » commun" }]
+after = [{ epic = 2, needs = "résultat P2 (vrai téléphone)" }, { epic = 5, needs = "carte de section (5.1)" }, { epic = 6, needs = "bouton « ••• » commun" }]
 
 [[epic]]
 id = 8
