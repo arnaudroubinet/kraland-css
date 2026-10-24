@@ -34,11 +34,19 @@
 //               égal à la base ; 768, 769, 1280, 1440 et 1920 px égaux à la base ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le
 //               même onglet : carte à 767, base à 768 ; contrôle statique : règles des groupes sans !important, dans le média mobile ;
 //   contraste   16 variantes, Bâtiments, réception, sous-forum, index RP et groupes du plateau à 375 px : titre de chaque carte ≥ 4,5:1 sur
-//               son fond ; coins de la carte et coins bas du dernier corps à 8 px.
+//               son fond ; coins de la carte et coins bas du dernier corps à 8 px ;
+//   pastilles   (entrée 4) cloche et enveloppe de la barre (typographie-formes.html, pastilles remplies) à 375, 767, 768, 769, 1280, 1440 et
+//               1920 px, Kraland clair et Empire Brun sombre : pastille visible portée par le clone (375, 767) ou par l'original (768 et
+//               au-delà), touchée au centre (elementFromPoint, sans tap) ; toutes les pastilles remplies, originaux et clones, en pastille
+//               d'état (fond non lu, texte surface, 12 px 700, rayon plein, bordures de largeur 0) ; géométrie des pastilles et des liens,
+//               animation des icônes et emplois hors liste (pastille de panneau, de groupe) égaux au bundle de base (601ab19) ; pastilles
+//               vides (kramail-reception.html) invisibles, originaux et clones, icônes sans animation ; 16 variantes à 375, 1280, 1440 et
+//               1920 px : fond égal au jeton calculé et au fond de « NOUVEAU MESSAGE » du sous-forum (même largeur, même variante), texte
+//               idem, ≥ 4,5:1 ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet ; contrôle statique de la règle réécrite.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d, a7f0463 pour groupes), KR_FRAG = carte,
-// module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d, a7f0463 pour groupes, 601ab19 pour
+// pastilles), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste, pastilles (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -49,7 +57,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, DOSSIER_MODALE_TICKET51, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { CONTRASTE, DOSSIER_MODALE_TICKET51, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -62,6 +70,10 @@ const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.e
 const COMMIT_AVANT_53 = 'a7f0463';
 const avant53 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT_53}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Pastilles d'état de la barre (entrée 4, A6) : base dédiée.
+const COMMIT_AVANT_54 = '601ab19';
+const avant54 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_AVANT_54}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const ordre = f => lire(path.join(DOSSIER_MODALE_TICKET51, f)).replace(/^<!--[\s\S]*?-->\s*/, '');
 // Styles et scripts natifs du site pour les modales d'ordre (vendor/parler, comme la suite de la modale d'ordre).
@@ -113,7 +125,10 @@ const PAGES = {
   groupes: { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes' },
   'plateau-minimal': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-minimal.html')), famille: 'groupes' },
   // P4 : groupes à innerWidth 791 (barre de navigation qui déborde, relevé sur plateau-minimal) : mobile-mode absent, média mobile valide.
-  'groupes-nu': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes', innerWidth: 791 }
+  'groupes-nu': { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-qualite-usage.html')), famille: 'groupes', innerWidth: 791 },
+  // Pastilles de la barre (entrée 4) : cloche « ! » et enveloppe « 3 » remplies (clic neutralisé dans la fixture, jamais tapées) ; les
+  // pastilles vides viennent de la réception, la référence « NOUVEAU MESSAGE » du sous-forum. Bootstrap servi par la route (vendor).
+  barre: { url: '/jouer/plateau', html: lire('typographie-formes.html'), famille: 'pastilles' }
 };
 function avecBootstrap(h) { return h.replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>'); }
 const DE = famille => Object.keys(PAGES).filter(k => PAGES[k].famille === famille);
@@ -703,7 +718,7 @@ if (on('chevron')) {
 
 if (on('bureau')) {
   console.log('\n== bureau ==');
-  await comparer('bureau', Object.keys(PAGES).filter(k => !['exclus', 'groupes'].includes(PAGES[k].famille)).flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
+  await comparer('bureau', Object.keys(PAGES).filter(k => !['exclus', 'groupes', 'pastilles'].includes(PAGES[k].famille)).flatMap(nom => BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
 }
 
 // ---------- bascule dans le même onglet ----------
@@ -1089,6 +1104,229 @@ if (on('groupes')) {
       }
     });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
+// ---------- pastilles d'état de la barre (entrée 4) ----------
+// Mesure des pastilles (dans la page) : cloche et enveloppe des clones mobiles puis de la barre d'origine ; P : repères (lib/variantes.mjs).
+// Aucune pastille n'est tapée ni cliquée (la cloche ouvre /report sur le site) : la visibilité se lit par elementFromPoint au centre.
+const MESURE_PASTILLES = R => {
+  const C = window.__krContraste;
+  const r = v => Math.round(v * 10) / 10;
+  const pastilles = (cle, sel) => [R.clones, R.barre].flatMap(conteneur => [...document.querySelectorAll(`${conteneur} ${sel}`)].map(e => {
+    const s = getComputedStyle(e);
+    const b = e.getBoundingClientRect();
+    const a = e.closest('a');
+    const ab = a.getBoundingClientRect();
+    const ic = a.querySelector('i.fa');
+    const boite = b.width > 0 && b.height > 0;
+    const hit = boite ? document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) : null;
+    return {
+      cle, porteur: conteneur === R.clones ? 'clone' : 'original', texte: e.textContent.trim(), display: s.display, boite,
+      visible: !!hit && (hit === e || e.contains(hit)), cible: hit ? `${hit.tagName.toLowerCase()}${hit.id ? `#${hit.id}` : ''}${[...hit.classList].map(x => `.${x}`).join('')}` : 'aucune', fond: s.backgroundColor, couleur: s.color, taille: s.fontSize, graisse: s.fontWeight,
+      rayons: [s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius],
+      bordures: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth], rapport: boite ? C.texte(e) : null,
+      geo: `${conteneur} ${cle} ${s.display} [${[b.left, b.top, b.width, b.height].map(r)}] ${s.position} ${s.top} ${s.right} ${s.minWidth} ${s.height} ${s.padding} ${s.lineHeight} ${s.margin} ${s.verticalAlign} ; lien [${[ab.left, ab.top, ab.width, ab.height].map(r)}]`,
+      animation: ic ? getComputedStyle(ic).animationName : null
+    };
+  }));
+  const ref = document.querySelector(R.reference);
+  return {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    unread: C.sonde(R.fond), surface: C.sonde(R.texte),
+    pastilles: [...pastilles('cloche', R.cloche), ...pastilles('enveloppe', R.enveloppe)],
+    hors: R.horsListe.map(sel => {
+      const e = document.querySelector(sel);
+      if (!e) { return `${sel} absent`; }
+      const s = getComputedStyle(e);
+      return `${sel} ${s.display} ${s.backgroundColor} ${s.color} ${s.borderTopColor} ${s.borderTopWidth} ${s.fontSize} ${s.fontWeight} ${s.borderTopLeftRadius} ${s.padding}`;
+    }),
+    reference: ref ? { fond: getComputedStyle(ref).backgroundColor, couleur: getComputedStyle(ref).color } : null
+  };
+};
+// Porteur attendu de la pastille visible : clone sous 768 px, original au-delà ; l'original reste dans le menu replié sous 768 px.
+// De 768 à 991 px (PLT-04, bureau compact), la barre est un menu repliable sans clone : menu fermé, aucune pastille visible (comme la
+// base) ; menu ouvert (bouton de la barre), l'original est visible.
+const COMPACT = width => width >= 768 && width < 992;
+function controlerPorteur(m, width, ouvert = false) {
+  assert.ok(m.theme, 'kr-theme-enabled absent');
+  assert.equal(m.mobile, width < 768, `mobile-mode ${m.mobile}`);
+  const porteur = width < 768 ? 'clone' : (COMPACT(width) && !ouvert ? null : 'original');
+  const ecarts = ['cloche', 'enveloppe'].flatMap(cle => {
+    const l = m.pastilles.filter(p => p.cle === cle);
+    const vis = l.filter(p => p.visible);
+    return [
+      ...((porteur === null ? vis.length === 0 && l.some(p => p.porteur === 'original') : vis.length === 1 && vis[0].porteur === porteur) ? [] : [`${cle} : visible ${vis.map(p => p.porteur).join(', ') || 'nulle part'} (attendu ${porteur || 'aucune, menu replié'} ; au centre : ${l.map(p => `${p.porteur} ${p.cible}`).join(', ')})`]),
+      ...(width < 768 && !l.some(p => p.porteur === 'clone') ? [`${cle} : aucun clone`] : []),
+      ...l.filter(p => !p.texte).map(p => `${cle} ${p.porteur} vide`)
+    ];
+  });
+  assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+}
+// Pastille d'état sur toutes les pastilles remplies (originaux et clones) : couleurs (fond non lu, texte surface) ou forme (12 px 700, rayon
+// plein, bordures de largeur 0).
+function controlerEtat(m, quoi) {
+  const ecarts = m.pastilles.filter(p => p.texte).flatMap(p => {
+    const e = [];
+    if (quoi === 'couleurs') {
+      if (p.fond !== m.unread) { e.push(`fond ${p.fond} ≠ ${m.unread}`); }
+      if (p.couleur !== m.surface) { e.push(`texte ${p.couleur} ≠ ${m.surface}`); }
+    } else {
+      if (p.taille !== '12px' || p.graisse !== '700') { e.push(`${p.taille}/${p.graisse}`); }
+      if (p.rayons.some(v => v !== '9999px')) { e.push(`rayons ${p.rayons.join(' ')}`); }
+      if (p.bordures.some(v => v !== '0px')) { e.push(`bordures ${p.bordures.join(' ')}`); }
+    }
+    return e.length ? [`${p.cle} ${p.porteur} « ${p.texte} » : ${e.join(', ')}`] : [];
+  });
+  assert.ok(m.pastilles.some(p => p.texte), 'aucune pastille remplie');
+  assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+}
+if (on('pastilles')) {
+  console.log('\n== pastilles ==');
+  const rs = await regles();
+  check('statique : règle réécrite de la cloche et de l\'enveloppe dans le média combiné (deux supports), fond non lu et texte surface à la priorité d\'origine, sans couleur de bordure ni couleur littérale', () => {
+    const l = rs.filter(r => r.sel.startsWith(P.regle));
+    assert.equal(l.length, 1, `${l.length} règle(s)`);
+    const [r] = l;
+    assert.ok(['(max-width: 767px), (min-width: 768px)', '(width <= 767px), (width >= 768px)'].includes(r.media), `média « ${r.media || 'global'} »`);
+    assert.deepEqual(r.d, { 'background-color': [P.fond, 'important'], color: [P.texte, 'important'] }, JSON.stringify(r.d));
+    assert.ok(!Object.values(r.d).some(([v]) => /#[0-9a-f]{3,8}\b|rgb|hsl/i.test(v)), 'couleur littérale');
+  });
+  const LARGEURS = [...MOBILES, ...BUREAUX];
+  // Bureau compact (768 à 991 px) : menu ouvert ou refermé par le bouton de la barre (jamais la cloche ni un lien de jeu).
+  const basculerMenu = async (page, ouvert) => {
+    await page.click('nav.navbar .navbar-toggle');
+    await page.waitForFunction(o => !!document.querySelector('#navbar.in') === o && !document.querySelector('.collapsing'), ouvert);
+  };
+  // Bureau compact : seconde mesure, menu ouvert.
+  const releverPastilles = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script });
+    const m = await page.evaluate(MESURE_PASTILLES, P);
+    let o = null;
+    if (COMPACT(c.width) && c.nom === 'barre') {
+      await basculerMenu(page, true);
+      o = await page.evaluate(MESURE_PASTILLES, P);
+    }
+    await context.close();
+    return { m, o, erreurs };
+  };
+  // Pastilles remplies : porteur, pastille d'état, géométrie, animation et hors liste égaux à la base.
+  const cas = LARGEURS.flatMap(width => VARIANTES.map(variante => ({ nom: 'barre', width, variante })));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releverPastilles(c, userscript), base: await releverPastilles(c, avant54) }));
+  for (const { c, teste: { m, o, erreurs }, base: { m: b, o: bo } } of res) {
+    const lab = `pastilles ${c.variante} ${c.width} px`;
+    if (COMPACT(c.width)) {
+      check(`${lab} : bureau compact, menu fermé : cloche et enveloppe dans le menu replié, aucune visible, sans clone (comme la base)`, () => controlerPorteur(m, c.width));
+      check(`${lab} : bureau compact, menu ouvert : cloche et enveloppe visibles (elementFromPoint), portées par l'original, en pastille d'état`, () => {
+        controlerPorteur(o, c.width, true);
+        controlerEtat(o, 'couleurs');
+        controlerEtat(o, 'forme');
+      });
+    } else {
+      check(`${lab} : cloche et enveloppe visibles (elementFromPoint), portées par ${c.width < 768 ? 'le clone, original dans le menu replié' : 'l\'original'}`, () => controlerPorteur(m, c.width));
+    }
+    check(`${lab} : pastilles remplies (${m.pastilles.filter(p => p.texte).length}, originaux et clones) en fond non lu (${m.unread}), texte surface (${m.surface})`, () => controlerEtat(m, 'couleurs'));
+    check(`${lab} : pastilles remplies en 12 px 700, rayon plein, bordures de largeur 0`, () => controlerEtat(m, 'forme'));
+    check(`${lab} : géométrie des pastilles et des liens égale au bundle de base (${COMMIT_AVANT_54})`, () => {
+      assert.ok(b.theme, 'kr-theme-enabled absent (base)');
+      const geo = x => [...x.m.pastilles, ...(x.o ? x.o.pastilles : [])].map(p => p.geo);
+      const d = premierEcart(geo({ m, o }), geo({ m: b, o: bo }));
+      assert.equal(d, '', d);
+    });
+    check(`${lab} : animation kr-bell-swing sur la cloche et l'enveloppe visibles, animations égales à la base`, () => {
+      const vis = (o || m).pastilles.filter(p => p.visible);
+      assert.ok(vis.length === 2 && vis.every(p => p.animation === 'kr-bell-swing'), vis.map(p => `${p.cle} ${p.animation}`).join(', ') || 'aucune pastille visible');
+      assert.deepEqual(m.pastilles.map(p => p.animation), b.pastilles.map(p => p.animation));
+    });
+    check(`${lab} : emplois hors liste (pastille de panneau, de groupe) égaux à la base`, () => {
+      assert.ok(m.hors.every(x => !/absent$/.test(x)), m.hors.join(' ; '));
+      assert.deepEqual(m.hors, b.hors);
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Pastilles vides (réception) : invisibles, originaux et clones, icônes sans animation.
+  const resV = await mapLimit(LARGEURS.flatMap(width => VARIANTES.map(variante => ({ nom: 'reception', width, variante }))), async c => ({ c, ...await releverPastilles(c, userscript) }));
+  for (const { c, m, erreurs } of resV) {
+    const lab = `pastilles vides ${c.variante} ${c.width} px`;
+    check(`${lab} : cloche et enveloppe vides invisibles (display none ou boîte nulle), originaux et clones, icônes sans animation`, () => {
+      assert.ok(m.theme, 'kr-theme-enabled absent');
+      const l = m.pastilles;
+      assert.equal(l.filter(p => p.porteur === 'clone').length, c.width < 768 ? 2 : 0, 'clones');
+      assert.equal(l.filter(p => p.porteur === 'original').length, 2, 'originaux');
+      const ecarts = l.filter(p => p.texte || (p.display !== 'none' && p.boite) || p.visible || p.animation !== 'none').map(p => `${p.cle} ${p.porteur} « ${p.texte} » ${p.display} boîte ${p.boite} animation ${p.animation}`);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Thèmes : 16 variantes, fond et texte égaux aux jetons calculés et à « NOUVEAU MESSAGE » du sous-forum, contraste ≥ 4,5:1.
+  const LITTERAUX = { kraland: 'rgb(196, 30, 58)', 'empire-brun': 'rgb(138, 90, 0)' };
+  const resT = await mapLimit([375, 1280, 1440, 1920].flatMap(width => TOUTES.map(variante => ({ width, variante }))), async c => ({
+    c, ...await releverPastilles({ ...c, nom: 'barre' }, userscript), ref: (await releverPastilles({ ...c, nom: 'sous-forum' }, userscript)).m.reference
+  }));
+  for (const { c, m, erreurs, ref } of resT) {
+    const lab = `pastilles ${c.variante} ${c.width} px`;
+    check(`${lab} : fond et texte des pastilles visibles égaux aux jetons et à « NOUVEAU MESSAGE » du sous-forum${LITTERAUX[c.variante] ? ` (${LITTERAUX[c.variante]})` : ''}, ≥ 4,5:1`, () => {
+      assert.ok(m.theme, 'kr-theme-enabled absent');
+      assert.ok(ref, '« NOUVEAU MESSAGE » absent du sous-forum');
+      const vis = m.pastilles.filter(p => p.visible);
+      assert.equal(vis.length, 2, 'pastilles visibles');
+      if (LITTERAUX[c.variante]) { assert.equal(m.unread, LITTERAUX[c.variante], 'jeton du non lu'); }
+      const ecarts = vis.flatMap(p => [
+        ...(p.fond !== m.unread || p.fond !== ref.fond ? [`${p.cle} fond ${p.fond} (jeton ${m.unread}, référence ${ref.fond})`] : []),
+        ...(p.couleur !== m.surface || p.couleur !== ref.couleur ? [`${p.cle} texte ${p.couleur} (jeton ${m.surface}, référence ${ref.couleur})`] : []),
+        ...(p.rapport < 4.5 ? [`${p.cle} ${p.rapport.toFixed(2)}:1`] : [])
+      ]);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Bascule dans le même onglet (rechargement de bascule attendu, clones recréés à 767 px).
+  // Bureau compact : à chaque étape, menu ouvert dans le même onglet (mesure o), puis refermé (mesure f).
+  const parcoursPastilles = async (variante, largeurs, script = userscript) => {
+    const { context, page, erreurs } = await ouvrir({ nom: 'barre', width: largeurs[0], variante, script, tactile: false });
+    const etapes = [];
+    for (let i = 0; i < largeurs.length; i += 1) {
+      const width = largeurs[i];
+      if (i > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+        await page.setViewportSize({ width, height: 667 });
+        await charge;
+        await prete(page, `bascule pastilles ${variante} ${width} px`);
+      }
+      const e = { width, m: await page.evaluate(MESURE_PASTILLES, P), o: null, f: null };
+      if (COMPACT(width)) {
+        await basculerMenu(page, true);
+        e.o = await page.evaluate(MESURE_PASTILLES, P);
+        await basculerMenu(page, false);
+        e.f = await page.evaluate(MESURE_PASTILLES, P);
+      }
+      etapes.push(e);
+    }
+    await context.close();
+    return { etapes, erreurs };
+  };
+  const resB = await mapLimit(VARIANTES.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs }))), async c => ({ c, ...await parcoursPastilles(c.variante, c.largeurs) }));
+  for (const { c, etapes, erreurs } of resB) {
+    const lab = `pastilles bascule ${c.variante} ${c.largeurs.join(' -> ')}`;
+    etapes.forEach((e, i) => {
+      if (COMPACT(e.width)) {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : menu compact fermé, aucune pastille visible ; ouvert par le bouton de la barre, original visible (elementFromPoint) en pastille d'état ; refermé, aucune visible`, () => {
+          controlerPorteur(e.m, e.width);
+          controlerPorteur(e.o, e.width, true);
+          controlerEtat(e.o, 'couleurs');
+          controlerEtat(e.o, 'forme');
+          controlerPorteur(e.f, e.width);
+        });
+      } else {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : pastille d'état visible, portée par le clone`, () => {
+          controlerPorteur(e.m, e.width);
+          controlerEtat(e.m, 'couleurs');
+        });
+      }
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
 

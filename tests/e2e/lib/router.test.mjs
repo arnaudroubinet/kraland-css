@@ -72,14 +72,14 @@ check('couleurs de nation : déclaration d\'un jeton de rôle (même citant pale
   assert.deepEqual(f.units, ['palette-nation']);
 });
 
-check('typographie et formes : déclaration d\'un jeton d\'échelle sur :root : total ; fixture -> typographie-formes seule', () => {
+check('typographie et formes : déclaration d\'un jeton d\'échelle sur :root : total ; fixture -> typographie-formes et cartes-pastilles', () => {
   assert.deepEqual(zonesOf('typographie-formes.mjs'), ['typographie-formes']);
   const theme = [':root {', '  --kr-radius: .5rem;', '  --kr-font-label: 12px;', '  --kr-space-1: 4px;', '}'].join('\n');
   const d = route('kraland-theme.css', hunkAt(3, '  --kr-font-label: 12px;'), theme);
   assert.equal(d.widened, true, d.reasons.join(' ; '));
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/typographie-formes.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['typographie-formes']);
+  assert.deepEqual(sorted(f.units), ['cartes-pastilles', 'typographie-formes'], JSON.stringify(f.units)); // fixture lue aussi par cartes-pastilles (épopée 5, entrée 4)
 });
 check('typographie et formes : composant mesuré -> typographie-formes (en plus des zones du composant)', () => {
   const u = route('kraland-theme.css', hunk('.kr-nav-v2 .kr-room-here {', '  font-size: var(--kr-font-label);'));
@@ -234,10 +234,28 @@ check('groupes du plateau (dashboard-section, grille, titre, chevron) -> cartes-
   }
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/plateau-navbar-large.html': [] }), readWith({})).zones, ['plateau']);
 });
-check('cartes-pastilles enregistrée (10 fragments, Bootstrap embarqué)', () => {
+check('pastilles d\'état de la barre (épopée 5, entrée 4) : règle réécrite -> cartes-pastilles et typographie-formes ; fixtures lues', () => {
+  // Sans le mot-clé, les lignes citant kramail n'envoient que vers forum et kramail (P8).
+  for (const h of [
+    hunk('html.kr-page-report table > tbody > tr.bg-info > td:first-child {', '@media (max-width: 767px), (min-width: 768px) {', '  .badge-danger,',
+      '  .navbar-right a[href="kramail"] .badge:not(:empty),', '  .navbar-header-buttons-left a[href*="kramail"] .badge:not(:empty) {',
+      '    background-color: var(--kr-status-unread) !important;', '    color: var(--kr-bg-surface) !important;', '  }'),
+    hunk('@media (max-width: 767px), (min-width: 768px) {', '  .badge-danger,')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    for (const z of ['cartes-pastilles', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
+  }
+  for (const [f, z] of [['tests/e2e/fixtures/kramail-reception.html', ['cartes-pastilles', 'kramail']], ['tests/e2e/fixtures/sous-forum-debuter.html', ['cartes-pastilles', 'sous-forum']]]) {
+    assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ [f]: [] }), readWith({})).zones), z, f);
+  }
+  const t = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/typographie-formes.html': [] }), readWith({}));
+  assert.deepEqual(sorted(t.units), ['cartes-pastilles', 'typographie-formes'], JSON.stringify(t.units)); // règle « fixture » : suites qui la citent
+});
+check('cartes-pastilles enregistrée (11 fragments, Bootstrap embarqué)', () => {
   const s = SUITES.find(x => x.name === 'cartes-pastilles');
   assert.ok(s, 'suite absente du registre');
-  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'groupes', 'contraste']);
+  assert.deepEqual(s.frags.map(f => f[0]), ['carte', 'module', 'kramail', 'forum', 'lignes', 'chevron', 'bureau', 'bascule', 'groupes', 'pastilles', 'contraste']);
   assert.equal(s.needsBootstrap, true);
 });
 
@@ -317,10 +335,10 @@ check('hunk commun forum + sous-forum : les deux zones', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
   assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
 });
-check('fixture du sous-forum modifiée : zone sous-forum', () => {
+check('fixture du sous-forum modifiée : zones sous-forum et cartes-pastilles', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/sous-forum-debuter.html': [] }));
   assert.equal(r.widened, false);
-  assert.deepEqual(sorted(r.zones), ['sous-forum']);
+  assert.deepEqual(sorted(r.zones), ['cartes-pastilles', 'sous-forum']); // fixture lue aussi par cartes-pastilles (épopée 5, entrée 4)
 });
 check('suite sous-forum.mjs modifiée : cette suite seule (+ garde du confinement), pas les autres suites de sa zone', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/sous-forum.mjs': [] }));

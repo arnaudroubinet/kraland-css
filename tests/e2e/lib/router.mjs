@@ -88,7 +88,7 @@ export const SUITES = [
   // lignes de tableau dans la carte, égales à la base ; repli au chevron. Fixtures synthétiques des pages de jeu, du kramail, des règles, du
   // Cybermonde et fixtures du forum. Entrée 3 : groupes du plateau en carte de section à 375 et 767 (accordéon, boutons, ordre et contenu
   // des cartes égaux à la base), mini-profil égal à la base, ordinateur et bascule égaux à la base (fixture plateau-qualite-usage).
-  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['contraste']], needsBootstrap: true }
+  { name: 'cartes-pastilles', file: 'cartes-pastilles.mjs', zones: ['cartes-pastilles'], frags: [['carte'], ['module'], ['kramail'], ['forum'], ['lignes'], ['chevron'], ['bureau'], ['bascule'], ['groupes'], ['pastilles'], ['contraste']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -123,8 +123,11 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/parler\//, ['parler']],
   [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre']],
   [/^tests\/e2e\/vendor\/parler\//, ['parler', 'modale-ordre']], // harnais Bootbox natif, repris par la suite de la modale d'ordre
+  // Fixtures lues aussi par cartes-pastilles (fragment pastilles, épopée 5, entrée 4 : référence du sous-forum, pastilles vides de la réception).
+  [/^tests\/e2e\/fixtures\/sous-forum-debuter\.html$/, ['sous-forum', 'cartes-pastilles']],
   [/^tests\/e2e\/fixtures\/sous-forum-/, ['sous-forum']],
   [/^tests\/e2e\/fixtures\/map-inventory/, ['images']],
+  [/^tests\/e2e\/fixtures\/kramail-reception\.html$/, ['kramail', 'cartes-pastilles']],
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
   [/^tests\/e2e\/fixtures\//, 'fixture'], // autre fixture : les suites qui citent son nom de fichier (aucune -> total)
   [/^tests\/e2e\/durations\.json$/, []], // durées mesurées : changent l'ordre de lancement, jamais le résultat d'une vérification
@@ -182,6 +185,9 @@ export const KEYWORDS = [
   [/panel-heading|panel-title|list-group-item-heading/, ['forum', 'sous-forum', 'kramail', 'modale-ordre', 'cybermonde', 'palette-nation', 'plateau', 'profil', 'typographie-formes', 'cartes-pastilles']],
   // Module « Panel Sections Collapse » (sections repliables du jeu, épopée 5, entrée 1) : en-tête, corps et chevron mesurés par cartes-pastilles.
   [/building-section|accordion-icon/, ['cartes-pastilles']],
+  // Pastilles d'état de la barre (épopée 5, entrée 4) : cloche et enveloppe, originaux et clones, mesurées par cartes-pastilles (fragment
+  // pastilles) et typographie-formes (étiquettes, cloche, badge).
+  [/badge-danger|kr-bell-swing|fa-bell\b/, ['cartes-pastilles', 'typographie-formes']],
   // Groupes du plateau (épopée 5, entrée 3) : section, grille, titre et chevron de l'accordéon, mesurés par cartes-pastilles (fragment groupes),
   // plateau-qualite-usage (bureau) et typographie-formes (formes, nettoyage).
   [/dashboard-section|dashboard-cards-grid|dashboard-group-title|accordion-icon/, ['cartes-pastilles', 'plateau', 'typographie-formes']],

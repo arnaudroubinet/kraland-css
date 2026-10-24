@@ -466,6 +466,36 @@ export const CARTES_TICKET53 = [
 export const AVANT_TICKET53 = bundle => !bundle.includes('body.mobile-mode .dashboard-group-title{');
 
 /**
+ * Pastilles d'état de la barre (épopée 5, entrée 4, story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3) : repères de
+ * cartes-pastilles.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : pastille de la cloche, pastille de l'enveloppe, barre d'origine,
+ * conteneur des clones mobiles, référence « NOUVEAU MESSAGE » du sous-forum (pastille citée par trois suites), jetons attendus du fond et du
+ * texte (le jeton du non lu serait une troisième citation), règle réécrite (début du sélecteur sérialisé par le CSSOM) et emplois hors liste
+ * (pastille de panneau et de groupe de typographie-formes.html).
+ */
+export const PASTILLES_TICKET54 = {
+  cloche: '.fa-bell ~ .badge', enveloppe: 'a[href*="kramail"] .badge', barre: '.navbar-right', clones: '.navbar-header-buttons-left',
+  reference: '.kr-topic-badge[data-kr-label="NOUVEAU MESSAGE"]', fond: 'var(--kr-status-unread)', texte: 'var(--kr-bg-surface)',
+  regle: '.badge-danger, .navbar-right a[href="kramail"] .badge:not(:empty)', horsListe: ['#pastille-titre', '#pastille-groupe']
+};
+/**
+ * Écart accepté et consigné (épopée 5, entrée 4, story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3) : pastilles de la cloche
+ * et de l'enveloppe en pastille d'état (fond --kr-status-unread, texte --kr-bg-surface, toutes variantes, deux supports). Feuille miroir de
+ * la règle réécrite, mêmes sélecteurs ; elle garde !important, sans quoi la règle de la base la bat (elle vit dans le test, pas dans la
+ * peau). La couleur de bordure (largeur 0) retirée de la règle revient à celle de « .label, .badge » (--kr-primary-dark) : le miroir la
+ * déclare. Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET54), jamais sur le bundle courant ; empilable avec
+ * CARTES_TICKET51, CARTES_TICKET52 et CARTES_TICKET53 (posées avant elle) ; tout autre écart reste détecté. Écart consigné dans le plan de
+ * l'entrée (Plan Change Log).
+ * Condition de retrait : quand le bundle de base de la suite contient l'entrée 5.4 (le détecteur l'éteint de lui-même).
+ */
+export const CARTES_TICKET54 = [
+  '@media (max-width: 767px), (min-width: 768px) {',
+  '  .badge-danger, .navbar-right a[href="kramail"] .badge:not(:empty), .navbar-header-buttons-left a[href="kramail"] .badge:not(:empty), .navbar-header-buttons-left a[href*="kramail"] .badge:not(:empty) { background-color: var(--kr-status-unread) !important; color: var(--kr-bg-surface) !important; border-color: var(--kr-primary-dark) !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 5, entrée 4 : la pastille de l'enveloppe des clones n'y est pas en fond non lu (règle minifiée du bundle). */
+export const AVANT_TICKET54 = bundle => !bundle.includes('a[href*=kramail] .badge:not(:empty){background-color:var(--kr-status-unread)!important');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

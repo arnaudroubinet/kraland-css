@@ -100,3 +100,12 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-cartes-pastilles/story-groupes-du-plateau-mobile-dans-la-carte-de-section-plan.md`
   summary: Chevron de l'accordéon : le retrait vertical de la grille (`padding-top/bottom: 0` au repli) change sans transition, comme pour le module (report 5.1). La grille saute de 16 px avant l'animation.
   evidence: Option : ajouter `padding` à la `transition` des deux accordéons en même temps.
+
+## Reports du ticket 5.4, pastilles d'état de la cloche et de l'enveloppe (2026-10-24)
+
+- source_plan: `epic-cartes-pastilles/story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3-plan.md`
+  summary: A5 : `--kr-badge-danger-border` n'est plus lu par la peau depuis 5.4 (la règle de la cloche et de l'enveloppe ne pose plus de `border-color`). Son retrait, et le sort de `--kr-badge-danger` (encore lu par `.kd-field.is-invalid`), reviennent au sweep 5.6.
+  evidence: Bordures de largeur 0 avant comme après (mesure à 375 et 1280 px) : seule la couleur de bordure calculée change (`--kr-primary-dark` hérité), sans effet visible.
+- source_plan: `epic-cartes-pastilles/story-pastilles-d-etat-cloche-et-enveloppe-en-couleur-non-lu-r3-plan.md`
+  summary: Bureau compact (768 à 991 px, PLT-04) : la cloche et l'enveloppe sont dans le menu repliable, sans clone ; menu fermé, aucune n'est visible (comme la base). Un message non lu ne se voit qu'en ouvrant le menu. Hors périmètre de 5.4.
+  evidence: Fragment `pastilles` de `cartes-pastilles.mjs` à 768 et 769 px : menu fermé, boîte 0 × 0 ; menu ouvert (bouton de la barre), pastille d'état visible.

@@ -793,14 +793,15 @@ html.kr-page-report table > tbody > tr.bg-info > td:first-child {
   background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
 }
 
-/* Badge danger - notification alert always red on all themes */
-.badge-danger,
-.navbar-right a[href="kramail"] .badge:not(:empty),
-.navbar-header-buttons-left a[href="kramail"] .badge:not(:empty),
-.navbar-header-buttons-left a[href*="kramail"] .badge:not(:empty) {
-  background-color: var(--kr-badge-danger) !important;
-  color: var(--kr-white) !important;
-  border-color: var(--kr-badge-danger-border) !important;
+/* Pastille d'état (DESIGN › badge-state) : cloche et enveloppe en non lu, toutes variantes */
+@media (max-width: 767px), (min-width: 768px) {
+  .badge-danger,
+  .navbar-right a[href="kramail"] .badge:not(:empty),
+  .navbar-header-buttons-left a[href="kramail"] .badge:not(:empty),
+  .navbar-header-buttons-left a[href*="kramail"] .badge:not(:empty) {
+    background-color: var(--kr-status-unread) !important;
+    color: var(--kr-bg-surface) !important;
+  }
 }
 
 /* Animation cloche de notification */
