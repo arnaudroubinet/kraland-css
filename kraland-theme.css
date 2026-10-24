@@ -1744,8 +1744,6 @@ a.carousel-control.right{
   }
   
   .bootbox-confirm .kraland-modal-footer .btn {
-    min-height: 56px !important;
-    font-size: 16px !important;
     border-radius: 8px !important;
   }
   
@@ -2022,7 +2020,6 @@ a.carousel-control.right{
   z-index: 100;
   box-shadow: 0 -4px 8px rgba(0,0,0,0.05);
   display: flex;
-  flex-direction: column;
   gap: var(--mobile-spacing-md);
 }
 
@@ -2040,10 +2037,7 @@ a.carousel-control.right{
 
 /* Boutons footer */
 .bootbox-confirm .modal-footer .btn {
-  min-height: var(--mobile-touch-target);
   min-width: 100px;
-  font-size: 1rem;
-  padding: 10px 24px;
   border-radius: var(--mobile-radius);
   font-weight: 500;
 }
@@ -2082,11 +2076,6 @@ a.carousel-control.right{
 @media (max-width: 767px) {
   body:not(.mobile-mode) .kr-order-form .kr-order-alerts {
     top: 0;
-  }
-
-  /* Exclusion des boutons de taille normale (4.2) : « ? Aide » des modales garde les 16 px de la règle mobile globale (modales : 4.3) */
-  .kr-order-form .kr-order-help-toggle {
-    font-size: 16px !important;
   }
 }
 
@@ -2188,9 +2177,10 @@ a.carousel-control.right{
    9h. MODALE D'ORDRE - « VALIDER » ET ONGLET ACTIF (ORDINATEUR ET MOBILE)
    Socle commun (kr-order-modal), ticket 6. « Valider » garde la paire d'action des boutons primaires (--kr-arm-bg / --kr-arm-ink, survol,
    focus et appui en --kr-arm-bg-hover / --kr-arm-ink-hover, section des boutons) : l'ancien dégradé vert et son halo sont retirés. Mobile :
-   un seul modèle de pied, en colonne, chaque bouton pleine largeur, sans flex (la règle MODAL PERSONNAGE MOBILE donne flex: 2 à
-   « Valider »), ordre natif gardé (« Annuler » puis « Valider »), dans le flux. (0,5,2) : bat body.mobile-mode .bootbox.modal
-   .modal-footer .btn-primary (0,5,1). Ordinateur : rendu inchangé.
+   un seul modèle de pied pour toute modale Bootbox (ordre ou confirmation hors ordre, épopée 4, ticket 3), en colonne, chaque bouton
+   pleine largeur, ordre natif gardé (« Annuler » puis « Valider »), dans le flux ; aucune autre règle ne pose de flex sur ces boutons,
+   et les règles order de body.mobile-mode .modal-footer (.btn-default 1, .btn-primary 2) reproduisent l'ordre natif. Taille : bouton de taille normale (14 px, cible de 44 px, règle mobile .btn), aucune règle propre aux modales.
+   Ordinateur : rendu inchangé.
    Onglet actif : un seul modèle aux deux supports, fond et texte du thème (--kr-bg-surface, --kr-text-primary, comme la règle des onglets
    du bureau), sans le bleu de Bootstrap ni son halo ; libellé coloré (span.text-danger de Pouvoir) au texte de l'onglet ; la forme
    mobile (filet primaire, hauteur) ne change pas. (0,9,3) : bat l'onglet actif de MODAL PERSONNAGE MOBILE (jusqu'à (0,8,3) au focus,
@@ -2198,12 +2188,11 @@ a.carousel-control.right{
    body.mobile-mode compris (fenêtre rétrécie sans rechargement).
    ============================================================================ */
 @media (max-width: 767px) {
-  html.kr-theme-enabled body .bootbox.kr-order-modal .modal-footer {
+  html.kr-theme-enabled body .bootbox.modal .modal-footer {
     flex-direction: column !important;
   }
 
-  html.kr-theme-enabled body .bootbox.kr-order-modal .modal-footer .btn {
-    flex: none !important;
+  html.kr-theme-enabled body .bootbox.modal .modal-footer .btn {
     width: 100% !important;
     margin-left: 0 !important;
   }
@@ -7027,7 +7016,7 @@ body.mobile-mode .building-section-content img.img-responsive {
       text-align: center !important;
     }
     
-    /* Modal footer - sticky en bas avec boutons pleine largeur */
+    /* Modal footer - boutons en ligne à leur largeur ; Bootbox : en colonne, pleine largeur (section 9h) */
     body.mobile-mode .modal-footer {
       padding: 15px !important;
       display: flex !important;
@@ -7037,13 +7026,8 @@ body.mobile-mode .building-section-content img.img-responsive {
     }
     
     body.mobile-mode .modal-footer .btn {
-      flex: 1 !important;
-      min-height: 48px !important;
-      max-height: 48px !important;
-      font-size: 16px !important;
       font-weight: 600 !important;
       border-radius: 6px !important;
-      padding: 12px 20px !important;
       box-sizing: border-box !important;
       line-height: 1.2 !important;
     }
@@ -7666,7 +7650,7 @@ body.mobile-mode .building-section-content img.img-responsive {
       margin-top: 4px !important;
     }
     
-    /* ===== 8. FOOTER - sticky avec bouton OK 2x ===== */
+    /* ===== 8. FOOTER - sticky ; disposition des boutons (colonne, pleine largeur) en section 9h ===== */
     body.mobile-mode .bootbox.modal .modal-footer {
       position: sticky !important;
       bottom: 0 !important;
@@ -7684,25 +7668,10 @@ body.mobile-mode .building-section-content img.img-responsive {
     
     body.mobile-mode .bootbox.modal .modal-footer .btn {
       margin: 0 !important;
-      min-height: 50px !important;
-      font-size: 16px !important;
       font-weight: 600 !important;
       border-radius: 8px !important;
       transition: all 0.2s ease !important;
       border: none !important;
-    }
-    
-    /* Bouton Cancel - 1x */
-    body.mobile-mode .bootbox.modal .modal-footer .btn-default {
-      flex: 1 !important;
-      order: 1 !important;
-    }
-    
-    /* Bouton OK - 2x plus large */
-    body.mobile-mode .bootbox.modal .modal-footer .btn-primary {
-      flex: 2 !important;
-      order: 2 !important;
-      min-height: 52px !important;
     }
     
     body.mobile-mode .bootbox.modal .modal-footer .btn:active {

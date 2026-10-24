@@ -47,6 +47,9 @@
 // Épopée 2, ticket 7, sur mobile (375 et 767 px, 16 variantes à 375) : les groupes PJ / PNJ que la chaîne mobile pose dans le sélecteur de
 // personnage (optgroup, groupSelectOptions) ont leur libellé en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1. Ordre : Dormir avec le
 // sélecteur de la fixture selecteur.html inséré avant le titre de l'ordre.
+// Épopée 4, ticket 3 (taille normale des modales Bootbox) : à 375 et 767 px, « Annuler » et « Valider » de Dormir et de Pouvoir, « Cancel »
+// et « OK » de la confirmation hors ordre, en 14 px et au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler » ;
+// à 768, 769, 1280, 1440 et 1920 px, pied pas en colonne.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -592,7 +595,9 @@ const VALIDER = async () => {
     dessous: rv.top >= ra.bottom - 0.5,
     aDroite: Math.abs(rv.top - ra.top) < 1 && rv.left >= ra.right - 0.5,
     positions: [s.position, sp.position],
-    focus: v.matches(':focus')
+    focus: v.matches(':focus'),
+    boutons: [['Annuler', a], ['Valider', v]].map(([nom, b]) => ({ nom, taille: getComputedStyle(b).fontSize, hauteur: dixieme(b.getBoundingClientRect().height) })),
+    colonne: sp.display.includes('flex') && sp.flexDirection === 'column'
   };
 };
 // Onglet actif (ticket 6, section 9h) : fond, image de fond, ombre et bordures du lien ; pour le lien et chaque descendant qui porte du
@@ -638,6 +643,19 @@ function valide(v, nom, mobile) {
     assert.equal(v.dessous, true, `${nom} : « Valider » n'est pas sous « Annuler »`);
   } else {
     assert.equal(v.aDroite, true, `${nom} : « Valider » n'est pas à droite d'« Annuler »`);
+  }
+}
+// Taille normale des boutons du pied (épopée 4, ticket 3) : sous 768 px, « Annuler » et « Valider » (« Cancel » et « OK » hors ordre) en
+// 14 px, au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler » ; à partir de 768 px, pied pas en colonne.
+function piedNormal(v, nom, mobile) {
+  if (mobile) {
+    const hors = v.boutons.filter(b => b.taille !== '14px' || b.hauteur < 44).map(b => `${b.nom} ${b.taille}/${b.hauteur} px`);
+    assert.deepEqual(hors, [], `${nom} : ${hors.join(' ; ')}`);
+    assert.equal(v.colonne, true, `${nom} : pied pas en colonne`);
+    assert.ok(Math.abs(v.largeur - v.largeurAnnuler) <= 0.5 && Math.abs(v.largeur - v.interieur) <= 1, `${nom} : largeur de « Valider » ${v.largeur}, d'« Annuler » ${v.largeurAnnuler}, du pied ${v.interieur}`);
+    assert.equal(v.dessous, true, `${nom} : « Valider » n'est pas sous « Annuler »`);
+  } else {
+    assert.equal(v.colonne, false, `${nom} : pied en colonne`);
   }
 }
 // Onglet actif (ticket 6) : aucun bleu, fond et texte du thème (span compris), texte ≥ 4,5:1.
@@ -1029,6 +1047,9 @@ function verifier(r) {
       valide(r.valider[nom], nom, r.cfg.width < 768);
       ongletLisible(r.onglet[nom], nom);
     }
+  });
+  check(`${tag} (épopée 4, ticket 3) : ${r.cfg.width < 768 ? 'boutons du pied en 14 px, au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler »' : 'pied pas en colonne'} (Dormir, Pouvoir, confirmation hors ordre)`, () => {
+    for (const [nom, v] of [['Dormir', r.valider.Dormir], ['Pouvoir', r.valider.Pouvoir], ['hors ordre', r.validerHorsOrdre]]) { piedNormal(v, nom, r.cfg.width < 768); }
   });
   if (r.mobileMode) {
     check(`${tag} (ticket 7) : groupes PJ / PNJ du sélecteur de personnage en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1`, () => groupesLisibles(r.groupes, 'Dormir avec sélecteur'));
@@ -1428,6 +1449,8 @@ async function transition(depart, arrivee) {
       valide(valider, `${w} px`, w < 768);
       ongletLisible(onglet, `${w} px`);
     }
+  });  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (épopée 4, ticket 3) : de chaque côté du seuil, pied de Dormir sous 768 px (mobile-mode ou non) en colonne, boutons en 14 px, au moins 44 px de haut, « Valider » pleine largeur sous « Annuler » ; à partir de 768 px, pas en colonne`, () => {
+    for (const { w, valider } of etats) { piedNormal(valider, `${w} px`, w < 768); }
   });
 }
 

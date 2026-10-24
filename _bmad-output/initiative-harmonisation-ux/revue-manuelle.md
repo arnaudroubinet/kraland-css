@@ -163,3 +163,10 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - L'épopée note « aucun bouton de vote dans les fixtures du sujet » (l.57) : faux, `forum-sujet.html:26-28` en a ; à corriger dans la rétro.
 - Boutons à icône seule de l'en-tête du sujet (lien, liste des messages) et de l'index (« Tous les forums ») : leur icône passe de 16 à 14 px sur mobile avec la taille normale. Les garder à 16 px demande une classe posée par le JS. Accepté en l'état, à confirmer.
 - À 768 px, le « + » des contacts prend le style ordinateur alors que le champ Destinataires natif garde ses règles `max-width: 768px` ; le champ natif est masqué par le widget, rendu mixte non vérifié visuellement.
+
+## Ticket 4.3 — modales Bootbox mobiles (2026-10-24)
+
+- Toute confirmation Bootbox sur mobile prend le pied de la modale d'ordre (colonne, boutons pleine largeur, 14 px, ≥ 44 px), hors ordre comprise.
+- « ? Aide » de la modale d'ordre passe aussi à la taille normale (16 → 14 px sur mobile).
+- L'onglet actif des modales à onglets hors ordre (bg-elevated, accent) est gardé tel quel.
+- Les modales non Bootbox en mobile-mode perdent l'étirement `flex:1` de leurs boutons (aucune n'est connue sur le site) ; `bootbox.alert` et `prompt` prennent aussi le pied en colonne.

@@ -18,8 +18,10 @@
 //                   14px, hauteur ≥ 44 px ; ordinateur tactile (pointer: coarse, 1280 px) : boutons d'action et d'accès rapide ≥ 44 px ;
 //                   « + » des contacts mesuré dans son champ natif rendu visible (masqué par le widget Destinataires) ;
 //                   exclusions (compacts, BBCode, flèches, votes et date des messages, boutons-icônes, bâtiments, Envoyer sur mobile,
-//                   boutons de groupe du tableau de bord, boutons des modales Bootbox : ordre Dormir et confirmation avec barre BBCode,
-//                   fixture modale-ordre/) : font-size, hauteur et padding égaux au bundle de base (COMMIT_BOUTONS) ;
+//                   boutons de groupe du tableau de bord) : font-size, hauteur et padding égaux au bundle de base (COMMIT_BOUTONS) ;
+//   modales         (ticket 3, story-modales-bootbox-mobiles-valider-de-taille-normale-et-regles-plan) ordre Dormir et confirmation
+//                   avec barre BBCode, fixture modale-ordre/ : 375 et 767 px, boutons du pied et « ? Aide » en 14 px, hauteur ≥ 44 px ;
+//                   barre BBCode et croix (et tous les boutons à partir de 768 px) égales au bundle de base (COMMIT_MODALES) ;
 //   boutons-bascule même onglet 767, 768 puis 767 px : accès rapides du plateau du bon côté à chaque pas.
 // Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : boutons compacts et
 // pagination (4.3, 4.4), rayons (4.8), espacement (4.9).
@@ -32,6 +34,7 @@
 // Usage : npm run build && node tests/e2e/typographie-formes.mjs   (ou npm run test:zone -- typographie-formes)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : kraland-userscript-main.user.js du commit COMMIT_AVANT),
 //           KR_SCRIPT_AVANT_BOUTONS (bundle de base des boutons, défaut : celui du commit COMMIT_BOUTONS),
+//           KR_SCRIPT_AVANT_MODALES (bundle de base des modales, défaut : celui du commit COMMIT_MODALES),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -55,6 +58,10 @@ const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.e
 const COMMIT_BOUTONS = '4d97496';
 const avantBoutons = sansEntete(process.env.KR_SCRIPT_AVANT_BOUTONS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_BOUTONS, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_BOUTONS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Base des modales Bootbox (ticket 3) : boutons hors du pied (barre BBCode, croix) et pied sur ordinateur égaux au bundle d'avant le ticket.
+const COMMIT_MODALES = '8631c45';
+const avantModales = sansEntete(process.env.KR_SCRIPT_AVANT_MODALES ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_MODALES, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_MODALES}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
@@ -362,12 +369,15 @@ const PAGES_BOUTONS = {
     vises: [['sauvegarde', '#kr-config-export-btn, #kr-config-import-btn'], ['historique', '#kr-changelog-btn'], ['pied', '.kr-changelog-footer button']],
     exclus: [] },
   accueil: { url: BASE + '/accueil', html: ACCUEIL_BOUTONS, vises: [['jouer', '.accueil-play-btn']], exclus: [] },
-  // Modales Bootbox (4.3, exclues) : ordre Dormir et confirmation hors ordre avec une barre BBCode (gabarit inventé, comme celui du site).
-  'modale-ordre': { url: BASE + '/jouer/plateau', html: lire('modale-ordre/plateau.html'), modale: `<div id="ajax-order">${lire('modale-ordre/dormir.html')}</div>`,
-    vises: [], exclus: [['modale', '.modal .btn, .modal button']] },
-  'modale-bbcode': { url: BASE + '/jouer/plateau', html: lire('modale-ordre/plateau.html'),
+  // Modales Bootbox (ticket 3) : ordre Dormir et confirmation hors ordre avec une barre BBCode (gabarit inventé, comme celui du site) ;
+  // sur mobile, boutons du pied et « ? Aide » visés ; barre BBCode, croix et, sur ordinateur, tous les boutons égaux à la base COMMIT_MODALES.
+  'modale-ordre': { url: BASE + '/jouer/plateau', html: lire('modale-ordre/plateau.html'), modale: `<div id="ajax-order">${lire('modale-ordre/dormir.html')}</div>`, base: 'modales',
+    vises: [['pied', '.modal .modal-footer .btn', 'mobile'], ['aide', '.modal .kr-order-help-toggle', 'mobile']],
+    exclus: [['modale', '.modal .btn, .modal button', 'bureau'], ['hors-pied', '.modal :is(.btn, button):not(.modal-footer *):not(.kr-order-help-toggle)', 'mobile']] },
+  'modale-bbcode': { url: BASE + '/jouer/plateau', html: lire('modale-ordre/plateau.html'), base: 'modales',
     modale: '<p>Message</p><div class="btn-toolbar"><div class="btn-group btn-group-xs"><button type="button" class="btn btn-default"><i class="fa fa-bold"></i></button><button type="button" class="btn btn-default">Smileys</button></div></div>',
-    vises: [], exclus: [['modale', '.modal .btn, .modal button']] },
+    vises: [['pied', '.modal .modal-footer .btn', 'mobile']],
+    exclus: [['modale', '.modal .btn, .modal button', 'bureau'], ['hors-pied', '.modal :is(.btn, button):not(.modal-footer *)', 'mobile']] },
   tableau: { url: BASE + '/regles/avancees', html: lire('palette-nation-composants.html'), vises: [],
     exclus: [['groupe', '.dashboard-group-buttons .btn']] }
 };
@@ -444,10 +454,10 @@ if (on('boutons')) {
   console.log('\n== boutons ==');
   const cas = Object.keys(PAGES_BOUTONS).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_BOUTONS.map(width => ({ nom, variante, width }))));
   const res = await mapLimit(cas, async c => ({ c, r: await releverBoutons({ ...c, script: userscript }),
-    a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: avantBoutons }) : null }));
+    a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: PAGES_BOUTONS[c.nom].base === 'modales' ? avantModales : avantBoutons }) : null }));
   for (const { c, r, a } of res) {
     const mobile = c.width < 768;
-    if (PAGES_BOUTONS[c.nom].vises.length) {
+    if (pourSupport(PAGES_BOUTONS[c.nom].vises, mobile).length) {
       check(`boutons ${etiquette(c)} : boutons de la liste en 14 px, ${mobile ? 'hauteur ≥ 44 px' : 'hauteur 34 px'}`, () => verifierVises(r, mobile));
     }
     if (a) { check(`boutons ${etiquette(c)} : exclusions (font-size, hauteur, padding) égales au bundle de base`, () => verifierExclus(r, a)); }
