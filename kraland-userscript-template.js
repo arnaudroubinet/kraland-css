@@ -5375,7 +5375,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            font-size: 11px;
+            font-size: var(--kr-font-detail);
             color: var(--kr-text-secondary);
             order: 2;
             margin: 0 0 2px 0;

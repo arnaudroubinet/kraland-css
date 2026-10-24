@@ -91,6 +91,28 @@ check('typographie et formes : composant mesuré -> typographie-formes (en plus 
   const k = route('kraland-theme.css', hunk('.kd-opt-tag {', '.kd-opt-tag { font-weight: 600; }'));
   assert.ok(k.zones.includes('typographie-formes') && k.zones.includes('kramail'), k.zones.join(', '));
 });
+check('typographie et formes : échelle du forum et du kramail (fil d\'Ariane, cartouche, date d\'un kramail lu, aide des destinataires) -> typographie-formes', () => {
+  for (const h of [
+    hunk('body.page-forum.kr-subforum .forum-mobile-breadcrumb {', '    font-size: var(--kr-font-detail);'),
+    hunk('body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche {', '    font-size: var(--kr-font-detail);'),
+    hunk('.kramail-msg-date {', '    font-size: var(--kr-font-detail) !important;'),
+    hunk('body.page-kramail-compose form[name="post_msg"] .kd-help {', '    font-size: var(--kr-font-detail);'),
+    hunk('  .forum-title {', '    font-size: var(--kr-font-forum-name);'),
+    hunk('  body.page-kramail-compose form[name="post_msg"] .kd-warn {', '    font-size: var(--kr-font-body-mobile);')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    assert.ok(d.zones.includes('typographie-formes'), d.zones.join(', '));
+  }
+  // Classes exactes : un titre de page ou un conteneur au nom voisin ne lance pas le fragment par ce mot-clé.
+  for (const h of [
+    hunk('  body.page-forum.kr-subforum .forum-subforum-title {', '    font-size: 24px;'),
+    hunk('  body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper {', '    padding: 0;')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.ok(!d.zones.includes('typographie-formes'), d.zones.join(', '));
+  }
+});
 check('typographie et formes : bouton compact (pagination du sujet, pages du sous-forum, votes) -> typographie-formes', () => {
   for (const h of [
     hunk(':where(body.page-forum) .center > ul.pagination:not(:has(select)) > li > :is(a, span) {', '    font-size: var(--kr-font-button-compact);'),

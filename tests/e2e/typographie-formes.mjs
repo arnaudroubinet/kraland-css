@@ -29,6 +29,12 @@
 //                   carrés conservés), hauteur (± 0,5) et couleurs égales au bundle de base (COMMIT_COMPACT) ; 375 et 767 px : égaux
 //                   à la base ; autres boutons des messages (date, profil, kramail, signaler…) égaux à la base à toutes les largeurs ;
 //                   padding des éléments visés égal à la base ; jetons redéfinis (13 px, rayon 7 px) suivis à 1280 px.
+// Échelle du forum et du kramail (ticket 7, story-echelle-typographique-du-forum-et-du-kramail-plan) :
+//   echelle-forum   index RP, Communauté et racine, sous-forum, sujet, rédaction (FIXTURE SYNTHÉTIQUE typographie-forum-redaction.html),
+//                   réception, lecture et nouveau kramail : 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre :
+//                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
+//                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
+//                   masque miroir ECHELLE_TICKET47 sur le bundle de base (COMMIT_ECHELLE_FORUM) égal au bundle d'après, 375, 768, 1280 px.
 // Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg). Hors de ces tickets : rayons (4.8), espacement (4.9).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
@@ -42,7 +48,9 @@
 //           KR_SCRIPT_AVANT_MODALES (bundle de base des modales, défaut : celui du commit COMMIT_MODALES),
 //           KR_SCRIPT_AVANT_COMPACT (bundle de base du bouton compact, défaut : celui du commit COMMIT_COMPACT),
 //           KR_SCRIPT_AVANT_ECHELLE (bundle de base de l'échelle typographique, défaut : celui du commit COMMIT_ECHELLE),
-//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle (vide = tout).
+//           KR_SCRIPT_AVANT_ECHELLE_FORUM (bundle de base de l'échelle du forum et du kramail, défaut : celui du commit
+//           COMMIT_ECHELLE_FORUM),
+//           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -53,7 +61,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, ECHELLE_TICKET45, LEGENDES_TICKET45, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET45, AVANT_TICKET47, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -798,6 +806,212 @@ if (on('echelle')) {
       });
     }
     check(`echelle bascule ${variante} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+}
+
+// ---------- Échelle typographique du forum et du kramail (ticket 7) ----------
+// Index (RP, Communauté, racine), sous-forum, sujet, rédaction (FIXTURE SYNTHÉTIQUE typographie-forum-redaction.html, éditeur de
+// messages-v3.mjs réduit), réception, lecture et nouveau kramail. Rôles : nom 15 px (nom de forum de l'index en 400, ticket 6.1), détail
+// 13 px, texte courant 15 px sur mobile, libellés de rédaction 13 px, champ de rédaction 16 px, corps des messages 16 px sur mobile.
+const COMMIT_ECHELLE_FORUM = 'd953969';
+const avantEchelleForum = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const IDX = '#col-right .table > tbody > tr';
+const SF = '#topics tbody tr';
+// [rôle, sélecteur, taille attendue, graisse, support] : support m = mobile seulement, b = ordinateur seulement, rien = les deux.
+const PAGES_FORUM = {
+  'index-rp': { url: BASE + '/forum/rp', html: lire('forum-index-rp.html') },
+  'index-communaute': { url: BASE + '/forum/communaute', html: lire('forum-index-communaute.html') },
+  racine: { url: BASE + '/forum', html: lire('forum-racine.html') },
+  'sous-forum': { url: BASE + '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html') },
+  sujet: { url: BASE + '/forum/sujet/messages-v3-329425-1', html: lire('forum-sujet.html') },
+  redaction: { url: BASE + '/forum/post/repondre-2-329425', html: lire('typographie-forum-redaction.html') },
+  reception: { url: BASE + '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html') },
+  lecture: { url: BASE + '/kramail/post/sujet-fictif-0-9000002', html: lire('kramail-lecture.html') },
+  nouveau: { url: BASE + '/kramail/post/nouveau-4-2000', html: lire('kramail-nouveau.html') }
+};
+const INDEX_ROLES = [
+  ['nom de forum', `${IDX} > td:first-child > p > a`, '15px', '400'],
+  ['compteur', `${IDX} > td:nth-child(2), ${IDX} > td:nth-child(3)`, '13px'],
+  ['auteur du dernier message', `${IDX} > td:nth-child(4) > a.nomargin`, '13px'],
+  ['heure du dernier message', `${IDX} > td:nth-child(4) > p.mini`, '13px'],
+  ['fil d\'Ariane', '.forum-mobile-breadcrumb', '13px', null, 'm']
+];
+const ROLES_FORUM = {
+  'index-rp': INDEX_ROLES,
+  'index-communaute': INDEX_ROLES,
+  racine: INDEX_ROLES.slice(0, 2), // racine (forum-racine.html) : ni dernier message ni fil d'Ariane
+  'sous-forum': [
+    ['titre de sujet', `${SF} > td:first-child > p > a`, '15px'],
+    ['compteur', `${SF} > td.center`, '13px'],
+    ['auteur', `${SF} > td:nth-child(4) > a.nomargin`, '13px'],
+    ['auteur du dernier message', `${SF} > td:nth-child(5) > a.nomargin`, '13px'],
+    ['date du dernier message', `${SF} > td:nth-child(5) > p.mini`, '13px'],
+    ['étiquette de sujet', `${SF} > td:first-child > span.tagforum a`, '13px'],
+    ['fil d\'Ariane', '.forum-mobile-breadcrumb', '13px', null, 'm']
+  ],
+  sujet: [
+    ['auteur du message', 'ul.media-list.forum > li.media .user-info > strong', '15px'],
+    ['cartouche', 'ul.media-list.forum > li.media .user-info > .cartouche', '13px'],
+    ['corps du message', 'li.media.kr-msg > .media-body > .forum-msg', '16px', null, 'm']
+  ],
+  redaction: [
+    ['libellé', 'form.kr-editor .form-group.kr-sender-row > label, form.kr-editor .form-group.kr-message-row > label', '13px', null, 'm'],
+    ['champ de rédaction', 'form.kr-editor textarea', '16px', null, 'm']
+  ],
+  reception: [
+    ['sujet du kramail', '#topics tbody td:nth-child(2) a:last-of-type', '15px', null, 'm'],
+    ['expéditeur', '#topics tbody td:nth-child(3)', '13px', null, 'm'],
+    ['date', '#topics tbody td:nth-child(4)', '13px', null, 'm']
+  ],
+  lecture: [
+    ['expéditeur', '.kramail-msg-sender', '15px', null, 'm'],
+    ['date', '.kramail-msg-date', '13px', null, 'm'],
+    ['corps', '.kramail-msg-body', '15px', null, 'm']
+  ],
+  // Nouveau kramail : 6e colonne = état du panneau des destinataires (ETAPES_KD) où le rôle est mesuré.
+  nouveau: [
+    ['aide du champ Destinataires', '.kd-help', '14px', null, 'b', 'repos'],
+    ['aide du champ Destinataires', '.kd-help', '15px', null, 'm', 'repos'],
+    ['libellé Destinataires', '.kd-row > .kd-label', '13px', null, 'b', 'repos'],
+    ['recherche en cours', '.kd-sec.kd-loading', '14px', null, 'b', 'chargement'],
+    ['recherche en cours', '.kd-sec.kd-loading', '15px', null, 'm', 'chargement'],
+    ['titre de section', '.kd-sec:not(.kd-loading):not(.kd-error)', '12px', null, null, 'annuaire'],
+    ['note de section', '.kd-sec small', '12px', null, null, 'annuaire'],
+    ['nom proposé', '.kd-opt', '15px', null, null, 'annuaire'],
+    ['pied du panneau', '.kd-foot', '13px', null, 'b', 'annuaire'],
+    ['pied du panneau', '.kd-foot', '13px', null, 'm', 'vide'], // sur mobile, pied des seules touches masqué : texte du nom libre
+    ['déjà ajouté', '.kd-warn', '14px', null, 'b', 'deja'],
+    ['déjà ajouté', '.kd-warn', '15px', null, 'm', 'deja'],
+    ['aucun résultat', '.kd-empty', '14px', null, 'b', 'vide'],
+    ['aucun résultat', '.kd-empty', '15px', null, 'm', 'vide'],
+    ['annuaire indisponible', '.kd-sec.kd-error', '14px', null, 'b', 'erreur'],
+    ['annuaire indisponible', '.kd-sec.kd-error', '15px', null, 'm', 'erreur'],
+    ['message de blocage', '.kd-msg', '14px', null, 'b', 'blocage'],
+    ['message de blocage', '.kd-msg', '15px', null, 'm', 'blocage']
+  ]
+};
+// Panneau des destinataires du nouveau kramail, ouvert état par état (annuaire fictif de ouvrir() ; aucun envoi : soumission neutralisée,
+// « Envoyer » n'affiche que le blocage). Chargement : réponse retenue 1,2 s ; erreur : réponse 500.
+const saisirKd = async (page, q) => {
+  await page.fill('.kd-input', '');
+  await page.focus('.kd-input');
+  await page.keyboard.type(q, { delay: 20 });
+};
+const ETAPES_KD = [
+  ['repos', async () => {}],
+  ['chargement', async page => {
+    await page.route('**/ajaxsearch.php*', async route => { await new Promise(r => setTimeout(r, 1200)); await route.fallback().catch(() => {}); });
+    await saisirKd(page, 'mar');
+    await page.waitForFunction(() => document.querySelector('.kd-loading'), null, { timeout: 5000 });
+  }],
+  ['annuaire', async page => {
+    await page.waitForFunction(() => !document.querySelector('.kd-loading') && document.querySelector('.kd-opt'), null, { timeout: 5000 });
+    await page.unroute('**/ajaxsearch.php*');
+  }],
+  ['deja', async page => {
+    await page.keyboard.press('Enter');
+    await saisirKd(page, 'mar');
+    await page.waitForFunction(() => document.querySelector('.kd-warn'), null, { timeout: 5000 });
+  }],
+  ['vide', async page => {
+    await saisirKd(page, 'xqzw');
+    await page.waitForFunction(() => !document.querySelector('.kd-loading') && document.querySelector('.kd-empty'), null, { timeout: 5000 });
+  }],
+  ['erreur', async page => {
+    await page.route('**/ajaxsearch.php*', route => route.fulfill({ status: 500, contentType: 'text/html', body: '' }));
+    await saisirKd(page, 'zzerr');
+    await page.waitForFunction(() => document.querySelector('.kd-error'), null, { timeout: 5000 });
+    await page.unroute('**/ajaxsearch.php*');
+  }],
+  ['blocage', async page => {
+    await page.fill('input[name="c[1]"]', 'Sujet de test');
+    await page.fill('#message', 'Corps du message');
+    await saisirKd(page, 'xqzw');
+    await page.waitForFunction(() => !document.querySelector('.kd-loading'), null, { timeout: 5000 });
+    await page.click('form[name="post_msg"] button.btn-primary');
+    await page.waitForFunction(() => document.querySelector('.kd-msg-btn'), null, { timeout: 5000 });
+  }]
+];
+// Relevé page par page : une seule fois, ou à chaque état du panneau pour le nouveau kramail.
+const parEtat = async (nom, page, releve) => {
+  if (nom !== 'nouveau') { return [['', await releve()]]; }
+  const out = [];
+  for (const [etat, agir] of ETAPES_KD) {
+    await agir(page);
+    await page.waitForTimeout(50);
+    out.push([etat, await releve(etat)]);
+  }
+  return out;
+};
+const MESURE_FORUM = roles => {
+  const vu = e => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+  const res = { roles: roles.map(([, sel]) => [...document.querySelectorAll(sel)].filter(vu).map(e => {
+    const s = getComputedStyle(e);
+    return { taille: s.fontSize, graisse: s.fontWeight, texte: (e.textContent || e.value || '').trim().slice(0, 30) };
+  })) };
+  // Plancher (#col-right) : élément visible portant lui-même du texte, boîte de plus de 1 px ; textes masqués à 0 exclus.
+  res.plancher = [...document.querySelectorAll('#col-right, #col-right *')].filter(e => !['SCRIPT', 'STYLE'].includes(e.tagName) && vu(e)
+    && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+    && (r => r.width > 1 && r.height > 1)(e.getBoundingClientRect())
+    && e.checkVisibility({ opacityProperty: true, visibilityProperty: true }) && getComputedStyle(e).fontSize !== '0px')
+    .map(e => ({ taille: getComputedStyle(e).fontSize, texte: [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').slice(0, 30), cls: e.className && e.className.baseVal === undefined ? String(e.className).slice(0, 40) : e.tagName }));
+  res.mobile = document.body.classList.contains('mobile-mode');
+  return res;
+};
+if (on('echelle-forum')) {
+  console.log('\n== echelle-forum ==');
+  const LARGEURS = [375, 767, 768, 1280, 1440, 1920];
+  const cas = Object.keys(PAGES_FORUM).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS.map(width => ({ nom, variante, width }))));
+  const releverForum = async (c, script, css) => {
+    const { context, page, erreurs } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_FORUM[c.nom], css });
+    const roles = ROLES_FORUM[c.nom];
+    const etats = await parEtat(c.nom, page, etat => page.evaluate(MESURE_FORUM, roles.map(x => (x[5] === undefined || x[5] === etat ? x : [x[0], ':not(*)']))));
+    await context.close();
+    // Chaque rôle est pris dans son état ; plancher = union des états.
+    return { roles: roles.map((x, i) => etats.find(([etat]) => (x[5] === undefined ? '' : x[5]) === etat)[1].roles[i]), plancher: etats.flatMap(([, m]) => m.plancher), mobile: etats[0][1].mobile, erreurs };
+  };
+  const res = await mapLimit(cas, async c => ({ c, r: await releverForum(c, userscript) }));
+  for (const { c, r } of res) {
+    const mobile = c.width < 768;
+    const roles = ROLES_FORUM[c.nom].map((x, i) => [x, r.roles[i]]).filter(([[, , , , sup]]) => !sup || sup === (mobile ? 'm' : 'b'));
+    check(`echelle-forum ${etiquette(c)} : mode ${mobile ? 'mobile' : 'bureau'}, ${roles.map(([[nom, , taille, graisse]]) => `${nom} ${taille}${graisse ? ' / ' + graisse : ''}`).join(', ')}`, () => {
+      assert.equal(r.mobile, mobile, 'mode');
+      const absents = roles.filter(([, l]) => l.length === 0).map(([[nom]]) => nom);
+      assert.deepEqual(absents, [], 'absent(s) : ' + absents.join(', '));
+      const hors = roles.flatMap(([[nom, , taille, graisse], l]) => tailles(l, taille, graisse).map(x => `${nom} ${x}`));
+      assert.deepEqual(hors, [], hors.join(' ; '));
+    });
+    if (mobile) {
+      check(`echelle-forum ${etiquette(c)} : aucun texte visible de #col-right sous 12 px (textes masqués à 0 exclus)`, () => {
+        const hors = sousPlancher(r.plancher, 12);
+        assert.ok(r.plancher.length > 0, 'aucun texte mesuré');
+        assert.deepEqual(hors, [], hors.join(' ; '));
+      });
+    }
+    check(`echelle-forum ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
+  }
+
+  // Masque miroir ECHELLE_TICKET47 (lib/variantes.mjs) : posé sur le bundle de base, il rend chaque texte de #col-right à la taille du
+  // bundle d'après. Pages comparées hors périmètre par forum-index.mjs (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception,
+  // lecture), plus l'index et le nouveau kramail.
+  const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
+  const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
+  const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
+  const releverTailles = async (c, script, css) => {
+    const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css });
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    await context.close();
+    return l;
+  };
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '') }));
+  for (const { c, apres, masque } of resMiroir) {
+    check(`echelle-forum ${etiquette(c)} : masque ECHELLE_TICKET47 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
+      assert.ok(AVANT_TICKET47(avantEchelleForum), `bundle de base (${COMMIT_ECHELLE_FORUM}) déjà au ticket 7`);
+      assert.equal(masque.length, apres.length, 'nombre d\'éléments');
+      const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
+      assert.deepEqual(ecarts, [], ecarts.slice(0, 5).join(' ; '));
+    });
   }
 }
 

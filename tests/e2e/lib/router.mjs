@@ -71,9 +71,11 @@ export const SUITES = [
   // de base ; mini-profil replié et déplié, bascule 767/768/767. Boutons de taille normale (ticket 2) : 14 px et 34 px sur ordinateur, ≥ 44 px
   // sur mobile, exclusions comparées au bundle de base, bascule. Échelle typographique (ticket 5, fragment echelle) : fixture synthétique
   // typographie-echelle.html (Matériel), Personnage, plateau, sous-forum, kramail ; en-têtes 17 px / 700, noms 15 px / 600, détails 13 px, texte
-  // 15 px mobile, plancher de 12 px sur le plateau mobile, onglet « Personnage » entier à 360 et 375 px, jetons redéfinis suivis. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
+  // 15 px mobile, plancher de 12 px sur le plateau mobile, onglet « Personnage » entier à 360 et 375 px, jetons redéfinis suivis. Échelle du
+  // forum et du kramail (ticket 7, fragment echelle-forum) : index, sous-forum, sujet, rédaction, kramail ; noms 15 px, détails 13 px, plancher
+  // de 12 px sur mobile, masque miroir ECHELLE_TICKET47 sur le bundle de base. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
   // de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle']], needsBootstrap: true }
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -143,6 +145,9 @@ export const KEYWORDS = [
   // Bouton compact (ticket 4) : votes des messages, pagination du sujet et pages du sujet dans le sous-forum.
   // Échelle typographique (ticket 5) : noms et détails du plateau, onglets et jauges du mini-profil, légendes des compétences.
   [/dashboard-card-name|dashboard-card-status|mobile-tab-label|mobile-(?:mini-profile-)?gauges?-compact|kr-skill-caption|kr-topic-badge|kd-opt-tag|kr-room-here|dashboard-card-pnj|kr-skill-badge|kr-stat-badge|kr-action-grid|kr-quick-access-buttons|kd-msg-btn|\.center\s*>\s*ul\.pagination|ul\.pagination:not\(:first-of-type\)|btn-group-xs\[id\^="?ajax-/, ['typographie-formes']],
+  // Échelle du forum et du kramail (ticket 7, fragment echelle-forum) : composants mesurés des index, du sous-forum, du sujet, de la rédaction et
+  // du kramail (les repères déjà cités par la suite l'y ajoutent d'eux-mêmes, voir MAX_CITING).
+  [/forum-mobile-breadcrumb|cartouche|tagforum|kr-sender-row|kr-message-row|kramail-msg-(?:sender|date|body)|kd-help|kd-contacts|kd-label|permanent-topic-stats|(?<![\w-])(?:forum-title|forum-description|forum-moderators|last-time|kd-(?:sec|warn|empty|foot|msg))(?![\w-])/, ['typographie-formes']],
   // Composants génériques de Bootstrap (en-têtes de panneau, titres d'élément de liste) : cités par plus de MAX_CITING suites, ils lancent
   // toutes les zones qui les rendent ou les comparent (forum-index, sous-forum, kramail-redaction, modale-ordre, cybermonde-carte,
   // jeu-identite, palette-nation par COMPOSANTS_TICKET4, plateau, mini-profil, typographie-formes ; échelle typographique, ticket 5).

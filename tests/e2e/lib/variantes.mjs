@@ -165,6 +165,80 @@ export const LEGENDES_TICKET45 = [
 ].join('\n');
 /** Bundle d'avant l'épopée 4, ticket 5 : l'échelle mobile des titres n'y emploie pas encore le jeton (règle minifiée du bundle). */
 export const AVANT_TICKET45 = bundle => !bundle.includes('h1,h2,h3{font-size:var(--kr-font-section-title)!important}');
+/**
+ * Échelle typographique du forum et du kramail (épopée 4, ticket 7 ; DESIGN.md › Typography). Masque miroir : chaque règle reprend le
+ * sélecteur, le média et le drapeau !important de la règle dont le bundle réécrit la taille (ou à laquelle il l'ajoute : auteur du dernier
+ * message sur ordinateur, index et sous-forum ; ou qu'il découpe : compteurs de l'index et du sous-forum sur ordinateur, séparés de
+ * thead th ; ou qu'il crée faute de règle d'origine : auteur et cartouche d'un message du sujet sur ordinateur), avec la valeur du jeton en px (nom 15, détail 13, texte courant 14 / 15, étiquette 12, champ
+ * de rédaction 16) ; feuille adoptée, hors couche, après les feuilles du document. Les tailles déjà égales au jeton n'y figurent pas, ni
+ * les doublons morts retirés (tableau mobile en double). Les cartes de forum (.forum-title…) y sont sous le média mobile où le bundle
+ * les déplace. Seule exception : les statistiques des sujets permanents (.permanent-topic-stats), dont seul le module pose la taille, en
+ * style en ligne (aucune règle CSS), reçoivent 13 px en !important pour remplacer le style en ligne en 11 px du bundle « avant ». À poser par-dessus un bundle d'avant ce ticket
+ * (AVANT_TICKET47) ; tout autre écart reste détecté. Écart consigné dans le plan du ticket
+ * (story-echelle-typographique-du-forum-et-du-kramail, Implementation Notes).
+ */
+export const ECHELLE_TICKET47 = [
+  '@media (max-width: 767px) {',
+  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum { font-size: 13px !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p { font-size: 15px !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td { font-size: 13px !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child { font-size: 13px !important; }',
+  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a, :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a { font-size: 13px !important; }',
+  '  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child { font-size: 13px !important; }',
+  '  body.page-kramail #topics_wrapper .dataTables_filter label { font-size: 15px !important; }',
+  '  body.page-kramail #topics tbody td:nth-child(4) { font-size: 13px !important; }',
+  '  .kramail-msg-date { font-size: 13px !important; }',
+  '  .kramail-msg-date i { font-size: 13px !important; }',
+  '  .kramail-msg-body blockquote, .kramail-msg-body .blockquote, .kramail-msg-body .quote { font-size: 15px !important; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec { font-size: 12px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec small { font-size: 12px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading, body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-opt { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-warn { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-empty { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-foot { font-size: 13px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-help { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-msg { font-size: 15px; }',
+  '  body.page-forum.kr-subforum .forum-mobile-breadcrumb { font-size: 13px; }',
+  '  body.page-forum.kr-subforum #topics tbody td { font-size: 13px !important; }',
+  '  body.page-forum.kr-subforum #topics tbody td:first-child p > a { font-size: 15px !important; }',
+  '  body.page-forum.kr-subforum #topics tbody td:nth-child(1)[data-kr-pages-label]::after { font-size: 13px; }',
+  '  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin { font-size: 13px !important; }',
+  '  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before { font-size: 13px; }',
+  '  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a { font-size: 13px !important; }',
+  '  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a { font-size: 15px !important; }',
+  '  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb { font-size: 13px; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td { font-size: 13px !important; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a { font-size: 15px !important; }',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong { font-size: 15px; }',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche { font-size: 13px; }',
+  '  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready + textarea.form-control { font-size: 16px !important; }',
+  '  .forum-title { font-size: 15px; }',
+  '  .forum-description { font-size: 15px; }',
+  '  .forum-moderators { font-size: 13px; }',
+  '  .last-time { font-size: 13px; }',
+  '}',
+  '.permanent-topic-stats { font-size: 13px !important; }',
+  '@media (min-width: 768px) {',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec { font-size: 12px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec small { font-size: 12px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading, body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error { font-size: 14px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-opt { font-size: 15px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-warn { font-size: 14px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-empty { font-size: 14px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-foot { font-size: 13px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-help { font-size: 14px; }',
+  '  body.page-kramail-compose form[name="post_msg"] .kd-msg { font-size: 14px; }',
+  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > a.nomargin, html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > a.nomargin { font-size: 13px !important; }',
+  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(2), html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3) { font-size: 13px; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2), :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3) { font-size: 13px; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin { font-size: 13px !important; }',
+  '  :where(body.page-forum) ul.media-list.forum > li.media .user-info > strong { font-size: 15px; }',
+  '  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche { font-size: 13px; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle). */
+export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important');
 
 /**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le

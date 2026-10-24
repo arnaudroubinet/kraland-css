@@ -7875,11 +7875,9 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child {
     order: 1 !important;
     margin: 0 !important;
-    font-size: 0 !important; /* Masquer le texte brut "→" */
   }
   
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
-    font-size: 15px !important;
     font-weight: 700 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -7897,7 +7895,6 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
     margin: 0 !important;
-    font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.2 !important;
   }
@@ -7923,7 +7920,6 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-description-wrapper > p {
     order: 999 !important;
-    font-size: 12px !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.2 !important;
     margin: 0 !important;
@@ -7941,7 +7937,6 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(3),
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
     display: inline !important;
-    font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
     order: 2 !important;
     margin: 0 !important;
@@ -7974,7 +7969,6 @@ body.mobile-mode .building-section-content img.img-responsive {
     padding-top: 3px !important;
     border-top: 1px solid var(--kr-border-default) !important;
     margin-top: 0 !important;
-    font-size: 11px !important;
     color: var(--kr-text-secondary) !important;
     display: block !important;
   }
@@ -7991,7 +7985,6 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* Auteur du dernier message - inline */
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:nth-child(4) > a,
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > a {
-    font-size: 12px !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -8017,7 +8010,6 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.mobile-mode:where(.page-forum, .page-forum-racine) .panel-default .table > tbody > tr > td:last-child > p {
     display: inline !important;
     margin: 0 !important;
-    font-size: 13px !important;
     color: var(--kr-text-secondary) !important;
   }
   
@@ -8046,7 +8038,6 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: inline-block !important;
     width: 20px !important;
     height: 20px !important;
-    font-size: 14px !important;
     line-height: 20px !important;
     vertical-align: middle !important;
   }
@@ -8226,87 +8217,89 @@ body.mobile-mode .building-section-content img.img-responsive {
   text-align: left;
 }
 
-.forum-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--kr-text-primary);
-  line-height: 1.3;
-  margin: 0;
-  padding: 0;
-  text-align: left !important;
-}
+@media (max-width: 767px) {
+  .forum-title {
+    font-size: var(--kr-font-forum-name);
+    font-weight: 700;
+    color: var(--kr-text-primary);
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+    text-align: left !important;
+  }
 
-/* === DESCRIPTION === */
+  /* === DESCRIPTION === */
 
-.forum-description {
-  font-size: 14px;
-  color: var(--kr-text-secondary);
-  line-height: 1.5;
-  margin: 0 0 8px;
-  text-align: left !important;
-  
-  /* Limitation à 2 lignes */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .forum-description {
+    font-size: var(--kr-font-body-mobile);
+    color: var(--kr-text-secondary);
+    line-height: 1.5;
+    margin: 0 0 8px;
+    text-align: left !important;
 
-/* === MODERATEURS === */
+    /* Limitation à 2 lignes */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.forum-moderators {
-  font-size: 12px;
-  color: var(--kr-text-muted);
-  margin: 0 0 10px;
-  font-style: normal;
-  font-weight: 400;
-  text-align: left !important;
-}
+  /* === MODERATEURS === */
 
-/* === FOOTER (Stats + Dernière activité) === */
+  .forum-moderators {
+    font-size: var(--kr-font-detail);
+    color: var(--kr-text-muted);
+    margin: 0 0 10px;
+    font-style: normal;
+    font-weight: 400;
+    text-align: left !important;
+  }
 
-.forum-footer {
-  border-top: 1px solid var(--kr-border-default);
-  padding-top: 10px;
-  margin-top: auto;
-  text-align: left !important;
-}
+  /* === FOOTER (Stats + Dernière activité) === */
 
-.forum-stats {
-  font-size: 13px;
-  color: var(--kr-text-muted);
-  margin-bottom: 6px;
-  white-space: nowrap;
-  text-align: left !important;
-}
+  .forum-footer {
+    border-top: 1px solid var(--kr-border-default);
+    padding-top: 10px;
+    margin-top: auto;
+    text-align: left !important;
+  }
 
-.forum-topics,
-.forum-messages {
-  font-weight: 600;
-  color: var(--kr-text-secondary);
-}
+  .forum-stats {
+    font-size: var(--kr-font-detail);
+    color: var(--kr-text-muted);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    text-align: left !important;
+  }
 
-.forum-separator {
-  margin: 0 4px;
-  color: var(--kr-text-muted);
-}
+  .forum-topics,
+  .forum-messages {
+    font-weight: 600;
+    color: var(--kr-text-secondary);
+  }
 
-.forum-last-activity {
-  font-size: 13px;
-  color: var(--kr-text-secondary);
-  line-height: 1.5;
-  text-align: left !important;
-}
+  .forum-separator {
+    margin: 0 4px;
+    color: var(--kr-text-muted);
+  }
 
-.last-user {
-  font-weight: 600;
-  color: var(--kr-text-primary);
-}
+  .forum-last-activity {
+    font-size: var(--kr-font-detail);
+    color: var(--kr-text-secondary);
+    line-height: 1.5;
+    text-align: left !important;
+  }
 
-.last-time {
-  color: var(--kr-text-muted);
-  font-size: 12px;
+  .last-user {
+    font-weight: 600;
+    color: var(--kr-text-primary);
+  }
+
+  .last-time {
+    color: var(--kr-text-muted);
+    font-size: var(--kr-font-detail);
+  }
 }
 
 /* === ÉTATS SPÉCIAUX === */
@@ -8573,7 +8566,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
   
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:first-child > a {
-    font-size: 15px !important;
+    font-size: var(--kr-font-forum-name) !important;
     font-weight: 700 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -8589,7 +8582,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum {
     order: 2 !important;
     margin: 0 !important;
-    font-size: 11px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.2 !important;
   }
@@ -8613,7 +8606,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2),
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p {
     order: 999 !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-body-mobile) !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.2 !important;
     margin: 0 !important;
@@ -8629,7 +8622,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3),
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td {
     display: inline !important;
-    font-size: 11px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     order: 2 !important;
     margin: 0 !important;
@@ -8660,7 +8653,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     padding-top: 3px !important;
     border-top: 1px solid var(--kr-border-default) !important;
     margin-top: 0 !important;
-    font-size: 11px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     display: block !important;
   }
@@ -8677,7 +8670,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* Auteur du dernier message - inline */
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a,
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a {
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -8703,7 +8696,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > p {
     display: inline !important;
     margin: 0 !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
   }
   
@@ -8812,7 +8805,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* Lien titre */
   body.page-forum table.dataTable tbody td:nth-child(1) p a {
     flex: 1 !important;
-    font-size: 15px !important;
+    font-size: var(--kr-font-name) !important;
     font-weight: 600 !important;
     line-height: 1.4 !important;
     color: var(--kr-text-primary) !important;
@@ -8874,7 +8867,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     align-items: center !important;
     gap: 4px !important;
     margin-top: 4px !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
   }
 
@@ -8891,7 +8884,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   /* Lien auteur */
   body.page-forum table.dataTable tbody td:nth-child(5) a:first-child {
-    font-size: 14px !important;
+    font-size: var(--kr-font-detail) !important;
     font-weight: 600 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -8909,7 +8902,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   
   /* Paragraphe date/heure */
   body.page-forum table.dataTable tbody td:nth-child(5) p {
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-muted) !important;
     margin: 0 !important;
     display: flex !important;
@@ -9115,7 +9108,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     gap: 8px !important;
     padding: 12px 16px !important;
     min-height: 44px !important;
-    font-size: 15px !important;
+    font-size: var(--kr-font-body-mobile) !important;
     color: var(--kr-text-primary) !important;
     white-space: nowrap !important;
   }
@@ -9184,7 +9177,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     gap: 8px !important;
     width: 100% !important;
     margin: 0 !important;
-    font-size: 14px !important;
+    font-size: var(--kr-font-body-mobile) !important;
     color: var(--kr-text-secondary) !important;
   }
 
@@ -9211,7 +9204,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* Info "Affiche X à Y de Z lignes" */
   body.page-kramail #topics_wrapper .dataTables_info {
     padding: 8px 16px !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-muted) !important;
     text-align: center !important;
   }
@@ -9336,7 +9329,7 @@ body.mobile-mode .building-section-content img.img-responsive {
 
   /* Lien titre du message */
   body.page-kramail #topics tbody td:nth-child(2) a:last-of-type {
-    font-size: 15px !important;
+    font-size: var(--kr-font-name) !important;
     font-weight: 500 !important;
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
@@ -9363,14 +9356,14 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: inline !important;
     padding: 0 !important;
     border: none !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
   }
 
   body.page-kramail #topics tbody td:nth-child(3) a {
     color: var(--kr-text-secondary) !important;
     text-decoration: none !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   /* Cellule 4 : Date - sous le titre à droite (même ligne que auteur) */
@@ -9381,7 +9374,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     display: block !important;
     padding: 0 !important;
     border: none !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-muted) !important;
     text-align: right !important;
   }
@@ -9579,7 +9572,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   .kramail-msg-sender {
-    font-size: 15px !important;
+    font-size: var(--kr-font-name) !important;
     font-weight: 600 !important;
     color: var(--kr-text-primary) !important;
     margin-bottom: 2px !important;
@@ -9591,7 +9584,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   .kramail-msg-date {
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-muted) !important;
     display: flex !important;
     align-items: center !important;
@@ -9599,13 +9592,13 @@ body.mobile-mode .building-section-content img.img-responsive {
   }
 
   .kramail-msg-date i {
-    font-size: 11px !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   /* --- Destinataires --- */
   .kramail-msg-recipients {
     padding: 8px 16px !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-secondary) !important;
     border-bottom: 1px solid var(--kr-border-default) !important;
     line-height: 1.5 !important;
@@ -9624,7 +9617,7 @@ body.mobile-mode .building-section-content img.img-responsive {
   /* --- Corps du message — pleine largeur --- */
   .kramail-msg-body {
     padding: 16px !important;
-    font-size: 15px !important;
+    font-size: var(--kr-font-body-mobile) !important;
     line-height: 1.6 !important;
     color: var(--kr-text-primary) !important;
     overflow-wrap: break-word !important;
@@ -9642,7 +9635,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     border-bottom: none !important;
     background: rgba(255, 255, 255, 0.03) !important;
     border-radius: 0 8px 8px 0 !important;
-    font-size: 14px !important;
+    font-size: var(--kr-font-body-mobile) !important;
     color: var(--kr-text-secondary) !important;
     line-height: 1.5 !important;
   }
@@ -9660,7 +9653,7 @@ body.mobile-mode .building-section-content img.img-responsive {
     margin-top: 16px !important;
     padding-top: 12px !important;
     border-top: 1px solid var(--kr-border-default) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     color: var(--kr-text-muted) !important;
     line-height: 1.5 !important;
   }
@@ -10097,7 +10090,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   /* 5. SECTION DESTINATAIRE — meilleure lisibilité */
   body.page-kramail .editeur-text .form-group label[for],
   body.page-kramail .editeur-text .form-group > label.col-sm-1 {
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
     text-transform: uppercase;
     letter-spacing: 0.3px;
     color: var(--kr-text-secondary);
@@ -10117,7 +10110,7 @@ body.page-kramail h1.page-header .btn-default:hover {
   body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) > label.col-sm-2 {
     color: var(--kr-text-primary);
     font-weight: 700;
-    font-size: 14px;
+    font-size: var(--kr-font-body);
   }
 
   body.page-kramail .editeur-text .form-group:has(input[type="checkbox"]) .checkbox-inline {
@@ -10221,7 +10214,7 @@ body.page-kramail h1.page-header .btn-default:hover {
 
   /* 10. LABELS — hiérarchie visuelle améliorée */
   body.page-kramail .editeur-text .form-group > label.control-label {
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -11073,7 +11066,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 @media (min-width: 768px) {
   /* Le thème natif bascule ces libellés à 769 px : couvrir aussi 768 px pour garder une taille commune de 13 px (S-1). */
   body.page-kramail-compose form[name="post_msg"] .form-group > label.control-label {
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
@@ -11087,7 +11080,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   /* « Destinataires * » sur une seule ligne quand la colonne des libellés le permet (dès 1200 px ; en dessous, retour à la ligne comme le libellé natif) */
   body.page-kramail-compose form[name="post_msg"] .kd-row > .kd-label {
     padding-left: 15px !important;
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
     letter-spacing: 0;
     white-space: nowrap;
   }
@@ -11232,19 +11225,19 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec {
     padding: 8px 12px 4px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     letter-spacing: 0.7px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec small {
     margin-left: 6px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     letter-spacing: 0;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
   body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
-    font-size: 13px;
+    font-size: var(--kr-font-body);
     letter-spacing: 0;
   }
 
@@ -11252,7 +11245,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     gap: 10px;
     min-height: 34px;
     padding: 0 12px;
-    font-size: 14px;
+    font-size: var(--kr-font-name);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
@@ -11283,25 +11276,25 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   body.page-kramail-compose form[name="post_msg"] .kd-warn {
     gap: 8px;
     padding: 10px 12px 4px;
-    font-size: 13px;
+    font-size: var(--kr-font-body);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-empty {
     margin: 0;
     padding: 10px 12px 6px;
-    font-size: 13px;
+    font-size: var(--kr-font-body);
     line-height: 1.45;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-foot {
     gap: 4px 12px;
     padding: 7px 12px;
-    font-size: 12px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-help {
     margin: 6px 0 0;
-    font-size: 12.5px;
+    font-size: var(--kr-font-body);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd.is-open .kd-help {
@@ -11311,7 +11304,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   body.page-kramail-compose form[name="post_msg"] .kd-msg {
     gap: 7px;
     margin: 6px 0 0;
-    font-size: 13px;
+    font-size: var(--kr-font-body);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
@@ -11491,19 +11484,19 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec {
     padding: 10px 12px 4px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     letter-spacing: 0.7px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec small {
     margin-left: 6px;
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     letter-spacing: 0;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
   body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
-    font-size: 14px;
+    font-size: var(--kr-font-body-mobile);
     letter-spacing: 0;
   }
 
@@ -11511,7 +11504,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     gap: 10px;
     min-height: 44px;
     padding: 0 12px;
-    font-size: 16px;
+    font-size: var(--kr-font-name);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
@@ -11542,20 +11535,20 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   body.page-kramail-compose form[name="post_msg"] .kd-warn {
     gap: 8px;
     padding: 10px 12px 4px;
-    font-size: 14px;
+    font-size: var(--kr-font-body-mobile);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-empty {
     margin: 0;
     padding: 10px 12px 6px;
-    font-size: 14px;
+    font-size: var(--kr-font-body-mobile);
     line-height: 1.45;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-foot {
     gap: 4px 12px;
     padding: 7px 12px;
-    font-size: 12.5px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-foot .kd-keys,
@@ -11565,7 +11558,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-help {
     margin: 6px 0 0;
-    font-size: 13px;
+    font-size: var(--kr-font-body-mobile);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd.is-open .kd-help {
@@ -11575,7 +11568,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   body.page-kramail-compose form[name="post_msg"] .kd-msg {
     gap: 7px;
     margin: 6px 0 0;
-    font-size: 14px;
+    font-size: var(--kr-font-body-mobile);
   }
 
   /* Cibles de 44 px au toucher ; les deux boutons passent sous le texte quand la ligne est trop courte */
@@ -13829,7 +13822,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 4px;
     margin: 0 0 4px;
     color: var(--kr-text-secondary);
-    font-size: 14px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-forum.kr-subforum .forum-mobile-breadcrumb-link {
@@ -13990,7 +13983,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     order: -2;
     flex: 0 0 auto;
     color: var(--kr-text-secondary);
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-forum.kr-subforum #topics thead th {
@@ -14085,7 +14078,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border: 0 !important;
     background: none !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     line-height: 1.4 !important;
     text-align: left !important;
   }
@@ -14122,7 +14115,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 1 1 0 !important;
     min-width: 0;
     color: var(--kr-text-primary) !important;
-    font-size: 16px !important;
+    font-size: var(--kr-font-name) !important;
     line-height: 1.3 !important;
     overflow-wrap: anywhere;
     text-decoration: none !important;
@@ -14148,7 +14141,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.page-forum.kr-subforum #topics tbody td:nth-child(5) > a.nomargin {
     order: 7;
     color: var(--kr-text-primary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     font-weight: 600;
     pointer-events: none;
     text-decoration: none !important;
@@ -14171,7 +14164,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     order: 8;
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   body.page-forum.kr-subforum #topics tbody td:nth-child(5) > p.mini .btn-group {
@@ -14227,14 +14220,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     content: "· " attr(data-kr-pages-label);
     order: 13;
     color: var(--kr-text-secondary);
-    font-size: 12px;
+    font-size: var(--kr-font-detail);
     line-height: 1.4;
   }
 
   body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin {
     order: 14;
     color: var(--kr-text-secondary) !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     font-weight: 400 !important;
     pointer-events: none;
     text-decoration: none !important;
@@ -14258,7 +14251,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before {
     content: "· ";
-    font-size: 12px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum > i {
@@ -14269,7 +14262,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: inline !important;
     margin-right: 6px !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     pointer-events: none;
     text-decoration: none !important;
   }
@@ -14383,7 +14376,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0 !important;
     overflow: hidden;
     color: var(--kr-text-primary) !important;
-    font-size: 16px !important;
+    font-size: var(--kr-font-name) !important;
     line-height: 1.3 !important;
     text-decoration: none !important;
     text-overflow: ellipsis;
@@ -14408,7 +14401,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 0 0 auto;
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     white-space: nowrap;
   }
 }
@@ -14520,7 +14513,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > p > a {
     color: var(--kr-text-primary) !important;
-    font-size: 15px !important;
+    font-size: var(--kr-font-name) !important;
     font-weight: 400 !important;
     line-height: 1.35;
   }
@@ -14536,7 +14529,13 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   /* Msg et Vus : à droite, chiffres de même largeur ; en-têtes alignés comme leurs chiffres. */
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(2),
-  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3),
+  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3) {
+    font-variant-numeric: tabular-nums;
+    text-align: right !important;
+    white-space: nowrap;
+    font-size: var(--kr-font-detail);
+  }
+
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(2),
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default thead th:nth-child(3) {
     font-variant-numeric: tabular-nums;
@@ -14550,6 +14549,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: block;
     color: var(--kr-text-primary) !important;
     font-weight: 700 !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > p,
@@ -14557,7 +14557,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: block;
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     white-space: nowrap;
   }
 
@@ -14623,7 +14623,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Étiquettes : en texte secondaire (le doré #C69100 ne fait que 2,82:1 sur le blanc d'Empire Brun clair, D-12). */
   html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:first-child > span.tagforum a {
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   /* Rythme vertical resserré : le premier sujet réel doit rester dans le premier écran (1280 x 720). */
@@ -14719,7 +14719,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 4px;
     margin: 0 0 4px;
     color: var(--kr-text-secondary);
-    font-size: 14px;
+    font-size: var(--kr-font-detail);
   }
 
   :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-link {
@@ -14858,7 +14858,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border: 0 !important;
     background: none !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 12px !important;
+    font-size: var(--kr-font-detail) !important;
     line-height: 1.4 !important;
     text-align: left !important;
   }
@@ -14885,7 +14885,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 1 1 0 !important;
     min-width: 0;
     color: var(--kr-text-primary) !important;
-    font-size: 16px !important;
+    font-size: var(--kr-font-forum-name) !important;
     font-weight: 400 !important;
     line-height: 1.3 !important;
     overflow-wrap: anywhere;
@@ -14903,7 +14903,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin {
     order: 7;
     color: var(--kr-text-primary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     font-weight: 600;
     pointer-events: none;
     text-decoration: none !important;
@@ -14926,7 +14926,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     order: 8;
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini .btn-group {
@@ -14998,7 +14998,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a {
     color: var(--kr-text-primary) !important;
-    font-size: 15px !important;
+    font-size: var(--kr-font-forum-name) !important;
     font-weight: 400 !important;
     line-height: 1.35;
   }
@@ -15009,7 +15009,13 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   /* Sujets et Messages : à droite, chiffres de même largeur ; en-têtes alignés comme leurs chiffres (Msg et Vus du sous-forum). */
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2),
-  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3),
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3) {
+    font-variant-numeric: tabular-nums;
+    text-align: right !important;
+    white-space: nowrap;
+    font-size: var(--kr-font-detail);
+  }
+
   :where(html.kr-page-forum-index) #col-right .panel-default .table > thead th:nth-child(2),
   :where(html.kr-page-forum-index) #col-right .panel-default .table > thead th:nth-child(3) {
     font-variant-numeric: tabular-nums;
@@ -15022,13 +15028,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: block;
     color: var(--kr-text-primary) !important;
     font-weight: 700 !important;
+    font-size: var(--kr-font-detail) !important;
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini {
     display: block;
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
-    font-size: 13px !important;
+    font-size: var(--kr-font-detail) !important;
     white-space: nowrap;
   }
 
@@ -15126,7 +15133,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: block;
     min-width: 0;
     color: var(--kr-text-primary);
-    font-size: 16px;
+    font-size: var(--kr-font-name);
     line-height: 21px;
     overflow-wrap: anywhere;
   }
@@ -15142,7 +15149,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 2px 0 0;
     padding: 0;
     color: var(--kr-text-secondary);
-    font-size: 12px;
+    font-size: var(--kr-font-detail);
     line-height: 18px;
   }
 
@@ -15346,7 +15353,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 0 !important;
     padding: 0 !important;
     color: var(--kr-text-secondary);
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
     font-weight: 600;
     letter-spacing: 0;
     text-transform: none;
@@ -15395,7 +15402,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 0 !important;
     border-top: 0;
     border-radius: 0 0 8px 8px !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
   }
 
   /* Outils : à plat (le cadre est celui de l'éditeur), icône à 16 px, ordre = gras, italique, lien, citation, émoticônes, puis « Plus » */
@@ -15548,5 +15555,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(body.page-forum) .center > ul.pagination:not(:has(select)) > li:last-child > :is(a, span) {
     border-top-right-radius: var(--kr-radius-sm);
     border-bottom-right-radius: var(--kr-radius-sm);
+  }
+}
+
+/* Sujet sur ordinateur : auteur d'un message au rôle nom, cartouche au rôle détail (DESIGN.md › Typography), comme sur mobile. */
+@media (min-width: 768px) {
+  :where(body.page-forum) ul.media-list.forum > li.media .user-info > strong {
+    font-size: var(--kr-font-name);
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche {
+    font-size: var(--kr-font-detail);
   }
 }

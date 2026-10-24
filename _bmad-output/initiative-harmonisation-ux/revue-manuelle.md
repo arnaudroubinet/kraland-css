@@ -185,3 +185,16 @@ Breakdown en 10 entrées (`epic-typographie-formes/tickets.toml`), écrit en aut
 - Pages de jeu repérées par la présence de `#col-leftest` (aucune classe de page pour le plateau) : à confirmer sur le site.
 - Nom des cartes du tableau de bord à 15 px dans des cartes de 140-160 px (2 lignes max, ellipse) : rendu à regarder.
 - `.xmini` et liens du pied de page passent à 12 px sur toutes les pages (planchers PLT-QU) ; `h1.page-header` mobile 17,5 → 17 px.
+
+## Ticket 4.6 en attente, 4.7 construit avant (2026-10-24)
+
+- 4.6 (Matériel, Personnage, Bâtiments, Employés) attend le mandat d'Arnaud pour relever en lecture seule le squelette DOM de Matériel, Bâtiments et Employés.
+- 4.7 (forum et kramail) construit avant 4.6 : leur chaînage n'est qu'une collision de fichiers (même suite, mêmes sections), pas une dépendance fonctionnelle.
+
+## Ticket 4.7 — échelle du forum et du kramail (2026-10-24)
+
+- Kramail : valeurs de ses règles existantes passées en jetons (aucune règle nouvelle), en attendant l'épopée 7.
+- Gardés hors échelle : titres de page mobiles à 24 px, icônes et glyphes, champs à 16 px.
+- Mandat donné par Arnaud le 2026-10-24 (« Tu as le droit d'aller sur le site juste pas faire des actions ») : HTML natif de `/jouer/materiel`, `/jouer/bat`, `/jouer/pnj` relevé en lecture seule (GET, hors dépôt) ; 4.6 débloqué, construit après 4.7.
+- 4.7 : nom de forum de l'index en 15 px, graisse 400 (ticket 6.1) alors que DESIGN.md dit 700 : à trancher.
+- 4.7 : cartouche de l'auteur du sujet sur ordinateur passée en détail 13 px (14 natif avant) ; textarea de la rédaction mobile 15 → 16 px (anti-zoom).
