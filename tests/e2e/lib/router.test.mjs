@@ -584,6 +584,16 @@ check('bouton « ••• » commun (épopée 6, entrée 5) : fragment plus, se
   assert.equal(kramail.widened, false, kramail.reasons.join(' ; '));
   assert.deepEqual(sorted(kramail.zones), ['cartes-pastilles', 'forum', 'forum-activite', 'kramail', 'messages', 'palette-nation', 'typographie-formes']);
 });
+check('icône de la ligne de forum (épopée 6, entrée 6) : fragment ligne, règle CSS de l\'icône, module ForumIndex -> forum-activite et suites masquées (cartes-pastilles, typographie-formes), plus forum (mot-clé forum)', () => {
+  assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('ligne')), 'fragment ligne');
+  const css = route('kraland-theme.css', hunk('.x {', '  .kr-forum-icon { margin-right: 6px; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.deepEqual(sorted(css.zones), ['cartes-pastilles', 'forum', 'forum-activite', 'typographie-formes'], sorted(css.zones).join(','));
+  const t = tpl(['MODULE : ForumIndex:Presentation — index du forum', ['  function d() {', '    return 13;', '  }']]);
+  const module = route(T, hunkAt(at(t, 'return 13'), "    span.className = 'kr-forum-icon';"), t);
+  assert.equal(module.widened, false, module.reasons.join(' ; '));
+  assert.deepEqual(sorted(module.zones), ['cartes-pastilles', 'forum', 'forum-activite', 'sous-forum', 'typographie-formes'], sorted(module.zones).join(','));
+});
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);
 });

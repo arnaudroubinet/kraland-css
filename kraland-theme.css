@@ -14562,8 +14562,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    INDEX DU FORUM (refonte H12.1, ticket 6.1) — présentation du sous-forum
    Portée : racine /forum et index /forum/rp, /forum/hrp, /forum/communaute et /forum/debats (html.kr-page-forum-index, posée avec le thème ; index Staff
    exclu). Modèle : sous-forum ci-dessus, mêmes valeurs : L1 et L4 (en-tête de section), L2 (en-tête de page mobile), L3 (lignes mobiles),
-   L6 (bureau). Le module ForumIndex:Presentation pose les unités (data-kr-unit), le fil d'Ariane mobile et le bouton « Tous les forums »
-   dans le titre (bureau). Les anciennes règles « cartes » du forum (1re et 2e versions, tableaux de #col-right) excluent l'index (P1) ; les
+   L6 (bureau). Le module ForumIndex:Presentation pose les unités (data-kr-unit), le fil d'Ariane mobile, le bouton « Tous les forums »
+   dans le titre (bureau) et, avant le nom, l'icône du forum lue dans la liste latérale (span.kr-forum-icon, ticket 6.6 ; aucune icône si
+   le forum n'a pas d'entrée accessible dans la liste). Les anciennes règles « cartes » du forum (1re et 2e versions, tableaux de #col-right) excluent l'index (P1) ; les
    règles mobiles transverses (cibles de 44 px, liens des panneaux, cellules) sont battues par la spécificité (#col-right).
    ============================================================================ */
 
@@ -14807,6 +14808,19 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     z-index: 1;
   }
 
+  /* Icône du forum (ticket 6.6) : avant le nom, sur sa rangée, décorative et sous le lien étiré. */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > .kr-forum-icon {
+    order: 1;
+    flex: 0 0 auto;
+    width: 1.25em;
+    margin-right: var(--kr-space-1);
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-forum-name);
+    line-height: 1.3;
+    text-align: center;
+    pointer-events: none;
+  }
+
   /* Ligne 2 : « Dernier : auteur, heure ». Le nom de l'auteur n'est pas cliquable (pas de toucher accidentel vers le profil). */
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin {
     order: 7;
@@ -14892,7 +14906,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 }
 
 /* Bureau (L6) : le tableau natif est conservé (colonnes Forum, Sujets, Messages, Dernier Message) et restylé comme celui du sous-forum : nom en
-   couleur de texte (15 px), chiffres à droite, auteur en gras et heure secondaire dessous, bouton → de 32 px au bout de la ligne. */
+   couleur de texte (15 px) précédé de l'icône du forum, chiffres à droite ; dernier message à droite (ticket 6.6) : auteur en gras en
+   couleur d'accent, heure secondaire dessous, bouton → de 34 px au bout de la ligne. */
 @media (min-width: 768px) {
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td {
     padding: var(--kr-space-1) var(--kr-space-2) !important;
@@ -14909,6 +14924,17 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-forum-name) !important;
     font-weight: 400 !important;
     line-height: 1.35;
+  }
+
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > .kr-forum-icon {
+    display: inline-block;
+    width: 1.25em;
+    margin-right: var(--kr-space-1);
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-forum-name);
+    text-align: center;
+    vertical-align: baseline;
+    pointer-events: none;
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a:hover {
@@ -14931,10 +14957,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  /* Dernier message : auteur en gras, heure secondaire dessous, bouton → de 32 px au bout de la ligne. */
+  /* Dernier message, à droite : auteur en gras en couleur d'accent, heure secondaire dessous, bouton → de 34 px au bout de la ligne. */
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin {
     display: block;
-    color: var(--kr-text-primary) !important;
+    color: var(--kr-text-accent) !important;
     font-weight: 700 !important;
     font-size: var(--kr-font-detail) !important;
   }
@@ -14950,6 +14976,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) {
     position: relative;
     padding-right: 52px !important;
+    text-align: right;
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group {
@@ -14958,8 +14985,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     right: 10px;
     display: block !important;
     float: none !important;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     margin: 0 !important;
     transform: translateY(-50%);
   }
@@ -14968,9 +14995,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
     padding: 0 !important;
     border: 1px solid var(--kr-border-strong) !important;
     border-radius: var(--kr-radius-sm) !important;

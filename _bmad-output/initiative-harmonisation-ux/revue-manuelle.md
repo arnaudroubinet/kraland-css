@@ -461,3 +461,45 @@ Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
 - Captures à 375×667, en clair et en sombre : un sujet (message fermé puis ouvert), la réception du kramail (menu ouvert), un kramail lu (menu ouvert). Vérifier le même « ••• » sur les trois et l'accès aux actions.
 
 - **Question rappelée : liens « lien » et « liste des messages » absents du sujet mobile.** Les mettre dans un « ••• » propre au sujet (pas celui des messages), ailleurs, ou les laisser hors du mobile ?
+
+## Ticket 6.6 — icône de forum lue dans la liste latérale, forum sans message, dernier message à droite (construit, 2026-10-25)
+
+Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
+
+1. **Compteurs sur ordinateur.** Les colonnes Sujets et Messages restent en place : chiffres à droite, couleur héritée, inchangée. Aucun « N sujets · N messages » sur ordinateur (voir la question rappelée plus bas).
+2. **Repli de l'icône.** Une ligne n'a pas d'icône dans ces cas : URL absente de la liste, liste absente, entrée sans `span.lefticon`. Aucune place n'est réservée et rien n'est inventé ; la ligne reste. Constat : si la liste latérale est partielle, les noms d'un même groupe ne sont pas alignés (racine, 2e groupe ; colonne composée).
+3. **Entrée désactivée.** Une entrée désactivée (classe `disabled`, `aria-disabled="true"` ou attribut `disabled`) compte comme absente : pas d'icône. La ligne reste dans l'index.
+4. **Flèche de 34 px.** Ordinateur seulement : 34 × 34, à 10 px du bord. Couleurs, bordure, rayon et survol ne changent pas. Le bouton n'est pas passé au bouton standard. La cellule garde `padding-right: 52px` (8 px entre le texte et la flèche). La flèche mobile reste à 44 px.
+5. **Écart avec le sous-forum.** Le ticket touche l'index seulement : le sous-forum ne change pas. Le contrôle « même rendu que le sous-forum » de `forum-index.mjs` reçoit une exception nommée (`EXCEPTION_TICKET66`). Elle couvre 3 points :
+   - `color` de l'auteur ;
+   - `width` et `height` du bouton → ;
+   - `width`, `height` et `transform` du groupe du bouton (centrage à -17 px au lieu de -16 px).
+
+   L'alignement à droite de la cellule n'est pas mesuré par ce contrôle : il n'est donc pas dans l'exception. Le fragment `ligne` de `forum-activite` le vérifie.
+
+   Toute autre divergence reste rouge : la contre-épreuve sur la graisse de l'auteur passe au rouge.
+6. **Racine `/forum`.** Incluse. Les lignes de son 2e groupe sont absentes de la liste RP : elles n'ont pas d'icône. `forum-racine.html` n'a pas de liste : aucune icône.
+7. **Icône image.** L'`img` est clonée avec son `src` d'origine, sans remplacement. Seul le premier élément de `span.lefticon` (`i` ou `img`) est cloné : ni les nœuds texte, ni l'`id` (retiré du clone et de ses descendants, pour ne pas dupliquer un id de la liste).
+8. **Auteur sur mobile.** Inchangé (`--kr-text-primary`, 600).
+9. **Graisse du nom.** Inchangée (400).
+10. **`span.tagforum`.** Inchangé.
+11. **Couleur et taille de l'icône.** L'icône est décorative (`aria-hidden`) et ne reçoit pas les clics (`pointer-events: none`). Couleur `--kr-text-secondary`, taille de police du nom, 1,25 em de large, centrée, marge droite `--kr-space-1`. Mêmes règles sur mobile et sur ordinateur.
+12. **Seuils et tolérances.** Aucun n'a changé.
+13. **Contraste de l'auteur.** `--kr-text-accent` atteint au moins 4,5:1 sur le fond de la ligne dans les 16 variantes, à 1280 px. Aucun arrêt.
+14. **Fixtures.** Aucune n'a changé. Les variantes (entrée désactivée, image, sans icône, sans liste, lien absolu, colonne composée, nom long) sont faites en mémoire.
+
+Écarts à connaître :
+
+- **Masques posés sur la base d'avant le ticket** (`LIGNE_TICKET66`, `ligneTicket66`). Ils sont posés dans 3 suites :
+  - `cartes-pastilles.mjs` : fragment `lignes` ;
+  - `typographie-formes.mjs` : `echelle-forum` et `nettoyage` ;
+  - `forum-activite.mjs` : `seuil`, `bureau`, `fil` et bascule.
+
+  Il faut les retirer au réalignement des bases (sweep 6.7 ou action A4 de la rétro 5).
+- **Peau coupée.** Sans la peau, à 375 px, le script pose déjà un style en ligne sur `#col-right`, avant comme après le ticket. Le contrôle compare donc `#col-right` au bundle de base (peau coupée), pas à la page sans script.
+
+À vérifier par toi :
+
+- Captures à 375×667, 1280, 1440 et 1920 px, en clair et en sombre : index RP, Communauté, racine à groupes. Vérifier l'icône avant le nom, l'alignement des noms quand une ligne n'a pas d'icône, et le dernier message à droite près de la flèche.
+
+- **Question rappelée (ticket 6.1) : compteurs sur ordinateur.** DESIGN veut « N sujets · N messages » en `text-secondary`. L'index garde les colonnes Sujets et Messages, alignées sur Msg et Vus du sous-forum. Faut-il garder les colonnes, ou passer au texte de DESIGN ?

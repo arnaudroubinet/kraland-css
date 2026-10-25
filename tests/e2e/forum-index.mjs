@@ -311,10 +311,19 @@ const COMPOSANTS_BUREAU = {
   'groupe du bouton →': ['#col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group', '#topics tbody tr td:nth-child(5) .btn-group', ['position', 'right', 'width', 'height', 'transform']]
 };
 const cibles = (composants, cote) => Object.fromEntries(Object.entries(composants).map(([nom, [ix, sf, props, pseudo]]) => [nom, [cote === 'index' ? ix : sf, props, pseudo]]));
-const ecarts = (index, modele) => Object.keys(modele).flatMap(nom => {
+const ecarts = (index, modele, exception = {}) => Object.keys(modele).flatMap(nom => {
   if (!index[nom] || !modele[nom]) { return [`${nom} : ${!index[nom] ? 'absent de l\'index' : 'absent du sous-forum'}`]; }
-  return Object.keys(modele[nom]).filter(p => index[nom][p] !== modele[nom][p]).map(p => `${nom} ${p} = ${index[nom][p]} au lieu de ${modele[nom][p]}`);
+  return Object.keys(modele[nom]).filter(p => index[nom][p] !== modele[nom][p] && !(exception[nom] || []).includes(p)).map(p => `${nom} ${p} = ${index[nom][p]} au lieu de ${modele[nom][p]}`);
 });
+// Exception nommée (épopée 6, ticket 6, Ask First 5) : sur ordinateur, l'index seul passe l'auteur du dernier message en couleur d'accent, le
+// dernier message à droite (non mesuré par COMPOSANTS_BUREAU) et le bouton → à 34 px (son groupe porte la même taille, centré par
+// translateY(-50 %) : -17 px au lieu de -16) ; le sous-forum ne change pas. Ces propriétés seules sont exclues de la comparaison au
+// sous-forum ; toute autre divergence reste rouge (consigné dans le plan du ticket).
+const EXCEPTION_TICKET66 = {
+  'auteur du dernier message': ['color'],
+  'bouton →': ['width', 'height'],
+  'groupe du bouton →': ['width', 'height', 'transform']
+};
 
 // Position du bouton du titre (bureau) : bord droit et haut du bouton par rapport au h1, dernier bouton du titre.
 const POSITION_BOUTON_TITRE = () => {
@@ -521,7 +530,7 @@ if (on('bureau')) {
       assert.ok(E.icone && E.icone.glyphe !== 'none' && E.icone.glyphe !== '""', JSON.stringify(E.icone));
     });
     check(`${tag} : même rendu que le sous-forum (titre, bouton du titre, en-tête de section, colonnes, nom, dernier message, bouton →)`, () => {
-      assert.deepEqual(ecarts(m.composants, modeles[v].composants), []);
+      assert.deepEqual(ecarts(m.composants, modeles[v].composants, EXCEPTION_TICKET66), []);
     });
     check(`${tag} : aucun débordement horizontal`, () => assert.equal(m.socle.overflowX, 0));
   });
@@ -549,7 +558,7 @@ const PRESENTATION = () => {
 };
 const ATTENDU = {
   mobile: { mobile: true, index: true, fil: true, boutonDansTitre: false, colonnes: false, ligne: 'flex', fleche: 44, cartes: 0, debordement: 0 },
-  bureau: { mobile: false, index: true, fil: false, boutonDansTitre: true, colonnes: true, ligne: 'table-row', fleche: 32, cartes: 0, debordement: 0 }
+  bureau: { mobile: false, index: true, fil: false, boutonDansTitre: true, colonnes: true, ligne: 'table-row', fleche: 34, cartes: 0, debordement: 0 }
 };
 const sansLargeur = p => { const { largeur: _l, ...reste } = p; return reste; };
 

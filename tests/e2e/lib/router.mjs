@@ -95,7 +95,7 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base.
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -214,7 +214,10 @@ export const KEYWORDS = [
   // Bouton « ••• » commun du forum et du kramail (épopée 6, entrée 5) : vérifié par le fragment plus de forum-activite ; mesuré aussi par
   // les suites qui posent les masques PLUS_TICKET65 (cartes-pastilles, palette-nation, typographie-formes, kramail-redaction, forum-index).
   // `kr-more\b` couvre aussi `kr-more-glyph` (une ligne du glyphe seule y route).
-  [/kr-more\b|createMoreButton/, ['forum-activite', 'messages', 'kramail', 'typographie-formes', 'cartes-pastilles', 'palette-nation']]
+  [/kr-more\b|createMoreButton/, ['forum-activite', 'messages', 'kramail', 'typographie-formes', 'cartes-pastilles', 'palette-nation']],
+  // Icône de la ligne de forum lue dans la liste latérale (épopée 6, entrée 6) : vérifiée par le fragment ligne de forum-activite ; mesurée
+  // aussi par les suites qui posent les masques LIGNE_TICKET66 (cartes-pastilles, typographie-formes).
+  [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de

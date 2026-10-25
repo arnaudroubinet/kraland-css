@@ -1034,3 +1034,89 @@ export function plusTicket65() {
   });
   new MutationObserver(decorer).observe(document, { childList: true, subtree: true });
 }
+
+/**
+ * Ligne de forum (épopée 6, ticket 6, story-ligne-de-forum-icone-lue-dans-la-liste-laterale-forum-sans-m) : repères du fragment ligne de
+ * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : classe de l'icône posée par ForumIndex:Presentation, icône de
+ * la liste latérale, sélecteur de la liste, fixture de la colonne native RP (composée en mémoire avec l'index RP), jetons de l'auteur du
+ * dernier message, icônes attendues par chemin de forum, attribut qui masque l'icône aux lecteurs d'écran, racine sans liste latérale.
+ */
+export const REPERES_LIGNE_TICKET66 = {
+  icone: 'kr-forum-icon',
+  lefticon: 'lefticon',
+  liste: '#col-left .list-group',
+  colonneNative: 'forum-colonne-native-rp.html',
+  accent: 'var(--kr-text-accent)',
+  secondaire: 'var(--kr-text-secondary)',
+  detail: 'var(--kr-font-detail)',
+  icones: {
+    'forum/rp/taverne-10101': 'far fa-comments',
+    'forum/rp/marche-10102': 'far fa-gem',
+    'forum/rp/royaume-d-essai-10104': 'far fa-flag',
+    'forum/rp/les-cadets-d-essai-10107': 'far fa-handshake',
+    'forum/communaute/annonces-d-essai-30101': 'far fa-newspaper',
+    'forum/communaute/clubs-d-essai-30102': 'far fa-smile',
+    'forum/communaute/archives-d-essai-30103': 'far fa-folder'
+  },
+  cache: 'aria-hidden',
+  racineNue: 'forum-racine.html'
+};
+/** Bundle d'avant l'épopée 6, ticket 6 : la classe de l'icône de forum (`kr-forum-icon`) en est absente (absente de 6ba0838 et des bases
+ * citées par les suites : 0523d7f, 5042afd, ef0e4d4, 1134ef9, 21fed8d, 81512a3, d953969, 62fd47d, 00b0786 et d68ab55). */
+export const AVANT_TICKET66 = bundle => !bundle.includes('kr-forum-icon');
+/**
+ * Écart accepté et consigné (épopée 6, ticket 6) : ligne de l'index du forum. Feuille miroir en valeurs littérales des déclarations du
+ * ticket, mêmes sélecteurs et médias : icône du forum sur mobile et sur ordinateur ; sur ordinateur, auteur du dernier message en couleur
+ * d'accent (la base la force, d'où !important ici), dernier message aligné à droite, bouton → de 34 px (la base force le bouton, d'où
+ * !important). Posée avec le script ligneTicket66 sur un bundle de base antérieur au ticket (AVANT_TICKET66), jamais sur le bundle courant ;
+ * tout autre écart reste détecté. Écart consigné dans le plan du ticket (Plan Change Log).
+ * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` et `COMMIT_FIL` de `forum-activite.mjs`, `COMMIT_AVANT` de
+ * `cartes-pastilles.mjs`, `COMMIT_ECHELLE_FORUM` et `COMMIT_ESPACEMENT` de `typographie-formes.mjs`) sont réalignées sur un SHA qui
+ * contient 6.6 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ */
+export const LIGNE_TICKET66 = [
+  '@media (max-width: 767px) {',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > .kr-forum-icon { order: 1; flex: 0 0 auto; width: 1.25em; margin-right: 4px; color: var(--kr-text-secondary); font-size: 15px; line-height: 1.3; text-align: center; pointer-events: none; }',
+  '}',
+  '@media (min-width: 768px) {',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > .kr-forum-icon { display: inline-block; width: 1.25em; margin-right: 4px; color: var(--kr-text-secondary); font-size: 15px; text-align: center; vertical-align: baseline; pointer-events: none; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin { color: var(--kr-text-accent) !important; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) { text-align: right; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group { width: 34px; height: 34px; }',
+  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) .btn-group > a.btn { width: 34px !important; height: 34px !important; min-width: 34px !important; }',
+  '}'
+].join('\n');
+/**
+ * Script d'initialisation (context.addInitScript(ligneTicket66)), même écart et même condition de retrait que LIGNE_TICKET66 : sur l'index
+ * (html.kr-page-forum-index), pose avant le nom de chaque ligne une span.kr-forum-icon (aria-hidden) avec un clone sans id du premier
+ * élément de la span.lefticon de l'entrée de même chemin normalisé de la liste latérale (hors .kraland-metrics, entrées désactivées exclues), comme le
+ * module ForumIndex:Presentation du bundle courant ; une ligne qui a déjà son icône n'en reçoit pas d'autre.
+ */
+export function ligneTicket66() {
+  const cle = href => new window.URL(href, document.baseURI).pathname.replace(/\/+$/, '').toLowerCase();
+  const desactivee = a => String(a.getAttribute('class') || '').split(/[\t\n\f\r ]+/).includes('disabled') || a.getAttribute('aria-disabled') === 'true' || a.hasAttribute('disabled');
+  const poser = () => {
+    if (!document.documentElement || !document.documentElement.classList.contains('kr-page-forum-index')) { return; }
+    const icones = new Map();
+    document.querySelectorAll('#col-left .list-group > a.list-group-item[href]').forEach(a => {
+      if (a.closest('.kraland-metrics') || desactivee(a)) { return; }
+      const icone = a.querySelector(':scope > span.lefticon > *');
+      const k = cle(a.getAttribute('href'));
+      if (icone && !icones.has(k)) { icones.set(k, icone); }
+    });
+    document.querySelectorAll('#col-right .panel-default table.table > tbody > tr').forEach(tr => {
+      const lien = tr.querySelector(':scope > td:first-child > p:not(.tagforum) > a[href]');
+      if (!lien || tr.querySelector('.kr-forum-icon')) { return; }
+      const icone = icones.get(cle(lien.getAttribute('href')));
+      if (!icone) { return; }
+      const span = document.createElement('span');
+      span.className = 'kr-forum-icon';
+      span.setAttribute('aria-hidden', 'true');
+      const clone = icone.cloneNode(true);
+      [clone, ...clone.querySelectorAll('[id]')].forEach(n => n.removeAttribute('id'));
+      span.appendChild(clone);
+      lien.parentElement.before(span);
+    });
+  };
+  new MutationObserver(poser).observe(document, { childList: true, subtree: true });
+}

@@ -35,7 +35,17 @@
 //             « Répondre » primaire si le lien natif existe, « Nouveau sujet » standard, 44 px, rayon, cible au centre, href natifs ;
 //             boutons natifs invisibles ; fermé : cadenas, 0 ou 2 « Répondre » selon le lien natif ; L4 renommé, catégorie inconnue,
 //             titre long, image d'icône ; aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; sous-forum, h1 et bandeau natif du
-//             bas, seuil 768/769 et bureau (768, 1280) égaux au bundle de ef0e4d4 ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767.
+//             bas, seuil 768/769 et bureau (768, 1280) égaux au bundle de ef0e4d4 ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
+//   ligne     (épopée 6, ticket 6, plan story-ligne-de-forum-icone-lue-dans-la-liste-laterale-forum-sans-m) index RP, HRP, Communauté,
+//             Débats et racine à groupes à 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : une icône par
+//             ligne, copiée de l'entrée de la liste latérale du même chemin (avant le nom, masquée aux lecteurs d'écran, sur la rangée du
+//             nom) ou aucune ; liste latérale intacte (égale à la base), heure native, aucune exception ; forum sans message ; cibles
+//             mobiles ; ordinateur : bouton → de 34 x 34 à 10 px du bord, dernier message à droite à 8 px de la flèche, compteurs à
+//             droite, auteur en couleur d'accent, 700, taille de détail ; pages dérivées (chemin composé, entrée désactivée par classe
+//             ou par aria, icône image, entrée sans icône, sans liste, lien absolu avec requête et ancre, racine nue, nom long, glyphe entouré d'espaces et porteur d'un id)
+//             à 375 et 1280 px ;
+//             contraste de l'auteur dans les 16 variantes ; mobile égal à la base masquée ; peau coupée égale à la base peau coupée ;
+//             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767.
 // Bundle de base : celui de 0523d7f (commit de base du plan, figé), sauf KR_SCRIPT_AVANT. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
@@ -45,14 +55,16 @@
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
 // base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de ef0e4d4 (COMMIT_ENTETE), sauf
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
-// REPERES_PLUS_TICKET65) : bundle de base de 1134ef9 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS.
+// REPERES_PLUS_TICKET65) : bundle de base de 1134ef9 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
+// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6ba0838 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
 // Usage : npm run build && node tests/e2e/forum-activite.mjs   (ou : npm run test:zone -- forum-activite)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
 //           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete), KR_SCRIPT_AVANT_PLUS (bundle de base du fragment plus),
-//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus (vide = tout).
+//           KR_SCRIPT_AVANT_LIGNE (bundle de base du fragment ligne),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus, ligne (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -62,7 +74,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, CONTRASTE, ENTETE_TICKET64, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, AVANT_TICKET66, CONTRASTE, ENTETE_TICKET64, LIGNE_TICKET66, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, ligneTicket66, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -114,7 +126,7 @@ const browser = await launchBrowser();
 
 // Ouvre la page `cle` (chemin + hash). `routes` : documents servis en plus (chemin -> HTML), pour l'arrivée d'un parcours. `debut` : bundle
 // évalué dès que <html> existe (sinon dès que <body> existe). `src` : bundle injecté ; `theme` : kr-theme-enabled.
-async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, entete64 = false }) {
+async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, entete64 = false, ligne66 = false }) {
   const context = await browser.newContext({ viewport: { width, height: height || (tactile ? 667 : 900) }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   const documents = { [PAGES[cle].url]: html || PAGES[cle].html, ...routes };
@@ -136,6 +148,14 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
   if (entete64 && src !== userscript && AVANT_TICKET64(src)) {
     await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
     await context.addInitScript(filSujetTicket64);
+  }
+  // `ligne66` : ligne de l'index de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66 : icône de forum, dernier message à droite, bouton
+  // → de 34 px) posée sur un bundle de base d'avant le ticket seulement (fragments seuil, bureau, fil et ligne). Retirer quand COMMIT_AVANT,
+  // COMMIT_FIL et COMMIT_LIGNE sont réalignés sur un SHA qui contient 6.6 ; le réalignement est porté par le sweep 6.7 ou par l'action A4
+  // de la rétro 5 (tickets à venir).
+  if (ligne66 && src !== userscript && AVANT_TICKET66(src)) {
+    await context.addInitScript(poserJetonsRedefinis, LIGNE_TICKET66);
+    await context.addInitScript(ligneTicket66);
   }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
@@ -408,7 +428,7 @@ if (on('lignes')) {
 // ---------- Seuil et bascule dans le même onglet ----------
 // Bascule : le thème recharge la page au franchissement du seuil (anti-rebond de 400 ms, défilement en pixels restauré jusqu'à 1,8 s).
 async function bascule({ cle, hash, src }) {
-  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src, entete64: true });
+  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src, entete64: true, ligne66: true });
   const mesure = async () => {
     await page.waitForTimeout(APRES_MS);
     return { iw: await page.evaluate(() => window.innerWidth), docs: etat.chargements, m: hash ? await page.evaluate(MESSAGE, hash.slice(1)) : null, l: hash ? null : geometrie(await page.evaluate(LIGNES, A)) };
@@ -431,12 +451,13 @@ if (on('seuil')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ cle: 'rp', ...c, tactile: false, src });
+      const { context, page, erreurs } = await ouvrir({ cle: 'rp', ...c, tactile: false, src, ligne66: true });
       out[k] = { l: await page.evaluate(LIGNES, A), erreurs };
       await context.close();
     }
     return out;
   });
+  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   cas.forEach(({ variante, width }, i) => {
     const { teste, base } = res[i];
     check(`seuil /forum/rp ${variante} ${width} px : ${width < 768 ? 'mobile, chaque ligne d\'au moins 72 px' : 'ordinateur, lignes et flèches égales à la base'}, aucune exception`, () => {
@@ -482,12 +503,13 @@ if (on('bureau')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, src });
+      const { context, page, erreurs } = await ouvrir({ ...c, src, ligne66: true });
       out[k] = { l: await page.evaluate(LIGNES, A), erreurs };
       await context.close();
     }
     return out;
   });
+  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   cas.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = res[i];
     check(`bureau ${PAGES[cle].url} ${variante} ${width} px : lignes et flèches (boîtes, cibles) égales au bundle de base (${COMMIT_AVANT}), aucune exception`, () => {
@@ -746,7 +768,8 @@ if (on('fil')) {
     // Bureau : index RP, sous-forum (colonne native) et sujet.
     ...['rp', 'debuterNatif', 'sujet'].flatMap(cle => [768, 769, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))))
   ];
-  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
+  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil, ligne66: true }), true) }));
+  if (AVANT_TICKET66(baseFil)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
@@ -1457,6 +1480,318 @@ if (on('plus')) {
       assert.deepEqual(erreurs, []);
     });
   }
+}
+
+// ---------- Ligne de l'index : icône du forum, dernier message à droite (épopée 6, ticket 6) ----------
+// Plan story-ligne-de-forum-icone-lue-dans-la-liste-laterale-forum-sans-m. Repères (classe de l'icône, liste latérale, colonne native,
+// icônes attendues par chemin) : REPERES_LIGNE_TICKET66 (lib/variantes.mjs). Pages dérivées en mémoire de l'index RP : colonne native
+// composée (Taverne et Marché seulement, Monde en trop), entrée Marché désactivée par classe puis par aria, image dans la liste,
+// entrée Taverne sans icône de liste, liste retirée, entrée Taverne en href absolu avec requête et fragment ; racine sans liste latérale.
+// Bundle de base : celui de 6ba0838 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff et sous-forum comparés à cette base
+// sans masque ; mobile comparé à la base masquée (ligne66).
+const COMMIT_LIGNE = '6ba0838';
+// Mesure de la ligne de l'index : par ligne, icône (classe, contenu, place, boîte), nom, heure (texte de p.mini et texte natif lu dans le
+// HTML servi), dernier message (styles, boîtes du texte), flèche, compteurs, cellule vide ; liste latérale (outerHTML). CONTRASTE évalué avant.
+const LIGNE66 = ({ a, l, html }) => {
+  const C = window.__krContraste;
+  const r1 = v => Math.round(v * 10) / 10;
+  const visible = e => { if (!e) { return false; } const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+  const boite = r => ({ x: r1(r.left), y: r1(r.top + window.scrollY), w: r1(r.width), h: r1(r.height), r: r1(r.right), b: r1(r.bottom + window.scrollY) });
+  const lienEn = (x, y) => { window.scrollTo(0, Math.max(0, y - 200)); const el = document.elementFromPoint(x, y - window.scrollY); const k = el && el.closest('a'); return k ? k.getAttribute('href') : null; };
+  const texteDe = nodes => { const rs = nodes.map(n => { const g = document.createRange(); g.selectNodeContents(n); return g.getBoundingClientRect(); }).filter(r => r.width > 0); return rs.length ? r1(Math.max(...rs.map(r => r.right))) : null; };
+  const pseudo = (e, p) => getComputedStyle(e, p).content;
+  const natifs = [...new DOMParser().parseFromString(html, 'text/html').querySelectorAll(a.ligne)].map(tr => { const m = tr.cells[3] && tr.cells[3].querySelector(':scope > p.mini'); return m ? m.textContent.replace(/\s+/g, ' ').trim() : null; });
+  const sonde = (prop, expr) => { const i = document.createElement('i'); i.style[prop] = expr; document.body.appendChild(i); const v = getComputedStyle(i)[prop]; i.remove(); return v; };
+  // Boîtes relevées page en haut (window.scrollTo(0, 0)) avant toute cible : ordonnées absolues.
+  const lignes = [...document.querySelectorAll(a.ligne)].map((tr, k) => {
+    window.scrollTo(0, 0);
+    const c = tr.cells;
+    const lien = c[0] ? c[0].querySelector(':scope > p:not(.tagforum) > a[href]') : null;
+    const icones = [...tr.querySelectorAll('.' + l.icone)];
+    const ic = icones[0] || null;
+    const auteur = c[3] ? c[3].querySelector(':scope > a.nomargin') : null;
+    const mini = c[3] ? c[3].querySelector(':scope > p.mini') : null;
+    const f = tr.querySelector(a.fleche);
+    const b = tr.getBoundingClientRect();
+    const bb = boite(b);
+    const bordBas = parseFloat(getComputedStyle(tr).borderBottomWidth) || 0;
+    const fb = f && visible(f) ? f.getBoundingClientRect() : null;
+    const fbb = fb ? boite(fb) : null;
+    const nb = lien && visible(lien) ? lien.getBoundingClientRect() : null;
+    const ib = ic ? ic.getBoundingClientRect() : null;
+    const ibb = ib ? boite(ib) : null;
+    const rangee = !!nb && !!ib && ib.top + ib.height / 2 >= nb.top - 1 && ib.top + ib.height / 2 <= nb.bottom + 1;
+    return {
+      nom: lien ? lien.textContent.trim() : null,
+      href: lien ? lien.getAttribute('href') : null,
+      icones: icones.length,
+      icone: ic ? {
+        tag: ic.tagName, cache: ic.getAttribute(l.cache), avantNom: !!lien && ic.nextElementSibling === lien.parentElement, dansCellule: ic.parentElement === c[0],
+        enfants: [...ic.childNodes].map(n => (n.nodeType === 1 ? `${n.tagName}.${n.className}${n.getAttribute('src') ? ' ' + n.getAttribute('src') : ''}` : '#' + n.nodeType)),
+        couleur: getComputedStyle(ic).color, boite: ibb, rangee, em: parseFloat(getComputedStyle(ic).fontSize),
+        ids: ic.querySelectorAll('[id]').length,
+        glyphe: ic.firstElementChild ? { couleur: getComputedStyle(ic.firstElementChild).color, taille: getComputedStyle(ic.firstElementChild).fontSize } : null,
+        tailleNom: lien ? getComputedStyle(lien).fontSize : null,
+        cible: ibb.w > 0 ? lienEn(ibb.x + ibb.w / 2, ibb.y + ibb.h / 2) : null
+      } : null,
+      centre: lienEn(bb.x + bb.w / 2, bb.y + bb.h / 2),
+      ligne: bb,
+      heure: mini ? mini.textContent.replace(/\s+/g, ' ').trim() : null,
+      heureNative: natifs[k] === undefined ? 'absente' : natifs[k],
+      auteur: auteur ? { couleur: getComputedStyle(auteur).color, graisse: getComputedStyle(auteur).fontWeight, taille: getComputedStyle(auteur).fontSize, droite: texteDe([auteur]), contraste: Math.round(C.texte(auteur) * 100) / 100 } : null,
+      heureDroite: mini ? texteDe([...mini.childNodes].filter(n => n.nodeType === 3 && n.data.trim())) : null,
+      alignement: c[3] ? getComputedStyle(c[3]).textAlign : null,
+      compteurs: [c[1], c[2]].filter(Boolean).map(x => getComputedStyle(x).textAlign),
+      fleche: f ? { href: f.getAttribute('href'), boite: fbb, bord: fb ? r1(b.right - fb.right) : null, ecart: fb ? r1(fb.top + fb.height / 2 - (b.top + (b.height - bordBas) / 2)) : null, auCentre: fbb ? lienEn(fbb.x + fbb.w / 2, fbb.y + fbb.h / 2) : null } : null,
+      vide: c[3] ? { enfants: [...c[3].children].filter(visible).length, avant: pseudo(c[3], '::before'), apres: pseudo(c[3], '::after') } : null
+    };
+  });
+  window.scrollTo(0, 0);
+  return {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    iw: window.innerWidth,
+    accent: sonde('color', l.accent),
+    secondaire: sonde('color', l.secondaire),
+    detail: sonde('fontSize', l.detail),
+    total: document.querySelectorAll('.' + l.icone).length,
+    liste: [...document.querySelectorAll(l.liste)].map(e => e.outerHTML).join('\n'),
+    lignes
+  };
+};
+if (on('ligne')) {
+  console.log(`\n== ligne : icône du forum lue dans la liste latérale, dernier message à droite, bouton → de 34 px (variantes ${VARIANTES.join(' et ')}) ==`);
+  const baseLigne = strip(process.env.KR_SCRIPT_AVANT_LIGNE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_LIGNE, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_LIGNE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const remplacer = (html, motif, par, nom) => { const h = html.replace(motif, par); if (h === html) { throw new Error('page dérivée « ' + nom + ' » : motif absent de la fixture'); } return h; };
+  const LISTE = /<div class="list-group">[\s\S]*?<\/div>/;
+  const TAVERNE = 'forum/rp/taverne-10101';
+  const MARCHE = 'forum/rp/marche-10102';
+  const IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const rp = PAGES.rp.html;
+  const entree = href => `<a href="${href}" class="list-group-item">`;
+  const iconeTaverne = `<span class="${L.lefticon}"><i class="${L.icones[TAVERNE]}"></i></span>Taverne`;
+  // Pages : clé de PAGES (chemin servi), HTML, et icône attendue par chemin de ligne (null : aucune icône ; IMAGE : image clonée).
+  const tout = href => L.icones[href] || null;
+  const DERIVEES = {
+    composee: { cle: 'rp', html: remplacer(rp, LISTE, fixture(L.colonneNative).match(LISTE)[0], 'composee'), attendu: href => ([TAVERNE, MARCHE].includes(href) ? tout(href) : null) },
+    desactiveeClasse: { cle: 'rp', html: remplacer(rp, entree(MARCHE), `<a href="${MARCHE}" class="list-group-item disabled">`, 'desactiveeClasse'), attendu: href => (href === MARCHE ? null : tout(href)) },
+    desactiveeAria: { cle: 'rp', html: remplacer(rp, entree(MARCHE), `<a href="${MARCHE}" class="list-group-item" aria-disabled="true">`, 'desactiveeAria'), attendu: href => (href === MARCHE ? null : tout(href)) },
+    image: { cle: 'rp', html: remplacer(rp, iconeTaverne, `<span class="${L.lefticon}"><img src="${IMAGE}" alt=""></span>Taverne`, 'image'), attendu: href => (href === TAVERNE ? IMAGE : tout(href)) },
+    sansIcone: { cle: 'rp', html: remplacer(rp, iconeTaverne, 'Taverne', 'sansIcone'), attendu: href => (href === TAVERNE ? null : tout(href)) },
+    sansListe: { cle: 'rp', html: remplacer(rp, LISTE, '', 'sansListe'), attendu: () => null },
+    absolu: { cle: 'rp', html: remplacer(rp, entree(TAVERNE), `<a href="${BASE}/${TAVERNE}?x#y" class="list-group-item">`, 'absolu'), attendu: tout },
+    racineNue: { cle: 'racine', html: fixture(L.racineNue), attendu: () => null },
+    espacesId: { cle: 'rp', html: remplacer(rp, iconeTaverne, `<span class="${L.lefticon}">\n  <i id="icone-taverne" class="${L.icones[TAVERNE]}"></i>\n</span>Taverne`, 'espacesId'), attendu: tout },
+    nomLong: { cle: 'rp', html: remplacer(rp, `<a href="${TAVERNE}">Taverne</a>`, `<a href="${TAVERNE}">${'Taverne des voyageurs égarés '.repeat(6).trim()}</a>`, 'nomLong'), attendu: tout }
+  };
+  const SERVIES = { ...Object.fromEntries(INDEX.map(cle => [cle, { cle, html: PAGES[cle].html, attendu: tout }])), ...DERIVEES };
+  const mesurer = async (o, page) => { await o.page.evaluate(CONTRASTE); const m = await o.page.evaluate(LIGNE66, { a: A, l: L, html: SERVIES[page].html }); await o.context.close(); return { m, erreurs: o.erreurs }; };
+  const ouvrirLigne = (page, c) => ouvrir({ cle: SERVIES[page].cle, html: SERVIES[page].html, ...c });
+  const attenduDe = (page, l) => SERVIES[page].attendu(l.href);
+  const icone = (l, att, secondaire) => {
+    if (att === null) { return l.icones === 0 ? null : `« ${l.nom} » ${l.icones} icône(s) au lieu d'aucune`; }
+    if (l.icones !== 1) { return `« ${l.nom} » ${l.icones} icône(s) au lieu d'une`; }
+    const i = l.icone;
+    const enfant = att === IMAGE ? `IMG. ${IMAGE}` : `I.${att}`;
+    if (i.tag !== 'SPAN' || i.cache !== 'true' || !i.avantNom || !i.dansCellule) { return `« ${l.nom} » place ${JSON.stringify(i)}`; }
+    if (i.enfants.length !== 1 || i.enfants[0] !== enfant) { return `« ${l.nom} » contenu ${JSON.stringify(i.enfants)} au lieu de ${enfant}`; }
+    if (!i.rangee) { return `« ${l.nom} » icône hors de la rangée du nom ${JSON.stringify(i.boite)}`; }
+    if (i.ids) { return `« ${l.nom} » ${i.ids} id dans l'icône clonée`; }
+    if (!i.glyphe || i.glyphe.couleur !== secondaire || i.couleur !== secondaire) { return `« ${l.nom} » couleur ${i.couleur} (glyphe ${JSON.stringify(i.glyphe)}) au lieu de ${secondaire}`; }
+    if (i.glyphe.taille !== i.tailleNom) { return `« ${l.nom} » glyphe de ${i.glyphe.taille} au lieu de ${i.tailleNom} (taille du nom)`; }
+    if (Math.abs(i.boite.w - 1.25 * i.em) > 0.5) { return `« ${l.nom} » icône de ${i.boite.w} px au lieu de ${1.25 * i.em} (1,25 em)`; }
+    return null;
+  };
+
+  // Icône, liste intacte, heure native, forum sans message, cibles (mobile), flèche et dernier message (ordinateur), par page et largeur.
+  const LARGEURS = [375, 767, 768, 1280, 1440, 1920];
+  const cas = [
+    ...INDEX.flatMap(page => LARGEURS.flatMap(width => VARIANTES.map(variante => ({ page, width, variante })))),
+    ...Object.keys(DERIVEES).flatMap(page => [375, 1280].map(width => ({ page, width, variante: VARIANTES[1] })))
+  ];
+  const res = await mapLimit(cas, async ({ page, width, variante }) => ({
+    teste: await mesurer(await ouvrirLigne(page, { width, variante }), page),
+    base: await mesurer(await ouvrirLigne(page, { width, variante, src: baseLigne }), page)
+  }));
+  cas.forEach(({ page, width, variante }, n) => {
+    const { teste, base } = res[n];
+    const t = teste.m;
+    const lab = `ligne ${page} ${variante} ${width} px`;
+    check(`${lab} : une icône de la liste latérale par ligne (même contenu, avant le nom, masquée aux lecteurs d'écran, sur la rangée du nom, 1,25 em de large, glyphe en couleur secondaire à la taille du nom, sans id) ou aucune ; lignes de la base, dans l'ordre`, () => {
+      assert.ok(t.theme && t.mobile === (width < 768), `kr-theme-enabled ${t.theme}, mobile ${t.mobile}`);
+      assert.deepEqual(t.lignes.map(l => l.href), base.m.lignes.map(l => l.href), 'lignes');
+      const ecarts = t.lignes.filter(l => l.href).map(l => icone(l, attenduDe(page, l), t.secondaire)).filter(Boolean);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      assert.ok(t.lignes.length >= (page === 'racineNue' ? 2 : 3), 'lignes : ' + t.lignes.length);
+    });
+    check(`${lab} : liste latérale intacte (outerHTML égal au bundle de base ${COMMIT_LIGNE}), heure native, aucune exception`, () => {
+      assert.equal(t.liste, base.m.liste, 'liste latérale');
+      const heures = t.lignes.filter(l => l.heure !== l.heureNative).map(l => `« ${l.nom} » « ${l.heure} » au lieu de « ${l.heureNative} »`);
+      assert.deepEqual(heures, [], heures.join(' ; '));
+      assert.deepEqual(teste.erreurs, []);
+    });
+    // Racine sans liste (structure de ligne propre à sa fixture) : icône, liste et heure seulement.
+    if (page === 'racineNue') { return; }
+    check(`${lab} : forum sans message : ni flèche, ni enfant visible, ni pseudo-contenu dans la cellule${width < 768 ? ', 72 px' : ''}`, () => {
+      const vides = t.lignes.filter(l => l.href && !l.auteur);
+      assert.ok(vides.length >= 1, 'aucun forum sans message');
+      const ecarts = vides.filter(l => l.fleche || l.vide.enfants || !['none', 'normal'].includes(l.vide.avant) || !['none', 'normal'].includes(l.vide.apres) || (width < 768 && Math.abs(l.ligne.h - 72) > 0.5)).map(l => `« ${l.nom} » ${JSON.stringify([l.fleche, l.vide, l.ligne.h])}`);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+    if (width < 768) {
+      check(`${lab} : centre de l'icône et de la ligne -> forum ; flèche d'au moins 44 x 44 -> #msg`, () => {
+        const ecarts = [];
+        for (const l of t.lignes.filter(x => x.href)) {
+          if (l.icone && l.icone.cible !== l.href) { ecarts.push(`« ${l.nom} » icône -> ${l.icone.cible}`); }
+          if (l.centre !== l.href) { ecarts.push(`« ${l.nom} » centre -> ${l.centre}`); }
+          if (l.fleche && (!l.fleche.boite || l.fleche.boite.w < 44 || l.fleche.boite.h < 44 || l.fleche.auCentre !== l.fleche.href || !/#msg\d+$/.test(l.fleche.href))) { ecarts.push(`« ${l.nom} » flèche ${JSON.stringify(l.fleche)}`); }
+        }
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    } else if (INDEX.includes(page)) {
+      check(`${lab} : bouton → de 34 x 34 à 10 px (± 1) du bord droit, centré à 1 px près, -> #msg`, () => {
+        const ecarts = t.lignes.filter(l => l.fleche).filter(l => !l.fleche.boite || l.fleche.boite.w !== 34 || l.fleche.boite.h !== 34 || Math.abs(l.fleche.bord - 10) > 1 || Math.abs(l.fleche.ecart) > 1 || l.fleche.auCentre !== l.fleche.href).map(l => `« ${l.nom} » ${JSON.stringify(l.fleche)}`);
+        assert.ok(t.lignes.some(l => l.fleche), 'aucune flèche');
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+      check(`${lab} : dernier message à droite (texte à 8 px ± 1 de la flèche), compteurs à droite ; auteur en couleur d'accent, 700, taille de détail`, () => {
+        const ecarts = [];
+        for (const l of t.lignes.filter(x => x.href)) {
+          if (l.compteurs.some(x => x !== 'right')) { ecarts.push(`« ${l.nom} » compteurs ${l.compteurs}`); }
+          if (!l.auteur) { continue; }
+          if (l.alignement !== 'right') { ecarts.push(`« ${l.nom} » dernier message ${l.alignement}`); }
+          const gauche = l.fleche.boite.x;
+          for (const [quoi, droite] of [['auteur', l.auteur.droite], ['heure', l.heureDroite]]) {
+            if (droite === null || Math.abs(gauche - droite - 8) > 1) { ecarts.push(`« ${l.nom} » ${quoi} à ${droite === null ? '?' : Math.round((gauche - droite) * 10) / 10} px de la flèche`); }
+          }
+          if (l.auteur.couleur !== t.accent || Number(l.auteur.graisse) < 700 || l.auteur.taille !== t.detail) { ecarts.push(`« ${l.nom} » auteur ${JSON.stringify(l.auteur)} (accent ${t.accent}, détail ${t.detail})`); }
+        }
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
+  });
+
+  // Contraste de l'auteur sur le fond effectif de la ligne, 1280 px, 16 variantes (Ask First 13 : arrêt sous 4,5:1).
+  const resC = await mapLimit(TOUTES_VARIANTES, async variante => mesurer(await ouvrirLigne('rp', { width: 1280, variante }), 'rp'));
+  TOUTES_VARIANTES.forEach((variante, n) => {
+    check(`ligne contraste rp ${variante} 1280 px : auteur du dernier message en couleur d'accent, au moins 4,5:1 sur le fond de la ligne`, () => {
+      const auteurs = resC[n].m.lignes.filter(l => l.auteur);
+      assert.ok(auteurs.length >= 3, 'auteurs : ' + auteurs.length);
+      const ecarts = auteurs.filter(l => l.auteur.couleur !== resC[n].m.accent || l.auteur.contraste < 4.5).map(l => `« ${l.nom} » ${l.auteur.couleur} ${l.auteur.contraste}:1`);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    });
+  });
+
+  // Mobile hors icône : lignes (boîtes, cibles, flèches) et auteur égaux à la base masquée (ligne66).
+  const casM = ['rp', 'communaute', 'racine'].flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))));
+  const resM = await mapLimit(casM, async c => {
+    const out = {};
+    for (const [k, src] of [['teste', userscript], ['base', baseLigne]]) {
+      const { context, page } = await ouvrir({ ...c, src, ligne66: true });
+      out[k] = { l: await page.evaluate(LIGNES, A), a: await page.evaluate(sel => [...document.querySelectorAll(sel)].map(e => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]), A.ligne + ' > td:nth-child(4) > a.nomargin') };
+      await context.close();
+    }
+    return out;
+  });
+  if (AVANT_TICKET66(baseLigne)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
+  casM.forEach(({ cle, width, variante }, n) => {
+    check(`ligne mobile ${PAGES[cle].url} ${variante} ${width} px : lignes, flèches, cibles et auteur égaux à la base masquée (${COMMIT_LIGNE})`, () => {
+      assert.ok(resM[n].teste.l.mobile, 'mode mobile');
+      assert.deepEqual(resM[n].teste.l, resM[n].base.l);
+      assert.deepEqual(resM[n].teste.a, resM[n].base.a);
+    });
+  });
+
+  // Peau coupée : aucune icône, #col-right égal à celui de la base peau coupée (à 375 px, le script pose déjà sans la peau un style en ligne
+  // sur #col-right, avant comme après le ticket : la page sans script n'est pas la référence). Staff et sous-forum : égaux à la base sans
+  // masque, aucune icône.
+  // Injection « début » (comme `@run-at document-start`) : injecté à l'apparition de <body>, le script, peau coupée, observe <body> pour
+  // retirer les infobulles en mobile ; or `mobile-mode` n'est posé qu'au DOMContentLoaded. Les attributs data-toggle/title du bouton
+  // « Tous les forums » et des flèches restent ou partent selon que la dernière insertion du parseur est livrée avant ou après ce
+  // DOMContentLoaded : sous charge, l'un des deux bundles perd la course (écart au caractère 430). Au début du document, <body> n'existe pas,
+  // l'observateur n'est pas posé : infobulles natives gardées des deux côtés, comme sur le site.
+  const colonne = page => page.evaluate(sel => ({ total: document.querySelectorAll(sel).length, col: document.getElementById('col-right').outerHTML }), '.' + L.icone);
+  const casP = [375, 1280].map(width => ({ width }));
+  const resP = await mapLimit(casP, async ({ width }) => {
+    const out = {};
+    for (const [k, src] of [['teste', userscript], ['base', baseLigne]]) {
+      const { context, page, erreurs } = await ouvrir({ cle: 'rp', width, src, theme: false, debut: true });
+      out[k] = { ...(await colonne(page)), erreurs };
+      await context.close();
+    }
+    return out;
+  });
+  casP.forEach(({ width }, n) => {
+    check(`ligne peau coupée /forum/rp ${width} px : aucune icône, #col-right égal au bundle de base peau coupée (${COMMIT_LIGNE})`, () => {
+      const { teste, base } = resP[n];
+      assert.equal(teste.total, 0, 'icônes');
+      const k = [...teste.col].findIndex((x, j) => x !== base.col[j]);
+      assert.ok(teste.col === base.col, `#col-right : écart au caractère ${k} : ${JSON.stringify(teste.col.slice(Math.max(0, k - 60), k + 80))} au lieu de ${JSON.stringify(base.col.slice(Math.max(0, k - 60), k + 80))}`);
+      assert.deepEqual(teste.erreurs, []);
+    });
+  });
+  const casH = [...[375, 1280].map(width => ({ cle: 'staff', width, variante: VARIANTES[1] })), ...VARIANTES.map(variante => ({ cle: 'debuter', width: 1280, variante }))];
+  const resH = await mapLimit(casH, async c => {
+    const out = {};
+    for (const [k, src] of [['teste', userscript], ['base', baseLigne]]) {
+      const { context, page, erreurs } = await ouvrir({ ...c, src });
+      out[k] = { e: await page.evaluate(EMPREINTE_FIL), total: (await colonne(page)).total, fleche: await page.evaluate(() => [...document.querySelectorAll('#topics tbody tr .btn-group > a.btn')].map(e => [Math.round(e.getBoundingClientRect().width), Math.round(e.getBoundingClientRect().height)])), erreurs };
+      await context.close();
+    }
+    return out;
+  });
+  casH.forEach(({ cle, width, variante }, n) => {
+    const { teste, base } = resH[n];
+    check(`ligne ${PAGES[cle].url} ${variante} ${width} px : aucune icône${cle === 'debuter' ? ', bouton → de 32 px' : ''}, empreinte du contenu égale au bundle de base (${COMMIT_LIGNE})`, () => {
+      assert.equal(teste.total, 0, 'icônes');
+      if (cle === 'debuter') { assert.ok(teste.fleche.length >= 1 && teste.fleche.every(([w, h]) => w === 32 && h === 32), JSON.stringify(teste.fleche)); }
+      const k = teste.e.findIndex((x, j) => x !== base.e[j]);
+      assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
+      assert.deepEqual(teste.erreurs, []);
+    });
+  });
+
+  // Seuils 767, 768, 769 (non tactile) et bascule 768 -> 767 -> 768 -> 767 dans le même onglet : une icône par ligne à chaque étape ;
+  // ordinateur : bouton → de 34 px et auteur en couleur d'accent.
+  const etat = (m, width) => {
+    const ecarts = m.lignes.filter(l => l.href).map(l => icone(l, tout(l.href), m.secondaire)).filter(Boolean);
+    if (m.mobile !== (width < 768)) { ecarts.push(`mobile ${m.mobile}`); }
+    if (width >= 768) {
+      m.lignes.filter(l => l.fleche).forEach(l => { if (!l.fleche.boite || l.fleche.boite.w !== 34 || l.fleche.boite.h !== 34) { ecarts.push(`« ${l.nom} » flèche ${JSON.stringify(l.fleche.boite)}`); } });
+      m.lignes.filter(l => l.auteur).forEach(l => { if (l.auteur.couleur !== m.accent) { ecarts.push(`« ${l.nom} » auteur ${l.auteur.couleur}`); } });
+    }
+    return ecarts;
+  };
+  const casS = VARIANTES.flatMap(variante => [767, 768, 769].map(width => ({ variante, width })));
+  const resS = await mapLimit(casS, async c => mesurer(await ouvrirLigne('rp', { ...c, tactile: false }), 'rp'));
+  casS.forEach(({ variante, width }, n) => {
+    check(`ligne seuil /forum/rp ${variante} ${width} px (non tactile) : ${width < 768 ? 'mobile' : 'ordinateur, bouton → de 34 px, auteur en couleur d\'accent'}, une icône par ligne`, () => {
+      const ecarts = etat(resS[n].m, width);
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      assert.deepEqual(resS[n].erreurs, []);
+    });
+  });
+  const o = await ouvrirLigne('rp', { width: 768, height: 667, tactile: false });
+  const etapes = [];
+  const relever = async () => { await o.page.evaluate(CONTRASTE); etapes.push(await o.page.evaluate(LIGNE66, { a: A, l: L, html: SERVIES.rp.html })); };
+  await relever();
+  for (const width of [767, 768, 767]) {
+    await o.page.waitForTimeout(ECART_RECHARGEMENT_MS);
+    const charge = o.page.waitForEvent('load', { timeout: 15000 });
+    await o.page.setViewportSize({ width, height: 667 });
+    await charge;
+    await prete(o.page, true, `bascule ligne ${width}`);
+    await relever();
+  }
+  await o.context.close();
+  check('ligne bascule 768 -> 767 -> 768 -> 767, /forum/rp : un rechargement par franchissement, une icône par ligne à chaque étape', () => {
+    assert.deepEqual(etapes.map(e => e.iw), [768, 767, 768, 767]);
+    const ecarts = etapes.flatMap((e, k) => etat(e, e.iw).map(x => `étape ${k} (${e.iw}) : ${x}`));
+    assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+    assert.equal(o.etat.chargements, 4, 'documents chargés');
+    assert.deepEqual(o.erreurs, []);
+  });
 }
 
 await browser.close();

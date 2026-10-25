@@ -5699,6 +5699,41 @@
       }));
     }
 
+    // Icône de forum (Q27.3, ticket 6.6) : la liste latérale native (#col-left .list-group, hors .kraland-metrics) est lue, jamais modifiée.
+    // Chaque ligne dont le lien du nom a le même chemin normalisé (krForumNormalizePath) qu'une entrée accessible (krForumIsDisabledEntry)
+    // reçoit avant son nom une span.kr-forum-icon (aria-hidden) avec un clone du premier élément (i ou img) de la span.lefticon de l'entrée,
+    // sans nœud texte ni id. Repli : URL absente de la liste, entrée désactivée, entrée sans glyphe dans span.lefticon ou liste absente :
+    // aucune icône, la ligne reste native. Une ligne qui a déjà son icône n'en reçoit pas d'autre.
+    const pathKey = href => krForumNormalizePath(new window.URL(href, document.baseURI).pathname);
+
+    function sidebarIcons() {
+      const icons = new Map();
+      document.querySelectorAll('#col-left .list-group > a.list-group-item[href]').forEach(a => {
+        if (a.closest('.kraland-metrics')) {return;}
+        if (krForumIsDisabledEntry({ cls: a.getAttribute('class'), aria: a.getAttribute('aria-disabled'), disabledAttr: a.hasAttribute('disabled') })) {return;}
+        const glyph = a.querySelector(':scope > span.lefticon > *');
+        const key = pathKey(a.getAttribute('href'));
+        if (glyph && !icons.has(key)) {icons.set(key, glyph);}
+      });
+      return icons;
+    }
+
+    function decorateRows(table, icons) {
+      Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(row => {
+        const link = row.querySelector(':scope > td:first-child > p:not(.tagforum) > a[href]');
+        if (!link || row.querySelector('.kr-forum-icon')) {return;}
+        const glyph = icons.get(pathKey(link.getAttribute('href')));
+        if (!glyph) {return;}
+        const span = document.createElement('span');
+        span.className = 'kr-forum-icon';
+        span.setAttribute('aria-hidden', 'true');
+        const clone = glyph.cloneNode(true);
+        [clone, ...clone.querySelectorAll('[id]')].forEach(node => node.removeAttribute('id'));
+        span.appendChild(clone);
+        link.parentElement.before(span);
+      }));
+    }
+
     function transformHeader(colRight) {
       const heading = colRight.querySelector(':scope > h1.page-header');
       const allLink = colRight.querySelector(':scope > span.pull-right > a[href="forum"]');
@@ -5723,7 +5758,11 @@
       if (!document.documentElement.classList.contains('kr-page-forum-index')) {return;}
       const colRight = document.getElementById('col-right');
       if (!colRight) {return;}
-      colRight.querySelectorAll('.panel-default table.table').forEach(labelRows);
+      const icons = sidebarIcons();
+      colRight.querySelectorAll('.panel-default table.table').forEach(table => {
+        labelRows(table);
+        decorateRows(table, icons);
+      });
       transformHeader(colRight);
     }
 

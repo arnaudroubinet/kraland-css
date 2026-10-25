@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, AVANT_TICKET65, PLUS_TICKET65, plusTicket65, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, AVANT_TICKET65, AVANT_TICKET66, LIGNE_TICKET66, ligneTicket66, PLUS_TICKET65, plusTicket65, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -167,7 +167,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null, plus65 = false }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null, plus65 = false, ligne66 = false }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -194,6 +194,13 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
   if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
     await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
     await context.addInitScript(plusTicket65);
+  }
+  // `ligne66` : icône de forum de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66), posée sur la base d'avant le ticket seulement
+  // (fragment lignes). Retrait : quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.6 (sweep 6.7 ou action A4 de la rétro 5, deux
+  // tickets à venir).
+  if (ligne66 && script !== userscript && AVANT_TICKET66(script)) {
+    await context.addInitScript(poserJetonsRedefinis, LIGNE_TICKET66);
+    await context.addInitScript(ligneTicket66);
   }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
@@ -637,12 +644,13 @@ if (on('lignes')) {
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       // Bundle de base : ligne d'index du ticket 6.2 (72 px au moins, texte centré) posée par masque, sinon la hauteur diffère.
       const masque = cle === 'base' && AVANT_TICKET62(avant) ? LIGNE_INDEX_TICKET62 : null;
-      const { context, page, erreurs } = await ouvrir({ ...c, script, masque });
+      const { context, page, erreurs } = await ouvrir({ ...c, script, masque, ligne66: true });
       out[cle] = { l: await page.evaluate(LIGNES, [PANNEAU_TICKET51, PASTILLE_TICKET52]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
+  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : icône de forum lue dans la liste latérale avant le nom (épopée 6, ticket 6), posée sur la base d\'avant 6.6'); }
   for (const { c, teste, base } of res) {
     const lab = `lignes ${c.nom} ${c.variante} ${c.width} px`;
     const t = teste.l.lignes;
