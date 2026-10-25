@@ -8700,26 +8700,6 @@ body > map {
     background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
   }
   
-  /* === STATS TOPICS MOBILE (injectées par JS) — style harmonisé kramail === */
-  
-  .forum-topic-stats-mobile {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    margin-top: 4px !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-secondary) !important;
-  }
-
-  .forum-topic-stats-mobile i {
-    font-size: 12px !important;
-  }
-
-  .forum-topic-stats-mobile .stats-sep {
-    margin: 0 4px !important;
-    color: var(--kr-text-muted) !important;
-  }
-  
   /* === ZONE 2 : DERNIER MESSAGE (forums thread) === */
   
   /* Lien auteur */
@@ -13901,12 +13881,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.page-forum.kr-subforum #topics thead th.sorting_desc::after {
     content: "\25BE";
-    margin-left: 6px;
+    margin-left: var(--kr-space-1);
   }
 
   body.page-forum.kr-subforum #topics thead th.sorting_asc::after {
     content: "\25B4";
-    margin-left: 6px;
+    margin-left: var(--kr-space-1);
   }
 
   body.page-forum.kr-subforum #topics thead th:focus-visible {

@@ -38,7 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64, AVANT_TICKET65, PLUS_TICKET65, plusTicket65 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64, AVANT_TICKET65, AVANT_TICKET67, PLUS_TICKET65, plusTicket65, FLECHES_TICKET67 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -93,25 +93,31 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '') + (AVANT_TICKET44(src) ? '\n' + PAGINATION_TICKET44 : '') + (AVANT_TICKET45(src) ? '\n' + ECHELLE_TICKET45 : '') + (AVANT_TICKET47(src) ? '\n' + ECHELLE_TICKET47 : '') + (AVANT_TICKET49(src) ? '\n' + ESPACEMENT_TICKET49 : '') + (AVANT_BUG10(src) ? '\n' + TITRE_FORUM_BUG10 : '') + (AVANT_TICKET51(src) ? '\n' + CARTES_TICKET51 : '') + (AVANT_TICKET52(src) ? '\n' + CARTES_TICKET52 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
   // Fil d'Ariane de l'épopée 6, ticket 3 (troncature, icône retirée) posé sur le bundle « avant » seulement. Retirer quand COMMIT_AVANT est
-  // réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (tickets à venir).
+  // réaligné sur un SHA qui contient 6.3. Retrait : au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte l'action A4 de la
+  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
   if (fil && AVANT_TICKET63(src)) {
     await context.addInitScript(poserJetonsRedefinis, FIL_TICKET63);
     await context.addInitScript(retirerIconeFilTicket63);
   }
   // En-tête de sujet de l'épopée 6, ticket 4 (fil commun, « Nouveau sujet » standard, actions de 44 px, garde du sujet) posé sur le bundle
-  // « avant » seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 ; le réalignement est porté par le sweep 6.7
-  // ou par l'action A4 de la rétro 5 (tickets à venir).
+  // « avant » seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4. Retrait : au réalignement de COMMIT_AVANT
+  // (81512a3) par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de
+  // l'épopée 6.
   if (fil && AVANT_TICKET64(src)) {
     await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
     await context.addInitScript(filSujetTicket64);
   }
   // Bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65) posé sur le bundle « avant » seulement. Retirer quand
-  // COMMIT_AVANT est réaligné sur un SHA qui contient 6.5 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5
-  // (tickets à venir).
+  // COMMIT_AVANT est réaligné sur un SHA qui contient 6.5. Retrait : au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte
+  // l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
   if (fil && AVANT_TICKET65(src)) {
     await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
     await context.addInitScript(plusTicket65);
   }
+  // Flèches de tri du sous-forum mobile à 4 px (épopée 6, ticket 7 : FLECHES_TICKET67) posées sur le bundle « avant » seulement. Retrait :
+  // au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est
+  // à créer à la rétro de l'épopée 6.
+  if (fil && AVANT_TICKET67(src)) { await context.addInitScript(poserJetonsRedefinis, FLECHES_TICKET67); }
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -318,7 +324,9 @@ const ecarts = (index, modele, exception = {}) => Object.keys(modele).flatMap(no
 // Exception nommée (épopée 6, ticket 6, Ask First 5) : sur ordinateur, l'index seul passe l'auteur du dernier message en couleur d'accent, le
 // dernier message à droite (non mesuré par COMPOSANTS_BUREAU) et le bouton → à 34 px (son groupe porte la même taille, centré par
 // translateY(-50 %) : -17 px au lieu de -16) ; le sous-forum ne change pas. Ces propriétés seules sont exclues de la comparaison au
-// sous-forum ; toute autre divergence reste rouge (consigné dans le plan du ticket).
+// sous-forum ; toute autre divergence reste rouge (consigné dans le plan du ticket). Ce n'est pas un masque de base : elle tient l'écart voulu
+// index ↔ sous-forum. Retrait : quand le sous-forum suit la Ligne de forum (flèche 34 px, auteur en accent, dernier message à droite) ;
+// décision d'Arnaud en attente (revue-manuelle.md, harmonisation du sous-forum), puis ticket qui l'aligne.
 const EXCEPTION_TICKET66 = {
   'auteur du dernier message': ['color'],
   'bouton →': ['width', 'height'],
@@ -779,6 +787,7 @@ if (on('hors-perimetre')) {
     if (AVANT_TICKET63(avant)) { console.log('  info écart accepté et consigné : fil d\'Ariane du sous-forum sans icône de retour, niveau courant tronqué sur une ligne, posé sur le bundle « avant » (épopée 6, ticket 3)'); }
     if (AVANT_TICKET65(avant)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur le bundle « avant » (épopée 6, ticket 5)'); }
     if (AVANT_TICKET64(avant)) { console.log('  info écart accepté et consigné : en-tête du sujet mobile, fil d\'Ariane commun, « Nouveau sujet » en bouton standard, actions de 44 px, posés sur le bundle « avant » (épopée 6, ticket 4)'); }
+    if (AVANT_TICKET67(avant)) { console.log('  info écart accepté et consigné : flèches de tri du sous-forum mobile à 4 px du libellé, posées sur le bundle « avant » (épopée 6, ticket 7)'); }
     if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];

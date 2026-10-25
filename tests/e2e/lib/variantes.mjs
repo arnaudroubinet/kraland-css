@@ -563,8 +563,8 @@ export const ACTIVITE_TICKET62 = {
  * l'index du forum (et de la racine) d'au moins 72 px, bloc de texte centré. Feuille miroir en valeurs littérales des deux déclarations
  * ajoutées à la règle d'origine, mêmes sélecteur et média, sans !important ; posée sur un bundle de base antérieur au ticket
  * (AVANT_TICKET62), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du ticket (Plan Change Log).
- * Condition de retrait : retirer quand `COMMIT_AVANT` de la suite est réaligné sur un SHA qui contient 6.2 ; le réalignement est porté par
- * le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ * Condition de retrait : au réalignement de `COMMIT_AVANT` de la suite sur un SHA qui contient 6.2, par le ticket qui porte l'action A4 de la rétro 5
+ * (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
  */
 export const LIGNE_INDEX_TICKET62 = [
   '@media (max-width: 767px) {',
@@ -610,8 +610,8 @@ export const REPERES_FIL_TICKET63 = {
  * !important ; posée sur un bundle de base antérieur au ticket (AVANT_TICKET63), jamais sur le bundle courant ; tout autre écart reste
  * détecté. Écart consigné dans le plan du ticket (Plan Change Log).
  * Condition de retrait : retirer quand la base de comparaison de la suite (`COMMIT_AVANT` de `forum-index.mjs`, `COMMIT_ECHELLE_FORUM` et
- * `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) est réalignée sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7
- * ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ * `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) est réalignée sur un SHA qui contient 6.3 : retrait au réalignement de ces bases
+ * par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
  */
 export const FIL_TICKET63 = [
   '@media (max-width: 767px) {',
@@ -897,9 +897,9 @@ export const AVANT_TICKET64 = bundle => !bundle.includes(':where(body.page-forum
  * et le .forum-top du bas gardent leurs styles en ligne de la base, de même valeur que les règles du ticket. Posée avec le script
  * filSujetTicket64 sur un bundle de base antérieur au ticket (AVANT_TICKET64), jamais sur le bundle courant ; tout autre écart reste détecté.
  * Écart consigné dans le plan du ticket (Plan Change Log).
- * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `forum-index.mjs` et de `forum-activite.mjs`,
- * `COMMIT_ECHELLE_FORUM` et `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) sont réalignées sur un SHA qui contient 6.4 ; le réalignement
- * est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `forum-index.mjs`, `COMMIT_ECHELLE_FORUM` et
+ * `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) sont réalignées sur un SHA qui contient 6.4 : retrait au réalignement de ces bases
+ * par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
  */
 export const ENTETE_TICKET64 = [
   '@media (max-width: 767px) {',
@@ -999,9 +999,9 @@ export const AVANT_TICKET65 = bundle => !bundle.includes('kr-more-glyph');
  * base antérieur au ticket (AVANT_TICKET65), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du
  * ticket (Plan Change Log).
  * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `forum-index.mjs` et de `cartes-pastilles.mjs`,
- * `COMMIT_ECHELLE_FORUM` et `COMMIT_NETTOYAGE` de `typographie-formes.mjs`, bases de `palette-nation.mjs`, bundle « avant » de
- * `kramail-redaction.mjs`) sont réalignées sur un SHA qui contient 6.5 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de
- * la rétro 5 (les deux sont des tickets à venir).
+ * `COMMIT_ECHELLE_FORUM` et `COMMIT_NETTOYAGE` de `typographie-formes.mjs`, bases de `palette-nation.mjs`) sont réalignées sur un SHA
+ * qui contient 6.5 : retrait au réalignement de ces bases par le ticket qui porte l'action A4 de la rétro 5
+ * (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
  */
 export const PLUS_TICKET65 = [
   '@media (max-width: 767px) {',
@@ -1070,9 +1070,9 @@ export const AVANT_TICKET66 = bundle => !bundle.includes('kr-forum-icon');
  * d'accent (la base la force, d'où !important ici), dernier message aligné à droite, bouton → de 34 px (la base force le bouton, d'où
  * !important). Posée avec le script ligneTicket66 sur un bundle de base antérieur au ticket (AVANT_TICKET66), jamais sur le bundle courant ;
  * tout autre écart reste détecté. Écart consigné dans le plan du ticket (Plan Change Log).
- * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` et `COMMIT_FIL` de `forum-activite.mjs`, `COMMIT_AVANT` de
- * `cartes-pastilles.mjs`, `COMMIT_ECHELLE_FORUM` et `COMMIT_ESPACEMENT` de `typographie-formes.mjs`) sont réalignées sur un SHA qui
- * contient 6.6 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `cartes-pastilles.mjs`, `COMMIT_ECHELLE_FORUM` et
+ * `COMMIT_ESPACEMENT` de `typographie-formes.mjs`) sont réalignées sur un SHA qui contient 6.6 : retrait au réalignement de ces bases
+ * par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
  */
 export const LIGNE_TICKET66 = [
   '@media (max-width: 767px) {',
@@ -1120,3 +1120,26 @@ export function ligneTicket66() {
   };
   new MutationObserver(poser).observe(document, { childList: true, subtree: true });
 }
+
+/**
+ * Écart accepté et consigné (épopée 6, ticket 7, sweep : entrée D4 de deferred-work.md) : flèches de tri `::after` du sous-forum mobile
+ * à 4 px du libellé (`--kr-space-1`) au lieu de 6 px ; la puce triée rétrécit de 2 px et décale les suivantes. Feuille miroir en valeur
+ * littérale de la déclaration réécrite, mêmes sélecteurs et média, sans !important (la base ne la force pas) ; posée sur un bundle de base
+ * antérieur au ticket (AVANT_TICKET67), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du ticket
+ * (Plan Change Log).
+ * Condition de retrait, par suite :
+ * - `forum-activite.mjs` : au réalignement de ses cinq bases (`COMMIT_AVANT`, `COMMIT_FIL`, `COMMIT_ENTETE`, `COMMIT_PLUS`, `COMMIT_LIGNE`,
+ *   810901f) sur un SHA qui contient 6.7, action de la rétro de l'épopée 6 ;
+ * - bases partagées (`COMMIT_AVANT` de `forum-index.mjs`, `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) : à leur réalignement sur un SHA
+ *   qui contient 6.7, par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro
+ *   de l'épopée 6.
+ * Le masque est retiré de `lib/variantes.mjs` quand plus aucune suite ne le pose.
+ */
+export const FLECHES_TICKET67 = [
+  '@media (max-width: 767px) {',
+  '  body.page-forum.kr-subforum #topics thead th.sorting_desc::after, body.page-forum.kr-subforum #topics thead th.sorting_asc::after { margin-left: 4px; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 6, ticket 7 : la flèche de tri décroissant y est à 6 px du libellé (règle minifiée du bundle ; présente dans
+ * 810901f, 81512a3, 00b0786, d953969, 62fd47d, 21fed8d, 6685df5 et 0523d7f). */
+export const AVANT_TICKET67 = bundle => bundle.includes('sorting_desc:after{content:"▾";margin-left:6px}');

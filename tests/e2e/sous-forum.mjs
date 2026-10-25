@@ -513,7 +513,7 @@ const TOOLBAR = () => {
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     input: input ? { ...rect(input), vis: vis(input), placeholder: input.getAttribute('placeholder'), aria: input.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(input).fontSize) } : null,
     select: select ? { ...rect(select), vis: vis(select), aria: select.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(select).fontSize) } : null,
-    chips: ths.map(th => ({ text: th.textContent.replace(/\s+/g, ' ').trim(), ...rect(th), vis: vis(th), cls: th.className, aria: th.getAttribute('aria-sort'), ratio: vis(th) ? chipRatio(th) : null })),
+    chips: ths.map(th => ({ text: th.textContent.replace(/\s+/g, ' ').trim(), ...rect(th), vis: vis(th), cls: th.className, aria: th.getAttribute('aria-sort'), ratio: vis(th) ? chipRatio(th) : null, fleche: /\bsorting_(asc|desc)\b/.test(th.className) ? getComputedStyle(th, '::after').marginLeft : null })),
     mask, scrollX: tr ? getComputedStyle(tr).overflowX : '',
     triPrefix: tr ? getComputedStyle(tr, '::before').content : '',
     triRatio: tr ? (() => { const bg = t.bgOf(tr); const c = t.parse(getComputedStyle(tr, '::before').color); return t.round(t.ratio(t.over(c, bg), bg)); })() : null,
@@ -546,6 +546,7 @@ const checkToolbar = (label, m) => {
   check(`${label} : recherche et « Afficher » sur une ligne, au moins 44 px de haut`, () => { assert.ok(m.input && m.select && m.input.vis && m.select.vis); assert.ok(Math.abs(m.input.y - m.select.y) <= 4, `input y ${m.input.y}, select y ${m.select.y}`); assert.ok(m.input.h >= 44 && m.select.h >= 44, `${m.input.h} / ${m.select.h}`); assert.ok(m.input.w >= 150, 'largeur ' + m.input.w); });
   check(`${label} : champs nommés (placeholder et libellés accessibles), police 16 px (pas de zoom iOS)`, () => { assert.ok(/Rechercher/.test(m.input.placeholder || '')); assert.ok(m.input.aria && m.select.aria); assert.equal(m.input.fs, 16); assert.equal(m.select.fs, 16); });
   check(`${label} : 5 puces de tri natives (th) visibles, 44 px de haut, la colonne triée en premier`, () => { assert.equal(m.chips.length, 5); assert.ok(m.chips.every(c => c.vis && c.h >= 44 && c.w >= 44), JSON.stringify(m.chips.map(c => [c.text, c.w, c.h, c.vis]))); const sorted = m.chips.find(c => c.aria); assert.ok(sorted && /Dernier/.test(sorted.text)); assert.ok(m.chips.every(c => c === sorted || c.x > sorted.x)); });
+  check(`${label} : flèche de tri de la colonne triée à 4 px du libellé (grille de 4 px)`, () => { const f = m.chips.filter(c => c.fleche !== null); assert.ok(f.length === 1 && f[0].fleche === '4px', JSON.stringify(m.chips.map(c => [c.text, c.cls, c.fleche]))); });
   check(`${label} : puces défilantes avec fondu à droite, préfixe « Trier : »`, () => { assert.equal(m.scrollX, 'auto'); assert.ok(/gradient/.test(m.mask), m.mask); assert.ok(/Trier/.test(m.triPrefix)); });
   check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
 };
@@ -567,6 +568,8 @@ if (frag('l3-liste')) {
     await settleRedraw(p);
     const sorted = await p.evaluate(() => ({ aria: document.querySelector('#topics thead th:nth-child(3)').getAttribute('aria-sort'), views: [...document.querySelectorAll('#topics tbody td:nth-child(3)')].map(td => Number(td.textContent)) }));
     check(`${width} : toucher la puce « Vus » trie la liste (aria-sort et ordre croissant)`, () => { assert.equal(sorted.aria, 'ascending'); assert.deepEqual(sorted.views, [...sorted.views].sort((a, b) => a - b)); });
+    const apresTri = await p.evaluate(TOOLBAR);
+    check(`${width} : après le tri par « Vus », flèche de tri croissant à 4 px du libellé (grille de 4 px)`, () => { const f = apresTri.chips.filter(c => c.fleche !== null); assert.ok(f.length === 1 && /Vus/.test(f[0].text) && /\bsorting_asc\b/.test(f[0].cls) && f[0].fleche === '4px', JSON.stringify(apresTri.chips.map(c => [c.text, c.cls, c.fleche]))); });
     await context.close();
     for (const [name, act] of REDRAWS) {
       const c = await open({ width });
@@ -576,6 +579,17 @@ if (frag('l3-liste')) {
       checkTopicRows(`${width} après ${name}`, await c.page.evaluate(TOPIC_ROWS));
       await c.context.close();
     }
+  }
+  {
+    // Dernière largeur mobile (767 px) : puces, flèche de tri dans les deux sens.
+    const { context, page: p } = await open({ width: 767 });
+    await withTools(p);
+    checkToolbar('767', await p.evaluate(TOOLBAR));
+    await p.locator('#topics thead th', { hasText: 'Vus' }).click();
+    await settleRedraw(p);
+    const apresTri = await p.evaluate(TOOLBAR);
+    check('767 : après le tri par « Vus », flèche de tri croissant à 4 px du libellé (grille de 4 px)', () => { const f = apresTri.chips.filter(c => c.fleche !== null); assert.ok(f.length === 1 && /Vus/.test(f[0].text) && /\bsorting_asc\b/.test(f[0].cls) && f[0].fleche === '4px', JSON.stringify(apresTri.chips.map(c => [c.text, c.cls, c.fleche]))); });
+    await context.close();
   }
   {
     const { context, page: p } = await open({ width: 375, late: true });

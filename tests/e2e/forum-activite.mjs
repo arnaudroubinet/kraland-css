@@ -27,7 +27,7 @@
 //             active de la liste latérale (L4 : libellé renommé en mémoire), repli sur le lien natif sans entrée active, puis sur
 //             « Catégorie » si le bouton natif est réduit à son icône ; titre long : courant sur une ligne, ellipse, aucun débordement ;
 //             catégorie longue : lien d'au plus la moitié du fil, libellé à ellipse, courant entier, aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; page de réponse, page
-//             hors forum et bureau (768, 769, 1280 ; sujet compris) égaux au bundle de 5042afd ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
+//             hors forum et bureau (768, 769, 1280 ; sujet compris) égaux au bundle de base ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
 //   entete    (épopée 6, ticket 4, plan story-en-tete-de-sujet-mobile-dans-communaute-debats-et-staff-h12) en-tête de sujet mobile dans
 //             toutes les catégories : sujets Communauté, Débats, Staff (structure supposée), HRP (fil de sujet) et fermé, 375 et 767 px,
 //             Kraland clair et Empire Brun sombre : un seul fil de la famille commune « Catégorie › Forum › titre » (catégorie de l'entrée
@@ -35,7 +35,7 @@
 //             « Répondre » primaire si le lien natif existe, « Nouveau sujet » standard, 44 px, rayon, cible au centre, href natifs ;
 //             boutons natifs invisibles ; fermé : cadenas, 0 ou 2 « Répondre » selon le lien natif ; L4 renommé, catégorie inconnue,
 //             titre long, image d'icône ; aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; sous-forum, h1 et bandeau natif du
-//             bas, seuil 768/769 et bureau (768, 1280) égaux au bundle de ef0e4d4 ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
+//             bas, seuil 768/769 et bureau (768, 1280) égaux au bundle de base ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
 //   ligne     (épopée 6, ticket 6, plan story-ligne-de-forum-icone-lue-dans-la-liste-laterale-forum-sans-m) index RP, HRP, Communauté,
 //             Débats et racine à groupes à 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : une icône par
 //             ligne, copiée de l'entrée de la liste latérale du même chemin (avant le nom, masquée aux lecteurs d'écran, sur la rangée du
@@ -44,19 +44,20 @@
 //             droite, auteur en couleur d'accent, 700, taille de détail ; pages dérivées (chemin composé, entrée désactivée par classe
 //             ou par aria, icône image, entrée sans icône, sans liste, lien absolu avec requête et ancre, racine nue, nom long, glyphe entouré d'espaces et porteur d'un id)
 //             à 375 et 1280 px ;
-//             contraste de l'auteur dans les 16 variantes ; mobile égal à la base masquée ; peau coupée égale à la base peau coupée ;
+//             contraste de l'auteur dans les 16 variantes ; mobile égal à la base ; peau coupée égale à la base peau coupée ;
 //             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767.
-// Bundle de base : celui de 0523d7f (commit de base du plan, figé), sauf KR_SCRIPT_AVANT. Fixtures synthétiques du dépôt seulement ; le
+// Bundle de base : celui de 810901f (fin de l'épopée 6, avant le ticket 6.7, SHA figé) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
+// seul masque, posé par `ouvrir` sur une base d'avant 6.7 : FLECHES_TICKET67 (flèches de tri du sous-forum mobile à 4 px). Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
 // Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
 // et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
 // lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
-// base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de ef0e4d4 (COMMIT_ENTETE), sauf
+// base de 810901f (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 810901f (COMMIT_ENTETE), sauf
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
-// REPERES_PLUS_TICKET65) : bundle de base de 1134ef9 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
-// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6ba0838 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
+// REPERES_PLUS_TICKET65) : bundle de base de 810901f (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
+// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 810901f (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
@@ -74,13 +75,13 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, AVANT_TICKET66, CONTRASTE, ENTETE_TICKET64, LIGNE_TICKET66, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, ligneTicket66, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET67, CONTRASTE, FLECHES_TICKET67, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '0523d7f';
+const COMMIT_AVANT = '810901f';
 const avant = strip(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');
@@ -126,7 +127,7 @@ const browser = await launchBrowser();
 
 // Ouvre la page `cle` (chemin + hash). `routes` : documents servis en plus (chemin -> HTML), pour l'arrivée d'un parcours. `debut` : bundle
 // évalué dès que <html> existe (sinon dès que <body> existe). `src` : bundle injecté ; `theme` : kr-theme-enabled.
-async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, entete64 = false, ligne66 = false }) {
+async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {} }) {
   const context = await browser.newContext({ viewport: { width, height: height || (tactile ? 667 : 900) }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   const documents = { [PAGES[cle].url]: html || PAGES[cle].html, ...routes };
@@ -142,21 +143,10 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
     if (u.pathname.endsWith('.css')) { return route.fulfill({ status: 200, contentType: 'text/css', body: '' }); }
     return route.abort();
   });
-  // `entete64` : en-tête de sujet de l'épopée 6, ticket 4 (ENTETE_TICKET64 et filSujetTicket64) posé sur un bundle de base d'avant le ticket
-  // seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 ; le réalignement est porté par le sweep 6.7 ou par
-  // l'action A4 de la rétro 5 (tickets à venir).
-  if (entete64 && src !== userscript && AVANT_TICKET64(src)) {
-    await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
-    await context.addInitScript(filSujetTicket64);
-  }
-  // `ligne66` : ligne de l'index de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66 : icône de forum, dernier message à droite, bouton
-  // → de 34 px) posée sur un bundle de base d'avant le ticket seulement (fragments seuil, bureau, fil et ligne). Retirer quand COMMIT_AVANT,
-  // COMMIT_FIL et COMMIT_LIGNE sont réalignés sur un SHA qui contient 6.6 ; le réalignement est porté par le sweep 6.7 ou par l'action A4
-  // de la rétro 5 (tickets à venir).
-  if (ligne66 && src !== userscript && AVANT_TICKET66(src)) {
-    await context.addInitScript(poserJetonsRedefinis, LIGNE_TICKET66);
-    await context.addInitScript(ligneTicket66);
-  }
+  // Flèches de tri du sous-forum mobile à 4 px (épopée 6, ticket 7 : FLECHES_TICKET67) posées sur un bundle de base d'avant le ticket
+  // seulement. Retrait : au réalignement des cinq bases de la suite (COMMIT_AVANT, COMMIT_FIL, COMMIT_ENTETE, COMMIT_PLUS, COMMIT_LIGNE)
+  // sur un SHA qui contient 6.7, action de la rétro de l'épopée 6.
+  if (src !== userscript && AVANT_TICKET67(src)) { await context.addInitScript(poserJetonsRedefinis, FLECHES_TICKET67); }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
@@ -428,7 +418,7 @@ if (on('lignes')) {
 // ---------- Seuil et bascule dans le même onglet ----------
 // Bascule : le thème recharge la page au franchissement du seuil (anti-rebond de 400 ms, défilement en pixels restauré jusqu'à 1,8 s).
 async function bascule({ cle, hash, src }) {
-  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src, entete64: true, ligne66: true });
+  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src });
   const mesure = async () => {
     await page.waitForTimeout(APRES_MS);
     return { iw: await page.evaluate(() => window.innerWidth), docs: etat.chargements, m: hash ? await page.evaluate(MESSAGE, hash.slice(1)) : null, l: hash ? null : geometrie(await page.evaluate(LIGNES, A)) };
@@ -451,13 +441,12 @@ if (on('seuil')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ cle: 'rp', ...c, tactile: false, src, ligne66: true });
+      const { context, page, erreurs } = await ouvrir({ cle: 'rp', ...c, tactile: false, src });
       out[k] = { l: await page.evaluate(LIGNES, A), erreurs };
       await context.close();
     }
     return out;
   });
-  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   cas.forEach(({ variante, width }, i) => {
     const { teste, base } = res[i];
     check(`seuil /forum/rp ${variante} ${width} px : ${width < 768 ? 'mobile, chaque ligne d\'au moins 72 px' : 'ordinateur, lignes et flèches égales à la base'}, aucune exception`, () => {
@@ -503,13 +492,12 @@ if (on('bureau')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, src, ligne66: true });
+      const { context, page, erreurs } = await ouvrir({ ...c, src });
       out[k] = { l: await page.evaluate(LIGNES, A), erreurs };
       await context.close();
     }
     return out;
   });
-  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   cas.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = res[i];
     check(`bureau ${PAGES[cle].url} ${variante} ${width} px : lignes et flèches (boîtes, cibles) égales au bundle de base (${COMMIT_AVANT}), aucune exception`, () => {
@@ -622,7 +610,7 @@ const EMPREINTE_FIL = () => {
   });
 };
 
-const COMMIT_FIL = '5042afd';
+const COMMIT_FIL = '810901f';
 if (on('fil')) {
   const baseFil = strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -768,8 +756,7 @@ if (on('fil')) {
     // Bureau : index RP, sous-forum (colonne native) et sujet.
     ...['rp', 'debuterNatif', 'sujet'].flatMap(cle => [768, 769, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))))
   ];
-  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil, ligne66: true }), true) }));
-  if (AVANT_TICKET66(baseFil)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
+  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
@@ -904,7 +891,7 @@ const ENTETE = ({ e, r }) => {
   return out;
 };
 
-const COMMIT_ENTETE = 'ef0e4d4';
+const COMMIT_ENTETE = '810901f';
 if (on('entete')) {
   const baseEntete = strip(process.env.KR_SCRIPT_AVANT_ENTETE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ENTETE, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_ENTETE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1234,7 +1221,7 @@ const VOILE = ({ p, cle, poser }) => {
   return 1;
 };
 
-const COMMIT_PLUS = '1134ef9';
+const COMMIT_PLUS = '810901f';
 if (on('plus')) {
   const basePlus = strip(process.env.KR_SCRIPT_AVANT_PLUS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PLUS, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_PLUS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1487,9 +1474,9 @@ if (on('plus')) {
 // icônes attendues par chemin) : REPERES_LIGNE_TICKET66 (lib/variantes.mjs). Pages dérivées en mémoire de l'index RP : colonne native
 // composée (Taverne et Marché seulement, Monde en trop), entrée Marché désactivée par classe puis par aria, image dans la liste,
 // entrée Taverne sans icône de liste, liste retirée, entrée Taverne en href absolu avec requête et fragment ; racine sans liste latérale.
-// Bundle de base : celui de 6ba0838 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff et sous-forum comparés à cette base
-// sans masque ; mobile comparé à la base masquée (ligne66).
-const COMMIT_LIGNE = '6ba0838';
+// Bundle de base : celui de 810901f (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff, sous-forum et mobile comparés à
+// cette base, avec le seul masque FLECHES_TICKET67 (flèches de tri du sous-forum mobile, posé par `ouvrir` sur une base d'avant 6.7).
+const COMMIT_LIGNE = '810901f';
 // Mesure de la ligne de l'index : par ligne, icône (classe, contenu, place, boîte), nom, heure (texte de p.mini et texte natif lu dans le
 // HTML servi), dernier message (styles, boîtes du texte), flèche, compteurs, cellule vide ; liste latérale (outerHTML). CONTRASTE évalué avant.
 const LIGNE66 = ({ a, l, html }) => {
@@ -1683,20 +1670,19 @@ if (on('ligne')) {
     });
   });
 
-  // Mobile hors icône : lignes (boîtes, cibles, flèches) et auteur égaux à la base masquée (ligne66).
+  // Mobile hors icône : lignes (boîtes, cibles, flèches) et auteur égaux à la base.
   const casM = ['rp', 'communaute', 'racine'].flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))));
   const resM = await mapLimit(casM, async c => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', baseLigne]]) {
-      const { context, page } = await ouvrir({ ...c, src, ligne66: true });
+      const { context, page } = await ouvrir({ ...c, src });
       out[k] = { l: await page.evaluate(LIGNES, A), a: await page.evaluate(sel => [...document.querySelectorAll(sel)].map(e => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]), A.ligne + ' > td:nth-child(4) > a.nomargin') };
       await context.close();
     }
     return out;
   });
-  if (AVANT_TICKET66(baseLigne)) { console.log('  info écart accepté et consigné : ligne de l\'index (icône de forum, dernier message à droite, bouton → de 34 px), posée sur la base d\'avant 6.6 (épopée 6, ticket 6)'); }
   casM.forEach(({ cle, width, variante }, n) => {
-    check(`ligne mobile ${PAGES[cle].url} ${variante} ${width} px : lignes, flèches, cibles et auteur égaux à la base masquée (${COMMIT_LIGNE})`, () => {
+    check(`ligne mobile ${PAGES[cle].url} ${variante} ${width} px : lignes, flèches, cibles et auteur égaux à la base (${COMMIT_LIGNE})`, () => {
       assert.ok(resM[n].teste.l.mobile, 'mode mobile');
       assert.deepEqual(resM[n].teste.l, resM[n].base.l);
       assert.deepEqual(resM[n].teste.a, resM[n].base.a);
@@ -1704,8 +1690,8 @@ if (on('ligne')) {
   });
 
   // Peau coupée : aucune icône, #col-right égal à celui de la base peau coupée (à 375 px, le script pose déjà sans la peau un style en ligne
-  // sur #col-right, avant comme après le ticket : la page sans script n'est pas la référence). Staff et sous-forum : égaux à la base sans
-  // masque, aucune icône.
+  // sur #col-right, avant comme après le ticket : la page sans script n'est pas la référence). Staff et sous-forum : égaux à la base,
+  // aucune icône.
   // Injection « début » (comme `@run-at document-start`) : injecté à l'apparition de <body>, le script, peau coupée, observe <body> pour
   // retirer les infobulles en mobile ; or `mobile-mode` n'est posé qu'au DOMContentLoaded. Les attributs data-toggle/title du bouton
   // « Tous les forums » et des flèches restent ou partent selon que la dernière insertion du parseur est livrée avant ou après ce

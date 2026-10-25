@@ -194,8 +194,8 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   // Écart accepté et consigné (épopée 5, entrées 1 et 2) : panneaux mobiles en carte de section, forum compris (CARTES_TICKET51, puis
   // CARTES_TICKET52), posés sur un bundle d'avant ces entrées (`cartes`, pages4 seulement), jamais sur le bundle testé.
   // Écart accepté et consigné (épopée 6, ticket 5) : bouton « ••• » commun du sujet mobile (PLUS_TICKET65 et plusTicket65), posé sur un
-  // bundle d'avant le ticket (`plus65`, pages4 seulement), jamais sur le bundle testé. Retrait : quand BASELINE4 est réaligné sur un SHA qui
-  // contient 6.5 (sweep 6.7 ou action A4 de la rétro 5, deux tickets à venir).
+  // bundle d'avant le ticket (`plus65`, pages4 seulement), jamais sur le bundle testé. Retrait : au réalignement de BASELINE4 (6685df5) par
+  // le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
   if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
     await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
     await context.addInitScript(plusTicket65);

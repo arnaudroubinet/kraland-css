@@ -503,3 +503,47 @@ Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
 - Captures à 375×667, 1280, 1440 et 1920 px, en clair et en sombre : index RP, Communauté, racine à groupes. Vérifier l'icône avant le nom, l'alignement des noms quand une ligne n'a pas d'icône, et le dernier message à droite près de la flèche.
 
 - **Question rappelée (ticket 6.1) : compteurs sur ordinateur.** DESIGN veut « N sujets · N messages » en `text-secondary`. L'index garde les colonnes Sujets et Messages, alignées sur Msg et Vus du sous-forum. Faut-il garder les colonnes, ou passer au texte de DESIGN ?
+
+## Ticket 6.7 — refactor sweep de l'épopée 6 (construit, 2026-10-25)
+
+Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
+
+1. **Bases partagées et action A4.** Les bases partagées ne bougent pas : `forum-index` 81512a3, `cartes-pastilles` 21fed8d, `typographie-formes` d953969, 62fd47d et 00b0786, `palette-nation` 6685df5. Leurs masques 6.x sont gardés. Leur condition de retrait nomme maintenant le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6). Ce ticket est à créer à la rétro de l'épopée 6. Plus aucune condition ne dit « sweep 6.7 ».
+2. **Valeur des flèches de tri.** `var(--kr-space-1)` (4 px) au lieu de 6 px, sous-forum mobile seulement. La puce triée rétrécit de 2 px. Les 5 puces restent visibles, d'au moins 44 × 44, sans débordement, à 375, 700 et 767 px. Aucun arrêt.
+3. **Règles mortes d'avant 6.2.** `forum-topic-stats-mobile` (et `.stats-sep`) est retirée après revue : la classe était propre au userscript et n'est plus posée depuis `ce0b012` (9 `!important` en moins, 3281). Les quatre autres (`forum-description-wrapper`, `forum-stats-wrapper`, `forum-thread-detail`, `forum-thread-metadata`) ne sont pas retirées. Elles sont signalées dans `deferred-work.md`, section « Reports du ticket 6.7 ».
+4. **`EXCEPTION_TICKET66`.** Gardée. Sa condition : « Retrait : quand le sous-forum suit la Ligne de forum (flèche 34 px, auteur en accent, dernier message à droite) ; décision d'Arnaud en attente (revue-manuelle.md, harmonisation du sous-forum), puis ticket qui l'aligne ».
+5. **Constantes de `forum-activite.mjs`.** Les cinq constantes et leurs variables `KR_SCRIPT_AVANT*` restent. Elles valent toutes `'810901f'` (fin de l'épopée 6, avant 6.7). Aucune fusion.
+6. **Masques 3/4 inertes de `kramail-redaction.mjs`** (`ESPACEMENT_AVANT` et voisins, base auto-référente). Non touchés : ils reviennent à A4.
+7. **Seuils et tolérances.** Aucun n'a changé.
+8. **Fixtures.** Aucune n'a changé.
+
+Écarts à connaître :
+
+- **Nouveau masque `FLECHES_TICKET67`.** Le plan ne l'avait pas prévu. Trois comparaisons à une base d'avant 6.7 voyaient l'écart voulu des flèches : 2 px de moins sur la puce triée, puces suivantes décalées. Il s'agit de `forum-activite#entete`, `forum-index#hors-perimetre` et `typographie-formes#nettoyage`. J'ai suivi la convention du dépôt : une feuille miroir à 4 px, posée sur la base seule et gardée par son détecteur `AVANT_TICKET67`. Tout autre écart reste rouge. Sa condition de retrait : pour `forum-activite`, le réalignement de ses bases sur un SHA qui contient 6.7 (action de la rétro de l'épopée 6) ; pour `forum-index` et `typographie-formes` (bases partagées), le ticket A4. Autre option : annuler la réécriture des flèches et reporter D4. C'est à toi de trancher.
+- **Masques retirés.** Dans `forum-activite.mjs`, les options `entete64` et `ligne66` de `ouvrir` sont retirées avec leur pose, ainsi que les 4 lignes « info » 6.6. Toutes les bases sont réalignées sur 810901f. Dans `kramail-redaction.mjs`, `PLUS_AVANT` est retiré : il était déjà inerte.
+
+Action pour la rétro de l'épopée 6 :
+
+- Réaligner les bases de `forum-activite` (810901f) sur un SHA qui contient 6.7 et y retirer `FLECHES_TICKET67`.
+- Créer le ticket qui porte l'action A4 de la rétro 5 : réaligner les bases partagées, puis éteindre les masques 3 à 6 et `FLECHES_TICKET67`.
+
+Questions toujours en attente (rappel) :
+
+- Alignement de Staff (D2, D3, D5).
+- Coins bas de la racine en sombre (D6).
+- `span.tagforum` (D10).
+- Correctif d'ancres limité à `#flap` (D11).
+- Liens « lien » et « liste des messages » du sujet mobile (D12).
+- Compteurs sur ordinateur.
+- Harmonisation du sous-forum (« Nouveau sujet », flèche 34 px, `EXCEPTION_TICKET66`).
+- Q27.5, Q27.6.
+- O1 (fond de page teinté).
+
+Reportés à la rétro de l'épopée 6 (faisables sur une page dérivée en mémoire, hors du périmètre du sweep) :
+
+- D7 : accordéon ou modale `.panel-default` sur une page `/forum/*`.
+- D13 : barre d'un message ouvert (z-index 991) au-dessus de la barre « Envoyer », sur un sujet avec formulaire de réponse.
+
+À vérifier par toi :
+
+- Sous-forum mobile à 375 et 767 px : la flèche de tri est plus près du libellé, les puces sont alignées et le fondu à droite est intact. À 768 px, les flèches ne changent pas.

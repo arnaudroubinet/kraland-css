@@ -44,6 +44,7 @@
 - source_plan: `epic-typographie-formes/story-trois-rayons-4-px-8-px-et-plein-plan.md`
   summary: Doublons réécrits au jeton sans retrait (A13) : Bootbox ordinateur (~l.1191-2036 du plan) contre Bootbox mobile (~l.6856-7659 du plan) ; cartes de ligne du forum, 1re version (~l.7848) et 2e version (~l.8542) ; `.modal` l.1287 battu par l.7319 ; bouton l.5500 battu par l.4085 (lignes du plan).
   evidence: Retirer un doublon peut révéler un défaut natif ; hors objet du ticket 4.8 (Ask First). Pour l'entrée 10 : retrait un par un, rendu vérifié après chaque retrait.
+  status: traité par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D1, la 1re version des cartes de ligne du forum est déjà retirée par 5.2 ; seul un commentaire subsiste (feuille l.7911-7913), aucun code. D2, la 2e version, n'est pas touchée (rejeté : depuis 6.1 elle ne vaut plus que pour Staff et les pages `/forum/*` hors fixtures ; revient à l'alignement de Staff, question en attente d'Arnaud). Autres doublons de cette entrée : hors épopée 6.
 - source_plan: `epic-typographie-formes/story-trois-rayons-4-px-8-px-et-plein-plan.md`
   summary: `.kramail-character-dropdown` porte son rayon deux fois : `style.cssText` du template (~l.5793, `border-radius: var(--kr-radius-md)`) et `kraland-theme.css` ~l.9474 (`border-radius: var(--kr-radius-md) !important`), qui bat le style en ligne.
   evidence: Les deux déclarations réécrites au même jeton (8 px mesuré, fragment `rayons`, cas `accordeon` › `menu-personnage`). Pour l'entrée 10 : garder une seule source, de préférence la feuille.
@@ -53,6 +54,7 @@
 - source_plan: `epic-typographie-formes/story-grille-d-espacement-au-pas-de-4-px-plan.md`
   summary: 21 déclarations d'espacement hors du pas de 4 px, laissées telles quelles (A9 ; annexe d'inventaire, section 5, lignes du plan) : l.599-600 `(min-width: 3840px)` `#player-actions-section .btn` (14 px) ; l.769 `html.kr-page-report … td:first-child` (`padding-left: 10px`) ; l.1625-1626 menu BBCode des modales (`4px 6px`, `margin: 2px`) ; l.4312 `.panel-heading` mobile (`10px 15px`, toujours battue, A12) ; l.4508 `.panel-body:has([id^="c"])` (10 px) ; l.4646 `.btn-xs` mobile (`6px 12px`) ; l.4654 `.form-control` mobile (`10px 12px`, battue par l.9885) ; l.6852 `.panel-group .panel-body` (`10px 0`) ; l.7034 `.modal-body table th` (`10px 8px`) ; l.8011 et l.8695 cellules du forum mobile (`padding-top: 3px`) ; l.9441 `#topics_wrapper .btn-group .btn` du kramail (10 px) ; l.10476-10477 menu BBCode du kramail sous `(max-width: 768px)` (`4px 6px`, `margin: 2px`) ; l.13107 et l.13241 `.kr-icon-cell.btn` (`4px 2px`) ; l.15615 `.kr-tools-plus` sous `(max-width: 359px)` (`0 6px`) ; l.14109 et l.14114 flèches de tri `::after` (`margin-left: 6px`).
   evidence: Aucune n'avait de cas mesuré gagnant sur les fixtures à l'inventaire (battue, page, largeur, tactile ou menu fermé absents des fixtures) ; les réécrire sans cas mesuré violait la règle « chaque élément a un cas mesuré ». Exception constatée à l'implémentation : l.4508 gagne sur la fixture `typographie-echelle.html` (mobile, corps de panneau qui contient `#champ-essai`, 10 px dans la base comme après) ; laissée telle quelle (hors des 13 déclarations du plan) et gardée égale à la base par le fragment `espacement` (cas `corps-champ`). Pour l'entrée 10 : fixture ou émulation pour chaque ligne (page `/report` exclue : jamais chargée), puis réécriture au jeton avec rouge/vert.
+  status: traité par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D4, flèches de tri `::after` du sous-forum mobile (feuille l.13904 et l.13909) réécrites en `var(--kr-space-1)` (4 px) ; rouge sur 810901f (`npm run test:red -- sous-forum`, valeur lue 6px), vert après (`sous-forum.mjs`, fragment `l3-liste`, 375, 700 et 767 px, deux sens de tri). D3 rejeté : `padding-top: 3px` l.8011 a disparu avec la 1re version, celle de l.8496 est dans la 2e version (Staff, exclu). Les autres déclarations de cette entrée restent inchangées.
 
 ## Deferred from: ticket 4.10, nettoyage de fin d'épopée (2026-10-24)
 
@@ -79,18 +81,24 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
   summary: A13, 2e version des cartes de ligne (section « INDEX DU FORUM », `:where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table …`) : gardée, elle gagne sur Staff (A6). 17 déclarations prouvées inertes retirées ; restent le fond de ligne, la couleur du lien de titre et 3 `display` (inertes une à une, effectives ensemble : leur retrait groupé masque des cellules).
   evidence: Bisection, une déclaration à la fois : styles calculés complets égaux avant et après sur 7 pages × 375/767 × clair/sombre. Pour l'alignement de Staff sur l'index (autre ticket) : retirer la 2e version entière et mesurer Staff.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D2, la retirer change Staff, exclu par 6.1 ; revient à l'alignement de Staff (question en attente d'Arnaud).
 - source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
   summary: Staff (`/forum/staff`) : chevron natif de 10 × 14 px (pas de règle de sous-forum ni d'index, A6), sous la cible tactile de 44 px. Identique à la base. La croix de `.alert-dismissible` sort de l'écran de 5 px (`scrollWidth` 380 à 375 px, 772 à 767 px), hors panneau, identique à la base.
   evidence: Mesures `cartes-pastilles.mjs`, fragment `forum` (chevron égal à la base, largeur défilable égale à la base). À traiter avec l'alignement de Staff.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D5, index Staff exclu par 6.1 ; revient à l'alignement de Staff (question en attente d'Arnaud).
 - source_plan: `epic-cartes-pastilles/story-forum-mobile-la-liste-des-sujets-entre-dans-la-carte-de-sect-plan.md`
   summary: Racine du forum (`forum-racine.html`, sans `.panel-body`) en sombre : la dernière ligne, opaque et à coins carrés, recouvre les coins bas arrondis de la carte (A8). Rendu de base gardé, aucun `overflow: hidden` ajouté.
   evidence: Option à trancher : rayon bas sur la dernière ligne, ou `overflow: hidden` sur la carte de la racine (vérifier alors le chevron et les cibles).
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D6, changement visible, deux options écrites, aucune tranchée ; décision d'Arnaud en attente.
 
 ## Reports de la revue du ticket 5.2 (2026-10-24)
 
 - Accordéon (`.panel-group`) ou modale `.panel-default` posé sur une page `/forum/*` : la règle forum ne bat plus la copie de base, il prendrait fond surface et rayon md. Aucune fixture du forum n'en contient ; à vérifier sur le site réel.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D7, faisable sur une page dérivée en mémoire, hors du périmètre du sweep, reporté à la rétro de l'épopée 6.
 - Bascule 767 ↔ 768 du forum non couverte par `cartes-pastilles` (fragment `bascule` sur Bâtiments). Risque faible : le forum recharge la page au changement de seuil.
+  status: traité par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D8, couverte depuis 6.2 par `forum-activite.mjs`, fragment `seuil` (`bascule`, sujet et index RP, 767 ↔ 768 dans le même onglet) ; aucun code.
 - Pages `/forum/*` hors fixtures (réponse, nouveau sujet, recherche, modération) : leurs `.panel-default` entrent dans la carte (48 px, corps à 0). À regarder sur capture.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D9, revient à l'épopée 9 (`epic-forum.md`).
 
 ## Reports du ticket 5.3, groupes du plateau dans la carte (2026-10-24)
 
@@ -120,6 +128,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
   summary: A4 : les tags natifs du forum (`span.tagforum`, « · #tag ») gardent leur rendu, hors famille des étiquettes. `.forum-tags` n'existe que dans la fixture synthétique. Décision de famille à prendre par Arnaud.
   evidence: Fragment `etiquettes` de `cartes-pastilles.mjs`, page `sous-forum` : `span.tagforum` égal à la base `59567f0`.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D10, `span.tagforum` non touché (`epic-forum.md`) ; décision d'Arnaud en attente.
 - source_plan: `epic-cartes-pastilles/story-etiquettes-de-categorie-un-seul-style-pnj-compris-h8-1-plan.md`
   summary: Marque native PNJ sous 768 px : 14 px et 46 px de haut (règle `.btn` mobile de la peau en priorité forcée), au lieu des 12 px de la famille.
   evidence: Fragment `etiquettes`, page `etats` : taille égale à la base à 375 et 767 px ; 12 px au bureau.
@@ -129,16 +138,27 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-forum/story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n-plan.md`
   summary: Le correctif d'ancres mobile ne retire plus que `#flap`. Les autres ancres (kramail, plateau, etc.) ne sont plus effacées quand la largeur lue à l'évaluation est < 768. Seul le fil de sujet (`#msg…`) le prouve ; aucune suite ne vérifie une ancre du kramail ou du plateau.
   evidence: Ce comportement est déjà celui du vrai téléphone : la largeur lue à l'évaluation y vaut 981, donc l'ancienne condition n'effaçait rien (H10, inventaire §1.1 et §1.3). Aucun autre code ne dépend de l'effacement (revue du ticket 6.2, constat 4). Fragment `ancres` de `forum-activite.mjs` : fil de sujet seulement.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D11, garder ou retirer le correctif en entier est une question en attente d'Arnaud (`revue-manuelle.md`).
 
 ## Reports du ticket 6.4, en-tête de sujet mobile (2026-10-25)
 
 - Sur le sujet mobile, la barre native est masquée. Avec elle disparaissent le lien « lien » (`fa-link`) et le lien « liste des messages » (`fa-th-list`, `…-999`). C'était déjà le cas en RP et HRP avant 6.4. Depuis 6.4, c'est aussi le cas en Communauté, Débats et Staff. Ces liens sont-ils à rendre (dans le menu « ••• » de 6.5 ?) ou à laisser hors du mobile ? Choix produit d'Arnaud. Candidat naturel : 6.5 (bouton « ••• » commun au forum et au kramail). Source : revue quick de 6.4, constat 1.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D12, choix produit ; décision d'Arnaud en attente.
 
 ## Reports du ticket 6.5, bouton « ••• » commun (2026-10-25)
 
 - La barre d'un message ouvert passe en z-index 991 sur mobile, pour rester au-dessus de `.dropdown-backdrop` (990). Elle pourrait donc passer au-dessus de la barre « Envoyer » fixe (z-index 90, `:where(body.page-forum) button.btn-primary.pull-right`), alors que sur la base elle passait dessous. Aucune fixture ne porte à la fois des messages et cette barre, donc rien ne l'a mesuré. À vérifier sur un vrai sujet qui a un formulaire de réponse, en lecture seule. Source : revue quick de 6.5, constat 1.
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D13, faisable sur une page dérivée en mémoire, hors du périmètre du sweep, reporté à la rétro de l'épopée 6.
 
 ## Reports du ticket 6.6, ligne de forum (2026-10-25)
 
 - Course du harnais sur les infobulles en mobile, peau coupée. Quand la suite injecte le script à l'apparition de `<body>`, `observeTooltips` pose un observateur. `disableTooltips` ne retire ensuite les attributs d'infobulle que si `body.mobile-mode` est déjà posé, c'est-à-dire après `DOMContentLoaded`. Le résultat dépend donc de l'ordre de livraison des mutations. Sur le site réel (`@run-at document-start`), cette course n'existe pas. Le fragment `forum-activite#ligne` injecte maintenant au début du document. D'autres contrôles « peau coupée » mobiles injectent encore à l'apparition de `<body>` : `forum-index#peau-coupee`, `palette-nation#largeurs+peau-coupee`. S'ils comparent des attributs d'infobulle, ils peuvent échouer au hasard sous charge. À auditer au sweep 6.7. Source : `test:all` de 6.6, deux FAIL au caractère 430.
+  status: traité par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D14, audit des sept contrôles en peau coupée (inventaire §4) sur l'arbre fini : `forum-index#peau-coupee` retire les quatre attributs d'infobulle des deux côtés avant comparaison (`COLONNE`) ; `palette-nation#largeurs+peau-coupee` ne lit que des couleurs, ou tourne peau active ; les autres ne lisent aucun attribut d'infobulle ou tournent à 1280 px. Aucun contrôle exposé, aucune modification de suite.
 - `pathKey` ne garde que le `pathname` et ignore l'origine. Une entrée de la liste latérale pointant vers un autre hôte serait confondue avec un forum local, alors que `menus-forums` filtre les entrées de même origine. Cas improbable sur Kraland. Source : revue quick de 6.6, constat 4 (écarté).
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D15, écarté par la revue 6.6 (cas improbable sur Kraland).
+
+## Reports du ticket 6.7, sweep de l'épopée 6 (2026-10-25)
+
+- Règles mortes d'avant 6.2 (inventaire du ticket, §3.2). `forum-topic-stats-mobile` (et `.stats-sep`) : traitée, règles retirées de `kraland-theme.css` (9 `!important` en moins, 3290 → 3281). La classe était propre au userscript, posée par le template jusqu'à `ce0b012` ; plus aucune pose ni assertion dans le template, le bundle ou `tests/`. Restent signalées : `forum-description-wrapper`, `forum-stats-wrapper`, `forum-thread-detail`, `forum-thread-metadata`. Aucune fixture ne les porte, mais certaines peuvent être natives sur des pages hors fixtures. Non retirées (Ask First 3). Pour les retirer : relevé sur le site réel, sous mandat, en lecture, puis retrait un par un avec vérification du rendu. Source : `epic-forum/story-refactor-sweep-inventaire.md` §3.2.
+- Masques 3/4 inertes de `kramail-redaction.mjs` (`ESPACEMENT_AVANT` et voisins) : le bundle « avant » de la suite est auto-référent, ces masques ne sont plus posés. Non touchés (Ask First 6) : leur retrait revient à l'action A4 de la rétro 5.
+- Action A4 de la rétro 5 (extinction des masques 3 à 6) non portée par 6.7 (Ask First 1). Les bases partagées (`forum-index` 81512a3, `cartes-pastilles` 21fed8d, `typographie-formes` d953969, 62fd47d et 00b0786, `palette-nation` 6685df5) ne bougent pas ; leurs masques 6.x sont gardés, avec une condition de retrait qui nomme le ticket A4, à créer à la rétro de l'épopée 6. Le nouveau masque `FLECHES_TICKET67` (flèches de tri à 4 px, posé sur les bases d'avant 6.7 de `forum-activite` 810901f, `forum-index` 81512a3 et `typographie-formes` 00b0786) suit la même condition pour les bases partagées. Pour `forum-activite`, il se retire au réalignement de ses bases sur un SHA qui contient 6.7, action de la rétro de l'épopée 6.

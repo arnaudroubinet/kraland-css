@@ -189,15 +189,15 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
   await context.addInitScript(choisirVariante, variante);
   if (masque) { await context.addInitScript(poserJetonsRedefinis, masque); }
   // `plus65` : bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65), posé sur la base d'avant le ticket seulement
-  // (fragment forum). Retrait : quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.5 (sweep 6.7 ou action A4 de la rétro 5, deux
-  // tickets à venir).
+  // (fragment forum), inerte dès que COMMIT_AVANT contient 6.5. Retrait : au réalignement de COMMIT_AVANT (21fed8d) par le ticket qui porte l'action A4 de la
+  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
   if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
     await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
     await context.addInitScript(plusTicket65);
   }
   // `ligne66` : icône de forum de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66), posée sur la base d'avant le ticket seulement
-  // (fragment lignes). Retrait : quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.6 (sweep 6.7 ou action A4 de la rétro 5, deux
-  // tickets à venir).
+  // (fragment lignes), inerte dès que COMMIT_AVANT contient 6.6. Retrait : au réalignement de COMMIT_AVANT (21fed8d) par le ticket qui porte l'action A4 de la
+  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
   if (ligne66 && script !== userscript && AVANT_TICKET66(script)) {
     await context.addInitScript(poserJetonsRedefinis, LIGNE_TICKET66);
     await context.addInitScript(ligneTicket66);
@@ -516,7 +516,8 @@ if (on('module')) {
 // Masque de l'épopée 6, ticket 4 (sujet seul, base d'avant 6.4) : le fil du sujet passe d'une marge de 16 px à 4 px (Plan Change Log du
 // ticket), et tous les messages remontent de 12 px. Les ordonnées des messages sont alors relevées par rapport au premier message, des deux
 // côtés : la translation d'ensemble est neutralisée, un décalage à l'intérieur de la liste reste vu ; les styles ne sont pas masqués. Retrait :
-// quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 (sweep 6.7 ou action A4 de la rétro 5, deux tickets à venir).
+// au réalignement de COMMIT_AVANT (21fed8d) sur un SHA qui contient 6.4, par le ticket qui porte l'action A4 de la rétro 5 (extinction des
+// masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
 const ORIGINE_TICKET64 = nom => (nom === 'sujet' && AVANT_TICKET64(avant) ? '.media' : null);
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
