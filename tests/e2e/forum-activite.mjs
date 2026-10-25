@@ -26,20 +26,32 @@
 //             lien (texte) et du courant (atténué) ; mêmes styles calculés à l'index et au sous-forum ; catégorie lue dans l'entrée
 //             active de la liste latérale (L4 : libellé renommé en mémoire), repli sur le lien natif sans entrée active, puis sur
 //             « Catégorie » si le bouton natif est réduit à son icône ; titre long : courant sur une ligne, ellipse, aucun débordement ;
-//             catégorie longue : lien d'au plus la moitié du fil, libellé à ellipse, courant entier, aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; sujet, page de réponse, page
-//             hors forum et bureau (768, 769, 1280) égaux au bundle de 5042afd ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767.
+//             catégorie longue : lien d'au plus la moitié du fil, libellé à ellipse, courant entier, aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; page de réponse, page
+//             hors forum et bureau (768, 769, 1280 ; sujet compris) égaux au bundle de 5042afd ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
+//   entete    (épopée 6, ticket 4, plan story-en-tete-de-sujet-mobile-dans-communaute-debats-et-staff-h12) en-tête de sujet mobile dans
+//             toutes les catégories : sujets Communauté, Débats, Staff (structure supposée), HRP (fil de sujet) et fermé, 375 et 767 px,
+//             Kraland clair et Empire Brun sombre : un seul fil de la famille commune « Catégorie › Forum › titre » (catégorie de l'entrée
+//             active, repli sur le menu de la catégorie puis « Catégorie »), liens d'au moins 44 px ; barre d'actions en haut et en bas,
+//             « Répondre » primaire si le lien natif existe, « Nouveau sujet » standard, 44 px, rayon, cible au centre, href natifs ;
+//             boutons natifs invisibles ; fermé : cadenas, 0 ou 2 « Répondre » selon le lien natif ; L4 renommé, catégorie inconnue,
+//             titre long, image d'icône ; aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; sous-forum, h1 et bandeau natif du
+//             bas, seuil 768/769 et bureau (768, 1280) égaux au bundle de ef0e4d4 ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767.
 // Bundle de base : celui de 0523d7f (commit de base du plan, figé), sauf KR_SCRIPT_AVANT. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
 // Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
 // et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
-// lib/variantes.mjs, REPERES_FIL_TICKET63). Fragment fil : bundle de base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL.
+// lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
+// forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
+// base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de ef0e4d4 (COMMIT_ENTETE), sauf
+// KR_SCRIPT_AVANT_ENTETE.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
 // Usage : npm run build && node tests/e2e/forum-activite.mjs   (ou : npm run test:zone -- forum-activite)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
-//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil (vide = tout).
+//           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -49,7 +61,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_FIL_TICKET63 as R, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, CONTRASTE, ENTETE_TICKET64, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -101,7 +113,7 @@ const browser = await launchBrowser();
 
 // Ouvre la page `cle` (chemin + hash). `routes` : documents servis en plus (chemin -> HTML), pour l'arrivée d'un parcours. `debut` : bundle
 // évalué dès que <html> existe (sinon dès que <body> existe). `src` : bundle injecté ; `theme` : kr-theme-enabled.
-async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {} }) {
+async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, entete64 = false }) {
   const context = await browser.newContext({ viewport: { width, height: height || (tactile ? 667 : 900) }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   const documents = { [PAGES[cle].url]: html || PAGES[cle].html, ...routes };
@@ -117,6 +129,13 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
     if (u.pathname.endsWith('.css')) { return route.fulfill({ status: 200, contentType: 'text/css', body: '' }); }
     return route.abort();
   });
+  // `entete64` : en-tête de sujet de l'épopée 6, ticket 4 (ENTETE_TICKET64 et filSujetTicket64) posé sur un bundle de base d'avant le ticket
+  // seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 ; le réalignement est porté par le sweep 6.7 ou par
+  // l'action A4 de la rétro 5 (tickets à venir).
+  if (entete64 && src !== userscript && AVANT_TICKET64(src)) {
+    await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
+    await context.addInitScript(filSujetTicket64);
+  }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
@@ -388,7 +407,7 @@ if (on('lignes')) {
 // ---------- Seuil et bascule dans le même onglet ----------
 // Bascule : le thème recharge la page au franchissement du seuil (anti-rebond de 400 ms, défilement en pixels restauré jusqu'à 1,8 s).
 async function bascule({ cle, hash, src }) {
-  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src });
+  const { context, page, erreurs, etat } = await ouvrir({ cle, hash, width: 768, height: 667, tactile: false, src, entete64: true });
   const mesure = async () => {
     await page.waitForTimeout(APRES_MS);
     return { iw: await page.evaluate(() => window.innerWidth), docs: etat.chargements, m: hash ? await page.evaluate(MESSAGE, hash.slice(1)) : null, l: hash ? null : geometrie(await page.evaluate(LIGNES, A)) };
@@ -718,9 +737,9 @@ if (on('fil')) {
     });
   });
 
-  // Sujet, réponse et hors forum : égaux au bundle de base (fil, bouton flottant, empreinte du contenu).
+  // Réponse et hors forum : égaux au bundle de base (fil, bouton flottant, empreinte du contenu). Le sujet mobile (375, 767) est passé au
+  // fragment entete (épopée 6, ticket 4 : en-tête de sujet sur le fil commun) ; son bureau reste ici.
   const casB = [
-    ...[375, 767].flatMap(width => VARIANTES.map(variante => ({ cle: 'sujet', width, variante }))),
     ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante }))),
     ...VARIANTES.map(variante => ({ cle: 'regles', width: 375, variante })),
     // Bureau : index RP, sous-forum (colonne native) et sujet.
@@ -729,11 +748,10 @@ if (on('fil')) {
   const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
-    const quoi = width >= 768 ? 'aucun fil, ' : (cle === 'sujet' ? 'un seul conteneur (fil du sujet), ' : '');
+    const quoi = width >= 768 ? 'aucun fil, ' : '';
     check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu, aucune exception`, () => {
       assert.ok(teste.f.theme && base.f.theme, 'kr-theme-enabled absent');
       if (width >= 768) { assert.equal(teste.f.conteneurs.filter(c => c.cls === R.fil).length, 0, 'fil au bureau'); }
-      if (cle === 'sujet' && width < 768) { assert.deepEqual(teste.f.conteneurs.map(c => c.cls), [R.filSujet], 'conteneurs de fil du sujet'); }
       assert.deepEqual(teste.f, base.f, 'fil');
       const k = teste.e.findIndex((x, j) => x !== base.e[j]);
       assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
@@ -772,6 +790,336 @@ if (on('fil')) {
       assert.deepEqual(erreurs, []);
     });
   });
+}
+
+// ---------- en-tête de sujet mobile dans toutes les catégories (épopée 6, ticket 4) ----------
+// Pages dérivées en mémoire : sujet fermé avec lien natif « répondre », entrée active renommée (L4), catégorie inconnue sans entrée active
+// (repli final), titre long, image d'icône dans le h1, sujet Communauté servi sous un lien parent HRP (rendu du h1 et du bandeau natif du bas
+// comparable à la base). Repères partagés : REPERES_ENTETE_TICKET64, REPERES_FIL_TICKET63 (lib/variantes.mjs).
+const TITRE_LONG_SUJET = 'La recette du ragoût de kroquette racontée en entier avec ses variantes régionales et ses anecdotes';
+function pagesEntete() {
+  const remplacer = (html, motif, par, nom) => { const h = html.replace(motif, par); if (h === html) { throw new Error('page dérivée « ' + nom + ' » : motif absent de la fixture'); } return h; };
+  const f = E.fixtures;
+  const communaute = fixture(f.communaute);
+  const ferme = fixture(f.ferme);
+  const titre = html => html.split(E.h1Icone)[1].split('</h1>')[0];
+  const repondre = '<a href="forum/post/repondre-2-330504" class="btn btn-default" title="répondre"><i class="fa fa-reply"></i> répondre</a>';
+  return {
+    eCommunaute: { url: E.chemins.communaute, html: communaute },
+    eDebats: { url: E.chemins.debats, html: fixture(f.debats) },
+    eStaff: { url: E.chemins.staff, html: fixture(f.staff) },
+    eFerme: { url: E.chemins.ferme, html: ferme },
+    eFermeLien: { url: E.chemins.ferme, html: remplacer(ferme, /(nouveau sujet<\/a>)/g, '$1\n' + repondre, 'eFermeLien') },
+    eLibelle: { url: E.chemins.communaute, html: remplacer(communaute, /(<span class="list-group-item active">\s*)Communauté/, '$1Entre Nous', 'eLibelle') },
+    eInconnu: { url: E.chemins.communaute, html: remplacer(remplacer(communaute, /list-group-item active/, 'list-group-item', 'eInconnu'), /forum\/communaute\/bavardage/g, 'forum/coulisses/bavardage', 'eInconnu') },
+    eLong: { url: E.chemins.communaute, html: remplacer(communaute, '\n' + titre(communaute) + '</h1>', '\n' + TITRE_LONG_SUJET + '</h1>', 'eLong') },
+    eIcone: { url: E.chemins.communaute, html: remplacer(communaute, E.h1Icone, E.h1Icone.trim() + ' <img class="icon" src="http://img7.kraland.org/s/fixture.gif" alt="[=!]">\n', 'eIcone') },
+    eHrp: { url: E.chemins.communaute, html: remplacer(communaute, /forum\/communaute\//g, 'forum/hrp/', 'eHrp') }
+  };
+}
+
+// Mesure de l'en-tête de la page : fils (conteneurs non imbriqués), barres d'actions et leurs actions (styles calculés, boîtes, cible au centre après
+// window.scrollTo, contraste), boutons natifs visibles, cadenas, h1 et bandeau natif du bas, jetons résolus, débordements. CONTRASTE évalué
+// avant.
+const ENTETE = ({ e, r }) => {
+  const C = window.__krContraste;
+  const r1 = v => Math.round(v * 10) / 10;
+  const boite = el => { const b = el.getBoundingClientRect(); return { x: r1(b.left), y: r1(b.top + window.scrollY), w: r1(b.width), h: r1(b.height) }; };
+  const visible = el => el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) && el.getBoundingClientRect().width > 0;
+  const cible = el => {
+    const b0 = el.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+    const b = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    return !!hit && el.contains(hit);
+  };
+  const longueur = expr => { const i = document.createElement('i'); i.style.borderTopLeftRadius = expr; document.body.appendChild(i); const v = getComputedStyle(i).borderTopLeftRadius; i.remove(); return v; };
+  const fond = expr => { const i = document.createElement('i'); i.style.backgroundColor = expr; document.body.appendChild(i); const v = getComputedStyle(i).backgroundColor; i.remove(); return v; };
+  // Lignes de texte d'un élément : sommets distincts des boîtes de son contenu (Range), et non sa hauteur.
+  const lignes = el => { const g = document.createRange(); g.selectNodeContents(el); return new Set([...g.getClientRects()].filter(q => q.width > 0).map(q => Math.round(q.top))).size; };
+  const col = document.getElementById('col-right');
+  const conts = [...document.querySelectorAll(r.conteneurs)].filter(c => !c.parentElement.closest(r.conteneurs));
+  const cadre = el => { if (!el) { return null; } const s = getComputedStyle(el); return { boite: boite(el), marge: [s.marginTop, s.marginRight, s.marginBottom, s.marginLeft], retrait: [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft], fond: s.backgroundColor, bordure: [s.borderTopWidth, s.borderBottomWidth, s.borderTopStyle] }; };
+  const forumTops = [...document.querySelectorAll(e.hautDePage)];
+  const out = {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    garde: document.body.classList.contains(e.garde),
+    iw: window.innerWidth,
+    vh: window.innerHeight,
+    sh: document.documentElement.scrollHeight,
+    debordCol: col ? col.scrollWidth - col.clientWidth : null,
+    debordPage: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    jetons: {
+      fondPrimaire: fond(e.jetons.fondPrimaire), textePrimaire: C.sonde(e.jetons.textePrimaire), fondStandard: fond(e.jetons.fondStandard),
+      bordureStandard: C.sonde(e.jetons.bordureStandard), texteStandard: C.sonde(e.jetons.texteStandard), rayon: longueur(e.jetons.rayon)
+    },
+    natifs: [...document.querySelectorAll(e.natifs)].filter(visible).map(b => b.textContent.trim() || b.getAttribute('title')),
+    cadenas: [...document.querySelectorAll(e.cadenas)].map(i => i.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })),
+    h1: cadre(document.querySelector(e.h1)),
+    h1Classe: (document.querySelector(e.h1) || { className: '' }).className,
+    basDePage: cadre(forumTops.length > 1 ? forumTops[forumTops.length - 1] : null),
+    fils: conts.map(c => ({
+      cls: c.className, style: c.getAttribute('style') || '', texte: c.textContent.replace(/\s+/g, ' ').trim(),
+      enfants: [...c.children].map(x => ({ tag: x.tagName, cls: x.className, href: x.getAttribute('href'), texte: x.textContent.replace(/\s+/g, ' ').trim(), h: r1(x.getBoundingClientRect().height), lignes: lignes(x), sw: x.scrollWidth, cw: x.clientWidth, contraste: Math.round(C.texte(x) * 100) / 100, liens: x.querySelectorAll('a').length }))
+    })),
+    barres: [...document.querySelectorAll('.' + e.barre)].map(b => ({
+      cls: b.className, boite: boite(b),
+      actions: [...b.children].map(a => {
+        const s = getComputedStyle(a);
+        return {
+          cls: a.className, tag: a.tagName, texte: a.textContent.trim(), href: a.getAttribute('href'), boite: boite(a),
+          fond: s.backgroundColor, couleur: s.color, bordure: s.borderTopColor, rayon: s.borderTopLeftRadius, contraste: Math.round(C.texte(a) * 100) / 100
+        };
+      })
+    }))
+  };
+  [...document.querySelectorAll('.' + e.barre)].forEach((b, i) => [...b.children].forEach((a, k) => { out.barres[i].actions[k].cible = cible(a); }));
+  conts.forEach((c, i) => [...c.children].forEach((x, k) => { if (x.tagName === 'A') { out.fils[i].enfants[k].cible = cible(x); } }));
+  window.scrollTo(0, 0);
+  return out;
+};
+
+const COMMIT_ENTETE = 'ef0e4d4';
+if (on('entete')) {
+  const baseEntete = strip(process.env.KR_SCRIPT_AVANT_ENTETE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ENTETE, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_ENTETE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  Object.assign(PAGES, pagesEntete());
+  console.log(`\n== entete : en-tête de sujet mobile (Communauté, Débats, Staff, HRP, fermé), 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sous-forum, h1, seuil, bascule et bureau égaux à ${COMMIT_ENTETE} ==`);
+  const lire = async (o, empreinte = false) => {
+    await o.page.evaluate(CONTRASTE);
+    const m = await o.page.evaluate(ENTETE, { e: E, r: R });
+    const em = empreinte ? await o.page.evaluate(EMPREINTE_FIL) : null;
+    await o.context.close();
+    return { m, em, erreurs: o.erreurs };
+  };
+  // Fil attendu : [catégorie, href de la catégorie, forum, href du forum, titre] ; « Répondre » attendu.
+  const BAVARDAGE = 'forum/communaute/bavardage-divers-30101';
+  const TITRE_COMMUNAUTE = 'La recette du ragoût de kroquette';
+  const ATTENDUS = {
+    eCommunaute: [['Communauté', 'forum/communaute', 'Bavardage & Divers', BAVARDAGE, TITRE_COMMUNAUTE], true],
+    eDebats: [['Débats', 'forum/debats', 'Politique & Société', 'forum/debats/politique-societe-40101', 'Faut-il taxer les chapeaux ?'], true],
+    eStaff: [['Staff', 'forum/staff', 'Coulisses', 'forum/staff/coulisses-50101', 'Inventaire des balais'], true],
+    sujet: [['Forum HRP', 'forum/hrp', E.parentHrpNom, E.parentHrp, 'Royaume de Ruthvénie : fixture'], true],
+    eFerme: [['Communauté', 'forum/communaute', 'Entraide', 'forum/communaute/entraide-30102', 'Mode d’emploi de l’entraide'], false],
+    eFermeLien: [['Communauté', 'forum/communaute', 'Entraide', 'forum/communaute/entraide-30102', 'Mode d’emploi de l’entraide'], true],
+    eLibelle: [['Entre Nous', 'forum/communaute', 'Bavardage & Divers', BAVARDAGE, TITRE_COMMUNAUTE], true],
+    eInconnu: [['Catégorie', 'forum/coulisses', 'Bavardage & Divers', 'forum/coulisses/bavardage-divers-30101', TITRE_COMMUNAUTE], true],
+    eLong: [['Communauté', 'forum/communaute', 'Bavardage & Divers', BAVARDAGE, TITRE_LONG_SUJET], true],
+    eIcone: [['Communauté', 'forum/communaute', 'Bavardage & Divers', BAVARDAGE, TITRE_COMMUNAUTE], true]
+  };
+  // Barres attendues : 2, sauf le fil de sujet HRP (un seul bandeau natif dans la fixture : barre du haut seulement, Plan Change Log).
+  const nbBarres = cle => (cle === 'sujet' ? 1 : 2);
+  const PRINCIPAUX = ['eCommunaute', 'eDebats', 'eStaff', 'sujet', 'eFerme'];
+  const EXTRAS = ['eFermeLien', 'eLibelle', 'eInconnu', 'eLong', 'eIcone'];
+  const cas = [
+    ...PRINCIPAUX.flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante })))),
+    ...EXTRAS.flatMap(cle => VARIANTES.map(variante => ({ cle, width: 375, variante })))
+  ];
+  const res = await mapLimit(cas, async c => lire(await ouvrir(c)));
+  const unFil = (m, cle) => {
+    assert.ok(m.theme && m.mobile, `kr-theme-enabled ${m.theme}, mobile ${m.mobile}`);
+    assert.deepEqual(m.fils.map(f => f.cls), [R.fil], 'conteneurs de fil');
+    const f = m.fils[0];
+    const [cat, catHref, forum, forumHref, titre] = ATTENDUS[cle][0];
+    assert.deepEqual(f.enfants.map(x => [x.tag, x.cls]), [['A', R.lien], ['SPAN', R.sep], ['A', R.lien], ['SPAN', R.sep], ['SPAN', R.courant]], 'structure du fil');
+    assert.deepEqual(f.enfants.filter(x => x.tag === 'A').map(x => [x.texte, x.href]), [[cat, catHref], [forum, forumHref]], 'libellés et cibles des liens');
+    assert.equal(f.enfants[4].texte, titre, 'courant');
+    assert.equal(f.enfants[4].liens, 0, 'lien dans le courant');
+    assert.equal(f.style, '', 'style en ligne du fil');
+  };
+  // « color(srgb r g b) » (mélange de couleurs : bordure teintée, header-tint du clair) : composantes 0..1 ramenées à 0..255 avant la tolérance de 1.
+  const rgb = s => { const v = (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number); return s.startsWith('color(srgb') ? v.map(x => x * 255) : v; };
+  const proche = (a, b) => { const x = rgb(a); const y = rgb(b); return x.length === 3 && [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1); };
+  const actionsDe = m => m.barres.flatMap(b => b.actions);
+  cas.forEach(({ cle, width, variante }, i) => {
+    const { m, erreurs } = res[i];
+    const lab = `entete ${cle} ${variante} ${width} px`;
+    const [att, repondre] = ATTENDUS[cle];
+    check(`${lab} : un seul fil, de la famille commune, « ${att[0]} › ${att[2]} › ${att[4].slice(0, 30)}… », liens vers ${att[1]} et ${att[3]}, courant span sans lien ; aucune exception`, () => {
+      unFil(m, cle);
+      assert.deepEqual(erreurs, []);
+    });
+    check(`${lab} : ${nbBarres(cle) === 2 ? 'une barre en haut (premier écran) et une en bas (dernier écran)' : 'une barre en haut (premier écran)'}, chacune ${repondre ? '« Répondre » puis ' : 'sans « Répondre », '}« Nouveau sujet », href natifs ; boutons natifs invisibles`, () => {
+      assert.equal(m.barres.length, nbBarres(cle), 'barres : ' + m.barres.map(b => b.cls).join(', '));
+      const [haut] = m.barres;
+      assert.ok(haut.boite.y < m.vh, `barre du haut à ${haut.boite.y} px (fenêtre ${m.vh})`);
+      if (nbBarres(cle) === 2) {
+        const bas = m.barres[1];
+        assert.ok(bas.cls.split(' ').includes(E.barreBas), 'classe de la barre du bas : ' + bas.cls);
+        assert.ok(bas.boite.y + bas.boite.h > m.sh - m.vh, `barre du bas à ${bas.boite.y} px (page ${m.sh}, fenêtre ${m.vh})`);
+      }
+      const attendu = [...(repondre ? [[E.repondre, 'Répondre']] : []), [E.nouveau, 'Nouveau sujet']];
+      m.barres.forEach((b, k) => assert.deepEqual(b.actions.map(a => [a.cls.split(' ').find(c => c === E.repondre || c === E.nouveau), a.texte]), attendu, `actions de la barre ${k}`));
+      const hrefs = actionsDe(m).map(a => a.href);
+      assert.ok(hrefs.every(h => /^forum\/post\/(nouveau|repondre)/.test(h)), 'href : ' + hrefs.join(', '));
+      assert.deepEqual(m.natifs, [], 'boutons natifs visibles');
+    });
+    check(`${lab} : « Répondre » primaire (fond et texte --kr-arm-*), « Nouveau sujet » standard (fond de surface, bordure teintée, texte de la nation) ; au moins 44 px de haut, rayon --kr-radius-sm, elementFromPoint au centre ; liens du fil d'au moins 44 px, elementFromPoint au centre`, () => {
+      const j = m.jetons;
+      const as = actionsDe(m);
+      assert.ok(as.length > 0, 'aucune action');
+      as.forEach(a => {
+        const quoi = `${a.texte} (${a.boite.y})`;
+        if (a.cls.includes(E.repondre)) {
+          assert.ok(proche(a.fond, j.fondPrimaire) && proche(a.couleur, j.textePrimaire), `${quoi} : fond ${a.fond} / ${j.fondPrimaire}, texte ${a.couleur} / ${j.textePrimaire}`);
+        } else {
+          assert.ok(proche(a.fond, j.fondStandard) && proche(a.bordure, j.bordureStandard) && proche(a.couleur, j.texteStandard), `${quoi} : fond ${a.fond} / ${j.fondStandard}, bordure ${a.bordure} / ${j.bordureStandard}, texte ${a.couleur} / ${j.texteStandard}`);
+        }
+        assert.ok(a.boite.h >= 44, `${quoi} : hauteur ${a.boite.h}`);
+        assert.equal(a.rayon, j.rayon, `${quoi} : rayon`);
+        assert.ok(a.cible, `${quoi} : elementFromPoint au centre hors de l'action`);
+      });
+      const liens = (m.fils[0] || { enfants: [] }).enfants.filter(x => x.tag === 'A');
+      assert.ok(liens.length > 0, 'aucun lien de fil');
+      liens.forEach(x => { assert.ok(x.h >= 44, `lien « ${x.texte} » : hauteur ${x.h}`); assert.ok(x.cible, `lien « ${x.texte} » : elementFromPoint au centre hors du lien`); });
+    });
+    check(`${lab} : aucun débordement horizontal (#col-right et page) ; courant sur une ligne${cle === 'eLong' ? ', tronqué' : ''}`, () => {
+      assert.equal(m.debordCol, 0, 'débordement horizontal de #col-right');
+      assert.equal(m.debordPage, 0, 'débordement horizontal de la page');
+      const k = ((m.fils[0] || { enfants: [] }).enfants[4]) || null;
+      assert.ok(k, 'courant absent');
+      assert.ok(k.h <= 44, 'hauteur du courant ' + k.h);
+      assert.equal(k.lignes, 1, 'lignes du courant');
+      if (cle === 'eLong') { assert.ok(k.sw > k.cw, `courant non tronqué : scrollWidth ${k.sw}, clientWidth ${k.cw}`); }
+    });
+    if (cle === 'eFerme' || cle === 'eFermeLien') {
+      check(`${lab} : sujet fermé, cadenas visible dans la méta ; ${repondre ? '2 « Répondre » (lien natif présent)' : '0 « Répondre » (aucun lien natif)'}, 2 « Nouveau sujet »`, () => {
+        assert.deepEqual(m.cadenas, [true], 'cadenas');
+        const n = cls => actionsDe(m).filter(a => a.cls.includes(cls)).length;
+        assert.deepEqual([n(E.repondre), n(E.nouveau)], [repondre ? 2 : 0, 2]);
+      });
+    }
+  });
+
+  // Contraste : 16 variantes, 375 px, Communauté : liens, séparateurs et courant du fil, « Répondre », « Nouveau sujet ».
+  const casC = TOUTES_VARIANTES.map(variante => ({ cle: 'eCommunaute', width: 375, variante }));
+  const resC = await mapLimit(casC, async c => lire(await ouvrir(c)));
+  casC.forEach(({ variante }, i) => {
+    const { m } = resC[i];
+    check(`entete eCommunaute ${variante} 375 px : fil, « Répondre » et « Nouveau sujet » d'au moins 4,5:1`, () => {
+      assert.equal(m.fils.length, 1, 'conteneurs de fil');
+      const tous = [...m.fils[0].enfants.map(x => [x.cls, x.contraste]), ...actionsDe(m).map(a => [a.texte, a.contraste])];
+      assert.ok(actionsDe(m).length === 4, 'actions : ' + actionsDe(m).length);
+      const bas = tous.filter(([, c]) => c < 4.5).map(([n, c]) => `${n} ${c}`);
+      assert.deepEqual(bas, [], bas.join(' ; '));
+    });
+  });
+
+  // Survol de « Nouveau sujet » (bouton standard, comme .btn-default) : fond header-tint, bordure teintée, texte de la nation, sans
+  // soulignement ; « Répondre » de la même barre inchangé. Survol à la souris (page.hover), 200 ms pour la transition de couleur des liens.
+  const casS = VARIANTES.map(variante => ({ cle: 'eCommunaute', width: 375, variante }));
+  const resS = await mapLimit(casS, async c => {
+    const o = await ouvrir(c);
+    // Base sans barre : aucun survol, le contrôle échoue sur « absent » au lieu d'interrompre la suite.
+    const nouveau = o.page.locator(`.${E.barre} .${E.nouveau}`).first();
+    if (await nouveau.count()) { await nouveau.hover(); }
+    await o.page.waitForTimeout(200);
+    const s = await o.page.evaluate(e => {
+      const fond = expr => { const i = document.createElement('i'); i.style.backgroundColor = expr; document.body.appendChild(i); const v = getComputedStyle(i).backgroundColor; i.remove(); return v; };
+      const texte = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const v = getComputedStyle(i).color; i.remove(); return v; };
+      const a = document.querySelector(`.${e.barre} .${e.nouveau}`);
+      if (!a) { return null; }
+      const cs = getComputedStyle(a);
+      return {
+        survol: a.matches(':hover'), fond: cs.backgroundColor, bordure: cs.borderTopColor, couleur: cs.color, deco: cs.textDecorationLine,
+        attendu: { fond: fond(e.jetons.fondSurvol), repos: fond(e.jetons.fondStandard), bordure: texte(e.jetons.bordureStandard), couleur: texte(e.jetons.texteStandard) }
+      };
+    }, E);
+    await o.context.close();
+    return { s, erreurs: o.erreurs };
+  });
+  casS.forEach(({ variante }, i) => {
+    const { s, erreurs } = resS[i];
+    check(`entete eCommunaute ${variante} 375 px : « Nouveau sujet » survolé en fond header-tint, bordure teintée, texte de la nation, sans soulignement`, () => {
+      assert.ok(s, '« Nouveau sujet » absent de la barre');
+      assert.ok(s.survol, 'pas de survol');
+      assert.ok(proche(s.fond, s.attendu.fond), `fond ${s.fond} / ${s.attendu.fond}`);
+      assert.ok(!proche(s.fond, s.attendu.repos), `fond de repos ${s.fond} au survol`);
+      assert.ok(proche(s.bordure, s.attendu.bordure) && proche(s.couleur, s.attendu.couleur), `bordure ${s.bordure} / ${s.attendu.bordure}, texte ${s.couleur} / ${s.attendu.couleur}`);
+      assert.equal(s.deco, 'none', 'soulignement');
+      assert.deepEqual(erreurs, []);
+    });
+  });
+
+  // Égal au bundle de base : sous-forum « Débuter » à 375 (« Nouveau sujet » partagé) ; h1 et bandeau natif du bas d'un sujet sous lien HRP
+  // (rendu de la base) ; seuil 768 et 769 ; bureau 768 et 1280 des 5 fixtures.
+  const vueAction = m => actionsDe(m).map(a => ({ cls: a.cls, texte: a.texte, href: a.href, boite: a.boite, fond: a.fond, couleur: a.couleur, bordure: a.bordure, rayon: a.rayon }));
+  const casB = [
+    ...VARIANTES.map(variante => ({ cle: 'debuter', width: 375, variante, quoi: 'sous' })),
+    ...VARIANTES.map(variante => ({ cle: 'eHrp', width: 375, variante, quoi: 'h1' })),
+    ...[768, 769].map(width => ({ cle: 'eCommunaute', width, variante: VARIANTES[0], quoi: 'seuil', tactile: false })),
+    ...[...PRINCIPAUX].flatMap(cle => [768, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante, quoi: 'bureau' }))))
+  ];
+  const resB = await mapLimit(casB, async ({ quoi, ...c }) => ({ teste: await lire(await ouvrir(c), quoi !== 'h1'), base: await lire(await ouvrir({ ...c, src: baseEntete }), quoi !== 'h1') }));
+  const empreinteEgale = (t, b) => {
+    const k = t.em.findIndex((x, j) => x !== b.em[j]);
+    assert.ok(k === -1 && t.em.length === b.em.length, k < 0 ? `éléments : ${t.em.length} au lieu de ${b.em.length}` : `élément ${k} : ${t.em[k]} au lieu de ${b.em[k]}`);
+  };
+  casB.forEach(({ cle, width, variante, quoi }, i) => {
+    const { teste: t, base: b } = resB[i];
+    const lab = `entete ${cle} ${variante} ${width} px`;
+    if (quoi === 'sous') {
+      check(`${lab} : sous-forum, « Nouveau sujet » (styles calculés, boîtes) et empreinte du contenu égaux au bundle de base (${COMMIT_ENTETE}), sans garde du sujet`, () => {
+        assert.ok(t.m.theme && b.m.theme, 'kr-theme-enabled absent');
+        assert.equal(t.m.garde, false, 'garde du sujet posée sur le sous-forum');
+        assert.ok(actionsDe(t.m).length >= 1, 'aucune action');
+        assert.deepEqual(vueAction(t.m), vueAction(b.m));
+        empreinteEgale(t, b);
+        assert.deepEqual(t.erreurs, []);
+      });
+    } else if (quoi === 'h1') {
+      check(`${lab} : h1 (classe posée, position, largeur, marges, retraits, fond, bordure) et bandeau natif du bas (marges, retraits, fond, bordure, largeur) égaux au bundle de base (${COMMIT_ENTETE}), sans style en ligne`, () => {
+        assert.ok(t.m.theme && b.m.theme && t.m.garde, `kr-theme-enabled ${t.m.theme}/${b.m.theme}, garde ${t.m.garde}`);
+        assert.ok(t.m.h1Classe.split(' ').includes(E.titre), 'classe du h1 : ' + t.m.h1Classe);
+        const vue = c => c && ({ x: c.boite.x, y: c.boite.y, w: c.boite.w, marge: c.marge, retrait: c.retrait, fond: c.fond, bordure: c.bordure });
+        const vueBas = c => c && ({ x: c.boite.x, w: c.boite.w, marge: c.marge, retrait: c.retrait, fond: c.fond, bordure: c.bordure });
+        assert.deepEqual(vue(t.m.h1), vue(b.m.h1), 'h1 ' + JSON.stringify(vue(t.m.h1)) + ' BASE ' + JSON.stringify(vue(b.m.h1)));
+        assert.deepEqual(vueBas(t.m.basDePage), vueBas(b.m.basDePage), 'bandeau natif du bas');
+        const bt = t.m.barres[1];
+        const bb = b.m.barres[1];
+        assert.ok(bt && bb, 'barre du bas absente');
+        assert.deepEqual([bt.boite.x, bt.boite.w], [bb.boite.x, bb.boite.w], 'barre du bas (marge droite N-1)');
+        assert.deepEqual(t.erreurs, []);
+      });
+    } else {
+      check(`${lab}${quoi === 'seuil' ? ' (non tactile)' : ''} : aucun en-tête mobile, empreinte du contenu égale au bundle de base (${COMMIT_ENTETE}), aucune exception`, () => {
+        assert.ok(t.m.theme && b.m.theme, 'kr-theme-enabled absent');
+        assert.deepEqual([t.m.mobile, t.m.garde, t.m.barres.length, t.m.fils.length], [false, false, 0, 0], 'mobile, garde, barres, fils');
+        empreinteEgale(t, b);
+        assert.deepEqual(t.erreurs, []);
+      });
+    }
+  });
+
+  // Seuil 767 non tactile : en-tête mobile ; bascule 768 -> 767 -> 768 -> 767 dans le même onglet.
+  {
+    const { m } = await lire(await ouvrir({ cle: 'eCommunaute', width: 767, variante: VARIANTES[0], tactile: false }));
+    check('entete seuil eCommunaute 767 px (non tactile) : en-tête mobile (un fil, deux barres)', () => {
+      unFil(m, 'eCommunaute');
+      assert.equal(m.barres.length, 2, 'barres');
+    });
+  }
+  {
+    const { context, page, erreurs } = await ouvrir({ cle: 'eCommunaute', width: 768, height: 667, tactile: false });
+    const etat = () => page.evaluate(({ e, r }) => ({ iw: window.innerWidth, mobile: document.body.classList.contains('mobile-mode'), garde: document.body.classList.contains(e.garde), fils: document.querySelectorAll('.' + r.fil).length, barres: document.querySelectorAll('.' + e.barre).length }), { e: E, r: R });
+    const etapes = [await etat()];
+    for (const width of [767, 768, 767]) {
+      await page.waitForTimeout(ECART_RECHARGEMENT_MS);
+      const charge = page.waitForEvent('load', { timeout: 15000 });
+      await page.setViewportSize({ width, height: 667 });
+      await charge;
+      await prete(page, true, `bascule entete ${width}`);
+      etapes.push(await etat());
+    }
+    await context.close();
+    check('entete bascule eCommunaute 768 -> 767 -> 768 -> 767 : en-tête mobile à 767 (un fil, deux barres, garde), rendu natif à 768', () => {
+      const m = [false, 0, 0, false];
+      const v = [true, 1, 2, true];
+      assert.deepEqual(etapes.map(x => [x.iw, x.mobile, x.fils, x.barres, x.garde]), [[768, ...m], [767, ...v], [768, ...m], [767, ...v]]);
+      assert.deepEqual(erreurs, []);
+    });
+  }
 }
 
 await browser.close();

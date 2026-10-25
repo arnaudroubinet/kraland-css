@@ -4389,8 +4389,8 @@ body > map {
     box-sizing: border-box !important;
   }
   
-  /* Réduire l'espace sous le h1 sur les pages de thread */
-  h1.page-header {
+  /* Réduire l'espace sous le h1 sur les pages de thread (hors h1 de l'en-tête de sujet, H12.4 : marges de sa propre règle) */
+  h1.page-header:where(:not(.forum-thread-heading)) {
     margin-bottom: 10px !important;
   }
   
@@ -13341,7 +13341,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    ============================================================================ */
 @media (max-width: 767px) {
   /* F-01 : barre d'actions du sujet, en haut (sous le fil d'Ariane) et en bas (sous la pagination).
-     « Répondre » = action principale pleine ; « Nouveau sujet » = action secondaire cerclée. */
+     « Répondre » = action principale pleine ; « Nouveau sujet » = bouton standard dans le sujet (H12.4), action secondaire cerclée
+     ailleurs (sous-forum). */
   .forum-thread-actions {
     display: flex;
     flex-wrap: wrap;
@@ -13363,7 +13364,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 48px;
+    min-height: 44px;
     padding: 0 14px;
     border: 2px solid var(--kr-primary);
     border-radius: var(--kr-radius-sm);
@@ -13390,9 +13391,39 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     text-decoration: none;
   }
 
-  .forum-thread-action-new {
+  /* Hors du sujet (sous-forum) : action secondaire cerclée. */
+  :where(body:not(.kr-forum-sujet)) .forum-thread-action-new {
     background: transparent;
     color: var(--kr-text-primary, var(--kr-primary)) !important;
+  }
+
+  /* En-tête du sujet (H12.4) : « Nouveau sujet » en bouton standard (fond bg-surface, bordure border-tint, texte de la nation) ; survol et
+     appui en header-tint comme .btn-default, sans le soulignement de a:hover. */
+  :where(body.page-forum.kr-forum-sujet) #col-right .forum-thread-action-new {
+    border-color: var(--kr-border-tint);
+    background: var(--kr-bg-surface);
+    color: var(--kr-text-nation);
+    text-decoration: none;
+  }
+
+  :where(body.page-forum.kr-forum-sujet) #col-right .forum-thread-action-new:is(:hover, :active) {
+    background: var(--kr-header-tint);
+  }
+
+  /* En-tête du sujet (H12.4) : h1 porteur du fil et de la barre du haut, .forum-top du bas réduit à sa barre (classes posées par
+     ForumThread:MobileBreadcrumb, à la place de styles en ligne). Fond en background-color : le raccourci « background: transparent »
+     sort du build en « background: 0 0 » (position 0px 0px au lieu de la valeur initiale). */
+  :where(body.page-forum.kr-forum-sujet) #col-right h1.page-header.forum-thread-heading {
+    margin: 12px 16px;
+    padding: 0;
+    background-color: transparent;
+  }
+
+  :where(body.page-forum.kr-forum-sujet) #col-right .forum-top.forum-thread-top-bottom {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: transparent;
   }
 
   /* F-06 : barre BBCode de l'éditeur (réponse, nouveau sujet, Kramail) = grille de cibles 44 px qui
@@ -14568,9 +14599,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding-right: 35px !important;
   }
 
-  /* Fil d'Ariane commun de l'index et du sous-forum (H12.3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
+  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3) et du sujet (H12.4) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
      de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -14580,7 +14611,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -14595,16 +14626,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-label {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-label {
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-sep {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-current {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;

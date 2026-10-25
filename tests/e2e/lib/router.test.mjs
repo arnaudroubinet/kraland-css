@@ -348,9 +348,9 @@ check('module des sujets permanents ou Cybermonde modifié : suite jeu-identite 
   const choisies = units => pickUnits(units, r).map(u => u.suite).concat(pickUnits(units, c).map(u => u.suite));
   assert.ok(choisies([{ id: 'jeu-identite#hors-forum-js', suite: 'jeu-identite' }]).filter(x => x === 'jeu-identite').length === 2, 'jeu-identite non retenue');
 });
-check('hunk commun forum + sous-forum : les deux zones', () => {
+check('hunk commun forum + sous-forum : les deux zones, et forum-activite (action du sujet, épopée 6, entrée 4)', () => {
   const r = route('kraland-theme.css', hunk('.x {', '.forum-thread-action-new, body.kr-subforum .kr-topic-unread { margin: 0; }'));
-  assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
+  assert.deepEqual(sorted(r.zones), ['forum', 'forum-activite', 'sous-forum']);
 });
 check('fixture du sous-forum modifiée : zones sous-forum, cartes-pastilles et forum-activite', () => {
   const r = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/sous-forum-debuter.html': [] }));
@@ -553,6 +553,20 @@ check('fil d\'Ariane du forum (épopée 6, entrée 3) : règle CSS fusionnée, s
   const mot = route(T, hunk('function x() {', '  return createForumBreadcrumb([], titre);'));
   assert.ok(mot.zones.includes('forum-activite'), mot.zones.join(','));
 });
+check('en-tête du sujet mobile (épopée 6, entrée 4) : fragment entete, module ForumThread, garde CSS du sujet -> forum-activite', () => {
+  assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('entete')), 'fragment entete');
+  const t = tpl(['MODULE : ForumThread:MobileBreadcrumb', ['  function f() {', '    return 9;', '  }']], ['MODULE : Messages:V3', ['  function g() {', '    return 10;', '  }']]);
+  const module = route(T, hunkAt(at(t, 'return 9'), '    const n = 9;'), t);
+  assert.equal(module.widened, false, module.reasons.join(' ; '));
+  assert.deepEqual(sorted(module.zones), ['forum', 'forum-activite', 'messages']);
+  const messages = route(T, hunkAt(at(t, 'return 10'), '    const n = 10;'), t);
+  assert.deepEqual(sorted(messages.zones), ['forum', 'messages']);
+  const css = route('kraland-theme.css', hunk('.x {', ':where(body.page-forum.kr-forum-sujet) #col-right .forum-top.forum-thread-top-bottom { margin: 0; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.ok(css.zones.includes('forum-activite'), css.zones.join(','));
+  const garde = route(T, hunk('function x() {', "  document.body.classList.add('kr-forum-sujet');"));
+  assert.ok(garde.zones.includes('forum-activite'), garde.zones.join(','));
+});
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);
 });
@@ -564,10 +578,10 @@ check('template, hunk à cheval sur un module connu et un module transverse sans
   assert.equal(route(T, ['@@ -1,0 +' + at(TPL, 'return 1') + ',' + (at(TPL, 'return 2') - at(TPL, 'return 1') + 1) + ' @@', '+    x();'], TPL).widened, true);
 });
 const CSS = ['.forum-thread-action-new {', '  margin: 0;', '}', '', 'body.mobile-mode .navbar .rien {', '  padding: 0;', '}', '', 'body.kr-subforum #topics td {', '  color: red;', '}'].join('\n');
-check('faux négatif corrigé : déclaration de .forum-thread-action-new -> forum ET sous-forum (sous-forum.mjs vérifie ce bouton)', () => {
+check('faux négatif corrigé : déclaration de .forum-thread-action-new -> forum ET sous-forum (sous-forum.mjs vérifie ce bouton), et forum-activite (en-tête du sujet, épopée 6, entrée 4)', () => {
   const r = route('kraland-theme.css', hunkAt(2, '  padding: 4px;'), CSS);
   assert.equal(r.widened, false, r.reasons.join(' ; '));
-  assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
+  assert.deepEqual(sorted(r.zones), ['forum', 'forum-activite', 'sous-forum']);
   assert.ok(r.units.includes('sous-forum'));
 });
 check('faux négatif corrigé : sélecteur .forum-thread-action-new dans le hunk -> sous-forum aussi', () => {

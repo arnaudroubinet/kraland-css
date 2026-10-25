@@ -637,9 +637,11 @@ export function retirerIconeFilTicket63() {
   });
   new MutationObserver(nettoyer).observe(document, { childList: true, subtree: true });
 }
-/** Bundle d'avant l'épopée 6, ticket 3 : le fil n'y a pas de garde fusionnée index et sous-forum (règle minifiée du bundle, relevée dans
- * le bundle construit ; absente de 81512a3, d953969, 00b0786 et 5042afd). */
-export const AVANT_TICKET63 = bundle => !bundle.includes(':where(html.kr-page-forum-index,body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb');
+/** Bundle d'avant l'épopée 6, ticket 3 : le fil (`#col-right .forum-mobile-breadcrumb` lui-même) n'y a pas de garde fusionnée index et
+ * sous-forum. La garde est reconnue dans le bundle construit quel que soit l'ordre de ses membres et quels que soient les membres ajoutés
+ * (6.4 y ajoute le sujet) ; absente de 81512a3, d953969, 00b0786 et 5042afd. */
+const GARDE_FIL_TICKET63 = /:where\((?=[^)]*html\.kr-page-forum-index(?![\w-]))(?=[^)]*body\.page-forum\.kr-subforum(?![\w-]))[^)]*\)\s*#col-right\s+\.forum-mobile-breadcrumb(?![\w-])/;
+export const AVANT_TICKET63 = bundle => !GARDE_FIL_TICKET63.test(bundle);
 
 /**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
@@ -834,3 +836,122 @@ export const DECLARATIONS_ESPACEMENT_TICKET49 = [
   [COMBINEE, '.modal-footer .btn + .btn', 'margin-left', 'var(--kr-space-1)', ''],
   [BUREAU, ':where(html body.page-forum.kr-subforum) table.dataTable thead th', 'padding', 'var(--kr-space-2)', '']
 ];
+
+/**
+ * En-tête de sujet mobile (épopée 6, ticket 4, story-en-tete-de-sujet-mobile-dans-communaute-debats-et-staff-h12) : repères du fragment
+ * entete de forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures des sujets (Communauté, Débats, Staff supposé,
+ * sujet fermé), barres d'actions et leurs actions, garde de page du sujet, classes du h1 et du .forum-top du bas, sélecteurs natifs (boutons
+ * du .forum-top, liens « nouveau sujet » et « répondre », cadenas, h1, messages), lien parent du fil d'Ariane de forum-sujet.html, jetons
+ * des actions (primaire, bouton standard, rayon).
+ */
+export const REPERES_ENTETE_TICKET64 = {
+  fixtures: {
+    communaute: 'forum-sujet-communaute.html',
+    debats: 'forum-sujet-debats.html',
+    staff: 'forum-sujet-staff.html',
+    ferme: 'forum-sujet-ferme.html'
+  },
+  chemins: {
+    communaute: '/forum/sujet/la-recette-du-ragout-de-kroquette-330501-1',
+    debats: '/forum/sujet/faut-il-taxer-les-chapeaux-330502-1',
+    staff: '/forum/sujet/inventaire-des-balais-330503-1',
+    ferme: '/forum/sujet/mode-d-emploi-de-l-entraide-330504-1'
+  },
+  barre: 'forum-thread-actions',
+  barreBas: 'forum-thread-actions-bottom',
+  action: 'forum-thread-action',
+  repondre: 'forum-thread-action-reply',
+  nouveau: 'forum-thread-action-new',
+  garde: 'kr-forum-sujet',
+  titre: 'forum-thread-heading',
+  basDePage: 'forum-thread-top-bottom',
+  h1: '#col-right h1.page-header',
+  hautDePage: '.forum-top',
+  natifs: '.forum-top .pull-right > .btn',
+  pullRight: '.forum-top .pull-right',
+  lienNouveau: '.forum-top a[href*="nouveau-sujet"]',
+  lienRepondre: '.forum-top a[href*="post/repondre"]',
+  cadenas: '.forum-top i.fa-lock',
+  icone: 'i.fa-comments',
+  h1Icone: '<i class="far fa-comments"></i>\n',
+  parentHrp: 'forum/hrp/site-annonces-20101',
+  parentHrpNom: 'Site & Annonces',
+  jetons: {
+    fondPrimaire: 'var(--kr-arm-bg, var(--kr-primary))',
+    textePrimaire: 'var(--kr-arm-ink, var(--kr-white))',
+    fondStandard: 'var(--kr-bg-surface)',
+    bordureStandard: 'var(--kr-border-tint)',
+    texteStandard: 'var(--kr-text-nation)',
+    fondSurvol: 'var(--kr-header-tint)',
+    rayon: 'var(--kr-radius-sm)'
+  }
+};
+/** Bundle d'avant l'épopée 6, ticket 4 : « Nouveau sujet » n'y a pas de règle sous la garde du sujet (règle minifiée du bundle, relevée dans
+ * le bundle construit ; absente de d68ab55, 4d97496, d953969, 5ff22d3, 62fd47d, 00b0786, 0523d7f, 5042afd et ef0e4d4). */
+export const AVANT_TICKET64 = bundle => !bundle.includes(':where(body.page-forum.kr-forum-sujet) #col-right .forum-thread-action-new{');
+/**
+ * Écart accepté et consigné (épopée 6, ticket 4) : en-tête du sujet mobile, fil d'Ariane de la famille commune (index et sous-forum) et
+ * « Nouveau sujet » en bouton standard, actions de 44 px. Feuille miroir des déclarations ajoutées par le ticket (fil sous la garde du sujet,
+ * « Nouveau sujet » sous la même garde, hauteur minimale des actions), mêmes sélecteurs et média, taille du fil en valeur littérale (13 px :
+ * --kr-font-detail manque aux bases les plus anciennes) ; seule la couleur du texte de « Nouveau sujet » porte !important, pour passer la couleur !important de la règle commune de la base (que le ticket restreint au sous-forum). Le h1
+ * et le .forum-top du bas gardent leurs styles en ligne de la base, de même valeur que les règles du ticket. Posée avec le script
+ * filSujetTicket64 sur un bundle de base antérieur au ticket (AVANT_TICKET64), jamais sur le bundle courant ; tout autre écart reste détecté.
+ * Écart consigné dans le plan du ticket (Plan Change Log).
+ * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `forum-index.mjs` et de `forum-activite.mjs`,
+ * `COMMIT_ECHELLE_FORUM` et `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) sont réalignées sur un SHA qui contient 6.4 ; le réalignement
+ * est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ */
+export const ENTETE_TICKET64 = [
+  '@media (max-width: 767px) {',
+  '  .forum-thread-action { min-height: 44px; }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-thread-action-new { border-color: var(--kr-border-tint); background: var(--kr-bg-surface); color: var(--kr-text-nation) !important; }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; margin: 0 0 4px; color: var(--kr-text-secondary); font-size: 13px; }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-link { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; min-width: 0; max-width: 50%; min-height: 44px; padding: 0; color: var(--kr-text-primary); font-weight: 400; text-decoration: none; white-space: nowrap; }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-label { overflow: hidden; text-overflow: ellipsis; }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-sep { color: var(--kr-text-secondary); }',
+  '  :where(body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-current { flex: 0 1 auto; min-width: 0; overflow: hidden; color: var(--kr-text-secondary); text-overflow: ellipsis; white-space: nowrap; }',
+  '}'
+].join('\n');
+/**
+ * Script d'initialisation (context.addInitScript(filSujetTicket64)), même écart et même condition de retrait que ENTETE_TICKET64 : dès que
+ * l'ancien fil du sujet (.forum-thread-mobile-breadcrumb) existe, le remplace par le fil de la famille commune (catégorie lue dans l'entrée
+ * active de la liste latérale, sinon libellé du menu de la catégorie, sinon « Catégorie » ; forum parent ; titre), puis pose les classes du
+ * ticket : garde du sujet sur body, classe du h1, classe des .forum-top du bas.
+ */
+export function filSujetTicket64() {
+  const MENUS = { rp: 'Forum RP', hrp: 'Forum HRP', communaute: 'Forum Communauté', debats: 'Forum Débats', staff: 'Forum Staff' };
+  const remplacer = () => document.querySelectorAll('.forum-thread-mobile-breadcrumb').forEach(ancien => {
+    const liens = ancien.querySelectorAll('a');
+    const parent = liens[liens.length - 1];
+    const chemin = parent.pathname.slice(1);
+    const segment = chemin.split('/')[1];
+    const actif = document.querySelector('#col-left .list-group-item.active');
+    const texteActif = actif ? Array.from(actif.childNodes).find(n => n.nodeType === Node.TEXT_NODE && n.data.trim()) : null;
+    const fil = document.createElement('div');
+    fil.className = 'forum-mobile-breadcrumb';
+    [[(texteActif ? texteActif.data.trim() : '') || MENUS[segment] || 'Catégorie', 'forum/' + segment], [parent.textContent.trim(), chemin]].forEach(([texte, href]) => {
+      const lien = document.createElement('a');
+      lien.setAttribute('href', href);
+      lien.className = 'forum-mobile-breadcrumb-link';
+      const libelle = document.createElement('span');
+      libelle.className = 'forum-mobile-breadcrumb-label';
+      libelle.textContent = texte;
+      lien.appendChild(libelle);
+      const sep = document.createElement('span');
+      sep.className = 'forum-mobile-breadcrumb-sep';
+      sep.setAttribute('aria-hidden', 'true');
+      sep.textContent = '›';
+      fil.append(lien, sep);
+    });
+    const courant = document.createElement('span');
+    courant.className = 'forum-mobile-breadcrumb-current';
+    courant.textContent = ancien.querySelector('div > span:last-child').textContent.trim();
+    fil.appendChild(courant);
+    const h1 = ancien.closest('h1');
+    ancien.replaceWith(fil);
+    if (h1) { h1.classList.add('forum-thread-heading'); }
+    document.body.classList.add('kr-forum-sujet');
+    document.querySelectorAll('.forum-top').forEach((top, i) => { if (i > 0 && top.querySelector('.forum-thread-actions-bottom')) { top.classList.add('forum-thread-top-bottom'); } });
+  });
+  new MutationObserver(remplacer).observe(document, { childList: true, subtree: true });
+}

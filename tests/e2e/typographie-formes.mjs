@@ -106,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_INDEX_TICKET62, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_INDEX_TICKET62, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, filSujetTicket64 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -217,7 +217,7 @@ async function ouvrir({ nom, width, height = 720, variante, script, label13 = fa
   await context.addInitScript(choisirVariante, variante);
   if (label13) { await context.addInitScript(poserJetonsRedefinis, ':root { --kr-font-label: 13px !important; }'); }
   if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
-  if (init) { await context.addInitScript(init); }
+  for (const f of [].concat(init || [])) { await context.addInitScript(f); }
   await context.addInitScript(({ src, gmErreur, aLaFin }) => {
     // gmErreur (Interface) : GM.xmlHttpRequest répond par une erreur, le changelog est chargé à vide et « Voir l'historique » est posé.
     window.GM = { xmlHttpRequest: o => { if (gmErreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
@@ -1202,9 +1202,12 @@ if (on('echelle-forum')) {
   // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la
   // rétro 5 (les deux sont des tickets à venir).
   const fil63 = AVANT_TICKET63(avantEchelleForum);
-  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : '', fil63 ? FIL_TICKET63 : ''].join('\n'), fil63 ? retirerIconeFilTicket63 : null) }));
+  // En-tête de sujet de l'épopée 6, ticket 4 (ENTETE_TICKET64 et filSujetTicket64, base d'avant le ticket seulement) : retirer quand
+  // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.4 ; même réalignement (sweep 6.7 ou action A4 de la rétro 5, à venir).
+  const entete64 = AVANT_TICKET64(avantEchelleForum);
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : '', fil63 ? FIL_TICKET63 : '', entete64 ? ENTETE_TICKET64 : ''].join('\n'), [fil63 ? retirerIconeFilTicket63 : null, entete64 ? filSujetTicket64 : null].filter(Boolean)) }));
   for (const { c, apres, masque } of resMiroir) {
-    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47, TITRE_FORUM_BUG10, FIL_TICKET63 et retirerIconeFilTicket63 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
+    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47, TITRE_FORUM_BUG10, FIL_TICKET63, retirerIconeFilTicket63, ENTETE_TICKET64 et filSujetTicket64 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
       assert.ok(AVANT_TICKET47(avantEchelleForum), `bundle de base (${COMMIT_ECHELLE_FORUM}) déjà au ticket 7`);
       assert.equal(masque.length, apres.length, 'nombre d\'éléments');
       const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
@@ -1881,16 +1884,20 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   // (LIGNE_INDEX_TICKET62, AVANT_TICKET62 : ligne de l'index mobile d'au moins 72 px, texte centré), puis de l'épopée 6, entrée 3
   // (FIL_TICKET63 et le script retirerIconeFilTicket63, AVANT_TICKET63 : fil d'Ariane sans icône, courant tronqué). Retirer ce dernier
   // quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de
-  // la rétro 5 (les deux sont des tickets à venir).
+  // la rétro 5 (les deux sont des tickets à venir). Enfin l'épopée 6, entrée 4 (ENTETE_TICKET64 et le script filSujetTicket64,
+  // AVANT_TICKET64 : en-tête du sujet mobile, fil commun) : retirer quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.4, par le
+  // même réalignement.
   const fil63 = script !== userscript && AVANT_TICKET63(script);
+  const entete64 = script !== userscript && AVANT_TICKET64(script);
   const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
     + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '')
     + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '')
     + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '')
     + (script !== userscript && AVANT_TICKET55(script) ? '\n' + CARTES_TICKET55 : '')
     + (script !== userscript && AVANT_TICKET62(script) ? '\n' + LIGNE_INDEX_TICKET62 : '')
-    + (fil63 ? '\n' + FIL_TICKET63 : '');
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, init: fil63 ? retirerIconeFilTicket63 : null, tactile, injection: 'fin' });
+    + (fil63 ? '\n' + FIL_TICKET63 : '')
+    + (entete64 ? '\n' + ENTETE_TICKET64 : '');
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, init: [fil63 ? retirerIconeFilTicket63 : null, entete64 ? filSujetTicket64 : null].filter(Boolean), tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;

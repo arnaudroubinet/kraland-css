@@ -38,7 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -97,6 +97,13 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   if (fil && AVANT_TICKET63(src)) {
     await context.addInitScript(poserJetonsRedefinis, FIL_TICKET63);
     await context.addInitScript(retirerIconeFilTicket63);
+  }
+  // En-tête de sujet de l'épopée 6, ticket 4 (fil commun, « Nouveau sujet » standard, actions de 44 px, garde du sujet) posé sur le bundle
+  // « avant » seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 ; le réalignement est porté par le sweep 6.7
+  // ou par l'action A4 de la rétro 5 (tickets à venir).
+  if (fil && AVANT_TICKET64(src)) {
+    await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
+    await context.addInitScript(filSujetTicket64);
   }
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
@@ -589,7 +596,10 @@ if (on('seuil')) {
 // quand elle suit le texte (composantsHerites). Tout autre écart reste détecté.
 // Écart accepté et consigné (épopée 3, ticket 5) : face à un bundle « avant » d'avant ce ticket, les éléments d'état passés à la palette
 // d'états (COMPOSANTS_TICKET5 : alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d'état) sont traités comme ces composants.
-const EMPREINTE = composants => {
+// sujet : sélecteur neutralisé comme un composant sur la base ; verifier (bundle courant) : neutralisé seulement s'il porte les jetons du bouton
+// standard (texte de la nation, fond de surface, bordure teintée : jetons de REPERES_ENTETE_TICKET64), sinon ses valeurs réelles sont
+// comparées (épopée 6, ticket 4).
+const EMPREINTE = ({ composants, sujet = '', verifier = false, jetons = null }) => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
     'border-bottom-color', 'visibility', 'opacity', 'order', 'flex-direction', 'grid-row'];
@@ -602,8 +612,12 @@ const EMPREINTE = composants => {
   const surNation = el => { for (let e = el; e; e = e.parentElement) { if (opaque(e)) { return fondNation(e); } } return false; };
   const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
   const col = document.getElementById('col-right');
-  const composant = el => el.matches(composants);
-  const herite = el => { const c = el.closest(composants); return !!c && c !== el && getComputedStyle(el).color === getComputedStyle(c).color; };
+  const fond = expr => { const i = document.createElement('i'); i.style.backgroundColor = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).backgroundColor); i.remove(); return c; };
+  const proche = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  const standard = el => { const s = getComputedStyle(el); return proche(lire(s.color), sonde(jetons.texteStandard)) && proche(lire(s.backgroundColor), fond(jetons.fondStandard)) && proche(lire(s.borderBottomColor), sonde(jetons.bordureStandard)); };
+  const tous = sujet ? composants + ', ' + sujet : composants;
+  const composant = el => el.matches(composants) || (sujet !== '' && el.matches(sujet) && (!verifier || standard(el)));
+  const herite = el => { const c = el.closest(tous); return !!c && c !== el && getComputedStyle(el).color === getComputedStyle(c).color; };
   const valeur = (el, s, p) => {
     if (fondNation(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'paire'; }
     if (composant(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'composant'; }
@@ -733,6 +747,11 @@ if (on('hors-perimetre')) {
     console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
     console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » ; texte, fond et bordure des en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4)');
     const composants = COMPOSANTS_TICKET4 + (AVANT_TICKET5(avant) ? ', ' + COMPOSANTS_TICKET5 : '');
+    // « Nouveau sujet » du sujet en bouton standard (épopée 6, ticket 4) : ses jetons (--kr-text-nation, --kr-border-tint) manquent à une base
+    // d'avant l'épopée 3, ticket 4 ; sur cette base seulement, il est neutralisé comme les boutons standard de COMPOSANTS_TICKET4 ; sur le
+    // bundle courant, il ne l'est que s'il porte les jetons du bouton standard (EMPREINTE, verifier). Même condition de retrait que
+    // ENTETE_TICKET64.
+    const sujetStandard = AVANT_TICKET64(avant) && !avant.includes('--kr-text-nation:') ? ':where(body.kr-forum-sujet) .forum-thread-action-new' : '';
     if (AVANT_TICKET5(avant)) { console.log('  info écart accepté et consigné : texte, fond et bordure des éléments d\'état (alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d\'état ; épopée 3, ticket 5)'); }
     if (AVANT_TICKET41(avant)) { console.log('  info écart accepté et consigné : étiquettes et pastilles (.label, .badge, pastille du sous-forum…) en 12 px gras posées sur le bundle « avant » (épopée 4, ticket 1)'); }
     if (AVANT_TICKET42(avant)) { console.log('  info écart accepté et consigné : boutons d\'en-tête du sujet et de l\'index, actions « Répondre » / « Nouveau sujet », en 14 px sur mobile posés sur le bundle « avant » (épopée 4, ticket 2)'); }
@@ -742,12 +761,13 @@ if (on('hors-perimetre')) {
     if (AVANT_TICKET49(avant)) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (cellules du sous-forum et de l\'index, en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
     if (AVANT_BUG10(avant)) { console.log('  info écart accepté et consigné : nom de forum des cartes mobiles (h3.forum-title, Staff) en 15 px au lieu de 17 px, posé sur le bundle « avant » (bug 10)'); }
     if (AVANT_TICKET63(avant)) { console.log('  info écart accepté et consigné : fil d\'Ariane du sous-forum sans icône de retour, niveau courant tronqué sur une ligne, posé sur le bundle « avant » (épopée 6, ticket 3)'); }
+    if (AVANT_TICKET64(avant)) { console.log('  info écart accepté et consigné : en-tête du sujet mobile, fil d\'Ariane commun, « Nouveau sujet » en bouton standard, actions de 44 px, posés sur le bundle « avant » (épopée 6, ticket 4)'); }
     if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
         const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant, fil: src === avant });
-        mesures.push({ e: await page.evaluate(EMPREINTE, composants), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
+        mesures.push({ e: await page.evaluate(EMPREINTE, { composants, sujet: sujetStandard, verifier: src !== avant, jetons: REPERES_ENTETE_TICKET64.jetons }), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }
       return mesures;

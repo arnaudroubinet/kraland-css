@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -273,13 +273,14 @@ const MESURE = ([sel, texte]) => {
 };
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
-const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon']] = []) => {
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], origine = null] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
     'marginLeft', 'minHeight', 'fontSize', 'fontWeight', 'borderTopWidth', 'boxShadow', 'transform'];
   // Sous une racine (exclus de la carte), ordonnée relative à son haut : le contenu de la page au-dessus (en carte) la déplace.
-  const haut = racine === 'html' ? 0 : document.querySelector(racine).getBoundingClientRect().top;
+  // Sous une origine (masque du ticket 6.4, voir comparer), ordonnée relative au haut du premier élément qui la porte.
+  const haut = origine ? document.querySelector(origine).getBoundingClientRect().top : racine === 'html' ? 0 : document.querySelector(racine).getBoundingClientRect().top;
   return {
     theme: document.documentElement.classList.contains('kr-theme-enabled'),
     mobile: document.body.classList.contains('mobile-mode'),
@@ -498,16 +499,22 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
+// Masque de l'épopée 6, ticket 4 (sujet seul, base d'avant 6.4) : le fil du sujet passe d'une marge de 16 px à 4 px (Plan Change Log du
+// ticket), et tous les messages remontent de 12 px. Les ordonnées des messages sont alors relevées par rapport au premier message, des deux
+// côtés : la translation d'ensemble est neutralisée, un décalage à l'intérieur de la liste reste vu ; les styles ne sont pas masqués. Retrait :
+// quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4 (sweep 6.7 ou action A4 de la rétro 5, deux tickets à venir).
+const ORIGINE_TICKET64 = nom => (nom === 'sujet' && AVANT_TICKET64(avant) ? '.media' : null);
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       const { context, page, erreurs } = await ouvrir({ ...c, script });
-      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
+      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, ORIGINE_TICKET64(c.nom)]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
+  if (cas.some(c => ORIGINE_TICKET64(c.nom))) { console.log('  info écart accepté et consigné : messages du sujet remontés de 12 px (fil d\'Ariane du sujet, épopée 6, ticket 4) ; ordonnées relevées par rapport au premier message sur la base d\'avant 6.4'); }
   for (const { c, teste, base } of res) {
     const sous = PAGES[c.nom].racine ? ` sous ${PAGES[c.nom].racine}` : '';
     const quoi = PAGES[c.nom].releve ? 'messages' : 'panneaux, en-têtes, titres et corps';

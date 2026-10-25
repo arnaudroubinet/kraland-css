@@ -95,7 +95,7 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base.
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -208,7 +208,9 @@ export const KEYWORDS = [
   // lu » du sous-forum, vérifiés par forum-activite.
   [/kr-page-forum-index\b[^{]*tbody\s*>\s*tr|location\.hash|scrollRestoration|flap|smart-redirect/, ['forum-activite']],
   // Fil d'Ariane commun de l'index et du sous-forum (épopée 6, entrée 3) : vérifié par le fragment fil de forum-activite.
-  [/forum-mobile-breadcrumb|createForumBreadcrumb/, ['forum-activite']]
+  [/forum-mobile-breadcrumb|createForumBreadcrumb/, ['forum-activite']],
+  // En-tête du sujet mobile (épopée 6, entrée 4) : barres d'actions et garde du sujet, vérifiées par le fragment entete de forum-activite.
+  [/forum-thread-action|kr-forum-sujet/, ['forum-activite']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de
@@ -221,7 +223,9 @@ export const SECTIONS = [
   [/^MODULE : ForumHeader:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : ForumIndex:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : Kramail:/, ['forum', 'kramail']],
-  [/^MODULE : (ForumThread|Messages):/, ['forum', 'messages']],
+  // En-tête du sujet mobile (ForumThread:MobileBreadcrumb, épopée 6, entrée 4) : vérifié aussi par le fragment entete de forum-activite.
+  [/^MODULE : ForumThread:/, ['forum', 'messages', 'forum-activite']],
+  [/^MODULE : Messages:/, ['forum', 'messages']],
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']],
   [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],

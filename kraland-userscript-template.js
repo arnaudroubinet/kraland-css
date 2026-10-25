@@ -7130,127 +7130,30 @@
         return;
       }
 
-      // Fragment riche du titre (préserve les smileys <img>)
-      const threadTitleFragment = cloneVisibleContent(forumHeading);
-
-      // Trouver les liens dans le premier .forum-top
+      // Lien natif de retour au forum parent : le premier lien « forum/… » à icône de retour du .forum-top du haut, dans toute catégorie
+      // (RP, HRP, Communauté, Débats, Staff : aucune liste de catégories).
       const firstForumTop = forumTops[0];
-      const taverneLink = firstForumTop.querySelector('a[href*="forum/rp/"], a[href*="forum/hrp/"]'); // Lien vers le forum parent
+      const forumLink = Array.from(firstForumTop.querySelectorAll('.pull-right a[href^="forum/"]')).find(a => a.querySelector('i.fa-backward'));
       const newTopicLink = firstForumTop.querySelector('a[href*="nouveau-sujet"]');
-      // Lien natif « répondre » du sujet (absent si le sujet est fermé) : lu avant que les .forum-top soient vidés
+      // Lien natif « répondre » du sujet : « Répondre » n'est affiché que s'il existe (droits du compte, sujet fermé compris).
+      // Lu avant que les .forum-top soient vidés.
       const replyLink = firstForumTop.querySelector('a[href*="post/repondre"]');
 
-      if (!taverneLink || !newTopicLink) {
-        console.warn('[Forum Thread Mobile] Liens non trouvés', { taverneLink: !!taverneLink, newTopicLink: !!newTopicLink });
+      if (!forumLink || !newTopicLink) {
+        console.warn('[Forum Thread Mobile] Liens non trouvés', { forumLink: !!forumLink, newTopicLink: !!newTopicLink });
         return;
       }
 
-      // Extraire le nom du forum parent (Taverne, etc.)
-      const forumName = taverneLink.textContent.trim();
-
-      // Déterminer la catégorie parente (RP/HRP) depuis l'URL
-      const forumUrl = taverneLink.href;
-      let categoryName = 'Jeu (RP)';
-      let categoryUrl = 'forum/rp';
-
-      if (forumUrl.includes('/forum/hrp/')) {
-        categoryName = 'Jeu (HRP)';
-        categoryUrl = 'forum/hrp';
-      }
-
-      // ========================================
-      // FONCTION HELPER : Créer un fil d'ariane
-      // ========================================
-      function createBreadcrumb(isBottom = false) {
-        const breadcrumbWrapper = document.createElement('div');
-        breadcrumbWrapper.className = isBottom ? 'forum-thread-mobile-breadcrumb-bottom' : 'forum-thread-mobile-breadcrumb';
-        breadcrumbWrapper.style.cssText = `
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          ${isBottom ? 'margin-top: 16px; margin-bottom: 16px; padding: 12px 16px;' : 'margin-bottom: 16px;'}
-          font-size: 13px;
-          color: var(--kr-text-secondary);
-        `;
-
-        // Partie gauche : breadcrumb
-        const breadcrumbLeft = document.createElement('div');
-        breadcrumbLeft.style.cssText = `
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex: 1;
-          min-width: 0;
-        `;
-
-        // Lien catégorie (Jeu RP)
-        const categoryLink = document.createElement('a');
-        categoryLink.href = categoryUrl;
-        categoryLink.textContent = categoryName;
-        categoryLink.style.cssText = `
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          color: var(--kr-text-secondary);
-          text-decoration: none;
-          font-weight: 400;
-          white-space: nowrap;
-        `;
-
-        // Séparateur 1
-        const separator1 = document.createElement('span');
-        separator1.textContent = '›';
-        separator1.style.cssText = `
-          color: var(--kr-text-secondary);
-          font-size: 13px;
-          margin: 0 2px;
-          flex-shrink: 0;
-        `;
-
-        // Lien forum (Taverne)
-        const forumLink = document.createElement('a');
-        forumLink.href = taverneLink.href;
-        forumLink.textContent = forumName;
-        forumLink.style.cssText = `
-          color: var(--kr-text-secondary);
-          text-decoration: none;
-          font-weight: 400;
-          white-space: nowrap;
-        `;
-
-        // Séparateur 2
-        const separator2 = document.createElement('span');
-        separator2.textContent = '›';
-        separator2.style.cssText = `
-          color: var(--kr-text-secondary);
-          font-size: 13px;
-          margin: 0 2px;
-          flex-shrink: 0;
-        `;
-
-        // Titre du thread (tronqué si nécessaire)
-        const threadTitleSpan = document.createElement('span');
-        setRichContent(threadTitleSpan, threadTitleFragment);
-        threadTitleSpan.style.cssText = `
-          color: var(--kr-text-secondary);
-          font-weight: 400;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          min-width: 0;
-        `;
-
-        breadcrumbLeft.appendChild(categoryLink);
-        breadcrumbLeft.appendChild(separator1);
-        breadcrumbLeft.appendChild(forumLink);
-        breadcrumbLeft.appendChild(separator2);
-        breadcrumbLeft.appendChild(threadTitleSpan);
-
-        breadcrumbWrapper.appendChild(breadcrumbLeft);
-
-        return breadcrumbWrapper;
-      }
+      // Fil « Catégorie › Forum › titre » : catégorie lue dans l'entrée active de la liste latérale (L4), repli sur le libellé du menu
+      // de la catégorie du lien parent, puis sur un libellé générique.
+      const forumName = forumLink.getAttribute('title') || forumLink.textContent.trim();
+      const categorySegment = forumLink.pathname.split('/')[2];
+      const categoryMenu = krForumMenuForPath('/forum/' + categorySegment);
+      const categoryName = getActiveTitleLabel() || (categoryMenu ? categoryMenu.label : '') || 'Catégorie';
+      const breadcrumb = createForumBreadcrumb([
+        { label: categoryName, href: 'forum/' + categorySegment },
+        { label: forumName, href: forumLink.getAttribute('href') }
+      ], threadTitle);
 
       // ========================================
       // FONCTION HELPER : actions du sujet (F-01)
@@ -7282,13 +7185,11 @@
       // 1. REMPLACER LE CONTENU DU H1
       // ========================================
       forumHeading.innerHTML = '';
-      forumHeading.style.cssText = `
-        margin: 12px 16px !important;
-        padding: 0 !important;
-        background: transparent !important;
-      `;
-      forumHeading.appendChild(createBreadcrumb(false));
+      forumHeading.classList.add('forum-thread-heading');
+      forumHeading.appendChild(breadcrumb);
       forumHeading.appendChild(createThreadActions(false));
+      // Garde de page du sujet transformé (CSS : fil commun, « Nouveau sujet » standard, h1 et .forum-top du bas)
+      document.body.classList.add('kr-forum-sujet');
 
       // ========================================
       // 2. TRANSFORMER LES .forum-top (sauf le premier si c'est le même que le h1)
@@ -7299,12 +7200,7 @@
           return;
         }
         forumTop.innerHTML = '';
-        forumTop.style.cssText = `
-          margin: 0 !important;
-          padding: 0 !important;
-          background: transparent !important;
-          border: none !important;
-        `;
+        forumTop.classList.add('forum-thread-top-bottom');
         forumTop.appendChild(createThreadActions(true));
       });
 

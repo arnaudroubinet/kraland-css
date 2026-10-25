@@ -129,3 +129,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-forum/story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n-plan.md`
   summary: Le correctif d'ancres mobile ne retire plus que `#flap`. Les autres ancres (kramail, plateau, etc.) ne sont plus effacées quand la largeur lue à l'évaluation est < 768. Seul le fil de sujet (`#msg…`) le prouve ; aucune suite ne vérifie une ancre du kramail ou du plateau.
   evidence: Ce comportement est déjà celui du vrai téléphone : la largeur lue à l'évaluation y vaut 981, donc l'ancienne condition n'effaçait rien (H10, inventaire §1.1 et §1.3). Aucun autre code ne dépend de l'effacement (revue du ticket 6.2, constat 4). Fragment `ancres` de `forum-activite.mjs` : fil de sujet seulement.
+
+## Reports du ticket 6.4, en-tête de sujet mobile (2026-10-25)
+
+- Sur le sujet mobile, la barre native est masquée. Avec elle disparaissent le lien « lien » (`fa-link`) et le lien « liste des messages » (`fa-th-list`, `…-999`). C'était déjà le cas en RP et HRP avant 6.4. Depuis 6.4, c'est aussi le cas en Communauté, Débats et Staff. Ces liens sont-ils à rendre (dans le menu « ••• » de 6.5 ?) ou à laisser hors du mobile ? Choix produit d'Arnaud. Candidat naturel : 6.5 (bouton « ••• » commun au forum et au kramail). Source : revue quick de 6.4, constat 1.

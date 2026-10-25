@@ -402,3 +402,31 @@ Points « Ask First » du plan, tranchés en autonomie. Les quatre derniers sont
 
 - Captures à 375×667, clair et sombre : index RP, sous-forum « Débuter » avec un titre long (ellipse du courant), sous-forum avec une catégorie longue (ellipse du lien), page de réponse.
 - Sur le vrai site, en lecture seule : un sous-forum dont l'entrée active de la liste latérale porte un libellé différent du bouton natif. Le fil doit afficher le libellé de la liste (L4).
+
+## Ticket 6.4 — en-tête de sujet mobile dans Communauté, Débats et Staff (construit, 2026-10-25)
+
+Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
+
+1. **Sujet fermé avec lien « répondre » natif.** « Répondre » suit la présence du lien natif, pas le cadenas. La fixture fermée n'a pas de lien : aucun « Répondre », deux « Nouveau sujet ». La variante cadenas + lien garde ses deux « Répondre ».
+2. **« Nouveau sujet » partagé avec le sous-forum.** Le style standard n'est posé que sous la garde du sujet (`body.kr-forum-sujet`, posée par le module). Le sous-forum reste égal à la base. L'harmonisation du sous-forum reste à décider.
+3. **Styles en ligne `!important` du h1 et des `.forum-top`.** Ils sortent du JS vers la feuille (classes `forum-thread-heading` et `forum-thread-top-bottom`). La règle générique `h1.page-header { margin-bottom: 10px !important }` battait la marge basse du h1 : elle est réécrite en place en `h1.page-header:where(:not(.forum-thread-heading))`, sans nouvel `!important` (compte inchangé à 3290). Le fond passe par `background-color: transparent`, car le build réécrit le raccourci `background: transparent` en `background: 0 0`.
+4. **Couleur des liens du fil (Q28.1).** Couleur du texte, comme le fil commun de 6.3.
+5. **Méta du `.forum-top` du haut.** Gardée telle quelle.
+6. **Structure Staff supposée.** La fixture Staff reprend la structure RP, parent `forum/staff/coulisses-50101`, entrée active « Staff ». Elle ne prouve que l'indépendance à la catégorie.
+7. **Seuils et tolérances.** Aucun n'a changé.
+8. **Fixture `forum-sujet.html`.** Elle n'a pas changé. Elle n'a qu'un seul `.forum-top` : la barre du bas n'y est donc pas attendue. Les quatre nouvelles fixtures portent les deux barres.
+9. **Barre du bas (Q28.3).** Même rendu que celle du haut, avec sa marge droite de 52 px.
+10. **Variante `locked` de `forum-mobile.mjs`.** Elle n'a pas changé. La fixture fermée couvre le cadenas.
+
+Écarts à connaître :
+
+- **Catégorie de `forum-sujet.html` : « Forum HRP », pas « Jeu (HRP) ».** La liste latérale de cette fixture est vide : le fil prend le repli du libellé de menu (`FORUM_MENUS`). Sur le vrai site, il prend le texte de l'entrée active de la liste latérale.
+- **Le fil du sujet est 12 px plus bas qu'avant.** Il prend la marge commune de 4 px de 6.3 au lieu des 16 px en ligne de l'ancien fil. Le titre du sujet n'est plus enrichi : le niveau courant est du texte seul, comme à l'index et au sous-forum.
+- **Masques posés sur les bases d'avant le ticket** (`ENTETE_TICKET64`, `filSujetTicket64`). Ils sont posés dans `forum-index.mjs` (hors-périmètre), dans `typographie-formes.mjs` (`echelle-forum`, `nettoyage`) et dans `forum-activite.mjs` (bascule du sujet). Chacun doit être retiré au réalignement des bases (sweep 6.7 ou action A4 de la rétro 5).
+
+À vérifier par toi :
+
+- **Le relevé de l'inventaire (§1), à valider (hitl, non bloquant pour le build).** En particulier, pour ton compte, le lien « répondre » apparaît sur les sujets fermés.
+- Captures à 375×667, en clair et en sombre : un sujet Communauté, un sujet Débats, un sujet fermé, un sujet HRP. Vérifier le fil commun, les deux barres et « Nouveau sujet » en bouton standard.
+
+- **Question : liens « lien » et « liste des messages » absents du sujet mobile.** La barre native masquée les emporte. C'était déjà vrai en RP et HRP, et 6.4 l'étend à Communauté, Débats et Staff. Les remettre, par exemple dans le « ••• » de 6.5, ou les laisser hors du mobile ? Reporté dans deferred-work.
