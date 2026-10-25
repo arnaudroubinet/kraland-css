@@ -50,7 +50,7 @@ check('Notifications /report (kr-page-report) : zone report, suite -> report-non
   assert.deepEqual(f.units, ['report-non-lu', 'palette-nation']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
 });
-check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation seule', () => {
+check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation et forum-activite', () => {
   assert.deepEqual(zonesOf('palette-nation.mjs'), ['palette-nation']);
   const theme = [
     ':root {', '  --kr-primary: #8b0f0e;', '  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000);', '  --kr-text-accent: var(--kr-highlight); /* palette-nation */', '}',
@@ -69,7 +69,8 @@ check('couleurs de nation : déclaration d\'un jeton de rôle (même citant pale
   assert.equal(route('kraland-theme.css', hunk('.x {', '.rien-de-connu { color: var(--kr-text-accent); }')).widened, true);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/palette-nation.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['palette-nation']);
+  // fixture lue aussi par forum-activite (épopée 6, entrée 3 : page hors forum /regles/avancees, fragment fil)
+  assert.deepEqual(sorted(f.units), ['forum-activite', 'palette-nation']);
 });
 
 check('typographie et formes : déclaration d\'un jeton d\'échelle sur :root : total ; fixture -> typographie-formes et cartes-pastilles', () => {
@@ -500,11 +501,11 @@ check('template, hunk sans mot-clé dans un module Kramail : forum + kramail', (
   const r = route(T, hunkAt(at(TPL, 'return 3'), '    const n = 3;'), TPL);
   assert.deepEqual(sorted(r.zones), ['forum', 'kramail']);
 });
-check('template, hunk sans mot-clé dans le module ForumIndex (index du forum) : forum + sous-forum', () => {
+check('template, hunk sans mot-clé dans le module ForumIndex (index du forum) : forum + sous-forum + forum-activite', () => {
   const t = tpl(['MODULE : ForumIndex:Presentation — index du forum', ['  function d() {', '    return 4;', '  }']]);
   const r = route(T, hunkAt(at(t, 'return 4'), '    const n = 4;'), t);
   assert.equal(r.widened, false, r.reasons.join(' ; '));
-  assert.deepEqual(sorted(r.zones), ['forum', 'sous-forum']);
+  assert.deepEqual(sorted(r.zones), ['forum', 'forum-activite', 'sous-forum']);
 });
 check('modale d\'ordre : module des modales, repères du socle et .bootbox-confirm -> modale-ordre + parler ; fixtures -> modale-ordre ; harnais Bootbox -> les deux', () => {
   assert.deepEqual(zonesOf('modale-ordre.mjs'), ['modale-ordre']);
@@ -536,6 +537,21 @@ check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, co
   assert.equal(suite.widened, false);
   assert.deepEqual(suite.zones, []);
   assert.deepEqual(sorted(suite.units), ['confinement-reseau', 'forum-activite']);
+});
+check('fil d\'Ariane du forum (épopée 6, entrée 3) : règle CSS fusionnée, section commune et module ForumHeader -> forum-activite', () => {
+  assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('fil')), 'fragment fil');
+  const css = route('kraland-theme.css', hunk('.x {', ':where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-current { min-width: 0; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.ok(css.zones.includes('forum-activite'), css.zones.join(','));
+  const t = tpl(['FIL D\'ARIANE DU FORUM (H12.3)', ['  function f() {', '    return 7;', '  }']], ['MODULE : ForumHeader:MobileBreadcrumb', ['  function g() {', '    return 8;', '  }']]);
+  const section = route(T, hunkAt(at(t, 'return 7'), '    const n = 7;'), t);
+  assert.equal(section.widened, false, section.reasons.join(' ; '));
+  assert.deepEqual(sorted(section.zones), ['forum', 'forum-activite', 'sous-forum']);
+  const entete = route(T, hunkAt(at(t, 'return 8'), '    const n = 8;'), t);
+  assert.equal(entete.widened, false, entete.reasons.join(' ; '));
+  assert.deepEqual(sorted(entete.zones), ['forum', 'forum-activite', 'sous-forum']);
+  const mot = route(T, hunk('function x() {', '  return createForumBreadcrumb([], titre);'));
+  assert.ok(mot.zones.includes('forum-activite'), mot.zones.join(','));
 });
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);

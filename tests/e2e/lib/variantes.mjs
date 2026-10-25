@@ -576,6 +576,72 @@ export const LIGNE_INDEX_TICKET62 = [
 export const AVANT_TICKET62 = bundle => !bundle.includes('align-content:center;align-items:baseline;gap:2px 6px;min-height:72px');
 
 /**
+ * Fil d'Ariane du forum (épopée 6, ticket 3, story-un-seul-fil-d-ariane-categorie-forum-sujet-pour-l-index-le-s) : repères du fragment
+ * fil de forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : classes de la famille du fil, classe du fil du sujet,
+ * conteneurs de fil comptés, icône de retour, entrée active de la liste latérale, fixture de la colonne native, page de réponse (chemin,
+ * fixture, h1 « réel capturé » de forum-mobile.mjs à deux liens), page hors forum à deux liens, bouton flottant, attribut du séparateur,
+ * jetons de texte de la famille.
+ */
+export const REPERES_FIL_TICKET63 = {
+  fil: 'forum-mobile-breadcrumb',
+  lien: 'forum-mobile-breadcrumb-link',
+  libelle: 'forum-mobile-breadcrumb-label',
+  sep: 'forum-mobile-breadcrumb-sep',
+  courant: 'forum-mobile-breadcrumb-current',
+  filSujet: 'forum-thread-mobile-breadcrumb',
+  conteneurs: '.forum-mobile-breadcrumb, .forum-thread-mobile-breadcrumb, .breadcrumb',
+  icone: 'fa-backward',
+  entreeActive: '#col-left .list-group-item.active',
+  colonneNative: 'forum-colonne-native-hrp.html',
+  reponse: {
+    chemin: '/forum/post/repondre-2-329425',
+    fixture: 'typographie-forum-redaction.html',
+    h1: '<h1 class="page-header">FIXTURE sujet de test &gt; Réponse\n<span class="pull-right"><a href="forum/hrp/site-annonces-20101" class="btn btn-default"><i class="fa fa-backward"></i> Site &amp; Annonces</a>\n<a href="forum/sujet/fixture-1-1" class="btn btn-default"><i class="fa fa-backward"></i> sujet</a></span></h1>'
+  },
+  regles: { chemin: '/regles/avancees', fixture: 'palette-nation.html' },
+  fab: 'forum-new-topic-fab',
+  masque: 'aria-hidden',
+  textes: ['var(--kr-text-primary)', 'var(--kr-text-secondary)']
+};
+/**
+ * Écart accepté et consigné (épopée 6, ticket 3) : fil d'Ariane de l'index et du sous-forum sur une ligne, niveau courant tronqué.
+ * Feuille miroir en valeurs littérales des déclarations de troncature (lien parent borné à 50 % et libellé à ellipse, niveau courant)
+ * ajoutées aux règles fusionnées, mêmes sélecteurs et média, sans
+ * !important ; posée sur un bundle de base antérieur au ticket (AVANT_TICKET63), jamais sur le bundle courant ; tout autre écart reste
+ * détecté. Écart consigné dans le plan du ticket (Plan Change Log).
+ * Condition de retrait : retirer quand la base de comparaison de la suite (`COMMIT_AVANT` de `forum-index.mjs`, `COMMIT_ECHELLE_FORUM` et
+ * `COMMIT_NETTOYAGE` de `typographie-formes.mjs`) est réalignée sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7
+ * ou par l'action A4 de la rétro 5 (les deux sont des tickets à venir).
+ */
+export const FIL_TICKET63 = [
+  '@media (max-width: 767px) {',
+  '  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb { flex-wrap: nowrap; }',
+  '  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-link { flex: 0 0 auto; min-width: 0; max-width: 50%; white-space: nowrap; }',
+  '  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-label { overflow: hidden; text-overflow: ellipsis; }',
+  '  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-current { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }',
+  '}'
+].join('\n');
+/**
+ * Script d'initialisation (context.addInitScript(retirerIconeFilTicket63)), même écart et même condition de retrait que FIL_TICKET63 :
+ * dès que le fil existe, retire l'icône de retour du lien (le lien du sous-forum de la base est un clone du bouton natif, icône comprise)
+ * et place son libellé, réduit au texte, dans un span.forum-mobile-breadcrumb-label (porteur de l'ellipse du lien).
+ */
+export function retirerIconeFilTicket63() {
+  const nettoyer = () => document.querySelectorAll('.forum-mobile-breadcrumb-link').forEach(lien => {
+    if (lien.querySelector('.forum-mobile-breadcrumb-label')) { return; }
+    lien.querySelectorAll('i.fa-backward').forEach(i => i.remove());
+    const libelle = document.createElement('span');
+    libelle.className = 'forum-mobile-breadcrumb-label';
+    libelle.textContent = lien.textContent.trim();
+    lien.replaceChildren(libelle);
+  });
+  new MutationObserver(nettoyer).observe(document, { childList: true, subtree: true });
+}
+/** Bundle d'avant l'épopée 6, ticket 3 : le fil n'y a pas de garde fusionnée index et sous-forum (règle minifiée du bundle, relevée dans
+ * le bundle construit ; absente de 81512a3, d953969, 00b0786 et 5042afd). */
+export const AVANT_TICKET63 = bundle => !bundle.includes(':where(html.kr-page-forum-index,body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb');
+
+/**
  * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).

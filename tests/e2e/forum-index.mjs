@@ -38,7 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -84,7 +84,7 @@ const browser = await launchBrowser();
 
 // Ouvre `url` servie par `html`. `src` : bundle injecté (null : page native, sans userscript) ; `theme` : kr-theme-enabled ; `mobile` :
 // émulation tactile (par défaut sous 768 px).
-async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript, jetons = false }) {
+async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript, jetons = false, fil = false }) {
   const context = await browser.newContext({ viewport: { width, height: height || (mobile ? 667 : 900) }, isMobile: mobile, hasTouch: mobile });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   await context.route(BASE + url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
@@ -92,6 +92,12 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '') + (AVANT_TICKET44(src) ? '\n' + PAGINATION_TICKET44 : '') + (AVANT_TICKET45(src) ? '\n' + ECHELLE_TICKET45 : '') + (AVANT_TICKET47(src) ? '\n' + ECHELLE_TICKET47 : '') + (AVANT_TICKET49(src) ? '\n' + ESPACEMENT_TICKET49 : '') + (AVANT_BUG10(src) ? '\n' + TITRE_FORUM_BUG10 : '') + (AVANT_TICKET51(src) ? '\n' + CARTES_TICKET51 : '') + (AVANT_TICKET52(src) ? '\n' + CARTES_TICKET52 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
+  // Fil d'Ariane de l'épopée 6, ticket 3 (troncature, icône retirée) posé sur le bundle « avant » seulement. Retirer quand COMMIT_AVANT est
+  // réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5 (tickets à venir).
+  if (fil && AVANT_TICKET63(src)) {
+    await context.addInitScript(poserJetonsRedefinis, FIL_TICKET63);
+    await context.addInitScript(retirerIconeFilTicket63);
+  }
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
       window.GM = { xmlHttpRequest: () => {} };
@@ -735,11 +741,12 @@ if (on('hors-perimetre')) {
     if (AVANT_TICKET47(avant)) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (noms 15 px, détails 13 px, texte courant 15 px sur mobile, champ de rédaction 16 px ; sous-forum, sujet, Staff) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
     if (AVANT_TICKET49(avant)) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (cellules du sous-forum et de l\'index, en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
     if (AVANT_BUG10(avant)) { console.log('  info écart accepté et consigné : nom de forum des cartes mobiles (h3.forum-title, Staff) en 15 px au lieu de 17 px, posé sur le bundle « avant » (bug 10)'); }
+    if (AVANT_TICKET63(avant)) { console.log('  info écart accepté et consigné : fil d\'Ariane du sous-forum sans icône de retour, niveau courant tronqué sur une ligne, posé sur le bundle « avant » (épopée 6, ticket 3)'); }
     if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
-        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant });
+        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant, fil: src === avant });
         mesures.push({ e: await page.evaluate(EMPREINTE, composants), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }

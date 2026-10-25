@@ -18,16 +18,28 @@
 //   seuil     index RP à 767 (lignes ≥ 72), 768 et 769 (égal à la base) ; bascule 768 -> 767 -> 768 dans le même onglet, pour le sujet
 //             ouvert sur #msg6801395 (hash gardé des deux côtés, défilement et documents égaux à la base) et pour l'index ;
 //   bureau    768, 769 et 1280 px : lignes et flèches de l'index RP et de la racine, sujet ouvert sur #msg égaux au bundle de base ;
-//             Staff (index RP servi à /forum/staff) à 375 px égal à la base.
+//             Staff (index RP servi à /forum/staff) à 375 px égal à la base ;
+//   fil       (épopée 6, ticket 3, plan story-un-seul-fil-d-ariane-categorie-forum-sujet-pour-l-index-le-s) fil d'Ariane commun de
+//             l'index (RP, Communauté) et du sous-forum « Débuter » (colonne native posée en mémoire), 375 et 767 px, Kraland clair et
+//             Empire Brun sombre : un seul conteneur de fil, lien, séparateur « › » masqué aux lecteurs d'écran, courant sans lien, aucune
+//             icône de retour, aucun style en ligne ; lien de 44 px au moins, cible du tap vérifiée par elementFromPoint ; couleurs du
+//             lien (texte) et du courant (atténué) ; mêmes styles calculés à l'index et au sous-forum ; catégorie lue dans l'entrée
+//             active de la liste latérale (L4 : libellé renommé en mémoire), repli sur le lien natif sans entrée active, puis sur
+//             « Catégorie » si le bouton natif est réduit à son icône ; titre long : courant sur une ligne, ellipse, aucun débordement ;
+//             catégorie longue : lien d'au plus la moitié du fil, libellé à ellipse, courant entier, aucun débordement ; contraste ≥ 4,5:1 dans les 16 variantes ; sujet, page de réponse, page
+//             hors forum et bureau (768, 769, 1280) égaux au bundle de 5042afd ; seuil 767 non tactile ; bascule 768 -> 767 -> 768 -> 767.
 // Bundle de base : celui de 0523d7f (commit de base du plan, figé), sauf KR_SCRIPT_AVANT. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
-// Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier).
+// Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
+// et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
+// lib/variantes.mjs, REPERES_FIL_TICKET63). Fragment fil : bundle de base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
 // Usage : npm run build && node tests/e2e/forum-activite.mjs   (ou : npm run test:zone -- forum-activite)
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_FRAG = ancres, parcours, lignes, seuil, bureau (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -37,7 +49,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_FIL_TICKET63 as R, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -482,6 +494,282 @@ if (on('bureau')) {
       const vue = r => ({ hash: r.tard.hash, y: r.tard.y, haut: r.tard.haut, bas: r.tard.bas });
       assert.deepEqual(vue(teste), vue(base));
       assert.deepEqual(teste.erreurs, []);
+    });
+  });
+}
+
+// ---------- Fil d'Ariane commun de l'index et du sous-forum (épopée 6, ticket 3) ----------
+// Pages dérivées en mémoire : colonne native du sous-forum (entrée active « Jeu (HRP) »), titre long, entrée active renommée (L4), entrée
+// active au libellé long, sous-forum sans entrée active au bouton natif réduit à son icône (repli final), page de réponse (h1 à deux
+// liens), page hors forum à deux liens. Repères partagés : REPERES_FIL_TICKET63 (lib/variantes.mjs).
+const TITRE_LONG = 'Débuter avec un titre de sous-forum vraiment très long qui ne tient pas sur une ligne';
+const CATEGORIE_LONGUE = 'Jeu (HRP) avec un libellé de catégorie vraiment très long dans la liste latérale';
+function pagesFil() {
+  const remplacer = (html, motif, par, nom) => { const h = html.replace(motif, par); if (h === html) { throw new Error('page dérivée « ' + nom + ' » : motif absent de la fixture'); } return h; };
+  const sousForum = PAGES.debuter.html;
+  const natif = remplacer(sousForum, /<div id="col-left" class="col-md-3 sidebar"><div class="list-group">.*?<\/div><\/div>/, fixture(R.colonneNative).trim(), 'debuterNatif');
+  const rp = PAGES.rp.html;
+  return {
+    debuterNatif: { url: PAGES.debuter.url, html: natif },
+    debuterLong: { url: PAGES.debuter.url, html: remplacer(natif, '<h1 class="page-header">Débuter ', `<h1 class="page-header">${TITRE_LONG} `, 'debuterLong') },
+    debuterLibelle: { url: PAGES.debuter.url, html: remplacer(natif, /(<span class="list-group-item active">\s*)Jeu \(HRP\)/, '$1Hors Jeu', 'debuterLibelle') },
+    rpLibelle: { url: PAGES.rp.url, html: remplacer(rp, /(<span class="list-group-item active">\s*)Jeu \(RP\)/, '$1Rôle Jeu', 'rpLibelle') },
+    debuterCategorieLongue: { url: PAGES.debuter.url, html: remplacer(natif, /(<span class="list-group-item active">\s*)Jeu \(HRP\)/, '$1' + CATEGORIE_LONGUE, 'debuterCategorieLongue') },
+    debuterIcone: { url: PAGES.debuter.url, html: remplacer(sousForum, '<i class="fa fa-backward"></i> Jeu (HRP)</a>', '<i class="fa fa-backward"></i></a>', 'debuterIcone') },
+    reponse: { url: R.reponse.chemin, html: remplacer(fixture(R.reponse.fixture), /<h1 class="page-header">R[^]*?<\/h1>/, R.reponse.h1, 'reponse') },
+    regles: { url: R.regles.chemin, html: fixture(R.regles.fixture) }
+  };
+}
+
+// Fil de la page : conteneurs de fil (non imbriqués), enfants, styles calculés, contraste (CONTRASTE évalué avant), cible au centre de
+// chaque lien (window.scrollTo puis elementFromPoint), débordement horizontal de #col-right et de la page.
+const FIL = rep => {
+  const C = window.__krContraste;
+  const r1 = v => Math.round(v * 10) / 10;
+  const boite = e => { const r = e.getBoundingClientRect(); return { x: r1(r.left), y: r1(r.top + window.scrollY), w: r1(r.width), h: r1(r.height) }; };
+  const st = (e, props) => { const s = getComputedStyle(e); return Object.fromEntries(props.map(p => [p, s[p]])); };
+  const cible = e => {
+    const r0 = e.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, r0.top + window.scrollY - 200));
+    const r = e.getBoundingClientRect();
+    const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !!el && e.contains(el);
+  };
+  const conts = [...document.querySelectorAll(rep.conteneurs)].filter(e => !e.parentElement.closest(rep.conteneurs));
+  const col = document.getElementById('col-right');
+  const out = {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    iw: window.innerWidth,
+    fabs: document.querySelectorAll('.' + rep.fab).length,
+    debordCol: col ? col.scrollWidth - col.clientWidth : null,
+    debordPage: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    primaire: C.sonde(rep.textes[0]),
+    secondaire: C.sonde(rep.textes[1]),
+    conteneurs: conts.map(c => ({
+      cls: c.className, tag: c.tagName, parent: c.parentElement.tagName + '.' + c.parentElement.className, style: c.getAttribute('style') || '',
+      texte: c.textContent.replace(/\s+/g, ' ').trim(), icone: !!c.querySelector('.' + rep.icone) || c.textContent.includes('⏪'),
+      boite: boite(c), css: st(c, ['display', 'flexWrap', 'columnGap', 'fontSize', 'color', 'marginBottom']),
+      enfants: [...c.children].map(e => {
+        const s = getComputedStyle(e);
+        return {
+          tag: e.tagName, cls: e.className, href: e.getAttribute('href'), texte: e.textContent.replace(/\s+/g, ' ').trim(),
+          sous: [...e.children].map(x => ({ cls: x.className, sw: x.scrollWidth, cw: x.clientWidth, css: st(x, ['overflow', 'textOverflow', 'whiteSpace']) })),
+          masque: e.getAttribute(rep.masque), liens: e.querySelectorAll('a').length, boite: boite(e), sw: e.scrollWidth, cw: e.clientWidth,
+          interligne: parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.2,
+          css: st(e, ['color', 'fontSize', 'fontWeight', 'minHeight', 'height', 'whiteSpace', 'overflow', 'textOverflow', 'minWidth', 'flexGrow', 'flexShrink', 'textDecorationLine']),
+          contraste: Math.round(C.texte(e) * 100) / 100
+        };
+      })
+    }))
+  };
+  out.conteneurs.forEach((c, i) => [...conts[i].children].forEach((e, k) => { if (e.tagName === 'A') { c.enfants[k].cible = cible(e); } }));
+  window.scrollTo(0, 0);
+  return out;
+};
+// Empreinte du contenu (#content, sinon .container) : chaque élément, sa boîte au dixième et ses styles de rendu, son texte propre.
+const EMPREINTE_FIL = () => {
+  const racine = document.getElementById('content') || document.querySelector('.container');
+  const r1 = v => Math.round(v * 10) / 10;
+  const props = ['display', 'position', 'color', 'backgroundColor', 'fontSize', 'fontWeight', 'lineHeight', 'whiteSpace', 'overflow', 'textOverflow', 'flexWrap', 'marginTop', 'marginBottom', 'paddingTop', 'paddingBottom', 'borderBottomWidth', 'visibility'];
+  return [racine, ...racine.querySelectorAll('*')].map(e => {
+    const r = e.getBoundingClientRect();
+    const s = getComputedStyle(e);
+    const texte = [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.data.trim()).filter(Boolean).join(' ');
+    return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} [${r1(r.left)},${r1(r.top + window.scrollY)},${r1(r.width)},${r1(r.height)}] ${props.map(p => s[p]).join('|')} « ${texte} »`;
+  });
+};
+
+const COMMIT_FIL = '5042afd';
+if (on('fil')) {
+  const baseFil = strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  Object.assign(PAGES, pagesFil());
+  console.log(`\n== fil : fil d'Ariane commun de l'index et du sous-forum, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sujet, réponse et hors forum égaux à ${COMMIT_FIL} ; seuil, bascule, bureau ==`);
+  const lireFil = async (o, empreinte = false) => {
+    await o.page.evaluate(CONTRASTE);
+    const f = await o.page.evaluate(FIL, R);
+    const e = empreinte ? await o.page.evaluate(EMPREINTE_FIL) : null;
+    await o.context.close();
+    return { f, e, erreurs: o.erreurs };
+  };
+  const ATTENDUS = {
+    rp: ['Tous les forums', 'forum', 'Jeu (RP)'],
+    communaute: ['Tous les forums', 'forum', 'Communauté'],
+    debuterNatif: ['Jeu (HRP)', 'forum/hrp', 'Débuter'],
+    debuter: ['Jeu (HRP)', 'forum/hrp', 'Débuter'],
+    debuterLibelle: ['Hors Jeu', 'forum/hrp', 'Débuter'],
+    rpLibelle: ['Tous les forums', 'forum', 'Rôle Jeu'],
+    debuterLong: ['Jeu (HRP)', 'forum/hrp', TITRE_LONG],
+    debuterCategorieLongue: [CATEGORIE_LONGUE, 'forum/hrp', 'Débuter'],
+    debuterIcone: ['Catégorie', 'forum/hrp', 'Débuter']
+  };
+  const PRINCIPAUX = ['rp', 'communaute', 'debuterNatif', 'debuterLong'];
+  const cas = [
+    ...PRINCIPAUX.flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante })))),
+    ...['debuter', 'debuterLibelle', 'rpLibelle', 'debuterCategorieLongue', 'debuterIcone'].flatMap(cle => VARIANTES.map(variante => ({ cle, width: 375, variante })))
+  ];
+  const res = await mapLimit(cas, async c => lireFil(await ouvrir(c)));
+  // Fil commun : un seul conteneur, classes de la famille, lien sans icône, au seul span de libellé, séparateur « › » masqué, courant span
+  // sans lien.
+  const filCommun = (f, cle) => {
+    assert.ok(f.theme && f.mobile, `kr-theme-enabled ${f.theme}, mobile ${f.mobile}`);
+    assert.equal(f.conteneurs.length, 1, 'conteneurs de fil : ' + f.conteneurs.map(c => c.cls).join(', '));
+    const c = f.conteneurs[0];
+    assert.equal(c.cls, R.fil, 'classe du conteneur');
+    const [libelle, href, courant] = ATTENDUS[cle];
+    const enfant = cls => c.enfants.find(e => e.cls === cls) || {};
+    assert.deepEqual([enfant(R.lien).texte, enfant(R.lien).href, enfant(R.courant).texte], [libelle, href, courant], 'libellé et cible du lien, courant');
+    assert.ok(!c.icone, `icône de retour dans le fil : « ${c.texte} »`);
+    assert.deepEqual(c.enfants.map(e => [e.tag, e.cls]), [['A', R.lien], ['SPAN', R.sep], ['SPAN', R.courant]], 'structure du fil');
+    const [a, s, k] = c.enfants;
+    assert.deepEqual(a.sous.map(x => x.cls), [R.libelle], 'sous-éléments du lien');
+    assert.deepEqual([s.texte, s.masque], ['›', 'true'], 'séparateur');
+    assert.equal(k.liens, 0, 'lien dans le courant');
+    assert.equal(c.style, '', 'style en ligne du conteneur');
+  };
+  cas.forEach(({ cle, width, variante }, i) => {
+    const { f, erreurs } = res[i];
+    const lab = `fil ${cle} ${variante} ${width} px`;
+    if (PRINCIPAUX.includes(cle) && cle !== 'debuterLong') {
+      check(`${lab} : un seul conteneur de fil, de la famille commune ; « ${ATTENDUS[cle][0]} › ${ATTENDUS[cle][2]} », sans icône de retour ; courant span sans lien ; aucune exception`, () => {
+        filCommun(f, cle);
+        assert.deepEqual(erreurs, []);
+      });
+      check(`${lab} : lien d'au moins 44 px de haut, elementFromPoint au centre dans le lien ; lien en texte primaire, séparateur et courant en texte secondaire ; courant sur une ligne`, () => {
+        assert.equal(f.conteneurs.length, 1);
+        const [a, s, k] = f.conteneurs[0].enfants;
+        assert.ok(a.boite.h >= 44, 'hauteur du lien ' + a.boite.h);
+        assert.ok(a.cible, 'elementFromPoint au centre du lien hors du lien');
+        assert.equal(a.css.color, f.primaire, 'couleur du lien');
+        assert.deepEqual([s.css.color, k.css.color], [f.secondaire, f.secondaire], 'couleur du séparateur et du courant');
+        assert.ok(k.boite.h <= 1.5 * k.interligne, `courant sur plusieurs lignes : ${k.boite.h} px pour un interligne de ${k.interligne}`);
+      });
+    } else if (cle === 'debuterLong') {
+      check(`${lab} : titre de ${TITRE_LONG.length} caractères, courant sur une ligne, tronqué par des points de suspension ; conteneur d'au plus 44 px ; aucun débordement horizontal`, () => {
+        assert.equal(f.conteneurs.length, 1, 'conteneurs de fil');
+        const c = f.conteneurs[0];
+        const k = c.enfants.find(e => e.cls === R.courant);
+        assert.ok(k.boite.h <= 1.5 * k.interligne, `courant sur plusieurs lignes : ${k.boite.h} px pour un interligne de ${k.interligne}`);
+        assert.deepEqual([k.css.textOverflow, k.css.whiteSpace, k.css.overflow, k.css.minWidth], ['ellipsis', 'nowrap', 'hidden', '0px'], 'troncature du courant');
+        // À 375 px, le titre dépasse la place restante : il est coupé. À 767 px, il y tient (Plan Change Log).
+        if (width === 375) { assert.ok(k.sw > k.cw, `courant non tronqué : scrollWidth ${k.sw}, clientWidth ${k.cw}`); }
+        const l = (c.enfants.find(e => e.cls === R.lien) || { sous: [] }).sous[0] || {};
+        assert.ok(l.sw <= l.cw, `libellé court du lien tronqué : scrollWidth ${l.sw}, clientWidth ${l.cw}`);
+        assert.ok(c.boite.h <= 44, 'hauteur du conteneur ' + c.boite.h);
+        assert.equal(f.debordCol, 0, 'débordement horizontal de #col-right');
+        assert.equal(f.debordPage, 0, 'débordement horizontal de la page');
+        filCommun(f, cle);
+        assert.deepEqual(erreurs, []);
+      });
+    } else if (cle === 'debuterCategorieLongue') {
+      check(`${lab} : libellé de catégorie de ${CATEGORIE_LONGUE.length} caractères : lien d'au plus la moitié du fil, libellé tronqué par des points de suspension ; courant « Débuter » entier ; aucun débordement horizontal de #col-right ni de la page`, () => {
+        assert.equal(f.conteneurs.length, 1, 'conteneurs de fil');
+        const c = f.conteneurs[0];
+        const a = c.enfants.find(e => e.cls === R.lien);
+        const k = c.enfants.find(e => e.cls === R.courant);
+        const l = a.sous[0] || {};
+        assert.equal(f.debordCol, 0, 'débordement horizontal de #col-right');
+        assert.equal(f.debordPage, 0, 'débordement horizontal de la page');
+        assert.deepEqual([l.css && l.css.textOverflow, l.css && l.css.overflow, l.css && l.css.whiteSpace], ['ellipsis', 'hidden', 'nowrap'], 'troncature du libellé du lien');
+        assert.ok(l.sw > l.cw, `libellé du lien non tronqué : scrollWidth ${l.sw}, clientWidth ${l.cw}`);
+        assert.ok(a.boite.w <= c.boite.w / 2 + 0.5, `lien de ${a.boite.w} px pour un fil de ${c.boite.w} px`);
+        assert.ok(k.boite.w > 0 && k.sw <= k.cw, `courant tronqué ou masqué : largeur ${k.boite.w}, scrollWidth ${k.sw}, clientWidth ${k.cw}`);
+        filCommun(f, cle);
+        assert.deepEqual(erreurs, []);
+      });
+    } else if (cle === 'debuterIcone') {
+      check(`${lab} : sans entrée active, bouton natif réduit à son icône : repli final « ${ATTENDUS[cle][0]} › ${ATTENDUS[cle][2]} », lien non vide`, () => {
+        filCommun(f, cle);
+        assert.deepEqual(erreurs, []);
+      });
+    } else {
+      check(`${lab} : ${cle === 'debuter' ? 'sans entrée active, repli sur le texte du lien natif' : 'libellé de l\'entrée active de la liste latérale (L4)'} : « ${ATTENDUS[cle][0]} › ${ATTENDUS[cle][2]} », sans icône de retour`, () => {
+        filCommun(f, cle);
+        assert.deepEqual(erreurs, []);
+      });
+    }
+  });
+  // Parité index / sous-forum : mêmes styles calculés du fil.
+  for (const width of [375, 767]) {
+    for (const variante of VARIANTES) {
+      const fx = cle => res[cas.findIndex(c => c.cle === cle && c.width === width && c.variante === variante)].f;
+      const vue = f => {
+        const c = f.conteneurs[0];
+        if (!c) { return null; }
+        const [a, s, k] = c.enfants;
+        return { conteneur: [c.css.fontSize, c.css.color, c.css.columnGap, c.css.flexWrap], lien: [a.css.fontSize, a.css.fontWeight, a.css.color, a.boite.h, a.css.minHeight, a.css.whiteSpace], sep: s && [s.css.fontSize, s.css.fontWeight, s.css.color], courant: k && [k.css.fontSize, k.css.fontWeight, k.css.color, k.css.whiteSpace] };
+      };
+      check(`fil ${variante} ${width} px : index RP et sous-forum, même fil (taille, graisse, couleurs, écart, hauteur du lien, retour à la ligne)`, () => {
+        assert.deepEqual(vue(fx('debuterNatif')), vue(fx('rp')));
+      });
+    }
+  }
+
+  // Contraste : 16 variantes, 375 px, index RP et sous-forum (colonne native).
+  const casC = ['rp', 'debuterNatif'].flatMap(cle => TOUTES_VARIANTES.map(variante => ({ cle, width: 375, variante })));
+  const resC = await mapLimit(casC, async c => lireFil(await ouvrir(c)));
+  casC.forEach(({ cle, variante }, i) => {
+    const { f } = resC[i];
+    check(`fil ${cle} ${variante} 375 px : lien, séparateur et courant d'au moins 4,5:1`, () => {
+      assert.equal(f.conteneurs.length, 1, 'conteneurs de fil');
+      const bas = f.conteneurs[0].enfants.filter(e => e.contraste < 4.5).map(e => `${e.cls} ${e.contraste}`);
+      assert.deepEqual(bas, [], bas.join(' ; '));
+    });
+  });
+
+  // Sujet, réponse et hors forum : égaux au bundle de base (fil, bouton flottant, empreinte du contenu).
+  const casB = [
+    ...[375, 767].flatMap(width => VARIANTES.map(variante => ({ cle: 'sujet', width, variante }))),
+    ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante }))),
+    ...VARIANTES.map(variante => ({ cle: 'regles', width: 375, variante })),
+    // Bureau : index RP, sous-forum (colonne native) et sujet.
+    ...['rp', 'debuterNatif', 'sujet'].flatMap(cle => [768, 769, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))))
+  ];
+  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
+  casB.forEach(({ cle, width, variante }, i) => {
+    const { teste, base } = resB[i];
+    const quoi = width >= 768 ? 'aucun fil, ' : (cle === 'sujet' ? 'un seul conteneur (fil du sujet), ' : '');
+    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu, aucune exception`, () => {
+      assert.ok(teste.f.theme && base.f.theme, 'kr-theme-enabled absent');
+      if (width >= 768) { assert.equal(teste.f.conteneurs.filter(c => c.cls === R.fil).length, 0, 'fil au bureau'); }
+      if (cle === 'sujet' && width < 768) { assert.deepEqual(teste.f.conteneurs.map(c => c.cls), [R.filSujet], 'conteneurs de fil du sujet'); }
+      assert.deepEqual(teste.f, base.f, 'fil');
+      const k = teste.e.findIndex((x, j) => x !== base.e[j]);
+      assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
+      assert.deepEqual(teste.erreurs, []);
+    });
+  });
+
+  // Seuil : 767 px sans émulation tactile, fil commun ; bascule 768 -> 767 -> 768 -> 767 dans le même onglet.
+  const casS = ['rp', 'debuterNatif'].flatMap(cle => VARIANTES.map(variante => ({ cle, width: 767, variante, tactile: false })));
+  const resS = await mapLimit(casS, async c => lireFil(await ouvrir(c)));
+  casS.forEach(({ cle, variante }, i) => {
+    check(`fil seuil ${cle} ${variante} 767 px (non tactile) : fil commun`, () => filCommun(resS[i].f, cle));
+  });
+  const basculeFil = async cle => {
+    const { context, page, erreurs } = await ouvrir({ cle, width: 768, height: 667, tactile: false });
+    const etat = () => page.evaluate(r => ({ iw: window.innerWidth, mobile: document.body.classList.contains('mobile-mode'), fils: [...document.querySelectorAll('.' + r.fil)].map(c => c.textContent.replace(/\s+/g, ' ').trim()) }), R);
+    const etapes = [await etat()];
+    for (const width of [767, 768, 767]) {
+      await page.waitForTimeout(ECART_RECHARGEMENT_MS);
+      const charge = page.waitForEvent('load', { timeout: 15000 });
+      await page.setViewportSize({ width, height: 667 });
+      await charge;
+      await prete(page, true, `bascule fil ${cle} ${width}`);
+      etapes.push(await etat());
+    }
+    await context.close();
+    return { etapes, erreurs };
+  };
+  const resBascule = await mapLimit(['rp', 'debuterNatif'], basculeFil);
+  ['rp', 'debuterNatif'].forEach((cle, i) => {
+    const { etapes, erreurs } = resBascule[i];
+    const [libelle, , courant] = ATTENDUS[cle];
+    check(`fil bascule ${cle} 768 -> 767 -> 768 -> 767 : fil commun à 767, aucun fil à 768`, () => {
+      assert.deepEqual(etapes.map(e => [e.iw, e.mobile]), [[768, false], [767, true], [768, false], [767, true]]);
+      assert.deepEqual(etapes.map(e => e.fils), [[], [`${libelle}›${courant}`], [], [`${libelle}›${courant}`]]);
+      assert.deepEqual(erreurs, []);
     });
   });
 }

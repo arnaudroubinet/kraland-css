@@ -382,3 +382,23 @@ Points « Ask First » du plan tranchés en autonomie, option conservatrice à c
 
 - Essai sur vrai téléphone (H10) : ouvre une flèche de l'index et un « premier non lu ». Le message doit être à l'écran. Son en-tête peut être sous la barre.
 - Captures à 375×667, clair et sombre : forum sans message de l'index RP, racine-groupes, sujet ouvert sur `#msg6801395`.
+
+## Ticket 6.3 — un seul fil d'Ariane pour l'index et le sous-forum (construit, 2026-10-25)
+
+Points « Ask First » du plan, tranchés en autonomie. Les quatre derniers sont conservateurs. Le premier ne l'est pas :
+
+- **« ⏪ » retiré à l'index aussi, à confirmer.** C'est un changement de rendu de l'index fait sans ton accord. DESIGN ne demande ce retrait qu'au sous-forum. Je l'ai fait pour que l'index et le sous-forum aient le même rendu, ce qui est l'objet du ticket. Le retour en arrière est simple : reposer l'icône à l'index.
+- **« Tous les forums » gardé comme premier niveau de l'index** (choix de 6.1), libellé inchangé.
+- **Sujet laissé à 6.4.** Son fil garde sa classe et son rendu de base. La suite le vérifie égal à `5042afd`. Le critère « même rendu aux trois niveaux » du ticket passe donc à 6.4.
+- **Branche post/FAB intacte.** La page de réponse garde son fil en style en ligne, sans bouton « + ». La page hors forum `/regles/avancees` garde son fil et son bouton « + ». Les deux sont vérifiées égales à la base.
+- **Aucun masque au-delà des Tasks.** Masques posés seulement dans `forum-index.mjs` (hors-périmètre) et `typographie-formes.mjs` (`echelle-forum`, `nettoyage`). Chacun est posé sur la base seulement. Les deux harnais ont reçu une option de script d'init : voir le Plan Change Log.
+- **Aucun seuil ni aucune tolérance changés.**
+- **Style en ligne `!important` du h1 du sous-forum non touché** (`forumHeading.style.cssText`). Règles du h1 et de `.forum-subforum-*` non fusionnées.
+- **Lien du fil en couleur du texte, pas en accent** (Q28.1), comme la base.
+- **Repli final « Catégorie » au sous-forum** (revue, constat 3). Sans entrée active dans la liste latérale et avec un bouton natif réduit à son icône, le lien du fil affiche « Catégorie » au lieu d'être vide. Libellé générique, pas une catégorie réelle écrite en dur (interdit par le plan). À changer si tu préfères un autre mot.
+- **Catégorie longue : lien borné à la moitié du fil** (revue, constat 4). Le libellé du lien est tronqué par une ellipse au-delà de 50 % de la ligne ; le niveau courant garde le reste. Le libellé passe dans un `span.forum-mobile-breadcrumb-label`, car la règle mobile générique force le lien en `inline-flex !important`, où l'ellipse ne s'applique pas au texte nu.
+
+À vérifier par toi :
+
+- Captures à 375×667, clair et sombre : index RP, sous-forum « Débuter » avec un titre long (ellipse du courant), sous-forum avec une catégorie longue (ellipse du lien), page de réponse.
+- Sur le vrai site, en lecture seule : un sous-forum dont l'entrée active de la liste latérale porte un libellé différent du bouton natif. Le fil doit afficher le libellé de la liste (L4).

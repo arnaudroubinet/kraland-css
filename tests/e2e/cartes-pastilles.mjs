@@ -52,7 +52,7 @@
 //               comme « NOUVEAU MESSAGE » du sous-forum, vides invisibles ; « guilde », « [mod] », « Arme en main », pastilles d'ordre,
 //               éléments hors familles, étiquettes d'état, pièce courante et tags natifs égaux à la base ; fil de sujet sans étiquette ;
 //               16 variantes à 375, 1280, 1440 et 1920 px : mêmes couleurs, ≥ 4,5:1 (rapport exact) ; bascule 767 -> 768 -> 767 et 768 ->
-//               767 -> 768 dans le même onglet ; contrôles statiques (priorités forcées et règles :focus en nombre égal à la base, aucune
+//               767 -> 768 dans le même onglet ; contrôles statiques (priorités forcées au plus égales à la base, règles :focus en nombre égal, aucune
 //               couleur littérale, règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
@@ -1466,8 +1466,8 @@ if (on('etiquettes')) {
   const rb = await regles(avant55);
   const forcees = l => l.reduce((n, r) => n + Object.values(r.d).filter(([, p]) => p === 'important').length, 0);
   const focus = l => l.filter(r => r.sel.includes(':focus')).length;
-  check(`statique : autant de priorités forcées (${forcees(rs)}) et de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT_55}) ; aucun #c9302c`, () => {
-    assert.equal(forcees(rs), forcees(rb), 'priorités forcées');
+  check(`statique : pas plus de priorités forcées (${forcees(rs)}) et autant de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT_55}) ; aucun #c9302c`, () => {
+    assert.ok(forcees(rs) <= forcees(rb), `priorités forcées : ${forcees(rs)} > ${forcees(rb)}`);
     assert.equal(focus(rs), focus(rb), 'règles :focus');
     assert.ok(!/c9302c/i.test(cssDuBundle(userscript)), '#c9302c présent');
   });

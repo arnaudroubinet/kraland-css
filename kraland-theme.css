@@ -13691,36 +13691,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* L2 — en-tête mobile : fil d'Ariane, titre en 24 px, « + Nouveau sujet » (composant PR12 .forum-thread-action-new) en haut et sous la pagination. */
+/* L2 — en-tête mobile : fil d'Ariane (règles communes avec l'index, H12.3), titre en 24 px, « + Nouveau sujet » (composant PR12 .forum-thread-action-new) en haut et sous la pagination. */
 @media (max-width: 767px) {
   body.page-forum.kr-subforum .container h1.page-header {
     border-bottom: 0 !important;
-  }
-
-  body.page-forum.kr-subforum .forum-mobile-breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px;
-    margin: 0 0 4px;
-    color: var(--kr-text-secondary);
-    font-size: var(--kr-font-detail);
-  }
-
-  body.page-forum.kr-subforum .forum-mobile-breadcrumb-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
-    padding: 0;
-    color: var(--kr-text-primary) !important;
-    font-weight: 400;
-    text-decoration: none;
-  }
-
-  body.page-forum.kr-subforum .forum-mobile-breadcrumb-sep,
-  body.page-forum.kr-subforum .forum-mobile-breadcrumb-current {
-    color: var(--kr-text-secondary);
   }
 
   body.page-forum.kr-subforum .forum-subforum-head {
@@ -14578,7 +14552,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* Mobile — en-tête de page (L2) : fil d'Ariane « ⏪ Tous les forums › Jeu (RP) », puis le titre en 24 px, à 16 px du bord ; en-tête de section
+/* Mobile — en-tête de page (L2) : fil d'Ariane « Tous les forums › Jeu (RP) », puis le titre en 24 px, à 16 px du bord ; en-tête de section
    (L1, L4) : titre en couleur de texte, 44 px de haut, chevron de 44 x 44. */
 @media (max-width: 767px) {
   :where(html.kr-page-forum-index) #col-right > h1.page-header {
@@ -14594,9 +14568,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding-right: 35px !important;
   }
 
-  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb {
+  /* Fil d'Ariane commun de l'index et du sous-forum (H12.3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
+     de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 4px;
     margin: 0 0 4px;
@@ -14604,20 +14580,37 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+    max-width: 50%;
     min-height: 44px;
     padding: 0;
-    color: var(--kr-text-primary) !important;
+    color: var(--kr-text-primary);
     font-weight: 400;
     text-decoration: none;
+    white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-sep,
-  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
+  }
+
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-current {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--kr-text-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   :where(html.kr-page-forum-index) #col-right .forum-subforum-head {

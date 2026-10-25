@@ -62,4 +62,5 @@ Lot 6. La barre d'envoi du forum reste à l'épopée 7. Non-goals : ceux de la s
 - Open question: le correctif d'ancres H10 est vérifié en émulation pour les deux largeurs lues à l'évaluation (980 et 375) ; un essai sur vrai téléphone reste à faire par Arnaud.
 - Decision: l'entrée 1 (index aligné sur le sous-forum, refonte H12.1) est avancée en tête de l'initiative, avant les épopées 3 à 5 ; elle reprend les composants existants du sous-forum plutôt que la carte de section de l'épopée 5 (Arnaud, 2026-10-22).
 - Decision: inception partielle, les autres entrées de l'épopée seront planifiées plus tard (2026-10-22).
+- Decision: le `verify` de l'entrée 3 est amendé : même rendu à l'index et au sous-forum ; le fil du sujet reste égal à la base, il revient à l'entrée 4 (revue quick de 6.3, constat 2, 2026-10-25).
 - Constat du 2026-10-22 (site réel, 1440 et 375 px) : l'index montre description, modérateurs, compteurs sans libellé sur mobile, en-tête de section répété et en couleur de nation, petite flèche sans bouton ; le sous-forum a fil d'Ariane, en-têtes à icône, lignes pleine largeur et bouton → au bout de chaque ligne.

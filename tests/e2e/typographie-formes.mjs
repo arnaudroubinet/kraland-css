@@ -106,7 +106,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_INDEX_TICKET62, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_INDEX_TICKET62, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -193,7 +193,8 @@ const browser = await launchBrowser();
 
 // injection : 'corps' (défaut) évalue le bundle dès que <body> existe, au rappel d'un MutationObserver, donc à une avancée de l'analyse
 // qui dépend de la charge machine ; 'fin' l'évalue à un point fixe, par un script en ligne placé avant </body> (aussitôt retiré).
-async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, css = '', tactile = width < 768, def: defBoutons, toucher = tactile, injection = 'corps' }) {
+// init : script d'initialisation en plus (masque DOM d'un bundle de base), posé avant le bundle.
+async function ouvrir({ nom, width, height = 720, variante, script, label13 = false, css = '', init = null, tactile = width < 768, def: defBoutons, toucher = tactile, injection = 'corps' }) {
   const def = defBoutons || (nom === 'mini-profil' ? MINI_PROFIL : PAGES[nom]);
   const fin = injection === 'fin' && /<\/body>/i.test(def.html);
   const html = fin ? def.html.replace(/<\/body>(?![\s\S]*<\/body>)/i, '<script>document.currentScript.remove(); window.__krInjecter();</script></body>') : def.html;
@@ -216,6 +217,7 @@ async function ouvrir({ nom, width, height = 720, variante, script, label13 = fa
   await context.addInitScript(choisirVariante, variante);
   if (label13) { await context.addInitScript(poserJetonsRedefinis, ':root { --kr-font-label: 13px !important; }'); }
   if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
+  if (init) { await context.addInitScript(init); }
   await context.addInitScript(({ src, gmErreur, aLaFin }) => {
     // gmErreur (Interface) : GM.xmlHttpRequest répond par une erreur, le changelog est chargé à vide et « Voir l'historique » est posé.
     window.GM = { xmlHttpRequest: o => { if (gmErreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
@@ -1190,15 +1192,19 @@ if (on('echelle-forum')) {
   const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
-  const releverTailles = async (c, script, css) => {
-    const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css });
+  const releverTailles = async (c, script, css, init) => {
+    const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
     const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
-  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : ''].join('\n')) }));
+  // Fil d'Ariane de l'épopée 6, ticket 3 (FIL_TICKET63 et retirerIconeFilTicket63, base d'avant le ticket seulement) : retirer quand
+  // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la
+  // rétro 5 (les deux sont des tickets à venir).
+  const fil63 = AVANT_TICKET63(avantEchelleForum);
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : '', fil63 ? FIL_TICKET63 : ''].join('\n'), fil63 ? retirerIconeFilTicket63 : null) }));
   for (const { c, apres, masque } of resMiroir) {
-    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47 et TITRE_FORUM_BUG10 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
+    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47, TITRE_FORUM_BUG10, FIL_TICKET63 et retirerIconeFilTicket63 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
       assert.ok(AVANT_TICKET47(avantEchelleForum), `bundle de base (${COMMIT_ECHELLE_FORUM}) déjà au ticket 7`);
       assert.equal(masque.length, apres.length, 'nombre d\'éléments');
       const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
@@ -1872,14 +1878,19 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé. Idem pour l'entrée 2 (CARTES_TICKET52,
   // AVANT_TICKET52 : forum compris), empilée après, puis de l'entrée 3 (CARTES_TICKET53, AVANT_TICKET53 : groupes du plateau), puis de
   // l'entrée 5 (CARTES_TICKET55, AVANT_TICKET55 : « PNJ » des cartes en étiquette de catégorie), puis de l'épopée 6, entrée 2
-  // (LIGNE_INDEX_TICKET62, AVANT_TICKET62 : ligne de l'index mobile d'au moins 72 px, texte centré).
+  // (LIGNE_INDEX_TICKET62, AVANT_TICKET62 : ligne de l'index mobile d'au moins 72 px, texte centré), puis de l'épopée 6, entrée 3
+  // (FIL_TICKET63 et le script retirerIconeFilTicket63, AVANT_TICKET63 : fil d'Ariane sans icône, courant tronqué). Retirer ce dernier
+  // quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.3 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de
+  // la rétro 5 (les deux sont des tickets à venir).
+  const fil63 = script !== userscript && AVANT_TICKET63(script);
   const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
     + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '')
     + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '')
     + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '')
     + (script !== userscript && AVANT_TICKET55(script) ? '\n' + CARTES_TICKET55 : '')
-    + (script !== userscript && AVANT_TICKET62(script) ? '\n' + LIGNE_INDEX_TICKET62 : '');
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, tactile, injection: 'fin' });
+    + (script !== userscript && AVANT_TICKET62(script) ? '\n' + LIGNE_INDEX_TICKET62 : '')
+    + (fil63 ? '\n' + FIL_TICKET63 : '');
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, init: fil63 ? retirerIconeFilTicket63 : null, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;

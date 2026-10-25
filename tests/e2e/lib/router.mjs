@@ -95,7 +95,7 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base.
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -206,7 +206,9 @@ export const KEYWORDS = [
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES],
   // Activité du forum (épopée 6, entrée 2) : ligne de l'index mobile (72 px au moins), ancres de message et mini-chat, lien « premier non
   // lu » du sous-forum, vérifiés par forum-activite.
-  [/kr-page-forum-index\b[^{]*tbody\s*>\s*tr|location\.hash|scrollRestoration|flap|smart-redirect/, ['forum-activite']]
+  [/kr-page-forum-index\b[^{]*tbody\s*>\s*tr|location\.hash|scrollRestoration|flap|smart-redirect/, ['forum-activite']],
+  // Fil d'Ariane commun de l'index et du sous-forum (épopée 6, entrée 3) : vérifié par le fragment fil de forum-activite.
+  [/forum-mobile-breadcrumb|createForumBreadcrumb/, ['forum-activite']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de
@@ -214,8 +216,10 @@ export const KEYWORDS = [
 export const SECTIONS = [
   [/^MENUS FORUM DYNAMIQUES/, ['menus-forums']],
   [/^(FORUM TOPICS|SOUS-FORUM|MOBILE FORUM (PERMANENT )?TOPICS)\b/, ['sous-forum']],
-  [/^MODULE : ForumHeader:/, ['forum', 'sous-forum']],
-  [/^MODULE : ForumIndex:/, ['forum', 'sous-forum']],
+  // Fil d'Ariane commun (épopée 6, entrée 3) : construit par cette section, appelé par ForumHeader et ForumIndex, vérifié par forum-activite.
+  [/^FIL D'ARIANE DU FORUM/, ['forum', 'sous-forum', 'forum-activite']],
+  [/^MODULE : ForumHeader:/, ['forum', 'sous-forum', 'forum-activite']],
+  [/^MODULE : ForumIndex:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : Kramail:/, ['forum', 'kramail']],
   [/^MODULE : (ForumThread|Messages):/, ['forum', 'messages']],
   [/^CX2 : CROIX DIRECTIONNELLE/, ['croix']],

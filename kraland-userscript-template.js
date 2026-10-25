@@ -5407,6 +5407,37 @@
   })();
 
   // ============================================================================
+  // FIL D'ARIANE DU FORUM (H12.3)
+  // Fil commun de l'index et du sous-forum (mobile) : parents en liens, séparés par « › », puis le niveau courant, sans lien.
+  // Aucune icône ni style en ligne : le rendu (couleurs, cible de 44 px, troncature du courant) vient du CSS.
+  // ============================================================================
+
+  /** Fil d'Ariane du forum : parents = [{ label, href }], currentText = libellé du niveau courant */
+  function createForumBreadcrumb(parents, currentText) {
+    const crumb = document.createElement('div');
+    crumb.className = 'forum-mobile-breadcrumb';
+    parents.forEach(({ label, href }) => {
+      const link = document.createElement('a');
+      link.setAttribute('href', href);
+      link.className = 'forum-mobile-breadcrumb-link';
+      const text = document.createElement('span');
+      text.className = 'forum-mobile-breadcrumb-label';
+      text.textContent = label;
+      link.appendChild(text);
+      const separator = document.createElement('span');
+      separator.className = 'forum-mobile-breadcrumb-sep';
+      separator.setAttribute('aria-hidden', 'true');
+      separator.textContent = '›';
+      crumb.append(link, separator);
+    });
+    const current = document.createElement('span');
+    current.className = 'forum-mobile-breadcrumb-current';
+    current.textContent = currentText;
+    crumb.appendChild(current);
+    return crumb;
+  }
+
+  // ============================================================================
   // MODULE : ForumHeader:MobileBreadcrumb
   // Transforme le header forum en fil d'ariane + FAB button
   // ============================================================================
@@ -5429,22 +5460,14 @@
       return bar;
     }
 
-    // L2 : en-tête du sous-forum (mobile). Fil d'Ariane « ◀◀ Jeu (HRP) › Débuter », titre en 24 px et « + Nouveau sujet » à droite ;
+    // L2 : en-tête du sous-forum (mobile). Fil d'Ariane commun « Jeu (HRP) › Débuter » (catégorie lue dans l'entrée active de la liste
+    // latérale, repli sur le texte du lien natif puis sur un libellé générique), titre en 24 px et « + Nouveau sujet » à droite ;
     // le même bouton est répété sous la pagination DataTables (hors du wrapper : DataTables ne le redessine pas).
+    const CATEGORY_FALLBACK_LABEL = 'Catégorie';
+
     function transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText) {
-      const crumb = document.createElement('div');
-      crumb.className = 'forum-mobile-breadcrumb';
-      const back = backLink.cloneNode(true);
-      back.className = 'forum-mobile-breadcrumb-link';
-      ['data-toggle', 'data-placement', 'data-original-title', 'title', 'style'].forEach(attr => back.removeAttribute(attr));
-      const separator = document.createElement('span');
-      separator.className = 'forum-mobile-breadcrumb-sep';
-      separator.setAttribute('aria-hidden', 'true');
-      separator.textContent = '›';
-      const current = document.createElement('span');
-      current.className = 'forum-mobile-breadcrumb-current';
-      current.textContent = titleText;
-      crumb.append(back, separator, current);
+      const label = getActiveTitleLabel() || backLink.textContent.trim() || CATEGORY_FALLBACK_LABEL;
+      const crumb = createForumBreadcrumb([{ label, href: backLink.getAttribute('href') }], titleText);
 
       const head = document.createElement('div');
       head.className = 'forum-subforum-head';
@@ -5631,8 +5654,9 @@
   // - Chaque compteur a son mot : « 12 sujets · 345 messages », « 1 sujet », « 0 sujets » (forum sans message, Q27). Le mot est posé en
   //   attribut (data-kr-unit sur les cellules Sujets et Messages) et affiché par le CSS mobile : le texte des cellules reste celui du site.
   // - Le bouton → natif du dernier message reçoit un nom accessible, comme au sous-forum (labelRow de ForumTopics:MobileStats).
-  // - En-tête mobile : fil d'Ariane « ⏪ Tous les forums › Jeu (RP) » sur le lien du bouton natif « Tous les forums » (même href), puis le
-  //   titre, comme l'en-tête du sous-forum (L2) ; le bouton natif est retiré. Ordinateur : le bouton passe dans le titre, libellé, comme les
+  // - En-tête mobile : fil d'Ariane commun « Tous les forums › Jeu (RP) » (H12.3) sur le lien du bouton natif « Tous les forums » (même
+  //   href), la catégorie lue dans l'entrée active de la liste latérale (repli : texte du titre), puis le titre, comme l'en-tête du
+  //   sous-forum (L2) ; le bouton natif est retiré. Ordinateur : le bouton passe dans le titre, libellé, comme les
   //   boutons « Jeu (RP) » et « nouveau sujet » du titre du sous-forum.
   // Le libellé n'est pas lu dans l'infobulle du bouton : sur mobile, disableTooltips la retire avant que la file ne tourne.
   // ============================================================================
@@ -5655,26 +5679,6 @@
       }));
     }
 
-    function createBreadcrumb(allLink, titleText) {
-      const crumb = document.createElement('div');
-      crumb.className = 'forum-mobile-breadcrumb';
-      const back = document.createElement('a');
-      back.setAttribute('href', allLink.getAttribute('href'));
-      back.className = 'forum-mobile-breadcrumb-link';
-      const icon = document.createElement('i');
-      icon.className = 'fa fa-backward';
-      back.append(icon, ' ' + ALL_FORUMS_LABEL);
-      const separator = document.createElement('span');
-      separator.className = 'forum-mobile-breadcrumb-sep';
-      separator.setAttribute('aria-hidden', 'true');
-      separator.textContent = '›';
-      const current = document.createElement('span');
-      current.className = 'forum-mobile-breadcrumb-current';
-      current.textContent = titleText;
-      crumb.append(back, separator, current);
-      return crumb;
-    }
-
     function transformHeader(colRight) {
       const heading = colRight.querySelector(':scope > h1.page-header');
       const allLink = colRight.querySelector(':scope > span.pull-right > a[href="forum"]');
@@ -5687,7 +5691,7 @@
         title.className = 'forum-subforum-title';
         title.textContent = titleText;
         head.appendChild(title);
-        heading.replaceChildren(createBreadcrumb(allLink, titleText), head);
+        heading.replaceChildren(createForumBreadcrumb([{ label: ALL_FORUMS_LABEL, href: allLink.getAttribute('href') }], getActiveTitleLabel() || titleText), head);
         allLink.parentElement.remove();
       } else {
         if (!allLink.textContent.trim()) {allLink.append(' ' + ALL_FORUMS_LABEL);}
