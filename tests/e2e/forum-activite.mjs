@@ -44,14 +44,15 @@
 // lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
 // base de 5042afd (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de ef0e4d4 (COMMIT_ENTETE), sauf
-// KR_SCRIPT_AVANT_ENTETE.
+// KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
+// REPERES_PLUS_TICKET65) : bundle de base de 1134ef9 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
 // Usage : npm run build && node tests/e2e/forum-activite.mjs   (ou : npm run test:zone -- forum-activite)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
-//           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete),
-//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete (vide = tout).
+//           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete), KR_SCRIPT_AVANT_PLUS (bundle de base du fragment plus),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -61,7 +62,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, CONTRASTE, ENTETE_TICKET64, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET64, CONTRASTE, ENTETE_TICKET64, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, filSujetTicket64, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1117,6 +1118,342 @@ if (on('entete')) {
       const m = [false, 0, 0, false];
       const v = [true, 1, 2, true];
       assert.deepEqual(etapes.map(x => [x.iw, x.mobile, x.fils, x.barres, x.garde]), [[768, ...m], [767, ...v], [768, ...m], [767, ...v]]);
+      assert.deepEqual(erreurs, []);
+    });
+  }
+}
+
+// ---------- Bouton « ••• » commun au forum et au kramail (épopée 6, ticket 5) ----------
+// Trois pages : sujet du forum (« ••• » de chaque message), réception et lecture du kramail (toggle du menu du h1). Repères partagés :
+// REPERES_PLUS_TICKET65 (lib/variantes.mjs). Aucun clic sur un item de menu du kramail (actions de jeu) : les items sont mesurés seulement.
+// Mesure de la page : boutons d'accroche (hôtes) et boutons de classe commune, glyphe, styles calculés, boîte, cible au centre (window.scrollTo
+// puis elementFromPoint), contraste du glyphe ; autres actions du message (forum) et autres boutons du h1 (kramail) ; ancienne icône ; voile.
+// CONTRASTE évalué avant.
+const PLUS = ({ p, cle }) => {
+  const C = window.__krContraste;
+  const r1 = v => Math.round(v * 10) / 10;
+  const boite = el => { const b = el.getBoundingClientRect(); return { x: r1(b.left), y: r1(b.top + window.scrollY), w: r1(b.width), h: r1(b.height) }; };
+  const fond = expr => { const i = document.createElement('i'); i.style.backgroundColor = expr; document.body.appendChild(i); const v = getComputedStyle(i).backgroundColor; i.remove(); return v; };
+  const cible = el => {
+    const b0 = el.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+    const b = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    return !!hit && el.contains(hit);
+  };
+  const couleurs = el => { const s = getComputedStyle(el); return { fond: s.backgroundColor, bordure: s.borderTopColor, couleur: s.color, bordureL: s.borderTopWidth }; };
+  const hotes = [...document.querySelectorAll(p.hotes[cle])];
+  const communs = [...document.querySelectorAll('.' + p.plus)];
+  const out = {
+    theme: document.documentElement.classList.contains('kr-theme-enabled'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    iw: window.innerWidth,
+    voiles: document.querySelectorAll('.' + p.voile).length,
+    anciens: document.querySelectorAll('.' + p.ancien).length,
+    communs: communs.length,
+    hotesCommuns: hotes.filter(h => communs.includes(h)).length,
+    jetons: { fond: fond(p.jetons.fond), bordure: C.sonde(p.jetons.bordure), texte: C.sonde(p.jetons.texte) },
+    hotes: hotes.map(h => {
+      const g = h.querySelector('.' + p.glyphe);
+      const sg = g ? getComputedStyle(g) : null;
+      return {
+        cls: h.className, texte: h.textContent.trim(), label: h.getAttribute('aria-label'), type: h.getAttribute('type'),
+        enfants: [...h.children].map(c => [c.tagName, c.className, c.getAttribute(p.cache)]), icones: h.querySelectorAll('i').length,
+        boite: boite(h), ...couleurs(h), rayon: getComputedStyle(h).borderTopLeftRadius,
+        glyphe: g ? { taille: sg.fontSize, graisse: sg.fontWeight, espace: sg.letterSpacing, w: r1(g.getBoundingClientRect().width), h: r1(g.getBoundingClientRect().height), contraste: Math.round(C.texte(g) * 100) / 100 } : null
+      };
+    }),
+    // Forum : autres actions des barres (hors « ••• ») ; kramail : autres boutons du h1 (hors toggle du menu).
+    voisins: cle === 'sujet'
+      ? [...document.querySelectorAll(p.message + ' > ' + p.barre + ' .btn')].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, ...couleurs(b) }))
+      : [...document.querySelectorAll(p.boutonsH1)].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, boite: boite(b), ...couleurs(b) }))
+  };
+  hotes.forEach((h, i) => { out.hotes[i].cible = cible(h); });
+  window.scrollTo(0, 0);
+  return out;
+};
+// Ouverture et voile : premier item (forum : première action secondaire visible du message ouvert ; kramail : premier item du menu),
+// visible, cible au centre (window.scrollTo puis elementFromPoint), élément touché.
+const OUVERT = ({ p, cle }) => {
+  const visible = el => el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) && el.getBoundingClientRect().width > 0;
+  const h = document.querySelector(p.hotes[cle]);
+  if (!h) { return null; }
+  const conteneur = cle === 'sujet' ? h.closest(p.message) : h.closest(p.groupe);
+  const items = cle === 'sujet' ? [...conteneur.querySelectorAll(p.secondaire)].filter(visible) : [...conteneur.querySelectorAll(p.item)].filter(visible);
+  const premier = items[0] || null;
+  let point = null;
+  if (premier) {
+    const b0 = premier.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+    const b = premier.getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    point = { dedans: !!hit && premier.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null };
+  }
+  const v = document.querySelector('.' + p.voile);
+  const sv = v ? getComputedStyle(v) : null;
+  window.scrollTo(0, 0);
+  return {
+    ouvert: cle === 'sujet' ? conteneur.classList.contains(p.ouvert) : conteneur.classList.contains('open'),
+    menu: cle === 'sujet' ? null : visible(conteneur.querySelector(p.menu)),
+    items: items.length, premier: premier ? premier.textContent.trim() : null, point,
+    voiles: document.querySelectorAll('.' + p.voile).length, voile: sv ? { position: sv.position, couche: sv.zIndex } : null
+  };
+};
+// Voile simulé, comme Bootstrap 3.3.7 sur tactile (classe P.voile, CSS du vendor : fixe, 990). Kramail : inséré juste après le toggle
+// (insertAfter de Bootstrap). Forum : le « ••• » n'est pas un toggle Bootstrap, aucun voile n'est posé après lui ; le voile résiduel d'un autre
+// menu de la page est dans le contexte d'empilement racine : il est posé en dernier enfant de body (Plan Change Log).
+const VOILE = ({ p, cle, poser }) => {
+  if (!poser) { document.querySelectorAll('.' + p.voile).forEach(v => v.remove()); return document.querySelectorAll('.' + p.voile).length; }
+  const v = document.createElement('div');
+  v.className = p.voile;
+  const h = document.querySelector(p.hotes[cle]);
+  if (cle === 'sujet' || !h) { document.body.appendChild(v); } else { h.after(v); }
+  return 1;
+};
+
+const COMMIT_PLUS = '1134ef9';
+if (on('plus')) {
+  const basePlus = strip(process.env.KR_SCRIPT_AVANT_PLUS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PLUS, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_PLUS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  Object.assign(PAGES, {
+    pReception: { url: P.chemins.reception, html: fixture(P.fixtures.reception) },
+    pLecture: { url: P.chemins.lecture, html: fixture(P.fixtures.lecture) }
+  });
+  const CLE = { sujet: 'sujet', reception: 'pReception', lecture: 'pLecture' };
+  const NOMS = Object.keys(CLE);
+  console.log(`\n== plus : bouton « ••• » commun (sujet, réception et lecture du kramail), 375 et 767 px tactiles (variantes ${VARIANTES.join(' et ')}) ; toucher, voile 990 ; contraste (16 variantes) ; seuil, bascule et bureau égaux à ${COMMIT_PLUS} ==`);
+  const rgb = s => { const v = (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number); return s.startsWith('color(srgb') ? v.map(x => x * 255) : v; };
+  const proche = (a, b) => { const x = rgb(a); const y = rgb(b); return x.length === 3 && [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1); };
+  const mesurer = async (o, nom) => { await o.page.evaluate(CONTRASTE); return o.page.evaluate(PLUS, { p: P, cle: nom }); };
+  // Parcours d'une page : mesure au repos, toucher du premier « ••• » (cible vérifiée avant), état ouvert et voile réel éventuel, voile
+  // simulé posé puis retiré.
+  const parcours = async c => {
+    const o = await ouvrir({ ...c, cle: CLE[c.nom] });
+    const m = await mesurer(o, c.nom);
+    const centre = await o.page.evaluate(({ p, cle }) => {
+      const h = document.querySelector(p.hotes[cle]);
+      if (!h) { return null; }
+      const b0 = h.getBoundingClientRect();
+      window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+      const b = h.getBoundingClientRect();
+      const x = b.left + b.width / 2; const y = b.top + b.height / 2;
+      const hit = document.elementFromPoint(x, y);
+      return hit && h.contains(hit) ? { x, y } : null;
+    }, { p: P, cle: c.nom });
+    let reel = null; let simule = null; let reste = null; let actives = null;
+    if (centre) {
+      // Items du menu ou secondaires : tout clic reçu est compté et annulé (aucune action, même en fixture).
+      await o.page.evaluate(({ p, cle }) => {
+        window.__krItems = 0;
+        const sel = cle === 'sujet' ? p.secondaire : p.item;
+        document.addEventListener('click', e => { if (e.target.closest(sel)) { window.__krItems++; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+      }, { p: P, cle: c.nom });
+      await o.page.touchscreen.tap(centre.x, centre.y);
+      await o.page.waitForTimeout(150);
+      actives = await o.page.evaluate(() => window.__krItems);
+      reel = await o.page.evaluate(OUVERT, { p: P, cle: c.nom });
+      await o.page.evaluate(VOILE, { p: P, cle: c.nom, poser: true });
+      simule = await o.page.evaluate(OUVERT, { p: P, cle: c.nom });
+      reste = await o.page.evaluate(VOILE, { p: P, cle: c.nom, poser: false });
+    }
+    await o.context.close();
+    return { m, centre, reel, simule, reste, actives, erreurs: o.erreurs };
+  };
+  const cas = NOMS.flatMap(nom => [375, 767].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  const res = await mapLimit(cas, async c => ({ t: await parcours(c), b: await parcours({ ...c, src: basePlus }) }));
+  const vueKramail = v => v.map(x => ({ cls: x.cls, boite: x.boite, fond: x.fond, bordure: x.bordure, couleur: x.couleur }));
+  const vueVoisin = v => v.map(x => ({ cls: x.cls, fond: x.fond, bordure: x.bordure, couleur: x.couleur, bordureL: x.bordureL }));
+  cas.forEach(({ nom, width, variante }, i) => {
+    const { t, b } = res[i];
+    const { m } = t;
+    const lab = `plus ${nom} ${variante} ${width} px`;
+    check(`${lab} : un seul sélecteur (.${P.plus}) : chaque bouton d'accroche le porte, aucun autre ; aucune ancienne icône (${P.ancien}) ; aucun voile au chargement ; aucune exception`, () => {
+      assert.ok(m.theme && m.mobile, `kr-theme-enabled ${m.theme}, mobile ${m.mobile}`);
+      assert.ok(m.hotes.length >= 1, 'aucun bouton d\'accroche');
+      assert.deepEqual([m.hotesCommuns, m.communs], [m.hotes.length, m.hotes.length], `boutons d'accroche ${m.hotes.length}, portant .${P.plus} ${m.hotesCommuns}, .${P.plus} dans la page ${m.communs}`);
+      assert.equal(m.anciens, 0, 'ancienne icône');
+      assert.equal(m.voiles, 0, 'voile au chargement');
+      assert.deepEqual(t.erreurs, []);
+    });
+    check(`${lab} : glyphe texte « ••• » dans un span.${P.glyphe} masqué aux lecteurs d'écran, aucune icône ; aria-label « Autres actions » ; type button`, () => {
+      m.hotes.forEach((h, k) => {
+        assert.equal(h.texte, '•••', `bouton ${k} : texte`);
+        assert.deepEqual(h.enfants, [['SPAN', P.glyphe, 'true']], `bouton ${k} : contenu`);
+        assert.equal(h.icones, 0, `bouton ${k} : icônes`);
+        assert.equal(h.label, 'Autres actions', `bouton ${k} : aria-label`);
+        assert.equal(h.type, 'button', `bouton ${k} : type`);
+      });
+    });
+    check(`${lab} : chaque « ••• » d'au moins 44 x 44 px, elementFromPoint au centre dans le bouton ; glyphe visible (14 px, 700, non nul)`, () => {
+      assert.ok(m.hotes.length >= 1, 'aucun bouton d\'accroche');
+      m.hotes.forEach((h, k) => {
+        assert.ok(h.boite.w >= 44 && h.boite.h >= 44, `bouton ${k} : ${h.boite.w} x ${h.boite.h}`);
+        assert.ok(h.cible, `bouton ${k} : elementFromPoint au centre hors du bouton`);
+        assert.ok(h.glyphe, `bouton ${k} : glyphe absent`);
+        assert.deepEqual([h.glyphe.taille, h.glyphe.graisse], ['14px', '700'], `bouton ${k} : taille et graisse du glyphe`);
+        assert.ok(h.glyphe.w > 0 && h.glyphe.h > 0, `bouton ${k} : glyphe ${h.glyphe.w} x ${h.glyphe.h}`);
+      });
+    });
+    if (nom === 'sujet') {
+      check(`${lab} : « ••• » du forum en bouton standard (fond de surface, bordure teintée, texte de la nation), 44 px de large`, () => {
+        const j = m.jetons;
+        m.hotes.forEach((h, k) => {
+          assert.ok(proche(h.fond, j.fond) && proche(h.bordure, j.bordure) && proche(h.couleur, j.texte), `bouton ${k} : fond ${h.fond} / ${j.fond}, bordure ${h.bordure} / ${j.bordure}, texte ${h.couleur} / ${j.texte}`);
+          assert.ok(Math.abs(h.boite.w - 44) < 0.5, `bouton ${k} : largeur ${h.boite.w}`);
+        });
+      });
+      check(`${lab} : autres actions du message (fond, bordure, texte) égales au bundle de base (${COMMIT_PLUS})`, () => {
+        assert.ok(m.voisins.length > 0, 'aucune autre action');
+        assert.deepEqual(vueVoisin(m.voisins), vueVoisin(b.m.voisins));
+      });
+    } else {
+      check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})`, () => {
+        assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
+        const vue = h => ({ boite: h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
+        assert.ok(m.voisins.length > 0, 'aucun autre bouton du h1');
+        assert.deepEqual(vueKramail(m.voisins), vueKramail(b.m.voisins), 'autres boutons du h1');
+      });
+    }
+    // Voile réel du kramail non contrôlé ici : le module arrête la propagation du clic, Bootstrap n'en pose donc aucun (vrai par
+    // construction) ; le voile simulé ci-dessous couvre le cas.
+    check(`${lab} : toucher du « ••• » : ${nom === 'sujet' ? 'message ouvert, 4 actions secondaires visibles' : 'menu ouvert et visible'} ; aucun item activé (clic d'item compté et annulé)`, () => {
+      assert.ok(t.centre, 'cible du toucher hors du « ••• »');
+      assert.ok(t.reel && t.reel.ouvert, 'non ouvert : ' + JSON.stringify(t.reel));
+      if (nom === 'sujet') { assert.equal(t.reel.items, 4, 'actions secondaires visibles'); } else {
+        assert.ok(t.reel.menu && t.reel.items > 0, 'menu : ' + JSON.stringify(t.reel));
+      }
+      assert.equal(t.actives, 0, 'items activés par le toucher');
+    });
+    check(`${lab} : voile simulé (fixe, 990, ${nom === 'sujet' ? 'contexte racine' : 'inséré après le toggle'}) : elementFromPoint au centre du premier item rend l'item ; voile retiré ensuite`, () => {
+      const s = t.simule;
+      assert.ok(s && s.voile, 'voile simulé absent');
+      assert.deepEqual([s.voile.position, s.voile.couche], ['fixed', '990'], 'voile simulé : CSS du vendor');
+      assert.ok(s.point, 'aucun premier item : ' + JSON.stringify(s));
+      assert.ok(s.point.dedans, `premier item « ${s.premier} » couvert : ${s.point.touche}`);
+      assert.equal(t.reste, 0, 'voile restant');
+    });
+  });
+
+  // Mini-chat plein écran (#flap posé en mémoire, SUJET_FLAP) ouvert au-dessus d'un message ouvert : au centre de la partie d'une action
+  // secondaire couverte par le panneau, elementFromPoint rend le panneau, pas la barre du message (barre sous le mini-chat).
+  const casChat = [375, 767].flatMap(width => VARIANTES.map(variante => ({ width, variante })));
+  const resChat = await mapLimit(casChat, async c => {
+    const o = await ouvrir({ cle: 'sujet', html: SUJET_FLAP, width: c.width, variante: c.variante });
+    const centre = await o.page.evaluate(({ p }) => {
+      const h = document.querySelector(p.hotes.sujet);
+      if (!h) { return null; }
+      const b0 = h.getBoundingClientRect();
+      window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+      const b = h.getBoundingClientRect();
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      return hit && h.contains(hit) ? { x: b.left + b.width / 2, y: b.top + b.height / 2 } : null;
+    }, { p: P });
+    let r = null;
+    if (centre) {
+      await o.page.touchscreen.tap(centre.x, centre.y);
+      await o.page.waitForTimeout(150);
+      const ouvreur = await o.page.evaluate(({ p }) => { const f = document.querySelector(p.chat.fab) || document.querySelector(p.chat.lien); if (!f) { return null; } f.click(); return f.tagName + '.' + f.className; }, { p: P });
+      await o.page.waitForTimeout(400);
+      r = await o.page.evaluate(({ p }) => {
+        const f = document.getElementById(p.chat.id);
+        const bf = f.getBoundingClientRect();
+        const sf = getComputedStyle(f);
+        const m = document.querySelector(p.hotes.sujet).closest(p.message);
+        const items = [...m.querySelectorAll(p.secondaire)].filter(e => e.checkVisibility() && e.getBoundingClientRect().width > 0);
+        const points = items.map(e => {
+          const b = e.getBoundingClientRect();
+          const x0 = Math.max(b.left, bf.left, 0); const x1 = Math.min(b.right, bf.right, window.innerWidth);
+          const y0 = Math.max(b.top, bf.top, 0); const y1 = Math.min(b.bottom, bf.bottom, window.innerHeight);
+          if (x1 - x0 < 2 || y1 - y0 < 2) { return null; }
+          const hit = document.elementFromPoint((x0 + x1) / 2, (y0 + y1) / 2);
+          return { panneau: !!hit && f.contains(hit), barre: !!hit && !!hit.closest(p.barre), touche: hit ? hit.tagName + '.' + hit.className : null };
+        }).filter(Boolean);
+        return { ouvert: m.classList.contains(p.ouvert), items: items.length, flap: { z: sf.zIndex, vis: sf.visibility, boite: [Math.round(bf.left), Math.round(bf.top), Math.round(bf.width), Math.round(bf.height)] }, points };
+      }, { p: P });
+      r.ouvreur = ouvreur;
+    }
+    await o.context.close();
+    return { centre, r, erreurs: o.erreurs };
+  });
+  casChat.forEach(({ width, variante }, i) => {
+    const { centre, r, erreurs } = resChat[i];
+    check(`plus sujet ${variante} ${width} px : mini-chat plein écran ouvert au-dessus d'un message ouvert : elementFromPoint sur les actions secondaires couvertes rend le panneau, pas la barre`, () => {
+      assert.ok(centre, 'cible du toucher hors du « ••• »');
+      assert.ok(r && r.ouvert && r.items === 4, 'message non ouvert : ' + JSON.stringify(r));
+      assert.ok(r.ouvreur, 'aucun ouvreur du mini-chat');
+      assert.ok(r.points.length > 0, 'aucune action secondaire sous le panneau : ' + JSON.stringify(r.flap));
+      const dessus = r.points.filter(x => !x.panneau);
+      assert.deepEqual(dessus, [], 'barre au-dessus du mini-chat (z ' + r.flap.z + ') : ' + JSON.stringify(dessus));
+      assert.deepEqual(erreurs, []);
+    });
+  });
+
+  // Contraste : 16 variantes, 375 px, sujet : glyphe de chaque « ••• » d'au moins 4,5:1.
+  const casC = TOUTES_VARIANTES.map(variante => ({ cle: 'sujet', width: 375, variante }));
+  const resC = await mapLimit(casC, async c => { const o = await ouvrir(c); const m = await mesurer(o, 'sujet'); await o.context.close(); return m; });
+  casC.forEach(({ variante }, i) => {
+    const m = resC[i];
+    check(`plus sujet ${variante} 375 px : glyphe de chaque « ••• » d'au moins 4,5:1`, () => {
+      assert.ok(m.hotes.length >= 1 && m.hotes.every(h => h.glyphe), 'glyphe absent');
+      const bas = m.hotes.filter(h => h.glyphe.contraste < 4.5).map(h => h.glyphe.contraste);
+      assert.deepEqual(bas, [], bas.join(' ; '));
+    });
+  });
+
+  // Seuil 767 non tactile : « ••• » commun ; 768 et 769 (non tactiles) et bureau 1280 des 3 pages : aucun « ••• », empreinte du contenu égale
+  // au bundle de base.
+  {
+    const mesures = await mapLimit(NOMS, async nom => { const o = await ouvrir({ cle: CLE[nom], width: 767, variante: VARIANTES[0], tactile: false }); const m = await mesurer(o, nom); await o.context.close(); return m; });
+    NOMS.forEach((nom, i) => {
+      const m = mesures[i];
+      check(`plus seuil ${nom} 767 px (non tactile) : « ••• » commun (glyphe texte, .${P.plus})`, () => {
+        assert.ok(m.mobile && m.hotes.length >= 1, `mobile ${m.mobile}, boutons ${m.hotes.length}`);
+        assert.equal(m.hotesCommuns, m.hotes.length, `.${P.plus}`);
+        assert.ok(m.hotes.every(h => h.texte === '•••'), 'glyphe');
+      });
+    });
+  }
+  const casB = [
+    ...NOMS.flatMap(nom => [768, 769].map(width => ({ nom, width, variante: VARIANTES[0], tactile: false }))),
+    ...NOMS.flatMap(nom => VARIANTES.map(variante => ({ nom, width: 1280, variante })))
+  ];
+  const lireB = async (c, src) => {
+    const o = await ouvrir({ ...c, cle: CLE[c.nom], src });
+    const m = await mesurer(o, c.nom);
+    const em = await o.page.evaluate(EMPREINTE_FIL);
+    await o.context.close();
+    return { m, em, erreurs: o.erreurs };
+  };
+  const resB = await mapLimit(casB, async c => ({ t: await lireB(c, userscript), b: await lireB(c, basePlus) }));
+  casB.forEach(({ nom, width, variante }, i) => {
+    const { t, b } = resB[i];
+    check(`plus ${width === 1280 ? 'bureau' : 'seuil'} ${nom} ${variante} ${width} px${width < 1280 ? ' (non tactile)' : ''} : aucun « ••• », empreinte du contenu égale au bundle de base (${COMMIT_PLUS}), aucune exception`, () => {
+      assert.ok(t.m.theme && b.m.theme, 'kr-theme-enabled absent');
+      assert.deepEqual([t.m.mobile, t.m.communs], [false, 0], 'mobile, « ••• »');
+      const k = t.em.findIndex((x, j) => x !== b.em[j]);
+      assert.ok(k === -1 && t.em.length === b.em.length, k < 0 ? `éléments : ${t.em.length} au lieu de ${b.em.length}` : `élément ${k} : ${t.em[k]} au lieu de ${b.em[k]}`);
+      assert.deepEqual(t.erreurs, []);
+    });
+  });
+
+  // Bascule 768 -> 767 -> 768 -> 767 dans le même onglet (sujet) : « ••• » commun à 767, aucun à 768.
+  {
+    const { context, page, erreurs } = await ouvrir({ cle: 'sujet', width: 768, height: 667, tactile: false });
+    const etat = () => page.evaluate(p => ({ iw: window.innerWidth, mobile: document.body.classList.contains('mobile-mode'), communs: document.querySelectorAll('.' + p.plus).length, hotes: document.querySelectorAll(p.hotes.sujet).length }), P);
+    const etapes = [await etat()];
+    for (const width of [767, 768, 767]) {
+      await page.waitForTimeout(ECART_RECHARGEMENT_MS);
+      const charge = page.waitForEvent('load', { timeout: 15000 });
+      await page.setViewportSize({ width, height: 667 });
+      await charge;
+      await prete(page, true, `bascule plus ${width}`);
+      etapes.push(await etat());
+    }
+    await context.close();
+    check('plus bascule sujet 768 -> 767 -> 768 -> 767 : « ••• » commun à 767 (un par message), aucun à 768', () => {
+      const v = etapes.map(x => [x.iw, x.mobile, x.communs > 0 && x.communs === x.hotes, x.hotes > 0]);
+      assert.deepEqual(v, [[768, false, false, false], [767, true, true, true], [768, false, false, false], [767, true, true, true]], JSON.stringify(etapes));
       assert.deepEqual(erreurs, []);
     });
   }

@@ -430,3 +430,34 @@ Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
 - Captures à 375×667, en clair et en sombre : un sujet Communauté, un sujet Débats, un sujet fermé, un sujet HRP. Vérifier le fil commun, les deux barres et « Nouveau sujet » en bouton standard.
 
 - **Question : liens « lien » et « liste des messages » absents du sujet mobile.** La barre native masquée les emporte. C'était déjà vrai en RP et HRP, et 6.4 l'étend à Communauté, Débats et Staff. Les remettre, par exemple dans le « ••• » de 6.5, ou les laisser hors du mobile ? Reporté dans deferred-work.
+
+## Ticket 6.5 — bouton « ••• » commun au forum et au kramail (construit, 2026-10-25)
+
+Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
+
+1. **Liens « lien » et « liste des messages » du sujet mobile.** Ils ne sont pas ajoutés au « ••• ». Le « ••• » du forum est attaché à un message, alors que ces liens portent sur le sujet : les y mettre changerait le sens du bouton. La question reste ouverte (voir plus bas).
+2. **Classes d'accroche.** `kr-msg-more`, `kramail-actions-mobile` et `kramail-post-kebab` sont gardées à côté de `kr-more`. Aucune n'est renommée.
+3. **Style standard limité au « ••• ».** Seul le « ••• » du forum passe au bouton standard. Les autres actions du message (citer, éditer, profil…) gardent la règle générique (bordure `--kr-border-strong`, texte `--kr-text-primary`). L'harmonisation des voisins reste à décider.
+4. **ARIA du kramail.** `aria-label="Autres actions"` est posé sur les trois boutons par la fonction commune. `aria-expanded` reste au forum seulement.
+5. **Taille du glyphe au kramail.** L'icône de 18 px devient le glyphe « ••• » de 14 px, graisse 700, espacé de 1 px. Il est identique sur les trois pages (règle commune `.kr-more-glyph`).
+6. **Couche des secondaires du forum.** En mobile, la barre d'un message ouvert prend `position: relative; z-index: 991`, entre le voile Bootstrap (990) et le mini-chat (999 annoncé). Après revue, la valeur 1000 du build initial a été abaissée.
+   - Mesuré sur fixture, avec `#flap` posé en mémoire et ouvert par le bouton MC flottant, au-dessus d'un message ouvert : les actions secondaires couvertes rendent le panneau du mini-chat, pas la barre.
+   - Le `z-index` calculé de `#flap` est 1050 : la règle `#flap { z-index: 1050 !important }` bat `.mobile-mode .mini-chat-overlay` (999) par l'id.
+   - La barre est aussi au-dessus du voile simulé (990).
+   - Non mesuré : la barre « Envoyer » fixe du forum (`button.btn-primary.pull-right`, z-index 90). Aucune fixture n'a à la fois des messages et cette barre. Par la cascade, une barre de message ouvert qui passe sous la barre « Envoyer » s'affiche au-dessus d'elle (991 > 90, même contexte racine). Sur la base, elle restait dessous. À vérifier sur un vrai sujet qui a un formulaire de réponse.
+7. **Seuils et tolérances.** Aucun n'a changé.
+8. **Fixtures.** Aucune n'a changé. Le voile, les thèmes et les variantes sont faits en mémoire.
+9. **Survol et pression.** Le « ••• » du forum prend les états du bouton standard, sans règle nouvelle. Le kramail garde les siens.
+10. **Largeur du « ••• » du forum.** Elle passe de 48 à 44 px (valeur de DESIGN).
+
+Écarts à connaître :
+
+- **Voile simulé du forum.** Le « ••• » du forum n'ouvre pas un menu Bootstrap : aucun voile n'est posé après lui. Le contrôle pose le voile résiduel d'un autre menu là où Bootstrap le met, dans le contexte d'empilement racine (dernier enfant de `body`). Au kramail, le voile est posé juste après le bouton, comme Bootstrap.
+- **Glyphe du kramail : 18 → 14 px.** Glyphe texte au lieu de l'icône Font Awesome `fa-ellipsis-v`. Le bouton garde sa place, ses couleurs et son menu.
+- **Masques posés sur les bases d'avant le ticket** (`PLUS_TICKET65`, `plusTicket65`). Ils sont posés dans `forum-index.mjs` (hors-périmètre), `cartes-pastilles.mjs` (forum), `palette-nation.mjs` (pages mobiles), `typographie-formes.mjs` (`echelle-forum`, `nettoyage`) et `kramail-redaction.mjs` (non-régression au pixel, bundle « avant » = `feature/next`). Chacun doit être retiré au réalignement des bases (sweep 6.7 ou action A4 de la rétro 5).
+
+À vérifier par toi :
+
+- Captures à 375×667, en clair et en sombre : un sujet (message fermé puis ouvert), la réception du kramail (menu ouvert), un kramail lu (menu ouvert). Vérifier le même « ••• » sur les trois et l'accès aux actions.
+
+- **Question rappelée : liens « lien » et « liste des messages » absents du sujet mobile.** Les mettre dans un « ••• » propre au sujet (pas celui des messages), ailleurs, ou les laisser hors du mobile ?

@@ -133,3 +133,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 ## Reports du ticket 6.4, en-tête de sujet mobile (2026-10-25)
 
 - Sur le sujet mobile, la barre native est masquée. Avec elle disparaissent le lien « lien » (`fa-link`) et le lien « liste des messages » (`fa-th-list`, `…-999`). C'était déjà le cas en RP et HRP avant 6.4. Depuis 6.4, c'est aussi le cas en Communauté, Débats et Staff. Ces liens sont-ils à rendre (dans le menu « ••• » de 6.5 ?) ou à laisser hors du mobile ? Choix produit d'Arnaud. Candidat naturel : 6.5 (bouton « ••• » commun au forum et au kramail). Source : revue quick de 6.4, constat 1.
+
+## Reports du ticket 6.5, bouton « ••• » commun (2026-10-25)
+
+- La barre d'un message ouvert passe en z-index 991 sur mobile, pour rester au-dessus de `.dropdown-backdrop` (990). Elle pourrait donc passer au-dessus de la barre « Envoyer » fixe (z-index 90, `:where(body.page-forum) button.btn-primary.pull-right`), alors que sur la base elle passait dessous. Aucune fixture ne porte à la fois des messages et cette barre, donc rien ne l'a mesuré. À vérifier sur un vrai sujet qui a un formulaire de réponse, en lecture seule. Source : revue quick de 6.5, constat 1.

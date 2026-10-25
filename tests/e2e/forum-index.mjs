@@ -38,7 +38,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64, AVANT_TICKET65, PLUS_TICKET65, plusTicket65 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -104,6 +104,13 @@ async function open({ url, html, variante = VARIANTES[1], width, height, mobile 
   if (fil && AVANT_TICKET64(src)) {
     await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
     await context.addInitScript(filSujetTicket64);
+  }
+  // Bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65) posé sur le bundle « avant » seulement. Retirer quand
+  // COMMIT_AVANT est réaligné sur un SHA qui contient 6.5 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de la rétro 5
+  // (tickets à venir).
+  if (fil && AVANT_TICKET65(src)) {
+    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
+    await context.addInitScript(plusTicket65);
   }
   if (src) {
     await context.addInitScript(({ code, v, enabled }) => {
@@ -761,6 +768,7 @@ if (on('hors-perimetre')) {
     if (AVANT_TICKET49(avant)) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (cellules du sous-forum et de l\'index, en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
     if (AVANT_BUG10(avant)) { console.log('  info écart accepté et consigné : nom de forum des cartes mobiles (h3.forum-title, Staff) en 15 px au lieu de 17 px, posé sur le bundle « avant » (bug 10)'); }
     if (AVANT_TICKET63(avant)) { console.log('  info écart accepté et consigné : fil d\'Ariane du sous-forum sans icône de retour, niveau courant tronqué sur une ligne, posé sur le bundle « avant » (épopée 6, ticket 3)'); }
+    if (AVANT_TICKET65(avant)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur le bundle « avant » (épopée 6, ticket 5)'); }
     if (AVANT_TICKET64(avant)) { console.log('  info écart accepté et consigné : en-tête du sujet mobile, fil d\'Ariane commun, « Nouveau sujet » en bouton standard, actions de 44 px, posés sur le bundle « avant » (épopée 6, ticket 4)'); }
     if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
     const res = await mapLimit(cas, async c => {

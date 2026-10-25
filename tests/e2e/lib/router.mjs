@@ -95,7 +95,7 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base.
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -210,7 +210,11 @@ export const KEYWORDS = [
   // Fil d'Ariane commun de l'index et du sous-forum (épopée 6, entrée 3) : vérifié par le fragment fil de forum-activite.
   [/forum-mobile-breadcrumb|createForumBreadcrumb/, ['forum-activite']],
   // En-tête du sujet mobile (épopée 6, entrée 4) : barres d'actions et garde du sujet, vérifiées par le fragment entete de forum-activite.
-  [/forum-thread-action|kr-forum-sujet/, ['forum-activite']]
+  [/forum-thread-action|kr-forum-sujet/, ['forum-activite']],
+  // Bouton « ••• » commun du forum et du kramail (épopée 6, entrée 5) : vérifié par le fragment plus de forum-activite ; mesuré aussi par
+  // les suites qui posent les masques PLUS_TICKET65 (cartes-pastilles, palette-nation, typographie-formes, kramail-redaction, forum-index).
+  // `kr-more\b` couvre aussi `kr-more-glyph` (une ligne du glyphe seule y route).
+  [/kr-more\b|createMoreButton/, ['forum-activite', 'messages', 'kramail', 'typographie-formes', 'cartes-pastilles', 'palette-nation']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de
@@ -220,6 +224,9 @@ export const SECTIONS = [
   [/^(FORUM TOPICS|SOUS-FORUM|MOBILE FORUM (PERMANENT )?TOPICS)\b/, ['sous-forum']],
   // Fil d'Ariane commun (épopée 6, entrée 3) : construit par cette section, appelé par ForumHeader et ForumIndex, vérifié par forum-activite.
   [/^FIL D'ARIANE DU FORUM/, ['forum', 'sous-forum', 'forum-activite']],
+  // Bouton « ••• » commun (épopée 6, entrée 5) : construit par cette section, appelé par Messages:V3 et les deux modules Kramail ; mesuré
+  // aussi par les suites qui posent les masques PLUS_TICKET65.
+  [/^BOUTON « ••• » COMMUN/, ['forum', 'messages', 'kramail', 'forum-activite', 'typographie-formes', 'cartes-pastilles', 'palette-nation']],
   [/^MODULE : ForumHeader:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : ForumIndex:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : Kramail:/, ['forum', 'kramail']],

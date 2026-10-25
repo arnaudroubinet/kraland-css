@@ -5438,6 +5438,26 @@
   }
 
   // ============================================================================
+  // BOUTON « ••• » COMMUN (H12.2)
+  // Bouton « Autres actions » commun au forum et au kramail (mobile) : glyphe texte « ••• », masqué aux lecteurs d'écran.
+  // Décore le bouton reçu (toggle du kramail) ou en crée un (forum). L'ouverture et l'état restent au module appelant.
+  // ============================================================================
+
+  /** Bouton « ••• » : button = bouton à décorer (facultatif) ; renvoie le bouton */
+  function createMoreButton(button) {
+    const more = button || document.createElement('button');
+    more.type = 'button';
+    more.classList.add('btn', 'btn-default', 'kr-more');
+    more.setAttribute('aria-label', 'Autres actions');
+    const glyph = document.createElement('span');
+    glyph.className = 'kr-more-glyph';
+    glyph.setAttribute('aria-hidden', 'true');
+    glyph.textContent = '•••';
+    more.replaceChildren(glyph);
+    return more;
+  }
+
+  // ============================================================================
   // MODULE : ForumHeader:MobileBreadcrumb
   // Transforme le header forum en fil d'ariane + FAB button
   // ============================================================================
@@ -6033,7 +6053,7 @@
       // Remplacer l'icône "+" par un menu kebab (⋮)
       const toggleBtn = clone.querySelector('.dropdown-toggle');
       if (toggleBtn) {
-        toggleBtn.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+        createMoreButton(toggleBtn);
       }
 
       // Gérer le toggle dropdown manuellement (car les handlers Bootstrap ne sont pas clonés)
@@ -6178,7 +6198,7 @@
       var kebabToggle = document.createElement('button');
       kebabToggle.className = 'btn btn-default dropdown-toggle';
       kebabToggle.type = 'button';
-      kebabToggle.innerHTML = '<i class="fas fa-ellipsis-v"></i>';
+      createMoreButton(kebabToggle);
 
       var kebabMenu = document.createElement('ul');
       kebabMenu.className = 'dropdown-menu dropdown-menu-right';
@@ -7328,15 +7348,9 @@
         mails.forEach((a, i) => mark(a, (reportIndex >= 0 ? i === reportIndex : i === 1) ? 'signaler' : 'kramail'));
         mark(bar.querySelector('button.btn'), 'lien');
 
-        const more = document.createElement('button');
-        more.type = 'button';
-        more.className = 'btn btn-default kr-msg-more';
+        const more = createMoreButton();
+        more.classList.add('kr-msg-more');
         more.setAttribute('aria-expanded', 'false');
-        more.setAttribute('aria-label', 'Autres actions');
-        const dots = document.createElement('span');
-        dots.setAttribute('aria-hidden', 'true');
-        dots.textContent = '•••';
-        more.appendChild(dots);
         more.addEventListener('click', () => {
           const open = post.classList.toggle('kr-msg-open');
           more.setAttribute('aria-expanded', open ? 'true' : 'false');

@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET65, PLUS_TICKET65, plusTicket65, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -181,7 +181,7 @@ const browser = await launchBrowser();
 // `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué ; `secondaire` : texte atténué du ticket 4 posé
 // sur un bundle d'avant ce ticket.
 // `gmErreur` : GM.xmlHttpRequest répond par une erreur (changelog chargé à vide, bouton du profil posé).
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, cartes = false, gmErreur = false }) {
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, cartes = false, gmErreur = false, plus65 = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
@@ -193,6 +193,13 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   if (secondaire) { await context.addInitScript(poserJetonsRedefinis, TEXTE_SECONDAIRE_CLAIR); } // bundle d'avant le ticket 4 : texte atténué de Q26
   // Écart accepté et consigné (épopée 5, entrées 1 et 2) : panneaux mobiles en carte de section, forum compris (CARTES_TICKET51, puis
   // CARTES_TICKET52), posés sur un bundle d'avant ces entrées (`cartes`, pages4 seulement), jamais sur le bundle testé.
+  // Écart accepté et consigné (épopée 6, ticket 5) : bouton « ••• » commun du sujet mobile (PLUS_TICKET65 et plusTicket65), posé sur un
+  // bundle d'avant le ticket (`plus65`, pages4 seulement), jamais sur le bundle testé. Retrait : quand BASELINE4 est réaligné sur un SHA qui
+  // contient 6.5 (sweep 6.7 ou action A4 de la rétro 5, deux tickets à venir).
+  if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
+    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
+    await context.addInitScript(plusTicket65);
+  }
   if (cartes && script !== userscript && AVANT_TICKET52(script)) { await context.addInitScript(poserJetonsRedefinis, (AVANT_TICKET51(script) ? CARTES_TICKET51 + '\n' : '') + CARTES_TICKET52); }
   await context.addInitScript(([src, erreur]) => {
     window.GM = { xmlHttpRequest: o => { if (erreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
@@ -1147,7 +1154,7 @@ async function pages4(p, variante, width) {
   const mobile = width < 768;
   const res = {};
   for (const [cote, script] of [['avant', avant4], ['apres', userscript]]) {
-    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant', cartes: cote === 'avant' });
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant', cartes: cote === 'avant', plus65: cote === 'avant' });
     res[cote] = { ...(await page.evaluate(RELEVER4, SEL_COMPOSANTS4)), jetons: await page.evaluate(JETONS4, ABSENT), erreurs };
     await context.close();
   }
@@ -1181,6 +1188,7 @@ for (const [frag, width] of [['composants-pages-mobile', 375], ['composants-page
   const tag = `[${width}]`;
   console.log(`Composants des pages de référence ${width} px, 16 variantes : ${PAGES4.map(p => p.nom).join(', ')}, contre le bundle ${BASELINE4}`);
   console.log(`  info écart accepté et consigné : --kr-text-secondary ${TEXTE_SECONDAIRE_CLAIR_HEX} posé sur le bundle « avant » (Q26, ticket 4)`);
+  if (avant4 && AVANT_TICKET65(avant4)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur le bundle « avant » (épopée 6, ticket 5)'); }
   check(`${tag} bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${BASELINE4})`, () => assert.ok(avant4, 'introuvable'));
   if (!avant4) { continue; }
   const cas = PAGES4.flatMap(p => VARIANTES.map(variante => ({ p, variante })));

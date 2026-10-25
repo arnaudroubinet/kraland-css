@@ -15174,14 +15174,18 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     height: 44px !important;
     margin: 0 !important;
     padding: 0 12px !important;
-    border: 1px solid var(--kr-border-strong) !important;
     border-radius: var(--kr-radius-sm) !important;
-    background: var(--kr-bg-surface) !important;
-    color: var(--kr-text-primary) !important;
     font-size: 14px !important;
     line-height: 1.2 !important;
     text-decoration: none;
     white-space: nowrap;
+  }
+
+  /* Couleurs des actions du message, hors « ••• » commun (bouton standard) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn:not(:where(.kr-more)) {
+    border: 1px solid var(--kr-border-strong) !important;
+    background: var(--kr-bg-surface) !important;
+    color: var(--kr-text-primary) !important;
   }
 
   body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn i {
@@ -15217,9 +15221,21 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .kr-msg-more {
     order: 5;
     margin-left: auto !important;
-    min-width: 48px !important;
-    letter-spacing: 1px;
+    min-width: 44px !important;
+  }
+
+  /* Message ouvert : actions au-dessus d'un voile de menu déroulant (990), sous le mini-chat plein écran (999) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right {
+    position: relative;
+    z-index: 991;
+  }
+
+  /* Glyphe du bouton « ••• » commun (forum et kramail) */
+  body.mobile-mode .kr-more-glyph {
+    font-size: 14px;
     font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
   }
 
   /* Actions secondaires (profil, Kramail, Signaler, lien) : repliées, ouvertes par « ••• », en grille de deux colonnes sous les actions */

@@ -567,6 +567,23 @@ check('en-tête du sujet mobile (épopée 6, entrée 4) : fragment entete, modul
   const garde = route(T, hunk('function x() {', "  document.body.classList.add('kr-forum-sujet');"));
   assert.ok(garde.zones.includes('forum-activite'), garde.zones.join(','));
 });
+check('bouton « ••• » commun (épopée 6, entrée 5) : fragment plus, section commune, règle CSS du glyphe seule, module Kramail -> forum-activite et suites masquées (typographie-formes, cartes-pastilles, palette-nation)', () => {
+  assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('plus')), 'fragment plus');
+  const t = tpl(['BOUTON « ••• » COMMUN (H12.2)', ['  function f() {', '    return 11;', '  }']], ['MODULE : Kramail:PostMobileEnhancer', ['  function g() {', '    return 12;', '  }']]);
+  const section = route(T, hunkAt(at(t, 'return 11'), '    const n = 11;'), t);
+  assert.equal(section.widened, false, section.reasons.join(' ; '));
+  assert.deepEqual(sorted(section.zones), ['cartes-pastilles', 'forum', 'forum-activite', 'kramail', 'messages', 'palette-nation', 'typographie-formes'], sorted(section.zones).join(','));
+  const css = route('kraland-theme.css', hunk('.x {', '  .kr-more-glyph { font-size: 14px; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  assert.deepEqual(sorted(css.zones), ['cartes-pastilles', 'forum-activite', 'kramail', 'messages', 'palette-nation', 'typographie-formes']);
+  const seule = route('kraland-theme.css', hunk('.x {', '  body.mobile-mode .kr-more-glyph {'));
+  assert.equal(seule.widened, false, seule.reasons.join(' ; '));
+  // Ligne réelle de la règle (garde body.mobile-mode) : les zones du mot-clé mobile-mode s'y ajoutent.
+  ['cartes-pastilles', 'forum-activite', 'kramail', 'messages', 'palette-nation', 'typographie-formes'].forEach(z => { assert.ok(seule.zones.includes(z), z + ' absent : ' + sorted(seule.zones).join(',')); });
+  const kramail = route(T, hunkAt(at(t, 'return 12'), '      createMoreButton(kebabToggle);'), t);
+  assert.equal(kramail.widened, false, kramail.reasons.join(' ; '));
+  assert.deepEqual(sorted(kramail.zones), ['cartes-pastilles', 'forum', 'forum-activite', 'kramail', 'messages', 'palette-nation', 'typographie-formes']);
+});
 check('template, hunk sans mot-clé dans un module transverse (UTILITAIRES) : élargi au total', () => {
   assert.equal(route(T, hunkAt(at(TPL, 'return 1'), '    const n = 1;'), TPL).widened, true);
 });

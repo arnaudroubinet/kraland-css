@@ -955,3 +955,82 @@ export function filSujetTicket64() {
   });
   new MutationObserver(remplacer).observe(document, { childList: true, subtree: true });
 }
+
+/**
+ * Bouton « ••• » commun au forum et au kramail (épopée 6, ticket 5, story-bouton-commun-au-forum-et-au-kramail-h12-2) : repères du fragment
+ * plus de forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures et chemins des trois pages (sujet, réception et
+ * lecture du kramail), classe commune et glyphe, ancienne icône, attribut du glyphe, boutons d'accroche (« ••• » du forum, toggles des deux
+ * menus du kramail), message et barre d'actions du forum, état ouvert et actions secondaires, boutons du h1 du kramail, menus et leurs items,
+ * voile de Bootstrap, jetons du bouton standard.
+ */
+export const REPERES_PLUS_TICKET65 = {
+  fixtures: { sujet: 'forum-sujet.html', reception: 'kramail-reception.html', lecture: 'kramail-lecture.html' },
+  chemins: { sujet: '/forum/sujet/messages-v3-329425-1', reception: '/kramail/personnage-fictif-2000-0', lecture: '/kramail/post/sujet-fictif-0-9000002' },
+  plus: 'kr-more',
+  glyphe: 'kr-more-glyph',
+  ancien: 'fa-ellipsis-v',
+  cache: 'aria-hidden',
+  hotes: {
+    sujet: 'ul.media-list.forum > li.media > .media-body > .pull-right .kr-msg-more',
+    reception: 'h1.page-header .pull-right > .kramail-actions-mobile > .dropdown-toggle',
+    lecture: 'h1.page-header .pull-right > .kramail-post-kebab > .dropdown-toggle'
+  },
+  message: 'li.media',
+  ouvert: 'kr-msg-open',
+  barre: '.media-body > .pull-right',
+  secondaire: '.kr-msg-secondary',
+  groupe: '.btn-group',
+  item: '.dropdown-menu > li > a',
+  menu: '.dropdown-menu',
+  boutonsH1: 'h1.page-header .pull-right > a.btn, h1.page-header .pull-right > .btn-group > .btn',
+  voile: 'dropdown-backdrop',
+  chat: { id: 'flap', fab: '.mini-chat-fab', lien: 'a[href*="#flap"]' },
+  jetons: { fond: 'var(--kr-bg-surface)', bordure: 'var(--kr-border-tint)', texte: 'var(--kr-text-nation)' }
+};
+/** Bundle d'avant l'épopée 6, ticket 5 : la classe du glyphe commun (`kr-more-glyph`) en est absente (absente de 1134ef9 et des 17 bases
+ * citées par les suites : 6685df5, d521cc8, 0523d7f, 21fed8d, 81512a3, d68ab55, 4d97496, 3b1da55, fe77411, d953969, ef0e4d4, 62fd47d,
+ * 5042afd, 8631c45, 00b0786, 5ff22d3 et 2db3b4c). */
+export const AVANT_TICKET65 = bundle => !bundle.includes('kr-more-glyph');
+/**
+ * Écart accepté et consigné (épopée 6, ticket 5) : bouton « ••• » commun au forum et au kramail. Feuille miroir des déclarations du ticket :
+ * « ••• » du forum en bouton standard (fond de surface, bordure teintée, texte de la nation ; la base les force par la règle générique des
+ * actions du message, d'où !important et une classe de plus ici), 44 px de large, graisse et espacement portés par le glyphe ; barre du
+ * message ouvert entre un voile (990) et le mini-chat plein écran (999), à 991 ; glyphe commun 14 px, 700, espacé de 1 px. Posée avec le script plusTicket65 sur un bundle de
+ * base antérieur au ticket (AVANT_TICKET65), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du
+ * ticket (Plan Change Log).
+ * Condition de retrait : retirer quand les bases de comparaison (`COMMIT_AVANT` de `forum-index.mjs` et de `cartes-pastilles.mjs`,
+ * `COMMIT_ECHELLE_FORUM` et `COMMIT_NETTOYAGE` de `typographie-formes.mjs`, bases de `palette-nation.mjs`, bundle « avant » de
+ * `kramail-redaction.mjs`) sont réalignées sur un SHA qui contient 6.5 ; le réalignement est porté par le sweep 6.7 ou par l'action A4 de
+ * la rétro 5 (les deux sont des tickets à venir).
+ */
+export const PLUS_TICKET65 = [
+  '@media (max-width: 767px) {',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn.kr-more { border-color: var(--kr-border-tint) !important; background-color: var(--kr-bg-surface) !important; color: var(--kr-text-nation) !important; }',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .kr-msg-more.kr-more { min-width: 44px !important; letter-spacing: inherit; font-weight: 400; }',
+  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right { position: relative; z-index: 991; }',
+  '  body.mobile-mode .kr-more-glyph { font-size: 14px; font-weight: 700; letter-spacing: 1px; line-height: 1; }',
+  '}'
+].join('\n');
+/**
+ * Script d'initialisation (context.addInitScript(plusTicket65)), même écart et même condition de retrait que PLUS_TICKET65 : dès qu'un
+ * « ••• » du forum (.kr-msg-more) ou un toggle des menus du h1 du kramail (.kramail-actions-mobile, .kramail-post-kebab) existe sans la
+ * classe commune, lui pose la classe kr-more (au forum, avant kr-msg-more, ordre du bundle courant), le type button et « Autres actions »,
+ * et remplace son contenu par le glyphe commun.
+ */
+export function plusTicket65() {
+  const decorer = () => document.querySelectorAll('.kr-msg-more, .kramail-actions-mobile > .dropdown-toggle, .kramail-post-kebab > .dropdown-toggle').forEach(bouton => {
+    if (bouton.classList.contains('kr-more')) { return; }
+    bouton.type = 'button';
+    const forum = bouton.classList.contains('kr-msg-more');
+    bouton.classList.remove('kr-msg-more');
+    bouton.classList.add('btn', 'btn-default', 'kr-more');
+    if (forum) { bouton.classList.add('kr-msg-more'); }
+    bouton.setAttribute('aria-label', 'Autres actions');
+    const glyphe = document.createElement('span');
+    glyphe.className = 'kr-more-glyph';
+    glyphe.setAttribute('aria-hidden', 'true');
+    glyphe.textContent = '•••';
+    bouton.replaceChildren(glyphe);
+  });
+  new MutationObserver(decorer).observe(document, { childList: true, subtree: true });
+}

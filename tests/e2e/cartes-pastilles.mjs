@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, AVANT_TICKET65, PLUS_TICKET65, plusTicket65, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -167,7 +167,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null, plus65 = false }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -188,6 +188,13 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
   });
   await context.addInitScript(choisirVariante, variante);
   if (masque) { await context.addInitScript(poserJetonsRedefinis, masque); }
+  // `plus65` : bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65), posé sur la base d'avant le ticket seulement
+  // (fragment forum). Retrait : quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.5 (sweep 6.7 ou action A4 de la rétro 5, deux
+  // tickets à venir).
+  if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
+    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
+    await context.addInitScript(plusTicket65);
+  }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
@@ -508,12 +515,13 @@ async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      const { context, page, erreurs } = await ouvrir({ ...c, script, plus65: frag === 'forum' });
       out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, ORIGINE_TICKET64(c.nom)]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
+  if (frag === 'forum' && AVANT_TICKET65(avant)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur la base d\'avant 6.5 (épopée 6, ticket 5)'); }
   if (cas.some(c => ORIGINE_TICKET64(c.nom))) { console.log('  info écart accepté et consigné : messages du sujet remontés de 12 px (fil d\'Ariane du sujet, épopée 6, ticket 4) ; ordonnées relevées par rapport au premier message sur la base d\'avant 6.4'); }
   for (const { c, teste, base } of res) {
     const sous = PAGES[c.nom].racine ? ` sous ${PAGES[c.nom].racine}` : '';
