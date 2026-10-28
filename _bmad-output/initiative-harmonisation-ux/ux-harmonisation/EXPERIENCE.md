@@ -156,7 +156,7 @@ Le « non lu / nouveau » a la même couleur partout : cloche, enveloppe du k
 | Index du forum | activité d'un forum | aucun signal lu/non lu ; le dernier message (auteur, heure) dit l'activité ; l'ordre ne bouge pas | refonte de l'index |
 | Liste des sujets | jamais ouvert, nouveaux messages, lu | trois icônes natives : `i.fa.fa-folder`, `i.fa.fa-folder-open:not(.far)`, `i.far.fa-folder-open` ; « NON LU » et « NOUVEAU MESSAGE » en **Pastille d'état**, filet de la même couleur | AGENTS.md, H8.1, R3 |
 | Liste des sujets | sujet fermé | cadenas (rendu actuel) | — |
-| Kramail | message lu, non lu | rendu actuel (action « Marquer lu/non lu ») | — |
+| Kramail | message lu, non lu | non lu comme au forum : **Pastille d'état** et filet `{colors.status-unread}` (action « Marquer lu/non lu ») | Décision 2026-10-23, 7.4 |
 | Onglets de section, Boutons d'accès rapide | section en cours | texte en demi-gras, filet primaire de 3 px, fond inchangé | H1.5, H13.1 |
 | Carte de section | pliée, dépliée | chevron (rendu actuel du repli) | H4.1 |
 | Mini-profil | plié, déplié | rendu actuel | — |

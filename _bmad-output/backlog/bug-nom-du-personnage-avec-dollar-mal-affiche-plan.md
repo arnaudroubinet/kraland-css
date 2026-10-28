@@ -3,7 +3,7 @@ title: 'Un nom de personnage contenant « $ » est mal affiché dans le titre du
 type: 'bugfix'
 ticket: '3'
 created: '2026-10-22'
-status: 'built'
+status: done
 baseline_revision: '8b2152f293fdbedbe9ea74c17cf6a7dae3165170'
 route: 'oneshot'
 route_source: 'auto'

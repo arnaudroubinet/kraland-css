@@ -3,7 +3,7 @@ title: "Les tests de CAP-1 couvrent le décor CSS sur Cybermonde, « messages »
 type: 'chore'
 ticket: '4'
 created: '2026-10-22'
-status: 'built'
+status: done
 baseline_revision: '26dcc7bf6cd34765cf4664734fc5e06fc04b7e23'
 route: 'oneshot'
 route_source: 'auto'

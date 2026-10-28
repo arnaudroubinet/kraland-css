@@ -92,13 +92,12 @@ refine = true
 id = 7
 type = "story"
 title = "Cercle et barre de PV des cartes sans couleurs en dur"
-description = "Les couleurs du cercle et de la barre de PV des cartes de personnages, posées en dur par le template (~l.4345-4352, buildCard et createHPCircle, filtre KO en style en ligne ~l.4247-4250), passent par des jetons de la feuille, selon le choix d'Arnaud entre couleur par niveau de santé et vert de la jauge (Q30.5, rétro 5, A6)."
+description = "Les couleurs du cercle et de la barre de PV des cartes de personnages, posées en dur par le template (~l.4345-4352, buildCard et createHPCircle, filtre KO en style en ligne ~l.4247-4250), passent par des jetons de la feuille, selon le choix d'Arnaud entre couleur par niveau de santé et vert de la jauge (Q30.5, rétro 5, A6). Décision d'Arnaud du 2026-10-28 : le ticket reste dans l'épopée 9 ; cercle et barre gardent la couleur par niveau de santé, passée aux jetons."
 verify = "Suite plateau-qualite-usage, fixture du plateau, à 375 et 1280 px dans les 16 variantes : aucune couleur en ligne sur le cercle et la barre, couleurs égales aux jetons choisis, contraste du texte du cercle ≥ 4,5:1."
 covers = ["CAP-10"]
 after = [2, 5]
 hitl = false
 risk = "medium"
-unknown = "Arnaud choisit-il la couleur par niveau de santé (un état) ou le vert de la jauge PV pour le cercle et la barre des cartes (Q30.5), et veut-il ce ticket dans cette épopée (rétro 5, A6) ?"
 
 [[entry]]
 id = 8

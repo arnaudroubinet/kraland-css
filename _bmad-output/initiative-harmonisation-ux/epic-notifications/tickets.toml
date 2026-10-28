@@ -49,13 +49,12 @@ references = ["ux-harmonisation/EXPERIENCE.md › Responsive & Platform, Pop-up 
 id = 3
 type = "story"
 title = "Notifications : le sélecteur de personnage commence à 16 px du haut"
-description = "H14.3 : sur les deux supports (liste combinée), sous :where(html.kr-page-report), la bande vide d'environ 70 px disparaît : le padding-top: 60px du body (~l.481, prévu pour une barre de navigation que /report n'a pas) et la marge en ligne de 10 px du bandeau .bg-primary du sélecteur sont compensés pour que le sélecteur commence à --kr-space-4 (16 px) du haut, sans !important : la marge en ligne du bandeau ne se bat pas, le padding-top du body sous la garde est réduit d'autant (hypothèse) ; ajoute un fragment à report-non-lu.mjs et met à jour ses frags dans router.mjs et router.test.mjs ; les autres fenêtres sans barre (aperçu help.php?p=prev) sont notées, pas traitées."
+description = "H14.3 : sur les deux supports (liste combinée), sous :where(html.kr-page-report), la bande vide d'environ 70 px disparaît : le padding-top: 60px du body (~l.481, prévu pour une barre de navigation que /report n'a pas) et la marge en ligne de 10 px du bandeau .bg-primary du sélecteur sont compensés pour que le sélecteur commence à --kr-space-4 (16 px) du haut, sans !important : la marge en ligne du bandeau ne se bat pas, le padding-top du body sous la garde est réduit d'autant (hypothèse) ; ajoute un fragment à report-non-lu.mjs et met à jour ses frags dans router.mjs et router.test.mjs ; les autres fenêtres sans barre (aperçu help.php?p=prev) sont notées, pas traitées. Décision d'Arnaud du 2026-10-28 : aucun !important ; si la compensation ne suffit pas, l'écart restant est consigné."
 verify = "Suite report-non-lu, fixture report-non-lu.html, à 375×667, 767, 768, 900×800, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, et transition 767 ↔ 768 dans le même onglet dans les deux sens : haut du bandeau du sélecteur à 16 px (± 1) du haut du document ; hors /report (C4), padding-top du body égal à la base ; rouge sur le bundle de la base, contre-épreuve par mutation ; npm run test:router vert."
 covers = ["CAP-9"]
 after = [2, "4.1"]
 hitl = false
 risk = "low"
-unknown = "Si la compensation par le padding-top du body ne suffit pas (marge en ligne de 10 px du bandeau, padding du formulaire), Arnaud accepte-t-il un seul !important justifié ?"
 references = ["ux-harmonisation/review-faisabilite.md (L3)", "ux-harmonisation/EXPERIENCE.md › State Patterns, Notifications"]
 
 [[entry]]

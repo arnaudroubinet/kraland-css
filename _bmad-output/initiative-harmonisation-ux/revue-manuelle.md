@@ -2,6 +2,40 @@
 
 Doutes, décisions et validations à trancher par Arnaud à la fin du travail en autonomie (consigne du 2026-10-22). Chaque point porte l'option retenue en attendant, marquée comme hypothèse.
 
+
+## Décisions d'Arnaud du 2026-10-28 : recommandations suivies
+
+Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais suivre ta recommandation. » Chaque point ouvert ci-dessous prend la recommandation de l'orchestrateur. Les actions qui exigent Arnaud restent à sa main : clic sur la cloche (8.2, marque les notifications lues), session Kraland dans le Chrome dédié (spike 9.3, Signaler du 7.1, fixtures réelles du 7.2), essais sur téléphone, captures hitl (4.6, 6.1, 6.4, 7.9, 8.5, 9.11). A1 : aucune fusion vers `main`. Arnaud, 2026-10-28 : « Non pas de fusion vers main. On travail que sur next. » Tout le travail est livré sur `feature/next`.
+
+- 8.3 : aucun `!important`. La marge en ligne de 10 px du bandeau est compensée par le padding-top du body sous la garde ; si un écart reste, il est consigné.
+- 9.7 (Q30.5) : le ticket reste dans l'épopée 9. Cercle et barre de PV gardent la couleur par niveau de santé, passée aux jetons.
+- A9 : base de `kramail-redaction` figée sur un SHA (tests seulement).
+- D11 et H10 : correctif d'ancres limité à `#flap`. L'essai sur téléphone ne bloque rien.
+- D12 : liens « lien » et « liste des messages » laissés hors du mobile.
+- A5 (cloche invisible menu fermé, 768-991 px) : rendu de base, sans repère ajouté.
+- D2, D3, D5 et choix du 6.1 : Staff reste exclu, sans correctif.
+- D6 : coins bas de la carte racine en sombre laissés au rendu de base.
+- D10 : `span.tagforum` garde son rendu natif.
+- Q27.5, Q27.6 : répétition « Jeu (RP) », description et modérateurs du sous-forum laissés tels quels.
+- Q24.2, Q30.6, Q32.2 à Q32.4 : rendu actuel ; Q30.6 garde seulement le plancher de 44 px (entrée 9.5). Q20 : aucun seuil de contraste non textuel.
+- 4.9 : cellules du forum à 4 px en haut et en bas, 8 px sur les côtés ; seuils L6 inchangés.
+- « article » et « Dernier sujet » (CAP-6) : consignés absents, sans règle.
+- Lignes de sujet mobiles : cartes détachées gardées.
+- O1 : pas de fond de page teinté.
+- 5.5 : marque PNJ mobile gardée à 14 px et 46 px.
+- 4.6 : panneau Matériel à 13 px sur ordinateur gardé.
+- 4.7 : nom de forum de l'index en graisse 400 ; DESIGN.md aligné.
+- DESIGN.md : titre du kramail en accent, titre du jeu à 17 px, enveloppe rouge.
+- Pages secondaires sous 12 px (accueil, Événements) : laissées en l'état.
+- Cibles de 44 px des votes et de la pagination : épopée 9.
+- Compteurs sur ordinateur : colonnes Sujets et Messages gardées.
+- Sous-forum : inchangé, `EXCEPTION_TICKET66` gardée.
+- Épingles du `tickets.toml` de l'initiative : déjà en place, point clos.
+- « Non lu » du kramail : décision du 2026-10-23 suivie (entrée 7.4) ; EXPERIENCE.md mis à jour.
+- Kramail (épopée 7) : Q31.1, Q31.2, Q31.3 et Q22.1 confirmées telles qu'appliquées.
+- 3.5 (palette d'états), 2.5 (croix à sa place native), 9.1 (colonnes ajoutées après le chargement à 0 px), 9.2 (nom à gauche, statut centré ; cartes de 1512 px au nom dessous) : confirmés.
+- Backlog 2, 3 et 4 : faits. Backlog 5 : clos (constat 2 infirmé, constat 1 non vérifiable sans marquer un message lu).
+
 ## Validations visuelles en attente (tickets `built`)
 
 - Ticket 3.1, jetons de couleur et liens en couleur d'accent : captures de la fixture dans `.tmp/captures/validation-3-1-jetons/` (Kraland, Empire Brun et Paladium, clair et sombre, 375 et 1280 px). Sur le site, changements visibles : liens d'Empire Brun clair en brun `#8a5a00` au lieu de l'or ; survol des liens sans changement de couleur, souligné ; nuances du clair tirées de chaque nation (plus de rouge Kraland hors Kraland). Aucune visite du site réel pour ce ticket.

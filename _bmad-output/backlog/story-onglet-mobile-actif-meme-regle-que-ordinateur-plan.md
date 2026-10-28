@@ -3,7 +3,7 @@ title: "L'onglet de section actif sur mobile suit la même règle que l'ordinate
 type: 'refactor'
 ticket: '2'
 created: '2026-10-22'
-status: 'built'
+status: done
 baseline_revision: '19cf4732a158f5648ffbfc4c00fc64afe8469173'
 route: 'oneshot'
 route_source: 'auto'
