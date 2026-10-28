@@ -585,3 +585,15 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 
 - Decision (orchestrateur, 2026-10-28) : Arnaud a demandé le même fond neutre pour les caractéristiques, sans le restreindre au plateau. Les caractéristiques de Bâtiments, Matériel et Employés sont donc couvertes. Ces pages chargent les caractéristiques natives (`.btn-group-xs.center`), que le template déplace dans `#col-leftest-stats`. Elles prennent le fond neutre du bouton standard de leur page. Sur ces pages aussi, seul `btn-success` est neutralisé. La règle vise la colonne des caractéristiques, pas `alert12`, qui est aussi la classe de « Prier » (`btn-primary`). Dans les fixtures, `#col-leftest-stats` ne contient aucun autre `.btn-success`.
 - À vérifier par toi : caractéristiques au fond neutre sur le plateau, Bâtiments, Matériel et Employés, en Kraland clair et Empire Brun sombre, à 375 et 1280 px.
+
+## Backlog 9 — jauges PM et PP du mini-profil (construit, 2026-10-28)
+
+- Chaque jauge lit maintenant sa valeur dans son propre bouton (`a.alert141`, `a.alert142`, `a.alert143`). Le maximum vient de la barre de la colonne suivante.
+- Le test `typographie-formes#nettoyage` masque les largeurs des jauges (`MASQUE_JAUGES_9`), car sa base garde les anciennes valeurs fausses. Retirer ce masque quand la base du nettoyage passera après le backlog 9.
+- À vérifier par toi : sur `/jouer/plateau` à 375 px, mini-profil plié puis déplié, PV, PM et PP affichent chacun leur propre valeur.
+
+## Backlog 12 — « Envoyer » du forum et panneaux des pages dérivées (construit, 2026-10-28)
+
+- La barre d'un message ouvert ne passe au-dessus du voile Bootstrap (z-index 991) que si `.dropdown-backdrop` est présent. Ailleurs, « Envoyer » reste atteignable.
+- Les accordéons et les modales gardent leur peau : les règles du panneau forum mobile excluent `.panel-group > *` et `.modal *`.
+- Doute : le cas « Envoyer » sous une barre fixe est peut-être rare sur un vrai sujet. À vérifier par toi sur un sujet réel à 375 px.
