@@ -43,6 +43,8 @@ function bundleAvant() {
   return null;
 }
 const SHOTS = process.env.KR_SHOTS || '';
+// Superposition mobile retirée par l'entrée 9.6, encore posée par le bundle « avant » (feature/next) : voir regression.
+const MASQUE_SUPERPOSITION_96 = '.kr-mobile-overlay';
 const FA_DIR = process.env.KR_FA_DIR || '';
 const BASE = 'http://www.kraland.org';
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
@@ -1316,7 +1318,9 @@ if (frag('regression')) {
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
         const composants = AVANT_TICKET4 ? await p.evaluate(MARQUER_COMPOSANTS, COMPOSANTS_TICKET4) : 0;
-        doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
+        // Écart accepté et consigné (entrée 9.6) : superposition mobile .kr-mobile-overlay (display: none en body.mobile-mode) posée par le
+        // bundle « avant » et retirée depuis, hors du compte des éléments. Retirer quand feature/next contient l'entrée 9.6.
+        doms[bundle] = await p.evaluate(sel => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), MASQUE_SUPERPOSITION_96);
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
         const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore], [data-kr-composant]')] });

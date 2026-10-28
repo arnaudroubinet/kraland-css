@@ -273,7 +273,7 @@ const MESURE = ([sel, texte]) => {
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
 // ecarter : sous-arbres dont le fond et le texte sont relevés à part (caractéristiques, backlog 13), « · » à leur place.
-const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], ecarter] = []) => {
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], ecarter, horsReleve] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
@@ -284,7 +284,7 @@ const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-he
     theme: document.documentElement.classList.contains('kr-theme-enabled'),
     mobile: document.body.classList.contains('mobile-mode'),
     sw: document.documentElement.scrollWidth,
-    l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].map((e, i) => {
+    l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].filter(e => !(horsReleve && e.matches(horsReleve))).map((e, i) => {
       const b = e.getBoundingClientRect();
       const s = getComputedStyle(e);
       const aPart = ecarter && e.closest(ecarter);
@@ -292,6 +292,10 @@ const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-he
     })
   };
 };
+// Écart accepté et consigné (entrée 9.6) : la chaîne mobile des modales du bundle de base (COMMIT_AVANT) passait deux fois et posait un
+// second indicateur d'onglets (.kr-tabs-indicator, hauteur nulle), hors du relevé de comparer. Retirer quand COMMIT_AVANT passe au-delà
+// du commit de l'entrée 9.6.
+const MASQUE_INDICATEUR_96 = '.kr-tabs-indicator + .kr-tabs-indicator';
 const premierEcart = (a, b) => {
   const i = a.findIndex((x, k) => x !== b[k]);
   if (i < 0 && a.length === b.length) { return ''; }
@@ -504,7 +508,7 @@ async function comparer(frag, cas) {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       const { context, page, erreurs } = await ouvrir({ ...c, script });
-      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
+      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, undefined, MASQUE_INDICATEUR_96]), erreurs };
       await context.close();
     }
     return { c, ...out };
