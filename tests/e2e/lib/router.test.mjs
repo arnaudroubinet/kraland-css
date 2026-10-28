@@ -49,6 +49,7 @@ check('Notifications /report (kr-page-report) : zone report, suite -> report-non
   assert.equal(f.widened, false);
   assert.deepEqual(f.units, ['report-non-lu', 'palette-nation']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
+  assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee']]); // 8.1 : fenêtre 600 remplacée
 });
 check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation et forum-activite', () => {
   assert.deepEqual(zonesOf('palette-nation.mjs'), ['palette-nation']);

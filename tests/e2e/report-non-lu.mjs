@@ -4,8 +4,12 @@
 //   C1 l'état non lu passe par la marque de gauche (filet de 4 px, contraste ≥ 3:1 contre le fond), SANS mot visible : seconde décision
 //      d'Arnaud, « Dans notification pas besoin du tag non lu. Juste la marque à gauche. » ;
 //   B  le filet a la couleur du non lu du forum (jeton --kr-status-unread), pas celle du texte (analyse UX t_e03578b0, option B) ;
-//   N  la cellule de la date est teintée à 14 % de cette couleur (analyse UX t_ad11efd0, option N, « Go pour n ») : texte de la date
-//      ≥ 9,6:1 sur la teinte, sans couleur ni graisse ajoutées, sur une ligne ; hauteur des lignes inchangée ;
+//   N  sur ordinateur, la cellule de la date est teintée à 14 % de cette couleur (analyse UX t_ad11efd0, option N, « Go pour n ») : texte
+//      de la date ≥ 9,6:1 sur la teinte, sans couleur ni graisse ajoutées ; sur mobile, la date n'est plus une colonne et n'est pas teintée
+//      (ticket 8.1) ; sur les deux, date sur une ligne et hauteur des lignes inchangée par la marque ;
+//   L  ligne de notification (ticket 8.1, H14.1, H14.2) : dates en 13 px (--kr-font-detail), texte en 14 px sur ordinateur (--kr-font-body)
+//      et 15 px sur mobile (--kr-font-body-mobile) ; sur ordinateur, colonne de date de 100 px conservée ; sur mobile, date au-dessus du
+//      texte, texte sur toute la largeur de la ligne, filet sur la ligne tr.bg-info entière (toute sa hauteur) et plus sur la cellule ;
 //   C2 sur une ligne non lue, chaque texte du serveur (texte simple, lien, 5 couleurs serveur, bilan gris, 2e cellule) est contrasté
 //      exactement comme le même texte sur une ligne normale, dans les 16 variantes ;
 //   C3 la marque reste distincte de la page active de la pagination et du bandeau du sélecteur de personnage ;
@@ -15,7 +19,9 @@
 // octet pour octet au bootstrap1.min.css du site). Confinement réseau (lib/confinement.mjs) ; aucun clic, aucune navigation.
 //
 // Usage : npm run build && npm run test:zone -- report
-// Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = fenetre, bureau, portee (vide = tout).
+// Largeurs : mobile 375 × 667 et 767 px ; ordinateur 768, 769, popup de la cloche 900 × 800 (rendu ordinateur, R5), 1280, 1440 et 1920 px ;
+// bascule 767 ↔ 768 dans le même onglet, dans les deux sens (rechargement de bascule attendu).
+// Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -92,6 +98,7 @@ const MESURE = (label) => {
   const normal = rows[0];
   const unread = rows.filter(r => r.classList.contains('bg-info'));
   const unreadDouble = unread.filter(r => r.cells.length > 1); // lignes « date | texte » (la garde à cellule unique est à part)
+  const mobile = window.matchMedia('(max-width: 767px)').matches;
   const probe = document.createElement('i'); probe.style.color = 'var(--kr-status-unread)'; document.body.appendChild(probe);
   const accent = rgb(getComputedStyle(probe).color).slice(0, 3); probe.remove();
   // Marque de gauche : box-shadow inset de la première cellule (« rgb(r, g, b) 4px 0px 0px 0px inset »), contraste contre le fond effectif.
@@ -125,8 +132,26 @@ const MESURE = (label) => {
     pageReport: document.documentElement.classList.contains('kr-page-report'),
     variant: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')),
     unreadCount: unread.length,
-    marques: unread.map(r => marque(r.cells[0])),
-    marquesNormales: rows.filter(r => !r.classList.contains('bg-info')).map(r => marque(r.cells[0])),
+    mobile,
+    // Marque : sur la ligne entière en mobile, sur la cellule de la date en ordinateur ; ombres des cellules relevées à part en mobile.
+    marques: unread.map(r => marque(mobile ? r : r.cells[0])),
+    marquesNormales: rows.filter(r => !r.classList.contains('bg-info')).map(r => marque(mobile ? r : r.cells[0])),
+    ombresCellules: mobile ? unread.flatMap(r => [...r.cells].map(td => getComputedStyle(td).boxShadow)) : [],
+    // Fond propre des cellules non lues en mobile : transparent, sinon il couvrirait le filet inset posé sur la ligne.
+    fondsCellules: mobile ? unread.flatMap(r => [...r.cells].map(td => getComputedStyle(td).backgroundColor)) : [],
+    // Ligne de notification (L) : tailles, position de la date et du texte, largeur du texte, filet sur toute la hauteur de la ligne.
+    ligne: (() => {
+      const box = e => { const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width }; };
+      const doubles = rows.filter(r => r.cells.length > 1);
+      return {
+        table: box(document.querySelector('table')),
+        tailleDates: [...new Set(doubles.map(r => getComputedStyle(r.cells[0]).fontSize))],
+        tailleTextes: [...new Set(rows.map(r => getComputedStyle(r.cells[r.cells.length - 1]).fontSize))],
+        tailleBilans: [...new Set([...document.querySelectorAll('table > tbody > tr > td .mini.text-muted')].map(e => getComputedStyle(e).fontSize))],
+        lignes: doubles.map(r => ({ unread: r.classList.contains('bg-info'), tr: box(r), date: box(r.cells[0]), texte: box(r.cells[1]) })),
+        uniques: rows.filter(r => r.cells.length === 1).map(r => ({ tr: box(r), texte: box(r.cells[0]) }))
+      };
+    })(),
     // Aucun mot visible : ni contenu généré sur les cellules non lues, ni libellé dans le texte rendu, date non repoussée vers le bas.
     contenuGenere: unread.flatMap(r => [...r.cells].flatMap(td => [getComputedStyle(td, '::before').content, getComputedStyle(td, '::after').content])).filter(c => !vide(c)),
     libelleVisible: unread.filter(r => r.innerText.includes(label)).length,
@@ -140,7 +165,7 @@ const MESURE = (label) => {
     dates: { normal: cellule(normal.cells[0]), unread: unreadDouble.map(r => cellule(r.cells[0])), garde: unread.filter(r => r.cells.length === 1).map(r => cellule(r.cells[0])), page: bgOf(normal.cells[0]) },
     hauteurs,
     fonds: { normal: bgOf(normal.cells[1]).join(','), unread: unreadDouble.map(r => bgOf(r.cells[r.cells.length - 1]).join(',')), active: rgb(getComputedStyle(active).backgroundColor).join(','), banner: rgb(getComputedStyle(banner).backgroundColor).join(',') },
-    trUnread: { paire: [getComputedStyle(unread[0]).backgroundColor, getComputedStyle(unread[0]).color].map(c => rgb(c).join(',')), shadow: getComputedStyle(unread[0].cells[0]).boxShadow, before: getComputedStyle(unread[0].cells[0], '::before').content, tdBg: getComputedStyle(unread[0].cells[0]).backgroundColor },
+    trUnread: { paire: [getComputedStyle(unread[0]).backgroundColor, getComputedStyle(unread[0]).color].map(c => rgb(c).join(',')), shadow: getComputedStyle(unread[0].cells[0]).boxShadow, trShadow: getComputedStyle(unread[0]).boxShadow, before: getComputedStyle(unread[0].cells[0], '::before').content, tdBg: getComputedStyle(unread[0].cells[0]).backgroundColor },
     primary: (() => { const d = document.createElement('div'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue('--kr-primary').trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; })(),
     // Paire d'action (épopée 3, ticket 2) : fond et encre de la règle générique .bg-info.
     paire: ['var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-ink, #fff)'].map(e => { const d = document.createElement('div'); d.style.color = e; document.body.appendChild(d); const c = rgb(getComputedStyle(d).color).join(','); d.remove(); return c; }),
@@ -171,6 +196,8 @@ function verifier(variante, m, tag) {
       assert.ok(k.contrast >= 3, `contraste du filet ${k.contrast}`);
     }
     assert.ok(m.marquesNormales.every(k => k.shadow === 'none'), m.marquesNormales.map(k => k.shadow).join(' | '));
+    assert.ok(m.ombresCellules.every(x => x === 'none'), 'filet resté sur une cellule en mobile : ' + m.ombresCellules.join(' | '));
+    assert.ok(m.fondsCellules.every(x => x === 'rgba(0, 0, 0, 0)'), 'fond de cellule non lue couvrant le filet en mobile : ' + m.fondsCellules.join(' | '));
   });
   check(`${tag} ${variante} : B filet de la couleur du non lu du forum (--kr-status-unread), pas de la couleur du texte`, () => {
     for (const k of m.marques) { assert.deepEqual(k.color, m.accent, `filet ${k.color} / accent ${m.accent}`); }
@@ -186,8 +213,8 @@ function verifier(variante, m, tag) {
     assert.deepEqual(bad, []);
     for (const f of m.fonds.unread) { assert.equal(f, m.fonds.normal, `fond du texte non lu ${f} / normal ${m.fonds.normal}`); }
   });
-  check(`${tag} ${variante} : N cellule de date teintée à 14 % du non lu, texte de la date ≥ 9,6:1, ni couleur ni graisse ajoutées`, () => {
-    const attendu = m.accent.map((a, i) => a * 0.14 + m.dates.page[i] * 0.86);
+  check(`${tag} ${variante} : N ${m.mobile ? 'date sans teinte (plus de colonne)' : 'cellule de date teintée à 14 % du non lu'}, texte de la date ≥ 9,6:1, ni couleur ni graisse ajoutées`, () => {
+    const attendu = m.mobile ? m.dates.page : m.accent.map((a, i) => a * 0.14 + m.dates.page[i] * 0.86);
     for (const d of [...m.dates.unread, ...m.dates.garde]) {
       assert.ok(d.bg.every((x, i) => Math.abs(x - attendu[i]) <= 1), `teinte ${d.bg} / attendu ${attendu.map(Math.round)}`);
       assert.ok(d.contrast >= 9.6, `contraste de la date sur la teinte ${d.contrast}`);
@@ -201,6 +228,23 @@ function verifier(variante, m, tag) {
   check(`${tag} ${variante} : N hauteur de chaque ligne non lue inchangée par la marque, date sur une seule ligne`, () => {
     for (const [h, h0] of m.hauteurs) { assert.equal(h, h0, `hauteur ${h} au lieu de ${h0}`); }
     for (const d of m.dates.unread) { assert.equal(d.lignes, 1, 'date sur ' + d.lignes + ' lignes'); }
+  });
+  const L = m.mobile ? 'date au-dessus du texte, texte sur toute la largeur, filet sur toute la hauteur de la ligne' : 'colonne de date de 100 px conservée, date à gauche du texte';
+  check(`${tag} ${variante} : L dates en 13 px, texte en ${m.mobile ? '15 px, bilan en 13' : 14} px, ${L}`, () => {
+    assert.deepEqual(m.ligne.tailleDates, ['13px'], 'taille des dates');
+    assert.deepEqual(m.ligne.tailleTextes, [m.mobile ? '15px' : '14px'], 'taille du texte');
+    for (const l of m.ligne.lignes) {
+      if (m.mobile) {
+        assert.ok(l.date.bottom <= l.texte.top + 0.5, `bas de la date ${l.date.bottom} sous le haut du texte ${l.texte.top}`);
+        assert.ok(Math.abs(l.texte.width - l.tr.width) <= 0.5 && Math.abs(l.tr.width - m.ligne.table.width) <= 0.5, `texte ${l.texte.width} / ligne ${l.tr.width} / tableau ${m.ligne.table.width}`);
+        assert.ok(l.tr.top <= l.date.top + 0.5 && l.tr.bottom >= l.texte.bottom - 0.5, `ligne ${l.tr.top}-${l.tr.bottom} hors date ${l.date.top} et texte ${l.texte.bottom}`);
+      } else {
+        assert.equal(Math.round(l.date.width), 100, 'largeur de la colonne de date');
+        assert.ok(Math.abs(l.date.top - l.texte.top) <= 0.5 && l.date.right <= l.texte.left + 0.5, 'date à gauche du texte, sur la même ligne');
+      }
+    }
+    if (m.mobile) { assert.deepEqual(m.ligne.tailleBilans, ['13px'], 'taille du bilan .mini.text-muted (détail, 13 px)'); }
+    if (m.mobile) { for (const u of m.ligne.uniques) { assert.ok(Math.abs(u.texte.width - u.tr.width) <= 0.5, `cellule unique ${u.texte.width} / ligne ${u.tr.width}`); } }
   });
   check(`${tag} ${variante} : C3 marque distincte de la page active de la pagination et du bandeau du sélecteur`, () => {
     for (const f of m.fonds.unread) { assert.notEqual(f, m.fonds.active, `fond non lu = page active (${f})`); assert.notEqual(f, m.fonds.banner, `fond non lu = bandeau (${f})`); }
@@ -219,31 +263,83 @@ function verifier(variante, m, tag) {
   check(`${tag} ${variante} : pas de débordement horizontal, aucune requête vers le site hors fixture`, () => { assert.equal(m.overflowX, 0); assert.deepEqual(m.denied, []); });
 }
 
-if (on('fenetre')) {
-  console.log('Fenêtre de la cloche (600 × 600), 16 variantes');
-  const res = await mapLimit(VARIANTES, v => scenario(v, { width: 600, height: 600 }, '600'));
-  VARIANTES.forEach((v, i) => verifier(v, res[i], '600'));
+const DEUX = ['kraland', 'empire-brun-dark']; // Kraland clair et Empire Brun sombre : largeurs secondaires et bascule
+const tagOf = vp => vp.height === 667 || vp.height === 720 ? String(vp.width) : `${vp.width}x${vp.height}`;
+async function lot(titre, cas) {
+  console.log(titre);
+  const res = await mapLimit(cas, c => scenario(c.variante, c.viewport, tagOf(c.viewport)));
+  cas.forEach((c, i) => verifier(c.variante, res[i], tagOf(c.viewport)));
+}
+const croise = (viewports, variantes) => viewports.flatMap(viewport => variantes.map(variante => ({ viewport, variante })));
+
+if (on('popup')) {
+  await lot('Popup de la cloche (900 × 800, rendu ordinateur), 16 variantes', croise([{ width: 900, height: 800 }], VARIANTES));
+}
+
+if (on('mobile')) {
+  await lot('Mobile (375 × 667 et 767 px), 16 variantes', croise([{ width: 375, height: 667 }, { width: 767, height: 667 }], VARIANTES));
 }
 
 if (on('bureau')) {
-  console.log('Onglet large (1280 × 720), 16 variantes');
-  const res = await mapLimit(VARIANTES, v => scenario(v, { width: 1280, height: 720 }, '1280'));
-  VARIANTES.forEach((v, i) => verifier(v, res[i], '1280'));
+  await lot('Onglet large (1280 × 720), 16 variantes', croise([{ width: 1280, height: 720 }], VARIANTES));
+  await lot('Ordinateur (768, 769, 1440 et 1920 px), Kraland clair et Empire Brun sombre',
+    croise([{ width: 768, height: 667 }, { width: 769, height: 667 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }], DEUX));
+}
+
+// Bascule 767 ↔ 768 dans le même onglet, dans les deux sens : le rechargement de bascule est attendu comme dans cartes-pastilles.mjs.
+async function bascule(variante, largeurs) {
+  const { context, page, denied } = await open(REPORT, variante, { width: largeurs[0], height: 667 });
+  const etapes = [];
+  const recharges = [];
+  for (let i = 0; i < largeurs.length; i += 1) {
+    if (i > 0) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+      await page.setViewportSize({ width: largeurs[i], height: 667 });
+      recharges.push(await charge);
+      await krReady(page, { ready: THEME_READY, label: `bascule ${variante} ${largeurs[i]} px` });
+    }
+    const m = await page.evaluate(MESURE, LABEL);
+    m.denied = denied.filter(d => d.url.startsWith(BASE)).map(d => d.url);
+    etapes.push(m);
+  }
+  await context.close();
+  return { etapes, recharges };
+}
+if (on('bascule')) {
+  console.log('Bascule 767 ↔ 768 dans le même onglet, deux sens, Kraland clair et Empire Brun sombre');
+  const cas = DEUX.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
+  const res = await mapLimit(cas, c => bascule(c.variante, c.largeurs));
+  cas.forEach((c, i) => {
+    const t = `bascule ${c.largeurs.join('>')}`;
+    check(`${t} ${c.variante} : rechargement de bascule à chaque passage du seuil`, () => assert.deepEqual(res[i].recharges, c.largeurs.slice(1).map(() => true), 'load observé : ' + res[i].recharges.join(', ')));
+    res[i].etapes.forEach((m, j) => verifier(c.variante, m, `${t} étape ${j + 1} (${c.largeurs[j]})`));
+  });
 }
 
 if (on('portee')) {
-  console.log('C4 portée : le même tableau hors /report garde la règle générique');
-  for (const v of ['empire-brun-dark', 'kraland']) {
-    const { context, page } = await open(AUTRE, v, { width: 600, height: 600 });
-    const m = await page.evaluate(MESURE, LABEL);
-    await context.close();
-    check(`${v} : hors /report, html sans kr-page-report`, () => assert.equal(m.pageReport, false));
-    check(`${v} : hors /report, tr.bg-info inchangé (règle générique : paire d'action, ni mot ni filet)`, () => {
-      assert.deepEqual(m.trUnread.paire, m.paire);
-      assert.ok(m.trUnread.before === 'none' || m.trUnread.before === 'normal', m.trUnread.before);
-      assert.equal(m.trUnread.shadow, 'none');
-      assert.equal(m.trUnread.tdBg, 'rgba(0, 0, 0, 0)', 'cellule de date sans teinte hors /report');
-    });
+  console.log('C4 portée : le même tableau hors /report garde la règle générique (375 × 667 et 900 × 800)');
+  for (const viewport of [{ width: 375, height: 667 }, { width: 900, height: 800 }]) {
+    for (const v of ['empire-brun-dark', 'kraland']) {
+      const { context, page } = await open(AUTRE, v, viewport);
+      const m = await page.evaluate(MESURE, LABEL);
+      await context.close();
+      const t = `${tagOf(viewport)} ${v}`;
+      check(`${t} : hors /report, html sans kr-page-report`, () => assert.equal(m.pageReport, false));
+      check(`${t} : hors /report, tr.bg-info inchangé (règle générique : paire d'action, ni mot ni filet)`, () => {
+        assert.deepEqual(m.trUnread.paire, m.paire);
+        assert.ok(m.trUnread.before === 'none' || m.trUnread.before === 'normal', m.trUnread.before);
+        assert.equal(m.trUnread.shadow, 'none');
+        assert.equal(m.trUnread.trShadow, 'none', 'filet sur la ligne hors /report');
+        assert.equal(m.trUnread.tdBg, 'rgba(0, 0, 0, 0)', 'cellule de date sans teinte hors /report');
+      });
+      check(`${t} : hors /report, date à côté du texte hors /report, tailles génériques (${viewport.width < 768 ? '13 px mobile' : '14 px'})`, () => {
+        const px = viewport.width < 768 ? '13px' : '14px';
+        assert.deepEqual(m.ligne.tailleDates, [px]);
+        assert.deepEqual(m.ligne.tailleTextes, [px]);
+        for (const l of m.ligne.lignes) { assert.ok(Math.abs(l.date.top - l.texte.top) <= 0.5, 'date au-dessus du texte hors /report'); }
+      });
+    }
   }
 }
 
