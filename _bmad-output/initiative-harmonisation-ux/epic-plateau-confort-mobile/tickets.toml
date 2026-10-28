@@ -1,0 +1,156 @@
+# tickets.toml — epic-plateau-confort-mobile, dans l'ordre de construction.
+# Inception complète le 2026-10-28 (autonome) : entrées 1 à 12. Hypothèses et questions dans les Notes de epic-plateau-confort-mobile.md.
+# Balle traçante : entrée 1 (marge de 16 px : applyMobileCriticalStyles du template, feuille, aide de mesure tests/e2e/lib/marges.mjs, suite confort-mobile.mjs et sa zone dans le routeur).
+# L'entrée la moins sûre vient ensuite : entrée 2, carte de personnage selon sa propre largeur (H7.1, requête de conteneur, plage 1100-1500 px).
+# Lanes : marge (1, 3, 4, 8, 9, 10) ; carte de personnage (2, 5, 7) ; démarrage mobile (6, indépendante). Les entrées 8, 9 et 10 mesurent la marge et les cibles
+# dans la suite de leur page (forum-activite, suite du kramail, report-non-lu) avec l'aide de mesure de l'entrée 1, pour ne pas partager confort-mobile.mjs (décision prise en autonomie).
+# Commun : valeurs de DESIGN.md › Layout & Spacing (marge mobile, hauteurs), Components (Carte de personnage, Croix directionnelle et pièces) et « Carte de personnage, détail » ;
+# jetons --kr-margin-mobile (16 px), --kr-touch-target (44 px), --kr-touch-target-dpad (48 px), aujourd'hui inutilisés ou presque (rétro 4, A5) : chaque entrée consomme le jeton au lieu d'une valeur en dur ;
+# une cible tactile se mesure par sa boîte (≥ 44×44, croix ≥ 48×48) ou par la ligne entière touchable (elementFromPoint au centre et aux bords), jamais par la seule hauteur ;
+# la marge se mesure sur le texte : aucun nœud texte visible ne commence à moins de 16 px du bord de l'écran ; les cartes de section restent à 8 px des bords (H4.1), leur contenu à 16 px ;
+# pièces du plateau dans l'ordre DOM natif, icônes remplacées avec repli sur l'URL d'origine ; mini-profil testé plié et déplié, à 375 et 700 px ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles qu'elle remplace, sans les battre par spécificité ou !important (aucun nouvel !important), et garde par page en :where(html.x) ce qu'elle conserve ;
+# règle commune aux deux supports en liste combinée @media (max-width: 767px), (min-width: 768px) ; mobile en max-width: 767px seulement ; ordinateur en min-width: 768px seulement ;
+# chaque plan consigne son rouge avant sur le bundle de sa base (KR_SCRIPT, classe kr-theme-enabled vérifiée), puis une contre-épreuve (mutation → rouge) ;
+# aucun masque de test nouveau ; s'il en faut un, sa condition de retrait nomme un événement qui arrivera (rétro 5, F4 ; rétro 6, A2) ;
+# boucle courte test:zone ou test:changed, un seul test:all à la fin sur machine calme et sur le SHA exact, ou le plan dit qu'il n'a pas été lancé (rétro 5, F2 et F11) ;
+# une seule section Result par plan (rétro 6, A6) ; identifiants de report préfixés par l'épopée, D9.n (rétro 6, A7) ;
+# toute règle de couleur vérifiée dans les 16 variantes ; largeurs : 320, 375×667, 700, 767, 768, 769, 1100, 1280, 1440, 1500 et 1920 px selon l'entrée, Kraland clair et Empire Brun sombre au moins ;
+# transition 767 ↔ 768 dans le même onglet, dans les deux sens ; chaque entrée qui touche tests/ lance aussi npm run test:router ;
+# site réel en lecture seule seulement (mandat d'Arnaud), jamais /report, aucune action de jeu ; fixtures synthétiques, aucune capture HTML brute dans le dépôt ;
+# hors périmètre : boutons (épopée 4, sauf mesure), non-goals de la spec, index Staff (en attente d'Arnaud), correctif d'ancres mobile (D11, en attente d'Arnaud).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Marge latérale de 16 px : socle et pages de jeu"
+description = "Balle traçante : sur mobile, aucun texte des pages de jeu (plateau, Matériel, Personnage, Bâtiments, Employés) ni de l'Aide ne commence à moins de 16 px du bord (H10.1) ; applyMobileCriticalStyles (template ~l.645, padding latéral mis à zéro en ligne !important) et les paddings contradictoires de la feuille (.container 15 px, colonnes 10 puis 15 px, .row −10 px, puis 0 en body.mobile-mode, ~l.4118, 4249, 4519, 4811, 6819-6837) sont réécrits pour que la marge vienne de --kr-margin-mobile ; pose les classes de page kr-page-* manquantes des pages de jeu et de l'Aide (aujourd'hui seules plateau, forum-index, members et report existent), par un mécanisme que l'entrée 4 étend à ses pages ; crée l'aide de mesure tests/e2e/lib/marges.mjs (premier texte visible et boîte de cible tactile par elementFromPoint), réutilisée par les entrées 3, 4, 5, 8, 9 et 10, et la suite confort-mobile.mjs avec sa zone dans le routeur."
+verify = "Suite confort-mobile, fixtures plateau-qualite-usage, jeu-plateau-objets, jeu-materiel, jeu-perso, jeu-batiments, jeu-employes et une fixture synthétique de l'Aide, à 320, 375×667, 700 et 767 px, Kraland clair et Empire Brun sombre : le premier pixel de chaque nœud texte visible est à ≥ 16 px des deux bords, cartes de section à 8 px ; à 768, 769 et 1280 px, rendu égal à la base ; bascule 767 ↔ 768 dans les deux sens ; npm run test:router vert."
+covers = ["CAP-10"]
+after = ["1.7"]
+hitl = false
+risk = "high"
+references = ["ux-harmonisation/notes-implementation.md, Faits relevés › Marges mobiles"]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Carte de personnage selon sa propre largeur : avatar de 70 px, nom dessous sur deux lignes au plus (H7.1)"
+description = "Sur ordinateur, quand la carte de personnage (.dashboard-card, feuille ~l.2530-2830) est trop étroite pour le nom à côté de l'avatar, le nom passe sous l'avatar de 70 px, sur toute la largeur de la carte, deux lignes au plus, points de suspension au-delà (Q7.2) ; sinon rien ne change ; la bascule suit la largeur de la carte (requête de conteneur ou mise en page intrinsèque), pas une requête média en max-width ; nom en {typography.name} (15 px, Q7.1) ; la plage de troncature est remesurée en 15 px ; les règles mobiles concurrentes de la grille des cartes ne sont pas touchées (sweep, entrée 12) ; fixture synthétique de noms longs (49 noms ou équivalent)."
+verify = "Suite plateau-qualite-usage (nouveau fragment cartes), fixture de noms longs, à 1024, 1100, 1280, 1366, 1440, 1500 et 1920 px, Kraland clair et Empire Brun sombre : avatar 70×70, aucun nom coupé hors ellipse de deuxième ligne, nom sous l'avatar seulement quand la carte est étroite, cartes de 1512 et 1920 px égales à la base ; mobile 375 et 767 px égal à la base."
+covers = ["CAP-10"]
+after = ["1.7"]
+hitl = false
+risk = "high"
+
+[[entry]]
+id = 3
+type = "spike"
+title = "Relevé des pages mobiles hors fixtures : marge, cibles et cartes"
+description = "Relève en lecture seule sur le site réel (mandat d'Arnaud), à 375×667, les pages qui reçoivent la marge, les cibles ou la carte de section sans fixture : Règles, Monde, Événements, Citoyens, Membres, Interface, Contacts, Statistiques, Carte, Cybermonde, pages /forum/* de réponse, nouveau sujet, recherche et modération (D9 de l'épopée 5), emplois de .badge-danger et .btn-danger.xmini (rétro 5, A9, résultat remis à Arnaud pour ses décisions de la rétro 5, A5, sans entrée de code), présence d'input-lg ou de hauteur en ligne sur .form-control (report 4.10) ; produit pour chaque page une liste des écarts mesurés et une fixture synthétique minimale, consommées par les entrées 4 et 8."
+verify = "Une note du spike liste, page par page, premier texte à moins de 16 px, cibles sous 44 px avec leur taille, et la fixture synthétique créée ; aucune capture HTML brute dans le dépôt, aucune visite de /report, aucune action de jeu."
+covers = ["CAP-10"]
+after = []
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 4
+type = "story"
+title = "Pages secondaires : marge de 16 px et cibles de 44 px"
+description = "Sur mobile, Règles, Monde, Événements, Citoyens, Membres, Interface, Contacts, Statistiques, Cybermonde et Carte (titre de la ville, aussi sur ordinateur) reçoivent la marge de l'entrée 1, avec leurs classes de page posées par le mécanisme de l'entrée 1, et des cibles hors boutons d'au moins 44×44 px ou une ligne entière touchable : cibles et numéros de page d'Événements (20×20 et 24 px), Membres (34 px), icônes de Contacts (15 à 34 px), chevron du panneau « Fonctionnaires » de Cybermonde à 16 px du bord droit (report 5.1) ; fixtures issues de l'entrée 3 ; .form-control et select.form-control { height: 44px !important } (feuille ~l.4698 et 4707) retirées avec rouge/vert si l'entrée 3 confirme l'absence d'input-lg."
+verify = "Suite confort-mobile, fragment secondaires, fixtures de l'entrée 3, à 320, 375×667 et 767 px, Kraland clair et Empire Brun sombre : texte à ≥ 16 px des bords, chaque cible relevée ≥ 44×44 ou ligne touchable par elementFromPoint ; Carte à 1280 px : titre de la ville à ≥ 16 px du bord ; 768 et 1280 px égaux à la base pour le reste."
+covers = ["CAP-10"]
+after = [1, 3, "4.2"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Plateau mobile : cibles des cartes, des groupes, du mini-profil et de la croix"
+description = "Sur mobile, les actions des cartes de personnages passent de 26 à 44×44 px (DESIGN, Carte de personnage, détail), les boutons de groupe (.dashboard-group-buttons a.btn, 28 px, report 5.3 P10) et le bouton réglages du mini-profil (32 px) à 44 px, la grille d'actions et les accès rapides reçoivent un plancher de 44 px ; la croix et ses touches lisent --kr-touch-target-dpad (≥ 48 px, 50 px gardés) et les pièces --kr-touch-target, pièces dans l'ordre DOM natif ; tuiles d'action gardées à 64 px (Q24.1) ; le repli des deux accordéons (groupes du plateau et Panel Sections Collapse) anime aussi le padding, sans saut (reports 5.1 et 5.3)."
+verify = "Suites croix-directionnelle, cartes-pastilles (groupes), plateau-profil-mobile et confort-mobile, à 320, 375×667, 700 et 767 px, mini-profil plié et déplié, Kraland clair et Empire Brun sombre : chaque cible ≥ 44×44 (croix ≥ 48×48) par boîte et elementFromPoint, aucun chevauchement ni débordement, ordre des pièces égal au DOM ; hauteur du corps d'accordéon monotone pendant le repli ; 768 et 1280 px égaux à la base."
+covers = ["CAP-10"]
+after = [1, 2, 4, "4.2"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 6
+type = "bug"
+title = "Au démarrage réel sur téléphone, les fonctions mobiles et le défilement des onglets de modale ne s'installent pas"
+description = "Au document-start sur téléphone (largeur lue 980 px), initMobileFeatures (template ~l.10175) sort avant la bascule, donc createMobileOverlay, initMobileSkillsPanel, initMobileMiniChat et initModalTabScroll ne tournent pas ; initModalTabScroll (~l.9133) garde document.body sans report au DOMContentLoaded, initMobileSkillsPanel et initMobileMiniChat lisent le DOM sans repli, et initCharacterModalMobile est appelée deux fois (~l.11176 et 10189) : chaque fonction s'installe une seule fois, quand la largeur et le DOM sont prêts (report du backlog 6)."
+verify = "Suite demarrage-mobile (ou fin-initialisation, mode start), bundle injecté avant <body> avec largeur lue 980 puis 375, et à 375 sans émulation : panneau des compétences, mini-chat et défilement des onglets de modale installés une fois chacun, une seule .kr-tabs-indicator, data-kr-ready posé ; rouge sur le bundle de la base."
+covers = ["CAP-10"]
+after = []
+hitl = false
+risk = "high"
+refine = true
+
+[[entry]]
+id = 7
+type = "story"
+title = "Cercle et barre de PV des cartes sans couleurs en dur"
+description = "Les couleurs du cercle et de la barre de PV des cartes de personnages, posées en dur par le template (~l.4345-4352, buildCard et createHPCircle, filtre KO en style en ligne ~l.4247-4250), passent par des jetons de la feuille, selon le choix d'Arnaud entre couleur par niveau de santé et vert de la jauge (Q30.5, rétro 5, A6)."
+verify = "Suite plateau-qualite-usage, fixture du plateau, à 375 et 1280 px dans les 16 variantes : aucune couleur en ligne sur le cercle et la barre, couleurs égales aux jetons choisis, contraste du texte du cercle ≥ 4,5:1."
+covers = ["CAP-10"]
+after = [2, 5]
+hitl = false
+risk = "medium"
+unknown = "Arnaud choisit-il la couleur par niveau de santé (un état) ou le vert de la jauge PV pour le cercle et la barre des cartes (Q30.5), et veut-il ce ticket dans cette épopée (rétro 5, A6) ?"
+
+[[entry]]
+id = 8
+type = "story"
+title = "Forum mobile : marge de 16 px et cibles de 44 px sur toutes les pages du forum"
+description = "Sur mobile, l'index (titre RP et HRP), le sous-forum, le sujet et les pages /forum/* relevées par l'entrée 3 (réponse, nouveau sujet, recherche, modération, D9) reçoivent la marge de l'entrée 1 et des cibles hors boutons ≥ 44 px ; crée les fixtures synthétiques des index HRP et Débats (rétro 6, A8) ; les mesures vont dans forum-activite.mjs avec l'aide de l'entrée 1."
+verify = "Suite forum-activite, fragment confort, fixtures de l'index RP, HRP, Communauté et Débats, du sous-forum, du sujet et des pages de l'entrée 3, à 320, 375×667 et 767 px, Kraland clair et Empire Brun sombre : texte à ≥ 16 px des bords, cibles ≥ 44×44 ou ligne touchable ; 768 et 1280 px égaux à la base."
+covers = ["CAP-10"]
+after = [1, 3, 4, "6.7"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 9
+type = "story"
+title = "Kramail mobile : marge de 16 px et cibles de 44 px"
+description = "Sur mobile, les dossiers, la lecture et la rédaction du kramail, finis par l'épopée du kramail mobile, reçoivent la marge de l'entrée 1 et des cibles hors boutons ≥ 44 px, y compris les panneaux non .panel-default (rétro 5, A9) ; les mesures vont dans la suite du kramail que cette épopée garde (kramail-theme.mjs au moment de l'inception), avec l'aide de l'entrée 1."
+verify = "Suite du kramail, fragment confort, fixtures des dossiers, de la lecture et de la rédaction, à 320, 375×667 et 767 px, Kraland clair et Empire Brun sombre : texte à ≥ 16 px des bords, cibles ≥ 44×44 ou ligne touchable ; 768 et 1280 px égaux à la base."
+covers = ["CAP-10"]
+after = [1, "7.10"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 10
+type = "story"
+title = "Notifications mobiles : marge de 16 px et cibles de 44 px"
+description = "Sur mobile, la page /report finie par l'épopée des notifications reçoit la marge de l'entrée 1 (sélecteur de personnage à 16 px du haut gardé) et des cibles hors boutons ≥ 44 px ; mesures dans report-non-lu.mjs avec l'aide de l'entrée 1, sur fixture synthétique seulement, réseau confiné, jamais /report sur le site réel."
+verify = "Suite report-non-lu, fragment confort, à 320, 375×667 et 767 px, Kraland clair et Empire Brun sombre : texte à ≥ 16 px des bords, cibles ≥ 44×44 ou ligne touchable ; popup 900×800 et 1280 px égaux à la base."
+covers = ["CAP-10"]
+after = [1, "8.4"]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 11
+type = "story"
+title = "Parcours clés et captures de validation"
+description = "Arnaud joue les quatre parcours clés d'EXPERIENCE.md en Kraland clair et Empire Brun sombre (Success signal de la spec) ; l'agent prépare d'abord les captures de validation à 1280, 1440, 1920 et 375×667, mini-profil plié et déplié à 375 et 700 px, cartes de personnages à 1100, 1280 et 1500 px, et y joint celles des épopées 5 et 6 (rétro 5, A10 ; rétro 6, A8), hors dépôt ; les écarts relevés deviennent des reports D9.n."
+verify = "Arnaud valide les captures et les quatre parcours ; chaque écart relevé est corrigé dans l'entrée ou reporté en D9.n avec l'accord d'Arnaud, consigné dans le plan de l'entrée."
+covers = ["CAP-10"]
+after = [1, 2, 4, 5, 6, 7, 8, 9, 10]
+hitl = true
+risk = "low"
+
+[[entry]]
+id = 12
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage de fin d'épopée, sans changement de rendu : périmètre fixé au départ depuis les plans et les reports D9.n ; candidats connus : bloc mobile des cartes (~l.5813-6090, un @media par règle, .dashboard-cards-grid en double, .dashboard-card h4 probablement mort), paddings morts de .container et des colonnes, min-height: 44px en dur (39 fois) au lieu de --kr-touch-target, grille d'actions dupliquée entre ≥ 768 et ≤ 767 (~l.13056-13118), .dashboard-section-header en double (~l.13123 et 13146), body.mobile-mode {} vide, --mobile-touch-target (~l.127) doublon de --kr-touch-target, jetons non lus (rétro 4, A5)."
+verify = "npm run test:all vert sur machine calme et sur le SHA exact, npm run test:router vert, lint:css et lint:js séparés verts, compte de !important qui ne monte pas, rendu égal à l'arbre d'avant le sweep sur les fixtures des entrées 1 à 10."
+covers = ["CAP-10"]
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+hitl = false
+risk = "medium"

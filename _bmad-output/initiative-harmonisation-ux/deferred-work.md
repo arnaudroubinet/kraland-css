@@ -177,3 +177,4 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `_bmad-output/backlog/bug-modules-de-modale-inactifs-au-demarrage-plan.md`
   summary: `initModalTabScroll` garde `document.body` sans report au DOMContentLoaded, comme les modules du bug 6 ; au document-start sur téléphone (largeur 980 px), `initMobileFeatures` ne tourne pas non plus avant la bascule.
   evidence: relevé de l'implémenteur du backlog 6 (2026-10-28), hors périmètre des trois modules du ticket.
+  status: repris par l'entrée 9.6 (`epic-plateau-confort-mobile/tickets.toml`, 2026-10-28).

@@ -632,3 +632,18 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
   - D11, ancres.
   Le sweep ne les traite que si tu as tranché.
 - Entrée 9 (hitl) : points D et E du protocole P2 sur ton téléphone, après le sweep.
+
+## Inception de l'épopée 9 « Plateau et confort mobile » (2026-10-28)
+
+- Découpe faite en autonomie : 12 entrées dans `epic-plateau-confort-mobile/tickets.toml`. Les entrées 9.9 (kramail) et 9.10 (notifications) attendent les sweeps 7.10 et 8.4.
+- À trancher par toi :
+  - entrée 7 (Q30.5) : ce ticket reste-t-il dans cette épopée ? Voir rétro 5, A6 ;
+  - Q24.2, Q30.6, Q32.2 à Q32.4 et Q20.
+- Spike 3 : relevé des pages mobiles hors fixtures, sous ton mandat de lecture du site réel.
+- Hypothèses retenues :
+  - marge mesurée sur le texte, cartes de section à 8 px des bords ;
+  - Q7 : nom en 15 px, avec des points de suspension ;
+  - Q24.1 : tuiles de 64 px gardées ;
+  - Q29 : rendu du ticket 1.4 gardé ;
+  - largeur de 320 px ajoutée aux contrôles ;
+  - captures des épopées 5 et 6 faites dans 9.11.
