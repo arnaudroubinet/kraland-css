@@ -10206,6 +10206,11 @@
    * Crée l'overlay mobile pour fermer les panneaux latéraux
    */
   function createMobileOverlay() {
+    // Bundle exécuté avant <body> dans une fenêtre étroite (largeur réelle dès le début) : création reportée au DOMContentLoaded
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', createMobileOverlay, { once: true });
+      return;
+    }
     if (document.querySelector('.kr-mobile-overlay')) {return;}
 
     const overlay = document.createElement('div');

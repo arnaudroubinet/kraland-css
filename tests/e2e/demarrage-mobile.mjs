@@ -44,7 +44,7 @@ function check(name, fn) {
 }
 
 // Fragmentation (exécution parallèle) : KR_FRAG = identifiants séparés par des virgules ; vide = tout jouer.
-// Identifiants : moment-start, moment-dcl, moment-load, moment-later, desktop, pire-cas, m1, m-1, s1.
+// Identifiants : moment-start, moment-dcl, moment-load, moment-later, desktop, pire-cas, m1, m-1, s1, fenetre-etroite.
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
 
@@ -78,8 +78,9 @@ const browser = await launchBrowser();
 
 // moment : 'start' (document-start), 'dcl' (DOMContentLoaded), 'load' (après load), 'later' (différé 600 ms, chargeur asynchrone)
 // lateViewport : simule le pire cas où la largeur reste fausse (980) jusqu'après le chargement -> la garde doit plafonner.
-async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false, src = userscript }) {
-  const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+// emulate = false : fenêtre d'ordinateur étroite, sans émulation mobile (largeur réelle dès le début du document, avant <body>).
+async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false, src = userscript, emulate = true }) {
+  const context = await browser.newContext(emulate ? { viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width, height: 800 } });
   let documents = 0;
   await confineNetwork(context); // refus global EN PREMIER
   await installClock(context); // horloge simulée AVANT l'injection du script (minuteries simulées dès le début du document)
@@ -113,6 +114,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
       Object.defineProperty(window, 'sessionStorage', { configurable: true, get() { throw new window.DOMException('denied', 'SecurityError'); } });
     }
     window.__krSeenWidth = window.innerWidth;
+    window.__krBodyAtStart = !!document.body;
     if (late) {
       // Pire cas : largeur annoncée 980 pendant tout le chargement, 375 ensuite (meta appliquée tardivement)
       const real = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(window), 'innerWidth') || Object.getOwnPropertyDescriptor(window, 'innerWidth');
@@ -128,6 +130,9 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     else { window.addEventListener('load', () => setTimeout(go, 600)); }
   }, { code: src, when: moment, late: lateViewport, blocked: blockStorage, readOnly: readOnlyStorage });
   const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', m => { if (m.type() === 'error') { errors.push(m.text()); } });
   await page.goto('http://www.kraland.org' + route, { waitUntil: 'load' });
   // Fenêtre d'absence en temps simulé (voir settle ci-dessus) : QUIET_MS = 2,5 s simulées sans nouveau document, > écart minimal
   // entre deux rechargements 1 200 ms + anti-rebond 400 ms. Une boucle de rechargement ne se calme jamais : échec explicite.
@@ -138,12 +143,15 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     mobile: document.body.classList.contains('mobile-mode'),
     w: window.innerWidth,
     seen: window.__krSeenWidth,
+    bodyAtStart: window.__krBodyAtStart,
+    ready: document.documentElement.hasAttribute('data-kr-ready'),
+    overlay: document.querySelectorAll('body > .kr-mobile-overlay').length,
     banner: document.getElementById('kr-resize-banner') ? document.getElementById('kr-resize-banner').textContent : null,
     writes: window.__krWrites,
     probeLeft: (() => { try { return window.sessionStorage.getItem('kr-breakpoint-probe'); } catch (_e) { return null; } })()
   })).catch(() => ({ mobile: false, w: 0, seen: 'page encore en rechargement', banner: null, writes: null }));
   await context.close();
-  return { documents: after6, stable: stableResult.stable && documents === after6, ...state };
+  return { documents: after6, stable: stableResult.stable && documents === after6, errors, ...state };
 }
 
 // Scénarios indépendants (chacun son contexte, lib/parallele.mjs) lancés en parallèle (lot D) ; les titres et vérifications
@@ -216,6 +224,22 @@ if (frag('m-1')) {
 if (frag('m-1')) {
   queue({ moment: 'start', width: 375, route: '/forum', lateViewport: true }, s => {
     check('stockage normal : la clé de sonde est retirée (rien ne reste)', () => assert.equal(s.probeLeft, null));
+  });
+}
+
+section('Fenêtre d\'ordinateur étroite, bundle avant <body>, sans émulation mobile : initialisation complète (backlog 7)');
+for (const width of [375, 767].filter(() => frag('fenetre-etroite'))) {
+  queue({ moment: 'start', width, route: '/forum', emulate: false }, s => {
+    check(`${width} px : bundle exécuté avant <body>, largeur réelle`, () => { assert.equal(s.bodyAtStart, false); assert.equal(s.seen, width); });
+    check(`${width} px : aucune exception`, () => assert.deepEqual(s.errors, []));
+    check(`${width} px : html[data-kr-ready] posé`, () => assert.equal(s.ready, true));
+    check(`${width} px : superposition mobile présente (une seule)`, () => assert.equal(s.overlay, 1));
+    check(`${width} px : 1 seul document, mode mobile`, () => { assert.equal(s.documents, 1); assert.equal(s.mobile, true); });
+  });
+}
+if (frag('fenetre-etroite')) {
+  queue({ moment: 'start', width: 768, route: '/forum', emulate: false }, s => {
+    check('768 px : html[data-kr-ready] posé, ni mode mobile ni superposition (inchangé)', () => { assert.deepEqual(s.errors, []); assert.equal(s.ready, true); assert.equal(s.mobile, false); assert.equal(s.overlay, 0); });
   });
 }
 

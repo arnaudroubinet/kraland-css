@@ -19,7 +19,7 @@ export const SUITES = [
   { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'], frags: [['transitions'], ['fallback'], ['ajax', 'bureau']] },
   { name: 'forum-mobile', file: 'forum-mobile.mjs', zones: ['forum'], frags: FORUM_FRAGS, needsBootstrap: true },
   { name: 'demarrage-mobile', file: 'demarrage-mobile.mjs', zones: ['demarrage'],
-    frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1']] },
+    frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1'], ['fenetre-etroite']] },
   { name: 'breakpoint-switch', file: 'breakpoint-switch.mjs', zones: ['transitions', 'plateau'], frags: [['nav-large'], ['nav-origine'], ['widths']] },
   { name: 'croix-directionnelle', file: 'croix-directionnelle.mjs', zones: ['croix', 'plateau'],
     frags: [['etats'], ['clics'], ['m1'], ['themes'], ['transitions'], ['impossibles', 'ordre', 'natif']] },
