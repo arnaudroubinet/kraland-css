@@ -1273,30 +1273,6 @@
     'use strict';
 
     /**
-     * Extrait les données d'une jauge (valeur/max)
-     */
-    function extractGaugeData(element, type) {
-      const text = element.textContent;
-      const match = text.match(/(\d+)\s*\/\s*(\d+)|(\d+)\s+\/\s+(\d+)/);
-
-      if (!match) {
-        // Chercher juste le nombre si pas de format complet
-        const numMatch = text.match(/\d+/);
-        if (numMatch) {
-          const val = parseInt(numMatch[0]);
-          return { type, current: val, max: val, percent: 100 };
-        }
-        return { type, current: 0, max: 1, percent: 0 };
-      }
-
-      const current = parseInt(match[1] || match[3]);
-      const max = parseInt(match[2] || match[4]);
-      const percent = Math.min(100, (current / max) * 100);
-
-      return { type, current, max, percent };
-    }
-
-    /**
      * Trouve les données du profil joueur
      */
     function findProfileData() {
@@ -1333,58 +1309,39 @@
       const clockElement = vitalsSection ? vitalsSection.querySelector('.c100') : null;
       const clock = clockElement ? clockElement.textContent.trim() : '--:--';
 
-      // Jauges PV/PM/PP - Nouvelle approche
-      // Chercher les éléments contenant "PV", "PM", "PP" avec leur valeur
-      const findGaugeInSection = (section, type) => {
+      // Jauges PV/PM/PP : valeur lue sur le bouton (alert141 PV, alert142 PM, alert143 PP), maximum = somme des .sr-only de la
+      // .progress de la colonne suivante (valeur + reste)
+      const findGaugeInSection = (section, type, alertClass) => {
         if (!section) {return null;}
+        const button = section.querySelector(`a.${alertClass}`);
+        if (!button) {return null;}
+        const valueMatch = button.textContent.match(/\d+/);
+        if (!valueMatch) {return null;}
+        const current = parseInt(valueMatch[0], 10);
 
-        // Chercher l'élément contenant le type (PV, PM, PP)
-        const elements = Array.from(section.querySelectorAll('*'));
-        const gaugeEl = elements.find(el => {
-          const text = el.textContent.trim();
-          const hasType = text.startsWith(type) || text.includes(` ${type} `);
-          const hasNumber = /\d+/.test(text);
-          return hasType && hasNumber && el.children.length <= 2;
-        });
+        const column = button.closest('[class*="col-"]');
+        const progressColumn = column && section.contains(column) ? column.nextElementSibling : null;
+        const progress = progressColumn ? progressColumn.querySelector('.progress') : null;
+        if (!progress) {return null;}
 
-        if (!gaugeEl) {return null;}
-
-        // Extraire la valeur actuelle et max
-        const text = gaugeEl.textContent.trim();
-        const match = text.match(/(\d+)\s*\/\s*(\d+)/);
-
-        if (match) {
-          // Format "27 / 27"
-          return extractGaugeData(gaugeEl, type.toLowerCase());
+        let max = null;
+        const parts = Array.from(progress.querySelectorAll('.sr-only'));
+        if (parts.length) {
+          max = parts.reduce((sum, el) => sum + (parseInt(el.textContent, 10) || 0), 0);
         } else {
-          // Format "PV 27" sans max - chercher la barre de progression pour le max
-          const valueMatch = text.match(/\d+/);
-          if (!valueMatch) {return null;}
-
-          const current = parseInt(valueMatch[0]);
-
-          // Chercher la barre de progression associée
-          const progressBar = gaugeEl.querySelector('.progress-bar, [class*="bar"]');
-          let max = current; // Par défaut, considérer que c'est plein
-
-          if (progressBar) {
-            const width = progressBar.style.width;
-            if (width && width.includes('%')) {
-              const percent = parseInt(width);
-              if (percent > 0) {
-                max = Math.round(current * 100 / percent);
-              }
-            }
-          }
-
-          const percent = max > 0 ? Math.min(100, (current / max) * 100) : 0;
-          return { type: type.toLowerCase(), current, max, percent };
+          const bar = progress.querySelector('.progress-bar');
+          const width = bar ? parseFloat(bar.style.width) : NaN;
+          if (width > 0) {max = Math.round(current * 100 / width);}
         }
+        if (!max) {return null;}
+
+        const percent = Math.min(100, (current / max) * 100);
+        return { type: type.toLowerCase(), current, max, percent };
       };
 
-      const gaugesPV = findGaugeInSection(vitalsSection, 'PV');
-      const gaugesPM = findGaugeInSection(vitalsSection, 'PM');
-      const gaugesPP = findGaugeInSection(vitalsSection, 'PP');
+      const gaugesPV = findGaugeInSection(vitalsSection, 'PV', 'alert141');
+      const gaugesPM = findGaugeInSection(vitalsSection, 'PM', 'alert142');
+      const gaugesPP = findGaugeInSection(vitalsSection, 'PP', 'alert143');
 
       return {
         name: playerName,

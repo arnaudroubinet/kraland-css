@@ -1665,6 +1665,13 @@ if (on('espacement')) {
 // la largeur). À toutes les largeurs, 768 px compris, tout égal à la base (COMMIT_NETTOYAGE). Comparaison par empreinte d'élément (chemin DOM), détail des écarts relu dans les
 // deux pages. Cartes du forum (R5) : racine page-forum-racine et index kr-page-forum-index (repères cités, ils lancent ce fragment).
 const COMMIT_NETTOYAGE = '6270c81';
+// Masque du backlog 9 (jauges PM et PP du mini-profil) : la base lit PV pour les trois jauges ; PM et PP ont désormais leur propre valeur,
+// donc la largeur des remplissages et du texte des valeurs change. Seules ces propriétés géométriques de ces éléments sont exclues.
+// Retirer quand la base du nettoyage (COMMIT_NETTOYAGE) passe au-delà du commit du backlog 9.
+const MASQUE_JAUGES_9 = {
+  selecteur: '.mobile-gauge-compact-fill, .mobile-gauge-full-fill, .mobile-gauge-compact-value, .mobile-gauge-full-header > span',
+  proprietes: ['width', 'inline-size', 'right', 'inset-inline-end', 'perspective-origin', 'transform-origin']
+};
 const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
@@ -1775,14 +1782,15 @@ const ecartsA8 = (ha, hb) => {
 };
 // Dans la page : empreinte (FNV-1a) des propriétés calculées de chaque élément visible (racine : sous-arbres des éléments visés) et de ses
 // ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair.
-const EMPREINTES = ({ racine, cles, detail }) => {
+const EMPREINTES = ({ racine, cles, detail, masque }) => {
   const garder = p => !p.startsWith('--');
   const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
   const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && n.children[Number(i)]; } return n; };
-  const proprietes = s => { const o = {}; for (let i = 0; i < s.length; i++) { const p = s[i]; if (garder(p)) { o[p] = s.getPropertyValue(p); } } return o; };
+  const masquees = (e, pseudo) => (!pseudo && masque && e.matches(masque.selecteur) ? masque.proprietes : []);
+  const proprietes = (s, sauf) => { const o = {}; for (let i = 0; i < s.length; i++) { const p = s[i]; if (garder(p) && !sauf.includes(p)) { o[p] = s.getPropertyValue(p); } } return o; };
   const fnv = t => { let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
   const valeur = (e, pseudo) => {
-    const o = proprietes(getComputedStyle(e, pseudo || null));
+    const o = proprietes(getComputedStyle(e, pseudo || null), masquees(e, pseudo));
     return detail ? { quoi: `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].slice(0, 3).join('.')}${pseudo || ''}`, o } : fnv(Object.entries(o).map(([p, v]) => p + ':' + v).join(';'));
   };
   const out = {};
@@ -1877,7 +1885,8 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Aucun masque : bundle testé, base du nettoyage et base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
+// Un seul masque, MASQUE_JAUGES_9, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
+// base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile, injection: 'fin' });
@@ -1915,7 +1924,7 @@ if (on('nettoyage')) {
     const b = await ouvrirNettoyage({ ...c, script: avantNettoyage });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
-      out.comparaisons.push(['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
+      out.comparaisons.push(['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { masque: MASQUE_JAUGES_9 })]);
       if (p.m && c.width === 768) {
         const b0 = await ouvrirNettoyage({ ...c, script: avantMedias410 });
         const rc = await comparerUneFois(a.page, b0.page, {});
