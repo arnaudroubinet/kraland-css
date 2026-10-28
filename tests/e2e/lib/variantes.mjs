@@ -307,11 +307,13 @@ const CARTE_TICKET52 = 'body.mobile-mode .panel-default:where(:not(.panel-group 
 export const REGLES_CARTE_TICKET52 = REGLES_CARTE_TICKET51.map(([sel, p, prio]) => [sel.replace(CARTE_TICKET51, CARTE_TICKET52), p, prio]);
 export const PASTILLE_TICKET52 = '.kr-topic-badge';
 export const SUJET_TICKET52 = 'forum-sujet.html';
+// Ticket 12 (D7) : les règles du forum excluent accordéons et modales par la même garde de spécificité nulle que la carte.
+const GARDE_TICKET12 = ':where(:not(.panel-group > *, .modal *))';
 export const REGLES_FORUM_TICKET52 = [
-  ['body.page-forum .panel-default', ['background', 'background-color']],
-  ['body.page-forum .panel-default > .panel-heading', ['background', 'background-color', 'border-radius', 'padding']],
-  ['body.page-forum .panel-default > .panel-heading h3', ['color']],
-  ['body.page-forum .panel-default > .panel-body, body.page-forum-racine .panel-default > .panel-body', []]
+  [`body.page-forum .panel-default${GARDE_TICKET12}`, ['background', 'background-color']],
+  [`body.page-forum .panel-default${GARDE_TICKET12} > .panel-heading`, ['background', 'background-color', 'border-radius', 'padding']],
+  [`body.page-forum .panel-default${GARDE_TICKET12} > .panel-heading h3`, ['color']],
+  [`body.page-forum .panel-default${GARDE_TICKET12} > .panel-body, body.page-forum-racine .panel-default${GARDE_TICKET12} > .panel-body`, []]
 ];
 export const VALEURS_FORUM_TICKET52 = ['--kr-text-accent', 'transparent', '--kr-border-default'];
 
@@ -752,3 +754,18 @@ export const REPERES_LIGNE_TICKET66 = {
   racineNue: 'forum-racine.html'
 };
 
+/**
+ * Accordéon et modale sur une page du forum (ticket 12, story-envoyer-et-panneaux-du-forum-sur-page-derivee) : repères du fragment
+ * panneaux de forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : markup ajouté au fil de sujet en mémoire (accordéon
+ * à deux panneaux, corps direct et corps repliable ; modale statique ouverte, sans appel jQuery) et sélecteur des panneaux mesurés.
+ */
+export const REPERES_PANNEAUX_TICKET12 = {
+  html: '<div class="panel-group" id="kr-acc">'
+    + '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">Section repliable</h3></div><div class="panel-body">Contenu inventé.</div></div>'
+    + '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title"><a data-toggle="collapse" href="#kr-acc-2">Autre section</a></h3></div><div id="kr-acc-2" class="panel-collapse collapse in"><div class="panel-body">Autre contenu.</div></div></div>'
+    + '</div>'
+    + '<div class="modal fade in" id="kr-modale" tabindex="-1" style="display: block;"><div class="modal-dialog"><div class="modal-content"><div class="modal-body">'
+    + '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">Panneau de modale</h3></div><div class="panel-body">Contenu de modale.</div></div>'
+    + '</div></div></div></div>',
+  sel: '.panel-group > .panel-default, .modal .panel-default'
+};

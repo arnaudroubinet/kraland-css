@@ -94,8 +94,8 @@ export const SUITES = [
   // Activité du forum (épopée 6, entrée 2) : fil de sujet ouvert sur une ancre de message (#msg) à 375, 767, 768 et 1280, dans les deux
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
-  // ordinateur et Staff égaux au bundle de base.
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne']], needsBootstrap: true }
+  // ordinateur et Staff égaux au bundle de base ; « Envoyer » sous un message ouvert et accordéon ou modale sur une page du forum (ticket 12).
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

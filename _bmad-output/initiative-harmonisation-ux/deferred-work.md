@@ -95,6 +95,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 
 - Accordéon (`.panel-group`) ou modale `.panel-default` posé sur une page `/forum/*` : la règle forum ne bat plus la copie de base, il prendrait fond surface et rayon md. Aucune fixture du forum n'en contient ; à vérifier sur le site réel.
   status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D7, faisable sur une page dérivée en mémoire, hors du périmètre du sweep, reporté à la rétro de l'épopée 6.
+  status: traité par le ticket 12 (`backlog/story-envoyer-et-panneaux-du-forum-sur-page-derivee-plan.md`, 2026-10-28) : règles du panneau forum gardées par `:where(:not(.panel-group > *, .modal *))` ; mesuré par `forum-activite.mjs`, fragment `panneaux` (page dérivée en mémoire).
 - Bascule 767 ↔ 768 du forum non couverte par `cartes-pastilles` (fragment `bascule` sur Bâtiments). Risque faible : le forum recharge la page au changement de seuil.
   status: traité par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D8, couverte depuis 6.2 par `forum-activite.mjs`, fragment `seuil` (`bascule`, sujet et index RP, 767 ↔ 768 dans le même onglet) ; aucun code.
 - Pages `/forum/*` hors fixtures (réponse, nouveau sujet, recherche, modération) : leurs `.panel-default` entrent dans la carte (48 px, corps à 0). À regarder sur capture.
@@ -149,6 +150,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 
 - La barre d'un message ouvert passe en z-index 991 sur mobile, pour rester au-dessus de `.dropdown-backdrop` (990). Elle pourrait donc passer au-dessus de la barre « Envoyer » fixe (z-index 90, `:where(body.page-forum) button.btn-primary.pull-right`), alors que sur la base elle passait dessous. Aucune fixture ne porte à la fois des messages et cette barre, donc rien ne l'a mesuré. À vérifier sur un vrai sujet qui a un formulaire de réponse, en lecture seule. Source : revue quick de 6.5, constat 1.
   status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D13, faisable sur une page dérivée en mémoire, hors du périmètre du sweep, reporté à la rétro de l'épopée 6.
+  status: traité par le ticket 12 (`backlog/story-envoyer-et-panneaux-du-forum-sur-page-derivee-plan.md`, 2026-10-28) : z-index 991 réservé à l'état « voile présent » (`body.mobile-mode:has(.dropdown-backdrop)`) ; mesuré par `forum-activite.mjs`, fragment `envoyer` (page dérivée en mémoire).
 
 ## Reports du ticket 6.6, ligne de forum (2026-10-25)
 
