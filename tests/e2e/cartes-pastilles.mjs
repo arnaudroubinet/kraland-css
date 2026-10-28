@@ -69,7 +69,8 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -167,7 +168,8 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768 }) {
+// sansMarge : marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE, lib/marges.mjs), pour les comparaisons au bundle de base.
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, sansMarge = false }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -187,6 +189,7 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
+  if (sansMarge) { await context.addInitScript(poserJetonsRedefinis, SANS_MARGE_PAGE); }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
@@ -503,7 +506,7 @@ async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
       out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
       await context.close();
     }
@@ -1023,7 +1026,7 @@ if (on('groupes')) {
   }
   // Mini-profil plié et déplié, égal à la base (plateau-minimal et plateau-qualite-usage, 375 et 700 px).
   const miniProfil = async (c, script) => {
-    const { context, page, erreurs } = await ouvrir({ ...c, script });
+    const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
     const etat = async cls => {
       await waitState(page, ([sel, k]) => { const mp = document.querySelector(sel); return !!mp && mp.classList.contains(k) && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, [G.miniProfil, cls], { maxMs: 3000 });
       await styleSettled(page, G.miniProfil);
@@ -1438,7 +1441,7 @@ async function forcerEtat55(page, sel, etat, mesure) {
 // Relevé d'une page : repos ; marque PNJ survolée ; tags en appui sous 768 px.
 async function releverEtiquettes(c, script) {
   const cles = LISTES55[c.nom];
-  const { context, page, erreurs } = await ouvrir({ ...c, script });
+  const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
   const mesure = () => page.evaluate(MESURE_ETIQUETTES, [E, P, cles]);
   const m = await mesure();
   if (cles.some(([k]) => C13.horsFamilles.includes(k))) { m.caracs = await page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13); }

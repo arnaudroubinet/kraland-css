@@ -105,6 +105,7 @@ import { Buffer } from 'node:buffer';
 import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
+import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
@@ -1547,7 +1548,8 @@ const mesurerEspacement = (page, nom, width) => page.evaluate(MESURE_ESPACEMENT,
   .then(Object.fromEntries);
 async function releverEspacement({ nom, width, variante, script, css, deplier = false }) {
   const { def } = PAGES_ESPACEMENT[nom];
-  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css });
+  // Marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE) : les exceptions E se comparent à une base d'avant cette marge.
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css: `${css || ''} ${SANS_MARGE_PAGE}` });
   if (def.modale) { await ouvrirModaleOrdre(page, def); }
   const res = await mesurerEspacement(page, nom, width);
   let deplie = null;
@@ -1660,7 +1662,7 @@ if (on('espacement')) {
   // Bascule dans le même onglet (767, 768 puis 767 px) sur le plateau de jeu : à chaque pas, chaque élément a la valeur de son rôle.
   const releverBascule = async (variante, script) => {
     const nom = 'plateau-typo';
-    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def: PAGES_ESPACEMENT[nom].def, tactile: false });
+    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def: PAGES_ESPACEMENT[nom].def, css: SANS_MARGE_PAGE, tactile: false });
     const pas = [{ width: 767, res: await mesurerEspacement(page, nom, 767) }];
     for (const width of [768, 767]) {
       await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
@@ -1916,10 +1918,10 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
 // Un seul masque, MASQUE_JAUGES_9, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
-// base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
+// base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile, injection: 'fin' });
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: `${GEL_NETTOYAGE} ${SANS_MARGE_PAGE}`, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;

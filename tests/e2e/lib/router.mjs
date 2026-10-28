@@ -96,7 +96,11 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base ; « Envoyer » sous un message ouvert et accordéon ou modale sur une page du forum (ticket 12).
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true },
+  // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
+  // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
+  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (règles, forum, kramail, notifications, Cybermonde) égales au bundle de base.
+  { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -218,7 +222,10 @@ export const KEYWORDS = [
   [/kr-more\b|createMoreButton/, ['forum-activite', 'messages', 'kramail', 'typographie-formes', 'cartes-pastilles', 'palette-nation']],
   // Icône de la ligne de forum lue dans la liste latérale (épopée 6, entrée 6) : vérifiée par le fragment ligne de forum-activite ; mesurée
   // aussi par les suites qui la comparent au bundle de base (cartes-pastilles, typographie-formes).
-  [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']]
+  [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']],
+  // Marge mobile de 16 px (épopée 9, entrée 1) : classes de page posées par KR_PAGE_CLASSES, retrait --kr-marge-page et jeton
+  // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base).
+  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|kr-page-jeu|kr-page-aide|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de

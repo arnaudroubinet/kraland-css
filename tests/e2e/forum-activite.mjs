@@ -1695,21 +1695,23 @@ if (on('ligne')) {
     });
   });
 
-  // Peau coupée : aucune icône, #col-right égal à celui de la base peau coupée (à 375 px, le script pose déjà sans la peau un style en ligne
-  // sur #col-right, avant comme après le ticket : la page sans script n'est pas la référence). Staff et sous-forum : égaux à la base,
-  // aucune icône.
+  // Peau coupée : aucune icône, #col-right égal à celui de la base peau coupée. À 375 px, le script de la base pose sans la peau un style
+  // en ligne sur #col-right et ses colonnes (applyMobileCriticalStyles, retiré par l'épopée 9, entrée 1) : ce seul style est ôté du relevé
+  // de la base (STYLE_EN_LIGNE_AVANT_91). Staff et sous-forum : égaux à la base, aucune icône.
   // Injection « début » (comme `@run-at document-start`) : injecté à l'apparition de <body>, le script, peau coupée, observe <body> pour
   // retirer les infobulles en mobile ; or `mobile-mode` n'est posé qu'au DOMContentLoaded. Les attributs data-toggle/title du bouton
   // « Tous les forums » et des flèches restent ou partent selon que la dernière insertion du parseur est livrée avant ou après ce
   // DOMContentLoaded : sous charge, l'un des deux bundles perd la course (écart au caractère 430). Au début du document, <body> n'existe pas,
   // l'observateur n'est pas posé : infobulles natives gardées des deux côtés, comme sur le site.
+  const STYLE_EN_LIGNE_AVANT_91 = / style="(?:padding-left: 0px !important; padding-right: 0px !important;|margin-left: 0px !important; margin-right: 0px !important;)"/g;
   const colonne = page => page.evaluate(sel => ({ total: document.querySelectorAll(sel).length, col: document.getElementById('col-right').outerHTML }), '.' + L.icone);
   const casP = [375, 1280].map(width => ({ width }));
   const resP = await mapLimit(casP, async ({ width }) => {
     const out = {};
     for (const [k, src] of [['teste', userscript], ['base', baseLigne]]) {
       const { context, page, erreurs } = await ouvrir({ cle: 'rp', width, src, theme: false, debut: true });
-      out[k] = { ...(await colonne(page)), erreurs };
+      const c = await colonne(page);
+      out[k] = { ...c, col: k === 'base' ? c.col.replace(STYLE_EN_LIGNE_AVANT_91, '') : c.col, erreurs };
       await context.close();
     }
     return out;
