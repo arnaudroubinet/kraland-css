@@ -131,6 +131,13 @@ const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
 const BASE = 'http://www.kraland.org';
+// Écart accepté et consigné (épopée 7, entrée 1) : sous 768 px, les dossiers du titre d'une liste du kramail (Réception, Envoi, Corbeille)
+// deviennent des Onglets de section libellés, prouvés par kramail-theme.mjs. Les bases figées de cette suite les précèdent : ces dossiers
+// sont retirés des comparaisons mobiles des seules listes (HORS_DOSSIERS, RETIRER_DOSSIERS), reconnus par leur lien natif dans les deux
+// bundles ; le bouton Réception des pages lecture, nouveau et répondre reste comparé.
+// Retrait : quand une base de cette suite contient l'entrée.
+const HORS_DOSSIERS = ':not([href^="kramail/"]:not([href^="kramail/post/"]))';
+const RETIRER_DOSSIERS = () => { if (window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); } };
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const on = name => FRAG.length === 0 || FRAG.includes(name);
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
@@ -476,7 +483,7 @@ const PAGES_BOUTONS = {
     vises: [['plus', '.editeur-text .input-group-addon .btn']], exclus: [] },
   reception: { url: BASE + '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html'),
     vises: [['entete', 'h1.page-header .pull-right > .btn', 'bureau', true], ['liste', 'table thead th .btn-group > .btn', 'bureau']],
-    exclus: [['entete-icones', 'h1.page-header .pull-right > .btn', 'bureau', false], ['entete-icones', 'h1.page-header .pull-right .btn', 'mobile']] },
+    exclus: [['entete-icones', 'h1.page-header .pull-right > .btn', 'bureau', false], ['entete-icones', 'h1.page-header .pull-right .btn' + HORS_DOSSIERS, 'mobile']] },
   interface: { url: BASE + '/profil/interface', html: lire('palette-nation-profil.html'), gmErreur: true, historique: true,
     vises: [['sauvegarde', '#kr-config-export-btn, #kr-config-import-btn'], ['historique', '#kr-changelog-btn'], ['pied', '.kr-changelog-footer button']],
     exclus: [] },
@@ -1224,7 +1231,9 @@ if (on('echelle-forum')) {
   // Garde de régression : la taille de chaque élément de #col-right est égale à celle du bundle de base (COMMIT_ECHELLE_FORUM), sans
   // masque ; les rôles du ticket 7 sont prouvés par les contrôles absolus plus haut. Pages comparées hors périmètre par forum-index.mjs
   // (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception, lecture), plus l'index et le nouveau kramail.
-  const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
+  const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')]
+    .filter(e => window.innerWidth >= 768 || /\/kramail\/post\//.test(location.pathname) || !e.closest('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])'))
+    .map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
@@ -1296,7 +1305,8 @@ const PAGES_RAYONS = {
     ['pagination', '.dataTables_paginate .paginate_button', 'C4', 'm'], ['fleches', '#topics .btn-group-xs > .btn', 'C4'], ['nouveau', '.forum-thread-action', 'C4', 'm']
   ] },
   reception: { def: PAGES_FORUM.reception, cas: [
-    ['titre', '.kramail-character-selector', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4'], ['actions', '.kramail-actions-mobile > .btn', 'C4', 'm'],
+    ['titre', '.kramail-character-selector', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4', 'b'], ['icones', 'h1.page-header .pull-right > .btn' + HORS_DOSSIERS, 'C4', 'm'],
+    ['actions', '.kramail-actions-mobile > .btn', 'C4', 'm'],
     ['panneau', 'form > .panel', 'K8'], ['entete', 'form > .panel > .panel-heading', 'K8', 'm'],
     ['entete', 'form > .panel > .panel-heading', 'K7', 'b'], ['ligne', 'form > .panel tbody > tr', 'K8', 'm']
   ] },
@@ -1915,13 +1925,15 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Un seul masque, MASQUE_JAUGES_9, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
+// Deux masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, et les dossiers du kramail retirés sous 768 px
+// (RETIRER_DOSSIERS, épopée 7, entrée 1) ; sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
+  await o.page.evaluate(RETIRER_DOSSIERS);
   return o;
 };
 // Force un état (:hover, :focus, :active) sur les éléments d'un sélecteur (CDP, sans geste).

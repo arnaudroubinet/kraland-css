@@ -95,7 +95,10 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base ; « Envoyer » sous un message ouvert et accordéon ou modale sur une page du forum (ticket 12).
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true }
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true },
+  // Kramail, thème (épopée 7, entrée 1) : gardes de page sur <html> (kr-page-kramail, liste / lecture / compose), injection en tête et au
+  // DOMContentLoaded ; dossiers en Onglets de section libellés à 375 et 767 px, clair et sombre ; ordinateur (768, 1280) égal à la base figée.
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

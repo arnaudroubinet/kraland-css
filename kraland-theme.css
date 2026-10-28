@@ -4682,8 +4682,9 @@ body > map {
     justify-content: center !important;
   }
   
-  /* Boutons de formulaire : taille normale (14 px, cible de 44 px ci-dessus), .btn-sm et .btn-lg compris */
-  .btn {
+  /* Boutons de formulaire : taille normale (14 px, cible de 44 px ci-dessus), .btn-sm et .btn-lg compris. Dossiers du kramail en onglets
+     exclus (Onglets de section, épopée 7, entrée 1 : retrait et taille du libellé de l'onglet) */
+  .btn:where(:not([data-kr-dossier])) {
     padding: 12px 20px !important;
     font-size: var(--kr-font-button) !important;
   }
@@ -4723,8 +4724,8 @@ body > map {
     cursor: pointer !important;
   }
   
-  /* Espacement entre éléments cliquables */
-  .btn + .btn {
+  /* Espacement entre éléments cliquables (dossiers du kramail en onglets contigus exclus) */
+  .btn + .btn:where(:not([data-kr-dossier])) {
     margin-top: 8px !important;
     margin-left: 0 !important;
   }
@@ -8871,8 +8872,8 @@ body > map {
 
   /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px (scopé kramail) === */
 
-  /* Style commun : tabs (a.btn) + bouton kebab (.btn-group > .btn) */
-  body.page-kramail h1.page-header .pull-right > a.btn,
+  /* Style commun : boutons (a.btn) + bouton kebab (.btn-group > .btn). Dossiers en onglets exclus (voir 2 bis) */
+  body.page-kramail h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier])),
   body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
     width: 44px !important;
     height: 44px !important;
@@ -8899,8 +8900,8 @@ body > map {
     line-height: 1 !important;
   }
 
-  /* Tab actif (btn-primary = onglet sélectionné) */
-  body.page-kramail h1.page-header .pull-right > a.btn.btn-primary {
+  /* Bouton actif hors dossiers (btn-primary) */
+  body.page-kramail h1.page-header .pull-right > a.btn.btn-primary:not(:where([data-kr-dossier])) {
     background: var(--kr-arm-bg, var(--kr-primary)) !important;
     border-color: var(--kr-primary-dark) !important;
     color: var(--kr-arm-ink, white) !important;
@@ -8911,6 +8912,40 @@ body > map {
   body.page-kramail h1.page-header .pull-right > .btn-group > .btn:active {
     transform: scale(0.97) !important;
     opacity: 0.9 !important;
+  }
+
+  /* === 2 bis. DOSSIERS (Réception, Envoi, Corbeille) : Onglets de section libellés (épopée 7, entrée 1) ===
+     Un rang pleine largeur, filet de 2 px sur toute la barre, filet de 3 px en couleur primaire logé dans la ligne sous le dossier actif
+     (maquette key-kramail-mobile, même grammaire que les onglets du jeu).
+     Nouveau, Contacts et ••• passent au rang suivant en carrés de 44 px. */
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-dossier] {
+    flex: 1 1 calc(100% / 3 - 8px);
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 4px;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: inset 0 -2px 0 var(--kr-border-default);
+    background: var(--kr-bg-surface);
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-label);
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-dossier] + a.btn[data-kr-dossier] {
+    margin-left: -8px;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-dossier].btn-primary {
+    box-shadow: inset 0 -3px 0 var(--kr-primary);
+    font-weight: 600;
   }
 
   /* Container du bouton kebab — taille contrainte */
