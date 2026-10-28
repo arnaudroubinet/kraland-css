@@ -26,18 +26,23 @@ const FAST = 6000; const SLOW = 1200;
 // Condition bornée, sans erreur : la vérification qui suit mesure l'état réel et tranche (une condition jamais atteinte coûte maxMs).
 const until = (page, fn, arg, maxMs = 5000) => page.waitForFunction(fn, arg, { timeout: maxMs, polling: 'raf' }).then(() => true, () => false);
 const frames = page => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
-async function open({ fallback = false, desktop = false, delayed = false } = {}) {
+// Document-start (bug 6, option debut) : bundle évalué dès que <html> existe, comme modale-ordre.mjs. La page est servie avec un script
+// en tête de <head>, avant la balise viewport (le parseur ne livre l'observateur qu'à son premier script) : <body> absent et largeur
+// par défaut (≈ 980 px) à l'injection ; l'état relevé à l'injection (window.__krInjection) le prouve.
+const pageDebut = fs.readFileSync(path.join(fixture, 'model-page.html'), 'utf8').replace('<meta charset="utf-8">', '<meta charset="utf-8">\n  <script>window.__krScriptTete = true;</script>');
+if (!pageDebut.includes('__krScriptTete')) { throw new Error('fixture Parler : balise charset introuvable'); }
+async function open({ fallback = false, desktop = false, delayed = false, debut = false } = {}) {
   const ctx = await browser.newContext({ viewport: desktop ? { width: 1280, height: 720 } : { width: 390, height: 844 }, isMobile: !desktop, hasTouch: !desktop, deviceScaleFactor: 1 });
   const blocked = []; const errors = [];
   await ctx.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin === 'http://fixture.invalid' && route.request().method() === 'GET') {
-      if (url.pathname === '/jouer/plateau') { return route.fulfill({ contentType: 'text/html', path: path.join(fixture, 'model-page.html') }); }
+      if (url.pathname === '/jouer/plateau') { return debut ? route.fulfill({ contentType: 'text/html', body: pageDebut }) : route.fulfill({ contentType: 'text/html', path: path.join(fixture, 'model-page.html') }); }
       if (/^\/native\/[\w.-]+$/.test(url.pathname) && fs.existsSync(path.join(vendor, path.basename(url.pathname)))) { return route.fulfill({ path: path.join(vendor, path.basename(url.pathname)) }); }
     }
     blocked.push(route.request().method() + ' ' + url.href); return route.abort();
   });
-  await ctx.addInitScript(({ source, hasFallback }) => {
+  await ctx.addInitScript(({ source, hasFallback, start }) => {
     if (hasFallback) { Object.defineProperty(window, 'visualViewport', { value: undefined }); }
     window.__submits = 0; window.__confirmations = 0; window.__shown = [];
     window.GM = { xmlHttpRequest: () => {} };
@@ -46,8 +51,11 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
     document.addEventListener('submit', e => { e.preventDefault(); window.__submits++; }, true);
     document.addEventListener('click', e => { if (e.target.closest('a')) { e.preventDefault(); } }, true);
     localStorage.setItem('kr-theme-enabled', 'true'); localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
-    new MutationObserver((m, observer) => { if (document.body) { observer.disconnect(); const script = document.createElement('script'); script.textContent = source; document.documentElement.appendChild(script); script.remove(); } }).observe(document, { childList: true, subtree: true });
-  }, { source: src, hasFallback: fallback });
+    const go = () => { window.__krInjection = { body: !!document.body, largeur: window.innerWidth }; const script = document.createElement('script'); script.textContent = source; document.documentElement.appendChild(script); script.remove(); };
+    const pret = () => (start ? !!document.documentElement : !!document.body);
+    if (pret()) { go(); return; }
+    new MutationObserver((m, observer) => { if (pret()) { observer.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
+  }, { source: src, hasFallback: fallback, start: debut });
   const page = await ctx.newPage(); page.on('pageerror', e => errors.push(e.message));
   const cdp = await ctx.newCDPSession(page);
   await page.goto('http://fixture.invalid/jouer/plateau');
@@ -120,7 +128,7 @@ async function open({ fallback = false, desktop = false, delayed = false } = {})
   }
   return { ctx, page, cdp, snap, gestures, errors, blocked };
 }
-// Fragmentation (lot H, exécution parallèle) : KR_FRAG = transitions, fallback, ajax, bureau ; vide = tout jouer. Chaque scénario ouvre
+// Fragmentation (lot H, exécution parallèle) : KR_FRAG = transitions, fallback, ajax, bureau, debut ; vide = tout jouer. Chaque scénario ouvre
 // SON contexte (open()) : aucun état partagé. « transitions » garde la séquence barres -> transitions -> fermeture d'un seul tenant (même
 // page, chaque taille part de la précédente).
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -184,8 +192,22 @@ try {
     check(await d.page.evaluate(() => !document.querySelector('.bootbox-alert').classList.contains('kr-order-viewport')), 'autre Bootbox : non ciblée');
     check(d.errors.length === 0, 'bureau/autre modale : aucune erreur JavaScript'); await d.ctx.close();
   }
+  if (frag('debut')) {
+    // Bug 6 : bundle évalué avant <body> (document-start), viewport pas encore lue ; la modale de Parler doit être suivie (fenêtre
+    // visible reportée) et mise en forme comme quand le bundle est évalué après <body>.
+    const b = await open({ debut: true });
+    const etat = await b.page.evaluate(() => { const m = document.querySelector('.bootbox'); const v = window.visualViewport; return { injection: window.__krInjection, mobile: document.body.classList.contains('mobile-mode'), transformee: m.dataset.structureTransformed === 'true', suivie: m.classList.contains('kr-order-viewport'), hauteur: m.style.getPropertyValue('--kr-order-visible-height'), attendue: (v ? v.height : window.innerHeight) + 'px' }; });
+    check(etat.injection && etat.injection.body === false && etat.injection.largeur >= 768, 'document-start : bundle évalué avant <body>, viewport pas encore lue ' + JSON.stringify(etat.injection));
+    check(etat.mobile && etat.transformee, 'document-start : mise en forme mobile de la modale de Parler faite ' + JSON.stringify(etat));
+    check(etat.suivie && etat.hauteur === etat.attendue, 'document-start : fenêtre visible suivie (kr-order-viewport, --kr-order-visible-height) ' + JSON.stringify(etat));
+    await b.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
+    await b.gestures(); s = await b.snap('debut-390x320');
+    check(s.fullyInside && s.hit, 'document-start 390x320 : Valider intégralement visible ou atteint par gestes');
+    check(b.errors.length === 0, 'document-start : aucune erreur JavaScript ' + b.errors.join(' | '));
+    await b.ctx.close();
+  }
   // Fragment inconnu : aucun scénario joué ne doit pas passer pour un succès.
-  if (checks === 0) { check(false, `KR_FRAG=${FRAG.join(',')} : aucun scénario joué (fragments : transitions, fallback, ajax, bureau)`); }
+  if (checks === 0) { check(false, `KR_FRAG=${FRAG.join(',')} : aucun scénario joué (fragments : transitions, fallback, ajax, bureau, debut)`); }
 } catch (e) { check(false, e.stack); }
 finally { await browser.close(); fs.writeFileSync(path.join(out, 'mesures.json'), JSON.stringify({ checks, failures, results }, null, 2)); console.log(`Parler : ${checks - failures} ok, ${failures} FAIL ; preuves : ${out}`); }
 process.exitCode = failures ? 1 : 0;

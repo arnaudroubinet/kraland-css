@@ -171,3 +171,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `_bmad-output/backlog/bug-caracteristiques-du-plateau-sur-fond-vert-plan.md`
   summary: Comparer la pastille VOL 0 des caractéristiques à une vraie pastille de compétence à 0 au lieu de jetons recopiés à la main dans `tests/e2e/lib/variantes.mjs`.
   evidence: revue quick du backlog 13, constat 3 ; `typographie-formes.html` n'a aucune compétence à 0.
+
+- source_plan: `_bmad-output/backlog/bug-modules-de-modale-inactifs-au-demarrage-plan.md`
+  summary: `initModalTabScroll` garde `document.body` sans report au DOMContentLoaded, comme les modules du bug 6 ; au document-start sur téléphone (largeur 980 px), `initMobileFeatures` ne tourne pas non plus avant la bascule.
+  evidence: relevé de l'implémenteur du backlog 6 (2026-10-28), hors périmètre des trois modules du ticket.
