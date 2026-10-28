@@ -107,7 +107,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -271,6 +271,23 @@ function MESURE(liste) {
   })]);
 }
 
+// Pastilles des caractéristiques (backlog 13) : niveau, valeurs calculées et valeurs des jetons de ce niveau (sonde posée à côté de la
+// pastille, retirée aussitôt).
+const PASTILLES13 = ([sel, jetons]) => [...document.querySelectorAll(sel)].map(e => {
+  const st = x => { const s = getComputedStyle(x); return { couleur: s.color, fond: s.backgroundColor, bordure: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor].join(' ') }; };
+  const niveau = Object.keys(jetons).find(n => e.classList.contains(n));
+  const out = { texte: e.textContent.trim(), niveau: niveau || [...e.classList].join('.'), ...st(e) };
+  if (niveau) {
+    const [fond, couleur, bordure] = jetons[niveau];
+    const sonde = document.createElement('span');
+    sonde.style.cssText = `background-color: var(${fond}); color: var(${couleur}); border: 1px solid var(${bordure})`;
+    e.parentElement.appendChild(sonde);
+    out.attendu = st(sonde);
+    sonde.remove();
+  }
+  return out;
+});
+
 async function relever(opts) {
   const { context, page, erreurs, kd } = await ouvrir(opts);
   const def = PAGES[opts.nom];
@@ -278,10 +295,12 @@ async function relever(opts) {
   const attendus = def.elements.filter(([, , m]) => mobile || !m);
   let res;
   if (def.kramail) { res = kd; } else { res = await page.evaluate(MESURE, attendus.map(([k, s]) => [k, s])); }
+  const stat = attendus.find(([k]) => k === 'stat');
+  const pastilles = stat ? await page.evaluate(PASTILLES13, [stat[1], C13.pastilles]) : null;
   const jetons = await page.evaluate(noms => Object.fromEntries(noms.map(n => [n, getComputedStyle(document.documentElement).getPropertyValue(n).trim()])), Object.keys(JETONS));
   const retires = await page.evaluate(noms => noms.filter(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() !== ''), JETONS_RETIRES);
   await context.close();
-  return { mesures: Object.fromEntries(res), attendus: attendus.map(([k]) => k), jetons, retires, erreurs };
+  return { mesures: Object.fromEntries(res), attendus: attendus.map(([k]) => k), pastilles, jetons, retires, erreurs };
 }
 
 const etiquette = o => `${o.nom} ${o.variante} ${o.width} px`;
@@ -331,15 +350,25 @@ async function largeurs(titre, widths) {
       const hors = Object.entries(r.mesures).flatMap(([k, l]) => l.filter(m => m.taille !== '12px' || m.graisse !== '700').map(m => `${k} « ${m.texte} » ${m.taille}/${m.graisse}`));
       assert.deepEqual(hors, [], hors.join(' ; '));
     });
-    check(`${etiquette(c)} : couleur, fond et bordures égaux au bundle de base`, () => {
+    // Pastilles des caractéristiques (stat) : égales aux jetons de leur niveau, ceux des pastilles de compétence (backlog 13), et non plus
+    // au bundle de base (palette d'états du ticket 3.5).
+    check(`${etiquette(c)} : couleur, fond et bordures égaux au bundle de base${r.pastilles ? ' (pastilles des caractéristiques à part)' : ''}`, () => {
       const ecarts = [];
       for (const [k, l] of Object.entries(r.mesures)) {
+        if (k === 'stat') { continue; }
         const b = a.mesures[k] || [];
         if (b.length !== l.length) { ecarts.push(`${k} : ${l.length} élément(s) contre ${b.length}`); continue; }
         l.forEach((m, i) => ['couleur', 'fond', 'bordure'].forEach(p => { if (m[p] !== b[i][p]) { ecarts.push(`${k} « ${m.texte} » ${p} ${m[p]} au lieu de ${b[i][p]}`); } }));
       }
       assert.deepEqual(ecarts, [], ecarts.join(' ; '));
     });
+    if (r.pastilles) {
+      check(`${etiquette(c)} : pastilles des caractéristiques aux jetons de leur niveau, ceux des pastilles de compétence (backlog 13)`, () => {
+        assert.ok(r.pastilles.length, 'aucune pastille de caractéristique');
+        const ecarts = r.pastilles.flatMap(m => !m.attendu ? [`« ${m.texte} » niveau inconnu (${m.niveau})`] : ['couleur', 'fond', 'bordure'].filter(p => m[p] !== m.attendu[p]).map(p => `« ${m.texte} » ${m.niveau} ${p} ${m[p]} au lieu de ${m.attendu[p]}`));
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
     check(`${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
   }
 }
@@ -1774,8 +1803,9 @@ const ecartsA8 = (ha, hb) => {
   return { n: cles.length, ecarts };
 };
 // Dans la page : empreinte (FNV-1a) des propriétés calculées de chaque élément visible (racine : sous-arbres des éléments visés) et de ses
-// ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair.
-const EMPREINTES = ({ racine, cles, detail }) => {
+// ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair ; ecarter : sous-arbres
+// mesurés à part (caractéristiques, backlog 13).
+const EMPREINTES = ({ racine, cles, detail, ecarter }) => {
   const garder = p => !p.startsWith('--');
   const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
   const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && n.children[Number(i)]; } return n; };
@@ -1798,7 +1828,7 @@ const EMPREINTES = ({ racine, cles, detail }) => {
   const vus = new Set();
   for (const r of racines) {
     for (const e of [r, ...r.querySelectorAll('*')]) {
-      if (vus.has(e) || !(e === document.documentElement || e.getClientRects().length)) { continue; }
+      if (vus.has(e) || !(e === document.documentElement || e.getClientRects().length) || (ecarter && e.closest(ecarter))) { continue; }
       vus.add(e);
       const c = chemin(e);
       out[c] = valeur(e);
@@ -1915,7 +1945,10 @@ if (on('nettoyage')) {
     const b = await ouvrirNettoyage({ ...c, script: avantNettoyage });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
-      out.comparaisons.push(['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
+      // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).
+      const caracs = await a.page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13);
+      if (caracs.length) { out.caracs = caracs; }
+      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres })]);
       if (p.m && c.width === 768) {
         const b0 = await ouvrirNettoyage({ ...c, script: avantMedias410 });
         const rc = await comparerUneFois(a.page, b0.page, {});
@@ -2001,8 +2034,14 @@ if (on('nettoyage')) {
       assert.deepEqual(boutons.filter(x => !x.endsWith(' 1/1')).sort(), ref.boutons.filter(x => !x.endsWith(' 1/1')).sort(), boutons.join(' ; '));
     });
   }
-  for (const { c, erreurs, comparaisons, ordre, champs, change, a8 } of res) {
+  for (const { c, erreurs, comparaisons, ordre, champs, change, a8, caracs } of res) {
     for (const [quoi, r] of comparaisons) { verifierNettoyage(`nettoyage ${etiquette(c)} : ${quoi}`, r); }
+    if (caracs) {
+      check(`nettoyage ${etiquette(c)} : caractéristiques au fond, bordures et texte de la compétence de la page, pastille aux jetons de son niveau (backlog 13)`, () => {
+        const e = ecartsCaracteristiquesBacklog13(caracs);
+        assert.deepEqual(e, [], `${e.length} écart(s) : ${e.slice(0, 6).join(' ; ')}`);
+      });
+    }
     if (a8) {
       check(`nettoyage ${etiquette(c)} : éléments des blocs M1/M2 égaux à la base relevée à 769 px, propriétés déclarées par ces blocs (A8)`, () => {
         assert.equal(a8.blocs, 3, 'blocs M1 et M2 attendus : 3');

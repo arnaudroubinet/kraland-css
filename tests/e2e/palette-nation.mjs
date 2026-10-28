@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante } from './lib/variantes.mjs';
+import { CARACTERISTIQUES_BACKLOG13, COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1401,11 +1401,22 @@ if (on('etats-largeurs')) {
 }
 
 // Pages de référence, 375 et 1280 px, 16 variantes : votes du sujet (bouton d'état plein ; sur mobile, pastille du score en teinte de
-// succès à 12 % et 35 %, texte text-primary), caractéristiques du plateau (boutons de succès), alerte « Bienvenue » de l'index RP
-// (alerte de succès) : couleurs d'état des jetons, textes ≥ 4,5:1. Non lu (garde) : pastilles du sous-forum et filet de la ligne non lue
-// de /report en --kr-status-unread, comme avant le ticket.
-const PAGES5 = PAGES_BALAYAGE.filter(p => ['sujet', 'plateau', 'index RP', 'sous-forum', 'report'].includes(p.nom));
-const RELEVER5 = () => {
+// succès à 12 % et 35 %, texte text-primary), alerte « Bienvenue » de l'index RP (alerte de succès) : couleurs d'état des jetons, textes
+// ≥ 4,5:1. Non lu (garde) : pastilles du sous-forum et filet de la ligne non lue de /report en --kr-status-unread, comme avant le ticket.
+// Caractéristiques du personnage en .btn-success (backlog 13 : plateau, Matériel, Bâtiments, Employés ; colonne et mini-profil plié puis
+// déplié) : fond, bordure, texte et pastille de même niveau égaux à ceux d'une compétence de la même page (bouton standard), au repos, au
+// survol et à l'appui forcés ; plateau aussi à 767 et 768 px (Kraland clair, Empire Brun sombre). Malus simulés sur le plateau (FOR en
+// avertissement, VOL en danger) : couleur d'état, texte bg-surface ; au repos, au survol et à l'appui forcés, égaux au bundle d'avant le
+// backlog 13, comme une sonde ajoutée à la page (bouton de liste .btn-success hors caractéristiques).
+const C13 = CARACTERISTIQUES_BACKLOG13;
+const PAGES5 = [
+  ...PAGES_BALAYAGE.filter(p => ['sujet', 'plateau', 'index RP', 'sous-forum', 'report'].includes(p.nom))
+    .map(p => ({ ...p, avant: ['sous-forum', 'report'].includes(p.nom), caracs: p.nom === 'plateau' })),
+  { nom: 'Matériel', url: BASE + '/jouer/materiel', corps: FIXTURE('jeu-materiel.html'), caracs: true },
+  { nom: 'Bâtiments', url: BASE + '/jouer/bat', corps: FIXTURE('jeu-batiments.html'), caracs: true },
+  { nom: 'Employés', url: BASE + '/jouer/pnj', corps: FIXTURE('jeu-employes.html'), caracs: true }
+];
+const RELEVER5 = carac => {
   const K = window.__krContraste;
   const nom = e => e.tagName.toLowerCase() + [...e.classList].map(c => '.' + c).join('') + ' « ' + e.textContent.trim().slice(0, 24) + ' »';
   const releve = e => { const s = getComputedStyle(e); return { nom: nom(e), score: !!e.closest('li.media.kr-msg .pull-right') && document.body.classList.contains('mobile-mode'), couleur: s.color, fondPropre: s.backgroundColor, bordure: s.borderTopColor, contraste: K.texte(e) }; };
@@ -1413,39 +1424,144 @@ const RELEVER5 = () => {
     .map(e => ({ nom: nom(e), contraste: K.texte(e), couleur: getComputedStyle(e).color }));
   return {
     votes: [...document.querySelectorAll('span.btn.btn-success')].map(releve),
-    caracteristiques: [...document.querySelectorAll('a.btn.btn-success')].map(releve),
+    succes: [...document.querySelectorAll('a.btn.btn-success')].filter(e => !e.matches(carac)).map(releve),
     alertes: [...document.querySelectorAll('.alert.alert-success')].map(e => ({ ...releve(e), textes: textes(e) })),
     pastilles: [...document.querySelectorAll('.kr-topic-badge')].map(e => getComputedStyle(e).backgroundColor),
     filets: [...document.querySelectorAll('html.kr-page-report table > tbody > tr.bg-info > td:first-child')].map(e => getComputedStyle(e).boxShadow)
   };
 };
+// Chaque caractéristique et sa référence : compétence de la colonne, ou compétence clonée pour le clone du mini-profil, de même niveau de
+// pastille.
+const CARACS5 = c => {
+  const nom = e => e.tagName.toLowerCase() + [...e.classList].map(k => '.' + k).join('') + ' « ' + e.textContent.trim().slice(0, 24) + ' »';
+  const st = e => { const s = getComputedStyle(e); return { fond: s.backgroundColor, bordure: s.borderTopColor, couleur: s.color }; };
+  const niveau = e => { const b = e.querySelector('.badge'); return b ? c.niveaux.find(n => b.classList.contains(n)) || '?' : null; };
+  const badge = e => { const b = e.querySelector('.badge'); return b ? st(b) : null; };
+  return [...document.querySelectorAll(c.caracteristique)].map(e => {
+    const clone = e.classList.contains(c.clone);
+    const n = niveau(e);
+    const ref = [...document.querySelectorAll(clone ? c.refClone : c.refColonne)].find(r => niveau(r) === n);
+    return { nom: nom(e), clone, niveau: n, ...st(e), badge: badge(e), ref: ref ? { nom: nom(ref), ...st(ref), badge: badge(ref) } : null };
+  });
+};
+// Bundle d'avant le backlog 13 (palette d'états du ticket 3.5 sur toutes les caractéristiques) : malus et bouton de liste .btn-success hors
+// caractéristiques, inchangés par le correctif.
+const BASELINE13 = '7e69719';
+const avant13 = (() => {
+  if (process.env.KR_SCRIPT_AVANT13) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT13, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
+  try { return execFileSync('git', ['show', `${BASELINE13}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
+})();
+// Malus et sonde (bouton de liste .btn-success hors caractéristiques, ajouté à la page) : fond, bordures et texte.
+const ETATS13 = c => [...document.querySelectorAll(`${c.malusSel}, ${c.sonde}`)].map(e => {
+  const s = getComputedStyle(e);
+  return { nom: e.className + ' « ' + e.textContent.trim().slice(0, 24) + ' »', fond: s.backgroundColor, bordure: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor].join(' '), couleur: s.color };
+});
+const SONDE13 = c => {
+  const a = document.createElement('a');
+  a.className = c.sondeClasses;
+  a.id = c.sondeId;
+  a.href = '#';
+  a.textContent = 'Sonde';
+  (document.querySelector('#col-right') || document.body).appendChild(a);
+};
+async function etats13(page) {
+  await page.evaluate(SONDE13, C13);
+  const r = { repos: await page.evaluate(ETATS13, C13) };
+  for (const etat of ['hover', 'active']) { r[etat] = await forcer(page, [C13.malusSel, C13.sonde], etat, () => page.evaluate(ETATS13, C13)); }
+  return r;
+}
+const MALUS5 = c => {
+  const K = window.__krContraste;
+  return [...document.querySelectorAll(c.malusSel)].map(e => {
+    const s = getComputedStyle(e);
+    return { nom: e.className + ' « ' + e.textContent.trim().slice(0, 24) + ' »', etat: e.classList.contains('btn-warning') ? 'warning' : 'danger', couleur: s.color, fondPropre: s.backgroundColor, bordure: s.borderTopColor, contraste: K.texte(e) };
+  });
+};
+async function caracs5(page) {
+  const sels = [C13.caracteristique, C13.refColonne, C13.refClone];
+  const r = { repos: await page.evaluate(CARACS5, C13) };
+  for (const etat of ['hover', 'active']) { r[etat] = await forcer(page, sels, etat, () => page.evaluate(CARACS5, C13)); }
+  return r;
+}
 async function pages5(p, variante, width) {
   const res = {};
-  for (const [cote, script] of [['avant', avant5], ['apres', userscript]]) {
+  const mobile = width < 768;
+  for (const [cote, script] of [['avant', p.avant && avant5], ['apres', userscript]]) {
     if (!script) { continue; }
-    const { context, page, erreurs } = await ouvrir({ width, height: width < 768 ? 667 : 900, variante, url: p.url, corps: p.corps, script });
-    res[cote] = { ...(await page.evaluate(RELEVER5)), jetons: await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]), erreurs };
-    // Caractéristiques du plateau survolées et pressées (après seulement) : fond de survol de l'état, texte bg-surface.
-    if (cote === 'apres' && p.nom === 'plateau') {
-      for (const etat of ['hover', 'active']) { res.apres[etat] = (await forcer(page, ['a.btn.btn-success'], etat, () => page.evaluate(RELEVER5))).caracteristiques; }
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script });
+    res[cote] = { ...(await page.evaluate(RELEVER5, C13.caracteristique)), jetons: await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]), erreurs };
+    if (cote === 'apres' && p.caracs) {
+      res.apres.plie = await caracs5(page);
+      if (mobile) {
+        await page.tap(C13.entete);
+        await waitState(page, c => {
+          const d = document.querySelector(c.details);
+          return !!d && d.parentElement.classList.contains('expanded') && d.getBoundingClientRect().height > 0 && d.parentElement.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+        }, C13, { maxMs: 3000 });
+        await frames(page, 1);
+        res.apres.deplie = await caracs5(page);
+      }
     }
     await context.close();
   }
+  if (p.nom === 'plateau') {
+    const corps = C13.malus.reduce((h, [de, vers]) => h.replace(de, vers), p.corps);
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps });
+    res.malus = { mesures: await page.evaluate(MALUS5, C13), jetons: await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]), erreurs };
+    res.malus.etats = await etats13(page);
+    await context.close();
+    if (avant13) {
+      const b = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps, script: avant13 });
+      res.malus.base = await etats13(b.page);
+      await b.context.close();
+    }
+  }
   return res;
 }
-const ecartsPage5 = (p, variante, r) => {
+// Écarts d'une caractéristique à sa référence (fond, bordure, texte, pastille), dans un état.
+const ecartsCarac = (m, etat) => {
+  const quoi = `${m.nom}${m.clone ? ' (mini-profil)' : ''} ${etat}`;
+  if (!m.ref) { return [`${quoi} : aucune compétence de référence (pastille ${m.niveau})`]; }
+  const faux = [];
+  for (const k of ['fond', 'bordure', 'couleur']) { if (!memeCouleur(m[k], m.ref[k])) { faux.push(`${quoi} : ${k} ${m[k]} au lieu de ${m.ref[k]} (${m.ref.nom})`); } }
+  if (!m.badge || !m.ref.badge) { faux.push(`${quoi} : pastille ${m.badge ? 'de référence ' : ''}absente`); } else {
+    for (const k of ['fond', 'bordure', 'couleur']) { if (!memeCouleur(m.badge[k], m.ref.badge[k])) { faux.push(`${quoi} : pastille ${k} ${m.badge[k]} au lieu de ${m.ref.badge[k]}`); } }
+  }
+  return faux;
+};
+const ecartsPage5 = (p, variante, r, width) => {
   const a = r.apres;
   const j = a.jetons;
   const succes = couleurEtat(variante, 'success');
   const faux = a.erreurs.map(e => `exception ${e}`);
-  const pleins = [...a.votes, ...a.caracteristiques];
+  const pleins = [...a.votes, ...a.succes];
   if (p.nom === 'sujet' && !a.votes.length) { faux.push('aucun vote'); }
-  if (p.nom === 'plateau' && !a.caracteristiques.length) { faux.push('aucune caractéristique'); }
   if (p.nom === 'index RP' && !a.alertes.length) { faux.push('aucune alerte de succès'); }
   pleins.forEach(m => faux.push(...(m.score ? ecarts5(m.nom, m, { fond: teinte(variante, 'success', j.surface, 0.12), bordure: teinte(variante, 'success', j.surface, 0.35), texte: j.primaire }) : ecarts5(m.nom, m, { fond: succes, texte: j.surface }))));
-  if (p.nom === 'plateau') {
-    for (const etat of ['hover', 'active']) {
-      (a[etat] || []).forEach(m => faux.push(...ecarts5(`${m.nom} :${etat}`, m, { fond: survolEtat(variante, 'success'), texte: j.surface })));
+  if (p.caracs) {
+    for (const [plie, mes] of [['plié', a.plie], ['déplié', a.deplie]]) {
+      if (!mes) { continue; }
+      const repos = mes.repos;
+      if (!repos.some(m => !m.clone)) { faux.push(`aucune caractéristique dans la colonne (${plie})`); }
+      if (width < 768 && !repos.some(m => m.clone)) { faux.push(`aucune caractéristique dans le mini-profil (${plie})`); }
+      for (const etat of ['repos', 'hover', 'active']) { mes[etat].forEach(m => faux.push(...ecartsCarac(m, width < 768 ? `${etat}, mini-profil ${plie}` : etat))); }
+    }
+  }
+  if (r.malus) {
+    faux.push(...r.malus.erreurs.map(e => `exception (malus) ${e}`));
+    if (r.malus.mesures.length < C13.malus.length) { faux.push(`malus : ${r.malus.mesures.length} caractéristique(s) au lieu de ${C13.malus.length}`); }
+    r.malus.mesures.forEach(m => faux.push(...ecarts5(`malus ${m.nom}`, m, { fond: couleurEtat(variante, m.etat), texte: r.malus.jetons.surface })));
+  }
+  if (r.malus) {
+    // Malus (survol sombre PLT-11, appui du mini-profil) et bouton de liste .btn-success hors caractéristiques : égaux au bundle d'avant.
+    const e = r.malus.etats;
+    const b = r.malus.base;
+    if (!b) { faux.push(`bundle « avant » introuvable (KR_SCRIPT_AVANT13 ou commit ${BASELINE13})`); } else {
+      if (!e.repos.some(m => m.nom.includes(C13.sondeClasses))) { faux.push('sonde .btn-success hors caractéristiques absente'); }
+      for (const etat of ['repos', 'hover', 'active']) {
+        if (e[etat].length !== b[etat].length) { faux.push(`${etat} : ${e[etat].length} élément(s) au lieu de ${b[etat].length} (${BASELINE13})`); continue; }
+        e[etat].forEach((m, i) => ['fond', 'bordure', 'couleur'].filter(k => m[k] !== b[etat][i][k]).forEach(k => faux.push(`${m.nom} ${etat} : ${k} ${m[k]} au lieu de ${b[etat][i][k]} (${BASELINE13})`)));
+      }
     }
   }
   a.alertes.forEach(m => {
@@ -1460,18 +1576,22 @@ const ecartsPage5 = (p, variante, r) => {
   }
   return faux;
 };
-for (const [frag, width] of [['etats-pages-mobile', 375], ['etats-pages-bureau', 1280]]) {
+for (const [frag, width, seuil] of [['etats-pages-mobile', 375, 767], ['etats-pages-bureau', 1280, 768]]) {
   if (!on(frag)) { continue; }
-  const tag = `[${width}]`;
-  console.log(`Palette d'états, pages de référence ${width} px, 16 variantes : ${PAGES5.map(p => p.nom).join(', ')}`);
-  const cas = PAGES5.flatMap(p => VARIANTES.map(variante => ({ p, variante })));
-  const res = await mapLimit(cas, c => pages5(c.p, c.variante, width), 16);
-  for (const p of PAGES5) {
-    const lignes = cas.map((c, i) => [c, res[i]]).filter(([c]) => c.p === p);
-    const quoi = { sujet: 'votes en couleur de succès', plateau: 'caractéristiques en couleur de succès (repos, survol et appui)', 'index RP': 'alerte « Bienvenue » en alerte de succès', 'sous-forum': 'pastilles « non lu » en --kr-status-unread, comme avant le ticket', report: 'filet de la ligne non lue en --kr-status-unread, comme avant le ticket' }[p.nom];
-    check(`${tag} ${p.nom} : ${quoi}, textes ≥ 4,5:1, aucune exception, 16 variantes`, () => {
-      sansEcart(lignes.flatMap(([c, r]) => ecartsPage5(p, c.variante, r).slice(0, 4).map(f => `${c.variante} ${f}`)));
-    });
+  console.log(`Palette d'états, pages de référence ${width} px, 16 variantes : ${PAGES5.map(p => p.nom).join(', ')} ; plateau à ${seuil} px : ${VARIANTES_LARGEURS.join(' et ')}`);
+  const cas = [...PAGES5.flatMap(p => VARIANTES.map(variante => ({ p, variante, width }))),
+    ...PAGES5.filter(p => p.nom === 'plateau').flatMap(p => VARIANTES_LARGEURS.map(variante => ({ p, variante, width: seuil })))];
+  const res = await mapLimit(cas, c => pages5(c.p, c.variante, c.width), 16);
+  for (const w of [width, seuil]) {
+    for (const p of PAGES5.filter(q => w === width || q.nom === 'plateau')) {
+      const lignes = cas.map((c, i) => [c, res[i]]).filter(([c]) => c.p === p && c.width === w);
+      const caracs = 'caractéristiques au fond de la compétence de la page (colonne' + (w < 768 ? ', mini-profil plié et déplié' : '') + ' ; repos, survol et appui ; pastille de même niveau)';
+      const quoi = { sujet: 'votes en couleur de succès', plateau: caracs + ', malus en couleur d\'état ; malus et bouton de liste .btn-success hors caractéristiques au repos, au survol et à l\'appui égaux à ' + BASELINE13, 'index RP': 'alerte « Bienvenue » en alerte de succès', 'sous-forum': 'pastilles « non lu » en --kr-status-unread, comme avant le ticket', report: 'filet de la ligne non lue en --kr-status-unread, comme avant le ticket' }[p.nom] || caracs;
+      const qui = w === width ? '16 variantes' : VARIANTES_LARGEURS.join(' et ');
+      check(`[${w}] ${p.nom} : ${quoi}, textes ≥ 4,5:1, aucune exception, ${qui}`, () => {
+        sansEcart(lignes.flatMap(([c, r]) => ecartsPage5(p, c.variante, r, w).slice(0, 4).map(f => `${c.variante} ${f}`)));
+      });
+    }
   }
 }
 

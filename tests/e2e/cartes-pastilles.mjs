@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -272,7 +272,8 @@ const MESURE = ([sel, texte]) => {
 };
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
-const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon']] = []) => {
+// ecarter : sous-arbres dont le fond et le texte sont relevés à part (caractéristiques, backlog 13), « · » à leur place.
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], ecarter] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
@@ -286,7 +287,8 @@ const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-he
     l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].map((e, i) => {
       const b = e.getBoundingClientRect();
       const s = getComputedStyle(e);
-      return `${i} ${e.tagName}.${[...e.classList].join('.')} [${e.getClientRects().length ? [b.left, b.top - haut, b.width, b.height].map(r).join(',') : 'sans boîte'}] ` + props.map(p => s[p]).join('|');
+      const aPart = ecarter && e.closest(ecarter);
+      return `${i} ${e.tagName}.${[...e.classList].join('.')} [${e.getClientRects().length ? [b.left, b.top - haut, b.width, b.height].map(r).join(',') : 'sans boîte'}] ` + props.map(p => (aPart && (p === 'backgroundColor' || p === 'color') ? '·' : s[p])).join('|');
     })
   };
 };
@@ -1025,7 +1027,7 @@ if (on('groupes')) {
     const etat = async cls => {
       await waitState(page, ([sel, k]) => { const mp = document.querySelector(sel); return !!mp && mp.classList.contains(k) && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, [G.miniProfil, cls], { maxMs: 3000 });
       await styleSettled(page, G.miniProfil);
-      return page.evaluate(RELEVE, [G.miniProfil, ['', '*']]);
+      return { ...(await page.evaluate(RELEVE, [G.miniProfil, ['', '*'], C13.sousArbres])), caracs: await page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13) };
     };
     const plie = await etat('collapsed');
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -1038,13 +1040,21 @@ if (on('groupes')) {
   const resMp = await mapLimit(casMp, async c => ({ c, teste: await miniProfil(c, userscript), base: await miniProfil(c, avant53) }));
   for (const { c, teste, base } of resMp) {
     for (const k of ['plie', 'deplie']) {
-      check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${k === 'plie' ? 'plié' : 'déplié'} : égal au bundle de base (${teste[k].l.length} éléments)`, () => {
+      const etat = k === 'plie' ? 'plié' : 'déplié';
+      // Caractéristiques (backlog 13) : fond et texte égaux à leur compétence de référence, et non plus à la base (palette du ticket 3.5).
+      check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${etat} : égal au bundle de base (${teste[k].l.length} éléments, fond et texte des caractéristiques à part)`, () => {
         assert.ok(teste[k].theme && base[k].theme, `kr-theme-enabled testé ${teste[k].theme} / base ${base[k].theme}`);
         assert.ok(teste[k].mobile, 'mobile-mode absent');
         assert.ok(teste[k].l.length > 1, 'mini-profil absent');
         const d = premierEcart(teste[k].l, base[k].l);
         assert.equal(d, '', d);
       });
+      if (teste[k].caracs.length) {
+        check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${etat} : caractéristiques au fond, bordures et texte de la compétence de la page, pastille aux jetons de son niveau (backlog 13)`, () => {
+          const e = ecartsCaracteristiquesBacklog13(teste[k].caracs);
+          assert.deepEqual(e, [], `${e.length} écart(s) : ${e.slice(0, 6).join(' ; ')}`);
+        });
+      }
     }
     check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
   }
@@ -1431,6 +1441,7 @@ async function releverEtiquettes(c, script) {
   const { context, page, erreurs } = await ouvrir({ ...c, script });
   const mesure = () => page.evaluate(MESURE_ETIQUETTES, [E, P, cles]);
   const m = await mesure();
+  if (cles.some(([k]) => C13.horsFamilles.includes(k))) { m.caracs = await page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13); }
   const survol = c.nom === 'etats' ? await forcerEtat55(page, E.marque, 'hover', mesure) : null;
   const appui = c.nom === 'tags' && c.width < 768 ? await forcerEtat55(page, E.tags, 'active', mesure) : null;
   await context.close();
@@ -1455,6 +1466,8 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
 // Retrait : au prochain ticket qui modifie les étiquettes de catégorie ; il réaligne COMMIT_AVANT_55 sur un SHA récent après contrôle
 // absolu de la position de la marque PNJ (entrée 5.5).
 const sansPosition55 = (c, k, x) => (c.nom === 'etats' && k === '#piece' ? { ...x, geo: x.geo.replace(/\[[^,]+,[^,]+,/, '[') } : x);
+// Caractéristiques et leurs pastilles (backlog 13) : fond, texte, bordures et contraste relevés à part, égaux à la compétence de la page.
+const sansPalette13 = (k, x) => (C13.horsFamilles.includes(k) ? { ...x, fond: '·', couleur: '·', bordures: '·', rapport: '·' } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
 const BUREAU55 = ['(min-width: 768px)', '(width >= 768px)'];
 const MEDIA_COMBINE = ['(max-width: 767px), (min-width: 768px)', '(width <= 767px), (width >= 768px)'];
@@ -1518,6 +1531,13 @@ if (on('etiquettes')) {
       assert.equal(t.m.mobile, c.width < 768, `mobile-mode ${t.m.mobile}`);
       assert.deepEqual(t.erreurs, []);
     });
+    if (t.m.caracs) {
+      check(`${lab} : caractéristiques au fond, bordures et texte de la compétence de la page, pastille aux jetons de son niveau (backlog 13)`, () => {
+        assert.ok(t.m.caracs.length, 'aucune caractéristique');
+        const e = ecartsCaracteristiquesBacklog13(t.m.caracs);
+        assert.deepEqual(e, [], `${e.length} écart(s) : ${e.slice(0, 6).join(' ; ')}`);
+      });
+    }
     for (const [k, , sort, rendu] of LISTES55[c.nom]) {
       const l = t.m.el[k];
       const lb = b.m.el[k];
@@ -1527,9 +1547,9 @@ if (on('etiquettes')) {
         continue;
       }
       if (sort === 'egal' || sort === 'conforme' || tagsBase) {
-        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT_55})${tagsBase ? ', sans règle bureau' : ''}`, () => {
+        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT_55})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}`, () => {
           if (rendu !== 'mobile' || c.width < 768) { assert.ok(l.length > 0, 'absent'); }
-          const d = premierEcart(l.map(x => JSON.stringify(sansPosition55(c, k, x))), lb.map(x => JSON.stringify(sansPosition55(c, k, x))));
+          const d = premierEcart(l.map(x => JSON.stringify(sansPalette13(k, sansPosition55(c, k, x)))), lb.map(x => JSON.stringify(sansPalette13(k, sansPosition55(c, k, x)))));
           assert.equal(d, '', d);
           if (sort === 'conforme') { sansEcart55(l.flatMap(x => ecartsCategorie(k, x, j))); }
         });

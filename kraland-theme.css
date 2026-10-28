@@ -856,7 +856,9 @@ html.kr-page-report table > tbody > tr.bg-info > td:first-child {
 
 /* Palette d'états (H5.5, ticket 3.5), dans les deux modes : chaque classe d'état pose sa couleur (--kr-state), que ses règles emploient.
    Succès, avertissement et danger seulement : l'info suit la nation. Hors palette : la marque PNJ (.btn-danger.xmini ;
-   PNJ : étiquette de catégorie (épopée 5, entrée 5)) et la pièce courante du plateau (.btn-warning à image de pièce, accent : règle sombre « BOUTONS WARNING »), exclus des boutons sans spécificité ajoutée. */
+   PNJ : étiquette de catégorie (épopée 5, entrée 5)), la pièce courante du plateau (.btn-warning à image de pièce, accent : règle sombre « BOUTONS WARNING ») et les
+   caractéristiques du personnage en .btn-success (colonne #col-leftest-stats, clone .mobile-characteristic-badge du mini-profil : bouton
+   standard H5.3, backlog 13), exclus des boutons sans spécificité ajoutée. */
 html.kr-theme-enabled :is(.alert-success, .label-success, .btn-success, .bg-success, .text-success, .panel-success) {
   --kr-state: var(--kr-success);
 }
@@ -898,21 +900,21 @@ html.kr-theme-enabled a.label.label[href]:is(.label-success, .label-warning, .la
 
 /* Boutons d'état : même schéma que les boutons primaires (repos (0,3,1), états (0,4,1), désactivé placé après les états) ; fond et
    bordure de la couleur d'état, texte bg-surface ; survol, focus, appui et menu ouvert mêlés de 15 % de noir (clair) ou de blanc (sombre). */
-html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))) {
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]), #col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge)) {
   background-color: var(--kr-state);
   border-color: var(--kr-state);
   color: var(--kr-bg-surface);
 }
 
-html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(:hover, :focus, .focus, :active, .active):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))),
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(:hover, :focus, .focus, :active, .active):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]), #col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge)),
 html.kr-theme-enabled .open > .dropdown-toggle.btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini)) {
   background-color: color-mix(in srgb, var(--kr-state) 85%, var(--kr-state-hover-mix));
   border-color: color-mix(in srgb, var(--kr-state) 85%, var(--kr-state-hover-mix));
   color: var(--kr-bg-surface);
 }
 
-html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(.disabled, [disabled]):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))),
-html.kr-theme-enabled fieldset[disabled] .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]))) {
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):is(.disabled, [disabled]):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]), #col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge)),
+html.kr-theme-enabled fieldset[disabled] .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(.btn-danger.xmini, .btn-warning:has(> img[src*="/bat/bat"]), #col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge)) {
   background-color: var(--kr-state);
   border-color: var(--kr-state);
   color: var(--kr-bg-surface);
@@ -930,8 +932,8 @@ html.kr-theme-enabled fieldset[disabled] .btn:is(.btn-success, .btn-warning, .bt
   }
 }
 
-/* Badge d'un bouton d'état : paire inverse */
-html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger) .badge {
+/* Badge d'un bouton d'état : paire inverse (caractéristiques exclues : pastille des compétences) */
+html.kr-theme-enabled .btn:is(.btn-success, .btn-warning, .btn-danger):where(:not(#col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge)) .badge {
   background-color: var(--kr-bg-surface);
   color: var(--kr-state);
 }
@@ -2393,23 +2395,29 @@ html.kr-theme-enabled fieldset[disabled] .btn-info.btn-info {
    header-tint ; focus et désactivé gardent le fond de repos. Même spécificité que les boutons primaires : repos (0,3,1), états (0,4,1) et
    (0,5,1), désactivé (0,4,1) placé après les états ; les règles propres à une page ou plus spécifiques gardent la main. Boutons de groupe
    du tableau de bord du plateau (.dashboard-group-buttons, liens natifs clonés) exclus sans spécificité ajoutée : leurs règles gardent la
-   main. */
+   main. Caractéristiques du personnage en .btn-success (colonne #col-leftest-stats, clone .mobile-characteristic-badge du mini-profil),
+   exclues de la palette d'états : même fond neutre que les compétences, même spécificité (backlog 13). */
 html.kr-theme-enabled .btn-default.btn-default:where(:not(.dashboard-group-buttons *)),
-html.kr-theme-enabled .btn-default.btn-default:is(:focus, .focus):where(:not(.dashboard-group-buttons *)) {
+html.kr-theme-enabled .btn-default.btn-default:is(:focus, .focus):where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled .btn.btn-success:where(#col-leftest-stats *, .mobile-characteristic-badge),
+html.kr-theme-enabled .btn.btn-success:is(:focus, .focus):where(#col-leftest-stats *, .mobile-characteristic-badge) {
   background-color: var(--kr-bg-surface);
   border-color: var(--kr-border-tint);
   color: var(--kr-text-nation);
 }
 
 html.kr-theme-enabled .btn-default.btn-default:is(:hover, :active, .active):where(:not(.dashboard-group-buttons *)),
-html.kr-theme-enabled .open > .dropdown-toggle.btn-default.btn-default:where(:not(.dashboard-group-buttons *)) {
+html.kr-theme-enabled .open > .dropdown-toggle.btn-default.btn-default:where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled .btn.btn-success:is(:hover, :active, .active):where(#col-leftest-stats *, .mobile-characteristic-badge) {
   background-color: var(--kr-header-tint);
   border-color: var(--kr-border-tint);
   color: var(--kr-text-nation);
 }
 
 html.kr-theme-enabled .btn-default.btn-default:is(.disabled, [disabled]):where(:not(.dashboard-group-buttons *)),
-html.kr-theme-enabled fieldset[disabled] .btn-default.btn-default:where(:not(.dashboard-group-buttons *)) {
+html.kr-theme-enabled fieldset[disabled] .btn-default.btn-default:where(:not(.dashboard-group-buttons *)),
+html.kr-theme-enabled .btn.btn-success:is(.disabled, [disabled]):where(#col-leftest-stats *, .mobile-characteristic-badge),
+html.kr-theme-enabled fieldset[disabled] .btn.btn-success:where(#col-leftest-stats *, .mobile-characteristic-badge) {
   background-color: var(--kr-bg-surface);
   border-color: var(--kr-border-tint);
   color: var(--kr-text-nation);
@@ -4617,8 +4625,8 @@ body > map {
     border-radius: var(--kr-radius-sm) !important;
   }
   
-  /* Boutons exclus (sauf la pièce courante, hors palette) : ils gardent leur fond de survol (boutons d'état des caractéristiques du
-     plateau, ticket 3.5) */
+  /* Boutons exclus (sauf la pièce courante, hors palette) : ils gardent le fond de survol de leurs propres règles (bouton standard,
+     palette d'états ; compétences et caractéristiques du plateau : bouton standard H5.3) */
   .panel-body a:where(:not(.btn:not(.btn-warning:has(> img[src*="/bat/bat"])))):hover {
     background-color: var(--kr-bg-hover) !important;
   }
@@ -5239,9 +5247,10 @@ body > map {
       overflow: visible !important;
     }
 
-    /* Caractéristiques en bouton d'état : leur appui garde le fond de la palette d'états (ticket 3.5) */
-    .mobile-mini-profile .mobile-skill-item:where(:not(.btn-success, .btn-warning, .btn-danger)):active,
-    .mobile-mini-profile .mobile-characteristic-badge:where(:not(.btn-success, .btn-warning, .btn-danger)):active {
+    /* Appui : même fond que les compétences pour les caractéristiques en .btn-success (bouton standard, backlog 13) ; en avertissement ou
+       en danger, elles gardent celui de la palette d'états */
+    .mobile-mini-profile .mobile-skill-item:active,
+    .mobile-mini-profile .mobile-characteristic-badge:where(:not(.btn-warning, .btn-danger)):active {
       background: var(--kr-bg-hover) !important;
     }
 
@@ -12534,10 +12543,11 @@ html[class*='-dark'] .mini.c10 {
 }
 
 /* PLT-11 : le survol ne doit jamais baisser le contraste du texte. Bouton standard : règle commune (H5.3), plus spécifique ; ce sélecteur ne
-   sert plus qu'aux boutons de groupe du tableau de bord, qu'elle exclut (survol sur mobile inchangé). Boutons d'état (caractéristiques du
-   plateau) exclus : survol de la palette d'états (ticket 3.5) */
+   sert plus qu'aux boutons de groupe du tableau de bord, qu'elle exclut (survol sur mobile inchangé). Les boutons d'état gardent le survol
+   de la palette d'états, sauf les caractéristiques en .btn-success (colonne et clone du mini-profil, backlog 13), qui partagent celui des
+   compétences ; en avertissement ou en danger, elles gardent celui de la palette */
 html[class*="-dark"] .btn-default:hover,
-html[class*="-dark"] .list-group-item.btn:where(:not(.btn-success, .btn-warning, .btn-danger)):hover,
+html[class*="-dark"] .list-group-item.btn:where(:not(.btn-success, .btn-warning, .btn-danger), .btn-success:is(#col-leftest-stats *, .mobile-characteristic-badge)):hover,
 html[class*="-dark"] a.list-group-item.btn-default:hover {
   color: var(--kr-highlight);
   background-color: var(--kr-bg-active);

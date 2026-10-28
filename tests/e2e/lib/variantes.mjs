@@ -752,3 +752,59 @@ export const REPERES_LIGNE_TICKET66 = {
   racineNue: 'forum-racine.html'
 };
 
+
+/**
+ * Caractéristiques du personnage (backlog 13, bug-caracteristiques-du-plateau-sur-fond-vert) : repères écrits ici, hors des suites
+ * (routeur, MAX_CITING). Caractéristique en .btn-success (alert121 à alert126 ; « alert12 » seul est « Prier », en .btn-primary), clone
+ * du mini-profil, bouton de référence de la même page (compétence de la colonne, compétence clonée du mini-profil), niveaux de pastille,
+ * en-tête et détails du mini-profil (plié, déplié), malus simulés (avertissement, danger) et leur sélecteur, jetons de pastille par
+ * niveau, sous-arbres des caractéristiques.
+ */
+export const CARACTERISTIQUES_BACKLOG13 = {
+  caracteristique: 'a.btn.btn-success[class*="alert12"]', clone: 'mobile-characteristic-badge',
+  refColonne: 'a.kr-skill:not(.mobile-skill-item)', refClone: '.mobile-skill-item', niveaux: ['is-level', 'is-zero'],
+  entete: '.mobile-mini-profile-header', details: '.mobile-mini-profile-details',
+  malus: [['btn btn-success alert121', 'btn btn-warning alert121', 'warning'], ['btn btn-success alert122', 'btn btn-danger alert122', 'danger']],
+  malusSel: 'a.btn[class*="alert12"]:is(.btn-warning, .btn-danger)',
+  // Jetons de la pastille par niveau (fond, texte, bordure), ceux des pastilles de compétence : référence quand la page n'a pas de
+  // compétence du même niveau (typographie-formes.html : une compétence, de niveau non nul).
+  pastilles: { 'is-level': ['--kr-level-bg', '--kr-level-fg', '--kr-bg-surface'], 'is-zero': ['--kr-bg-elevated', '--kr-text-secondary', '--kr-border-strong'] },
+  // Sous-arbres des caractéristiques (colonne et clone), comparés à leur référence et non plus au bundle de base.
+  sousArbres: '#col-leftest-stats .btn-success, .btn-success.mobile-characteristic-badge',
+  // Repères hors familles de l'entrée 5.5 (ETIQUETTES_TICKET55.horsFamilles) qui sont des caractéristiques ou leurs pastilles.
+  horsFamilles: ['.kr-stat-badge', '#col-leftest-stats .btn-success', '.mobile-characteristic-badge'],
+  // Sonde ajoutée à la page : bouton de liste .btn-success hors caractéristiques (survol sombre PLT-11 inchangé).
+  sondeClasses: 'list-group-item btn btn-success', sondeId: 'kr-sonde-succes-13', sonde: 'a#kr-sonde-succes-13'
+};
+// Caractéristiques (backlog 13), dans la page (c : CARACTERISTIQUES_BACKLOG13) : fond, bordures et texte de chacune et de sa référence
+// (compétence de la colonne, compétence clonée pour le clone du mini-profil, de même niveau de pastille si la page en a une) ; pastille et
+// jetons de son niveau (sonde retirée aussitôt). Leurs descendants suivent la couleur du texte. Écarts : référence absente, palette ou
+// pastille différente.
+export const RELEVER_CARACTERISTIQUES_BACKLOG13 = c => {
+  const quoi = e => e.tagName.toLowerCase() + [...e.classList].slice(0, 4).map(k => '.' + k).join('') + ' « ' + e.textContent.trim().slice(0, 16) + ' »';
+  const st = x => { const s = getComputedStyle(x); return { fond: s.backgroundColor, bordure: [s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor].join(' '), couleur: s.color }; };
+  const niveau = e => { const b = e.querySelector('.badge'); return b ? Object.keys(c.pastilles).find(n => b.classList.contains(n)) : undefined; };
+  const sonde = (parent, [fond, couleur, bordure]) => {
+    const x = document.createElement('span');
+    x.style.cssText = `background-color: var(${fond}); color: var(${couleur}); border: 1px solid var(${bordure})`;
+    parent.appendChild(x);
+    const o = st(x);
+    x.remove();
+    return o;
+  };
+  return [...document.querySelectorAll(c.caracteristique)].map(e => {
+    const refs = [...document.querySelectorAll(e.classList.contains(c.clone) ? c.refClone : c.refColonne)];
+    const ref = refs.find(r => niveau(r) === niveau(e)) || refs[0];
+    const b = e.querySelector('.badge');
+    const n = niveau(e);
+    return { quoi: quoi(e), ...st(e), ref: ref ? { quoi: quoi(ref), ...st(ref) } : null, badge: b ? { niveau: n || [...b.classList].join('.'), ...st(b), attendu: n ? sonde(b.parentElement, c.pastilles[n]) : null } : null };
+  });
+};
+export const ecartsCaracteristiquesBacklog13 = l => l.flatMap(m => {
+  if (!m.ref) { return [`${m.quoi} : aucune compétence de référence`]; }
+  const e = ['fond', 'bordure', 'couleur'].filter(p => m[p] !== m.ref[p]).map(p => `${m.quoi} ${p} ${m[p]} au lieu de ${m.ref[p]} (${m.ref.quoi})`);
+  if (m.badge) {
+    if (!m.badge.attendu) { e.push(`${m.quoi} : pastille de niveau inconnu (${m.badge.niveau})`); } else { e.push(...['fond', 'bordure', 'couleur'].filter(p => m.badge[p] !== m.badge.attendu[p]).map(p => `${m.quoi} pastille ${m.badge.niveau} ${p} ${m.badge[p]} au lieu de ${m.badge.attendu[p]}`)); }
+  }
+  return e;
+});
