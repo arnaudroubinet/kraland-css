@@ -1701,6 +1701,10 @@ const MASQUE_JAUGES_9 = {
   selecteur: '.mobile-gauge-compact-fill, .mobile-gauge-full-fill, .mobile-gauge-compact-value, .mobile-gauge-full-header > span',
   proprietes: ['width', 'inline-size', 'right', 'inset-inline-end', 'perspective-origin', 'transform-origin']
 };
+// Masque de l'entrée 9.6 : la base posait la superposition mobile (.kr-mobile-overlay, code retiré depuis) et sa chaîne mobile des
+// modales passait deux fois (second indicateur d'onglets). Ces éléments créés par le script sont hors du chemin DOM et des mesures,
+// pour que leur place ne décale pas leurs frères. Retirer quand la base du nettoyage (COMMIT_NETTOYAGE) passe au-delà du commit de l'entrée 9.6.
+const MASQUE_MODULES_96 = '.kr-mobile-overlay, .kr-tabs-indicator + .kr-tabs-indicator';
 const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
@@ -1718,8 +1722,7 @@ const OUVRIR_CHANGELOG = async page => {
   await page.waitForFunction(() => document.querySelector('.kr-changelog-footer button') && document.querySelector('.kr-changelog-footer button').getClientRects().length, null, { timeout: 5000 });
   await page.waitForTimeout(200);
 };
-// Mode mobile : enhanceCharacterModal (template) retouche la modale 150 ms après son ajout, une fois par observateur posé
-// (initCharacterModalMobile est appelé deux fois), hors InitQueue. Attendre la première retouche (.kr-tabs-indicator), puis un DOM calme.
+// Mode mobile : enhanceCharacterModal (template) retouche la modale 150 ms après son ajout, une seule fois (entrée 9.6), hors InitQueue. Attendre la première retouche (.kr-tabs-indicator), puis un DOM calme.
 const modaleMobileFinie = async page => {
   if (!await page.evaluate(() => document.body.classList.contains('mobile-mode'))) { return; }
   await waitState(page, () => document.querySelector('.modal.in .kr-tabs-indicator'), null, { maxMs: PRET_MS });
@@ -1811,11 +1814,13 @@ const ecartsA8 = (ha, hb) => {
 };
 // Dans la page : empreinte (FNV-1a) des propriétés calculées de chaque élément visible (racine : sous-arbres des éléments visés) et de ses
 // ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair ; ecarter : sous-arbres
-// mesurés à part (caractéristiques, backlog 13) ; masque : propriétés exclues sur certains éléments (jauges, backlog 9).
-const EMPREINTES = ({ racine, cles, detail, ecarter, masque }) => {
+// mesurés à part (caractéristiques, backlog 13) ; masque : propriétés exclues sur certains éléments (jauges, backlog 9) ; horsChemin :
+// éléments ni comptés dans le chemin DOM ni mesurés (entrée 9.6).
+const EMPREINTES = ({ racine, cles, detail, ecarter, masque, horsChemin }) => {
   const garder = p => !p.startsWith('--');
-  const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
-  const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && n.children[Number(i)]; } return n; };
+  const enfants = n => [...n.children].filter(x => !(horsChemin && x.matches(horsChemin)));
+  const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push(enfants(n.parentElement).indexOf(n)); } return l.reverse().join('.'); };
+  const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && enfants(n)[Number(i)]; } return n; };
   const masquees = (e, pseudo) => (!pseudo && masque && e.matches(masque.selecteur) ? masque.proprietes : []);
   const proprietes = (s, sauf) => { const o = {}; for (let i = 0; i < s.length; i++) { const p = s[i]; if (garder(p) && !sauf.includes(p)) { o[p] = s.getPropertyValue(p); } } return o; };
   const fnv = t => { let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
@@ -1836,7 +1841,7 @@ const EMPREINTES = ({ racine, cles, detail, ecarter, masque }) => {
   const vus = new Set();
   for (const r of racines) {
     for (const e of [r, ...r.querySelectorAll('*')]) {
-      if (vus.has(e) || !(e === document.documentElement || e.getClientRects().length) || (ecarter && e.closest(ecarter))) { continue; }
+      if (vus.has(e) || !(e === document.documentElement || e.getClientRects().length) || (ecarter && e.closest(ecarter)) || (horsChemin && e.closest(horsChemin))) { continue; }
       vus.add(e);
       const c = chemin(e);
       out[c] = valeur(e);
@@ -1915,7 +1920,7 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Un seul masque, MASQUE_JAUGES_9, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
+// Deux masques, MASQUE_JAUGES_9 et MASQUE_MODULES_96, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
@@ -1957,7 +1962,7 @@ if (on('nettoyage')) {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).
       const caracs = await a.page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13);
       if (caracs.length) { out.caracs = caracs; }
-      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, masque: MASQUE_JAUGES_9 })]);
+      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, masque: MASQUE_JAUGES_9, horsChemin: MASQUE_MODULES_96 })]);
       if (p.m && c.width === 768) {
         const b0 = await ouvrirNettoyage({ ...c, script: avantMedias410 });
         const rc = await comparerUneFois(a.page, b0.page, {});
@@ -2131,10 +2136,10 @@ if (on('nettoyage')) {
     const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyage, tactile: false });
     const pas = [];
     const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
-    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]] });
+    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { horsChemin: MASQUE_MODULES_96 })]] });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
-      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]];
+      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { horsChemin: MASQUE_MODULES_96 })]];
       pas.push({ width, mobile: await mode(), comparaisons });
     }
     await a.context.close();

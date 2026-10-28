@@ -17,7 +17,9 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { installClock, runClock } from './lib/settle.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '../..');
+const VENDOR = path.join(here, 'vendor');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
 const userscript = fs.readFileSync(scriptPath, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 
@@ -27,6 +29,9 @@ const PAGES = {
   '/forum/sujet/1-20101': 'FIXTURE sujet',
   '/forum/post/saisie': 'FIXTURE saisie en cours'
 };
+// Plateau synthétique (entrée 9.6, fixtures/demarrage-plateau.html) : panneau des compétences natif, mini-chat #flap et son lien, jQuery
+// et Bootstrap embarqués (tests/e2e/vendor) en fin de page, comme le site ; modale à onglets dans un <template>. Aucune donnée réelle.
+const HTML_PAGES = { '/jouer/plateau': fs.readFileSync(path.join(here, 'fixtures', 'demarrage-plateau.html'), 'utf8') };
 const HTML = title => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title></head><body><nav class="navbar navbar-inverse"><div class="container"><a class="navbar-brand" href="/">Kraland</a></div></nav>
@@ -44,7 +49,7 @@ function check(name, fn) {
 }
 
 // Fragmentation (exécution parallèle) : KR_FRAG = identifiants séparés par des virgules ; vide = tout jouer.
-// Identifiants : moment-start, moment-dcl, moment-load, moment-later, desktop, pire-cas, m1, m-1, s1, fenetre-etroite.
+// Identifiants : moment-start, moment-dcl, moment-load, moment-later, desktop, pire-cas, m1, m-1, s1, fenetre-etroite, modules-mobiles.
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
 
@@ -79,19 +84,41 @@ const browser = await launchBrowser();
 // moment : 'start' (document-start), 'dcl' (DOMContentLoaded), 'load' (après load), 'later' (différé 600 ms, chargeur asynchrone)
 // lateViewport : simule le pire cas où la largeur reste fausse (980) jusqu'après le chargement -> la garde doit plafonner.
 // emulate = false : fenêtre d'ordinateur étroite, sans émulation mobile (largeur réelle dès le début du document, avant <body>).
-async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false, src = userscript, emulate = true }) {
+// modale : après la stabilité, une Bootbox à onglets est ajoutée au <body>, puis l'onglet actif change ; observateurs du défilement des
+// onglets comptés (MutationObserver dont le rappel lit .panel.with-nav-tabs, posé avant le bundle) et appels de scrollTo sur l'en-tête ;
+// puis un toucher sur un onglet non actif (retour tactile .active sur le lien), puis un second changement d'onglet actif.
+// theme = false (avec modale) : thème coupé (kr-theme-enabled à 'false').
+async function scenario({ moment, width, route, lateViewport = false, blockStorage = false, readOnlyStorage = false, src = userscript, emulate = true, modale = false, theme = true }) {
   const context = await browser.newContext(emulate ? { viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width, height: 800 } });
   let documents = 0;
   await confineNetwork(context); // refus global EN PREMIER
   await installClock(context); // horloge simulée AVANT l'injection du script (minuteries simulées dès le début du document)
   await context.route('http://www.kraland.org/**', r => {
     const u = new URL(r.request().url());
-    if (!PAGES[u.pathname]) { return r.fulfill({ status: 204, body: '' }); }
+    if (u.pathname.startsWith('/lib/bootstrap') || u.pathname.startsWith('/lib/jquery')) {
+      const file = u.pathname.endsWith('.css') ? 'bootstrap.min.css' : (u.pathname.includes('jquery') ? 'jquery.min.js' : 'bootstrap.min.js');
+      return r.fulfill({ status: 200, contentType: file.endsWith('.css') ? 'text/css' : 'application/javascript', body: fs.readFileSync(path.join(VENDOR, file)) });
+    }
+    if (!PAGES[u.pathname] && !HTML_PAGES[u.pathname]) { return r.fulfill({ status: 204, body: '' }); }
     if (r.request().resourceType() === 'document') { documents += 1; }
-    return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: HTML(PAGES[u.pathname]) });
+    return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: HTML_PAGES[u.pathname] || HTML(PAGES[u.pathname]) });
   });
-  await context.addInitScript(({ code, when, late, blocked, readOnly }) => {
+  await context.addInitScript(({ code, when, late, blocked, readOnly, probes }) => {
     window.GM = { xmlHttpRequest: () => {} };
+    if (probes) {
+      // Thème activé (désactivé par défaut) sauf scénario « thème coupé »
+      localStorage.setItem('kr-theme-enabled', probes.theme ? 'true' : 'false');
+      const Native = window.MutationObserver;
+      window.__krTabObs = [];
+      window.__krScrolls = 0;
+      window.MutationObserver = class extends Native {
+        // La sonde dépend du texte « with-nav-tabs » dans le rappel de l'observateur (initModalTabScroll) : le garder en ligne dans le rappel
+        constructor(cb) { super(cb); this.__krTabs = String(cb).includes('with-nav-tabs'); }
+        observe(target, options) { if (this.__krTabs) { window.__krTabObs.push(target); } return super.observe(target, options); }
+      };
+      const nativeScrollTo = window.Element.prototype.scrollTo;
+      window.Element.prototype.scrollTo = function () { if (this.matches('.panel-heading')) { window.__krScrolls += 1; } return nativeScrollTo.apply(this, arguments); };
+    }
     window.__krWrites = { set: 0, removed: [], keys: [] };
     if (readOnly) {
       // Stockage lisible mais écriture refusée (ancien Safari privé, quota nul) : getItem répond, setItem lève QuotaExceededError
@@ -128,7 +155,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     else if (when === 'dcl') { document.addEventListener('DOMContentLoaded', go); }
     else if (when === 'load') { window.addEventListener('load', go); }
     else { window.addEventListener('load', () => setTimeout(go, 600)); }
-  }, { code: src, when: moment, late: lateViewport, blocked: blockStorage, readOnly: readOnlyStorage });
+  }, { code: src, when: moment, late: lateViewport, blocked: blockStorage, readOnly: readOnlyStorage, probes: modale && { theme } });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -138,6 +165,28 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
   // entre deux rechargements 1 200 ms + anti-rebond 400 ms. Une boucle de rechargement ne se calme jamais : échec explicite.
   const stableResult = await settle(page, () => documents);
   const after6 = stableResult.documents;
+  // FAB du mini-chat (MiniChat:FAB), relevé avant la modale : après un clic, #flap visible et au premier plan au centre de l'écran
+  await page.evaluate(() => {
+    const fab = document.querySelector('.mini-chat-fab'); const flap = document.getElementById('flap');
+    if (!fab || !flap) { window.__krFab = null; return; }
+    fab.click();
+    const hit = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+    window.__krFab = { visibility: getComputedStyle(flap).visibility, auCentre: !!hit && flap.contains(hit) };
+    fab.click();
+  }).catch(() => {});
+  if (modale) {
+    await page.evaluate(() => { const m = document.createElement('div'); m.className = 'bootbox modal'; m.appendChild(document.getElementById('kr-modale-onglets').content.cloneNode(true)); document.body.appendChild(m); window.__krModale = m; }).catch(() => {});
+    await runClock(page, 500);
+    await page.evaluate(() => { const li = window.__krModale.querySelectorAll('.nav-tabs > li'); li[0].classList.remove('active'); li[2].classList.add('active'); }).catch(() => {});
+    await runClock(page, 500);
+    // Toucher sur un onglet non actif : le retour tactile pose .active sur le lien, sans changer l'onglet actif
+    await page.evaluate(() => { window.__krAvantToucher = window.__krScrolls; window.__krModale.querySelectorAll('.nav-tabs > li')[1].firstElementChild.dispatchEvent(new Event('touchstart')); }).catch(() => {});
+    await runClock(page, 300);
+    await page.evaluate(() => { const a = window.__krModale.querySelectorAll('.nav-tabs > li')[1].firstElementChild; window.__krLienTouche = a.classList.contains('active'); a.dispatchEvent(new Event('touchend')); }).catch(() => {});
+    await runClock(page, 800);
+    await page.evaluate(() => { window.__krApresToucher = window.__krScrolls; const li = window.__krModale.querySelectorAll('.nav-tabs > li'); li[2].classList.remove('active'); li[1].classList.add('active'); }).catch(() => {});
+    await runClock(page, 500);
+  }
   // Si la page recharge encore (boucle), le contexte d'exécution disparaît : on le note au lieu de planter.
   const state = await page.evaluate(() => ({
     mobile: document.body.classList.contains('mobile-mode'),
@@ -146,6 +195,21 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
     bodyAtStart: window.__krBodyAtStart,
     ready: document.documentElement.hasAttribute('data-kr-ready'),
     overlay: document.querySelectorAll('body > .kr-mobile-overlay').length,
+    skillsToggles: document.querySelectorAll('.kr-mobile-skills-toggle').length,
+    // croix du panneau des compétences : toutes les croix mobiles, hors celle du mini-chat
+    skillsClose: document.querySelectorAll('.kr-mobile-close').length - document.querySelectorAll('#flap .kr-mobile-close').length,
+    chatClose: document.querySelectorAll('#flap .kr-mobile-close').length,
+    chatFab: window.__krFab,
+    // Lien natif #flap : sans détournement, le clic pose le hash
+    lienHash: (() => { const a = document.querySelector('a[href="#flap"]'); if (!a) { return null; } a.click(); return location.hash; })(),
+    modale: window.__krModale ? {
+      indicateurs: window.__krModale.querySelectorAll('.kr-tabs-indicator').length,
+      observateurs: window.__krTabObs.filter(t => t === window.__krModale).length,
+      defilements: window.__krAvantToucher,
+      lienTouche: window.__krLienTouche,
+      toucher: window.__krApresToucher - window.__krAvantToucher,
+      second: window.__krScrolls - window.__krApresToucher
+    } : null,
     banner: document.getElementById('kr-resize-banner') ? document.getElementById('kr-resize-banner').textContent : null,
     writes: window.__krWrites,
     probeLeft: (() => { try { return window.sessionStorage.getItem('kr-breakpoint-probe'); } catch (_e) { return null; } })()
@@ -233,13 +297,63 @@ for (const width of [375, 767].filter(() => frag('fenetre-etroite'))) {
     check(`${width} px : bundle exécuté avant <body>, largeur réelle`, () => { assert.equal(s.bodyAtStart, false); assert.equal(s.seen, width); });
     check(`${width} px : aucune exception`, () => assert.deepEqual(s.errors, []));
     check(`${width} px : html[data-kr-ready] posé`, () => assert.equal(s.ready, true));
-    check(`${width} px : superposition mobile présente (une seule)`, () => assert.equal(s.overlay, 1));
     check(`${width} px : 1 seul document, mode mobile`, () => { assert.equal(s.documents, 1); assert.equal(s.mobile, true); });
   });
 }
 if (frag('fenetre-etroite')) {
   queue({ moment: 'start', width: 768, route: '/forum', emulate: false }, s => {
-    check('768 px : html[data-kr-ready] posé, ni mode mobile ni superposition (inchangé)', () => { assert.deepEqual(s.errors, []); assert.equal(s.ready, true); assert.equal(s.mobile, false); assert.equal(s.overlay, 0); });
+    check('768 px : html[data-kr-ready] posé, pas de mode mobile (inchangé)', () => { assert.deepEqual(s.errors, []); assert.equal(s.ready, true); assert.equal(s.mobile, false); });
+  });
+}
+
+section('Plateau : défilement des onglets et chaîne des modales installés une fois quand la largeur et le DOM sont prêts (entrée 9.6)');
+// Ressources du thème refusées par le confinement (logos, version.json) : erreurs de chargement attendues, hors du relevé
+const exceptions = s => s.errors.filter(e => !e.startsWith('Failed to load resource'));
+const MODULES = [
+  { moment: 'start', emulate: true, tag: 'document-start, téléphone (980 px lus, puis 375)' },
+  { moment: 'start', emulate: false, tag: 'document-start, fenêtre de 375 px sans émulation' },
+  { moment: 'dcl', emulate: true, tag: 'DOMContentLoaded, téléphone (référence)' },
+  { moment: 'load', emulate: true, tag: 'après load, téléphone' },
+  { moment: 'later', emulate: true, tag: 'différé de 600 ms, téléphone' }
+];
+for (const m of MODULES.filter(() => frag('modules-mobiles'))) {
+  queue({ moment: m.moment, width: 375, route: '/jouer/plateau', emulate: m.emulate, modale: true }, s => {
+    check(`${m.tag} : préconditions (largeur lue au début du document ${m.emulate ? '≥ 768' : '375'}, mode mobile), aucune exception, html[data-kr-ready] posé`, () => {
+      assert.ok(m.emulate ? s.seen >= 768 : s.seen === 375, `largeur lue au début : ${s.seen}`);
+      assert.equal(s.mobile, true);
+      assert.deepEqual(exceptions(s), []);
+      assert.equal(s.ready, true);
+    });
+    check(`${m.tag} : ni superposition, ni bouton ni croix du panneau des compétences, ni croix ajoutée au mini-chat`, () => assert.deepEqual([s.overlay, s.skillsToggles, s.skillsClose, s.chatClose], [0, 0, 0, 0], JSON.stringify(s)));
+    check(`${m.tag} : le FAB ouvre le mini-chat (#flap visible, au premier plan au centre)`, () => assert.deepEqual(s.chatFab, { visibility: 'visible', auCentre: true }, JSON.stringify(s.chatFab)));
+    check(`${m.tag} : modale à onglets, chaîne mobile passée une fois (une .kr-tabs-indicator), défilement des onglets installé une fois et actif`, () => {
+      assert.ok(s.modale, 'pas de relevé de la modale');
+      assert.deepEqual([s.modale.indicateurs, s.modale.observateurs], [1, 1], JSON.stringify(s.modale));
+      assert.ok(s.modale.defilements >= 1, 'aucun défilement de l\'en-tête des onglets');
+    });
+    check(`${m.tag} : un toucher sur un onglet non actif ne fait pas défiler ; le changement d'onglet actif recentre`, () => {
+      assert.equal(s.modale.lienTouche, true, 'retour tactile .active absent du lien touché');
+      assert.deepEqual([s.modale.toucher, s.modale.second], [0, 1], JSON.stringify(s.modale));
+    });
+  });
+}
+if (frag('modules-mobiles')) {
+  queue({ moment: 'start', width: 375, route: '/jouer/plateau', modale: true, theme: false }, s => {
+    check('document-start, téléphone, thème coupé : lien natif #flap non détourné (hash posé), aucune croix ni superposition, aucun défilement des onglets', () => {
+      assert.deepEqual(exceptions(s), []);
+      assert.equal(s.lienHash, '#flap');
+      assert.equal(s.chatClose + s.skillsClose, 0, JSON.stringify(s));
+      assert.equal(s.overlay, 0);
+      assert.equal(s.modale && s.modale.observateurs, 0, JSON.stringify(s.modale));
+    });
+  });
+  queue({ moment: 'start', width: 1280, route: '/jouer/plateau', modale: true }, s => {
+    check('document-start, 1280 px : ni défilement des onglets ni chaîne mobile (inchangé), html[data-kr-ready] posé', () => {
+      assert.deepEqual(exceptions(s), []);
+      assert.equal(s.ready, true);
+      assert.equal(s.mobile, false);
+      assert.deepEqual([s.overlay, s.chatClose, s.modale && s.modale.indicateurs, s.modale && s.modale.observateurs], [0, 0, 0, 0], JSON.stringify(s));
+    });
   });
 }
 

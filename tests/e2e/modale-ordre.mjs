@@ -3,9 +3,10 @@
 // modale, kr-order-form sur le contenu traité) et ses boutons portent « Annuler » / « Valider » (H2.1). Quand le contenu de #ajax-order
 // est remplacé (autre ordre : updateAjax du site remplace son innerHTML ; chargement Ajax), le marquage est refait sur le nouveau contenu,
 // sans doublon. Une confirmation hors ordre garde « Cancel » / « OK ». Matrice du plan, une vérification par ligne : Dormir, Pouvoir,
-// contenu remplacé, appel double, confirmation hors ordre, seuil ; à 375 × 667, 767, 768, 769, 1280, 1440 et 1920 px.
-// Appel double : sur mobile, l'observateur des modales est enregistré deux fois (initCharacterModalMobile à l'initialisation et dans
-// initMobileFeatures) ; un journal des mutations (attribut class, enfants des boutons) compte les écritures du socle : une seule chacune.
+// contenu remplacé, écritures uniques, confirmation hors ordre, seuil ; à 375 × 667, 767, 768, 769, 1280, 1440 et 1920 px.
+// Écritures uniques : l'observateur des modales est enregistré une seule fois (initCharacterModalMobile, appelé par init() seulement
+// depuis l'entrée 9.6, plus par initMobileFeatures) ; un journal des mutations (attribut class, enfants des boutons) compte les écritures
+// du socle : une seule chacune.
 // Gardes des limites du plan : sur ordinateur, la chaîne mobile n'est pas étendue (grille d'onglets en style en ligne, indicateurs de
 // balayage, anciennes pastilles pastel) ; sur mobile, la mise en forme existante reste appliquée (drapeau, pied, grille d'onglets) ;
 // boutons, formulaire et gestionnaire natifs intacts, aucun envoi. Peau coupée : modale native.
@@ -738,13 +739,13 @@ const AUDIT = () => {
 };
 
 // Modale affichée (fin du fondu) et, sur mobile, chaîne mobile passée (drapeau data-structure-transformed ; pour un ordre, indicateurs
-// d'onglets des deux passages de l'observateur enregistré deux fois), puis deux images.
+// d'onglets du passage unique de la chaîne mobile), puis deux images.
 async function attendre(page, ordre) {
   await waitState(page, o => {
     const m = window.__modale;
     if (!window.__shown.includes(m)) { return false; }
     if (!document.body.classList.contains('mobile-mode')) { return true; }
-    return m.dataset.structureTransformed === 'true' && (!o || m.querySelectorAll('.kr-tabs-indicator').length >= 2);
+    return m.dataset.structureTransformed === 'true' && (!o || m.querySelectorAll('.kr-tabs-indicator').length >= 1);
   }, ordre);
   await frames(page, 2);
 }
@@ -1060,8 +1061,8 @@ function verifier(r) {
     socle(r.remplace[0], 'Pouvoir');
     socle(r.remplace[1], 'Dormir');
   });
-  check(`${tag} appel double${r.mobileMode ? ' (mobile : observateur des modales enregistré deux fois)' : ''} : chaque effet du socle écrit une seule fois (marque de la modale, de chaque contenu, libellés)`, () => {
-    if (r.mobileMode) { assert.equal(r.chaine.indicateurs, 2, 'la chaîne mobile n\'est pas passée deux fois : appel double non reproduit'); }
+  check(`${tag} écritures uniques${r.mobileMode ? ' (mobile : observateur des modales enregistré une fois, entrée 9.6)' : ''} : chaque effet du socle écrit une seule fois (marque de la modale, de chaque contenu, libellés)`, () => {
+    if (r.mobileMode) { assert.equal(r.chaine.indicateurs, 1, 'chaîne mobile passée ' + r.chaine.indicateurs + ' fois (attendu : une)'); }
     uneFois(r.audits.dormir, 'Dormir puis 2 remplacements', 3);
     uneFois(r.audits.pouvoir, 'Pouvoir', 1);
   });
@@ -1147,7 +1148,7 @@ function verifier(r) {
     range(r.rangRemplace[0], 'Pouvoir');
     range(r.rangRemplace[1], 'Dormir');
   });
-  check(`${tag} appel double et contenus remplacés (ticket 2.3) : « ? Aide » créé une seule fois par contenu, chaque alerte déplacée une seule fois`, () => {
+  check(`${tag} contenus remplacés (ticket 2.3) : « ? Aide » créé une seule fois par contenu, chaque alerte déplacée une seule fois`, () => {
     rangeUneFois(r.audits.dormir, 'Dormir puis 2 remplacements', [[1], [1], [1]]);
     rangeUneFois(r.audits.pouvoir, 'Pouvoir', [[1]]);
   });
@@ -1202,7 +1203,7 @@ function verifier(r) {
     }
     pastilles(dormir, 'Dormir');
   });
-  check(`${tag} pastilles, appel double et contenus remplacés (ticket 2.4) : rangée posée une seule fois par modale, réécrite une fois par changement de valeurs`, () => {
+  check(`${tag} pastilles et contenus remplacés (ticket 2.4) : rangée posée une seule fois par modale, réécrite une fois par changement de valeurs`, () => {
     assert.deepEqual(r.audits.dormir.pastilles, rangee(1, 2), 'Dormir puis 2 remplacements ' + JSON.stringify(r.audits.dormir.pastilles));
     assert.deepEqual(r.audits.pouvoir.pastilles, rangee(1), 'Pouvoir ' + JSON.stringify(r.audits.pouvoir.pastilles));
   });

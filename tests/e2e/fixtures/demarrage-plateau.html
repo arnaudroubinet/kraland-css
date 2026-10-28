@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FIXTURE plateau (démarrage mobile, structure minimale, sans données réelles)</title>
+  <link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div>
+      <ul class="nav navbar-nav"><li><a href="#flap">Mini-chat</a></li></ul>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-leftest" class="col-md-1">
+        <div id="col-leftest-stats" class="panel panel-body"><div class="btn-group-xs"><a class="btn btn-default mini" href="#">3</a></div></div>
+      </div>
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <a class="list-group-item" href="#"><h4 class="list-group-item-heading"><span class="mini">Combat</span></h4><span class="mention">2</span></a>
+            <a class="list-group-item" href="#"><h4 class="list-group-item-heading"><span class="mini">Discrétion</span></h4><span class="mention">1</span></a>
+          </div>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-8"><div class="container-fluid"><div class="row t">aucune donnée réelle</div></div></div>
+    </div>
+  </div>
+  <div id="flap"><div class="panel-heading">Mini-chat</div><div class="panel-body">aucun message</div></div>
+  <!-- Modale à onglets, insérée au <body> par le test comme une Bootbox -->
+  <template id="kr-modale-onglets">
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-body"><div class="bootbox-body">
+      <div class="panel with-nav-tabs">
+        <div class="panel-heading"><ul class="nav nav-tabs"><li class="active"><a href="#o1">Un</a></li><li><a href="#o2">Deux</a></li><li><a href="#o3">Trois</a></li></ul></div>
+        <div class="panel-body">contenu</div>
+      </div>
+    </div></div></div></div>
+  </template>
+  <script src="/lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
