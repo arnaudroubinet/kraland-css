@@ -1,13 +1,19 @@
 // Test de la qualité d'usage du plateau (PLT-QU) : compétences nommées, pastilles par classes,
 // actions et accès rapides en grilles, légendes tactiles, planchers de texte. Fixture locale, aucun réseau.
 //
+// Fragment cartes (épopée 9, entrée 2, H7.1) : carte de personnage selon sa propre largeur ; fixture synthétique de 49 noms
+// (plateau-cartes-noms.html), vrai Bootstrap 3.3.7, 768 à 1920 px, seuil de carte 199/200/201 px, Kraland clair et Empire Brun sombre ;
+// 1512 et 1920 px et mobile 375 / 700 / 767 comparés au bundle de base ; bascule 767 -> 768 -> 767 px dans le même onglet.
+//
 // Usage : npm run build && node tests/e2e/plateau-qualite-usage.mjs
-// Option : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal).
+// Options : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal) ; KR_SCRIPT_AVANT (bundle de base
+// du fragment cartes, défaut : git show e203f87) ; KR_FRAG = usage, cartes (vide = tout).
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
@@ -24,7 +30,168 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
 }
 
+const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
+const on = name => FRAG.length === 0 || FRAG.includes(name);
+
 const browser = await launchBrowser();
+
+// ---------- cartes : carte de personnage selon sa propre largeur (épopée 9, entrée 2) ----------
+const SEUIL_CARTE = 200; // en dessous, le nom passe sous l'avatar
+const VARIANTES = ['kraland', 'empire-brun-dark'];
+const BUREAUX = [768, 769, 900, 1024, 1100, 1280, 1366, 1440, 1500, 1512, 1920];
+const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(root, 'tests/e2e/vendor');
+const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+
+async function ouvrirCartes(src, { width, height = 800, variante }) {
+  const ctx = await browser.newContext({ viewport: { width, height } });
+  await confineNetwork(ctx);
+  const noms = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8')
+    .replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>');
+  await ctx.route('http://www.kraland.org/**', route => {
+    const u = new URL(route.request().url());
+    if (u.pathname === '/jouer/plateau') { return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: noms }); }
+    if (u.pathname.startsWith('/lib/bootstrap')) { return route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }); }
+    return route.abort();
+  });
+  await ctx.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
+  await ctx.addInitScript(({ s, v }) => {
+    window.GM = { xmlHttpRequest: () => {} };
+    localStorage.setItem('kr-theme-enabled', 'true');
+    localStorage.setItem('kr-theme-variant', v);
+    // eslint-disable-next-line no-eval
+    const go = () => (0, eval)(s);
+    if (document.body) { go(); return; }
+    new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
+  }, { s: src, v: variante });
+  const p = await ctx.newPage();
+  await p.goto(TARGET, { waitUntil: 'load' });
+  await krReady(p, { ready: THEME_READY, label: `cartes ${width} px ${variante}` });
+  return { ctx, p };
+}
+
+const mesurerCartes = p => p.evaluate(() => {
+  const box = el => { const r = el.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map(x => Math.round(x * 2) / 2); };
+  return {
+    variante: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')) || '',
+    overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    cartes: [...document.querySelectorAll('.dashboard-card')].map(c => {
+      const n = c.querySelector('.dashboard-card-name');
+      const nc = c.querySelector('.dashboard-card-name-container');
+      const a = c.querySelector('.dashboard-card-avatar');
+      const nr = n.getBoundingClientRect(); const ar = a.getBoundingClientRect();
+      const cs = getComputedStyle(n);
+      return {
+        nom: n.textContent.trim(), cw: c.getBoundingClientRect().width, inner: c.clientWidth,
+        carte: box(c), avatar: box(a), boiteNom: box(n), conteneur: nc.getBoundingClientRect().width, entete: nc.parentElement.getBoundingClientRect().width,
+        gaucheNom: Math.round(nc.firstElementChild.getBoundingClientRect().left * 2) / 2, drapeau: !!nc.querySelector('img'),
+        gaucheStatut: c.querySelector('.dashboard-card-status') ? Math.round(c.querySelector('.dashboard-card-status').getBoundingClientRect().left * 2) / 2 : null,
+        lignes: nr.height / parseFloat(cs.lineHeight), deborde: n.scrollWidth > n.clientWidth + 1, sw: n.scrollWidth, clw: n.clientWidth,
+        dessous: nr.top >= ar.bottom - 1, taille: cs.fontSize,
+        styles: [getComputedStyle(c).containerType, getComputedStyle(c).containerName, cs.overflowWrap, getComputedStyle(nc).flexBasis, getComputedStyle(nc).padding].join('|')
+      };
+    })
+  };
+});
+
+async function cartesDe(src, opts) {
+  const { ctx, p } = await ouvrirCartes(src, opts);
+  const m = await mesurerCartes(p);
+  await ctx.close();
+  return m;
+}
+
+const vide = l => assert.equal(l.length, 0, l.slice(0, 6).join(' | '));
+
+function verifierCartes(m, etiquette) {
+  check(`${etiquette} : 49 cartes, variante ${m.variante}`, () => assert.equal(m.cartes.length, 49));
+  check(`${etiquette} : avatars de 70×70`, () => assert.ok(m.cartes.every(c => c.avatar[2] === 70 && c.avatar[3] === 70), JSON.stringify([...new Set(m.cartes.map(c => c.avatar.slice(2).join('×')))])));
+  check(`${etiquette} : noms en 15 px`, () => assert.ok(m.cartes.every(c => c.taille === '15px')));
+  check(`${etiquette} : aucun nom ne déborde en largeur`, () => vide(m.cartes.filter(c => c.deborde).map(c => `${c.nom} ${c.sw}/${c.clw} carte ${c.cw}${c.dessous ? ' dessous' : ''}`)));
+  check(`${etiquette} : deux lignes de nom au plus`, () => vide(m.cartes.filter(c => c.lignes > 2.05).map(c => `${c.nom} ${c.lignes.toFixed(2)}`)));
+  check(`${etiquette} : nom sous l'avatar seulement sous ${SEUIL_CARTE} px de carte`, () => vide(m.cartes.filter(c => c.dessous !== (c.cw < SEUIL_CARTE)).map(c => `${c.nom} ${c.cw}px dessous=${c.dessous}`)));
+  check(`${etiquette} : nom dessous sur toute la largeur de l'en-tête de la carte`, () => vide(m.cartes.filter(c => c.dessous && Math.abs(c.conteneur - c.entete) > 1).map(c => `${c.nom} ${c.conteneur}/${c.entete}`)));
+  // Nom dessous aligné sur le statut : bord gauche du bloc du nom (drapeau compris quand il existe) = bord gauche du statut, ±1 px.
+  for (const [libelle, avec] of [['avec drapeau', true], ['sans drapeau', false]]) {
+    check(`${etiquette} : nom dessous ${libelle}, bord gauche égal à celui du statut`, () => {
+      const l = m.cartes.filter(c => c.dessous && c.drapeau === avec && c.gaucheStatut !== null);
+      if (m.cartes.some(c => c.dessous)) { assert.ok(l.length > 0, `aucune carte étroite ${libelle}`); }
+      vide(l.filter(c => Math.abs(c.gaucheNom - c.gaucheStatut) > 1).map(c => `${c.nom} ${c.gaucheNom}/${c.gaucheStatut}`));
+    });
+  }
+  check(`${etiquette} : pas de débordement horizontal`, () => assert.equal(m.overflowX, 0));
+}
+
+const memesBoites = (m, base, garde = () => true) => {
+  const ecarts = [];
+  m.cartes.forEach((c, i) => {
+    const b = base.cartes[i];
+    if (!garde(c, b)) { return; }
+    for (const k of ['carte', 'avatar', 'boiteNom']) { if (JSON.stringify(c[k]) !== JSON.stringify(b[k])) { ecarts.push(`${c.nom} ${k} ${c[k]} / ${b[k]}`); } }
+  });
+  return ecarts;
+};
+
+if (on('cartes')) {
+  const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+    : execFileSync('git', ['show', 'e203f87:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  for (const variante of VARIANTES) {
+    console.log(`Cartes de personnage selon leur largeur (${variante})`);
+    for (const width of BUREAUX) {
+      const m = await cartesDe(userscript, { width, variante });
+      verifierCartes(m, `${width} px ${variante}`);
+      if (width === 1512 || width === 1920) {
+        const base = await cartesDe(avant, { width, variante });
+        // Égal à la base : toute carte d'au moins SEUIL_CARTE px dont le nom tenait déjà dans sa ligne à la base.
+        check(`${width} px ${variante} : cartes ≥ ${SEUIL_CARTE} px égales à la base`, () => vide(memesBoites(m, base, (c, b) => c.cw >= SEUIL_CARTE && !b.deborde)));
+      }
+    }
+    for (const width of [375, 700, 767]) {
+      const m = await cartesDe(userscript, { width, height: 667, variante });
+      const base = await cartesDe(avant, { width, height: 667, variante });
+      check(`mobile ${width} px ${variante} : cartes, avatars et noms égaux à la base`, () => { assert.equal(m.cartes.length, base.cartes.length); assert.deepEqual(memesBoites(m, base), []); });
+      // Styles de la règle du ticket (conteneur, coupure, bloc du nom) égaux à la base : une règle sortie de son média rougit à toute largeur mobile.
+      check(`mobile ${width} px ${variante} : conteneur, coupure et bloc du nom égaux à la base`, () => vide(m.cartes.filter((c, i) => c.styles !== base.cartes[i].styles).map(c => `${c.nom} ${c.styles} / ${base.cartes[m.cartes.indexOf(c)].styles}`)));
+    }
+    console.log(`Bascule 767 -> 768 -> 767 px dans le même onglet (${variante})`);
+    {
+      const directs = { 767: await cartesDe(avant, { width: 767, height: 667, variante }), 768: await cartesDe(userscript, { width: 768, height: 667, variante }) };
+      const { ctx, p } = await ouvrirCartes(userscript, { width: 767, height: 667, variante });
+      const mobile767 = await p.evaluate(() => document.body.classList.contains('mobile-mode'));
+      check(`bascule ${variante} : 767 px au chargement en mode mobile`, () => assert.ok(mobile767));
+      for (const [w, mobile] of [[768, false], [767, true]]) {
+        await p.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = p.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+        await p.setViewportSize({ width: w, height: 667 });
+        await charge;
+        const etat = await waitState(p, m => document.body && document.body.classList.contains('mobile-mode') === m, mobile, { maxMs: 10000 });
+        await krReady(p, { ready: THEME_READY, label: `bascule ${w} px ${variante}` });
+        await frames(p);
+        const m = await mesurerCartes(p);
+        check(`bascule ${variante} : ${w} px, body.mobile-mode ${mobile ? 'remis' : 'levé'}`, () => assert.ok(etat));
+        if (!mobile) { verifierCartes(m, `bascule ${w} px ${variante}`); }
+        check(`bascule ${variante} : ${w} px égal au chargement direct${mobile ? ' de la base' : ''}`, () => { assert.equal(m.cartes.length, directs[w].cartes.length); vide(memesBoites(m, directs[w])); });
+      }
+      await ctx.close();
+    }
+    console.log(`Seuil de carte 199 / 200 / 201 px, transitions dans le même onglet (${variante})`);
+    const { ctx, p } = await ouvrirCartes(userscript, { width: 1440, variante });
+    for (const w of [201, 199, 200, 199, 201]) {
+      await p.evaluate(px => document.querySelectorAll('.dashboard-cards-grid').forEach(g => { g.style.gridTemplateColumns = `repeat(auto-fill, ${px}px)`; }), w);
+      await frames(p);
+      const m = await mesurerCartes(p);
+      check(`carte de ${w} px ${variante} : nom ${w < SEUIL_CARTE ? 'sous' : 'à côté de'} l'avatar`, () => { assert.ok(m.cartes.every(c => Math.round(c.cw) === w), [...new Set(m.cartes.map(c => c.cw))].join('/')); assert.ok(m.cartes.every(c => c.dessous === (w < SEUIL_CARTE))); });
+      check(`carte de ${w} px ${variante} : aucun nom ne déborde, deux lignes au plus`, () => assert.ok(m.cartes.every(c => !c.deborde && c.lignes <= 2.05)));
+    }
+    await ctx.close();
+  }
+}
+
+if (!on('usage')) {
+  await browser.close();
+  console.log(failures === 0 ? '\nTous les contrôles passent.' : `\n${failures} contrôle(s) en échec.`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
 const context = await browser.newContext({ viewport: { width: 1512, height: 772 } });
 await confineNetwork(context); // refus global EN PREMIER (version.json : refusé ; img7 routé ci-dessous)
 await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));

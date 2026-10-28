@@ -405,6 +405,29 @@ export const CARTES_TICKET55 = [
 export const AVANT_TICKET55 = bundle => !bundle.includes('.dashboard-card-pnj{background:var(--kr-arm-bg');
 
 /**
+ * Écart accepté et consigné (épopée 9, entrée 2, story-carte-de-personnage-selon-sa-propre-largeur-avatar-de-70-px) : sur ordinateur, la
+ * carte de personnage devient un conteneur de requête ; sous 200 px de carte (198 px de contenu), le nom passe sous l'avatar, et un mot
+ * plus long que la ligne se coupe. Feuille miroir de la règle de la peau, mêmes sélecteurs, sans !important (la base n'a aucune règle
+ * concurrente). Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET92), jamais sur le bundle courant ; empilable avec
+ * CARTES_TICKET54 et CARTES_TICKET55 ; tout autre écart reste détecté. Le rendu de la carte est vérifié par plateau-qualite-usage
+ * (fragment cartes). Utilisateurs : typographie-formes (espacement, nettoyage) et cartes-pastilles (groupes bureau). Retrait : à l'entrée 12
+ * de l'épopée 9 (sweep), qui réaligne COMMIT_ESPACEMENT, COMMIT_NETTOYAGE et COMMIT_AVANT_53 sur un SHA postérieur à l'entrée 2 après
+ * contrôle absolu de la carte (plateau-qualite-usage, fragment cartes).
+ */
+export const CARTES_TICKET92 = [
+  '@media (min-width: 768px) {',
+  '  .dashboard-card { container: kr-carte-perso / inline-size; }',
+  '  .dashboard-card-name { overflow-wrap: anywhere; }',
+  '  @container kr-carte-perso (width < 198px) {',
+  '    .dashboard-card-header { flex-wrap: wrap; }',
+  '    .dashboard-card-name-container { flex-basis: 100%; padding: 0 8px 4px; }',
+  '  }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 9, entrée 2 : la carte n'y est pas un conteneur de requête (règle minifiée du bundle). */
+export const AVANT_TICKET92 = bundle => !bundle.includes('kr-carte-perso/inline-size');
+
+/**
  * Activité du forum (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : repères de
  * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures du fil de sujet et des index (citées par trois suites),
  * classes de l'index et du forum, carte de section, ligne de l'index et flèche « dernier message ».

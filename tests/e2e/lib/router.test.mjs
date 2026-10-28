@@ -270,6 +270,21 @@ check('étiquettes de catégorie (épopée 5, entrée 5) : marque native PNJ, ta
     assert.ok(t.units.includes('cartes-pastilles'), `${f} : ${JSON.stringify(t.units)}`);
   }
 });
+check('carte de personnage (kr-carte-perso, en-tête, bloc du nom) -> plateau, cartes-pastilles et typographie-formes (épopée 9, entrée 2)', () => {
+  for (const h of [
+    hunk('@media (min-width: 768px) {', '  .dashboard-card { container: kr-carte-perso / inline-size; }'),
+    hunk('  @container kr-carte-perso (width < 198px) {', '    .dashboard-card-header { flex-wrap: wrap; }'),
+    hunk('.x {', '.dashboard-card-name-container { flex-basis: 100%; }')
+  ]) {
+    const d = route('kraland-theme.css', h);
+    assert.equal(d.widened, false, d.reasons.join(' ; '));
+    for (const z of ['plateau', 'cartes-pastilles', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
+  }
+  const s = SUITES.find(x => x.name === 'plateau-qualite-usage');
+  assert.deepEqual(s.frags, [['usage'], ['cartes']]);
+  assert.equal(s.needsBootstrap, true);
+  assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/plateau-cartes-noms.html': [] }), readWith({})).zones, ['plateau']);
+});
 check('cartes-pastilles enregistrée (12 fragments, Bootstrap embarqué)', () => {
   const s = SUITES.find(x => x.name === 'cartes-pastilles');
   assert.ok(s, 'suite absente du registre');
