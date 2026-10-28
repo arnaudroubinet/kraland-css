@@ -216,6 +216,9 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
   return { context, page: p, state, errors };
 }
 const AVANT = bundleAvant();
+// Écart accepté et consigné (épopée 7, entrée 1) : bundle « avant » antérieur aux gardes de page du kramail. Condition de retrait : base
+// figée (A9) ou base qui contient déjà l'entrée ; sur une telle base, rien n'est retiré de la comparaison.
+const AVANT_TICKET71 = !!AVANT && !AVANT.includes('kr-page-kramail-');
 // Jetons redéfinis par l'épopée 3, ticket 1, en feuille adoptée (lib/variantes.mjs) : code d'initialisation du bundle « avant » (regression),
 // seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
 // ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
@@ -1294,6 +1297,7 @@ if (frag('regression')) {
   if (ECHELLE_FORUM_AVANT) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d\'un kramail lu 15 px sur mobile) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
   if (RAYONS_AVANT) { console.log('  info écart accepté et consigné : rayons des pages du kramail aux trois rôles (contrôles 4 px, cartes et panneaux 8 px, en-tête de panneau 7 px sur ordinateur) posés sur le bundle « avant » (épopée 4, ticket 8)'); }
   if (ESPACEMENT_AVANT) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
+  if (AVANT_TICKET71) { console.log('  info écart accepté et consigné : gardes de page du kramail sur <html> et dossiers en onglets sous 768 px (épopée 7, entrée 1), dossiers du titre des listes mobiles retirés des deux rendus'); }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1315,12 +1319,15 @@ if (frag('regression')) {
           const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
           while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
         });
+        // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste seulement (pas sur …/post/…) sous 768 px, les dossiers du titre (Réception, Envoi, Corbeille, en
+        // onglets, couverts par la suite kramail-theme) sont retirés des deux côtés avant tout relevé ; tout le reste de la page reste comparé.
+        if (AVANT_TICKET71 && width < 768) { await p.evaluate(() => { if (/\/kramail\/post\//.test(location.pathname)) { return; } document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); }); }
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
         const composants = AVANT_TICKET4 ? await p.evaluate(MARQUER_COMPOSANTS, COMPOSANTS_TICKET4) : 0;
         // Écart accepté et consigné (entrée 9.6) : superposition mobile .kr-mobile-overlay (display: none en body.mobile-mode) posée par le
         // bundle « avant » et retirée depuis, hors du compte des éléments. Retirer quand feature/next contient l'entrée 9.6.
-        doms[bundle] = await p.evaluate(sel => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), MASQUE_SUPERPOSITION_96);
+        doms[bundle] = await p.evaluate(([sansGardes, sel]) => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: sansGardes ? [...document.documentElement.classList].filter(k => !k.startsWith('kr-page-kramail')).join(' ') : document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), [AVANT_TICKET71, MASQUE_SUPERPOSITION_96]);
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
         const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore], [data-kr-composant]')] });
@@ -1349,7 +1356,7 @@ if (frag('regression')) {
       if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
       check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
         assert.equal(doms.apres.kd, 0);
-        assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined });
+        assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined }, JSON.stringify([doms.avant, doms.apres]));
         assert.deepEqual(doms.apres.unexpected, []);
         assert.ok(pixelsEquivalent(diffs), `captures différentes (${sizes[0]} / ${sizes[1]} octets) : ${JSON.stringify(diffs)}`);
       });

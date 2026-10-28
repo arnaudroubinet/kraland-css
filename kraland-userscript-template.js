@@ -851,10 +851,24 @@
       const path = window.location.pathname;
       if (path.includes('/kramail')) {
         document.body.classList.add('page-kramail');
+        // Gardes de page du kramail (épopée 7, entrée 1), sur <html> : kr-page-kramail et une seule sous-garde.
         // Rédaction : Nouveau (…/post/nouveau-4-<compte>) et Répondre / Répondre à tous / Transférer (…/post/<sujet>-5-, -6-, -7-<id>
-        // depuis la réception, -15-, -16-, -17-<id> depuis l'envoi) : même formulaire post_msg natif, avec #dest (c[3]).
-        if (path.match(/\/kramail\/post\/nouveau/) || (path.match(/\/kramail\/post\//) && document.querySelector('form[name="post_msg"] textarea#dest[name="c[3]"]'))) {
+        // depuis la réception, -15-, -16-, -17-<id> depuis l'envoi) : même formulaire post_msg natif, reconnu sans exiger #dest (c[3]).
+        // Signaler (…/post/<sujet>-8-<id>) n'est pas une rédaction, même avec un formulaire post_msg (hypothèse non relevée sur le site).
+        // Lecture : …/post/… sans ce formulaire, et Signaler. Liste : tout autre chemin (Réception, Envoi, Corbeille).
+        const isPost = /\/kramail\/post\//.test(path);
+        const isSignaler = isPost && /-8-\d+$/.test(path);
+        const isCompose = /\/kramail\/post\/nouveau/.test(path) || (isPost && !isSignaler && !!document.querySelector('form[name="post_msg"]'));
+        const kind = isCompose ? 'compose' : (isPost ? 'lecture' : 'liste');
+        document.documentElement.classList.add('kr-page-kramail', 'kr-page-kramail-' + kind);
+        if (isCompose) {
           document.body.classList.add('page-kramail-compose');
+        }
+        // Dossiers natifs du titre (Réception, Envoi, Corbeille) : Onglets de section sur mobile (voir le CSS)
+        if (kind === 'liste') {
+          document.querySelectorAll('h1.page-header .pull-right > a.btn[href]').forEach(function (a) {
+            if (/^\/kramail\/(?!post\/)[^/]+$/.test(a.pathname)) {a.setAttribute('data-kr-dossier', '');}
+          });
         }
       } else if (krForumNormalizePath(path) === '/forum') {
         // Racine du forum (liste de tous les forums) : page-forum-racine seule, page-forum activerait tous les modules de /forum/…

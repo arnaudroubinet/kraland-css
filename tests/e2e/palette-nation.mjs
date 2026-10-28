@@ -26,7 +26,8 @@
 //                   template sur mobile depuis le titre à deux liens de la fixture) compris ;
 //   balayage        fixtures de référence (report, plateau, sujet, sous-forum, index RP, réception du kramail), 375 et 1280 px, 16 variantes :
 //                   tout texte visible dont le fond effectif est une couleur de nation ≥ 4,5:1, au repos et pseudo-classe forcée sur les
-//                   éléments interactifs ; dossier actif du kramail en paire ; barre d'envoi fixe pressée (rédaction, mobile) en paire de survol.
+//                   éléments interactifs ; dossier actif du kramail en paire (bureau) ou en onglet à filet primaire (mobile) ; barre d'envoi
+//                   fixe pressée (rédaction, mobile) en paire de survol.
 // Ticket 3 (H5.6, Q2 ; plan story-texte-colore-lisible-plus-de-rouge-kraland-ni-de-bleu-bootst) : tout texte en primaire ou en primaire foncée
 // passe à --kr-text-accent, rouge Kraland et bleu #2196F3 en dur remplacés par des jetons de la nation :
 //   texte coloré    un échantillon par règle effective (TEXTES), dans sa page (fixtures synthétiques palette-nation-textes.html et
@@ -672,9 +673,25 @@ function verifierBalayage(tag, cas, res) {
     check(`${tag} ${p.nom} : texte ≥ 4,5:1 sur la couleur de nation ${tag === '[375]' ? 'à l\'appui' : 'au survol'} des éléments interactifs, 16 variantes (${lignes.reduce((n, [, r]) => n + r.etat.vus, 0)} éléments)`, () => {
       sansEcart(lignes.flatMap(([c, r]) => r.etat.faux.slice(0, 4).map(f => `${c.variante} ${f}`)));
     });
-    if (p.nom === 'réception du kramail') {
+    if (p.nom === 'réception du kramail' && tag !== '[375]') {
       check(`${tag} ${p.nom} : dossier actif (bouton primaire de l'en-tête) en paire au repos, 16 variantes`, () => {
         sansEcart(lignes.flatMap(([c, r]) => ecartsDePaire(c.variante, `${c.variante} dossier actif`, r.dossiers[DOSSIERS], 'repos')));
+      });
+    }
+    // Sous 768 px, le dossier actif est un onglet (épopée 7, entrée 1) : plus de paire d'action, mais un filet de 3 px dans la ligne en
+    // couleur primaire de la nation et un libellé lisible sur sa barre.
+    if (p.nom === 'réception du kramail' && tag === '[375]') {
+      check(`${tag} ${p.nom} : dossier actif en onglet, filet de 3 px en primaire de la nation, texte ≥ 4,5:1, 16 variantes`, () => {
+        sansEcart(lignes.flatMap(([c, r]) => {
+          const m = r.dossiers[DOSSIERS];
+          const quoi = `${c.variante} dossier actif`;
+          if (!m || !m.visible) { return [`${quoi} : ${m ? 'invisible' : 'absent'}`]; }
+          const filet = /^(rgba?\([^)]*\)) 0px -3px 0px 0px inset$/.exec(m.ombre);
+          const faux = [];
+          if (!filet || !egal(filet[1], attendu(c.variante, 'primary'))) { faux.push(`${quoi} : filet ${m.ombre} au lieu de ${attendu(c.variante, 'primary')} 0px -3px 0px 0px inset`); }
+          if (!(m.contraste >= 4.5)) { faux.push(`${quoi} : ${m.contraste.toFixed(2)}:1 (${m.couleur} sur ${m.fond})`); }
+          return faux;
+        }));
       });
     }
   }
@@ -1126,7 +1143,11 @@ const RELEVER4 = sel => {
   const K = window.__krContraste;
   const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
   const visible = e => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width >= 1 && r.height >= 1 && s.visibility === 'visible' && !e.closest('[aria-hidden="true"]'); };
-  const releves = [...document.querySelectorAll(sel)].map(e => {
+  // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste du kramail sous 768 px, les dossiers du titre deviennent des onglets
+  // (bordure nulle, filet en box-shadow), prouvés par la suite des onglets du kramail ; ils sortent de la comparaison au bundle de base, reconnus par leur
+  // lien natif. Retrait : quand BASELINE4 contient l'entrée.
+  const dossier = e => window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname) && e.matches('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])');
+  const releves = [...document.querySelectorAll(sel)].filter(e => !dossier(e)).map(e => {
     const s = getComputedStyle(e);
     return { nom: nom(e), standard: e.matches('.btn-default'), ongletActif: e.matches('.active > a'), th: e.tagName === 'TH', couleur: s.color, fondPropre: s.backgroundColor, haut: parseFloat(s.borderTopWidth) > 0 ? s.borderTopColor : 'aucune', bas: parseFloat(s.borderBottomWidth) > 0 ? s.borderBottomColor : 'aucune' };
   });
