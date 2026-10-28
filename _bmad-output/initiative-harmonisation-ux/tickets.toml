@@ -43,9 +43,9 @@ after = [{ epic = 5, needs = "carte de section du forum mobile (5.2)" }]
 [[epic]]
 id = 7
 slug = "epic-kramail-mobile"
-title = "Kramail mobile"
+title = "Kramail : même thème que le forum, ordinateur et mobile"
 covers = ["CAP-8"]
-after = [{ epic = 2, needs = "résultat P2 (vrai téléphone)" }, { epic = 5, needs = "carte de section (5.1)" }, { epic = 6, needs = "bouton « ••• » commun" }]
+after = [{ epic = 2, needs = "résultat P2 (vrai téléphone)" }, { epic = 3, needs = "jetons de rôle (3.1)" }, { epic = 5, needs = "carte de section (5.1) et liste des sujets (5.2)" }, { epic = 6, needs = "« ••• » commun (6.5), fil d'Ariane et en-tête de sujet (6.3, 6.4)" }]
 
 [[epic]]
 id = 8

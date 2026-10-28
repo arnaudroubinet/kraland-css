@@ -605,3 +605,30 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - À trancher par toi : faut-il accepter un seul `!important` contre la marge en ligne de 10 px du bandeau (entrée 3), si rien d'autre ne la bat ?
 - À vérifier par toi (entrée 2) : un clic sur la cloche ouvre-t-il un popup de 900×800 sur ton navigateur ? Attention, ce clic marque tes notifications comme lues. Aucun agent ne le fera.
 - Le bureau compact 768-991 px, où la cloche est invisible menu fermé (D12), a été examiné et n'est pas repris. Ta décision est toujours attendue (rétro 5, A5).
+
+## Inception de l'épopée 7 « Kramail : même thème que le forum » (2026-10-28)
+
+- Découpe faite en autonomie dans `epic-kramail-mobile/tickets.toml` (10 entrées), à partir de ta demande du 2026-10-23. Les hypothèses sont dans les Notes de l'épopée. CAP-8 est étendu dans la spec : il couvre maintenant ordinateur et mobile.
+- Entrées, dans l'ordre :
+  1. gardes de page, suite `kramail-theme` et dossiers en onglets sur mobile ;
+  2. lecture d'un message comme un message de sujet ;
+  3. en-tête ;
+  4. listes comme la liste des sujets ;
+  5. rédaction comme le formulaire de réponse ;
+  6. retrait de `--kd-*` ;
+  7. « Envoyer » dans le flux ;
+  8. Contacts ;
+  9. vrai téléphone et captures (hitl) ;
+  10. refactor sweep.
+- À valider par toi : les entrées 1, 2 et 5 partent sur les hypothèses ci-dessous ; tu peux les corriger avant ou après.
+  - Q31.1 : onglets pleine largeur sous le titre, boutons à icône dessous.
+  - Q31.2 : « Nouveau message » non libellé.
+  - Q31.3 : barre de 5 outils et « Plus ».
+  - Q22.1 : « Répondre » et « Répondre à tous » libellés.
+- Conflit de sources : EXPERIENCE.md garde le « non lu » du kramail tel qu'il est rendu aujourd'hui. Ta décision du 2026-10-23 l'aligne sur le forum ; l'entrée 4 suit ta décision.
+- Toujours en attente de toi :
+  - A1, push ou fusion ;
+  - A9, base figée de `kramail-redaction` ;
+  - D11, ancres.
+  Le sweep ne les traite que si tu as tranché.
+- Entrée 9 (hitl) : points D et E du protocole P2 sur ton téléphone, après le sweep.

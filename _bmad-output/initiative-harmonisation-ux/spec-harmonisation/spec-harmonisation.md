@@ -42,9 +42,10 @@ La surcharge s'est construite page par page : un même élément change d'aspect
 - **CAP-7** Forum : activité et repères (refonte de l'index H12.1, H12.2 à H12.4)
   - **intent:** Le joueur voit où les forums bougent, ouvre le dernier message en un geste, et chaque niveau du forum se présente de la même façon.
   - **success:** Index RP, HRP, Communauté et Débats, sur les deux supports : une ligne par forum dans l'ordre du jeu (nom, dernier message avec auteur et heure, flèche vers ce message, « N sujets · N messages »), sans description ni modérateurs, ligne entière cliquable ; la flèche et « premier non lu » mènent au message aussi sur mobile ; un seul bouton « ••• », kramail compris ; fil d'Ariane « Catégorie › Forum › Sujet » au sous-forum ; en-tête de sujet mobile aussi dans Communauté, Débats et Staff.
-- **CAP-8** Kramail mobile (H13.1, R4)
-  - **intent:** Sur mobile, le joueur sait dans quel dossier du kramail il est, et le bouton d'envoi ne couvre jamais sa saisie.
-  - **success:** Réception, Envoi et Corbeille en onglets libellés, actif souligné ; Nouveau message, Contacts et « ••• » en boutons de 44 px ; « Envoyer » dans le flux sous le champ (48 px, couleur de nation), au forum comme au kramail ; plus aucune barre d'envoi fixe.
+- **CAP-8** Kramail : même thème que le forum, ordinateur et mobile (H13.1, R4)
+  - **intent:** Sur ordinateur et sur mobile, chaque page du kramail (Réception, Envoi, Corbeille, lecture d'un message ou d'un fil, rédaction, contacts) reprend les composants du forum ; sur mobile, le joueur sait dans quel dossier il est et le bouton d'envoi ne couvre jamais sa saisie.
+  - **Decision:** (Arnaud, 2026-10-23) « Toute la partie kramail doit être revue pour utiliser le même thème que le forum. » CAP-8 couvre désormais ordinateur et mobile.
+  - **success:** La liste reprend la liste des sujets du sous-forum, la lecture le message d'un sujet, la rédaction le formulaire de réponse ; carte de section, en-tête et « ••• » communs ; aucune variable `--kd-*`, jetons de rôle de CAP-4. Sur mobile : Réception, Envoi et Corbeille en onglets libellés, actif souligné ; Nouveau message, Contacts et « ••• » en boutons de 44 px ; « Envoyer » dans le flux sous le champ (48 px, couleur de nation), au forum comme au kramail ; plus aucune barre d'envoi fixe.
 - **CAP-9** Notifications (H14.1 à H14.3, R5)
   - **intent:** Le joueur lit son rapport sans effort et en voit davantage d'un coup.
   - **success:** Sur ordinateur, la cloche ouvre un popup de 900×800 px en rendu ordinateur (texte 14 px, dates 13 px) sans charger `/report` à l'avance ; sur mobile, date au-dessus du texte, texte 15 px sur toute la largeur, filet non lu à gauche ; le sélecteur de personnage commence à 16 px du haut.
