@@ -178,3 +178,10 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
   summary: `initModalTabScroll` garde `document.body` sans report au DOMContentLoaded, comme les modules du bug 6 ; au document-start sur téléphone (largeur 980 px), `initMobileFeatures` ne tourne pas non plus avant la bascule.
   evidence: relevé de l'implémenteur du backlog 6 (2026-10-28), hors périmètre des trois modules du ticket.
   status: repris par l'entrée 9.6 (`epic-plateau-confort-mobile/tickets.toml`, 2026-10-28).
+
+- source_plan: `epic-plateau-confort-mobile/spike-releve-des-pages-mobiles-hors-fixtures-marge-cibles-et-carte-plan.md`
+  summary: Sur mobile, la règle « PHASE 5 » (`kraland-theme.css` ~l.4671-4681) pose `display: inline-flex !important`, qui bat le `.hidden` de Bootstrap. Les `input#mySubmit1…6.hidden` d'Événements s'affichent alors en 24×44.
+  evidence: relevé du spike 9.3 sur le site réel, en lecture seule, à 375×667 (2026-10-28) ; à reprendre par l'entrée 9.4 (cibles des pages secondaires).
+- source_plan: `epic-plateau-confort-mobile/spike-releve-des-pages-mobiles-hors-fixtures-marge-cibles-et-carte-plan.md`
+  summary: Relevé incomplet, faute de session connectée dans le Chrome dédié : Interface, Contacts, recherche et modération du forum, liste des Membres ; retrait de `height: 44px !important` sur `.form-control` non confirmé.
+  evidence: le spike n'a tenté aucune connexion (2026-10-28).

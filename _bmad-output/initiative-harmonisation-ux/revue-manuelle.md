@@ -647,3 +647,12 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
   - Q29 : rendu du ticket 1.4 gardé ;
   - largeur de 320 px ajoutée aux contrôles ;
   - captures des épopées 5 et 6 faites dans 9.11.
+
+## Spike 9.3 — relevé des pages mobiles hors fixtures (construit, 2026-10-28)
+
+- 17 URL relevées en lecture seule, à 375×667, en Kraland clair et en Empire Brun sombre. Hors cartes, le texte de `#col-right` touche les bords (0 px). Les cartes de section sont conformes : 8 px du bord, contenu à 16 px.
+- Les cibles manquent surtout en largeur, car la règle mobile ne force que la hauteur à 44 px. Exemples :
+  - Organisations : 21 cibles sur 43 à 32-34 px de large ;
+  - sélecteurs de carte : 28 px de haut.
+- Bug trouvé : sur mobile, des boutons `.hidden` d'Événements s'affichent (le `!important` de la règle mobile bat `.hidden`). À reprendre par 9.4.
+- À faire par toi : le Chrome dédié n'est pas connecté à Kraland. Interface, Contacts, recherche et modération du forum ne sont pas relevés. Ouvre une session dans ce Chrome si tu veux que le relevé soit complété.
