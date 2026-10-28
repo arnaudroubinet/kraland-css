@@ -90,7 +90,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET65, PLUS_TICKET65, plusTicket65, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { COMPOSANTS_TICKET4, CONTRASTE, ETIQUETTES_TICKET55, TEXTE_SECONDAIRE_CLAIR_HEX, VARIANTES, VARIANTE_POSEE, choisirVariante, parVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -178,10 +178,9 @@ const vu = mesure => (mesure === ABSENT ? 'absent' : mesure);
 const browser = await launchBrowser();
 
 // Ouvre la fixture dans SON contexte : variante choisie avant le bundle (outil des 16 variantes), ou peau coupée ; mobile sous 768 px.
-// `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué ; `secondaire` : texte atténué du ticket 4 posé
-// sur un bundle d'avant ce ticket.
+// `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué.
 // `gmErreur` : GM.xmlHttpRequest répond par une erreur (changelog chargé à vide, bouton du profil posé).
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, secondaire = false, cartes = false, gmErreur = false, plus65 = false }) {
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, gmErreur = false }) {
   const mobile = width < 768;
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
@@ -190,17 +189,6 @@ async function ouvrir({ width, height, variante = 'kraland', theme = true, url =
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
   if (theme) { await context.addInitScript(choisirVariante, variante); } else { await context.addInitScript(() => localStorage.setItem('kr-theme-enabled', 'false')); }
-  if (secondaire) { await context.addInitScript(poserJetonsRedefinis, TEXTE_SECONDAIRE_CLAIR); } // bundle d'avant le ticket 4 : texte atténué de Q26
-  // Écart accepté et consigné (épopée 5, entrées 1 et 2) : panneaux mobiles en carte de section, forum compris (CARTES_TICKET51, puis
-  // CARTES_TICKET52), posés sur un bundle d'avant ces entrées (`cartes`, pages4 seulement), jamais sur le bundle testé.
-  // Écart accepté et consigné (épopée 6, ticket 5) : bouton « ••• » commun du sujet mobile (PLUS_TICKET65 et plusTicket65), posé sur un
-  // bundle d'avant le ticket (`plus65`, pages4 seulement), jamais sur le bundle testé. Retrait : au réalignement de BASELINE4 (6685df5) par
-  // le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
-    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
-    await context.addInitScript(plusTicket65);
-  }
-  if (cartes && script !== userscript && AVANT_TICKET52(script)) { await context.addInitScript(poserJetonsRedefinis, (AVANT_TICKET51(script) ? CARTES_TICKET51 + '\n' : '') + CARTES_TICKET52); }
   await context.addInitScript(([src, erreur]) => {
     window.GM = { xmlHttpRequest: o => { if (erreur && o && typeof o.onerror === 'function') { setTimeout(() => o.onerror({}), 0); } } };
     // eslint-disable-next-line no-eval
@@ -958,8 +946,8 @@ if (on('textes-largeurs')) {
 // actif sur bg-surface ; bouton standard (« ? Aide » compris) en bg-surface, survol et appui en header-tint, bordure border-tint, texte
 // text-nation ; hr masqué ; --kr-text-secondary à #636a77 en clair (Q26). Sur mobile, l'en-tête de panneau garde la carte mobile
 // (bg-surface, sans bordure : règle propre au mobile, qui garde la main).
-// Bundle d'avant le ticket 4 (commit de base du plan), sauf KR_SCRIPT_AVANT : comparaisons du tableau de bord et des pages de référence.
-const BASELINE4 = '6685df5';
+// Bundle de base (garde de régression), sauf KR_SCRIPT_AVANT : comparaisons du tableau de bord et des pages de référence.
+const BASELINE4 = '6270c81';
 const avant4 = (() => {
   if (process.env.KR_SCRIPT_AVANT) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
   try { return execFileSync('git', ['show', `${BASELINE4}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
@@ -1023,7 +1011,7 @@ async function composantsScenario(variante, width) {
   const mobile = width < 768;
   let tableauAvant = null;
   if (avant4) {
-    const a = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: PAGE_COMPOSANTS.url, corps: PAGE_COMPOSANTS.corps, script: avant4, secondaire: true });
+    const a = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: PAGE_COMPOSANTS.url, corps: PAGE_COMPOSANTS.corps, script: avant4 });
     tableauAvant = await mesurerTableau(a.page);
     await a.context.close();
   }
@@ -1077,9 +1065,9 @@ function verifierComposants(tag, variante, r) {
     ];
     sansEcart(faux);
   });
-  check(`${tag} ${variante} : bouton de groupe du tableau de bord (règle propre) au repos et survolé comme avant le ticket (${BASELINE4})`, () => {
+  check(`${tag} ${variante} : bouton de groupe du tableau de bord (règle propre) au repos et survolé égal au bundle de base (${BASELINE4})`, () => {
     const { avant, apres } = r.tableau;
-    assert.ok(avant, `bundle « avant » introuvable (KR_SCRIPT_AVANT ou commit ${BASELINE4})`);
+    assert.ok(avant, `bundle de base introuvable (KR_SCRIPT_AVANT ou commit ${BASELINE4})`);
     sansEcart(['repos', 'survol'].flatMap(e => (!avant[e] || !apres[e] ? [`${e} : absent`] : ['couleur', 'fondPropre', 'haut', 'bas'].filter(k => !proche(apres[e][k], avant[e][k])).map(k => `${e} : ${k} ${apres[e][k]} au lieu de ${avant[e][k]}`))));
   });
   check(`${tag} ${variante} : hr masqué`, () => assert.equal(r.repos['#separateur'] && r.repos['#separateur'].display, 'none'));
@@ -1126,12 +1114,12 @@ if (on('composants-largeurs')) {
 }
 
 // Pages de référence (sujet, sous-forum, index RP, réception du kramail, plateau), 375 et 1280 px, 16 variantes : chaque composant (en-tête
-// et pied du panneau standard, en-tête de tableau, bouton standard, onglets) comparé au bundle d'avant le ticket (BASELINE4) : en sombre,
+// et pied du panneau standard, en-tête de tableau, bouton standard, onglets) comparé au bundle de base (BASELINE4) : en sombre,
 // inchangé sauf le fond et le texte du bouton standard, qui passent à bg-surface et text-nation (en clair, son texte venait de la règle des
 // liens : text-accent) ; en clair, seule une valeur native de Bootstrap (un gris ; son blanc en fond du bouton standard et de l'onglet
 // actif ; l'absence de fond d'un en-tête de tableau) peut devenir un jeton du ticket (header-tint, border-tint, text-primary, bg-surface, text-nation) ; une valeur transparente ou autre reste : une règle
 // propre à la page garde la main. Texte ≥ 4,5:1 dans ces
-// composants. Bundle d'avant : texte atténué du clair posé à #636a77 (TEXTE_SECONDAIRE_CLAIR), seul écart de jeton accepté.
+// composants. Contrôle absolu : aucun gris de Bootstrap dans ces composants, 16 variantes.
 const PAGES4 = PAGES_BALAYAGE.filter(p => ['sujet', 'sous-forum', 'index RP', 'réception du kramail', 'plateau'].includes(p.nom));
 const SEL_COMPOSANTS4 = COMPOSANTS_TICKET4;
 const RELEVER4 = sel => {
@@ -1154,7 +1142,7 @@ async function pages4(p, variante, width) {
   const mobile = width < 768;
   const res = {};
   for (const [cote, script] of [['avant', avant4], ['apres', userscript]]) {
-    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script, secondaire: cote === 'avant', cartes: cote === 'avant', plus65: cote === 'avant' });
+    const { context, page, erreurs } = await ouvrir({ width, height: mobile ? 667 : 900, variante, url: p.url, corps: p.corps, script });
     res[cote] = { ...(await page.evaluate(RELEVER4, SEL_COMPOSANTS4)), jetons: await page.evaluate(JETONS4, ABSENT), erreurs };
     await context.close();
   }
@@ -1187,16 +1175,17 @@ for (const [frag, width] of [['composants-pages-mobile', 375], ['composants-page
   if (!on(frag)) { continue; }
   const tag = `[${width}]`;
   console.log(`Composants des pages de référence ${width} px, 16 variantes : ${PAGES4.map(p => p.nom).join(', ')}, contre le bundle ${BASELINE4}`);
-  console.log(`  info écart accepté et consigné : --kr-text-secondary ${TEXTE_SECONDAIRE_CLAIR_HEX} posé sur le bundle « avant » (Q26, ticket 4)`);
-  if (avant4 && AVANT_TICKET65(avant4)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur le bundle « avant » (épopée 6, ticket 5)'); }
-  check(`${tag} bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${BASELINE4})`, () => assert.ok(avant4, 'introuvable'));
+  check(`${tag} bundle de base disponible (KR_SCRIPT_AVANT ou commit ${BASELINE4})`, () => assert.ok(avant4, 'introuvable'));
   if (!avant4) { continue; }
   const cas = PAGES4.flatMap(p => VARIANTES.map(variante => ({ p, variante })));
   const res = await mapLimit(cas, c => pages4(c.p, c.variante, width), 16);
   for (const p of PAGES4) {
     const lignes = cas.map((c, i) => [c, res[i]]).filter(([c]) => c.p === p);
-    check(`${tag} ${p.nom} : composants comme avant le ticket, sauf gris et blancs de Bootstrap passés aux jetons du ticket (clair) et fond et texte du bouton standard (sombre), 16 variantes (${lignes[0][1].apres.composants.length} composants), aucune exception`, () => {
+    check(`${tag} ${p.nom} : composants égaux au bundle de base (${BASELINE4}), sauf gris et blancs de Bootstrap passés aux jetons du ticket (clair) et fond et texte du bouton standard (sombre), 16 variantes (${lignes[0][1].apres.composants.length} composants), aucune exception`, () => {
       sansEcart(lignes.flatMap(([c, r]) => [...r.apres.erreurs.map(e => `exception ${e}`), ...ecartsPage4(c.variante, r).slice(0, 4)].map(f => `${c.variante} ${f}`)));
+    });
+    check(`${tag} ${p.nom} : aucun gris de Bootstrap en texte, fond ou bordure des composants, 16 variantes`, () => {
+      sansEcart(lignes.flatMap(([c, r]) => (r.apres.composants.length === 0 ? [`${c.variante} aucun composant`] : r.apres.composants.flatMap(x => ['couleur', 'fondPropre', 'haut', 'bas'].filter(k => x[k] !== 'aucune' && commeGris(x[k])).map(k => `${c.variante} ${x.nom} : ${k} ${x[k]} (${commeGris(x[k])})`)).slice(0, 4))));
     });
     check(`${tag} ${p.nom} : texte des composants ≥ 4,5:1, 16 variantes (${lignes.reduce((n, [, r]) => n + r.apres.textes.length, 0)} textes)`, () => {
       sansEcart(lignes.flatMap(([c, r]) => r.apres.textes.filter(t => !(t.contraste >= 4.5)).slice(0, 4).map(t => `${c.variante} ${t.nom} : ${t.contraste.toFixed(2)}:1 (${t.couleur})`)));

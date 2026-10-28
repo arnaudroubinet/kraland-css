@@ -46,18 +46,18 @@
 //             à 375 et 1280 px ;
 //             contraste de l'auteur dans les 16 variantes ; mobile égal à la base ; peau coupée égale à la base peau coupée ;
 //             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767.
-// Bundle de base : celui de 810901f (fin de l'épopée 6, avant le ticket 6.7, SHA figé) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
-// seul masque, posé par `ouvrir` sur une base d'avant 6.7 : FLECHES_TICKET67 (flèches de tri du sous-forum mobile à 4 px). Fixtures synthétiques du dépôt seulement ; le
+// Bundle de base : celui de 6270c81 (fin de l'épopée 6, ticket 6.7 compris, SHA figé) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
+// aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
 // Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
 // et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
 // lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
-// base de 810901f (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 810901f (COMMIT_ENTETE), sauf
+// base de 6270c81 (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 6270c81 (COMMIT_ENTETE), sauf
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
-// REPERES_PLUS_TICKET65) : bundle de base de 810901f (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
-// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 810901f (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
+// REPERES_PLUS_TICKET65) : bundle de base de 6270c81 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
+// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
@@ -75,13 +75,13 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET67, CONTRASTE, FLECHES_TICKET67, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '810901f';
+const COMMIT_AVANT = '6270c81';
 const avant = strip(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');
@@ -143,10 +143,6 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
     if (u.pathname.endsWith('.css')) { return route.fulfill({ status: 200, contentType: 'text/css', body: '' }); }
     return route.abort();
   });
-  // Flèches de tri du sous-forum mobile à 4 px (épopée 6, ticket 7 : FLECHES_TICKET67) posées sur un bundle de base d'avant le ticket
-  // seulement. Retrait : au réalignement des cinq bases de la suite (COMMIT_AVANT, COMMIT_FIL, COMMIT_ENTETE, COMMIT_PLUS, COMMIT_LIGNE)
-  // sur un SHA qui contient 6.7, action de la rétro de l'épopée 6.
-  if (src !== userscript && AVANT_TICKET67(src)) { await context.addInitScript(poserJetonsRedefinis, FLECHES_TICKET67); }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
@@ -610,7 +606,7 @@ const EMPREINTE_FIL = () => {
   });
 };
 
-const COMMIT_FIL = '810901f';
+const COMMIT_FIL = '6270c81';
 if (on('fil')) {
   const baseFil = strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -891,7 +887,7 @@ const ENTETE = ({ e, r }) => {
   return out;
 };
 
-const COMMIT_ENTETE = '810901f';
+const COMMIT_ENTETE = '6270c81';
 if (on('entete')) {
   const baseEntete = strip(process.env.KR_SCRIPT_AVANT_ENTETE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ENTETE, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_ENTETE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1221,7 +1217,7 @@ const VOILE = ({ p, cle, poser }) => {
   return 1;
 };
 
-const COMMIT_PLUS = '810901f';
+const COMMIT_PLUS = '6270c81';
 if (on('plus')) {
   const basePlus = strip(process.env.KR_SCRIPT_AVANT_PLUS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PLUS, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_PLUS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1474,9 +1470,9 @@ if (on('plus')) {
 // icônes attendues par chemin) : REPERES_LIGNE_TICKET66 (lib/variantes.mjs). Pages dérivées en mémoire de l'index RP : colonne native
 // composée (Taverne et Marché seulement, Monde en trop), entrée Marché désactivée par classe puis par aria, image dans la liste,
 // entrée Taverne sans icône de liste, liste retirée, entrée Taverne en href absolu avec requête et fragment ; racine sans liste latérale.
-// Bundle de base : celui de 810901f (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff, sous-forum et mobile comparés à
-// cette base, avec le seul masque FLECHES_TICKET67 (flèches de tri du sous-forum mobile, posé par `ouvrir` sur une base d'avant 6.7).
-const COMMIT_LIGNE = '810901f';
+// Bundle de base : celui de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff, sous-forum et mobile comparés à
+// cette base, sans masque.
+const COMMIT_LIGNE = '6270c81';
 // Mesure de la ligne de l'index : par ligne, icône (classe, contenu, place, boîte), nom, heure (texte de p.mini et texte natif lu dans le
 // HTML servi), dernier message (styles, boîtes du texte), flèche, compteurs, cellule vide ; liste latérale (outerHTML). CONTRASTE évalué avant.
 const LIGNE66 = ({ a, l, html }) => {

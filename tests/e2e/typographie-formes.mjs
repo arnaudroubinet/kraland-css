@@ -46,7 +46,7 @@
 //                   réception, lecture et nouveau kramail : 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre :
 //                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
 //                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
-//                   masque miroir ECHELLE_TICKET47 sur le bundle de base (COMMIT_ECHELLE_FORUM) égal au bundle d'après, 375, 768, 1280 px.
+//                   taille de chaque élément de #col-right égale au bundle de base (COMMIT_ECHELLE_FORUM), sans masque, 375, 768, 1280 px.
 // Trois rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) :
 //   rayons          plateau, forum (sujet, rédaction, index RP), sous-forum, kramail (réception, lecture, nouveau) et modale d'ordre :
 //                   375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, rayon calculé aux quatre coins :
@@ -64,8 +64,8 @@
 // Nettoyage des déclarations mortes et des médias au seuil 768/769 (ticket 10, story-refactor-sweep-plan) :
 //   nettoyage       plateau (deux fixtures), champ de saisie, modale d'ordre, forum (sous-forum, staff, sujet, rédaction), kramail (nouveau,
 //                   répondre), Interface (changelog ouvert) et composants : 375, 767, 768, 769, 1280 px, Kraland clair et Empire Brun sombre :
-//                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE), sauf à
-//                   768 px sur les pages des blocs M1 et M2 (propriétés de ces blocs égales à la base à 769 px) ; hamburger survolé et en
+//                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE) ; à
+//                   768 px, pages des blocs M1 et M2 : propriétés de ces blocs égales à la base M1/M2 (COMMIT_MEDIAS_410) à 769 px ; hamburger survolé et en
 //                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
 //                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum.
 // Nom de forum des cartes mobiles à 15 px (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) :
@@ -92,6 +92,7 @@
 //           KR_SCRIPT_AVANT_RAYONS (bundle de base des rayons, défaut : celui du commit COMMIT_RAYONS),
 //           KR_SCRIPT_AVANT_ESPACEMENT (bundle de base de l'espacement, défaut : celui du commit COMMIT_ESPACEMENT),
 //           KR_SCRIPT_AVANT_NETTOYAGE (bundle de base du nettoyage, défaut : celui du commit COMMIT_NETTOYAGE),
+//           KR_SCRIPT_AVANT_MEDIAS_410 (bundle de base des médias M1 et M2, défaut : celui du commit COMMIT_MEDIAS_410),
 //           KR_SCRIPT_AVANT_TITRE_FORUM (bundle de base du nom de forum des cartes, défaut : celui du commit COMMIT_TITRE_FORUM),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons,
 //           espacement, nettoyage, titre-forum
@@ -106,7 +107,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET51, AVANT_TICKET52, AVANT_TICKET53, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, CARTES_TICKET51, CARTES_TICKET52, CARTES_TICKET53, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, ECHELLE_TICKET47, LEGENDES_TICKET45, LIGNE_INDEX_TICKET62, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_BUG10, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, filSujetTicket64, AVANT_TICKET65, PLUS_TICKET65, plusTicket65, AVANT_TICKET66, AVANT_TICKET67, LIGNE_TICKET66, ligneTicket66, FLECHES_TICKET67 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -316,10 +317,11 @@ async function largeurs(titre, widths) {
   console.log(`\n== ${titre} ==`);
   const cas = Object.keys(PAGES).flatMap(nom => VARIANTES.flatMap(variante => widths.filter(w => nom !== 'forum' || w < 768).map(width => ({ nom, variante, width }))));
   // Écart accepté et consigné (épopée 5, entrée 4) : cloche et enveloppe en pastille d'état (fond non lu, texte surface) ; la base reçoit
-  // CARTES_TICKET54 tant qu'elle précède l'entrée (AVANT_TICKET54). À retirer quand le bundle de base de la suite contient l'entrée 4.
+  // CARTES_TICKET54 tant qu'elle précède l'entrée (AVANT_TICKET54).
   // Écart accepté et consigné (épopée 5, entrée 5) : « PNJ » des cartes, compteur de groupe et tags mobiles en étiquette de catégorie,
   // compteurs de contact du kramail en pastille d'état ; la base reçoit CARTES_TICKET55 tant qu'elle précède l'entrée (AVANT_TICKET55).
-  // À retirer quand le bundle de base de la suite contient l'entrée 5.
+  // Retrait des deux : au prochain ticket qui modifie les étiquettes et pastilles ; il réaligne COMMIT_AVANT sur un SHA récent après
+  // contrôle absolu des pastilles d'état et des étiquettes de catégorie (entrées 5.4 et 5.5).
   const cssAvant = (AVANT_TICKET54(avant) ? CARTES_TICKET54 : '') + (AVANT_TICKET55(avant) ? CARTES_TICKET55 : '');
   const res = await mapLimit(cas, async c => ({ c, r: await relever({ ...c, script: userscript }), a: await relever({ ...c, script: avant, css: cssAvant }) }));
   for (const { c, r, a } of res) {
@@ -535,6 +537,8 @@ if (on('boutons')) {
   console.log('\n== boutons ==');
   const cas = Object.keys(PAGES_BOUTONS).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_BOUTONS.map(width => ({ nom, variante, width }))));
   // Écart accepté et consigné (ticket 5) : légendes des compétences en 12 px posées sur un bundle de base antérieur (LEGENDES_TICKET45).
+  // Retrait : au prochain ticket qui modifie les boutons ; il réaligne COMMIT_BOUTONS et COMMIT_MODALES sur un SHA récent après contrôle
+  // absolu des légendes des compétences en 12 px (ticket 4.5).
   const baseBoutons = nom => (PAGES_BOUTONS[nom].base === 'modales' ? avantModales : avantBoutons);
   const masqueBoutons = nom => (PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET45(baseBoutons(nom)) ? LEGENDES_TICKET45 : '');
   for (const nom of Object.keys(PAGES_BOUTONS).filter(masqueBoutons)) { console.log(`  info écart accepté et consigné : ${nom}, légendes des compétences en 12 px (plancher PLT-QU, épopée 4, ticket 5) posées sur le bundle de base`); }
@@ -913,6 +917,8 @@ if (on('echelle')) {
     });
   }
 
+  // Retrait du miroir : au prochain ticket qui modifie l'échelle des titres ; il réaligne COMMIT_ECHELLE sur un SHA récent après contrôle
+  // absolu des titres (ticket 4.5).
   // Masque miroir ECHELLE_TICKET45 (lib/variantes.mjs) : posé sur le bundle de base, il rend les titres comme le bundle d'après, sans
   // toucher ce que le bundle laisse inchangé (titre d'accordéon .panel-group .panel-title, titre de modale). Éléments mesurés même masqués
   // (taille et graisse calculées). Matériel : titres d'en-tête, d'accordéon et de modale seulement (le reste relève des pages de jeu).
@@ -1005,11 +1011,11 @@ if (on('echelle')) {
 // Index (RP, Communauté, racine), sous-forum, sujet, rédaction (FIXTURE SYNTHÉTIQUE typographie-forum-redaction.html, éditeur de
 // messages-v3.mjs réduit), réception, lecture et nouveau kramail. Rôles : nom 15 px (nom de forum de l'index en 400, ticket 6.1), détail
 // 13 px, texte courant 15 px sur mobile, libellés de rédaction 13 px, champ de rédaction 16 px, corps des messages 16 px sur mobile.
-const COMMIT_ECHELLE_FORUM = 'd953969';
+const COMMIT_ECHELLE_FORUM = '6270c81';
 // Bundle de base d'avant le ticket 10 : médias au seuil 768/769 décalés en 767/768 (MEDIAS_TICKET410), M1 et M2 changent le rendu à 768 px.
 const medias410 = src => (AVANT_TICKET410(src) ? MEDIAS_TICKET410(src) : src);
-const avantEchelleForum = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
+const avantEchelleForum = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const IDX = '#col-right .table > tbody > tr';
 const SF = '#topics tbody tr';
 // [rôle, sélecteur, taille attendue, graisse, support] : support m = mobile seulement, b = ordinateur seulement, rien = les deux.
@@ -1186,9 +1192,9 @@ if (on('echelle-forum')) {
     check(`echelle-forum ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
   }
 
-  // Masque miroir ECHELLE_TICKET47 (lib/variantes.mjs) : posé sur le bundle de base, il rend chaque texte de #col-right à la taille du
-  // bundle d'après. Nom de forum des cartes mobiles de Staff : masque TITRE_FORUM_BUG10 en plus, sur une base d'avant le bug 10. Pages comparées hors périmètre par forum-index.mjs (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception,
-  // lecture), plus l'index et le nouveau kramail.
+  // Garde de régression : la taille de chaque élément de #col-right est égale à celle du bundle de base (COMMIT_ECHELLE_FORUM), sans
+  // masque ; les rôles du ticket 7 sont prouvés par les contrôles absolus plus haut. Pages comparées hors périmètre par forum-index.mjs
+  // (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception, lecture), plus l'index et le nouveau kramail.
   const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')].map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
@@ -1198,26 +1204,11 @@ if (on('echelle-forum')) {
     await context.close();
     return l;
   };
-  // Fil d'Ariane de l'épopée 6, ticket 3 (FIL_TICKET63 et retirerIconeFilTicket63, base d'avant le ticket seulement), inerte dès que
-  // COMMIT_ECHELLE_FORUM contient 6.3. Retrait : au réalignement de COMMIT_ECHELLE_FORUM (d953969) par le ticket qui porte l'action A4 de la rétro 5 (extinction des
-  // masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  const fil63 = AVANT_TICKET63(avantEchelleForum);
-  // En-tête de sujet de l'épopée 6, ticket 4 (ENTETE_TICKET64 et filSujetTicket64, base d'avant le ticket seulement) : retirer quand
-  // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.4 ; même condition de retrait (ticket A4, à créer à la rétro de l'épopée 6).
-  const entete64 = AVANT_TICKET64(avantEchelleForum);
-  // Bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65, base d'avant le ticket seulement) : retirer quand
-  // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.5 ; même condition de retrait (ticket A4, à créer à la rétro de l'épopée 6).
-  const plus65 = AVANT_TICKET65(avantEchelleForum);
-  // Icône de forum de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66, base d'avant le ticket seulement) : retirer quand
-  // COMMIT_ECHELLE_FORUM est réaligné sur un SHA qui contient 6.6 ; même condition de retrait (ticket A4, à créer à la rétro de l'épopée 6).
-  const ligne66 = AVANT_TICKET66(avantEchelleForum);
-  if (ligne66) { console.log('  info écart accepté et consigné : icône de forum lue dans la liste latérale avant le nom (épopée 6, ticket 6), posée sur la base d\'avant 6.6'); }
-  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), masque: await releverTailles(c, avantEchelleForum, [AVANT_TICKET47(avantEchelleForum) ? ECHELLE_TICKET47 : '', AVANT_BUG10(avantEchelleForum) ? TITRE_FORUM_BUG10 : '', fil63 ? FIL_TICKET63 : '', entete64 ? ENTETE_TICKET64 : '', plus65 ? PLUS_TICKET65 : '', ligne66 ? LIGNE_TICKET66 : ''].join('\n'), [fil63 ? retirerIconeFilTicket63 : null, entete64 ? filSujetTicket64 : null, plus65 ? plusTicket65 : null, ligne66 ? ligneTicket66 : null].filter(Boolean)) }));
-  for (const { c, apres, masque } of resMiroir) {
-    check(`echelle-forum ${etiquette(c)} : masques ECHELLE_TICKET47, TITRE_FORUM_BUG10, FIL_TICKET63, retirerIconeFilTicket63, ENTETE_TICKET64, filSujetTicket64, PLUS_TICKET65, plusTicket65, LIGNE_TICKET66 et ligneTicket66 sur le bundle de base = bundle d'après (taille de chaque élément de #col-right)`, () => {
-      assert.ok(AVANT_TICKET47(avantEchelleForum), `bundle de base (${COMMIT_ECHELLE_FORUM}) déjà au ticket 7`);
-      assert.equal(masque.length, apres.length, 'nombre d\'éléments');
-      const ecarts = apres.map((x, i) => (x === masque[i] ? null : `${masque[i]} au lieu de ${x}`)).filter(Boolean);
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), base: await releverTailles(c, avantEchelleForum) }));
+  for (const { c, apres, base } of resMiroir) {
+    check(`echelle-forum ${etiquette(c)} : taille de chaque élément de #col-right égale au bundle de base (${COMMIT_ECHELLE_FORUM}), états compris`, () => {
+      assert.equal(base.length, apres.length, 'nombre d\'éléments');
+      const ecarts = apres.map((x, i) => (x === base[i] ? null : `${base[i]} au lieu de ${x}`)).filter(Boolean);
       assert.deepEqual(ecarts, [], ecarts.slice(0, 5).join(' ; '));
     });
   }
@@ -1234,6 +1225,8 @@ if (on('echelle-forum')) {
 // Cas : [clé, sélecteur, rôle, support, cache] ; support m = mobile seulement, b = ordinateur seulement ; cache = mesuré même masqué
 // (menu fermé : rayon calculé sans rendu).
 const COMMIT_RAYONS = '5ff22d3';
+// Médias décalés (medias410) sur cette base d'avant le ticket 4.10. Retrait : au prochain ticket qui modifie les rayons ; il réaligne
+// COMMIT_RAYONS sur un SHA récent après contrôle absolu des rôles C4, K8, K7 et P.
 const avantRayons = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_RAYONS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_RAYONS, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_RAYONS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const ACCUEIL_RAYONS = ACCUEIL_BOUTONS.replace('<div class="col-md-6">centre</div>', '<div class="col-md-6"><div class="alert alert-info alert-dismissible">Ministre d\'essai '
@@ -1492,9 +1485,9 @@ if (on('rayons')) {
 // à E13 : le côté auto se résout autrement quand un voisin bouge), x et largeur (colonnes du plateau, E14) arrondis au dixième.
 // Cas : [clé, sélecteur, rôle, support, attendu] ; support m = mobile seulement, b = ordinateur seulement ; attendu R/N { propriété : n }
 // (jeton --kr-space-n), E [propriétés].
-const COMMIT_ESPACEMENT = '62fd47d';
-const avantEspacement = medias410(sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
+const COMMIT_ESPACEMENT = '6270c81';
+const avantEspacement = sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const PAGES_ESPACEMENT = Object.fromEntries(Object.entries({
   plateau: PAGES_ECHELLE.plateau,
   'plateau-typo': PAGES_ECHELLE.materiel,
@@ -1601,11 +1594,8 @@ if (on('espacement')) {
   console.log('\n== espacement ==');
   const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
   const base = new Map();
-  // Écart accepté et consigné (épopée 5, entrée 3) : groupes du plateau mobile en carte de section, cartes de personnages plus étroites ;
-  // la base reçoit CARTES_TICKET53 tant qu'elle précède l'entrée (AVANT_TICKET53).
-  const cssAvantEspacement = AVANT_TICKET53(avantEspacement) ? CARTES_TICKET53 : undefined;
   const res = await mapLimit(cas, async c => {
-    const a = await releverEspacement({ ...c, script: avantEspacement, css: cssAvantEspacement });
+    const a = await releverEspacement({ ...c, script: avantEspacement });
     base.set(etiquette(c), a);
     return { c, r: await releverEspacement({ ...c, script: userscript }), a };
   });
@@ -1634,7 +1624,7 @@ if (on('espacement')) {
   for (const { c, r, a } of resJetons) { verifierEspacement(c, c.nom, c.width, r.res, a.res, [5, 9, 13, 17]); }
   // Mini-profil du plateau plié puis déplié, 375 et 700 px : tuiles (E8) et écart de la liste (E9) égaux à la base.
   const casMini = VARIANTES.flatMap(variante => [375, 700].map(width => ({ nom: 'plateau', variante, width })));
-  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, deplier: true }), a: await releverEspacement({ ...c, script: avantEspacement, css: cssAvantEspacement, deplier: true }) }));
+  const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEspacement({ ...c, script: userscript, deplier: true }), a: await releverEspacement({ ...c, script: avantEspacement, deplier: true }) }));
   for (const { c, r, a } of resMini) {
     for (const [etat, cle] of [['plié', 'res'], ['déplié', 'deplie']]) { verifierEspacement(c, c.nom, c.width, r[cle], a[cle], [4, 8, 12, 16], ` ${etat}`); }
   }
@@ -1668,15 +1658,21 @@ if (on('espacement')) {
 // Retraits R1 à R6 (déclarations mortes, médias imbriqués) : chaque élément visible, ses ::before et ::after (contenu posé), toutes
 // propriétés calculées (getComputedStyle, variables exclues) égaux au bundle de base (COMMIT_NETTOYAGE). Transitions et animations figées
 // dans les deux bundles (couche @layer : un !important de couche bat tout !important hors couche). Corrections de média M1 (éditeur du
-// kramail) et M2 (changelog) : à 768 px, la référence est la base aux médias décalés (MEDIAS_TICKET410 : (width<=768px) en (width<=767px),
-// (width>=769px) en (width>=768px), rien d'autre), tout égal ; sur les pages des blocs M, le rendu à 768 px diffère de la base non décalée
-// (correction effective) ; et (A8) chaque élément visé par les blocs M1/M2 est égal à la base relevée à 769 px pour les propriétés que
-// ces blocs déclarent, sauf les exclusions nommées d'EXCLUES_A8 (valeurs qui suivent la largeur). Ailleurs, tout égal à la base. Comparaison par empreinte d'élément (chemin DOM), détail des écarts relu dans les
+// kramail) et M2 (changelog), contre la base M1/M2 (COMMIT_MEDIAS_410, d'avant le ticket) : elle contient les médias au seuil 768/769
+// (AVANT_TICKET410 la reconnaît à son média (width>=769px)) ; sur les pages des
+// blocs M, le rendu à 768 px diffère de cette base (correction effective) ; et (A8) chaque élément visé par les blocs M1/M2 est égal à
+// cette base relevée à 769 px pour les propriétés que ces blocs déclarent, sauf les exclusions nommées d'EXCLUES_A8 (valeurs qui suivent
+// la largeur). À toutes les largeurs, 768 px compris, tout égal à la base (COMMIT_NETTOYAGE). Comparaison par empreinte d'élément (chemin DOM), détail des écarts relu dans les
 // deux pages. Cartes du forum (R5) : racine page-forum-racine et index kr-page-forum-index (repères cités, ils lancent ce fragment).
-const COMMIT_NETTOYAGE = '00b0786';
+const COMMIT_NETTOYAGE = '6270c81';
 const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-const avantNettoyageDecale = medias410(avantNettoyage);
+// Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
+// de base d'avant 4.10, le rendu à 768 px qui change (change) et la base relevée à 769 px (A8). Retrait : au prochain ticket qui modifie les
+// médias 768/769 du kramail ou du changelog ; il remplace ces trois contrôles par un contrôle absolu des propriétés de M1 et M2 à 768 px.
+const COMMIT_MEDIAS_410 = '00b0786';
+const avantMedias410 = sansEntete(process.env.KR_SCRIPT_AVANT_MEDIAS_410 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_MEDIAS_410, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_MEDIAS_410}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const GEL_NETTOYAGE = '@layer kr-gel { *, *::before, *::after { transition: none !important; animation: none !important; } }';
 // Préparations (après le chargement) : modale d'ordre ouverte, changelog ouvert.
 // Bouton posé par insertChangelogButton (template) après le chargement du changelog, hors InitQueue : data-kr-ready ne l'attend pas.
@@ -1881,40 +1877,10 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Base d'avant le bug 10 (jamais le bundle testé) : masque TITRE_FORUM_BUG10, nom de forum des cartes mobiles à 15 px comme après le bug.
+// Aucun masque : bundle testé, base du nettoyage et base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
   const p = PAGES_NETTOYAGE[nom];
-  // Écart accepté et consigné (épopée 5, entrée 1) : panneaux mobiles en carte de section (CARTES_TICKET51), posés sur un bundle de base
-  // antérieur à l'entrée (AVANT_TICKET51) ; sur une base qui la contient déjà, rien n'est posé. Idem pour l'entrée 2 (CARTES_TICKET52,
-  // AVANT_TICKET52 : forum compris), empilée après, puis de l'entrée 3 (CARTES_TICKET53, AVANT_TICKET53 : groupes du plateau), puis de
-  // l'entrée 5 (CARTES_TICKET55, AVANT_TICKET55 : « PNJ » des cartes en étiquette de catégorie), puis de l'épopée 6, entrée 2
-  // (LIGNE_INDEX_TICKET62, AVANT_TICKET62 : ligne de l'index mobile d'au moins 72 px, texte centré), puis de l'épopée 6, entrée 3
-  // (FIL_TICKET63 et le script retirerIconeFilTicket63, AVANT_TICKET63 : fil d'Ariane sans icône, courant tronqué). Retirer ce dernier
-  // au réalignement de COMMIT_NETTOYAGE (00b0786) par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce
-  // ticket est à créer à la rétro de l'épopée 6. Enfin l'épopée 6, entrée 4 (ENTETE_TICKET64 et le script filSujetTicket64,
-  // AVANT_TICKET64 : en-tête du sujet mobile, fil commun) : retirer quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.4, par le
-  // même réalignement. De même pour l'épopée 6, entrée 5 (PLUS_TICKET65 et le script plusTicket65, AVANT_TICKET65 : bouton « ••• »
-  // commun) : retirer quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.5, par le même réalignement. De même pour l'épopée 6,
-  // entrée 6 (LIGNE_TICKET66 et le script ligneTicket66, AVANT_TICKET66 : icône de forum, dernier message à droite, bouton → de 34 px) :
-  // retirer quand COMMIT_NETTOYAGE est réaligné sur un SHA qui contient 6.6, par le même réalignement. De même pour l'épopée 6, entrée 7
-  // (FLECHES_TICKET67, AVANT_TICKET67 : flèches de tri du sous-forum mobile à 4 px) : retirer quand COMMIT_NETTOYAGE est réaligné sur un
-  // SHA qui contient 6.7, par le ticket qui porte l'action A4 de la rétro 5 ; ce ticket est à créer à la rétro de l'épopée 6.
-  const fil63 = script !== userscript && AVANT_TICKET63(script);
-  const entete64 = script !== userscript && AVANT_TICKET64(script);
-  const plus65 = script !== userscript && AVANT_TICKET65(script);
-  const ligne66 = script !== userscript && AVANT_TICKET66(script);
-  const css = GEL_NETTOYAGE + (script !== userscript && AVANT_BUG10(script) ? '\n' + TITRE_FORUM_BUG10 : '')
-    + (script !== userscript && AVANT_TICKET51(script) ? '\n' + CARTES_TICKET51 : '')
-    + (script !== userscript && AVANT_TICKET52(script) ? '\n' + CARTES_TICKET52 : '')
-    + (script !== userscript && AVANT_TICKET53(script) ? '\n' + CARTES_TICKET53 : '')
-    + (script !== userscript && AVANT_TICKET55(script) ? '\n' + CARTES_TICKET55 : '')
-    + (script !== userscript && AVANT_TICKET62(script) ? '\n' + LIGNE_INDEX_TICKET62 : '')
-    + (fil63 ? '\n' + FIL_TICKET63 : '')
-    + (entete64 ? '\n' + ENTETE_TICKET64 : '')
-    + (plus65 ? '\n' + PLUS_TICKET65 : '')
-    + (ligne66 ? '\n' + LIGNE_TICKET66 : '')
-    + (script !== userscript && AVANT_TICKET67(script) ? '\n' + FLECHES_TICKET67 : '');
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css, init: [fil63 ? retirerIconeFilTicket63 : null, entete64 ? filSujetTicket64 : null, plus65 ? plusTicket65 : null, ligne66 ? ligneTicket66 : null].filter(Boolean), tactile, injection: 'fin' });
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;
@@ -1941,24 +1907,24 @@ async function basculer(page, width, label) {
 }
 if (on('nettoyage')) {
   console.log('\n== nettoyage ==');
-  check('nettoyage : base décalée différente de la base (médias (width<=768px) et (width>=769px) présents dans la base)', () => assert.notEqual(avantNettoyageDecale, avantNettoyage));
+  check(`nettoyage : base M1/M2 d'avant 4.10 (${COMMIT_MEDIAS_410} : média (width>=769px) présent)`, () => assert.ok(AVANT_TICKET410(avantMedias410)));
   const cas = Object.keys(PAGES_NETTOYAGE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_NETTOYAGE.map(width => ({ nom, variante, width }))));
   const res = await mapLimit(cas, async c => {
     const p = PAGES_NETTOYAGE[c.nom];
     const a = await ouvrirNettoyage({ ...c, script: userscript });
-    const b = await ouvrirNettoyage({ ...c, script: c.width === 768 ? avantNettoyageDecale : avantNettoyage });
+    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
-      out.comparaisons.push([c.width === 768 ? 'styles calculés égaux à la base aux médias décalés' : 'styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
+      out.comparaisons.push(['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]);
       if (p.m && c.width === 768) {
-        const b0 = await ouvrirNettoyage({ ...c, script: avantNettoyage });
+        const b0 = await ouvrirNettoyage({ ...c, script: avantMedias410 });
         const rc = await comparerUneFois(a.page, b0.page, {});
         out.change = rc.nonPret || rc.diff;
         await b0.context.close();
       }
       if (p.m && c.width === 768) {
         // A8 : à 768 px, l'éditeur du kramail et le changelog égaux à la base relevée à 769 px, pour les propriétés déclarées par M1 et M2.
-        const b769 = await ouvrirNettoyage({ ...c, width: 769, script: avantNettoyage });
+        const b769 = await ouvrirNettoyage({ ...c, width: 769, script: avantMedias410 });
         try {
           const blocs = await b769.page.evaluate(BLOCS_M);
           const [ma, mb] = await Promise.all([a.page.evaluate(PROPRIETES_M, { ...blocs, exclues: EXCLUSIONS_A8 }), b769.page.evaluate(PROPRIETES_M, { ...blocs, exclues: EXCLUSIONS_A8 })]);
@@ -2110,18 +2076,17 @@ if (on('nettoyage')) {
       verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base`, p.r);
     }
   }
-  // Bascule 767, 768 puis 767 px dans le même onglet (rédaction du kramail, M1), base aux médias décalés basculée de même (identique à la
-  // base sous 768 px) : mode suivi, tout égal à chaque pas.
+  // Bascule 767, 768 puis 767 px dans le même onglet (rédaction du kramail, M1), base basculée de même : mode suivi, tout égal à chaque pas.
   const resBascule = await mapLimit(VARIANTES, async variante => {
     const nom = 'nouveau';
     const a = await ouvrirNettoyage({ nom, width: 767, variante, script: userscript, tactile: false });
-    const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyageDecale, tactile: false });
+    const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyage, tactile: false });
     const pas = [];
     const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
     pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]] });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
-      const comparaisons = [[width === 768 ? 'styles calculés égaux à la base aux médias décalés' : 'styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]];
+      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]];
       pas.push({ width, mobile: await mode(), comparaisons });
     }
     await a.context.close();

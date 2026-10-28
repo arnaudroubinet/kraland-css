@@ -547,3 +547,36 @@ Reportés à la rétro de l'épopée 6 (faisables sur une page dérivée en mém
 À vérifier par toi :
 
 - Sous-forum mobile à 375 et 767 px : la flèche de tri est plus près du libellé, les puces sont alignées et le fondu à droite est intact. À 768 px, les flèches ne changent pas.
+
+## Backlog 11 — suites e2e sur bases à jour, sans masque (construit, 2026-10-25)
+
+Plan : `_bmad-output/backlog/story-suites-e2e-sur-bases-a-jour-sans-masque-plan.md`. Aucun changement du thème, du template ni du bundle. Les bases partagées sont réalignées sur `6270c81`, dont le bundle est identique à HEAD. Les comparaisons deviennent des gardes de régression.
+
+Points « Ask First » du plan, tranchés en autonomie dans le sens prudent :
+
+1. **Bases dédiées hors liste.** Non réalignées : `typographie-formes` d68ab55, 4d97496, 8631c45, 3b1da55, fe77411, 1590761, 5ff22d3, 2db3b4c ; `cartes-pastilles` a7f0463, 601ab19, 59567f0 ; `palette-nation` d521cc8. Leurs masques gardent leur code. Leur condition suit le format « Retrait : au prochain ticket qui modifie <zone> ; il réaligne <constante> sur un SHA récent après contrôle absolu de <décision> ».
+2. **Nettoyage (4.10).** `COMMIT_NETTOYAGE` passe à `6270c81` pour R1 à R6. Une base dédiée `COMMIT_MEDIAS_410 = '00b0786'` (variable `KR_SCRIPT_AVANT_MEDIAS_410`) porte seule le check « base M1/M2 d'avant 4.10 », le rendu qui change à 768 px et la base relevée à 769 px (A8). Essai de retrait des masques de `ouvrirNettoyage` : tous retirés, 405 ok et 0 FAIL sans eux. La base M1/M2 est ouverte telle quelle, sous le seul gel des animations.
+3. **Neutralisations d'empreinte de `forum-index`** (`paire`, `texteColore`, `composantsHerites`, `COMPOSANTS_TICKET4/5`, `sujetStandard`) : retirées, avec l'import de `lib/variantes.mjs`. Elles sont couvertes par palette-nation (3.2, 3.3, 3.4) et forum-activite (6.4).
+4. **Retrait des attributs d'infobulle (`COLONNE`).** D'abord l'injection en début de document, en gardant le retrait : 2 tours sous charge verts. Ensuite, le retrait seul : au calme 16 ok ; sous charge (`KR_CONCURRENCY=8`, zones cartes-pastilles et typographie-formes en parallèle) 2 tours verts, 16 ok chacun. **Résultat : la correction locale est retirée.** `#col-right` est comparé tel quel à la page servie sans userscript.
+5. **Contrôle absolu 3.4 sur les pages de référence (`pages4`).** La première version du check était rouge sur HEAD (8 FAIL). Elle exigeait aussi, en sombre, un bouton standard en fond de surface et texte de la nation. Or beaucoup de `.btn-default` des pages ont des règles propres (actions rapides, flèches, dates de message). Le check est donc réduit à l'absolu « aucun gris de Bootstrap en texte, fond ou bordure des composants », sur les 16 variantes. Il est vert sur HEAD et rouge sur 6685df5 (8 FAIL : sujet, sous-forum, index RP, réception, à 375 et 1280 px ; plateau vert). Le sombre du bouton standard reste couvert par le check absolu de la fixture. **À trancher par toi** : faut-il un absolu sombre propre aux pages ? Il demanderait d'abord d'écrire quelles règles propres des `.btn-default` sont voulues.
+6. **4.4 compact.** Un check absolu 12 px existe déjà sur la pagination compacte (`typographie-formes`, fragment compact). Rien d'ajouté. `COMMIT_COMPACT` (3b1da55) n'est pas réaligné.
+7. **Décisions de non-changement.** Le tableau de palette et `forum-index#hors-perimetre` deviennent des gardes de régression. Libellés : « égal au bundle de base (6270c81) ». Pas de contrôle absolu ajouté.
+8. **Constantes de `kramail-redaction`** (`JETONS_REDEFINIS`, `TEXTE_SECONDAIRE_CLAIR`, `COMPOSANTS_TICKET4`, `ECHELLE_TICKET45/47`, `RAYONS_TICKET48`, `ESPACEMENT_TICKET49`, `AVANT_TICKET45/47/48/49`) : gardées. Leur condition : « Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9) ».
+9. **`EXCEPTION_TICKET66`** : non touchée (ce n'est pas un masque de base).
+10. **Seuils, tolérances, fixtures** : aucun changé.
+
+Masques gardés, avec leur condition :
+
+- **TF1** (`CARTES_TICKET54/55` sur `COMMIT_AVANT` d68ab55) : au prochain ticket qui modifie les étiquettes et pastilles, après contrôle absolu des entrées 5.4 et 5.5.
+- **TF2** (`LEGENDES_TICKET45` sur `COMMIT_BOUTONS` et `COMMIT_MODALES`) : au prochain ticket qui modifie les boutons, après contrôle absolu des légendes des compétences en 12 px.
+- **TF3** (miroir `ECHELLE_TICKET45` sur `COMMIT_ECHELLE`) : au prochain ticket qui modifie l'échelle des titres, après contrôle absolu des titres.
+- **TF7** (médias décalés sur `COMMIT_RAYONS` 5ff22d3) : au prochain ticket qui modifie les rayons, après contrôle absolu des rôles C4, K8, K7 et P.
+- **CP5** (`sansPnj55` sur `COMMIT_AVANT_53`) : au prochain ticket qui modifie les groupes du plateau, après contrôle absolu de l'étiquette « PNJ » des cartes.
+- **CP6** (`sansPosition55` sur `COMMIT_AVANT_55`) : au prochain ticket qui modifie les étiquettes de catégorie, après contrôle absolu de la position de la marque PNJ.
+- **Base M1/M2** (00b0786) : sans masque. Retrait de la base : au prochain ticket qui modifie les médias 768/769 du kramail ou du changelog ; il remplace ses trois contrôles par un contrôle absolu de M1 et M2 à 768 px.
+
+Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (masques des tickets 4.1 à 6.7). Gardées : `REGLES_CARTE_TICKET51`, utilisée par `REGLES_CARTE_TICKET52` (cartes-pastilles). `RETRAITS_TICKET49` et `ECARTS_TICKET49` n'ont pas d'utilisateur hors du fichier, mais `lib/variantes.mjs` les emploie lui-même (exceptions de la grille d'espacement, `PROPRIETES_ESPACEMENT_TICKET49`) : gardées.
+
+Écart de harnais : une commande d'essai a lancé toutes les suites e2e en arrière-plan. Je l'ai arrêtée en moins de 2 minutes. Tout tournait sur fixtures locales et `git status` ne montrait aucun changement inattendu.
+
+À vérifier par toi : rien de visuel (aucun changement produit). La preuve finale `npm run test:all` revient à l'orchestrateur, sur machine calme.

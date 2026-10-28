@@ -8,8 +8,8 @@
 //   forum sans message (« 0 sujets · 0 messages », ni dernier message ni bouton →) ; auteur avec icône (nom et icône conservés, en gras) ;
 //   en-têtes (titre de page, « Tous les forums », en-tête de section) : même rendu que le sous-forum, titre de section jamais en couleur de
 //                     nation (couleur de texte sur mobile) ;
-//   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff identiques au bundle « avant »
-//                     (cartes de section des entrées 5.1 et 5.2 masquées sur ce bundle) ;
+//   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff égaux au bundle de base
+//                     (6270c81), sans masque ;
 //   seuil : 767, 768 et 769 px, et aller-retour 767 → 768 → 767 dans le même onglet (rechargement du thème au franchissement) ;
 //   peau coupée : la page native est intacte.
 // « Même rendu que le sous-forum » : le sous-forum « Débuter » (fixture sous-forum-debuter.html) est mesuré dans le même navigateur, à la même
@@ -19,15 +19,11 @@
 // alerte, « 1 sujet · 1 message »). Racine : forum-racine-groupes.html (groupes synthétiques). Hors périmètre : le sous-forum,
 // forum-sujet.html (page de sujet de messages-v3.mjs) et forum-index-rp.html servi à /forum/staff. Vrai Bootstrap 3.3.7 (tests/e2e/vendor).
 // Confinement réseau ; aucun clic : les cibles sont mesurées par elementFromPoint, après un défilement par window.scrollTo.
-// Bundle « avant » (hors périmètre) : celui d'avant le ticket 6.1, au commit de base du plan (81512a3), sauf KR_SCRIPT_AVANT. Les jetons
-// redéfinis depuis par l'épopée 3, ticket 1 (lib/variantes.mjs, JETONS_REDEFINIS) y sont posés par-dessus : seul un écart qui vient d'eux est
-// accepté (consigné dans le plan de ce ticket). Le ticket 2 (paire d'action sur la couleur de nation) exclut de l'empreinte le texte, le fond
-// et la bordure des éléments posés sur la couleur de nation (consigné dans son plan, voir EMPREINTE). Le ticket 4 (mode clair thémé comme
-// le sombre, bouton standard) pose aussi le texte atténué du clair (TEXTE_SECONDAIRE_CLAIR) et exclut le texte, le fond et la bordure de
-// ses composants (COMPOSANTS_TICKET4) et de leur contenu qui en hérite le texte (consigné dans son plan, voir EMPREINTE).
+// Bundle de base (hors périmètre) : garde de régression au commit 6270c81, sauf KR_SCRIPT_AVANT. L'empreinte est comparée telle quelle,
+// sans jeton posé ni propriété neutralisée.
 //
 // Usage : npm run build && node tests/e2e/forum-index.mjs   (ou : npm run test:zone -- forum)
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle « avant »), KR_SHOTS=/dossier (captures hors dépôt), KR_VERBOSE=1 (détail des écarts),
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SHOTS=/dossier (captures hors dépôt), KR_VERBOSE=1 (détail des écarts),
 //           KR_FRAG = mobile, bureau, seuil, hors-perimetre, peau-coupee (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -38,7 +34,6 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET41, AVANT_TICKET42, AVANT_TICKET44, AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET49, AVANT_TICKET5, AVANT_TICKET51, AVANT_TICKET52, CARTES_TICKET51, CARTES_TICKET52, COMPOSANTS_TICKET4, COMPOSANTS_TICKET5, BOUTONS_TICKET42, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, ETIQUETTES_TICKET41, JETONS_REDEFINIS, PAGINATION_TICKET44, TEXTE_SECONDAIRE_CLAIR, TITRE_FORUM_BUG10, poserJetonsRedefinis, AVANT_TICKET63, FIL_TICKET63, retirerIconeFilTicket63, AVANT_TICKET64, ENTETE_TICKET64, REPERES_ENTETE_TICKET64, filSujetTicket64, AVANT_TICKET65, AVANT_TICKET67, PLUS_TICKET65, plusTicket65, FLECHES_TICKET67 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -73,61 +68,46 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n').slice(0, process.env.KR_VERBOSE ? 40 : 1).join('\n       ')); }
 }
 
-// Bundle « avant » : celui d'avant le ticket 6.1 (commit de base du plan), figé pour que la comparaison garde son sens une fois le ticket fusionné.
-const COMMIT_AVANT = '81512a3';
+// Bundle de base : figé au commit 6270c81 pour que la comparaison garde son sens après fusion.
+const COMMIT_AVANT = '6270c81';
 function bundleAvant() {
   if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
   try { return strip(execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] })); } catch (_e) { return null; }
 }
 
+// Injection en début de document : un script en tête de <head>, avant la balise viewport (technique de forum-activite.mjs). La page
+// native (src null) reçoit le même ajout, pour comparer deux documents identiques hors userscript.
+const enTete = html => {
+  const h = html.replace('<meta charset="utf-8">', '<meta charset="utf-8"><script>window.__krScriptTete = true;</script>');
+  if (h === html) { throw new Error('fixture sans <meta charset="utf-8"> : injection en début de document impossible'); }
+  return h;
+};
+
 const browser = await launchBrowser();
 
 // Ouvre `url` servie par `html`. `src` : bundle injecté (null : page native, sans userscript) ; `theme` : kr-theme-enabled ; `mobile` :
-// émulation tactile (par défaut sous 768 px).
-async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript, jetons = false, fil = false }) {
+// émulation tactile (par défaut sous 768 px) ; `debut` : bundle évalué dès que <html> existe (sinon dès que <body> existe).
+async function open({ url, html, variante = VARIANTES[1], width, height, mobile = width < 768, theme = true, src = userscript, debut = false }) {
   const context = await browser.newContext({ viewport: { width, height: height || (mobile ? 667 : 900) }, isMobile: mobile, hasTouch: mobile });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
-  await context.route(BASE + url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
+  await context.route(BASE + url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: debut ? enTete(html) : html }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
-  if (jetons) { await context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS + '\n' + TEXTE_SECONDAIRE_CLAIR + (AVANT_TICKET41(src) ? '\n' + ETIQUETTES_TICKET41 : '') + (AVANT_TICKET42(src) ? '\n' + BOUTONS_TICKET42 : '') + (AVANT_TICKET44(src) ? '\n' + PAGINATION_TICKET44 : '') + (AVANT_TICKET45(src) ? '\n' + ECHELLE_TICKET45 : '') + (AVANT_TICKET47(src) ? '\n' + ECHELLE_TICKET47 : '') + (AVANT_TICKET49(src) ? '\n' + ESPACEMENT_TICKET49 : '') + (AVANT_BUG10(src) ? '\n' + TITRE_FORUM_BUG10 : '') + (AVANT_TICKET51(src) ? '\n' + CARTES_TICKET51 : '') + (AVANT_TICKET52(src) ? '\n' + CARTES_TICKET52 : '')); } // bundle « avant » : jetons redéfinis depuis (hors-perimetre)
-  // Fil d'Ariane de l'épopée 6, ticket 3 (troncature, icône retirée) posé sur le bundle « avant » seulement. Retirer quand COMMIT_AVANT est
-  // réaligné sur un SHA qui contient 6.3. Retrait : au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte l'action A4 de la
-  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  if (fil && AVANT_TICKET63(src)) {
-    await context.addInitScript(poserJetonsRedefinis, FIL_TICKET63);
-    await context.addInitScript(retirerIconeFilTicket63);
-  }
-  // En-tête de sujet de l'épopée 6, ticket 4 (fil commun, « Nouveau sujet » standard, actions de 44 px, garde du sujet) posé sur le bundle
-  // « avant » seulement. Retirer quand COMMIT_AVANT est réaligné sur un SHA qui contient 6.4. Retrait : au réalignement de COMMIT_AVANT
-  // (81512a3) par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de
-  // l'épopée 6.
-  if (fil && AVANT_TICKET64(src)) {
-    await context.addInitScript(poserJetonsRedefinis, ENTETE_TICKET64);
-    await context.addInitScript(filSujetTicket64);
-  }
-  // Bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65) posé sur le bundle « avant » seulement. Retirer quand
-  // COMMIT_AVANT est réaligné sur un SHA qui contient 6.5. Retrait : au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte
-  // l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  if (fil && AVANT_TICKET65(src)) {
-    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
-    await context.addInitScript(plusTicket65);
-  }
-  // Flèches de tri du sous-forum mobile à 4 px (épopée 6, ticket 7 : FLECHES_TICKET67) posées sur le bundle « avant » seulement. Retrait :
-  // au réalignement de COMMIT_AVANT (81512a3) par le ticket qui porte l'action A4 de la rétro 5 (extinction des masques 3 à 6) ; ce ticket est
-  // à créer à la rétro de l'épopée 6.
-  if (fil && AVANT_TICKET67(src)) { await context.addInitScript(poserJetonsRedefinis, FLECHES_TICKET67); }
   if (src) {
-    await context.addInitScript(({ code, v, enabled }) => {
+    await context.addInitScript(({ code, v, enabled, start }) => {
       window.GM = { xmlHttpRequest: () => {} };
       localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
       localStorage.setItem('kr-theme-variant', v);
       // eslint-disable-next-line no-eval
-      const go = () => (0, eval)(code);
+      const go = () => { window.__krInjection = { body: !!document.body, largeur: window.innerWidth }; (0, eval)(code); };
+      if (start) {
+        if (document.documentElement) { go(); } else { new MutationObserver((m, o) => { if (document.documentElement) { o.disconnect(); go(); } }).observe(document, { childList: true }); }
+        return;
+      }
       if (document.body) { go(); return; }
       new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-    }, { code: src, v: variante, enabled: theme });
+    }, { code: src, v: variante, enabled: theme, start: debut });
   }
   const page = await context.newPage();
   const erreurs = [];
@@ -608,80 +588,21 @@ if (on('seuil')) {
 
 // ---------- Racine et non-régression : sous-forum, sujet, index Staff ----------
 // Empreinte du rendu de #col-right : pour chaque élément (ordre du DOM), balise, classes et propriétés calculées principales, boîte.
-// Écart accepté et consigné (épopée 3, ticket 2) : un élément dont le fond propre est une couleur de nation (primaire, primaire foncée,
-// --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) prend la paire d'action ; son texte, son fond et sa bordure sont remplacés
-// par « paire » dans l'empreinte, ainsi que le texte des éléments transparents posés dessus. Tout autre écart reste détecté.
-// Écart accepté et consigné (épopée 3, ticket 3) : le texte en primaire ou en primaire foncée passe à --kr-text-accent. L'empreinte relève ces
-// éléments (primaires) ; sur ceux du bundle « avant » seulement, le texte, et la bordure basse quand elle suit le texte, sont neutralisés des
-// deux côtés (texteColore). Tout autre écart reste détecté.
-// Écart accepté et consigné (épopée 3, ticket 4) : les composants passés aux jetons qui changent avec le mode (`composants` :
-// COMPOSANTS_TICKET4) ont leur texte, leur fond et leur bordure basse remplacés par « composant » dans l'empreinte ; leur contenu dont le
-// texte est celui du composant (hérité) dans l'un des deux bundles (herites) a son texte neutralisé des deux côtés, et sa bordure basse
-// quand elle suit le texte (composantsHerites). Tout autre écart reste détecté.
-// Écart accepté et consigné (épopée 3, ticket 5) : face à un bundle « avant » d'avant ce ticket, les éléments d'état passés à la palette
-// d'états (COMPOSANTS_TICKET5 : alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d'état) sont traités comme ces composants.
-// sujet : sélecteur neutralisé comme un composant sur la base ; verifier (bundle courant) : neutralisé seulement s'il porte les jetons du bouton
-// standard (texte de la nation, fond de surface, bordure teintée : jetons de REPERES_ENTETE_TICKET64), sinon ses valeurs réelles sont
-// comparées (épopée 6, ticket 4).
-const EMPREINTE = ({ composants, sujet = '', verifier = false, jetons = null }) => {
+const EMPREINTE = () => {
   const props = ['display', 'position', 'float', 'color', 'background-color', 'font-size', 'font-weight', 'line-height', 'text-align', 'margin-top', 'margin-right',
     'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-bottom-width', 'border-left-width',
     'border-bottom-color', 'visibility', 'opacity', 'order', 'flex-direction', 'grid-row'];
-  // « color(srgb r g b / a) » (color-mix() : en-têtes du ticket 4) : composantes 0..1 ramenées à 0..255.
-  const lire = c => { const n = (c.match(/[\d.]+/g) || []).map(Number); return c.startsWith('color(srgb') ? [n[0] * 255, n[1] * 255, n[2] * 255, ...n.slice(3)] : n; };
-  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).color); i.remove(); return c; };
-  const nation = ['var(--kr-primary)', 'var(--kr-primary-dark)', 'var(--kr-arm-bg, var(--kr-primary))', 'var(--kr-arm-bg-hover, var(--kr-primary-dark))'].map(sonde);
-  const fondNation = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0) && nation.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); };
-  const opaque = el => { const c = lire(getComputedStyle(el).backgroundColor); return !(c.length > 3 && c[3] === 0); };
-  const surNation = el => { for (let e = el; e; e = e.parentElement) { if (opaque(e)) { return fondNation(e); } } return false; };
-  const primaires = ['var(--kr-primary)', 'var(--kr-primary-dark)'].map(sonde);
   const col = document.getElementById('col-right');
-  const fond = expr => { const i = document.createElement('i'); i.style.backgroundColor = expr; document.body.appendChild(i); const c = lire(getComputedStyle(i).backgroundColor); i.remove(); return c; };
-  const proche = (a, b) => [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
-  const standard = el => { const s = getComputedStyle(el); return proche(lire(s.color), sonde(jetons.texteStandard)) && proche(lire(s.backgroundColor), fond(jetons.fondStandard)) && proche(lire(s.borderBottomColor), sonde(jetons.bordureStandard)); };
-  const tous = sujet ? composants + ', ' + sujet : composants;
-  const composant = el => el.matches(composants) || (sujet !== '' && el.matches(sujet) && (!verifier || standard(el)));
-  const herite = el => { const c = el.closest(tous); return !!c && c !== el && getComputedStyle(el).color === getComputedStyle(c).color; };
-  const valeur = (el, s, p) => {
-    if (fondNation(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'paire'; }
-    if (composant(el) && ['color', 'background-color', 'border-bottom-color'].includes(p)) { return 'composant'; }
-    if (p === 'color' && surNation(el)) { return 'paire'; }
-    return s.getPropertyValue(p);
-  };
   return {
     html: [...document.documentElement.classList].filter(c => c !== 'kr-theme-enabled').sort().join(' '),
     corps: [...document.body.classList].sort().join(' '),
     elements: [col, ...col.querySelectorAll('*')].map(el => {
       const s = getComputedStyle(el); const r = el.getBoundingClientRect();
       const gen = w => getComputedStyle(el, w).content;
-      return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => valeur(el, s, p)), gen('::before'), gen('::after'),
+      return [el.tagName, el.className && el.className.baseVal === undefined ? el.className : '', ...props.map(p => s.getPropertyValue(p)), gen('::before'), gen('::after'),
         Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join('|');
-    }),
-    primaires: [col, ...col.querySelectorAll('*')].map(el => { const c = lire(getComputedStyle(el).color); return primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)); }),
-    herites: [col, ...col.querySelectorAll('*')].map(herite)
+    })
   };
-};
-// Champs de l'empreinte : balise, classes, puis les propriétés (color en 4e, border-bottom-color en 21e).
-const CHAMP_TEXTE = 5;
-const CHAMP_BORDURE_BASSE = 22;
-const texteColore = (avant, apres) => {
-  const neutre = (x, garderBordure) => { const f = x.split('|'); f[CHAMP_TEXTE] = 'texte coloré'; if (!garderBordure) { f[CHAMP_BORDURE_BASSE] = 'texte coloré'; } return f.join('|'); };
-  const n = { a: [...avant.elements], p: [...apres.elements], nb: 0 };
-  avant.primaires.forEach((prim, j) => {
-    if (!prim || j >= n.p.length) { return; }
-    const f = n.a[j].split('|');
-    const garder = f[CHAMP_BORDURE_BASSE] !== f[CHAMP_TEXTE];
-    n.a[j] = neutre(n.a[j], garder);
-    n.p[j] = neutre(n.p[j], garder);
-    n.nb += 1;
-  });
-  return n;
-};
-
-const composantsHerites = (avant, apres, n) => {
-  const neutre = x => { const f = x.split('|'); if (f[CHAMP_BORDURE_BASSE] === f[CHAMP_TEXTE]) { f[CHAMP_BORDURE_BASSE] = 'composant'; } f[CHAMP_TEXTE] = 'composant'; return f.join('|'); };
-  avant.herites.forEach((h, j) => { if ((h || apres.herites[j]) && j < n.p.length) { n.a[j] = neutre(n.a[j]); n.p[j] = neutre(n.p[j]); } });
-  return n;
 };
 
 if (on('hors-perimetre')) {
@@ -761,54 +682,30 @@ if (on('hors-perimetre')) {
     await context.close();
   }
   const avant = bundleAvant();
-  check(`bundle « avant » disponible (KR_SCRIPT_AVANT ou commit ${COMMIT_AVANT}, d'avant le ticket 6.1)`, () => assert.ok(avant, 'introuvable'));
+  check(`bundle de base disponible (KR_SCRIPT_AVANT ou commit ${COMMIT_AVANT})`, () => assert.ok(avant, 'introuvable'));
   if (avant) {
     const pages = [{ nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
-    console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle « avant », ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
-    console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant »');
-    console.log('  info écart accepté et consigné : texte, fond et bordure des éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2)');
-    console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » passé à --kr-text-accent (épopée 3, ticket 3)');
-    console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » ; texte, fond et bordure des en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4)');
-    const composants = COMPOSANTS_TICKET4 + (AVANT_TICKET5(avant) ? ', ' + COMPOSANTS_TICKET5 : '');
-    // « Nouveau sujet » du sujet en bouton standard (épopée 6, ticket 4) : ses jetons (--kr-text-nation, --kr-border-tint) manquent à une base
-    // d'avant l'épopée 3, ticket 4 ; sur cette base seulement, il est neutralisé comme les boutons standard de COMPOSANTS_TICKET4 ; sur le
-    // bundle courant, il ne l'est que s'il porte les jetons du bouton standard (EMPREINTE, verifier). Même condition de retrait que
-    // ENTETE_TICKET64.
-    const sujetStandard = AVANT_TICKET64(avant) && !avant.includes('--kr-text-nation:') ? ':where(body.kr-forum-sujet) .forum-thread-action-new' : '';
-    if (AVANT_TICKET5(avant)) { console.log('  info écart accepté et consigné : texte, fond et bordure des éléments d\'état (alertes, étiquettes, boutons, fonds, textes, en-têtes de panneau d\'état ; épopée 3, ticket 5)'); }
-    if (AVANT_TICKET41(avant)) { console.log('  info écart accepté et consigné : étiquettes et pastilles (.label, .badge, pastille du sous-forum…) en 12 px gras posées sur le bundle « avant » (épopée 4, ticket 1)'); }
-    if (AVANT_TICKET42(avant)) { console.log('  info écart accepté et consigné : boutons d\'en-tête du sujet et de l\'index, actions « Répondre » / « Nouveau sujet », en 14 px sur mobile posés sur le bundle « avant » (épopée 4, ticket 2)'); }
-    if (AVANT_TICKET44(avant)) { console.log('  info écart accepté et consigné : numéros de pagination du sujet en 12 px sur ordinateur, hauteur native, posés sur le bundle « avant » (épopée 4, ticket 4)'); }
-    if (AVANT_TICKET45(avant)) { console.log('  info écart accepté et consigné : titres des en-têtes de panneau en 17 px / 700 et échelle mobile des titres en px (h1-h3 17 px, h4-h6 15 px), .xmini et liens du pied de page en 12 px, posés sur le bundle « avant » (épopée 4, ticket 5)'); }
-    if (AVANT_TICKET47(avant)) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (noms 15 px, détails 13 px, texte courant 15 px sur mobile, champ de rédaction 16 px ; sous-forum, sujet, Staff) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
-    if (AVANT_TICKET49(avant)) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (cellules du sous-forum et de l\'index, en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
-    if (AVANT_BUG10(avant)) { console.log('  info écart accepté et consigné : nom de forum des cartes mobiles (h3.forum-title, Staff) en 15 px au lieu de 17 px, posé sur le bundle « avant » (bug 10)'); }
-    if (AVANT_TICKET63(avant)) { console.log('  info écart accepté et consigné : fil d\'Ariane du sous-forum sans icône de retour, niveau courant tronqué sur une ligne, posé sur le bundle « avant » (épopée 6, ticket 3)'); }
-    if (AVANT_TICKET65(avant)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur le bundle « avant » (épopée 6, ticket 5)'); }
-    if (AVANT_TICKET64(avant)) { console.log('  info écart accepté et consigné : en-tête du sujet mobile, fil d\'Ariane commun, « Nouveau sujet » en bouton standard, actions de 44 px, posés sur le bundle « avant » (épopée 6, ticket 4)'); }
-    if (AVANT_TICKET67(avant)) { console.log('  info écart accepté et consigné : flèches de tri du sous-forum mobile à 4 px du libellé, posées sur le bundle « avant » (épopée 6, ticket 7)'); }
-    if (AVANT_TICKET52(avant)) { console.log('  info écart accepté et consigné : panneaux mobiles en carte de section (CARTES_TICKET51, puis CARTES_TICKET52 : forum compris), posés sur le bundle « avant » (épopée 5, entrées 1 et 2)'); }
+    console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle de base (${COMMIT_AVANT}), ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
-        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src, jetons: src === avant, fil: src === avant });
-        mesures.push({ e: await page.evaluate(EMPREINTE, { composants, sujet: sujetStandard, verifier: src !== avant, jetons: REPERES_ENTETE_TICKET64.jetons }), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
+        const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src });
+        mesures.push({ e: await page.evaluate(EMPREINTE), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }
       return mesures;
     });
     cas.forEach((c, i) => {
       const [a, p] = res[i];
-      check(`[${c.v}] ${c.nom} ${c.width} px : sans html.kr-page-forum-index, rendu identique au bundle « avant » (${a.e.elements.length} éléments de #col-right), aucune exception`, () => {
+      check(`[${c.v}] ${c.nom} ${c.width} px : sans html.kr-page-forum-index, rendu égal au bundle de base (${COMMIT_AVANT}) (${a.e.elements.length} éléments de #col-right), aucune exception`, () => {
         assert.equal(p.index, false);
         assert.deepEqual(p.erreurs, []);
         assert.equal(p.e.html, a.e.html, 'classes de html');
         assert.equal(p.e.corps, a.e.corps, 'classes de body');
         assert.equal(p.e.elements.length, a.e.elements.length, `éléments : ${p.e.elements.length} au lieu de ${a.e.elements.length}`);
-        const n = composantsHerites(a.e, p.e, texteColore(a.e, p.e));
-        const k = n.p.findIndex((x, j) => x !== n.a[j]);
-        assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${n.p[k]} au lieu de ${n.a[k]}`);
+        const k = p.e.elements.findIndex((x, j) => x !== a.e.elements[j]);
+        assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${p.e.elements[k]} au lieu de ${a.e.elements[k]}`);
       });
     });
   }
@@ -827,17 +724,17 @@ if (on('hors-perimetre')) {
 }
 
 // ---------- Peau coupée : page native intacte ----------
-// #col-right comparé à la page servie sans userscript. Seuls diffèrent les attributs d'infobulle que le script retire déjà sur mobile, peau
-// coupée comprise (disableTooltips, hors de ce ticket) : ils sont retirés des deux côtés avant comparaison.
+// #col-right comparé tel quel à la page servie sans userscript.
 const COLONNE = () => {
   const col = document.getElementById('col-right').cloneNode(true);
-  col.querySelectorAll('[data-toggle], [title], [data-original-title], [data-placement]').forEach(el => ['data-toggle', 'title', 'data-original-title', 'data-placement'].forEach(a => el.removeAttribute(a)));
   const table = document.querySelector('#col-right table');
   return {
     html: col.innerHTML,
     index: document.documentElement.classList.contains('kr-page-forum-index'),
     cartes: document.querySelectorAll('.forums-cards-container, .forum-card').length,
-    tableau: table ? getComputedStyle(table).display : null
+    tableau: table ? getComputedStyle(table).display : null,
+    tete: window.__krScriptTete === true,
+    injection: window.__krInjection || null
   };
 };
 
@@ -845,16 +742,21 @@ if (on('peau-coupee')) {
   console.log(`Peau coupée (kr-theme-enabled = false) : index RP et Communauté à ${MOBILE} et ${BUREAU} px comparés à la page native`);
   const cas = ['rp', 'communaute', 'racine', 'racineSlash'].flatMap(cle => [MOBILE, BUREAU].map(width => ({ cle, width })));
   const res = await mapLimit(cas, async ({ cle, width }) => {
-    const natif = await open({ ...INDEX[cle], width, src: null });
+    const natif = await open({ ...INDEX[cle], width, src: null, debut: true });
     const n = await natif.page.evaluate(COLONNE);
     await natif.context.close();
-    const coupe = await open({ ...INDEX[cle], width, theme: false });
+    const coupe = await open({ ...INDEX[cle], width, theme: false, debut: true });
     const c = await coupe.page.evaluate(COLONNE);
     await coupe.context.close();
     return { n, c, erreurs: coupe.erreurs };
   });
   cas.forEach(({ cle, width }, i) => {
     const { n, c, erreurs } = res[i];
+    check(`${INDEX[cle].url} ${width} px, peau coupée : injection en début de document des deux côtés (sans <body>), page native sans userscript`, () => {
+      assert.ok(n.tete && c.tete, `script de tête : natif ${n.tete}, peau coupée ${c.tete}`);
+      assert.equal(n.injection, null, 'userscript injecté dans la page native');
+      assert.ok(c.injection && c.injection.body === false, `injection en début de document attendue (sans <body>) : ${JSON.stringify(c.injection)}`);
+    });
     check(`${INDEX[cle].url} ${width} px, peau coupée : #col-right identique à la page native, ni classe de page ni carte, tableau natif affiché, aucune exception`, () => {
       assert.equal(c.index, false);
       assert.equal(c.cartes, 0);

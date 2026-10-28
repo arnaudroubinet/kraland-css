@@ -14,7 +14,7 @@
 //               sombre : même carte (corps sans retrait, chevron natif de 44 x 44 dans la carte), tout élément des panneaux dans la carte,
 //               aucun débordement (Staff : largeur défilable égale à la base, sa croix d'alerte débordant déjà) ; contrôle statique : règles du
 //               forum ciblées sans fond transparent, filet, rayon, retrait propre ni --kr-text-accent ; fil de sujet : messages égaux au
-//               bundle de base (21fed8d) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
+//               bundle de base (6270c81) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
 //               (.panel-group) de Répondre (kramail) et de la page de l'échelle, panneau à onglets des modales d'ordre Dormir et Pouvoir ;
 //   lignes      mêmes pages du forum, largeurs et variantes : chaque ligne de tableau dans la carte, sans ombre ; hauteur, retraits, filets
 //               (gauche de 4 px des non lus, bas), fond, icônes d'état et cadenas, pastilles, flèche « dernier message » et cibles
@@ -56,7 +56,7 @@
 //               couleur littérale, règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 21fed8d, a7f0463 pour groupes, 601ab19 pour
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 6270c81, a7f0463 pour groupes, 601ab19 pour
 // pastilles, 59567f0 pour etiquettes), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste,
 // pastilles, etiquettes (vide = tout).
 import assert from 'node:assert/strict';
@@ -69,16 +69,16 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET62, AVANT_TICKET64, AVANT_TICKET65, AVANT_TICKET66, LIGNE_TICKET66, ligneTicket66, PLUS_TICKET65, plusTicket65, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, LIGNE_INDEX_TICKET62, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '21fed8d';
+const COMMIT_AVANT = '6270c81';
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-// Groupes du plateau (entrée 3, A6) : base dédiée, la carte des panneaux (21fed8d) restant celle des autres fragments.
+// Groupes du plateau (entrée 3, A6) : base dédiée, la carte des panneaux (6270c81) restant celle des autres fragments.
 const COMMIT_AVANT_53 = 'a7f0463';
 const avant53 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT_53}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -167,7 +167,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, masque = null, plus65 = false, ligne66 = false }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768 }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -187,21 +187,6 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
-  if (masque) { await context.addInitScript(poserJetonsRedefinis, masque); }
-  // `plus65` : bouton « ••• » commun de l'épopée 6, ticket 5 (PLUS_TICKET65 et plusTicket65), posé sur la base d'avant le ticket seulement
-  // (fragment forum), inerte dès que COMMIT_AVANT contient 6.5. Retrait : au réalignement de COMMIT_AVANT (21fed8d) par le ticket qui porte l'action A4 de la
-  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  if (plus65 && script !== userscript && AVANT_TICKET65(script)) {
-    await context.addInitScript(poserJetonsRedefinis, PLUS_TICKET65);
-    await context.addInitScript(plusTicket65);
-  }
-  // `ligne66` : icône de forum de l'épopée 6, ticket 6 (LIGNE_TICKET66 et ligneTicket66), posée sur la base d'avant le ticket seulement
-  // (fragment lignes), inerte dès que COMMIT_AVANT contient 6.6. Retrait : au réalignement de COMMIT_AVANT (21fed8d) par le ticket qui porte l'action A4 de la
-  // rétro 5 (extinction des masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-  if (ligne66 && script !== userscript && AVANT_TICKET66(script)) {
-    await context.addInitScript(poserJetonsRedefinis, LIGNE_TICKET66);
-    await context.addInitScript(ligneTicket66);
-  }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
@@ -287,14 +272,13 @@ const MESURE = ([sel, texte]) => {
 };
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
-const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], origine = null] = []) => {
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon']] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
     'marginLeft', 'minHeight', 'fontSize', 'fontWeight', 'borderTopWidth', 'boxShadow', 'transform'];
   // Sous une racine (exclus de la carte), ordonnée relative à son haut : le contenu de la page au-dessus (en carte) la déplace.
-  // Sous une origine (masque du ticket 6.4, voir comparer), ordonnée relative au haut du premier élément qui la porte.
-  const haut = origine ? document.querySelector(origine).getBoundingClientRect().top : racine === 'html' ? 0 : document.querySelector(racine).getBoundingClientRect().top;
+  const haut = racine === 'html' ? 0 : document.querySelector(racine).getBoundingClientRect().top;
   return {
     theme: document.documentElement.classList.contains('kr-theme-enabled'),
     mobile: document.body.classList.contains('mobile-mode'),
@@ -513,24 +497,16 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
-// Masque de l'épopée 6, ticket 4 (sujet seul, base d'avant 6.4) : le fil du sujet passe d'une marge de 16 px à 4 px (Plan Change Log du
-// ticket), et tous les messages remontent de 12 px. Les ordonnées des messages sont alors relevées par rapport au premier message, des deux
-// côtés : la translation d'ensemble est neutralisée, un décalage à l'intérieur de la liste reste vu ; les styles ne sont pas masqués. Retrait :
-// au réalignement de COMMIT_AVANT (21fed8d) sur un SHA qui contient 6.4, par le ticket qui porte l'action A4 de la rétro 5 (extinction des
-// masques 3 à 6) ; ce ticket est à créer à la rétro de l'épopée 6.
-const ORIGINE_TICKET64 = nom => (nom === 'sujet' && AVANT_TICKET64(avant) ? '.media' : null);
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script, plus65: frag === 'forum' });
-      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, ORIGINE_TICKET64(c.nom)]), erreurs };
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
-  if (frag === 'forum' && AVANT_TICKET65(avant)) { console.log('  info écart accepté et consigné : bouton « ••• » commun du sujet mobile (glyphe texte, bouton standard, 44 px), posé sur la base d\'avant 6.5 (épopée 6, ticket 5)'); }
-  if (cas.some(c => ORIGINE_TICKET64(c.nom))) { console.log('  info écart accepté et consigné : messages du sujet remontés de 12 px (fil d\'Ariane du sujet, épopée 6, ticket 4) ; ordonnées relevées par rapport au premier message sur la base d\'avant 6.4'); }
   for (const { c, teste, base } of res) {
     const sous = PAGES[c.nom].racine ? ` sous ${PAGES[c.nom].racine}` : '';
     const quoi = PAGES[c.nom].releve ? 'messages' : 'panneaux, en-têtes, titres et corps';
@@ -643,15 +619,12 @@ if (on('lignes')) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      // Bundle de base : ligne d'index du ticket 6.2 (72 px au moins, texte centré) posée par masque, sinon la hauteur diffère.
-      const masque = cle === 'base' && AVANT_TICKET62(avant) ? LIGNE_INDEX_TICKET62 : null;
-      const { context, page, erreurs } = await ouvrir({ ...c, script, masque, ligne66: true });
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
       out[cle] = { l: await page.evaluate(LIGNES, [PANNEAU_TICKET51, PASTILLE_TICKET52]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
-  if (AVANT_TICKET66(avant)) { console.log('  info écart accepté et consigné : icône de forum lue dans la liste latérale avant le nom (épopée 6, ticket 6), posée sur la base d\'avant 6.6'); }
   for (const { c, teste, base } of res) {
     const lab = `lignes ${c.nom} ${c.variante} ${c.width} px`;
     const t = teste.l.lignes;
@@ -1088,7 +1061,8 @@ if (on('groupes')) {
   });
   // Écart accepté et consigné (épopée 5, entrée 5) : fond et texte du « PNJ » des cartes passent en étiquette de catégorie ; ils sont vérifiés
   // par le fragment etiquettes, et neutralisés ici des deux côtés (ouvrir n'a pas de masque, P8). Le reste de l'élément reste comparé.
-  // Condition de retrait : quand le bundle de base du fragment (COMMIT_AVANT_53) contient l'entrée 5.
+  // Retrait : au prochain ticket qui modifie les groupes du plateau ; il réaligne COMMIT_AVANT_53 sur un SHA récent après contrôle absolu
+  // de l'étiquette « PNJ » des cartes (entrée 5.5).
   const sansPnj55 = l => l.map(x => (/ SPAN\.dashboard-card-pnj /.test(x) ? x.replace(/^(.*?\] [^|]*\|[^|]*\|)[^|]*\|[^|]*\|/, '$1(entrée 5.5)|') : x));
   for (const { c, teste, base } of resBureau) {
     check(`groupes bureau ${c.variante} ${c.width} px : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
@@ -1478,7 +1452,8 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
   return e.length ? [`${quoi} « ${x.texte} » : ${e.join(', ')}`] : [];
 }
 // Palette d'états : la marque PNJ passe en 700 et s'élargit, sa voisine #piece glisse d'un pixel ; sa position seule reste hors champ.
-// Condition de retrait : quand le bundle de base du fragment etiquettes (COMMIT_AVANT_55) contient l'entrée 5.5.
+// Retrait : au prochain ticket qui modifie les étiquettes de catégorie ; il réaligne COMMIT_AVANT_55 sur un SHA récent après contrôle
+// absolu de la position de la marque PNJ (entrée 5.5).
 const sansPosition55 = (c, k, x) => (c.nom === 'etats' && k === '#piece' ? { ...x, geo: x.geo.replace(/\[[^,]+,[^,]+,/, '[') } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
 const BUREAU55 = ['(min-width: 768px)', '(width >= 768px)'];

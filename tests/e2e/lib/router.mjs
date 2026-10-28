@@ -212,11 +212,11 @@ export const KEYWORDS = [
   // En-tête du sujet mobile (épopée 6, entrée 4) : barres d'actions et garde du sujet, vérifiées par le fragment entete de forum-activite.
   [/forum-thread-action|kr-forum-sujet/, ['forum-activite']],
   // Bouton « ••• » commun du forum et du kramail (épopée 6, entrée 5) : vérifié par le fragment plus de forum-activite ; mesuré aussi par
-  // les suites qui posent les masques PLUS_TICKET65 (cartes-pastilles, palette-nation, typographie-formes, kramail-redaction, forum-index).
+  // les suites qui le comparent au bundle de base (cartes-pastilles, palette-nation, typographie-formes, kramail-redaction, forum-index).
   // `kr-more\b` couvre aussi `kr-more-glyph` (une ligne du glyphe seule y route).
   [/kr-more\b|createMoreButton/, ['forum-activite', 'messages', 'kramail', 'typographie-formes', 'cartes-pastilles', 'palette-nation']],
   // Icône de la ligne de forum lue dans la liste latérale (épopée 6, entrée 6) : vérifiée par le fragment ligne de forum-activite ; mesurée
-  // aussi par les suites qui posent les masques LIGNE_TICKET66 (cartes-pastilles, typographie-formes).
+  // aussi par les suites qui la comparent au bundle de base (cartes-pastilles, typographie-formes).
   [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
@@ -228,7 +228,7 @@ export const SECTIONS = [
   // Fil d'Ariane commun (épopée 6, entrée 3) : construit par cette section, appelé par ForumHeader et ForumIndex, vérifié par forum-activite.
   [/^FIL D'ARIANE DU FORUM/, ['forum', 'sous-forum', 'forum-activite']],
   // Bouton « ••• » commun (épopée 6, entrée 5) : construit par cette section, appelé par Messages:V3 et les deux modules Kramail ; mesuré
-  // aussi par les suites qui posent les masques PLUS_TICKET65.
+  // aussi par les suites qui le comparent au bundle de base.
   [/^BOUTON « ••• » COMMUN/, ['forum', 'messages', 'kramail', 'forum-activite', 'typographie-formes', 'cartes-pastilles', 'palette-nation']],
   [/^MODULE : ForumHeader:/, ['forum', 'sous-forum', 'forum-activite']],
   [/^MODULE : ForumIndex:/, ['forum', 'sous-forum', 'forum-activite']],
