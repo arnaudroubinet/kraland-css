@@ -43,8 +43,9 @@ export const SUITES = [
   { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] },
   // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
   { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] },
-  // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A), 16 variantes en fenêtre 600 et en onglet 1280, portée limitée à /report.
-  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['fenetre'], ['bureau'], ['portee']], needsBootstrap: true },
+  // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A) et ligne de notification (8.1 : date au-dessus du texte sur mobile, 13/14/15 px) ;
+  // 16 variantes en popup 900×800, mobile 375 et 767, onglet 1280 ; 768, 769, 1440, 1920 et bascule 767 ↔ 768 en deux variantes ; portée limitée à /report.
+  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee']], needsBootstrap: true },
   // Harmonisation UX, lot 1 (défauts de style et identité du personnage) : fixtures synthétiques du plateau, de Personnage, de l'index du forum et des Règles (et rédaction Kramail), mobile 375 × 667 (titre du panneau et accès rapides : ordinateur 1280 × 720) ; fixture reconstruite de Cybermonde, 320 à 1280 px (hors-forum-js).
   { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail', 'sous-forum', 'cybermonde'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
   // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),

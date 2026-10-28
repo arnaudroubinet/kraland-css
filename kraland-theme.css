@@ -779,16 +779,73 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
    d'Arnaud du 18/10/2026 : « Juste la marque à gauche »). L'état passe par la cellule de la date seule (option N, « Go pour n ») :
    filet latéral de 4 px de la couleur du non lu du forum (jeton --kr-status-unread, option B) et fond teinté à 14 % de cette couleur.
    Le texte de la date garde sa couleur et sa graisse ; le texte du serveur (2e cellule) n'est pas touché.
-   Valable en fenêtre (600 px) comme en onglet large : règle commune aux deux modes. Les autres .bg-info gardent la règle générique. */
-html.kr-page-report table > tbody > tr.bg-info {
-  background-color: transparent;
-  color: inherit;
+   Ligne de notification (DESIGN.md, H14.1, H14.2 ; ticket 8.1) : texte en --kr-font-body (14 px) sur ordinateur, popup 900×800 compris,
+   et --kr-font-body-mobile (15 px) sur mobile ; dates en --kr-font-detail (13 px) sur les deux. Sur ordinateur, la colonne de date native
+   (<col width="100">) reste, avec le filet et la teinte sur sa cellule. Sur mobile, le tableau, ses lignes et ses cellules passent en bloc :
+   la date est au-dessus du texte, le texte prend toute la largeur, le filet passe sur la ligne entière (review-faisabilite L2) et la teinte
+   n'est pas reprise (la date n'est plus une colonne). La règle mobile générique des tableaux (13 px, 8 px) est gardée hors /report.
+   Les autres .bg-info gardent la règle générique. */
+@media (max-width: 767px), (min-width: 768px) {
+  :where(html.kr-page-report) table > tbody > tr.bg-info {
+    background-color: transparent;
+    color: inherit;
+  }
+
+  :where(html.kr-page-report) table > tbody > tr > td {
+    font-size: var(--kr-font-body);
+  }
+
+  :where(html.kr-page-report) table > tbody > tr > td:first-child:not(:only-child) {
+    font-size: var(--kr-font-detail);
+  }
 }
 
-html.kr-page-report table > tbody > tr.bg-info > td:first-child {
-  box-shadow: inset 4px 0 0 var(--kr-status-unread);
-  padding-left: 10px;
-  background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
+@media (min-width: 768px) {
+  :where(html.kr-page-report) table > tbody > tr.bg-info > td:first-child {
+    box-shadow: inset 4px 0 0 var(--kr-status-unread);
+    padding-left: var(--kr-space-3);
+    background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
+  }
+}
+
+@media (max-width: 767px) {
+  /* Hypothèse : /report ne contient qu'un tableau .table (le journal). */
+  :where(html.kr-page-report) table.table,
+  :where(html.kr-page-report) table.table > tbody,
+  :where(html.kr-page-report) table.table > tbody > tr,
+  :where(html.kr-page-report) table.table > tbody > tr > td {
+    display: block;
+  }
+
+  :where(html.kr-page-report) table.table > colgroup {
+    display: none;
+  }
+
+  :where(html.kr-page-report) table.table > tbody > tr > td {
+    padding: var(--kr-space-1) var(--kr-space-3) var(--kr-space-2);
+    font-size: var(--kr-font-body-mobile);
+  }
+
+  :where(html.kr-page-report) table.table > tbody > tr > td:first-child {
+    padding-top: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-report) table.table > tbody > tr > td:first-child:not(:only-child) {
+    padding-bottom: 0;
+  }
+
+  :where(html.kr-page-report) table.table > tbody > tr > td + td {
+    border-top: 0;
+  }
+
+  /* Bilan du serveur : reste en taille de détail (13 px), comme avant le ticket 8.1 */
+  :where(html.kr-page-report) table.table > tbody > tr > td .mini.text-muted {
+    font-size: var(--kr-font-detail);
+  }
+
+  :where(html.kr-page-report) table.table > tbody > tr.bg-info {
+    box-shadow: inset 4px 0 0 var(--kr-status-unread);
+  }
 }
 
 /* Pastille d'état (DESIGN › badge-state) : cloche, enveloppe et compteurs de contact du kramail en non lu, toutes variantes */
@@ -4652,13 +4709,13 @@ body > map {
     -webkit-overflow-scrolling: touch !important;
   }
 
-  /* Tables plus compactes */
-  .table > thead > tr > th,
-  .table > tbody > tr > th,
-  .table > tfoot > tr > th,
-  .table > thead > tr > td,
-  .table > tbody > tr > td,
-  .table > tfoot > tr > td {
+  /* Tables plus compactes. Hors /report : la ligne de notification a ses tailles et son retrait (section « Notifications (/report) », ticket 8.1). */
+  :where(html:not(.kr-page-report)) .table > thead > tr > th,
+  :where(html:not(.kr-page-report)) .table > tbody > tr > th,
+  :where(html:not(.kr-page-report)) .table > tfoot > tr > th,
+  :where(html:not(.kr-page-report)) .table > thead > tr > td,
+  :where(html:not(.kr-page-report)) .table > tbody > tr > td,
+  :where(html:not(.kr-page-report)) .table > tfoot > tr > td {
     padding: 8px !important;
     font-size: 13px !important;
   }

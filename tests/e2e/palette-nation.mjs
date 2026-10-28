@@ -1427,7 +1427,8 @@ const RELEVER5 = carac => {
     succes: [...document.querySelectorAll('a.btn.btn-success')].filter(e => !e.matches(carac)).map(releve),
     alertes: [...document.querySelectorAll('.alert.alert-success')].map(e => ({ ...releve(e), textes: textes(e) })),
     pastilles: [...document.querySelectorAll('.kr-topic-badge')].map(e => getComputedStyle(e).backgroundColor),
-    filets: [...document.querySelectorAll('html.kr-page-report table > tbody > tr.bg-info > td:first-child')].map(e => getComputedStyle(e).boxShadow)
+    // Filet de la ligne non lue : sur la ligne entière en mobile depuis le ticket 8.1, sur la cellule de la date sinon (et avant le ticket).
+    filets: [...document.querySelectorAll('html.kr-page-report table > tbody > tr.bg-info')].map(tr => { const s = getComputedStyle(tr).boxShadow; return s !== 'none' ? s : getComputedStyle(tr.cells[0]).boxShadow; })
   };
 };
 // Chaque caractéristique et sa référence : compétence de la colonne, ou compétence clonée pour le clone du mini-profil, de même niveau de
