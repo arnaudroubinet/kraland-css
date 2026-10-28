@@ -656,3 +656,17 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
   - sélecteurs de carte : 28 px de haut.
 - Bug trouvé : sur mobile, des boutons `.hidden` d'Événements s'affichent (le `!important` de la règle mobile bat `.hidden`). À reprendre par 9.4.
 - À faire par toi : le Chrome dédié n'est pas connecté à Kraland. Interface, Contacts, recherche et modération du forum ne sont pas relevés. Ouvre une session dans ce Chrome si tu veux que le relevé soit complété.
+
+## Bug 9.6 — décisions d'orchestration (2026-10-28)
+
+- Mini-chat sur téléphone : `MiniChat:FAB` fait foi. L'ancien `initMobileMiniChat` est retiré. Sur un vrai téléphone, il ajoutait une × sans effet dans `#flap` et détournait le lien natif quand le thème est coupé. À revoir si tu préfères un autre comportement pour le mini-chat.
+- La superposition mobile et le panneau des compétences restent masqués en mode mobile : le panneau est passé dans le mini-profil au TASK-1.6. Ils sortent donc du chemin mobile plutôt que d'être « restaurés ».
+
+## Ticket 7.1 — à vérifier avec une session (2026-10-28)
+
+- La page Signaler d'un kramail (`…-8-<id>`) est exclue de la garde de rédaction par hypothèse. Aucune fixture ni session ne permet de voir si elle utilise le formulaire `post_msg`. À vérifier quand une session Kraland sera ouverte dans le Chrome dédié.
+
+## Ticket 9.2 — carte de personnage étroite (2026-10-28)
+
+- Sous 200 px de large, une carte affiche le nom sous l'avatar, aligné à gauche. Le centrer rogne les points de suspension de la deuxième ligne sous Chromium (« Crapaudière-.. »). Le statut reste centré en dessous. À trancher : accepter tel quel, ou aligner aussi le statut à gauche dans ces cartes.
+- À 1512 px, les cartes des autres groupes font 168 px. Elles passent donc au nom dessous et ne sont plus identiques à l'avant 9.2.

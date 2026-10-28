@@ -185,3 +185,9 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-plateau-confort-mobile/spike-releve-des-pages-mobiles-hors-fixtures-marge-cibles-et-carte-plan.md`
   summary: Relevé incomplet, faute de session connectée dans le Chrome dédié : Interface, Contacts, recherche et modération du forum, liste des Membres ; retrait de `height: 44px !important` sur `.form-control` non confirmé.
   evidence: le spike n'a tenté aucune connexion (2026-10-28).
+- source_plan: `epic-kramail-mobile/story-gardes-de-page-du-kramail-suite-kramail-theme-et-dossiers-en-plan.md`
+  summary: Les gardes `kr-page-kramail*` ne sont posées qu'au DOMContentLoaded. Avec une injection en tête sur mobile, les dossiers s'affichent en carrés jusque-là. Les gardes qui se déduisent du chemin pourraient être posées dès le document-start.
+  evidence: revue du 7.1, constat 4 (2026-10-28).
+- source_plan: `epic-kramail-mobile/story-gardes-de-page-du-kramail-suite-kramail-theme-et-dossiers-en-plan.md`
+  summary: Sur la lecture d'un message à 375 px, le bouton Réception (`btn-default`) s'affiche avec le fond primaire et une ombre. L'état est antérieur au 7.1 et à reprendre par 7.3 (en-tête).
+  evidence: revue du 7.1, constat 12 (2026-10-28).
