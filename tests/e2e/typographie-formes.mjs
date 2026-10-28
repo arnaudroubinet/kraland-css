@@ -107,7 +107,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET92, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1517,6 +1517,9 @@ if (on('rayons')) {
 const COMMIT_ESPACEMENT = '6270c81';
 const avantEspacement = sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart accepté et consigné (épopée 9, entrée 2) : carte de personnage selon sa propre largeur (nom sous l'avatar sous 200 px de carte) ;
+// la base reçoit CARTES_TICKET92 tant qu'elle précède l'entrée (AVANT_TICKET92). Même feuille sur la base du nettoyage.
+const CSS_AVANT_ESPACEMENT = AVANT_TICKET92(avantEspacement) ? CARTES_TICKET92 : '';
 const PAGES_ESPACEMENT = Object.fromEntries(Object.entries({
   plateau: PAGES_ECHELLE.plateau,
   'plateau-typo': PAGES_ECHELLE.materiel,
@@ -1624,7 +1627,7 @@ if (on('espacement')) {
   const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
   const base = new Map();
   const res = await mapLimit(cas, async c => {
-    const a = await releverEspacement({ ...c, script: avantEspacement });
+    const a = await releverEspacement({ ...c, script: avantEspacement, css: CSS_AVANT_ESPACEMENT });
     base.set(etiquette(c), a);
     return { c, r: await releverEspacement({ ...c, script: userscript }), a };
   });
@@ -1917,9 +1920,9 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 });
 // Un seul masque, MASQUE_JAUGES_9, dans la comparaison « styles calculés égaux à la base » ; sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le seul gel des animations.
-const ouvrirNettoyage = async ({ nom, width, variante, script, tactile }) => {
+const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '' }) => {
   const p = PAGES_NETTOYAGE[nom];
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE, tactile, injection: 'fin' });
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: GEL_NETTOYAGE + css, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;
@@ -1951,7 +1954,7 @@ if (on('nettoyage')) {
   const res = await mapLimit(cas, async c => {
     const p = PAGES_NETTOYAGE[c.nom];
     const a = await ouvrirNettoyage({ ...c, script: userscript });
-    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage });
+    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : '' });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).

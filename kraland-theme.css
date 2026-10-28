@@ -2819,6 +2819,30 @@ footer .container.white {
   margin: 0;
 }
 
+/* Carte de personnage selon sa propre largeur (H7.1, épopée 9, entrée 2) : sous 200 px de carte (198 px de contenu, bordure de 1 px),
+   le nom passe sous l'avatar, sur toute la largeur de la carte, deux lignes au plus, aligné à gauche (centré, Chromium rogne les points de suspension) ;
+   un mot plus long que la ligne se coupe au lieu de déborder */
+@media (min-width: 768px) {
+  .dashboard-card {
+    container: kr-carte-perso / inline-size;
+  }
+
+  .dashboard-card-name {
+    overflow-wrap: anywhere;
+  }
+
+  @container kr-carte-perso (width < 198px) {
+    .dashboard-card-header {
+      flex-wrap: wrap;
+    }
+
+    .dashboard-card-name-container {
+      flex-basis: 100%;
+      padding: 0 8px 4px;
+    }
+  }
+}
+
 /* Responsive mobile */
 @media (max-width: 767px) {
   .dashboard-cards-grid {
