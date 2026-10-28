@@ -597,3 +597,11 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - La barre d'un message ouvert ne passe au-dessus du voile Bootstrap (z-index 991) que si `.dropdown-backdrop` est présent. Ailleurs, « Envoyer » reste atteignable.
 - Les accordéons et les modales gardent leur peau : les règles du panneau forum mobile excluent `.panel-group > *` et `.modal *`.
 - Doute : le cas « Envoyer » sous une barre fixe est peut-être rare sur un vrai sujet. À vérifier par toi sur un sujet réel à 375 px.
+
+## Inception de l'épopée 8 — notifications (2026-10-28)
+
+- 5 entrées : 1 ligne de notification (texte 14/15 px, dates 13 px, date au-dessus du texte sur mobile) ; 2 popup de 900×800 à la cloche sur ordinateur (hitl) ; 3 sélecteur de personnage à 16 px du haut ; 4 refactor sweep ; 5 captures de validation (hitl). Chaînées, car elles touchent toutes `router.mjs` et `report-non-lu.mjs`.
+- Décidé en autonomie : « ordinateur » se lit au clic avec `isMobileMode()`. Le mobile garde l'`openReport` natif. Le popup 900×800 remplace le fragment `fenetre` 600×600. Le filet « non lu » passe sur le `tr` en mobile.
+- À trancher par toi : faut-il accepter un seul `!important` contre la marge en ligne de 10 px du bandeau (entrée 3), si rien d'autre ne la bat ?
+- À vérifier par toi (entrée 2) : un clic sur la cloche ouvre-t-il un popup de 900×800 sur ton navigateur ? Attention, ce clic marque tes notifications comme lues. Aucun agent ne le fera.
+- Le bureau compact 768-991 px, où la cloche est invisible menu fermé (D12), a été examiné et n'est pas repris. Ta décision est toujours attendue (rétro 5, A5).

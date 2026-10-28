@@ -1,0 +1,81 @@
+# tickets.toml — epic-notifications, dans l'ordre de construction.
+# Inception complète le 2026-10-28 (autonome) : entrées 1 à 5.
+# Balle traçante : entrée 1 (ligne de notification mobile, date au-dessus et filet sur la ligne, tailles H14.1 ; CSS, fixture, suite report-non-lu et routeur).
+# L'entrée la moins sûre vient ensuite : entrée 2, redéfinition de openReport (bac à sable Tampermonkey, moment où main.js du site définit la fonction).
+# Entrées chaînées par collision, pas par dépendance fonctionnelle (1 → 2 → 3) : 1, 2 et 3 partagent tests/e2e/lib/router.mjs (et router.test.mjs) ; 1 et 3 partagent
+# la section « /report » de kraland-theme.css (~l.775-792) et la suite report-non-lu.mjs (décision prise en autonomie, 2026-10-28).
+# Commun : valeurs de DESIGN.md › Components › Ligne de notification et Cloche des notifications ; jetons --kr-font-* et --kr-space-* livrés par l'épopée 4 ;
+# DESIGN et EXPERIENCE priment sur la maquette key-notifications-mobile ;
+# SÉCURITÉ : /report marque tout comme lu en un seul GET : aucun préchargement, aucun fetch, aucune ouverture de /report ni clic sur la cloche sur le site réel par un agent ;
+# toute preuve sur fixture synthétique, réseau confiné (lib/confinement.mjs), window.open remplacé par une sonde dans les tests ;
+# P1 option 4 : chaque entrée retire ou réécrit les règles qu'elle remplace, sans les battre (aucun nouvel !important), et garde par page en :where(html.kr-page-report) ce qu'elle conserve ;
+# règle commune aux deux supports en liste combinée @media (max-width: 767px), (min-width: 768px) ; mobile en max-width: 767px seulement ;
+# chaque plan consigne son rouge avant sur le bundle de sa base (KR_SCRIPT, classe kr-theme-enabled vérifiée), puis une contre-épreuve (mutation → rouge) ;
+# aucun masque de test nouveau ; s'il en faut un, sa condition de retrait nomme un événement qui arrivera (rétro 5, F4 ; rétro 6, A2) ;
+# boucle courte test:zone -- report ou test:changed, un seul test:all à la fin sur machine calme et sur le SHA exact, ou le plan dit qu'il n'a pas été lancé (rétro 5, F2 et F11) ;
+# une seule section Result par plan (rétro 6, A6) ; identifiants de report préfixés par l'épopée, D8.n (rétro 6, A7) ;
+# toute règle de couleur vérifiée dans les 16 variantes ; largeurs : 375×667, 767, 768, 769, popup 900×800, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre au moins ;
+# transition 767 ↔ 768 dans le même onglet, dans les deux sens ; chaque entrée qui touche tests/ lance aussi npm run test:router ;
+# hors périmètre : onglet plein écran et popup 600×600 en rendu mobile (non-goals), ouverture mobile de la cloche (fonction native, Q17),
+# pastille de la cloche (livrée par 5.4), cloche invisible menu fermé en bureau compact 768-991 (D12, décision d'Arnaud attendue), marge de 16 px et cibles de 44 px (épopée 9).
+
+[[entry]]
+id = 1
+type = "story"
+title = "Ligne de notification : texte 14/15 px, dates 13 px, date au-dessus du texte sur mobile"
+description = "Balle traçante (H14.1, H14.2) : sous :where(html.kr-page-report), texte des notifications en --kr-font-body (14 px) sur ordinateur et --kr-font-body-mobile (15 px) sur mobile, dates en --kr-font-detail (13 px) sur les deux ; sur mobile, la colonne de date de 100 px (colgroup natif) disparaît, la date passe en ligne de détail au-dessus du texte et le texte prend toute la largeur ; le filet non lu (inset 4 px, --kr-status-unread) passe de td:first-child à la ligne entière tr.bg-info sur mobile, et la règle td:first-child (~l.788-792, padding-left: 10px hors grille, report D de 4.9) est réécrite au jeton --kr-space-* ; décide et consigne si la teinte à 14 % reste sur la date seule ; range ces règles, aujourd'hui hors media query, selon AGENTS.md : tailles et parties communes en liste combinée, colonne de date en (min-width: 768px), mise en page mobile en (max-width: 767px), garde en :where(html.kr-page-report) ; met à jour report-non-lu.mjs (critère N « hauteur inchangée, date sur une ligne » réécrit pour le mobile ; fragment fenetre 600×600 remplacé par le rendu ordinateur du popup 900×800 ; nouveau fragment mobile 375×667 ; fragment portee, lui aussi en 600×600, passé aux mêmes tailles), son en-tête, le commentaire CSS ~l.782 et les frags de la suite dans router.mjs et router.test.mjs."
+verify = "Suite report-non-lu sur la fixture report-non-lu.html : à 375×667 et 767 px, date au-dessus du texte (bas de la date ≤ haut du texte), texte en 15 px sur toute la largeur de la ligne, dates en 13 px, filet de 4 px sur toute la hauteur de chaque tr.bg-info, contraste ≥ 3:1, C2 à C5 tenus dans les 16 variantes ; à 768, 769, 900×800, 1280, 1440 et 1920 px, colonne de date conservée, texte 14 px, dates 13 px ; transition 767 ↔ 768 dans le même onglet dans les deux sens ; rouge sur le bundle de la base, contre-épreuve par mutation ; npm run test:router vert."
+covers = ["CAP-9"]
+after = ["4.1"]
+hitl = false
+risk = "medium"
+unknown = "Rendu mobile : un box-shadow inset sur un tr en display: table-row et la neutralisation du <col width=100> natif tiennent-ils dans Chromium, ou faut-il passer tr et td en bloc (review-faisabilite L2) ?"
+references = ["ux-harmonisation/DESIGN.md › Ligne de notification", "ux-harmonisation/mockups/key-notifications-mobile.html", "ux-harmonisation/review-faisabilite.md (L2)", "ux-harmonisation/notes-implementation.md, Tests et fixtures", "deferred-work.md, ticket 4.9 (padding-left: 10px du /report)"]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Sur ordinateur, la cloche ouvre les notifications dans un popup de 900×800"
+description = "R5 : la fonction native openReport(link) est redéfinie dans le contexte de la page (unsafeWindow, comme l.374 du template), après que main.js du site l'a définie, par un module InitQueue : sur ordinateur (pas isMobileMode() au moment du clic), elle appelle window.open avec la même URL ('report' + lien), le même nom 'private_report' et 'width=900,height=800' en gardant les autres options natives ; sur mobile, elle délègue à la fonction native inchangée ; aucun chargement de /report avant le clic ; crée une fixture synthétique de page de jeu avec la cloche (onclick natif) et l'extrait verbatim d'openReport de main.js, une suite dédiée (cloche-notifications.mjs) et sa zone dans le routeur ; hitl : Arnaud vérifie une fois, sur son navigateur réel avec Tampermonkey, que la cloche ouvre bien un popup de 900×800 (lui seul clique la cloche ; ce clic marque ses notifications comme lues, comme d'habitude)."
+verify = "Suite cloche-notifications, window.open remplacé par une sonde et réseau confiné : à 1280, 1440 et 1920 px, un clic sur la cloche de la barre appelle ; à 768 et 991 px, le menu replié est d'abord ouvert, la cloche vérifiée par elementFromPoint, puis le clic appelle window.open('report', 'private_report', …width=900,height=800…) une seule fois ; openReport('x') garde l'URL 'report/x' ; à 375×667 et 767 px, un clic sur le clone mobile de la cloche (body.mobile-mode) appelle la fonction native (600×600) ; aucune requête vers /report avant le clic, à aucune largeur ; transition 767 ↔ 768 dans le même onglet ; rouge sur le bundle de la base, contre-épreuve par mutation ; npm run test:router vert ; constat d'Arnaud consigné dans revue-manuelle.md."
+covers = ["CAP-9"]
+after = [1]
+hitl = true
+risk = "high"
+unknown = "Moment et contexte de la redéfinition : main.js du site définit openReport en fin de body ; la redéfinir au DOMContentLoaded sur unsafeWindow suffit-il sous le bac à sable Tampermonkey (@grant GM.xmlHttpRequest), alors que la fixture injecte le bundle sans bac à sable ?"
+references = ["ux-harmonisation/EXPERIENCE.md › Responsive & Platform, Pop-up des notifications", "ux-harmonisation/review-faisabilite.md (H9)", "tests/e2e/vendor/parler/main.js (openReport, l.209-212)"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Notifications : le sélecteur de personnage commence à 16 px du haut"
+description = "H14.3 : sur les deux supports (liste combinée), sous :where(html.kr-page-report), la bande vide d'environ 70 px disparaît : le padding-top: 60px du body (~l.481, prévu pour une barre de navigation que /report n'a pas) et la marge en ligne de 10 px du bandeau .bg-primary du sélecteur sont compensés pour que le sélecteur commence à --kr-space-4 (16 px) du haut, sans !important : la marge en ligne du bandeau ne se bat pas, le padding-top du body sous la garde est réduit d'autant (hypothèse) ; ajoute un fragment à report-non-lu.mjs et met à jour ses frags dans router.mjs et router.test.mjs ; les autres fenêtres sans barre (aperçu help.php?p=prev) sont notées, pas traitées."
+verify = "Suite report-non-lu, fixture report-non-lu.html, à 375×667, 767, 768, 900×800, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, et transition 767 ↔ 768 dans le même onglet dans les deux sens : haut du bandeau du sélecteur à 16 px (± 1) du haut du document ; hors /report (C4), padding-top du body égal à la base ; rouge sur le bundle de la base, contre-épreuve par mutation ; npm run test:router vert."
+covers = ["CAP-9"]
+after = [2, "4.1"]
+hitl = false
+risk = "low"
+unknown = "Si la compensation par le padding-top du body ne suffit pas (marge en ligne de 10 px du bandeau, padding du formulaire), Arnaud accepte-t-il un seul !important justifié ?"
+references = ["ux-harmonisation/review-faisabilite.md (L3)", "ux-harmonisation/EXPERIENCE.md › State Patterns, Notifications"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage de fin d'épopée, périmètre fixé au démarrage depuis les plans 8.1 à 8.3 et les reports D8.n de leurs revues : règles de /report devenues mortes ou battues, commentaires et en-têtes de suite périmés (600×600), doublons entre la section /report et les règles génériques .bg-info, sans scope nouveau ; tout scope repoussé d'une autre entrée devient une entrée nouvelle."
+verify = "npm run test:zone -- report et npm run test:router verts, puis un seul npm run test:all sur machine calme, au SHA exact consigné dans le plan ; chaque retrait a son rouge (mutation) ou sa preuve d'inertie (grep vide dans le template, la feuille, le bundle et tests/)."
+covers = ["CAP-9"]
+after = [1, 2, 3]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 5
+type = "story"
+title = "Captures de validation des notifications pour Arnaud"
+description = "Captures hors dépôt (KR_SHOTS) de la page des notifications sur fixture, en Kraland clair et Empire Brun sombre : mobile à 375×667 (parcours 1, étapes 1 et 3 : cloche et sa pastille, lecture avec date au-dessus et filet ; l'ouverture mobile reste native, Q17) ; ordinateur à 1280, 1440 et 1920 px (cloche de la barre) puis rendu du popup 900×800 ; listées dans revue-manuelle.md pour la validation visuelle d'Arnaud (rétro 5, A10 ; rétro 6, A8) ; hitl : Arnaud regarde et tranche."
+verify = "Les captures existent hors dépôt aux tailles et variantes listées, chacune nommée dans revue-manuelle.md avec ce qu'elle montre ; aucune n'est prise sur le site réel ; verdict d'Arnaud consigné."
+covers = ["CAP-9"]
+after = [4]
+hitl = true
+risk = "low"
