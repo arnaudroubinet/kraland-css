@@ -1240,7 +1240,11 @@ if (on('plus')) {
   console.log(`\n== plus : bouton « ••• » commun (sujet, réception et lecture du kramail), 375 et 767 px tactiles (variantes ${VARIANTES.join(' et ')}) ; toucher, voile 990 ; contraste (16 variantes) ; seuil, bascule et bureau égaux à ${COMMIT_PLUS} ==`);
   const rgb = s => { const v = (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number); return s.startsWith('color(srgb') ? v.map(x => x * 255) : v; };
   const proche = (a, b) => { const x = rgb(a); const y = rgb(b); return x.length === 3 && [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1); };
-  const mesurer = async (o, nom) => { await o.page.evaluate(CONTRASTE); return o.page.evaluate(PLUS, { p: P, cle: nom }); };
+  // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste du kramail sous 768 px, les dossiers du titre (Réception, Envoi,
+  // Corbeille) deviennent des onglets, prouvés par la suite des onglets du kramail. Ils sont retirés des deux côtés avant la mesure, reconnus par leur
+  // lien natif ; « ••• » et les autres boutons du h1 restent comparés. Retrait : quand COMMIT_PLUS contient l'entrée.
+  const RETIRER_DOSSIERS = () => { if (window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); } };
+  const mesurer = async (o, nom) => { await o.page.evaluate(RETIRER_DOSSIERS); await o.page.evaluate(CONTRASTE); return o.page.evaluate(PLUS, { p: P, cle: nom }); };
   // Parcours d'une page : mesure au repos, toucher du premier « ••• » (cible vérifiée avant), état ouvert et voile réel éventuel, voile
   // simulé posé puis retiré.
   const parcours = async c => {

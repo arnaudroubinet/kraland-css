@@ -138,6 +138,14 @@ Résultat après correctifs de revue. Base `55ae556`, arbre de travail `wt/7.1` 
 | `npm run lint:css` | code 0 |
 | `npm run lint:js` | code 0 (1 avertissement préexistant dans `report-non-lu.mjs`, fichier non modifié) |
 
+**Correctif après fusion (test:all du coordinateur sur le bundle de `9acd8d6`) :**
+- Rouge avant : `forum-activite#plus` 4 FAIL (réception 375 et 767 px, deux variantes : « ••• » décalé par les onglets) et `palette-nation#composants-pages-mobile` 1 FAIL (bordures haute et basse d'Envoi et Corbeille, 16 variantes). Le contrôle « dossier actif en paire au repos » de `balayage-mobile` échouait aussi.
+- `forum-activite` (`plus`) et `palette-nation` (`composants-pages-*`) : sur une liste sous 768 px, les dossiers sont retirés des deux côtés des comparaisons au bundle de base, reconnus par leur lien natif. « ••• » et les autres boutons restent comparés.
+- `palette-nation`, dossier actif à 375 px : l'attendu est adapté et non exclu. Sous 768 px, l'onglet actif n'est plus un bouton d'action : la paire « au repos » (fond d'action, encre d'action) ne s'applique plus. Le contrôle exige désormais, sur 16 variantes, un filet `inset 0 -3px 0` en primaire de la nation et un texte ≥ 4,5:1. Il couvre ainsi les 14 variantes que la suite des onglets ne mesure pas. À 1280 px, la paire au repos reste exigée.
+- Contre-épreuve : filet actif passé à `--kr-border-default` (`/tmp/kt71-actif.user.js`), `balayage-mobile` rouge (`filet rgba(0, 0, 0, 0.08) … au lieu de #8b0f0e …`).
+- MAX_CITING : les commentaires évitent le nom de fichier de la suite des onglets ; aucun repère ne passe de 3 à 4 suites citantes. `data-kr-dossier` n'est cité par aucune suite de comparaison.
+- Vert après : zones `forum` 639 ok, `palette-nation` 1372 ok, `kramail` 534 ok, `typographie-formes` 4432 ok, `cartes-pastilles` 2302 ok, toutes à 0 FAIL ; `test:router` conforme ; `lint:css` et `lint:js` à 0. Bundle inchangé (tests seuls).
+
 - `!important` : 3281 avant et après.
 - MAX_CITING : aucun repère ne passe de 3 à 4 suites citantes (contrôle par script).
 - `test:all` n'est pas lancé (hors mandat).
