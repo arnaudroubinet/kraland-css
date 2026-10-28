@@ -45,8 +45,17 @@
 //             ou par aria, icône image, entrée sans icône, sans liste, lien absolu avec requête et ancre, racine nue, nom long, glyphe entouré d'espaces et porteur d'un id)
 //             à 375 et 1280 px ;
 //             contraste de l'auteur dans les 16 variantes ; mobile égal à la base ; peau coupée égale à la base peau coupée ;
-//             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767.
-// Bundle de base : celui de 6270c81 (fin de l'épopée 6, ticket 6.7 compris, SHA figé) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
+//             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
+//   envoyer   (ticket 12, plan story-envoyer-et-panneaux-du-forum-sur-page-derivee) fil de sujet + formulaire de réponse de la fixture de
+//             rédaction (page dérivée en mémoire), 375 et 767 px, Kraland clair et Empire Brun sombre : sans barre d'outils, « Envoyer »
+//             en barre fixe touché en son centre quand la barre d'un message ouvert défile dessous ; avec barre d'outils (kr-editor),
+//             « Envoyer » dans le flux touché en son centre ; voile 990 simulé : première action du message ouvert au-dessus, « Envoyer »
+//             dessous ;
+//   panneaux  (ticket 12) accordéon et modale (statique, ouverte) ajoutés au fil de sujet (repères dans lib/variantes.mjs,
+//             REPERES_PANNEAUX_TICKET12), 375, 767, 768 et 1280 px : styles calculés sur /forum/sujet/… égaux à la même page servie hors
+//             forum, laquelle est égale au bundle de base
+//             (7e69719) ; carte de section de l'index RP et du sous-forum (375, 767) égale à la base.
+// Bundle de base : celui de 6270c81 (fin de l'épopée 6, ticket 6.7 compris, SHA figé) pour tous les fragments sauf panneaux (7e69719), sauf KR_SCRIPT_AVANT ;
 // aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
@@ -58,14 +67,15 @@
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
 // REPERES_PLUS_TICKET65) : bundle de base de 6270c81 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
 // nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
+// Fragment panneaux : bundle de base de 7e69719 (COMMIT_PANNEAUX), sauf KR_SCRIPT_AVANT_PANNEAUX ; fragment envoyer : contrôles absolus.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
 // Usage : npm run build && node tests/e2e/forum-activite.mjs   (ou : npm run test:zone -- forum-activite)
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
 //           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete), KR_SCRIPT_AVANT_PLUS (bundle de base du fragment plus),
-//           KR_SCRIPT_AVANT_LIGNE (bundle de base du fragment ligne),
-//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus, ligne (vide = tout).
+//           KR_SCRIPT_AVANT_LIGNE (bundle de base du fragment ligne), KR_SCRIPT_AVANT_PANNEAUX (bundle de base du fragment panneaux),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus, ligne, envoyer, panneaux (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -75,7 +85,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1773,6 +1783,157 @@ if (on('ligne')) {
     assert.deepEqual(ecarts, [], ecarts.join(' ; '));
     assert.equal(o.etat.chargements, 4, 'documents chargés');
     assert.deepEqual(o.erreurs, []);
+  });
+}
+
+// Pages dérivées des fragments envoyer et panneaux : fil de sujet, avec un contenu ajouté en mémoire après la liste des messages.
+const COMMIT_PANNEAUX = '7e69719';
+const deriver = (html, ajout, nom) => {
+  const h = html.replace('</ul></div></div></div><footer', '</ul>' + ajout + '</div></div></div><footer');
+  if (h === html) { throw new Error('page dérivée « ' + nom + ' » : motif absent de la fixture'); }
+  return h;
+};
+
+// Formulaire de réponse de la fixture de rédaction : avec sa barre d'outils (kr-editor, « Envoyer » dans le flux) ou sans (barre fixe).
+const ENVOYER = ({ p, fixe }) => {
+  const env = document.querySelector('form[name="post_msg"] button.btn-primary.pull-right');
+  const plus = document.querySelector(p.hotes.sujet);
+  const message = plus.closest(p.message);
+  plus.click();
+  const barre = message.querySelector(p.barre);
+  const e0 = env.getBoundingClientRect();
+  if (fixe) {
+    // Barre du message ouvert défilée sous « Envoyer » : son centre vertical sur celui d'« Envoyer ».
+    const b0 = barre.getBoundingClientRect();
+    window.scrollTo(0, b0.top + window.scrollY + b0.height / 2 - (e0.top + e0.height / 2));
+  } else {
+    window.scrollTo(0, Math.max(0, e0.top + window.scrollY - 200));
+  }
+  const e = env.getBoundingClientRect();
+  const b = barre.getBoundingClientRect();
+  const x = e.left + e.width / 2; const y = e.top + e.height / 2;
+  const hit = document.elementFromPoint(x, y);
+  const point = { dedans: !!hit && env.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null, sousBarre: x >= b.left && x <= b.right && y >= b.top && y <= b.bottom };
+  window.scrollTo(0, 0);
+  return {
+    mobile: document.body.classList.contains('mobile-mode'),
+    editeur: env.closest('form').classList.contains('kr-editor'),
+    position: getComputedStyle(env).position,
+    hauteur: Math.round(e.height),
+    ouvert: message.classList.contains(p.ouvert),
+    point
+  };
+};
+// Voile posé : « Envoyer » n'est plus touché à son centre (le tap ferme le menu ; le voile couvre « Envoyer » quelle que soit la peau) ;
+// le centre du « ••• » du message ouvert, défilé à 200 px du haut, touche la barre du message (991 au-dessus du voile 990, seule la peau
+// en décide).
+const SOUS_VOILE = ({ p }) => {
+  const env = document.querySelector('form[name="post_msg"] button.btn-primary.pull-right');
+  const e = env.getBoundingClientRect();
+  const hitEnv = document.elementFromPoint(e.left + e.width / 2, e.top + e.height / 2);
+  const plus = document.querySelector(p.hotes.sujet);
+  const barre = plus.closest(p.barre);
+  const b0 = plus.getBoundingClientRect();
+  window.scrollTo(0, Math.max(0, b0.top + window.scrollY - 200));
+  const b = plus.getBoundingClientRect();
+  const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+  window.scrollTo(0, 0);
+  return { envoyer: !!hitEnv && env.contains(hitEnv), barre: !!hit && barre.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null, voiles: document.querySelectorAll('.' + p.voile).length };
+};
+if (on('envoyer')) {
+  console.log(`\n== envoyer : « Envoyer » atteignable sous un message ouvert (barre fixe et flux), actions au-dessus du voile, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ==`);
+  const formulaire = fixture(R.reponse.fixture).match(/<form name="post_msg"[\s\S]*?<\/form>/)[0];
+  const sansBarre = formulaire.replace(/<div class="btn-toolbar"[\s\S]*?<\/div><\/div>/, '');
+  if (sansBarre === formulaire) { throw new Error('formulaire sans barre d\'outils : motif absent de la fixture'); }
+  const HTML = { fixe: deriver(SUJET, sansBarre, 'fixe'), flux: deriver(SUJET, formulaire, 'flux') };
+  const cas = ['fixe', 'flux'].flatMap(forme => [375, 767].flatMap(width => VARIANTES.map(variante => ({ forme, width, variante }))));
+  const res = await mapLimit(cas, async ({ forme, width, variante }) => {
+    const o = await ouvrir({ cle: 'sujet', html: HTML[forme], width, variante });
+    const m = await o.page.evaluate(ENVOYER, { p: P, fixe: forme === 'fixe' });
+    await o.page.evaluate(VOILE, { p: P, cle: 'sujet', poser: true });
+    const voile = await o.page.evaluate(OUVERT, { p: P, cle: 'sujet' });
+    const sous = await o.page.evaluate(SOUS_VOILE, { p: P });
+    await o.page.evaluate(VOILE, { p: P, cle: 'sujet', poser: false });
+    await o.context.close();
+    return { m, voile, sous, erreurs: o.erreurs };
+  });
+  cas.forEach(({ forme, width, variante }, n) => {
+    const { m, voile, sous, erreurs } = res[n];
+    const lab = `envoyer ${forme} ${variante} ${width} px`;
+    check(`${lab} : « Envoyer » ${forme === 'fixe' ? 'en barre fixe, sous la barre du message ouvert défilée dessous' : 'dans le flux (kr-editor)'}, touché en son centre, 44 px au moins`, () => {
+      assert.ok(m.mobile && m.ouvert, `mobile ${m.mobile}, message ouvert ${m.ouvert}`);
+      assert.equal(m.editeur, forme === 'flux', 'kr-editor');
+      assert.equal(m.position, forme === 'fixe' ? 'fixed' : 'static', 'position');
+      if (forme === 'fixe') { assert.ok(m.point.sousBarre, 'centre d\'« Envoyer » hors de la barre du message ouvert'); }
+      assert.ok(m.point.dedans, 'centre d\'« Envoyer » -> ' + m.point.touche);
+      assert.ok(m.hauteur >= 44, 'hauteur ' + m.hauteur);
+      assert.deepEqual(erreurs, []);
+    });
+    check(`${lab} : voile 990 posé, centre du « ••• » et première action du message ouvert au-dessus du voile ; « Envoyer » sous le voile`, () => {
+      assert.equal(sous.voiles, 1, 'voile simulé');
+      assert.ok(sous.barre, 'centre du « ••• » du message ouvert -> ' + sous.touche);
+      assert.ok(voile.ouvert && voile.items >= 1 && voile.point && voile.point.dedans, JSON.stringify(voile));
+      assert.equal(sous.envoyer, false, '« Envoyer » touché sous le voile');
+    });
+  });
+}
+
+// Accordéon et modale (PN.html) ajoutés au fil de sujet : mêmes styles calculés sur une page du forum et hors forum (même page, autre chemin).
+const PANNEAUX = sel => {
+  const s = e => (e ? getComputedStyle(e) : null);
+  const bord = c => `${c.borderTopWidth} ${c.borderTopStyle} ${c.borderTopColor} / ${c.borderBottomWidth} ${c.borderBottomStyle} / ${c.borderLeftWidth} ${c.borderRightWidth}`;
+  return {
+    mobile: document.body.classList.contains('mobile-mode'),
+    classes: [...document.body.classList],
+    panneaux: [...document.querySelectorAll(sel)].map(p => {
+      const c = s(p); const h = s(p.querySelector(':scope > .panel-heading')); const t = s(p.querySelector(':scope > .panel-heading h3'));
+      const corps = s(p.querySelector(':scope > .panel-body, :scope > .panel-collapse > .panel-body'));
+      return {
+        panneau: { fond: c.backgroundColor, rayon: c.borderRadius, bord: bord(c), ombre: c.boxShadow, marges: `${c.marginLeft} ${c.marginRight} ${c.marginBottom}` },
+        entete: h && { fond: h.backgroundColor, rayon: h.borderRadius, bord: bord(h), marge: h.marginBottom, retrait: h.padding, min: h.minHeight },
+        titre: t && { taille: t.fontSize, graisse: t.fontWeight, marge: t.margin },
+        corps: corps && { retrait: corps.padding, fond: corps.backgroundColor }
+      };
+    })
+  };
+};
+if (on('panneaux')) {
+  console.log(`\n== panneaux : accordéon et modale sur /forum/sujet/… égaux à la même page hors forum, 375, 767, 768 et 1280 px ; carte du forum égale à ${COMMIT_PANNEAUX} ==`);
+  const basePanneaux = strip(process.env.KR_SCRIPT_AVANT_PANNEAUX ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PANNEAUX, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_PANNEAUX}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const html = deriver(SUJET, PN.html, 'panneaux');
+  // Hors forum : chemin sans classe page-* (addPageTypeClass).
+  PAGES.hors = { url: '/fixture/hors-forum', html };
+  const cas = [375, 767, 768, 1280].flatMap(width => VARIANTES.map(variante => ({ width, variante })));
+  const mesurer = async (c, sel) => { const o = await ouvrir(c); const m = await o.page.evaluate(PANNEAUX, sel); await o.context.close(); return { m, erreurs: o.erreurs }; };
+  const res = await mapLimit(cas, async c => ({ forum: await mesurer({ ...c, cle: 'sujet', html }, PN.sel), hors: await mesurer({ ...c, cle: 'hors' }, PN.sel), horsBase: await mesurer({ ...c, cle: 'hors', src: basePanneaux }, PN.sel) }));
+  cas.forEach(({ width, variante }, n) => {
+    const { forum, hors, horsBase } = res[n];
+    // Référence : la page hors forum, égale au bundle de base (les règles communes de l'accordéon et de la modale ne changent pas).
+    check(`panneaux ${variante} ${width} px : accordéon et modale hors forum égaux au bundle de base (${COMMIT_PANNEAUX})`, () => {
+      assert.equal(hors.m.panneaux.length, 3, 'panneaux');
+      assert.deepEqual(hors.m.panneaux, horsBase.m.panneaux);
+    });
+    check(`panneaux ${variante} ${width} px : accordéon (2 panneaux) et modale de /forum/sujet/… égaux à la même page hors forum (fond, rayon, bordure, en-tête, titre, corps)`, () => {
+      assert.equal(forum.m.mobile, width < 768, 'mode mobile');
+      const enPlus = forum.m.classes.filter(k => !hors.m.classes.includes(k) && !/^(page-forum|kr-forum-)/.test(k));
+      const enMoins = hors.m.classes.filter(k => !forum.m.classes.includes(k));
+      assert.deepEqual([enPlus, enMoins], [[], []], 'classes de <body> hors page-forum ' + JSON.stringify([enPlus, enMoins]));
+      assert.equal(forum.m.panneaux.length, 3, 'panneaux');
+      const ecarts = forum.m.panneaux.flatMap((x, k) => Object.keys(x).flatMap(part => Object.keys(x[part] || {}).filter(q => x[part][q] !== hors.m.panneaux[k][part][q]).map(q => `panneau ${k} ${part}.${q} ${x[part][q]} au lieu de ${hors.m.panneaux[k][part][q]}`)));
+      assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      assert.deepEqual(forum.m.panneaux, hors.m.panneaux);
+      assert.deepEqual([forum.erreurs, hors.erreurs], [[], []]);
+    });
+  });
+  // Carte du forum (panneaux natifs de l'index RP et du sous-forum, hors accordéon et modale) égale au bundle de base.
+  const casC = ['rp', 'debuter'].flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))));
+  const resC = await mapLimit(casC, async c => ({ t: await mesurer(c, A.panneau), b: await mesurer({ ...c, src: basePanneaux }, A.panneau) }));
+  casC.forEach(({ cle, width, variante }, n) => {
+    check(`panneaux carte ${PAGES[cle].url} ${variante} ${width} px : carte de section du forum égale au bundle de base (${COMMIT_PANNEAUX})`, () => {
+      assert.ok(resC[n].t.m.panneaux.length >= 1, 'aucun panneau');
+      assert.deepEqual(resC[n].t.m.panneaux, resC[n].b.m.panneaux);
+    });
   });
 }
 

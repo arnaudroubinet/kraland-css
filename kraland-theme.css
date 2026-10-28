@@ -8339,26 +8339,27 @@ body > map {
      Inspiré de la section "Recommandées pour toi" de Reddit
      ============================================================================ */
   
-  /* Conteneur principal du forum : la carte de section (fond surface, 8 px des bords) vient de la règle commune (entrée 2, épopée 5) */
-  body.page-forum .panel-default {
+  /* Conteneur principal du forum : la carte de section (fond surface, 8 px des bords) vient de la règle commune (entrée 2, épopée 5).
+     Accordéons et modales exclus (garde de spécificité nulle) : ils gardent les règles communes de l'accordéon et de la modale (D7) */
+  body.page-forum .panel-default:where(:not(.panel-group > *, .modal *)) {
     border: none !important;
     box-shadow: none !important;
   }
   
   /* En-tête du panneau : fond, rayon et retrait de la carte de section, sans filet bas ; collé à la liste */
-  body.page-forum .panel-default > .panel-heading {
+  body.page-forum .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading {
     border: none !important;
     margin-bottom: 0 !important;
     align-items: center !important;
   }
 
   /* Corps du panneau sans retrait : la liste touche les bords internes de la carte (sous-forum, index, racine) */
-  body.page-forum .panel-default > .panel-body,
-  body.page-forum-racine .panel-default > .panel-body {
+  body.page-forum .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-body,
+  body.page-forum-racine .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-body {
     padding: 0 !important;
   }
   
-  body.page-forum .panel-default > .panel-heading h3 {
+  body.page-forum .panel-default:where(:not(.panel-group > *, .modal *)) > .panel-heading h3 {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
     margin: 0 !important;
@@ -15241,8 +15242,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     min-width: 44px !important;
   }
 
-  /* Message ouvert : actions au-dessus d'un voile de menu déroulant (990), sous le mini-chat plein écran (999) */
-  body.mobile-mode ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right {
+  /* Message ouvert, voile de menu déroulant (990) présent : actions au-dessus du voile, sous le mini-chat plein écran (999). Sans voile,
+     la barre reste à sa couche d'origine, sous la barre fixe « Envoyer » (90) quand elle défile dessous (D13) */
+  body.mobile-mode:has(.dropdown-backdrop) ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right {
     position: relative;
     z-index: 991;
   }
