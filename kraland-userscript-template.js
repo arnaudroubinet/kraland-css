@@ -9049,13 +9049,18 @@
     });
   }
 
-  // Bundle au document-start : <body> n'existe pas quand initCharacterModalMobile tourne. Le socle pose alors son propre observateur
-  // des modales au DOMContentLoaded (même fonction : un seul écouteur même si initCharacterModalMobile est appelé deux fois).
-  function watchOrderModalsOfBody() {
+  // Observe l'apparition des modals Bootbox : suivi de la fenêtre de Parler, socle de la modale d'ordre, puis chaîne mobile.
+  function watchModalsOfBody() {
     new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {watchOrderModal(node);}
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            trackOrderModalViewport(node);
+            watchOrderModal(node);
+            setTimeout(() => {
+              enhanceCharacterModal(node);
+            }, 150);
+          }
         });
       });
     }).observe(document.body, { childList: true, subtree: false });
@@ -9071,27 +9076,12 @@
    * - Feedback tactile sur les interactions
    */
   function initCharacterModalMobile() {
-    // Observer l'apparition des modals Bootbox
-    const modalObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          // Vérifier si c'est une modal Bootbox
-          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
-            trackOrderModalViewport(node);
-            watchOrderModal(node);
-            setTimeout(() => {
-              enhanceCharacterModal(node);
-            }, 150);
-          }
-        });
-      });
-    });
-
-    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    // Bundle au document-start : <body> n'existe pas encore. L'observateur est alors posé au DOMContentLoaded (même fonction : un seul
+    // écouteur même si initCharacterModalMobile est appelé deux fois).
     if (document.body) {
-      modalObserver.observe(document.body, { childList: true, subtree: false });
+      watchModalsOfBody();
     } else {
-      document.addEventListener('DOMContentLoaded', watchOrderModalsOfBody, { once: true });
+      document.addEventListener('DOMContentLoaded', watchModalsOfBody, { once: true });
     }
   }
 
@@ -10091,10 +10081,13 @@
       });
     });
 
-    // Observer le body pour détecter l'ajout de modals
-    // Vérifier que document.body existe avant d'utiliser le MutationObserver
+    // Observer le body pour détecter l'ajout de modals ; bundle au document-start : <body> n'existe pas encore, observateur posé
+    // au DOMContentLoaded
+    const observeBody = () => modalObserver.observe(document.body, { childList: true, subtree: false });
     if (document.body) {
-      modalObserver.observe(document.body, { childList: true, subtree: false });
+      observeBody();
+    } else {
+      document.addEventListener('DOMContentLoaded', observeBody, { once: true });
     }
   }
 

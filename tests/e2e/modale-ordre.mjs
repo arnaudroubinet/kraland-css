@@ -1240,20 +1240,48 @@ function verifier(r) {
   });
 }
 
-// Document-start : Dormir ouvert dans une page où le bundle a été évalué avant <body> ; seule la fin du fondu est attendue.
+// Document-start : Dormir ouvert dans une page où le bundle a été évalué avant <body>. Après la fin du fondu, la chaîne mobile
+// (150 ms après l'insertion, sous body.mobile-mode) et la fermeture au clic sur le fond (option backdrop passée de « static » à true,
+// 100 ms après l'insertion) sont attendues au plus 3 s (bug 6) ; absentes, les vérifications le disent. Mesures prises ensuite : le
+// rangement des alertes (ticket 2.3) est relevé après la chaîne mobile.
 async function debutDeDocument(cfg) {
   const { context, page, errors } = await ouvrirPage({ ...cfg, debut: true });
   const injection = await page.evaluate(() => window.__krInjection);
   await page.evaluate(OUVRIR, enOrdre(DORMIR));
   await waitState(page, () => window.__shown.includes(window.__modale));
+  await page.waitForFunction(() => {
+    const m = window.__modale;
+    const chaine = !document.body.classList.contains('mobile-mode') || m.dataset.structureTransformed === 'true';
+    return chaine && window.jQuery(m).data('bs.modal').options.backdrop === true;
+  }, null, { timeout: 3000, polling: 'raf' }).catch(() => {});
   await frames(page, 2);
   const e = await page.evaluate(ETAT);
   const rang = await page.evaluate(RANGEMENT, DORMIR);
   const audit = await page.evaluate(AUDIT);
   const past = await page.evaluate(PASTILLES, DORMIR);
-  await fermer(page);
+  const mobileMode = await page.evaluate(() => document.body.classList.contains('mobile-mode'));
+  const chaine = await page.evaluate(CHAINE);
+  // Fond de la modale : premier point (du bas vers le haut) où la modale elle-même, hors boîte de dialogue, reçoit le clic ; puis vrai
+  // clic (appui et relâchement au même endroit), qui doit la fermer.
+  const fond = await page.evaluate(() => {
+    const m = window.__modale;
+    const backdrop = window.jQuery(m).data('bs.modal').options.backdrop;
+    for (let y = window.innerHeight - 2; y > 0; y -= 8) {
+      for (const x of [2, Math.round(window.innerWidth / 2), window.innerWidth - 3]) {
+        if (document.elementFromPoint(x, y) === m) { return { x, y, backdrop }; }
+      }
+    }
+    return { backdrop };
+  });
+  let fermeeParLeFond = false;
+  if (fond.x !== undefined) {
+    await page.evaluate(() => { window.__fermee = window.__modale; });
+    await page.mouse.click(fond.x, fond.y);
+    fermeeParLeFond = await page.waitForFunction(() => !document.body.contains(window.__fermee) && !document.querySelector('.modal-backdrop'), null, { timeout: 3000 }).then(() => true, () => false);
+  }
+  if (!fermeeParLeFond) { await fermer(page); }
   await context.close();
-  return { cfg, injection, e, rang, audit, past, errors };
+  return { cfg, injection, e, rang, audit, past, mobileMode, chaine, fond, fermeeParLeFond, errors };
 }
 function verifierDebut(d) {
   check(`${d.cfg.width} px${d.cfg.mobile ? ' (mobile)' : ''}, bundle évalué au document-start (avant <body>${d.cfg.mobile ? ', viewport pas encore lue : largeur ≥ 768 px, G-01' : ''}) : Dormir avec « Annuler » / « Valider », modale marquée une fois`, () => {
@@ -1272,6 +1300,24 @@ function verifierDebut(d) {
     assert.equal(d.injection.body, false, 'bundle évalué après <body> : document-start non reproduit');
     pastilles(d.past, 'Dormir', { ouverture: true });
     assert.deepEqual(d.audit.pastilles, rangee(1), 'rangée ' + JSON.stringify(d.audit.pastilles));
+  });
+  if (d.cfg.mobile) {
+    check(`${d.cfg.width} px (mobile), document-start (bug 6) : mise en forme mobile installée comme après <body> (data-structure-transformed, pied kraland-modal-footer, grille d'onglets), sans ancien repli ni pastilles pastel`, () => {
+      assert.equal(d.mobileMode, true, 'body.mobile-mode absent');
+      const c = d.chaine;
+      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.replis, c.pastel], [true, true, true, 0, 0], JSON.stringify(c));
+    });
+  } else {
+    check(`${d.cfg.width} px, document-start (bug 6) : chaîne mobile non étendue à l'ordinateur`, () => {
+      const c = d.chaine;
+      assert.deepEqual([c.transformee, c.piedMobile, c.grilleEnLigne, c.indicateurs, c.replis, c.pastel], [false, false, false, 0, 0, 0], JSON.stringify(c));
+    });
+  }
+  check(`${d.cfg.width} px${d.cfg.mobile ? ' (mobile)' : ''}, document-start (bug 6) : fermeture au clic sur le fond installée (backdrop « static » levé) ; un vrai clic sur le fond ferme Dormir, sans erreur`, () => {
+    assert.equal(d.fond.backdrop, true, 'option backdrop ' + JSON.stringify(d.fond));
+    assert.ok(d.fond.x !== undefined, 'aucun point du fond hors boîte de dialogue');
+    assert.equal(d.fermeeParLeFond, true, 'modale non fermée par le clic sur le fond ' + JSON.stringify(d.fond));
+    assert.deepEqual(d.errors, [], 'erreurs ' + d.errors.join(' | '));
   });
 }
 

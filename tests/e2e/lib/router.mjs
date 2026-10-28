@@ -16,7 +16,7 @@ const FORUM_FRAGS = [
   ['m1-sombre'], ['m1-clair'], ['f01'], ['signature'], ['n1'], ['pied', 'desktop']
 ];
 export const SUITES = [
-  { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'], frags: [['transitions'], ['fallback'], ['ajax', 'bureau']] },
+  { name: 'parler-viewport', file: 'parler-viewport.mjs', zones: ['parler'], frags: [['transitions'], ['fallback'], ['ajax', 'bureau'], ['debut']] },
   { name: 'forum-mobile', file: 'forum-mobile.mjs', zones: ['forum'], frags: FORUM_FRAGS, needsBootstrap: true },
   { name: 'demarrage-mobile', file: 'demarrage-mobile.mjs', zones: ['demarrage'],
     frags: [['moment-start'], ['moment-dcl'], ['moment-load'], ['moment-later'], ['desktop', 'pire-cas', 'm1', 'm-1', 's1']] },

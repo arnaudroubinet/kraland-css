@@ -643,7 +643,7 @@ check('fixture citée par une suite (forum-colonne-native-rp.html -> menus-forum
 check('pickUnits : zones choisies + unités explicites, sans doublon', () => {
   const all = SUITES.flatMap(s => s.frags ? s.frags.map(f => ({ id: `${s.name}#${f.join('+')}`, suite: s.name })) : [{ id: s.name, suite: s.name }]);
   const ids = pickUnits(all, { zones: ['parler'], units: ['menus-forums#s-1', 'image-fallback'] }).map(u => u.id);
-  assert.deepEqual(ids, ['parler-viewport#transitions', 'parler-viewport#fallback', 'parler-viewport#ajax+bureau', 'menus-forums#s-1', 'image-fallback']);
+  assert.deepEqual(ids, ['parler-viewport#transitions', 'parler-viewport#fallback', 'parler-viewport#ajax+bureau', 'parler-viewport#debut', 'menus-forums#s-1', 'image-fallback']);
 });
 
 console.log('Tests unitaires du cœur pur (lot F)');
