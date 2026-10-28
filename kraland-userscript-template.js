@@ -9076,8 +9076,7 @@
    * - Feedback tactile sur les interactions
    */
   function initCharacterModalMobile() {
-    // Bundle au document-start : <body> n'existe pas encore. L'observateur est alors posé au DOMContentLoaded (même fonction : un seul
-    // écouteur même si initCharacterModalMobile est appelé deux fois).
+    // Bundle au document-start : <body> n'existe pas encore. L'observateur est alors posé au DOMContentLoaded.
     if (document.body) {
       watchModalsOfBody();
     } else {
@@ -9133,30 +9132,36 @@
   function initModalTabScroll() {
     // Fonction qui installe un observer ciblé sur une modal spécifique
     function observeModalTabs(modal) {
+      // Seul le changement d'onglet actif recentre : mutations limitées aux li de .nav-tabs (le retour tactile pose .active sur
+      // les liens et les .btn), regroupées sous un seul timer
+      const TAB_LI = '.panel.with-nav-tabs .nav-tabs > li';
+      let lastActive = null;
+      let timer = null;
       const tabScrollObserver = new MutationObserver((mutations) => {
-        mutations.forEach((_mutation) => {
-          // Chercher le panel-heading avec les tabs
-          const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
-          if (!panelHeading) {return;}
-
-          // Chercher l'onglet actif
-          const activeTab = panelHeading.querySelector('.nav-tabs > li.active');
-          if (!activeTab) {return;}
-
-          // Scroller vers l'onglet actif
-          setTimeout(() => {
-            const tabRect = activeTab.getBoundingClientRect();
-            const containerRect = panelHeading.getBoundingClientRect();
-
-            // Calculer la position de scroll pour centrer l'onglet
-            const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
-
-            panelHeading.scrollTo({
-              left: Math.max(0, scrollLeft),
-              behavior: 'smooth'
-            });
-          }, 100);
+        const touchesTabs = mutations.some((mutation) => {
+          if (mutation.type === 'attributes') {return mutation.target.matches(TAB_LI);}
+          return [...mutation.addedNodes].some(node => node.nodeType === 1 && (node.matches(TAB_LI) || node.querySelector(TAB_LI)));
         });
+        if (!touchesTabs) {return;}
+
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const panelHeading = modal.querySelector('.panel.with-nav-tabs .panel-heading');
+          const activeTab = modal.querySelector(TAB_LI + '.active');
+          if (!panelHeading || !activeTab || activeTab === lastActive) {return;}
+          lastActive = activeTab;
+
+          const tabRect = activeTab.getBoundingClientRect();
+          const containerRect = panelHeading.getBoundingClientRect();
+
+          // Calculer la position de scroll pour centrer l'onglet
+          const scrollLeft = activeTab.offsetLeft - (containerRect.width / 2) + (tabRect.width / 2);
+
+          panelHeading.scrollTo({
+            left: Math.max(0, scrollLeft),
+            behavior: 'smooth'
+          });
+        }, 100);
       });
 
       tabScrollObserver.observe(modal, {
@@ -9172,19 +9177,17 @@
       });
     }
 
-    // Observer l'ajout de modals dans le body (scope réduit : childList seul, pas subtree)
-    if (document.body) {
-      const bodyObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
-              observeModalTabs(node);
-            }
-          });
+    // Observer l'ajout de modals dans le body (scope réduit : childList seul, pas subtree) ; <body> existe, initMobileFeatures attend le DOM
+    const bodyObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList?.contains('bootbox')) {
+            observeModalTabs(node);
+          }
         });
       });
-      bodyObserver.observe(document.body, { childList: true, subtree: false });
-    }
+    });
+    bodyObserver.observe(document.body, { childList: true, subtree: false });
   }
 
   /**
@@ -10168,152 +10171,27 @@
 
   /**
    * Initialise les fonctionnalités mobiles
-   * - Overlay pour fermer les panneaux latéraux
-   * - Bouton pour ouvrir le panneau de compétences
-   * - Gestion du mini-chat mobile
+   * - Défilement automatique des onglets dans les modals
+   * Superposition et panneau des compétences : retirés (masqués en body.mobile-mode, TASK-1.6) ; mini-chat : MiniChat:FAB
    */
   function initMobileFeatures() {
+    if (!isThemeEnabled()) {return;}
+    // Bundle au document-start : la largeur lue vaut 980 sur téléphone tant que la meta viewport n'est pas analysée, et <body> manque.
+    // Report au DOMContentLoaded (après la mise en forme du DOM, avant la file d'initialisation) : largeur et DOM y sont prêts.
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMobileFeatures, { once: true });
+      return;
+    }
     const isMobile = window.innerWidth < 768;
     if (!isMobile) {return;}
 
-    // Créer l'overlay pour fermer les panneaux
-    createMobileOverlay();
-
-    // Initialiser le panneau de compétences mobile
-    initMobileSkillsPanel();
-
-    // Initialiser le mini-chat mobile
-    initMobileMiniChat();
-
-    // Initialiser les améliorations UX pour les modals personnages
-    initCharacterModalMobile();
+    // Les améliorations UX des modals personnages (initCharacterModalMobile) sont posées une seule fois par init()
 
     // Initialiser le scroll automatique des tabs dans les modals
     initModalTabScroll();
 
     // Le franchissement du seuil mobile/desktop est géré dans les deux sens
     // par checkBreakpointCrossing (voir TASK-1.1).
-  }
-
-  /**
-   * Crée l'overlay mobile pour fermer les panneaux latéraux
-   */
-  function createMobileOverlay() {
-    // Bundle exécuté avant <body> dans une fenêtre étroite (largeur réelle dès le début) : création reportée au DOMContentLoaded
-    if (!document.body) {
-      document.addEventListener('DOMContentLoaded', createMobileOverlay, { once: true });
-      return;
-    }
-    if (document.querySelector('.kr-mobile-overlay')) {return;}
-
-    const overlay = document.createElement('div');
-    overlay.className = 'kr-mobile-overlay';
-    overlay.addEventListener('click', () => {
-      // Fermer le panneau de compétences
-      const skillsPanel = document.getElementById('skills-panel');
-      if (skillsPanel) {
-        skillsPanel.classList.remove('mobile-open');
-      }
-
-      // Fermer le mini-chat
-      const miniChat = document.getElementById('flap');
-      if (miniChat) {
-        miniChat.classList.remove('mobile-open');
-      }
-
-      // Masquer l'overlay
-      overlay.classList.remove('active');
-    });
-
-    document.body.appendChild(overlay);
-  }
-
-  /**
-   * Initialise le panneau de compétences pour mobile
-   */
-  function initMobileSkillsPanel() {
-    if (!isPlatoPage()) {return;}
-
-    const skillsPanel = document.getElementById('skills-panel');
-    if (!skillsPanel) {return;}
-
-    // Créer le bouton pour ouvrir le panneau de compétences
-    const skillsToggle = document.createElement('button');
-    skillsToggle.className = 'kr-mobile-skills-toggle btn btn-primary';
-    skillsToggle.innerHTML = '<i class="fa fa-chart-bar"></i>';
-    skillsToggle.setAttribute('aria-label', 'Afficher les compétences');
-    skillsToggle.onclick = () => {
-      skillsPanel.classList.toggle('mobile-open');
-      const overlay = document.querySelector('.kr-mobile-overlay');
-      if (overlay) {
-        overlay.classList.toggle('active');
-      }
-    };
-
-    document.body.appendChild(skillsToggle);
-
-    // Créer le bouton de fermeture dans le panneau
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'kr-mobile-close';
-    closeBtn.innerHTML = '×';
-    closeBtn.setAttribute('aria-label', 'Fermer');
-    closeBtn.onclick = () => {
-      skillsPanel.classList.remove('mobile-open');
-      const overlay = document.querySelector('.kr-mobile-overlay');
-      if (overlay) {
-        overlay.classList.remove('active');
-      }
-    };
-
-    skillsPanel.insertBefore(closeBtn, skillsPanel.firstChild);
-  }
-
-  /**
-   * Initialise le mini-chat pour mobile
-   */
-  function initMobileMiniChat() {
-    const miniChat = document.getElementById('flap');
-    if (!miniChat) {return;}
-
-    // Bouton pour ouvrir le mini-chat
-    const chatButton = document.querySelector('a[href*="#flap"]');
-    if (chatButton) {
-      chatButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        miniChat.classList.toggle('mobile-open');
-        const overlay = document.querySelector('.kr-mobile-overlay');
-        if (overlay) {
-          overlay.classList.toggle('active');
-        }
-      });
-    }
-
-    // Créer le bouton de fermeture dans le mini-chat
-    if (!miniChat.querySelector('.kr-mobile-close')) {
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'kr-mobile-close';
-      closeBtn.innerHTML = '×';
-      closeBtn.setAttribute('aria-label', 'Fermer le mini-chat');
-      closeBtn.onclick = () => {
-        miniChat.classList.remove('mobile-open');
-        const overlay = document.querySelector('.kr-mobile-overlay');
-        if (overlay) {
-          overlay.classList.remove('active');
-        }
-      };
-
-      // Trouver le header du mini-chat pour y insérer le bouton
-      const chatHeader = miniChat.querySelector('.panel-heading') ||
-                        miniChat.querySelector('.modal-header') ||
-                        miniChat.firstElementChild;
-
-      if (chatHeader) {
-        chatHeader.style.position = 'relative';
-        chatHeader.appendChild(closeBtn);
-      } else {
-        miniChat.insertBefore(closeBtn, miniChat.firstChild);
-      }
-    }
   }
 
   // ============================================================================
