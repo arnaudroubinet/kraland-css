@@ -4,7 +4,9 @@
 // (InitQueue.hold / later / debounce), ces suites mesureraient une page inachevée. Ce garde-fou le détecte :
 //   1. pages représentatives (sous-forum, sous-forum à DataTables tardif, Kramail, plateau, barre large, sujet de forum avec tags),
 //      mobile 375 et bureau 1280, script injecté au document-start (comme Tampermonkey : anti-FOUC actif) et au DOMContentLoaded
-//      (comme la plupart des suites) : marqueur posé, puis AUCUNE mutation pendant WINDOW_MS ;
+//      (comme la plupart des suites) : marqueur posé, puis AUCUNE mutation pendant WINDOW_MS ; au document-start, la page est servie
+//      avec un script en tête de <head> (technique de l'option `debut` de modale-ordre.mjs) : le bundle est évalué AVANT <body>, comme
+//      en production (précondition vérifiée, window.__krInjection) ;
 //   2. contre-preuves intégrées, sur des copies du bundle modifiées en mémoire : une tâche tardive NON enregistrée (setTimeout nu), la
 //      levée anti-FOUC (revealPage) et le masquage des tags (HideTags) privés de leur enregistrement doivent être DÉTECTÉS ; la même tâche
 //      tardive enregistrée (InitQueue.later), ou une fonction enregistrée qui renvoie une promesse réglée 600 ms plus tard, doit être
@@ -91,6 +93,15 @@ const PAGES = [
   { id: 'profil-interface-theme-tardif', url: '/profil/interface', html: INTERFACE('Préférences', TITRE_TARDIF), alertsList: true }
 ];
 
+// Document-start : l'observateur de l'injection n'est livré par le parseur qu'à son premier script. Sans script avant <body>, le bundle
+// tombait après <body> (les fixtures n'ont de script qu'en fin de page) et le cas de production n'était pas couvert. Au mode `start`,
+// la page est donc servie avec un script en tête de <head>, avant la balise viewport ; le mode `dcl` reçoit la page inchangée.
+const TETE = html => {
+  const n = (html.match(/<head(\s[^>]*)?>/g) || []).length;
+  if (n !== 1) { throw new Error(`balise <head> trouvée ${n} fois`); }
+  return html.replace(/<head(\s[^>]*)?>/, m => m + '<script>window.__krScriptTete = true;</script>');
+};
+
 // Fragmentation (lot H, exécution parallèle) : KR_FRAG = start, dcl (pages représentatives injectées au document-start ou au
 // DOMContentLoaded), contre-preuves ; vide = tout jouer. Chaque sonde ouvre SON contexte : aucun état partagé entre fragments.
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -108,7 +119,7 @@ async function probe({ page: pg, width, mode, src = SRC }) {
   const path0 = new URL(BASE + pg.url).pathname;
   await context.route(BASE + '/**', r => {
     const u = new URL(r.request().url());
-    if (r.request().resourceType() === 'document' && u.pathname === path0) { return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: pg.html }); }
+    if (r.request().resourceType() === 'document' && u.pathname === path0) { return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: mode === 'start' ? TETE(pg.html) : pg.html }); }
     if (u.pathname.startsWith('/lib/bootstrap') || u.pathname.startsWith('/lib/jquery')) {
       const file = u.pathname.endsWith('.css') ? 'bootstrap.min.css' : (u.pathname.includes('jquery') ? 'jquery.min.js' : 'bootstrap.min.js');
       return r.fulfill({ status: 200, contentType: file.endsWith('.css') ? 'text/css' : 'application/javascript', body: fs.readFileSync(path.join(VENDOR, file)) });
@@ -120,7 +131,7 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     localStorage.setItem('kr-theme-enabled', 'true');
     localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
     // eslint-disable-next-line no-eval
-    const go = () => { (0, eval)(code); window.__krFoucPose = document.documentElement.style.opacity === '0'; };
+    const go = () => { window.__krInjection = { body: !!document.body, etat: document.readyState }; (0, eval)(code); window.__krFoucPose = document.documentElement.style.opacity === '0'; };
     // document-start : Playwright exécute ce script AVANT la création de <html> (document.documentElement nul) ; le masquage anti-FOUC
     // (style de <html>) échouait alors en silence et revealPage ne levait rien. Comme Tampermonkey, on lance le script dès que <html>
     // existe, document encore en cours d'analyse (readyState « loading ») : l'anti-FOUC est réellement actif.
@@ -139,7 +150,7 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     const readyMs = Date.now() - t0;
     const atReady = await p.evaluate(() => ({
       opacity: document.documentElement.style.opacity, transition: document.documentElement.style.transition, foucPose: window.__krFoucPose === true,
-      tardif: document.body.getAttribute('data-garde-tardif'),
+      tardif: document.body.getAttribute('data-garde-tardif'), injection: window.__krInjection || null,
       alertsList: !!document.querySelector('#kr-alerts-section .kr-dismissed-alerts-list')
     }));
     const late = ready ? await watchMutations(p, { ms: WINDOW_MS, armed: ARMEE }) : [];
@@ -190,6 +201,7 @@ try {
       check(`${tag} : au marqueur, la liste des alertes masquées (.kr-dismissed-alerts-list) est dans #kr-alerts-section`, () => { assert.equal(r.atReady.alertsList, true); });
     }
     if (j.mode === 'start') {
+      check(`${tag} : bundle évalué avant <body>, document en cours d'analyse (précondition du document-start)`, () => { assert.deepEqual(r.atReady.injection, { body: false, etat: 'loading' }); });
       check(`${tag} : masquage anti-FOUC posé à l'injection (la levée est réellement exercée)`, () => { assert.equal(r.atReady.foucPose, true); });
       check(`${tag} : au marqueur, la levée anti-FOUC est terminée (opacity et transition inline nettoyées)`, () => { assert.deepEqual([r.atReady.opacity, r.atReady.transition], ['', '']); });
     }
