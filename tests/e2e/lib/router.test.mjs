@@ -40,16 +40,27 @@ check('viewport des ordres et fixture Parler : zone parler', () => {
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
   assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
 });
-check('Notifications /report (kr-page-report) : zone report, suite -> report-non-lu seule ; fixture -> report-non-lu et palette-nation (balayage)', () => {
+check('Notifications /report (kr-page-report) : zone report, suite -> report-non-lu seule ; fixture -> report-non-lu, palette-nation (balayage) et confort-mobile (hors périmètre)', () => {
   assert.deepEqual(route('kraland-theme.css', hunk('html.kr-page-report table > tbody > tr.bg-info {', 'html.kr-page-report table > tbody > tr.bg-info { color: inherit; }')).zones, ['report']);
   const t = route(T, hunk('function applyVariant() {', "document.documentElement.classList.toggle('kr-page-report', isReport);"));
   assert.deepEqual(t.zones, ['report']);
   assert.equal(t.widened, false);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation']);
+  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'confort-mobile']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
   assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee']]); // 8.1 : fenêtre 600 remplacée
+});
+check('marge mobile (épopée 9, entrée 1) : classes de page et retrait de marge -> confort-mobile ; fixture de l\'Aide -> confort-mobile seule', () => {
+  assert.deepEqual(zonesOf('confort-mobile.mjs'), ['confort-mobile']);
+  const c = route('kraland-theme.css', hunk('  :where(html.kr-marge-mobile) body.mobile-mode {', '    --kr-marge-page: var(--kr-margin-mobile);'));
+  assert.equal(c.widened, false, c.reasons.join(' ; '));
+  assert.ok(c.zones.includes('confort-mobile'), c.zones.join(', '));
+  const t = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/aide(?:\\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] }"));
+  assert.ok(t.zones.includes('confort-mobile'), t.zones.join(', '));
+  const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/aide.html': [] }), readWith({}));
+  assert.equal(f.widened, false);
+  assert.deepEqual(f.units, ['confort-mobile']);
 });
 check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation et forum-activite', () => {
   assert.deepEqual(zonesOf('palette-nation.mjs'), ['palette-nation']);

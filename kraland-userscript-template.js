@@ -303,6 +303,17 @@
     return hit ? hit.url : null;
   }
 
+  /** Classes de page posées sur <html> par applyVariant : test du chemin -> classes (les pages secondaires s'ajoutent ici). */
+  const KR_PAGE_CLASSES = [
+    { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
+    { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] }
+  ];
+
+  /** Classes de page du chemin, sans doublon. */
+  function krPageClasses(pathname) {
+    return [...new Set(KR_PAGE_CLASSES.filter(p => p.test(pathname)).flatMap(p => p.classes))];
+  }
+
   /** Nom du personnage : libellé actif nettoyé, lu seulement sur plateau, matériel et bâtiments ; sinon null. */
   function krCharacterNameFromPage(pathname, activeLabel) {
     const section = krActiveGameSection(pathname);
@@ -630,54 +641,10 @@
       if (currentIsMobile) {
         document.body.classList.add('mobile-mode');
         console.log('[Kraland Mobile] Mode mobile activé');
-        // Applique les styles critiques via JavaScript (fix Bootstrap)
-        applyMobileCriticalStyles();
       } else {
         document.body.classList.remove('mobile-mode');
         console.log('[Kraland Mobile] Mode desktop');
       }
-    }
-
-    /**
-     * Applique les styles critiques qui doivent surcharger Bootstrap
-     * Cette fonction force les styles inline pour contrer la spécificité CSS de Bootstrap
-     */
-    function applyMobileCriticalStyles() {
-      // Attendre que le DOM soit prêt
-      const applyStyles = () => {
-        // Retrait padding de toutes les colonnes Bootstrap
-        const cols = document.querySelectorAll('[class*="col-"]');
-        cols.forEach(col => {
-          col.style.setProperty('padding-left', '0px', 'important');
-          col.style.setProperty('padding-right', '0px', 'important');
-        });
-
-        // Retrait margin des rows
-        const rows = document.querySelectorAll('.row');
-        rows.forEach(row => {
-          row.style.setProperty('margin-left', '0px', 'important');
-          row.style.setProperty('margin-right', '0px', 'important');
-        });
-
-        // Fix des containers
-        const containers = document.querySelectorAll('.container, .container-fluid');
-        containers.forEach(container => {
-          container.style.setProperty('padding-left', '0px', 'important');
-          container.style.setProperty('padding-right', '0px', 'important');
-        });
-
-        // Dashboard pleine largeur
-        const dashboards = document.querySelectorAll('.dashboard');
-        dashboards.forEach(dashboard => {
-          dashboard.style.setProperty('margin-left', '0px', 'important');
-          dashboard.style.setProperty('margin-right', '0px', 'important');
-          dashboard.style.setProperty('width', '100%', 'important');
-          dashboard.style.setProperty('padding', '0px', 'important');
-        });
-      };
-
-      // Applique immédiatement (le MutationObserver de startObservers gérera les ajouts dynamiques)
-      applyStyles();
     }
 
     // Initialisation au chargement
@@ -3726,6 +3693,10 @@
 
       // Plateau (/jouer/plateau et sous-chemins) : exclu de l'échelle des détails de Matériel, Personnage, Bâtiments et Employés (voir le CSS)
       document.documentElement.classList.toggle('kr-page-plateau', krActiveGameSection(location?.pathname || '') === '/jouer/plateau');
+
+      // Classes de page déclarées par KR_PAGE_CLASSES (marge mobile de 16 px des pages de jeu et de l'Aide, voir le CSS « MARGE MOBILE »)
+      const pageClasses = krPageClasses(location?.pathname || '');
+      KR_PAGE_CLASSES.flatMap(p => p.classes).forEach(c => document.documentElement.classList.toggle(c, pageClasses.includes(c)));
 
       // Index RP, HRP, Communauté et Débats : présentation du sous-forum (module ForumIndex:Presentation et CSS « INDEX DU FORUM »)
       document.documentElement.classList.toggle('kr-page-forum-index', krForumIsIndexPath(location?.pathname || ''));

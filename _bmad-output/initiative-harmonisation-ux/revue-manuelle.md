@@ -670,3 +670,9 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 
 - Sous 200 px de large, une carte affiche le nom sous l'avatar, aligné à gauche. Le centrer rogne les points de suspension de la deuxième ligne sous Chromium (« Crapaudière-.. »). Le statut reste centré en dessous. À trancher : accepter tel quel, ou aligner aussi le statut à gauche dans ces cartes.
 - À 1512 px, les cartes des autres groupes font 168 px. Elles passent donc au nom dessous et ne sont plus identiques à l'avant 9.2.
+
+## Ticket 9.1 — marge latérale de 16 px (2026-10-28)
+
+- Les colonnes ajoutées après le chargement d'une page mobile passent de 10 ou 15 px à 0 px, sur toutes les pages, y compris hors du périmètre du ticket. Aucun test ne couvre ce cas. À trancher : accepter ce changement ou garder l'ancienne valeur.
+- `SANS_MARGE_PAGE` neutralise la marge du 9.1 dans les comparaisons à la base de cartes-pastilles et typographie-formes. Ces suites ne contrôlent donc plus la valeur de la marge : seule confort-mobile le fait. Le masque doit disparaître quand les bases seront ré-ancrées après la fusion (backlog 11).
+- La fixture `aide.html` est synthétique et la route `/aide` est supposée. Il reste à relever le chemin et la structure réels de l'Aide, en lecture seule.

@@ -1155,21 +1155,24 @@ html.kr-theme-enabled .panel-primary > .panel-heading .badge {
    On restaure ici les paddings standards pour que les .row et .col- fonctionnent correctement.
    ============================================================================ */
 
-/* Restaurer le padding Bootstrap standard (15px) pour toutes les colonnes dans le header */
-#player-header-section .nopadding,
-#player-header-section .nopadding-right,
-#player-main-panel .nopadding,
-#player-main-panel .nopadding-right,
-#player-vitals-section .nopadding,
-#player-vitals-section .nopadding-right {
-  padding-left: 15px !important;
-  padding-right: 15px !important;
-}
+/* Restaurer le padding Bootstrap standard (15px) pour toutes les colonnes dans le header (bureau seulement : sur mobile, colonnes à 0
+   par le socle des conteneurs, comme le faisait le style en ligne retiré en H10.1) */
+@media (min-width: 768px) {
+  #player-header-section .nopadding,
+  #player-header-section .nopadding-right,
+  #player-main-panel .nopadding,
+  #player-main-panel .nopadding-right,
+  #player-vitals-section .nopadding,
+  #player-vitals-section .nopadding-right {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
 
-/* Exception : le bouton avatar peut avoir moins de padding pour rester centré */
-#player-main-panel > .row > .nopadding:first-child {
-  padding-left: 10px !important;
-  padding-right: 10px !important;
+  /* Exception : le bouton avatar peut avoir moins de padding pour rester centré */
+  #player-main-panel > .row > .nopadding:first-child {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
 }
 
 /* Corriger le padding-left inline sur player-vitals-section */
@@ -4330,8 +4333,6 @@ body > map {
   body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"] {
     width: 100% !important;
     float: none !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
     margin-bottom: 15px !important;
   }
   
@@ -4600,8 +4601,6 @@ body > map {
   body.mobile-mode > .container > .row > .col-md-1 {
     width: 100% !important;
     float: none !important;
-    padding-left: 15px !important;
-    padding-right: 15px !important;
   }
   
   /* Avatar réduit */
@@ -5038,7 +5037,7 @@ body > map {
       position: relative;
       background: var(--kr-bg-surface) !important;
       border-bottom: 1px solid var(--kr-border-default) !important;
-      padding: 12px;
+      padding: 12px var(--kr-marge-page, 12px);
       cursor: pointer;
       transition: all var(--transition-normal);
     }
@@ -5921,6 +5920,12 @@ body > map {
     margin: 0 var(--kr-space-2) 10px;
     background: var(--kr-bg-surface);
     box-shadow: none;
+  }
+
+  /* Marge mobile (9.1) : seule une section de premier niveau de la colonne principale compense la marge de page */
+  body.mobile-mode .dashboard-section:where(:where(html.kr-marge-mobile) body > .container > .row > [class*="col-"] > *, :where(html.kr-marge-mobile) body > .container > .row > [class*="col-"] :is(.container-fluid, [class*="col-"], .dashboard, .dashboard-flex) > *):where(:not(.modal *, .panel *, .dashboard-section *)) {
+    margin-left: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
+    margin-right: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
   }
 }
 
@@ -6917,6 +6922,19 @@ body > map {
     width: 100% !important;
     padding: 0 !important;
   }
+
+  /* MARGE MOBILE (H10.1) : pages posant kr-marge-mobile sur <html> (KR_PAGE_CLASSES du template : jeu, Aide). Conteneurs et colonnes
+     restent à 0 ci-dessus ; la ligne principale et le pied prennent --kr-margin-mobile, le mini-profil aussi ; les cartes de section
+     et sections du plateau reculent de --kr-marge-page pour rester à 8 px des bords (règles de la carte de section et de 4d). */
+  :where(html.kr-marge-mobile) body.mobile-mode {
+    --kr-marge-page: var(--kr-margin-mobile);
+  }
+
+  :where(html.kr-marge-mobile) body.mobile-mode > .container > .row,
+  :where(html.kr-marge-mobile) body.mobile-mode > footer {
+    padding-left: var(--kr-marge-page);
+    padding-right: var(--kr-marge-page);
+  }
     
     /* Style du panel-group pour ressembler aux barres du dessus */
     .panel-group {
@@ -7861,8 +7879,9 @@ body > map {
     margin-bottom: 20px;
   }
   
-  /* Grid pour les options de thème avec images */
-  body.mobile-mode #kr-tamper-theme-form .form-group > div[style*="padding-left"] {
+  /* Grid pour les options de thème avec images : colonnes du formulaire posé au chargement (repérées jusqu'en H10.1 par le style en
+     ligne de applyMobileCriticalStyles) ; les sections Alertes et Changements, remplies après le chargement, restent en bloc */
+  body.mobile-mode #kr-tamper-theme-form .form-group:where(:not(#kr-alerts-section > *, #kr-changelog-section > *)) > div[class*="col-"] {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 12px !important;
@@ -7973,6 +7992,13 @@ body > map {
     box-shadow: none !important;
     margin-left: var(--kr-space-2);
     margin-right: var(--kr-space-2);
+  }
+  
+  /* Marge mobile (9.1) : une carte de premier niveau de la colonne principale garde ses 8 px des bords de l'écran
+     malgré la marge de page ; une carte imbriquée (dans une carte, une section ou une modale) reste dans son parent */
+  body.mobile-mode .panel-default:where(:where(html.kr-marge-mobile) body > .container > .row > [class*="col-"] > *, :where(html.kr-marge-mobile) body > .container > .row > [class*="col-"] :is(.container-fluid, [class*="col-"], .dashboard, .dashboard-flex) > *):where(:not(.panel-group > *, .modal *, .panel *, .dashboard-section *)) {
+    margin-left: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
+    margin-right: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
   }
   
   /* En-tête de la carte de section : 48 px au moins (un titre sur deux lignes l'agrandit), sans écart avec le contenu */

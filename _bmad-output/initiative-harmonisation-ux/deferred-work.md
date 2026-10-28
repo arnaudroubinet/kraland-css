@@ -191,3 +191,6 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-kramail-mobile/story-gardes-de-page-du-kramail-suite-kramail-theme-et-dossiers-en-plan.md`
   summary: Sur la lecture d'un message à 375 px, le bouton Réception (`btn-default`) s'affiche avec le fond primaire et une ombre. L'état est antérieur au 7.1 et à reprendre par 7.3 (en-tête).
   evidence: revue du 7.1, constat 12 (2026-10-28).
+- source_plan: `epic-plateau-confort-mobile/story-marge-laterale-de-16-px-socle-et-pages-de-jeu-plan.md`
+  summary: Le nettoyage des styles en ligne `.row` / `[class*="col-"]` de `.panel-info` (modale d'ordre, template ~l.9361) ne retire peut-être plus aucun style posé par le script depuis la suppression de applyMobileCriticalStyles. Vérifier si le site pose ces styles lui-même, sinon retirer ce code mort.
+  evidence: revue du 9.1, constat 12 (2026-10-28).

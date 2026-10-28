@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fixture Aide (synthétique, sans données réelles)</title>
+  <!-- FIXTURE SYNTHÉTIQUE de la page Aide (/aide), sur le modèle des Règles : aucune donnée réelle, structure du site non relevée.
+       Colonne gauche : liste de section. Colonne droite : titre de page, paragraphes et liste HORS carte, puis un panneau de texte.
+       Pied de page avec citation. Sert à la marge mobile de 16 px (confort-mobile, épopée 9, entrée 1). -->
+  <base href="http://www.kraland.org/">
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-inverse nomargin">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+        <a class="navbar-brand" href="/">Kraland</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="dropdown"><a class="dropdown-toggle" href="/jouer/plateau">Jouer</a></li>
+          <li class="dropdown"><a class="dropdown-toggle" href="/aide">Aide</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/kramail">Kramail</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="content" class="container">
+    <div class="row">
+      <div id="col-left" class="col-md-3 sidebar">
+        <div class="list-group">
+          <span class="list-group-item active">Aide</span>
+          <a class="list-group-item" href="aide">Premiers pas</a>
+          <a class="list-group-item" href="regles">Règles</a>
+        </div>
+      </div>
+      <div id="col-right" class="col-md-9">
+        <h1 class="page-header">Aide d'essai</h1>
+        <p>Paragraphe d'essai hors carte, assez long pour passer sur plusieurs lignes à la largeur d'un téléphone portable.</p>
+        <ul>
+          <li>Premier point d'essai</li>
+          <li>Second point d'essai</li>
+        </ul>
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3 class="panel-title">Question d'essai</h3></div>
+          <div class="panel-body">
+            <p>Réponse d'essai dans une carte de section.</p>
+            <div class="panel panel-default">
+              <div class="panel-heading"><h3 class="panel-title">Carte imbriquée d'essai</h3></div>
+              <div class="panel-body"><p>Contenu d'une carte dans une carte.</p></div>
+            </div>
+            <div class="dashboard-section">
+              <div class="dashboard-section-header"><span class="dashboard-group-title">Section imbriquée d'essai</span></div>
+            </div>
+            <blockquote><p>Citation d'essai.</p><footer>Auteur d'essai</footer></blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="navbar-inverse">
+    <div class="container white">
+      <div class="footer-quote">&laquo; Citation d'essai. &raquo; (Auteur d'essai)</div>
+      <div style="margin-top:5px;text-align:right;font-size:10px;"><a href="#" style="color:inherit;">Mentions légales</a> | Généré en 0.01 sec.</div>
+    </div>
+  </footer>
+  <script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+  <script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
