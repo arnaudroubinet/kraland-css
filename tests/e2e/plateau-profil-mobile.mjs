@@ -2,6 +2,8 @@
 // clonées par le script depuis le DOM transformé (aucune fixture qui cache le style inline du clone).
 // Fixture locale dérivée de plateau-qualite-usage.html (structure du site réel, aucune donnée réelle, aucun réseau).
 //
+// Valeurs des jauges PV/PM/PP du mini-profil (ticket 9) : fixture palette-nation-jauges.html, chaque jauge lue sur son bouton.
+//
 // Usage : npm run build && node tests/e2e/plateau-profil-mobile.mjs
 // Option : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal).
 import assert from 'node:assert/strict';
@@ -43,6 +45,21 @@ const html = base
   .replace(/<a class="list-group-item ds_game alert111"[\s\S]*?alert114[\s\S]*?<\/a>/, skillsHtml)
   .replace(/<div class="btn-group-xs">[\s\S]*?<\/div><\/div>/, `<div class="row">${statsHtml}</div></div>`);
 
+// Ticket 9 : variantes de la fixture des jauges (bouton + .progress valeur/reste par jauge)
+const jauges = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/palette-nation-jauges.html'), 'utf8');
+const ppZero = (h) => h.replace('</i> PP 45<', '</i> PP 0<').replace('width: 30%"><span class="sr-only">45<', 'width: 0%"><span class="sr-only">0<')
+  .replace('width: 70%"><span class="sr-only">105<', 'width: 100%"><span class="sr-only">150<');
+const GAUGE_CASES = [
+  { name: 'fixture brute', body: jauges, want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: [45, 150, 30] } },
+  { name: 'boutons en &nbsp;&ensp;', body: jauges.replace(/<\/i> (P[VMP]) (\d+)<\/a>/g, '</i> $1&nbsp;&ensp;$2</a>'), want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: [45, 150, 30] } },
+  { name: 'espaces entre balises retirés', body: jauges.replace(/>\s+</g, '><'), want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: [45, 150, 30] } },
+  { name: 'PP à 0 (reste 150)', body: ppZero(jauges), want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: [0, 150, 0] } },
+  { name: '.progress PP absente', body: jauges.replace(/(btn-default alert143[\s\S]*?)<div class="progress"[\s\S]*?sr-only">105<\/span><\/div>\s*<\/div>/, '$1'), want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: null } },
+  { name: '.sr-only PP absents (maximum par largeur)', body: jauges.replace('<span class="sr-only">45</span>', '').replace('<span class="sr-only">105</span>', ''), want: { pv: [18, 30, 60], pm: [25, 25, 100], pp: [45, 150, 30] } },
+  { name: 'bouton PM absent', body: jauges.replace(/<a class="btn btn-default alert142[\s\S]*?<\/a>/, ''), want: { pv: [18, 30, 60], pm: null, pp: [45, 150, 30] } }
+];
+let body = html;
+
 let failures = 0;
 function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n')[0]); }
@@ -51,7 +68,7 @@ function check(name, fn) {
 const browser = await launchBrowser();
 const context = await browser.newContext({ viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true });
 await confineNetwork(context); // refus global EN PREMIER (version.json : refusé ; img7 routé ci-dessous)
-await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
+await context.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body }));
 await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
 await context.addInitScript(({ src }) => {
   window.GM = { xmlHttpRequest: () => {} };
@@ -63,6 +80,8 @@ await context.addInitScript(({ src }) => {
   new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
 }, { src: userscript });
 const page = await context.newPage();
+const pageErrors = [];
+page.on('pageerror', (e) => pageErrors.push(e.message));
 
 const measure = () => page.evaluate(() => {
   const R = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; };
@@ -196,6 +215,47 @@ async function runWidth(width, expectedSkillCols) {
 
 await runWidth(375, 4);
 await runWidth(700, 6);
+
+// --- Ticket 9 : chaque jauge du mini-profil affiche sa propre valeur (plié puis déplié) ---
+const readGauges = () => page.evaluate(() => Object.fromEntries(['pv', 'pm', 'pp'].map((t) => {
+  const compact = document.querySelector(`.mobile-gauge-compact-fill.${t}`);
+  const full = document.querySelector(`.mobile-gauge-full-fill.${t}`);
+  if (!compact && !full) { return [t, null]; }
+  const c = compact && compact.closest('.mobile-gauge-compact');
+  const f = full && full.closest('.mobile-gauge-full');
+  const text = (box, sel) => { const el = box && box.querySelector(sel); return el ? el.textContent.trim() : 'absente'; };
+  return [t, {
+    value: text(c, '.mobile-gauge-compact-value'),
+    full: text(f, '.mobile-gauge-full-header span:last-child'),
+    compactW: compact ? parseFloat(compact.style.width) : NaN, fullW: full ? parseFloat(full.style.width) : NaN
+  }];
+})));
+const gaugeOk = (got, want) => {
+  for (const t of ['pv', 'pm', 'pp']) {
+    if (want[t] === null) { assert.equal(got[t], null, `${t} rendue`); continue; }
+    const [v, m, pct] = want[t];
+    assert.ok(got[t], `${t} absente`);
+    assert.equal(got[t].value, String(v), `${t} compacte`);
+    assert.equal(got[t].full, `${v}/${m}`, `${t} complète`);
+    assert.ok(Math.abs(got[t].compactW - pct) <= 1 && Math.abs(got[t].fullW - pct) <= 1, `${t} remplissage ${got[t].compactW}/${got[t].fullW} au lieu de ${pct}`);
+  }
+};
+await page.setViewportSize({ width: 375, height: 667 });
+for (const gc of GAUGE_CASES) {
+  body = gc.body;
+  pageErrors.length = 0;
+  await page.goto(TARGET, { waitUntil: 'load' });
+  await krReady(page, { ready: THEME_READY, label: 'chargement jauges' });
+  console.log(`Jauges du mini-profil : ${gc.name}`);
+  const folded = await readGauges();
+  check(`${gc.name} : plié, PV/PM/PP à leur valeur, maximum et remplissage`, () => gaugeOk(folded, gc.want));
+  await page.tap('.mobile-mini-profile-header');
+  await profileSettled('expanded');
+  const open = await readGauges();
+  check(`${gc.name} : déplié, PV/PM/PP à leur valeur, maximum et remplissage`, () => gaugeOk(open, gc.want));
+  check(`${gc.name} : aucune exception`, () => assert.deepEqual(pageErrors, []));
+}
+body = html;
 
 // >= 768 : le mini-profil n'existe pas (mode desktop), compétences du panneau latéral inchangées
 await page.setViewportSize({ width: 768, height: 900 });
