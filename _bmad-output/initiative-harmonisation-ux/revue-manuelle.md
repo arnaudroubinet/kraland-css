@@ -874,3 +874,12 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Envoi, question pour Arnaud : dans l'Envoi, une enveloppe fermée veut sans doute dire « pas encore lu par le destinataire », pas « non lu par moi ». Décision provisoire du coordinateur : le signal « non lu » (classe, pastille, filet) est limité à la Réception et à la Corbeille. L'Envoi est reconnu au chemin `…-1`. Relevé en lecture seule sur le site réel le 2026-10-29 : Réception `kramail/<perso>-<id>-0`, Envoi `…-1`, Corbeille `…-2`, et la ligne de l'Envoi porte `fa fa-envelope` (enveloppe fermée). Faut-il un signal distinct dans l'Envoi (par exemple « NON LU PAR LE DESTINATAIRE »), ou aucun ?
 - Mobile : quand le menu de personnage est ouvert, toucher une ligne pour le fermer ouvre aussi le message, car le lien étiré couvre toute la ligne. À trancher : faut-il absorber ce premier toucher ?
 - Le toucher dans la cellule de case ne coche la case que sur mobile (`body.mobile-mode` lu au moment du clic). Au bureau, le tableau natif reste inchangé.
+
+## Bug 14 — champs à 9,5 px sur ordinateur (2026-10-29)
+
+- Textarea : décision prise (orchestrateur, 2026-10-29, « retrait 6 × 12 natif ») : la règle `:where(textarea)` est supprimée. Le textarea prend le 6 × 12 natif : son texte est aligné à 12 px, comme le select voisin (forum-nouveau-sujet, 1280 px ; il était décalé de 4 px). Taille inchangée (`textarea.form-control.form-control`).
+- Masques ajoutés (écart voulu, base corrigée par `CORRIGER_BUG14` de `tests/e2e/lib/variantes.mjs`, sans effet sur une base qui contient déjà le correctif) : `typographie-formes.mjs` (bases `avantEchelle`, `avantEchelleForum`, `avantEspacement`, `avantNettoyage`, `avantMedias410`) et `forum-activite.mjs` (`baseFil`). Retrait au recalage des COMMIT_* au-delà du bug 14.
+- `kramail-redaction#regression` (capture pleine page « lecture 375 px », 30 pixels, écart max de 2 par canal) : échec sous charge (load ~40), vert relancé seul. Flake présumé, non lié (mobile inchangé).
+- Non couverts par les fixtures, à voir lors de la passe manuelle : la recherche DataTables (`.input-sm`, 12 px natif) et le select de la modale d'ordre sur ordinateur.
+- Le ticket cite la base 2bdc8e1 ; base réellement mesurée et notée dans le plan : 5638f29.
+- `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.

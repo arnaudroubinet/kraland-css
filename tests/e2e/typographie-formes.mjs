@@ -73,6 +73,11 @@
 //                   sombre : chaque .forum-card h3.forum-title en 15 px / 700, au moins une carte ; h1-h3 visibles de #col-right hors
 //                   .forum-title égaux au bundle de base (COMMIT_TITRE_FORUM), 375, 767, 768 et 1280 px ; aucune carte à 768 et 1280 px ;
 //                   bascule 767, 768, 767 px (15 px, sans carte, 15 px) ; contrôle statique de la règle des titres h1-h3 du bundle.
+// Champs .form-control à 14 px sur ordinateur (bug 14, bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan) :
+//   champs          report (sélecteur de personnage), kramail nouveau, forum nouveau sujet, Matériel, sondes .input-sm / .input-lg ajoutées :
+//                   768, 769 et 1280 px, Kraland clair et Empire Brun sombre : input et select en 14 px, retrait 6 × 12 px (sm 12 px 5 × 10,
+//                   lg 18 px 10 × 16, natifs Bootstrap) ; textarea en 14 px, retrait 6 × 12 px natif (texte aligné sur le select voisin) ; 375 et 767 px :
+//                   taille, retrait, hauteur et interligne de chaque champ égaux à la base ; bascule 767, 768, 767 px ; contrôle statique.
 // Hauteurs du sous-forum avec la pastille à 12 px : sous-forum.mjs (checkNewmsg).
 // Pages = FIXTURE SYNTHÉTIQUE tests/e2e/fixtures/typographie-formes.html (servie à /jouer/plateau et à un sujet de forum inventé),
 // forum-index-rp.html, sous-forum-debuter.html et kramail-nouveau.html ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ; annuaire du
@@ -94,8 +99,9 @@
 //           KR_SCRIPT_AVANT_NETTOYAGE (bundle de base du nettoyage, défaut : celui du commit COMMIT_NETTOYAGE),
 //           KR_SCRIPT_AVANT_MEDIAS_410 (bundle de base des médias M1 et M2, défaut : celui du commit COMMIT_MEDIAS_410),
 //           KR_SCRIPT_AVANT_TITRE_FORUM (bundle de base du nom de forum des cartes, défaut : celui du commit COMMIT_TITRE_FORUM),
+//           KR_SCRIPT_AVANT_CHAMPS (bundle de base des champs .form-control, défaut : celui du commit COMMIT_CHAMPS),
 //           KR_FRAG = jetons, mobile, bureau, mini-profil, bascule, boutons, boutons-bascule, compact, echelle, echelle-forum, rayons,
-//           espacement, nettoyage, titre-forum
+//           espacement, nettoyage, titre-forum, champs
 //           (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -108,7 +114,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -734,8 +740,10 @@ if (on('compact')) {
 // hors jeu : sous-forum (sous-forum-debuter.html) et réception du kramail (kramail-reception.html). Le sujet du forum (forum-sujet.html)
 // n'a pas d'en-tête de panneau.
 const COMMIT_ECHELLE = 'fe77411';
-const avantEchelle = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ECHELLE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet
+// une fois COMMIT_* recalé au-delà du bug 14.
+const avantEchelle = CORRIGER_BUG14(sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 // Base du ticket 6 (plateau inchangé) : bundle d'avant le ticket.
 const COMMIT_TICKET6 = '1590761';
 const avantTicket6 = sansEntete(process.env.KR_SCRIPT_AVANT_TICKET6 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_TICKET6, 'utf8')
@@ -1058,8 +1066,10 @@ if (on('echelle')) {
 const COMMIT_ECHELLE_FORUM = '6270c81';
 // Bundle de base d'avant le ticket 10 : médias au seuil 768/769 décalés en 767/768 (MEDIAS_TICKET410), M1 et M2 changent le rendu à 768 px.
 const medias410 = src => (AVANT_TICKET410(src) ? MEDIAS_TICKET410(src) : src);
-const avantEchelleForum = sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet
+// une fois COMMIT_* recalé au-delà du bug 14.
+const avantEchelleForum = CORRIGER_BUG14(sansEntete(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ECHELLE_FORUM, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ECHELLE_FORUM}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const IDX = '#col-right .table > tbody > tr';
 const SF = '#topics tbody tr';
 // [rôle, sélecteur, taille attendue, graisse, support] : support m = mobile seulement, b = ordinateur seulement, rien = les deux.
@@ -1570,8 +1580,10 @@ if (on('rayons')) {
 // Cas : [clé, sélecteur, rôle, support, attendu] ; support m = mobile seulement, b = ordinateur seulement ; attendu R/N { propriété : n }
 // (jeton --kr-space-n), E [propriétés].
 const COMMIT_ESPACEMENT = '6270c81';
-const avantEspacement = sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet
+// une fois COMMIT_* recalé au-delà du bug 14.
+const avantEspacement = CORRIGER_BUG14(sansEntete(process.env.KR_SCRIPT_AVANT_ESPACEMENT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ESPACEMENT, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_ESPACEMENT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 // Écart accepté et consigné (épopée 9, entrée 2) : carte de personnage selon sa propre largeur (nom sous l'avatar sous 200 px de carte) ;
 // la base reçoit CARTES_TICKET92 tant qu'elle précède l'entrée (AVANT_TICKET92). Même feuille sur la base du nettoyage.
 const CSS_AVANT_ESPACEMENT = AVANT_TICKET92(avantEspacement) ? CARTES_TICKET92 : '';
@@ -1779,14 +1791,18 @@ const MASQUE_CIBLES_94 = '@media (max-width: 767px) { html.kr-page-secondaire bo
 // retirée du rendu), seulement contre une base sans la classe de page kr-page-forum. Retirer quand COMMIT_NETTOYAGE passe au-delà de 9.8.
 const MASQUE_FORUM_98 = '@media (max-width: 767px) { body.mobile-mode #col-right :is(.forum-mobile-breadcrumb-link, .user-info > strong a) { min-width: 0 !important; }'
   + ' body.mobile-mode #col-right > .alert-dismissible { display: none !important; } }';
-const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet
+// une fois COMMIT_* recalé au-delà du bug 14.
+const avantNettoyage = CORRIGER_BUG14(sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
 // de base d'avant 4.10, le rendu à 768 px qui change (change) et la base relevée à 769 px (A8). Retrait : au prochain ticket qui modifie les
 // médias 768/769 du kramail ou du changelog ; il remplace ces trois contrôles par un contrôle absolu des propriétés de M1 et M2 à 768 px.
 const COMMIT_MEDIAS_410 = '00b0786';
-const avantMedias410 = sansEntete(process.env.KR_SCRIPT_AVANT_MEDIAS_410 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_MEDIAS_410, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_MEDIAS_410}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+// Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet
+// une fois COMMIT_* recalé au-delà du bug 14.
+const avantMedias410 = CORRIGER_BUG14(sansEntete(process.env.KR_SCRIPT_AVANT_MEDIAS_410 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_MEDIAS_410, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_MEDIAS_410}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
 const GEL_NETTOYAGE = '@layer kr-gel { *, *::before, *::after { transition: none !important; animation: none !important; } }';
 // Préparations (après le chargement) : modale d'ordre ouverte, changelog ouvert.
 // Bouton posé par insertChangelogButton (template) après le chargement du changelog, hors InitQueue : data-kr-ready ne l'attend pas.
@@ -2335,6 +2351,100 @@ if (on('titre-forum')) {
         } else {
           assert.deepEqual(p.cartes, []);
         }
+      });
+    });
+  }
+}
+
+// ---------- Champs .form-control sur ordinateur (bug 14, bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan) ----------
+// La règle globale des champs ne pose plus de taille ni de retrait en rem (1 rem = 10 px sous Bootstrap 3) : sur ordinateur, input et select
+// .form-control reprennent les 14 px (--kr-font-body) et le retrait 6 × 12 px natifs ; .input-sm et .input-lg (sondes ajoutées) restent
+// natifs ; le textarea garde sa taille (14 px) et prend le retrait natif. Mobile : tous les champs égaux au bundle de base (COMMIT_CHAMPS).
+const COMMIT_CHAMPS = '5638f29';
+const avantChamps = sansEntete(process.env.KR_SCRIPT_AVANT_CHAMPS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_CHAMPS, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_CHAMPS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const PAGES_CHAMPS = {
+  report: { url: BASE + '/report/perso-000000', html: lire('report-non-lu.html') },
+  kramail: { url: BASE + '/kramail/post/nouveau-4-2000', html: lire('kramail-nouveau.html') },
+  forum: { url: BASE + '/forum/post/nouveau-sujet-1-10101', html: lire('forum-nouveau-sujet.html') },
+  materiel: { url: BASE + '/jouer/materiel', html: lire('typographie-echelle.html') }
+};
+const NATIFS_CHAMPS = { '': '14px 6px 12px', sm: '12px 5px 10px', lg: '18px 10px 16px' };
+const MESURE_CHAMPS = () => {
+  const sondes = document.createElement('div');
+  sondes.id = 'kr-sondes-champs';
+  sondes.innerHTML = '<input class="form-control input-sm"><select class="form-control input-sm"><option>x</option></select>'
+    + '<input class="form-control input-lg"><select class="form-control input-lg"><option>x</option></select>';
+  document.body.appendChild(sondes);
+  const r = [...document.querySelectorAll(':is(input, select, textarea).form-control')].filter(e => e.getClientRects().length).map(e => {
+    const s = getComputedStyle(e);
+    const taille = e.classList.contains('input-sm') ? 'sm' : (e.classList.contains('input-lg') ? 'lg' : '');
+    return { cle: `${e.tagName.toLowerCase()}${taille ? '.' + taille : ''}${e.name ? '[' + e.name + ']' : ''}`, tag: e.tagName.toLowerCase(), taille,
+      mesure: `${s.fontSize} ${s.paddingTop} ${s.paddingRight}`, complet: `${s.fontSize} ${s.padding} ${s.height} ${s.lineHeight}` };
+  });
+  sondes.remove();
+  return r;
+};
+const ecartsChamps = (a, b) => a.filter((x, i) => !b[i] || b[i].cle !== x.cle || b[i].complet !== x.complet).map(x => `${x.cle} ${x.complet}`);
+if (on('champs')) {
+  console.log('\n== champs ==');
+  check('champs : règle globale des champs sans taille ni retrait en rem (ancienne déclaration absente du bundle testé, présente dans la base)', () => {
+    assert.ok(AVANT_BUG14(avantChamps), 'base sans la déclaration');
+    assert.ok(!AVANT_BUG14(userscript), 'déclaration présente');
+  });
+  const cas = VARIANTES.flatMap(variante => Object.keys(PAGES_CHAMPS).flatMap(nom => [375, 767, 768, 769, 1280].map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => {
+    const mesurer = async script => {
+      const { context, page, erreurs } = await ouvrir({ ...c, height: c.width < 768 ? 667 : 800, script, def: PAGES_CHAMPS[c.nom] });
+      const champs = await page.evaluate(MESURE_CHAMPS);
+      await context.close();
+      return { champs, erreurs };
+    };
+    return { c, a: await mesurer(userscript), b: await mesurer(avantChamps) };
+  });
+  for (const { c, a, b } of res) {
+    if (c.width < 768) {
+      check(`champs ${etiquette(c)} : champs .form-control (sondes .input-sm / .input-lg comprises) égaux à la base (${COMMIT_CHAMPS})`, () => {
+        assert.ok(a.champs.length > 4, 'aucun champ de la page mesuré');
+        const ecarts = ecartsChamps(a.champs, b.champs);
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    } else {
+      check(`champs ${etiquette(c)} : input et select .form-control en 14 px, retrait 6 × 12 px ; .input-sm 12 px 5 × 10 ; .input-lg 18 px 10 × 16`, () => {
+        const champs = a.champs.filter(x => x.tag !== 'textarea');
+        assert.ok(champs.length > 4, 'aucun champ de la page mesuré');
+        const ecarts = champs.filter(x => x.mesure !== NATIFS_CHAMPS[x.taille]).map(x => `${x.cle} ${x.mesure}`);
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+      check(`champs ${etiquette(c)} : textarea .form-control en 14 px, retrait 6 × 12 px natif`, () => {
+        const ta = a.champs.filter(x => x.tag === 'textarea');
+        assert.ok(c.nom === 'report' || c.nom === 'materiel' || ta.length > 0, 'textarea absent');
+        const ecarts = ta.filter(x => x.mesure !== NATIFS_CHAMPS['']).map(x => `${x.cle} ${x.mesure}`);
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
+      });
+    }
+    check(`champs ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(a.erreurs, []));
+  }
+  // Bascule 767, 768 puis 767 px dans le même onglet (report) : mobile égal à la base, 14 px sur ordinateur, mobile égal à la base.
+  const resBascule = await mapLimit(VARIANTES, async variante => {
+    const ouvrirReport = script => ouvrir({ nom: 'report', width: 767, variante, script, def: PAGES_CHAMPS.report, tactile: false });
+    const [a, b] = [await ouvrirReport(userscript), await ouvrirReport(avantChamps)];
+    const pas = [{ width: 767, a: await a.page.evaluate(MESURE_CHAMPS), b: await b.page.evaluate(MESURE_CHAMPS) }];
+    for (const width of [768, 767]) {
+      await Promise.all([a, b].map(o => basculer(o.page, width, `champs bascule ${variante} ${width} px`)));
+      pas.push({ width, a: await a.page.evaluate(MESURE_CHAMPS), b: await b.page.evaluate(MESURE_CHAMPS) });
+    }
+    await a.context.close();
+    await b.context.close();
+    return { variante, pas };
+  });
+  for (const { variante, pas } of resBascule) {
+    pas.forEach((p, n) => {
+      check(`champs bascule report ${variante} pas ${n + 1} (${p.width} px) : ${p.width < 768 ? 'champs égaux à la base' : 'champs natifs (14 px, sondes sm / lg)'}`, () => {
+        assert.ok(p.a.length > 4, 'aucun champ mesuré');
+        if (p.width < 768) { const e = ecartsChamps(p.a, p.b); assert.deepEqual(e, [], e.join(' ; ')); return; }
+        const ecarts = p.a.filter(x => x.mesure !== NATIFS_CHAMPS[x.taille]).map(x => `${x.cle} ${x.mesure}`);
+        assert.deepEqual(ecarts, [], ecarts.join(' ; '));
       });
     });
   }

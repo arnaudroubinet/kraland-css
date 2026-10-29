@@ -200,3 +200,9 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-notifications/story-refactor-sweep-plan.md`
   summary: Sur `/report` ordinateur, la règle `td { font-size: var(--kr-font-body) }` n'a pas de rouge : le texte hérite déjà des 14 px natifs du `body` de Bootstrap, égaux au jeton. Le contrôle L de `report-non-lu` ne la distingue donc pas du natif ; une fixture ou un jeton différent de 14 px le rendrait discriminant.
   evidence: sweep 8.4 (2026-10-29) : règle retirée d'une copie du bundle, `report-non-lu.mjs` exit 0, aucun FAIL.
+- source_plan: `_bmad-output/backlog/bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan.md`
+  summary: Halos de focus en rem calculés sur la base de 10 px de Bootstrap 3 : `.form-control:focus` (`0 0 0 .18rem`, soit 1,8 px) et cases à cocher / boutons radio (`.12rem`, soit 1,2 px), section « 4. FORMS » de `kraland-theme.css`.
+  evidence: relevé du ticket du bug 14 (2026-10-29) ; hors périmètre par décision de l'orchestrateur (2026-10-29), effet minime.
+- source_plan: `_bmad-output/backlog/bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan.md`
+  summary: Tailles en rem des règles mobiles (modale d'ordre `.bootbox-confirm` ~l.1362-2163, légende du carrousel `.carousel-caption` ~l.4390-4396, `.95rem` et autres) calculées sur 10 px par rem, pas 16 : à revoir au rôle de DESIGN.md.
+  evidence: relevé du ticket du bug 14 (2026-10-29) ; hors périmètre (mobile strictement inchangé) par décision de l'orchestrateur (2026-10-29).
