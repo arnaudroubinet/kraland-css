@@ -116,7 +116,7 @@ export const SUITES = [
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
   // 1280 px, bascule 767 <-> 768 et page hors périmètre (index Staff) égales au bundle de base. Entrée 4 : pages
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
-  // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 034a820. Entrée 5 : cibles du plateau (plateau).
+  // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 7bec452. Entrée 5 : cibles du plateau (plateau).
   { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];

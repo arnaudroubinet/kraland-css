@@ -33,37 +33,6 @@ export const TEXTE_SECONDAIRE_CLAIR_HEX = '#636a77';
 export const COMPOSANTS_TICKET4 = '.panel-default > .panel-heading, .panel-default > .panel-footer, .table th, table.dataTable thead th, table.dataTable tfoot th, .btn-default, .nav-tabs, .nav-tabs > li > a';
 
 /**
- * Échelle typographique que l'épopée 4, ticket 5 pose hors des pages de jeu (DESIGN.md › Typography). Masque miroir : chaque règle reprend le
- * sélecteur et le drapeau !important de la règle que le bundle réécrit ou ajoute, avec la valeur du jeton (feuille adoptée, hors couche, après
- * les feuilles du document : à spécificité égale, elle remplace la règle d'origine ; une règle plus forte du bundle « avant » garde la main,
- * comme dans le bundle d'après). Seule exception : les titres h4-h6 d'en-tête de panneau, que l'échelle mobile d'avant fixe en !important et
- * que le bundle d'après exclut de cette échelle, reçoivent 17 px en !important. Règles de pages de jeu (garde body:has(#col-leftest), tableau
- * de bord, commerce, mini-profil) absentes : les pages comparées n'en ont pas. À poser par-dessus un bundle d'avant ce ticket
- * (AVANT_TICKET45) ; tout autre écart reste détecté. Écart consigné dans le plan du ticket
- * (story-echelle-typographique-du-plateau-du-mini-profil-et-des-en-te, Implementation Notes).
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9), pour kramail-redaction ; et, pour le miroir de
- * typographie-formes (TF3), au prochain ticket qui modifie l'échelle des titres ; il réaligne COMMIT_ECHELLE sur un SHA récent après
- * contrôle absolu des titres (ticket 4.5). Retrait de la constante quand les deux sont faits.
- */
-export const ECHELLE_TICKET45 = [
-  '@media (min-width: 768px) {',
-  '  .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px; font-weight: 700; }',
-  '  .xmini, footer a { font-size: 12px; }',
-  '}',
-  '@media (max-width: 767px) {',
-  '  .dashboard-card h4 { font-size: 15px !important; }',
-  '  .panel-body h4 { font-size: 15px !important; }',
-  '  h1, h2, h3 { font-size: 17px !important; }',
-  '  :is(h4, h5, h6):where(:not(.panel-heading > *), .panel-group *, .modal *) { font-size: 15px !important; }',
-  '  .panel-heading > :is(h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px !important; }',
-  '  body.mobile-mode .panel-default > .panel-heading h3 { font-size: 17px !important; }',
-  '  body.page-forum .panel-default > .panel-heading h3 { font-size: 17px !important; font-weight: 700 !important; }',
-  '  body.page-kramail .panel-heading h3.panel-title { font-size: 17px !important; font-weight: 700 !important; }',
-  '  .panel-heading > :is(.panel-title, h1, h2, h3, h4, h5, h6):where(:not(.panel-group *, .modal *)) { font-size: 17px; font-weight: 700; }',
-  '  footer a, .xmini { font-size: 12px; }',
-  '}'
-].join('\n');
-/**
  * Légendes des compétences (.kr-skill-caption) que l'épopée 4, ticket 5 passe du plancher PLT-QU de 11 px à 12 px (--kr-font-label) : la
  * cellule d'icône qui les contient grandit d'autant. Masque miroir des trois règles réécrites (mêmes sélecteurs, même drapeau !important),
  * à poser par-dessus un bundle d'avant ce ticket (AVANT_TICKET45) dans une comparaison des cellules d'icône ; tout autre écart reste détecté.
@@ -106,13 +75,6 @@ export const CORRIGER_BUG14 = bundle => {
   }
   return corrige;
 };
-/**
- * Écart accepté et consigné (épopée 4, ticket 10, story-refactor-sweep) : médias de l'éditeur du kramail et du changelog ramenés au seuil
- * 767/768 (à 768 px, rendu d'ordinateur au lieu du rendu mobile). Transformation de chaîne du bundle de base (médias minifiés), posée
- * seulement sur un bundle de base antérieur au ticket (AVANT_TICKET410), jamais sur le bundle courant ; tout autre écart reste détecté.
- * Écart consigné dans le plan du ticket (Plan Change Log).
- */
-export const MEDIAS_TICKET410 = bundle => bundle.split('@media (width<=768px){').join('@media (width<=767px){').split('@media (width>=769px){').join('@media (width>=768px){');
 /** Bundle d'avant l'épopée 4, ticket 10 : l'éditeur du kramail y est encore sous le média minifié (width>=769px). */
 export const AVANT_TICKET410 = src => src.includes('(width>=769px)');
 /** Champs de saisie d'une ligne mesurés par le fragment nettoyage (ticket 10, retrait R4) : 44 px de haut, retraits 12 px, police 16 px. */
@@ -136,8 +98,7 @@ export const AVANT_TICKET73 = bundle => !bundle.includes('kr-kramail-entete');
  * Rédaction du kramail (épopée 7, entrée 5) : les formulaires post_msg du kramail reprennent le formulaire de réponse du forum (Messages:V3
  * sur mobile, rendu natif du forum au bureau), prouvé par kramail-theme.mjs (fragments redaction, redaction-dest). Bundle d'avant : son
  * module Messages:V3 ne repère pas les lignes Sujet et Expéditeur du kramail (sélecteur propre à l'entrée, stable à la minification). Écrit
- * ici, comme AVANT_TICKET73. Lecteurs restants : bases dédiées antérieures à l'entrée (cartes-pastilles COMMIT_AVANT_55,
- * typographie-formes COMMIT_CHAMPS et COMMIT_MEDIAS_410).
+ * ici, comme AVANT_TICKET73. Seul lecteur restant : typographie-formes#nettoyage, sur sa base dédiée COMMIT_MEDIAS_410.
  */
 export const AVANT_TICKET75 = bundle => !bundle.includes(':scope > .col-sm-10 > .input-group');
 /**
@@ -280,36 +241,12 @@ export const CARTES_TICKET55 = [
 export const AVANT_TICKET55 = bundle => !bundle.includes('.dashboard-card-pnj{background:var(--kr-arm-bg');
 
 /**
- * Écart accepté et consigné (épopée 9, entrée 2, story-carte-de-personnage-selon-sa-propre-largeur-avatar-de-70-px) : sur ordinateur, la
- * carte de personnage devient un conteneur de requête ; sous 200 px de carte (198 px de contenu), le nom passe sous l'avatar, et un mot
- * plus long que la ligne se coupe. Feuille miroir de la règle de la peau, mêmes sélecteurs, sans !important (la base n'a aucune règle
- * concurrente). Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET92), jamais sur le bundle courant ; empilable avec
- * CARTES_TICKET54 et CARTES_TICKET55 ; tout autre écart reste détecté. Le rendu de la carte est vérifié par plateau-qualite-usage
- * (fragment cartes). Utilisateurs : typographie-formes (espacement, nettoyage) et cartes-pastilles (groupes bureau). Retrait : à l'entrée 12
- * de l'épopée 9 (sweep), qui réaligne COMMIT_ESPACEMENT, COMMIT_NETTOYAGE et COMMIT_AVANT_53 sur un SHA postérieur à l'entrée 2 après
- * contrôle absolu de la carte (plateau-qualite-usage, fragment cartes).
- */
-export const CARTES_TICKET92 = [
-  '@media (min-width: 768px) {',
-  '  .dashboard-card { container: kr-carte-perso / inline-size; }',
-  '  .dashboard-card-name { overflow-wrap: anywhere; }',
-  '  @container kr-carte-perso (width < 198px) {',
-  '    .dashboard-card-header { flex-wrap: wrap; }',
-  '    .dashboard-card-name-container { flex-basis: 100%; padding: 0 8px 4px; }',
-  '  }',
-  '}'
-].join('\n');
-/** Bundle d'avant l'épopée 9, entrée 2 : la carte n'y est pas un conteneur de requête (règle minifiée du bundle). */
-export const AVANT_TICKET92 = bundle => !bundle.includes('kr-carte-perso/inline-size');
-
-/**
  * Écart accepté et consigné (épopée 9, entrée 5, story-plateau-mobile-cibles-des-cartes-des-groupes-du-mini-profil) : en mobile, les
  * actions des cartes de personnage et les boutons des groupes passent de 26 et 28 px à --kr-touch-target (44 px), et les actions passent à
  * la ligne. Feuille miroir des règles de la peau, mêmes sélecteurs ; les !important reprennent ceux de la base, qu'ils doivent battre.
  * Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET95), jamais sur le bundle courant ; tout autre écart reste détecté. Les
- * cibles sont vérifiées par confort-mobile (fragment plateau). Utilisateurs : plateau-qualite-usage (cartes), typographie-formes
- * (boutons, nettoyage) et forum-activite (fil : carte de la fixture des Règles). Retrait : quand ces suites comparent à un SHA postérieur
- * à l'entrée 5.
+ * cibles sont vérifiées par confort-mobile (fragment plateau). Utilisateur : typographie-formes (boutons, base des modales COMMIT_MODALES).
+ * Retrait : quand cette base passe au-delà de l'entrée 5.
  */
 export const CIBLES_TICKET95 = [
   '@media (max-width: 767px) {',
@@ -320,18 +257,6 @@ export const CIBLES_TICKET95 = [
 ].join('\n');
 /** Bundle d'avant l'épopée 9, entrée 5 : la croix n'y porte pas le jeton --kr-touche-croix (règle minifiée du bundle). */
 export const AVANT_TICKET95 = bundle => !bundle.includes('--kr-touche-croix');
-
-/**
- * PV des cartes en jetons (épopée 9, entrée 7, story-cercle-et-barre-de-pv-des-cartes-sans-couleurs-en-dur) : le cercle et la barre de PV
- * portent des classes de niveau (kr-pv-N, dashboard-card-hp-track, dashboard-card-hp-progress) et l'avatar KO la classe is-ko, à la
- * place des couleurs et du filtre en ligne. Écart vérifié par plateau-qualite-usage (fragment pv) ; neutralisé dans les comparaisons à une
- * base antérieure (cartes-pastilles, groupes ; typographie-formes, nettoyage). Retrait : quand ces suites comparent à un SHA postérieur à
- * l'entrée 7.
- */
-export const AVANT_TICKET97 = bundle => !bundle.includes('--kr-pv-track');
-/** Retire de « TAG.classe.classe » les classes de l'entrée 9.7, puis le point d'un cercle resté sans classe (« circle. » de la base). */
-export const sansClassesPv97 = t => t.replace(/\.(kr-pv-\d|dashboard-card-hp-track|dashboard-card-hp-progress|is-ko)(?=[.\s[]|$)/g, '')
-  .replace(/\bcircle\.(?=[\s[]|$)/g, 'circle');
 
 /**
  * Activité du forum (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : repères de

@@ -8,7 +8,6 @@
      de sa primaire et de son accent ; les variantes sombres gardent leurs valeurs littérales. */
   --kr-primary: #8b0f0e;
   --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000);
-  --kr-gold: #C69100;
   --kr-highlight: #c41e3a;
   --kr-highlight-reverse: color-mix(in srgb, var(--kr-highlight) 15%, #fff);
   --kr-surface: #fff;
@@ -80,7 +79,6 @@
   --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff); /* H5.2 : alerte info (6 % et 14 %) et ombre des boutons (12 %) tirées de la primaire */
   --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff);
   --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent);
-  --kr-bootstrap-blue: #337ab7;
   
   /* Couleurs nations (.f1-.f9) */
   --kr-nation-1: #C41E3A;
@@ -130,26 +128,19 @@
 
   /* Hauteurs fixes mobile */
   --mobile-header-height: 56px;
-  --mobile-tab-bar-height: 48px;
-  --mobile-touch-target: 44px;
   
   /* Espacements */
   --mobile-spacing-xs: 4px;
   --mobile-spacing-sm: 8px;
   --mobile-spacing-md: 12px;
   --mobile-spacing-lg: 16px;
-  --mobile-spacing-xl: 24px;
 
   /* Z-index */
   --z-header: 1000;
-  --z-tab-bar: 999;
-  --z-bottom-sheet: 998;
-  --z-drawer: 1001;
   
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
   
   /* Jauges (H5.4, DESIGN.md › Jauges, Q3) : une couleur par jauge, la même sur ordinateur et mobile, un ton par mode (sombre : plus bas) ;
      remplissage >= 3:1 sur sa piste, #f5f5f5 de Bootstrap en clair, bg-elevated en sombre */
@@ -161,7 +152,6 @@
   /* Overlays et transparence pour navbar sombre */
   --kr-overlay-light-10: rgba(255, 255, 255, 0.1);
   --kr-overlay-light-05: rgba(255, 255, 255, 0.05);
-  --kr-overlay-light-20: rgba(255, 255, 255, 0.2);
   --kr-overlay-dark-20: rgba(0, 0, 0, 0.2);
   --kr-overlay-dark-30: rgba(0, 0, 0, 0.3);
   --kr-overlay-dark-125: rgba(0, 0, 0, 0.125);
@@ -1358,7 +1348,7 @@ a.carousel-control.right{
   /* 1. SELECT PERSONNAGE */
   .bootbox-confirm .modal-body > select:first-of-type,
   .bootbox-confirm select.form-control {
-  min-height: var(--mobile-touch-target);
+  min-height: var(--kr-touch-target);
   font-size: 16px !important; /* Évite zoom iOS */
   padding: 8px 12px;
   margin-bottom: var(--mobile-spacing-lg);
@@ -1386,7 +1376,7 @@ a.carousel-control.right{
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--mobile-touch-target);
+  min-height: var(--kr-touch-target);
   padding: 12px 16px;
   text-align: center;
   background: var(--kr-bg-elevated);
@@ -1483,7 +1473,7 @@ a.carousel-control.right{
   margin: 0 !important;
   display: flex !important;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--kr-touch-target);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -1578,7 +1568,7 @@ a.carousel-control.right{
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
+  min-height: var(--kr-touch-target);
   width: auto;
   margin-right: var(--mobile-spacing-md);
   margin-bottom: var(--mobile-spacing-md);
@@ -1589,14 +1579,14 @@ a.carousel-control.right{
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--kr-touch-target);
   margin-bottom: 0;
   padding: 10px 0;
 }
 
 /* Select Bonus optimisé */
 .bootbox-confirm select[name="bonus"] {
-  min-height: 44px;
+  min-height: var(--kr-touch-target);
   padding: 10px 12px;
   font-size: 0.9375rem;
   border: 1px solid var(--kr-border-default);
@@ -1612,8 +1602,8 @@ a.carousel-control.right{
 
 /* 5. TOOLBAR BBCODE */
 .bootbox-confirm .btn-toolbar .btn {
-  min-height: var(--mobile-touch-target);
-  min-width: var(--mobile-touch-target);
+  min-height: var(--kr-touch-target);
+  min-width: var(--kr-touch-target);
   padding: 8px 12px;
   border-radius: var(--kr-radius-sm);
   display: inline-flex;
@@ -1659,7 +1649,7 @@ a.carousel-control.right{
   align-items: center;
   gap: 8px;
   padding-left: 0;
-  min-height: var(--mobile-touch-target);
+  min-height: var(--kr-touch-target);
   cursor: pointer;
 }
 
@@ -4269,7 +4259,7 @@ body > map {
     padding: 4px !important;
     font-size: 13px !important;
     max-width: 140px !important;
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
   }
 }
 
@@ -4295,8 +4285,6 @@ body > map {
   .container {
     max-width: 100% !important;
     width: 100% !important;
-    padding-left: 15px !important;
-    padding-right: 15px !important;
   }
   
   
@@ -4520,10 +4508,6 @@ body > map {
     padding: 10px !important;
   }
   
-  .dashboard-card h4 {
-    font-size: var(--kr-font-name) !important;
-  }
-  
   /* Panels responsive */
   .panel {
     margin-bottom: var(--kr-space-4) !important;
@@ -4560,7 +4544,7 @@ body > map {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     max-width: 44px !important;
     max-height: 44px !important;
     display: flex !important;
@@ -4749,7 +4733,7 @@ body > map {
   
   .list-group-item {
     padding: 10px 12px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     justify-content: space-between !important;
     display: flex !important;
     align-items: center !important;
@@ -4850,7 +4834,7 @@ body > map {
   input[type="button"]:where(:not(.hidden)),
   input[type="submit"]:where(:not(.hidden)),
   input[type="reset"]:where(:not(.hidden)) {
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -5192,7 +5176,7 @@ body > map {
     
     .mobile-mini-profile-manage-btn {
       min-width: 44px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 8px !important;
       display: flex !important;
       align-items: center !important;
@@ -5385,7 +5369,7 @@ body > map {
       justify-content: flex-start !important;
       width: 100% !important;
       min-width: 0 !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       height: auto !important;
       margin: 0 !important;
       padding: 6px 2px 4px !important;
@@ -5620,7 +5604,7 @@ body > map {
     }
     
     .mobile-tab-bar.nav-tabs > li > a {
-      min-height: var(--mobile-touch-target);
+      min-height: var(--kr-touch-target);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -5779,7 +5763,7 @@ body > map {
       align-items: center;
       justify-content: center;
       min-width: 44px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 10px !important;
       font-size: 18px;
       color: var(--kr-white) !important;
@@ -5849,7 +5833,7 @@ body > map {
     
     /* Liens principaux du menu - optimisés pour le tactile */
     .navbar-nav > li > a {
-      min-height: 44px !important; /* WCAG 2.5.5 - zone tactile minimum */
+      min-height: var(--kr-touch-target) !important; /* WCAG 2.5.5 - zone tactile minimum */
       padding: 14px 20px !important;
       font-size: 16px !important; /* Évite le zoom automatique iOS */
       line-height: 1.5 !important;
@@ -5882,7 +5866,7 @@ body > map {
     .navbar-right > li > a,
     .navbar-right > li > button {
       min-width: 44px !important; /* Zone tactile minimum */
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 12px !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -5916,8 +5900,8 @@ body > map {
    Remplace les anciens blocs TASK-2.2 et TASK-2.3 (CSS imbriqué supprimé)
    ============================================================================ */
 
-/* --- 4a. Accordéon : Header de groupe cliquable --- */
 @media (max-width: 767px) {
+  /* --- 4a. Accordéon : Header de groupe cliquable --- */
   body.mobile-mode .dashboard-section-header-accordion {
     position: relative;
     min-height: 48px;
@@ -5927,17 +5911,13 @@ body > map {
     -webkit-tap-highlight-color: transparent;
     transition: background-color var(--transition-fast);
   }
-}
 
-/* --- 4a. Accordéon : Feedback tactile --- */
-@media (max-width: 767px) {
+  /* --- 4a. Accordéon : Feedback tactile --- */
   body.mobile-mode .dashboard-section-header-accordion:active {
     background-color: var(--kr-overlay-light-05);
   }
-}
 
-/* --- 4b. Accordéon : Icône chevron --- */
-@media (max-width: 767px) {
+  /* --- 4b. Accordéon : Icône chevron --- */
   body.mobile-mode .dashboard-section-header-accordion .accordion-icon {
     margin-left: auto;
     transform: rotate(0deg);
@@ -5946,18 +5926,19 @@ body > map {
     font-size: 14px;
     pointer-events: none;
   }
-}
 
-/* --- 4b. Accordéon : Rotation chevron quand ouvert --- */
-@media (max-width: 767px) {
+  /* --- 4b. Accordéon : Rotation chevron quand ouvert --- */
   body.mobile-mode .dashboard-section-header-accordion.expanded .accordion-icon {
     transform: rotate(-180deg);
   }
-}
 
-/* --- 4c. Accordéon : Grille collapsible --- */
-@media (max-width: 767px) {
+  /* --- 4c. Accordéon : Grille collapsible ; 4e. Grid : 2 colonnes pour lisibilité --- */
   body.mobile-mode .dashboard-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: var(--kr-space-2);
+    background: transparent;
     overflow: hidden;
     transition: max-height var(--transition-normal),
                 opacity var(--transition-normal),
@@ -5966,10 +5947,8 @@ body > map {
     max-height: 5000px;
     opacity: 1;
   }
-}
 
-/* --- 4c. Accordéon : État collapsed --- */
-@media (max-width: 767px) {
+  /* --- 4c. Accordéon : État collapsed --- */
   body.mobile-mode .dashboard-cards-grid.collapsed {
     max-height: 0;
     opacity: 0;
@@ -5978,10 +5957,8 @@ body > map {
     padding-bottom: 0;
     pointer-events: none;
   }
-}
 
-/* --- 4d. Sections : carte de section (8 px des bords, fond surface, sans ombre), comme les panneaux --- */
-@media (max-width: 767px) {
+  /* --- 4d. Sections : carte de section (8 px des bords, fond surface, sans ombre), comme les panneaux --- */
   body.mobile-mode .dashboard-section {
     margin: 0 var(--kr-space-2) 10px;
     background: var(--kr-bg-surface);
@@ -5993,31 +5970,16 @@ body > map {
     margin-left: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
     margin-right: calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
   }
-}
 
-/* --- 4d. Sections : titre du groupe en titre de section (casse normale) --- */
-@media (max-width: 767px) {
+  /* --- 4d. Sections : titre du groupe en titre de section (casse normale) --- */
   body.mobile-mode .dashboard-group-title {
     font-size: var(--kr-font-section-title);
     font-weight: 700;
     text-transform: none;
     letter-spacing: normal;
   }
-}
 
-/* --- 4e. Grid : 2 colonnes pour lisibilité --- */
-@media (max-width: 767px) {
-  body.mobile-mode .dashboard-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-    padding: var(--kr-space-2);
-    background: transparent;
-  }
-}
-
-/* --- 4f. Card de personnage --- */
-@media (max-width: 767px) {
+  /* --- 4f. Card de personnage --- */
   body.mobile-mode .dashboard-card {
     position: relative;
     width: 100%;
@@ -6028,10 +5990,8 @@ body > map {
     border-radius: var(--kr-radius-md);
     overflow: hidden;
   }
-}
 
-/* --- 4g. Lien principal de la carte --- */
-@media (max-width: 767px) {
+  /* --- 4g. Lien principal de la carte --- */
   body.mobile-mode .dashboard-card-link {
     display: flex;
     flex-direction: column;
@@ -6043,17 +6003,13 @@ body > map {
     text-decoration: none;
     transition: all var(--transition-fast);
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-link:hover,
   body.mobile-mode .dashboard-card-link:active {
     background: var(--kr-bg-active);
   }
-}
 
-/* --- 4h. Header avec avatar --- */
-@media (max-width: 767px) {
+  /* --- 4h. Header avec avatar --- */
   body.mobile-mode .dashboard-card-header {
     display: flex;
     flex-direction: column;
@@ -6061,19 +6017,15 @@ body > map {
     width: 100%;
     margin-bottom: 2px;
   }
-}
 
-/* --- 4i. Wrapper avatar et cercle HP --- */
-@media (max-width: 767px) {
+  /* --- 4i. Wrapper avatar et cercle HP --- */
   body.mobile-mode .dashboard-card-avatar-wrapper {
     position: relative;
     width: 75px;
     height: 75px;
     margin-bottom: 2px;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-hp-circle {
     position: absolute;
     top: 50%;
@@ -6082,16 +6034,12 @@ body > map {
     width: 75px !important;
     height: 75px !important;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-hp-circle circle {
     stroke-width: 2 !important;
   }
-}
 
-/* --- 4j. Avatar du personnage (intègre fix ex-ligne 5182) --- */
-@media (max-width: 767px) {
+  /* --- 4j. Avatar du personnage (intègre fix ex-ligne 5182) --- */
   body.mobile-mode .dashboard-card-avatar {
     position: relative;
     width: 65px !important;
@@ -6101,10 +6049,8 @@ body > map {
     margin: 5px;
     z-index: 1;
   }
-}
 
-/* --- 4k. Conteneur du nom (vertical pour mobile) --- */
-@media (max-width: 767px) {
+  /* --- 4k. Conteneur du nom (vertical pour mobile) --- */
   body.mobile-mode .dashboard-card-name-container {
     display: flex;
     flex-direction: column;
@@ -6112,19 +6058,15 @@ body > map {
     width: 100%;
     gap: 2px;
   }
-}
 
-/* --- 4l. Drapeau/monde (intègre fix ex-ligne 5176) --- */
-@media (max-width: 767px) {
+  /* --- 4l. Drapeau/monde (intègre fix ex-ligne 5176) --- */
   body.mobile-mode .dashboard-card-world {
     width: 14px !important;
     height: 14px !important;
     opacity: 0.6;
   }
-}
 
-/* --- 4m. Nom du personnage (break-word au lieu de break-all) --- */
-@media (max-width: 767px) {
+  /* --- 4m. Nom du personnage (break-word au lieu de break-all) --- */
   body.mobile-mode .dashboard-card-name {
     font-size: var(--kr-font-name);
     font-weight: 600;
@@ -6139,25 +6081,19 @@ body > map {
     -webkit-box-orient: vertical;
     overflow-wrap: break-word;
   }
-}
 
-/* --- 4n. Body avec statut (hauteur explicite via min-height) --- */
-@media (max-width: 767px) {
+  /* --- 4n. Body avec statut (hauteur explicite via min-height) --- */
   body.mobile-mode .dashboard-card-body {
     width: 100%;
     padding: 2px 4px 0;
     min-height: 18px;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-body:empty {
     display: none;
   }
-}
 
-/* --- 4o. Statut du personnage --- */
-@media (max-width: 767px) {
+  /* --- 4o. Statut du personnage --- */
   body.mobile-mode .dashboard-card-status {
     font-size: var(--kr-font-detail);
     color: var(--kr-text-secondary);
@@ -6167,10 +6103,8 @@ body > map {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-}
 
-/* --- 4q. Actions (intègre fix position static ex-ligne 5188) --- */
-@media (max-width: 767px) {
+  /* --- 4q. Actions (intègre fix position static ex-ligne 5188) --- */
   body.mobile-mode .dashboard-card-actions {
     display: flex;
     position: static;
@@ -6182,9 +6116,7 @@ body > map {
     margin-top: 2px;
     opacity: 1;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-actions a {
     display: flex;
     align-items: center;
@@ -6200,31 +6132,23 @@ body > map {
     text-decoration: none;
     padding: 0 !important;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-actions a:hover {
     background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
     border-color: var(--kr-primary-dark);
     color: var(--kr-arm-ink-hover, var(--kr-white));
     transform: scale(1.1);
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-actions i {
     font-size: 13px;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-card-actions:empty {
     display: none !important;
   }
-}
 
-/* --- 4r. Boutons groupe/véhicule (intègre fix ex-ligne 5193) --- */
-@media (max-width: 767px) {
+  /* --- 4r. Boutons groupe/véhicule (intègre fix ex-ligne 5193) --- */
   body.mobile-mode .dashboard-group-buttons {
     align-items: center;
   }
@@ -6232,9 +6156,7 @@ body > map {
   body.mobile-mode .dashboard-group-buttons .btn + .btn {
     margin-top: 0 !important;
   }
-}
 
-@media (max-width: 767px) {
   body.mobile-mode .dashboard-group-buttons .btn {
     display: flex;
     align-items: center;
@@ -6244,10 +6166,8 @@ body > map {
     min-height: var(--kr-touch-target) !important;
     padding: 0 !important;
   }
-}
 
-/* --- 4s. Masquer les chevrons originaux (remplacés par accordion-icon) --- */
-@media (max-width: 767px) {
+  /* --- 4s. Masquer les chevrons originaux (remplacés par accordion-icon) --- */
   body.mobile-mode .building-section-header > span.pull-right.clickable {
     display: none !important;
   }
@@ -6975,10 +6895,6 @@ body > map {
    ============================================ */
 
 @media (max-width: 767px) {
-  body.mobile-mode {
-    /* Mode mobile activé */
-  }
-  
   /* Retrait padding conteneurs et colonnes Bootstrap en mobile */
   body.mobile-mode .container,
   body.mobile-mode .container-fluid,
@@ -7024,20 +6940,20 @@ body > map {
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode td > a:not(.btn):is(:has(> i), .nomargin):where(:not(.modal *)) {
-    min-width: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode .form-check:where(:not(.modal *)) {
     display: flex;
     align-items: center;
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode .form-check-label:where(:not(.modal *)) {
     display: flex;
     flex: 1;
     align-items: center;
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
     margin: 0;
     padding-left: var(--kr-space-2);
   }
@@ -7045,15 +6961,15 @@ body > map {
   :where(html.kr-page-secondaire) body.mobile-mode :is(.radio, .checkbox):where(:not(.modal *)) > label {
     display: flex;
     align-items: center;
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode .panel-heading:where(:not(.modal *)) span.clickable {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    min-width: var(--mobile-touch-target);
-    min-height: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
+    min-height: var(--kr-touch-target);
     margin-right: -12px;
   }
 
@@ -7067,11 +6983,11 @@ body > map {
   }
 
   :where(html.kr-page-aide-fenetre) body.mobile-mode .well td > a:not(.btn):where(:not(.modal *)) {
-    min-width: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
   }
 
   :where(html.kr-page-members) body.mobile-mode #myTabContent .btn-group-xs > .btn:where(:not(.modal *)) {
-    min-width: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
   }
 
   /* FORUM (épopée 9, entrée 8 ; kr-page-forum posée par KR_PAGE_CLASSES sur /forum et /forum/*, sans kr-marge-mobile : la peau du forum place
@@ -7108,13 +7024,13 @@ body > map {
   }
 
   :where(html.kr-page-kramail-lecture) body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .kr-msg-recipients > a {
-    min-width: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
   }
 
   :where(html.kr-page-kramail-liste, html.kr-page-contacts) body.mobile-mode .panel-default > .panel-heading span.clickable {
     justify-content: flex-end;
-    min-width: var(--mobile-touch-target);
-    min-height: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
+    min-height: var(--kr-touch-target);
   }
 
   /* Couplage : les 12 px retranchés sont le padding latéral mobile verrouillé des .form-group (« Réinitialiser les form-group »,
@@ -7131,7 +7047,7 @@ body > map {
 
   :where(html.kr-page-forum) body.mobile-mode #col-right .forum-mobile-breadcrumb-link,
   :where(html.kr-page-forum) body.mobile-mode ul.media-list.forum > li.media .user-info > strong a {
-    min-width: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target);
   }
     
     /* Style du panel-group pour ressembler aux barres du dessus */
@@ -7288,7 +7204,7 @@ body > map {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 12px 10px !important;
       font-size: 15px !important;
       font-weight: 500 !important;
@@ -7331,7 +7247,7 @@ body > map {
     body.mobile-mode .modal-body input[type="number"],
     body.mobile-mode .modal-body textarea {
       width: 100% !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       font-size: 16px !important;
       padding: 10px !important;
       border-radius: var(--kr-radius-sm) !important;
@@ -7354,7 +7270,7 @@ body > map {
     body.mobile-mode .modal-body .radio label {
       display: flex !important;
       align-items: center !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 8px 0 !important;
       cursor: pointer !important;
     }
@@ -7482,7 +7398,7 @@ body > map {
     
     body.mobile-mode .bootbox.modal h3 .mini.center a {
       min-width: 44px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -7491,7 +7407,7 @@ body > map {
     /* Bouton groupe (user-friends) */
     body.mobile-mode .bootbox.modal h3 .btn.btn-xs {
       min-width: 44px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       padding: 8px !important;
       margin-left: auto !important;
     }
@@ -7545,7 +7461,7 @@ body > map {
     
     body.mobile-mode .bootbox.modal .panel.with-nav-tabs .nav-tabs > li > a {
       padding: 10px 16px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       height: 44px !important;
       font-size: 14px !important;
       font-weight: 500 !important;
@@ -7968,7 +7884,7 @@ body > map {
 
     body.mobile-mode .bootbox.modal .btn-toolbar .dropdown-menu table td a {
       min-width: 44px !important;
-      min-height: 44px !important;
+      min-height: var(--kr-touch-target) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -8600,7 +8516,7 @@ body > map {
   
   /* Dropdown "Afficher X lignes" - WCAG 2.5.5 (44px min) */
   .dataTables_length select {
-    min-height: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     padding: 10px 32px 10px 12px !important;
     font-size: 16px !important; /* Évite zoom iOS */
     border: 1px solid var(--kr-border-default) !important;
@@ -8623,7 +8539,7 @@ body > map {
   /* Input recherche - WCAG 2.5.5 (44px min) */
   .dataTables_filter input {
     flex: 1 !important;
-    min-height: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     padding: 10px 16px !important;
     font-size: 16px !important; /* Évite zoom iOS */
     border: 1px solid var(--kr-border-default) !important;
@@ -8939,7 +8855,7 @@ body > map {
     display: flex !important;
     flex-direction: column !important;
     padding: 0 !important;
-    min-height: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     gap: var(--mobile-spacing-sm) !important;
   }
   
@@ -9070,8 +8986,8 @@ body > map {
   
   /* Boutons Précédent/Suivant - WCAG 2.5.5 (44px min) */
   .dataTables_paginate .paginate_button {
-    min-height: var(--mobile-touch-target) !important;
-    min-width: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
+    min-width: var(--kr-touch-target) !important;
     padding: 10px 16px !important;
     font-size: 16px !important;
     border: 1px solid var(--kr-border-default) !important;
@@ -9332,7 +9248,7 @@ body > map {
     align-items: center !important;
     gap: 8px !important;
     padding: 12px 16px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     font-size: var(--kr-font-body-mobile) !important;
     color: var(--kr-text-primary) !important;
     white-space: nowrap !important;
@@ -9438,7 +9354,7 @@ body > map {
     align-items: center !important;
     text-align: center !important;
     padding: 12px 16px !important;
-    min-height: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     text-decoration: none !important;
     color: var(--kr-text-primary) !important;
     border-bottom: 1px solid var(--kr-border-default) !important;
@@ -9663,9 +9579,9 @@ body > map {
 
   /* Boutons BBCode - Touch targets 44px */
   .btn-toolbar .btn {
-    min-width: var(--mobile-touch-target) !important;
-    width: var(--mobile-touch-target);
-    height: var(--mobile-touch-target);
+    min-width: var(--kr-touch-target) !important;
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target);
     padding: 0 !important;
     margin: 0 !important;
     display: flex !important;
@@ -9696,7 +9612,7 @@ body > map {
 
   .form-control {
     font-size: 16px !important;         /* iOS zoom prevention - CRITIQUE */
-    min-height: var(--mobile-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     padding: 12px var(--mobile-spacing-md) !important;
     border-radius: var(--kr-radius-sm) !important;
     line-height: 1.5;
@@ -9718,7 +9634,7 @@ body > map {
 
   /* Select - Styled au même niveau */
   select.form-control {
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
   }
 
   /* 3. FORM GROUPS - Stack vertical */
@@ -9743,7 +9659,7 @@ body > map {
     display: inline-flex;
     align-items: center;
     gap: var(--mobile-spacing-md);
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
     margin-right: var(--mobile-spacing-lg);
     margin-bottom: 0;
     padding: 8px 0;
@@ -9799,7 +9715,7 @@ body > map {
     border-radius: var(--kr-radius-md);
     cursor: pointer;
     transition: all var(--transition-fast);
-    min-height: var(--mobile-touch-target);
+    min-height: var(--kr-touch-target);
     text-decoration: none;
     color: var(--kr-text);
     font-weight: 500;
@@ -9946,7 +9862,7 @@ body.page-kramail .editeur-text #results hr {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 12px 16px;
     border-bottom: 1px solid var(--kr-border-default);
     color: var(--kr-text-primary);
@@ -10059,7 +9975,7 @@ body.page-kramail .editeur-text #results hr {
 @media (max-width: 767px) {
   body.page-kramail-compose h1.page-header .pull-right .btn {
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -10651,7 +10567,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     align-items: center;
     gap: 4px;
     box-sizing: border-box;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     margin: 0 !important;
     padding: 0 112px 2px 0 !important;
     color: var(--kr-text-secondary);
@@ -10672,7 +10588,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-field {
     gap: 6px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 4px;
     border-radius: var(--kr-radius-sm);
   }
@@ -10770,7 +10686,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt {
     gap: 10px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 0 12px;
     font-size: var(--kr-font-name);
   }
@@ -12810,7 +12726,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 0 14px;
     border: 2px solid var(--kr-primary);
     border-radius: var(--kr-radius-sm);
@@ -13037,7 +12953,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     align-items: center;
     gap: 10px;
     box-sizing: border-box;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 0 12px 0 0 !important;
   }
 
@@ -13173,7 +13089,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.page-forum.kr-subforum .forum-subforum-actions-top .forum-thread-action,
   body.page-forum.kr-subforum .forum-subforum-actions-bottom .forum-thread-action {
     flex: 0 0 auto;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 0 16px;
     white-space: nowrap;
   }
@@ -13230,7 +13146,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 1 1 auto;
     width: 100% !important;
     height: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
@@ -13239,7 +13155,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.page-forum.kr-subforum #topics_wrapper .dataTables_length select {
     min-width: 72px !important;
     height: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
@@ -13299,7 +13215,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 0 0 auto;
     align-items: center;
     width: auto !important;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     margin: 0 !important;
     padding: 0 16px !important;
     border: 1px solid var(--kr-border-strong) !important;
@@ -13598,7 +13514,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.page-forum.kr-subforum .panel-heading span.clickable {
     justify-content: center;
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     margin: 0 -12px 0 auto !important;
     cursor: pointer;
   }
@@ -13615,7 +13531,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex-wrap: nowrap;
     align-items: center;
     gap: 8px;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     margin: 0 !important;
     padding: 0 12px !important;
     border: 0 !important;
@@ -13749,7 +13665,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   body.page-forum.kr-subforum #topics_wrapper .dataTables_paginate .paginate_button {
     flex: 0 0 auto;
     min-width: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     margin: 0 !important;
     padding: 0 8px !important;
     box-sizing: border-box;
@@ -14031,7 +13947,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex: 1 1 auto;
     width: 100% !important;
     height: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
@@ -14040,7 +13956,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_length select {
     min-width: 72px !important;
     height: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     font-size: 16px !important;
@@ -14249,7 +14165,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button {
     flex: 0 0 auto;
     min-width: 44px !important;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     margin: 0 !important;
     padding: 0 8px !important;
     box-sizing: border-box;
@@ -14307,7 +14223,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   :where(html.kr-page-contacts) #col-right #topics tbody a.btn {
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     justify-content: center;
   }
 }
@@ -14428,7 +14344,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
      croix de 44 px. */
   :where(html.kr-page-forum) #col-right > .alert-dismissible {
     position: relative;
-    padding-right: var(--mobile-touch-target) !important;
+    padding-right: var(--kr-touch-target) !important;
   }
 
   /* Croix en 44 x 44 dans le coin (épopée 9, entrée 8) : glyphe centré, à plus de 16 px du bord ; aussi sur la réponse à un sujet bloqué */
@@ -14436,8 +14352,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     position: absolute;
     top: 0;
     right: 0;
-    width: var(--mobile-touch-target);
-    height: var(--mobile-touch-target);
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target);
   }
 
   /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
@@ -14459,7 +14375,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 6px;
     min-width: 0;
     max-width: 50%;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     padding: 0;
     color: var(--kr-text-primary);
     font-weight: 400;
@@ -14514,7 +14430,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   :where(html.kr-page-forum-index) #col-right .panel-default > .panel-heading span.clickable {
     justify-content: center;
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--kr-touch-target);
     margin: 0 -12px 0 auto !important;
     cursor: pointer;
   }
@@ -15166,7 +15082,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .form-group.kr-sender-row .form-control {
     height: 44px;
-    min-height: 44px !important;
+    min-height: var(--kr-touch-target) !important;
     margin: 0;
     padding: 0 12px !important;
   }

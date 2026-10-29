@@ -966,7 +966,7 @@ if (on('textes-largeurs')) {
 // text-nation ; hr masqué ; --kr-text-secondary à #636a77 en clair (Q26). Sur mobile, l'en-tête de panneau garde la carte mobile
 // (bg-surface, sans bordure : règle propre au mobile, qui garde la main).
 // Bundle de base (garde de régression), sauf KR_SCRIPT_AVANT : comparaisons du tableau de bord et des pages de référence.
-const BASELINE4 = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
+const BASELINE4 = '7bec452'; // recalage du sweep 9.12 (anciennes bases 6270c81 puis d64c578) : entrées 9.1 à 9.10 comprises
 const avant4 = (() => {
   if (process.env.KR_SCRIPT_AVANT) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
   try { return execFileSync('git', ['show', `${BASELINE4}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }

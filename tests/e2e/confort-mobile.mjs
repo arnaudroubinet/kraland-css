@@ -22,7 +22,7 @@
 //                   /help et /help/staff (fixtures secondaires-membres.html, aide-fenetre.html, aide-fenetre-staff.html) à 320, 375 et 767 px,
 //                   Kraland clair et Empire Brun sombre : classes de page ; texte à 16 px des bords ; cartes (.well de l'aide) à 8 px ;
 //                   .btn-group-xs > .btn des Membres et td > a de l'aide à 44 × 44 aux cinq points ; à 768, 769 et 1280 px, textes égaux au
-//                   bundle de base 034a820 ; bascule 767 <-> 768 sur /help/staff et Membres dans les deux sens ; premier texte des .well
+//                   bundle de base ; bascule 767 <-> 768 sur /help/staff et Membres dans les deux sens ; premier texte des .well
 //                   de /help/staff à 24 px au plus du bord ; hors périmètre (lien de tableau hors .well, fiche de membre sans
 //                   #myTabContent) : largeurs égales au bundle de base.
 //   plateau         (entrée 5, plan story-plateau-mobile-cibles-des-cartes-des-groupes-du-mini-profil) groupes (mini-profil plié et déplié
@@ -31,8 +31,7 @@
 //                   saut ; à 768 et 1280 px, boîtes des cibles égales au bundle de base.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT), KR_FRAG =
-// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau (vide = tout). KR_SCRIPT_AVANT_13 : bundle de base du fragment membres-aide
-// (défaut : git show 034a820, entrée 4 comprise).
+// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -50,12 +49,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = 'd64c578'; // feature/next après les entrées 7.1 à 7.8 (recalage du sweep 7.10, ancienne base abbe7be)
+const COMMIT_AVANT = '7bec452'; // feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12, anciennes bases d64c578 et 034a820)
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-const COMMIT_AVANT_13 = '034a820'; // base du fragment membres-aide : entrée 4 comprise
-const avant13 = sansEntete(process.env.KR_SCRIPT_AVANT_13 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_13, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_AVANT_13}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
@@ -528,7 +524,7 @@ if (on('secondaires')) {
     check(`${lab} : bouton « Travail » de la carte de ville à 34 px de haut`, () => assert.deepEqual(teste.travail, [34]));
   }
 
-  // Bureau : textes égaux au bundle de base ; titre de la ville à 768 px (collant à 16 px) masqué de la comparaison et contrôlé à part.
+  // Bureau : textes égaux au bundle de base ; titre de la ville contrôlé à part.
   const casB = noms.flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.filter(w => w !== 769).map(width => ({ nom, variante, width }))));
   const releve = async (c, script) => {
     const { context, page, erreurs } = await ouvrir({ ...c, height: 720, script });
@@ -538,14 +534,13 @@ if (on('secondaires')) {
     return { r, titre, erreurs };
   };
   const resB = await mapLimit(casB, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
-  const sansTitre = (l, c) => c.nom === 'ville' && c.width === 768 ? l.filter(x => !x.startsWith('Ville de Fixture')) : l;
   for (const { c, teste, base } of resB) {
     const lab = `secondaires bureau ${c.nom} ${c.variante} ${c.width} px`;
     check(`${lab} : textes égaux au bundle de base`, () => {
       assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
       assert.equal(teste.r.mobile, false, 'mode mobile au-delà de 767 px');
       assert.ok(teste.r.l.length > 0, 'aucun texte');
-      const d = premierEcart(sansTitre(teste.r.l, c), sansTitre(base.r.l, c));
+      const d = premierEcart(teste.r.l, base.r.l);
       assert.equal(d, '', d);
     });
     if (c.nom === 'ville') {
@@ -608,7 +603,7 @@ if (on('membres-aide')) {
     await context.close();
     return { r, erreurs };
   };
-  const resB = await mapLimit(casB, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant13) }));
+  const resB = await mapLimit(casB, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
   for (const { c, teste, base } of resB) {
     const lab = `membres-aide bureau ${c.nom} ${c.variante} ${c.width} px`;
     check(`${lab} : textes égaux au bundle de base`, () => {
@@ -624,7 +619,7 @@ if (on('membres-aide')) {
   // Bascule 767 <-> 768 sur /help/staff et sur Membres, dans les deux sens et dans le même onglet.
   const casS = ['aide-staff', 'membres'].flatMap(nom => VARIANTES.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ nom, variante, largeurs }))));
   const resS = await mapLimit(casS, async c => ({ c, teste: await parcours(userscript, c.variante, c.largeurs, c.nom, MEMBRES_AIDE[c.nom].cartes, MEMBRES_AIDE[c.nom].cibles),
-    base: await parcours(avant13, c.variante, c.largeurs, c.nom, MEMBRES_AIDE[c.nom].cartes) }));
+    base: await parcours(avant, c.variante, c.largeurs, c.nom, MEMBRES_AIDE[c.nom].cartes) }));
   for (const { c, teste, base } of resS) {
     const lab = `membres-aide bascule ${c.nom} ${c.variante} ${c.largeurs.join(' -> ')}`;
     teste.etapes.forEach((e, i) => {
@@ -654,7 +649,7 @@ if (on('membres-aide')) {
     await context.close();
     return { l, erreurs };
   };
-  const resH = await mapLimit(casH, async c => ({ c, teste: await largeurs(c, userscript), base: await largeurs(c, avant13) }));
+  const resH = await mapLimit(casH, async c => ({ c, teste: await largeurs(c, userscript), base: await largeurs(c, avant) }));
   for (const { c, teste, base } of resH) {
     const lab = `membres-aide hors-perimetre ${c.nom} ${c.variante} ${c.width} px`;
     check(`${lab} : largeurs de ${HORS_13[c.nom].sel} égales au bundle de base`, () => {

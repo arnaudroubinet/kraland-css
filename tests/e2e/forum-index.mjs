@@ -9,7 +9,7 @@
 //   en-têtes (titre de page, « Tous les forums », en-tête de section) : même rendu que le sous-forum, titre de section jamais en couleur de
 //                     nation (couleur de texte sur mobile) ;
 //   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff égaux au bundle de base
-//                     (6270c81), sans masque ;
+//                     (7bec452), sans masque ;
 //   seuil : 767, 768 et 769 px, et aller-retour 767 → 768 → 767 dans le même onglet (rechargement du thème au franchissement) ;
 //   peau coupée : la page native est intacte.
 // « Même rendu que le sous-forum » : le sous-forum « Débuter » (fixture sous-forum-debuter.html) est mesuré dans le même navigateur, à la même
@@ -19,7 +19,7 @@
 // alerte, « 1 sujet · 1 message »). Racine : forum-racine-groupes.html (groupes synthétiques). Hors périmètre : le sous-forum,
 // forum-sujet.html (page de sujet de messages-v3.mjs) et forum-index-rp.html servi à /forum/staff. Vrai Bootstrap 3.3.7 (tests/e2e/vendor).
 // Confinement réseau ; aucun clic : les cibles sont mesurées par elementFromPoint, après un défilement par window.scrollTo.
-// Bundle de base (hors périmètre) : garde de régression au commit 6270c81, sauf KR_SCRIPT_AVANT. L'empreinte est comparée telle quelle,
+// Bundle de base (hors périmètre) : garde de régression au commit 7bec452, sauf KR_SCRIPT_AVANT. L'empreinte est comparée telle quelle,
 // sans jeton posé ni propriété neutralisée.
 //
 // Usage : npm run build && node tests/e2e/forum-index.mjs   (ou : npm run test:zone -- forum)
@@ -34,7 +34,6 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -69,8 +68,8 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.split('\n').slice(0, process.env.KR_VERBOSE ? 40 : 1).join('\n       ')); }
 }
 
-// Bundle de base : figé au commit 6270c81 pour que la comparaison garde son sens après fusion.
-const COMMIT_AVANT = '6270c81';
+// Bundle de base : figé au commit 7bec452 (recalage du sweep 9.12, ancienne base 6270c81) pour que la comparaison garde son sens après fusion.
+const COMMIT_AVANT = '7bec452';
 function bundleAvant() {
   if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
   try { return strip(execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] })); } catch (_e) { return null; }
@@ -688,22 +687,11 @@ if (on('hors-perimetre')) {
     const pages = [{ nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle de base (${COMMIT_AVANT}), ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
-    // Masque de l'entrée 9.8 (forum mobile : classe kr-page-forum, marge de 16 px, cibles de 44 px, alerte de tête), contrôlée par
-    // forum-activite (fragment confort). Seulement contre une base sans la classe de page kr-page-forum : classe ignorée, et sous 768 px,
-    // des deux côtés, marge neutralisée, largeur minimale des liens remise à 0 et alerte retirée. Staff, hors de l'entrée 8, comparé sans
-    // masque. Retirer quand COMMIT_AVANT dépasse 9.8.
-    const masque98 = !/classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avant);
-    const CSS_98 = `${SANS_MARGE_PAGE} @media (max-width: 767px) { body.mobile-mode #col-right :is(.forum-mobile-breadcrumb-link, .user-info > strong a) { min-width: 0 !important; } }`;
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
         const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src });
-        if (masque98 && c.width < 768 && c.url !== STAFF.url) {
-          await page.addStyleTag({ content: CSS_98 });
-          await page.evaluate(() => document.querySelectorAll('#col-right > .alert-dismissible').forEach(e => e.remove()));
-        }
         const e = await page.evaluate(EMPREINTE);
-        if (masque98) { e.html = e.html.split(' ').filter(k => k !== 'kr-page-forum').join(' '); }
         mesures.push({ e, index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }

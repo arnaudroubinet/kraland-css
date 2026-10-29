@@ -33,23 +33,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-// Bundle « avant » : base figée (A9) d64c578, feature/next après les entrées 1 à 8 de l'épopée 7 (recalage du sweep 7.10), sauf
+// Bundle « avant » : base figée (A9) 7bec452, feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12), sauf
 // KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure.
-const BASE_SHA = 'd64c5787d2f2636eb600f2204fa3a485d8af8688';
+const BASE_SHA = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
 function bundleAvant() {
   if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
   try { return strip(execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })); } catch (_e) { return null; }
 }
 const SHOTS = process.env.KR_SHOTS || '';
-// Superposition mobile retirée par l'entrée 9.6, encore posée par le bundle « avant » (d64c578) : voir regression.
-const MASQUE_SUPERPOSITION_96 = '.kr-mobile-overlay';
-// Écart voulu de l'entrée 9.9 (kramail mobile : marge de page, chevron et destinataires à 44 px ; contrôlés par kramail-theme, fragment
-// confort) : neutralisé des deux côtés, seulement contre un bundle « avant » sans la marge du kramail. Retrait au recalage de BASE_SHA
-// au-delà de 9.9.
-const MASQUE_KRAMAIL_99 = '@media (max-width: 767px) { body.mobile-mode > footer { padding-left: 0 !important; padding-right: 0 !important; }'
-  + ' body.mobile-mode #col-right > ul.media-list.forum > li.media { margin-left: 0 !important; margin-right: 0 !important; }'
-  + ' body.mobile-mode #col-right .panel-heading span.clickable { justify-content: normal !important; min-width: 0 !important; min-height: 0 !important; }'
-  + ' body.mobile-mode .kr-msg-recipients > a { min-width: auto !important; } }';
 const FA_DIR = process.env.KR_FA_DIR || '';
 const BASE = 'http://www.kraland.org';
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
@@ -1295,19 +1286,17 @@ if (frag('regression')) {
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
   if (!AVANT) {
-    check('bundle « avant » disponible (base d64c578 ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
+    check('bundle « avant » disponible (base 7bec452 ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
     // 12 combinaisons page × largeur indépendantes (contextes propres) capturées en parallèle (lib/parallele.mjs) ; dans chacune, avant
     // puis après en série comme auparavant. Notes et vérifications ensuite, dans l'ordre.
-    const masqueKramail99 = !AVANT.includes('kr-page-kramail-liste,html.kr-page-contacts) body.mobile-mode');
     const COMBOS = ['reception', 'envoi', 'corbeille', 'lecture'].flatMap(pg => [1280, 375, 320].map(width => ({ pg, width })));
     const compared = await mapLimit(COMBOS, async ({ pg, width }) => {
       const shots = {};
       const doms = {};
       let texteColore = null;
       for (const bundle of ['avant', 'apres']) {
-        const init = masqueKramail99 ? `document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(MASQUE_KRAMAIL_99)}; document.head.append(s); });` : null;
-        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
           // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page
@@ -1316,9 +1305,7 @@ if (frag('regression')) {
         });
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
-        // Écart accepté et consigné (entrée 9.6) : superposition mobile .kr-mobile-overlay (display: none en body.mobile-mode) posée par le
-        // bundle « avant » et retirée depuis, hors du compte des éléments. Retirer quand la base contient l'entrée 9.6.
-        doms[bundle] = await p.evaluate(sel => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), MASQUE_SUPERPOSITION_96);
+        doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
         const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore]')] });

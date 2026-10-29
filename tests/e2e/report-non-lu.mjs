@@ -422,7 +422,7 @@ if (on('haut')) {
 // bords, bandeau toujours à 16 px du haut (8.3), première page de la pagination à 16 px du bord, sélecteur, onglets et pages de la
 // pagination à 44 × 44 aux cinq points (elementFromPoint), aucun débordement. Dès 768 px (popup 900 × 800 et 1280 compris) : boîtes de
 // tous les textes égales au bundle de base. Bascule 767 <-> 768 dans le même onglet, dans les deux sens.
-const COMMIT_AVANT_910 = '8420e3a'; // base de l'entrée 10 (épopée des notifications finie, 8.4 comprise) ; avancer la base, ou passer KR_SCRIPT_AVANT, à la prochaine retouche du rendu ordinateur de /report
+const COMMIT_AVANT_910 = '7bec452'; // recalage du sweep 9.12 (ancienne base 8420e3a) : entrées 9.1 à 9.10 comprises ; avancer la base, ou passer KR_SCRIPT_AVANT, à la prochaine retouche du rendu ordinateur de /report
 const MARGE = 16;
 const CIBLES = ['.bg-primary select', '#myTab > li > a', '.pagination > li > a'];
 const CONFORT = () => {
@@ -442,9 +442,7 @@ const CONFORT = () => {
   };
 };
 // Relevé comparé au bundle de base (comme confort-mobile.mjs) : boîte de chaque nœud texte visible, ordre du DOM, au demi-pixel.
-// Masque du bug 15 (sansDatesLues) : les dates des lignes lues passent de 5 à 12 px du bord sur ordinateur ; leur abscisse est retirée du
-// relevé (ordonnée gardée) tant que la base ne contient pas ce retrait (contrôle « bug 15 » à la place). Retrait au recalage de COMMIT_AVANT_910.
-const RELEVE = (sansDatesLues = false) => {
+const RELEVE = () => {
   const r2 = v => Math.round(v * 2) / 2;
   const out = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -454,8 +452,7 @@ const RELEVE = (sansDatesLues = false) => {
     rg.selectNodeContents(n);
     const b = [...rg.getClientRects()].filter(x => x.width > 0 && x.height > 0);
     if (!b.length) { continue; }
-    const x = sansDatesLues && n.parentElement.closest('table > tbody > tr:not(.bg-info) > td:first-child:not(:only-child)') ? 'x' : r2(b[0].left + window.scrollX);
-    out.push(`${n.textContent.trim().slice(0, 24)} @ ${x},${r2(b[0].top + window.scrollY)} ${b.length}`);
+    out.push(`${n.textContent.trim().slice(0, 24)} @ ${r2(b[0].left + window.scrollX)},${r2(b[0].top + window.scrollY)} ${b.length}`);
   }
   return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), l: out };
 };
@@ -503,9 +500,7 @@ if (on('confort')) {
   const avant = (process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_AVANT_910}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))
     .replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
-  const masqueB15 = !avant.includes('td:first-child:not(:only-child){padding-left:var(--kr-space-3)}'); // base sans le correctif du bug 15
-  if (masqueB15) { console.log('Masque bug 15 : abscisse des dates des lignes lues retirée de la comparaison ordinateur à la base (retrait au recalage de COMMIT_AVANT_910)'); }
-  const releve = async (variante, viewport, src) => { const { context, page } = await open(REPORT, variante, viewport, src); const r = await page.evaluate(RELEVE, masqueB15); await context.close(); return r; };
+  const releve = async (variante, viewport, src) => { const { context, page } = await open(REPORT, variante, viewport, src); const r = await page.evaluate(RELEVE); await context.close(); return r; };
   console.log('Confort mobile (320, 375 × 667, 767) ; textes égaux à la base (768, 900 × 800, 1280), Kraland clair et Empire Brun sombre');
   const mob = croise([{ width: 320, height: 667 }, { width: 375, height: 667 }, { width: 767, height: 667 }], DEUX);
   const resM = await mapLimit(mob, async c => { const { context, page } = await open(REPORT, c.variante, c.viewport); const m = await mesureConfort(page); await context.close(); return m; });
@@ -527,7 +522,7 @@ if (on('confort')) {
         recharges.push(await charge);
         await krReady(page, { ready: THEME_READY, label: `confort bascule ${c.variante} ${c.largeurs[j]} px` });
       }
-      etapes.push(c.largeurs[j] < 768 ? await mesureConfort(page) : await page.evaluate(RELEVE, masqueB15));
+      etapes.push(c.largeurs[j] < 768 ? await mesureConfort(page) : await page.evaluate(RELEVE));
     }
     await context.close();
     return { etapes, recharges };
