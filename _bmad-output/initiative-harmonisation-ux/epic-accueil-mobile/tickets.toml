@@ -51,12 +51,24 @@ risk = "high"
 references = ["deferred-work.md, D9.4", "epic-plateau-confort-mobile/epic-plateau-confort-mobile-retrospective.md, F2 et A2"]
 
 [[entry]]
+id = 5
+type = "story"
+title = "Le message du ministre revient sur mobile, en carte sous Bienvenue"
+description = "Décision d'Arnaud (2026-10-30) : sur mobile, le panneau ministériel de #col-right (un .panel, pas une .alert : transformMinisterialAlert n'agit pas) est aujourd'hui masqué avec toute la colonne. Il réapparaît sur mobile seul, dans la carte de section de 5.1 (en-tête 48 px, titre 17 px), placé sous Bienvenue ; le carrousel (#myCarousel) reste masqué sur mobile ; rendu ordinateur inchangé ; page sans panneau ministériel : rien n'apparaît. Fragments E10.6 dans accueil-mobile, rouges sur la base puis verts."
+verify = "Suite accueil-mobile verte à 320, 375×667 et 767 px en Kraland clair et Empire Brun sombre, fixture avec et sans panneau ministériel ; carrousel absent sur mobile ; rendu égal à la base à 768 et 1280 px ; bascule 767 ↔ 768 ; palette-nation et confort-mobile verts ; vrai /accueil en émulation à 375×667, lecture seule, captures dans /Users/arnaud/kraland-css-captures/10.5/."
+covers = ["CAP-10", "CAP-6"]
+after = [1, 2, 3]
+hitl = false
+risk = "medium"
+references = ["epic-accueil-mobile/spike-releve-du-vrai-accueil-mobile-375-et-ordinateur-plan.md"]
+
+[[entry]]
 id = 4
 type = "story"
 title = "Refactor sweep"
 description = "Nettoyage de fin d'épopée, sans changement de rendu : périmètre fixé au départ depuis les plans 10.1 à 10.3 et les reports D10.n ; candidats connus : règles .page-accueil hors media devenues mortes ou en double avec le bloc mobile, !important du flex mobile de l'accueil (~l.11505-11535 ; les largeurs ordinateur en ≥ 2560 et 3840 px, ~l.11477-11495, restent hors du sweep sauf vérification à 2560 et 3840 px), fixtures synthétiques de l'accueil en double (palette-nation-accueil.html, accueil en ligne de typographie-formes.mjs) à rapprocher de tests/e2e/fixtures/accueil.html si leurs tests restent identiques."
 verify = "npm run test:all vert sur machine calme et sur le SHA exact, npm run test:router vert, lint:css et lint:js séparés verts, compte de !important qui ne monte pas, rendu égal à l'arbre d'avant le sweep sur la fixture de l'accueil à 375×667 et 1280 px."
 covers = ["CAP-10", "CAP-6", "CAP-5"]
-after = [1, 2, 3]
+after = [1, 2, 3, 5]
 hitl = false
 risk = "medium"
