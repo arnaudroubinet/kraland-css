@@ -60,3 +60,10 @@ slug = "epic-plateau-confort-mobile"
 title = "Plateau et confort mobile"
 covers = ["CAP-10"]
 after = [{ epic = 1, needs = "décision P1 (stratégie de cascade)" }, { epic = 4, needs = "tailles de bouton" }, { epic = 6, needs = "pages du forum finies" }, { epic = 7, needs = "pages du kramail finies" }, { epic = 8, needs = "page des notifications finie" }]
+
+[[epic]]
+id = 10
+slug = "epic-accueil-mobile"
+title = "Page d'accueil mobile"
+covers = ["CAP-10", "CAP-6", "CAP-5"]
+after = [{ epic = 9, needs = "KR_PAGE_CLASSES, kr-marge-mobile et tests/e2e/lib/marges.mjs (9.1)" }, { epic = 5, needs = "carte de section mobile (5.1)" }, { epic = 4, needs = "échelle typographique (4.5) et bouton de taille normale (4.2)" }, { epic = 3, needs = "contrôle du texte coloré dans les 16 variantes (suite palette-nation, 3.3)" }]

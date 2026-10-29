@@ -1,0 +1,62 @@
+# tickets.toml — epic-accueil-mobile, dans l'ordre de construction.
+# Inception complète le 2026-10-29 (autonome) : entrées 1 à 4, découpe donnée par la demande. Hypothèses et questions dans les Notes de epic-accueil-mobile.md.
+# Une seule lane (1, 2, 3, 4), aucune entrée parallèle : chacune a besoin du résultat de la précédente.
+# Balle traçante : entrée 2 (fixture réaliste, suite accueil-mobile.mjs et sa zone dans le routeur, mesurée avec tests/e2e/lib/marges.mjs), précédée du spike 1 (Decision dans les Notes) ; l'entrée la moins sûre est la 3 (refonte).
+# Commun : valeurs de DESIGN.md › Layout & Spacing (marge mobile, cartes de section, hauteurs), Typography et Components › Carte de section ;
+# jetons --kr-margin-mobile (16 px), --kr-touch-target (44 px) : consommés, jamais une valeur en dur ;
+# une cible tactile se mesure par sa boîte (≥ 44×44) ou par la ligne entière touchable (elementFromPoint au centre et aux bords), jamais par la seule hauteur ;
+# la marge se mesure sur le texte : aucun nœud texte visible ne commence à moins de 16 px du bord ; cartes de section à 8 px des bords, contenu à 16 px ;
+# P1 option 4 : retirer ou réécrire les règles .page-accueil remplacées, sans les battre par spécificité ni !important (aucun nouvel !important), garder par page en :where(html.kr-page-accueil) ;
+# mobile en max-width: 767px seulement, ordinateur en min-width: 768px seulement ; règle commune en liste combinée ;
+# chaque plan consigne son rouge avant sur le bundle de sa base (KR_SCRIPT, classe kr-theme-enabled vérifiée), puis une contre-épreuve (mutation → rouge) ;
+# aucun masque de test nouveau ; boucle courte test:zone ou test:changed, un seul test:all à la fin sur machine calme et sur le SHA exact ; toute entrée qui touche tests/ lance npm run test:router ;
+# largeurs : 320, 375×667, 700, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre au moins ; règle de couleur vérifiée dans les 16 variantes ;
+# site réel en lecture seule seulement (mandat d'Arnaud) : aucune action de jeu, aucun clic sur la cloche, jamais de préchargement de /report ;
+# aucun HTML brut ni capture dans le dépôt, captures dans /Users/arnaud/kraland-css-captures/<ticket>/ ; données de jeu non anonymisées ;
+# identifiants de report préfixés par l'épopée, D10.n ; une seule section Result par plan.
+
+[[entry]]
+id = 1
+type = "spike"
+title = "Relevé en lecture seule du vrai /accueil, mobile 375 et ordinateur"
+description = "Relève sur le vrai /accueil connecté, en lecture seule (mandat d'Arnaud, Chrome dédié), à 375×667 et 320 px puis à 1280, 1440 et 1920 px, thème actif et thème coupé, en Kraland clair et Empire Brun sombre : la liste des blocs dans l'ordre DOM (bandeau .alert-info, #player-header-section et ses news-item et pagination, ds_user et « Bienvenue », accueil-play-btn, accueil-forum-section, .kraland-metrics, carte ministérielle, carrousel #myCarousel), leur structure (sélecteurs, nombre d'items, textes longs, images), la distance au bord du premier texte de chaque bloc, chaque cible sous 44×44 px avec sa taille, la taille des titres et des textes, les règles .page-accueil qui s'appliquent ; remet à l'entrée 2 une description de structure suffisante pour écrire une fixture synthétique réaliste, et à l'entrée 3 la liste des écarts à E10.1-E10.4 et une proposition, bloc par bloc, de ce qui passe en carte de section."
+verify = "Une note du spike (plan) liste, bloc par bloc, structure, premier texte à moins de 16 px, cibles sous 44 px avec leur taille, titres hors 17 px, et la proposition de cartes ; les captures sont dans /Users/arnaud/kraland-css-captures/10.1/ ; aucun HTML brut ni capture dans le dépôt, aucun clic sur la cloche, aucune requête vers /report, aucune action de jeu."
+covers = ["CAP-10", "CAP-6", "CAP-5"]
+after = []
+hitl = true
+risk = "low"
+references = ["epic-plateau-confort-mobile/spike-releve-des-pages-mobiles-hors-fixtures-marge-cibles-et-carte-plan.md (méthode du spike 9.3)", "AGENTS.md › Sécurité sur le site réel, Faits du site Kraland"]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Fixture réaliste de l'accueil et suite e2e accueil-mobile"
+description = "Écrit, d'après la note du spike 10.1 et sans HTML brut du site, la fixture synthétique tests/e2e/fixtures/accueil.html (tous les blocs relevés, dans l'ordre DOM natif, textes longs et nombre d'items réalistes, données de jeu non anonymisées) et la suite accueil-mobile.mjs avec sa zone dans tests/e2e/lib/router.mjs ; la suite mesure avec tests/e2e/lib/marges.mjs (9.1) la marge du texte, les cibles et les titres, et vérifie ce qui existe déjà (E10.5 : « Bienvenue », accueil-play-btn, accueil-forum-section, ordre mobile des blocs, #col-right absent sur mobile, carrousel masqué par kr-hide-carousel à 1280 px seulement, rendu ordinateur) ; les blocs de la fixture suivent la réponse d'Arnaud sur les cartes, sinon la proposition du spike ; aucun fragment E10.1-E10.4 ni liste d'attentes (entrée 3) ; le routeur envoie à accueil-mobile page-accueil, kr-page-accueil, accueil-play-btn, accueil-forum-section, kraland-metrics, kr-ministerial-card, kr-hide-carousel et Homepage:RightColumn, avec router.test.mjs à jour."
+verify = "npm run test:zone -- accueil-mobile : fragments E10.5 verts à 375×667 et 1280 px sur le bundle de la base ; contre-épreuve (mutation de Homepage:RightColumn → rouge à 375 ; mutation de kr-hide-carousel → rouge à 1280) ; npm run test:router vert ; aucune requête hors fixture."
+covers = ["CAP-10", "CAP-6", "CAP-5"]
+after = [1, "9.1"]
+hitl = false
+risk = "medium"
+
+[[entry]]
+id = 3
+type = "story"
+title = "Refonte mobile de l'accueil : marge de 16 px, cartes de section, cibles de 44 px, titres de 17 px"
+description = "Sur mobile seulement, reprend D9.4 : ajoute à KR_PAGE_CLASSES le motif ^/(?:accueil)?$ (identique à body.page-accueil) avec kr-page-accueil et kr-marge-mobile, et accueil-mobile à la règle KR_PAGE_CLASSES du routeur ; retire ou réécrit le bloc mobile .page-accueil (~l.11501-11807), sans toucher au bloc ordinateur (~l.11179-11495), pour que chaque bloc retenu (réponse d'Arnaud, sinon proposition du spike 10.1) entre dans la carte de section de 5.1 (en-tête 48 px, titre 17 px gras couleur du texte, 8 px des bords, contenu à 16 px), en étendant la liste commune de 5.1 quand le bloc s'y prête, sinon par sélecteurs :where(html.kr-page-accueil) avec les mêmes jetons ; texte à l'échelle de 4.5, « Jouer » (a.accueil-play-btn, pas un .btn) aux valeurs du bouton de 4.2, cibles à --kr-touch-target ; garde E10.5 ; écrit dans accueil-mobile les fragments E10.1-E10.4, rouges sur la base puis verts."
+verify = "Suite accueil-mobile entièrement verte à 320, 375×667, 700 et 767 px en Kraland clair et Empire Brun sombre, rendu égal à la base à 768, 769, 1280, 1440 et 1920 px, bascule 767 ↔ 768 dans les deux sens ; titre de carte et compteurs ≥ 4,5:1 sur leur fond dans les 16 variantes sur accueil.html ; palette-nation, typographie-formes, cloche-notifications et confort-mobile verts ; npm run test:router vert ; vrai /accueil en émulation à 375×667, lecture seule, sans écart à E10.1-E10.4, captures dans /Users/arnaud/kraland-css-captures/10.3/."
+covers = ["CAP-10", "CAP-6", "CAP-5"]
+after = [1, 2, "9.1", "5.1", "4.5", "4.2", "3.3"]
+hitl = true
+risk = "high"
+references = ["deferred-work.md, D9.4", "epic-plateau-confort-mobile/epic-plateau-confort-mobile-retrospective.md, F2 et A2"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Refactor sweep"
+description = "Nettoyage de fin d'épopée, sans changement de rendu : périmètre fixé au départ depuis les plans 10.1 à 10.3 et les reports D10.n ; candidats connus : règles .page-accueil hors media devenues mortes ou en double avec le bloc mobile, !important du flex mobile de l'accueil (~l.11505-11535 ; les largeurs ordinateur en ≥ 2560 et 3840 px, ~l.11477-11495, restent hors du sweep sauf vérification à 2560 et 3840 px), fixtures synthétiques de l'accueil en double (palette-nation-accueil.html, accueil en ligne de typographie-formes.mjs) à rapprocher de tests/e2e/fixtures/accueil.html si leurs tests restent identiques."
+verify = "npm run test:all vert sur machine calme et sur le SHA exact, npm run test:router vert, lint:css et lint:js séparés verts, compte de !important qui ne monte pas, rendu égal à l'arbre d'avant le sweep sur la fixture de l'accueil à 375×667 et 1280 px."
+covers = ["CAP-10", "CAP-6", "CAP-5"]
+after = [1, 2, 3]
+hitl = false
+risk = "medium"

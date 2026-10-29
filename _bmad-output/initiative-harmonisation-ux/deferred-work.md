@@ -264,7 +264,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
   summary: D9.4 : /accueil (`body.page-accueil`) absent de `KR_PAGE_CLASSES` (pas de `kr-marge-mobile`), donc sans marge mobile de 16 px. Accord d'Arnaud attendu à la passe finale.
   evidence: `cloche-notifications` à 375 : paragraphe du contenu à 0 px du bord ; /accueil absent de `KR_PAGE_CLASSES`, des entrées 1 et 4 et du spike 9.3. Relevé du vrai site à faire.
-  status: proposé
+  status: repris par l'épopée 10 (`epic-accueil-mobile/tickets.toml`, entrées 10.1 et 10.3, 2026-10-29).
 - source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
   summary: D9.5 : `button.kd-contacts` de la rédaction du kramail à 105×40, sous les 44 px d'EXPERIENCE P3 étape 5 et H9.1. Écart connu hors périmètre. Accord d'Arnaud attendu à la passe finale.
   evidence: `kramail-nouveau` à 375, deux variantes ; laissé hors périmètre par 9.9 (`<button>`, épopée 4).

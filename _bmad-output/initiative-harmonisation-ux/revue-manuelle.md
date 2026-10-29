@@ -1113,3 +1113,30 @@ Limites :
 - Lignes de clôture « revue faite » des plans : reprises des Review Triage Logs et sections de revue, sans relecture des rapports de revue. Le spike 9.3 n'a pas de revue.
 - J'ai écrit les lignes de clôture dans les treize plans, ce que le workflow de rétro interdit d'ordinaire : c'était la demande explicite de l'orchestrateur. Les Result périmés ne sont pas réécrits.
 - Rétro 7 : les captures de `/Users/arnaud/kraland-css-captures/7.9/` (12:45) ne sont toujours pas reprises après 9.9 ; seul le parcours kramail de 9.11 est postérieur.
+
+## Épopée accueil mobile
+
+Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en autonomie. Découpe dans `epic-accueil-mobile/tickets.toml`. Elle reprend D9.4 et l'action A2 de la rétro 9, pour /accueil seulement.
+
+- Tickets, dans l'ordre :
+  1. 10.1, spike : relevé du vrai /accueil, en lecture seule (hitl : tu ouvres une session Kraland dans le Chrome dédié) ;
+  2. 10.2, fixture réaliste et suite `accueil-mobile` (après 10.1 et 9.1) ;
+  3. 10.3, refonte mobile (hitl : session pour l'émulation sur le vrai site ; après 10.1, 10.2, 9.1, 5.1, 4.5, 4.2 et 3.3) ;
+  4. 10.4, Refactor sweep (après 10.1 à 10.3).
+- Hypothèses retenues :
+  - ta demande tranche A2 pour /accueil ; Staff et /help restent ouverts ;
+  - `covers` : CAP-10, CAP-6 et CAP-5, étendus à l'accueil ; H5.6 (CAP-4) reste en non-régression ;
+  - carte de section, échelle et boutons existants : ce n'est pas un nouveau composant ;
+  - classe `kr-page-accueil` et `kr-marge-mobile` sur `html`, motif `^/(?:accueil)?$` ; l'accueil déconnecté reçoit aussi la marge, effet accepté ;
+  - refonte mobile seule : l'ordinateur ne change pas, l'ordre mobile actuel des blocs est gardé ;
+  - pas de liste d'attentes dans la suite : 10.2 livre la fixture et les tests de l'existant, 10.3 écrit les fragments de la refonte ;
+  - les fixtures d'accueil de `palette-nation` et `typographie-formes` restent ; leur fusion est un candidat du sweep ;
+  - 10.3 reste une entrée ; si le spike relève trop d'écarts, elle se re-découpe avant de partir ;
+  - épopée hors lots : `lots-de-livraison.md` n'est pas modifié ; les épopées 4 et 9 et la rétro 9 non plus.
+- À trancher par toi :
+  - quels blocs passent en carte de section (carte ministérielle comprise) ? Le carrousel est absent sur mobile : le faire revenir ?
+  - l'ordre mobile des blocs change-t-il ?
+  - la carte de section et l'échelle sur l'accueil dépassent DESIGN.md et EXPERIENCE.md : ton accord suffit-il, ou faut-il passer par `bmad-ux` ou `bmad-spec` ? Faut-il nommer l'accueil dans CAP-6 ?
+  - ta demande vaut-elle décision sur A2 avant le relevé ?
+  - reste de A2 (forum Staff, /help sur ordinateur) et pages secondaires de la question de l'épopée 4 (Événements…) : sans épopée responsable ;
+  - faut-il ajouter une ligne 10 à `lots-de-livraison.md` ?

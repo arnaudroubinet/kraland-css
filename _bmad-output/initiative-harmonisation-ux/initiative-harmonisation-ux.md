@@ -12,7 +12,7 @@ risk: high
 
 ## Description
 
-La surcharge présente le même élément de la même façon sur toutes les pages, sert la boucle de jeu et se lit dans les 16 variantes. La spec `spec-harmonisation` porte les capacités, les contraintes et les non-goals ; cette initiative les livre en neuf épopées, une par lot de `lots-de-livraison.md`.
+La surcharge présente le même élément de la même façon sur toutes les pages, sert la boucle de jeu et se lit dans les 16 variantes. La spec `spec-harmonisation` porte les capacités, les contraintes et les non-goals ; cette initiative les livre en dix épopées : neuf, une par lot de `lots-de-livraison.md`, puis l'accueil mobile (épopée 10, hors lots).
 
 ## Outcome
 
@@ -38,12 +38,13 @@ Une seule unité : la surcharge (`kraland-theme.css`, `kraland-userscript-templa
 ## Notes
 
 - Decision: le code du lot 1 fait avec superpowers (`948d93f..5bf2984`) est la base ; le travail est réintégré dans BMad (Arnaud, 2026-10-20).
-- Decision: neuf épopées, une par lot ; la modale d'ordre reste en deuxième, ses couleurs passant par `--kr-arm-bg` / `--kr-arm-ink` déjà définies pour chaque variante (Arnaud, 2026-10-20, après vérification du code).
+- Decision: neuf épopées, une par lot (complétée le 2026-10-29 par l'épopée 10, voir plus bas) ; la modale d'ordre reste en deuxième, ses couleurs passant par `--kr-arm-bg` / `--kr-arm-ink` déjà définies pour chaque variante (Arnaud, 2026-10-20, après vérification du code).
 - Decision: pas d'épopée de mise en place : build, lint et harnais Playwright existent ; P3 satisfait le 2026-10-20.
 - Decision: livrer = PR fusionnée sur `feature/next` avec bundle et `version.json` régénérés (AGENTS.md › Livraison).
 - Assumption: P1 est un ticket hitl de l'épopée 1 (note d'options écrite après le lot 1) ; P2 est le premier ticket hitl de l'épopée 2, qui en a besoin la première.
-- Assumption: l'épopée 7 passe après la 6 (« ••• » commun posé par la 6, « Envoyer » du forum laissé à la 7) ; l'épopée 9 passe en dernier (marge de 16 px et cibles de 44 px touchent forum, kramail et notifications).
+- Assumption: l'épopée 7 passe après la 6 (« ••• » commun posé par la 6, « Envoyer » du forum laissé à la 7) ; l'épopée 9 passe en dernier des neuf lots (marge de 16 px et cibles de 44 px touchent forum, kramail et notifications) ; l'épopée 10 vient après (2026-10-29).
 - Assumption: l'utilitaire de vérification des 16 variantes est créé par l'épopée 2 (entrée 3), qui en a besoin la première ; l'épopée 3 le reprend (2026-10-22).
 - Decision: P1 tranché, option 4 « retirer par domaine » : chaque épopée retire ou réécrit les règles anciennes du domaine qu'elle reprend et garde par page (`:where(html.kr-page-x)`) ce qu'elle conserve ; note : epic-identite-et-defauts/note-options-cascade-p1.md (Arnaud, 2026-10-21).
 - Assumption: règle commune aux deux supports en liste combinée `@media (max-width: 767px), (min-width: 768px)`.
+- Decision: (Arnaud, 2026-10-29) « La page d'accueil n'a pas été retravaillée pour mobile. » Épopée 10 `epic-accueil-mobile` ajoutée après les neuf lots ; elle reprend D9.4 et l'action A2 de la rétro 9 pour /accueil seulement ; l'épopée 9 garde le reste de CAP-10, Staff et /help sur ordinateur restent à trancher.
 - Waits on: voir `tickets.toml`.
