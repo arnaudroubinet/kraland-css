@@ -1837,6 +1837,8 @@ if (frag('redaction-dest')) {
   });
   const res = await mapLimit(cas, async c => {
     const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    // Sous charge, un écart entre deux frappes dépasse la temporisation de l'annuaire : réponse vide plutôt qu'une requête imprévue
+    await o.context.route(BASE + '/ajaxsearch.php*', r => r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '' }));
     const p = o.page;
     const etapes = {};
     try {
