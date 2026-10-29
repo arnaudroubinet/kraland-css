@@ -42,7 +42,7 @@ covers = ["CAP-9"]
 after = [1]
 hitl = true
 risk = "high"
-unknown = "Moment et contexte de la redéfinition : main.js du site définit openReport en fin de body ; la redéfinir au DOMContentLoaded sur unsafeWindow suffit-il sous le bac à sable Tampermonkey (@grant GM.xmlHttpRequest), alors que la fixture injecte le bundle sans bac à sable ?"
+resolved = "2026-10-29, relevé en lecture seule (Chrome dédié, /accueil, aucun clic) : main.js (kraland-7.0.9) est un script synchrone en fin de body, donc openReport (déclaration globale : window.open('report'…, 600×600)) existe avant DOMContentLoaded ; la cloche appelle openReport() dans un onclick en ligne, résolu au clic ; window.KralandPerf, écrit sur unsafeWindow par le template (~l.398), est visible côté page. Redéfinir unsafeWindow.openReport au DOMContentLoaded suffit."
 references = ["ux-harmonisation/EXPERIENCE.md › Responsive & Platform, Pop-up des notifications", "ux-harmonisation/review-faisabilite.md (H9)", "tests/e2e/vendor/parler/main.js (openReport, l.209-212)"]
 
 [[entry]]

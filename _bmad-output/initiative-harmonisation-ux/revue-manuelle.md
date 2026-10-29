@@ -135,6 +135,8 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 ## Visites du site réel faites en autonomie (lecture seule)
 
+- 2026-10-29 : `/accueil` déjà ouvert (Chrome dédié), lecture de `openReport`, des balises `<script>` et du onclick de la cloche par évaluation, sans clic ni navigation. Inconnue du 8.2 levée (champ `resolved` de l'entrée).
+
 - 2026-10-29 : relevé de structure (agent releve-site, Chrome dédié) : kramail (4 messages lus de la Réception et de l'Envoi), page Signaler, Interface, Contacts, `/aide` et `/help`. Variante non modifiée, aucun clic d'action. `/report` non visité : la cloche était active. Effet de bord possible : un sujet du forum Entraide ouvert en GET est peut-être passé en lu. Relevé hors dépôt dans `/tmp/kr-releve-2026-10-28/releve.md`.
 
 - 2026-10-23 : `/jouer/plateau` à 1280 px (Chrome dédié, CDP 9223), squelette du DOM des jauges du panneau seulement (classes, largeurs en ligne), relevé hors dépôt ; aucun clic, aucune action de jeu, variante non modifiée.
