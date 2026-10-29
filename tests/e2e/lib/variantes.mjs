@@ -262,8 +262,9 @@ export const CLASSES_RACINE_TICKET410 = ['kr-page-forum-index', 'page-forum-raci
 export const AVANT_TICKET49 = bundle => !bundle.includes('.panel-body{padding:var(--kr-space-4)}');
 /** Bundle d'avant l'épopée 4, ticket 8 : il déclare encore --mobile-radius sur :root (règle minifiée du bundle). Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
 export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
-/** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle). Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
-export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important');
+/** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle) ;
+ * un bundle qui contient l'épopée 7, entrée 2 (module Kramail:Lecture, règle kramail-msg-date retirée) est postérieur ; nom du module = repère de retrait de ce second critère. Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
+export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important') && !bundle.includes('Kramail:Lecture');
 
 /**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum

@@ -1101,10 +1101,10 @@ const ROLES_FORUM = {
     ['expéditeur', '#topics tbody td:nth-child(3)', '13px', null, 'm'],
     ['date', '#topics tbody td:nth-child(4)', '13px', null, 'm']
   ],
+  // Lecture au rendu du message de sujet (épopée 7, entrée 2) : mêmes rôles que le sujet
   lecture: [
-    ['expéditeur', '.kramail-msg-sender', '15px', null, 'm'],
-    ['date', '.kramail-msg-date', '13px', null, 'm'],
-    ['corps', '.kramail-msg-body', '15px', null, 'm']
+    ['expéditeur', 'ul.media-list.forum > li.media .user-info > strong', '15px'],
+    ['corps', 'li.media.kr-msg > .media-body > .forum-msg', '16px', null, 'm']
   ],
   // Nouveau kramail : 6e colonne = état du panneau des destinataires (ETAPES_KD) où le rôle est mesuré.
   nouveau: [
@@ -1232,14 +1232,19 @@ if (on('echelle-forum')) {
   // Garde de régression : la taille de chaque élément de #col-right est égale à celle du bundle de base (COMMIT_ECHELLE_FORUM), sans
   // masque ; les rôles du ticket 7 sont prouvés par les contrôles absolus plus haut. Pages comparées hors périmètre par forum-index.mjs
   // (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception, lecture), plus l'index et le nouveau kramail.
-  const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')]
+  // Écart accepté et consigné (épopée 7, entrée 2) : sur la lecture, boutons du titre, barre d'actions et messages (rôles du sujet, prouvés
+  // ci-dessus et par kramail-theme) hors du relevé, des deux côtés.
+  // Nom du module = repère de retrait : le masque tombe dès que le bundle de base (COMMIT_ECHELLE_FORUM) contient 'Kramail:Lecture'.
+  const MASQUE72 = !avantEchelleForum.includes('Kramail:Lecture');
+  const MESURE_TAILLES = masque72 => [...document.querySelectorAll('#col-right, #col-right *')]
     .filter(e => window.innerWidth >= 768 || /\/kramail\/post\//.test(location.pathname) || !e.closest('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])'))
+    .filter(e => !masque72 || !/\/kramail\/post\/sujet-fictif-0-/.test(location.pathname) || !e.closest('h1.page-header .pull-right, .forum-top, ul.media-list.forum'))
     .map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
     const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
-    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, MASQUE72))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
@@ -1311,9 +1316,11 @@ const PAGES_RAYONS = {
     ['panneau', 'form > .panel', 'K8'], ['entete', 'form > .panel > .panel-heading', 'K8', 'm'],
     ['entete', 'form > .panel > .panel-heading', 'K7', 'b'], ['ligne', 'form > .panel tbody > tr', 'K8', 'm']
   ] },
+  // Lecture (épopée 7, entrée 2) : avatar mobile du message de sujet (rayon V3, égal au sujet : kramail-theme, fragment lecture), hors de la
+  // comparaison à la base ; Transférer passé dans « ••• », hors des icônes du titre des deux côtés. Retrait : quand COMMIT_RAYONS contient l'entrée 7.2.
   lecture: { def: PAGES_FORUM.lecture, cas: [
-    ['carte', 'ul.media-list.forum > li.media', 'K8'], ['avatar', '.kramail-msg-avatar', 'X', 'm'], ['avatar', '.user-info img.avatar', 'X', 'b'],
-    ['menu', '.kramail-post-kebab > .btn', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4', 'm'], ['icones', 'span.pull-right > .btn', 'C4', 'b'],
+    ['carte', 'ul.media-list.forum > li.media', 'K8'], ['avatar', '.user-info img.avatar', 'X', 'b'],
+    ['menu', '.kramail-post-kebab > .btn', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn:not([href*="-7-"])', 'C4', 'm'], ['icones', 'span.pull-right > .btn', 'C4', 'b'],
     ['pagination', '.center > ul.pagination > li > a', 'C4', 'm'], ['pagination', '.center > ul.pagination > li > a', 'N4', 'b']
   ] },
   nouveau: { def: PAGES_FORUM.nouveau, cas: [

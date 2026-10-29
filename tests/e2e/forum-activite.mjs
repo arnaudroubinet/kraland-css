@@ -1182,7 +1182,7 @@ const PLUS = ({ p, cle }) => {
     // Forum : autres actions des barres (hors « ••• ») ; kramail : autres boutons du h1 (hors toggle du menu).
     voisins: cle === 'sujet'
       ? [...document.querySelectorAll(p.message + ' > ' + p.barre + ' .btn')].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, ...couleurs(b) }))
-      : [...document.querySelectorAll(p.boutonsH1)].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, boite: boite(b), ...couleurs(b) }))
+      : [...document.querySelectorAll(p.boutonsH1)].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, href: b.getAttribute('href'), boite: boite(b), ...couleurs(b) }))
   };
   hotes.forEach((h, i) => { out.hotes[i].cible = cible(h); });
   window.scrollTo(0, 0);
@@ -1244,7 +1244,21 @@ if (on('plus')) {
   // Corbeille) deviennent des onglets, prouvés par la suite des onglets du kramail. Ils sont retirés des deux côtés avant la mesure, reconnus par leur
   // lien natif ; « ••• » et les autres boutons du h1 restent comparés. Retrait : quand COMMIT_PLUS contient l'entrée.
   const RETIRER_DOSSIERS = () => { if (window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); } };
-  const mesurer = async (o, nom) => { await o.page.evaluate(RETIRER_DOSSIERS); await o.page.evaluate(CONTRASTE); return o.page.evaluate(PLUS, { p: P, cle: nom }); };
+  // Écart accepté et consigné (épopée 7, entrée 2) : sur la lecture du kramail, Répondre et Répondre à tous libellés, Transférer passé dans
+  // « ••• » sur mobile et message au rendu du sujet (prouvés par kramail-theme, fragments lecture*). Sur ordinateur, Répondre, Répondre à
+  // tous et le message sont retirés des deux côtés avant la mesure ; Transférer reste comparé, à la même abscisse une fois les deux libellés
+  // retirés. Sur mobile, les trois boutons sont exclus des boutons comparés et l'abscisse du « ••• » (décalée par les libellés) n'est pas
+  // comparée. « ••• » (taille, couleurs, rayon) et Réception restent comparés.
+  // Nom du module = repère de retrait : le masque tombe dès que le bundle de base (COMMIT_PLUS) contient 'Kramail:Lecture'.
+  const AVANT_TICKET72 = !basePlus.includes('Kramail:Lecture');
+  const RETIRER_LECTURE = () => { if (window.innerWidth >= 768 && /\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('a.btn:is([href*="-5-"], [href*="-6-"]), #col-right > ul.media-list.forum').forEach(e => e.remove()); } };
+  const ECART72 = /-[567]-\d+$/;
+  const mesurer = async (o, nom) => {
+    await o.page.evaluate(RETIRER_DOSSIERS);
+    if (AVANT_TICKET72) { await o.page.evaluate(RETIRER_LECTURE); }
+    await o.page.evaluate(CONTRASTE);
+    return o.page.evaluate(PLUS, { p: P, cle: nom });
+  };
   // Parcours d'une page : mesure au repos, toucher du premier « ••• » (cible vérifiée avant), état ouvert et voile réel éventuel, voile
   // simulé posé puis retiré.
   const parcours = async c => {
@@ -1329,10 +1343,12 @@ if (on('plus')) {
     } else {
       check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})`, () => {
         assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
-        const vue = h => ({ boite: h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        const ecart72 = AVANT_TICKET72 && nom === 'lecture';
+        const vue = h => ({ boite: ecart72 ? { ...h.boite, x: null } : h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
         assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
-        assert.ok(m.voisins.length > 0, 'aucun autre bouton du h1');
-        assert.deepEqual(vueKramail(m.voisins), vueKramail(b.m.voisins), 'autres boutons du h1');
+        const garder72 = v => (ecart72 ? v.filter(x => !ECART72.test(x.href || '')) : v);
+        assert.ok(garder72(m.voisins).length > 0, 'aucun autre bouton du h1');
+        assert.deepEqual(vueKramail(garder72(m.voisins)), vueKramail(garder72(b.m.voisins)), 'autres boutons du h1');
       });
     }
     // Voile réel du kramail non contrôlé ici : le module arrête la propagation du clic, Bootstrap n'en pose donc aucun (vrai par

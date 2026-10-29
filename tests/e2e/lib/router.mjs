@@ -100,7 +100,8 @@ export const SUITES = [
   { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true },
   // Kramail, thème (épopée 7, entrée 1) : gardes de page sur <html> (kr-page-kramail, liste / lecture / compose), injection en tête et au
   // DOMContentLoaded ; dossiers en Onglets de section libellés à 375 et 767 px, clair et sombre ; ordinateur (768, 1280) égal à la base figée.
-  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule']], needsBootstrap: true },
+  // Lecture (entrée 2) : message, fil et message de l'Envoi égaux au message de sujet du forum ; Répondre libellés, « ••• » ; 16 variantes.
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
   // 1280 px, bascule 767 <-> 768 et pages hors périmètre (règles, forum, kramail, notifications, Cybermonde) égales au bundle de base.
