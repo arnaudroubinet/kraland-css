@@ -135,6 +135,7 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 ## Visites du site réel faites en autonomie (lecture seule)
 
+- 2026-10-29 : relevé de structure (agent releve-aide) : /help, /help/staff, /help/password, /help/defkra, /communaute/membres, une fiche d'un autre membre (GET) ; aucun clic, variante inchangée, /report non visité
 - 2026-10-29 : relevé de structure (agent releve-membres, Chrome dédié, nouvel onglet fermé ensuite) : `/communaute/membres`, `/aide` (lecture des onclick), `/help`, `/help/staff`, à 375 et 1280 px. GET et évaluations seulement, aucun clic ni saisie, variante inchangée, `/report` non visité. Relevé hors dépôt dans `/tmp/kr-releve-membres/releve.md`.
 - 2026-10-29 : `/accueil` rechargé (GET), vérification du 8.2 par évaluation, `window.open` sondé ; aucun clic, aucune requête vers `/report`.
 
@@ -753,3 +754,13 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Menu de personnage : au clavier, l'option prend le fond de survol et un contour primaire de 2 px (`:focus-visible`, mobile et bureau) ; Entrée sur une option suit son lien. Le contrôle de cartes-pastilles exige désormais au moins autant de règles `:focus` que la base. Contour retenu en `:focus-visible` seul : un contour au survol de la souris n'était pas demandé.
 - La catégorie du menu (« (Compte Membre) ») passe de `--kr-text-muted` à `--kr-text-secondary` : le jeton atténué tombait à 2,54:1 dans 6 variantes claires et sous 4,5:1 dans les variantes sombres.
 - Sur mobile, le libellé du fil vient du titre actif de la colonne de gauche (« Kramail ») et pointe vers `kramail`. À vérifier sur le site que cette adresse mène bien à la Réception du compte courant.
+
+## Ticket 9.13 — Membres et fenêtre d'aide (en revue, 2026-10-29)
+
+- Page Membres : `/communaute/membres` n'est pas une liste de membres, c'est la fiche du compte connecté en édition (relevé releve-aide). Ses 7 boutons d'édition `span.btn-group-xs > a.btn` (icône `fa-edit` seule, padding 8px) mesurent 33,8 × 44 px. La fixture les reproduit à 34 px sur la base (padding et largeur d'icône posés en ligne). Correctif : `min-width` de 44 px, limité à `#myTabContent` ; la fiche d'un autre membre n'a ni `#myTabContent` ni `.btn-group-xs`.
+- Fenêtre `/help` sur ordinateur : relevé à 1280 px, `#content` en padding-left 0 et padding-right 48px, `.row` en margin-left 0, textes à 0 px. Les fixtures reproduisent cet effet de `main.css` par un style en ligne. Le CSS du ticket est mobile seul : 768 à 1280 px restent égaux à la base. Aucune marge sur ordinateur, à trancher (fidélité de `/help` au bureau et parent de `#content` : relevé séparé du coordinateur en cours).
+- Page Membres : le relevé du 2026-10-29 (releve-membres) plaçait un `li` à 4 px du bord à 375 px. La fixture ne le reproduit pas. Probablement un onglet `ul#myTab` dont seule la boîte touche le bord. À vérifier sur le site.
+- `/help/staff` : les `.well` passent à 8 px des bords comme une carte de section (H4.1), premier texte à 24 px au plus ; sans cela, le texte des cellules serait à 40 px. Choix de rangement pris seul.
+- Les liens `td > a` agrandis sont limités aux `.well` : seule `/help/staff` en a (25, aucun dans une phrase) ; `/help/password` et `/help/defkra` n'ont ni `.well` ni `td > a`.
+- Les liens de texte de `/help` (`p > a`, `pre > a`) restent au fil du texte (exception H9.1), non agrandis.
+- L'exclusion des modales (`:where(:not(.modal *))`) n'a pas de contrôle : aucune fixture de ces pages ne contient de modale.

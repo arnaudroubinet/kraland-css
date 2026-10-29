@@ -16,10 +16,18 @@
 //                   767 px, Kraland clair et Empire Brun sombre : classes kr-page-secondaire et kr-marge-mobile ; texte à 16 px des bords ;
 //                   cartes à 8 px ; cibles hors bouton à 44 × 44 aux cinq points (elementFromPoint) ; input.hidden masqués ;
 //                   formulaires à leur hauteur ; titre de la ville à 16 px du bord ; à 768 et 1280 px, textes égaux au bundle de base
-//                   (titre de la ville à 768 px excepté).
+//                   (titre de la ville à 768 px excepté) ;
+//   membres-aide    (entrée 13, plan story-membres-et-fenetre-d-aide-marge-de-16-px-et-cibles-de-44-px) page Membres (fiche du compte connecté en édition), fenêtre d'aide
+//                   /help et /help/staff (fixtures secondaires-membres.html, aide-fenetre.html, aide-fenetre-staff.html) à 320, 375 et 767 px,
+//                   Kraland clair et Empire Brun sombre : classes de page ; texte à 16 px des bords ; cartes (.well de l'aide) à 8 px ;
+//                   .btn-group-xs > .btn des Membres et td > a de l'aide à 44 × 44 aux cinq points ; à 768, 769 et 1280 px, textes égaux au
+//                   bundle de base 034a820 ; bascule 767 <-> 768 sur /help/staff et Membres dans les deux sens ; premier texte des .well
+//                   de /help/staff à 24 px au plus du bord ; hors périmètre (lien de tableau hors .well, fiche de membre sans
+//                   #myTabContent) : largeurs égales au bundle de base.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 9b6851a, entrée 1 comprise), KR_FRAG =
-// mobile, bureau, bascule, hors-perimetre, secondaires (vide = tout).
+// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide (vide = tout). KR_SCRIPT_AVANT_13 : bundle de base du fragment membres-aide
+// (défaut : git show 034a820, entrée 4 comprise).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -40,6 +48,9 @@ const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join
 const COMMIT_AVANT = '9b6851a'; // entrées 7.1, 9.1, 9.2 et 9.6 comprises
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const COMMIT_AVANT_13 = '034a820'; // base du fragment membres-aide : entrée 4 comprise
+const avant13 = sansEntete(process.env.KR_SCRIPT_AVANT_13 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_13, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_AVANT_13}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
@@ -89,6 +100,32 @@ const HORS = Object.keys(PAGES).filter(k => !PAGES[k].classe);
 // garde, champs de formulaire).
 PAGES['evenements-sans-libelle'] = { url: '/monde/evenements', html: PAGES.evenements.html.replace(/<label class="form-check-label"[^>]*>[^<]*<\/label>/, ''), classe: 'kr-page-secondaire' };
 PAGES['kramail-nouveau'] = { url: '/kramail/post/nouveau-4-2000', html: lire('kramail-nouveau.html'), classe: null };
+// Membres et fenêtre d'aide (entrée 13) : classes attendues, cibles mesurées, cartes (sélecteur d'ETAT ; null : page sans carte).
+const CARTES_AIDE = { cartes: '.well', exclues: '.modal' };
+const MEMBRES_AIDE = {
+  membres: { url: '/communaute/membres', html: lire('secondaires-membres.html'), classes: ['kr-marge-mobile', 'kr-page-secondaire'], membres: true, cibles: ['#myTabContent > .active .btn-group-xs > .btn'], cartes: CARTES_SECTION },
+  'aide-fenetre': { url: '/help', html: lire('aide-fenetre.html'), classes: ['kr-marge-mobile', 'kr-page-aide-fenetre'], cibles: [], cartes: null },
+  'aide-staff': { url: '/help/staff', html: lire('aide-fenetre-staff.html'), classes: ['kr-marge-mobile', 'kr-page-aide-fenetre'], cibles: ['td > a'], cartes: CARTES_AIDE, plafond: '.well' }
+};
+Object.entries(MEMBRES_AIDE).forEach(([k, v]) => { PAGES[k] = { ...v, classe: v.classes[1] }; });
+// Hors périmètre de l'entrée 13 : lien de tableau hors .well dans l'aide, fiche de membre sans #myTabContent ; largeurs égales au bundle de base.
+const HORS_13 = {
+  'aide-hors-well': { url: '/help/staff', sel: '#kr-hors-well',
+    html: MEMBRES_AIDE['aide-staff'].html.replace('<div class="row">\n', '<div class="row">\n    <table class="table"><tbody><tr><td><a id="kr-hors-well" href="/help">Ab</a></td></tr></tbody></table>\n') },
+  'fiche-membres': { url: '/communaute/membres/fixture-1', sel: '.btn-group-xs > .btn',
+    html: MEMBRES_AIDE.membres.html.replace('id="myTabContent"', 'id="kr-sans-volets"') }
+};
+Object.entries(HORS_13).forEach(([k, v]) => { PAGES[k] = v; });
+// Plafond du premier texte de chaque carte (sélecteur) : bord gauche de la carte au premier nœud texte visible, au plus 24 px de l'écran.
+const PLAFOND = 24;
+const PREMIERS_TEXTES = sel => [...document.querySelectorAll(sel)].map(el => {
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+  const n = w.nextNode();
+  if (!n) { return null; }
+  const rg = document.createRange();
+  rg.selectNodeContents(n);
+  return Math.round(rg.getBoundingClientRect().left);
+});
 
 let failures = 0;
 function check(name, fn) {
@@ -157,7 +194,7 @@ const ETAT = Q => {
     });
   return {
     theme: h.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'),
-    classes: ['kr-page-jeu', 'kr-page-aide', 'kr-page-secondaire', 'kr-marge-mobile'].filter(c => h.contains(c)),
+    classes: ['kr-page-jeu', 'kr-page-aide', 'kr-page-aide-fenetre', 'kr-page-secondaire', 'kr-marge-mobile'].filter(c => h.contains(c)),
     vw, sw: document.documentElement.scrollWidth, cartes, imbriquees
   };
 };
@@ -258,8 +295,8 @@ if (on('bureau')) {
 }
 
 // ---------- bascule ----------
-async function parcours(script, variante, largeurs) {
-  const { context, page, erreurs } = await ouvrir({ nom: 'perso', width: largeurs[0], variante, script, tactile: false });
+async function parcours(script, variante, largeurs, nom = 'perso', cartes = CARTES_SECTION, sels = []) {
+  const { context, page, erreurs } = await ouvrir({ nom, width: largeurs[0], variante, script, tactile: false });
   const etapes = [];
   for (let i = 0; i < largeurs.length; i += 1) {
     const width = largeurs[i];
@@ -270,7 +307,15 @@ async function parcours(script, variante, largeurs) {
       await charge;
       await prete(page, `bascule ${variante} ${width} px`);
     }
-    etapes.push({ width, m: await page.evaluate(ETAT, CARTES_SECTION), hors: await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: MARGE }), r: await page.evaluate(RELEVE) });
+    const etape = { width, m: await page.evaluate(ETAT, cartes), hors: await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: MARGE }), r: await page.evaluate(RELEVE), cibles: [] };
+    // Cibles mesurées après le relevé et seulement en mobile ; CIBLE_PAGE fait défiler : retour en haut pour l'étape suivante.
+    for (const sel of width < 768 ? sels : []) {
+      const n = await page.evaluate(s => document.querySelectorAll(s).length, sel);
+      if (n === 0) { etape.cibles.push({ sel, i: 0, e: ['aucune cible'] }); }
+      for (let j = 0; j < n; j += 1) { etape.cibles.push({ sel, i: j, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, j])) }); }
+    }
+    if (etape.cibles.length) { await page.evaluate(() => window.scrollTo(0, 0)); }
+    etapes.push(etape);
   }
   await context.close();
   return { etapes, erreurs };
@@ -512,6 +557,116 @@ if (on('secondaires')) {
     if (c.nom === 'ville') {
       check(`${lab} : titre de la ville à ${MARGE} px du bord gauche`, () => assert.ok(teste.titre && teste.titre.gauche >= MARGE - 0.5, `titre à ${teste.titre && Math.round(teste.titre.gauche)} px`));
     }
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
+// ---------- Membres et fenêtre d'aide ----------
+if (on('membres-aide')) {
+  console.log('\n== membres-aide ==');
+  const noms = Object.keys(MEMBRES_AIDE);
+  const cas = noms.flatMap(nom => VARIANTES.flatMap(variante => [320, 375, 767].map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => {
+    const def = MEMBRES_AIDE[c.nom];
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    const m = await page.evaluate(ETAT, def.cartes || CARTES_SECTION);
+    const hors = await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: MARGE });
+    m.membres = await page.evaluate(() => document.documentElement.classList.contains('kr-page-members'));
+    m.premiers = def.plafond ? await page.evaluate(PREMIERS_TEXTES, def.plafond) : [];
+    const cibles = [];
+    for (const sel of def.cibles) {
+      const n = await page.evaluate(s => document.querySelectorAll(s).length, sel);
+      if (n === 0) { cibles.push({ sel, i: 0, e: ['aucune cible'] }); }
+      for (let i = 0; i < n; i += 1) { cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
+    }
+    await context.close();
+    return { c, m, hors, cibles, erreurs };
+  });
+  for (const { c, m, hors, cibles, erreurs } of res) {
+    const def = MEMBRES_AIDE[c.nom];
+    const lab = `membres-aide ${c.nom} ${c.variante} ${c.width} px`;
+    check(`${lab} : classes ${def.classes.join(' et ')} sur <html>${def.membres ? ', avec kr-page-members' : ''}`, () => {
+      assert.deepEqual([...m.classes].sort(), def.classes);
+      assert.equal(m.membres, Boolean(def.membres), 'kr-page-members');
+    });
+    check(`${lab} : texte à ${MARGE} px des bords${def.cartes ? `, cartes à ${CARTE} px` : ''}`, () => controlerMarge(def.cartes ? m : { ...m, cartes: [] }, hors, !def.cartes));
+    if (def.plafond) {
+      check(`${lab} : premier texte de chaque ${def.plafond} à ${PLAFOND} px au plus du bord`, () => {
+        assert.ok(m.premiers.length > 0, `aucun ${def.plafond}`);
+        const d = m.premiers.map((x, i) => [i, x]).filter(([, x]) => x === null || x > PLAFOND);
+        assert.deepEqual(d, [], `${def.plafond} [indice, gauche] : ${JSON.stringify(d)}`);
+      });
+    }
+    if (def.cibles.length) {
+      check(`${lab} : cibles à 44 × 44 (${def.cibles.join(', ')})`, () => {
+        const e = cibles.filter(x => x.e.length).map(x => `${x.sel}[${x.i}] ${x.e.join(', ')}`);
+        assert.deepEqual(e, [], `${e.length} cible(s) : ${e.slice(0, 3).join(' ; ')}`);
+      });
+    }
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+
+  // Bureau : textes égaux au bundle de base du fragment.
+  const casB = noms.flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.map(width => ({ nom, variante, width }))));
+  const releve = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, height: 720, script });
+    const r = await page.evaluate(RELEVE);
+    await context.close();
+    return { r, erreurs };
+  };
+  const resB = await mapLimit(casB, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant13) }));
+  for (const { c, teste, base } of resB) {
+    const lab = `membres-aide bureau ${c.nom} ${c.variante} ${c.width} px`;
+    check(`${lab} : textes égaux au bundle de base`, () => {
+      assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
+      assert.equal(teste.r.mobile, false, 'mode mobile au-delà de 767 px');
+      assert.ok(teste.r.l.length > 0, 'aucun texte');
+      const d = premierEcart(teste.r.l, base.r.l);
+      assert.equal(d, '', d);
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+
+  // Bascule 767 <-> 768 sur /help/staff et sur Membres, dans les deux sens et dans le même onglet.
+  const casS = ['aide-staff', 'membres'].flatMap(nom => VARIANTES.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ nom, variante, largeurs }))));
+  const resS = await mapLimit(casS, async c => ({ c, teste: await parcours(userscript, c.variante, c.largeurs, c.nom, MEMBRES_AIDE[c.nom].cartes, MEMBRES_AIDE[c.nom].cibles),
+    base: await parcours(avant13, c.variante, c.largeurs, c.nom, MEMBRES_AIDE[c.nom].cartes) }));
+  for (const { c, teste, base } of resS) {
+    const lab = `membres-aide bascule ${c.nom} ${c.variante} ${c.largeurs.join(' -> ')}`;
+    teste.etapes.forEach((e, i) => {
+      if (e.width < 768) {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : texte à ${MARGE} px des bords, cartes à ${CARTE} px`, () => controlerMarge(e.m, e.hors));
+        check(`${lab}, étape ${i + 1} (${e.width} px) : cibles à 44 × 44 (${MEMBRES_AIDE[c.nom].cibles.join(', ')})`, () => {
+          const d = e.cibles.filter(x => x.e.length).map(x => `${x.sel}[${x.i}] ${x.e.join(', ')}`);
+          assert.deepEqual(d, [], `${d.length} cible(s) : ${d.slice(0, 3).join(' ; ')}`);
+        });
+      } else {
+        check(`${lab}, étape ${i + 1} (${e.width} px) : égal au bundle de base (même parcours)`, () => {
+          assert.ok(e.r.theme && base.etapes[i].r.theme, 'kr-theme-enabled absent');
+          assert.equal(e.r.mobile, false, 'mode mobile à 768 px');
+          const d = premierEcart(e.r.l, base.etapes[i].r.l);
+          assert.equal(d, '', d);
+        });
+      }
+    });
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+
+  // Hors périmètre : largeurs des liens égales au bundle de base.
+  const casH = Object.keys(HORS_13).flatMap(nom => VARIANTES.flatMap(variante => [375, 767].map(width => ({ nom, variante, width }))));
+  const largeurs = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script });
+    const l = await page.evaluate(s => [...document.querySelectorAll(s)].map(a => Math.round(a.getBoundingClientRect().width)), HORS_13[c.nom].sel);
+    await context.close();
+    return { l, erreurs };
+  };
+  const resH = await mapLimit(casH, async c => ({ c, teste: await largeurs(c, userscript), base: await largeurs(c, avant13) }));
+  for (const { c, teste, base } of resH) {
+    const lab = `membres-aide hors-perimetre ${c.nom} ${c.variante} ${c.width} px`;
+    check(`${lab} : largeurs de ${HORS_13[c.nom].sel} égales au bundle de base`, () => {
+      assert.ok(teste.l.length > 0, 'aucun lien');
+      assert.deepEqual(teste.l, base.l);
+    });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
   }
 }

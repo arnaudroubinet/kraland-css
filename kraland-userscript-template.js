@@ -307,7 +307,8 @@
   const KR_PAGE_CLASSES = [
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
     { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
-    { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] }
+    { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] },
+    { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] }
   ];
 
   /** Classes de page du chemin, sans doublon. */

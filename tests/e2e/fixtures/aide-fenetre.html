@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : fenêtre d'aide, chemin servi /help (ouverte par openHelp('') depuis /aide).
+  Forme reprise du relevé en lecture seule du site réel du 2026-10-28 (Annexe C, « Aide en fenêtre ») et du 2026-10-29 (agent releve-membres) :
+  gabarit propre, `body > nav.navbar.navbar-inverse.nomargin > div.container > div.navbar-header (button.navbar-toggle, a.navbar-brand[href=/help])
+  + div#navbar.navbar-collapse.collapse > ul.nav.navbar-nav > li.active > a[href=/help], li > a[href=/help/defkra] ×6`, puis
+  `div#content.container > div.row > h2, h4, p > a, p > i, pre > a, ul > li ×3`, sans #col-left ni #col-right, sans pied de page.
+  Écarts assumés : textes INVENTÉS ; nombre de paragraphes réduit ; aucun script natif.
+  Relevé du 2026-10-29 (agent releve-aide, /tmp/kr-releve-aide/releve.md, hors dépôt) : body > div#content.container ; à 1280 px, #content en
+  padding-left 0 et padding-right 48px, .row en margin-left 0 (main.css de kraland-7.0.9, reproduit par le style en ligne ci-dessous).
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Aide en fenêtre</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+<style>
+/* Effet relevé de lib/kraland-7.0.9/css/main.css (feuille non servie par le harnais) : #content et sa ligne collés à gauche. */
+#content { padding-left: 0; padding-right: 48px; }
+#content > .row { margin-left: 0; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"><span class="sr-only">Menu</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+      <a class="navbar-brand" href="/help">Aide</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="/help">Accueil</a></li>
+        <li><a href="/help/defkra">Defkra</a></li>
+        <li><a href="/help/staff">Staff</a></li>
+        <li><a href="/help/password">Mot de passe</a></li>
+        <li><a href="/help/regles">Règles</a></li>
+        <li><a href="/help/divers">Divers</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div id="content" class="container">
+  <div class="row">
+    <h2>Aide d'essai</h2>
+    <h4>Première question d'essai</h4>
+    <p>Paragraphe d'essai assez long pour passer sur plusieurs lignes, avec un <a href="/">premier lien</a> et un <a href="/">second lien</a> au fil du texte.</p>
+    <p>Deuxième paragraphe d'essai, lui aussi assez long pour passer sur plusieurs lignes à la largeur d'un téléphone.</p>
+    <p>Troisième paragraphe d'essai.</p>
+    <h4>Deuxième question <i>en italique</i></h4>
+    <p>Paragraphe <i>avec une précision</i> et <i>une autre</i>.</p>
+    <h4>Troisième question d'essai</h4>
+    <p>Voir <a href="http://example.invalid/">la page externe d'essai</a>.</p>
+    <pre>Exemple d'essai préformaté, assez long pour déborder de la largeur d'un téléphone : <a href="http://example.invalid/">lien</a></pre>
+    <p>Suite après l'exemple, <a href="/">lien d'essai</a>.</p>
+    <h4>Quatrième question d'essai</h4>
+    <ul>
+      <li>Premier point d'essai</li>
+      <li>Deuxième point d'essai</li>
+      <li>Troisième point d'essai, assez long pour passer sur deux lignes à la largeur d'un téléphone.</li>
+    </ul>
+    <p></p>
+  </div>
+</div>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
