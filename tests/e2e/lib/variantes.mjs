@@ -466,6 +466,22 @@ export const AVANT_TICKET95 = bundle => !bundle.includes('--kr-touche-croix');
  * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures du fil de sujet et des index (citées par trois suites),
  * classes de l'index et du forum, carte de section, ligne de l'index et flèche « dernier message ».
  */
+/**
+ * Repères du fragment confort de forum-activite (épopée 9, entrée 8) : cibles mesurées, exclusions (boutons, modales, menus fermés,
+ * texte masqué), cartes (panneaux de section et messages du forum, hors accordéon, modale et panneau imbriqué), titre d'une carte, croix
+ * d'alerte. Tenus ici pour ne pas rendre transverses (MAX_CITING) des repères déjà cités par 3 suites.
+ */
+export const REPERES_CONFORT_ENTREE8 = {
+  cibles: '#col-right a, #col-right button, #col-right select, #col-right input[type=checkbox], #col-right input[type=radio], #col-right .clickable, body > footer a',
+  exclus: '.btn, .modal, .dropdown-menu, .sr-only',
+  cartes: '#col-right .panel-default, #col-right > ul.media-list.forum > li.media',
+  horsCartes: '.panel-group, .modal',
+  imbrique: '.panel-default',
+  titreCarte: '.panel-title, .panel-heading, .user-info',
+  croix: '#col-right > .alert-dismissible > .close',
+  alerte: '#col-right > .alert-dismissible'
+};
+
 export const ACTIVITE_TICKET62 = {
   sujet: 'forum-sujet.html',
   indexRp: 'forum-index-rp.html',
@@ -805,7 +821,16 @@ export const REPERES_LIGNE_TICKET66 = {
     'forum/rp/les-cadets-d-essai-10107': 'far fa-handshake',
     'forum/communaute/annonces-d-essai-30101': 'far fa-newspaper',
     'forum/communaute/clubs-d-essai-30102': 'far fa-smile',
-    'forum/communaute/archives-d-essai-30103': 'far fa-folder'
+    'forum/communaute/archives-d-essai-30103': 'far fa-folder',
+    'forum/hrp/site-annonces-20101': 'far fa-flag',
+    'forum/hrp/debuter-20102': 'fa fa-paper-plane',
+    'forum/hrp/regles-20103': 'far fa-file-archive',
+    'forum/hrp/entracte-20104': 'far fa-hand-peace',
+    'forum/hrp/bugs-20105': 'far fa-times-circle',
+    'forum/debats/politique-societe-40101': 'far fa-flag',
+    'forum/debats/culture-40102': 'far fa-gem',
+    'forum/debats/histoire-40103': 'far fa-file-archive',
+    'forum/debats/sciences-40104': 'far fa-lightbulb'
   },
   cache: 'aria-hidden',
   racineNue: 'forum-racine.html'

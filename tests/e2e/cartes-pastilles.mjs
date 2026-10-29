@@ -511,11 +511,16 @@ if (on('module')) {
 // Écart accepté et consigné (épopée 7, entrée 3) : h1 de la liste et de la lecture du kramail à l'en-tête du sous-forum (kramail-theme,
 // fragments entete*), retiré des deux rendus avant le relevé (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_AVANT
 // (base figée) sur un SHA qui contient l'entrée.
+// Masque de l'entrée 9.8 (forum mobile, nom de l'auteur d'un message à 44 px de large au minimum, contrôlé par forum-activite, fragment
+// confort) : largeur minimale remise à 0 des deux côtés, pour le fragment forum seul et contre une base sans la classe de page
+// kr-page-forum. Retirer quand COMMIT_AVANT dépasse 9.8.
+const MASQUE_FORUM_98 = /classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avant) ? ''
+  : '@media (max-width: 767px) { body.mobile-mode #col-right .user-info > strong a { min-width: 0 !important; } }';
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
+      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true, css: frag === 'forum' ? MASQUE_FORUM_98 : '' });
       if (AVANT_TICKET73(avant)) { await page.evaluate(RETIRER_ENTETE_TICKET73); }
       out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, undefined, MASQUE_INDICATEUR_96]), erreurs };
       await context.close();

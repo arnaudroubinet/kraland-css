@@ -789,3 +789,14 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Taille du texte à 14 px sur ordinateur : aucun test ne la distingue des 14 px natifs de Bootstrap. Report consigné, rien à faire de ton côté.
 - Écart du déplacement de la taille 14 px dans le bloc ordinateur : une table imbriquée dans une cellule du journal passe de 14 à 15 px sur mobile, car elle hérite de la règle mobile. Mesuré : 54 écarts à 375 px, 0 à 1280 px. Ce cas est absent de la fixture et reste hypothétique sur le site. La règle n'est pas restaurée.
 - `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion (verify de l'entrée).
+
+## Ticket 9.8 — forum mobile, marge et cibles (2026-10-29)
+
+- Écart au ticket : recherche et modération non couvertes faute de relevé, à acter par Arnaud. Elles sont absentes du relevé réel et du spike 9.3 (introuvables sur ce compte) : pas de fixture, pas de correctif.
+- Nouveau sujet : Tags non couvert, faute de relevé. La page n'a été relevée que hors connexion ; le champ Tags est absent de la fixture `forum-nouveau-sujet.html`.
+- Messages du forum : sur mobile, ils deviennent des cartes à 8 px des bords. La lecture du kramail partage leurs règles mais ne change pas, d'où un écart visuel entre les deux. À trancher : accepter, ou étendre au kramail (entrée 9). Le contrôle `lecture` de kramail-theme mesure le message de forum de référence sans la marge de page : lié à D3 ; à revoir si les cartes à 8 px s'étendent au kramail.
+- Alerte de tête (« Bienvenue », « Sujet Bloqué ! ») : la place réservée à la croix passe de 35 à 44 px, et la croix devient une cible de 44 × 44, sur tout le forum sauf Staff. Staff exclu, à trancher par Arnaud avec l'alignement de Staff (`epic-plateau-confort-mobile.md`, l.65) : la catégorie `/forum/staff[/…]` ne reçoit pas `kr-page-forum` et reste égale à la base.
+- Le forum ne reçoit pas la classe `kr-marge-mobile` : ses en-têtes portaient déjà 16 px et la marge de ligne les doublait (32 px). Seules les pièces collées au bord reçoivent la marge : pied, ligne « Par … », titres, formulaire de rédaction, messages.
+- Restent sous 44 px, hors périmètre : boutons `.btn` (épopée 4), lien « clic » au fil du texte (exception H9.1), libellés de formulaire sans contrôle associé, liens d'auteur recouverts par la ligne touchable de l'index.
+- Sous 360 px, le libellé « Message » de la rédaction est décalé par `text-indent` (texte à 16 px, boîte à 4 px). Le padding de la règle mobile y est verrouillé en `!important`.
+- Suites sœurs : trois masques conditionnés à une base sans `kr-page-forum` (typographie-formes `nettoyage`, forum-index `hors-perimetre`, cartes-pastilles `forum`), à retirer quand leur commit de base dépassera 9.8. Un changement permanent : dans kramail-theme `lecture`, le message de forum de référence est mesuré sans la marge de page, faute de quoi la carte à 8 px du forum s'opposerait au kramail (point des messages ci-dessus).

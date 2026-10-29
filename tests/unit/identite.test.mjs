@@ -18,14 +18,19 @@ test('section active, sous-chemins du plateau compris', () => {
   assert.equal(krActiveGameSection('/jouer/plateaux'), null);
 });
 
-test('classes de page : pages secondaires (épopée 9, entrée 4) avec la marge mobile, Contacts et forum exclus', () => {
+test('classes de page : pages secondaires (épopée 9, entrée 4) avec la marge mobile, Contacts exclu', () => {
   const sec = ['kr-page-secondaire', 'kr-marge-mobile'];
   ['/regles/base', '/monde/evenements', '/monde/citoyens', '/map', '/map/cybermonde', '/map/ville/x', '/communaute/membres',
     '/communaute/membres/krabot-1-644', '/communaute/stats', '/profil/interface'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), sec, p));
-  ['/contacts', '/communaute', '/profil', '/profil/interfaces', '/mondes', '/forum/rp', '/report', '/helpers'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
+  ['/contacts', '/communaute', '/profil', '/profil/interfaces', '/mondes', '/forums', '/report', '/helpers'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
   assert.deepEqual(plain(krPageClasses('/aide')), ['kr-page-aide', 'kr-marge-mobile']);
   ['/help', '/help/staff'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-aide-fenetre', 'kr-marge-mobile'], p));
   assert.deepEqual(plain(krPageClasses('/jouer/plateau')), ['kr-page-jeu', 'kr-marge-mobile']);
+});
+
+test('classes de page : forum (épopée 9, entrée 8) sans la marge de ligne, Contacts et Staff exclus', () => {
+  ['/forum', '/forum/rp', '/forum/staffs', '/forum/hrp/debuter-20102', '/forum/sujet/x-329425-1', '/forum/post/repondre-2-329425'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-forum'], p));
+  ['/contacts', '/forums', '/kramail', '/forum/staff', '/forum/staff/', '/forum/staff/coulisses-50101'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
 });
 
 test('nom lu seulement sur plateau, matériel, bâtiments', () => {

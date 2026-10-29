@@ -308,7 +308,9 @@
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
     { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
     { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] },
-    { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] }
+    { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] },
+    // Forum sauf la catégorie Staff (/forum/staff[/…]), hors de l'entrée 8 tant que son alignement attend une décision
+    { test: pathname => /^\/forum(?:\/|$)/.test(pathname) && !/^\/forum\/staff(?:\/|$)/.test(pathname), classes: ['kr-page-forum'] }
   ];
 
   /** Classes de page du chemin, sans doublon. */

@@ -34,6 +34,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
+import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -687,11 +688,23 @@ if (on('hors-perimetre')) {
     const pages = [{ nom: 'sous-forum', ...SOUS_FORUM }, { nom: 'sujet', ...SUJET }, { nom: 'index Staff', ...STAFF }];
     const cas = pages.flatMap(p => VARIANTES.flatMap(v => [MOBILE, BUREAU].map(width => ({ ...p, v, width }))));
     console.log(`Hors périmètre : ${pages.map(p => p.nom).join(', ')} comparés au bundle de base (${COMMIT_AVANT}), ${MOBILE} et ${BUREAU} px, variantes ${VARIANTES.join(' et ')}`);
+    // Masque de l'entrée 9.8 (forum mobile : classe kr-page-forum, marge de 16 px, cibles de 44 px, alerte de tête), contrôlée par
+    // forum-activite (fragment confort). Seulement contre une base sans la classe de page kr-page-forum : classe ignorée, et sous 768 px,
+    // des deux côtés, marge neutralisée, largeur minimale des liens remise à 0 et alerte retirée. Staff, hors de l'entrée 8, comparé sans
+    // masque. Retirer quand COMMIT_AVANT dépasse 9.8.
+    const masque98 = !/classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avant);
+    const CSS_98 = `${SANS_MARGE_PAGE} @media (max-width: 767px) { body.mobile-mode #col-right :is(.forum-mobile-breadcrumb-link, .user-info > strong a) { min-width: 0 !important; } }`;
     const res = await mapLimit(cas, async c => {
       const mesures = [];
       for (const src of [avant, userscript]) {
         const { context, page, erreurs } = await open({ url: c.url, html: c.html, variante: c.v, width: c.width, src });
-        mesures.push({ e: await page.evaluate(EMPREINTE), index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
+        if (masque98 && c.width < 768 && c.url !== STAFF.url) {
+          await page.addStyleTag({ content: CSS_98 });
+          await page.evaluate(() => document.querySelectorAll('#col-right > .alert-dismissible').forEach(e => e.remove()));
+        }
+        const e = await page.evaluate(EMPREINTE);
+        if (masque98) { e.html = e.html.split(' ').filter(k => k !== 'kr-page-forum').join(' '); }
+        mesures.push({ e, index: await page.evaluate(() => document.documentElement.classList.contains('kr-page-forum-index')), erreurs });
         await context.close();
       }
       return mesures;

@@ -7017,6 +7017,43 @@ body > map {
   :where(html.kr-page-members) body.mobile-mode #myTabContent .btn-group-xs > .btn:where(:not(.modal *)) {
     min-width: var(--mobile-touch-target);
   }
+
+  /* FORUM (épopée 9, entrée 8 ; kr-page-forum posée par KR_PAGE_CLASSES sur /forum et /forum/*, sans kr-marge-mobile : la peau du forum place
+     déjà fil d'Ariane, en-têtes et pagination à 16 px, un retrait de la ligne principale les doublerait). --kr-marge-page porte la marge, posée
+     là où le texte touchait le bord : pied de page, titre et barre « Par … » des pages natives (réponse, nouveau sujet, sujet bloqué),
+     formulaires de rédaction (réserve qui complète les 12 px verrouillés des .form-group mobiles) ; messages en carte à 8 px (H4.1, rien sans
+     marge de page) ; cibles à 44 px : liens du fil d'Ariane, nom de l'auteur. Croix de l'alerte : « Alerte native en tête de colonne » plus bas. */
+  :where(html.kr-page-forum) body.mobile-mode {
+    --kr-marge-page: var(--kr-margin-mobile);
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode > footer,
+  :where(html.kr-page-forum) body.mobile-mode #col-right > .forum-top:not(.forum-thread-top-bottom) {
+    padding-left: var(--kr-marge-page);
+    padding-right: var(--kr-marge-page);
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode #col-right > h1.page-header:not(.forum-thread-heading) {
+    margin-left: var(--kr-marge-page);
+    margin-right: var(--kr-marge-page);
+  }
+
+  /* Couplage : les 12 px retranchés sont le padding latéral mobile verrouillé des .form-group (« Réinitialiser les form-group »,
+     padding-left et padding-right de 12px) ; changer l'un impose de changer l'autre */
+  :where(html.kr-page-forum) body.mobile-mode #col-right > form.editeur-text {
+    padding-left: calc(var(--kr-marge-page) - 12px);
+    padding-right: calc(var(--kr-marge-page) - 12px);
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode #col-right > ul.media-list.forum > li.media {
+    margin-left: min(var(--kr-space-2), var(--kr-marge-page));
+    margin-right: min(var(--kr-space-2), var(--kr-marge-page));
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode #col-right .forum-mobile-breadcrumb-link,
+  :where(html.kr-page-forum) body.mobile-mode ul.media-list.forum > li.media .user-info > strong a {
+    min-width: var(--mobile-touch-target);
+  }
     
     /* Style du panel-group pour ressembler aux barres du dessus */
     .panel-group {
@@ -14852,10 +14889,21 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     background: transparent !important;
   }
 
-  /* Alerte native en tête de colonne (« Bienvenue ») : la règle mobile générique « .alert { padding: 12px 15px } » retire la réserve de 35 px
-     où Bootstrap place la croix (.alert-dismissible .close, right: -21px), qui débordait alors de l'écran. */
-  :where(html.kr-page-forum-index) #col-right > .alert-dismissible {
-    padding-right: 35px !important;
+  /* Alerte native en tête de colonne (« Bienvenue », « Sujet Bloqué ! ») sur le forum, Staff exclu (pas de kr-page-forum) : la règle mobile générique « .alert { padding: 12px 15px } »
+     retire la réserve où Bootstrap place la croix (.alert-dismissible .close, right: -21px), qui débordait alors de l'écran ; la réserve vaut la
+     croix de 44 px. */
+  :where(html.kr-page-forum) #col-right > .alert-dismissible {
+    position: relative;
+    padding-right: var(--mobile-touch-target) !important;
+  }
+
+  /* Croix en 44 x 44 dans le coin (épopée 9, entrée 8) : glyphe centré, à plus de 16 px du bord ; aussi sur la réponse à un sujet bloqué */
+  :where(html.kr-page-forum) #col-right > .alert-dismissible > .close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--mobile-touch-target);
+    height: var(--mobile-touch-target);
   }
 
   /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
@@ -15722,6 +15770,13 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 @media (max-width: 359px) {
   body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row {
     padding: 0 !important;
+  }
+
+  /* Libellé « Message » à la marge de la page, la zone d'édition gardant toute la largeur (épopée 9, entrée 8 : marges et retraits du libellé
+     verrouillés par la remise à zéro mobile des colonnes, d'où le retrait de texte ; il remplace les 12 px de la ligne, ajoutés à la réserve
+     du formulaire ; rien sans marge de page) */
+  body.mobile-mode.page-forum form.kr-editor .form-group.kr-message-row > label {
+    text-indent: min(12px, var(--kr-marge-page));
   }
 
   body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready {

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <base href="http://www.kraland.org/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FIXTURE SYNTHÉTIQUE nouveau sujet du forum (aucune donnée réelle)</title>
+  <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+<!-- FIXTURE SYNTHÉTIQUE (épopée 9, entrée 8) : page « Poster un nouveau sujet » d'après le spike 9.3 (F8, relevé déconnecté du 2026-10-28) :
+     h1.page-header avec bouton de retour au sous-forum, form[name=post_msg].form-horizontal.editeur-text, libellés label.col-sm-2.control-label
+     Sujet (champ en .input-group), Expéditeur, Message. Texte, noms et choix inventés ; champ Tags du site absent, faute de relevé de sa structure. -->
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div><div id="navbar" class="navbar-collapse collapse"><ul class="nav navbar-nav"><li><a href="/jouer/plateau">Jouer</a></li></ul></div></div></nav>
+<div id="content" class="container"><div class="row"><div id="col-left" class="col-md-3"></div><div id="col-right" class="col-md-9">
+<h1 class="page-header">Poster un nouveau sujet <span class="pull-right"><a href="forum/rp/taverne-10101" class="btn btn-default"><i class="fa fa-backward"></i> Taverne</a></span></h1>
+<form name="post_msg" method="post" action="forum/rp/taverne-10101" class="form-horizontal editeur-text" onsubmit="return false;">
+<input type="hidden" name="a" value="1">
+<div class="form-group"><label class="col-sm-2 control-label">Sujet <span class="required">*</span></label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-comment"></i></span><input type="text" name="c[1]" class="form-control" maxlength="80" placeholder="Titre du sujet" required></div></div></div>
+<div class="form-group"><label class="col-sm-2 control-label">Expéditeur <span class="required">*</span></label><div class="col-sm-10"><select name="c[4]" class="form-control" required><option value="1">Nerys</option><option value="2">Autre personnage</option></select></div></div>
+<div class="form-group"><label class="col-sm-2 control-label">Message <span class="required">*</span></label><div class="col-sm-10">
+<div class="btn-toolbar" role="toolbar" aria-label="...">
+<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme"><a href="javascript:addtag('b',1);" class="btn btn-default" title="Gras: [b]x[/b]"><i class="fa fa-bold"></i></a><a href="javascript:addtag('i',1);" class="btn btn-default" title="Italique: [i]x[/i]"><i class="fa fa-italic"></i></a><a href="javascript:addtag('u',1);" class="btn btn-default" title="Souligné: [u]x[/u]"><i class="fa fa-underline"></i></a></div>
+<div class="btn-group btn-group-xs" role="group" aria-label="mise en forme"><a href="javascript:addtag('quote',1);" class="btn btn-default" title="Citation: [quote]x[/quote]"><i class="fa fa-quote-right"></i></a><a href="javascript:addtag('spoiler',1);" class="btn btn-default" title="Spoiler: [spoiler]x[/spoiler]"><i class="fa fa-compress"></i></a><a href="javascript:addtag('center',1);" class="btn btn-default" title="Centrer: [center]x[/center]"><i class="fa fa-align-center"></i></a></div></div>
+<textarea name="message" id="message" rows="14" class="form-control" placeholder="Votre message" required>Texte de sujet inventé.</textarea></div></div>
+<div class="form-group"><label class="col-md-2 control-label">Options</label><div class="col-md-10"><label class="checkbox-inline"><input type="checkbox" name="f[0]" value="1" checked> Signature</label></div></div>
+<div><div class="col-sm-12"><button class="btn btn-primary pull-right">Envoyer</button></div></div>
+</form>
+</div></div></div>
+<footer class="navbar-inverse"><div class="container white"><div class="footer-quote">« FIXTURE »</div></div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

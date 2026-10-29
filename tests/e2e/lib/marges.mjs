@@ -6,9 +6,10 @@
 /**
  * Fonction de page : nœuds texte visibles de `racine` (défaut : body) dont le texte commence à moins de `marge` px d'un bord de l'écran.
  * Exclus : texte vide, `.sr-only`, visibility hidden, opacité nulle, boîte vide ou entièrement hors de l'écran ; texte d'un conteneur
- * défilant horizontalement (overflow auto ou scroll qui déborde), sauf `defilant: true`. Résultat : [{ texte, gauche, droite, chemin, defilant }].
+ * défilant horizontalement (overflow auto ou scroll qui déborde), sauf `defilant: true`. `rogne: true` : texte coupé (ellipse, overflow non
+ * visible) mesuré à la partie visible, bornée par ses ancêtres qui coupent (entrée 8). Résultat : [{ texte, gauche, droite, chemin, defilant }].
  */
-export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant = false } = {}) => {
+export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant = false, rogne = false } = {}) => {
   const vw = document.documentElement.clientWidth;
   const out = [];
   const chemin = e => {
@@ -39,8 +40,16 @@ export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant =
       rg.selectNodeContents(n);
       const rs = [...rg.getClientRects()].filter(b => b.width > 0 && b.height > 0 && b.right > 0 && b.left < vw);
       if (!rs.length) { continue; }
-      const gauche = Math.min(...rs.map(b => b.left));
-      const droite = vw - Math.max(...rs.map(b => b.right));
+      let gauche = Math.min(...rs.map(b => b.left));
+      let droite = vw - Math.max(...rs.map(b => b.right));
+      if (rogne) {
+        for (let x = e; x && x !== document.documentElement; x = x.parentElement) {
+          if (getComputedStyle(x).overflowX === 'visible') { continue; }
+          const b = x.getBoundingClientRect();
+          gauche = Math.max(gauche, b.left);
+          droite = Math.max(droite, vw - b.right);
+        }
+      }
       if (gauche >= marge - 0.5 && droite >= marge - 0.5) { continue; }
       const d = dansDefilant(e);
       if (d && !defilant) { continue; }

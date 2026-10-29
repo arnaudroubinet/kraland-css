@@ -12,7 +12,7 @@
 //   parcours  index RP à 375 px, tap au centre de la flèche de « Taverne » ; sous-forum « Débuter », tap au centre du titre « Gagner des
 //             PA » (premier non lu) ; le sujet d'arrivée est le fil de sujet, ancre renommée en mémoire ; deux injections ; la cible du tap
 //             est vérifiée par elementFromPoint avant le tap ;
-//   lignes    index RP, HRP, Communauté, Débats et racine à groupes à 375 et 767 px (HRP et Débats : index RP servi à leur chemin), Kraland clair et Empire Brun sombre : chaque ligne ≥ 72 px dans la
+//   lignes    index RP, HRP, Communauté, Débats et racine à groupes à 375 et 767 px (HRP et Débats : fixtures forum-index-hrp.html et forum-index-debats.html, entrée 8), Kraland clair et Empire Brun sombre : chaque ligne ≥ 72 px dans la
 //             carte ; forum sans message à 72 px, texte centré (haut du nom et bas des compteurs à 1 px près) ; lignes à 3 rangées égales
 //             au bundle de base ; centre de la ligne -> forum ; flèche ≥ 44 x 44, centrée verticalement à 1 px près, -> #msg ;
 //   seuil     index RP à 767 (lignes ≥ 72), 768 et 769 (égal à la base) ; bascule 768 -> 767 -> 768 dans le même onglet, pour le sujet
@@ -55,6 +55,13 @@
 //             REPERES_PANNEAUX_TICKET12), 375, 767, 768 et 1280 px : styles calculés sur /forum/sujet/… égaux à la même page servie hors
 //             forum, laquelle est égale au bundle de base
 //             (7e69719) ; carte de section de l'index RP et du sous-forum (375, 767) égale à la base.
+//   confort   (épopée 9, entrée 8, plan story-forum-mobile-marge-de-16-px-et-cibles-de-44-px-sur-toutes-le) index RP, HRP, Communauté,
+//             Débats, racine (avec et sans groupes), sous-forum « Débuter », sujets (fil, Communauté, Débats, fermé), réponse,
+//             nouveau sujet et réponse refusée « Sujet Bloqué ! », 320, 375 x 667 et 767 px, Kraland clair et Empire Brun sombre : classe
+//             kr-page-forum sans kr-marge-mobile ; texte à 16 px au moins des bords (texte coupé mesuré à sa partie visible) ; panneaux et
+//             messages à 8 px ; cibles hors bouton et hors lien au fil du texte ≥ 44 x 44 ou ligne touchable ; croix d'alerte 44 x 44, sur toute page
+//             qui en porte une, dans le coin haut droit de l'alerte (1 px près) ; aucun débordement ; Staff (/forum/staff[/…]) exclu, hors de
+//             l'entrée 8 ; 768 et 1280 px : textes égaux au bundle de base (724c5c1).
 // Bundle de base : celui de 6270c81 (fin de l'épopée 6, ticket 6.7 compris, SHA figé) pour tous les fragments sauf panneaux (7e69719), sauf KR_SCRIPT_AVANT ;
 // aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
@@ -68,6 +75,7 @@
 // REPERES_PLUS_TICKET65) : bundle de base de 6270c81 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
 // nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
 // Fragment panneaux : bundle de base de 7e69719 (COMMIT_PANNEAUX), sauf KR_SCRIPT_AVANT_PANNEAUX ; fragment envoyer : contrôles absolus.
+// Fragment confort : bundle de base de 724c5c1 (COMMIT_CONFORT), sauf KR_SCRIPT_AVANT_CONFORT.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
@@ -75,7 +83,8 @@
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base), KR_SCRIPT_AVANT_FIL (bundle de base du fragment fil),
 //           KR_SCRIPT_AVANT_ENTETE (bundle de base du fragment entete), KR_SCRIPT_AVANT_PLUS (bundle de base du fragment plus),
 //           KR_SCRIPT_AVANT_LIGNE (bundle de base du fragment ligne), KR_SCRIPT_AVANT_PANNEAUX (bundle de base du fragment panneaux),
-//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus, ligne, envoyer, panneaux (vide = tout).
+//           KR_SCRIPT_AVANT_CONFORT (bundle de base du fragment confort),
+//           KR_FRAG = ancres, parcours, lignes, seuil, bureau, fil, entete, plus, ligne, envoyer, panneaux, confort (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -85,14 +94,16 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
-import { SANS_MARGE_PAGE } from './lib/marges.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { SANS_MARGE_PAGE, TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_AVANT = '6270c81';
+// Bundle sans l'entrée 8 de l'épopée 9 (aucune classe de page kr-page-forum) : condition des masques des comparaisons à une base.
+const SANS_ENTREE8 = src => !/classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(src);
 const avant = strip(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');
@@ -122,9 +133,9 @@ const PAGES = {
   communaute: { url: '/forum/communaute', html: fixture(A.indexCommunaute) },
   racine: { url: '/forum', html: fixture(A.racineGroupes) },
   staff: { url: '/forum/staff', html: fixture(A.indexRp) },
-  // Aucune fixture d'index HRP ni Débats : l'index RP est servi à leurs chemins (la classe de page suit le chemin).
-  hrp: { url: '/forum/hrp', html: fixture(A.indexRp) },
-  debats: { url: '/forum/debats', html: fixture(A.indexRp) },
+  // Index HRP et Débats : fixtures synthétiques de l'épopée 9, entrée 8 (rétro 6, A8).
+  hrp: { url: '/forum/hrp', html: fixture('forum-index-hrp.html') },
+  debats: { url: '/forum/debats', html: fixture('forum-index-debats.html') },
   debuter: { url: '/forum/hrp/debuter-20102', html: fixture(A.sousForum) }
 };
 // Injection « début » : un script en tête de <head>, avant la balise viewport, pour que l'observateur soit livré avant elle.
@@ -762,7 +773,8 @@ if (on('fil')) {
   // Réponse et hors forum : égaux au bundle de base (fil, bouton flottant, empreinte du contenu). Le sujet mobile (375, 767) est passé au
   // fragment entete (épopée 6, ticket 4 : en-tête de sujet sur le fil commun) ; son bureau reste ici.
   const casB = [
-    ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante }))),
+    // Réponse mobile contre une base sans l'entrée 8 : marge du forum neutralisée des deux côtés (formulaire, pied).
+    ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante, sansMarge: width < 768 && SANS_ENTREE8(baseFil) }))),
     // Règles : page secondaire (épopée 9, entrée 4), marge mobile neutralisée des deux côtés.
     ...VARIANTES.map(variante => ({ cle: 'regles', width: 375, variante, sansMarge: true })),
     // Bureau : index RP, sous-forum (colonne native) et sujet.
@@ -1971,6 +1983,159 @@ if (on('panneaux')) {
     check(`panneaux carte ${PAGES[cle].url} ${variante} ${width} px : carte de section du forum égale au bundle de base (${COMMIT_PANNEAUX})`, () => {
       assert.ok(resC[n].t.m.panneaux.length >= 1, 'aucun panneau');
       assert.deepEqual(resC[n].t.m.panneaux, resC[n].b.m.panneaux);
+    });
+  });
+}
+
+// ---------- Confort mobile (épopée 9, entrée 8) ----------
+const COMMIT_CONFORT = '724c5c1';
+// Fixtures synthétiques de l'entrée 8 : racine sans groupes, nouveau sujet (champ Tags supposé), réponse refusée « Sujet Bloqué ! » (relevé 9.3).
+const CF = {
+  racine: 'forum-racine.html',
+  nouveau: 'forum-nouveau-sujet.html', nouveauChemin: '/forum/post/nouveau-sujet-1-10101',
+  bloque: 'forum-reponse-bloquee.html', bloqueChemin: '/forum/post/repondre-2-330510'
+};
+// Cibles hors bouton de #col-right et du pied, plus petites que 44 x 44 : acceptées si elementFromPoint au centre tombe sur une ligne
+// touchable (ancêtre ou recouvrant a, button, label, [onclick] d'au moins 44 x 44 qui contient ce centre). Exclus : .btn (épopée 4), liens au
+// fil du texte (parent porteur de texte propre, exception H9.1), modales, menus Bootstrap fermés. Case à cocher ou radio : son libellé compte.
+const CIBLES_CONFORT = ({ cibles, exclus }) => {
+  const out = [];
+  const grand = b => b.width >= 43.5 && b.height >= 43.5;
+  const chemin = e => { const p = []; for (let x = e; x && x !== document.body && p.length < 3; x = x.parentElement) { p.unshift(x.tagName.toLowerCase() + [...x.classList].slice(0, 2).map(c => '.' + c).join('')); } return p.join(' > '); };
+  const auFil = e => e.tagName === 'A' && [...e.parentElement.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+  for (const e of document.querySelectorAll(cibles)) {
+    if (e.closest(exclus) || auFil(e) || !e.getClientRects().length || getComputedStyle(e).visibility === 'hidden') { continue; }
+    let b = e.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0 || grand(b)) { continue; }
+    const lab = /^(checkbox|radio)$/.test(e.type) ? (e.closest('label') || (e.id && document.querySelector(`label[for="${e.id}"]`))) : null;
+    if (lab && grand(lab.getBoundingClientRect())) { continue; }
+    window.scrollTo(0, Math.max(0, window.scrollY + b.top - window.innerHeight / 2));
+    b = e.getBoundingClientRect();
+    const cx = b.left + b.width / 2;
+    const cy = b.top + b.height / 2;
+    const t = document.elementFromPoint(cx, cy);
+    const ligne = t && t.closest('a, button, label, [onclick]');
+    const lb = ligne && ligne.getBoundingClientRect();
+    if (ligne && !e.contains(ligne) && grand(lb) && lb.left <= cx && cx <= lb.right && lb.top <= cy && cy <= lb.bottom) { continue; }
+    // Lien étiré (::after absolu de la ligne d'index) : la cible ou le lien qui la recouvre prend toute la rangée, de 44 px de haut au moins.
+    const rangee = e.closest('tr, li');
+    const rb = rangee && rangee.getBoundingClientRect();
+    const dans = (x, y) => { const k = document.elementFromPoint(x, y); return !!k && !!ligne && (k === ligne || ligne.contains(k)); };
+    if (ligne && rb && rb.height >= 43.5 && dans(rb.left + 20, rb.top + rb.height / 2) && dans(cx, rb.top + 4) && dans(cx, rb.bottom - 4)) { continue; }
+    out.push(`${Math.round(b.width)} x ${Math.round(b.height)} « ${(e.textContent || '').trim().slice(0, 20)} » ${chemin(e)}`);
+  }
+  window.scrollTo(0, 0);
+  return out;
+};
+// Cartes (CF8.cartes) : panneaux de section et messages du forum, à 8 px des bords.
+const CARTES_CONFORT = ({ cartes, horsCartes, imbrique, titreCarte }) => {
+  const vw = document.documentElement.clientWidth;
+  return [...document.querySelectorAll(cartes)]
+    .filter(p => p.getClientRects().length && !p.closest(horsCartes) && !p.parentElement.closest(imbrique))
+    .map(p => { const b = p.getBoundingClientRect(); return { carte: (p.querySelector(titreCarte) || p).textContent.trim().slice(0, 20), gauche: Math.round(b.left), droite: Math.round(vw - b.right) }; });
+};
+const ETAT_CONFORT = () => ({
+  html: [...document.documentElement.classList], mobile: document.body.classList.contains('mobile-mode'),
+  sw: document.documentElement.scrollWidth, vw: document.documentElement.clientWidth
+});
+// Empreinte des textes en ordinateur : chaque nœud texte visible de body, boîte arrondie (comparée au bundle de base ; numéro de version du
+// pied neutralisé, sa largeur gardée).
+const TEXTES_BUREAU = () => {
+  const out = [];
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style')) { continue; }
+    const rg = document.createRange();
+    rg.selectNodeContents(n);
+    const r = [...rg.getClientRects()].find(x => x.width > 0 && x.height > 0);
+    if (r) { out.push(`${n.textContent.trim().replace(/1\.0\.\d+/, '1.0.N').slice(0, 30)} ${Math.round(r.left)},${Math.round(r.top + window.scrollY)},${Math.round(r.width)}`); }
+  }
+  return out;
+};
+if (on('confort')) {
+  console.log(`\n== confort : marge de 16 px et cibles de 44 px sur les pages du forum, 320, 375 x 667 et 767 px ; 768 et 1280 px égaux à ${COMMIT_CONFORT} ==`);
+  const baseConfort = strip(process.env.KR_SCRIPT_AVANT_CONFORT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_CONFORT, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_CONFORT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  Object.assign(PAGES, {
+    racineSimple: { url: '/forum', html: fixture(CF.racine) },
+    sCommunaute: { url: E.chemins.communaute, html: fixture(E.fixtures.communaute) },
+    sDebats: { url: E.chemins.debats, html: fixture(E.fixtures.debats) },
+    sFerme: { url: E.chemins.ferme, html: fixture(E.fixtures.ferme) },
+    // Variante en mémoire de l'index RP : un bloc avant l'alerte, qui n'est plus le premier enfant de #col-right (positionné). La croix ne
+    // reste dans le coin de l'alerte que si l'alerte la positionne elle-même (contre-épreuve du contrôle du coin).
+    rpDecale: { url: '/forum/rp', html: fixture(A.indexRp).replace('<div id="col-right" class="col-md-9">', '<div id="col-right" class="col-md-9"><div style="height: 40px"></div>') },
+    reponse: { url: R.reponse.chemin, html: fixture(R.reponse.fixture) },
+    nouveau: { url: CF.nouveauChemin, html: fixture(CF.nouveau) },
+    bloque: { url: CF.bloqueChemin, html: fixture(CF.bloque) }
+  });
+  const CLES = ['rp', 'hrp', 'communaute', 'debats', 'racine', 'racineSimple', 'debuter', 'sujet', 'sCommunaute', 'sDebats', 'sFerme', 'reponse', 'nouveau', 'bloque', 'rpDecale'];
+  const casM = CLES.flatMap(cle => [[320, 667], [375, 667], [767, 900]].flatMap(([width, height]) => VARIANTES.map(variante => ({ cle, width, height, variante }))));
+  const resM = await mapLimit(casM, async c => {
+    const o = await ouvrir(c);
+    const m = {
+      etat: await o.page.evaluate(ETAT_CONFORT),
+      textes: await o.page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: 16, rogne: true }),
+      cartes: await o.page.evaluate(CARTES_CONFORT, CF8),
+      cibles: await o.page.evaluate(CIBLES_CONFORT, CF8),
+      croix: await o.page.$(CF8.croix) ? await cibleTactile(o.page, CF8.croix) : null,
+      coin: await o.page.evaluate(([croix, alerte]) => {
+        const x = document.querySelector(croix);
+        if (!x) { return null; }
+        const r = x.getBoundingClientRect(); const a = document.querySelector(alerte).getBoundingClientRect();
+        const n = v => Math.round(v * 10) / 10;
+        return { croix: [r.left, r.top, r.right, r.bottom].map(n), alerte: [a.left, a.top, a.right, a.bottom].map(n) };
+      }, [CF8.croix, CF8.alerte]),
+      erreurs: o.erreurs
+    };
+    await o.context.close();
+    return m;
+  });
+  casM.forEach(({ cle, width, variante }, n) => {
+    const m = resM[n];
+    const lab = `confort ${PAGES[cle].url}${cle === 'rpDecale' ? ' (bloc avant l\'alerte)' : ''} ${variante} ${width} px`;
+    check(`${lab} : classe kr-page-forum sans kr-marge-mobile, mode mobile, aucun débordement, aucune exception`, () => {
+      assert.ok(m.etat.mobile, 'mode mobile');
+      assert.ok(m.etat.html.includes('kr-page-forum') && !m.etat.html.includes('kr-marge-mobile'), 'classes de <html> : ' + m.etat.html.join(' '));
+      assert.ok(m.etat.sw <= m.etat.vw, `débordement : scrollWidth ${m.etat.sw} > ${m.etat.vw}`);
+      assert.deepEqual(m.erreurs, []);
+    });
+    check(`${lab} : texte à 16 px au moins des bords (texte coupé : partie visible)`, () => {
+      const t = m.textes.map(x => `${x.gauche}/${x.droite} « ${x.texte} » ${x.chemin}`);
+      assert.deepEqual(t, [], t.join(' ; '));
+    });
+    check(`${lab} : cartes (panneaux, messages) à 8 px des bords`, () => {
+      // Réponse et nouveau sujet : formulaire seul, sans panneau ni message.
+      assert.equal(m.cartes.length >= 1, !['reponse', 'nouveau'].includes(cle), 'cartes : ' + m.cartes.length);
+      const c = m.cartes.filter(x => x.gauche !== 8 || x.droite !== 8).map(x => `${x.gauche}/${x.droite} « ${x.carte} »`);
+      assert.deepEqual(c, [], c.join(' ; '));
+    });
+    check(`${lab} : cibles hors bouton ≥ 44 x 44 ou ligne touchable`, () => {
+      assert.deepEqual(m.cibles, [], m.cibles.join(' ; '));
+    });
+    // Croix contrôlée sur toute page qui en porte une ; présence exigée là où la fixture a une alerte.
+    if (m.croix || ['rp', 'hrp', 'debats', 'racine', 'bloque', 'rpDecale'].includes(cle)) {
+      check(`${lab} : croix de l'alerte ≥ 44 x 44, touchée aux cinq points, dans le coin haut droit de l'alerte (1 px près)`, () => {
+        assert.ok(m.croix && m.coin, 'croix absente');
+        const e = ecartsCible(m.croix);
+        assert.deepEqual(e, [], e.join(' ; '));
+        const [cg, ch, cd, cb] = m.coin.croix; const [ag, ah, ad, ab] = m.coin.alerte;
+        assert.ok(cg >= ag - 1 && cb <= ab + 1 && Math.abs(ch - ah) <= 1 && Math.abs(cd - ad) <= 1,
+          `croix ${m.coin.croix.join(',')} hors du coin haut droit de l'alerte ${m.coin.alerte.join(',')}`);
+      });
+    }
+  });
+  const casB = CLES.flatMap(cle => [768, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))));
+  const textesDe = async c => { const o = await ouvrir(c); const t = await o.page.evaluate(TEXTES_BUREAU); await o.context.close(); return { t, erreurs: o.erreurs }; };
+  const resB = await mapLimit(casB, async c => ({ t: await textesDe(c), b: await textesDe({ ...c, src: baseConfort }) }));
+  casB.forEach(({ cle, width, variante }, n) => {
+    check(`confort bureau ${PAGES[cle].url} ${variante} ${width} px : textes (boîtes) égaux au bundle de base (${COMMIT_CONFORT})`, () => {
+      const { t, b } = resB[n];
+      assert.ok(t.t.length > 10, 'textes');
+      const enPlus = t.t.filter(x => !b.t.includes(x));
+      const enMoins = b.t.filter(x => !t.t.includes(x));
+      assert.deepEqual([enPlus, enMoins], [[], []], `en plus : ${enPlus.slice(0, 4).join(' | ')} ; en moins : ${enMoins.slice(0, 4).join(' | ')}`);
+      assert.deepEqual(t.t, b.t);
+      assert.deepEqual(t.erreurs, []);
     });
   });
 }
