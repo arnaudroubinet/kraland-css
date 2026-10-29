@@ -65,18 +65,29 @@
 //             PALETTE_BASE_SHA, hors écarts ECARTS_PALETTE (filets, contours et icônes d'accent en --kr-text-accent, section en
 //             --kr-text-accent, filet du doublon et contour de la croix ciblée en --kr-text-primary, invalide en --kr-danger) ;
 //             textes >= 4,5:1, filets, contours d'état et icônes >= 3:1 sur leurs deux fonds.
+//   contacts : (épopée 7, entrée 8) fixture synthétique contacts.html (structure du relevé, noms inventés), 375, 767, 1280 et 1440 px :
+//             en-tête (parties mobiles ou h1 et bouton du bureau) et carte de section (panneau, en-tête, titre, corps, enveloppe, contrôles,
+//             info, page courante) aux valeurs calculées de la Réception ; garde kr-page-contacts, fil « Contacts › Membre fictif », ni
+//             peau du forum (fil du forum, actions du sous-forum, forum-thread-actions) ni style en ligne dans le h1, aucun débordement ;
+//             sous-forum-debuter à 375 px garde ses actions, la Réception n'a pas la garde.
+//   contacts-boutons : /contacts et /contacts/<membre>/2, mêmes largeurs : aucune classe d'état (danger, warning, info, success), catégories
+//             libellées (Toutes, n°1 à n°4, Catégories), seule la catégorie courante en btn-primary ; boutons de l'en-tête aux valeurs du
+//             bouton de la Réception, courant au fond d'action ; mobile : cibles >= 44 px atteintes, toucher de la cellule coche la case ;
+//             bureau : le même clic ne coche rien ; recherche et « Afficher » nommées.
+//   contacts-couleurs : 16 variantes, 375 et 1280 px : textes de l'en-tête, des boutons et de la carte >= 4,5:1.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
 // sinon celui du commit PALETTE_BASE_SHA).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
-// KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge.
+// KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts et contacts-boutons rouges
+// (contacts-couleurs garde le contraste, déjà tenu à la base).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -1237,6 +1248,287 @@ if (frag('liste-dossiers')) {
         sansFuite(o);
       });
     }
+  }
+}
+
+// ---------- contacts (épopée 7, entrée 8) ----------
+// Fixture synthétique tests/e2e/fixtures/contacts.html (structure du relevé en lecture seule du 2026-10-28, aucune donnée réelle) ; la même
+// page servie au chemin d'une catégorie (…-0/2) pour la catégorie courante. Référence : la Réception dérivée (liste-reception).
+LECTURES.contacts = { url: '/contacts', html: FIX('contacts.html') };
+LECTURES['contacts-categorie'] = { ...LECTURES.contacts, url: '/contacts/membre-fictif-0/2' };
+const CONTACTS_LARGEURS = [375, 767, 1280, 1440];
+const CARTE_PROPS = {
+  panel: ['marginTop', 'marginBottom', 'paddingLeft', 'backgroundColor', 'borderTopWidth', 'borderTopColor', 'borderTopLeftRadius', 'boxShadow'],
+  entete: ['display', 'minHeight', 'paddingTop', 'paddingLeft', 'backgroundColor', 'borderBottomWidth', 'borderBottomColor'],
+  titre: ['fontSize', 'fontWeight', 'color', 'lineHeight'],
+  corps: ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'],
+  enveloppe: ['display', 'flexWrap', 'gap', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'],
+  recherche: ['height', 'fontSize', 'borderTopLeftRadius', 'borderTopColor', 'backgroundColor', 'color'],
+  afficher: ['height', 'fontSize', 'minWidth', 'borderTopLeftRadius', 'backgroundColor', 'color'],
+  info: ['fontSize', 'color', 'marginTop', 'order'],
+  page: ['minWidth', 'minHeight', 'borderTopWidth', 'borderTopColor', 'backgroundColor', 'color', 'fontWeight']
+};
+const MESURER_CARTE = props => {
+  const q = s => document.querySelector('#col-right ' + s);
+  const lire = (el, ks) => { if (!el) { return null; } const cs = getComputedStyle(el); const o = {}; for (const k of ks) { o[k] = cs[k]; } return o; };
+  const els = { panel: q('.panel'), entete: q('.panel > .panel-heading'), titre: q('.panel-heading h3.panel-title'), corps: q('.panel > .panel-body'),
+    enveloppe: q('#topics_wrapper'), recherche: q('#topics_filter input'), afficher: q('#topics_length select'), info: q('#topics_info'), page: q('#topics_paginate .paginate_button.current') };
+  const o = {};
+  for (const [k, el] of Object.entries(els)) { o[k] = lire(el, props[k]); }
+  const p = els.panel.getBoundingClientRect();
+  o.bords = [Math.round(p.left), Math.round(document.documentElement.clientWidth - p.right)];
+  return o;
+};
+const egalParts = (m, ref, parts) => {
+  for (const part of parts) {
+    expect(m[part] && ref[part], `${part} absent (contacts ${!!m[part]}, Réception ${!!ref[part]})`);
+    for (const k of Object.keys(ref[part])) { expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`); }
+  }
+};
+const RELEVER_CONTACTS = () => {
+  const col = document.getElementById('col-right');
+  return {
+    garde: document.documentElement.classList.contains('kr-page-contacts'),
+    peauForum: [...col.querySelectorAll('.forum-thread-actions, .forum-subforum-actions-top, .forum-subforum-actions-bottom, .forum-thread-action')].map(e => e.className),
+    styles: [col.querySelector('h1.page-header'), ...col.querySelectorAll('h1.page-header *')].filter(el => el.hasAttribute('style')).map(el => el.tagName + '.' + el.className),
+    deborde: document.documentElement.scrollWidth - document.documentElement.clientWidth
+  };
+};
+if (frag('contacts')) {
+  console.log('contacts : en-tête du kramail et carte de section aux valeurs de la Réception');
+  const cas = [];
+  for (const cle of ['liste-reception', 'contacts']) { for (const width of CONTACTS_LARGEURS) { cas.push({ cle, width, mobile: width < 768 }); } }
+  cas.push({ cle: 'sous-forum', width: 375, mobile: true }, { cle: 'liste-reception', width: 375, mobile: true, garde: true });
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    await o.page.evaluate(() => window.scrollTo(0, 0));
+    const m = { entete: await o.page.evaluate(MESURER_ENTETE, ENTETE_PROPS), carte: await o.page.evaluate(MESURER_CARTE, CARTE_PROPS), r: await o.page.evaluate(RELEVER_CONTACTS) };
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const width of CONTACTS_LARGEURS) {
+    const mobile = width < 768;
+    const ref = res.find(x => x.c.cle === 'liste-reception' && x.c.width === width).m;
+    const { o, m } = res.find(x => x.c.cle === 'contacts' && x.c.width === width);
+    check(`contacts ${width} px : en-tête aux valeurs calculées de la Réception`, () => {
+      egalParts(m.entete, ref.entete, mobile ? ['h1', 'fil', 'lien', 'sep', 'courant', 'tete', 'titre'] : ['h1', 'bouton']);
+      if (!mobile) { expect(!m.entete.fil && !m.entete.tete, 'fil d\'Ariane ou tête mobile au bureau'); }
+      sansFuite(o);
+    });
+    check(`contacts ${width} px : carte de section et contrôles aux valeurs calculées de la Réception`, () => {
+      egalParts(m.carte, ref.carte, Object.keys(CARTE_PROPS));
+      expect(m.carte.bords.join(',') === ref.carte.bords.join(','), `bords de la carte : ${m.carte.bords} pour ${ref.carte.bords}`);
+    });
+    check(`contacts ${width} px : garde kr-page-contacts, ${mobile ? 'fil « Contacts › Membre fictif », ' : ''}ni peau du forum ni style en ligne, aucun débordement`, () => {
+      expect(m.r.garde, 'kr-page-contacts absente');
+      if (mobile) {
+        expect(m.entete.libelles.join('|') === 'Contacts|› Membre fictif', 'fil : ' + m.entete.libelles.join('|'));
+        expect(m.entete.titreTexte === 'Membre fictif', 'titre : ' + m.entete.titreTexte);
+      }
+      expect(m.r.peauForum.length === 0, 'peau du forum : ' + m.r.peauForum.join(', '));
+      expect(m.r.styles.length === 0, 'styles en ligne : ' + m.r.styles.join(', '));
+      expect(m.r.deborde <= 0, 'débordement horizontal : ' + m.r.deborde + ' px');
+    });
+  }
+  const forum = res.find(x => x.c.cle === 'sous-forum').m;
+  const kramail = res.find(x => x.c.garde).m;
+  check('sous-forum-debuter 375 px : en-tête mobile du forum gardé (« Nouveau sujet » haut), Réception sans kr-page-contacts', () => {
+    expect(forum.r.peauForum.some(k => /forum-subforum-actions-top/.test(k)), 'actions du sous-forum absentes : ' + forum.r.peauForum.join(', '));
+    expect(!forum.r.garde && !kramail.r.garde, 'kr-page-contacts hors de /contacts');
+  });
+  // Bascule 767 -> 768 -> 767 dans le même onglet (rechargement) : au bureau, h1 natif aux valeurs de la Réception à 768, sans fil, sans tête
+  // mobile ni peau du forum ; au retour, en-tête mobile reconstruit.
+  const [bas] = await mapLimit([0], async () => {
+    const ref = await ouvrir('liste-reception', { width: 768 });
+    const ref768 = await ref.page.evaluate(MESURER_ENTETE, ENTETE_PROPS);
+    await ref.context.close();
+    const o = await ouvrir('contacts', { width: 767 });
+    const etapes = [];
+    const relever = async nom => { etapes.push({ nom, entete: await o.page.evaluate(MESURER_ENTETE, ENTETE_PROPS), r: await o.page.evaluate(RELEVER_CONTACTS) }); };
+    await relever('767');
+    await basculer(o.page, 768, 'contacts 768');
+    await relever('768');
+    await basculer(o.page, 767, 'contacts 767 retour');
+    await relever('767 retour');
+    await o.context.close();
+    return { o, ref768, etapes };
+  });
+  for (const e of bas.etapes) {
+    const mobile = e.nom !== '768';
+    check(`contacts bascule 767 -> 768 -> 767, étape ${e.nom} : ${mobile ? 'en-tête mobile (fil « Contacts › Membre fictif », titre)' : 'h1 natif aux valeurs de la Réception, sans fil ni tête mobile'}, ni peau du forum ni style en ligne`, () => {
+      expect(e.r.garde, 'kr-page-contacts absente');
+      if (mobile) {
+        expect((e.entete.libelles || []).join('|') === 'Contacts|› Membre fictif', 'fil : ' + (e.entete.libelles || []).join('|'));
+        expect(e.entete.titreTexte === 'Membre fictif', 'titre : ' + e.entete.titreTexte);
+        expect(!!e.entete.tete, 'tête mobile absente');
+      } else {
+        expect(!e.entete.fil && !e.entete.tete, 'fil d\'Ariane ou tête mobile au bureau');
+        egalParts(e.entete, bas.ref768, ['h1', 'bouton']);
+      }
+      expect(e.r.peauForum.length === 0, 'peau du forum : ' + e.r.peauForum.join(', '));
+      expect(e.r.styles.length === 0, 'styles en ligne : ' + e.r.styles.join(', '));
+      sansFuite(bas.o);
+    });
+  }
+}
+
+const RELEVER_BOUTONS_CONTACTS = () => {
+  const col = document.getElementById('col-right');
+  const h1 = col.querySelector('h1.page-header');
+  const lire = el => { const cs = getComputedStyle(el); return { height: cs.height, backgroundColor: cs.backgroundColor, borderTopColor: cs.borderTopColor, borderTopWidth: cs.borderTopWidth, borderTopLeftRadius: cs.borderTopLeftRadius, color: cs.color }; };
+  const sonde = expr => { const s = document.createElement('span'); s.style.color = expr; document.body.appendChild(s); const c = getComputedStyle(s).color; s.remove(); return c; };
+  const cible = el => {
+    el.scrollIntoView({ block: 'center', inline: 'center' });
+    const b = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    return { nom: el.tagName + '.' + el.className + (el.title ? ' ' + el.title : ''), w: Math.round(b.width), h: Math.round(b.height), atteint: el.classList.contains('disabled') || (!!hit && (hit === el || el.contains(hit))) };
+  };
+  const tete = [...h1.querySelectorAll('.pull-right > a.btn')];
+  const cibles = [...tete, ...col.querySelectorAll('#topics tbody a.btn, #topics tbody td.center, #topics_paginate .paginate_button:not(.kr-page-hidden), #topics_filter input, #topics_length select')].map(cible);
+  window.scrollTo(0, 0);
+  const td = col.querySelector('#topics tbody td.center');
+  const box = td.querySelector('input');
+  const avant = box.checked;
+  td.click();
+  const search = col.querySelector('#topics_filter input');
+  const length = col.querySelector('#topics_length select');
+  return {
+    etats: [...col.querySelectorAll('.btn-danger, .btn-warning, .btn-info, .btn-success')].filter(e => !e.closest('span[id^="ajax-t"]')).map(e => e.className + ' ' + (e.title || e.textContent.trim())),
+    categories: [...col.querySelectorAll('#topics tbody span[id^="ajax-t"] > a.btn')].map(e => e.className),
+    tete: tete.map(a => ({ texte: a.textContent.replace(/\s+/g, ' ').trim(), primary: a.classList.contains('btn-primary'), defaut: a.classList.contains('btn-default'), href: a.getAttribute('href'), s: lire(a) })),
+    cibles, coche: box.checked !== avant, arm: sonde('var(--kr-arm-bg, var(--kr-primary))'),
+    rang: (() => {
+      const pr = h1.querySelector('.pull-right').getBoundingClientRect();
+      const s = document.createElement('span'); s.style.fontSize = 'var(--kr-font-button)'; document.body.appendChild(s); const police = getComputedStyle(s).fontSize; s.remove();
+      return { droite: Math.round(pr.right), police, boutons: tete.map(a => { const b = a.getBoundingClientRect(); return { texte: a.textContent.trim(), droite: Math.round(b.right), haut: Math.round(b.top), fontSize: getComputedStyle(a).fontSize }; }) };
+    })(),
+    noms: [search.getAttribute('aria-label'), search.getAttribute('placeholder'), length.getAttribute('aria-label')]
+  };
+};
+// Redessin simulé (la fixture n'embarque pas DataTables) : ligne ajoutée, bouton de catégorie remplacé comme par la réponse AJAX, recherche
+// reconstruite sans nom ; boutons d'état volontaires, pour que le traitement des lignes soit exercé.
+// « Changer de catégorie » des lignes (span#ajax-tN) : classe d'état native gardée, elle dit la catégorie ; 4e ligne catégorisée (warning).
+const CATEGORIES_LIGNES = ['btn btn-default', 'btn btn-default', 'btn btn-default', 'btn btn-warning', 'btn btn-default'];
+const REDESSINER_CONTACTS = () => {
+  const tbody = document.querySelector('#topics tbody');
+  const ligne = tbody.rows[0].cloneNode(true);
+  ligne.querySelector('td:nth-child(4) a.btn').className = 'btn btn-warning';
+  tbody.appendChild(ligne);
+  document.querySelector('#topics tbody span[id^="ajax-t"]').innerHTML = '<a href="#" class="btn btn-danger"><i class="fa fa-user"></i></a>';
+  const label = document.querySelector('#topics_filter label');
+  label.querySelector('input').remove();
+  label.appendChild(Object.assign(document.createElement('input'), { type: 'search' }));
+};
+const BOUTON_RECEPTION = () => {
+  // Au bureau, le dossier standard Envoi (34 px) : les boutons à icône seule s'écrasent à 14 px faute de Font Awesome dans les fixtures
+  const boutons = [...document.querySelectorAll('#col-right h1.page-header .pull-right > a.btn')].filter(x => !x.classList.contains('btn-primary'));
+  const a = document.body.classList.contains('mobile-mode') ? boutons.find(x => !x.hasAttribute('data-kr-dossier')) : boutons.find(x => x.hasAttribute('data-kr-dossier'));
+  const p = document.querySelector('#col-right h1.page-header .pull-right > a.btn.btn-primary');
+  const lire = el => { const cs = getComputedStyle(el); return { height: cs.height, backgroundColor: cs.backgroundColor, borderTopColor: cs.borderTopColor, borderTopWidth: cs.borderTopWidth, borderTopLeftRadius: cs.borderTopLeftRadius, color: cs.color }; };
+  return { defaut: lire(a), primaire: p ? lire(p) : null };
+};
+const LIBELLES_CONTACTS = ['Toutes', 'n°1', 'n°2', 'n°3', 'n°4', 'Catégories'];
+if (frag('contacts-boutons')) {
+  console.log('contacts : boutons standard ou primaire, cibles de 44 px');
+  const cas = [];
+  for (const width of CONTACTS_LARGEURS) { cas.push({ cle: 'contacts', width }, { cle: 'liste-reception', width }); }
+  cas.push({ cle: 'contacts-categorie', width: 375 }, { cle: 'contacts-categorie', width: 1280 });
+  const res = await mapLimit(cas, async c => {
+    const mobile = c.width < 768;
+    const o = await ouvrir(c.cle, { width: c.width, height: mobile ? 667 : 720, mobile });
+    const m = c.cle === 'liste-reception' ? await o.page.evaluate(BOUTON_RECEPTION) : await o.page.evaluate(RELEVER_BOUTONS_CONTACTS);
+    if (c.cle === 'contacts') {
+      await o.page.evaluate(REDESSINER_CONTACTS);
+      await o.page.waitForTimeout(100);
+      m.redessin = await o.page.evaluate(() => {
+        const col = document.getElementById('col-right');
+        const search = col.querySelector('#topics_filter input');
+        return { etats: [...col.querySelectorAll('#topics .btn-danger, #topics .btn-warning, #topics .btn-info, #topics .btn-success')].filter(e => !e.closest('span[id^="ajax-t"]')).map(e => e.className),
+          categories: [...col.querySelectorAll('#topics tbody span[id^="ajax-t"] > a.btn')].map(e => e.className),
+          lignes: col.querySelectorAll('#topics tbody a.btn').length, noms: [search.getAttribute('aria-label'), search.getAttribute('placeholder')] };
+      });
+    }
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const { c, o, m } of res.filter(x => x.c.cle !== 'liste-reception')) {
+    const mobile = c.width < 768;
+    const ref = res.find(x => x.c.cle === 'liste-reception' && x.c.width === c.width) || { m: null };
+    const courant = c.cle === 'contacts' ? 0 : 2;
+    check(`${c.cle} ${c.width} px : aucune classe d'état hors catégorie des lignes (gardée), catégories libellées, seule la catégorie courante (${LIBELLES_CONTACTS[courant]}) en btn-primary`, () => {
+      expect(m.etats.length === 0, 'boutons d\'état : ' + m.etats.join(', '));
+      expect(m.categories.join('|') === CATEGORIES_LIGNES.join('|'), 'catégories des lignes : ' + m.categories.join('|'));
+      expect(m.tete.map(t => t.texte).join('|') === LIBELLES_CONTACTS.join('|'), 'libellés : ' + m.tete.map(t => t.texte).join('|'));
+      m.tete.forEach((t, i) => {
+        expect(t.primary === (i === courant), `${t.texte} : btn-primary ${t.primary}`);
+        expect(t.primary || t.defaut, `${t.texte} : ni standard ni primaire`);
+      });
+      sansFuite(o);
+    });
+    if (ref.m) {
+      check(`${c.cle} ${c.width} px : boutons de l'en-tête aux valeurs du bouton du kramail, courant au fond d'action`, () => {
+        const autre = m.tete.find(t => !t.primary).s;
+        const prim = m.tete.find(t => t.primary).s;
+        const champs = Object.keys(ref.m.defaut);
+        for (const k of champs) { expect(autre[k] === ref.m.defaut[k], `standard ${k} : ${autre[k]} pour ${ref.m.defaut[k]}`); }
+        expect(prim.backgroundColor === m.arm, `primaire : fond ${prim.backgroundColor} pour ${m.arm}`);
+        if (!mobile && ref.m.primaire) { for (const k of champs) { expect(prim[k] === ref.m.primaire[k], `primaire ${k} : ${prim[k]} pour ${ref.m.primaire[k]}`); } }
+      });
+    }
+    if (mobile) {
+      check(`${c.cle} ${c.width} px : cibles >= 44 px atteintes (en-tête, boutons de ligne, case, pagination, contrôles), toucher de la cellule coche la case`, () => {
+        const petites = m.cibles.filter(x => x.w < 44 || x.h < 44 || !x.atteint);
+        expect(petites.length === 0, petites.slice(0, 4).map(x => `${x.nom} ${x.w}×${x.h}${x.atteint ? '' : ' non atteint'}`).join(' ; '));
+        expect(m.coche, 'la case n\'a pas changé');
+      });
+      check(`${c.cle} ${c.width} px : boutons libellés de l'en-tête à la taille des boutons, chaque rang rempli jusqu'au bord droit`, () => {
+        for (const b of m.rang.boutons) { expect(b.fontSize === m.rang.police, `${b.texte} : ${b.fontSize} pour ${m.rang.police}`); }
+        const rangs = [...new Set(m.rang.boutons.map(b => b.haut))];
+        for (const h of rangs) {
+          const fin = Math.max(...m.rang.boutons.filter(b => b.haut === h).map(b => b.droite));
+          expect(Math.abs(fin - m.rang.droite) <= 1, `rang à ${h} px : fin ${fin} pour ${m.rang.droite}`);
+        }
+      });
+    } else {
+      check(`${c.cle} ${c.width} px : le même clic dans la cellule ne coche rien au bureau`, () => { expect(!m.coche, 'case cochée au bureau'); });
+    }
+    if (m.redessin) {
+      check(`${c.cle} ${c.width} px : après redessin (ligne ajoutée, catégorie changée en AJAX, recherche reconstruite), ni classe d'état hors catégorie des lignes (gardée), ni contrôle anonyme`, () => {
+        expect(m.redessin.etats.length === 0, 'boutons d\'état : ' + m.redessin.etats.join(', '));
+        const attendu = ['btn btn-danger', ...CATEGORIES_LIGNES.slice(1), CATEGORIES_LIGNES[0]];
+        expect(m.redessin.categories.join('|') === attendu.join('|'), 'catégories des lignes : ' + m.redessin.categories.join('|'));
+        expect(m.redessin.lignes > 20, 'lignes : ' + m.redessin.lignes);
+        expect(m.redessin.noms.join('|') === 'Rechercher dans les contacts|Rechercher…', 'noms : ' + m.redessin.noms.join('|'));
+      });
+    }
+    check(`${c.cle} ${c.width} px : recherche et « Afficher » nommées`, () => {
+      expect(m.noms.join('|') === 'Rechercher dans les contacts|Rechercher…|Nombre de contacts par page', 'noms : ' + m.noms.join('|'));
+    });
+  }
+}
+
+if (frag('contacts-couleurs')) {
+  console.log('contacts : contraste >= 4,5:1, 16 variantes');
+  const { VARIANTES, CONTRASTE } = await import('./lib/variantes.mjs');
+  const cas = VARIANTES.flatMap(variante => [[375, true], [1280, false]].map(([width, mobile]) => ({ variante, width, mobile })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir('contacts', { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    await o.page.evaluate(CONTRASTE);
+    const r = await o.page.evaluate(() => {
+      const col = document.getElementById('col-right');
+      const sels = ['.forum-mobile-breadcrumb-link', '.forum-mobile-breadcrumb-sep', '.forum-mobile-breadcrumb-current', '.forum-subforum-title', 'h1.page-header .pull-right > a.btn',
+        '.panel-heading h3.panel-title', '#topics tbody td.sorting_1 > a', '#topics tbody a.btn', '#topics_info', '#topics_paginate .paginate_button.current'];
+      return sels.flatMap(s => [...col.querySelectorAll(s)].filter(e => e.getClientRects().length > 0).map(e => ({ s, c: window.__krContraste.texte(e) })));
+    });
+    await o.context.close();
+    return { c, r };
+  });
+  for (const { c, r } of res) {
+    check(`contacts ${c.variante} ${c.width} px : textes de l'en-tête, des boutons et de la carte >= 4,5:1`, () => {
+      expect(r.some(x => /pull-right/.test(x.s)) && r.some(x => /panel-title/.test(x.s)) && (!c.mobile || r.some(x => /breadcrumb-link/.test(x.s))), 'éléments visibles : ' + [...new Set(r.map(x => x.s))].join(', '));
+      const bas = r.filter(x => x.c < 4.5);
+      expect(bas.length === 0, bas.slice(0, 4).map(x => `${x.s} ${x.c.toFixed(2)}`).join(', '));
+    });
   }
 }
 

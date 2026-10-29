@@ -912,3 +912,16 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Lueurs du focus (30 %) et du doublon (55 %), survol d'option (10 %) : restent sur `--kr-highlight`. Seuls les mélanges lus par deux règles ou plus deviennent des jetons de `:root`.
 - Polices : passent au jeton les tailles exactes 13, 14 et 15 px, icônes comprises (croix et icône d'option mobiles en `--kr-font-detail`, icône Contacts mobile en `--kr-font-button`). Restent en dur : 11 et 12 px (12 px a deux jetons, rôle ambigu) et la saisie mobile à 16 px (anti-zoom iOS).
 - Implémenté directement par l'agent de build, sans sous-agent d'implémentation. La revue « quick » a été faite par un relecteur indépendant.
+
+## Ticket 7.8 — page Contacts en carte de section, boutons standard ou primaire (construit, 2026-10-29)
+
+- « Pas un contact » (report 3.5, orange) : introuvable dans le relevé, les fixtures et la structure de /contacts. Rien n'est changé : à localiser (fiche d'un membre ?) dans un ticket à part.
+- Boutons de catégorie : les couleurs d'état (danger, warning, info, success) disparaissent. Sans elles, les 5 icônes `fa-user` seraient identiques. Elles reçoivent donc un libellé visible, tiré du chemin : « Toutes », « n°1 » à « n°4 ». Le 6e bouton garde son texte natif « Catégories ». Les vrais noms de catégorie ne sont pas relevés (le `title` natif dit « Catégorie n°N »). À voir en vrai : libellés ou noms ?
+- Catégorie courante en `btn-primary` : chemin exact, sinon « Toutes » quand le chemin n'a pas de suffixe `/N`.
+- Fil mobile « Contacts › <texte du h1> » : le texte réel du h1 n'est pas relevé (« … »). La fixture suppose un nom de personnage. Le premier élément du fil reprend le libellé actif de la liste latérale (« Contacts »).
+- Le relevé annonce 5 colonnes à l'en-tête (`th.sorting_asc ; th.sorting ×4` + case) ; la fixture suit ce compte. Si le site en a 6, rien ne casse : le tableau défile.
+- Mobile : le tableau natif (case, nom, catégorie, actions, retrait) défile horizontalement dans la carte, sans réagencement en lignes du sous-forum. Boutons de ligne portés à 44 px de large. À voir en vrai : faut-il une ligne mobile dédiée ? Sur mobile, les deux boutons de la colonne Actions s'empilent : chaque ligne fait environ 120 px de haut. Aucun changement de code pour l'instant.
+- Choix après revue : le bouton « Changer de catégorie » d'une ligne (`span[id^="ajax-t"] > a.btn`) garde sa classe d'état native, car elle dit la catégorie du contact. Il est exclu du retrait des couleurs d'état ; une ligne déjà catégorisée garde sa couleur. Les autres boutons de ligne et ceux de l'en-tête passent en standard.
+- `contacts-couleurs` est déjà vert sur la base f48a01f : c'est une garde du contraste, pas une preuve rouge/vert.
+- Implémenté directement par l'agent de build, sans sous-agent d'implémentation (route full calculée, consigne « quick »). La revue « quick » est faite par un relecteur indépendant.
+- `kramail-theme#redaction-palette` est instable dès la base f48a01f. On observe 2 FAIL « croix-focus absent », sur une variante différente à chaque exécution. Le défaut ne vient pas de ce ticket, mais un `test:all` peut tomber dessus.
