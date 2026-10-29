@@ -64,12 +64,15 @@ check('cloche des notifications (ticket 8.2) : section CLOCHE DES NOTIFICATIONS 
   assert.equal(s.widened, false);
   assert.ok(s.units.includes('cloche-notifications'), s.units.join(', '));
 });
-check('marge mobile (épopée 9, entrées 1 et 10) : classes de page et retrait de marge -> confort-mobile et report ; fixture de l\'Aide -> confort-mobile seule', () => {
+check('marge mobile (épopée 9, entrées 1, 9 et 10) : classes de page et retrait de marge -> confort-mobile, report et kramail ; fixture de l\'Aide -> confort-mobile seule', () => {
   assert.deepEqual(zonesOf('confort-mobile.mjs'), ['confort-mobile']);
   const c = route('kraland-theme.css', hunk('  :where(html.kr-marge-mobile) body.mobile-mode {', '    --kr-marge-page: var(--kr-margin-mobile);'));
   assert.equal(c.widened, false, c.reasons.join(' ; '));
   assert.ok(c.zones.includes('confort-mobile'), c.zones.join(', '));
   assert.ok(c.zones.includes('report'), c.zones.join(', '));
+  assert.ok(c.zones.includes('kramail'), c.zones.join(', '));
+  const k = route('kraland-theme.css', hunk('  :where(html.kr-page-contacts) body.mobile-mode {', '    color: inherit;'));
+  assert.ok(k.zones.includes('kramail'), k.zones.join(', '));
   const t = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/aide(?:\\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] }"));
   assert.ok(t.zones.includes('confort-mobile'), t.zones.join(', '));
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/aide.html': [] }), readWith({}));

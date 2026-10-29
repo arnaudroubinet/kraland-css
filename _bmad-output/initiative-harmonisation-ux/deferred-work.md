@@ -244,3 +244,6 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
   summary: `cartes-pastilles` : `KR_SCRIPT_AVANT` remplace aussi `avant55` (base dédiée `COMMIT_AVANT_55`) ; une variable dédiée (`KR_SCRIPT_AVANT_55`) est nécessaire pour rejouer l'une sans l'autre.
   evidence: revue indépendante du ticket 7.10 (2026-10-29) ; antérieur au ticket, hors périmètre du sweep.
+- source_plan: `epic-plateau-confort-mobile/story-kramail-mobile-marge-de-16-px-et-cibles-de-44-px-plan.md`
+  summary: A9 : chevron de repli `span.clickable` dans un panneau autre que `.panel-default` (kramail, Contacts) non couvert par la règle des 44 px de l'entrée 9.9.
+  evidence: aucun sur fixtures, relevé site réel à la passe finale (revue indépendante du ticket 9.9, 2026-10-29).

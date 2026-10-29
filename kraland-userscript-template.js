@@ -6971,8 +6971,14 @@
         input.focus();
       });
       panel.addEventListener('mousedown', e => e.preventDefault());
-      // clic hors du champ : on referme (rien n'est perdu)
-      document.addEventListener('mousedown', e => { if (!panel.hidden && !root.contains(e.target)) {closePanel();} }, true);
+      // clic hors du champ : on referme (rien n'est perdu). Au click et non au mousedown (entrée 9.9) : refermé plus tôt, le panneau
+      // raccourcissait la page sous le pointeur, et le click tombait à côté de sa cible (« Envoyer » à 320 px). Appui et click tous
+      // deux hors du champ : un glissé de sélection parti du champ laisse le panneau ouvert, comme avant.
+      let downTarget = null;
+      document.addEventListener('mousedown', e => { downTarget = e.target; }, true);
+      document.addEventListener('click', e => {
+        if (!panel.hidden && !root.contains(e.target) && !root.contains(downTarget)) {closePanel();}
+      }, true);
       // Zone native requise et masquée : le message vient sur le champ visible, sans bulle sur une zone invisible.
       // Même chemin pour un texte tapé non validé (erreur de validité posée par syncDest) : envoi bloqué, « Validez ou effacez ».
       dest.addEventListener('invalid', e => {

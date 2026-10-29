@@ -43,6 +43,13 @@ function bundleAvant() {
 const SHOTS = process.env.KR_SHOTS || '';
 // Superposition mobile retirée par l'entrée 9.6, encore posée par le bundle « avant » (d64c578) : voir regression.
 const MASQUE_SUPERPOSITION_96 = '.kr-mobile-overlay';
+// Écart voulu de l'entrée 9.9 (kramail mobile : marge de page, chevron et destinataires à 44 px ; contrôlés par kramail-theme, fragment
+// confort) : neutralisé des deux côtés, seulement contre un bundle « avant » sans la marge du kramail. Retrait au recalage de BASE_SHA
+// au-delà de 9.9.
+const MASQUE_KRAMAIL_99 = '@media (max-width: 767px) { body.mobile-mode > footer { padding-left: 0 !important; padding-right: 0 !important; }'
+  + ' body.mobile-mode #col-right > ul.media-list.forum > li.media { margin-left: 0 !important; margin-right: 0 !important; }'
+  + ' body.mobile-mode #col-right .panel-heading span.clickable { justify-content: normal !important; min-width: 0 !important; min-height: 0 !important; }'
+  + ' body.mobile-mode .kr-msg-recipients > a { min-width: auto !important; } }';
 const FA_DIR = process.env.KR_FA_DIR || '';
 const BASE = 'http://www.kraland.org';
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
@@ -1292,13 +1299,15 @@ if (frag('regression')) {
   } else {
     // 12 combinaisons page × largeur indépendantes (contextes propres) capturées en parallèle (lib/parallele.mjs) ; dans chacune, avant
     // puis après en série comme auparavant. Notes et vérifications ensuite, dans l'ordre.
+    const masqueKramail99 = !AVANT.includes('kr-page-kramail-liste,html.kr-page-contacts) body.mobile-mode');
     const COMBOS = ['reception', 'envoi', 'corbeille', 'lecture'].flatMap(pg => [1280, 375, 320].map(width => ({ pg, width })));
     const compared = await mapLimit(COMBOS, async ({ pg, width }) => {
       const shots = {};
       const doms = {};
       let texteColore = null;
       for (const bundle of ['avant', 'apres']) {
-        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
+        const init = masqueKramail99 ? `document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(MASQUE_KRAMAIL_99)}; document.head.append(s); });` : null;
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
           // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page

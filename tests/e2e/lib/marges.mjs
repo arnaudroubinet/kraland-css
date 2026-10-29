@@ -7,7 +7,7 @@
  * Fonction de page : nœuds texte visibles de `racine` (défaut : body) dont le texte commence à moins de `marge` px d'un bord de l'écran.
  * Exclus : texte vide, `.sr-only`, visibility hidden, opacité nulle, boîte vide ou entièrement hors de l'écran ; texte d'un conteneur
  * défilant horizontalement (overflow auto ou scroll qui déborde), sauf `defilant: true`. `rogne: true` : texte coupé (ellipse, overflow non
- * visible) mesuré à la partie visible, bornée par ses ancêtres qui coupent (entrée 8). Résultat : [{ texte, gauche, droite, chemin, defilant }].
+ * visible) mesuré à la partie visible, bornée par ses ancêtres qui coupent, hors boîte vide (display: contents) (entrées 8 et 9). Résultat : [{ texte, gauche, droite, chemin, defilant }].
  */
 export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant = false, rogne = false } = {}) => {
   const vw = document.documentElement.clientWidth;
@@ -46,6 +46,7 @@ export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant =
         for (let x = e; x && x !== document.documentElement; x = x.parentElement) {
           if (getComputedStyle(x).overflowX === 'visible') { continue; }
           const b = x.getBoundingClientRect();
+          if (!b.width && !b.height) { continue; } // boîte vide (display: contents) : ne coupe rien
           gauche = Math.max(gauche, b.left);
           droite = Math.max(droite, vw - b.right);
         }
