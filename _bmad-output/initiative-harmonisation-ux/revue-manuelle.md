@@ -912,3 +912,14 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Lueurs du focus (30 %) et du doublon (55 %), survol d'option (10 %) : restent sur `--kr-highlight`. Seuls les mélanges lus par deux règles ou plus deviennent des jetons de `:root`.
 - Polices : passent au jeton les tailles exactes 13, 14 et 15 px, icônes comprises (croix et icône d'option mobiles en `--kr-font-detail`, icône Contacts mobile en `--kr-font-button`). Restent en dur : 11 et 12 px (12 px a deux jetons, rôle ambigu) et la saisie mobile à 16 px (anti-zoom iOS).
 - Implémenté directement par l'agent de build, sans sous-agent d'implémentation. La revue « quick » a été faite par un relecteur indépendant.
+
+## Ticket 7.7 — « Envoyer » dans le flux sous le champ, au forum comme au kramail (construit, 2026-10-29)
+
+- C1 : la règle « Envoyer » dans le flux vise désormais tout formulaire `post_msg` du forum et de la rédaction du kramail, avec ou sans barre d'outils (`.kr-editor` n'est plus requis). Un formulaire du forum sans barre d'outils perd sa barre fixe : à voir en vrai.
+- C2 : sur mobile, le texte d'« Envoyer » passe de 16 px à `--kr-font-button` (14 px, DESIGN.md › send-button), au forum aussi. À trancher si 16 px était voulu. Le poids 600 et l'absence de bordure, que le forum tenait de l'ancienne barre fixe, sont gardés dans la règle commune.
+- Masques des comparaisons « égal à la base », conditionnés à `AVANT_TICKET77` (lib/variantes.mjs) : typographie-formes (boutons : « Envoyer » mobile ; echelle-forum : « Envoyer » mobile ; nettoyage et sa bascule : ligne d'« Envoyer » vidée, réserves neutralisées, `RETIRER_ENVOYER_TICKET77`) et forum-activite#fil (même retrait). Chacun porte son « retrait au recalage de COMMIT_* ».
+- C3 : au bureau, « Envoyer » du kramail perd sa forme propre (180 px, poids 600, ombre, filet de 1 px et retrait de 16 px au-dessus) et reprend le bouton primaire natif du forum, aligné à droite.
+- C4 : les menus en feuille de la modale d'ordre (`.bootbox`, `inset: auto 8px 60px`) relèvent de son pied collant. Ils ne sont pas touchés.
+- Pied de page et « Remonter en haut » : le pied de page n'est plus remis dans le flux sur les pages de rédaction ; il reprend la règle mobile commune (collant, z-index 1000). « Remonter en haut » passe de 64 px à 20 px au kramail, comme au forum. Il reste la colonne de droite (marge de 52 px d'« Envoyer »). À voir en vrai, en bas de page.
+- `scroll-margin-bottom: 72px` (champs du forum et du kramail) est retiré avec la barre : un champ amené par le défilement peut toucher le bas de l'écran.
+- z-index 991 du backlog 12 : inchangé, seul son commentaire change.

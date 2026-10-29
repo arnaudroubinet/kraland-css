@@ -338,6 +338,30 @@ export const RETIRER_REDACTION_TICKET75 = () => {
 };
 
 /**
+ * « Envoyer » dans le flux, au forum comme au kramail (épopée 7, entrée 7) : la barre fixe et ses réserves (réserve basse du formulaire,
+ * scroll-margin de 72 px, pied de page remis dans le flux, « Remonter en haut » relevé) sont retirées ; « Envoyer » mobile prend 48 px,
+ * 14 px et 600 dans le flux, prouvé par kramail-theme#envoyer et forum-activite#envoyer. Bundle d'avant : sa règle dans le flux ne vise
+ * que le forum avec barre d'outils (sélecteur propre à l'entrée, stable à la minification). Retrait au recalage du COMMIT_* (base figée)
+ * de chaque suite appelante sur un SHA qui contient l'entrée.
+ */
+export const AVANT_TICKET77 = bundle => !bundle.includes('html body.mobile-mode:is(.page-forum,.page-kramail-compose) form[name=post_msg] div>button.btn-primary.pull-right');
+/**
+ * Dans la page : vide des deux rendus la ligne d'« Envoyer » du formulaire post_msg (forum et kramail ; la ligne reste le dernier <div>,
+ * marges, retraits, filet et dégagement neutralisés) et neutralise la réserve basse du formulaire, la réserve de défilement de ses champs
+ * et la hauteur de « Remonter en haut » (8 px).
+ */
+export const RETIRER_ENVOYER_TICKET77 = () => {
+  // La base ne fixait « Envoyer » que sur mobile, et ne le restylait au bureau que sur le kramail : ailleurs, rien à retirer.
+  if (!(window.innerWidth < 768 || /^\/kramail\//.test(location.pathname))) { return; }
+  const neutre = (sel, decl) => document.querySelectorAll(sel).forEach(e => { e.style.cssText += ';' + decl.replace(/;/g, ' !important;'); });
+  document.querySelectorAll('form[name="post_msg"] > div:has(button.btn-primary.pull-right)').forEach(e => e.replaceChildren());
+  neutre('form[name="post_msg"] > div:not(.form-group):empty', 'margin: 0; padding: 0; border: 0; text-align: left; clear: none;');
+  if (document.querySelector('form[name="post_msg"]')) { neutre('.container.white .kraland-back-to-top', 'bottom: 8px;'); }
+  neutre('form[name="post_msg"]', 'padding-bottom: 0;');
+  neutre('form[name="post_msg"] :is(input, select, textarea, label)', 'scroll-margin-bottom: 0;');
+};
+
+/**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum
  * et kr-page-forum-index, déjà cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
  * De même pour la couleur du texte (--kr-text-primary) et le raccourci de rayon, cités par trois suites. Panneau mesuré, couleur attendue du

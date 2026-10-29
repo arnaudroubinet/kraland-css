@@ -55,8 +55,8 @@
 //             767 px pour les 5 rédactions.
 //   redaction-focus : forum et 5 rédactions à 375 px (forum et Nouveau aussi à 767) : Maj+Tab depuis la zone de texte atteint « Plus »,
 //             puis Gras reçoit le focus : anneau focus-visible de 2 px en --kr-highlight.
-//   redaction-defilement : 5 rédactions à 375 px : zone de texte et dernière case amenées par scrollIntoView, leur bas hors de la barre
-//             « Envoyer » fixe (elementFromPoint).
+//   redaction-defilement : 5 rédactions à 375 px : zone de texte et dernière case amenées par scrollIntoView, leur bas atteint
+//             (elementFromPoint rend le champ ou un descendant) : rien ne les couvre, « Envoyer » ni pied collant.
 //   redaction-dest : les 5 rédactions, 375 et 1280 px : ajout d'une pastille, doublon refusé, retrait par la croix ; #dest suit.
 //   redaction-palette : (épopée 7, entrée 6) Nouveau et Répondre, 16 variantes, 375 et 1280 px, annuaire simulé : bundle sans --kd-* ni
 //             --kr-badge-danger, aucune variable --kd-* sur le formulaire ; couleurs calculées du champ (repos, focus, invalide, bloqué),
@@ -65,18 +65,23 @@
 //             PALETTE_BASE_SHA, hors écarts ECARTS_PALETTE (filets, contours et icônes d'accent en --kr-text-accent, section en
 //             --kr-text-accent, filet du doublon et contour de la croix ciblée en --kr-text-primary, invalide en --kr-danger) ;
 //             textes >= 4,5:1, filets, contours d'état et icônes >= 3:1 sur leurs deux fonds.
+//   envoyer : (épopée 7, entrée 7) les 5 rédactions et la réponse du forum (typographie-forum-redaction), 375, 767, 768 et 1280 px : aucun
+//             élément fixed/sticky dans le formulaire ; « Envoyer » dans le flux, sous la zone de texte, à droite, dans le formulaire,
+//             centre atteint après scrollTo ; mobile : 48 px, paire --kr-arm-bg / --kr-arm-ink, rayon 4 px, --kr-font-button ; styles
+//             d'« Envoyer » et de sa ligne égaux à ceux du forum à la même largeur ; bascule Nouveau 767 -> 768 -> 767 dans le même
+//             onglet (forme ordinateur du forum à 768, forme mobile inchangée au retour) ; 16 variantes à 375 px : texte >= 4,5:1.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, envoyer), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
 // sinon celui du commit PALETTE_BASE_SHA).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
-// KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge.
+// KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend envoyer rouge.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -1398,9 +1403,9 @@ if (frag('redaction-focus')) {
   }
 }
 
-// ---------- rédaction : champ atteint par défilement, hors de la barre « Envoyer » fixe (mobile) ----------
+// ---------- rédaction : champ atteint par défilement, rien ne le couvre (mobile) ----------
 if (frag('redaction-defilement')) {
-  console.log('rédaction : défilement vers un champ, hors de la barre « Envoyer »');
+  console.log('rédaction : défilement vers un champ, rien ne le couvre');
   const res = await mapLimit(REDACTIONS, async cle => {
     const o = await ouvrir(cle, { width: 375, height: 667, mobile: true });
     const m = await o.page.evaluate(() => {
@@ -1412,7 +1417,7 @@ if (frag('redaction-defilement')) {
         const r = el.getBoundingClientRect();
         const y = Math.min(r.bottom, window.innerHeight) - 4;
         const vu = document.elementFromPoint(r.left + r.width / 2, y);
-        return { nom, bas: Math.round(r.bottom), vh: window.innerHeight, envoyer: !!(vu && vu.closest('button.btn-primary.pull-right')),
+        return { nom, bas: Math.round(r.bottom), vh: window.innerHeight, atteint: !!vu && (vu === el || el.contains(vu)),
           vu: vu ? vu.tagName + '.' + [...vu.classList].join('.') : null };
       });
     });
@@ -1421,11 +1426,118 @@ if (frag('redaction-defilement')) {
   });
   for (const { cle, o, m } of res) {
     for (const x of m) {
-      check(`${cle} 375 px : ${x.nom} amenée par scrollIntoView, son bas hors de la barre « Envoyer »`, () => {
-        expect(!x.envoyer, `bas (${x.bas} / ${x.vh}) sous « Envoyer » : ${x.vu}`);
+      check(`${cle} 375 px : ${x.nom} amenée par scrollIntoView, son bas non couvert (« Envoyer », pied collant ou autre)`, () => {
+        expect(x.atteint, `bas (${x.bas} / ${x.vh}) couvert par ${x.vu}`);
         sansFuite(o);
       });
     }
+  }
+}
+
+// ---------- rédaction : « Envoyer » dans le flux sous le champ (épopée 7, entrée 7) ----------
+// Mesure d'« Envoyer » et de son formulaire : éléments fixes ou collants du formulaire, rectangles, styles calculés, paire d'action
+// attendue (--kr-arm-bg / --kr-arm-ink résolus par une sonde), centre atteint après défilement (« Envoyer » au milieu de l'écran).
+const ENVOYER_PROPS = ['position', 'float', 'display', 'width', 'height', 'minWidth', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+  'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderTopLeftRadius', 'borderBottomRightRadius', 'backgroundColor',
+  'color', 'fontSize', 'fontWeight', 'boxShadow', 'transform'];
+const MESURER_ENVOYER = props => {
+  const f = document.querySelector('form[name="post_msg"]');
+  const b = f.querySelector('button.btn-primary.pull-right');
+  const ta = f.querySelector('textarea[name="message"]');
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const fixes = [f, ...f.querySelectorAll('*')].filter(e => /fixed|sticky/.test(getComputedStyle(e).position)).map(e => e.tagName + '.' + [...e.classList].join('.'));
+  const cs = getComputedStyle(b);
+  const ligne = getComputedStyle(b.parentElement.parentElement);
+  const t0 = ta.getBoundingClientRect(); const r0 = b.getBoundingClientRect();
+  window.scrollTo(0, Math.max(0, r0.top + window.scrollY + r0.height / 2 - window.innerHeight / 2));
+  const r = b.getBoundingClientRect(); const fr = f.getBoundingClientRect();
+  const vu = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  window.scrollTo(0, 0);
+  return {
+    fixes,
+    styles: Object.fromEntries(props.map(k => [k, cs[k]])),
+    ligne: { paddingTop: ligne.paddingTop, marginTop: ligne.marginTop, borderTopWidth: ligne.borderTopWidth, textAlign: ligne.textAlign },
+    arm: { fond: sonde('var(--kr-arm-bg, var(--kr-primary))'), encre: sonde('var(--kr-arm-ink, var(--kr-white))'), police: getComputedStyle(document.documentElement).getPropertyValue('--kr-font-button').trim() },
+    sous: Math.round(r0.top) >= Math.round(t0.bottom), droite: r.left > t0.left + t0.width / 2, dansForm: r.right <= fr.right + 0.5,
+    hauteur: Math.round(r.height), haut: Math.round(r0.top), basChamp: Math.round(t0.bottom),
+    atteint: !!vu && b.contains(vu), vu: vu ? vu.tagName + '.' + [...vu.classList].join('.') : null,
+    texte: b.textContent.trim()
+  };
+};
+if (frag('envoyer')) {
+  console.log('rédaction : « Envoyer » dans le flux sous le champ, 48 px sur mobile, bouton primaire du forum sur ordinateur');
+  const { VARIANTES, CONTRASTE } = await import('./lib/variantes.mjs');
+  const formes = [...REDACTIONS, 'forum-redaction'].flatMap(cle => [[375, 667, true], [767, 800, true], [768, 800, false], [1280, 720, false]].map(([width, height, mobile]) => ({ cle, width, height, mobile })));
+  const res = await mapLimit(formes, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.height, mobile: c.mobile });
+    const m = await o.page.evaluate(MESURER_ENVOYER, ENVOYER_PROPS);
+    await o.context.close();
+    return { c, o, m };
+  });
+  const forum = width => res.find(x => x.c.cle === 'forum-redaction' && x.c.width === width).m;
+  for (const { c, o, m } of res) {
+    const lab = `${c.cle} ${c.width} px`;
+    check(`${lab} : aucun élément fixe ou collant dans le formulaire, « Envoyer » dans le flux sous la zone de texte, à droite, centre atteint`, () => {
+      expect(m.fixes.length === 0, 'fixes ou collants : ' + m.fixes.join(', '));
+      expect(m.texte === 'Envoyer', 'libellé ' + m.texte);
+      expect(m.sous, `haut d'« Envoyer » ${m.haut} au-dessus du bas du champ ${m.basChamp}`);
+      expect(m.droite && m.dansForm, 'alignement à droite dans le formulaire');
+      expect(m.atteint, 'centre -> ' + m.vu);
+      sansFuite(o);
+    });
+    if (c.mobile) {
+      check(`${lab} : « Envoyer » de 48 px, fond et encre d'action, rayon sm, {typography.button}`, () => {
+        expect(m.hauteur === 48, 'hauteur ' + m.hauteur);
+        expect(m.styles.backgroundColor === m.arm.fond && m.styles.color === m.arm.encre, `couleurs ${m.styles.backgroundColor} / ${m.styles.color} pour ${m.arm.fond} / ${m.arm.encre}`);
+        expect(m.styles.borderTopLeftRadius === '4px' && m.styles.borderBottomRightRadius === '4px', 'rayon ' + m.styles.borderTopLeftRadius);
+        expect(m.styles.fontSize === m.arm.police, `police ${m.styles.fontSize} pour ${m.arm.police}`);
+      });
+    }
+    if (c.cle !== 'forum-redaction') {
+      check(`${lab} : « Envoyer » et sa ligne aux valeurs calculées de la réponse du forum`, () => {
+        const f = forum(c.width);
+        const ecarts = ENVOYER_PROPS.filter(k => m.styles[k] !== f.styles[k]).map(k => `${k} ${m.styles[k]} / ${f.styles[k]}`);
+        const ligne = Object.keys(f.ligne).filter(k => m.ligne[k] !== f.ligne[k]).map(k => `ligne.${k} ${m.ligne[k]} / ${f.ligne[k]}`);
+        expect(ecarts.length + ligne.length === 0, ecarts.concat(ligne).join(', '));
+      });
+    }
+  }
+  // Bascule dans le même onglet, Nouveau 767 -> 768 -> 767 : forme ordinateur (celle du forum à 768) puis forme mobile au retour,
+  // identique à celle mesurée avant la bascule.
+  {
+    const o = await ouvrir('nouveau', { width: 767, height: 720 });
+    const etapes = [['767', await o.page.evaluate(MESURER_ENVOYER, ENVOYER_PROPS)]];
+    await basculer(o.page, 768, 'nouveau 768');
+    etapes.push(['768', await o.page.evaluate(MESURER_ENVOYER, ENVOYER_PROPS)]);
+    await basculer(o.page, 767, 'nouveau 767 retour');
+    etapes.push(['767 retour', await o.page.evaluate(MESURER_ENVOYER, ENVOYER_PROPS)]);
+    await o.context.close();
+    const [avant, bureau, retour] = etapes.map(e => e[1]);
+    const ecarts = (a, b) => ENVOYER_PROPS.filter(k => a.styles[k] !== b.styles[k]).map(k => `${k} ${a.styles[k]} / ${b.styles[k]}`);
+    check('nouveau bascule 767 -> 768 : « Envoyer » à 768 aux valeurs calculées du forum à 768 (forme ordinateur), dans le flux', () => {
+      const e = ecarts(bureau, forum(768));
+      expect(e.length === 0, e.join(', '));
+      expect(bureau.fixes.length === 0 && bureau.sous && bureau.atteint, JSON.stringify({ fixes: bureau.fixes, sous: bureau.sous, vu: bureau.vu }));
+      sansFuite(o);
+    });
+    check('nouveau bascule 768 -> 767 : forme mobile au retour (48 px, couleurs d\'action, mêmes valeurs calculées qu\'avant la bascule)', () => {
+      expect(avant.hauteur === 48 && retour.hauteur === 48, `hauteurs ${avant.hauteur} / ${retour.hauteur}`);
+      expect(retour.styles.backgroundColor === retour.arm.fond && retour.styles.color === retour.arm.encre, `couleurs ${retour.styles.backgroundColor} / ${retour.styles.color}`);
+      const e = ecarts(retour, avant);
+      expect(e.length === 0, e.join(', '));
+      expect(retour.fixes.length === 0 && retour.sous && retour.atteint, JSON.stringify({ fixes: retour.fixes, sous: retour.sous, vu: retour.vu }));
+    });
+  }
+  const cas = VARIANTES.flatMap(variante => ['nouveau', 'forum-redaction'].map(cle => ({ cle, variante })));
+  const contrastes = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: 375, height: 667, mobile: true, variante: c.variante });
+    await o.page.evaluate(CONTRASTE);
+    const r = await o.page.evaluate(() => window.__krContraste.texte(document.querySelector('form[name="post_msg"] button.btn-primary.pull-right')));
+    await o.context.close();
+    return { c, r };
+  });
+  for (const { c, r } of contrastes) {
+    check(`${c.cle} ${c.variante} 375 px : texte d'« Envoyer » >= 4,5:1 (${r.toFixed(2)})`, () => expect(r >= 4.5, r.toFixed(2)));
   }
 }
 

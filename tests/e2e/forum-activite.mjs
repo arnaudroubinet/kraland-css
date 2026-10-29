@@ -47,9 +47,9 @@
 //             contraste de l'auteur dans les 16 variantes ; mobile égal à la base ; peau coupée égale à la base peau coupée ;
 //             Staff et sous-forum égaux à la base, aucune icône ; seuil 767/768/769 non tactile ; bascule 768 -> 767 -> 768 -> 767 ;
 //   envoyer   (ticket 12, plan story-envoyer-et-panneaux-du-forum-sur-page-derivee) fil de sujet + formulaire de réponse de la fixture de
-//             rédaction (page dérivée en mémoire), 375 et 767 px, Kraland clair et Empire Brun sombre : sans barre d'outils, « Envoyer »
-//             en barre fixe touché en son centre quand la barre d'un message ouvert défile dessous ; avec barre d'outils (kr-editor),
-//             « Envoyer » dans le flux touché en son centre ; voile 990 simulé : première action du message ouvert au-dessus, « Envoyer »
+//             rédaction (page dérivée en mémoire), 375 et 767 px, Kraland clair et Empire Brun sombre : avec et sans barre d'outils
+//             (kr-editor ou non), « Envoyer » dans le flux (épopée 7, entrée 7), 48 px, aucun élément fixed/sticky dans le formulaire,
+//             touché en son centre sous un message ouvert ; voile 990 simulé : première action du message ouvert au-dessus, « Envoyer »
 //             dessous ;
 //   panneaux  (ticket 12) accordéon et modale (statique, ouverte) ajoutés au fil de sujet (repères dans lib/variantes.mjs,
 //             REPERES_PANNEAUX_TICKET12), 375, 767, 768 et 1280 px : styles calculés sur /forum/sujet/… égaux à la même page servie hors
@@ -94,7 +94,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET77, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, RETIRER_ENVOYER_TICKET77, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE, TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -640,7 +640,12 @@ if (on('fil')) {
     : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
   Object.assign(PAGES, pagesFil());
   console.log(`\n== fil : fil d'Ariane commun de l'index et du sous-forum, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sujet, réponse et hors forum égaux à ${COMMIT_FIL} ; seuil, bascule, bureau ==`);
+  // Écart accepté et consigné (épopée 7, entrée 7) : « Envoyer » mobile en 14 px dans le flux (kramail-theme et forum-activite, fragments
+  // envoyer) : sa ligne est retirée de l'empreinte des deux côtés tant que la base précède l'entrée. Retrait au recalage de COMMIT_FIL.
+  const MASQUE77 = AVANT_TICKET77(baseFil);
   const lireFil = async (o, empreinte = false) => {
+    // RETIRER_ENVOYER_TICKET77 ne retire rien au bureau hors kramail (largeur < 768 ou chemin /kramail/).
+    if (empreinte && MASQUE77) { await o.page.evaluate(RETIRER_ENVOYER_TICKET77); }
     await o.page.evaluate(CONTRASTE);
     const f = await o.page.evaluate(FIL, R);
     const e = empreinte ? await o.page.evaluate(EMPREINTE_FIL) : null;
@@ -1850,34 +1855,36 @@ const deriver = (html, ajout, nom) => {
   return h;
 };
 
-// Formulaire de réponse de la fixture de rédaction : avec sa barre d'outils (kr-editor, « Envoyer » dans le flux) ou sans (barre fixe).
-const ENVOYER = ({ p, fixe }) => {
+// Formulaire de réponse de la fixture de rédaction : avec sa barre d'outils (kr-editor) ou sans ; « Envoyer » dans le flux dans les deux
+// cas (épopée 7, entrée 7 : plus de barre fixe).
+const ENVOYER = ({ p }) => {
   const env = document.querySelector('form[name="post_msg"] button.btn-primary.pull-right');
   const plus = document.querySelector(p.hotes.sujet);
   const message = plus.closest(p.message);
   plus.click();
-  const barre = message.querySelector(p.barre);
   const e0 = env.getBoundingClientRect();
-  if (fixe) {
-    // Barre du message ouvert défilée sous « Envoyer » : son centre vertical sur celui d'« Envoyer ».
-    const b0 = barre.getBoundingClientRect();
-    window.scrollTo(0, b0.top + window.scrollY + b0.height / 2 - (e0.top + e0.height / 2));
-  } else {
-    window.scrollTo(0, Math.max(0, e0.top + window.scrollY - 200));
-  }
+  window.scrollTo(0, Math.max(0, e0.top + window.scrollY - 200));
   const e = env.getBoundingClientRect();
-  const b = barre.getBoundingClientRect();
   const x = e.left + e.width / 2; const y = e.top + e.height / 2;
   const hit = document.elementFromPoint(x, y);
-  const point = { dedans: !!hit && env.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null, sousBarre: x >= b.left && x <= b.right && y >= b.top && y <= b.bottom };
+  const point = { dedans: !!hit && env.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null };
   window.scrollTo(0, 0);
   return {
     mobile: document.body.classList.contains('mobile-mode'),
     editeur: env.closest('form').classList.contains('kr-editor'),
     position: getComputedStyle(env).position,
+    fixes: [...env.closest('form').querySelectorAll('*')].filter(n => ['fixed', 'sticky'].includes(getComputedStyle(n).position)).map(n => n.tagName + '.' + n.className),
     hauteur: Math.round(e.height),
     ouvert: message.classList.contains(p.ouvert),
-    point
+    point,
+    forme: (() => {
+      const ta = env.closest('form').querySelector('textarea[name="message"]').getBoundingClientRect();
+      const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+      const cs = getComputedStyle(env);
+      return { sous: Math.round(e0.top) >= Math.round(ta.bottom), droite: e0.left > ta.left + ta.width / 2,
+        fond: cs.backgroundColor === sonde('var(--kr-arm-bg, var(--kr-primary))'), encre: cs.color === sonde('var(--kr-arm-ink, var(--kr-white))'),
+        rayon: cs.borderTopLeftRadius, police: cs.fontSize === getComputedStyle(document.documentElement).getPropertyValue('--kr-font-button').trim() };
+    })()
   };
 };
 // Voile posé : « Envoyer » n'est plus touché à son centre (le tap ferme le menu ; le voile couvre « Envoyer » quelle que soit la peau) ;
@@ -1897,15 +1904,15 @@ const SOUS_VOILE = ({ p }) => {
   return { envoyer: !!hitEnv && env.contains(hitEnv), barre: !!hit && barre.contains(hit), touche: hit ? hit.tagName + '.' + hit.className : null, voiles: document.querySelectorAll('.' + p.voile).length };
 };
 if (on('envoyer')) {
-  console.log(`\n== envoyer : « Envoyer » atteignable sous un message ouvert (barre fixe et flux), actions au-dessus du voile, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ==`);
+  console.log(`\n== envoyer : « Envoyer » dans le flux et atteignable sous un message ouvert (avec et sans barre d'outils), actions au-dessus du voile, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ==`);
   const formulaire = fixture(R.reponse.fixture).match(/<form name="post_msg"[\s\S]*?<\/form>/)[0];
   const sansBarre = formulaire.replace(/<div class="btn-toolbar"[\s\S]*?<\/div><\/div>/, '');
   if (sansBarre === formulaire) { throw new Error('formulaire sans barre d\'outils : motif absent de la fixture'); }
-  const HTML = { fixe: deriver(SUJET, sansBarre, 'fixe'), flux: deriver(SUJET, formulaire, 'flux') };
-  const cas = ['fixe', 'flux'].flatMap(forme => [375, 767].flatMap(width => VARIANTES.map(variante => ({ forme, width, variante }))));
+  const HTML = { sans: deriver(SUJET, sansBarre, 'sans'), flux: deriver(SUJET, formulaire, 'flux') };
+  const cas = ['sans', 'flux'].flatMap(forme => [375, 767].flatMap(width => VARIANTES.map(variante => ({ forme, width, variante }))));
   const res = await mapLimit(cas, async ({ forme, width, variante }) => {
     const o = await ouvrir({ cle: 'sujet', html: HTML[forme], width, variante });
-    const m = await o.page.evaluate(ENVOYER, { p: P, fixe: forme === 'fixe' });
+    const m = await o.page.evaluate(ENVOYER, { p: P });
     await o.page.evaluate(VOILE, { p: P, cle: 'sujet', poser: true });
     const voile = await o.page.evaluate(OUVERT, { p: P, cle: 'sujet' });
     const sous = await o.page.evaluate(SOUS_VOILE, { p: P });
@@ -1916,14 +1923,17 @@ if (on('envoyer')) {
   cas.forEach(({ forme, width, variante }, n) => {
     const { m, voile, sous, erreurs } = res[n];
     const lab = `envoyer ${forme} ${variante} ${width} px`;
-    check(`${lab} : « Envoyer » ${forme === 'fixe' ? 'en barre fixe, sous la barre du message ouvert défilée dessous' : 'dans le flux (kr-editor)'}, touché en son centre, 44 px au moins`, () => {
+    check(`${lab} : « Envoyer » dans le flux (${forme === 'sans' ? 'sans barre d\'outils' : 'kr-editor'}), rien de fixe dans le formulaire, touché en son centre, 48 px`, () => {
       assert.ok(m.mobile && m.ouvert, `mobile ${m.mobile}, message ouvert ${m.ouvert}`);
       assert.equal(m.editeur, forme === 'flux', 'kr-editor');
-      assert.equal(m.position, forme === 'fixe' ? 'fixed' : 'static', 'position');
-      if (forme === 'fixe') { assert.ok(m.point.sousBarre, 'centre d\'« Envoyer » hors de la barre du message ouvert'); }
+      assert.equal(m.position, 'static', 'position');
+      assert.deepEqual(m.fixes, [], 'fixed/sticky dans le formulaire');
       assert.ok(m.point.dedans, 'centre d\'« Envoyer » -> ' + m.point.touche);
-      assert.ok(m.hauteur >= 44, 'hauteur ' + m.hauteur);
+      assert.equal(m.hauteur, 48, 'hauteur');
       assert.deepEqual(erreurs, []);
+    });
+    check(`${lab} : « Envoyer » sous la zone de texte, à droite, fond et encre d'action, rayon 4 px, {typography.button}`, () => {
+      assert.deepEqual(m.forme, { sous: true, droite: true, fond: true, encre: true, rayon: '4px', police: true });
     });
     check(`${lab} : voile 990 posé, centre du « ••• » et première action du message ouvert au-dessus du voile ; « Envoyer » sous le voile`, () => {
       assert.equal(sous.voiles, 1, 'voile simulé');

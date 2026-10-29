@@ -700,15 +700,15 @@ if (frag('n1')) {
   await context.close();
 }
 
-console.log('Pied collant (z-index 1000) vs « Envoyer » (z-index 90) : le bouton fixe ne masque jamais la barre');
+console.log('Pied collant (z-index 1000) vs « Envoyer » dans le flux : « Remonter en haut » ne chevauche jamais « Envoyer »');
 for (const [width, variant] of [[320, 'empire-brun-dark'], [375, 'empire-brun-dark'], [375, 'empire-brun'], [700, 'empire-brun-dark'], [700, 'empire-brun']].filter(() => frag('pied'))) {
   const { context, page: p, state } = await open({ width, kind: 'editeur', variant, height: width === 375 ? 667 : 800 });
   const sw = await sweep(p, 20);
   const tag = `${width} px ${variant}`;
-  // Libellés historiques (barre fixe) : en v3, mesure du bouton dans le flux sur toutes les positions où il est entièrement dans l'écran.
-  check(`${tag} : barre « Envoyer » fixe (56 px, z 90) et lien « Remonter en haut » visible sur ${sw.backSteps}/${sw.steps} positions`, () => { assert.ok(sw.sendSteps > 0 && sw.backSteps > 3, JSON.stringify([sw.sendSteps, sw.backSteps])); });
-  check(`${tag} : le bouton fixe ne chevauche jamais la barre « Envoyer » (aire)`, () => assert.equal(sw.sendInter, 0, JSON.stringify(sw.first)));
-  check(`${tag} : 6 points de la barre « Envoyer » toujours reçus par le bouton (elementFromPoint), sur toutes les positions`, () => assert.equal(sw.sendBad, 0, JSON.stringify(sw.first)));
+  // Épopée 7, entrée 7 : « Envoyer » dans le flux, mesuré sur toutes les positions où il est entièrement dans l'écran.
+  check(`${tag} : « Envoyer » dans le flux mesuré, lien « Remonter en haut » visible sur ${sw.backSteps}/${sw.steps} positions`, () => { assert.ok(sw.sendSteps > 0 && sw.backSteps > 3, JSON.stringify([sw.sendSteps, sw.backSteps])); });
+  check(`${tag} : « Remonter en haut » ne chevauche jamais « Envoyer » (aire)`, () => assert.equal(sw.sendInter, 0, JSON.stringify(sw.first)));
+  check(`${tag} : 6 points d'« Envoyer » toujours reçus par le bouton (elementFromPoint), sur toutes les positions`, () => assert.equal(sw.sendBad, 0, JSON.stringify(sw.first)));
   check(`${tag} : le lien « Remonter en haut » reste touchable`, () => assert.equal(sw.backUnreachable, 0, `${sw.backUnreachable}`));
   const clicks = await p.evaluate(() => window.__clicks.length);
   check(`${tag} : rien envoyé, aucune navigation`, () => assert.equal(clicks + state.other.length, 0, state.other.join(',')));

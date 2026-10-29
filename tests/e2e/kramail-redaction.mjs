@@ -1102,9 +1102,9 @@ for (const width of [1280, 375, 320]) {
   });
   check(`${width} blocage : aucune navigation, aucune erreur, aucune requête imprévue`, () => { assert.equal(state.documents, 1); assert.deepEqual(errors, [], JSON.stringify(errors)); assert.deepEqual(unexpected(state), [], JSON.stringify(unexpected(state))); });
   await context.close();
-  // QA t_503eb6f6 : parcours réel. Le joueur a écrit son message et touche « Envoyer » en bas de page (bouton collant sur mobile) ;
+  // QA t_503eb6f6 : parcours réel. Le joueur a écrit son message et touche « Envoyer » en bas de page (dans le flux, sous le champ, depuis le ticket 7.7) ;
   // le champ Destinataires est plus haut. Après le blocage, le message et les boutons Ajouter / Effacer doivent être À L'ÉCRAN,
-  // ni sous la barre de navigation fixe ni sous le bouton Envoyer collant, et atteignables en leur centre.
+  // ni sous la barre de navigation fixe ni sous « Envoyer », et atteignables en leur centre.
   {
     const v = await open({ width, height: mob ? 800 : 900 });
     await v.page.fill('input[name="c[1]"]', 'Sujet de test');

@@ -9549,7 +9549,7 @@ body > map {
 
 @media (max-width: 767px) {
   /* Seuil unique (carte t_f4fad4a5) : 767 px comme le mode mobile JS (< 768) et Bootstrap 3 natif (xs < 768 <= sm).
-     À 768 px exactement, ce bloc s'appliquait seul (barre « Envoyer » fixe, grille réinitialisée) sans le mode mobile JS ni les
+     À 768 px exactement, ce bloc s'appliquait seul (grille réinitialisée) sans le mode mobile JS ni les
      correctifs PR12 (max-width: 767px) : Signature masquée, smileys 0/126, outils débordants. 768 est désormais en mise en page bureau. */
 
   /* 0. LAYOUT - Fix Bootstrap grid overflow */
@@ -9751,37 +9751,6 @@ body > map {
     text-transform: none;
     letter-spacing: normal;
     padding: 8px 0;
-  }
-
-  /* 5. BOUTON ENVOYER - Sticky footer */
-
-  /* Barre fixe : pages de rédaction du kramail et toutes les pages du forum (la branche forum garde le comportement d'avant le lot 1 jusqu'au lot 7, R4).
-     Ailleurs, un bouton de validation (« ok » de la recherche des Règles) reste à côté de son champ. */
-  :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 90;
-    width: 100% !important;
-    height: 56px !important;
-    margin: 0 !important;
-    padding: 12px 16px !important;
-    border-radius: 0 !important;
-    font-size: 16px !important; /* exclusion des boutons de taille normale (4.2) : Envoyer mobile garde sa taille (épopée 7) */
-    font-weight: 600;
-    border: none !important;
-  }
-
-  :where(body.page-kramail-compose, body.page-forum) button.btn-primary.pull-right:active {
-    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
-    color: var(--kr-arm-ink-hover, var(--kr-white));
-    transform: scale(0.98);
-  }
-
-  /* Padding au dernier form-group pour éviter overlap avec footer */
-  :where(body.page-kramail-compose, body.page-forum) .form-group:last-of-type {
-    padding-bottom: 60px;
   }
 
   /* 6. ACCORDION/COLLAPSE - Options & Sondage */
@@ -10005,39 +9974,6 @@ body.page-kramail .editeur-text #results hr {
     color: var(--kr-text-secondary);
     font-size: 13px;
     line-height: 1.4;
-  }
-
-  /* 7. BOUTON ENVOYER — plus proéminent */
-  body.page-kramail .editeur-text > div:last-child {
-    text-align: right;
-    padding-top: 16px;
-    margin-top: 8px;
-    border-top: 1px solid var(--kr-border-default);
-    clear: both;
-  }
-
-  body.page-kramail .editeur-text button.btn-primary.pull-right {
-    float: none !important;
-    min-width: 180px;
-    height: var(--kr-button-height);
-    padding: 0 32px;
-    font-size: var(--kr-font-button);
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    border-radius: var(--kr-radius-sm);
-    margin: 0;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px var(--kr-btn-shadow);
-  }
-
-  body.page-kramail .editeur-text button.btn-primary.pull-right:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px var(--kr-btn-shadow);
-  }
-
-  body.page-kramail .editeur-text button.btn-primary.pull-right:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px var(--kr-btn-shadow);
   }
 
 } /* fin @media (min-width: 768px) — Kramail formulaire desktop */
@@ -13014,10 +12950,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 }
 
 /* ============================================================================
-   FORUM MOBILE : réserves PR12 (smileys, Signature, barre « Envoyer », « Remonter en haut »)
+   FORUM MOBILE : réserves PR12 (smileys, Signature)
    Dépendance :has — navigateurs sans :has (Firefox < 121, Safari < 15.4) : les règles qui en dépendent sont ignorées
-   et on retrouve le comportement d'avant (page jamais cassée) : menu smileys absolu rogné, bouton « Remonter en haut »
-   qui déborde sur la barre « Envoyer ». Les règles sans :has (Signature, gouttière N-1) s'appliquent partout.
+   et on retrouve le comportement d'avant (page jamais cassée) : menu smileys absolu rogné. Les règles sans :has
+   (Signature, gouttière N-1) s'appliquent partout. La barre « Envoyer » fixe et ses réserves (72 px, 64 px, pied de page
+   remis dans le flux, « Remonter en haut » relevé) sont retirées : « Envoyer » est dans le flux (épopée 7, entrée 7).
    ============================================================================ */
 @media (max-width: 767px) {
   /* S3 : le menu smileys natif (320 px × 638 px, position absolue) était rogné à y = 554 par « .form-group .col-sm-10 { overflow: hidden } » :
@@ -13084,35 +13021,6 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     position: static !important;
     flex: 0 0 20px;
     margin: 0 !important;
-  }
-
-  /* La barre « Envoyer » est fixe (56 px, en bas de l'écran) : le défilement vers un champ (scrollIntoView, focus au clavier, ancre) laisse
-     donc 72 px libres sous lui, et le formulaire garde 64 px de page sous sa dernière ligne (l'ancienne réserve
-     « .form-group:last-of-type » ne visait aucun élément : le dernier <div> du formulaire n'a pas la classe .form-group).
-     La réserve basse reste propre au forum : celle du kramail relève de l'épopée 7, entrée 7. */
-  body:is(.page-forum, .page-kramail-compose) form :is(input, select, textarea, label) {
-    scroll-margin-bottom: 72px;
-  }
-
-  body.page-forum form[name="post_msg"] {
-    padding-bottom: 64px;
-  }
-
-  /* Pied collant : la règle d'en-tête mobile « body.mobile-mode .navbar-inverse { position: sticky; top: 0; z-index: var(--z-header) } » (1000)
-     atteint aussi le <footer class="navbar-inverse"> natif : il devenait un contexte d'empilement de 1000 qui se peignait SUR la barre « Envoyer »
-     fixe (z-index 90) dès que le pied de page passait dessous (la barre disparaissait et le toucher allait à la citation du pied de page : 44 positions
-     de défilement sur 62 à 375 px). Sur une page qui porte cette barre, le pied de page revient dans le flux normal ; le bouton « Remonter en haut »
-     (position: fixed) garde son z-index 1000 dans le contexte racine. */
-  body.mobile-mode:where(.page-kramail-compose, .page-forum):has(button.btn-primary.pull-right) footer.navbar-inverse {
-    position: relative;
-    top: auto;
-    z-index: auto;
-  }
-
-  /* Le bouton fixe « Remonter en haut » (z-index 1000, bas 8 px) se peignait aussi sur la fin de la barre « Envoyer » (56 px, pleine largeur) :
-     33 px de large de la barre ne recevaient plus le toucher. Sur une page qui porte cette barre, il est relevé au-dessus d'elle. */
-  body:where(.page-kramail-compose, .page-forum):has(button.btn-primary.pull-right) .container.white .kraland-back-to-top {
-    bottom: 64px;
   }
 }
 
@@ -14915,7 +14823,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    Portée : mobile uniquement (max-width: 767px et body.mobile-mode), pages /forum/. Les classes kr-msg, kr-msg-more, kr-msg-secondary,
    kr-editor, kr-sender-row, kr-message-row, kr-tools-* sont posées par le module Messages:V3 ; aucun nœud natif n'est cloné ni déplacé.
    Le bureau (>= 768 px) garde le DOM et la mise en page natifs. La lecture du kramail reprend ces règles : Kramail:Lecture pose kr-msg
-   sur ses messages remis dans la même forme (épopée 7, entrée 2). La rédaction du kramail (page-kramail-compose) reprend l'éditeur, hors
+   sur ses messages remis dans la même forme (épopée 7, entrée 2). La rédaction du kramail (page-kramail-compose) reprend l'éditeur,
    « Envoyer » dans le flux et sa réserve (épopée 7, entrées 5 et 7).
    ============================================================================ */
 @media (max-width: 767px) {
@@ -15143,7 +15051,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   /* Message ouvert, voile de menu déroulant (990) présent : actions au-dessus du voile, sous le mini-chat plein écran (999). Sans voile,
-     la barre reste à sa couche d'origine, sous la barre fixe « Envoyer » (90) quand elle défile dessous (D13) */
+     la barre reste à sa couche d'origine (D13). « Envoyer » est dans le flux, sous le champ (épopée 7, entrée 7) : aucune barre fixe à éviter */
   body.mobile-mode:has(.dropdown-backdrop) ul.media-list.forum > li.media.kr-msg.kr-msg-open > .media-body > .pull-right {
     position: relative;
     z-index: 991;
@@ -15315,8 +15223,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     content: "▴";
   }
 
-  /* Validation dans le flux : plus de barre fixe qui recouvre la saisie ; le libellé natif du bouton est conservé */
-  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right {
+  /* Validation dans le flux : plus de barre fixe qui recouvre la saisie ; le libellé natif du bouton est conservé. Une seule règle pour tout
+     formulaire de message du forum et de la rédaction du kramail, barre d'outils ou non (épopée 7, entrée 7 ; DESIGN.md › send-button).
+     Taille du texte : celle des boutons de formulaire (--kr-font-button, règle mobile commune des .btn), sans exclusion */
+  html body.mobile-mode:is(.page-forum, .page-kramail-compose) form[name="post_msg"] div > button.btn-primary.pull-right {
     position: static !important;
     display: block !important;
     float: none !important;
@@ -15328,24 +15238,25 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border-radius: var(--kr-radius-sm) !important;
     background: var(--kr-arm-bg, var(--kr-primary)) !important;
     color: var(--kr-arm-ink, var(--kr-white)) !important;
-    font-size: 16px;
+    border: none;
+    font-weight: 600;
   }
 
   /* Même encre et même fond que « Répondre » (jetons --kr-arm-*, >= 4,5:1 sur les 16 thèmes) */
-  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:hover,
-  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:active,
-  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] div > button.btn-primary.pull-right:focus {
+  html body.mobile-mode:is(.page-forum, .page-kramail-compose) form[name="post_msg"] div > button.btn-primary.pull-right:hover,
+  html body.mobile-mode:is(.page-forum, .page-kramail-compose) form[name="post_msg"] div > button.btn-primary.pull-right:active,
+  html body.mobile-mode:is(.page-forum, .page-kramail-compose) form[name="post_msg"] div > button.btn-primary.pull-right:focus {
     background: var(--kr-arm-bg-hover, var(--kr-primary-dark)) !important;
     color: var(--kr-arm-ink-hover, var(--kr-white)) !important;
   }
 
-  html body.mobile-mode.page-forum form.kr-editor[name="post_msg"] {
+  html body.mobile-mode:is(.page-forum, .page-kramail-compose) form[name="post_msg"] {
     padding-bottom: 16px;
   }
 
   /* Plus de barre fixe en bas : le bouton « Remonter en haut » retrouve sa place d'origine (20 px) ; « Envoyer » lui laisse sa colonne de droite
      (marge de 52 px = 8 + 36 + 8) pour qu'il ne le recouvre à aucune position de défilement. */
-  body.mobile-mode:where(.page-forum):has(form.kr-editor) .container.white .kraland-back-to-top {
+  body.mobile-mode:where(.page-forum, .page-kramail-compose):has(form[name="post_msg"]) .container.white .kraland-back-to-top {
     bottom: 20px;
   }
 }
