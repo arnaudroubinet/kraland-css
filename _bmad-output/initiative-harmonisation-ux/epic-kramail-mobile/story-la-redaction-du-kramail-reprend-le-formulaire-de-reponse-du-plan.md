@@ -124,4 +124,8 @@ context: []
   - css-kd : nettoyage, 26 échecs, ce qui montre que `.kd` reste comparé à la base ;
   - avant la revue : 14 mutations, déjà rouges.
 - Vert : kramail 935, forum 639, typographie-formes 4342, cartes-pastilles 2302, confort-mobile 912, forum-activite 1385, messages 235, 0 FAIL partout. lint:css, lint:js, test:unit et test:router sont à 0. Le diff des skills est vide.
+- Après fusion de feature/next (2356a54, bug 14), 2 régressions corrigées :
+  - l'astérisque des champs obligatoires du kramail reprend `--kr-text-accent` sur les deux supports (règle universelle sous `:where(html.kr-page-kramail-compose)`). Rouge sur 2356a54 : textes-bureau et textes-largeurs de palette-nation, 24 FAIL ; vert ensuite, textes-mobile compris ;
+  - typographie-formes#champs : masque conditionné à `AVANT_TICKET75(avantChamps)`, limité au kramail sur mobile (Sujet, Expéditeur, Message), retrait au recalage de COMMIT_CHAMPS. 4 FAIL avant, vert après.
+- Vert après correctifs : palette-nation 1372, typographie-formes 4453, kramail 935, 0 FAIL. lint:css, lint:js et test:router à 0.
 - Doutes : `revue-manuelle.md`, section « Ticket 7.5 ».

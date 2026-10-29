@@ -9838,6 +9838,12 @@ body > map {
 
 /* --- Styles universels (tous viewports) --- */
 
+/* Astérisque required en couleur d'accent (H5.6), Destinataires compris */
+:where(html.kr-page-kramail-compose) form[name="post_msg"] .form-group > label.control-label .required {
+  color: var(--kr-text-accent);
+  font-weight: 700;
+}
+
 /* HR inutiles — supprimer le bruit visuel */
 body.page-kramail .editeur-text .form-group hr {
   display: none !important;

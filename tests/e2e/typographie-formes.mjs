@@ -2441,7 +2441,10 @@ if (on('champs')) {
     if (c.width < 768) {
       check(`champs ${etiquette(c)} : champs .form-control (sondes .input-sm / .input-lg comprises) égaux à la base (${COMMIT_CHAMPS})`, () => {
         assert.ok(a.champs.length > 4, 'aucun champ de la page mesuré');
-        const ecarts = ecartsChamps(a.champs, b.champs);
+        // Ticket 7.5 : sur mobile, les champs Sujet, Expéditeur et Message du kramail reprennent volontairement ceux du forum
+        // (44 px, retrait 0 × 12, 16 px) ; masque tant que la base précède le 7.5, retrait au recalage de COMMIT_CHAMPS.
+        const masque = c.nom === 'kramail' && AVANT_TICKET75(avantChamps) ? x => !['input[c[1]]', 'select[c[2]]', 'textarea[message]'].includes(x.cle) : () => true;
+        const ecarts = ecartsChamps(a.champs.filter(masque), b.champs.filter(masque));
         assert.deepEqual(ecarts, [], ecarts.join(' ; '));
       });
     } else {
