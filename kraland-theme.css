@@ -4117,6 +4117,13 @@ body > map {
     margin-left: auto !important;
     margin-right: auto !important;
   }
+
+  /* Titre de la ville (dans la boîte de région) : collant à 16 px du bord de la fenêtre quand la carte la déborde ; à 1280 px, sans effet */
+  :where(body.page-cybermonde) .kr-cybermonde-region > #mapname-container > h4 {
+    position: sticky;
+    left: var(--kr-space-4);
+    width: min(100%, 100vw - 2 * var(--kr-space-4));
+  }
 }
 
 @media (max-width: 767px) {
@@ -4142,6 +4149,17 @@ body > map {
     height: var(--kr-cybermonde-hauteur, 522px) !important;
     overflow: auto;
   }
+
+  /* Titre de la ville : son conteneur couvre toute la carte et le titre colle à 16 px du bord du cadre (cadre ouvert au milieu) */
+  :where(body.page-cybermonde) .kr-cybermonde-region > #mapname-container {
+    width: var(--kr-cybermonde-largeur, 100%);
+  }
+
+  :where(body.page-cybermonde) .kr-cybermonde-region > #mapname-container > h4 {
+    position: sticky;
+    left: var(--kr-space-4);
+    width: min(100%, 100vw - 2 * var(--kr-space-4));
+  }
 }
 
 /* Nav map mobile : éviter le chevauchement des onglets Province/Ville */
@@ -4162,11 +4180,21 @@ body > map {
     width: auto !important;
     height: auto !important;
     min-width: unset !important;
-    min-height: unset !important;
     max-width: unset !important;
     max-height: unset !important;
-    padding: 6px 10px !important;
     font-size: 14px !important;
+  }
+
+  /* Bouton de la barre (« Travail ») : hauteur native, hors cibles de l'épopée 9 (boutons : épopée 4) */
+  .center > ul.pagination:has(select) > li > a.btn {
+    min-height: unset !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Onglets et sélecteurs à 44 px de haut (épopée 9, entrée 4) : le min-height de « PHASE 5 » s'applique, le lien qui porte un sélecteur
+     prend sa hauteur */
+  .center > ul.pagination:has(select) > li > a:not(.btn) {
+    padding: 0 10px;
   }
 
   .center > ul.pagination:has(select) select {
@@ -4177,6 +4205,7 @@ body > map {
     padding: 4px !important;
     font-size: 13px !important;
     max-width: 140px !important;
+    min-height: var(--mobile-touch-target);
   }
 }
 
@@ -4749,13 +4778,14 @@ body > map {
      Assure que tous les éléments interactifs sont cliquables facilement
      ========================================================================== */
   
-  /* Taille minimale des zones cliquables (44x44px minimum recommandé) */
-  a:not(.list-group-item), 
-  button, 
-  .btn,
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"] {
+  /* Taille minimale des zones cliquables (44x44px minimum recommandé) ; un élément .hidden (Bootstrap) reste masqué,
+     sans changer la spécificité de la règle (input#mySubmitN.hidden d'Événements) */
+  a:not(.list-group-item):where(:not(.hidden)),
+  button:where(:not(.hidden)),
+  .btn:where(:not(.hidden)),
+  input[type="button"]:where(:not(.hidden)),
+  input[type="submit"]:where(:not(.hidden)),
+  input[type="reset"]:where(:not(.hidden)) {
     min-height: 44px !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -4777,17 +4807,9 @@ body > map {
   }
   
   /* Formulaires */
-  .form-control {
-    height: 44px !important;
-  }
-  
   textarea.form-control {
     height: auto !important;
     min-height: 100px !important;
-  }
-  
-  select.form-control {
-    height: 44px !important;
   }
   
   /* Checkboxes et radios plus grands */
@@ -6935,6 +6957,49 @@ body > map {
   :where(html.kr-marge-mobile) body.mobile-mode > footer {
     padding-left: var(--kr-marge-page);
     padding-right: var(--kr-marge-page);
+  }
+
+  /* PAGES SECONDAIRES (épopée 9, entrée 4 ; kr-page-secondaire posée par KR_PAGE_CLASSES) : message texte de la carte du monde à la marge
+     (un .container inclus porte déjà la sienne) ;
+     cibles hors bouton à 44 px : liens de tableau réduits à une icône de police ou au « - » (.nomargin ; images de choix exclues), ligne de la case à cocher par son libellé
+     (sans libellé : la ligne elle-même), options en label englobant, chevron de repli natif (comme le sous-forum) ; modales exclues */
+  :where(html.kr-page-secondaire) body.mobile-mode > .genmsg:not(:has(.container)) {
+    padding-left: var(--kr-marge-page);
+    padding-right: var(--kr-marge-page);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode td > a:not(.btn):is(:has(> i), .nomargin):where(:not(.modal *)) {
+    min-width: var(--mobile-touch-target);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .form-check:where(:not(.modal *)) {
+    display: flex;
+    align-items: center;
+    min-height: var(--mobile-touch-target);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .form-check-label:where(:not(.modal *)) {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-height: var(--mobile-touch-target);
+    margin: 0;
+    padding-left: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode :is(.radio, .checkbox):where(:not(.modal *)) > label {
+    display: flex;
+    align-items: center;
+    min-height: var(--mobile-touch-target);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .panel-heading:where(:not(.modal *)) span.clickable {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: var(--mobile-touch-target);
+    min-height: var(--mobile-touch-target);
+    margin-right: -12px;
   }
     
     /* Style du panel-group pour ressembler aux barres du dessus */
@@ -9717,7 +9782,6 @@ body > map {
 
   /* Select - Styled au même niveau */
   select.form-control {
-    height: auto;
     min-height: var(--mobile-touch-target);
   }
 

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPure, plain } from './lib/pure.mjs';
 
-const { KR_GAME_SECTIONS, krActiveGameSection, krCharacterNameFromPage, krResolveCharacterName } = loadPure('identite');
+const { KR_GAME_SECTIONS, krActiveGameSection, krCharacterNameFromPage, krPageClasses, krResolveCharacterName } = loadPure('identite');
 
 test('sections : libellés, URL, icônes (H1.6)', () => {
   assert.deepEqual(plain(KR_GAME_SECTIONS).map(s => [s.label, s.url, s.icon]), [
@@ -16,6 +16,15 @@ test('section active, sous-chemins du plateau compris', () => {
   assert.equal(krActiveGameSection('/jouer/perso'), '/jouer/perso');
   assert.equal(krActiveGameSection('/forum/rp'), null);
   assert.equal(krActiveGameSection('/jouer/plateaux'), null);
+});
+
+test('classes de page : pages secondaires (épopée 9, entrée 4) avec la marge mobile, Contacts et forum exclus', () => {
+  const sec = ['kr-page-secondaire', 'kr-marge-mobile'];
+  ['/regles/base', '/monde/evenements', '/monde/citoyens', '/map', '/map/cybermonde', '/map/ville/x', '/communaute/membres',
+    '/communaute/membres/krabot-1-644', '/communaute/stats', '/profil/interface'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), sec, p));
+  ['/contacts', '/communaute', '/profil', '/profil/interfaces', '/mondes', '/forum/rp', '/report', '/help'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
+  assert.deepEqual(plain(krPageClasses('/aide')), ['kr-page-aide', 'kr-marge-mobile']);
+  assert.deepEqual(plain(krPageClasses('/jouer/plateau')), ['kr-page-jeu', 'kr-marge-mobile']);
 });
 
 test('nom lu seulement sur plateau, matériel, bâtiments', () => {

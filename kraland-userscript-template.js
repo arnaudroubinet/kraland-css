@@ -306,7 +306,8 @@
   /** Classes de page posées sur <html> par applyVariant : test du chemin -> classes (les pages secondaires s'ajoutent ici). */
   const KR_PAGE_CLASSES = [
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
-    { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] }
+    { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
+    { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] }
   ];
 
   /** Classes de page du chemin, sans doublon. */
@@ -3694,7 +3695,7 @@
       // Plateau (/jouer/plateau et sous-chemins) : exclu de l'échelle des détails de Matériel, Personnage, Bâtiments et Employés (voir le CSS)
       document.documentElement.classList.toggle('kr-page-plateau', krActiveGameSection(location?.pathname || '') === '/jouer/plateau');
 
-      // Classes de page déclarées par KR_PAGE_CLASSES (marge mobile de 16 px des pages de jeu et de l'Aide, voir le CSS « MARGE MOBILE »)
+      // Classes de page déclarées par KR_PAGE_CLASSES (marge mobile de 16 px des pages de jeu, de l'Aide et des pages secondaires, voir le CSS « MARGE MOBILE »)
       const pageClasses = krPageClasses(location?.pathname || '');
       KR_PAGE_CLASSES.flatMap(p => p.classes).forEach(c => document.documentElement.classList.toggle(c, pageClasses.includes(c)));
 

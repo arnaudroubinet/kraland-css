@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Événements, chemin servi /monde/evenements.
+  Forme reprise des chaînes relevées en lecture seule sur le site réel à 375 px (relevé 9.3 du 2026-10-28, plan spike-releve-des-pages-mobiles-hors-fixtures, F3) : `#col-left > .list-group > span.list-group-item.active`, `.list-group > form > .form-group > label.col-sm-2.control-label.mini`, `form > div.center > div.form-check > input.form-check-input` (20×20), `input#mySubmit1…6.hidden`, `#col-right` : `table.table.table-striped > tbody > tr > th + td`, `ul.pagination`.
+  Écarts assumés : textes, noms et valeurs INVENTÉS ; profondeur et nombre d’éléments réduits ; aucun script natif. Libellé de la case non relevé (capture sans la case) : `label.form-check-label` SUPPOSÉ (convention de `form-check-input`), une variante sans libellé est tirée par la suite ; ligne de tableau longue sans coupure (relevé F3 : le tableau déborde sans défilement) ; place des `input.hidden` dans le formulaire supposée.
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Événements</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-left" class="col-md-3">
+      <div class="list-group">
+        <span class="list-group-item active">Événements</span>
+        <form class="form-horizontal" action="monde/evenements" method="post">
+          <div class="form-group"><label class="col-sm-2 control-label mini">Empire</label><div class="col-sm-10"><select class="form-control" onchange="void 0"><option>République de Kraland</option></select></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label mini">Prov.</label><div class="col-sm-10"><select class="form-control" onchange="void 0"><option>Aucune province</option></select></div></div>
+          <div class="center"><div class="form-check"><input class="form-check-input" type="checkbox" id="ev-perso" name="perso"><label class="form-check-label" for="ev-perso">Mes événements</label></div></div>
+          <input type="submit" id="mySubmit1" class="hidden" value="1"><input type="submit" id="mySubmit2" class="hidden" value="2"><input type="submit" id="mySubmit3" class="hidden" value="3">
+          <input type="submit" id="mySubmit4" class="hidden" value="4"><input type="submit" id="mySubmit5" class="hidden" value="5"><input type="submit" id="mySubmit6" class="hidden" value="6">
+        </form>
+      </div>
+    </div>
+    <div id="col-right" class="col-md-9">
+      <table class="table table-striped"><tbody><tr><th>2026-10-20</th><td>Le-personnage-3-de-la-fixture-a-signé-trombonetrombonetrombonetrombonetrombonetrombonetrombonetrombonetrombonetrombonetrombonetrombone-sans-espace</td></tr><tr><th>2026-10-21</th><td>Le personnage 1 de la fixture a fait la découverte d’un trombone.</td></tr><tr><th>2026-10-22</th><td>Le personnage 2 de la fixture a fait la découverte d’un trombone.</td></tr><tr><th>2026-10-23</th><td>Le personnage 3 de la fixture a fait la découverte d’un trombone.</td></tr></tbody></table>
+      <div class="center"><ul class="pagination"><li class="active"><a href="monde/evenements">1</a></li><li><a href="monde/evenements/2">2</a></li><li><a href="monde/evenements/3">3</a></li></ul></div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
