@@ -987,3 +987,12 @@ Observation sans écart : la barre de navigation fixe de 60 px reste visible cla
 - Restent à regarder sur les images : l'icône collée au libellé des onglets à 375 px, et la pastille collée à la cloche sur ordinateur. Les mesures ne couvrent pas ces deux points.
 - Les captures de `/Users/arnaud/kraland-css-captures/8.5/` sont périmées (49d31df) : regarde celles-ci.
 
+## Bug 16 — « Remonter en haut » sur le texte saisi, mobile (in-review, 2026-10-29)
+
+Correctif : sur mobile, le bouton est masqué tant que la zone de texte du message (`form[name="post_msg"] textarea[name="message"]`) a le focus, en CSS seul (même masquage que le bouton en haut de page). Hors focus et sur ordinateur, rien ne change. Test : fragment `remonter` de `kramail-theme.mjs`.
+
+Doutes, à trancher à ta passe finale :
+- Le bouton disparaît dès que tu touches le champ, même quand il ne le recouvre pas. Pour remonter en haut pendant la rédaction, il faut d'abord quitter le champ (toucher ailleurs ou fermer le clavier). L'autre piste, réserver la colonne à droite du champ, coûtait 52 px de largeur de saisie.
+- Critère 2, « touchable (≥ 44 px) » : le bouton mesure 36 px de large et 44 px de haut, comme à la base. Le test vérifie ces deux valeurs, sans élargir le bouton : l'élargir changerait sa place, que le critère demande de garder.
+- La fixture de la réponse du forum n'a pas le bouton. Le test lui ajoute le lien natif du kramail, ainsi que 400 px de contenu au-dessus du formulaire et 900 px au-dessous, pour que la page défile de plus de 400 px. La fixture elle-même n'est pas modifiée. Je n'ai pas vérifié la vraie page de réponse du forum.
+- Le clavier qui ne réduit que le viewport visuel (mode `visuel` de 7.9) n'est pas mesuré : en 7.9, le bouton y restait sous le clavier.

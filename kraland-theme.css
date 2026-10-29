@@ -11963,6 +11963,12 @@ html[class*='-dark'] .mini.c10 {
   body.mobile-mode {
     padding-bottom: 52px;
   }
+
+  /* Ticket 16 : masqué pendant la saisie dans la zone de texte d'une rédaction (kramail, forum), où il couvrait la fin des lignes et le curseur */
+  body.mobile-mode:has(form[name="post_msg"] textarea[name="message"]:focus) .container.white .kraland-back-to-top {
+    visibility: hidden;
+    opacity: 0;
+  }
 }
 
 .kraland-css-version span span {
