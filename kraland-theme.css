@@ -4740,8 +4740,9 @@ body > map {
   }
   
   /* Boutons de formulaire : taille normale (14 px, cible de 44 px ci-dessus), .btn-sm et .btn-lg compris. Dossiers du kramail en onglets
-     exclus (Onglets de section, épopée 7, entrée 1 : retrait et taille du libellé de l'onglet) */
-  .btn:where(:not([data-kr-dossier])) {
+     exclus (Onglets de section, épopée 7, entrée 1 : retrait et taille du libellé de l'onglet), ainsi que Répondre et Répondre à tous
+     de la lecture (épopée 7, entrée 2 : retrait du bouton libellé du titre) */
+  .btn:where(:not([data-kr-dossier], [data-kr-libelle])) {
     padding: 12px 20px !important;
     font-size: var(--kr-font-button) !important;
   }
@@ -8932,15 +8933,11 @@ body > map {
   /* Style commun : boutons (a.btn) + bouton kebab (.btn-group > .btn). Dossiers en onglets exclus (voir 2 bis) */
   body.page-kramail h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier])),
   body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
-    width: 44px !important;
     height: 44px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 0 !important;
     margin: 0 !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
     box-sizing: border-box !important;
     border-radius: var(--kr-radius-sm) !important;
     background: var(--kr-bg-surface) !important;
@@ -8948,6 +8945,15 @@ body > map {
     color: var(--kr-text-primary) !important;
     text-decoration: none !important;
     transition: all var(--transition-fast) !important;
+  }
+
+  /* Carrés à icône seule ; Répondre et Répondre à tous de la lecture sont libellés (2 ter) */
+  body.page-kramail h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier], [data-kr-libelle])),
+  body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
+    width: 44px !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
   }
 
   /* Icônes — taille et alignement uniformes */
@@ -9005,6 +9011,21 @@ body > map {
     font-weight: 600;
   }
 
+  /* === 2 ter. LECTURE : Répondre et Répondre à tous libellés (épopée 7, entrée 2, Q22.1) ===
+     Mêmes bord, fond et rayon que les carrés voisins ; largeur au libellé, partagée sur le rang ; les autres actions sont dans « ••• ». */
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle] {
+    flex: 1 1 auto;
+    gap: var(--kr-space-1);
+    padding: 0 var(--kr-space-3);
+    font-size: var(--kr-font-button);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle]::after {
+    content: attr(data-kr-libelle);
+  }
+
   /* Container du bouton kebab — taille contrainte */
   body.page-kramail h1.page-header .pull-right > .btn-group {
     position: relative !important;
@@ -9021,7 +9042,15 @@ body > map {
     border: 1px solid var(--kr-border-default) !important;
     border-radius: var(--kr-radius-md) !important;
     padding: 8px 0 !important;
+  }
+
+  /* Ombre du menu : liste inchangée, lecture en jeton (épopée 7, entrée 2) */
+  :where(html:not(.kr-page-kramail-lecture)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
     box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    box-shadow: var(--kr-shadow-lg);
   }
 
   body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
@@ -9035,8 +9064,12 @@ body > map {
     white-space: nowrap !important;
   }
 
-  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+  :where(html:not(.kr-page-kramail-lecture)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
     background: rgba(255,255,255,0.08) !important;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+    background: var(--kr-bg-active);
   }
 
   body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a .label-simple {
@@ -9411,169 +9444,30 @@ body > map {
   }
 
   /* ============================================================================
-     MOBILE OPTIMISATION - PAGE MESSAGE KRAMAIL (kramail/post/*)
-     Structure originale :
-       - h1.page-header (titre seul)
-       - div.forum-top > span.pull-right > a.btn×8 (boutons)
-       - ul.media-list.forum > li.media.well (message)
-         - div.pull-left > div.user-info (avatar + cartouche)
-         - div.media-body (destinataires + date + contenu + signature)
-       - div.center > ul.pagination (prev/next)
-     Structure JS restructurée :
-       - h1.page-header contient les boutons (déplacés par JS)
-       - li.media.well.kramail-post-restructured (classe ajoutée par JS)
-       - .kramail-msg-header (avatar + nom + date — horizontal)
-       - .kramail-msg-recipients (envoyé à)
-       - .kramail-msg-body (contenu pleine largeur)
+     LECTURE D'UN MESSAGE OU D'UN FIL (kramail/post/*, épopée 7, entrée 2)
+     Le module Kramail:Lecture remet chaque message dans la forme du message de sujet du forum et pose kr-msg : les règles des
+     messages du forum V3 s'appliquent telles quelles (voir MESSAGES DU FORUM V3). Les boutons du titre sont déplacés dans
+     h1 .pull-right (règles de l'en-tête ci-dessus), la barre d'origine vidée est masquée.
      ============================================================================ */
-
-  /* === BOUTONS PAGE MESSAGE — harmonisés avec inbox === */
-
-  /* Le JS déplace les boutons dans h1 .pull-right, même sélecteurs que l'inbox */
-
-  /* (les styles existants h1.page-header .pull-right > a.btn s'appliquent) */
-
-  /* Masquer la barre forum-top originale (vidée par JS) */
   .forum-top:has(.kramail-actions-moved) {
     display: none !important;
   }
 
-  /* === MESSAGE CARD — layout empilé mobile === */
-  body.mobile-mode ul.media-list.forum > li.media.well.kramail-post-restructured {
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-    margin: 0 16px 16px !important;
-    background: var(--kr-bg-surface) !important;
-    border: 1px solid var(--kr-border-default) !important;
-    border-radius: var(--kr-radius-md) !important;
-    overflow: hidden !important;
-    list-style: none !important;
+  /* Cartouche vidé par le déplacement du nom */
+  :where(html.kr-page-kramail-lecture) .user-info > .cartouche[hidden] {
+    display: none;
   }
 
-  /* Cacher le pull-left original (avatar+cartouche) — remplacé par header */
-  body.mobile-mode li.kramail-post-restructured > .pull-left {
-    display: none !important;
-  }
-
-  /* Cacher le media-body original — remplacé par la nouvelle structure */
-  body.mobile-mode li.kramail-post-restructured > .media-body {
-    display: none !important;
-  }
-
-  /* --- Header : avatar compact + nom + date (horizontal) --- */
-  .kramail-msg-header {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-    border-bottom: 1px solid var(--kr-border-default) !important;
-  }
-
-  .kramail-msg-header .kramail-msg-avatar {
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 8px !important;
-    object-fit: cover !important;
-    flex-shrink: 0 !important;
-  }
-
-  .kramail-msg-header-info {
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-
-  .kramail-msg-sender {
-    font-size: var(--kr-font-name) !important;
-    font-weight: 600 !important;
-    color: var(--kr-text-primary) !important;
-    margin-bottom: 2px !important;
-  }
-
-  .kramail-msg-sender a {
-    color: inherit !important;
-    text-decoration: none !important;
-  }
-
-  .kramail-msg-date {
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-muted) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-  }
-
-  .kramail-msg-date i {
-    font-size: var(--kr-font-detail) !important;
-  }
-
-  /* --- Destinataires --- */
-  .kramail-msg-recipients {
-    padding: 8px 16px !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-secondary) !important;
-    border-bottom: 1px solid var(--kr-border-default) !important;
-    line-height: 1.5 !important;
-  }
-
-  .kramail-msg-recipients strong {
-    color: var(--kr-text-muted) !important;
-    font-weight: 500 !important;
-  }
-
-  .kramail-msg-recipients a {
-    color: var(--kr-text-accent) !important;
-    text-decoration: none !important;
-  }
-
-  /* --- Corps du message — pleine largeur --- */
-  .kramail-msg-body {
-    padding: 16px !important;
-    font-size: var(--kr-font-body-mobile) !important;
-    line-height: 1.6 !important;
-    color: var(--kr-text-primary) !important;
-    overflow-wrap: break-word !important;
-  }
-
-  /* Blockquote modernisée — barre cuivre + fond distinct */
-  .kramail-msg-body blockquote,
-  .kramail-msg-body .blockquote,
-  .kramail-msg-body .quote {
-    margin: 12px 0 !important;
-    padding: 12px 16px !important;
-    border-left: 3px solid var(--kr-primary) !important;
-    border-right: none !important;
-    border-top: none !important;
-    border-bottom: none !important;
-    background: rgba(255, 255, 255, 0.03) !important;
-    border-radius: 0 var(--kr-radius-md) var(--kr-radius-md) 0 !important;
-    font-size: var(--kr-font-body-mobile) !important;
-    color: var(--kr-text-secondary) !important;
-    line-height: 1.5 !important;
-  }
-
-  .kramail-msg-body blockquote .fa-quote-left,
-  .kramail-msg-body blockquote .text-warning {
-    color: var(--kr-text-accent) !important;
-    opacity: 0.6 !important;
-    margin-right: 6px !important;
-    font-size: 12px !important;
-  }
-
-  /* Signature — séparée visuellement */
-  .kramail-msg-signature {
-    margin-top: 16px !important;
-    padding-top: 12px !important;
-    border-top: 1px solid var(--kr-border-default) !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-muted) !important;
-    line-height: 1.5 !important;
-  }
-
-  /* Images dans la signature (icons, smileys) */
-  .kramail-msg-signature img.icon {
-    max-height: 18px !important;
-    vertical-align: middle !important;
+  /* Destinataires (« Envoyé à : ») : sous l'identité, avant le texte, au rôle détail */
+  :where(html.kr-page-kramail-lecture) body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .kr-msg-recipients {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    min-width: 0;
+    margin: var(--kr-space-3) 0 0;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    line-height: 18px;
+    overflow-wrap: anywhere;
   }
 
   /* === PAGINATION KRAMAIL MESSAGE === */
@@ -15108,7 +15002,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    MESSAGES DU FORUM V3 (maquette validée « Moins d'interface. Plus de message. »)
    Portée : mobile uniquement (max-width: 767px et body.mobile-mode), pages /forum/. Les classes kr-msg, kr-msg-more, kr-msg-secondary,
    kr-editor, kr-sender-row, kr-message-row, kr-tools-* sont posées par le module Messages:V3 ; aucun nœud natif n'est cloné ni déplacé.
-   Le bureau (>= 768 px) garde le DOM et la mise en page natifs. Kramail n'est pas touché (pas de classe sur ses pages).
+   Le bureau (>= 768 px) garde le DOM et la mise en page natifs. La lecture du kramail reprend ces règles : Kramail:Lecture pose kr-msg
+   sur ses messages remis dans la même forme (épopée 7, entrée 2).
    ============================================================================ */
 @media (max-width: 767px) {
   /* --- Lecture : identité sur une ligne (avatar réduit, nom, rang, date), texte, puis actions sous le texte --- */
@@ -15593,13 +15488,31 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* Sujet sur ordinateur : auteur d'un message au rôle nom, cartouche au rôle détail (DESIGN.md › Typography), comme sur mobile. */
+/* Sujet et lecture du kramail sur ordinateur : auteur d'un message au rôle nom, cartouche au rôle détail (DESIGN.md › Typography), comme sur
+   mobile. Lecture du kramail (épopée 7, entrée 2) : message de la page seul (#col-right > ul ; le message cité de Signaler reste natif),
+   Répondre et Répondre à tous libellés dans la barre native (Q22.1), message sous la barre (largeur entière, la barre libellée flotte). */
 @media (min-width: 768px) {
-  :where(body.page-forum) ul.media-list.forum > li.media .user-info > strong {
+  :where(body.page-forum) ul.media-list.forum > li.media .user-info > strong,
+  :where(html.kr-page-kramail-lecture #col-right) > ul.media-list.forum > li.media .user-info > strong {
     font-size: var(--kr-font-name);
   }
 
-  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche {
+  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche,
+  :where(html.kr-page-kramail-lecture #col-right) > ul.media-list.forum > li.media .user-info > .cartouche {
     font-size: var(--kr-font-detail);
+  }
+
+  :where(html.kr-page-kramail-lecture) .forum-top .pull-right > a.btn[data-kr-libelle]::after {
+    content: attr(data-kr-libelle);
+    margin-left: var(--kr-space-1);
+  }
+
+  :where(html.kr-page-kramail-lecture #col-right) > ul.media-list.forum {
+    clear: both;
+  }
+
+  /* Cartouche vidé par le déplacement du nom (Kramail:Lecture) */
+  :where(html.kr-page-kramail-lecture) .user-info > .cartouche[hidden] {
+    display: none;
   }
 }
