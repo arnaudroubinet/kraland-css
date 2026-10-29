@@ -145,3 +145,5 @@ Revue indépendante (2026-10-29), « approuvable après correctifs » :
 | Zones après correctifs | `npm run test:zone -- kramail forum palette-nation` | 3048 ok, 0 FAIL |
 | Lint, routeur après correctifs | `npm run lint:css`, `npm run lint:js`, `npm run test:router` | 0, 0 (même avertissement préexistant), 0 ; `!important` : 2958 |
 
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (de77a12) et fusionné sur `feature/next` (b6efd97) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

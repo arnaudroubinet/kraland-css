@@ -166,3 +166,5 @@ Résultat après correctifs de revue. Base `55ae556`, arbre de travail `wt/7.1` 
 | 10 | Doute tranché : une seule garde `liste`, attribut `data-kr-dossier` plutôt qu'une classe | OK | Rien |
 | 11 | Rédaction sans `#dest` : `page-kramail-compose` posée, module des destinataires sorti proprement | OK | Rien |
 | 12 | Bouton Réception de la lecture en primaire | defer | Accepté et consigné par le coordinateur |
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (9acd8d6, 3248bfd) et fusionné sur `feature/next` (95119b8) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

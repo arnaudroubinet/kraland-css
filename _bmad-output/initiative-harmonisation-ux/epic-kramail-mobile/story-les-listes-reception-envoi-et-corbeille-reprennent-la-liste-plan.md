@@ -135,3 +135,5 @@ Statut `in-review` après la revue indépendante (itération 1). Preuves locales
 - Avant la revue : cartes-pastilles 2302 ok, forum-activite 929 ok, palette-nation 1372 ok, sous-forum 1374 ok, forum 639 ok. Après la revue : `KR_FRAG=kramail,bureau` de cartes-pastilles vert.
 - `KR_SCRIPT_AVANT=/tmp/kr74/base.user.js KR_FRAG=regression node tests/e2e/kramail-redaction.mjs` : 12 ok, relancé après la revue.
 - lint:css 0 ; lint:js 0 (1 avertissement préexistant, report-non-lu.mjs inchangé) ; test:unit 57 pass ; test:router « Routeur conforme » ; `diff -r .hermes/skills .claude/skills` vide.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (27daeb0) et fusionné sur `feature/next` (2e65328) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

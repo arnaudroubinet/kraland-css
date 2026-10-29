@@ -126,3 +126,5 @@ Revue indépendante (« approuvable après correctifs », 7 constats mineurs) :
 ## Result
 
 « Envoyer » est dans le flux sous le champ au forum (avec ou sans barre d'outils) comme au kramail : plus de barre fixe ni de réserve de 60/64 px. Sur mobile : 48 px, fond et encre d'action, rayon sm, `{typography.button}`. Sur ordinateur : bouton primaire du forum. Le blocage par destinataire non validé et le 991 au-dessus du voile 990 restent verts. Revue quick : 7 constats, dont 5 corrigés (patch), 2 rejetés, aucun reporté. Doutes C1 à C4 dans revue-manuelle.md.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (40c1574) et fusionné sur `feature/next` (d64c578) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

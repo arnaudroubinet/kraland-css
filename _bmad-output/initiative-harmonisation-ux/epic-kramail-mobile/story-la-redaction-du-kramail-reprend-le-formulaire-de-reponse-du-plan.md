@@ -129,3 +129,5 @@ context: []
   - typographie-formes#champs : masque conditionné à `AVANT_TICKET75(avantChamps)`, limité au kramail sur mobile (Sujet, Expéditeur, Message), retrait au recalage de COMMIT_CHAMPS. 4 FAIL avant, vert après.
 - Vert après correctifs : palette-nation 1372, typographie-formes 4453, kramail 935, 0 FAIL. lint:css, lint:js et test:router à 0.
 - Doutes : `revue-manuelle.md`, section « Ticket 7.5 ».
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (5f679de, fb8ee5c ; 2356a54 fusionne `feature/next` dans la branche) et fusionné sur `feature/next` (0b27dc2) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

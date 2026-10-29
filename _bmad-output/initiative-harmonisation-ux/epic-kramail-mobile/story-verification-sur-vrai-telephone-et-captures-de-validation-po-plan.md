@@ -61,3 +61,5 @@ Partie agent faite ; **partie hitl ouverte** : passe sur vrai téléphone (D et 
 - Captures A8 : `/Users/arnaud/kraland-css-captures/7.9/` (56 PNG) et `/Users/arnaud/kraland-css-captures/7.9/planches/`. Notifications reprises : `/Users/arnaud/kraland-css-captures/7.9/notifications/` (22 PNG). Sur le bundle actuel, trois défauts de 8.5 ont disparu.
 - Fichiers modifiés : `epic-modale-ordre/protocole-p2-vrai-telephone.md` (lignes D et E, section 4), `revue-manuelle.md` (entrée « Validations visuelles en attente », section « Ticket 7.9 »), ce plan.
 - Pas de revue indépendante à ce stade.
+
+Clôture (orchestrateur, 2026-10-29) : partie agent commitée (6788cbf) directement sur `feature/next`, sans branche de fusion ; écart E1 corrigé par le bogue 16 (fusion ade3fbb) ; partie hitl (vrai téléphone, validation des captures) ouverte jusqu'à la passe finale d'Arnaud ; revue indépendante non faite ; ticket laissé `in-review`.

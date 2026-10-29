@@ -165,3 +165,5 @@ context: []
 - Lien `kramail` du fil.
 
 Revue indépendante non faite (mandat).
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite (section « Après revue »), correctifs appliqués, commité (0e39faa) et fusionné sur `feature/next` (12da4c8) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

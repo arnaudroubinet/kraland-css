@@ -1041,3 +1041,18 @@ Limites :
 - Les étapes sont enchaînées par fixtures (une page servie par lien suivi), pas par le vrai jeu ; l'enveloppe de P3 vient de la fixture de /accueil, `jeu-materiel` n'en ayant pas.
 - Aucun vrai téléphone, aucun clavier virtuel : c'est l'objet de ta passe manuelle.
 - Bloc de la croix à 12 px des bords (cibles, pas texte) : non reporté, à juger à l'œil.
+
+## Rétro épopée 7 — kramail, même thème que le forum (2026-10-29)
+
+- Rétro : `epic-kramail-mobile/epic-kramail-mobile-retrospective.md`. Verdict machine **rejected**, forcé par 7.9 resté `in-review` : la partie hitl attend ta passe finale, comme tu l'as décidé. Sur les preuves, le verdict serait **accepted-with-open-items**. Révision à ta main (A1).
+- Le `test:all` vert qui contient l'épopée (18074 ok, `/private/tmp/kr-testall-710b.log`) est attribué à `d8c8777` d'après l'heure seulement. Les lignes de clôture des plans le disent.
+- Six `test:all` de fusion sur dix étaient rouges (journaux 71, 73, 74, 75b, 76, 710). Ceux de 73, 74, 75b et 76 n'ont aucune attribution écrite ; la fusion de 7.5 (`0b27dc2`) a suivi de 2 minutes le rouge de 75b. Je les lis comme des faux FAIL de charge, sans preuve (A2).
+- `kramail-redaction#regression`, « lecture 375 px » (capture pleine page octet pour octet) : rouge au `test:all` 76 et à mon `test:zone -- kramail` sous charge, vert au rejeu à concurrence 6 (1622 ok). Cas à surveiller.
+- Ligne de clôture de 7.9 adaptée : partie agent commitée (6788cbf), sans fusion ni revue indépendante, hitl ouvert.
+- Lignes de clôture « revue indépendante faite » des neuf autres plans : reprises de leurs Review Triage Logs et sections de revue, sans relecture des rapports de revue eux-mêmes.
+- J'ai écrit les lignes de clôture dans les plans, ce que le workflow de rétro interdit d'ordinaire : c'était la demande explicite de l'orchestrateur. Les Result périmés (7.1, 7.4, 7.10) et l'historique de 7.3 ne sont pas réécrits.
+- 1920 px : aucun test du kramail à cette largeur, seulement les captures de 7.9.
+- Contacts sur mobile : tableau qui défile dans la carte (lignes d'environ 120 px), pas les lignes du sous-forum. Une ligne dédiée, ou tel quel ?
+- Done when 2 : « lecture d'un fil » est sans objet (le kramail n'affiche jamais de fil, relevé de 7.2). Retirer les mots « et d'un fil » (A5) ?
+- Signaler (rédaction depuis 7.5) et non-lu sur `i.fa-envelope` : jamais vus sur le site réel (A3).
+- Captures de 7.9 antérieures à 9.9 et au bug 16 : à reprendre sur `HEAD` avant ta passe.

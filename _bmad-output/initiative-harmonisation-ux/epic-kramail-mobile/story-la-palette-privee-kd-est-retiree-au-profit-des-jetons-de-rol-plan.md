@@ -111,3 +111,5 @@ context: []
 ## Result
 
 La palette privée `--kd-*` (12 variables) et `--kr-badge-danger` sont retirées. Le champ Destinataires lit désormais les jetons de rôle et 4 mélanges partagés de `:root`. Ses couleurs sont égales à la base 0b27dc2, hors écarts B2 à B4 vérifiés jeton par jeton. Fragment `kramail-theme#redaction-palette` : rouge sur la base, vert après, contre-épreuves par mutation. Toutes les zones listées sont à 0 FAIL. Doublon et croix ciblée, sous 3:1 dès la base dans 4 variantes sombres, passent en `--kr-text-primary` (B7) : l'exception du test est retirée. Doutes restants dans revue-manuelle.md, « Ticket 7.6 ».
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (550e0b7) et fusionné sur `feature/next` (f48a01f) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

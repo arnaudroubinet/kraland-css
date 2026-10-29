@@ -93,3 +93,5 @@ Sweep construit sur la base d64c578, non commité. Le `test:all` reste à lancer
 
 Zones : kramail, forum, forum-activite, palette-nation, typographie-formes, cartes-pastilles et confort-mobile vertes. `test:router` est conforme. `lint:css` et `lint:js` sortent en code 0. Le compte de `!important` reste à 2946.
 
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (1e09292) et fusionné sur `feature/next` (fe3550f), puis `redaction-palette` stabilisé par d8c8777 ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).

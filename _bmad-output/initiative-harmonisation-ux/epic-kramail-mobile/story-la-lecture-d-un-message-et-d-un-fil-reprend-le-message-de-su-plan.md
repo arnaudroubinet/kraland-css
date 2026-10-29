@@ -129,3 +129,5 @@ context: []
 - `node tests/e2e/kramail-theme.mjs` puis `KR_SCRIPT=<base> KR_FRAG=lecture,lecture-plus,lecture-couleurs node tests/e2e/kramail-theme.mjs` -- expected: vert, puis rouge.
 - `npm run test:zone --` kramail, forum, forum-activite, messages, typographie-formes, palette-nation, cartes-pastilles -- expected: 0 FAIL.
 - `npm run test:router`, `npm run test:unit`, `npm run lint:css`, `npm run lint:js`, `diff -r .hermes/skills .claude/skills` -- expected: code 0, diff vide.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (b3f03b2) et fusionné sur `feature/next` (9fb2ff6) ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777` (SHA déduit de l'heure du journal).
