@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, RETIRER_ENTETE_TICKET73, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, RETIRER_ENTETE_TICKET73, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -854,6 +854,11 @@ const MESURE_GROUPES = ([Q, texte]) => {
   };
 };
 // Ordre et contenu (dans la page) : groupes, enfants de l'en-tête, puis chaque carte (texte, structure, images) dans l'ordre DOM.
+// Écart accepté et consigné (épopée 9, entrée 7) : classes de niveau de PV (kr-pv-N, piste et progression du cercle) et is-ko de l'avatar,
+// vérifiées par plateau-qualite-usage (fragment pv) ; retirées des deux côtés tant que la base (COMMIT_AVANT_53) précède l'entrée.
+// Retrait au recalage de COMMIT_AVANT_53 sur un SHA qui contient l'entrée.
+const sansPv97 = AVANT_TICKET97(avant53) ? sansClassesPv97 : t => t;
+const sansPv97Contenu = l => l.map(g => ({ ...g, cartes: g.cartes.map(k => ({ ...k, structure: sansPv97(k.structure) })) }));
 const CONTENU_GROUPES = Q => [...document.querySelectorAll(Q.section)].map(s => ({
   cls: s.className,
   entete: [...s.querySelector(Q.entete).children].map(e => `${e.tagName}.${[...e.classList].join('.')} ${e.textContent.trim().replace(/\s+/g, ' ')}`),
@@ -1030,7 +1035,7 @@ if (on('groupes')) {
     });
     check(`${lab} : ordre des groupes, en-têtes et contenu des cartes (niveau, PNJ, PV, statut) égaux au bundle de base (${COMMIT_AVANT_53})`, () => {
       assert.ok(themeBase, 'kr-theme-enabled absent (base)');
-      assert.deepEqual(contenu, contenuBase);
+      assert.deepEqual(sansPv97Contenu(contenu), sansPv97Contenu(contenuBase));
     });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
@@ -1087,8 +1092,8 @@ if (on('groupes')) {
   // Écart accepté et consigné (épopée 5, entrée 5) : fond et texte du « PNJ » des cartes passent en étiquette de catégorie ; ils sont vérifiés
   // par le fragment etiquettes, et neutralisés ici des deux côtés (ouvrir n'a pas de masque, P8). Le reste de l'élément reste comparé.
   // Retrait : au prochain ticket qui modifie les groupes du plateau ; il réaligne COMMIT_AVANT_53 sur un SHA récent après contrôle absolu
-  // de l'étiquette « PNJ » des cartes (entrée 5.5).
-  const sansPnj55 = l => l.map(x => (/ SPAN\.dashboard-card-pnj /.test(x) ? x.replace(/^(.*?\] [^|]*\|[^|]*\|)[^|]*\|[^|]*\|/, '$1(entrée 5.5)|') : x));
+  // de l'étiquette « PNJ » des cartes (entrée 5.5). Les classes de PV de l'entrée 9.7 sont retirées à la suite (sansPv97).
+  const sansPnj55 = l => l.map(x => (/ SPAN\.dashboard-card-pnj /.test(x) ? x.replace(/^(.*?\] [^|]*\|[^|]*\|)[^|]*\|[^|]*\|/, '$1(entrée 5.5)|') : x)).map(sansPv97);
   for (const { c, teste, base } of resBureau) {
     check(`groupes bureau ${c.variante} ${c.width} px : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);

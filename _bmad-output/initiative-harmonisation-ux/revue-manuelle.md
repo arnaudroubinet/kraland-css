@@ -779,3 +779,14 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - D9.1 (report, hors périmètre du 9.5) : selon la revue, sur la base, un groupe replié ne se replie plus après un aller-retour 767 -> 768 -> 767 px (`collapsed` reste à 900 px). Sur fixture, chaque changement de largeur recharge la page (2 rechargements sur 2), et les boîtes reviennent à l'état initial, en base comme en 9.5 : le défaut n'est pas reproduit. Non corrigé ; à vérifier sur un téléphone ou une fenêtre réelle.
 - Comparaisons à la base : plateau-qualite-usage (cartes) et typographie-formes (boutons, nettoyage) posent `CIBLES_TICKET95` sur leur bundle de base, tant que la base précède l'entrée. À retirer quand ces suites compareront à un SHA postérieur.
 - Trouvé à la fusion (test:all) : la fixture des Règles (`palette-nation.html`, servie à `/regles/avancees`) porte une carte du plateau ; ses actions à 44 px allongent la page de 5 px. Le fragment `forum-activite#fil` pose désormais `CIBLES_TICKET95` sur son bundle de base (6270c81), comme plateau-qualite-usage et typographie-formes. Contre-épreuve : bundle sans 9.5, rouge.
+
+## Ticket 9.7 — cercle et barre de PV des cartes en jetons (2026-10-29)
+
+- Niveau 5 en sombre (corrigé à la revue indépendante) : le mélange avec la couleur du texte le rendait plus pâle que le niveau 4. En sombre, il se mélange désormais au fond de surface (`color-mix(in srgb, var(--kr-danger) 75%, var(--kr-bg-surface))`) et reste plus sombre que le 4, comme en clair. Un test le vérifie dans les 16 variantes. Contraste minimal du cercle en sombre : 4,10:1. À vérifier à l'œil : distinction des niveaux 4 et 5.
+- Le danger sert ici un état de santé, hors de la réserve « blocages » de H5.5.
+- Le ticket demande un « contraste du texte du cercle ≥ 4,5:1 », mais le cercle n’a pas de texte. Seuil appliqué : 3:1, celui d’un élément graphique. Minimum en clair : cercle 4,70:1, barre 4,10:1. En sombre : ≥ 6,45:1.
+- Piste du cercle : `rgba(0,0,0,0.1)` devient `--kr-border-default` (0,08 en clair), un peu plus pâle.
+- Aucune fixture n'a de barre de PV. Le test en injecte une par carte. La structure native de la barre reste à vérifier sur une vraie carte.
+- Le minifieur réécrit `grayscale(100%)` en `grayscale()`. Les deux sont équivalents.
+- Comparaisons à la base : cartes-pastilles (groupes) retire les classes de PV des relevés, et typographie-formes (nettoyage) exclut `stroke` des cercles. Les deux tant que la base précède l'entrée (`AVANT_TICKET97`), à retirer au recalage de COMMIT_AVANT_53 et COMMIT_NETTOYAGE.
+- Worktree : `node_modules` est un lien symbolique non suivi, à ne pas embarquer.

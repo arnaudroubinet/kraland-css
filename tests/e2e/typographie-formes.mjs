@@ -108,7 +108,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1736,6 +1736,10 @@ const MASQUE_JAUGES_9 = {
   selecteur: '.mobile-gauge-compact-fill, .mobile-gauge-full-fill, .mobile-gauge-compact-value, .mobile-gauge-full-header > span',
   proprietes: ['width', 'inline-size', 'right', 'inset-inline-end', 'perspective-origin', 'transform-origin']
 };
+// Masque de l'entrée 9.7 (PV des cartes en jetons) : le trait du cercle de PV et de sa piste suit les jetons --kr-pv-* (fragment pv de
+// plateau-qualite-usage) au lieu des couleurs en dur de la base. Seul stroke de ces cercles est exclu, tant que la base précède l'entrée.
+// Retrait au recalage de COMMIT_NETTOYAGE sur un SHA qui contient l'entrée.
+const MASQUE_PV_97 = { selecteur: '.dashboard-card-hp-circle circle', proprietes: ['stroke'] };
 // Masque de l'entrée 9.6 : la base posait la superposition mobile (.kr-mobile-overlay, code retiré depuis) et sa chaîne mobile des
 // modales passait deux fois (second indicateur d'onglets). Ces éléments créés par le script sont hors du chemin DOM et des mesures,
 // pour que leur place ne décale pas leurs frères. Retirer quand la base du nettoyage (COMMIT_NETTOYAGE) passe au-delà du commit de l'entrée 9.6.
@@ -1862,7 +1866,7 @@ const EMPREINTES = ({ racine, cles, detail, ecarter, masque, horsChemin }) => {
   const enfants = n => [...n.children].filter(x => !(horsChemin && x.matches(horsChemin)));
   const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push(enfants(n.parentElement).indexOf(n)); } return l.reverse().join('.'); };
   const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && enfants(n)[Number(i)]; } return n; };
-  const masquees = (e, pseudo) => (!pseudo && masque && e.matches(masque.selecteur) ? masque.proprietes : []);
+  const masquees = (e, pseudo) => (pseudo ? [] : [masque || []].flat().filter(m => e.matches(m.selecteur)).flatMap(m => m.proprietes));
   const proprietes = (s, sauf) => { const o = {}; for (let i = 0; i < s.length; i++) { const p = s[i]; if (garder(p) && !sauf.includes(p)) { o[p] = s.getPropertyValue(p); } } return o; };
   const fnv = t => { let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
   const valeur = (e, pseudo) => {
@@ -1961,7 +1965,7 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Cinq masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
+// Six masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_PV_97 (base d'avant l'entrée 9.7), MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
 // testé, Interface), les dossiers du kramail retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) et le h1 de la liste du kramail
 // retiré à toute largeur (RETIRER_ENTETE_TICKET73, épopée 7, entrée 3 : en-tête du sous-forum, prouvé par kramail-theme, fragments entete* ;
 // gardé pour le menu de personnage, garderEntete ; retrait au recalage de COMMIT_NETTOYAGE, base figée, sur un SHA qui contient l'entrée) ;
@@ -2012,7 +2016,7 @@ if (on('nettoyage')) {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).
       const caracs = await a.page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13);
       if (caracs.length) { out.caracs = caracs; }
-      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, masque: MASQUE_JAUGES_9, horsChemin: MASQUE_MODULES_96 })]);
+      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, masque: [MASQUE_JAUGES_9, AVANT_TICKET97(avantNettoyage) ? MASQUE_PV_97 : []].flat(), horsChemin: MASQUE_MODULES_96 })]);
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) et retiré des deux rendus : A8 et « rendu changé » n'y ont plus d'objet tant que COMMIT_NETTOYAGE précède l'entrée
       // (retrait au recalage de COMMIT_NETTOYAGE).
