@@ -114,7 +114,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, RETIRER_REDACTION_TICKET75, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET75, AVANT_TICKET77, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, RETIRER_ENVOYER_TICKET77, RETIRER_REDACTION_TICKET75, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -598,8 +598,11 @@ if (on('boutons')) {
     }
     // Écart accepté et consigné (épopée 7, entrée 5) : barre BBCode de la rédaction du kramail à celle du formulaire de réponse du forum
     // (kramail-theme, fragment redaction), hors de la comparaison tant que la base précède l'entrée. Retrait au recalage de COMMIT_BOUTONS.
-    const horsBase = c.nom === 'redaction' && AVANT_TICKET75(baseBoutons(c.nom)) ? ['bbcode'] : [];
-    if (a) { check(`boutons ${etiquette(c)} : exclusions (font-size, hauteur, padding) égales au bundle de base${horsBase.length ? ' (barre BBCode à part)' : ''}`, () => verifierExclus(r, a, horsBase)); }
+    // Même écart (épopée 7, entrée 7) : « Envoyer » mobile dans le flux (48 px, 14 px ; kramail-theme et forum-activite, fragments envoyer),
+    // hors de la comparaison tant que la base précède l'entrée. Retrait au recalage de COMMIT_BOUTONS.
+    const horsBase = [c.nom === 'redaction' && AVANT_TICKET75(baseBoutons(c.nom)) ? 'bbcode' : '', AVANT_TICKET77(baseBoutons(c.nom)) ? 'envoyer-mobile' : ''].filter(Boolean);
+    const aPart = [horsBase.includes('bbcode') ? 'barre BBCode' : '', horsBase.includes('envoyer-mobile') ? '« Envoyer » mobile' : ''].filter(Boolean).join(' et ');
+    if (a) { check(`boutons ${etiquette(c)} : exclusions (font-size, hauteur, padding) égales au bundle de base${aPart ? ` (${aPart} à part)` : ''}`, () => verifierExclus(r, a, horsBase)); }
     check(`boutons ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
   }
   // Ordinateur tactile (pointer: coarse) : boutons d'action et d'accès rapide gardent 44 px.
@@ -1270,18 +1273,23 @@ if (on('echelle-forum')) {
   // fragment redaction ; libellés, barre), hors du relevé des deux côtés, champ Destinataires (.kd) gardé. Retrait au recalage de
   // COMMIT_ECHELLE_FORUM sur un SHA qui contient l'entrée (AVANT_TICKET75 devient faux).
   const MASQUE75 = AVANT_TICKET75(avantEchelleForum);
-  const MESURE_TAILLES = ([masque72, masque73, masque74, masque75]) => [...document.querySelectorAll('#col-right, #col-right *')]
+  // Écart accepté et consigné (épopée 7, entrée 7) : « Envoyer » mobile en 14 px (DESIGN.md › send-button ; kramail-theme et
+  // forum-activite, fragments envoyer), hors du relevé des deux côtés. Retrait au recalage de COMMIT_ECHELLE_FORUM sur un SHA qui contient
+  // l'entrée (AVANT_TICKET77 devient faux).
+  const MASQUE77 = AVANT_TICKET77(avantEchelleForum);
+  const MESURE_TAILLES = ([masque72, masque73, masque74, masque75, masque77]) => [...document.querySelectorAll('#col-right, #col-right *')]
     .filter(e => window.innerWidth >= 768 || /\/kramail\/post\//.test(location.pathname) || !e.closest('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])'))
     .filter(e => !masque72 || !/\/kramail\/post\/sujet-fictif-0-/.test(location.pathname) || !e.closest('h1.page-header .pull-right, .forum-top, ul.media-list.forum'))
     .filter(e => !masque73 || !/\/kramail/.test(location.pathname) || document.querySelector('form[name="post_msg"]') || !e.closest('h1.page-header'))
     .filter(e => !masque74 || !/^\/kramail\/(?!post\/)/.test(location.pathname) || !e.closest('#topics_wrapper, #topics'))
     .filter(e => !masque75 || !/^\/kramail\/post\//.test(location.pathname) || !e.closest('form[name="post_msg"]') || e.closest('.kd'))
+    .filter(e => !masque77 || window.innerWidth >= 768 || !e.matches('form[name="post_msg"] button.btn-primary.pull-right'))
     .map(e => { const st = getComputedStyle(e); const sansClasse = masque73 && e.parentElement && e.parentElement.closest('.kramail-character-selector'); return `${e.tagName}.${typeof e.className === 'string' && !sansClasse ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
     const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
-    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73, MASQUE74, MASQUE75]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73, MASQUE74, MASQUE75, MASQUE77]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
@@ -2039,7 +2047,10 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 // COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ; lignes Sujet, Expéditeur, Message (barre comprise) et options des rédactions du
 // kramail retirées à toute largeur, Destinataires et « Envoyer » gardés, cadre du formulaire neutralisé dans les deux rendus
 // (RETIRER_REDACTION_TICKET75, épopée 7, entrée 5 : formulaire de réponse du forum, prouvé par kramail-theme, fragments redaction* ; gardé
-// pour R4, garderRedaction ; retrait au recalage de COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ;
+// pour R4, garderRedaction ; retrait au recalage de COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ; ligne d'« Envoyer » des
+// formulaires post_msg (forum et kramail) retirée, réserve basse et réserve de défilement neutralisées (RETIRER_ENVOYER_TICKET77, épopée 7,
+// entrée 7 : « Envoyer » dans le flux, prouvé par kramail-theme et forum-activite, fragments envoyer ; gardé avec garderRedaction ; retrait
+// au recalage de COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ;
 // sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '', garderEntete = false, garderListe = false, garderRedaction = false }) => {
@@ -2051,6 +2062,7 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = ''
   if (!garderEntete && AVANT_TICKET73(avantNettoyage)) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
   if (!garderListe && AVANT_TICKET74(avantNettoyage)) { await o.page.evaluate(RETIRER_LISTE_TICKET74); }
   if (!garderRedaction && AVANT_TICKET75(avantNettoyage)) { await o.page.evaluate(RETIRER_REDACTION_TICKET75); }
+  if (!garderRedaction && AVANT_TICKET77(avantNettoyage)) { await o.page.evaluate(RETIRER_ENVOYER_TICKET77); }
   return o;
 };
 // Force un état (:hover, :focus, :active) sur les éléments d'un sélecteur (CDP, sans geste).
@@ -2288,6 +2300,7 @@ if (on('nettoyage')) {
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
       if (AVANT_TICKET75(avantNettoyage)) { await Promise.all([a, b].map(o => o.page.evaluate(RETIRER_REDACTION_TICKET75))); }
+      if (AVANT_TICKET77(avantNettoyage)) { await Promise.all([a, b].map(o => o.page.evaluate(RETIRER_ENVOYER_TICKET77))); }
       const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { horsChemin: MASQUE_MODULES_96 })]];
       pas.push({ width, mobile: await mode(), comparaisons });
     }

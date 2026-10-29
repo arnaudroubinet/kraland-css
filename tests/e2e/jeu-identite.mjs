@@ -6,10 +6,10 @@
 // cartes (mesuré sur une ligne native : voir LIGNE_NATIVE), lignes en flex. La racine du forum (/forum, qui liste tous les forums) n'est pas une
 // page « /forum/… » : elle porte page-forum-racine, pas page-forum (réservée aux modules de /forum/…), et son tableau natif, que le module des
 // cartes ne remplace pas, reprend les lignes de l’index (display: flex), sans le décor des cartes.
-// Fragment regles-ok (H1.2) : la barre fixe « Envoyer » du bas d'écran appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
+// Fragment regles-ok (H1.2) : le placement d'« Envoyer » appartient aux pages de rédaction (kramail, forum). Sur les Règles, le
 // bouton « ok » du formulaire de recherche (button.btn-primary.pull-right) n'est pas fixé et reste à côté de son champ, et « Remonter en haut »
-// n'y est pas relevé au-dessus d'une barre absente (bas : 8 px) ; sur la rédaction d'un Kramail, la barre « Envoyer » reste fixe et « Remonter en
-// haut » reste relevé à 64 px (non-régression, retirés au lot 7 seulement).
+// n'y est pas déplacé (bas : 8 px) ; sur la rédaction d'un Kramail, « Envoyer » est dans le flux (épopée 7, entrée 7) : ni fixe, ni pied de page
+// remis dans le flux, ni réserve sous le dernier groupe, « Remonter en haut » à 20 px (règle commune au forum).
 // Fragment nom (H1.3, H1.4, R1) : le nom du personnage est lu sur le titre actif du panneau latéral du plateau (matériel et bâtiments aussi),
 // mémorisé sous kr-character-name, puis repris sur Personnage et Employés, dont le titre natif n'est pas le nom. Mobile : le mini-profil
 // l'affiche ; ordinateur : le titre du panneau le porte (le texte seul change, un élément enfant reste en place). Sans nom connu, le titre natif
@@ -371,7 +371,7 @@ if (on('fuite-forum')) {
 }
 
 if (on('regles-ok')) {
-  console.log('Barre fixe « Envoyer » et relèvement de « Remonter en haut » réservés aux pages de rédaction (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
+  console.log('Placement d\'« Envoyer » et de « Remonter en haut » réservé aux pages de rédaction (375 × 667, tactile), variantes ' + VARIANTES.join(' et '));
   const res = await mapLimit(VARIANTES, scenarioRegles);
   VARIANTES.forEach((v, i) => {
     const { regles, kramail } = res[i];
@@ -397,15 +397,16 @@ if (on('regles-ok')) {
       assert.equal(kramail.boutons, 1, 'boutons button.btn-primary.pull-right du formulaire de rédaction : ' + kramail.boutons);
       assert.equal(kramail.libelle, 'Envoyer');
     });
-    check(`[${v}] rédaction kramail : la barre « Envoyer » reste fixe`, () => {
-      assert.equal(kramail.position, 'fixed', 'barre « Envoyer » : position = ' + kramail.position);
+    check(`[${v}] rédaction kramail : « Envoyer » dans le flux (position: static)`, () => {
+      assert.equal(kramail.position, 'static', '« Envoyer » : position = ' + kramail.position);
     });
-    check(`[${v}] rédaction kramail : le pied de page revient dans le flux et le dernier groupe garde une réserve sous la barre`, () => {
-      assert.equal(kramail.pied, 'relative', 'footer.navbar-inverse : position = ' + kramail.pied);
-      assert.notEqual(kramail.reserve, '0px', 'réserve sous le dernier .form-group : ' + kramail.reserve);
+    check(`[${v}] rédaction kramail : ni pied de page remis dans le flux, ni réserve sous le dernier .form-group`, () => {
+      assert.notEqual(kramail.pied, null, 'footer.navbar-inverse absent de la fixture');
+      assert.notEqual(kramail.pied, 'relative', 'footer.navbar-inverse : position = ' + kramail.pied);
+      assert.equal(kramail.reserve, '0px', 'réserve sous le dernier .form-group : ' + kramail.reserve);
     });
-    check(`[${v}] rédaction kramail : « Remonter en haut » reste relevé au-dessus de la barre fixe (bas : 64 px)`, () => {
-      assert.equal(kramail.remonter, '64px', 'bouton « Remonter en haut » : bas = ' + kramail.remonter);
+    check(`[${v}] rédaction kramail : « Remonter en haut » à 20 px, comme au forum (aucune barre fixe à dégager)`, () => {
+      assert.equal(kramail.remonter, '20px', 'bouton « Remonter en haut » : bas = ' + kramail.remonter);
     });
   });
 }
