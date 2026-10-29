@@ -281,6 +281,22 @@ export const RETIRER_ENTETE_TICKET73 = () => {
 };
 
 /**
+ * Listes du kramail (épopée 7, entrée 4) : Réception, Envoi et Corbeille reprennent la ligne de sujet du sous-forum, prouvé par
+ * kramail-theme.mjs (fragments liste*). Bundle d'avant : il n'enregistre pas le module Kramail:Liste. Écrit ici, comme AVANT_TICKET73.
+ * Retrait au recalage du COMMIT_* (base figée) de chaque suite appelante sur un SHA qui contient l'entrée.
+ */
+export const AVANT_TICKET74 = bundle => !bundle.includes('Kramail:Liste');
+/**
+ * Dans la page : retire des deux rendus le tableau #topics (et son enveloppe DataTables) d'une liste du kramail. Garde par le chemin, pas
+ * par la classe kr-page-kramail-liste, absente des bases antérieures à l'épopée 7.
+ */
+export const RETIRER_LISTE_TICKET74 = () => {
+  if (/^\/kramail(\/|$)/.test(location.pathname) && !/^\/kramail\/post\//.test(location.pathname)) {
+    document.querySelectorAll('#topics_wrapper, #topics').forEach(e => e.remove());
+  }
+};
+
+/**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum
  * et kr-page-forum-index, déjà cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
  * De même pour la couleur du texte (--kr-text-primary) et le raccourci de rayon, cités par trois suites. Panneau mesuré, couleur attendue du
@@ -652,7 +668,9 @@ export const CAS_ESPACEMENT_TICKET49 = {
     ['fleches', '.panel-default tbody > tr > td:nth-child(5)', 'R', 'b', { 'padding-top': 1, 'padding-bottom': 1, 'padding-left': 2 }],
     ['corps', ':is(#fx-permanents, #fx-sujets) > .panel-body', 'R', 'b', RETRAIT(2, 4)], ['titres', '#topics thead th', 'N', 'b', RETRAIT(2)]
   ],
-  reception: PANNEAUX({ panneau: null, corpsMobile: null }),
+  // Liens des lignes de #topics (seuls liens du corps) hors du rôle R (épopée 7, entrée 4) : ligne au rendu du sous-forum, sans écart ni
+  // marge (kramail-theme, fragment liste).
+  reception: PANNEAUX({ panneau: null, corpsMobile: null, liens: null }),
   lecture: [['compacts', '.btn-xs, .btn-group-xs > .btn', 'E', 'b', BOUTONS_BUREAU]],
   nouveau: [
     ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU], ['bbcode', 'form[name="post_msg"] .btn-toolbar .btn', 'E', null, EXCEPTION]

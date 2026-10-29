@@ -42,7 +42,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET73, choisirVariante, RETIRER_ENTETE_TICKET73 } from './lib/variantes.mjs';
+import { AVANT_TICKET73, AVANT_TICKET74, choisirVariante, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74 } from './lib/variantes.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -361,9 +361,13 @@ if (on('hors-perimetre')) {
   // entete*), retiré des deux rendus avant le relevé (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_AVANT (base figée) sur un
   // SHA qui contient l'entrée.
   const ECART73 = AVANT_TICKET73(avant);
+  // De même (épopée 7, entrée 4) : #topics de la réception à la ligne du sous-forum (kramail-theme, fragments liste*), retiré des deux
+  // rendus (RETIRER_LISTE_TICKET74). Retrait au recalage de COMMIT_AVANT sur un SHA qui contient l'entrée.
+  const ECART74 = AVANT_TICKET74(avant);
   const releve = async (c, script) => {
     const { context, page, erreurs } = await ouvrir({ ...c, script });
     if (ECART73) { await page.evaluate(RETIRER_ENTETE_TICKET73); }
+    if (ECART74) { await page.evaluate(RETIRER_LISTE_TICKET74); }
     const r = { ...(await page.evaluate(RELEVE)), classes: (await page.evaluate(ETAT, CARTES_SECTION)).classes };
     await context.close();
     return { r, erreurs };

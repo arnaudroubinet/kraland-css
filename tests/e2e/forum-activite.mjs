@@ -85,7 +85,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -1267,6 +1267,9 @@ if (on('plus')) {
   // au seuil et au bureau, le h1 est retiré des deux rendus avant l'empreinte (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_PLUS
   // (base figée) sur un SHA qui contient l'entrée.
   const ECART73 = AVANT_TICKET73(basePlus);
+  // Écart accepté et consigné (épopée 7, entrée 4) : lignes de #topics de la liste au rendu du sous-forum (kramail-theme, fragments liste*),
+  // retirées des deux rendus avant l'empreinte (RETIRER_LISTE_TICKET74). Retrait au recalage de COMMIT_PLUS sur un SHA qui contient l'entrée.
+  const ECART74 = AVANT_TICKET74(basePlus);
   const sansPosition = b => (ECART73 && b ? { w: b.w, h: b.h } : b);
   const mesurer = async (o, nom) => {
     await o.page.evaluate(RETIRER_DOSSIERS);
@@ -1473,6 +1476,7 @@ if (on('plus')) {
     const o = await ouvrir({ ...c, cle: CLE[c.nom], src });
     const m = await mesurer(o, c.nom);
     if (ECART73) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
+    if (ECART74) { await o.page.evaluate(RETIRER_LISTE_TICKET74); }
     const em = await o.page.evaluate(EMPREINTE_FIL);
     await o.context.close();
     return { m, em, erreurs: o.erreurs };

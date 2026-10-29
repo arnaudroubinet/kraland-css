@@ -108,7 +108,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET92, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1105,7 +1105,8 @@ const ROLES_FORUM = {
   ],
   reception: [
     ['sujet du kramail', '#topics tbody td:nth-child(2) a:last-of-type', '15px', null, 'm'],
-    ['expéditeur', '#topics tbody td:nth-child(3)', '13px', null, 'm'],
+    // Liste au rendu du sous-forum (épopée 7, entrée 4) : la cellule du nom passe en display: contents, la taille se lit sur son lien.
+    ['expéditeur', '#topics tbody td:nth-child(3) > a.nomargin', '13px', null, 'm'],
     ['date', '#topics tbody td:nth-child(4)', '13px', null, 'm']
   ],
   // Lecture au rendu du message de sujet (épopée 7, entrée 2) : mêmes rôles que le sujet
@@ -1248,16 +1249,20 @@ if (on('echelle-forum')) {
   // recalage de COMMIT_ECHELLE_FORUM (base figée) sur un SHA qui contient l'entrée (AVANT_TICKET73 devient faux). Rédaction : le menu de personnage gagne des classes
   // (nom, catégorie ; plus de style en ligne) : sous le sélecteur, tailles comparées sans les classes.
   const MASQUE73 = AVANT_TICKET73(avantEchelleForum);
-  const MESURE_TAILLES = ([masque72, masque73]) => [...document.querySelectorAll('#col-right, #col-right *')]
+  // Écart accepté et consigné (épopée 7, entrée 4) : lignes de #topics de la liste au rendu du sous-forum (kramail-theme, fragments liste*),
+  // hors du relevé des deux côtés. Retrait au recalage de COMMIT_ECHELLE_FORUM sur un SHA qui contient l'entrée (AVANT_TICKET74 devient faux).
+  const MASQUE74 = AVANT_TICKET74(avantEchelleForum);
+  const MESURE_TAILLES = ([masque72, masque73, masque74]) => [...document.querySelectorAll('#col-right, #col-right *')]
     .filter(e => window.innerWidth >= 768 || /\/kramail\/post\//.test(location.pathname) || !e.closest('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])'))
     .filter(e => !masque72 || !/\/kramail\/post\/sujet-fictif-0-/.test(location.pathname) || !e.closest('h1.page-header .pull-right, .forum-top, ul.media-list.forum'))
     .filter(e => !masque73 || !/\/kramail/.test(location.pathname) || document.querySelector('form[name="post_msg"]') || !e.closest('h1.page-header'))
+    .filter(e => !masque74 || !/^\/kramail\/(?!post\/)/.test(location.pathname) || !e.closest('#topics_wrapper, #topics'))
     .map(e => { const st = getComputedStyle(e); const sansClasse = masque73 && e.parentElement && e.parentElement.closest('.kramail-character-selector'); return `${e.tagName}.${typeof e.className === 'string' && !sansClasse ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
     const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
-    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73, MASQUE74]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
@@ -1292,6 +1297,17 @@ const ACCUEIL_RAYONS = ACCUEIL_BOUTONS.replace('<div class="col-md-6">centre</di
   .replace('<h4>Personnage d\'essai</h4>', '<span class="pull-right"><img src="http://img7.kraland.org/2/perso.gif" width="60" height="60"></span><h4>Personnage d\'essai</h4>');
 const MODALE_FEUILLE = '<p>Message</p><div class="btn-toolbar"><div class="btn-group btn-group-xs dropdown"><button type="button" class="btn btn-default dropdown-toggle" '
   + 'data-toggle="dropdown">Couleurs</button><div class="dropdown-menu"><div class="btn-group"><button type="button" class="btn btn-default">Rouge</button></div></div></div></div>';
+// Réception dérivée en mémoire (épopée 7, entrée 4) : balisage DataTables (recherche, pagination) et troisième message non lu (pastille),
+// pour les rôles communs avec le sous-forum. La base (COMMIT_RAYONS) ne pose pas de pastille sur le kramail : tant qu'elle précède l'entrée
+// (AVANT_TICKET74), le nombre de pastilles n'est pas comparé à la base (rôle P absolu ; retrait au recalage de COMMIT_RAYONS).
+const RECEPTION_RAYONS = { ...PAGES_FORUM.reception, html: PAGES_FORUM.reception.html
+  .replace('<table class="display" id="topics">', '<div id="topics_wrapper" class="dataTables_wrapper no-footer"><div id="topics_filter" class="dataTables_filter"><label>Rechercher<input type="search" aria-controls="topics"></label></div>'
+    + '<table class="display dataTable no-footer" id="topics" role="grid">')
+  .replace('</table>', '</table><div class="dataTables_paginate paging_simple_numbers" id="topics_paginate"><span><a class="paginate_button current" aria-controls="topics" data-dt-idx="1" tabindex="0">1</a>'
+    + '<a class="paginate_button" aria-controls="topics" data-dt-idx="2" tabindex="0">2</a></span></div></div>')
+  .replace(/(re-commande-0-9000003"><i class=")far fa-envelope-open/, '$1fa fa-envelope') };
+if (!RECEPTION_RAYONS.html.includes('id="topics_paginate"') || !RECEPTION_RAYONS.html.includes('9000003"><i class="fa fa-envelope"')) { console.error('réception des rayons non dérivée'); process.exit(2); }
+const baseRayons = (nom, k, l, b) => (nom === 'reception' && k === 'pastille' && AVANT_TICKET74(avantRayons) ? l : b);
 const PAGES_RAYONS = {
   plateau: { def: PAGES.plateau, cas: [
     ['label', '.label', 'P'], ['badge', '.badge', 'P'], ['hamburger', '.navbar-toggle', 'C4', 'm'], ['icone-hamburger', '.navbar-toggle .icon-bar', 'X', 'm'],
@@ -1323,11 +1339,14 @@ const PAGES_RAYONS = {
     ['tri', '#topics th.sorting, #topics th.sorting_desc', 'C4', 'm'], ['recherche', '.dataTables_wrapper label > :is(input, select)', 'C4', 'm'],
     ['pagination', '.dataTables_paginate .paginate_button', 'C4', 'm'], ['fleches', '#topics .btn-group-xs > .btn', 'C4'], ['nouveau', '.forum-thread-action', 'C4', 'm']
   ] },
-  reception: { def: PAGES_FORUM.reception, cas: [
+  reception: { def: RECEPTION_RAYONS, cas: [
     ['titre', '.kramail-character-selector', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn', 'C4', 'b'], ['icones', 'h1.page-header .pull-right > .btn' + HORS_DOSSIERS, 'C4', 'm'],
     ['actions', '.kramail-actions-mobile > .btn', 'C4', 'm'],
     ['panneau', 'form > .panel', 'K8'], ['entete', 'form > .panel > .panel-heading', 'K8', 'm'],
-    ['entete', 'form > .panel > .panel-heading', 'K7', 'b'], ['ligne', 'form > .panel tbody > tr', 'K8', 'm']
+    // Lignes à plat dans la carte (épopée 7, entrée 4), comme le sous-forum : plus de rôle K8 de ligne (kramail-theme, fragment liste) ;
+    // rôles communs avec le sous-forum : pastille, recherche et pagination.
+    ['entete', 'form > .panel > .panel-heading', 'K7', 'b'], ['pastille', '.kr-topic-badge', 'P'],
+    ['recherche', '.dataTables_wrapper label > :is(input, select)', 'C4', 'm'], ['pagination', '.dataTables_paginate .paginate_button', 'C4', 'm']
   ] },
   // Lecture (épopée 7, entrée 2) : avatar mobile du message de sujet (rayon V3, égal au sujet : kramail-theme, fragment lecture), hors de la
   // comparaison à la base ; Transférer passé dans « ••• », hors des icônes du titre des deux côtés. Retrait : quand COMMIT_RAYONS contient l'entrée 7.2.
@@ -1487,7 +1506,8 @@ if (on('rayons')) {
   for (const { c, r, a } of res) {
     casRayons(c.nom, c.width < 768).forEach(([k, , role], i) => {
       check(`rayons ${etiquette(c)} ${k} : ${{ C4: 'contrôle 4 px', N4: 'contrôle natif 4 px', K8: 'conteneur 8 px', K7: 'en-tête de panneau 7 px', P: 'pastille pleine', X: 'exception égale à la base', H: 'en-tête égal à son panneau moins 1 px' }[role]}`, () => {
-        const ecarts = ecartsRayons(role, r.res[`${k}#${i}`] || [], a.res[`${k}#${i}`] || [], { sm: 4, md: 8 });
+        const l = r.res[`${k}#${i}`] || [];
+        const ecarts = ecartsRayons(role, l, baseRayons(c.nom, k, l, a.res[`${k}#${i}`] || []), { sm: 4, md: 8 });
         assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
       });
     });
@@ -1499,7 +1519,8 @@ if (on('rayons')) {
   for (const { c, r, a } of resJetons) {
     casRayons(c.nom, c.width < 768).forEach(([k, , role], i) => {
       check(`rayons ${etiquette(c)} ${k} : jetons redéfinis (7 px, 11 px) suivis (${role})`, () => {
-        const ecarts = ecartsRayons(role, r.res[`${k}#${i}`] || [], a.res[`${k}#${i}`] || [], { sm: 7, md: 11 });
+        const l = r.res[`${k}#${i}`] || [];
+        const ecarts = ecartsRayons(role, l, baseRayons(c.nom, k, l, a.res[`${k}#${i}`] || []), { sm: 7, md: 11 });
         assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
       });
     });
@@ -1528,7 +1549,10 @@ if (on('rayons')) {
   for (const { c, r, a } of resBascule) {
     r.forEach((p, n) => {
       check(`rayons bascule ${c.nom} ${c.variante} pas ${n + 1} (${p.width} px) : rayon du rôle pour chaque élément`, () => {
-        const ecarts = casRayons(c.nom, p.width < 768).flatMap(([k, , role], i) => ecartsRayons(role, p.res[`${k}#${i}`] || [], a[n].res[`${k}#${i}`] || [], { sm: 4, md: 8 }).map(e => `${k} ${e}`));
+        const ecarts = casRayons(c.nom, p.width < 768).flatMap(([k, , role], i) => {
+          const l = p.res[`${k}#${i}`] || [];
+          return ecartsRayons(role, l, baseRayons(c.nom, k, l, a[n].res[`${k}#${i}`] || []), { sm: 4, md: 8 }).map(e => `${k} ${e}`);
+        });
         assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
       });
     });
@@ -1961,19 +1985,23 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Cinq masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
+// Six masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
 // testé, Interface), les dossiers du kramail retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) et le h1 de la liste du kramail
 // retiré à toute largeur (RETIRER_ENTETE_TICKET73, épopée 7, entrée 3 : en-tête du sous-forum, prouvé par kramail-theme, fragments entete* ;
 // gardé pour le menu de personnage, garderEntete ; retrait au recalage de COMMIT_NETTOYAGE, base figée, sur un SHA qui contient l'entrée) ;
+// #topics de la liste du kramail retiré à toute largeur (RETIRER_LISTE_TICKET74, épopée 7, entrée 4 : ligne du sous-forum, prouvée par
+// kramail-theme, fragments liste* ; gardé pour M1/M2, qui compare le bundle testé à 768 et 769 px, garderListe ; retrait au recalage de
+// COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ;
 // sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
-const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '', garderEntete = false }) => {
+const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '', garderEntete = false, garderListe = false }) => {
   const p = PAGES_NETTOYAGE[nom];
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: `${GEL_NETTOYAGE} ${SANS_MARGE_PAGE} ${css}`, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   await o.page.evaluate(RETIRER_DOSSIERS);
   if (!garderEntete && AVANT_TICKET73(avantNettoyage)) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
+  if (!garderListe && AVANT_TICKET74(avantNettoyage)) { await o.page.evaluate(RETIRER_LISTE_TICKET74); }
   return o;
 };
 // Force un état (:hover, :focus, :active) sur les éléments d'un sélecteur (CDP, sans geste).
@@ -2036,7 +2064,10 @@ if (on('nettoyage')) {
       }
       if (p.m && (c.width === 768 || c.width === 769)) {
         // Risque de M1 à 768 px : un bouton dont le texte passe à la ligne ou déborde, ou un groupe de boutons sur deux rangées (relevé à 768 et 769).
-        out.boutons = await a.page.$$eval('.btn', l => l.filter(e => e.getClientRects().length).map(e => {
+        // Bundle testé seul (pas de base) : #topics de la liste gardé (garderListe), page à part si la comparaison l'a retiré.
+        const liste = AVANT_TICKET74(avantNettoyage) && c.nom === 'reception';
+        const pm = liste ? await ouvrirNettoyage({ ...c, script: userscript, css: p.masque || '', garderListe: true }) : a;
+        out.boutons = await pm.page.$$eval('.btn', l => l.filter(e => e.getClientRects().length).map(e => {
           const r = document.createRange();
           r.selectNodeContents(e);
           const lignes = new Set([...r.getClientRects()].filter(x => x.width && x.height).map(x => Math.round(x.top))).size;
@@ -2045,6 +2076,7 @@ if (on('nettoyage')) {
           const deborde = e.scrollWidth > e.clientWidth + 1 ? ' débord' : '';
           return `${(e.textContent || e.title || '').trim().slice(0, 20) || e.className} ${lignes <= 1 ? 1 : lignes}/${rangees}${deborde}`;
         }));
+        if (liste) { await pm.context.close(); }
       }
       const mobile = c.width < 768;
       if (mobile && ['plateau', 'plateau-minimal', 'champ'].includes(c.nom)) {

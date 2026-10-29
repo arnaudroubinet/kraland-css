@@ -9170,28 +9170,43 @@ body > map {
 
   /* Container du bouton kebab — taille contrainte */
   body.page-kramail h1.page-header .pull-right > .btn-group {
-    position: relative !important;
     width: 44px !important;
     height: 44px !important;
+  }
+
+  :where(html:not(.kr-page-kramail-liste)) body.page-kramail h1.page-header .pull-right > .btn-group {
+    position: relative !important;
+  }
+
+  /* Liste : « ••• » ouvre son menu sous le rang des boutons, calé à gauche du titre (calé sur le bouton, il sortait de l'écran par la gauche) */
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right {
+    position: relative;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > .btn-group {
+    position: static;
+  }
+
+  :where(html:not(.kr-page-kramail-liste)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    right: auto;
+    left: 0;
+    max-width: 100%;
   }
 
   /* Dropdown menu du bouton "+" (scopé kramail) */
   body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
     min-width: 260px !important;
-    right: 0 !important;
-    left: auto !important;
     background: var(--kr-bg-surface) !important;
     border: 1px solid var(--kr-border-default) !important;
     border-radius: var(--kr-radius-md) !important;
     padding: 8px 0 !important;
-  }
 
-  /* Ombre du menu : liste inchangée, lecture en jeton (épopée 7, entrée 2) */
-  :where(html:not(.kr-page-kramail-lecture)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
-  }
-
-  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    /* Ombre du menu en jeton (lecture : épopée 7, entrée 2 ; liste : entrée 4) */
     box-shadow: var(--kr-shadow-lg);
   }
 
@@ -9206,11 +9221,7 @@ body > map {
     white-space: nowrap !important;
   }
 
-  :where(html:not(.kr-page-kramail-lecture)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
-    background: rgba(255,255,255,0.08) !important;
-  }
-
-  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
+  body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a:active {
     background: var(--kr-bg-active);
   }
 
@@ -9245,249 +9256,7 @@ body > map {
     padding: 0 !important;
   }
 
-  /* === 5. DATATABLE CONTRÔLES (scopé kramail) === */
-
-  /* Cacher "Afficher X lignes" sur mobile - encombre inutilement */
-  body.page-kramail #topics_wrapper .dataTables_length {
-    display: none !important;
-  }
-
-  /* Barre de recherche DataTable - optimisée tactile */
-  body.page-kramail #topics_wrapper .dataTables_filter {
-    padding: 12px 16px !important;
-    text-align: left !important;
-    width: 100% !important;
-  }
-
-  body.page-kramail #topics_wrapper .dataTables_filter label {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-    margin: 0 !important;
-    font-size: var(--kr-font-body-mobile) !important;
-    color: var(--kr-text-secondary) !important;
-  }
-
-  body.page-kramail #topics_wrapper .dataTables_filter input[type="search"],
-  body.page-kramail #topics_wrapper .dataTables_filter input {
-    flex: 1 !important;
-    height: 44px !important;
-    padding: 0 16px !important;
-    font-size: 16px !important; /* Évite zoom iOS */
-    border-radius: var(--kr-radius-sm) !important;
-    background: var(--kr-bg-surface) !important;
-    border: 1px solid var(--kr-border-default) !important;
-    color: var(--kr-text-primary) !important;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
-    appearance: none !important;
-  }
-
-  body.page-kramail #topics_wrapper .dataTables_filter input:focus {
-    outline: none !important;
-    border-color: var(--kr-primary) !important;
-    box-shadow: 0 0 0 3px rgba(212, 134, 62, 0.15) !important;
-  }
-
-  /* Info "Affiche X à Y de Z lignes" */
-  body.page-kramail #topics_wrapper .dataTables_info {
-    padding: 8px 16px !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-muted) !important;
-    text-align: center !important;
-  }
-
-  /* Pagination */
-  body.page-kramail #topics_wrapper .dataTables_paginate {
-    padding: 8px 16px 16px !important;
-    text-align: center !important;
-  }
-
-  body.page-kramail #topics_wrapper .dataTables_paginate .paginate_button {
-    min-height: 44px !important;
-    min-width: 44px !important;
-    padding: 10px 14px !important;
-    margin: 0 4px !important;
-    border-radius: var(--kr-radius-sm) !important;
-    font-size: 14px !important;
-  }
-
-  /* === 6. TABLE #topics → CARDS LAYOUT (scopé kramail) === */
-
-  /* Cacher le thead de la table */
-  body.page-kramail #topics thead {
-    display: none !important;
-  }
-
-  /* Table en layout bloc */
-  body.page-kramail #topics {
-    display: block !important;
-    width: 100% !important;
-    border-collapse: separate !important;
-  }
-
-  body.page-kramail #topics tbody {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    padding: 8px 16px !important;
-  }
-
-  /* Chaque TR devient une carte */
-  body.page-kramail #topics tbody tr {
-    display: grid !important;
-    grid-template-columns: 36px 1fr !important;
-    grid-template-rows: auto auto !important;
-    gap: 4px 10px !important;
-    padding: 12px !important;
-    background: var(--kr-bg-surface) !important;
-    border: 1px solid var(--kr-border-default) !important;
-    border-radius: var(--kr-radius-md) !important;
-    cursor: pointer !important;
-    transition: background var(--transition-fast) !important;
-    min-height: 56px !important;
-    position: relative !important;
-  }
-
-  /* Feedback tactile carte */
-  body.page-kramail #topics tbody tr:active {
-    background: var(--kr-bg-hover) !important;
-  }
-
-  /* Cellule 1 : Checkbox */
-  body.page-kramail #topics tbody td:first-child {
-    grid-row: 1 / -1 !important;
-    grid-column: 1 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    width: auto !important;
-    border: none !important;
-  }
-
-  body.page-kramail #topics tbody td:first-child input[type="checkbox"] {
-    width: 20px !important;
-    height: 20px !important;
-    cursor: pointer !important;
-    accent-color: var(--kr-primary) !important;
-  }
-
-  /* Cellule 2 : Message (titre + icône) */
-  body.page-kramail #topics tbody td:nth-child(2) {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    display: block !important;
-    padding: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-  }
-
-  /* Le paragraphe wrapper */
-  body.page-kramail #topics tbody td:nth-child(2) p.nomargin {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Le span#ajax-mXXX qui contient icône + titre */
-  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    overflow: hidden !important;
-  }
-
-  /* Icône du message (enveloppe, reply, etc.) */
-  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fa,
-  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.far,
-  body.page-kramail #topics tbody td:nth-child(2) a:first-child i.fas {
-    font-size: 16px !important;
-    color: var(--kr-text-secondary) !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* Lien icône (ne doit pas prendre toute la largeur) */
-  body.page-kramail #topics tbody td:nth-child(2) span[id^="ajax-m"] > a:first-child {
-    flex-shrink: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    padding: 0 !important;
-    min-height: 0 !important;
-  }
-
-  /* Lien titre du message */
-  body.page-kramail #topics tbody td:nth-child(2) a:last-of-type {
-    font-size: var(--kr-font-name) !important;
-    font-weight: 500 !important;
-    color: var(--kr-text-primary) !important;
-    text-decoration: none !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    line-height: 1.3 !important;
-    display: block !important;
-    padding: 0 !important;
-    min-height: 0 !important;
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-
-  /* Cacher le span.invisible (doublon du titre pour tri) */
-  body.page-kramail #topics tbody td:nth-child(2) span.invisible {
-    display: none !important;
-  }
-
-  /* Cellule 3 : Auteur - sous le titre à gauche */
-  body.page-kramail #topics tbody td:nth-child(3) {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-    display: inline !important;
-    padding: 0 !important;
-    border: none !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-secondary) !important;
-  }
-
-  body.page-kramail #topics tbody td:nth-child(3) a {
-    color: var(--kr-text-secondary) !important;
-    text-decoration: none !important;
-    font-size: var(--kr-font-detail) !important;
-  }
-
-  /* Cellule 4 : Date - sous le titre à droite (même ligne que auteur) */
-  body.page-kramail #topics tbody td:nth-child(4) {
-    position: absolute !important;
-    right: 12px !important;
-    bottom: 12px !important;
-    display: block !important;
-    padding: 0 !important;
-    border: none !important;
-    font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-muted) !important;
-    text-align: right !important;
-  }
-
-  /* Cacher le span.invisible (date ISO pour tri) dans la cellule date */
-  body.page-kramail #topics tbody td:nth-child(4) span.invisible {
-    display: none !important;
-  }
-
-  /* === BOUTONS ACTIONS TABLE HEADER (+ dropdown) (scopé kramail) === */
-
-  /* Comme le thead est caché, on déplace le btn-group d'actions au-dessus */
-  body.page-kramail #topics_wrapper .btn-group {
-    display: flex !important;
-    gap: 4px !important;
-    padding: 8px 16px !important;
-  }
-
-  body.page-kramail #topics_wrapper .btn-group .btn {
-    min-height: 44px !important;
-    min-width: 44px !important;
-    padding: 10px !important;
-    font-size: 14px !important;
-    border-radius: var(--kr-radius-sm) !important;
-  }
+  /* Listes Réception, Envoi et Corbeille (#topics) : ligne de sujet du sous-forum, voir « KRAMAIL — LISTE » (épopée 7, entrée 4). */
 
   /* === SÉLECTEUR DE PERSONNAGE (Kramail:CharacterSwitcher, épopée 7, entrée 3) ===
      Aucun style en ligne : menu ouvert par aria-expanded="true", rayon et couleurs par jetons (clair et sombre). */
@@ -13896,7 +13665,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 /* L1 — statuts. Éléments communs au mobile et au bureau : pastille « NON LU » (jamais ouvert) ou « NOUVEAU MESSAGE » (lu en partie, kr-topic-newmsg),
    même jeton --kr-status-unread (texte = fond de ligne) : les deux états se distinguent par leur libellé, jamais par la couleur seule. */
 @media (max-width: 767px), (min-width: 768px) {
-  body.page-forum.kr-subforum .kr-topic-badge {
+  body.page-forum.kr-subforum .kr-topic-badge,
+  :where(html.kr-page-kramail-liste) #col-right #topics .kr-topic-badge {
     display: inline-block;
     flex: 0 0 auto;
     margin: 0 0 0 8px;
@@ -13913,7 +13683,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   /* Libellé en CSS (attribut data-kr-label) : aucun texte dans la cellule, DataTables ne le voit ni à la recherche ni au tri. */
-  body.page-forum.kr-subforum .kr-topic-badge::before {
+  body.page-forum.kr-subforum .kr-topic-badge::before,
+  :where(html.kr-page-kramail-liste) #col-right #topics .kr-topic-badge::before {
     content: attr(data-kr-label);
   }
 }
@@ -14810,6 +14581,395 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html body.page-forum.kr-subforum:not(.mobile-mode) #topics_wrapper .dataTables_paginate {
+    order: 5;
+    margin-left: auto;
+  }
+}
+
+/* ============================================================================
+   KRAMAIL — LISTE (épopée 7, entrée 4) : Réception, Envoi et Corbeille reprennent la ligne de sujet du sous-forum ci-dessus, mêmes valeurs
+   (L1 statut, L3 lignes mobiles, L5 pagination mobile, L6 bureau). Portée : html.kr-page-kramail-liste, #col-right (la spécificité de l'id bat
+   les règles mobiles transverses des tableaux). Le module Kramail:Liste pose kr-topic-unread et la pastille « NON LU » (.kr-topic-badge,
+   règle commune L1), nomme la recherche et « Afficher », et coche la case au toucher de sa cellule.
+   Ligne : case | message (icône native, titre) | auteur ou destinataires | date. Sur mobile, la case prend la place du bouton → du sous-forum.
+   ============================================================================ */
+@media (max-width: 767px), (min-width: 768px) {
+  :where(html.kr-page-kramail-liste) #col-right #topics span.invisible {
+    display: none !important;
+  }
+}
+
+/* Mobile — contrôles (L3), lignes (L1, L3), pagination (L5). */
+@media (max-width: 767px) {
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px 4px !important;
+    overflow: visible !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter {
+    order: 1;
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length {
+    order: 2;
+    flex: 0 0 auto;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter label,
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length label {
+    display: flex !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter input {
+    flex: 1 1 auto;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length select {
+    min-width: 72px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_info {
+    order: 4;
+    flex: 0 0 100%;
+    margin: 8px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics {
+    display: block !important;
+    order: 3;
+    flex: 0 0 auto;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 4px 0 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Bord à bord dans la carte : seul le conteneur DataTables porte le retrait de 16 px à compenser. */
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper #topics {
+    width: calc(100% + 32px) !important;
+    margin: 4px -16px 0 !important;
+  }
+
+  /* En-têtes masqués : leur « + » (sélection, lu/non lu, important, suppression) est cloné dans le titre par Kramail:MobileEnhancer. */
+  :where(html.kr-page-kramail-liste) #col-right #topics thead {
+    display: none !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody {
+    display: block !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr {
+    position: relative;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+    margin: 0 !important;
+    padding: 10px 56px 10px 12px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--kr-border-default) !important;
+    border-left: 4px solid transparent !important;
+    border-radius: 0 !important;
+    background: var(--kr-bg-surface) !important;
+    overflow: visible !important;
+    cursor: pointer;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr.kr-topic-unread {
+    border-left-color: var(--kr-status-unread) !important;
+  }
+
+  /* Saut de ligne après le titre : ligne 2 = « NON LU · auteur, date ». */
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr::before {
+    content: "";
+    flex: 0 0 100%;
+    order: 5;
+    height: 0;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr::after {
+    content: none;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td {
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    color: var(--kr-text-secondary) !important;
+    font-size: var(--kr-font-detail) !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(2),
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(2) p,
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(2) span[id^="ajax-m"],
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(3) {
+    display: contents !important;
+  }
+
+  /* Case : cellule de 44 x 44 à droite, au-dessus du lien étiré (place du bouton → du sous-forum). */
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:first-child {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    z-index: 2;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px !important;
+    height: 44px;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:first-child input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--kr-primary);
+    cursor: pointer;
+  }
+
+  /* Réinitialise la règle générique de toucher : la ligne entière est la cible, via le lien étiré du titre. */
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td a:not(.btn) {
+    display: block !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  /* Ligne 1 : icône native (important, répondu, lu), titre en 15 px, gras si non lu. */
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody span[id^="ajax-m"] > a:first-child:not(:last-child) {
+    order: 0;
+    flex: 0 0 auto;
+    color: var(--kr-text-secondary) !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody span[id^="ajax-m"] > a:last-child {
+    order: 1;
+    flex: 1 1 0 !important;
+    min-width: 0;
+    color: var(--kr-text-primary) !important;
+    font-size: var(--kr-font-name) !important;
+    font-weight: 400;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere;
+    text-decoration: none !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr.kr-topic-unread span[id^="ajax-m"] > a:last-child {
+    font-weight: 700;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody span[id^="ajax-m"] > a:last-child::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Ligne 2 : « NON LU · auteur, date ». Le nom n'est pas cliquable (pas de toucher accidentel vers le profil). */
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(2) p > .kr-topic-badge {
+    order: 6;
+    align-self: center;
+    margin: 0;
+    font-size: var(--kr-font-label);
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(3) > a.nomargin {
+    order: 7;
+    color: var(--kr-text-primary) !important;
+    font-size: var(--kr-font-detail) !important;
+    font-weight: 600;
+    pointer-events: none;
+    text-decoration: none !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(3) > a.nomargin::after {
+    content: ",";
+    color: var(--kr-text-secondary);
+    font-weight: 400;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody td:nth-child(4) {
+    order: 8;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody tr:active {
+    background: var(--kr-bg-hover) !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate {
+    display: flex !important;
+    flex: 0 0 calc(100% + 32px);
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: center !important;
+    order: 5;
+    gap: 4px !important;
+    margin: 8px -16px 0 !important;
+    overflow: visible;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate > span {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button {
+    flex: 0 0 auto;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    box-sizing: border-box;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .kr-page-hidden,
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate span.ellipsis {
+    display: none !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .kr-page-gap {
+    flex: 0 0 auto;
+    min-width: 16px;
+    color: var(--kr-text-secondary);
+    font-size: 16px;
+    text-align: center;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous,
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next {
+    font-size: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
+    content: "\2039";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next::before {
+    content: "\203A";
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.current {
+    border: 2px solid var(--kr-primary) !important;
+    background: var(--kr-bg-elevated) !important;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Bureau (L1, L6) : tableau natif conservé, cellules resserrées, titre en couleur de texte (15 px, gras si non lu), barre de 4 px dans la
+   1re cellule d'une ligne non lue, nom en gras, date secondaire ; « Afficher » à gauche, recherche à droite. */
+@media (min-width: 768px) {
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody > tr > td {
+    padding: var(--kr-space-1) var(--kr-space-2) !important;
+    vertical-align: middle !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody > tr.kr-topic-unread > td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--kr-status-unread);
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody span[id^="ajax-m"] > a:last-child {
+    color: var(--kr-text-primary) !important;
+    font-size: var(--kr-font-name) !important;
+    font-weight: 400 !important;
+    line-height: 1.35;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody > tr.kr-topic-unread span[id^="ajax-m"] > a:last-child {
+    font-weight: 700 !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody span[id^="ajax-m"] > a:last-child:hover {
+    text-decoration: underline !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody > tr > td:nth-child(3) > a.nomargin {
+    display: block;
+    color: var(--kr-text-primary) !important;
+    font-weight: 700 !important;
+    font-size: var(--kr-font-detail) !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics tbody > tr > td:nth-child(4) {
+    color: var(--kr-text-secondary) !important;
+    font-size: var(--kr-font-detail) !important;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 16px;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length {
+    order: 1;
+    flex: 1 1 0;
+    margin: 0 0 8px !important;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter {
+    order: 2;
+    flex: 0 0 auto;
+    margin: 0 0 8px !important;
+    text-align: right;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper #topics {
+    order: 3;
+    flex: 0 0 100%;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_info {
+    order: 4;
+  }
+
+  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate {
     order: 5;
     margin-left: auto;
   }
