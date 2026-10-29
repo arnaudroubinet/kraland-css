@@ -814,6 +814,12 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
     padding-left: var(--kr-space-3);
     background-color: color-mix(in srgb, var(--kr-status-unread) 14%, transparent);
   }
+
+  /* Bug 15 : la date des lignes lues prend le même retrait que celle des non lues (12 px depuis le bord, au-delà du filet de 4 px),
+     sinon la colonne des dates alterne entre 5 et 12 px. Contrôle : report-non-lu, « bug 15 ». */
+  :where(html.kr-page-report) table > tbody > tr > td:first-child:not(:only-child) {
+    padding-left: var(--kr-space-3);
+  }
 }
 
 @media (max-width: 767px) {

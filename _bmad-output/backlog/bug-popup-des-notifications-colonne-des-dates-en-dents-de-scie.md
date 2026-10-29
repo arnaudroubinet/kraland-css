@@ -6,7 +6,7 @@ parent: none
 covers: []
 after: []
 assignee: ""
-refined: false
+refined: true
 hitl: false
 risk: low
 severity: P3
@@ -72,3 +72,6 @@ Sur ordinateur, la règle de la cellule de date non lue (ticket 8.1) ajoute un r
 - Assumption: le bord commun est 12 px, le retrait voulu par 8.1 après le filet, étendu aux dates lues. Alternative : un autre bord commun, tant que le texte non lu ne touche pas le filet.
 - Assumption: severity P3 (cosmétique, lecture intacte) et risk low (une règle ordinateur propre à `/report`).
 - Open question: sur ordinateur, le texte (14 px) est 1 px plus bas que la date (13 px), lignes lues et non lues (`texteTop` contre `date.top` dans `mesures.txt`). À traiter ici ou à laisser ? À trancher au plan.
+- Decision: bord commun des dates à 12 px (`--kr-space-3`), lignes lues comme non lues, à toute largeur ≥ 768 px (orchestrateur, 2026-10-29).
+- Decision: le décalage vertical de 1 px du texte par rapport à la date est corrigé ici s'il vient de la même règle que le retrait ; sinon, il est consigné (orchestrateur, 2026-10-29).
+- Decision: filet et teinte du non lu inchangés ; rendu mobile strictement inchangé (orchestrateur, 2026-10-29).
