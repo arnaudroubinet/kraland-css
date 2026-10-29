@@ -76,6 +76,15 @@ check('marge mobile (épopée 9, entrées 1 et 10) : classes de page et retrait 
   assert.equal(f.widened, false);
   assert.deepEqual(f.units, ['confort-mobile']);
 });
+check('PV des cartes en jetons (épopée 9, entrée 7) : cercle, barre et jetons --kr-pv-* -> plateau (fragment pv)', () => {
+  for (const [f, a, b] of [['kraland-theme.css', '.dashboard-card-hp-progress {', '  stroke: var(--kr-pv);'], ['kraland-theme.css', '  --kr-success: #2e7d32;', '  --kr-pv-1: var(--kr-success);'],
+    ['kraland-userscript-template.js', '  function createHPCircle(pvLevel) {', "    svg.setAttribute('class', 'dashboard-card-hp-circle kr-pv-' + level);"]]) {
+    const c = route(f, hunk(a, b));
+    assert.equal(c.widened, false, c.reasons.join(' ; '));
+    for (const z of ['plateau', 'cartes-pastilles', 'typographie-formes', 'palette-nation', 'confort-mobile']) { assert.ok(c.zones.includes(z), `${z} absent : ${c.zones.join(', ')}`); }
+  }
+  assert.ok(SUITES.find(s => s.name === 'plateau-qualite-usage').frags.some(f => f.includes('pv')));
+});
 check('cibles du plateau mobile (épopée 9, entrée 5) : actions de carte -> confort-mobile (fragment plateau) ; croix -> fragment jeton', () => {
   const c = route('kraland-theme.css', hunk('  body.mobile-mode .dashboard-card-actions a {', '    width: var(--kr-touch-target);'));
   assert.equal(c.widened, false, c.reasons.join(' ; '));
@@ -313,7 +322,7 @@ check('carte de personnage (kr-carte-perso, en-tête, bloc du nom) -> plateau, c
     for (const z of ['plateau', 'cartes-pastilles', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
   }
   const s = SUITES.find(x => x.name === 'plateau-qualite-usage');
-  assert.deepEqual(s.frags, [['usage'], ['cartes']]);
+  assert.deepEqual(s.frags, [['usage'], ['cartes'], ['pv']]);
   assert.equal(s.needsBootstrap, true);
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/plateau-cartes-noms.html': [] }), readWith({})).zones, ['plateau']);
 });

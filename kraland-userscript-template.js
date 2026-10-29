@@ -4181,43 +4181,37 @@
   function createHPCircle(pvLevel) {
     if (!pvLevel) {return null;}
 
-    // Correspondance niveau PV -> couleur et pourcentage
+    // Correspondance niveau PV -> pourcentage ; la couleur du niveau est un jeton de la feuille (--kr-pv-N, classe kr-pv-N)
     // pdv1 = 100% (pleine santé), pdv5 = 20% (presque mort)
-    const pvConfig = {
-      1: { color: '#32CD32', percentage: 100 },  // Vert lime - Pleine santé
-      2: { color: '#FFD700', percentage: 80 },   // Jaune/or
-      3: { color: '#FF8C00', percentage: 60 },   // Orange foncé
-      4: { color: '#DC143C', percentage: 40 },   // Rouge crimson
-      5: { color: '#8B0000', percentage: 20 }    // Rouge foncé - Presque mort
-    };
+    const pvPercentage = { 1: 100, 2: 80, 3: 60, 4: 40, 5: 20 };
 
-    const config = pvConfig[pvLevel] || pvConfig[1];
+    const level = pvPercentage[pvLevel] ? pvLevel : 1;
     const radius = 37; // Rayon pour un avatar de 70px (35px) + bordure
     const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (circumference * config.percentage / 100);
+    const strokeDashoffset = circumference - (circumference * pvPercentage[level] / 100);
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'dashboard-card-hp-circle');
+    svg.setAttribute('class', 'dashboard-card-hp-circle kr-pv-' + level);
     svg.setAttribute('width', '82');
     svg.setAttribute('height', '82');
     svg.setAttribute('viewBox', '0 0 82 82');
 
-    // Cercle de fond (gris)
+    // Cercle de fond (piste)
     const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('class', 'dashboard-card-hp-track');
     bgCircle.setAttribute('cx', '41');
     bgCircle.setAttribute('cy', '41');
     bgCircle.setAttribute('r', radius);
     bgCircle.setAttribute('fill', 'none');
-    bgCircle.setAttribute('stroke', 'rgba(0,0,0,0.1)');
     bgCircle.setAttribute('stroke-width', '3');
 
     // Cercle de progression (coloré)
     const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('class', 'dashboard-card-hp-progress');
     progressCircle.setAttribute('cx', '41');
     progressCircle.setAttribute('cy', '41');
     progressCircle.setAttribute('r', radius);
     progressCircle.setAttribute('fill', 'none');
-    progressCircle.setAttribute('stroke', config.color);
     progressCircle.setAttribute('stroke-width', '4');
     progressCircle.setAttribute('stroke-linecap', 'round');
     progressCircle.setAttribute('stroke-dasharray', circumference);
@@ -4265,10 +4259,9 @@
       avatarImg.className = 'dashboard-card-avatar';
       avatarImg.alt = memberData.name;
 
-      // Appliquer un filtre gris si le personnage est KO (pdv5)
+      // Avatar gris si le personnage est KO (pdv5) : filtre et opacité dans la feuille
       if (memberData.pvLevel === 5) {
-        avatarImg.style.filter = 'grayscale(100%)';
-        avatarImg.style.opacity = '0.7';
+        avatarImg.classList.add('is-ko');
       }
 
       avatarWrapper.appendChild(avatarImg);
@@ -4323,13 +4316,13 @@
       hpFill.className = 'dashboard-card-hp-fill';
       hpFill.style.width = memberData.hpInfo + '%';
 
-      // Couleur selon le pourcentage
+      // Couleur selon le pourcentage : jeton de niveau de la feuille (haut, moyen, bas)
       if (memberData.hpInfo > 70) {
-        hpFill.style.backgroundColor = '#5cb85c'; // vert
+        hpFill.classList.add('kr-pv-1');
       } else if (memberData.hpInfo > 30) {
-        hpFill.style.backgroundColor = '#f0ad4e'; // jaune
+        hpFill.classList.add('kr-pv-3');
       } else {
-        hpFill.style.backgroundColor = '#d9534f'; // rouge
+        hpFill.classList.add('kr-pv-4');
       }
 
       hpBar.appendChild(hpFill);

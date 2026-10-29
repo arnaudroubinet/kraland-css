@@ -832,3 +832,14 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Liens au fil du texte des lignes (56 × 44, venus de PHASE 5) : non touchés (exception H9.1).
 - Fusion : conflit attendu avec 9.8 dans `tests/e2e/confort-mobile.mjs` (liste `PAGES`/`HORS`) et dans `tests/e2e/lib/router.mjs` (mots-clés de la marge).
 - Aucun masque ajouté. `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.
+
+## Ticket 9.7 — cercle et barre de PV des cartes en jetons (2026-10-29)
+
+- Niveau 5 en sombre (corrigé à la revue indépendante) : le mélange avec la couleur du texte le rendait plus pâle que le niveau 4. En sombre, il se mélange désormais au fond de surface (`color-mix(in srgb, var(--kr-danger) 75%, var(--kr-bg-surface))`) et reste plus sombre que le 4, comme en clair. Un test le vérifie dans les 16 variantes. Contraste minimal du cercle en sombre : 4,10:1. À vérifier à l'œil : distinction des niveaux 4 et 5.
+- Le danger sert ici un état de santé, hors de la réserve « blocages » de H5.5.
+- Le ticket demande un « contraste du texte du cercle ≥ 4,5:1 », mais le cercle n’a pas de texte. Seuil appliqué : 3:1, celui d’un élément graphique. Minimum en clair : cercle 4,70:1, barre 4,10:1. En sombre : ≥ 6,45:1.
+- Piste du cercle : `rgba(0,0,0,0.1)` devient `--kr-border-default` (0,08 en clair), un peu plus pâle.
+- Aucune fixture n'a de barre de PV. Le test en injecte une par carte. La structure native de la barre reste à vérifier sur une vraie carte.
+- Le minifieur réécrit `grayscale(100%)` en `grayscale()`. Les deux sont équivalents.
+- Comparaisons à la base : cartes-pastilles (groupes) retire les classes de PV des relevés, et typographie-formes (nettoyage) exclut `stroke` des cercles. Les deux tant que la base précède l'entrée (`AVANT_TICKET97`), à retirer au recalage de COMMIT_AVANT_53 et COMMIT_NETTOYAGE.
+- Worktree : `node_modules` est un lien symbolique non suivi, à ne pas embarquer.

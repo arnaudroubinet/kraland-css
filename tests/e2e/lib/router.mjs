@@ -25,7 +25,8 @@ export const SUITES = [
     frags: [['etats'], ['clics'], ['m1'], ['themes'], ['transitions'], ['impossibles', 'ordre', 'natif'], ['jeton']] },
   { name: 'plateau-profil-mobile', file: 'plateau-profil-mobile.mjs', zones: ['profil', 'plateau'] },
   // Fragment cartes (épopée 9, entrée 2) : carte de personnage selon sa propre largeur, vrai Bootstrap, fixture plateau-cartes-noms.
-  { name: 'plateau-qualite-usage', file: 'plateau-qualite-usage.mjs', zones: ['plateau'], frags: [['usage'], ['cartes']], needsBootstrap: true },
+  // Fragment pv (épopée 9, entrée 7) : cercle et barre de PV des cartes en jetons, 16 variantes, même fixture.
+  { name: 'plateau-qualite-usage', file: 'plateau-qualite-usage.mjs', zones: ['plateau'], frags: [['usage'], ['cartes'], ['pv']], needsBootstrap: true },
   // Menus Forum RP/HRP/Communauté/Débats/Staff : liste native à jour (fixtures inertes, route mutable). KR_CHROMIUM : navigateur local de repli.
   { name: 'menus-forums', file: 'menus-forums.mjs', zones: ['menus-forums'], frags: [['a'], ['b'], ['c'], ['d'], ['e'], ['f'], ['g'], ['h'], ['i'], ['j'], ['k'], ['l'], ['m'], ['n'], ['o'], ['p'], ['q-1280'], ['q-375'], ['r-1'], ['r-2'], ['s-1'], ['s-2'], ['s-3']] },
   { name: 'map-exclusions', file: 'map-exclusions.mjs', zones: ['images'] },
@@ -224,6 +225,9 @@ export const KEYWORDS = [
   // Carte de personnage selon sa propre largeur (épopée 9, entrée 2) : conteneur kr-carte-perso, en-tête et bloc du nom de la carte ;
   // plateau-qualite-usage (fragment cartes), cartes-pastilles (carte) et typographie-formes (nom).
   [/kr-carte-perso|dashboard-card-header|dashboard-card-name-container/, ['plateau', 'cartes-pastilles', 'typographie-formes']],
+  // PV des cartes en jetons (épopée 9, entrée 7) : cercle, piste, arc, barre, avatar KO et jetons --kr-pv-* ; plateau-qualite-usage (fragment pv),
+  // et les suites qui mesurent les cartes : cartes-pastilles, typographie-formes, palette-nation, confort-mobile.
+  [/dashboard-card-hp|dashboard-card-avatar|kr-pv-/, ['plateau', 'cartes-pastilles', 'typographie-formes', 'palette-nation', 'confort-mobile']],
   [/jauge/i, ['profil', 'plateau']], // SKILL : jauges -> plateau ; le mini-profil les affiche aussi
   [/breakpoint|resize|reload|RELOAD_|sessionStorage|isMobileDevice|mobile-mode/i, BASCULE_ZONES],
   // Activité du forum (épopée 6, entrée 2) : ligne de l'index mobile (72 px au moins), ancres de message et mini-chat, lien « premier non

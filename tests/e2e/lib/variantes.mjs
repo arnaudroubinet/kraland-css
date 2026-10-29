@@ -462,6 +462,18 @@ export const CIBLES_TICKET95 = [
 export const AVANT_TICKET95 = bundle => !bundle.includes('--kr-touche-croix');
 
 /**
+ * PV des cartes en jetons (épopée 9, entrée 7, story-cercle-et-barre-de-pv-des-cartes-sans-couleurs-en-dur) : le cercle et la barre de PV
+ * portent des classes de niveau (kr-pv-N, dashboard-card-hp-track, dashboard-card-hp-progress) et l'avatar KO la classe is-ko, à la
+ * place des couleurs et du filtre en ligne. Écart vérifié par plateau-qualite-usage (fragment pv) ; neutralisé dans les comparaisons à une
+ * base antérieure (cartes-pastilles, groupes ; typographie-formes, nettoyage). Retrait : quand ces suites comparent à un SHA postérieur à
+ * l'entrée 7.
+ */
+export const AVANT_TICKET97 = bundle => !bundle.includes('--kr-pv-track');
+/** Retire de « TAG.classe.classe » les classes de l'entrée 9.7, puis le point d'un cercle resté sans classe (« circle. » de la base). */
+export const sansClassesPv97 = t => t.replace(/\.(kr-pv-\d|dashboard-card-hp-track|dashboard-card-hp-progress|is-ko)(?=[.\s[]|$)/g, '')
+  .replace(/\bcircle\.(?=[\s[]|$)/g, 'circle');
+
+/**
  * Activité du forum (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : repères de
  * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures du fil de sujet et des index (citées par trois suites),
  * classes de l'index et du forum, carte de section, ligne de l'index et flèche « dernier message ».

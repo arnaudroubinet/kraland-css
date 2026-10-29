@@ -7,7 +7,12 @@
 //
 // Usage : npm run build && node tests/e2e/plateau-qualite-usage.mjs
 // Options : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal) ; KR_SCRIPT_AVANT (bundle de base
-// du fragment cartes, défaut : git show e203f87) ; KR_FRAG = usage, cartes (vide = tout).
+// du fragment cartes, défaut : git show e203f87) ; KR_SCRIPT_AVANT_PV (bundle de base du fragment pv, défaut : git show cb73530) ;
+// KR_FRAG = usage, cartes, pv (vide = tout).
+//
+// Fragment pv (épopée 9, entrée 7, Q30.5) : cercle et barre de PV des cartes par niveau de santé, en jetons de la feuille ; fixture
+// plateau-cartes-noms.html, barres de PV ajoutées au chargement (largeurs 85, 71, 70, 31, 30, 10 %) et pdv6 à pdv9 hors table ; 16 variantes
+// à 375 et 1280 px ; niveaux, arcs, largeurs et boîtes comparés au bundle de base (Kraland clair et Empire Brun sombre).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
@@ -17,7 +22,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET95, CIBLES_TICKET95, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, VARIANTES as TOUTES_VARIANTES, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -43,12 +48,12 @@ const BUREAUX = [768, 769, 900, 1024, 1100, 1280, 1366, 1440, 1500, 1512, 1920];
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(root, 'tests/e2e/vendor');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 
-async function ouvrirCartes(src, { width, height = 800, variante }) {
+async function ouvrirCartes(src, { width, height = 800, variante, transformer = h => h }) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await confineNetwork(ctx);
   // Écart accepté et consigné (épopée 9, entrée 5) : actions des cartes à 44 px en mobile posées sur un bundle de base antérieur.
   if (src !== userscript && AVANT_TICKET95(src)) { await ctx.addInitScript(poserJetonsRedefinis, CIBLES_TICKET95); }
-  const noms = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8')
+  const noms = transformer(fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8'))
     .replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>');
   await ctx.route('http://www.kraland.org/**', route => {
     const u = new URL(route.request().url());
@@ -186,6 +191,134 @@ if (on('cartes')) {
       check(`carte de ${w} px ${variante} : aucun nom ne déborde, deux lignes au plus`, () => assert.ok(m.cartes.every(c => !c.deborde && c.lignes <= 2.05)));
     }
     await ctx.close();
+  }
+}
+
+// ---------- pv : cercle et barre de PV des cartes en jetons (épopée 9, entrée 7) ----------
+const LARGEURS_PV = [85, 71, 70, 31, 30, 10];
+// Barre de PV native ajoutée à chaque carte (aucune fixture n'en a), quatre niveaux hors table (pdv6 à pdv9, repli sur le niveau 1) et
+// une carte sans image pdv (niveau absent : ni cercle ni avatar KO, la barre reste). Balisage de la barre supposé (div à fond et largeur
+// en ligne, lu par le template), non relevé sur le site.
+const avecBarres = h => {
+  let i = 0;
+  return ['pdv6.png', 'pdv7.png', 'pdv8.png', 'pdv9.png'].reduce((t, n) => t.replace('pdv1.png', n), h)
+    .replace(/alt="PV"><\/span>/g, () => `alt="PV"><div style="background-color: #5cb85c; width: ${LARGEURS_PV[i++ % LARGEURS_PV.length]}%; height: 3px"></div></span>`)
+    .replace(/<img src="[^"]*pdv1\.png" alt="PV">(?=<div style="background-color)/, '');
+};
+// Couleurs en dur du bundle de base : niveau du cercle et de la barre lus sur la base.
+const NIVEAU_BASE = { '#32CD32': 1, '#FFD700': 2, '#FF8C00': 3, '#DC143C': 4, '#8B0000': 5, 'rgb(92, 184, 92)': 1, 'rgb(240, 173, 78)': 3, 'rgb(217, 83, 79)': 4 };
+
+const mesurerPv = p => p.evaluate(() => {
+  const C = window.__krContraste;
+  const box = el => { const r = el.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map(x => Math.round(x * 2) / 2); };
+  const jeton = n => C.rgb(C.sonde(`var(--kr-pv-${n})`));
+  const attrs = el => [...el.attributes].map(a => a.name);
+  return {
+    variante: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')) || '',
+    jetons: Object.fromEntries([1, 2, 3, 4, 5, 'track'].map(n => [n, jeton(n)])),
+    cartes: [...document.querySelectorAll('.dashboard-card')].map(c => {
+      const svg = c.querySelector('.dashboard-card-hp-circle');
+      const [piste, arc] = svg ? svg.querySelectorAll('circle') : [];
+      const fill = c.querySelector('.dashboard-card-hp-fill');
+      const av = c.querySelector('.dashboard-card-avatar');
+      const fondCercle = svg && C.fond(svg.parentElement);
+      const fondBarre = fill && C.fond(fill.parentElement);
+      const trait = arc && C.rgb(getComputedStyle(arc).stroke);
+      const remplissage = fill && C.rgb(getComputedStyle(fill).backgroundColor);
+      return {
+        nom: c.querySelector('.dashboard-card-name').textContent.trim(),
+        classeCercle: svg ? svg.getAttribute('class') : null,
+        classeBarre: fill ? fill.getAttribute('class') : null,
+        attrStroke: svg ? [svg, piste, arc].some(e => e.hasAttribute('stroke') || e.hasAttribute('style')) : null,
+        strokeBase: arc ? arc.getAttribute('stroke') : null,
+        fondBase: fill ? fill.style.backgroundColor : null,
+        styleBarre: fill ? fill.getAttribute('style') : null,
+        largeur: fill ? fill.style.width : null,
+        styleAvatar: av.getAttribute('style'), attrsAvatar: attrs(av), classeAvatar: av.getAttribute('class'),
+        arc: arc ? arc.getAttribute('stroke-dashoffset') : null,
+        trait, piste: piste && C.rgb(getComputedStyle(piste).stroke), remplissage,
+        contrasteCercle: trait && C.rapport(trait.slice(0, 3), fondCercle),
+        contrasteBarre: remplissage && C.rapport(remplissage.slice(0, 3), fondBarre),
+        filtre: getComputedStyle(av).filter, opacite: getComputedStyle(av).opacity,
+        boites: [svg, av, fill && fill.parentElement, fill].map(e => e ? box(e) : null)
+      };
+    })
+  };
+});
+
+async function pvDe(src, opts) {
+  const { ctx, p } = await ouvrirCartes(src, { ...opts, transformer: avecBarres });
+  await p.evaluate(CONTRASTE);
+  const m = await mesurerPv(p);
+  await ctx.close();
+  return m;
+}
+
+if (on('pv')) {
+  const avantPv = sansEntete(process.env.KR_SCRIPT_AVANT_PV ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PV, 'utf8')
+    : execFileSync('git', ['show', 'cb73530:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const proche = (a, b) => !!a && !!b && [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
+  for (const width of [375, 1280]) {
+    const height = width < 768 ? 667 : 800;
+    const base = await pvDe(avantPv, { width, height, variante: 'kraland' });
+    // Niveaux attendus, lus sur la base (même fixture, même ordre des cartes) : cercle (pdv) et barre (seuils > 70 %, > 30 %).
+    // Carte au niveau absent (sans image pdv) : sans cercle dans la base, contrôlée à part.
+    const tous = base.cartes.map(c => ({ cercle: NIVEAU_BASE[c.strokeBase], barre: NIVEAU_BASE[c.fondBase] }));
+    const absente = base.cartes.findIndex(c => c.classeCercle === null);
+    const niveaux = tous.filter((n, i) => i !== absente);
+    console.log(`PV des cartes en jetons, ${width} px (16 variantes)`);
+    check(`${width} px : base lue, 49 cartes dont 1 sans niveau, 5 niveaux de cercle et 3 de barre`, () => {
+      assert.equal(tous.length, 49);
+      assert.equal(base.cartes.filter(c => c.classeCercle === null).length, 1, 'cartes sans cercle dans la base');
+      assert.deepEqual([...new Set(niveaux.map(n => n.cercle))].sort(), [1, 2, 3, 4, 5]);
+      assert.deepEqual([...new Set(tous.map(n => n.barre))].sort(), [1, 3, 4]);
+    });
+    const mesures = await parVariante(variante => pvDe(userscript, { width, height, variante }), { variantes: TOUTES_VARIANTES });
+    mesures.forEach((m, vi) => {
+      const v = TOUTES_VARIANTES[vi];
+      const e = `${width} px ${v}`;
+      const sans = m.cartes[absente];
+      const l = m.cartes.filter((c, i) => i !== absente);
+      check(`${e} : variante posée, 48 cartes à cercle et barre`, () => { assert.equal(m.variante, 'kr-theme-variant-' + v); assert.equal(l.length, 48); assert.ok(l.every(c => c.classeCercle && c.classeBarre)); });
+      check(`${e} : niveau absent (sans image pdv) : aucun cercle, avatar sans is-ko ni filtre, barre gardée`, () => {
+        assert.ok(sans, 'carte sans niveau absente');
+        assert.equal(sans.classeCercle, null);
+        assert.ok(!(sans.classeAvatar || '').split(' ').includes('is-ko'), sans.classeAvatar);
+        assert.equal(sans.filtre, 'none');
+        assert.equal(sans.opacite, '1');
+        assert.ok(sans.classeBarre, 'barre absente');
+      });
+      check(`${e} : aucune couleur en ligne (ni attribut stroke, ni style) sur le cercle`, () => vide(l.filter(c => c.attrStroke).map(c => c.nom)));
+      check(`${e} : barre, seule la largeur en ligne`, () => vide(l.filter(c => !/^width: \d+%;?$/.test(c.styleBarre)).map(c => `${c.nom} ${c.styleBarre}`)));
+      check(`${e} : avatar sans style en ligne`, () => vide(l.filter(c => c.styleAvatar !== null).map(c => `${c.nom} ${c.styleAvatar}`)));
+      check(`${e} : classe de niveau du cercle (pdv6 à pdv9 -> 1)`, () => vide(l.filter((c, i) => !c.classeCercle.split(' ').includes('kr-pv-' + niveaux[i].cercle)).map(c => `${c.nom} ${c.classeCercle}`)));
+      check(`${e} : trait du cercle = jeton du niveau`, () => vide(l.filter((c, i) => !proche(c.trait, m.jetons[niveaux[i].cercle])).map(c => `${c.nom} ${c.trait} / ${m.jetons[niveaux[l.indexOf(c)].cercle]}`)));
+      check(`${e} : piste du cercle = --kr-pv-track`, () => vide(l.filter(c => !proche(c.piste, m.jetons.track) || Math.abs(c.piste[3] - m.jetons.track[3]) > 0.01).map(c => `${c.nom} ${c.piste}`)));
+      check(`${e} : fond de la barre = jeton du seuil (> 70 : 1, > 30 : 3, sinon 4)`, () => vide(l.filter((c, i) => !proche(c.remplissage, m.jetons[niveaux[i].barre])).map(c => `${c.nom} ${c.largeur} ${c.remplissage}`)));
+      // Ordre de gravité, dans les deux modes : le niveau 5 (presque mort) plus sombre que le 4 (luminance WCAG).
+      check(`${e} : niveau 5 plus sombre que le 4`, () => {
+        const lum = c => c.slice(0, 3).map(x => { const k = x / 255; return k <= 0.03928 ? k / 12.92 : ((k + 0.055) / 1.055) ** 2.4; }).reduce((a, k, i) => a + k * [0.2126, 0.7152, 0.0722][i], 0);
+        assert.ok(lum(m.jetons[5]) < lum(m.jetons[4]), `niveau 5 ${m.jetons[5]} / niveau 4 ${m.jetons[4]}`);
+      });
+      check(`${e} : 5 couleurs de niveau distinctes`, () => {
+        const j = [1, 2, 3, 4, 5].map(n => m.jetons[n]);
+        j.forEach((a, i) => j.forEach((b, k) => { if (k > i) { assert.ok(!proche(a, b), `niveaux ${i + 1} et ${k + 1} : ${a}`); } }));
+      });
+      const min = k => Math.min(...l.map(c => c[k])).toFixed(2);
+      console.log(`  info ${e} : contraste minimal cercle ${min('contrasteCercle')}:1, barre ${min('contrasteBarre')}:1`);
+      check(`${e} : cercle ≥ 3:1 sur la carte`, () => vide(l.filter(c => c.contrasteCercle < 3).map(c => `${c.nom} ${c.contrasteCercle.toFixed(2)}`)));
+      check(`${e} : barre ≥ 3:1 sur sa piste`, () => vide(l.filter(c => c.contrasteBarre < 3).map(c => `${c.nom} ${c.contrasteBarre.toFixed(2)}`)));
+      check(`${e} : avatar KO (pdv5) gris à 0,7, les autres intacts`, () => vide(l.filter((c, i) => niveaux[i].cercle === 5
+        ? !(c.filtre === 'grayscale(1)' && c.opacite === '0.7') : !(c.filtre === 'none' && c.opacite === '1')).map(c => `${c.nom} ${c.filtre} ${c.opacite}`)));
+    });
+    for (const variante of ['kraland', 'empire-brun-dark']) {
+      const b = variante === 'kraland' ? base : await pvDe(avantPv, { width, height, variante });
+      const m = mesures[TOUTES_VARIANTES.indexOf(variante)];
+      check(`${width} px ${variante} : arcs, largeurs de barre et boîtes (cercle, avatar, barre) égaux à la base`, () => vide(m.cartes.flatMap((c, i) => {
+        const o = b.cartes[i];
+        return ['arc', 'largeur', 'boites'].filter(k => JSON.stringify(c[k]) !== JSON.stringify(o[k])).map(k => `${c.nom} ${k} ${JSON.stringify(c[k])} / ${JSON.stringify(o[k])}`);
+      })));
+    }
   }
 }
 

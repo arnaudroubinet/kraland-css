@@ -175,6 +175,15 @@
   --kr-warning: #8a5a00;
   --kr-danger: #c62828;
   --kr-state-hover-mix: #000;
+
+  /* PV des cartes de personnage (Q30.5, épopée 9, entrée 7) : une couleur par niveau de santé, tirée de la palette d'états, donc un ton
+     par mode. Cercle : niveaux 1 à 5 (pdv1 à pdv5) ; barre : 1 (> 70 %), 3 (> 30 %), 4 (le reste). Chaque couleur >= 3:1 sur la carte. */
+  --kr-pv-1: var(--kr-success);
+  --kr-pv-2: color-mix(in srgb, var(--kr-success) 50%, var(--kr-warning));
+  --kr-pv-3: var(--kr-warning);
+  --kr-pv-4: var(--kr-danger);
+  --kr-pv-5: color-mix(in srgb, var(--kr-danger) 60%, var(--kr-text-primary));
+  --kr-pv-track: var(--kr-border-default);
 }
 
 html.kr-theme-variant-empire-brun {
@@ -249,6 +258,10 @@ html[class*="-dark"] {
   --kr-warning: #ffb74d;
   --kr-danger: #ff8a80;
   --kr-state-hover-mix: #fff;
+
+  /* PV des cartes, niveau 5 : en sombre, le mélange avec le texte (clair) le rendrait plus pâle que le niveau 4 ; mélangé au fond de
+     surface, il reste plus sombre que le 4, comme en clair (épopée 9, entrée 7). */
+  --kr-pv-5: color-mix(in srgb, var(--kr-danger) 75%, var(--kr-bg-surface));
 
   /* Jauges en sombre (DESIGN.md › Jauges) : >= 6,42:1 sur bg-elevated */
   --kr-gauge-pv: #66bb6a;
@@ -2678,6 +2691,21 @@ footer .container.white {
   z-index: 1;
 }
 
+/* Couleur du niveau de PV (classe kr-pv-N posée par le template sur le cercle et sur le remplissage de la barre) */
+.kr-pv-1 { --kr-pv: var(--kr-pv-1); }
+.kr-pv-2 { --kr-pv: var(--kr-pv-2); }
+.kr-pv-3 { --kr-pv: var(--kr-pv-3); }
+.kr-pv-4 { --kr-pv: var(--kr-pv-4); }
+.kr-pv-5 { --kr-pv: var(--kr-pv-5); }
+
+.dashboard-card-hp-track {
+  stroke: var(--kr-pv-track);
+}
+
+.dashboard-card-hp-progress {
+  stroke: var(--kr-pv);
+}
+
 .dashboard-card-avatar {
   width: 70px;
   height: 70px;
@@ -2692,6 +2720,12 @@ footer .container.white {
 .dashboard-card-large .dashboard-card-avatar {
   width: 70px;
   height: 70px;
+}
+
+/* Personnage KO (pdv5) : avatar gris */
+.dashboard-card-avatar.is-ko {
+  filter: grayscale(100%);
+  opacity: 0.7;
 }
 
 /* Conteneur pour le drapeau et le nom */
@@ -2754,13 +2788,14 @@ footer .container.white {
 /* Barre de HP */
 .dashboard-card-hp {
   height: 6px;
-  background: rgb(0,0,0,0.08);
+  background: var(--kr-pv-track);
   position: relative;
   margin: 0;
 }
 
 .dashboard-card-hp-fill {
   height: 100%;
+  background-color: var(--kr-pv);
   transition: width 0.3s ease, background-color 0.3s ease;
   border-radius: 0;
 }
