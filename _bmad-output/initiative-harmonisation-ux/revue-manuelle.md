@@ -49,6 +49,8 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 - Ticket 6.1, index du forum aligné sur le sous-forum : captures du site réel dans `.tmp/captures/validation-6-1-index-forum/` (`index.html`) ; 4 index, sous-forum et racine, 375 et 1440 px, Kraland clair et Empire Brun sombre.
 
+- Ticket 8.5, notifications (cloche et page `/report`) : captures de fixtures dans `/Users/arnaud/kraland-css-captures/8.5/` (22 PNG, 375×667, 1280, 1440, 1920 et popup 900×800, Kraland clair et Empire Brun sombre). Détail et défauts constatés : section « Ticket 8.5 » en bas de ce fichier. Captures, mesures et scripts copiés par l'orchestrateur dans `/Users/arnaud/kraland-css-captures/8.5/`, qui survit au redémarrage.
+
 ## Tickets construits à marquer « fait »
 
 - Backlog 3 : nom contenant « $ » (bug corrigé, sans validation visuelle requise).
@@ -800,3 +802,24 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Restent sous 44 px, hors périmètre : boutons `.btn` (épopée 4), lien « clic » au fil du texte (exception H9.1), libellés de formulaire sans contrôle associé, liens d'auteur recouverts par la ligne touchable de l'index.
 - Sous 360 px, le libellé « Message » de la rédaction est décalé par `text-indent` (texte à 16 px, boîte à 4 px). Le padding de la règle mobile y est verrouillé en `!important`.
 - Suites sœurs : trois masques conditionnés à une base sans `kr-page-forum` (typographie-formes `nettoyage`, forum-index `hors-perimetre`, cartes-pastilles `forum`), à retirer quand leur commit de base dépassera 9.8. Un changement permanent : dans kramail-theme `lecture`, le message de forum de référence est mesuré sans la marge de page, faute de quoi la carte à 8 px du forum s'opposerait au kramail (point des messages ci-dessus).
+
+## Ticket 8.5 — captures des notifications (2026-10-29)
+
+Verdict d'Arnaud à sa passe finale. Captures hors dépôt dans `/Users/arnaud/kraland-css-captures/8.5/`, prises sur le bundle construit depuis 49d31df (worktree `wt/8.5`). Elles viennent des fixtures `cloche-notifications.html` (servie à `/accueil`) et `report-non-lu.html` (servie à `/report/perso-000000`), avec le vrai Bootstrap 3.3.7, sous réseau confiné et `window.open` remplacé par une sonde. Aucun clic, aucun accès au site réel ni au vrai `/report`. Font Awesome 5.6.3 (version du site) est servi depuis une copie locale dans /tmp, pour les captures seulement : sans lui, les fixtures n'affichent pas d'icônes. Le logo cassé (« Kraland ») vient de la fixture : l'image est bloquée par le confinement. Scripts jetables : `/Users/arnaud/kraland-css-captures/8.5/captures.mjs` (captures, sortie dans `journal.json`), `mesure.mjs` et `mesure2.mjs` (taille du sélecteur avec et sans peau, règle responsable, position des dates et du texte, bords, haut du bandeau à 375 et 900 px ; sortie dans `/Users/arnaud/kraland-css-captures/8.5/mesures.txt`). Les chemins du worktree `kraland-css-wt85` y sont écrits en dur. Captures, mesures et scripts copiés par l'orchestrateur dans `/Users/arnaud/kraland-css-captures/8.5/`, qui survit au redémarrage. Chaque PNG a été ouvert et contrôlé.
+
+Captures (`<v>` vaut `kraland` pour Kraland clair, ou `empire-brun-dark` pour Empire Brun sombre) :
+
+- `mobile-375-cloche-<v>.png` (375×667, ×2) : barre mobile, la cloche en premier à gauche (cible 44 × 44), sa pastille « 3 » en haut à droite de la cloche, puis l'enveloppe et le globe. Pastille de 16 px : rouge à texte blanc en clair, sable à texte foncé en sombre. `mobile-375-cloche-zoom-<v>.png` montre la barre seule. L'ouverture reste native sur mobile (Q17) : rien n'est montré au clic.
+- `mobile-375-notifications-<v>.png` (375×667) : page des notifications. Le sélecteur de personnage est à 16 px du haut. Chaque ligne affiche la date au-dessus du texte (texte sur toute la largeur), avec un filet de 4 px sur la hauteur entière de chaque ligne non lue (rouge en clair, sable en sombre). `mobile-375-notifications-pleine-<v>.png` montre la page entière : ligne à cellule unique, paragraphe `.bg-info` hors tableau (règle générique) et pagination.
+- `ordinateur-1280-cloche-<v>.png`, `ordinateur-1440-cloche-<v>.png`, `ordinateur-1920-cloche-<v>.png` (1280×720, 1440×900, 1920×1080, ×2) : page de jeu avec la barre complète. La cloche de `.navbar-right` porte sa pastille « 3 » et `elementFromPoint` la touche à chaque largeur. Les fichiers `ordinateur-<largeur>-cloche-zoom-<v>.png` cadrent la droite de la barre.
+- `popup-900x800-notifications-<v>.png` (900×800) : rendu ordinateur de la page dans la taille du popup. Le sélecteur est à 16 px du haut et la colonne de date de 100 px est conservée. Les lignes non lues ont le filet de 4 px et la teinte à 14 % sur la cellule de date.
+
+Défauts visuels constatés (à trancher, rien de corrigé ici) :
+
+- **Sélecteur de personnage à 9,5 px sur ordinateur** (popup 900×800, et toute largeur ≥ 768). Ce n'est pas propre à `/report` : la règle globale `.form-control.form-control { font-size: .95rem }` (`kraland-theme.css` ~l.642) se calcule sur le `font-size: 10px` que Bootstrap 3 pose sur `html`. Elle vaut donc 9,5 px pour tout `input` et tout `select` `.form-control` sur ordinateur, contre 14 px sans la peau (mesuré sur la fixture, peau coupée). Le mobile n'est pas touché (16 px). Défaut antérieur à l'épopée, très visible dans le popup.
+- Dates mal alignées dans le popup : sur une ligne non lue, la date commence à 12 px du bord (retrait voulu par 8.1, après le filet) ; sur une ligne lue, elle commence à 5 px. La colonne des dates est donc en dents de scie. Le texte (14 px) est aussi 1 px plus bas que la date (13 px).
+- Mobile : la ligne qui porte un lien est plus haute (35 px de la date au texte, contre 24 ailleurs), à cause de la cible tactile générique des liens. C'est un écart connu depuis 8.1, qui relève de l'épopée 9.
+- Popup et mobile : le tableau, les onglets, le paragraphe `.bg-info` et la pagination touchent le bord gauche de la fenêtre (0 px). La marge de 16 px n'est pas appliquée à `/report` ; elle relève de l'épopée 9.
+- Onglets « Rapport » et « Combats » à 375 px : l'icône touche le libellé, sans espace (« ★Rapport »). À 900 px, l'espace existe.
+- Cloche sur ordinateur : la pastille est collée au glyphe. À 1280 px, elle le chevauche de 2 à 3 px selon le moment de l'animation `kr-bell-swing`, qui fait pivoter la cloche (la capture en fige un moment). Sur mobile, la pastille couvre volontairement le coin haut droit de la cloche.
+- Barre identique en Kraland clair et en Empire Brun sombre (gris `navbar-inverse`) : seule la pastille et le logo changent de couleur. Simple constat, la barre n'est pas dans le périmètre de l'épopée.
