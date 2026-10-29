@@ -1191,6 +1191,36 @@
   })();
 
   // ============================================================================
+  // CLOCHE DES NOTIFICATIONS : POPUP 900×800 SUR ORDINATEUR (R5)
+  // ============================================================================
+  // La cloche appelle openReport() de main.js (onclick en ligne, résolu au clic ; main.js est synchrone en fin de body, la fonction existe
+  // donc au DOMContentLoaded). Sur ordinateur, même URL, même nom et mêmes options natives, en 900×800 au lieu de 600×600 ; en mobile
+  // (body.mobile-mode au clic) ou peau coupée au clic, la fonction native est appelée telle quelle. Rien n'est chargé avant le clic :
+  // /report marque tout comme lu. Sous Firefox (bac à sable), exportFunction rend la fonction appelable par la page ; le marqueur de
+  // double redéfinition est posé sur la fonction relue sur la page.
+  (function () {
+    'use strict';
+
+    const OPTIONS = 'width=900,height=800,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,copyhistory=yes,resizable=yes';
+
+    function initReportPopup() {
+      if (!isThemeEnabled()) {return;}
+      const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+      const native = w.openReport;
+      if (typeof native !== 'function' || native.krReportPopup) {return;}
+      const openReport = function (link) {
+        if (isMobileMode() || !isThemeEnabled()) {return native.apply(this, arguments);}
+        return w.open('report' + (link ? '/' + link : ''), 'private_report', OPTIONS);
+      };
+      // eslint-disable-next-line no-undef -- exportFunction n'existe que dans le bac à sable de Firefox
+      w.openReport = (typeof exportFunction === 'function') ? exportFunction(openReport, w) : openReport;
+      w.openReport.krReportPopup = true;
+    }
+
+    InitQueue.register('Notifications:Popup', initReportPopup, 100);
+  })();
+
+  // ============================================================================
   // TASK-2.5 - DÉPLACER LE LOGO AU-DESSUS DU BLOC Bienvenue
   // ============================================================================
   (function () {

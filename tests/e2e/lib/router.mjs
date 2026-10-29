@@ -47,6 +47,9 @@ export const SUITES = [
   // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A) et ligne de notification (8.1 : date au-dessus du texte sur mobile, 13/14/15 px) ;
   // 16 variantes en popup 900×800, mobile 375 et 767, onglet 1280 ; 768, 769, 1440, 1920 et bascule 767 ↔ 768 en deux variantes ; portée limitée à /report.
   { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee']], needsBootstrap: true },
+  // Cloche des notifications (ticket 8.2, R5) : openReport redéfinie, popup 900×800 sur ordinateur (barre 992 à 1920, menu compact 768 à 991),
+  // fonction native en mobile (375, 767) et peau coupée ; bascule 767 ↔ 768 ; window.open en sonde, aucune requête vers /report.
+  { name: 'cloche-notifications', file: 'cloche-notifications.mjs', zones: ['cloche'], frags: [['barre'], ['compact'], ['mobile'], ['bascule'], ['peau']], needsBootstrap: true },
   // Harmonisation UX, lot 1 (défauts de style et identité du personnage) : fixtures synthétiques du plateau, de Personnage, de l'index du forum et des Règles (et rédaction Kramail), mobile 375 × 667 (titre du panneau et accès rapides : ordinateur 1280 × 720) ; fixture reconstruite de Cybermonde, 320 à 1280 px (hors-forum-js).
   { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail', 'sous-forum', 'cybermonde'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
   // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),
@@ -168,6 +171,8 @@ export const KEYWORDS = [
   // Parler aussi : sa sonde est une modale d'ordre (#ajax-order form[name=post_msg]) dont il mesure la géométrie et les nœuds natifs.
   [/kr-order-(?!viewport|visible)|bootbox-confirm|ajax-order|bb-handler|modale-ordre/i, ['modale-ordre', 'parler']],
   [/kr-page-report/, ['report']],
+  // Cloche des notifications (ticket 8.2) : redéfinition d'openReport, vérifiée par cloche-notifications.
+  [/openReport|private_report/, ['cloche']],
   [/forums-added|updateForum|kr-forums-|menus-forums/i, ['menus-forums']],
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
@@ -261,7 +266,9 @@ export const SECTIONS = [
   // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : seules ces deux suites ouvrent une modale Bootbox.
   [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler']],
   // Correctifs mobiles du chargement (« FIX MOBILE : … » : défilement vers #flap) : ancres vérifiées par forum-activite.
-  [/^FIX MOBILE : /, ['forum-activite']]
+  [/^FIX MOBILE : /, ['forum-activite']],
+  // Cloche des notifications (ticket 8.2) : popup 900×800 sur ordinateur, vérifié par cloche-notifications.
+  [/^CLOCHE DES NOTIFICATIONS/, ['cloche']]
 ];
 // Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
 // qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc
