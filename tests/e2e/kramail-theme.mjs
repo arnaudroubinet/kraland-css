@@ -58,16 +58,25 @@
 //   redaction-defilement : 5 rédactions à 375 px : zone de texte et dernière case amenées par scrollIntoView, leur bas hors de la barre
 //             « Envoyer » fixe (elementFromPoint).
 //   redaction-dest : les 5 rédactions, 375 et 1280 px : ajout d'une pastille, doublon refusé, retrait par la croix ; #dest suit.
+//   redaction-palette : (épopée 7, entrée 6) Nouveau et Répondre, 16 variantes, 375 et 1280 px, annuaire simulé : bundle sans --kd-* ni
+//             --kr-badge-danger, aucune variable --kd-* sur le formulaire ; couleurs calculées du champ (repos, focus, invalide, bloqué),
+//             des pastilles (doublon, sélection, croix), de Contacts, du panneau (sections, options, option active, déjà ajouté, vide,
+//             libre), du pied, de l'aide et du blocage (Ajouter, Effacer), survols et focus-visible compris, égales au bundle de base
+//             PALETTE_BASE_SHA, hors écarts ECARTS_PALETTE (filets, contours et icônes d'accent en --kr-text-accent, section en
+//             --kr-text-accent, filet du doublon et contour de la croix ciblée en --kr-text-primary, invalide en --kr-danger) ;
+//             textes >= 4,5:1, filets, contours d'état et icônes >= 3:1 sur leurs deux fonds.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest).
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// sinon celui du commit PALETTE_BASE_SHA).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
-// KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges.
+// KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
+// KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -1454,6 +1463,205 @@ if (frag('redaction-dest')) {
       expect(e.doublon.chips.join('|') === e.ajout.chips.join('|') && /Nadir Sable est déjà dans les destinataires\./.test(e.doublon.msg), 'doublon : ' + JSON.stringify(e.doublon));
       expect(e.retrait.chips.join('|') === e.depart.chips.join('|') && e.retrait.dest === e.depart.dest, 'retrait : ' + JSON.stringify(e.retrait));
       sansFuite(o);
+    });
+  }
+}
+
+// ---------- rédaction : palette du champ Destinataires (épopée 7, entrée 6) ----------
+// Base figée : feature/next avant l'entrée 6, palette privée --kd-* encore en place.
+const PALETTE_BASE_SHA = '0b27dc2e9a1113e97f6a746b123e18c062520d1e';
+const KD_ANCIENS = ['accent', 'bg', 'panel', 'border', 'text', 'muted', 'chip', 'chip-line', 'chip-dup', 'active', 'hover', 'accent-text'].map(n => '--kd-' + n);
+// Cible : clé, sélecteur, propriétés comparées, contraste (« texte » : 4,5:1 sur le fond effectif ; nom d'une propriété de couleur : 3:1
+// sur les deux fonds qui la bordent, celui de l'élément et celui de son parent, le plus faible des deux), pseudo-élément.
+const CIBLES_PALETTE = [];
+const C = (cle, sel, props, contraste = null, pseudo = null) => { const c = { cle, sel, props, contraste, pseudo }; CIBLES_PALETTE.push(c); return c; };
+const FOND = ['backgroundColor', 'borderTopColor'];
+const PALETTE = {
+  repos: [C('champ', '.kd-field', FOND), C('pastille', '.kd-chip', [...FOND, 'color']), C('pastille-nom', '.kd-chip-name', ['color'], 'texte'),
+    C('croix', '.kd-chip-x', ['color', 'backgroundColor'], 'color'), C('saisie', '.kd-input', ['color', 'caretColor'], 'texte'),
+    C('indicatif', '.kd-input', ['color'], 'texte', '::placeholder'), C('contacts', '.kd-contacts', [...FOND, 'color']),
+    C('contacts-texte', '.kd-contacts span', ['color'], 'texte'), C('contacts-icone', '.kd-contacts i', ['color'], 'color'),
+    C('aide', '.kd-help', ['color'], 'texte')],
+  doublon: [C('doublon', '.kd-chip', ['borderTopColor', 'backgroundColor', 'boxShadow'], 'borderTopColor')],
+  selection: [C('selection', '.kd-chip', ['outlineColor'], 'outlineColor')],
+  invalide: [C('invalide', '.kd-field', ['borderTopColor'], 'borderTopColor')],
+  croixSurvol: [C('croix-survol', '.kd-chip-x:hover', ['backgroundColor', 'color'], 'color')],
+  contactsSurvol: [C('contacts-survol', '.kd-contacts:hover', [...FOND, 'color'], 'borderTopColor'),
+    C('contacts-survol-texte', '.kd-contacts:hover span', ['color'], 'texte')],
+  focus: [C('champ-focus', '.kd-field', ['borderTopColor', 'boxShadow'], 'borderTopColor')],
+  deja: [C('avertissement', '.kd-warn', ['color'], 'texte'), C('avertissement-icone', '.kd-warn i', ['color'], 'color'),
+    C('grise', '.kd-opt[aria-disabled="true"] .kd-opt-name', ['color']), C('grise-icone', '.kd-opt[aria-disabled="true"] .kd-opt-ico', ['color'], 'color'),
+    C('deja', '.kd-opt[aria-disabled="true"] .kd-opt-tag', ['color']), C('pied', '.kd-foot', ['color', 'borderTopColor'], 'texte'),
+    C('pied-touche', '.kd-foot b', ['color'], 'texte')],
+  annuaire: [C('panneau', '.kd-panel', FOND), C('section', '.kd-sec', ['color'], 'texte'), C('note', '.kd-sec small', ['color'], 'texte'),
+    C('option', '.kd-opt:not(.is-active):not([aria-disabled]) .kd-opt-name', ['color'], 'texte'),
+    C('option-icone', '.kd-opt:not(.is-active):not([aria-disabled]) .kd-opt-ico', ['color'], 'color'),
+    C('option-active', '.kd-opt.is-active', ['backgroundColor', 'borderLeftColor'], 'borderLeftColor'),
+    C('option-active-nom', '.kd-opt.is-active .kd-opt-name', ['color'], 'texte'),
+    C('etiquette', '.kd-opt:not(.is-active):not([aria-disabled]) .kd-opt-tag', ['color'], 'texte'),
+    C('etiquette-active', '.kd-opt.is-active .kd-opt-tag', ['color'], 'texte'), C('surligne', '.kd-opt.is-active mark', ['textDecorationColor', 'color'])],
+  optionSurvol: [C('option-survol', '.kd-opt:not(.is-active):not([aria-disabled]):hover', ['backgroundColor']),
+    C('option-survol-nom', '.kd-opt:not(.is-active):not([aria-disabled]):hover .kd-opt-name', ['color'], 'texte')],
+  vide: [C('vide', '.kd-empty', ['color'], 'texte'), C('vide-nom', '.kd-empty b', ['color'], 'texte'),
+    C('libre', '.kd-opt-free .kd-opt-tag', ['color', 'borderTopColor'], 'texte'), C('libre-filet', '.kd-opt-free .kd-opt-tag', ['borderTopColor'], 'borderTopColor')],
+  blocage: [C('champ-bloque', '.kd-field', ['borderTopColor'], 'borderTopColor'), C('message', '.kd-msg-text', ['color'], 'texte'),
+    C('message-icone', '.kd-msg i', ['color'], 'color'), C('ajouter', '.kd-msg-add', ['color', ...FOND], 'texte'),
+    C('effacer', '.kd-msg-clear', ['color', ...FOND], 'texte')],
+  ajouterSurvol: [C('ajouter-survol', '.kd-msg-add:hover', [...FOND, 'color'], 'texte')],
+  effacerSurvol: [C('effacer-survol', '.kd-msg-clear:hover', [...FOND, 'color'], 'texte')],
+  contactsFocus: [C('contacts-focus', '.kd-contacts:focus-visible', ['outlineColor'], 'outlineColor')],
+  croixFocus: [C('croix-focus', '.kd-chip-x:focus-visible', ['outlineColor', 'backgroundColor'], 'outlineColor')],
+  ajouterFocus: [C('ajouter-focus', '.kd-msg-add:focus-visible', ['outlineColor'], 'outlineColor')]
+};
+// Écarts du plan (B2 à B4) : la propriété vaut le jeton nommé, calculé dans la page testée ; toute autre propriété égale la base.
+const ACCENT = 'var(--kr-text-accent)';
+const DANGER = 'var(--kr-danger)';
+const TEXTE = 'var(--kr-text-primary)';
+const ECARTS_PALETTE = {
+  'champ-focus.borderTopColor': ACCENT, 'doublon.borderTopColor': TEXTE, 'selection.outlineColor': ACCENT, 'contacts-icone.color': ACCENT,
+  'contacts-survol.borderTopColor': ACCENT, 'option-active.borderLeftColor': ACCENT, 'surligne.textDecorationColor': ACCENT,
+  'grise-icone.color': ACCENT, 'libre.borderTopColor': ACCENT, 'libre-filet.borderTopColor': ACCENT, 'avertissement-icone.color': ACCENT, 'message-icone.color': ACCENT,
+  'ajouter.borderTopColor': ACCENT, 'ajouter-survol.borderTopColor': ACCENT, 'effacer-survol.borderTopColor': ACCENT, 'contacts-focus.outlineColor': ACCENT,
+  'croix-focus.outlineColor': TEXTE, 'ajouter-focus.outlineColor': ACCENT,
+  'section.color': ACCENT, 'invalide.borderTopColor': DANGER, 'champ-bloque.borderTopColor': DANGER
+};
+const LIRE_PALETTE = ([cibles, kd, jetons]) => {
+  const K = window.__krContraste;
+  const sur = (c, f) => [0, 1, 2].map(i => c[i] * c[3] + f[i] * (1 - c[3]));
+  const out = {};
+  for (const c of cibles) {
+    const e = document.querySelector(c.sel);
+    if (!e) { out[c.cle] = null; continue; }
+    const cs = getComputedStyle(e, c.pseudo);
+    const o = {};
+    for (const p of c.props) { o[p] = cs[p]; }
+    if (c.contraste === 'texte') {
+      const f = K.fond(e);
+      o.rapport = K.rapport(sur(K.rgb(cs.color), f), f);
+    } else if (c.contraste) {
+      const coul = K.rgb(cs[c.contraste]);
+      o.rapport = Math.min(...[K.fond(e), K.fond(e.parentElement)].map(f => K.rapport(sur(coul, f), f)));
+    }
+    out[c.cle] = o;
+  }
+  const form = getComputedStyle(document.querySelector('form[name="post_msg"]'));
+  out.__kd = kd.filter(n => form.getPropertyValue(n) !== '');
+  out.__jetons = Object.fromEntries(jetons.map(j => [j, K.sonde(j)]));
+  return out;
+};
+const ANNUAIRE_PALETTE = q => (/mar/i.test(q)
+  ? '<strong>Membres</strong>&nbsp;' + ['Marelle Quint', 'Omar Sablier'].map(n => `[<a href="#" onClick='javascript:post_msg.dest.value=post_msg.dest.value+"${n}; ";return false;'>+</a>]${n};&nbsp;`).join('')
+  : '') + '<hr>';
+async function releverPalette(p, contraste) {
+  await p.evaluate(contraste);
+  const lire = async (cibles, etat = null) => {
+    if (etat) { await p.evaluate(([sel, k]) => document.querySelector(sel).classList.add(k), etat); }
+    const r = await p.evaluate(LIRE_PALETTE, [cibles, KD_ANCIENS, [ACCENT, DANGER, TEXTE]]);
+    if (etat) { await p.evaluate(([sel, k]) => document.querySelector(sel).classList.remove(k), etat); }
+    return r;
+  };
+  const saisir = async (q, pret) => {
+    await p.fill('.kd-input', '');
+    await p.focus('.kd-input');
+    await p.keyboard.type(q, { delay: 5 });
+    await p.waitForFunction(s => !document.querySelector('.kd-loading') && document.querySelector('.kd-panel:not([hidden]) ' + s), pret, { timeout: 5000 });
+    await p.mouse.move(0, 0);
+  };
+  const m = {};
+  await p.focus('.kd-input');
+  await p.keyboard.type('Aldric Venn;', { delay: 5 });
+  await p.evaluate(() => document.activeElement.blur());
+  Object.assign(m, await lire(PALETTE.repos));
+  Object.assign(m, await lire(PALETTE.doublon, ['.kd-chip', 'is-dup']));
+  Object.assign(m, await lire(PALETTE.selection, ['.kd-chip', 'is-selected']));
+  Object.assign(m, await lire(PALETTE.invalide, ['.kd-field', 'is-invalid']));
+  await p.hover('.kd-chip-x');
+  Object.assign(m, await lire(PALETTE.croixSurvol));
+  await p.hover('.kd-contacts');
+  Object.assign(m, await lire(PALETTE.contactsSurvol));
+  await p.mouse.move(0, 0);
+  await p.focus('.kd-input');
+  Object.assign(m, await lire(PALETTE.focus));
+  await saisir('ald', '.kd-warn');
+  Object.assign(m, await lire(PALETTE.deja));
+  await saisir('mar', '[id$="-sec-a"]');
+  Object.assign(m, await lire(PALETTE.annuaire));
+  await p.locator('.kd-opt:not(.is-active):not([aria-disabled])').first().hover();
+  Object.assign(m, await lire(PALETTE.optionSurvol));
+  await saisir('zq', '.kd-opt-free');
+  Object.assign(m, await lire(PALETTE.vide));
+  await p.fill('.kd-input', '');
+  await p.focus('.kd-input');
+  await p.keyboard.type('zz', { delay: 5 });
+  await p.keyboard.press('Escape');
+  await p.click('form[name="post_msg"] button.btn-primary');
+  await p.waitForSelector('.kd-msg-add', { timeout: 3000 });
+  await p.mouse.move(0, 0);
+  Object.assign(m, await lire(PALETTE.blocage));
+  await p.hover('.kd-msg-add');
+  Object.assign(m, await lire(PALETTE.ajouterSurvol));
+  await p.hover('.kd-msg-clear');
+  Object.assign(m, await lire(PALETTE.effacerSurvol));
+  await p.mouse.move(0, 0);
+  for (const [cle, sel] of [['contactsFocus', '.kd-contacts'], ['croixFocus', '.kd-chip-x'], ['ajouterFocus', '.kd-msg-add']]) {
+    await p.evaluate(s => document.querySelector(s).focus({ focusVisible: true }), sel);
+    Object.assign(m, await lire(PALETTE[cle]));
+  }
+  return m;
+}
+if (frag('redaction-palette')) {
+  console.log('rédaction : palette du champ Destinataires, 16 variantes');
+  const { VARIANTES, CONTRASTE } = await import('./lib/variantes.mjs');
+  const base = strip(process.env.KR_SCRIPT_PALETTE ? fs.readFileSync(process.env.KR_SCRIPT_PALETTE, 'utf8')
+    : execFileSync('git', ['show', `${PALETTE_BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  check('bundle : aucune variable --kd-* ni --kr-badge-danger', () => {
+    const lus = APRES.match(/--kd-[\w-]+|--kr-badge-danger/g) || [];
+    expect(lus.length === 0, lus.length + ' occurrence(s) : ' + [...new Set(lus)].slice(0, 6).join(', '));
+  });
+  const cas = [];
+  for (const variante of VARIANTES) { for (const [width, mobile] of [[375, true], [1280, false]]) { for (const cle of ['nouveau', 'repondre']) { cas.push({ cle, width, mobile, variante }); } } }
+  const res = await mapLimit(cas, async c => {
+    const out = { c };
+    for (const [nom, bundle] of [['apres', APRES], ['base', base]]) {
+      const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante, bundle });
+      await o.context.route(BASE + '/ajaxsearch.php*', r => r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: ANNUAIRE_PALETTE(new URL(r.request().url()).searchParams.get('c[1]') || '') }));
+      try { out[nom] = await releverPalette(o.page, CONTRASTE); } catch (e) { out[nom] = { __erreur: String(e.message).split('\n')[0] }; }
+      if (nom === 'apres') { out.o = o; }
+      await o.context.close();
+    }
+    return out;
+  });
+  for (const { c, apres, base: b, o } of res) {
+    const nom = `${c.cle} ${c.variante} ${c.width} px`;
+    check(`${nom} : aucune variable --kd-* sur le formulaire, couleurs égales à la base hors écarts B2 à B4, écarts à leur jeton`, () => {
+      expect(!apres.__erreur && !b.__erreur, 'parcours : ' + (apres.__erreur || b.__erreur));
+      expect(apres.__kd.length === 0, 'variables : ' + apres.__kd.join(', '));
+      const absents = CIBLES_PALETTE.filter(t => !apres[t.cle] || !b[t.cle]).map(t => t.cle);
+      expect(absents.length === 0, 'cibles absentes : ' + absents.join(', '));
+      const ecarts = [];
+      for (const [cle, v] of Object.entries(apres)) {
+        if (cle.startsWith('__')) { continue; }
+        for (const [prop, x] of Object.entries(v)) {
+          if (prop === 'rapport') { continue; }
+          const jeton = ECARTS_PALETTE[`${cle}.${prop}`];
+          const attendu = jeton ? apres.__jetons[jeton] : b[cle][prop];
+          if (x !== attendu) { ecarts.push(`${cle} ${prop} ${x} au lieu de ${attendu}${jeton ? ' (' + jeton + ')' : ''}`); }
+        }
+      }
+      expect(ecarts.length === 0, ecarts.length + ' écart(s) : ' + ecarts.slice(0, Number(process.env.KR_ECARTS) || 4).join(' ; '));
+      sansFuite(o);
+    });
+    check(`${nom} : textes >= 4,5:1, filets et contours d'état >= 3:1`, () => {
+      expect(!apres.__erreur && !b.__erreur, 'parcours : ' + (apres.__erreur || b.__erreur));
+      const faibles = [];
+      for (const t of CIBLES_PALETTE.filter(x => x.contraste)) {
+        const v = apres[t.cle];
+        const seuil = t.contraste === 'texte' ? 4.5 : 3;
+        if (!v) { faibles.push(t.cle + ' absent'); } else if (!(v.rapport >= seuil)) {
+          faibles.push(`${t.cle} ${Math.round(v.rapport * 100) / 100}:1`);
+        }
+      }
+      expect(faibles.length === 0, faibles.join(' ; '));
     });
   }
 }

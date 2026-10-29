@@ -214,7 +214,7 @@ Le forum et le plateau (section « jouer » du site) servent de référence, s
 |---|---|---|---|
 | `{colors.primary}` | `--kr-primary` | fonds et filets de nation : filet de l'onglet actif ; base de `action-bg` (boutons primaires, étiquettes de catégorie) et, en clair, de `text-nation` | texte en sombre (H5.6) ; en clair, le texte passe par `text-nation` (Q2) |
 | `{colors.primary-strong}` | `--kr-primary-dark` | primaire foncée : bordure du bouton primaire, repli du survol | texte, survol des liens compris (R7) |
-| `{colors.highlight}` | `--kr-highlight` | accent de la nation : fonds et filets d'accent (pastille de niveau, pièce courante « ici ») ; base de `text-accent` | texte qui n'atteint pas 4,5:1 (or d'Empire Brun clair, Q2) |
+| `{colors.highlight}` | `--kr-highlight` | accent de la nation : fonds et filets d'accent décoratifs (pastille de niveau, pièce courante « ici ») ; base de `text-accent` ; un filet d'état ou de focus prend `text-accent`, le filet décoratif garde `highlight` | texte qui n'atteint pas 4,5:1 (or d'Empire Brun clair, Q2) |
 | `{colors.highlight-reverse}` | `--kr-highlight-reverse` | texte posé sur l'accent (pastille de niveau, en sombre) | texte des boutons primaires (Q1 : `action-ink`) |
 | `{colors.text-accent}` | nouveau (Q2) | texte coloré : liens (R7), auteur du dernier message, compteurs de l'accueil, astérisques du kramail ; anneau de focus (H5.7) | fonds |
 | `{colors.text-nation}` | nouveau (H5.3, Q2) | texte du bouton standard | fonds |
@@ -223,6 +223,7 @@ Le forum et le plateau (section « jouer » du site) servent de référence, s
 | `{colors.header-tint}`, `{colors.border-tint}` | nouveaux (H5.3) | fonds d'en-tête et bordures teintés : primaire à 8 % et 18 % en clair ; `bg-elevated` et `border-default` en sombre | — |
 | `{colors.info-bg}`, `{colors.info-border}` | `--kr-alert-info-bg`, `--kr-alert-info-border` | alerte info (H5.2) | alertes de blocage et d'avertissement |
 | `{colors.btn-shadow}` | `--kr-btn-shadow` | ombre du bouton primaire (H5.2) | — |
+| `{colors.accent-tint}`, `{colors.accent-tint-strong}`, `{colors.accent-line}`, `{colors.accent-active}` | `--kr-accent-tint`, `--kr-accent-tint-strong`, `--kr-accent-line`, `--kr-accent-active` (épopée 7, entrée 6) | mélanges d'accent : `highlight` à 16 %, 32 % et 60 % sur le fond de saisie (`--kr-form-bg`, repli `bg-elevated`) pour les fonds teintés et le filet décoratif ; à 24 % sur `bg-elevated` pour le fond actif | texte ; filet d'état ou de focus (`text-accent` ou `text-primary`) |
 | `{colors.status-unread}` | `--kr-status-unread` | tout « non lu / nouveau » : pastilles « NON LU » et « NOUVEAU MESSAGE », filets des lignes non lues (forum, notifications), pastilles de la cloche et de l'enveloppe du kramail (R3) | blocages (danger) |
 | `{colors.bg-page}`, `{colors.bg-surface}`, `{colors.bg-elevated}` | `--kr-bg-*` | fond de page, cartes, éléments surélevés | — |
 | `{colors.text-primary}` | `--kr-text-primary` | texte, titres de section | — |
@@ -248,7 +249,7 @@ Les variantes sombres gardent leur primaire foncée et leur accent inverse. Deux
 
 ### Teintes du mode clair (H5.3)
 
-En clair, les en-têtes de panneau, les en-têtes de tableau, le bouton standard et les onglets reçoivent le même traitement qu'en sombre, au lieu du rendu Bootstrap (`#f5f5f5`/`#333`, `#ddd`). Fonds d'en-tête : primaire de la nation à 8 % sur blanc. Bordures : 18 %. Bouton standard : bordure à 18 % et texte de la nation (`{colors.text-nation}`). Valeurs calculées par mélange sRGB (comme le `color-mix(in srgb, …)` des jetons `--kd-*` de la rédaction du kramail) : tableau « Teintes, alerte info et ombre ».
+En clair, les en-têtes de panneau, les en-têtes de tableau, le bouton standard et les onglets reçoivent le même traitement qu'en sombre, au lieu du rendu Bootstrap (`#f5f5f5`/`#333`, `#ddd`). Fonds d'en-tête : primaire de la nation à 8 % sur blanc. Bordures : 18 %. Bouton standard : bordure à 18 % et texte de la nation (`{colors.text-nation}`). Valeurs calculées par mélange sRGB (comme le `color-mix(in srgb, …)` des jetons `--kr-accent-*` du champ Destinataires du kramail) : tableau « Teintes, alerte info et ombre ».
 
 Maquette : [mockups/h05-clair-composants.html](mockups/h05-clair-composants.html) (Kraland et Paradigme Vert en clair, Empire Brun en sombre). Elle date d'avant H6.3 et H11.2 (panneaux à 4 px, marges de 10 et 15 px) et calcule autrement les nuances de Paradigme Vert (`#ecf3ed`, `#d3e4d7`, `#084d1a`) : les tableaux priment.
 

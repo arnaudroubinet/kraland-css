@@ -206,3 +206,6 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `_bmad-output/backlog/bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan.md`
   summary: Tailles en rem des règles mobiles (modale d'ordre `.bootbox-confirm` ~l.1362-2163, légende du carrousel `.carousel-caption` ~l.4390-4396, `.95rem` et autres) calculées sur 10 px par rem, pas 16 : à revoir au rôle de DESIGN.md.
   evidence: relevé du ticket du bug 14 (2026-10-29) ; hors périmètre (mobile strictement inchangé) par décision de l'orchestrateur (2026-10-29).
+- source_plan: `_bmad-output/initiative-harmonisation-ux/epic-kramail-mobile/story-la-palette-privee-kd-est-retiree-au-profit-des-jetons-de-rol-plan.md`
+  summary: Doublon et croix ciblée du champ Destinataires sous 3:1 en Kraland, Paladium, Khanat et Ruthvénie sombres (filet d'accent sur la teinte appuyée à 32 % du même accent).
+  evidence: Mesuré par kramail-theme#redaction-palette sans HERITES_CONTRASTE : 2,68, 2,43, 2,84 et 2,72:1, identiques sur la base 0b27dc2. Résolu dans le ticket 7.6 (2026-10-29) : filet et contour en `--kr-text-primary`, fonds inchangés, exception retirée du test.

@@ -49,6 +49,14 @@
   --kr-header-tint: color-mix(in srgb, var(--kr-primary) 8%, #fff);
   --kr-border-tint: color-mix(in srgb, var(--kr-primary) 18%, #fff);
 
+  /* Mélanges d'accent partagés (épopée 7, entrée 6 ; champ Destinataires du kramail) : teinte et teinte appuyée sur le fond de saisie,
+     filet d'accent, fond actif sur la surface surélevée. Ils mélangent sur --kr-form-bg (surfaces de saisie) et sont résolus sur
+     :root : une redéfinition locale de --kr-highlight ne les atteint pas. */
+  --kr-accent-tint: color-mix(in srgb, var(--kr-highlight) 16%, var(--kr-form-bg, var(--kr-bg-elevated)));
+  --kr-accent-tint-strong: color-mix(in srgb, var(--kr-highlight) 32%, var(--kr-form-bg, var(--kr-bg-elevated)));
+  --kr-accent-line: color-mix(in srgb, var(--kr-highlight) 60%, var(--kr-form-bg, var(--kr-bg-elevated)));
+  --kr-accent-active: color-mix(in srgb, var(--kr-highlight) 24%, var(--kr-bg-elevated));
+
   /* Variables pour le dark mode */
   --kr-bg-page: #f5f5f5;
   --kr-bg-surface: #fff;
@@ -72,7 +80,6 @@
   --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff); /* H5.2 : alerte info (6 % et 14 %) et ombre des boutons (12 %) tirées de la primaire */
   --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff);
   --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent);
-  --kr-badge-danger: #dc3545;
   --kr-bootstrap-blue: #337ab7;
   
   /* Couleurs nations (.f1-.f9) */
@@ -10133,28 +10140,12 @@ body.page-kramail .editeur-text #results hr {
    1) Barre d'outils : celle du formulaire de réponse du forum (épopée 7, entrée 5 ; bloc « MESSAGES DU FORUM V3 »).
    2) Destinataires : classes .kd-* posées par le module JS Kramail:Destinataires ; les zones natives (#dest, #contacts,
       #search, #results) restent dans le formulaire, masquées par .kd-natif-cache. Sans le module, rien ne change.
-   Couleurs : variables du thème ; l'accent est --kr-highlight (cuivre en Empire Brun sombre, couleur soutenue lisible en clair).
+   Couleurs : jetons de rôle (épopée 7, entrée 6). Filets, contours, icônes et texte d'accent en --kr-text-accent ; fonds et lueurs
+   d'accent en --kr-highlight et ses mélanges partagés (--kr-accent-*, :root) ; envoi bloqué en --kr-danger.
    Règles universelles (couleurs, structure) ici ; tailles et positions dans les blocs bureau et mobile ci-dessous.
    ============================================================================ */
 
-/* --- Universel : variables, masquage des zones natives, couleurs et structure --- */
-
-body.page-kramail-compose form[name="post_msg"] {
-  --kd-accent: var(--kr-highlight);
-  --kd-bg: var(--kr-form-bg, var(--kr-bg-elevated));
-  --kd-panel: var(--kr-bg-elevated);
-  --kd-border: var(--kr-border-strong);
-  --kd-text: var(--kr-text-primary);
-  --kd-muted: var(--kr-text-secondary);
-  --kd-chip: color-mix(in srgb, var(--kd-accent) 16%, var(--kd-bg));
-  --kd-chip-line: color-mix(in srgb, var(--kd-accent) 60%, var(--kd-bg));
-  --kd-chip-dup: color-mix(in srgb, var(--kd-accent) 32%, var(--kd-bg));
-  --kd-active: color-mix(in srgb, var(--kd-accent) 24%, var(--kd-panel));
-  --kd-hover: color-mix(in srgb, var(--kd-accent) 10%, var(--kd-panel));
-
-  /* accent pour du TEXTE : tiré vers la couleur du texte, lisible même quand l'accent est clair sur fond clair (or d'Empire Brun) */
-  --kd-accent-text: color-mix(in srgb, var(--kd-accent) 65%, var(--kd-text));
-}
+/* --- Universel : masquage des zones natives, couleurs et structure --- */
 
 /* Zones natives remplacées par le champ unique : masquées, jamais retirées (elles partent à l'envoi) */
 body.page-kramail-compose form[name="post_msg"] .kd-natif-cache {
@@ -10171,18 +10162,18 @@ body.page-kramail-compose form[name="post_msg"] .kd-field {
   display: flex;
   align-items: flex-start;
   box-sizing: border-box;
-  border: 1px solid var(--kd-border);
-  background: var(--kd-bg);
+  border: 1px solid var(--kr-border-strong);
+  background: var(--kr-form-bg, var(--kr-bg-elevated));
   cursor: text;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-field.is-focus {
-  border-color: var(--kd-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kd-accent) 30%, transparent);
+  border-color: var(--kr-text-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kr-highlight) 30%, transparent);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-field.is-invalid {
-  border-color: var(--kr-badge-danger, #dc3545);
+  border-color: var(--kr-danger);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-flow {
@@ -10201,9 +10192,9 @@ body.page-kramail-compose form[name="post_msg"] .kd-chip {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-  border: 1px solid var(--kd-chip-line);
-  background: var(--kd-chip);
-  color: var(--kd-text);
+  border: 1px solid var(--kr-accent-line);
+  background: var(--kr-accent-tint);
+  color: var(--kr-text-primary);
   font-weight: 700;
   line-height: 1;
 }
@@ -10228,23 +10219,23 @@ body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
 
 body.page-kramail-compose form[name="post_msg"] .kd-chip-x:hover,
 body.page-kramail-compose form[name="post_msg"] .kd-chip-x:focus-visible {
-  background: var(--kd-chip-dup);
+  background: var(--kr-accent-tint-strong);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-chip-x:focus-visible {
-  outline: 2px solid var(--kd-accent);
+  outline: 2px solid var(--kr-text-primary);
   outline-offset: -2px;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-chip.is-selected {
-  outline: 2px solid var(--kd-accent);
+  outline: 2px solid var(--kr-text-accent);
   outline-offset: 1px;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-chip.is-dup {
-  border-color: var(--kd-accent);
-  background: var(--kd-chip-dup);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kd-accent) 55%, transparent);
+  border-color: var(--kr-text-primary);
+  background: var(--kr-accent-tint-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kr-highlight) 55%, transparent);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-input {
@@ -10253,12 +10244,12 @@ body.page-kramail-compose form[name="post_msg"] .kd-input {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
   outline: none;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-input::placeholder {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   opacity: 1;
 }
 
@@ -10267,33 +10258,33 @@ body.page-kramail-compose form[name="post_msg"] .kd-contacts {
   flex: none;
   align-items: center;
   box-sizing: border-box;
-  border: 1px solid var(--kd-border);
-  background: var(--kd-panel);
-  color: var(--kd-text);
+  border: 1px solid var(--kr-border-strong);
+  background: var(--kr-bg-elevated);
+  color: var(--kr-text-primary);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
-  color: var(--kd-accent);
+  color: var(--kr-text-accent);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-contacts:hover,
 body.page-kramail-compose form[name="post_msg"] .kd-contacts[aria-expanded="true"] {
-  border-color: var(--kd-accent);
-  background: var(--kd-active);
+  border-color: var(--kr-text-accent);
+  background: var(--kr-accent-active);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-contacts:focus-visible {
-  outline: 2px solid var(--kd-accent);
+  outline: 2px solid var(--kr-text-accent);
   outline-offset: 1px;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-panel {
   box-sizing: border-box;
-  border: 1px solid var(--kd-chip-line);
-  background: var(--kd-panel);
+  border: 1px solid var(--kr-accent-line);
+  background: var(--kr-bg-elevated);
   overflow: hidden;
   text-align: left;
 }
@@ -10307,21 +10298,21 @@ body.page-kramail-compose form[name="post_msg"] .kd-list {
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-sec {
-  color: var(--kd-accent-text);
+  color: var(--kr-text-accent);
   font-weight: 700;
   line-height: 1.4;
   text-transform: uppercase;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-sec small {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   font-weight: 400;
   text-transform: none;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading,
 body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   font-weight: 400;
   text-transform: none;
 }
@@ -10331,29 +10322,29 @@ body.page-kramail-compose form[name="post_msg"] .kd-opt {
   align-items: center;
   box-sizing: border-box;
   border-left: 3px solid transparent;
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
   line-height: 1.3;
   cursor: pointer;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt:hover {
-  background: var(--kd-hover);
+  background: color-mix(in srgb, var(--kr-highlight) 10%, var(--kr-bg-elevated));
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt.is-active {
-  border-left-color: var(--kd-accent);
-  background: var(--kd-active);
+  border-left-color: var(--kr-text-accent);
+  background: var(--kr-accent-active);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt.is-active .kd-opt-tag {
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
   display: inline-flex;
   flex: none;
   justify-content: center;
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt-name {
@@ -10369,19 +10360,19 @@ body.page-kramail-compose form[name="post_msg"] .kd-opt-name mark {
   color: inherit;
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--kd-accent);
+  text-decoration-color: var(--kr-text-accent);
   text-decoration-thickness: 2px;
   text-underline-offset: 2px;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt-tag {
   flex: none;
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   text-transform: uppercase;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   cursor: default;
 }
 
@@ -10390,7 +10381,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"]:ho
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-ico {
-  color: var(--kd-accent);
+  color: var(--kr-text-accent);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt[aria-disabled="true"] .kd-opt-tag,
@@ -10399,37 +10390,37 @@ body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-opt-free .kd-opt-tag {
-  border: 1px dashed var(--kd-accent);
-  color: var(--kd-text);
+  border: 1px dashed var(--kr-text-accent);
+  color: var(--kr-text-primary);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-warn {
   display: flex;
   align-items: center;
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
   font-weight: 700;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-warn i,
 body.page-kramail-compose form[name="post_msg"] .kd-msg i {
-  color: var(--kd-accent);
+  color: var(--kr-text-accent);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-empty {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-empty b,
 body.page-kramail-compose form[name="post_msg"] .kd-foot b {
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-foot {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  border-top: 1px solid var(--kd-border);
-  color: var(--kd-muted);
+  border-top: 1px solid var(--kr-border-strong);
+  color: var(--kr-text-secondary);
   line-height: 1.4;
 }
 
@@ -10439,14 +10430,14 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg:empty {
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-help {
-  color: var(--kd-muted);
+  color: var(--kr-text-secondary);
   line-height: 1.45;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-msg {
   display: flex;
   align-items: center;
-  color: var(--kd-text);
+  color: var(--kr-text-primary);
   font-weight: 700;
 }
 
@@ -10472,27 +10463,27 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn {
   justify-content: center;
   box-sizing: border-box;
   margin: 0;
-  border: 1px solid var(--kd-border);
+  border: 1px solid var(--kr-border-strong);
   border-radius: var(--kr-radius-sm);
-  background: var(--kd-panel);
-  color: var(--kd-text);
+  background: var(--kr-bg-elevated);
+  color: var(--kr-text-primary);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-msg-btn.kd-msg-add {
-  border-color: var(--kd-accent);
-  background: var(--kd-chip);
+  border-color: var(--kr-text-accent);
+  background: var(--kr-accent-tint);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:hover {
-  border-color: var(--kd-accent);
-  background: var(--kd-active);
+  border-color: var(--kr-text-accent);
+  background: var(--kr-accent-active);
 }
 
 body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
-  outline: 2px solid var(--kd-accent);
+  outline: 2px solid var(--kr-text-accent);
   outline-offset: 1px;
 }
 
@@ -10554,7 +10545,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     margin: 0;
     padding: 0 0 0 10px;
     border-radius: var(--kr-radius-full);
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
@@ -10574,7 +10565,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     min-height: 0;
     margin: 0;
     padding: 0 6px;
-    font-size: 14px;
+    font-size: var(--kr-font-body);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-contacts {
@@ -10583,7 +10574,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     margin: 0;
     padding: 0 10px;
     border-radius: var(--kr-radius-sm);
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
@@ -10748,7 +10739,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     margin: 0;
     padding: 0 0 0 12px;
     border-radius: var(--kr-radius-full);
-    font-size: 15px;
+    font-size: var(--kr-font-name);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
@@ -10759,7 +10750,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     margin: 0;
     padding: 0;
     border-radius: 0 var(--kr-radius-full) var(--kr-radius-full) 0;
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-input {
@@ -10784,11 +10775,11 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     margin: 0;
     padding: 0 12px;
     border-radius: var(--kr-radius-sm);
-    font-size: 14px;
+    font-size: var(--kr-font-button);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-contacts i {
-    font-size: 14px;
+    font-size: var(--kr-font-button);
   }
 
   /* Panneau dans le flux sous le champ : il ne glisse pas sous le clavier */
@@ -10832,7 +10823,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-ico {
     width: 14px;
-    font-size: 13px;
+    font-size: var(--kr-font-detail);
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-opt-name mark {
