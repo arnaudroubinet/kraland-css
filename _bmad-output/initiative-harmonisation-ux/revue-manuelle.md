@@ -1140,3 +1140,25 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
   - ta demande vaut-elle décision sur A2 avant le relevé ?
   - reste de A2 (forum Staff, /help sur ordinateur) et pages secondaires de la question de l'épopée 4 (Événements…) : sans épopée responsable ;
   - faut-il ajouter une ligne 10 à `lots-de-livraison.md` ?
+
+## Ticket 10.1 — relevé du vrai /accueil (in-review, 2026-10-30)
+
+- Plan : `epic-accueil-mobile/spike-releve-du-vrai-accueil-mobile-375-et-ordinateur-plan.md`. Captures, squelettes assainis et scripts : `/Users/arnaud/kraland-css-captures/10.1/`, hors dépôt.
+- Relevé en lecture seule, session ouverte, à 375, 320, 1280, 1440 et 1920 px. La cloche était active : aucune requête `/report`, aucun clic, `localStorage` intact.
+- Constat mobile :
+  - aucun bloc n'est une carte, les cinq blocs vont de bord à bord ;
+  - le contenu est à 12-15 px des bords ;
+  - 2 cibles sur 18 sont sous 44 px : la croix des nouvelles (27×26) et le lien des nouvelles (32×44) ;
+  - titres « Nouvelles » à 11 px et « Forum » à 15 px ;
+  - date des nouvelles à 10,2 px ;
+  - aucun débordement.
+- Limites :
+  - un seul thème, Empire Brun sombre : passer en Kraland clair demande d'écrire `localStorage`, et ton accord manque ;
+  - pas de rendu natif : la route ne voit pas le chargeur dev ;
+  - le carrousel n'a pas été vu affiché, car `kr-hide-carousel` est posé chez toi.
+- À trancher par toi :
+  - **Le message du ministre est absent sur mobile.** Il est dans `#col-right`, masqué en entier avec le carrousel. Le garder absent, ou le faire revenir dans une entrée à part après 10.3 ?
+  - Cartes proposées : Forum et Nouvelles avec en-tête de 48 px et titre de 17 px ; Bienvenue et Compteurs sans en-tête ; « Jouer » en bouton de 4.2 dans la marge, sans carte. D'accord ?
+  - Ordre mobile gardé (Jouer, Bienvenue, Forum, Compteurs, Nouvelles) ? Les Nouvelles, seul contenu éditorial, arrivent en dernier.
+  - Sur la ligne « A l'aide ! », l'icône `fa-medkit` de 50 px recouvre « Bug ? Problème ? ». La corriger dans 10.3 ?
+- Recommandation : ne pas redécouper 10.3. Les écarts sont peu nombreux et homogènes, et la marge commune couvre déjà le pied.
