@@ -996,3 +996,24 @@ Doutes, à trancher à ta passe finale :
 - Critère 2, « touchable (≥ 44 px) » : le bouton mesure 36 px de large et 44 px de haut, comme à la base. Le test vérifie ces deux valeurs, sans élargir le bouton : l'élargir changerait sa place, que le critère demande de garder.
 - La fixture de la réponse du forum n'a pas le bouton. Le test lui ajoute le lien natif du kramail, ainsi que 400 px de contenu au-dessus du formulaire et 900 px au-dessous, pour que la page défile de plus de 400 px. La fixture elle-même n'est pas modifiée. Je n'ai pas vérifié la vraie page de réponse du forum.
 - Le clavier qui ne réduit que le viewport visuel (mode `visuel` de 7.9) n'est pas mesuré : en 7.9, le bouton y restait sous le clavier.
+
+## Ticket 9.9 — Kramail mobile : marge de 16 px et cibles de 44 px (in-review, 2026-10-29)
+
+- Hors périmètre, laissés tels quels : croix des destinataires `kd-chip-x` (34 × 32) et bouton Contacts `kd-contacts` (40 px), ce sont des `<button>` (épopée 4).
+- Nom de l'auteur dans la liste : couvert par la ligne touchable, comme au forum (9.8, D6).
+- Libellés « Sujet » et « Expéditeur » sous 44 px : libellés de champ, non contrôlés comme cibles.
+- Le message lu devient une carte à 8 px des bords, comme au forum. D3 de 9.8 est levé : le fragment `lecture` de `kramail-theme` ne neutralise plus la marge du forum de référence.
+- `confort-mobile#hors-perimetre` : la Réception entre dans le périmètre ; elle est remplacée par l'index Staff.
+- Chevron de repli : boîte de 44 × 44, glyphe calé à droite, au même endroit que dans la base (21 px du bord de la carte).
+- `typographie-formes` : deux écarts de mesure, tous deux avec « retrait au recalage de COMMIT_* ». `SANS_MARGE_PAGE` rend la marge au formulaire de rédaction (rendu réel inchangé : 4 px). `MASQUE_KRAMAIL_99` neutralise le chevron de la réception dans `nettoyage`, seulement contre une base sans la règle.
+- `kramail-redaction` `regression` : `MASQUE_KRAMAIL_99` neutralise des deux côtés pied, carte du message lu, chevron et destinataires, seulement contre une base sans la règle ; « retrait au recalage de BASE_SHA ».
+- **Tranché** (orchestrateur, mandat d'Arnaud) : le clic perdu sur « Envoyer » à 320 px (Répondre, Répondre à tous, Transférer, panneau des suggestions ouvert) est corrigé dans l'entrée. Le panneau se refermait au `mousedown` et la page remontait sous le doigt ; il se referme désormais au `click` hors du champ (template). Rouge avant, vert après.
+- Revue indépendante « OK avec correctifs », appliqués :
+  - La fermeture au clic extérieur est testée dans `redaction-dest` (clic sur le `h1` à 1280 px, tap à 320 px). Le test est rouge sans l'écouteur.
+  - Un glissé de sélection parti du champ laisse le panneau ouvert, comme à la base : la fermeture exige un appui et un click hors du champ.
+  - `confort` vérifie l'absence de `kr-marge-mobile` et compare l'ordinateur à 769 px.
+  - Le masque de `typographie-formes` est renommé `SANS_MARGE_PAGE_99`.
+- A9 : aucun chevron hors `.panel-default` sur les fixtures kramail et Contacts. À relever sur le site réel à la passe finale.
+- Points 6 (`rogne` à largeur nulle) et 7 de la revue laissés de côté par l'orchestrateur.
+- Conflits de fusion probables avec 9.8 et 9.10 : `confort-mobile.mjs`, `lib/router.mjs`, `router.test.mjs`, bloc mobile de `kraland-theme.css` après le FORUM.
+- `test:all` reste à lancer (interdit à l'implémenteur).

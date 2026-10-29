@@ -7094,19 +7094,37 @@ body > map {
     margin-right: var(--kr-marge-page);
   }
 
-  /* Couplage : les 12 px retranchés sont le padding latéral mobile verrouillé des .form-group (« Réinitialiser les form-group »,
-     padding-left et padding-right de 12px) ; changer l'un impose de changer l'autre. La rédaction du kramail prend la marge du forum
-     sur son seul formulaire (épopée 7, entrée 5). */
-  :where(html.kr-page-kramail-compose) body.mobile-mode #col-right > form.editeur-text {
+  /* KRAMAIL ET CONTACTS (épopée 9, entrée 9 ; gardes kr-page-kramail* et kr-page-contacts du template, sans kr-marge-mobile : en-tête,
+     onglets et cartes reprennent ceux du forum, déjà à 16 px et 8 px). Comme au forum, --kr-marge-page porte la marge là où le texte
+     touchait le bord : pied de page, formulaire de rédaction (épopée 7, entrée 5, règle commune ci-dessous), message lu en carte à 8 px
+     comme au forum ; cibles à 44 px : destinataires de la lecture, chevron de repli des listes et des Contacts. */
+  :where(html.kr-page-kramail, html.kr-page-contacts) body.mobile-mode {
     --kr-marge-page: var(--kr-margin-mobile);
   }
 
+  :where(html.kr-page-kramail, html.kr-page-contacts) body.mobile-mode > footer {
+    padding-left: var(--kr-marge-page);
+    padding-right: var(--kr-marge-page);
+  }
+
+  :where(html.kr-page-kramail-lecture) body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .kr-msg-recipients > a {
+    min-width: var(--mobile-touch-target);
+  }
+
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) body.mobile-mode .panel-default > .panel-heading span.clickable {
+    justify-content: flex-end;
+    min-width: var(--mobile-touch-target);
+    min-height: var(--mobile-touch-target);
+  }
+
+  /* Couplage : les 12 px retranchés sont le padding latéral mobile verrouillé des .form-group (« Réinitialiser les form-group »,
+     padding-left et padding-right de 12px) ; changer l'un impose de changer l'autre. */
   :where(html.kr-page-forum, html.kr-page-kramail-compose) body.mobile-mode #col-right > form.editeur-text {
     padding-left: calc(var(--kr-marge-page) - 12px);
     padding-right: calc(var(--kr-marge-page) - 12px);
   }
 
-  :where(html.kr-page-forum) body.mobile-mode #col-right > ul.media-list.forum > li.media {
+  :where(html.kr-page-forum, html.kr-page-kramail-lecture) body.mobile-mode #col-right > ul.media-list.forum > li.media {
     margin-left: min(var(--kr-space-2), var(--kr-marge-page));
     margin-right: min(var(--kr-space-2), var(--kr-marge-page));
   }

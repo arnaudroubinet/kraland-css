@@ -110,10 +110,11 @@ export const SUITES = [
   // Lecture (entrée 2) : message, fil et message de l'Envoi égaux au message de sujet du forum ; Répondre libellés, « ••• » ; 16 variantes.
   // Listes (entrée 4) : lignes de Réception, Envoi et Corbeille aux valeurs du sous-forum, sélection, pagination, « non lu », dossiers.
   // Contacts (entrée 8) : en-tête et carte de la Réception, boutons standard ou primaire, cibles de 44 px, 16 variantes.
-  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter']], needsBootstrap: true },
+  // Confort (épopée 9, entrée 9) : dossiers, lecture, rédaction et contacts à 320, 375 et 767 px, texte à 16 px, cibles de 44 px ; 768, 1280 px et bascule égaux à la base.
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter'], ['confort']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
-  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (forum, kramail) égales au bundle de base. Entrée 4 : pages
+  // 1280 px, bascule 767 <-> 768 et page hors périmètre (index Staff) égales au bundle de base. Entrée 4 : pages
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
   // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 034a820. Entrée 5 : cibles du plateau (plateau).
   { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true }
@@ -184,7 +185,7 @@ export const KEYWORDS = [
   [/forums-added|updateForum|kr-forums-|menus-forums/i, ['menus-forums']],
   [/kr-msg|kr-tool|kr-sender|messages-v3|forum-msg|media-list/i, ['messages']],
   [/(?<!sous-|sub)forum|kramail|bbcode|smiley|signature|repondre|répondre|nouveau-sujet|btn-toolbar|forum-thread/i, ['forum']],
-  [/kramail|post_msg|\.kd-|kd-natif|btn-toolbar|Destinataires/i, ['kramail']],
+  [/kramail|kr-page-contacts|post_msg|\.kd-|kd-natif|btn-toolbar|Destinataires/i, ['kramail']],
   [/sous-forum|#topics|dataTable|kr-topic|kr-subforum|forums-cards|forum-card|permanent-topic|forum-mobile-breadcrumb|forum-new-topic|forum-thread-action-new/i, ['sous-forum']],
   // Panneaux du forum, du sous-forum et de la racine (page-forum, page-forum-racine, kr-page-forum-index, kr-subforum suivis de .panel…) : carte
   // de section mesurée par cartes-pastilles (épopée 5, entrée 2 : fragments forum, lignes, chevron), en plus des zones du forum.
@@ -252,8 +253,10 @@ export const KEYWORDS = [
   [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']],
   // Marge mobile de 16 px (épopée 9, entrée 1) : classes de page posées par KR_PAGE_CLASSES, retrait --kr-marge-page et jeton
   // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base) ;
-  // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires ; notifications (entrée 10) par report-non-lu#confort.
+  // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires ; notifications (entrée 10) par report-non-lu#confort ;
+  // kramail et contacts (entrée 9, retrait --kr-marge-page sans kr-marge-mobile) par kramail-theme#confort.
   [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile', 'report']],
+  [/kr-marge-page|kr-margin-mobile/, ['kramail']],
   [/kr-page-jeu|kr-page-aide|kr-page-secondaire/, ['confort-mobile']],
   // Cibles du plateau mobile (épopée 9, entrée 5) : actions des cartes, boutons de groupe, bouton de gestion du mini-profil, accès rapides,
   // grille d'actions et repli des deux accordéons, mesurés par le fragment plateau de confort-mobile (et par les suites qui les comparent).

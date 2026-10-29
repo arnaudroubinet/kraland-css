@@ -111,10 +111,14 @@ import { Buffer } from 'node:buffer';
 import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
-import { SANS_MARGE_PAGE } from './lib/marges.mjs';
+import { SANS_MARGE_PAGE as SANS_MARGE_EPOPEE_9 } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+// Écart de mesure de l'entrée 9.9 : la rédaction du kramail prenait la marge sur son seul formulaire (épopée 7, entrée 5) ; l'entrée la
+// pose sur la page, où SANS_MARGE_EPOPEE_9 la neutralise. Le formulaire la reprend des deux côtés (sans effet sur une base d'avant 9.9).
+// Retrait au recalage de COMMIT_ESPACEMENT et COMMIT_NETTOYAGE au-delà de 9.9.
+const SANS_MARGE_PAGE_99 = `${SANS_MARGE_EPOPEE_9} @media (max-width: 767px) { html.kr-page-kramail-compose body.mobile-mode #col-right > form.editeur-text { --kr-marge-page: var(--kr-margin-mobile) !important; } }`;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1587,8 +1591,8 @@ const mesurerEspacement = (page, nom, width) => page.evaluate(MESURE_ESPACEMENT,
   .then(Object.fromEntries);
 async function releverEspacement({ nom, width, variante, script, css, deplier = false }) {
   const { def } = PAGES_ESPACEMENT[nom];
-  // Marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE) : les exceptions E se comparent à une base d'avant cette marge.
-  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css: `${css || ''} ${SANS_MARGE_PAGE}` });
+  // Marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE_99) : les exceptions E se comparent à une base d'avant cette marge.
+  const { context, page, erreurs } = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def, css: `${css || ''} ${SANS_MARGE_PAGE_99}` });
   if (def.modale) { await ouvrirModaleOrdre(page, def); }
   const res = await mesurerEspacement(page, nom, width);
   let deplie = null;
@@ -1701,7 +1705,7 @@ if (on('espacement')) {
   // Bascule dans le même onglet (767, 768 puis 767 px) sur le plateau de jeu : à chaque pas, chaque élément a la valeur de son rôle.
   const releverBascule = async (variante, script) => {
     const nom = 'plateau-typo';
-    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def: PAGES_ESPACEMENT[nom].def, css: SANS_MARGE_PAGE, tactile: false });
+    const { context, page } = await ouvrir({ nom, width: 767, variante, script, def: PAGES_ESPACEMENT[nom].def, css: SANS_MARGE_PAGE_99, tactile: false });
     const pas = [{ width: 767, res: await mesurerEspacement(page, nom, 767) }];
     for (const width of [768, 767]) {
       await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
@@ -1788,6 +1792,11 @@ const modaleMobileFinie = async page => {
   await waitState(page, () => document.querySelector('.modal.in .kr-tabs-indicator'), null, { maxMs: PRET_MS });
   await domQuiet(page, { quietMs: 300, maxMs: PRET_MS, label: 'modale d\'ordre mobile' });
 };
+// Masque de l'entrée 9.9 (kramail mobile, cibles de 44 px) : chevron de repli des panneaux de la réception à 44 x 44 (contrôlé par
+// kramail-theme, fragment confort). Posé des deux côtés, seulement contre une base sans la règle du chevron. Retrait au recalage de
+// COMMIT_NETTOYAGE au-delà de 9.9.
+const MASQUE_KRAMAIL_99 = '@media (max-width: 767px) { body.mobile-mode #col-right .panel-heading span.clickable { justify-content: normal !important; min-width: 0 !important; min-height: 0 !important; } }';
+const masqueKramail99 = avantNettoyage.includes('kr-page-kramail-liste,html.kr-page-contacts) body.mobile-mode') ? '' : MASQUE_KRAMAIL_99;
 const masqueForum98 = /classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avantNettoyage) ? '' : MASQUE_FORUM_98;
 // Pages : def, prep, m (bloc M1 ou M2 : rendu à 768 px changé par rapport à la base non décalée), lignes (tr:active du forum mobile).
 const PAGES_NETTOYAGE = {
@@ -1800,7 +1809,7 @@ const PAGES_NETTOYAGE = {
   racine: { def: PAGES_FORUM.racine, lignes: true, masqueDeux: masqueForum98 },
   sujet: { def: PAGES_FORUM.sujet, masqueDeux: masqueForum98 },
   'redaction-forum': { def: PAGES_FORUM.redaction },
-  reception: { def: PAGES_FORUM.reception, m: true },
+  reception: { def: PAGES_FORUM.reception, m: true, masqueDeux: masqueKramail99 },
   nouveau: { def: PAGES_FORUM.nouveau, m: true },
   repondre: { def: PAGES_RAYONS.accordeon.def, m: true },
   interface: { def: PAGES_BOUTONS.interface, prep: OUVRIR_CHANGELOG, m: true, masque: avantNettoyage.includes('kr-page-secondaire') ? '' : MASQUE_CIBLES_94 },
@@ -1984,10 +1993,10 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 // Cinq masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_PV_97 (base d'avant l'entrée 9.7), MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
 // testé, Interface) et MASQUE_FORUM_98 (deux côtés, pages du forum) ;
 // sinon bundle testé, base du nettoyage et
-// base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
+// base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE_99).
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '' }) => {
   const p = PAGES_NETTOYAGE[nom];
-  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: `${GEL_NETTOYAGE} ${SANS_MARGE_PAGE} ${css}`, tactile, injection: 'fin' });
+  const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: `${GEL_NETTOYAGE} ${SANS_MARGE_PAGE_99} ${css}`, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
   if (p.prep) { await p.prep(o.page); }
   return o;

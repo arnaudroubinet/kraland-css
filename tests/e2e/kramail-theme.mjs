@@ -57,6 +57,7 @@
 //   redaction-defilement : 5 rédactions à 375 px : zone de texte et dernière case amenées par scrollIntoView, leur bas atteint
 //             (elementFromPoint rend le champ ou un descendant) : rien ne les couvre, « Envoyer » ni pied collant.
 //   redaction-dest : les 5 rédactions, 375 et 1280 px : ajout d'une pastille, doublon refusé, retrait par la croix ; #dest suit.
+//                    Nouveau, 1280 et 320 px (tap) : panneau Contacts refermé par un clic sur le h1, ouvert après un glissé de sélection (entrée 9.9).
 //   redaction-palette : (épopée 7, entrée 6) Nouveau et Répondre, 16 variantes, 375 et 1280 px, annuaire simulé : bundle sans --kd-* ni
 //             --kr-badge-danger, aucune variable --kd-* sur le formulaire ; couleurs calculées du champ (repos, focus, invalide, bloqué),
 //             des pastilles (doublon, sélection, croix), de Contacts, du panneau (sections, options, option active, déjà ajouté, vide,
@@ -79,6 +80,11 @@
 //             centre atteint après scrollTo ; mobile : 48 px, paire --kr-arm-bg / --kr-arm-ink, rayon 4 px, --kr-font-button ; styles
 //             d'« Envoyer » et de sa ligne égaux à ceux du forum à la même largeur ; bascule Nouveau 767 -> 768 -> 767 dans le même
 //             onglet (forme ordinateur du forum à 768, forme mobile inchangée au retour) ; 16 variantes à 375 px : texte >= 4,5:1.
+//   confort : (épopée 9, entrée 9) Réception, Envoi, Corbeille, les 3 lectures, Nouveau, Répondre, Répondre à tous, Transférer et Contacts, à 320,
+//             375 × 667 et 767 px, Kraland clair et Empire Brun sombre : garde sans kr-marge-mobile, mode mobile, aucun débordement ; aucun texte à moins de 16 px
+//             d'un bord (ellipse rognée comprise) ; cibles hors bouton (chevron du panneau, cellule de case, nom, destinataires, case
+//             d'option) à 44 × 44 aux cinq points ; 768, 769 et 1280 px : boîtes des textes égales au bundle COMMIT_AVANT_99 ; Réception,
+//             lecture reçue et Nouveau en bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
@@ -89,14 +95,15 @@
 //             pendant la saisie.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
-// sinon celui du commit PALETTE_BASE_SHA).
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter, confort), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// sinon celui du commit PALETTE_BASE_SHA), KR_SCRIPT_AVANT_99 (bundle de base de confort, sinon celui du commit COMMIT_AVANT_99).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
 // KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts, contacts-boutons et envoyer rouges
-// (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge.
+// (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge ;
+// KR_SCRIPT=<bundle d8c8777> rend confort rouge.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -105,7 +112,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, domQuiet, styleSettled } from './lib/settle.mjs';
-import { SANS_MARGE_PAGE } from './lib/marges.mjs';
+import { CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -501,11 +508,8 @@ if (frag('lecture')) {
   for (const [width, mobile] of LARGEURS_LECTURE) { for (const cle of LECTURE_CLES.concat('forum')) { cas.push({ cle, width, mobile }); } }
   for (const width of LARGEURS_BASE) { for (const cle of LECTURE_CLES) { cas.push({ cle, width, mobile: false, base: true }); cas.push({ cle, width, mobile: false, apres: true }); } }
   const res = await mapLimit(cas, async c => {
-    // Référence du forum sans la marge de page (épopée 9, entrée 8 : message en carte à 8 px des bords, que le kramail n'adopte pas) :
-    // --kr-marge-page neutralisée, la marge de la carte retombe à 0 comme celle du message du kramail. Lié à D3 (plan de l'entrée 8) ; à revoir
-    // si les cartes à 8 px s'étendent au kramail.
-    const css = c.cle === 'forum' && c.mobile ? SANS_MARGE_PAGE : '';
-    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, bundle: c.base ? BASE_BUNDLE : APRES, css });
+    // Message du forum et du kramail en carte à 8 px des bords (épopée 9, entrées 8 et 9 ; D3 du plan de l'entrée 8 levé par l'entrée 9).
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, bundle: c.base ? BASE_BUNDLE : APRES });
     const m = await o.page.evaluate(MESURER_MESSAGES);
     await o.context.close();
     return { c, o, m };
@@ -1863,6 +1867,43 @@ if (frag('redaction-dest')) {
       sansFuite(o);
     });
   }
+  // Fermeture du panneau au click hors du champ (entrée 9.9) : Nouveau, Contacts ouvert, clic (tap à 320 px) sur le h1 : refermé.
+  // Glissé de sélection du champ vers le h1 (appui dans le champ, click hors du champ) : reste ouvert, comme à la base.
+  const OUVERT = () => !document.querySelector('.kd-panel').hidden;
+  const fermeture = await mapLimit([[1280, false], [320, true]], async ([width, mobile]) => {
+    const o = await ouvrir('nouveau', { width, height: mobile ? 667 : 720, mobile });
+    const p = o.page;
+    const r = {};
+    try {
+      const ouvrirContacts = async () => { await (mobile ? p.tap('.kd-contacts', { timeout: 3000 }) : p.click('.kd-contacts', { timeout: 3000 })); return p.evaluate(OUVERT); };
+      r.ouvert = await ouvrirContacts();
+      await (mobile ? p.tap('h1', { timeout: 3000 }) : p.click('h1', { timeout: 3000 }));
+      r.apresClic = await p.evaluate(OUVERT);
+      r.rouvert = await ouvrirContacts();
+      const centre = async sel => { const b = await p.locator(sel).first().boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+      await p.evaluate(() => { const h = document.querySelector('h1'); window.scrollTo(0, Math.max(0, h.getBoundingClientRect().top + window.scrollY - 8)); });
+      const [xi, yi] = await centre('.kd-input');
+      const [xh, yh] = await centre('h1');
+      r.visibles = yi >= 0 && yi < (mobile ? 667 : 720) && yh >= 0;
+      await p.mouse.move(xi, yi);
+      await p.mouse.down();
+      await p.mouse.move(xh, yh, { steps: 5 });
+      await p.mouse.up();
+      r.apresGlisse = await p.evaluate(OUVERT);
+    } catch (e) { r.erreur = String(e.message).split('\n')[0]; }
+    await o.context.close();
+    return { width, o, r };
+  });
+  for (const { width, o, r } of fermeture) {
+    check(`nouveau ${width} px : panneau Contacts refermé par un ${width < 768 ? 'tap' : 'clic'} sur le h1, ouvert après un glissé de sélection du champ vers le h1`, () => {
+      expect(!r.erreur, r.erreur);
+      expect(r.ouvert && r.rouvert, 'panneau non ouvert par « Contacts » : ' + JSON.stringify(r));
+      expect(r.visibles, 'champ ou h1 hors de l\'écran : ' + JSON.stringify(r));
+      expect(r.apresClic === false, 'panneau resté ouvert après le clic sur le h1');
+      expect(r.apresGlisse === true, 'panneau refermé par le glissé de sélection');
+      sansFuite(o);
+    });
+  }
 }
 
 // ---------- rédaction : palette du champ Destinataires (épopée 7, entrée 6) ----------
@@ -2185,6 +2226,116 @@ if (frag('remonter')) {
       sansFuite(o);
     });
   }
+}
+
+// ---------- confort (épopée 9, entrée 9) ----------
+// Dossiers, lecture, rédaction et contacts : texte à 16 px au moins des bords (rognage par l'ellipse compris), cibles qui ne sont pas des
+// boutons à 44 × 44 aux cinq points (chevron du panneau, cellule de case, destinataire, case d'option), aucun débordement. Bureau : boîte de
+// chaque nœud texte égale au bundle de base COMMIT_AVANT_99 (avant l'entrée 9). Bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
+const COMMIT_AVANT_99 = 'd8c877793a2cd10f4276a10f5e38ae545b10b62e';
+const CONFORT_PAGES = ['reception', 'envoi', 'corbeille', 'lecture', 'lecture-recue', 'lecture-envoi', 'nouveau', 'repondre', 'repondre-tous', 'transferer', 'contacts'];
+const CONFORT_CIBLES = {
+  liste: ['#col-right .panel-heading span.clickable', '#col-right table > tbody > tr > td.center'],
+  lecture: ['li.media.kr-msg .user-info > strong > a, li.media.kr-msg .kramail-msg-sender > a', '.kr-msg-recipients > a'],
+  compose: ['label.checkbox-inline']
+};
+const confortGroupe = cle => cle === 'contacts' || PAGES[cle]?.garde === 'liste' ? 'liste' : (PAGES[cle] || LECTURES[cle]).garde;
+const CONFORT_MARGE = 16;
+const RELEVE_TEXTES = () => {
+  const r2 = v => Math.round(v * 2) / 2;
+  const out = [];
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style')) { continue; }
+    const rg = document.createRange();
+    rg.selectNodeContents(n);
+    const b = [...rg.getClientRects()].filter(x => x.width > 0 && x.height > 0);
+    if (!b.length) { continue; }
+    const t = n.textContent.trim().replace(/^1\.0\.\d+$/, 'version'); // numéro de version horodaté du pied
+    out.push(`${t.slice(0, 24)} @ ${r2(b[0].left + window.scrollX)},${r2(b[0].top + window.scrollY)} ${r2(b[0].width)}x${r2(b[0].height)} ${b.length}`);
+  }
+  return { mobile: document.body.classList.contains('mobile-mode'), l: out };
+};
+async function mesurerConfort(page, cle) {
+  const m = await page.evaluate(() => ({
+    gardes: ['kr-page-kramail', 'kr-page-contacts'].filter(c => document.documentElement.classList.contains(c)),
+    margeMobile: document.documentElement.classList.contains('kr-marge-mobile'),
+    mobile: document.body.classList.contains('mobile-mode'),
+    debord: document.documentElement.scrollWidth - document.documentElement.clientWidth
+  }));
+  m.hors = await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: CONFORT_MARGE, rogne: true });
+  m.cibles = [];
+  for (const sel of CONFORT_CIBLES[confortGroupe(cle)]) {
+    const n = await page.evaluate(q => document.querySelectorAll(q).length, sel);
+    for (let i = 0; i < n; i += 1) { m.cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
+  }
+  return m;
+}
+function verifierConfort(cle, m, tag) {
+  check(`confort ${tag} : garde ${cle === 'contacts' ? 'kr-page-contacts' : 'kr-page-kramail'}, sans kr-marge-mobile, mode mobile, aucun débordement`, () => {
+    expect(m.gardes.join() === (cle === 'contacts' ? 'kr-page-contacts' : 'kr-page-kramail'), 'gardes : ' + m.gardes.join(', '));
+    expect(m.mobile, 'body.mobile-mode absent');
+    expect(!m.margeMobile, 'kr-marge-mobile posée (marge de ligne en double)');
+    expect(m.debord <= 0, `débordement de ${m.debord} px`);
+  });
+  check(`confort ${tag} : aucun texte à moins de ${CONFORT_MARGE} px d'un bord`, () => {
+    const t = m.hors.map(x => `« ${x.texte} » ${x.gauche}/${x.droite} (${x.chemin})`);
+    expect(t.length === 0, `${t.length} texte(s) : ${t.slice(0, 3).join(' ; ')}`);
+  });
+  check(`confort ${tag} : cibles hors bouton à 44 × 44 aux cinq points`, () => {
+    expect(m.cibles.length > 0, 'aucune cible mesurée');
+    const e = m.cibles.filter(c => c.e.length).map(c => `${c.sel} [${c.i}] : ${c.e.join(', ')}`);
+    expect(e.length === 0, e.slice(0, 3).join(' ; '));
+  });
+}
+const premierEcartTextes = (a, b) => { for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i] !== b[i]) { return `texte ${i} : « ${a[i]} » au lieu de « ${b[i]} »`; } } return ''; };
+function verifierTextesBase(t, b, tag) {
+  check(`confort ${tag} : textes égaux au bundle de base ${COMMIT_AVANT_99.slice(0, 7)}`, () => {
+    expect(!t.mobile && !b.mobile, 'body.mobile-mode présent');
+    expect(t.l.length > 0, 'aucun texte');
+    const d = premierEcartTextes(t.l, b.l);
+    expect(d === '', d);
+  });
+}
+if (frag('confort')) {
+  console.log('confort : marge de 16 px et cibles de 44 px (320, 375 × 667, 767), bureau égal à la base (768, 769, 1280), bascule');
+  const AVANT_99 = strip(process.env.KR_SCRIPT_AVANT_99 ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_99, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_AVANT_99}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const variantes = ['kraland', DARK];
+  const mob = [];
+  for (const variante of variantes) { for (const width of [320, 375, 767]) { for (const cle of CONFORT_PAGES) { mob.push({ cle, width, variante }); } } }
+  const resM = await mapLimit(mob, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: 667, mobile: true, variante: c.variante });
+    const m = await mesurerConfort(o.page, c.cle);
+    await o.context.close();
+    return { o, m };
+  });
+  mob.forEach((c, i) => {
+    verifierConfort(c.cle, resM[i].m, `${c.cle} ${c.width} px ${c.variante}`);
+    check(`confort ${c.cle} ${c.width} px ${c.variante} : sans fuite ni erreur`, () => sansFuite(resM[i].o));
+  });
+  const bur = [];
+  for (const variante of variantes) { for (const width of [768, 769, 1280]) { for (const cle of CONFORT_PAGES) { bur.push({ cle, width, variante }); } } }
+  const releve = async (c, bundle) => { const o = await ouvrir(c.cle, { width: c.width, variante: c.variante, bundle }); const r = await o.page.evaluate(RELEVE_TEXTES); await o.context.close(); return r; };
+  const resB = await mapLimit(bur, async c => ({ t: await releve(c, APRES), b: await releve(c, AVANT_99) }));
+  bur.forEach((c, i) => verifierTextesBase(resB[i].t, resB[i].b, `${c.cle} ${c.width} px ${c.variante}`));
+  const bas = [];
+  for (const cle of ['reception', 'lecture-recue', 'nouveau']) { for (const largeurs of [[767, 768, 767], [768, 767, 768]]) { bas.push({ cle, largeurs }); } }
+  const base768 = Object.fromEntries(await mapLimit(['reception', 'lecture-recue', 'nouveau'], async cle => [cle, await releve({ cle, width: 768, variante: 'kraland' }, AVANT_99)]));
+  const resS = await mapLimit(bas, async c => {
+    const o = await ouvrir(c.cle, { width: c.largeurs[0] });
+    const etapes = [];
+    for (let j = 0; j < c.largeurs.length; j += 1) {
+      if (j > 0) { await basculer(o.page, c.largeurs[j], `confort ${c.cle} ${c.largeurs[j]}`); }
+      etapes.push(c.largeurs[j] < 768 ? await mesurerConfort(o.page, c.cle) : await o.page.evaluate(RELEVE_TEXTES));
+    }
+    await o.context.close();
+    return etapes;
+  });
+  bas.forEach((c, i) => resS[i].forEach((m, j) => {
+    const tag = `${c.cle} bascule ${c.largeurs.join('>')} étape ${j + 1} (${c.largeurs[j]})`;
+    if (c.largeurs[j] < 768) { verifierConfort(c.cle, m, tag); } else { verifierTextesBase(m, base768[c.cle], tag); }
+  }));
 }
 
 await browser.close();
