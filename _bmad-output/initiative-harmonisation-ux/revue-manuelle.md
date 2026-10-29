@@ -51,6 +51,8 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 - Ticket 8.5, notifications (cloche et page `/report`) : captures de fixtures dans `/Users/arnaud/kraland-css-captures/8.5/` (22 PNG, 375×667, 1280, 1440, 1920 et popup 900×800, Kraland clair et Empire Brun sombre). Détail et défauts constatés : section « Ticket 8.5 » en bas de ce fichier. Captures, mesures et scripts copiés par l'orchestrateur dans `/Users/arnaud/kraland-css-captures/8.5/`, qui survit au redémarrage.
 
+- Ticket 7.9, kramail face au forum (action A8 de la rétro 6) et reprise des captures 8.5 sur le bundle actuel (A1 de la rétro 8) : captures de fixtures dans `/Users/arnaud/kraland-css-captures/7.9/` (56 PNG et planches) et `/Users/arnaud/kraland-css-captures/7.9/notifications/` (22 PNG). Détail : section « Ticket 7.9 » en bas de ce fichier. Captures copiées hors de `/tmp` par l’orchestrateur ; scripts dans `/Users/arnaud/kraland-css-captures/7.9/travail/` pour les reprendre.
+
 ## Tickets construits à marquer « fait »
 
 - Backlog 3 : nom contenant « $ » (bug corrigé, sans validation visuelle requise).
@@ -951,3 +953,37 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Les captures de 8.5 datent de 49d31df, avant 9.10, le bug 14 et le bug 15. Elles montrent trois défauts corrigés depuis : à reprendre sur `HEAD` avant ta passe (A1).
 - Le `test:all` vert qui contient l'épopée (18074 ok, sweep 7.10) n'est consigné que dans `/tmp`, sans SHA nommé (A2).
 - À trancher par toi : Firefox (procédure de console, section 8.2) ; options du popup recopiées de `main.js` ou relues au clic ; bug 15, décalage de 1 px et ligne à cellule unique lue ; fenêtres sans barre (`help.php?p=prev`, `/help`).
+
+## Ticket 7.9 — vrai téléphone et captures de validation (partie agent, in-review, 2026-10-29)
+
+Ta décision : émulation par l'agent maintenant, ta passe sur vrai téléphone à la fin de tous les tickets. La partie hitl reste ouverte. Bundle de d8c8777, inchangé à 5d42ab5. Fixtures seulement, réseau confiné, aucun site réel.
+
+### Points D et E en émulation
+
+Le résultat complet et les limites sont dans `epic-modale-ordre/protocole-p2-vrai-telephone.md`, section 4. En bref : 32 cas sur 36 conformes. « Envoyer » est atteignable et ne couvre pas le texte saisi, au forum comme au kramail. Aucun envoi. La contre-épreuve sur f48a01f (avant 7.7) retrouve ton constat E : la barre fixe de 56 px couvre le texte.
+
+**Écart E1 (7.9) : « Remonter en haut » couvre le bord droit du texte saisi, clavier ouvert.**
+
+- Où : rédaction du kramail, mobile, quand la page a défilé de plus de 400 px. C'est le cas d'une réponse avec citation (Répondre) ou d'un long message. La fixture du forum n'a pas ce bouton : non mesuré au forum.
+- Mesures, 375 px, viewport réduit à 350 px : bouton fixe de 36×44 px en x 331–367, y 271–315 (`right: 8px`, `bottom: 20px`, règle de 7.7). Le contenu du champ va jusqu'à x 346 : 15 px de chevauchement sur 44 px de haut, soit la fin d'environ 2 lignes. Le curseur est justement en bas de la zone visible quand on tape. Constaté dans les deux variantes, aux densités 2 et 3.
+- Déduit de la même géométrie, non mesuré : sans clavier, une ligne de texte posée dans la bande des 35 à 79 px du bas de l'écran est aussi couverte. Le clavier rend juste ce cas fréquent.
+- Avec un clavier qui ne réduit que le viewport visuel (mode `visuel`), le bouton reste sous le clavier : rien n'est couvert.
+- 7.7 avait réservé sa colonne pour « Envoyer » (marge de 52 px), pas pour le champ. Aucun code n'est corrigé. À trancher : ouvrir un bogue (masquer le bouton pendant la saisie, ou réserver la colonne au champ) ou accepter.
+- Recommandation de l'orchestrateur, appliquée (2026-10-29) : bogue `backlog/` 16 ouvert, piste « masquer le bouton pendant la saisie, mobile seulement ». Tu peux le refuser à ta passe finale.
+
+Observation sans écart : la barre de navigation fixe de 60 px reste visible clavier ouvert. Elle prend 60 px sur les 350 visibles.
+
+### Captures de validation (A8 de la rétro 6)
+
+- Dossier : `/Users/arnaud/kraland-css-captures/7.9/`, nommées `page_largeur_variante.png`. Pages : `kramail-reception` face à `forum-sous-forum` (Débuter), `kramail-lecture` face à `forum-sujet`, `kramail-nouveau` face à `forum-reponse`, `kramail-contacts`. Largeurs : 1280, 1440, 1920 (densité 1) et 375×667 (mobile, densité 2). Variantes : `kraland-clair`, `empire-brun-sombre`. Page entière.
+- Planches côte à côte, kramail à gauche, forum à droite : `/Users/arnaud/kraland-css-captures/7.9/planches/planche_<largeur>_<variante>.png` (8 planches ; Contacts face au sous-forum).
+- Font Awesome 5.6.3 servi en local (copie du 8.5) ; pas d'images du site (logo, avatars), polices du Mac.
+- À regarder : même en-tête de page, même carte de section et mêmes boutons entre la réception et le sous-forum ; même message entre la lecture et le sujet ; même formulaire et même « Envoyer » entre la rédaction et la réponse ; Contacts en carte de section, sur mobile en particulier (tableau qui défile, lignes d'environ 120 px, voir 7.8). Sur ordinateur, à 1440 par exemple, un petit carré vide apparaît en haut à droite de la carte « Boîte de réception » (icône de repli ?) : à vérifier en vrai.
+
+### Captures des notifications reprises (8.5, A1 de la rétro 8)
+
+- Dossier : `/Users/arnaud/kraland-css-captures/7.9/notifications/`, 22 PNG. Même script et mêmes noms que 8.5 (`/Users/arnaud/kraland-css-captures/8.5/`), relancé sur le bundle actuel. Mesures dans `mesures.txt`, journal des requêtes dans `journal.json` : seuls les logos `img7.kraland.org` sont refusés, le seul `/report` touché est la fixture.
+- Trois défauts de 8.5 ne sont plus là : sélecteur de personnage à 14 px dans le popup (9,5 px avant) ; dates du popup alignées à 12 px (5 et 12 px en dents de scie avant) ; dates mobiles à 16 px du bord (12 avant).
+- Restent à regarder sur les images : l'icône collée au libellé des onglets à 375 px, et la pastille collée à la cloche sur ordinateur. Les mesures ne couvrent pas ces deux points.
+- Les captures de `/Users/arnaud/kraland-css-captures/8.5/` sont périmées (49d31df) : regarde celles-ci.
+
