@@ -99,6 +99,8 @@ Numérotation à partir de D9.2 (seul D9.1 existe, plan 9.5) ; à renuméroter s
 - **D9.4 — /accueil sans marge mobile.** /accueil porte `body.page-accueil` mais est absent de `KR_PAGE_CLASSES` (pas de `kr-marge-mobile`) : texte du contenu à 0 px du bord à 375 (paragraphe synthétique de `cloche-notifications`). Hors périmètre des entrées 1 et 4 et du spike 9.3 ; à relever sur le vrai site avant toute décision. Accord d'Arnaud attendu à la passe finale.
 - **D9.5 — Bouton Contacts de la rédaction du kramail sous 44 px.** `button.kd-contacts` 105×40 à 375, en absolu dans le champ Destinataires (343×44). EXPERIENCE P3 étape 5 et H9.1 demandent ≥ 44 px ; 9.9 l'a laissé hors périmètre (`<button>`, épopée 4). Écart connu hors périmètre. Accord d'Arnaud attendu à la passe finale.
 
+Clôture (orchestrateur, 2026-10-29) : partie agent commitée (`9759352`) directement sur `feature/next`, sans branche de fusion ni `test:all` (documentation et captures hors dépôt) ; reports D9.2 à D9.5 dans `deferred-work.md`. Partie hitl (les 4 parcours joués par Arnaud en Kraland clair et Empire Brun sombre, validation des planches de `/Users/arnaud/kraland-css-captures/9.11/`) ouverte jusqu'à la passe finale d'Arnaud ; ticket laissé `in-review`.
+
 ## Verification
 
 **Commands:**

@@ -131,3 +131,5 @@ Fait : marge de page du kramail et des Contacts (pied à 16 px, message lu en ca
 | `test:router`, `test:unit` | « Routeur conforme » ; code 0 |
 
 A9 : aucun panneau autre que `.panel-default` à `span.clickable` sur les fixtures ; relevé site réel à la passe finale. `test:all` reste à lancer.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite (« OK avec correctifs »), correctifs appliqués, commité (`225fef2`) et fusionné sur `feature/next` (`7bec452`) ; `test:all` de la fusion : 18463 ok, 0 FAIL.

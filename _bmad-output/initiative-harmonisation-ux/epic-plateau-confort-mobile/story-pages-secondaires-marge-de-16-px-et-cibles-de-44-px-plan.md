@@ -130,3 +130,5 @@ Livré dans le worktree wt/9.4 (base 9b6851a), non commité. Correctifs de la re
 - confort-mobile : COMMIT_AVANT passe de de4c079 à 9b6851a (contient 7.1, 9.1, 9.2 et 9.6).
 - Masques MASQUE_CIBLES_94 (typographie-formes) et margeSecondaire (cybermonde-carte) : inactifs dès que la base contient `kr-page-secondaire` ; à retirer ensuite.
 - `node_modules` du worktree : lien symbolique vers le dépôt principal, non suivi, à ne pas commiter.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (`ec66ba6`) et fusionné sur `feature/next` (`724c5c1`) ; `test:all` avant fusion : 15685 ok, 0 FAIL, journal `/private/tmp/kr-testall-94.log` (01:34, arbre déduit de l'heure).

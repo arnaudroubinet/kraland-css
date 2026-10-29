@@ -116,3 +116,5 @@ Tests (`tests/e2e`) : toutes les constantes `COMMIT_*`, `BASE_SHA`, `BASELINE*` 
 | Skills | `diff -r .hermes/skills .claude/skills` | vide |
 
 Reste : revue indépendante, `test:all` machine calme, commit et PR vers `feature/next` (orchestrateur).
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, commité (`db81317`) et fusionné sur `feature/next` (`6fbdba0`) ; `test:all` de la fusion : 18438 ok, 1 FAIL de charge `kramail-theme#confort` (bascule 767 > 768 > 767 de la réception), vert 2/2 rejoué seul. Le « Reste » ci-dessus est soldé.

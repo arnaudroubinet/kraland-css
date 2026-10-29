@@ -151,3 +151,5 @@ context: []
 - test:zone non rejoué après la revue : les fragments touchés sont rejoués un à un ci-dessus.
 
 **Doutes :** D1 à D8 ci-dessus, recopiés dans `revue-manuelle.md` (section « Ticket 9.8 »).
+
+Clôture (orchestrateur, 2026-10-29) : revue quick du coordinateur faite, commité (`01a8aae`) et fusionné sur `feature/next` (`49d31df`) ; `test:all` avant fusion : 16931 ok, 1 FAIL `demarrage-mobile` (faux FAIL de charge présumé), journal `/private/tmp/kr-testall-98.log` (03:57, arbre déduit de l'heure). Doutes D1 à D8 en attente d'Arnaud (numérotés hors du schéma D9.n).

@@ -145,3 +145,5 @@ Livré dans le worktree wt/9.5 (base 724c5c1), non commité. Revue indépendante
 - Lignes de pièces au rythme de la croix (50 px), pièce plancher 44 px.
 - `transform: scale(1.1)` au survol : 2,2 px par côté, écart de 8 px entre actions, sans contact.
 - `node_modules` du worktree : lien symbolique non suivi, à ne pas commiter.
+
+Clôture (orchestrateur, 2026-10-29) : revue quick du coordinateur faite, commité (`0045caa`) et fusionné sur `feature/next` (`cb73530`) ; `test:all` : 16489 ok, 3 FAIL (attribués ci-dessus et dans `revue-manuelle.md`, section 9.5), puis 16492 ok, 0 FAIL, journal `/private/tmp/kr-testall-95b.log` (03:33, arbre déduit de l'heure).

@@ -1099,3 +1099,17 @@ Limites :
 - Avertissements `no-loop-func` de `lint:js` (`kramail-theme` l.2048 et 2051, `report-non-lu` l.97) : non traités, sur des lignes que le sweep ne change pas.
 - Comparateur jetable : un passage de l'implémenteur sur quatre a donné 1 cas d'écart, sans détail gardé. La revue indépendante l'a lancé 3 fois : 0 écart à chaque passage. Il détecte une mutation : un bundle à `--kr-touch-target: 43px` donne 104 écarts sur 104 cas. L'écart vu une fois était une instabilité de mesure.
 - `test:all` reste à lancer (interdit à l'implémenteur).
+
+## Rétro épopée 9 — plateau, confort mobile (2026-10-29)
+
+- Rétro : `epic-plateau-confort-mobile/epic-plateau-confort-mobile-retrospective.md`. Verdict machine **rejected**, forcé par 9.11 resté `in-review` : les quatre parcours joués par toi (Done when 2) attendent ta passe finale. Sur les preuves, le verdict serait **accepted-with-open-items**. Révision à ta main (A1).
+- Aucun `test:all` entièrement vert sur `HEAD` (`6fbdba0`) : 1 FAIL de charge en 912 (`kramail-theme#confort`), vert 2/2 rejoué seul par l'orchestrateur et vert ici (366 ok). Le dernier vert complet est `7bec452` (18463 ok). Un `test:all` machine calme sur `6fbdba0` réglerait la question (A4).
+- Six fusions sur onze ont suivi un `test:all` rouge (journaux 91, 92, 9671, 96, 97, 98, 912). Seuls 9.5, 9.6 et 9.7 attribuent leurs FAIL par écrit. Je lis les autres comme des faux FAIL de charge, sans preuve. Les SHA des journaux sont déduits de l'heure.
+- 9.1 a fusionné sur 8 FAIL, dont 6 dans sa suite `confort-mobile`, et sa fusion change `COMMIT_AVANT` sans `test:all` propre. `confort-mobile` est vert sur `HEAD` (912 ok), donc rien de visible aujourd'hui.
+- `demarrage-mobile#desktop+pire-cas+m1+m-1+s1` (« au plus 4 documents en 6 s ») échoue dans cinq `test:all` de l'épopée et déjà à la rétro 7. Le stabiliser ou le lancer à part (A5) ?
+- Marge « sur toutes les pages » : /accueil sans marge (D9.4), forum Staff exclu (9.8), /help sur ordinateur hors périmètre (9.13). À trancher (A2).
+- `<button>` mobiles sous 44 px (`kd-contacts`, `kd-chip-x`) : exclus ici au nom de l'épopée 4, qui ne les a pas livrés. Personne ne les porte. Nouveau ticket, ou tels quels (A3) ?
+- Les doutes de 9.8 sont numérotés D1 à D8, pas D9.n. Je ne les ai pas renumérotés.
+- Lignes de clôture « revue faite » des plans : reprises des Review Triage Logs et sections de revue, sans relecture des rapports de revue. Le spike 9.3 n'a pas de revue.
+- J'ai écrit les lignes de clôture dans les treize plans, ce que le workflow de rétro interdit d'ordinaire : c'était la demande explicite de l'orchestrateur. Les Result périmés ne sont pas réécrits.
+- Rétro 7 : les captures de `/Users/arnaud/kraland-css-captures/7.9/` (12:45) ne sont toujours pas reprises après 9.9 ; seul le parcours kramail de 9.11 est postérieur.

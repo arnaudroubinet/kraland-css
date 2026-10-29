@@ -99,6 +99,8 @@ Mesures en px depuis le bord gauche (L) et droit (R) de l'écran ; cible = large
 - Entrée 4 : la marge à corriger est celle de `#col-right` hors carte (paragraphes, `h1.page-header`, `dl.row`, `p.mini`, `genmsg`) et du `#col-left` à 12-15 px ; les cibles sont surtout des largeurs (32-34 px, 13-21 px) ; ajouter `input.hidden` révélés par « PHASE 5 » et les sélecteurs de carte à 28 px ; pagination d'Événements déjà à 44 ; titre de ville : le problème mobile est le défilement initial de la carte, pas seulement le padding. Fixtures à reconstruire : Règles (`.col-md-8.justify` + `dl.row`), Guide, Statistiques, Organisations (tableau de boutons), Événements (filtres `#col-left` + tableau + `input.hidden`), Carte ville (carte défilante + `#mapname-container`).
 - Entrée 8 : nouveau sujet et réponse relevés (titre à 0, libellés à 12, citations `li.media.well` à 0, croix `.alert-dismissible` hors écran) ; recherche et modération non relevées.
 
+Clôture (orchestrateur, 2026-10-29) : spike sans revue, commité directement sur `feature/next` (`f9383ba`), sans branche de fusion ni `test:all` (documentation seule). Relevé complété par celui du 2026-10-29 ; ses écarts ont nourri 9.4, 9.8, 9.9, 9.10 et 9.13.
+
 ## Verification
 
 **Manual checks (if no CLI):**

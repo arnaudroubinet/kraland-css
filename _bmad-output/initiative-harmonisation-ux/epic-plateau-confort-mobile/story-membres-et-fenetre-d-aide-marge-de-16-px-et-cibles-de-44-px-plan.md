@@ -121,3 +121,5 @@ context: []
 - Contre-épreuves (bundles mutés dans /tmp) : règle `.btn-group-xs` retirée 6 FAIL ; `td > a` retirée 6 FAIL, puis 12 avec la bascule ; `.well` retirée 12 FAIL ; template sans `kr-marge-mobile` 30 FAIL ; `kr-page-members` non posée 12 FAIL.
 - `!important` : 3203, comme la base.
 - Revue 2 (correctifs mineurs, relevé releve-aide intégré) : `KR_FRAG=membres-aide` vert 168 ok / 0 FAIL ; base 034a820 114 ok / 54 FAIL ; avant les restrictions, 8 FAIL hors périmètre ; contre-épreuves : règle `.well` retirée 18 FAIL (dont 6 de plafond), règle Membres retirée 12 FAIL (dont 6 de bascule). `test:zone -- confort-mobile typographie-formes` 5213 ok / 0 FAIL ; `test:router` conforme ; `lint:css` 0 ; `lint:js` 0 ; `npm run build` VALIDATION PASSED ; `test:unit` 0. Statut maintenu `in-review`.
+
+Clôture (orchestrateur, 2026-10-29) : revue 2 faite, correctifs appliqués, commité (`5916cab`, relevé en `034a820`) et fusionné sur `feature/next` (`be44760`) ; `test:all` avant fusion : 16150 ok, 0 FAIL, journal `/private/tmp/kr-testall-913.log` (03:14, arbre déduit de l'heure). Le Result ci-dessus (« in-review », « ni built ni commit ») décrit l'état d'avant la fusion.

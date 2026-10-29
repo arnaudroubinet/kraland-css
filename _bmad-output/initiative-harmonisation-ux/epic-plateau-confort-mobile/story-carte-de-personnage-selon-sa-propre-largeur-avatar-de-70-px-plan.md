@@ -131,3 +131,5 @@ Provisoire (après correctifs de revue, avant nouvelle revue), worktree `wt/9.2`
 - `npm run build` validé. `npm run test:zone -- plateau cartes-pastilles typographie-formes palette-nation` : 9411 ok, 5 FAIL en 828 s (machine chargée), tous hors carte (`cartes-pastilles#forum`, modale de pouvoir ; `breakpoint-switch#nav-large` et `#nav-origine`, hauteur de la barre). Les trois fragments sont verts une fois relancés seuls. La passe précédente, sur la machine calme : 7917 ok, 0 FAIL ; palette-nation et initialisation : 1577 ok, 0 FAIL.
 - `test:router`, `lint:css`, `lint:js` (1 avertissement préexistant, report-non-lu.mjs) : verts.
 - Ouvert pour Arnaud : constat 4 (nom à gauche, statut centré).
+
+Clôture (orchestrateur, 2026-10-29) : revue faite (Review Triage Log), commité (`4540719`) et fusionné sur `feature/next` (`de4c079`) ; `test:all` avant fusion : 14943 ok, 1 FAIL `demarrage-mobile` (« au plus 4 documents en 6 s », lu comme faux FAIL de charge), journal `/private/tmp/kr-testall-92.log` (23:25, arbre déduit de l'heure). Constat 4 toujours ouvert pour Arnaud.

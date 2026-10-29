@@ -117,3 +117,5 @@ Statut `in-review` sur wt/9.10 (base 8420e3a, non commité).
 - `npm run test:unit`, `npm run lint:css`, `npm run lint:js` -- code 0 ; `npm run test:router` -- conforme (après correctif de revue, contre-épreuve rouge).
 - `npm run build` -- VALIDATION PASSED ; `!important` : 3180 avant et après ; `diff -r .hermes/skills .claude/skills` vide.
 - Non lancés (interdits par le mandat) : `test:all`, `test:changed`.
+
+Clôture (orchestrateur, 2026-10-29) : revue de l'orchestrateur faite, commité (`3ca5bc9`) et fusionné sur `feature/next` (`fde18e7`) ; `test:all` avant fusion : 16988 ok, 0 FAIL, journal `/private/tmp/kr-testall-910.log` (04:27, arbre déduit de l'heure).
