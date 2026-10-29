@@ -37,7 +37,8 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, domQuiet, styleSettled } from './lib/settle.mjs';
-import { choisirVariante } from './lib/variantes.mjs';
+import { SANS_MARGE_PAGE } from './lib/marges.mjs';
+import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -93,7 +94,7 @@ const frag = id => FRAG.length === 0 || FRAG.includes(id);
 
 const browser = await launchBrowser();
 
-async function ouvrir(cle, { width, height = 720, mobile = false, variante = 'kraland', debut = false, bundle = APRES }) {
+async function ouvrir(cle, { width, height = 720, mobile = false, variante = 'kraland', debut = false, bundle = APRES, css = '' }) {
   const p = PAGES[cle] || LECTURES[cle];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context);
@@ -112,6 +113,7 @@ async function ouvrir(cle, { width, height = 720, mobile = false, variante = 'kr
     return r.abort();
   });
   await context.addInitScript(choisirVariante, variante);
+  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
   await context.addInitScript(({ src, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     window.addEventListener('submit', e => { e.preventDefault(); }, true);
@@ -356,7 +358,11 @@ if (frag('lecture')) {
   for (const [width, mobile] of LARGEURS_LECTURE) { for (const cle of LECTURE_CLES.concat('forum')) { cas.push({ cle, width, mobile }); } }
   for (const width of LARGEURS_BASE) { for (const cle of LECTURE_CLES) { cas.push({ cle, width, mobile: false, base: true }); cas.push({ cle, width, mobile: false, apres: true }); } }
   const res = await mapLimit(cas, async c => {
-    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, bundle: c.base ? BASE_BUNDLE : APRES });
+    // Référence du forum sans la marge de page (épopée 9, entrée 8 : message en carte à 8 px des bords, que le kramail n'adopte pas) :
+    // --kr-marge-page neutralisée, la marge de la carte retombe à 0 comme celle du message du kramail. Lié à D3 (plan de l'entrée 8) ; à revoir
+    // si les cartes à 8 px s'étendent au kramail.
+    const css = c.cle === 'forum' && c.mobile ? SANS_MARGE_PAGE : '';
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, bundle: c.base ? BASE_BUNDLE : APRES, css });
     const m = await o.page.evaluate(MESURER_MESSAGES);
     await o.context.close();
     return { c, o, m };

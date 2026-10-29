@@ -1733,6 +1733,11 @@ const MASQUE_MODULES_96 = '.kr-mobile-overlay, .kr-tabs-indicator + .kr-tabs-ind
 // Appliqué seulement contre une base sans la classe kr-page-secondaire.
 const MASQUE_CIBLES_94 = '@media (max-width: 767px) { html.kr-page-secondaire body.mobile-mode :is(.radio, .checkbox) > label { min-height: 20px !important; }'
   + ' html.kr-page-secondaire body.mobile-mode :is(.radio, .checkbox):not(#kr-tamper-theme-form *) > label { align-items: normal !important; } }';
+// Masque de l'entrée 9.8 (forum mobile, cibles de 44 px) : lien du fil d'Ariane et nom de l'auteur d'un message à 44 px de large au
+// minimum, alerte de tête à croix de 44 x 44 (contrôlés par forum-activite, fragment confort). Posé des deux côtés (min-width 0 et alerte
+// retirée du rendu), seulement contre une base sans la classe de page kr-page-forum. Retirer quand COMMIT_NETTOYAGE passe au-delà de 9.8.
+const MASQUE_FORUM_98 = '@media (max-width: 767px) { body.mobile-mode #col-right :is(.forum-mobile-breadcrumb-link, .user-info > strong a) { min-width: 0 !important; }'
+  + ' body.mobile-mode #col-right > .alert-dismissible { display: none !important; } }';
 const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
@@ -1756,16 +1761,17 @@ const modaleMobileFinie = async page => {
   await waitState(page, () => document.querySelector('.modal.in .kr-tabs-indicator'), null, { maxMs: PRET_MS });
   await domQuiet(page, { quietMs: 300, maxMs: PRET_MS, label: 'modale d\'ordre mobile' });
 };
+const masqueForum98 = /classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avantNettoyage) ? '' : MASQUE_FORUM_98;
 // Pages : def, prep, m (bloc M1 ou M2 : rendu à 768 px changé par rapport à la base non décalée), lignes (tr:active du forum mobile).
 const PAGES_NETTOYAGE = {
   plateau: { def: PAGES_ECHELLE.plateau },
   'plateau-minimal': { def: { url: BASE + '/jouer/plateau', html: lire('plateau-minimal.html') } },
   champ: { def: PAGES_ECHELLE.materiel },
   'modale-ordre': { def: PAGES_BOUTONS['modale-ordre'], prep: async page => { await ouvrirModaleOrdre(page, PAGES_BOUTONS['modale-ordre']); await modaleMobileFinie(page); } },
-  'sous-forum': { def: PAGES_FORUM['sous-forum'], lignes: true },
+  'sous-forum': { def: PAGES_FORUM['sous-forum'], lignes: true, masqueDeux: masqueForum98 },
   staff: { def: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') }, lignes: true },
-  racine: { def: PAGES_FORUM.racine, lignes: true },
-  sujet: { def: PAGES_FORUM.sujet },
+  racine: { def: PAGES_FORUM.racine, lignes: true, masqueDeux: masqueForum98 },
+  sujet: { def: PAGES_FORUM.sujet, masqueDeux: masqueForum98 },
   'redaction-forum': { def: PAGES_FORUM.redaction },
   reception: { def: PAGES_FORUM.reception, m: true },
   nouveau: { def: PAGES_FORUM.nouveau, m: true },
@@ -1948,8 +1954,8 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Quatre masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
-// testé, Interface) et les dossiers du kramail retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) ; sinon bundle testé, base du nettoyage et
+// Cinq masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
+// testé, Interface), MASQUE_FORUM_98 (deux côtés, pages du forum) et les dossiers du kramail retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) ; sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '' }) => {
   const p = PAGES_NETTOYAGE[nom];
@@ -1985,8 +1991,8 @@ if (on('nettoyage')) {
   const cas = Object.keys(PAGES_NETTOYAGE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_NETTOYAGE.map(width => ({ nom, variante, width }))));
   const res = await mapLimit(cas, async c => {
     const p = PAGES_NETTOYAGE[c.nom];
-    const a = await ouvrirNettoyage({ ...c, script: userscript, css: p.masque || '' });
-    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : '' });
+    const a = await ouvrirNettoyage({ ...c, script: userscript, css: `${p.masque || ''} ${p.masqueDeux || ''}` });
+    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: `${AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : ''} ${p.masqueDeux || ''}` });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).

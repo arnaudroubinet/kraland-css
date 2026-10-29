@@ -97,7 +97,7 @@ export const SUITES = [
   // états d'injection (début : largeur lue 981 ; body : largeur émulée), peau coupée, mini-chat (#flap) ; parcours flèche « dernier
   // message » de l'index et « premier non lu » du sous-forum ; lignes de l'index mobile d'au moins 72 px ; seuil 767/768/769 et bascule ;
   // ordinateur et Staff égaux au bundle de base ; « Envoyer » sous un message ouvert et accordéon ou modale sur une page du forum (ticket 12).
-  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux']], needsBootstrap: true },
+  { name: 'forum-activite', file: 'forum-activite.mjs', zones: ['forum-activite'], frags: [['ancres'], ['parcours'], ['lignes'], ['seuil'], ['bureau'], ['fil'], ['entete'], ['plus'], ['ligne'], ['envoyer'], ['panneaux'], ['confort']], needsBootstrap: true },
   // Kramail, thème (épopée 7, entrée 1) : gardes de page sur <html> (kr-page-kramail, liste / lecture / compose), injection en tête et au
   // DOMContentLoaded ; dossiers en Onglets de section libellés à 375 et 767 px, clair et sombre ; ordinateur (768, 1280) égal à la base figée.
   // Lecture (entrée 2) : message, fil et message de l'Envoi égaux au message de sujet du forum ; Répondre libellés, « ••• » ; 16 variantes.
@@ -221,6 +221,8 @@ export const KEYWORDS = [
   // Activité du forum (épopée 6, entrée 2) : ligne de l'index mobile (72 px au moins), ancres de message et mini-chat, lien « premier non
   // lu » du sous-forum, vérifiés par forum-activite.
   [/kr-page-forum-index\b[^{]*tbody\s*>\s*tr|location\.hash|scrollRestoration|flap|smart-redirect/, ['forum-activite']],
+  // Marge et cibles mobiles du forum (épopée 9, entrée 8, html.kr-page-forum, distincte de kr-page-forum-index) : fragment confort de forum-activite.
+  [/kr-page-forum(?![-\w])/, ['forum-activite']],
   // Fil d'Ariane commun de l'index et du sous-forum (épopée 6, entrée 3) : vérifié par le fragment fil de forum-activite.
   [/forum-mobile-breadcrumb|createForumBreadcrumb/, ['forum-activite']],
   // En-tête du sujet mobile (épopée 6, entrée 4) : barres d'actions et garde du sujet, vérifiées par le fragment entete de forum-activite.

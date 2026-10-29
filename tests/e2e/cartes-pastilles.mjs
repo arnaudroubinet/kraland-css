@@ -507,11 +507,16 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
+// Masque de l'entrée 9.8 (forum mobile, nom de l'auteur d'un message à 44 px de large au minimum, contrôlé par forum-activite, fragment
+// confort) : largeur minimale remise à 0 des deux côtés, pour le fragment forum seul et contre une base sans la classe de page
+// kr-page-forum. Retirer quand COMMIT_AVANT dépasse 9.8.
+const MASQUE_FORUM_98 = /classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avant) ? ''
+  : '@media (max-width: 767px) { body.mobile-mode #col-right .user-info > strong a { min-width: 0 !important; } }';
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
+      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true, css: frag === 'forum' ? MASQUE_FORUM_98 : '' });
       out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, undefined, MASQUE_INDICATEUR_96]), erreurs };
       await context.close();
     }
