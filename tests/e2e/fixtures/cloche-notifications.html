@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+	<meta charset="utf-8"/>
+	<title>FIXTURE Cloche des notifications (aucune donnée réelle)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<!-- FIXTURE SYNTHÉTIQUE d'une page de jeu (ticket 8.2) : barre reprise de kramail-reception.html (cloche à onclick natif
+	     « javascript:openReport();return false; »), contenu réduit à un paragraphe ; openReport recopiée verbatim de main.js
+	     (tests/e2e/vendor/parler/main.js, l.209-212), script synchrone en fin de body comme sur le site. -->
+	<base href="http://www.kraland.org/">
+	<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
+</head>
+<body>
+<!-- navbar -->
+<nav class="navbar navbar-inverse nomargin">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="accueil">Kraland</a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse navbar-collapse1">
+			<ul class="nav navbar-nav">
+				<li class="dropdown">
+					<a href="jouer" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Jouer <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="jouer/plateau">Plateau</a></li>
+						<li><a href="jouer/perso">Personnage</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="regles" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Règles <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="regles/base">Règles de Base</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="monde" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Monde <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="monde/evenements">Événements</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/rp">Jeu (RP)</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="communaute" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Communauté <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres">Membres</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="" onclick="javascript:openMap();return false;"><i class="fa fa-globe"></i></a></li>
+				<li><a href="" onclick="javascript:openReport();return false;"><i class="fa fa-bell"></i><span class="badge badge-danger">3</span></a></li>
+				<li><a href="kramail"><i class="fa fa-envelope"></i><span class="badge" id="badge"></span></a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-user"></i><span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres/edit"><i class="fa fa-user"></i> Modifier profil</a></li>
+						<li><a href="profil/interface"><i class="fa fa-cog"></i> Paramètres</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+</nav>
+<!-- /navbar -->
+<div id="content" class="container">
+	<div class="row">
+		<div class="col-md-12"><p>Contenu de page de jeu synthétique.</p></div>
+	</div>
+</div>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script>
+//open map
+
+function openMap( map )
+{
+	window.open( "map"+( map ? "/"+map : "" ),"Cybermonde","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=1040,height=660")
+}
+
+//open private report
+
+function openReport( link )
+{
+	window.open('report'+( link ? "/"+link : "" ),'private_report','width=600,height=600,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,copyhistory=yes,resizable=yes');
+}
+</script>
+</body>
+</html>
