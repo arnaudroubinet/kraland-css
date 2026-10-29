@@ -1017,3 +1017,27 @@ Doutes, à trancher à ta passe finale :
 - Points 6 (`rogne` à largeur nulle) et 7 de la revue laissés de côté par l'orchestrateur.
 - Conflits de fusion probables avec 9.8 et 9.10 : `confort-mobile.mjs`, `lib/router.mjs`, `router.test.mjs`, bloc mobile de `kraland-theme.css` après le FORUM.
 - `test:all` reste à lancer (interdit à l'implémenteur).
+
+## Ticket 9.11 — Parcours clés et captures de validation (in-review, 2026-10-29)
+
+Captures sur fixtures, bundle de 7bec452, Kraland clair et Empire Brun sombre : `/Users/arnaud/kraland-css-captures/9.11/` (168 PNG, noms `page_largeur_variante[_etat].png`), planches dans `planches/`, scripts et journaux dans `travail/` (`parcours.txt` : mesures étape par étape).
+
+À regarder à ta passe finale :
+- Planches `parcours-1_375`, `parcours-1_1280`, `parcours-2_1280`, `parcours-2_375`, `parcours-3_375`, `parcours-4_375` : chaque étape des quatre parcours d'EXPERIENCE.md.
+- `mini-profil` : plateau plié et déplié à 375 et 700 px.
+- `cartes-personnages` : cartes à 1100, 1280 et 1500 px.
+- `forum-epopees-5-6_1280` et `_375` : racine, index HRP, Débats, Communauté, sous-forum, sujet Communauté (rétro 5 A10, rétro 6 A8) ; index RP, sujet et réponse sont aussi aux quatre largeurs.
+- Modale Dormir : `plateau-ordre_*_modale-dormir.png`, et `_modale-dormir-defilee` en 375 (avertissement resté en haut).
+- Kramail contre forum : non refait, voir `/Users/arnaud/kraland-css-captures/7.9/`. Ces captures précèdent 9.9 : la marge mobile du kramail y est l'ancienne.
+
+Parcours en émulation (375×667 tactile et 1280×720) : les quatre vont au bout, sans envoi ni requête `/report` ; aucun débordement horizontal. Écarts proposés en report, accord d'Arnaud attendu à la passe finale :
+- D9.2 : barre d'onglets mobile, libellés longs plus larges que leur case de 75 px (case `flex: 1 1 0` de 75 px, libellé `nowrap` avec 32 px de padding). Personnage 96, Bâtiments 86, Employés 85 débordent sur toutes les pages, actifs ou non ; cibles chevauchées au bord droit ; barre de 385 px pour 375, qui défile de 10 px sur la page personnage et coupe Agir. Visible sur `perso_375_*.png`.
+- D9.3 : première case des accès rapides plus haute de 8 px (52 contre 44), à cause de la marge `.btn + .btn` de 8 px (`kraland-theme.css` l.4895) qui bat celle de la grille ; pas lié à l'état actif. Sans gras ni filet en mobile : voulu. Visible sur `plateau_375_*.png`. Ces boutons s'affichent-ils sur le vrai plateau mobile ?
+- D9.4 : /accueil absent de `KR_PAGE_CLASSES` (pas de `kr-marge-mobile`), texte à 0 px ; hors périmètre de l'épopée, à relever sur le vrai site.
+- D9.5 : bouton Contacts de la rédaction du kramail (`kd-contacts`) à 105×40, sous 44 px ; écart connu, hors périmètre de 9.9 (épopée 4).
+
+Limites :
+- Le personnage des fixtures s'appelle « Joueur » ou « Perso d'Essai », pas « Nerys ».
+- Les étapes sont enchaînées par fixtures (une page servie par lien suivi), pas par le vrai jeu ; l'enveloppe de P3 vient de la fixture de /accueil, `jeu-materiel` n'en ayant pas.
+- Aucun vrai téléphone, aucun clavier virtuel : c'est l'objet de ta passe manuelle.
+- Bloc de la croix à 12 px des bords (cibles, pas texte) : non reporté, à juger à l'œil.

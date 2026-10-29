@@ -247,3 +247,22 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-plateau-confort-mobile/story-kramail-mobile-marge-de-16-px-et-cibles-de-44-px-plan.md`
   summary: A9 : chevron de repli `span.clickable` dans un panneau autre que `.panel-default` (kramail, Contacts) non couvert par la règle des 44 px de l'entrée 9.9.
   evidence: aucun sur fixtures, relevé site réel à la passe finale (revue indépendante du ticket 9.9, 2026-10-29).
+
+## Reports du ticket 9.11, parcours clés et captures de validation (2026-10-29)
+
+- source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
+  summary: D9.2 : barre d'onglets mobile, libellés longs plus larges que leur case de 75 px ; cibles chevauchées, barre de 385 px pour 375. Accord d'Arnaud attendu à la passe finale.
+  evidence: 375 mobile, deux variantes : `li` en `flex: 1 1 0` (75 px), `a` en `inline-flex nowrap` avec 16 + 16 px de padding ; Personnage 96, Bâtiments 86, Employés 85 débordent sur toutes les pages, actifs ou non (le demi-gras n'ajoute qu'environ 4 px). `elementFromPoint` au bord droit de Personnage et Bâtiments = onglet suivant. Employés finit à x 384,7 ; sur la page personnage la barre défile de 10 px et coupe Agir à x −10.
+  status: proposé
+- source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
+  summary: D9.3 : première case des accès rapides plus haute de 8 px (152×52 contre 152×44) sur le plateau mobile. Accord d'Arnaud attendu à la passe finale.
+  evidence: fixture `plateau-qualite-usage`, 375 : Agir y 344, Matériel y 352. Cause : `.btn + .btn:where(:not([data-kr-dossier])) { margin-top: 8px !important }` (`kraland-theme.css` l.4895) bat le `margin: 0` de la grille (l.12569), la première case seule y échappe ; actif déplacé sur Matériel, Agir reste à 52 px. Gras et filet de l'actif réservés à `min-width: 768px` (l.12538), voulu. Boutons masqués sur `jeu-materiel` ; présence sur le vrai plateau mobile à vérifier.
+  status: proposé
+- source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
+  summary: D9.4 : /accueil (`body.page-accueil`) absent de `KR_PAGE_CLASSES` (pas de `kr-marge-mobile`), donc sans marge mobile de 16 px. Accord d'Arnaud attendu à la passe finale.
+  evidence: `cloche-notifications` à 375 : paragraphe du contenu à 0 px du bord ; /accueil absent de `KR_PAGE_CLASSES`, des entrées 1 et 4 et du spike 9.3. Relevé du vrai site à faire.
+  status: proposé
+- source_plan: `epic-plateau-confort-mobile/story-parcours-cles-et-captures-de-validation-plan.md`
+  summary: D9.5 : `button.kd-contacts` de la rédaction du kramail à 105×40, sous les 44 px d'EXPERIENCE P3 étape 5 et H9.1. Écart connu hors périmètre. Accord d'Arnaud attendu à la passe finale.
+  evidence: `kramail-nouveau` à 375, deux variantes ; laissé hors périmètre par 9.9 (`<button>`, épopée 4).
+  status: proposé
