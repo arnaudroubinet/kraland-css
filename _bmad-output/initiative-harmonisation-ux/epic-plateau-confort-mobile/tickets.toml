@@ -133,13 +133,24 @@ hitl = false
 risk = "low"
 
 [[entry]]
+id = 13
+type = "story"
+title = "Membres et fenêtre d'aide : marge de 16 px et cibles de 44 px"
+description = "Report de l'entrée 4 (revue du 2026-10-29) : sur mobile, la liste des Membres (/communaute/membres, liens de 34 px) et la fenêtre d'aide /help et /help/<part> (ouverte par openHelp, gabarit propre : barre de navigation puis #content.container > .row > h2, h4, p, pre, ul, sans #col-left ni #col-right, texte à 0 px du bord à 375 comme à 1280) reçoivent la marge de l'entrée 1 et des cibles d'au moins 44×44 px ; fixtures sur la structure relevée en lecture seule sur le site réel (relevé du 2026-10-29 pour /help, à compléter pour la liste des Membres)."
+verify = "Suite confort-mobile, fixtures de la liste des Membres et de /help, à 320, 375, 767 et 768 px : texte à 16 px des bords, cibles ≥ 44×44 par boîte et elementFromPoint, aucun débordement, 768 et 1280 px égaux à la base sauf la marge de /help si le plan la retient sur ordinateur ; npm run test:router vert."
+covers = ["CAP-10"]
+after = [1, 4]
+hitl = false
+risk = "low"
+
+[[entry]]
 id = 11
 type = "story"
 title = "Parcours clés et captures de validation"
 description = "Arnaud joue les quatre parcours clés d'EXPERIENCE.md en Kraland clair et Empire Brun sombre (Success signal de la spec) ; l'agent prépare d'abord les captures de validation à 1280, 1440, 1920 et 375×667, mini-profil plié et déplié à 375 et 700 px, cartes de personnages à 1100, 1280 et 1500 px, et y joint celles des épopées 5 et 6 (rétro 5, A10 ; rétro 6, A8), hors dépôt ; les écarts relevés deviennent des reports D9.n."
 verify = "Arnaud valide les captures et les quatre parcours ; chaque écart relevé est corrigé dans l'entrée ou reporté en D9.n avec l'accord d'Arnaud, consigné dans le plan de l'entrée."
 covers = ["CAP-10"]
-after = [1, 2, 4, 5, 6, 7, 8, 9, 10]
+after = [1, 2, 4, 5, 6, 7, 8, 9, 10, 13]
 hitl = true
 risk = "low"
 
@@ -150,6 +161,6 @@ title = "Refactor sweep"
 description = "Nettoyage de fin d'épopée, sans changement de rendu : périmètre fixé au départ depuis les plans et les reports D9.n ; candidats connus : bloc mobile des cartes (~l.5813-6090, un @media par règle, .dashboard-cards-grid en double, .dashboard-card h4 probablement mort), paddings morts de .container et des colonnes, min-height: 44px en dur (39 fois) au lieu de --kr-touch-target, grille d'actions dupliquée entre ≥ 768 et ≤ 767 (~l.13056-13118), .dashboard-section-header en double (~l.13123 et 13146), body.mobile-mode {} vide, --mobile-touch-target (~l.127) doublon de --kr-touch-target, jetons non lus (rétro 4, A5)."
 verify = "npm run test:all vert sur machine calme et sur le SHA exact, npm run test:router vert, lint:css et lint:js séparés verts, compte de !important qui ne monte pas, rendu égal à l'arbre d'avant le sweep sur les fixtures des entrées 1 à 10."
 covers = ["CAP-10"]
-after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+after = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13]
 hitl = false
 risk = "medium"

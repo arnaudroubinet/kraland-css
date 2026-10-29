@@ -7,6 +7,7 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais suivre ta recommandation. » Chaque point ouvert ci-dessous prend la recommandation de l'orchestrateur. Les actions qui exigent Arnaud restent à sa main : clic sur la cloche (8.2, marque les notifications lues), session Kraland dans le Chrome dédié (spike 9.3, Signaler du 7.1, fixtures réelles du 7.2), essais sur téléphone, captures hitl (4.6, 6.1, 6.4, 7.9, 8.5, 9.11). A1 : aucune fusion vers `main`. Arnaud, 2026-10-28 : « Non pas de fusion vers main. On travail que sur next. » Tout le travail est livré sur `feature/next`.
 
+- Tickets hitl (téléphone, captures, validations visuelles) : Arnaud, 2026-10-28 : « tu test via emulateur. ça me suffit. Quand tout seras fini (tous les tickets) je ferais une passe manuelle. pas avant. » L'orchestrateur les vérifie en émulation, sans attendre ; ce qui reste à voir est noté pour la passe finale d'Arnaud.
 - 8.3 : aucun `!important`. La marge en ligne de 10 px du bandeau est compensée par le padding-top du body sous la garde ; si un écart reste, il est consigné.
 - 9.7 (Q30.5) : le ticket reste dans l'épopée 9. Cercle et barre de PV gardent la couleur par niveau de santé, passée aux jetons.
 - A9 : base de `kramail-redaction` figée sur un SHA (tests seulement).
@@ -133,6 +134,8 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 - Push et PR de `feature/next` : aucun push fait.
 
 ## Visites du site réel faites en autonomie (lecture seule)
+
+- 2026-10-29 : relevé de structure (agent releve-site, Chrome dédié) : kramail (4 messages lus de la Réception et de l'Envoi), page Signaler, Interface, Contacts, `/aide` et `/help`. Variante non modifiée, aucun clic d'action. `/report` non visité : la cloche était active. Effet de bord possible : un sujet du forum Entraide ouvert en GET est peut-être passé en lu. Relevé hors dépôt dans `/tmp/kr-releve-2026-10-28/releve.md`.
 
 - 2026-10-23 : `/jouer/plateau` à 1280 px (Chrome dédié, CDP 9223), squelette du DOM des jauges du panneau seulement (classes, largeurs en ligne), relevé hors dépôt ; aucun clic, aucune action de jeu, variante non modifiée.
 
@@ -710,3 +713,11 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Les colonnes ajoutées après le chargement d'une page mobile passent de 10 ou 15 px à 0 px, sur toutes les pages, y compris hors du périmètre du ticket. Aucun test ne couvre ce cas. À trancher : accepter ce changement ou garder l'ancienne valeur.
 - `SANS_MARGE_PAGE` neutralise la marge du 9.1 dans les comparaisons à la base de cartes-pastilles et typographie-formes. Ces suites ne contrôlent donc plus la valeur de la marge : seule confort-mobile le fait. Le masque doit disparaître quand les bases seront ré-ancrées après la fusion (backlog 11).
 - La fixture `aide.html` est synthétique et la route `/aide` est supposée. Il reste à relever le chemin et la structure réels de l'Aide, en lecture seule.
+
+## Relevé du site réel du 2026-10-29 : suites données
+
+- 7.1, page Signaler : l'hypothèse « pas de formulaire » est infirmée. La page utilise le formulaire `post_msg` complet et déborde à 375 px (`#accordion`, scrollWidth 390). Ajouté au périmètre du 7.5 (rédaction).
+- 7.2 : un message tient sur une page, sans fil. La fixture n'a pas les deux formes réelles de l'auteur, la ligne des destinataires ni la signature. Le sélecteur de l'expéditeur (`.cartouche strong a`, template ~l.6280) rate la forme réelle la plus courante : sur mobile, le lien de l'expéditeur pointe vers `#`. Transmis à impl-72.
+- 9.1, Aide : la route `/aide` est confirmée, la marge de 16 px est juste. La fixture `aide.html` a une structure plus riche que la page réelle (colonne `col-md-6`, ni panneau ni `h1`). La fenêtre `/help` (ouverte par `openHelp`) a un autre gabarit, non gardé, texte à 0 px du bord : à traiter dans le 9.4 ou en report.
+- Spike 9.3 complété : Interface et Contacts relevés (sans garde, texte à 0 px du bord sur Interface, cibles de 20 à 34 px). Sur mobile, Contacts reçoit à tort la peau du forum : ajouté au 7.8. Recherche et modération du forum introuvables sur ce compte.
+

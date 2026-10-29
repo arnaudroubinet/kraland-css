@@ -80,7 +80,7 @@ InitQueue.register('nom-module', function() { /* ... */ }, priority);
 ## Faits du site Kraland
 
 - HTTP uniquement (pas de HTTPS) : un navigateur réel a besoin de désactiver l'upgrade HTTPS
-- `/report` : un seul GET marque toutes les notifications comme lues. Ne jamais le précharger
+- `/report` : un seul GET marque toutes les notifications comme lues. Ne jamais le précharger. Exception : si la cloche n'est pas active (aucune notification non lue : ni pastille, ni compteur), un GET sur `/report` est permis, car il n'y a rien à marquer. Vérifier la cloche juste avant l'accès (Arnaud, 2026-10-29)
 - Listes de sujets, 3 états d'icône : `i.fa.fa-folder`, `i.fa.fa-folder-open:not(.far)`, `i.far.fa-folder-open`
 - Menus de forums : la liste latérale native affichée est la source de vérité (pas de clé par personnage) ; un forum sans accès est retiré
 - Pièces du plateau : conserver l'ordre DOM natif. Icônes remplacées : repli sur l'URL d'origine
