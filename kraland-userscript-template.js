@@ -842,6 +842,9 @@
             if (/^\/kramail\/(?!post\/)[^/]+$/.test(a.pathname)) {a.setAttribute('data-kr-dossier', '');}
           });
         }
+      } else if (/^\/contacts(\/|$)/.test(path)) {
+        // Contacts (épopée 7, entrée 8) : en-tête du kramail, carte de section et boutons standard (module Contacts:Page)
+        document.documentElement.classList.add('kr-page-contacts');
       } else if (krForumNormalizePath(path) === '/forum') {
         // Racine du forum (liste de tous les forums) : page-forum-racine seule, page-forum activerait tous les modules de /forum/…
         document.body.classList.add('page-forum-racine');
@@ -5182,7 +5185,8 @@
 
     function initPagination() {
       const topics = document.getElementById('topics');
-      const liste = document.body.classList.contains('page-forum') || document.documentElement.classList.contains('kr-page-kramail-liste');
+      const root = document.documentElement.classList;
+      const liste = document.body.classList.contains('page-forum') || root.contains('kr-page-kramail-liste') || root.contains('kr-page-contacts');
       if (!topics || !liste || typeof jQuery === 'undefined') {return;}
       compactPagination(topics);
       jQuery(topics).on('draw.dt', () => compactPagination(topics));
@@ -5488,8 +5492,8 @@
         return;
       }
 
-      // Ne pas exécuter sur les pages kramails (structure différente)
-      if (window.location.pathname.includes('/kramail')) {
+      // Ne pas exécuter sur les pages kramails ni sur les contacts (structure différente, en-tête du kramail)
+      if (window.location.pathname.includes('/kramail') || document.documentElement.classList.contains('kr-page-contacts')) {
         return;
       }
 
@@ -5863,13 +5867,27 @@
       h1.classList.add('kr-kramail-entete');
     }
 
+    // Contacts (épopée 7, entrée 8), mobile : fil « Contacts › titre », titre = texte direct du h1 ; aucun sélecteur
+    function buildContactsHead(h1) {
+      const text = Array.from(h1.childNodes).filter(n => n.nodeType === Node.TEXT_NODE).map(n => n.data).join(' ').replace(/\s+/g, ' ').trim();
+      if (!text) {return;}
+      const title = document.createElement('span');
+      title.textContent = text;
+      buildMobileHead(h1, [{ label: getActiveTitleLabel() || 'Contacts', href: 'contacts' }], text, title);
+    }
+
     function initKramailCharacterSwitcher() {
       const root = document.documentElement.classList;
-      if (!root.contains('kr-page-kramail')) {return;}
+      const contacts = root.contains('kr-page-contacts');
+      if (!root.contains('kr-page-kramail') && !contacts) {return;}
       const mobile = document.body.classList.contains('mobile-mode');
       const h1 = document.querySelector('#col-right h1.page-header') || document.querySelector('h1.page-header');
       const colLeft = document.getElementById('col-left');
       if (!h1 || !colLeft || h1.classList.contains('kr-kramail-entete')) {return;}
+      if (contacts) {
+        if (mobile) {buildContactsHead(h1);}
+        return;
+      }
 
       const characters = readCharacters(colLeft);
       const kramailCrumb = { label: getActiveTitleLabel() || KRAMAIL_LABEL, href: 'kramail' };
@@ -5916,7 +5934,8 @@
     // Passage en mode mobile sans rechargement : l'en-tête mobile est construit à ce moment.
     // Pages du kramail seulement ; déconnecté dès que la marque est posée (ou dès le passage mobile : l'init n'a plus rien à faire)
     function observeMobileMode() {
-      if (!document.documentElement.classList.contains('kr-page-kramail')) {return;}
+      const root = document.documentElement.classList;
+      if (!root.contains('kr-page-kramail') && !root.contains('kr-page-contacts')) {return;}
       const marked = () => !!document.querySelector('h1.page-header.kr-kramail-entete');
       if (marked()) {return;}
       const observer = new MutationObserver(() => {
@@ -6109,6 +6128,84 @@
     }
 
     InitQueue.register('Kramail:Liste', initKramailListe, 27);
+  })();
+
+  // ============================================================================
+  // MODULE : Contacts:Page (épopée 7, entrée 8)
+  // /contacts (garde kr-page-contacts) : boutons de catégorie du titre et boutons des lignes en bouton standard (les classes d'état de
+  // Bootstrap ne servent qu'aux états, DESIGN.md › Palette d'états), sauf « Changer de catégorie » des lignes, qui garde la couleur de sa catégorie ; la catégorie courante en btn-primary (chemin exact, sinon la première
+  // quand le chemin n'a pas de suffixe de catégorie). Les catégories sans texte, de même icône, sont libellées d'après leur chemin
+  // (data-kr-libelle et texte réel : « Toutes », « n°1 »…). Recherche et « Afficher » nommées ; sur mobile, un toucher dans la cellule de la case la coche.
+  // En-tête mobile : Kramail:CharacterSwitcher ; carte, contrôles et pagination : règles du kramail étendues (CSS « CONTACTS »).
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    const ETATS = ['btn-danger', 'btn-warning', 'btn-info', 'btn-success'];
+
+    // Libellé lu au chemin, pas au title (retiré sur mobile par disableTooltips) : …/N = catégorie n°N, sans suffixe = toutes
+    function libelle(a) {
+      const n = /\/(\d+)$/.exec(a.pathname);
+      return n ? 'n°' + n[1] : 'Toutes';
+    }
+
+    function sansEtat(liens) {
+      liens.forEach(a => {
+        if (ETATS.some(c => a.classList.contains(c))) {
+          a.classList.remove(...ETATS);
+          a.classList.add('btn-default');
+        }
+      });
+    }
+
+    function nameControls() {
+      const search = document.querySelector('#topics_filter input');
+      if (search) {
+        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les contacts');}
+      }
+      const length = document.querySelector('#topics_length select');
+      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de contacts par page');}
+    }
+
+    function initContacts() {
+      if (!document.documentElement.classList.contains('kr-page-contacts')) {return;}
+      const col = document.getElementById('col-right');
+      if (!col) {return;}
+      sansEtat(col.querySelectorAll('h1.page-header .pull-right > a.btn'));
+      const boutons = Array.from(col.querySelectorAll('h1.page-header .pull-right > a.btn[href]'));
+      const courant = boutons.find(a => a.pathname === location.pathname) || (/\/\d+$/.test(location.pathname) ? null : boutons[0]);
+      boutons.forEach(a => {
+        if (!a.textContent.trim()) {
+          const texte = libelle(a);
+          a.setAttribute('data-kr-libelle', texte);
+          a.append(' ', Object.assign(document.createElement('span'), { textContent: texte }));
+        } else {
+          a.setAttribute('data-kr-libelle', a.textContent.trim());
+        }
+        a.classList.toggle('btn-primary', a === courant);
+        a.classList.toggle('btn-default', a !== courant);
+      });
+      const topics = document.getElementById('topics');
+      if (!topics) {return;}
+      // Lignes et contrôles repris à chaque redessin de DataTables (page, tri, recherche) et à chaque changement de catégorie en AJAX
+      const processAll = () => {
+        // « Changer de catégorie » (span#ajax-tN) garde sa classe d'état native : elle dit la catégorie du contact
+        sansEtat(Array.from(topics.querySelectorAll('tbody a.btn')).filter(a => !a.closest('span[id^="ajax-t"]')));
+        nameControls();
+      };
+      processAll();
+      new MutationObserver(processAll).observe(topics.parentElement, { childList: true, subtree: true });
+      topics.addEventListener('click', function (e) {
+        if (!document.body.classList.contains('mobile-mode')) {return;}
+        const td = e.target.closest('td');
+        if (!td || td !== td.parentElement.cells[0] || e.target.closest('input, a')) {return;}
+        const box = td.querySelector('input[type="checkbox"]');
+        if (box) {box.click();}
+      });
+    }
+
+    InitQueue.register('Contacts:Page', initContacts, 27);
   })();
 
   // ============================================================================

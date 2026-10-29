@@ -26,7 +26,7 @@
 - source_plan: `epic-palette-nation/story-palette-d-etats-reservee-aux-etats-et-une-seule-couleur-non-plan.md`
   summary: Boutons de la page Contacts et « Pas un contact » (orange) : relever, en lecture seule, leurs classes et leur page, puis les passer au style standard ou primaire (DESIGN.md › Palette d'états : actions ordinaires).
   evidence: Ni fixture ni classe de page pour les viser. Depuis le ticket 3.5, s'ils portent `.btn-warning`, `.btn-success`, `.btn-danger` ou `.btn-info`, ils prennent les règles communes des boutons d'état (ou la paire d'action pour `.btn-info`), sans vérification.
-  status: repris par l'entrée 7.8 (`epic-kramail-mobile/tickets.toml`, 2026-10-28).
+  status: partiellement repris par 7.8 (boutons de /contacts) ; « Pas un contact » reste ouvert, voir « Reports du ticket 7.8 ».
 
 - source_plan: `epic-palette-nation/story-refactor-sweep-plan.md`
   summary: Le contrôle « croix de fermeture, opacité 1 » de `modale-ordre.mjs` (fragment variantes) peut mesurer la croix pendant le fondu d'ouverture de la modale et échouer (opacité effective 0.937, confederation-libre, 1280 px).
@@ -209,3 +209,12 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `_bmad-output/initiative-harmonisation-ux/epic-kramail-mobile/story-la-palette-privee-kd-est-retiree-au-profit-des-jetons-de-rol-plan.md`
   summary: Doublon et croix ciblée du champ Destinataires sous 3:1 en Kraland, Paladium, Khanat et Ruthvénie sombres (filet d'accent sur la teinte appuyée à 32 % du même accent).
   evidence: Mesuré par kramail-theme#redaction-palette sans HERITES_CONTRASTE : 2,68, 2,43, 2,84 et 2,72:1, identiques sur la base 0b27dc2. Résolu dans le ticket 7.6 (2026-10-29) : filet et contour en `--kr-text-primary`, fonds inchangés, exception retirée du test.
+
+## Reports du ticket 7.8, page Contacts (2026-10-29)
+
+- source_plan: `epic-kramail-mobile/story-la-page-contacts-reprend-la-carte-de-section-et-les-boutons-plan.md`
+  summary: Bouton « Pas un contact » (orange, report 3.5) : relever, en lecture seule, sa page, sa classe et son contexte, puis le passer au style standard ou primaire (DESIGN.md › Palette d'états).
+  evidence: introuvable dans le relevé du 2026-10-28, dans les fixtures et dans la structure de /contacts (ticket 7.8). Aucune page ni classe ne permet de le viser.
+- source_plan: `epic-kramail-mobile/story-la-page-contacts-reprend-la-carte-de-section-et-les-boutons-plan.md`
+  summary: Pour le sweep (entrée 10) : `Contacts:Page` duplique, dans `Kramail:Liste`, deux blocs : `nameControls` (seuls les noms changent) et le toucher de la cellule de case. Ne pas les factoriser avant le sweep.
+  evidence: revue indépendante du ticket 7.8 (2026-10-29) ; doublon voulu, pour que le ticket reste petit.

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+	<meta charset="utf-8"/>
+	<title>FIXTURE Contacts (aucune donnée réelle)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<!-- css -->
+	<base href="http://www.kraland.org/">
+	<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
+	<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css" />
+	<!-- /css -->
+	<style>.invisible { visibility: hidden; display: none; } table.dataTable { width: 100%; clear: both; } table.dataTable thead th, table.dataTable tbody td { padding: 8px 10px; }</style>
+</head>
+<body>
+<!-- navbar -->
+<nav class="navbar navbar-inverse nomargin">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="accueil">Kraland</a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse navbar-collapse1">
+			<ul class="nav navbar-nav">
+				<li class="dropdown">
+					<a href="jouer" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Jouer <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="jouer/plateau">Plateau</a></li>
+						<li><a href="jouer/materiel">Matériel</a></li>
+						<li><a href="jouer/perso">Personnage</a></li>
+						<li><a href="jouer/bat">Bâtiments</a></li>
+						<li><a href="jouer/pnj">Employés</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="regles" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Règles <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="regles/base">Règles de Base</a></li>
+						<li><a href="regles/avancees">Règles Avancées</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Vocations</li>
+						<li><a href="regles/carrieres">Carrières</a></li>
+						<li><a href="regles/types">Types</a></li>
+						<li><a href="regles/politique">Politique</a></li>
+						<li><a href="regles/combat">Combat</a></li>
+						<li><a href="regles/pouvoir">Pouvoir</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Gestion Publique</li>
+						<li><a href="regles/ville">Gestion de Ville</a></li>
+						<li><a href="regles/province">Gestion de Province</a></li>
+						<li><a href="regles/empire">Gestion d'Empire</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Annexes</li>
+						<li><a href="regles/provinces">Provinces</a></li>
+						<li><a href="regles/materiel">Liste du Matériel</a></li>
+						<li><a href="regles/batiments">Liste des Bâtiments</a></li>
+						<li><a href="regles/bestiaire">Le Bestiaire</a></li>
+						<li><a href="regles/ordres">Liste des Ordres</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="monde" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Monde <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="monde/citoyens">Citoyens</a></li>
+						<li><a href="monde/empires">Empires</a></li>
+						<li><a href="monde/organisations">Organisations</a></li>
+						<li><a href="monde/evenements">Événements</a></li>
+						<li><a href="monde/guide">Guide du Monde</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/rp">Jeu (RP)</a></li>
+						<li><a href="forum/hrp">Jeu (HRP)</a></li>
+						<li><a href="forum/communaute">Communauté</a></li>
+						<li><a href="forum/debats">Débats</a></li>
+						<li class="divider"></li>
+						<li><a href="forum/top20">Top 20</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="communaute" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Communauté <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres">Membres</a></li>
+						<li><a href="communaute/chat">Mini-Chat</a></li>
+						<li><a href="communaute/soutien">Soutenir le Site</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Mini-Jeux</li>
+						<li><a href="communaute/civikra">Civikra</a></li>
+						<li><a href="communaute/krasolo">Kraland Solo</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="" onclick="javascript:openMap();return false;"><i class="fa fa-globe"></i></a></li>
+				<li><a href="" onclick="javascript:openReport();return false;"><i class="fa fa-bell"></i><span class="badge badge-danger"></span></a></li>
+				<li><a href="kramail"><i class="fa fa-envelope"></i><span class="badge" id="badge"></span></a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-user"></i><span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<form method="post" id="reconnect" action="reconnect">
+							<input type="hidden" name="t" value="FIXTURE">
+						</form>
+						<form method="post" id="exit" action="exit">
+							<input type="hidden" name="t" value="FIXTURE">
+						</form>
+						<li><a href="communaute/membres/edit"><i class="fa fa-user"></i> Modifier profil</a></li>
+						<li><a href="profil/interface"><i class="fa fa-cog"></i> Paramètres</a></li>
+						<li><a href="contacts"><i class="fa fa-users"></i> Contacts</a></li>
+						<li><a href="profil/notes"><i class="fas fa-file-signature"></i> Notes</a></li>
+						<li><a href="aide"><i class="fa fa-medkit"></i> A l'aide !</a></li>
+						<li class="divider"></li>
+						<li><a href="javascript:document.getElementById('reconnect').submit();"><i class="fa fa-sync-alt"></i> Reconnexion</a></li>
+						<li><a href="javascript:document.getElementById('exit').submit();"><i class="fa fa-sign-out-alt"></i> Déconnexion</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+</nav>
+<!-- /navbar --> 
+<!-- content -->
+<div id="content" class="container">
+	<div class="row">
+		<!-- Fixture synthétique de /contacts (épopée 7, entrée 8). Structure relevée en lecture seule sur le site réel le 2026-10-29 (titre à 6 boutons de
+     catégorie, form#list_msg > .panel > #topics_wrapper DataTables à 5 colonnes) ; noms, liens et contenu des cellules inventés. -->
+		<div id="col-left" class="col-md-3 sidebar">
+			<!-- submenu -->
+			<div class="mini-submenu navbar-default">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</div>
+			<div id="player-header-section" class="list-group">
+				<span class="list-group-item active">
+					Contacts
+					<span class="pull-right" id="slide-submenu">
+		  				<i class="fa fa-times"></i>
+					</span>
+				</span>
+				<a href="contacts" class="list-group-item">Membre fictif</a>
+				<a href="contacts/personnage-fictif-1" class="list-group-item">Personnage fictif</a>
+			</div>
+			<!-- /submenu -->
+
+		</div>
+		<div id="col-right" class="col-md-9">
+			<h1 class="page-header">Membre fictif
+				<span class="pull-right">
+					<a href="contacts/membre-fictif-0" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Toutes les catégories"><i class="fa fa-user"></i></a>
+					<a href="contacts/membre-fictif-0/1" class="btn btn-danger" data-toggle="tooltip" data-placement="bottom" title="Catégorie n°1"><i class="fa fa-user"></i></a>
+					<a href="contacts/membre-fictif-0/2" class="btn btn-warning" data-toggle="tooltip" data-placement="bottom" title="Catégorie n°2"><i class="fa fa-user"></i></a>
+					<a href="contacts/membre-fictif-0/3" class="btn btn-info" data-toggle="tooltip" data-placement="bottom" title="Catégorie n°3"><i class="fa fa-user"></i></a>
+					<a href="contacts/membre-fictif-0/4" class="btn btn-success" data-toggle="tooltip" data-placement="bottom" title="Catégorie n°4"><i class="fa fa-user"></i></a>
+					<a href="contacts/membre-fictif-0/5" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Catégories"><i class="fa fa-user"></i> Catégories</a>
+				</span>
+			</h1>
+			<form id="list_msg" name="list_msg" method="post" action="contacts" class="form-horizontal">
+				<input type=hidden name="a" value=3>
+				<input type=hidden name="t" value="FIXTURE">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title"><i class="fa fa-user"></i> Contacts</h3>
+						<span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+					</div>
+					<div class="panel-body">
+						<div id="topics_wrapper" class="dataTables_wrapper no-footer"><div class="dataTables_length" id="topics_length"><label>Afficher <select name="topics_length" aria-controls="topics"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> lignes</label></div><div id="topics_filter" class="dataTables_filter"><label>Rechercher<input type="search" placeholder="" aria-controls="topics"></label></div>
+						<table class="display dataTable no-footer" id="topics" role="grid">
+							<thead>
+								<tr role="row">
+									<th class="sorting_disabled" style="width:35px;">
+										<div class="btn-group">
+											<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">+</button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a><input type="checkbox" name="allbox" id="allbox"><label for="allbox" class="label-simple">&nbsp;Tout sélectionner</label></a></li>
+												<li><a class="alertdel"><i class="far fa-trash-alt"></i>&nbsp;Retirer les contacts sélectionnés</a></li>
+											</ul>
+										</div>
+									</th>
+									<th class="sorting_asc">Nom</th>
+									<th class="sorting">Catégorie</th>
+									<th class="sorting">Actions</th>
+									<th class="sorting">Retirer</th>
+								</tr>
+							</thead>
+							<tbody>
+							<tr class="odd" role="row" style="background: none">
+								<td class="center"><input type="checkbox" name="n[]" value="3000001"></td>
+								<td class="sorting_1"><span class="invisible">Marelle Duvent</span><a href="communaute/membres/marelle-duvent-1-1" class="nomargin">Marelle Duvent</a></td>
+								<td><span id="ajax-t3000001"><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Changer de catégorie"><i class="fa fa-user"></i></a></span></td>
+								<td><a href="kramail/post/nouveau-4-1000" class="btn btn-default" data-toggle="tooltip" title="Écrire"><i class="fa fa-envelope"></i></a> <a href="communaute/membres/marelle-duvent-1-1" class="btn btn-default" data-toggle="tooltip" title="Profil"><i class="fa fa-id-card"></i></a></td>
+								<td><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Retirer"><i class="far fa-trash-alt"></i></a></td>
+							</tr>
+							<tr class="even" role="row" style="background: none">
+								<td class="center"><input type="checkbox" name="n[]" value="3000002"></td>
+								<td class="sorting_1"><span class="invisible">Omar Sablier</span><a href="communaute/membres/omar-sablier-1-2" class="nomargin">Omar Sablier</a></td>
+								<td><span id="ajax-t3000002"><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Changer de catégorie"><i class="fa fa-user"></i></a></span></td>
+								<td><a href="kramail/post/nouveau-4-1000" class="btn btn-default" data-toggle="tooltip" title="Écrire"><i class="fa fa-envelope"></i></a> <a href="communaute/membres/omar-sablier-1-2" class="btn btn-default" data-toggle="tooltip" title="Profil"><i class="fa fa-id-card"></i></a></td>
+								<td><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Retirer"><i class="far fa-trash-alt"></i></a></td>
+							</tr>
+							<tr class="odd" role="row" style="background: none">
+								<td class="center"><input type="checkbox" name="n[]" value="3000003"></td>
+								<td class="sorting_1"><span class="invisible">Robot fictif</span><a href="communaute/membres/robot-fictif-1-3" class="nomargin">Robot fictif</a></td>
+								<td><span id="ajax-t3000003"><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Changer de catégorie"><i class="fa fa-user"></i></a></span></td>
+								<td><a href="kramail/post/nouveau-4-1000" class="btn btn-default" data-toggle="tooltip" title="Écrire"><i class="fa fa-envelope"></i></a> <a href="communaute/membres/robot-fictif-1-3" class="btn btn-default" data-toggle="tooltip" title="Profil"><i class="fa fa-id-card"></i></a></td>
+								<td><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Retirer"><i class="far fa-trash-alt"></i></a></td>
+							</tr>
+							<tr class="even" role="row" style="background: none">
+								<td class="center"><input type="checkbox" name="n[]" value="3000004"></td>
+								<td class="sorting_1"><span class="invisible">Isidore Pompon</span><a href="communaute/membres/isidore-pompon-1-4" class="nomargin">Isidore Pompon</a></td>
+								<td><span id="ajax-t3000004"><a href="#" onclick="return false;" class="btn btn-warning" data-toggle="tooltip" title="Changer de catégorie"><i class="fa fa-user"></i></a></span></td>
+								<td><a href="kramail/post/nouveau-4-1000" class="btn btn-default" data-toggle="tooltip" title="Écrire"><i class="fa fa-envelope"></i></a> <a href="communaute/membres/isidore-pompon-1-4" class="btn btn-default" data-toggle="tooltip" title="Profil"><i class="fa fa-id-card"></i></a></td>
+								<td><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Retirer"><i class="far fa-trash-alt"></i></a></td>
+							</tr>
+							<tr class="odd" role="row" style="background: none">
+								<td class="center"><input type="checkbox" name="n[]" value="3000005"></td>
+								<td class="sorting_1"><span class="invisible">Zélie Grenat</span><a href="communaute/membres/zelie-grenat-1-5" class="nomargin">Zélie Grenat</a></td>
+								<td><span id="ajax-t3000005"><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Changer de catégorie"><i class="fa fa-user"></i></a></span></td>
+								<td><a href="kramail/post/nouveau-4-1000" class="btn btn-default" data-toggle="tooltip" title="Écrire"><i class="fa fa-envelope"></i></a> <a href="communaute/membres/zelie-grenat-1-5" class="btn btn-default" data-toggle="tooltip" title="Profil"><i class="fa fa-id-card"></i></a></td>
+								<td><a href="#" onclick="return false;" class="btn btn-default" data-toggle="tooltip" title="Retirer"><i class="far fa-trash-alt"></i></a></td>
+							</tr>
+							</tbody>
+						</table>
+						<div class="dataTables_info" id="topics_info" role="status" aria-live="polite">Affiche 1 à 5 de 62 lignes</div><div class="dataTables_paginate paging_simple_numbers" id="topics_paginate"><a class="paginate_button previous disabled" aria-controls="topics" data-dt-idx="0" tabindex="0" id="topics_previous">Précédent</a><span><a class="paginate_button current" aria-controls="topics" data-dt-idx="1" tabindex="0">1</a><a class="paginate_button" aria-controls="topics" data-dt-idx="2" tabindex="0">2</a><a class="paginate_button" aria-controls="topics" data-dt-idx="3" tabindex="0">3</a></span><a class="paginate_button next" aria-controls="topics" data-dt-idx="4" tabindex="0" id="topics_next">Suivant</a></div></div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<!-- /content -->
+<!-- top-link -->
+<span id="top-link" class="hidden">
+	<a href="#top" class="well well-sm"  onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+		<i class="glyphicon glyphicon-chevron-up"></i>
+	</a>
+</span>
+<!-- /top-link -->
+<!-- footer -->
+<footer class="navbar-inverse">
+	<div class="container white">
+		<div class="footer-quote">&laquo; La femme a le droit de monter à l'échafaud, elle doit avoir également le droit de monter à la tribune. &raquo; (Olympe de Gouges)</div>
+		<div style="margin-top:5px;text-align:right;font-size:10px;">
+								<a href="" onclick="javascript:openHelp('');return false;" style="color:inherit;">Mentions légales</a> |
+								<a href="" onclick="javascript:openHelp('defkra');return false;" style="color:inherit;">Defkra 5</a> |
+Généré en 0.03 sec. | FIXTURE 		</div>
+	</div>
+</footer>
+<!-- /footer -->
+<!-- js -->
+<!-- /js -->
+<!-- js (fixture : jQuery 3.3.1 et Bootstrap 3.3.7 du dépôt ; extrait verbatim de main.js : tooltip) -->
+<script>
+var lang = 1;
+var topbar = 0;
+</script>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script>
+// Active tooltip
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+<!-- /js -->
+</body>
+</html>

@@ -417,8 +417,11 @@ if (on('kramail')) {
     assert.deepEqual(ecarts, [], ecarts.join(' ; '));
   });
   check('statique : règles du kramail ciblées sans marge (raccourci et 4 côtés), fond ni --kr-text-accent ; règle d\'en-tête du kramail retirée', () => {
+    // Épopée 7, entrée 8 : la garde du kramail devient :is(body.page-kramail, :where(html.kr-page-contacts) body), même spécificité ; les
+    // deux écritures sont lues, pour rejouer un bundle antérieur (KR_SCRIPT).
+    const contacts = sel => sel.replace('body.page-kramail', ':is(body.page-kramail, :where(html.kr-page-contacts) body)');
     const ecarts = REGLES_KRAMAIL_TICKET51.flatMap(([sel, absentes]) => {
-      const l = rs.filter(r => r.sel === sel);
+      const l = rs.filter(r => r.sel === sel || r.sel === contacts(sel));
       if (absentes === null) { return l.map(r => `${r.media || 'global'} ${sel} présente`); }
       if (!l.length) { return [`${sel} absente`]; }
       return l.flatMap(r => [...absentes.filter(p => r.d[p]).map(p => `${sel} { ${p}: ${r.d[p][0]} }`),

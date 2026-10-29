@@ -9148,19 +9148,19 @@ body > map {
   }
 
   /* En-tête du sous-forum (fil d'Ariane, titre, règles communes en fin de feuille) ; la barre de boutons suit, à 12 px */
-  body.page-kramail h1.page-header.kr-kramail-entete {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header.kr-kramail-entete {
     margin: 12px 16px;
     padding: 0;
     border-bottom: 0;
     background: transparent;
   }
 
-  body.page-kramail h1.page-header.kr-kramail-entete > .pull-right {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header.kr-kramail-entete > .pull-right {
     margin-top: 12px;
   }
 
   /* Le span.pull-right qui contient TOUS les boutons : annuler le float */
-  body.page-kramail h1.page-header .pull-right {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right {
     float: none !important;
     display: flex !important;
     flex-wrap: wrap !important;
@@ -9172,8 +9172,8 @@ body > map {
   /* === 2. BOUTONS KRAMAIL — Icône-only, carrés 44×44px (scopé kramail) === */
 
   /* Style commun : boutons (a.btn) + bouton kebab (.btn-group > .btn). Dossiers en onglets exclus (voir 2 bis) */
-  body.page-kramail h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier])),
-  body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier])),
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > .btn-group > .btn {
     height: 44px !important;
     display: flex !important;
     align-items: center !important;
@@ -9189,8 +9189,8 @@ body > map {
   }
 
   /* Carrés à icône seule ; Répondre et Répondre à tous de la lecture sont libellés (2 ter) */
-  body.page-kramail h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier], [data-kr-libelle])),
-  body.page-kramail h1.page-header .pull-right > .btn-group > .btn {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn:not(:where([data-kr-dossier], [data-kr-libelle])),
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > .btn-group > .btn {
     width: 44px !important;
     padding: 0 !important;
     font-size: 0 !important;
@@ -9198,22 +9198,22 @@ body > map {
   }
 
   /* Icônes — taille et alignement uniformes */
-  body.page-kramail h1.page-header .pull-right > a.btn > i,
-  body.page-kramail h1.page-header .pull-right > .btn-group > .btn > i {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn > i,
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > .btn-group > .btn > i {
     font-size: 18px !important;
     line-height: 1 !important;
   }
 
   /* Bouton actif hors dossiers (btn-primary) */
-  body.page-kramail h1.page-header .pull-right > a.btn.btn-primary:not(:where([data-kr-dossier])) {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn.btn-primary:not(:where([data-kr-dossier])) {
     background: var(--kr-arm-bg, var(--kr-primary)) !important;
     border-color: var(--kr-primary-dark) !important;
     color: var(--kr-arm-ink, white) !important;
   }
 
   /* Feedback tactile */
-  body.page-kramail h1.page-header .pull-right > a.btn:active,
-  body.page-kramail h1.page-header .pull-right > .btn-group > .btn:active {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn:active,
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > .btn-group > .btn:active {
     transform: scale(0.97) !important;
     opacity: 0.9 !important;
   }
@@ -9254,7 +9254,8 @@ body > map {
 
   /* === 2 ter. LECTURE : Répondre et Répondre à tous libellés (épopée 7, entrée 2, Q22.1) ===
      Mêmes bord, fond et rayon que les carrés voisins ; largeur au libellé, partagée sur le rang ; les autres actions sont dans « ••• ». */
-  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle] {
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle],
+  :where(html.kr-page-contacts) body h1.page-header .pull-right > a.btn[data-kr-libelle] {
     flex: 1 1 auto;
     gap: var(--kr-space-1);
     padding: 0 var(--kr-space-3);
@@ -9335,23 +9336,23 @@ body > map {
   }
 
   /* === 4. PANEL BOÎTE DE RÉCEPTION (scopé kramail) === */
-  body.page-kramail .panel.panel-default {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel.panel-default {
     border: none !important;
     box-shadow: none !important;
   }
 
-  body.page-kramail .panel-heading h3.panel-title {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel-heading h3.panel-title {
     font-size: var(--kr-font-section-title) !important;
     font-weight: 700 !important;
   }
 
   /* Icône chevron collapse */
-  body.page-kramail .panel-heading .glyphicon-chevron-up {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel-heading .glyphicon-chevron-up {
     float: right !important;
     color: var(--kr-text-secondary) !important;
   }
 
-  body.page-kramail .panel-body {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel-body {
     padding: 0 !important;
   }
 
@@ -9871,13 +9872,13 @@ body.page-kramail .editeur-text #results hr {
 
 /* Bouton retour Réception — style cohérent avec inbox. Au bureau, graisse, rayon et survol en accent pour la rédaction seule : la liste et la lecture ont les boutons du sous-forum (épopée 7, entrée 3) */
 @media (max-width: 767px) {
-  body.page-kramail h1.page-header .btn-default {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .btn-default {
     border-radius: var(--kr-radius-sm);
     font-weight: 500;
     transition: all 0.15s ease;
   }
 
-  body.page-kramail h1.page-header .btn-default:hover {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .btn-default:hover {
     border-color: var(--kr-primary);
     color: var(--kr-text-accent);
   }
@@ -14055,14 +14056,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    Ligne : case | message (icône native, titre) | auteur ou destinataires | date. Sur mobile, la case prend la place du bouton → du sous-forum.
    ============================================================================ */
 @media (max-width: 767px), (min-width: 768px) {
-  :where(html.kr-page-kramail-liste) #col-right #topics span.invisible {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics span.invisible {
     display: none !important;
   }
 }
 
 /* Mobile — contrôles (L3), lignes (L1, L3), pagination (L5). */
 @media (max-width: 767px) {
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper {
     display: flex !important;
     flex-wrap: wrap;
     align-items: center;
@@ -14071,7 +14072,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     overflow: visible !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_filter {
     order: 1;
     flex: 1 1 0;
     width: auto !important;
@@ -14079,15 +14080,15 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 0 !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_length {
     order: 2;
     flex: 0 0 auto;
     width: auto !important;
     margin: 0 !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter label,
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length label {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_filter label,
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_length label {
     display: flex !important;
     gap: 0 !important;
     margin: 0 !important;
@@ -14095,7 +14096,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: 0 !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter input {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_filter input {
     flex: 1 1 auto;
     width: 100% !important;
     height: 44px !important;
@@ -14105,7 +14106,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: 16px !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length select {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_length select {
     min-width: 72px !important;
     height: 44px !important;
     min-height: 44px !important;
@@ -14114,7 +14115,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: 16px !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_info {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_info {
     order: 4;
     flex: 0 0 100%;
     margin: 8px 0 0 !important;
@@ -14295,7 +14296,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     background: var(--kr-bg-hover) !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate {
     display: flex !important;
     flex: 0 0 calc(100% + 32px);
     flex-wrap: nowrap !important;
@@ -14307,14 +14308,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     overflow: visible;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate > span {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate > span {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
     gap: 4px;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button {
     flex: 0 0 auto;
     min-width: 44px !important;
     min-height: 44px !important;
@@ -14323,12 +14324,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     box-sizing: border-box;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .kr-page-hidden,
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate span.ellipsis {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .kr-page-hidden,
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate span.ellipsis {
     display: none !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .kr-page-gap {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .kr-page-gap {
     flex: 0 0 auto;
     min-width: 16px;
     color: var(--kr-text-secondary);
@@ -14336,28 +14337,47 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     text-align: center;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous,
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous,
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next {
     font-size: 0 !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button.previous::before {
     content: "\2039";
     font-size: 24px;
     line-height: 1;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next::before {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button.next::before {
     content: "\203A";
     font-size: 24px;
     line-height: 1;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate .paginate_button.current {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate .paginate_button.current {
     border: 2px solid var(--kr-primary) !important;
     background: var(--kr-bg-elevated) !important;
     color: var(--kr-text-primary) !important;
     font-weight: 700 !important;
+  }
+}
+
+/* CONTACTS (épopée 7, entrée 8) : /contacts reprend l'en-tête, la carte et les contrôles de la liste du kramail ci-dessus, pas ses lignes.
+   Mobile : le tableau natif (case, nom, catégorie, actions, retrait) défile dans la carte ; boutons de ligne à 44 px (la cellule de la case
+   en fait déjà 70 de large). */
+@media (max-width: 767px) {
+  :where(html.kr-page-contacts) #col-right #topics {
+    display: block;
+    order: 3;
+    flex: 0 0 100%;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  :where(html.kr-page-contacts) #col-right #topics tbody a.btn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 }
 
@@ -14401,36 +14421,36 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper {
     display: flex !important;
     flex-wrap: wrap;
     align-items: center;
     gap: 0 16px;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_length {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_length {
     order: 1;
     flex: 1 1 0;
     margin: 0 0 8px !important;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_filter {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_filter {
     order: 2;
     flex: 0 0 auto;
     margin: 0 0 8px !important;
     text-align: right;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper #topics {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper #topics {
     order: 3;
     flex: 0 0 100%;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_info {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_info {
     order: 4;
   }
 
-  :where(html.kr-page-kramail-liste) #col-right #topics_wrapper .dataTables_paginate {
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate {
     order: 5;
     margin-left: auto;
   }
@@ -14491,7 +14511,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
      de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -14501,7 +14521,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -14516,16 +14536,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-label {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-label {
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-sep {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-current {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -14534,14 +14554,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, html.kr-page-kramail) #col-right .forum-subforum-head {
+  :where(html.kr-page-forum-index, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-subforum-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
 
-  :where(html.kr-page-forum-index, html.kr-page-kramail) #col-right .forum-subforum-title {
+  :where(html.kr-page-forum-index, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-subforum-title {
     min-width: 0;
     color: var(--kr-text-primary);
     font-size: 24px;
