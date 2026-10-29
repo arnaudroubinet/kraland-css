@@ -823,3 +823,12 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Onglets « Rapport » et « Combats » à 375 px : l'icône touche le libellé, sans espace (« ★Rapport »). À 900 px, l'espace existe.
 - Cloche sur ordinateur : la pastille est collée au glyphe. À 1280 px, elle le chevauche de 2 à 3 px selon le moment de l'animation `kr-bell-swing`, qui fait pivoter la cloche (la capture en fige un moment). Sur mobile, la pastille couvre volontairement le coin haut droit de la cloche.
 - Barre identique en Kraland clair et en Empire Brun sombre (gris `navbar-inverse`) : seule la pastille et le logo changent de couleur. Simple constat, la barre n'est pas dans le périmètre de l'épopée.
+
+## Ticket 9.10 — Notifications mobiles : marge de 16 px et cibles de 44 px (2026-10-29)
+
+- Structure de `/report` vérifiée seulement sur la fixture synthétique. La règle `body.mobile-mode > :is(p, .pagination)` suppose que le paragraphe et la pagination sont posés directement dans `body`, sans `.container`. À vérifier sur le site. Relevé du vrai /report tenté par l'orchestrateur le 2026-10-29 : cloche active (pastille « ! »), GET /report interdit, structure non vérifiée. Si aucun `p` réel, réduire la règle à `.pagination`.
+- Bandeau du sélecteur : gardé à sa marge native de 10 px (boîte) et à 16 px du haut (8.3). Le texte du sélecteur est à 24 px des bords.
+- La boîte de la pagination est déplacée à 16 px du bord (la première page commence à 16 px).
+- Liens au fil du texte des lignes (56 × 44, venus de PHASE 5) : non touchés (exception H9.1).
+- Fusion : conflit attendu avec 9.8 dans `tests/e2e/confort-mobile.mjs` (liste `PAGES`/`HORS`) et dans `tests/e2e/lib/router.mjs` (mots-clés de la marge).
+- Aucun masque ajouté. `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.

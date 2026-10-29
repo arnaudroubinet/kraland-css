@@ -22,9 +22,10 @@ test('classes de page : pages secondaires (épopée 9, entrée 4) avec la marge 
   const sec = ['kr-page-secondaire', 'kr-marge-mobile'];
   ['/regles/base', '/monde/evenements', '/monde/citoyens', '/map', '/map/cybermonde', '/map/ville/x', '/communaute/membres',
     '/communaute/membres/krabot-1-644', '/communaute/stats', '/profil/interface'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), sec, p));
-  ['/contacts', '/communaute', '/profil', '/profil/interfaces', '/mondes', '/forums', '/report', '/helpers'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
+  ['/contacts', '/communaute', '/profil', '/profil/interfaces', '/mondes', '/forums', '/reports', '/helpers'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
   assert.deepEqual(plain(krPageClasses('/aide')), ['kr-page-aide', 'kr-marge-mobile']);
   ['/help', '/help/staff'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-aide-fenetre', 'kr-marge-mobile'], p));
+  ['/report', '/report/perso-1'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-report', 'kr-marge-mobile'], p));
   assert.deepEqual(plain(krPageClasses('/jouer/plateau')), ['kr-page-jeu', 'kr-marge-mobile']);
 });
 

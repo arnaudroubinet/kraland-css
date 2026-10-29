@@ -46,8 +46,9 @@ export const SUITES = [
   { name: 'fin-initialisation', file: 'fin-initialisation.mjs', zones: ['initialisation'], frags: [['start'], ['dcl'], ['contre-preuves']] },
   // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A) et ligne de notification (8.1 : date au-dessus du texte sur mobile, 13/14/15 px) ;
   // 16 variantes en popup 900×800, mobile 375 et 767, onglet 1280 ; 768, 769, 1440, 1920 et bascule 767 ↔ 768 en deux variantes ; portée limitée à /report ;
-  // haut de page (8.3) : sélecteur à 16 px du haut de 375 à 1920 et en bascule, padding-top du body inchangé hors /report.
-  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut']], needsBootstrap: true },
+  // haut de page (8.3) : sélecteur à 16 px du haut de 375 à 1920 et en bascule, padding-top du body inchangé hors /report ;
+  // confort (9.10) : marge de 16 px et cibles de 44 px de 320 à 767, textes égaux à la base dès 768 et en bascule.
+  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort']], needsBootstrap: true },
   // Cloche des notifications (ticket 8.2, R5) : openReport redéfinie, popup 900×800 sur ordinateur (barre 992 à 1920, menu compact 768 à 991),
   // fonction native en mobile (375, 767) et peau coupée ; bascule 767 ↔ 768 ; window.open en sonde, aucune requête vers /report.
   { name: 'cloche-notifications', file: 'cloche-notifications.mjs', zones: ['cloche'], frags: [['barre'], ['compact'], ['mobile'], ['bascule'], ['peau']], needsBootstrap: true },
@@ -108,7 +109,7 @@ export const SUITES = [
   { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-clavier'], ['entete-couleurs']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
-  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (forum, kramail, notifications) égales au bundle de base. Entrée 4 : pages
+  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (forum, kramail) égales au bundle de base. Entrée 4 : pages
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
   // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 034a820. Entrée 5 : cibles du plateau (plateau).
   { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true }
@@ -243,8 +244,9 @@ export const KEYWORDS = [
   [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']],
   // Marge mobile de 16 px (épopée 9, entrée 1) : classes de page posées par KR_PAGE_CLASSES, retrait --kr-marge-page et jeton
   // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base) ;
-  // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires.
-  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|kr-page-jeu|kr-page-aide|kr-page-secondaire|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile']],
+  // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires ; notifications (entrée 10) par report-non-lu#confort.
+  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile', 'report']],
+  [/kr-page-jeu|kr-page-aide|kr-page-secondaire/, ['confort-mobile']],
   // Cibles du plateau mobile (épopée 9, entrée 5) : actions des cartes, boutons de groupe, bouton de gestion du mini-profil, accès rapides,
   // grille d'actions et repli des deux accordéons, mesurés par le fragment plateau de confort-mobile (et par les suites qui les comparent).
   [/dashboard-card-actions|dashboard-group-buttons|mobile-mini-profile-manage-btn|kr-action-grid|kr-quick-access-buttons|dashboard-cards-grid|building-section-content/, ['confort-mobile', 'cartes-pastilles', 'typographie-formes', 'plateau']]
