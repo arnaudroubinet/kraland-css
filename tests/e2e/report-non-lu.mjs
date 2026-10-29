@@ -152,7 +152,7 @@ const MESURE = (label) => {
         tailleDates: [...new Set(doubles.map(r => getComputedStyle(r.cells[0]).fontSize))],
         tailleTextes: [...new Set(rows.map(r => getComputedStyle(r.cells[r.cells.length - 1]).fontSize))],
         tailleBilans: [...new Set([...document.querySelectorAll('table > tbody > tr > td .mini.text-muted')].map(e => getComputedStyle(e).fontSize))],
-        lignes: doubles.map(r => ({ unread: r.classList.contains('bg-info'), tr: box(r), date: box(r.cells[0]), texte: box(r.cells[1]) })),
+        lignes: doubles.map(r => ({ unread: r.classList.contains('bg-info'), tr: box(r), date: box(r.cells[0]), texte: box(r.cells[1]), dateTexte: (() => { const rg = document.createRange(); rg.selectNodeContents(r.cells[0]); return box(rg); })() })),
         uniques: rows.filter(r => r.cells.length === 1).map(r => ({ tr: box(r), texte: box(r.cells[0]) }))
       };
     })(),
@@ -250,6 +250,15 @@ function verifier(variante, m, tag) {
     if (m.mobile) { assert.deepEqual(m.ligne.tailleBilans, ['13px'], 'taille du bilan .mini.text-muted (détail, 13 px)'); }
     if (m.mobile) { for (const u of m.ligne.uniques) { assert.ok(Math.abs(u.texte.width - u.tr.width) <= 0.5, `cellule unique ${u.texte.width} / ligne ${u.tr.width}`); } }
   });
+  // Bug 15 : sur ordinateur, le texte de toutes les dates (lues et non lues) commence au même bord, à 12 px (--kr-space-3) du bord de la
+  // cellule, au-delà du filet de 4 px des non lues. Mobile : non concerné (règle ≥ 768 px), fragments mobile et confort.
+  if (!m.mobile) {
+    check(`${tag} ${variante} : bug 15 texte des dates lues et non lues au même bord, à 12 px de la cellule (au-delà du filet de 4 px)`, () => {
+      const ecarts = m.ligne.lignes.map(l => `${l.unread ? 'non lue' : 'lue'} ${+(l.dateTexte.left - l.date.left).toFixed(2)}`);
+      assert.ok(m.ligne.lignes.some(l => l.unread) && m.ligne.lignes.some(l => !l.unread), 'lignes lues et non lues');
+      for (const l of m.ligne.lignes) { assert.ok(Math.abs(l.dateTexte.left - l.date.left - 12) <= 0.5, 'retrait des dates : ' + ecarts.join(', ')); }
+    });
+  }
   check(`${tag} ${variante} : C3 marque distincte de la page active de la pagination et du bandeau du sélecteur`, () => {
     for (const f of m.fonds.unread) { assert.notEqual(f, m.fonds.active, `fond non lu = page active (${f})`); assert.notEqual(f, m.fonds.banner, `fond non lu = bandeau (${f})`); }
   });
@@ -433,7 +442,9 @@ const CONFORT = () => {
   };
 };
 // Relevé comparé au bundle de base (comme confort-mobile.mjs) : boîte de chaque nœud texte visible, ordre du DOM, au demi-pixel.
-const RELEVE = () => {
+// Masque du bug 15 (sansDatesLues) : les dates des lignes lues passent de 5 à 12 px du bord sur ordinateur ; leur abscisse est retirée du
+// relevé (ordonnée gardée) tant que la base ne contient pas ce retrait (contrôle « bug 15 » à la place). Retrait au recalage de COMMIT_AVANT_910.
+const RELEVE = (sansDatesLues = false) => {
   const r2 = v => Math.round(v * 2) / 2;
   const out = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -443,7 +454,8 @@ const RELEVE = () => {
     rg.selectNodeContents(n);
     const b = [...rg.getClientRects()].filter(x => x.width > 0 && x.height > 0);
     if (!b.length) { continue; }
-    out.push(`${n.textContent.trim().slice(0, 24)} @ ${r2(b[0].left + window.scrollX)},${r2(b[0].top + window.scrollY)} ${b.length}`);
+    const x = sansDatesLues && n.parentElement.closest('table > tbody > tr:not(.bg-info) > td:first-child:not(:only-child)') ? 'x' : r2(b[0].left + window.scrollX);
+    out.push(`${n.textContent.trim().slice(0, 24)} @ ${x},${r2(b[0].top + window.scrollY)} ${b.length}`);
   }
   return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), l: out };
 };
@@ -491,7 +503,9 @@ if (on('confort')) {
   const avant = (process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_AVANT_910}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))
     .replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
-  const releve = async (variante, viewport, src) => { const { context, page } = await open(REPORT, variante, viewport, src); const r = await page.evaluate(RELEVE); await context.close(); return r; };
+  const masqueB15 = !avant.includes('td:first-child:not(:only-child){padding-left:var(--kr-space-3)}'); // base sans le correctif du bug 15
+  if (masqueB15) { console.log('Masque bug 15 : abscisse des dates des lignes lues retirée de la comparaison ordinateur à la base (retrait au recalage de COMMIT_AVANT_910)'); }
+  const releve = async (variante, viewport, src) => { const { context, page } = await open(REPORT, variante, viewport, src); const r = await page.evaluate(RELEVE, masqueB15); await context.close(); return r; };
   console.log('Confort mobile (320, 375 × 667, 767) ; textes égaux à la base (768, 900 × 800, 1280), Kraland clair et Empire Brun sombre');
   const mob = croise([{ width: 320, height: 667 }, { width: 375, height: 667 }, { width: 767, height: 667 }], DEUX);
   const resM = await mapLimit(mob, async c => { const { context, page } = await open(REPORT, c.variante, c.viewport); const m = await mesureConfort(page); await context.close(); return m; });
@@ -513,7 +527,7 @@ if (on('confort')) {
         recharges.push(await charge);
         await krReady(page, { ready: THEME_READY, label: `confort bascule ${c.variante} ${c.largeurs[j]} px` });
       }
-      etapes.push(c.largeurs[j] < 768 ? await mesureConfort(page) : await page.evaluate(RELEVE));
+      etapes.push(c.largeurs[j] < 768 ? await mesureConfort(page) : await page.evaluate(RELEVE, masqueB15));
     }
     await context.close();
     return { etapes, recharges };

@@ -843,3 +843,11 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Le minifieur réécrit `grayscale(100%)` en `grayscale()`. Les deux sont équivalents.
 - Comparaisons à la base : cartes-pastilles (groupes) retire les classes de PV des relevés, et typographie-formes (nettoyage) exclut `stroke` des cercles. Les deux tant que la base précède l'entrée (`AVANT_TICKET97`), à retirer au recalage de COMMIT_AVANT_53 et COMMIT_NETTOYAGE.
 - Worktree : `node_modules` est un lien symbolique non suivi, à ne pas embarquer.
+
+## Bug 15 — dates du popup des notifications (2026-10-29)
+
+- Correctif : sur ordinateur (≥ 768 px), la date des lignes lues prend le même retrait de 12 px que celle des non lues. Mesure sur la fixture à 900×800 : avant, « lue 5, non lue 12 » ; après, 12 px partout. Filet, teinte, tailles et mobile inchangés.
+- Décalage vertical de 1 px (texte 1 px plus bas que la date, lignes lues et non lues) : non corrigé. Il ne vient pas de la règle du retrait, mais des tailles de 8.1 (date à 13 px, texte à 14 px, même hauteur de ligne relative). Le corriger toucherait les tailles ou le haut des cellules. À trancher par Arnaud : laisser, ou ouvrir un ticket.
+- Ligne à cellule unique : non lue, 12 px (règle de 8.1, inchangée) ; lue, retrait natif de 5 px, inchangé. Ce n'est pas la colonne des dates. À signaler si Arnaud veut aussi aligner ce texte.
+- Masque ajouté dans `report-non-lu#confort` : l'abscisse des dates des lignes lues est retirée de la comparaison ordinateur à la base 8420e3a (ordonnée gardée). Il ne s'active que si la base ne contient pas le correctif ; à retirer au recalage de `COMMIT_AVANT_910`.
+- Vérifié sur fixture synthétique seulement ; vrai `/report` non consulté.
