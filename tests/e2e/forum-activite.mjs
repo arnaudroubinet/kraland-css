@@ -54,15 +54,15 @@
 //   panneaux  (ticket 12) accordéon et modale (statique, ouverte) ajoutés au fil de sujet (repères dans lib/variantes.mjs,
 //             REPERES_PANNEAUX_TICKET12), 375, 767, 768 et 1280 px : styles calculés sur /forum/sujet/… égaux à la même page servie hors
 //             forum, laquelle est égale au bundle de base
-//             (7e69719) ; carte de section de l'index RP et du sous-forum (375, 767) égale à la base.
+//             (7bec452) ; carte de section de l'index RP et du sous-forum (375, 767) égale à la base.
 //   confort   (épopée 9, entrée 8, plan story-forum-mobile-marge-de-16-px-et-cibles-de-44-px-sur-toutes-le) index RP, HRP, Communauté,
 //             Débats, racine (avec et sans groupes), sous-forum « Débuter », sujets (fil, Communauté, Débats, fermé), réponse,
 //             nouveau sujet et réponse refusée « Sujet Bloqué ! », 320, 375 x 667 et 767 px, Kraland clair et Empire Brun sombre : classe
 //             kr-page-forum sans kr-marge-mobile ; texte à 16 px au moins des bords (texte coupé mesuré à sa partie visible) ; panneaux et
 //             messages à 8 px ; cibles hors bouton et hors lien au fil du texte ≥ 44 x 44 ou ligne touchable ; croix d'alerte 44 x 44, sur toute page
 //             qui en porte une, dans le coin haut droit de l'alerte (1 px près) ; aucun débordement ; Staff (/forum/staff[/…]) exclu, hors de
-//             l'entrée 8 ; 768 et 1280 px : textes égaux au bundle de base (724c5c1).
-// Bundle de base : celui de 6270c81 (fin de l'épopée 6, ticket 6.7 compris, SHA figé) pour tous les fragments sauf panneaux (7e69719), sauf KR_SCRIPT_AVANT ;
+//             l'entrée 8 ; 768 et 1280 px : textes égaux au bundle de base (7bec452).
+// Bundle de base : celui de 7bec452 (fin des entrées 9.1 à 9.10, SHA figé, recalage du sweep 9.12) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
 // aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus. Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
@@ -70,12 +70,12 @@
 // et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
 // lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
-// base de d64c578 (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 6270c81 (COMMIT_ENTETE), sauf
+// base de 7bec452 (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 7bec452 (COMMIT_ENTETE), sauf
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
-// REPERES_PLUS_TICKET65) : bundle de base de d64c578 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
-// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
-// Fragment panneaux : bundle de base de 7e69719 (COMMIT_PANNEAUX), sauf KR_SCRIPT_AVANT_PANNEAUX ; fragment envoyer : contrôles absolus.
-// Fragment confort : bundle de base de 724c5c1 (COMMIT_CONFORT), sauf KR_SCRIPT_AVANT_CONFORT.
+// REPERES_PLUS_TICKET65) : bundle de base de 7bec452 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
+// nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 7bec452 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
+// Fragment panneaux : bundle de base de 7bec452 (COMMIT_PANNEAUX), sauf KR_SCRIPT_AVANT_PANNEAUX ; fragment envoyer : contrôles absolus.
+// Fragment confort : bundle de base de 7bec452 (COMMIT_CONFORT), sauf KR_SCRIPT_AVANT_CONFORT.
 // Le fil de sujet et l'index Communauté ne sont nommés que dans lib/variantes.mjs (ACTIVITE_TICKET62) : leurs noms portent des repères
 // déjà cités par 3 suites (MAX_CITING).
 //
@@ -94,16 +94,14 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
-import { SANS_MARGE_PAGE, TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
+import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
+import { TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '6270c81';
-// Bundle sans l'entrée 8 de l'épopée 9 (aucune classe de page kr-page-forum) : condition des masques des comparaisons à une base.
-const SANS_ENTREE8 = src => !/classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(src);
+const COMMIT_AVANT = '7bec452'; // recalage du sweep 9.12 (ancienne base 6270c81)
 const avant = strip(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');
@@ -149,7 +147,7 @@ const browser = await launchBrowser();
 
 // Ouvre la page `cle` (chemin + hash). `routes` : documents servis en plus (chemin -> HTML), pour l'arrivée d'un parcours. `debut` : bundle
 // évalué dès que <html> existe (sinon dès que <body> existe). `src` : bundle injecté ; `theme` : kr-theme-enabled.
-async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, sansMarge = false, css = '' }) {
+async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {} }) {
   const context = await browser.newContext({ viewport: { width, height: height || (tactile ? 667 : 900) }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   const documents = { [PAGES[cle].url]: html || PAGES[cle].html, ...routes };
@@ -165,10 +163,6 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
     if (u.pathname.endsWith('.css')) { return route.fulfill({ status: 200, contentType: 'text/css', body: '' }); }
     return route.abort();
   });
-  // sansMarge : marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE, lib/marges.mjs), pour les comparaisons au bundle de base.
-  if (sansMarge) { await context.addInitScript(poserJetonsRedefinis, SANS_MARGE_PAGE); }
-  // css : règles posées sur un bundle de base antérieur (écarts acceptés et consignés d'autres tickets, ex. CIBLES_TICKET95).
-  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
@@ -632,12 +626,10 @@ const EMPREINTE_FIL = () => {
   });
 };
 
-const COMMIT_FIL = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
+const COMMIT_FIL = '7bec452'; // recalage du sweep 9.12 (anciennes bases 6270c81 puis d64c578) : entrées 9.1 à 9.10 comprises
 if (on('fil')) {
-  // Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet une fois
-  // COMMIT_FIL recalé au-delà du bug 14.
-  const baseFil = CORRIGER_BUG14(strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
-    : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
+  const baseFil = strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
   Object.assign(PAGES, pagesFil());
   console.log(`\n== fil : fil d'Ariane commun de l'index et du sous-forum, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sujet, réponse et hors forum égaux à ${COMMIT_FIL} ; seuil, bascule, bureau ==`);
   const lireFil = async (o, empreinte = false) => {
@@ -775,17 +767,12 @@ if (on('fil')) {
   // Réponse et hors forum : égaux au bundle de base (fil, bouton flottant, empreinte du contenu). Le sujet mobile (375, 767) est passé au
   // fragment entete (épopée 6, ticket 4 : en-tête de sujet sur le fil commun) ; son bureau reste ici.
   const casB = [
-    // Réponse mobile contre une base sans l'entrée 8 : marge du forum neutralisée des deux côtés (formulaire, pied).
-    ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante, sansMarge: width < 768 && SANS_ENTREE8(baseFil) }))),
-    // Règles : page secondaire (épopée 9, entrée 4), marge mobile neutralisée des deux côtés.
-    ...VARIANTES.map(variante => ({ cle: 'regles', width: 375, variante, sansMarge: true })),
+    ...[375, 768].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante }))),
+    ...VARIANTES.map(variante => ({ cle: 'regles', width: 375, variante })),
     // Bureau : index RP, sous-forum (colonne native) et sujet.
     ...['rp', 'debuterNatif', 'sujet'].flatMap(cle => [768, 769, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))))
   ];
-  // Écart accepté et consigné (épopée 9, entrée 5) : la fixture des Règles (palette-nation.html) porte une carte du plateau, dont les
-  // actions passent à 44 px en mobile ; posé sur le bundle de base s'il est antérieur (CIBLES_TICKET95).
-  const cssBaseFil = AVANT_TICKET95(baseFil) ? CIBLES_TICKET95 : '';
-  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil, css: cssBaseFil }), true) }));
+  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
@@ -920,7 +907,7 @@ const ENTETE = ({ e, r }) => {
   return out;
 };
 
-const COMMIT_ENTETE = '6270c81';
+const COMMIT_ENTETE = '7bec452';
 if (on('entete')) {
   const baseEntete = strip(process.env.KR_SCRIPT_AVANT_ENTETE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ENTETE, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_ENTETE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1250,7 +1237,7 @@ const VOILE = ({ p, cle, poser }) => {
   return 1;
 };
 
-const COMMIT_PLUS = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
+const COMMIT_PLUS = '7bec452'; // recalage du sweep 9.12 (anciennes bases 6270c81 puis d64c578) : entrées 9.1 à 9.10 comprises
 if (on('plus')) {
   const basePlus = strip(process.env.KR_SCRIPT_AVANT_PLUS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PLUS, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_PLUS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1506,9 +1493,9 @@ if (on('plus')) {
 // icônes attendues par chemin) : REPERES_LIGNE_TICKET66 (lib/variantes.mjs). Pages dérivées en mémoire de l'index RP : colonne native
 // composée (Taverne et Marché seulement, Monde en trop), entrée Marché désactivée par classe puis par aria, image dans la liste,
 // entrée Taverne sans icône de liste, liste retirée, entrée Taverne en href absolu avec requête et fragment ; racine sans liste latérale.
-// Bundle de base : celui de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff, sous-forum et mobile comparés à
+// Bundle de base : celui de 7bec452 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE ; liste latérale, Staff, sous-forum et mobile comparés à
 // cette base, sans masque.
-const COMMIT_LIGNE = '6270c81';
+const COMMIT_LIGNE = '7bec452';
 // Mesure de la ligne de l'index : par ligne, icône (classe, contenu, place, boîte), nom, heure (texte de p.mini et texte natif lu dans le
 // HTML servi), dernier message (styles, boîtes du texte), flèche, compteurs, cellule vide ; liste latérale (outerHTML). CONTRASTE évalué avant.
 const LIGNE66 = ({ a, l, html }) => {
@@ -1815,7 +1802,7 @@ if (on('ligne')) {
 }
 
 // Pages dérivées des fragments envoyer et panneaux : fil de sujet, avec un contenu ajouté en mémoire après la liste des messages.
-const COMMIT_PANNEAUX = '7e69719';
+const COMMIT_PANNEAUX = '7bec452';
 const deriver = (html, ajout, nom) => {
   const h = html.replace('</ul></div></div></div><footer', '</ul>' + ajout + '</div></div></div><footer');
   if (h === html) { throw new Error('page dérivée « ' + nom + ' » : motif absent de la fixture'); }
@@ -1971,7 +1958,7 @@ if (on('panneaux')) {
 }
 
 // ---------- Confort mobile (épopée 9, entrée 8) ----------
-const COMMIT_CONFORT = '724c5c1';
+const COMMIT_CONFORT = '7bec452';
 // Fixtures synthétiques de l'entrée 8 : racine sans groupes, nouveau sujet (champ Tags supposé), réponse refusée « Sujet Bloqué ! » (relevé 9.3).
 const CF = {
   racine: 'forum-racine.html',

@@ -7,7 +7,7 @@
 //
 // Usage : npm run build && node tests/e2e/plateau-qualite-usage.mjs
 // Options : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal) ; KR_SCRIPT_AVANT (bundle de base
-// du fragment cartes, défaut : git show e203f87) ; KR_SCRIPT_AVANT_PV (bundle de base du fragment pv, défaut : git show cb73530) ;
+// du fragment cartes, défaut : git show 7bec452, recalage du sweep 9.12, ancienne base e203f87) ; KR_SCRIPT_AVANT_PV (bundle de base du fragment pv, défaut : git show cb73530) ;
 // KR_FRAG = usage, cartes, pv (vide = tout).
 //
 // Fragment pv (épopée 9, entrée 7, Q30.5) : cercle et barre de PV des cartes par niveau de santé, en jetons de la feuille ; fixture
@@ -22,7 +22,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, VARIANTES as TOUTES_VARIANTES, parVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { CONTRASTE, VARIANTES as TOUTES_VARIANTES, parVariante } from './lib/variantes.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -51,8 +51,6 @@ const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScri
 async function ouvrirCartes(src, { width, height = 800, variante, transformer = h => h }) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await confineNetwork(ctx);
-  // Écart accepté et consigné (épopée 9, entrée 5) : actions des cartes à 44 px en mobile posées sur un bundle de base antérieur.
-  if (src !== userscript && AVANT_TICKET95(src)) { await ctx.addInitScript(poserJetonsRedefinis, CIBLES_TICKET95); }
   const noms = transformer(fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8'))
     .replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>');
   await ctx.route('http://www.kraland.org/**', route => {
@@ -141,7 +139,7 @@ const memesBoites = (m, base, garde = () => true) => {
 
 if (on('cartes')) {
   const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
-    : execFileSync('git', ['show', 'e203f87:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+    : execFileSync('git', ['show', '7bec452:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
   for (const variante of VARIANTES) {
     console.log(`Cartes de personnage selon leur largeur (${variante})`);
     for (const width of BUREAUX) {

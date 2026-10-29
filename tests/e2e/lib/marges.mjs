@@ -60,41 +60,8 @@ export const TEXTES_HORS_MARGE_PAGE = ({ marge = 16, racine = 'body', defilant =
   return out;
 };
 
-/**
- * Feuille qui neutralise la marge mobile de H10.1 (épopée 9, entrée 1) : variable de marge à initial, donc ligne principale et pied à 0,
- * mini-profil à 12 px, cartes de section à 8 px par leur seule marge. Posée (poserJetonsRedefinis) sur les pages des suites qui comparent
- * une page de jeu mobile au bundle d'une base d'avant l'entrée 1 : seul l'écart de la marge est retiré, la marge elle-même est contrôlée
- * par confort-mobile. Sans effet sur une page sans marge mobile et sur un bundle de base.
- */
-export const SANS_MARGE_PAGE = 'html body.mobile-mode { --kr-marge-page: initial !important; }';
-
 /** Cartes de section mobiles (H4.1) : sélecteur des cartes et conteneurs exclus (accordéon, modale). */
 export const CARTES_SECTION = { cartes: '.panel-default, .dashboard-section', exclues: '.panel-group, .modal' };
-
-/** Textes visibles à moins de `marge` px d'un bord (voir TEXTES_HORS_MARGE_PAGE). */
-export function textesHorsMarge(page, options = {}) {
-  return page.evaluate(TEXTES_HORS_MARGE_PAGE, options);
-}
-
-/** Fonction de page : premier nœud texte visible de `sel` (ordre du DOM) et sa boîte, ou null. */
-export const PREMIER_TEXTE_PAGE = sel => {
-  const r = document.querySelector(sel);
-  if (!r) { return null; }
-  const w = document.createTreeWalker(r, NodeFilter.SHOW_TEXT);
-  for (let n = w.nextNode(); n; n = w.nextNode()) {
-    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('.sr-only')) { continue; }
-    const rg = document.createRange();
-    rg.selectNodeContents(n);
-    const b = [...rg.getClientRects()].find(x => x.width > 0 && x.height > 0);
-    if (b) { return { texte: n.textContent.trim().slice(0, 40), gauche: b.left, droite: document.documentElement.clientWidth - b.right, haut: b.top }; }
-  }
-  return null;
-};
-
-/** Premier texte visible de `sel` (voir PREMIER_TEXTE_PAGE). */
-export function premierTexte(page, sel) {
-  return page.evaluate(PREMIER_TEXTE_PAGE, sel);
-}
 
 /**
  * Fonction de page : boîte de la cible `sel` (index `index`) et toucher par elementFromPoint au centre et à 2 px de chaque bord, après

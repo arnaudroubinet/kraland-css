@@ -198,6 +198,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-notifications/story-refactor-sweep-plan.md`
   summary: Le masque `sansTitre` de `confort-mobile.mjs` (fragment `secondaires`, titre de la ville à 768 px retiré de la comparaison au bundle de base) est inerte depuis le relèvement de `COMMIT_AVANT` sur abbe7be (9.4 compris). À retirer par le sweep de l'épopée 9 (entrée 9.12), hors notifications.
   evidence: sweep 8.4 (2026-10-29) : copie jetable de la suite sans le masque, `KR_FRAG=secondaires`, exit 0, tous les contrôles passent ; la suite du dépôt n'est pas modifiée.
+  status: traité par le sweep 9.12 (2026-10-29) : masque retiré, `COMMIT_AVANT` de `confort-mobile` recalé sur 7bec452.
 - source_plan: `epic-notifications/story-refactor-sweep-plan.md`
   summary: Sur `/report` ordinateur, la règle `td { font-size: var(--kr-font-body) }` n'a pas de rouge : le texte hérite déjà des 14 px natifs du `body` de Bootstrap, égaux au jeton. Le contrôle L de `report-non-lu` ne la distingue donc pas du natif ; une fixture ou un jeton différent de 14 px le rendrait discriminant.
   evidence: sweep 8.4 (2026-10-29) : règle retirée d'une copie du bundle, `report-non-lu.mjs` exit 0, aucun FAIL.
@@ -229,9 +230,11 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
   summary: Bases dédiées non recalées : `cartes-pastilles` `COMMIT_AVANT_55` (59567f0) et `typographie-formes` `COMMIT_CHAMPS` (5638f29), `COMMIT_MEDIAS_410` (00b0786). Leurs masques `AVANT_TICKET73` et `AVANT_TICKET75` restent posés.
   evidence: chaque base prouve un ticket précis (assertions `AVANT_TICKET55`, `AVANT_BUG14`, `AVANT_TICKET410` sur la base). `champs` : sur d64c578, seule la précondition AVANT_BUG14 rougit ; les comparaisons « égal à la base » sont vertes, kramail mobile compris, sans le masque 7.5. Sur la base actuelle 5638f29, ce masque reste vivant (`AVANT_TICKET75` vrai) : sans lui, 4 FAIL (kramail 375 et 767 px). Gardé. Retrait : au recalage de `COMMIT_CHAMPS`, qui demande de revoir la précondition AVANT_BUG14. Autres retraits : au prochain ticket qui modifie ces fragments.
+  status: traité en partie par le sweep 9.12 (2026-10-29) : `COMMIT_AVANT_55` et `COMMIT_CHAMPS` recalés sur 7bec452, masque 7.5 et préconditions `AVANT_TICKET55` et `AVANT_BUG14` de la base retirés. `COMMIT_MEDIAS_410` gardé (base de preuve du ticket 4.10).
 - source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
   summary: Pour le sweep 9.12 : masques d'autres épopées devenus inertes sur la base `d64c578` (aucun recalage ne les pose plus) mais gardés : `MASQUE_FORUM_98`, `MASQUE_INDICATEUR_96`, `MASQUE_SUPERPOSITION_96`, `CORRIGER_BUG14`, `LEGENDES_TICKET45`, `CIBLES_TICKET95`, miroir `ECHELLE_TICKET45`, `medias410`, `MASQUE_JAUGES_9`, `MASQUE_PV_97`, `MASQUE_MODULES_96`, `MASQUE_CIBLES_94`, `CARTES_TICKET92`.
   evidence: hors périmètre par consigne (masques des épopées 4, 5, 9 et du bug 14).
+  status: traité par le sweep 9.12 (2026-10-29) : tous retirés avec le recalage de leurs bases sur 7bec452, sauf `CORRIGER_BUG14` sur `COMMIT_MEDIAS_410`, et `LEGENDES_TICKET45` et `CIBLES_TICKET95` sur `COMMIT_MODALES`, encore actifs contre leur base (revue-manuelle, « Ticket 9.12 »).
 - source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
   summary: `nameControls` du forum (template ~l.5235) non fusionné avec `nommerControlesListe` du kramail et des contacts.
   evidence: sélecteurs différents (`.dataTables_filter` au forum, `#topics_filter` au kramail) ; la fusion ajouterait un paramètre pour un seul appelant.
@@ -266,3 +269,11 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
   summary: D9.5 : `button.kd-contacts` de la rédaction du kramail à 105×40, sous les 44 px d'EXPERIENCE P3 étape 5 et H9.1. Écart connu hors périmètre. Accord d'Arnaud attendu à la passe finale.
   evidence: `kramail-nouveau` à 375, deux variantes ; laissé hors périmètre par 9.9 (`<button>`, épopée 4).
   status: proposé
+## Reports du ticket 9.12, sweep de l'épopée 9 (2026-10-29)
+
+- source_plan: `epic-plateau-confort-mobile/story-refactor-sweep-plan.md`
+  summary: Conversion C4 partielle : il reste des `min-width`, `width` et `height: 44px` écrits en dur au lieu de `var(--kr-touch-target)` dans `kraland-theme.css`, vers les l.4543-4549, 5177, 5764, 7399 et 7408.
+  evidence: revue indépendante du 9.12 (2026-10-29) ; C4 n'a converti que `min-height: 44px` et `var(--mobile-touch-target)`.
+- source_plan: `epic-plateau-confort-mobile/story-refactor-sweep-plan.md`
+  summary: `typographie-formes` `COMMIT_MEDIAS_410` (00b0786) n'est pas recalé. Il faut convertir M1/M2 (précondition `AVANT_TICKET410`, « rendu à 768 px changé », A8) en contrôles absolus à 768 px, puis recaler la base sur un SHA récent, puis retirer `CORRIGER_BUG14` et `AVANT_TICKET73/75`.
+  evidence: sweep 9.12 (2026-10-29) : écart au brief, qui demandait le recalage. Il attend la validation d'Arnaud (revue-manuelle, « Ticket 9.12 »).

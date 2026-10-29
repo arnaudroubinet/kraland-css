@@ -14,7 +14,7 @@
 //               sombre : même carte (corps sans retrait, chevron natif de 44 x 44 dans la carte), tout élément des panneaux dans la carte,
 //               aucun débordement (Staff : largeur défilable égale à la base, sa croix d'alerte débordant déjà) ; contrôle statique : règles du
 //               forum ciblées sans fond transparent, filet, rayon, retrait propre ni --kr-text-accent ; fil de sujet : messages égaux au
-//               bundle de base (6270c81) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
+//               bundle de base (7bec452) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
 //               (.panel-group) de Répondre (kramail) et de la page de l'échelle, panneau à onglets des modales d'ordre Dormir et Pouvoir ;
 //   lignes      mêmes pages du forum, largeurs et variantes : chaque ligne de tableau dans la carte, sans ombre ; hauteur, retraits, filets
 //               (gauche de 4 px des non lus, bas), fond, icônes d'état et cadenas, pastilles, flèche « dernier message » et cibles
@@ -30,7 +30,7 @@
 //               du bord droit ; cartes de personnages à 8 px des bords), aucun débordement ; « mon groupe » ouvert, l'autre réduit à son
 //               en-tête de 48 px (grille de 0 px sans cible, cartes dans le DOM) ; deux taps par en-tête (scrollTo puis elementFromPoint) :
 //               état et aria-expanded inversés puis rétablis ; tap sur un bouton de groupe sans effet ; ordre des groupes et contenu des
-//               cartes égaux au bundle de base (a7f0463) ; mini-profil plié et déplié à 375 et 700 px (plateau-minimal, plateau-qualite-usage)
+//               cartes égaux au bundle de base (7bec452) ; mini-profil plié et déplié à 375 et 700 px (plateau-minimal, plateau-qualite-usage)
 //               égal à la base ; 768, 769, 1280, 1440 et 1920 px égaux à la base ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le
 //               même onglet : carte à 767, base à 768 ; contrôle statique : règles des groupes sans !important, dans le média mobile ;
 //   contraste   16 variantes, Bâtiments, réception, sous-forum, index RP et groupes du plateau à 375 px : titre de chaque carte ≥ 4,5:1 sur
@@ -39,7 +39,7 @@
 //               1920 px, Kraland clair et Empire Brun sombre : pastille visible portée par le clone (375, 767) ou par l'original (768 et
 //               au-delà), touchée au centre (elementFromPoint, sans tap) ; toutes les pastilles remplies, originaux et clones, en pastille
 //               d'état (fond non lu, texte surface, 12 px 700, rayon plein, bordures de largeur 0) ; géométrie des pastilles et des liens,
-//               animation des icônes et emplois hors liste (pastille de panneau ; de groupe : entrée 5) égaux à la base (601ab19) ; pastilles
+//               animation des icônes et emplois hors liste (pastille de panneau ; de groupe : entrée 5) égaux à la base (7bec452) ; pastilles
 //               vides (kramail-reception.html) invisibles, originaux et clones, icônes sans animation ; 16 variantes à 375, 1280, 1440 et
 //               1920 px : fond égal au jeton calculé et au fond de « NOUVEAU MESSAGE » du sous-forum (même largeur, même variante), texte
 //               idem, ≥ 4,5:1 ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet ; contrôle statique de la règle réécrite.
@@ -47,7 +47,7 @@
 //               PNJ (palette-nation-etats.html, repos et survol forcé), compteur de groupe, tags du sujet (typographie-formes.html à une
 //               adresse de forum ; appui forcé), à 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : fond et
 //               texte égaux aux jetons de catégorie calculés, bordure du fond, 12 px 700 (marque : taille de .xmini égale à la base), rayon
-//               plein, aucune couleur d'état ; position, boîte, retrait, casse et espacement égaux au bundle de base (59567f0) ; tags égaux
+//               plein, aucune couleur d'état ; position, boîte, retrait, casse et espacement égaux au bundle de base (7bec452) ; tags égaux
 //               à la base à 768 et au-delà ; compteurs de contact du kramail (réception dérivée, contact actif compris) en pastille d'état
 //               comme « NOUVEAU MESSAGE » du sous-forum, vides invisibles ; « guilde », « [mod] », « Arme en main », pastilles d'ordre,
 //               éléments hors familles, étiquettes d'état, pièce courante et tags natifs égaux à la base ; fil de sujet sans étiquette ;
@@ -56,8 +56,8 @@
 //               couleur littérale, règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
-// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 6270c81, a7f0463 pour groupes, 601ab19 pour
-// pastilles, 59567f0 pour etiquettes), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste,
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 7bec452, recalage du sweep 9.12, anciennes bases
+// d64c578, a7f0463 pour groupes, 601ab19 pour pastilles, 59567f0 pour etiquettes), KR_FRAG = carte, module, kramail, forum, lignes, chevron, bureau, bascule, groupes, contraste,
 // pastilles, etiquettes (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -69,28 +69,15 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
-import { SANS_MARGE_PAGE } from './lib/marges.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
+const COMMIT_AVANT = '7bec452'; // recalage du sweep 9.12 (une base pour tous les fragments) : entrées 9.1 à 9.10 comprises
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-// Groupes du plateau (entrée 3, A6) : base dédiée, la carte des panneaux (6270c81) restant celle des autres fragments.
-const COMMIT_AVANT_53 = 'a7f0463';
-const avant53 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_AVANT_53}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-// Pastilles d'état de la barre (entrée 4, A6) : base dédiée.
-const COMMIT_AVANT_54 = '601ab19';
-const avant54 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_AVANT_54}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-// Étiquettes de catégorie (entrée 5) : base dédiée.
-const COMMIT_AVANT_55 = '59567f0';
-const avant55 = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_AVANT_55}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const ordre = f => lire(path.join(DOSSIER_MODALE_TICKET51, f)).replace(/^<!--[\s\S]*?-->\s*/, '');
 // Styles et scripts natifs du site pour les modales d'ordre (vendor/parler, comme la suite de la modale d'ordre).
@@ -168,8 +155,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-// sansMarge : marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE, lib/marges.mjs), pour les comparaisons au bundle de base.
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, css = '', sansMarge = false }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768 }) {
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
@@ -189,8 +175,6 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
-  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
-  if (sansMarge) { await context.addInitScript(poserJetonsRedefinis, SANS_MARGE_PAGE); }
   // P4 : innerWidth lu au-delà du seuil (barre de navigation qui déborde sur le site) ; le média CSS suit la vraie largeur.
   if (def.innerWidth) { await context.addInitScript(w => { Object.defineProperty(window, 'innerWidth', { get: () => w, configurable: true }); }, def.innerWidth); }
   await context.addInitScript(src => {
@@ -277,7 +261,7 @@ const MESURE = ([sel, texte]) => {
 
 // Relevé de comparaison (dans la page) : panneaux, en-têtes, titres, corps et chevrons, boîte au dixième et styles calculés.
 // ecarter : sous-arbres dont le fond et le texte sont relevés à part (caractéristiques, backlog 13), « · » à leur place.
-const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], ecarter, horsReleve] = []) => {
+const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-heading > *', '.panel-body', '.accordion-icon'], ecarter] = []) => {
   const r = v => Math.round(v * 10) / 10;
   const props = ['display', 'position', 'backgroundColor', 'color', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius',
     'borderBottomLeftRadius', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginRight', 'marginBottom',
@@ -288,7 +272,7 @@ const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-he
     theme: document.documentElement.classList.contains('kr-theme-enabled'),
     mobile: document.body.classList.contains('mobile-mode'),
     sw: document.documentElement.scrollWidth,
-    l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].filter(e => !(horsReleve && e.matches(horsReleve))).map((e, i) => {
+    l: [...document.querySelectorAll(sels.map(x => `${racine} ${x}`).join(', '))].map((e, i) => {
       const b = e.getBoundingClientRect();
       const s = getComputedStyle(e);
       const aPart = ecarter && e.closest(ecarter);
@@ -296,10 +280,6 @@ const RELEVE = ([racine = 'html', sels = ['.panel', '.panel-heading', '.panel-he
     })
   };
 };
-// Écart accepté et consigné (entrée 9.6) : la chaîne mobile des modales du bundle de base (COMMIT_AVANT) passait deux fois et posait un
-// second indicateur d'onglets (.kr-tabs-indicator, hauteur nulle), hors du relevé de comparer. Retirer quand COMMIT_AVANT passe au-delà
-// du commit de l'entrée 9.6.
-const MASQUE_INDICATEUR_96 = '.kr-tabs-indicator + .kr-tabs-indicator';
 const premierEcart = (a, b) => {
   const i = a.findIndex((x, k) => x !== b[k]);
   if (i < 0 && a.length === b.length) { return ''; }
@@ -511,17 +491,12 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
-// Masque de l'entrée 9.8 (forum mobile, nom de l'auteur d'un message à 44 px de large au minimum, contrôlé par forum-activite, fragment
-// confort) : largeur minimale remise à 0 des deux côtés, pour le fragment forum seul et contre une base sans la classe de page
-// kr-page-forum. Retirer quand COMMIT_AVANT dépasse 9.8.
-const MASQUE_FORUM_98 = /classes:\s*\[\s*["']kr-page-forum["']\s*\]/.test(avant) ? ''
-  : '@media (max-width: 767px) { body.mobile-mode #col-right .user-info > strong a { min-width: 0 !important; } }';
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true, css: frag === 'forum' ? MASQUE_FORUM_98 : '' });
-      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, undefined, MASQUE_INDICATEUR_96]), erreurs };
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
+      out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve]), erreurs };
       await context.close();
     }
     return { c, ...out };
@@ -858,11 +833,6 @@ const MESURE_GROUPES = ([Q, texte]) => {
   };
 };
 // Ordre et contenu (dans la page) : groupes, enfants de l'en-tête, puis chaque carte (texte, structure, images) dans l'ordre DOM.
-// Écart accepté et consigné (épopée 9, entrée 7) : classes de niveau de PV (kr-pv-N, piste et progression du cercle) et is-ko de l'avatar,
-// vérifiées par plateau-qualite-usage (fragment pv) ; retirées des deux côtés tant que la base (COMMIT_AVANT_53) précède l'entrée.
-// Retrait au recalage de COMMIT_AVANT_53 sur un SHA qui contient l'entrée.
-const sansPv97 = AVANT_TICKET97(avant53) ? sansClassesPv97 : t => t;
-const sansPv97Contenu = l => l.map(g => ({ ...g, cartes: g.cartes.map(k => ({ ...k, structure: sansPv97(k.structure) })) }));
 const CONTENU_GROUPES = Q => [...document.querySelectorAll(Q.section)].map(s => ({
   cls: s.className,
   entete: [...s.querySelector(Q.entete).children].map(e => `${e.tagName}.${[...e.classList].join('.')} ${e.textContent.trim().replace(/\s+/g, ' ')}`),
@@ -979,7 +949,7 @@ if (on('groupes')) {
       taps.push({ t1, t2, b });
     }
     await context.close();
-    const base = await ouvrir({ ...c, script: avant53 });
+    const base = await ouvrir({ ...c, script: avant });
     const contenuBase = await base.page.evaluate(CONTENU_GROUPES, G);
     const themeBase = await base.page.evaluate(() => document.documentElement.classList.contains('kr-theme-enabled'));
     await base.context.close();
@@ -1037,15 +1007,15 @@ if (on('groupes')) {
         etatGroupe(b.m.sections[i], depart);
       });
     });
-    check(`${lab} : ordre des groupes, en-têtes et contenu des cartes (niveau, PNJ, PV, statut) égaux au bundle de base (${COMMIT_AVANT_53})`, () => {
+    check(`${lab} : ordre des groupes, en-têtes et contenu des cartes (niveau, PNJ, PV, statut) égaux au bundle de base (${COMMIT_AVANT})`, () => {
       assert.ok(themeBase, 'kr-theme-enabled absent (base)');
-      assert.deepEqual(sansPv97Contenu(contenu), sansPv97Contenu(contenuBase));
+      assert.deepEqual(contenu, contenuBase);
     });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
   // Mini-profil plié et déplié, égal à la base (plateau-minimal et plateau-qualite-usage, 375 et 700 px).
   const miniProfil = async (c, script) => {
-    const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
+    const { context, page, erreurs } = await ouvrir({ ...c, script });
     const etat = async cls => {
       await waitState(page, ([sel, k]) => { const mp = document.querySelector(sel); return !!mp && mp.classList.contains(k) && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, [G.miniProfil, cls], { maxMs: 3000 });
       await styleSettled(page, G.miniProfil);
@@ -1059,7 +1029,7 @@ if (on('groupes')) {
     return { plie, deplie, erreurs };
   };
   const casMp = ['plateau-minimal', 'groupes'].flatMap(nom => [375, 700].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
-  const resMp = await mapLimit(casMp, async c => ({ c, teste: await miniProfil(c, userscript), base: await miniProfil(c, avant53) }));
+  const resMp = await mapLimit(casMp, async c => ({ c, teste: await miniProfil(c, userscript), base: await miniProfil(c, avant) }));
   for (const { c, teste, base } of resMp) {
     for (const k of ['plie', 'deplie']) {
       const etat = k === 'plie' ? 'plié' : 'déplié';
@@ -1084,26 +1054,19 @@ if (on('groupes')) {
   const SELS_GROUPES = [G.section, `${G.section} *`];
   const resBureau = await mapLimit(BUREAUX.flatMap(width => VARIANTES.map(variante => ({ nom: 'groupes', width, variante }))), async c => {
     const out = {};
-    // Écart accepté et consigné (épopée 9, entrée 2) : nom sous l'avatar sous 200 px de carte ; la base reçoit CARTES_TICKET92 tant qu'elle
-    // précède l'entrée (AVANT_TICKET92).
-    for (const [cle, script, css] of [['teste', userscript, ''], ['base', avant53, AVANT_TICKET92(avant53) ? CARTES_TICKET92 : '']]) {
-      const { context, page, erreurs } = await ouvrir({ ...c, script, css });
+    for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
+      const { context, page, erreurs } = await ouvrir({ ...c, script });
       out[cle] = { r: await page.evaluate(RELEVE, ['html', SELS_GROUPES]), erreurs };
       await context.close();
     }
     return { c, ...out };
   });
-  // Écart accepté et consigné (épopée 5, entrée 5) : fond et texte du « PNJ » des cartes passent en étiquette de catégorie ; ils sont vérifiés
-  // par le fragment etiquettes, et neutralisés ici des deux côtés (ouvrir n'a pas de masque, P8). Le reste de l'élément reste comparé.
-  // Retrait : au prochain ticket qui modifie les groupes du plateau ; il réaligne COMMIT_AVANT_53 sur un SHA récent après contrôle absolu
-  // de l'étiquette « PNJ » des cartes (entrée 5.5). Les classes de PV de l'entrée 9.7 sont retirées à la suite (sansPv97).
-  const sansPnj55 = l => l.map(x => (/ SPAN\.dashboard-card-pnj /.test(x) ? x.replace(/^(.*?\] [^|]*\|[^|]*\|)[^|]*\|[^|]*\|/, '$1(entrée 5.5)|') : x)).map(sansPv97);
   for (const { c, teste, base } of resBureau) {
     check(`groupes bureau ${c.variante} ${c.width} px : groupes égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
       assert.equal(teste.r.mobile, false, 'mode mobile');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
-      const d = premierEcart(sansPnj55(teste.r.l), sansPnj55(base.r.l));
+      const d = premierEcart(teste.r.l, base.r.l);
       assert.equal(d, '', d);
       assert.equal(teste.r.sw, base.r.sw, 'largeur défilable');
     });
@@ -1112,7 +1075,7 @@ if (on('groupes')) {
   // P4 : à 767 px sans mobile-mode (média mobile valide), groupes égaux à la base : ni carte partielle, ni filet ou fond retiré seuls.
   const resP4 = await mapLimit(VARIANTES.map(variante => ({ nom: 'groupes-nu', width: 767, variante })), async c => {
     const out = {};
-    for (const [cle, script] of [['teste', userscript], ['base', avant53]]) {
+    for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       const { context, page, erreurs } = await ouvrir({ ...c, script });
       const media = await page.evaluate(() => window.matchMedia('(max-width: 767px)').matches);
       out[cle] = { r: await page.evaluate(RELEVE, ['html', SELS_GROUPES]), media, erreurs };
@@ -1126,7 +1089,7 @@ if (on('groupes')) {
       assert.equal(teste.r.mobile, false, 'mobile-mode présent : état P4 non reproduit');
       assert.ok(teste.media, 'média (max-width: 767px) non valide');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
-      const d = premierEcart(sansPnj55(teste.r.l), sansPnj55(base.r.l));
+      const d = premierEcart(teste.r.l, base.r.l);
       assert.equal(d, '', d);
     });
     check(`groupes sans mobile-mode ${c.variante} 767 px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
@@ -1150,7 +1113,7 @@ if (on('groupes')) {
     return { etapes, erreurs };
   };
   const casB = VARIANTES.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
-  const resB = await mapLimit(casB, async c => ({ c, teste: await parcoursGroupes(userscript, c.variante, c.largeurs), base: await parcoursGroupes(avant53, c.variante, c.largeurs) }));
+  const resB = await mapLimit(casB, async c => ({ c, teste: await parcoursGroupes(userscript, c.variante, c.largeurs), base: await parcoursGroupes(avant, c.variante, c.largeurs) }));
   for (const { c, teste, base } of resB) {
     const lab = `groupes bascule ${c.variante} ${c.largeurs.join(' -> ')}`;
     teste.etapes.forEach((e, i) => {
@@ -1164,7 +1127,7 @@ if (on('groupes')) {
         check(`${lab}, étape ${i + 1} (${e.width} px) : égal au bundle de base (même parcours), aucun état replié`, () => {
           assert.ok(e.r.theme && base.etapes[i].r.theme, 'kr-theme-enabled absent');
           assert.equal(e.r.mobile, false, 'mode mobile à 768 px');
-          const d = premierEcart(sansPnj55(e.r.l), sansPnj55(base.etapes[i].r.l));
+          const d = premierEcart(e.r.l, base.etapes[i].r.l);
           assert.equal(d, '', d);
           assert.ok(!e.r.l.some(x => /collapsed/.test(x.split(' ')[1])), 'grille repliée à 768 px');
         });
@@ -1281,7 +1244,7 @@ if (on('pastilles')) {
   };
   // Pastilles remplies : porteur, pastille d'état, géométrie, animation et hors liste égaux à la base.
   const cas = LARGEURS.flatMap(width => VARIANTES.map(variante => ({ nom: 'barre', width, variante })));
-  const res = await mapLimit(cas, async c => ({ c, teste: await releverPastilles(c, userscript), base: await releverPastilles(c, avant54) }));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releverPastilles(c, userscript), base: await releverPastilles(c, avant) }));
   for (const { c, teste: { m, o, erreurs }, base: { m: b, o: bo } } of res) {
     const lab = `pastilles ${c.variante} ${c.width} px`;
     if (COMPACT(c.width)) {
@@ -1296,7 +1259,7 @@ if (on('pastilles')) {
     }
     check(`${lab} : pastilles remplies (${m.pastilles.filter(p => p.texte).length}, originaux et clones) en fond non lu (${m.unread}), texte surface (${m.surface})`, () => controlerEtat(m, 'couleurs'));
     check(`${lab} : pastilles remplies en 12 px 700, rayon plein, bordures de largeur 0`, () => controlerEtat(m, 'forme'));
-    check(`${lab} : géométrie des pastilles et des liens égale au bundle de base (${COMMIT_AVANT_54})`, () => {
+    check(`${lab} : géométrie des pastilles et des liens égale au bundle de base (${COMMIT_AVANT})`, () => {
       assert.ok(b.theme, 'kr-theme-enabled absent (base)');
       const geo = x => [...x.m.pastilles, ...(x.o ? x.o.pastilles : [])].map(p => p.geo);
       const d = premierEcart(geo({ m, o }), geo({ m: b, o: bo }));
@@ -1462,7 +1425,7 @@ async function forcerEtat55(page, sel, etat, mesure) {
 // Relevé d'une page : repos ; marque PNJ survolée ; tags en appui sous 768 px.
 async function releverEtiquettes(c, script) {
   const cles = LISTES55[c.nom];
-  const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true });
+  const { context, page, erreurs } = await ouvrir({ ...c, script });
   const mesure = () => page.evaluate(MESURE_ETIQUETTES, [E, P, cles]);
   const m = await mesure();
   if (cles.some(([k]) => C13.horsFamilles.includes(k))) { m.caracs = await page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13); }
@@ -1486,10 +1449,6 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
   }
   return e.length ? [`${quoi} « ${x.texte} » : ${e.join(', ')}`] : [];
 }
-// Palette d'états : la marque PNJ passe en 700 et s'élargit, sa voisine #piece glisse d'un pixel ; sa position seule reste hors champ.
-// Retrait : au prochain ticket qui modifie les étiquettes de catégorie ; il réaligne COMMIT_AVANT_55 sur un SHA récent après contrôle
-// absolu de la position de la marque PNJ (entrée 5.5).
-const sansPosition55 = (c, k, x) => (c.nom === 'etats' && k === '#piece' ? { ...x, geo: x.geo.replace(/\[[^,]+,[^,]+,/, '[') } : x);
 // Caractéristiques et leurs pastilles (backlog 13) : fond, texte, bordures et contraste relevés à part, égaux à la compétence de la page.
 const sansPalette13 = (k, x) => (C13.horsFamilles.includes(k) ? { ...x, fond: '·', couleur: '·', bordures: '·', rapport: '·' } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
@@ -1499,17 +1458,13 @@ const LITTERALE = v => /#[0-9a-f]{3,8}\b|rgb|hsl/i.test(v);
 if (on('etiquettes')) {
   console.log('\n== etiquettes ==');
   const rs = await regles();
-  const rb = await regles(avant55);
+  const rb = await regles(avant);
   const forcees = l => l.reduce((n, r) => n + Object.values(r.d).filter(([, p]) => p === 'important').length, 0);
   const focus = l => l.filter(r => r.sel.includes(':focus')).length;
-  // Écart accepté et consigné (épopée 7, entrée 5) : la barre BBCode des rédactions du kramail reprend celle du formulaire de réponse du
-  // forum ; ses règles :focus propres (page-kramail-compose … .btn-toolbar) sont retirées avec elles et ne sont plus comptées dans la base
-  // tant qu'elle précède l'entrée. Retrait au recalage de COMMIT_AVANT_55.
-  const focusBase = l => focus(AVANT_TICKET75(avant55) ? l.filter(r => !(/page-kramail-compose/.test(r.sel) && /btn-toolbar/.test(r.sel))) : l);
-  check(`statique : pas plus de priorités forcées (${forcees(rs)}) et au moins autant de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT_55}) ; aucun #c9302c`, () => {
+  check(`statique : pas plus de priorités forcées (${forcees(rs)}) et au moins autant de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT}) ; aucun #c9302c`, () => {
     assert.ok(forcees(rs) <= forcees(rb), `priorités forcées : ${forcees(rs)} > ${forcees(rb)}`);
     // Intention : aucune règle :focus perdue (focus visible gardé) ; un focus ajouté ailleurs (menu de personnage, épopée 7, entrée 3) est permis
-    assert.ok(focus(rs) >= focusBase(rb), `règles :focus : ${focus(rs)} < ${focusBase(rb)}`);
+    assert.ok(focus(rs) >= focus(rb), `règles :focus : ${focus(rs)} < ${focus(rb)}`);
     assert.ok(!/c9302c/i.test(cssDuBundle(userscript)), '#c9302c présent');
   });
   const net = v => v.replace(/\s+/g, '');
@@ -1545,12 +1500,11 @@ if (on('etiquettes')) {
     assert.deepEqual(l[0].d, { 'background-color': [P.fond, 'important'], color: [P.texte, 'important'] }, JSON.stringify(l[0].d));
     assert.equal(AVANT_TICKET54(userscript), false, 'AVANT_TICKET54(bundle testé)');
     assert.equal(AVANT_TICKET55(userscript), false, 'AVANT_TICKET55(bundle testé)');
-    if (!process.env.KR_SCRIPT_AVANT) { assert.equal(AVANT_TICKET55(avant55), true, `AVANT_TICKET55(${COMMIT_AVANT_55})`); }
   });
   // Géométrie et égalités à la base : 7 largeurs, Kraland clair et Empire Brun sombre, toutes les pages.
   const PAGES55 = Object.keys(LISTES55);
   const cas = [...MOBILES, ...BUREAUX].flatMap(width => VARIANTES.flatMap(variante => PAGES55.map(nom => ({ nom, width, variante }))));
-  const res = await mapLimit(cas, async c => ({ c, t: await releverEtiquettes(c, userscript), b: await releverEtiquettes(c, avant55) }));
+  const res = await mapLimit(cas, async c => ({ c, t: await releverEtiquettes(c, userscript), b: await releverEtiquettes(c, avant) }));
   const refs = new Map(res.filter(({ c }) => c.nom === 'sous-forum').map(({ c, t }) => [`${c.variante} ${c.width}`, t.m.reference]));
   for (const { c, t, b } of res) {
     const lab = `etiquettes ${c.nom} ${c.variante} ${c.width} px`;
@@ -1576,9 +1530,9 @@ if (on('etiquettes')) {
         continue;
       }
       if (sort === 'egal' || sort === 'conforme' || tagsBase) {
-        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT_55})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}`, () => {
+        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}`, () => {
           if (rendu !== 'mobile' || c.width < 768) { assert.ok(l.length > 0, 'absent'); }
-          const d = premierEcart(l.map(x => JSON.stringify(sansPalette13(k, sansPosition55(c, k, x)))), lb.map(x => JSON.stringify(sansPalette13(k, sansPosition55(c, k, x)))));
+          const d = premierEcart(l.map(x => JSON.stringify(sansPalette13(k, x))), lb.map(x => JSON.stringify(sansPalette13(k, x))));
           assert.equal(d, '', d);
           if (sort === 'conforme') { sansEcart55(l.flatMap(x => ecartsCategorie(k, x, j))); }
         });
@@ -1681,7 +1635,7 @@ if (on('etiquettes')) {
     return { etapes, erreurs };
   };
   const casB = VARIANTES.flatMap(variante => ['tags', 'etats'].flatMap(nom => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ nom, variante, largeurs }))));
-  const resB = await mapLimit(casB, async c => ({ c, t: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, userscript), b: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, avant55) }));
+  const resB = await mapLimit(casB, async c => ({ c, t: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, userscript), b: await parcoursEtiquettes(c.nom, c.variante, c.largeurs, avant) }));
   for (const { c, t, b } of resB) {
     const lab = `etiquettes bascule ${c.nom} ${c.variante} ${c.largeurs.join(' -> ')}`;
     t.etapes.forEach((e, i) => {

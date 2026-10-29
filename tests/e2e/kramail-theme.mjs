@@ -119,8 +119,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-// Base figée (A9) : feature/next après les entrées 1 à 8 de l'épopée 7 (recalage du sweep 7.10, ancienne base 55ae556).
-const BASE_SHA = 'd64c5787d2f2636eb600f2204fa3a485d8af8688';
+// Base figée (A9) : feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12, ancienne base d64c578).
+const BASE_SHA = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
 const BASE_BUNDLE = strip(process.env.KR_SCRIPT_BASE
   ? fs.readFileSync(process.env.KR_SCRIPT_BASE, 'utf8')
   : execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -2231,8 +2231,8 @@ if (frag('remonter')) {
 // ---------- confort (épopée 9, entrée 9) ----------
 // Dossiers, lecture, rédaction et contacts : texte à 16 px au moins des bords (rognage par l'ellipse compris), cibles qui ne sont pas des
 // boutons à 44 × 44 aux cinq points (chevron du panneau, cellule de case, destinataire, case d'option), aucun débordement. Bureau : boîte de
-// chaque nœud texte égale au bundle de base COMMIT_AVANT_99 (avant l'entrée 9). Bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
-const COMMIT_AVANT_99 = 'd8c877793a2cd10f4276a10f5e38ae545b10b62e';
+// chaque nœud texte égale au bundle de base COMMIT_AVANT_99 (recalage du sweep 9.12, ancienne base d8c8777). Bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
+const COMMIT_AVANT_99 = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
 const CONFORT_PAGES = ['reception', 'envoi', 'corbeille', 'lecture', 'lecture-recue', 'lecture-envoi', 'nouveau', 'repondre', 'repondre-tous', 'transferer', 'contacts'];
 const CONFORT_CIBLES = {
   liste: ['#col-right .panel-heading span.clickable', '#col-right table > tbody > tr > td.center'],

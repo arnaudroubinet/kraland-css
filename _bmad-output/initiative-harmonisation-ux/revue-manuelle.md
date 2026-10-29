@@ -1056,3 +1056,46 @@ Limites :
 - Done when 2 : « lecture d'un fil » est sans objet (le kramail n'affiche jamais de fil, relevé de 7.2). Retirer les mots « et d'un fil » (A5) ?
 - Signaler (rédaction depuis 7.5) et non-lu sur `i.fa-envelope` : jamais vus sur le site réel (A3).
 - Captures de 7.9 antérieures à 9.9 et au bug 16 : à reprendre sur `HEAD` avant ta passe.
+## Ticket 9.12 — Refactor sweep de l'épopée 9 (in-review, 2026-10-29)
+
+- Implémentation faite directement par l'agent de l'entrée, sans sous-agent ; revue rapide (quick) faite par ce même agent : une revue indépendante reste à faire.
+- CSS retiré ou fusionné : C1 à C6 du plan. Le comparateur jetable (styles calculés hors `--*` et boîtes de chaque élément, 492 cas) ne trouve aucun écart contre 7bec452. Compte de `!important` : 2943 (2946 avant).
+- CSS écarté :
+  - grille d'actions et `.dashboard-section-header` 12 px, en double entre ≥ 768 et ≤ 767 : la fusion rendrait la règle globale, contraire à la convention des media ;
+  - `--kr-font-page-title` et `--kr-space-5/6` : jetons de l'échelle de DESIGN.md, gardés même s'ils ne sont pas lus ;
+  - paddings `.col-sm-*` : encore vivants hors `mobile-mode` ;
+  - nettoyage `.panel-info` du template (~l.9361) : il faut vérifier sur le site réel si le site pose ces styles lui-même.
+- Bases recalées sur 7bec452, avec leurs masques retirés. Les huit premières suites ci-dessous ont toutes leurs bases recalées ; `plateau-qualite-usage` et `typographie-formes` gardent en plus des bases de preuve, listées au point suivant.
+  - `report-non-lu` ;
+  - `confort-mobile` (`COMMIT_AVANT_13` fusionné dans `COMMIT_AVANT`, `sansTitre` retiré) ;
+  - `forum-index` ;
+  - `kramail-redaction` ;
+  - `kramail-theme` (`BASE_SHA`, `COMMIT_AVANT_99`) ;
+  - `palette-nation` (`BASELINE4`) ;
+  - `forum-activite` (sept bases) ;
+  - `cartes-pastilles` (`COMMIT_AVANT_53/54/55` fusionnés dans `COMMIT_AVANT`) ;
+  - `plateau-qualite-usage` (base des cartes) ;
+  - `typographie-formes` (`COMMIT_BOUTONS`, `COMMIT_ECHELLE`, `COMMIT_ECHELLE_FORUM`, `COMMIT_RAYONS`, `COMMIT_ESPACEMENT`, `COMMIT_NETTOYAGE`, `COMMIT_CHAMPS`).
+- Bases gardées, parce que ce sont des preuves d'avant un ticket (écarts attendus ou contrôle « le rendu change ») et non des bases d'égalité :
+  - `kramail-theme` `PALETTE_BASE_SHA` 0b27dc2 (`ECARTS_PALETTE`, 7.6) ;
+  - `palette-nation` `BASELINE5` d521cc8 et `BASELINE13` 7e69719 ;
+  - `plateau-qualite-usage` base pv cb73530 (lit les anciennes couleurs en ligne) ;
+  - `typographie-formes` : `COMMIT_AVANT` d68ab55, `COMMIT_MODALES` 8631c45, `COMMIT_COMPACT` 3b1da55, `COMMIT_TICKET6` 1590761, `COMMIT_TITRE_FORUM` 2db3b4c et `COMMIT_MEDIAS_410` 00b0786.
+- **Doute** : le brief demandait de recaler `COMMIT_MEDIAS_410`. Je l'ai gardé, parce qu'il porte la précondition `AVANT_TICKET410`, le contrôle « rendu à 768 px changé » et A8, qui lit les blocs `(width>=769px)` de la base. Pour le recaler, il faut remplacer ces trois contrôles par un contrôle absolu des propriétés de M1 et M2 à 768 px ; c'est un autre ticket.
+- Masques gardés, parce qu'ils sont encore actifs contre leur base :
+  - `CORRIGER_BUG14` sur `COMMIT_MEDIAS_410` ;
+  - `LEGENDES_TICKET45` et `CIBLES_TICKET95` sur `COMMIT_MODALES` (modale-ordre, modale-bbcode : 4 lignes « info écart » au journal) ;
+  - `CARTES_TICKET54/55` sur `COMMIT_AVANT` d68ab55 ;
+  - `AVANT_TICKET73/75` sur `COMMIT_MEDIAS_410` ;
+  - `sansPalette13` et `C13.sousArbres` (backlog 13, à part par conception).
+- Préconditions retirées avec le recalage :
+  - `AVANT_TICKET55(avant55)` vrai (`cartes-pastilles`) ;
+  - `AVANT_BUG14(avantChamps)` vrai (`typographie-formes#champs`), réduit au contrôle absolu `!AVANT_BUG14(userscript)`.
+- Miroir `ECHELLE_TICKET45` retiré : sur une base postérieure à 4.5, il comparait le bundle à lui-même. Les tailles absolues des titres restent contrôlées par le fragment `echelle`.
+- Exports devenus orphelins et retirés :
+  - `lib/variantes.mjs` : `ECHELLE_TICKET45`, `MEDIAS_TICKET410`, `CARTES_TICKET92`, `AVANT_TICKET92`, `AVANT_TICKET97`, `sansClassesPv97` ;
+  - `lib/marges.mjs` : `SANS_MARGE_PAGE`.
+- `REGLES_CARTE_TICKET51`, `RETRAITS_TICKET49` et `ECARTS_TICKET49` ne sont pas orphelins : ils servent dans `lib/variantes.mjs` (l.143, 426, 437, 447, 494). Seul leur `export` n'a pas de lecteur extérieur ; laissé tel quel. `textesHorsMarge` et `premierTexte` (`lib/marges.mjs`, morts, sans appelant) sont retirés après la revue.
+- Avertissements `no-loop-func` de `lint:js` (`kramail-theme` l.2048 et 2051, `report-non-lu` l.97) : non traités, sur des lignes que le sweep ne change pas.
+- Comparateur jetable : un passage de l'implémenteur sur quatre a donné 1 cas d'écart, sans détail gardé. La revue indépendante l'a lancé 3 fois : 0 écart à chaque passage. Il détecte une mutation : un bundle à `--kr-touch-target: 43px` donne 104 écarts sur 104 cas. L'écart vu une fois était une instabilité de mesure.
+- `test:all` reste à lancer (interdit à l'implémenteur).
