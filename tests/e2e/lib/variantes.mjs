@@ -297,6 +297,31 @@ export const RETIRER_LISTE_TICKET74 = () => {
 };
 
 /**
+ * Rédaction du kramail (épopée 7, entrée 5) : les formulaires post_msg du kramail reprennent le formulaire de réponse du forum (Messages:V3
+ * sur mobile, rendu natif du forum au bureau), prouvé par kramail-theme.mjs (fragments redaction, redaction-dest). Bundle d'avant : son
+ * module Messages:V3 ne repère pas les lignes Sujet et Expéditeur du kramail (sélecteur propre à l'entrée, stable à la minification). Écrit
+ * ici, comme AVANT_TICKET73. Retrait au recalage du COMMIT_* (base figée) de chaque suite appelante sur un SHA qui contient l'entrée.
+ */
+export const AVANT_TICKET75 = bundle => !bundle.includes(':scope > .col-sm-10 > .input-group');
+/**
+ * Dans la page : retire des deux rendus les lignes du formulaire post_msg d'une rédaction du kramail reprises du forum (Sujet, Expéditeur,
+ * Message et sa barre, options). Gardés : la ligne Destinataires (.kd, entrée 6), « Envoyer » (entrée 7) et l'accordéon du message cité.
+ * Posés à l'identique dans les deux rendus, car changés par l'entrée : cadre du formulaire (carte du bureau et marge de page mobile
+ * retirées), marge basse native de la ligne Destinataires (15 px), typographie de son libellé (alignée sur les libellés de l'éditeur,
+ * prouvée par kramail-theme#redaction) et réserve de défilement des champs (prouvée par kramail-theme#redaction-defilement).
+ */
+export const RETIRER_REDACTION_TICKET75 = () => {
+  if (/^\/kramail\/post\//.test(location.pathname)) {
+    document.querySelectorAll('form[name="post_msg"] .form-group:is(:has(> .col-sm-10 > .input-group), :has(.btn-toolbar), :has(input[type="checkbox"])):not(:has(#dest, .kd))').forEach(e => e.remove());
+    const neutre = (sel, decl) => document.querySelectorAll(sel).forEach(e => { e.style.cssText += ';' + decl.replace(/;/g, ' !important;'); });
+    neutre('form[name="post_msg"]', 'margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;');
+    neutre('form[name="post_msg"] .kd-label, form[name="post_msg"] .kd-label *', 'font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none; color: rgb(0, 0, 0);');
+    neutre('form[name="post_msg"] .kd-row', 'margin-bottom: 15px;');
+    neutre('form[name="post_msg"] :is(input, select, textarea, label)', 'scroll-margin-bottom: 0;');
+  }
+};
+
+/**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum
  * et kr-page-forum-index, déjà cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
  * De même pour la couleur du texte (--kr-text-primary) et le raccourci de rayon, cités par trois suites. Panneau mesuré, couleur attendue du
@@ -741,7 +766,7 @@ export const DECLARATIONS_ESPACEMENT_TICKET49 = [
   [BUREAU, ':where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td', 'padding', 'var(--kr-space-1) var(--kr-space-2)', 'important'],
   [BUREAU, ':where(html.kr-page-forum-index) #col-right .panel-default > .panel-body', 'padding', 'var(--kr-space-2) var(--kr-space-4) var(--kr-space-2)', 'important'],
   [MOBILE, 'body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn', 'gap', 'var(--kr-space-1)', ''],
-  [MOBILE, 'body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus', 'padding', '0 var(--kr-space-2)', 'important'],
+  [MOBILE, 'body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus', 'padding', '0 var(--kr-space-2)', 'important'],
   [COMBINEE, '.panel-body', 'padding', 'var(--kr-space-4)', ''],
   [COMBINEE, '.panel-heading', 'padding', 'var(--kr-space-3) var(--kr-space-4)', ''],
   [COMBINEE, '.modal-footer .btn + .btn', 'margin-left', 'var(--kr-space-1)', ''],

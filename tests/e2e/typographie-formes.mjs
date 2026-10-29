@@ -108,7 +108,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET95, AVANT_TICKET97, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, RETIRER_REDACTION_TICKET75, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -558,11 +558,12 @@ function verifierVises(r, mobile) {
   const hors = Object.entries(r.vises).flatMap(([k, l]) => l.filter(m => m.taille !== '14px' || (mobile ? m.hauteur < 43.5 : Math.abs(m.hauteur - 34) > 0.5)).map(m => decrire(k, m)));
   assert.deepEqual(hors, [], hors.join(' ; '));
 }
-function verifierExclus(r, a) {
+function verifierExclus(r, a, horsBase = []) {
   const vides = r.cles.exclus.filter(k => !(r.exclus[k] || []).length);
   assert.deepEqual(vides, [], `exclusions absentes : ${vides.join(', ')}`);
   const ecarts = [];
   for (const [k, l] of Object.entries(r.exclus)) {
+    if (horsBase.includes(k)) { continue; }
     const b = a.exclus[k] || [];
     if (b.length !== l.length) { ecarts.push(`${k} : ${l.length} élément(s) contre ${b.length}`); continue; }
     l.forEach((m, i) => ['taille', 'hauteur', 'padding'].forEach(p => { if (m[p] !== b[i][p]) { ecarts.push(`${k} « ${m.texte} » ${p} ${m[p]} au lieu de ${b[i][p]}`); } }));
@@ -589,7 +590,10 @@ if (on('boutons')) {
     if (pourSupport(PAGES_BOUTONS[c.nom].vises, mobile).length) {
       check(`boutons ${etiquette(c)} : boutons de la liste en 14 px, ${mobile ? 'hauteur ≥ 44 px' : 'hauteur 34 px'}`, () => verifierVises(r, mobile));
     }
-    if (a) { check(`boutons ${etiquette(c)} : exclusions (font-size, hauteur, padding) égales au bundle de base`, () => verifierExclus(r, a)); }
+    // Écart accepté et consigné (épopée 7, entrée 5) : barre BBCode de la rédaction du kramail à celle du formulaire de réponse du forum
+    // (kramail-theme, fragment redaction), hors de la comparaison tant que la base précède l'entrée. Retrait au recalage de COMMIT_BOUTONS.
+    const horsBase = c.nom === 'redaction' && AVANT_TICKET75(baseBoutons(c.nom)) ? ['bbcode'] : [];
+    if (a) { check(`boutons ${etiquette(c)} : exclusions (font-size, hauteur, padding) égales au bundle de base${horsBase.length ? ' (barre BBCode à part)' : ''}`, () => verifierExclus(r, a, horsBase)); }
     check(`boutons ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
   }
   // Ordinateur tactile (pointer: coarse) : boutons d'action et d'accès rapide gardent 44 px.
@@ -1118,7 +1122,7 @@ const ROLES_FORUM = {
   nouveau: [
     ['aide du champ Destinataires', '.kd-help', '14px', null, 'b', 'repos'],
     ['aide du champ Destinataires', '.kd-help', '15px', null, 'm', 'repos'],
-    ['libellé Destinataires', '.kd-row > .kd-label', '13px', null, 'b', 'repos'],
+    ['libellé Destinataires', '.kd-row > .kd-label', '14px', null, 'b', 'repos'], // taille native des autres libellés (épopée 7, entrée 5)
     ['recherche en cours', '.kd-sec.kd-loading', '14px', null, 'b', 'chargement'],
     ['recherche en cours', '.kd-sec.kd-loading', '15px', null, 'm', 'chargement'],
     ['titre de section', '.kd-sec:not(.kd-loading):not(.kd-error)', '12px', null, null, 'annuaire'],
@@ -1252,17 +1256,22 @@ if (on('echelle-forum')) {
   // Écart accepté et consigné (épopée 7, entrée 4) : lignes de #topics de la liste au rendu du sous-forum (kramail-theme, fragments liste*),
   // hors du relevé des deux côtés. Retrait au recalage de COMMIT_ECHELLE_FORUM sur un SHA qui contient l'entrée (AVANT_TICKET74 devient faux).
   const MASQUE74 = AVANT_TICKET74(avantEchelleForum);
-  const MESURE_TAILLES = ([masque72, masque73, masque74]) => [...document.querySelectorAll('#col-right, #col-right *')]
+  // Écart accepté et consigné (épopée 7, entrée 5) : formulaire de la rédaction au rendu du formulaire de réponse du forum (kramail-theme,
+  // fragment redaction ; libellés, barre), hors du relevé des deux côtés, champ Destinataires (.kd) gardé. Retrait au recalage de
+  // COMMIT_ECHELLE_FORUM sur un SHA qui contient l'entrée (AVANT_TICKET75 devient faux).
+  const MASQUE75 = AVANT_TICKET75(avantEchelleForum);
+  const MESURE_TAILLES = ([masque72, masque73, masque74, masque75]) => [...document.querySelectorAll('#col-right, #col-right *')]
     .filter(e => window.innerWidth >= 768 || /\/kramail\/post\//.test(location.pathname) || !e.closest('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])'))
     .filter(e => !masque72 || !/\/kramail\/post\/sujet-fictif-0-/.test(location.pathname) || !e.closest('h1.page-header .pull-right, .forum-top, ul.media-list.forum'))
     .filter(e => !masque73 || !/\/kramail/.test(location.pathname) || document.querySelector('form[name="post_msg"]') || !e.closest('h1.page-header'))
     .filter(e => !masque74 || !/^\/kramail\/(?!post\/)/.test(location.pathname) || !e.closest('#topics_wrapper, #topics'))
+    .filter(e => !masque75 || !/^\/kramail\/post\//.test(location.pathname) || !e.closest('form[name="post_msg"]') || e.closest('.kd'))
     .map(e => { const st = getComputedStyle(e); const sansClasse = masque73 && e.parentElement && e.parentElement.closest('.kramail-character-selector'); return `${e.tagName}.${typeof e.className === 'string' && !sansClasse ? e.className : ''} ${st.fontSize}`; });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
     const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
-    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73, MASQUE74]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [MASQUE72, MASQUE73, MASQUE74, MASQUE75]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
@@ -1307,7 +1316,12 @@ const RECEPTION_RAYONS = { ...PAGES_FORUM.reception, html: PAGES_FORUM.reception
     + '<a class="paginate_button" aria-controls="topics" data-dt-idx="2" tabindex="0">2</a></span></div></div>')
   .replace(/(re-commande-0-9000003"><i class=")far fa-envelope-open/, '$1fa fa-envelope') };
 if (!RECEPTION_RAYONS.html.includes('id="topics_paginate"') || !RECEPTION_RAYONS.html.includes('9000003"><i class="fa fa-envelope"')) { console.error('réception des rayons non dérivée'); process.exit(2); }
-const baseRayons = (nom, k, l, b) => (nom === 'reception' && k === 'pastille' && AVANT_TICKET74(avantRayons) ? l : b);
+// Écart accepté et consigné (épopée 7, entrée 5) : sur la rédaction du kramail, champs et barre BBCode au formulaire de réponse du forum
+// (kramail-theme, fragment redaction) : coins pris sur l'élément lui-même et non plus sur la base, tant qu'elle précède l'entrée. Retrait
+// au recalage de COMMIT_RAYONS sur un SHA qui contient l'entrée.
+const REDACTION_TICKET75 = ['champ-groupe', 'barre', 'bbcode', 'champ', 'defilement'];
+const baseRayons = (nom, k, l, b) => ((nom === 'reception' && k === 'pastille' && AVANT_TICKET74(avantRayons))
+  || (nom === 'nouveau' && REDACTION_TICKET75.includes(k) && AVANT_TICKET75(avantRayons)) ? l : b);
 const PAGES_RAYONS = {
   plateau: { def: PAGES.plateau, cas: [
     ['label', '.label', 'P'], ['badge', '.badge', 'P'], ['hamburger', '.navbar-toggle', 'C4', 'm'], ['icone-hamburger', '.navbar-toggle .icon-bar', 'X', 'm'],
@@ -1355,13 +1369,12 @@ const PAGES_RAYONS = {
     ['menu', '.kramail-post-kebab > .btn', 'C4', 'm'], ['icones', 'h1.page-header .pull-right > .btn:not([href*="-7-"])', 'C4', 'm'], ['icones', 'span.pull-right > .btn', 'C4', 'b'],
     ['pagination', '.center > ul.pagination > li > a', 'C4', 'm'], ['pagination', '.center > ul.pagination > li > a', 'N4', 'b']
   ] },
+  // Formulaire au rendu de la réponse du forum (épopée 7, entrée 5) : ni carte du formulaire ni blocs, mêmes rôles que la rédaction du forum.
   nouveau: { def: PAGES_FORUM.nouveau, cas: [
-    ['titre', '.kramail-character-selector', 'C4', 'm'], ['groupe', '.col-sm-10 > .input-group', 'C4', 'm'],
-    ['champ-groupe', '.input-group > :is(input, select)', 'C4'], ['addon', '.input-group > .input-group-addon', 'C4', 'm'],
-    ['addon', '.input-group > .input-group-addon', 'N4', 'b'], ['contacts', '.kd-contacts', 'C4'],
-    ['bbcode', '.btn-toolbar .btn-group-xs > .btn', 'C4'], ['champ', '#message', 'C4'], ['formulaire', 'form.editeur-text', 'K8', 'b'],
-    ['bloc', 'form.editeur-text > .form-group', 'K8'], ['envoyer', 'div.col-sm-12 > button.btn.btn-primary.pull-right', 'C4', 'b'],
-    ['defilement', '.editeur-text .btn-toolbar::-webkit-scrollbar-thumb', 'X', 'm']
+    ['titre', '.kramail-character-selector', 'C4', 'm'], ['champ-groupe', '.input-group > :is(input, select)', 'C4'],
+    ['addon', '.input-group > .input-group-addon', 'N4', 'b'], ['contacts', '.kd-contacts', 'C4'], ['barre', '.btn-toolbar.kr-tools-ready', 'C4', 'm'],
+    ['bbcode', '.btn-toolbar .btn-group-xs > .btn', 'C4'], ['champ', '#message', 'C4'],
+    ['envoyer', 'div.col-sm-12 > button.btn.btn-primary.pull-right', 'C4', 'b'], ['defilement', '.editeur-text .btn-toolbar::-webkit-scrollbar-thumb', 'X', 'm']
   ] },
   // Accordéon (« Message auquel vous répondez ») : sur ordinateur, panneau à 8 px et en-tête égal au panneau moins 1 px (rôle H) ; sur mobile,
   // en-tête et volet repliable en cartes à 8 px. Volet déplié avant la mesure ; menu du sélecteur de personnage mesuré fermé.
@@ -1638,8 +1651,13 @@ function ecartsEspacement(role, attendu, l, b, jetons) {
   return ecarts;
 }
 const LIBELLES_ESPACEMENT = { R: 'réécrit au jeton', N: 'natif au rôle', E: 'exception égale à la base' };
+// Écart accepté et consigné (épopée 7, entrée 5) : champs et barre BBCode des rédactions du kramail au formulaire de réponse du forum
+// (kramail-theme, fragment redaction) : exceptions E hors de la comparaison tant que la base précède l'entrée. Retrait au recalage de
+// COMMIT_ESPACEMENT sur un SHA qui contient l'entrée.
+const horsBaseEspacement75 = (nom, k) => ['nouveau', 'repondre'].includes(nom) && ['champs', 'bbcode'].includes(k) && AVANT_TICKET75(avantEspacement);
 const verifierEspacement = (c, nom, width, r, a, jetons, suffixe = '') => casEspacement(nom, width < 768).forEach(([k, , role, , attendu], i) => {
   if (jetons[0] !== 4 && role === 'E') { return; }
+  if (role === 'E' && horsBaseEspacement75(nom, k)) { return; }
   check(`espacement ${etiquette(c)}${suffixe} ${k} : ${LIBELLES_ESPACEMENT[role]}${jetons[0] !== 4 ? ' (jetons redéfinis 5/9/13/17 suivis)' : ''}`, () => {
     const ecarts = ecartsEspacement(role, attendu, r[`${k}#${i}`] || [], a[`${k}#${i}`] || [], jetons);
     assert.deepEqual(ecarts, [], ecarts.slice(0, 4).join(' ; '));
@@ -1680,6 +1698,7 @@ async function declarationsEspacement(src) {
 }
 if (on('espacement')) {
   console.log('\n== espacement ==');
+  if (AVANT_TICKET75(avantEspacement)) { console.log('  info écart accepté et consigné : champs et barre BBCode des rédactions du kramail au formulaire de réponse du forum (épopée 7, entrée 5), hors de la comparaison à la base'); }
   const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
   const base = new Map();
   const res = await mapLimit(cas, async c => {
@@ -2001,10 +2020,13 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
 // gardé pour le menu de personnage, garderEntete ; retrait au recalage de COMMIT_NETTOYAGE, base figée, sur un SHA qui contient l'entrée) ;
 // #topics de la liste du kramail retiré à toute largeur (RETIRER_LISTE_TICKET74, épopée 7, entrée 4 : ligne du sous-forum, prouvée par
 // kramail-theme, fragments liste* ; gardé pour M1/M2, qui compare le bundle testé à 768 et 769 px, garderListe ; retrait au recalage de
-// COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ;
+// COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ; lignes Sujet, Expéditeur, Message (barre comprise) et options des rédactions du
+// kramail retirées à toute largeur, Destinataires et « Envoyer » gardés, cadre du formulaire neutralisé dans les deux rendus
+// (RETIRER_REDACTION_TICKET75, épopée 7, entrée 5 : formulaire de réponse du forum, prouvé par kramail-theme, fragments redaction* ; gardé
+// pour R4, garderRedaction ; retrait au recalage de COMMIT_NETTOYAGE sur un SHA qui contient l'entrée) ;
 // sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
-const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '', garderEntete = false, garderListe = false }) => {
+const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '', garderEntete = false, garderListe = false, garderRedaction = false }) => {
   const p = PAGES_NETTOYAGE[nom];
   const o = await ouvrir({ nom, width, height: width < 768 ? 667 : 900, variante, script, def: p.def, css: `${GEL_NETTOYAGE} ${SANS_MARGE_PAGE} ${css}`, tactile, injection: 'fin' });
   VARIANTE_PAGE.set(o.page, variante);
@@ -2012,6 +2034,7 @@ const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = ''
   await o.page.evaluate(RETIRER_DOSSIERS);
   if (!garderEntete && AVANT_TICKET73(avantNettoyage)) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
   if (!garderListe && AVANT_TICKET74(avantNettoyage)) { await o.page.evaluate(RETIRER_LISTE_TICKET74); }
+  if (!garderRedaction && AVANT_TICKET75(avantNettoyage)) { await o.page.evaluate(RETIRER_REDACTION_TICKET75); }
   return o;
 };
 // Force un état (:hover, :focus, :active) sur les éléments d'un sélecteur (CDP, sans geste).
@@ -2054,7 +2077,10 @@ if (on('nettoyage')) {
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) et retiré des deux rendus : A8 et « rendu changé » n'y ont plus d'objet tant que COMMIT_NETTOYAGE précède l'entrée
       // (retrait au recalage de COMMIT_NETTOYAGE).
-      const m768 = p.m && c.width === 768 && !(c.nom === 'reception' && AVANT_TICKET73(avantNettoyage));
+      // Même écart pour l'éditeur des rédactions (épopée 7, entrée 5) : M1/M2 ne touchaient que le formulaire, au rendu du forum et retiré
+      // des deux rendus (retrait au recalage de COMMIT_NETTOYAGE).
+      const m768 = p.m && c.width === 768 && !(c.nom === 'reception' && AVANT_TICKET73(avantNettoyage))
+        && !(['nouveau', 'repondre'].includes(c.nom) && AVANT_TICKET75(avantNettoyage));
       if (m768) {
         const b0 = await ouvrirNettoyage({ ...c, script: avantMedias410 });
         const rc = await comparerUneFois(a.page, b0.page, {});
@@ -2111,10 +2137,15 @@ if (on('nettoyage')) {
         if (r.n || r.nonPret) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
       }
       if (mobile && ['champ', 'nouveau', 'repondre'].includes(c.nom)) {
-        out.champs = await a.page.$$eval(CHAMPS_TICKET410, l => l.filter(e => e.getClientRects().length).map(e => {
+        // Rédaction du kramail : formulaire gardé (garderRedaction), page à part si la comparaison l'a retiré.
+        const redaction = c.nom !== 'champ' && AVANT_TICKET75(avantNettoyage);
+        const pc = redaction ? await ouvrirNettoyage({ ...c, script: userscript, css: p.masque || '', garderRedaction: true }) : a;
+        out.champs = await pc.page.$$eval(CHAMPS_TICKET410, l => l.filter(e => e.getClientRects().length).map(e => {
           const s = getComputedStyle(e);
           return `${e.id || e.name} ${Math.round(e.getBoundingClientRect().height * 10) / 10}/${s.paddingTop}/${s.paddingLeft}/${s.fontSize}`;
         }));
+        if (redaction) { await pc.context.close(); }
+        out.champsForum = c.nom !== 'champ';
       }
     } finally {
       await a.context.close();
@@ -2144,7 +2175,7 @@ if (on('nettoyage')) {
       assert.deepEqual(boutons.filter(x => !x.endsWith(' 1/1')).sort(), ref.boutons.filter(x => !x.endsWith(' 1/1')).sort(), boutons.join(' ; '));
     });
   }
-  for (const { c, erreurs, comparaisons, ordre, champs, change, a8, caracs } of res) {
+  for (const { c, erreurs, comparaisons, ordre, champs, champsForum, change, a8, caracs } of res) {
     for (const [quoi, r] of comparaisons) { verifierNettoyage(`nettoyage ${etiquette(c)} : ${quoi}`, r); }
     if (caracs) {
       check(`nettoyage ${etiquette(c)} : caractéristiques au fond, bordures et texte de la compétence de la page, pastille aux jetons de son niveau (backlog 13)`, () => {
@@ -2161,10 +2192,13 @@ if (on('nettoyage')) {
     }
     if (change !== undefined) { check(`nettoyage ${etiquette(c)} : rendu changé par M1/M2 (écart avec la base non décalée)`, () => assert.ok(typeof change === 'number' && change > 0, typeof change === 'string' ? change : 'aucun écart')); }
     if (ordre && ordre.length) { check(`nettoyage ${etiquette(c)} : hamburger order 1 (R2)`, () => assert.deepEqual(ordre.filter(o => o !== '1'), [], ordre.join(' '))); }
+    // Rédaction du kramail (épopée 7, entrée 5) : Sujet en ligne d'expéditeur du formulaire de réponse du forum, 44 px de haut, texte centré
+    // sans retrait vertical (0 12 px).
     if (champs) {
-      check(`nettoyage ${etiquette(c)} : champs d'une ligne 44 px, retraits 12 px, police 16 px (R4)`, () => {
+      const attendu = champsForum ? ' 44/0px/12px/16px' : ' 44/12px/12px/16px';
+      check(`nettoyage ${etiquette(c)} : champs d'une ligne 44 px, retraits ${champsForum ? '0 12' : '12'} px, police 16 px (R4)`, () => {
         assert.ok(champs.length, 'aucun champ');
-        assert.deepEqual(champs.filter(x => !x.endsWith(' 44/12px/12px/16px')), [], champs.join(' ; '));
+        assert.deepEqual(champs.filter(x => !x.endsWith(attendu)), [], champs.join(' ; '));
       });
     }
     check(`nettoyage ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
@@ -2237,6 +2271,7 @@ if (on('nettoyage')) {
     pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { horsChemin: MASQUE_MODULES_96 })]] });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
+      if (AVANT_TICKET75(avantNettoyage)) { await Promise.all([a, b].map(o => o.page.evaluate(RETIRER_REDACTION_TICKET75))); }
       const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { horsChemin: MASQUE_MODULES_96 })]];
       pas.push({ width, mobile: await mode(), comparaisons });
     }
