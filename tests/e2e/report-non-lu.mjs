@@ -20,8 +20,8 @@
 //
 // Usage : npm run build && npm run test:zone -- report
 // Largeurs : mobile 375 × 667 et 767 px ; ordinateur 768, 769, popup de la cloche 900 × 800 (rendu ordinateur, R5), 1280, 1440 et 1920 px ;
-// bascule 767 ↔ 768 dans le même onglet, dans les deux sens (rechargement de bascule attendu).
-// Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee (vide = tout).
+// bascule 767 ↔ 768 dans le même onglet, dans les deux sens (rechargement de bascule attendu) ; haut de page (8.3) : sélecteur à 16 px du haut.
+// Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee, haut (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -339,6 +339,67 @@ if (on('portee')) {
         assert.deepEqual(m.ligne.tailleTextes, [px]);
         for (const l of m.ligne.lignes) { assert.ok(Math.abs(l.date.top - l.texte.top) <= 0.5, 'date au-dessus du texte hors /report'); }
       });
+    }
+  }
+}
+
+// Haut de page (ticket 8.3, H14.3) : /report n'a pas de barre de navigation ; le bandeau du sélecteur de personnage (.bg-primary, marge en
+// ligne native de 10 px) commence à --kr-space-4 (16 px, ± 1) du haut du document, par compensation du padding-top du body (aucun !important).
+// Hors /report (C4), le padding-top du body reste celui de la base (60 px, place de la barre fixe).
+const HAUT = () => {
+  const banner = document.querySelector('.bg-primary');
+  return {
+    pageReport: document.documentElement.classList.contains('kr-page-report'),
+    variant: [...document.documentElement.classList].find(c => c.startsWith('kr-theme-variant-')),
+    haut: banner.getBoundingClientRect().top + window.scrollY,
+    marge: getComputedStyle(banner).marginTop,
+    paddingBody: getComputedStyle(document.body).paddingTop,
+    mobile: document.body.classList.contains('mobile-mode'),
+    largeur: window.innerWidth
+  };
+};
+function verifierHaut(variante, m, tag) {
+  check(`${tag} ${variante} : haut du bandeau du sélecteur à 16 px (± 1) du haut du document, marge en ligne de 10 px conservée, ${m.largeur < 768 ? 'body.mobile-mode' : 'sans body.mobile-mode'}`, () => {
+    assert.equal(m.variant, 'kr-theme-variant-' + variante);
+    assert.equal(m.pageReport, true);
+    assert.equal(m.mobile, m.largeur < 768, `body.mobile-mode ${m.mobile} à ${m.largeur} px`);
+    assert.ok(Math.abs(m.haut - 16) <= 1, `haut du bandeau ${m.haut} px (padding-top du body ${m.paddingBody}, marge ${m.marge})`);
+    assert.equal(m.marge, '10px', 'marge en ligne du bandeau');
+  });
+}
+if (on('haut')) {
+  console.log('Haut de page : sélecteur à 16 px (375 × 667, 767, 768, 769, 900 × 800, 1280, 1440, 1920), Kraland clair et Empire Brun sombre');
+  const cas = croise([{ width: 375, height: 667 }, { width: 767, height: 667 }, { width: 768, height: 667 }, { width: 769, height: 667 },
+    { width: 900, height: 800 }, { width: 1280, height: 720 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }], DEUX);
+  const res = await mapLimit(cas, async c => { const { context, page } = await open(REPORT, c.variante, c.viewport); const m = await page.evaluate(HAUT); await context.close(); return m; });
+  cas.forEach((c, i) => verifierHaut(c.variante, res[i], tagOf(c.viewport)));
+  const bas = DEUX.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
+  const resB = await mapLimit(bas, async c => {
+    const { context, page } = await open(REPORT, c.variante, { width: c.largeurs[0], height: 667 });
+    const etapes = [await page.evaluate(HAUT)];
+    const recharges = [];
+    for (const w of c.largeurs.slice(1)) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+      await page.setViewportSize({ width: w, height: 667 });
+      recharges.push(await charge);
+      await krReady(page, { ready: THEME_READY, label: `haut bascule ${c.variante} ${w} px` });
+      etapes.push(await page.evaluate(HAUT));
+    }
+    await context.close();
+    return { etapes, recharges };
+  });
+  bas.forEach((c, i) => {
+    const t = `haut bascule ${c.largeurs.join('>')}`;
+    check(`${t} ${c.variante} : rechargement de bascule à chaque passage du seuil`, () => assert.deepEqual(resB[i].recharges, [true, true], 'load observé : ' + resB[i].recharges.join(', ')));
+    resB[i].etapes.forEach((m, j) => verifierHaut(c.variante, m, `${t} étape ${j + 1} (${c.largeurs[j]})`));
+  });
+  for (const viewport of [{ width: 375, height: 667 }, { width: 768, height: 667 }, { width: 900, height: 800 }, { width: 1280, height: 720 }]) {
+    for (const v of DEUX) {
+      const { context, page } = await open(AUTRE, v, viewport);
+      const m = await page.evaluate(HAUT);
+      await context.close();
+      check(`${tagOf(viewport)} ${v} : hors /report, padding-top du body à 60 px (valeur relevée sur la base 5f5d299)`, () => { assert.equal(m.pageReport, false); assert.equal(m.paddingBody, '60px'); });
     }
   }
 }

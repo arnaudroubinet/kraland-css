@@ -798,6 +798,13 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
   :where(html.kr-page-report) table > tbody > tr > td:first-child:not(:only-child) {
     font-size: var(--kr-font-detail);
   }
+
+  /* Haut de page (H14.3, ticket 8.3) : /report n'a pas de barre de navigation ; le padding-top de 60 px du body (règle body ~l.475)
+     est réduit pour que le bandeau du sélecteur (.bg-primary, marge en ligne native de 10 px relevée en t_f45d2cfb, non battue) commence
+     à --kr-space-4 du haut. Contrôle : report-non-lu#haut. */
+  :where(html.kr-page-report) body {
+    padding-top: calc(var(--kr-space-4) - 10px);
+  }
 }
 
 @media (min-width: 768px) {
