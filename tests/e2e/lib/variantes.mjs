@@ -265,6 +265,20 @@ export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
 /** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle) ;
  * un bundle qui contient l'épopée 7, entrée 2 (module Kramail:Lecture, règle kramail-msg-date retirée) est postérieur ; nom du module = repère de retrait de ce second critère. Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
 export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important') && !bundle.includes('Kramail:Lecture');
+/**
+ * En-tête du kramail (épopée 7, entrée 3) : la liste et la lecture reprennent l'en-tête du sous-forum (h1 réécrit sur mobile, valeurs du
+ * sous-forum au bureau, sélecteur de personnage sans style en ligne), prouvé par kramail-theme.mjs (fragments entete, entete-menu,
+ * entete-couleurs). Bundle d'avant : il ne pose pas la marque kr-kramail-entete. Écrit ici : cité par une 4e suite, le repère deviendrait
+ * transverse (routeur, MAX_CITING). Retrait au recalage du COMMIT_* (base figée) de chaque suite
+ * appelante sur un SHA qui contient l'entrée.
+ */
+export const AVANT_TICKET73 = bundle => !bundle.includes('kr-kramail-entete');
+/** Dans la page : retire des deux rendus le h1 de la liste et de la lecture du kramail (rédaction exclue : formulaire post_msg). */
+export const RETIRER_ENTETE_TICKET73 = () => {
+  if (/\/kramail/.test(location.pathname) && !document.querySelector('form[name="post_msg"]')) {
+    document.querySelectorAll('#col-right h1.page-header').forEach(e => e.remove());
+  }
+};
 
 /**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum

@@ -222,6 +222,9 @@ const AVANT_TICKET71 = !!AVANT && !AVANT.includes('kr-page-kramail-');
 // Bundle « avant » antérieur à l'épopée 7, entrée 2 (lecture au rendu du message de sujet, module Kramail:Lecture). Nom du module =
 // repère de retrait : le masque tombe dès que le bundle « avant » contient 'Kramail:Lecture'.
 const AVANT_TICKET72 = !!AVANT && !AVANT.includes('Kramail:Lecture');
+// Bundle « avant » antérieur à l'épopée 7, entrée 3 (en-tête du sous-forum sur la liste et la lecture, module Kramail:CharacterSwitcher).
+// Classe de l'en-tête = repère de retrait : le masque tombe dès que le bundle « avant » contient 'kr-kramail-entete'.
+const AVANT_TICKET73 = !!AVANT && !AVANT.includes('kr-kramail-entete');
 // Jetons redéfinis par l'épopée 3, ticket 1, en feuille adoptée (lib/variantes.mjs) : code d'initialisation du bundle « avant » (regression),
 // seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
 // ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
@@ -1302,6 +1305,7 @@ if (frag('regression')) {
   if (ESPACEMENT_AVANT) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
   if (AVANT_TICKET71) { console.log('  info écart accepté et consigné : gardes de page du kramail sur <html> et dossiers en onglets sous 768 px (épopée 7, entrée 1), dossiers du titre des listes mobiles retirés des deux rendus'); }
   if (AVANT_TICKET72) { console.log('  info écart accepté et consigné : lecture au rendu du message de sujet (épopée 7, entrée 2), boutons du titre, barre d\'actions et messages de la lecture retirés des deux rendus'); }
+  if (AVANT_TICKET73) { console.log('  info écart accepté et consigné : en-tête du sous-forum sur la liste et la lecture (épopée 7, entrée 3), titre h1 retiré des deux rendus'); }
   if (!AVANT) {
     check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1329,6 +1333,9 @@ if (frag('regression')) {
         // Écart accepté et consigné (épopée 7, entrée 2) : sur la lecture seulement, boutons du titre, barre d'actions et messages (couverts
         // par kramail-theme, fragments lecture*) retirés des deux côtés avant tout relevé ; titre, menu, pagination et pied restent comparés.
         if (AVANT_TICKET72 && pg === 'lecture') { await p.evaluate(() => { document.querySelectorAll('h1.page-header .pull-right, .forum-top, ul.media-list.forum').forEach(e => e.remove()); }); }
+        // Écart accepté et consigné (épopée 7, entrée 3) : titre h1 de la liste et de la lecture (couvert par kramail-theme, fragments entete*)
+        // retiré des deux côtés avant tout relevé ; le reste de la page reste comparé.
+        if (AVANT_TICKET73) { await p.evaluate(() => { document.querySelectorAll('#col-right h1.page-header').forEach(e => e.remove()); }); }
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
         const composants = AVANT_TICKET4 ? await p.evaluate(MARQUER_COMPOSANTS, COMPOSANTS_TICKET4) : 0;
