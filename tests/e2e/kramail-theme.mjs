@@ -82,16 +82,21 @@
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
+//   remonter : (ticket 16) Nouveau, Répondre et la réponse du forum (typographie-forum-redaction, avec le lien natif du haut de page et du
+//             contenu autour du formulaire), Kraland et Empire Brun sombre, 375 px tactile : hors saisie et page défilée, « Remonter en haut »
+//             visible, touché en son centre, à droite 8 px et en bas 20 px ; zone de texte touchée, texte tapé, page défilée de plus de 400 px,
+//             viewport à 667 puis 350 px : aucun point du contenu de la zone de texte sous le lien ; les 3 pages à 1280 px : lien affiché
+//             pendant la saisie.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
 // sinon celui du commit PALETTE_BASE_SHA).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
 // KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts, contacts-boutons et envoyer rouges
-// (contacts-couleurs garde le contraste, déjà tenu à la base).
+// (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -2059,6 +2064,123 @@ if (frag('redaction-palette')) {
         }
       }
       expect(faibles.length === 0, faibles.join(' ; '));
+    });
+  }
+}
+
+// ---------- rédaction : « Remonter en haut » ne couvre pas le texte saisi (ticket 16) ----------
+if (frag('remonter')) {
+  console.log('rédaction : « Remonter en haut » masqué pendant la saisie sur mobile, inchangé hors saisie et sur ordinateur');
+  // Réponse du forum : le lien natif du haut de page (relevé du kramail) et du contenu au-dessus et au-dessous du formulaire, pour que le bas de
+  // la zone de texte soit en vue après plus de 400 px de défilement, comme au kramail.
+  const LIEN_HAUT = '<span id="top-link" class="hidden"><a href="#top" class="well well-sm"><i class="glyphicon glyphicon-chevron-up"></i></a></span>\n';
+  const forum = LECTURES['forum-redaction'].html.replace('<form name="post_msg"', '<div style="height:400px"></div>\n<form name="post_msg"')
+    .replace('</form>', '</form>\n<div style="height:900px"></div>').replace('<footer', LIEN_HAUT + '<footer');
+  if (forum === LECTURES['forum-redaction'].html || !forum.includes(LIEN_HAUT)) { console.error('réponse du forum : formulaire ou pied introuvable'); process.exit(2); }
+  LECTURES['forum-remonter'] = { url: LECTURES['forum-redaction'].url, html: forum };
+  const TA = 'form[name="post_msg"] textarea[name="message"]';
+  const SAISI = 'Bonjour,\nceci est un message de test tapé clavier ouvert, assez long pour aller jusqu\'au bord droit.\nFin du test.';
+  // Défile à y (au moins 401 px, ou le bas du texte saisi en vue si saisie), attend l'événement scroll puis la fin des transitions du lien.
+  const DEFILER = async ({ ta, saisie }) => {
+    const champ = document.querySelector(ta);
+    const lien = document.querySelector('footer a[href="#top"]');
+    const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+    if (saisie) { champ.scrollTop = champ.scrollHeight; }
+    const y = saisie ? Math.max(401, champ.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + 8) : document.documentElement.scrollHeight;
+    const avant = window.scrollY;
+    const evt = new Promise(r => {
+      const t = setTimeout(() => { window.removeEventListener('scroll', on); r(); }, 2000);
+      function on() { clearTimeout(t); r(); }
+      window.addEventListener('scroll', on, { once: true, passive: true });
+    });
+    window.scrollTo({ top: y, behavior: 'instant' });
+    if (window.scrollY !== avant) { await evt; }
+    await frame();
+    await frame();
+    const t0 = performance.now();
+    while (lien.getAnimations().some(a => a.playState === 'running') && performance.now() - t0 < 2000) { await frame(); }
+  };
+  const MESURER = ta => {
+    const champ = document.querySelector(ta);
+    const lien = document.querySelector('footer a[href="#top"]');
+    const cs = getComputedStyle(lien);
+    const q = lien.getBoundingClientRect();
+    const touche = (x, y) => { const e = document.elementFromPoint(x, y); return !!e && (e === lien || lien.contains(e)); };
+    const t = champ.getBoundingClientRect();
+    const tcs = getComputedStyle(champ);
+    const px = k => parseFloat(tcs[k]) || 0;
+    const gauche = t.left + px('borderLeftWidth') + px('paddingLeft');
+    const droite = t.right - px('borderRightWidth') - px('paddingRight');
+    const haut = Math.max(t.top + px('borderTopWidth') + px('paddingTop'), 0);
+    const bas = Math.min(t.bottom - px('borderBottomWidth') - px('paddingBottom'), window.innerHeight);
+    const pas = Math.max(4, (px('lineHeight') || 20) / 2);
+    let points = 0;
+    const couverts = [];
+    for (let y = haut + 1; y < bas - 1; y += pas) {
+      for (const x of [gauche + 2, (gauche + droite) / 2, droite - 2]) {
+        points += 1;
+        const e = document.elementFromPoint(x, y);
+        if (e && (e === lien || lien.contains(e))) { couverts.push(`${Math.round(x)},${Math.round(y)}`); }
+      }
+    }
+    return {
+      sy: Math.round(window.scrollY), vh: window.innerHeight, classeVisible: lien.classList.contains('kr-btt-visible'),
+      montre: cs.visibility !== 'hidden' && cs.display !== 'none' && cs.opacity !== '0' && q.width > 0,
+      centre: touche(q.left + q.width / 2, q.top + q.height / 2), rect: [q.left, q.top, q.width, q.height].map(Math.round),
+      bas: cs.bottom, droite: cs.right, focus: document.activeElement === champ, points, couverts
+    };
+  };
+  const cas = ['nouveau', 'repondre', 'forum-remonter'].flatMap(cle => ['kraland', DARK].map(variante => ({ cle, variante })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: 375, height: 667, mobile: true, variante: c.variante });
+    const p = o.page;
+    await p.evaluate(DEFILER, { ta: TA, saisie: false });
+    const hors = await p.evaluate(MESURER, TA);
+    await p.evaluate(ta => document.querySelector(ta).scrollIntoView({ block: 'center' }), TA);
+    await p.tap(TA);
+    await p.evaluate(() => { const t = document.activeElement; t.setSelectionRange(t.value.length, t.value.length); });
+    await p.keyboard.type(SAISI, { delay: 2 });
+    const saisie = [];
+    for (const h of [667, 350]) {
+      if (h !== 667) { await p.setViewportSize({ width: 375, height: h }); }
+      await p.evaluate(DEFILER, { ta: TA, saisie: true });
+      saisie.push(await p.evaluate(MESURER, TA));
+    }
+    await o.context.close();
+    return { c, o, hors, saisie };
+  });
+  for (const { c, o, hors, saisie } of res) {
+    const lab = `${c.cle} ${c.variante} 375 px`;
+    check(`${lab} : hors saisie, page défilée (${hors.sy} px), « Remonter en haut » visible, centre touché, 36 px de large et >= 44 px de haut, à droite 8 px, en bas 20 px`, () => {
+      expect(hors.sy > 400 && hors.classeVisible && hors.montre, JSON.stringify({ sy: hors.sy, classe: hors.classeVisible, montre: hors.montre }));
+      expect(hors.centre, 'centre non touché ' + JSON.stringify(hors.rect));
+      expect(hors.droite === '8px' && hors.bas === '20px', `droite ${hors.droite}, bas ${hors.bas}`);
+      expect(hors.rect[2] === 36 && hors.rect[3] >= 44, 'taille ' + JSON.stringify(hors.rect));
+      sansFuite(o);
+    });
+    for (const m of saisie) {
+      check(`${lab}, viewport ${m.vh} px : zone de texte au focus, page défilée de plus de 400 px (${m.sy}), aucun point du texte saisi sous « Remonter en haut » (${m.points} points)`, () => {
+        expect(m.focus && m.sy > 400 && m.classeVisible, JSON.stringify({ focus: m.focus, sy: m.sy, classe: m.classeVisible }));
+        expect(m.points > 0, 'aucun point du champ dans la fenêtre');
+        expect(m.couverts.length === 0, `${m.couverts.length} point(s) sous le lien ${JSON.stringify(m.rect)} : ${m.couverts.slice(0, 3).join(' ; ')}`);
+        sansFuite(o);
+      });
+    }
+  }
+  // Ordinateur : hauteur de 400 px pour défiler de plus de 400 px sur les fixtures du kramail.
+  const bureau = await mapLimit(['nouveau', 'repondre', 'forum-remonter'], async cle => {
+    const o = await ouvrir(cle, { width: 1280, height: 400 });
+    await o.page.click(TA);
+    await o.page.evaluate(DEFILER, { ta: TA, saisie: false });
+    const m = await o.page.evaluate(MESURER, TA);
+    await o.context.close();
+    return { cle, o, m };
+  });
+  for (const { cle, o, m } of bureau) {
+    check(`${cle} 1280 px : zone de texte au focus, page défilée (${m.sy} px), « Remonter en haut » affiché et touché (36 px, droite 8 px, bas 20 px)`, () => {
+      expect(m.focus && m.sy > 400 && m.montre && m.centre, JSON.stringify({ focus: m.focus, sy: m.sy, montre: m.montre, centre: m.centre }));
+      expect(m.rect[2] === 36 && m.droite === '8px' && m.bas === '20px', `${JSON.stringify(m.rect)} ${m.droite} ${m.bas}`);
+      sansFuite(o);
     });
   }
 }
