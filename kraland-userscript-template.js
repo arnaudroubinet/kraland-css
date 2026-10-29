@@ -3718,7 +3718,7 @@
       const isMembers = location?.pathname?.indexOf('/communaute/membres') === 0;
       document.documentElement.classList.toggle('kr-page-members', isMembers);
 
-      // Page Notifications (/report, /report/<personnage>) : limite au journal le rendu des lignes non lues (tr.bg-info, voir le CSS)
+      // Page Notifications (/report, /report/<personnage>) : garde les règles de la page (ligne non lue tr.bg-info, ligne de notification, haut de page ; voir le CSS)
       const isReport = /^\/report(?:\/|$)/.test(location?.pathname || '');
       document.documentElement.classList.toggle('kr-page-report', isReport);
 
