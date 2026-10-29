@@ -403,7 +403,8 @@ async function regles(src = userscript) {
   await context.close();
   return reglesLues.get(src);
 }
-const MOBILE = ['(max-width: 767px)', '(width <= 767px)'];
+// Média mobile, seul ou restreint au mouvement réduit (épopée 9, entrée 5 : accordéons sans transition).
+const MOBILE = ['(max-width: 767px)', '(width <= 767px)', '(max-width: 767px) and (prefers-reduced-motion: reduce)', '(width <= 767px) and (prefers-reduced-motion: reduce)'];
 
 if (on('kramail')) {
   const rs = await regles();

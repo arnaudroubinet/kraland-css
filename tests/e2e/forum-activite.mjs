@@ -85,7 +85,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -138,7 +138,7 @@ const browser = await launchBrowser();
 
 // Ouvre la page `cle` (chemin + hash). `routes` : documents servis en plus (chemin -> HTML), pour l'arrivée d'un parcours. `debut` : bundle
 // évalué dès que <html> existe (sinon dès que <body> existe). `src` : bundle injecté ; `theme` : kr-theme-enabled.
-async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, sansMarge = false }) {
+async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 768, variante = VARIANTES[1], theme = true, src = userscript, debut = false, routes = {}, sansMarge = false, css = '' }) {
   const context = await browser.newContext({ viewport: { width, height: height || (tactile ? 667 : 900) }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   const documents = { [PAGES[cle].url]: html || PAGES[cle].html, ...routes };
@@ -156,6 +156,8 @@ async function ouvrir({ cle, html, hash = '', width, height, tactile = width < 7
   });
   // sansMarge : marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE, lib/marges.mjs), pour les comparaisons au bundle de base.
   if (sansMarge) { await context.addInitScript(poserJetonsRedefinis, SANS_MARGE_PAGE); }
+  // css : règles posées sur un bundle de base antérieur (écarts acceptés et consignés d'autres tickets, ex. CIBLES_TICKET95).
+  if (css) { await context.addInitScript(poserJetonsRedefinis, css); }
   await context.addInitScript(({ code, v, enabled, start }) => {
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', enabled ? 'true' : 'false');
@@ -766,7 +768,10 @@ if (on('fil')) {
     // Bureau : index RP, sous-forum (colonne native) et sujet.
     ...['rp', 'debuterNatif', 'sujet'].flatMap(cle => [768, 769, 1280].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))))
   ];
-  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil }), true) }));
+  // Écart accepté et consigné (épopée 9, entrée 5) : la fixture des Règles (palette-nation.html) porte une carte du plateau, dont les
+  // actions passent à 44 px en mobile ; posé sur le bundle de base s'il est antérieur (CIBLES_TICKET95).
+  const cssBaseFil = AVANT_TICKET95(baseFil) ? CIBLES_TICKET95 : '';
+  const resB = await mapLimit(casB, async c => ({ teste: await lireFil(await ouvrir(c), true), base: await lireFil(await ouvrir({ ...c, src: baseFil, css: cssBaseFil }), true) }));
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';

@@ -5164,28 +5164,6 @@ body > map {
       margin-left: 8px !important;
     }
     
-    /* Bouton settings */
-    .mobile-mini-profile-settings {
-      position: absolute !important;
-      top: 12px !important;
-      right: 12px !important;
-      width: 32px !important;
-      height: 32px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      background: var(--kr-bg-hover) !important;
-      border-radius: var(--kr-radius-full) !important;
-      cursor: pointer !important;
-      font-size: 16px !important;
-      z-index: 10 !important;
-      text-decoration: none !important;
-    }
-    
-    .mobile-mini-profile-settings:hover {
-      background: var(--kr-bg-active) !important;
-    }
-    
     /* Jauges compactes (toujours visibles) */
     .mobile-mini-profile-gauges-compact {
       display: flex !important;
@@ -5924,9 +5902,10 @@ body > map {
 @media (max-width: 767px) {
   body.mobile-mode .dashboard-cards-grid {
     overflow: hidden;
-    transition: max-height var(--transition-normal) ease-in-out,
-                opacity var(--transition-normal) ease-in-out,
-                margin var(--transition-fast);
+    transition: max-height var(--transition-normal),
+                opacity var(--transition-normal),
+                margin var(--transition-fast),
+                padding var(--transition-normal);
     max-height: 5000px;
     opacity: 1;
   }
@@ -6139,6 +6118,7 @@ body > map {
     display: flex;
     position: static;
     gap: 8px;
+    flex-wrap: wrap;
     justify-content: center;
     padding: 4px 4px 2px;
     border-top: 1px solid var(--kr-border-default);
@@ -6152,9 +6132,9 @@ body > map {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
-    min-height: 26px !important;
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target);
+    min-height: var(--kr-touch-target) !important;
     background: var(--kr-bg-surface);
     border: 1px solid var(--kr-border-default);
     border-radius: var(--kr-radius-sm);
@@ -6202,9 +6182,9 @@ body > map {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px !important;
-    min-height: 28px !important;
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target) !important;
+    min-height: var(--kr-touch-target) !important;
     padding: 0 !important;
   }
 }
@@ -6546,7 +6526,7 @@ body > map {
     max-height: 5000px;
     opacity: 1;
     overflow: hidden;
-    transition: max-height var(--transition-normal), opacity var(--transition-normal);
+    transition: max-height var(--transition-normal), opacity var(--transition-normal), padding var(--transition-normal);
   }
 
   body.mobile-mode .building-section-content.collapsed {
@@ -6565,18 +6545,28 @@ body > map {
   }
 }
 
+/* Repli des accordéons (groupes du plateau, sections des bâtiments) sans animation si le système le demande */
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  body.mobile-mode .dashboard-cards-grid,
+  body.mobile-mode .building-section-content {
+    transition: none;
+  }
+}
+
 /* ============================================================================
  * CX2 : croix directionnelle V2 et accès tactile aux pièces (mobile uniquement)
- * Bloc unique non flottant : croix 154×154 à gauche (4 touches 50×50, centre neutre),
+ * Bloc unique non flottant : croix 154×154 à gauche (4 touches de max(--kr-touch-target-dpad, 50 px), centre neutre),
  * pièces à droite (3 premières, alignées sur les 3 rangées de la croix), pièces en excès dessous.
  * Couleurs : variables du thème (aucune valeur en dur propre à un thème).
  * ============================================================================ */
 @media (max-width: 767px) {
   body.mobile-mode .kr-nav-v2 {
+    --kr-touche-croix: max(var(--kr-touch-target-dpad), 50px);
+
     display: grid;
-    grid-template-columns: 154px minmax(0, 1fr);
-    grid-template-rows: repeat(3, minmax(50px, auto));
-    grid-auto-rows: minmax(50px, auto);
+    grid-template-columns: calc(3 * var(--kr-touche-croix) + 4px) minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(var(--kr-touche-croix), auto));
+    grid-auto-rows: minmax(var(--kr-touche-croix), auto);
     gap: 2px 12px;
     box-sizing: border-box;
     width: 100%;
@@ -6611,10 +6601,10 @@ body > map {
     grid-row: 1 / span 3;
     align-self: start;
     display: grid;
-    grid-template: ". n ." 50px "w c e" 50px ". s ." 50px / 50px 50px 50px;
+    grid-template: ". n ." var(--kr-touche-croix) "w c e" var(--kr-touche-croix) ". s ." var(--kr-touche-croix) / var(--kr-touche-croix) var(--kr-touche-croix) var(--kr-touche-croix);
     gap: 2px;
-    width: 154px;
-    height: 154px;
+    width: calc(3 * var(--kr-touche-croix) + 4px);
+    height: calc(3 * var(--kr-touche-croix) + 4px);
   }
 
   body.mobile-mode .kr-nav-v2 .kr-pad::before {
@@ -6635,8 +6625,8 @@ body > map {
     justify-content: center;
     gap: 4px;
     box-sizing: border-box;
-    min-width: 50px;
-    min-height: 50px;
+    min-width: var(--kr-touche-croix);
+    min-height: var(--kr-touche-croix);
     margin: 0;
     padding: 0;
     border: 1px solid var(--kr-primary-dark);
@@ -6839,7 +6829,7 @@ body > map {
     gap: 8px;
     box-sizing: border-box;
     min-width: 0;
-    min-height: 50px;
+    min-height: var(--kr-touch-target);
     margin: 0;
     padding: 4px 8px 4px 4px;
     border: 1px solid var(--kr-border-default);
@@ -13386,6 +13376,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     gap: 4px;
     box-sizing: border-box;
     width: 100%;
+    min-height: var(--kr-touch-target);
     margin: 0;
     line-height: 1.2;
     text-align: center;

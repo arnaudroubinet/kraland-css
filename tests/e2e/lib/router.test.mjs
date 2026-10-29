@@ -75,6 +75,13 @@ check('marge mobile (épopée 9, entrée 1) : classes de page et retrait de marg
   assert.equal(f.widened, false);
   assert.deepEqual(f.units, ['confort-mobile']);
 });
+check('cibles du plateau mobile (épopée 9, entrée 5) : actions de carte -> confort-mobile (fragment plateau) ; croix -> fragment jeton', () => {
+  const c = route('kraland-theme.css', hunk('  body.mobile-mode .dashboard-card-actions a {', '    width: var(--kr-touch-target);'));
+  assert.equal(c.widened, false, c.reasons.join(' ; '));
+  for (const z of ['confort-mobile', 'cartes-pastilles', 'typographie-formes', 'plateau']) { assert.ok(c.zones.includes(z), c.zones.join(', ')); }
+  assert.ok(SUITES.find(s => s.name === 'confort-mobile').frags.some(f => f.includes('plateau')));
+  assert.ok(SUITES.find(s => s.name === 'croix-directionnelle').frags.some(f => f.includes('jeton')));
+});
 check('couleurs de nation : déclaration d\'un jeton de rôle (même citant palette-nation) ou emploi var(--kr-…) sans composant : total ; fixture -> palette-nation et forum-activite', () => {
   assert.deepEqual(zonesOf('palette-nation.mjs'), ['palette-nation']);
   const theme = [

@@ -24,9 +24,13 @@
 //                   bundle de base 034a820 ; bascule 767 <-> 768 sur /help/staff et Membres dans les deux sens ; premier texte des .well
 //                   de /help/staff à 24 px au plus du bord ; hors périmètre (lien de tableau hors .well, fiche de membre sans
 //                   #myTabContent) : largeurs égales au bundle de base.
+//   plateau         (entrée 5, plan story-plateau-mobile-cibles-des-cartes-des-groupes-du-mini-profil) groupes (mini-profil plié et déplié
+//                   à 375 et 700 px), cartes à une et trois actions, à 320, 375 × 667, 700 et 767 px, Kraland clair et Empire Brun sombre :
+//                   cibles du plateau à 44 × 44 aux cinq points, actions dans leur carte, tuiles à 64 px ; repli des deux accordéons sans
+//                   saut ; à 768 et 1280 px, boîtes des cibles égales au bundle de base.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 9b6851a, entrée 1 comprise), KR_FRAG =
-// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide (vide = tout). KR_SCRIPT_AVANT_13 : bundle de base du fragment membres-aide
+// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau (vide = tout). KR_SCRIPT_AVANT_13 : bundle de base du fragment membres-aide
 // (défaut : git show 034a820, entrée 4 comprise).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -37,7 +41,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
-import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
+import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
 import { AVANT_TICKET73, choisirVariante, RETIRER_ENTETE_TICKET73 } from './lib/variantes.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
@@ -126,6 +130,12 @@ const PREMIERS_TEXTES = sel => [...document.querySelectorAll(sel)].map(el => {
   rg.selectNodeContents(n);
   return Math.round(rg.getBoundingClientRect().left);
 });
+// Fragment plateau (entrée 5) : cartes de personnages avec une action chacune (plateau-cartes-noms.html), et variante à trois actions sur la
+// première carte (repli sur deux lignes à 320 px ; structure native de plusieurs actions non relevée, voir le plan).
+const UNE_ACTION = '<div style="height:59px"><div><a href="#"><i class="fa fa-user"></i></a></div></div>';
+PAGES.cartes = { url: '/jouer/plateau', html: avecBootstrap(lire('plateau-cartes-noms.html')), classe: 'kr-page-jeu' };
+PAGES['cartes-trois'] = { url: '/jouer/plateau', classe: 'kr-page-jeu',
+  html: PAGES.cartes.html.replace(UNE_ACTION, '<div style="height:59px"><div><a href="#"><i class="fa fa-user"></i></a><a href="#"><i class="fa fa-envelope"></i></a><a href="#"><i class="fa fa-eye"></i></a></div></div>') };
 
 let failures = 0;
 function check(name, fn) {
@@ -134,9 +144,9 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768 }) {
+async function ouvrir({ nom, width, height = 667, variante, script, tactile = width < 768, init = null, reducedMotion = 'no-preference' }) {
   const def = PAGES[nom];
-  const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
+  const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1, reducedMotion });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
   await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
   await context.route(BASE + '/**', route => {
@@ -150,6 +160,7 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
     return route.abort();
   });
   await context.addInitScript(choisirVariante, variante);
+  if (init) { await context.addInitScript(init); }
   await context.addInitScript(src => {
     window.GM = { xmlHttpRequest: () => {} };
     // Soumission neutralisée (aucun envoi, même depuis une fixture).
@@ -668,6 +679,171 @@ if (on('membres-aide')) {
       assert.deepEqual(teste.l, base.l);
     });
     check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
+// ---------- plateau (entrée 5) ----------
+// Cibles tactiles du plateau mobile : actions des cartes, boutons de groupe, bouton de gestion du mini-profil, accès rapides et grille
+// d'actions (si visible) à 44 × 44 par boîte et aux cinq points ; tuiles d'action à 64 px (Q24.1) ; actions dans leur carte, sans
+// chevauchement ; repli des deux accordéons sans saut (hauteur au premier instant égale à la hauteur dépliée, puis décroissante) ; à 768 et
+// 1280 px, boîtes des cibles égales au bundle de base.
+const CIBLES_PLATEAU = ['.dashboard-card-actions a', '.dashboard-group-buttons .btn', '.mobile-mini-profile-manage-btn', '.kr-quick-access-buttons > .btn', '.kr-action-grid > .btn'];
+const VISIBLES = sels => sels.flatMap(sel => [...document.querySelectorAll(sel)].map((e, i) => [sel, i, e]).filter(([, , e]) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden' && !e.closest('.dashboard-cards-grid.collapsed, .building-section-content.collapsed')).map(([s, i]) => [s, i]));
+const ACTIONS_DANS_CARTE = () => [...document.querySelectorAll('.dashboard-card-actions')].flatMap(w => {
+  const carte = w.closest('.dashboard-card').getBoundingClientRect();
+  const liens = [...w.querySelectorAll('a')].map(a => a.getBoundingClientRect());
+  const e = [];
+  liens.forEach((r, i) => {
+    if (r.left < carte.left - 0.5 || r.right > carte.right + 0.5 || r.top < carte.top - 0.5 || r.bottom > carte.bottom + 0.5) { e.push(`action ${i} hors de sa carte`); }
+    liens.slice(i + 1).forEach((q, j) => { if (Math.min(r.right, q.right) - Math.max(r.left, q.left) > 0.5 && Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top) > 0.5) { e.push(`actions ${i}/${i + j + 1} chevauchées`); } });
+  });
+  return e;
+});
+const TUILES = () => [...document.querySelectorAll('.mobile-quick-action')].filter(e => e.getClientRects().length).map(e => Math.round(e.getBoundingClientRect().height));
+// Repli d'un accordéon : clic sur l'en-tête du premier corps déplié, transitions figées puis parcourues de 0 à 300 ms (pas de 10 ms).
+const REPLI = ([entete, corps]) => {
+  const c = [...document.querySelectorAll(corps)].find(x => !x.classList.contains('collapsed') && x.getClientRects().length);
+  if (!c) { return null; }
+  const h0 = c.getBoundingClientRect().height;
+  const t = c.closest('.dashboard-section, .panel').querySelector(entete);
+  t.click();
+  const anims = c.getAnimations();
+  anims.forEach(a => a.pause());
+  const h = [];
+  for (let ms = 0; ms <= 300; ms += 10) { anims.forEach(a => { a.currentTime = ms; }); h.push(Math.round(c.getBoundingClientRect().height * 2) / 2); }
+  return { h0: Math.round(h0 * 2) / 2, h, proprietes: anims.map(a => a.transitionProperty).sort() };
+};
+const ACCORDEONS = [['groupes', '.dashboard-section-header-accordion', '.dashboard-cards-grid'], ['objets', '.building-section-header', '.building-section-content']];
+// Script d'initialisation : transitions lancées sur la grille des groupes, et hauteurs des grilles repliées à la première image où elles
+// le sont (rAF, avant toute interaction).
+const CHARGEMENT_GROUPES = () => {
+  window.__krChargement = { transitions: [], premiere: null };
+  document.addEventListener('transitionrun', e => {
+    if (e.target.classList && e.target.classList.contains('dashboard-cards-grid')) { window.__krChargement.transitions.push(e.propertyName); }
+  }, true);
+  const image = () => {
+    const l = [...document.querySelectorAll('.dashboard-cards-grid.collapsed')];
+    if (l.length) { window.__krChargement.premiere = l.map(g => Math.round(g.getBoundingClientRect().height)); return; }
+    requestAnimationFrame(image);
+  };
+  requestAnimationFrame(image);
+};
+const BOITES_BASCULE = sels => [...sels, '.dashboard-cards-grid'].map(sel => sel + ' ' + [...document.querySelectorAll(sel)]
+  .map(e => { const b = e.getBoundingClientRect(); return [b.left, b.top + window.scrollY, b.width, b.height].map(v => Math.round(v)).join(','); }).join(' '));
+if (on('plateau')) {
+  console.log('\n== plateau ==');
+  const cas = ['groupes', 'cartes', 'cartes-trois'].flatMap(nom => VARIANTES.flatMap(variante => MOBILES.map(width => ({ nom, variante, width }))));
+  const mesurer = async page => {
+    const cibles = [];
+    for (const [sel, i] of await page.evaluate(VISIBLES, CIBLES_PLATEAU)) { cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
+    const debord = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    return { cibles, debord, cartes: await page.evaluate(ACTIONS_DANS_CARTE), tuiles: await page.evaluate(TUILES) };
+  };
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    const etats = { 'mini-profil plié': await mesurer(page) };
+    if (PAGES[c.nom].mini && [375, 700].includes(c.width)) {
+      await page.tap('.mobile-mini-profile-header');
+      await page.waitForFunction(() => { const mp = document.querySelector('.mobile-mini-profile'); return mp && mp.classList.contains('expanded') && mp.getAnimations({ subtree: true }).every(a => a.playState !== 'running'); }, null, { timeout: 5000 });
+      etats['mini-profil déplié'] = await mesurer(page);
+    }
+    await context.close();
+    return { c, etats, erreurs };
+  });
+  for (const { c, etats, erreurs } of res) {
+    for (const [etat, m] of Object.entries(etats)) {
+      const lab = `plateau ${c.nom} ${c.variante} ${c.width} px (${etat})`;
+      check(`${lab} : cibles à 44 × 44 aux cinq points (${m.cibles.length} relevées)`, () => {
+        assert.ok(m.cibles.some(x => x.sel === '.dashboard-card-actions a') || c.nom === 'groupes', 'aucune action de carte');
+        assert.ok(m.cibles.some(x => x.sel === '.dashboard-group-buttons .btn'), 'aucun bouton de groupe');
+        if (etat === 'mini-profil déplié') { assert.ok(m.cibles.some(x => x.sel === '.mobile-mini-profile-manage-btn'), 'bouton de gestion du mini-profil absent'); }
+        const e = m.cibles.filter(x => x.e.length).map(x => `${x.sel}[${x.i}] ${x.e.join(', ')}`);
+        assert.deepEqual(e, [], e.slice(0, 3).join(' ; '));
+      });
+      check(`${lab} : actions dans leur carte, sans chevauchement ; aucun débordement horizontal`, () => {
+        assert.deepEqual(m.cartes, []);
+        assert.ok(m.debord <= 0, `débordement ${m.debord} px`);
+      });
+      if (m.tuiles.length) { check(`${lab} : tuiles d'action à 64 px (Q24.1)`, () => assert.deepEqual([...new Set(m.tuiles)], [64])); }
+    }
+    check(`plateau ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  const casR = ACCORDEONS.flatMap(([nom, entete, corps]) => VARIANTES.flatMap(variante => [320, 375, 767].map(width => ({ nom, entete, corps, variante, width }))));
+  const resR = await mapLimit(casR, async c => {
+    const { context, page } = await ouvrir({ ...c, script: userscript });
+    const r = await page.evaluate(REPLI, [c.entete, c.corps]);
+    await context.close();
+    return { c, r };
+  });
+  for (const { c, r } of resR) {
+    check(`plateau repli ${c.corps} ${c.variante} ${c.width} px : sans saut (premier instant à la hauteur dépliée), hauteur décroissante`, () => {
+      assert.ok(r, 'aucun corps déplié');
+      assert.ok(r.proprietes.includes('padding-top') && r.proprietes.includes('padding-bottom'), `transitions : ${r.proprietes.join(', ')}`);
+      assert.ok(Math.abs(r.h[0] - r.h0) <= 0.5, `saut de ${r.h0 - r.h[0]} px au premier instant`);
+      const k = r.h.findIndex((v, i) => i > 0 && v > r.h[i - 1] + 0.5);
+      assert.equal(k, -1, `hauteur croissante à ${k * 10} ms : ${r.h.join(', ')}`);
+    });
+  }
+  // Chargement : l'état initial des groupes n'est pas animé (aucun transitionrun sur la grille, groupe replié à 0 px dès sa première image).
+  const casC = VARIANTES.flatMap(variante => [320, 375, 767].map(width => ({ nom: 'groupes', variante, width })));
+  const resC = await mapLimit(casC, async c => {
+    const { context, page } = await ouvrir({ ...c, script: userscript, init: CHARGEMENT_GROUPES });
+    await frames(page);
+    const r = await page.evaluate(() => window.__krChargement);
+    await context.close();
+    return { c, r };
+  });
+  for (const { c, r } of resC) {
+    check(`plateau chargement groupes ${c.variante} ${c.width} px : aucune transition lancée sur la grille`, () => assert.deepEqual(r.transitions, []));
+    check(`plateau chargement groupes ${c.variante} ${c.width} px : groupes repliés à 0 px dès leur première image`, () => {
+      assert.ok(r.premiere, 'aucun groupe replié');
+      assert.ok(r.premiere.every(h => h === 0), `hauteurs ${r.premiere.join(', ')}`);
+    });
+  }
+  // prefers-reduced-motion: reduce : repli immédiat des deux accordéons, sans animation.
+  const casM = ACCORDEONS.flatMap(([nom, entete, corps]) => VARIANTES.map(variante => ({ nom, entete, corps, variante, width: 375 })));
+  const resM = await mapLimit(casM, async c => {
+    const { context, page } = await ouvrir({ ...c, script: userscript, reducedMotion: 'reduce' });
+    const r = await page.evaluate(REPLI, [c.entete, c.corps]);
+    await context.close();
+    return { c, r };
+  });
+  for (const { c, r } of resM) {
+    check(`plateau mouvement réduit ${c.corps} ${c.variante} : repli sans animation, hauteur 0 au premier instant`, () => {
+      assert.ok(r, 'aucun corps déplié');
+      assert.deepEqual(r.proprietes, []);
+      assert.equal(r.h[0], 0);
+    });
+  }
+  // Bascule 767 -> 768 -> 767 px dans le même onglet : cibles et corps des groupes égaux à l'état initial.
+  for (const variante of VARIANTES) {
+    const { context, page } = await ouvrir({ nom: 'groupes', variante, width: 767, script: userscript });
+    const initial = await page.evaluate(BOITES_BASCULE, CIBLES_PLATEAU);
+    let recharges = 0;
+    for (const w of [768, 767]) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).then(() => true).catch(() => false);
+      await page.setViewportSize({ width: w, height: 667 });
+      if (await charge) { recharges += 1; }
+      await page.waitForFunction(m => document.body && document.body.classList.contains('mobile-mode') === m, w < 768, { timeout: 10000 });
+      await prete(page, `bascule ${w} px ${variante}`);
+      await frames(page);
+    }
+    const retour = await page.evaluate(BOITES_BASCULE, CIBLES_PLATEAU);
+    await context.close();
+    console.log(`  info bascule plateau ${variante} : ${recharges} rechargement(s) de page sur 2 changements de largeur`);
+    check(`plateau bascule ${variante} 767 -> 768 -> 767 px : cibles et corps des groupes égaux à l'état initial`, () => assert.deepEqual(retour, initial));
+  }
+  const casB = ['groupes', 'cartes'].flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.map(width => ({ nom, variante, width }))));
+  const boites = async (c, script) => {
+    const { context, page } = await ouvrir({ ...c, height: 720, script });
+    const r = await page.evaluate(sels => sels.map(sel => sel + ' ' + [...document.querySelectorAll(sel)].map(e => { const b = e.getBoundingClientRect(); return [b.left, b.top + window.scrollY, b.width, b.height].map(v => Math.round(v * 2) / 2).join(','); }).join(' ')), CIBLES_PLATEAU);
+    await context.close();
+    return r;
+  };
+  const resB = await mapLimit(casB, async c => ({ c, teste: await boites(c, userscript), base: await boites(c, avant) }));
+  for (const { c, teste, base } of resB) {
+    check(`plateau bureau ${c.nom} ${c.variante} ${c.width} px : boîtes des cibles égales au bundle de base`, () => assert.deepEqual(teste, base));
   }
 }
 

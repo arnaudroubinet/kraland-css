@@ -17,6 +17,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
+import { AVANT_TICKET95, CIBLES_TICKET95, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -45,6 +46,8 @@ const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScri
 async function ouvrirCartes(src, { width, height = 800, variante }) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await confineNetwork(ctx);
+  // Écart accepté et consigné (épopée 9, entrée 5) : actions des cartes à 44 px en mobile posées sur un bundle de base antérieur.
+  if (src !== userscript && AVANT_TICKET95(src)) { await ctx.addInitScript(poserJetonsRedefinis, CIBLES_TICKET95); }
   const noms = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8')
     .replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>');
   await ctx.route('http://www.kraland.org/**', route => {

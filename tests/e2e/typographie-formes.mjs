@@ -108,7 +108,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNE_OBJET_TICKET6, LIGNES_FORUM_TICKET410, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RETIRER_ENTETE_TICKET73, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET92, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CARTES_TICKET92, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, DECLARATIONS_ESPACEMENT_TICKET49, ECHELLE_TICKET45, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, MEDIAS_TICKET410, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, RETIRER_ENTETE_TICKET73, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -577,8 +577,11 @@ if (on('boutons')) {
   // Retrait : au prochain ticket qui modifie les boutons ; il réaligne COMMIT_BOUTONS et COMMIT_MODALES sur un SHA récent après contrôle
   // absolu des légendes des compétences en 12 px (ticket 4.5).
   const baseBoutons = nom => (PAGES_BOUTONS[nom].base === 'modales' ? avantModales : avantBoutons);
-  const masqueBoutons = nom => (PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET45(baseBoutons(nom)) ? LEGENDES_TICKET45 : '');
-  for (const nom of Object.keys(PAGES_BOUTONS).filter(masqueBoutons)) { console.log(`  info écart accepté et consigné : ${nom}, légendes des compétences en 12 px (plancher PLT-QU, épopée 4, ticket 5) posées sur le bundle de base`); }
+  // Écart accepté et consigné (épopée 9, entrée 5) : boutons des groupes à 44 px en mobile posés sur un bundle de base antérieur (CIBLES_TICKET95).
+  const masqueBoutons = nom => [PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET45(baseBoutons(nom)) ? LEGENDES_TICKET45 : '',
+    PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET95(baseBoutons(nom)) ? CIBLES_TICKET95 : ''].filter(Boolean).join('\n');
+  for (const nom of Object.keys(PAGES_BOUTONS).filter(n => PAGES_BOUTONS[n].exclus.length && AVANT_TICKET45(baseBoutons(n)))) { console.log(`  info écart accepté et consigné : ${nom}, légendes des compétences en 12 px (plancher PLT-QU, épopée 4, ticket 5) posées sur le bundle de base`); }
+  for (const nom of Object.keys(PAGES_BOUTONS).filter(n => PAGES_BOUTONS[n].exclus.length && AVANT_TICKET95(baseBoutons(n)))) { console.log(`  info écart accepté et consigné : ${nom}, actions des cartes et boutons des groupes à 44 px en mobile (épopée 9, entrée 5) posés sur le bundle de base`); }
   const res = await mapLimit(cas, async c => ({ c, r: await releverBoutons({ ...c, script: userscript }),
     a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: baseBoutons(c.nom), css: masqueBoutons(c.nom) }) : null }));
   for (const { c, r, a } of res) {
@@ -1993,6 +1996,9 @@ async function basculer(page, width, label) {
   await krReady(page, { ready: THEME_READY, label });
   await styleSettled(page, 'body');
 }
+// Base du nettoyage : CARTES_TICKET92 et CIBLES_TICKET95 (épopée 9, entrée 5 : cibles des cartes et des groupes à 44 px en mobile),
+// chacune tant que la base précède son entrée.
+const CSS_AVANT_NETTOYAGE = [AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : '', AVANT_TICKET95(avantNettoyage) ? CIBLES_TICKET95 : ''].filter(Boolean).join('\n');
 if (on('nettoyage')) {
   console.log('\n== nettoyage ==');
   check(`nettoyage : base M1/M2 d'avant 4.10 (${COMMIT_MEDIAS_410} : média (width>=769px) présent)`, () => assert.ok(AVANT_TICKET410(avantMedias410)));
@@ -2000,7 +2006,7 @@ if (on('nettoyage')) {
   const res = await mapLimit(cas, async c => {
     const p = PAGES_NETTOYAGE[c.nom];
     const a = await ouvrirNettoyage({ ...c, script: userscript, css: p.masque || '' });
-    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : '' });
+    const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: CSS_AVANT_NETTOYAGE });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).

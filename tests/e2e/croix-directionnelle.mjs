@@ -77,7 +77,7 @@ function check(name, fn) {
   try { fn(); console.log('  ok   ' + name); } catch (e) { failures += 1; console.log('  FAIL ' + name + '\n       ' + e.message.replace(/\s*\n\s*/g, ' ').slice(0, 400)); }
 }
 
-// Fragmentation (exécution parallèle) : KR_FRAG = etats, impossibles, clics, transitions, themes, ordre, m1, natif ; vide = tout jouer.
+// Fragmentation (exécution parallèle) : KR_FRAG = etats, impossibles, clics, transitions, themes, ordre, m1, jeton, natif ; vide = tout jouer.
 // (CA6 et CA16 dépendent des mesures de « etats » : ils sont joués avec lui.)
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
@@ -429,6 +429,47 @@ for (const variant of VARIANTS.filter(() => frag('m1'))) {
     assert.notEqual(off.bg, normal.bg);
     assert.notEqual(off.color, normal.color);
   });
+  await context.close();
+}
+
+// ---------- Jeton --kr-touch-target-dpad (épopée 9, entrée 5) : touches à max(jeton, 50 px), pièces sur --kr-touch-target ----------
+// Jeton redéfini sur la page (56 px : touches et pavé suivent ; 40 px : 50 px gardés), Kraland clair et Empire Brun sombre, 320 à 767 px.
+const JETONS = [[null, 50], ['56px', 56], ['40px', 50]];
+for (const variant of ['kraland', 'empire-brun-dark'].filter(() => frag('jeton'))) {
+  const { page, context } = await newPage(variant);
+  for (const [label, st] of Object.entries(STATES).filter(([k]) => ['FIXTURE noms texte, 5 pièces', 'FIXTURE 4 directions, 8 pièces'].includes(k))) {
+    for (const width of [320, 375, 700, 767]) {
+      for (const [jeton, attendu] of JETONS) {
+        await load(page, width, fixtureHtml(st));
+        if (jeton) {
+          await page.addStyleTag({ content: `html:root { --kr-touch-target-dpad: ${jeton}; }` });
+          await frames(page);
+        }
+        const m = await measure(page);
+        const lab = `jeton ${variant} ${label} ${width} px, --kr-touch-target-dpad ${jeton || 'du thème (48px)'}`;
+        check(`${lab} : un bloc`, () => { assert.ok(m.mobile); assert.equal(m.nBlocks, 1); });
+        if (m.nBlocks !== 1) { continue; }
+        const b = m.block;
+        const cote = 3 * attendu + 4;
+        check(`${lab} : 4 touches ${attendu} × ${attendu}, pavé ${cote} × ${cote}`, () => {
+          assert.deepEqual(b.arms.map(a => [Math.round(a.r.w), Math.round(a.r.h)]), Array(4).fill([attendu, attendu]));
+          assert.deepEqual([Math.round(b.pad.w), Math.round(b.pad.h)], [cote, cote]);
+        });
+        check(`${lab} : touches et pièces atteintes (elementFromPoint 5×5 ≥ 23/25, centre), pièces ≥ 44 px, ordre DOM natif`, () => {
+          const bad = [...b.arms.filter(a => !a.disabled), ...b.rooms].filter(c => c.hit.hits < 23 || !c.hit.centreOk);
+          assert.deepEqual(bad.map(c => [c.dir || c.name, c.hit.hits]), []);
+          assert.ok(b.rooms.every(r => r.r.h >= 44 && r.r.w >= 44), JSON.stringify(b.rooms.map(r => [r.r.w, r.r.h])));
+          assert.deepEqual(b.rooms.map(r => r.href.replace(/^.*FIXTURE-room-/, '')), st.rooms.map((r, i) => String(i + 1)));
+        });
+        check(`${lab} : aucun chevauchement, aucun débordement, pièces à droite de la croix`, () => {
+          assert.deepEqual(b.overlaps, []);
+          assert.ok(m.docOverflow <= 0, `${m.docOverflow}`);
+          assert.ok(b.rooms.slice(0, st.named ? 3 : 99).every(r => r.r.x >= b.pad.r - 0.5));
+          assert.ok(b.rooms.every(r => r.r.x >= 0 && r.r.r <= width + 0.5));
+        });
+      }
+    }
+  }
   await context.close();
 }
 
