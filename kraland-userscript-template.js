@@ -5183,7 +5183,8 @@
 
     function initPagination() {
       const topics = document.getElementById('topics');
-      if (!topics || !document.body.classList.contains('page-forum') || typeof jQuery === 'undefined') {return;}
+      const liste = document.body.classList.contains('page-forum') || document.documentElement.classList.contains('kr-page-kramail-liste');
+      if (!topics || !liste || typeof jQuery === 'undefined') {return;}
       compactPagination(topics);
       jQuery(topics).on('draw.dt', () => compactPagination(topics));
     }
@@ -6045,6 +6046,70 @@
 
     InitQueue.register('Kramail:MobileEnhancer', initKramailMobileEnhancer, 32);
 
+  })();
+
+  // ============================================================================
+  // MODULE : Kramail:Liste (épopée 7, entrée 4)
+  // Les listes Réception, Envoi et Corbeille reprennent la ligne de sujet du sous-forum (CSS : « KRAMAIL — LISTE »), sur les deux supports.
+  // - Non lu : icône i.fa-envelope sans fa-envelope-open dans la cellule du message (hypothèse : seul l'état lu, far fa-envelope-open, est relevé
+  //   sur le site). La ligne reçoit kr-topic-unread et la pastille .kr-topic-badge du sous-forum, libellé en attribut (DataTables lit le texte
+  //   des cellules), posée dans p.nomargin hors du span#ajax-m que flagKramail réécrit. Relancé à chaque changement de #topics (dessin de
+  //   DataTables, lu/non lu) ; idempotent. Réception et Corbeille seulement : dans l'Envoi (chemin …-1), l'enveloppe fermée dirait plutôt
+  //   « pas encore lu par le destinataire » (question ouverte, revue-manuelle.md, ticket 7.4).
+  // - Recherche et « Afficher » : placeholder et nom accessible (libellés masqués en CSS sur mobile, comme au sous-forum), reposés au même
+  //   rappel (enveloppe DataTables construite après le module).
+  // - Mobile seulement (body.mobile-mode lu au clic) : un toucher dans la cellule de la case (44 x 44) coche la case.
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    function processRow(row) {
+      const p = row.cells[1] ? row.cells[1].querySelector('p.nomargin') : null;
+      if (!p) {return;}
+      const unread = p.querySelector('i.fa-envelope:not(.fa-envelope-open)') !== null;
+      row.classList.toggle('kr-topic-unread', unread);
+      const badge = p.querySelector(':scope > .kr-topic-badge');
+      if (unread && !badge) {
+        const span = document.createElement('span');
+        span.className = 'kr-topic-badge';
+        span.setAttribute('data-kr-label', 'NON LU');
+        p.appendChild(span);
+      } else if (!unread && badge) {
+        badge.remove();
+      }
+    }
+
+    function nameControls() {
+      const search = document.querySelector('#topics_filter input');
+      if (search) {
+        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les messages');}
+      }
+      const length = document.querySelector('#topics_length select');
+      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de messages par page');}
+    }
+
+    function initKramailListe() {
+      if (!document.documentElement.classList.contains('kr-page-kramail-liste')) {return;}
+      const topics = document.getElementById('topics');
+      if (!topics) {return;}
+      const envoi = /-1$/.test(location.pathname);
+      const processAll = () => {
+        if (!envoi) {Array.from(topics.tBodies).forEach(body => Array.from(body.rows).forEach(processRow));}
+        nameControls();
+      };
+      processAll();
+      new MutationObserver(processAll).observe(topics.parentElement, { childList: true, subtree: true });
+      topics.addEventListener('click', function (e) {
+        if (!document.body.classList.contains('mobile-mode')) {return;}
+        const td = e.target.closest('td');
+        if (!td || td !== td.parentElement.cells[0] || e.target.closest('input, a')) {return;}
+        const box = td.querySelector('input[type="checkbox"]');
+        if (box) {box.click();}
+      });
+    }
+
+    InitQueue.register('Kramail:Liste', initKramailListe, 27);
   })();
 
   // ============================================================================

@@ -34,13 +34,25 @@
 //   entete-clavier : kramail-reception, 375 et 1280 px, deux variantes : Entrée ouvre le menu, Tab atteint une option au contour primaire
 //             de 2 px, Entrée sur l'option suit son lien.
 //   entete-couleurs : 16 variantes, 375 et 1280 px (réception), 375 px (lecture) : textes du fil, du titre et du menu ouvert >= 4,5:1.
+//   liste   : (épopée 7, entrée 4) Réception, Envoi et Corbeille dérivées (balisage DataTables, 3e message non lu, Corbeille garnie), 375,
+//             767, 768, 1280 et 1440 px : ligne lue et ligne non lue (pastille « NON LU ») aux valeurs calculées de sous-forum-debuter,
+//             bords dans la carte compris (mobile) ; centre de la ligne = lien du titre (mobile).
+//   liste-actions : 375, 767 et 1280 px : toucher dans la cellule de case la coche ; « Tout sélectionner » (« ••• » mobile, « + » natif
+//             bureau) coche toutes les cases ; pagination >= 44 px atteinte ; Envoi sans « + » ; Corbeille vide sans erreur ; au bureau, le
+//             même clic ne coche rien ; noms accessibles et placeholder de la recherche et de « Afficher », reposés si DataTables reconstruit
+//             ses contrôles ; « lu de nouveau » (span#ajax-m réécrit non lu, lu, non lu : classe et pastille suivent ; Envoi jamais non lu) ;
+//             pagination longue (1 2 3 4 5 … 15) à 320 et 375 px compactée (.kr-page-hidden, un .kr-page-gap).
+//   liste-couleurs : 16 variantes, 375 et 1280 px : filet ou barre et pastille de la ligne non lue en --kr-status-unread ; aucun littéral
+//             de couleur dans le bloc « KRAMAIL — LISTE ».
+//   liste-dossiers : 1280 et 1440 px : dossier courant btn-primary au fond primaire, autres btn-default aux valeurs du bouton du sous-forum.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
-// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs).
+// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
-// lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges.
+// lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
+// KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -294,7 +306,10 @@ const MENU_PERSONNAGE = async page => {
       styles: [e, ...e.querySelectorAll('*')].filter(x => x.hasAttribute('style')).map(x => x.className), options, deborde: d.getBoundingClientRect().right > window.innerWidth + 0.5
     };
   }, sel);
-  await page.mouse.click(5, 400);
+  // Clic extérieur : au bureau en 5, 400 (colonne de gauche) ; sur mobile sur le titre du panneau, car depuis l'entrée 4 les lignes de la
+  // liste sont pleine largeur et leur lien étiré couvre tout point de la liste (un clic en 5, 400 ouvrirait le message).
+  const neutre = await page.evaluate(() => window.innerWidth < 768 ? (r => ({ x: r.left + 4, y: r.top + r.height / 2 }))(document.querySelector('#col-right .panel-heading h3.panel-title').getBoundingClientRect()) : { x: 5, y: 400 });
+  await page.mouse.click(neutre.x, neutre.y);
   await page.waitForTimeout(250);
   const ferme = await page.evaluate(s => document.querySelector(s + ' .kramail-character-dropdown').getClientRects().length === 0, sel);
   return { avant, cible, ouvert, ferme };
@@ -838,6 +853,360 @@ if (frag('entete-couleurs')) {
       const bas = vus.filter(x => x.c < 4.5);
       expect(bas.length === 0, bas.map(x => `${x.s} ${x.c.toFixed(2)}`).join(', '));
     });
+  }
+}
+
+// ---------- liste (épopée 7, entrée 4) ----------
+// Listes Réception, Envoi et Corbeille dérivées en mémoire : balisage DataTables 1.10.5 statique (« Afficher », recherche, info, pagination de
+// 3 pages), CSS DataTables du site (cellules 8 x 10 px, .invisible masqué) comme la fixture sous-forum-debuter, troisième message non lu
+// (icône i.fa.fa-envelope, hypothèse : seul l'état lu i.far.fa-envelope-open est relevé), Corbeille garnie des messages de la Réception,
+// checkAllKramail du site émulé (cocher toutes les cases c[] selon #allbox).
+const DT_STYLE = '<style>.invisible { visibility: hidden; display: none; } table.dataTable { width: 100%; clear: both; } table.dataTable thead th, table.dataTable tbody td { padding: 8px 10px; }</style>';
+const DT_AVANT = '<div id="topics_wrapper" class="dataTables_wrapper no-footer"><div class="dataTables_length" id="topics_length"><label>Afficher <select name="topics_length" aria-controls="topics"><option value="10">10</option><option value="25">25</option></select> lignes</label></div>'
+  + '<div id="topics_filter" class="dataTables_filter"><label>Rechercher<input type="search" placeholder="" aria-controls="topics"></label></div>';
+const DT_APRES = '<div class="dataTables_info" id="topics_info" role="status" aria-live="polite">Affiche 1 à 3 de 23 lignes</div><div class="dataTables_paginate paging_simple_numbers" id="topics_paginate">'
+  + '<a class="paginate_button previous disabled" aria-controls="topics" data-dt-idx="0" tabindex="0" id="topics_previous">Précédent</a><span>'
+  + [1, 2, 3].map(n => `<a class="paginate_button${n === 1 ? ' current' : ''}" aria-controls="topics" data-dt-idx="${n}" tabindex="0">${n}</a>`).join('')
+  + '</span><a class="paginate_button next" aria-controls="topics" data-dt-idx="4" tabindex="0" id="topics_next">Suivant</a></div></div>';
+const CHECK_ALL = '<script>function checkAllKramail() { var v = document.getElementById(\'allbox\').checked; document.querySelectorAll(\'input[name="c[]"]\').forEach(function (c) { c.checked = v; }); }</script>';
+const NON_LU = /(re-commande-0-9000003"><i class=")far fa-envelope-open/;
+const LIGNES_RECEPTION = PAGES.reception.html.match(/<tbody>([\s\S]*?)<\/tbody>/)[1];
+const enListe = (cle, html) => {
+  let h = html.replace('<table class="display" id="topics">', DT_AVANT + '<table class="display dataTable no-footer" id="topics" role="grid">').replace('</table>', '</table>' + DT_APRES)
+    .replace('</head>', DT_STYLE + '</head>').replace('</body>', CHECK_ALL + '</body>');
+  if (cle === 'corbeille') { h = h.replace(/<tbody>\s*<\/tbody>/, '<tbody>' + LIGNES_RECEPTION + '</tbody>'); }
+  if (cle !== 'envoi') { h = h.replace(NON_LU, '$1fa fa-envelope'); }
+  return h;
+};
+const LISTES = ['reception', 'envoi', 'corbeille'];
+for (const cle of LISTES) {
+  LECTURES['liste-' + cle] = { ...PAGES[cle], html: enListe(cle, PAGES[cle].html) };
+  const h = LECTURES['liste-' + cle].html;
+  if (!h.includes('topics_wrapper') || !h.includes(CHECK_ALL) || (cle !== 'envoi' && !h.includes('9000003"><i class="fa fa-envelope"')) || !/<tbody>\s*<tr/.test(h)) { console.error('liste dérivée incomplète : ' + cle); process.exit(2); }
+}
+// Pagination longue (DataTables 1.10.5 : « … » natif en span sans classe) : compactPagination ne garde que 1, 2, 3 et 15 sur mobile.
+const PAGINATION_LONGUE = '<span>' + [1, 2, 3, 4, 5].map(n => `<a class="paginate_button${n === 1 ? ' current' : ''}" aria-controls="topics" data-dt-idx="${n}" tabindex="0">${n}</a>`).join('')
+  + '<span>…</span><a class="paginate_button" aria-controls="topics" data-dt-idx="6" tabindex="0">15</a></span>';
+LECTURES['liste-longue'] = { ...LECTURES['liste-reception'], html: LECTURES['liste-reception'].html.replace(/(id="topics_previous">Précédent<\/a>)<span>[\s\S]*?<\/span>/, '$1' + PAGINATION_LONGUE) };
+if (!LECTURES['liste-longue'].html.includes('<span>…</span>')) { console.error('pagination longue non dérivée'); process.exit(2); }
+const LISTE_LARGEURS = [375, 767, 768, 1280, 1440];
+// Une ligne lue et une ligne non lue, leur titre, le nom, la date et la pastille ; propriétés de ligne (mobile) ou de cellule (bureau).
+const MESURER_LIGNES = ({ kramail, props }) => {
+  const s = kramail
+    ? { titre: 'td:nth-child(2) span[id^="ajax-m"] > a:last-child', nom: 'td:nth-child(3) > a.nomargin', date: 'td:nth-child(4)', cellule: 'td:nth-child(2)' }
+    : { titre: 'td:first-child p > a', nom: 'td:nth-child(5) > a.nomargin', date: 'td:nth-child(5) > p.mini', cellule: 'td:first-child' };
+  const lire = (el, ks) => { if (!el) { return null; } const cs = getComputedStyle(el); const o = {}; for (const k of ks) { o[k] = cs[k]; } return o; };
+  const rows = [...document.querySelectorAll('#topics tbody tr')];
+  const lue = rows.find(r => !r.classList.contains('kr-topic-unread') && !r.classList.contains('kr-topic-newmsg') && r.querySelector(s.titre));
+  const nonLue = rows.find(r => r.classList.contains('kr-topic-unread'));
+  const panel = document.querySelector('#topics').closest('.panel');
+  const pr = panel.getBoundingClientRect();
+  const ligne = r => {
+    if (!r) { return null; }
+    const b = r.getBoundingClientRect();
+    const titre = r.querySelector(s.titre);
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    const badge = r.querySelector('.kr-topic-badge');
+    return {
+      tr: lire(r, props.tr), td: lire(r.querySelector(s.cellule), props.td), premiere: lire(r.cells[0], ['boxShadow']), titre: lire(titre, props.titre),
+      nom: lire(r.querySelector(s.nom), props.nom), date: lire(r.querySelector(s.date), props.date), badge: lire(badge, props.badge),
+      libelle: badge ? getComputedStyle(badge, '::before').content : null,
+      bords: [Math.round(b.left - pr.left), Math.round(pr.right - b.right)], atteint: !!hit && !!titre && (hit === titre || titre.contains(hit)), cible: hit ? hit.tagName + '.' + hit.className : null
+    };
+  };
+  return { lue: ligne(lue), nonLue: ligne(nonLue), n: rows.length };
+};
+const LIGNE_PROPS = {
+  mobile: {
+    tr: ['display', 'position', 'flexWrap', 'alignItems', 'rowGap', 'columnGap', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginBottom',
+      'borderTopWidth', 'borderBottomWidth', 'borderBottomStyle', 'borderBottomColor', 'borderLeftWidth', 'borderLeftStyle', 'borderLeftColor', 'borderTopLeftRadius', 'backgroundColor', 'boxShadow', 'cursor'],
+    td: ['fontSize', 'color', 'lineHeight'],
+    titre: ['display', 'fontSize', 'fontWeight', 'color', 'lineHeight', 'textDecorationLine', 'overflowWrap', 'order'],
+    nom: ['fontSize', 'fontWeight', 'color', 'textDecorationLine', 'pointerEvents', 'order'],
+    date: ['fontSize', 'fontWeight', 'color', 'lineHeight', 'order'],
+    badge: ['display', 'fontSize', 'fontWeight', 'color', 'backgroundColor', 'paddingTop', 'paddingLeft', 'borderTopLeftRadius', 'letterSpacing', 'lineHeight', 'order', 'marginLeft']
+  },
+  bureau: {
+    tr: ['display', 'backgroundColor', 'borderTopWidth', 'borderBottomWidth'],
+    td: ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'verticalAlign', 'borderTopWidth', 'borderTopColor', 'backgroundColor'],
+    titre: ['fontSize', 'fontWeight', 'color', 'lineHeight', 'textDecorationLine'],
+    nom: ['display', 'fontSize', 'fontWeight', 'color'],
+    date: ['fontSize', 'color', 'whiteSpace'],
+    badge: ['display', 'fontSize', 'fontWeight', 'color', 'backgroundColor', 'paddingTop', 'paddingLeft', 'borderTopLeftRadius', 'letterSpacing', 'lineHeight', 'marginLeft']
+  }
+};
+const egalLigne = (k, f, parts) => {
+  expect(k && f, `ligne absente (kramail ${!!k}, sous-forum ${!!f})`);
+  for (const part of parts) {
+    expect(k[part] && f[part], `${part} absent (kramail ${!!k[part]}, sous-forum ${!!f[part]})`);
+    for (const p of Object.keys(f[part])) { expect(k[part][p] === f[part][p], `${part} ${p} : ${k[part][p]} pour ${f[part][p]}`); }
+  }
+};
+if (frag('liste')) {
+  console.log('liste : lignes aux valeurs calculées de sous-forum-debuter');
+  const cas = [];
+  for (const cle of ['sous-forum', ...LISTES.map(c => 'liste-' + c)]) { for (const width of LISTE_LARGEURS) { cas.push({ cle, width, mobile: width < 768 }); } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    const m = await o.page.evaluate(MESURER_LIGNES, { kramail: c.cle !== 'sous-forum', props: LIGNE_PROPS[c.mobile ? 'mobile' : 'bureau'] });
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const width of LISTE_LARGEURS) {
+    const mobile = width < 768;
+    const ref = res.find(r => r.c.cle === 'sous-forum' && r.c.width === width).m;
+    for (const cle of LISTES) {
+      const { o, m } = res.find(r => r.c.cle === 'liste-' + cle && r.c.width === width);
+      const parts = mobile ? ['tr', 'td', 'titre', 'nom', 'date'] : ['tr', 'td', 'titre', 'nom', 'date', 'premiere'];
+      check(`${cle} ${width} px : ligne lue aux valeurs calculées de sous-forum-debuter${mobile ? ', bords de la carte compris' : ''}`, () => {
+        egalLigne(m.lue, ref.lue, parts);
+        if (mobile) { expect(m.lue.bords.join(',') === ref.lue.bords.join(','), `bords : ${m.lue.bords} pour ${ref.lue.bords}`); }
+        sansFuite(o);
+      });
+      if (cle !== 'envoi') {
+        check(`${cle} ${width} px : ligne non lue aux valeurs de sous-forum-debuter, pastille « NON LU »`, () => {
+          egalLigne(m.nonLue, ref.nonLue, parts.concat(['badge']));
+          expect(m.nonLue.libelle === '"NON LU"', 'libellé : ' + m.nonLue.libelle);
+        });
+      }
+      if (mobile) {
+        check(`${cle} ${width} px : elementFromPoint au centre de la ligne donne son lien`, () => {
+          expect(m.lue.atteint, 'cible : ' + m.lue.cible);
+          if (m.nonLue) { expect(m.nonLue.atteint, 'cible (non lue) : ' + m.nonLue.cible); }
+        });
+      }
+    }
+  }
+}
+
+// Sélection et pagination : toucher dans la cellule de case, à 4 px de son coin, hors de la case (mobile) ; « Tout sélectionner » par le menu « ••• » cloné (mobile) ou le
+// « + » natif (bureau) ; boutons de pagination >= 44 px atteints ; Corbeille vide (fixture d'origine) sans erreur.
+if (frag('liste-actions')) {
+  console.log('liste : sélection, « Tout sélectionner », pagination');
+  const cas = [];
+  for (const cle of LISTES) { for (const width of [375, 767, 1280]) { cas.push({ cle: 'liste-' + cle, width, mobile: width < 768 }); } }
+  for (const width of [375, 1280]) { cas.push({ cle: 'corbeille', width, mobile: width < 768, vide: true }); }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    if (c.vide) { const n = await o.page.evaluate(() => document.querySelectorAll('#topics tbody tr').length); await o.context.close(); return { c, o, n }; }
+    const r = {};
+    if (c.mobile) {
+      const cell = await o.page.evaluate(() => {
+        const td = document.querySelector('#topics tbody tr').cells[0]; const b = td.getBoundingClientRect();
+        const hit = document.elementFromPoint(b.left + 4, b.top + 4);
+        return { x: b.left + 4, y: b.top + 4, w: b.width, h: b.height, dans: hit === td };
+      });
+      await o.page.touchscreen.tap(cell.x, cell.y);
+      await o.page.waitForTimeout(100);
+      r.cell = { ...cell, coche: await o.page.evaluate(() => document.querySelector('#topics tbody tr').cells[0].querySelector('input').checked), url: o.page.url() };
+      r.pages = await o.page.evaluate(() => { const pg = document.getElementById('topics_paginate'); window.scrollTo(0, window.scrollY + pg.getBoundingClientRect().top - 200); return [...pg.querySelectorAll('.paginate_button')].filter(a => a.getClientRects().length > 0).map(a => {
+        const b = a.getBoundingClientRect(); const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+        return { t: a.textContent, w: b.width, h: b.height, atteint: a.classList.contains('disabled') || (!!hit && (hit === a || a.contains(hit))) };
+      }); });
+      await o.page.evaluate(() => window.scrollTo(0, 0));
+    } else {
+      const cell = await o.page.evaluate(() => {
+        const td = document.querySelector('#topics tbody tr').cells[0]; const b = td.getBoundingClientRect();
+        const hit = document.elementFromPoint(b.left + 4, b.top + 4);
+        return { x: b.left + 4, y: b.top + 4, dans: hit === td };
+      });
+      await o.page.mouse.click(cell.x, cell.y);
+      await o.page.waitForTimeout(100);
+      r.cell = { ...cell, coche: await o.page.evaluate(() => document.querySelector('#topics tbody tr').cells[0].querySelector('input').checked) };
+    }
+    // Noms : relevés au chargement, puis après une reconstruction des contrôles par DataTables (enveloppe neuve, sans attribut).
+    const NOMS = () => {
+      const i = document.querySelector('#topics_filter input'); const l = document.querySelector('#topics_length select');
+      return { placeholder: i && i.getAttribute('placeholder'), recherche: i && i.getAttribute('aria-label'), afficher: l && l.getAttribute('aria-label') };
+    };
+    r.noms = await o.page.evaluate(NOMS);
+    await o.page.evaluate(() => {
+      for (const id of ['topics_filter', 'topics_length']) { const n = document.getElementById(id); const neuf = n.cloneNode(true); neuf.querySelectorAll('input, select').forEach(x => { x.removeAttribute('aria-label'); x.setAttribute('placeholder', ''); }); n.replaceWith(neuf); }
+    });
+    await o.page.waitForTimeout(100);
+    r.nomsApres = await o.page.evaluate(NOMS);
+    await o.page.evaluate(() => document.querySelectorAll('#topics tbody input[type="checkbox"]').forEach(x => { x.checked = false; }));
+    const plus = c.mobile ? 'h1.page-header .kramail-actions-mobile' : '#topics thead .btn-group';
+    r.plus = !!(await o.page.$(plus));
+    if (r.plus) {
+      await o.page.click(plus + ' .dropdown-toggle');
+      await o.page.waitForTimeout(150);
+      r.clic = await o.page.click(plus + (c.mobile ? ' input[name="allbox-mobile"]' : ' #allbox'), { timeout: 3000 }).then(() => true, e => String(e.message).split('\n')[0]);
+      await o.page.waitForTimeout(100);
+    }
+    r.cases = await o.page.evaluate(() => [...document.querySelectorAll('#topics tbody input[type="checkbox"]')].map(x => x.checked));
+    await o.context.close();
+    return { c, o, r };
+  });
+  for (const { c, o, r, n } of res) {
+    if (c.vide) {
+      check(`corbeille vide ${c.width} px : aucune ligne, aucune erreur`, () => { expect(n === 0, n + ' ligne(s)'); sansFuite(o); });
+      continue;
+    }
+    if (c.mobile) {
+      check(`${c.cle} ${c.width} px : un toucher dans la cellule de case (44 x 44), hors de la case, la coche, sans navigation`, () => {
+        expect(r.cell.w >= 44 && r.cell.h >= 44, `cellule ${r.cell.w} x ${r.cell.h}`);
+        expect(r.cell.dans, 'coin de la cellule couvert ou sur la case');
+        expect(r.cell.coche, 'case non cochée');
+        expect(r.cell.url.endsWith(LECTURES[c.cle].url), 'navigation : ' + r.cell.url);
+      });
+      check(`${c.cle} ${c.width} px : boutons de pagination >= 44 px atteints (désactivé : taille seule)`, () => {
+        expect(r.pages.length >= 3, 'boutons visibles : ' + r.pages.length);
+        const bas = r.pages.filter(p => p.w < 44 || p.h < 44 || !p.atteint);
+        expect(bas.length === 0, JSON.stringify(bas));
+      });
+    }
+    if (!c.mobile) {
+      check(`${c.cle} ${c.width} px : au bureau, un clic dans la cellule de case, hors de la case, ne la coche pas`, () => {
+        expect(r.cell.dans, 'coin de la cellule couvert ou sur la case');
+        expect(!r.cell.coche, 'case cochée');
+      });
+    }
+    check(`${c.cle} ${c.width} px : recherche et « Afficher » nommés (placeholder, aria-label), reposés après reconstruction des contrôles`, () => {
+      for (const [quand, x] of [['chargement', r.noms], ['reconstruction', r.nomsApres]]) {
+        expect(x.placeholder === 'Rechercher…', `${quand} : placeholder ${x.placeholder}`);
+        expect(x.recherche === 'Rechercher dans les messages', `${quand} : recherche ${x.recherche}`);
+        expect(x.afficher === 'Nombre de messages par page', `${quand} : « Afficher » ${x.afficher}`);
+      }
+    });
+    if (c.cle === 'liste-envoi') {
+      check(`${c.cle} ${c.width} px : sans « + » natif, rien à cloner`, () => { expect(!r.plus, '« + » présent'); sansFuite(o); });
+    } else {
+      check(`${c.cle} ${c.width} px : « Tout sélectionner » (${c.mobile ? '« ••• »' : '« + » natif'}) coche toutes les cases`, () => {
+        expect(r.plus, 'menu introuvable');
+        expect(r.clic === true, '« Tout sélectionner » hors d\'atteinte : ' + r.clic);
+        expect(r.cases.length >= 3 && r.cases.every(Boolean), 'cases : ' + r.cases.join(','));
+        sansFuite(o);
+      });
+    }
+  }
+}
+
+// Lu de nouveau : flagKramail réécrit span#ajax-m (icône lue, puis non lue) ; classe et pastille suivent. Envoi : une enveloppe fermée ne
+// marque jamais la ligne (pas encore lue par le destinataire ?). Pagination longue à 320 et 375 px compactée par ForumTopics:Pagination.
+if (frag('liste-actions')) {
+  const cas = [];
+  for (const cle of LISTES) { for (const width of [375, 1280]) { cas.push({ cle: 'liste-' + cle, width, mobile: width < 768 }); } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    const ETAT = () => { const tr = document.querySelector('span#ajax-m9000003').closest('tr'); return { classe: tr.classList.contains('kr-topic-unread'), pastille: tr.querySelectorAll('.kr-topic-badge').length }; };
+    const ecrire = icone => o.page.evaluate(i => { const sp = document.querySelector('span#ajax-m9000003'); sp.innerHTML = `<a href="kramail/post/re-commande-0-9000003"><i class="${i}"></i></a> <a href="kramail/post/re-commande-0-9000003">Re: commande</a>`; }, icone);
+    const etats = [await o.page.evaluate(ETAT)];
+    for (const icone of ['far fa-envelope-open', 'fa fa-envelope']) { await ecrire(icone); await o.page.waitForTimeout(100); etats.push(await o.page.evaluate(ETAT)); }
+    await o.context.close();
+    return { c, o, etats };
+  });
+  for (const { c, o, etats } of res) {
+    const attendu = c.cle === 'liste-envoi' ? [false, false, false] : [true, false, true];
+    check(`${c.cle} ${c.width} px : lu de nouveau (span#ajax-m réécrit non lu, lu, non lu) : classe et pastille suivent${c.cle === 'liste-envoi' ? ' (Envoi : jamais non lu)' : ''}`, () => {
+      etats.forEach((e, i) => {
+        expect(e.classe === attendu[i] && e.pastille === (attendu[i] ? 1 : 0), `étape ${i} : classe ${e.classe}, pastilles ${e.pastille}`);
+      });
+      sansFuite(o);
+    });
+  }
+  const resP = await mapLimit([320, 375], async width => {
+    const o = await ouvrir('liste-longue', { width, height: 667, mobile: true });
+    const p = await o.page.evaluate(() => {
+      const pg = document.getElementById('topics_paginate');
+      const nums = [...pg.querySelectorAll('a.paginate_button')].filter(a => /^\d+$/.test(a.textContent.trim()));
+      const natif = [...pg.querySelectorAll('span')].find(x => !x.children.length && !x.classList.contains('kr-page-gap') && x.textContent.trim() === '…');
+      return {
+        visibles: nums.filter(a => a.getClientRects().length > 0).map(a => a.textContent.trim()).join(' '),
+        caches: nums.filter(a => a.classList.contains('kr-page-hidden')).map(a => a.textContent.trim()).join(' '),
+        sauts: pg.querySelectorAll('.kr-page-gap').length, natif: !!natif && natif.classList.contains('kr-page-hidden') && natif.getClientRects().length === 0,
+        avant15: (nums.find(a => a.textContent.trim() === '15') || {}).previousElementSibling?.className || null,
+        deborde: document.documentElement.scrollWidth > window.innerWidth
+      };
+    });
+    await o.context.close();
+    return { width, o, p };
+  });
+  for (const { width, o, p } of resP) {
+    check(`pagination longue (1 2 3 4 5 … 15) ${width} px : 4 et 5 en .kr-page-hidden, « … » natif masqué, un seul .kr-page-gap avant 15`, () => {
+      expect(p.visibles === '1 2 3 15', 'visibles : ' + p.visibles);
+      expect(p.caches === '4 5', '.kr-page-hidden : ' + p.caches);
+      expect(p.sauts === 1 && p.avant15 === 'kr-page-gap', `sauts ${p.sauts}, avant 15 : ${p.avant15}`);
+      expect(p.natif, '« … » natif visible');
+      expect(!p.deborde, 'débordement horizontal');
+      sansFuite(o);
+    });
+  }
+}
+
+// Couleurs : 16 variantes, 375 et 1280 px : filet (mobile) ou barre (bureau) et fond de la pastille de la ligne non lue = --kr-status-unread ;
+// aucun littéral de couleur dans le bloc « KRAMAIL — LISTE » de kraland-theme.css.
+if (frag('liste-couleurs')) {
+  console.log('liste : couleur « non lu », 16 variantes');
+  const { VARIANTES } = await import('./lib/variantes.mjs');
+  const cas = VARIANTES.flatMap(variante => [[375, true], [1280, false]].map(([width, mobile]) => ({ variante, width, mobile })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir('liste-reception', { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    const r = await o.page.evaluate(() => {
+      const sonde = document.createElement('span'); sonde.style.color = 'var(--kr-status-unread)'; document.body.appendChild(sonde);
+      const nonLu = getComputedStyle(sonde).color; sonde.remove();
+      const tr = document.querySelector('#topics tbody tr.kr-topic-unread');
+      if (!tr) { return null; }
+      const badge = tr.querySelector('.kr-topic-badge');
+      return { nonLu, filet: getComputedStyle(tr).borderLeftColor, barre: getComputedStyle(tr.cells[0]).boxShadow, badge: badge ? getComputedStyle(badge).backgroundColor : null };
+    });
+    await o.context.close();
+    return { c, r };
+  });
+  for (const { c, r } of res) {
+    check(`reception ${c.variante} ${c.width} px : ${c.mobile ? 'filet' : 'barre'} et pastille de la ligne non lue en --kr-status-unread`, () => {
+      expect(r, 'ligne non lue absente');
+      if (c.mobile) { expect(r.filet === r.nonLu, `filet ${r.filet} pour ${r.nonLu}`); } else { expect(r.barre.startsWith(r.nonLu + ' ') && /inset/.test(r.barre), `barre ${r.barre} pour ${r.nonLu}`); }
+      expect(r.badge === r.nonLu, `pastille ${r.badge} pour ${r.nonLu}`);
+    });
+  }
+  check('kraland-theme.css : aucun littéral de couleur dans le bloc « KRAMAIL — LISTE »', () => {
+    const css = fs.readFileSync(path.join(root, 'kraland-theme.css'), 'utf8');
+    const debut = css.indexOf('KRAMAIL — LISTE (épopée 7, entrée 4)');
+    expect(debut > 0, 'bloc introuvable');
+    const bloc = css.slice(debut, css.indexOf('INDEX DU FORUM (refonte H12.1', debut));
+    const lits = bloc.replace(/\/\*[\s\S]*?\*\//g, '').match(/#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?)\(|(?<![\w-])(?:white|black)(?![\w-])/gi) || [];
+    expect(lits.length === 0, 'littéraux : ' + lits.join(', '));
+  });
+}
+
+// Dossiers au bureau, 1280 et 1440 px : dossier courant btn-primary au fond primaire, les autres btn-default aux valeurs calculées du bouton
+// standard du titre de sous-forum-debuter ; aucune barre d'onglets (ni filet inset, ni bordure basse retirée).
+if (frag('liste-dossiers')) {
+  console.log('liste : dossiers au bureau');
+  const PROPS = ['backgroundColor', 'color', 'borderTopColor', 'borderTopWidth', 'borderBottomWidth', 'borderTopLeftRadius', 'boxShadow', 'fontWeight', 'fontSize', 'paddingLeft', 'height'];
+  const cas = [];
+  for (const cle of ['sous-forum', ...LISTES]) { for (const width of [1280, 1440]) { cas.push({ cle, width }); } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width });
+    const r = await o.page.evaluate(props => {
+      const lire = el => { const cs = getComputedStyle(el); const v = {}; for (const k of props) { v[k] = cs[k]; } return v; };
+      const sonde = document.createElement('span'); sonde.style.color = 'var(--kr-primary)'; document.body.appendChild(sonde);
+      const primaire = getComputedStyle(sonde).color; sonde.remove();
+      const sel = document.querySelector('[data-kr-dossier]') ? 'h1.page-header .pull-right > a.btn[data-kr-dossier]' : 'h1.page-header .pull-right > a.btn';
+      return { primaire, btns: [...document.querySelectorAll(sel)].map(a => ({ primary: a.classList.contains('btn-primary'), defaut: a.classList.contains('btn-default'), s: lire(a) })) };
+    }, PROPS);
+    await o.context.close();
+    return { c, o, r };
+  });
+  for (const width of [1280, 1440]) {
+    const ref = res.find(x => x.c.cle === 'sous-forum' && x.c.width === width).r.btns[0].s;
+    for (const cle of LISTES) {
+      const { o, r } = res.find(x => x.c.cle === cle && x.c.width === width);
+      check(`${cle} ${width} px : dossier courant primaire, autres standard aux valeurs du bouton du sous-forum`, () => {
+        expect(r.btns.length === 3, 'dossiers : ' + r.btns.length);
+        r.btns.forEach((b, i) => {
+          if (i === PAGES[cle].dossier) {
+            expect(b.primary && b.s.backgroundColor === r.primaire, `actif : primary ${b.primary}, fond ${b.s.backgroundColor} pour ${r.primaire}`);
+            expect(!/inset/.test(b.s.boxShadow) && b.s.borderBottomWidth === ref.borderBottomWidth, `actif : filet d'onglet (ombre ${b.s.boxShadow}, bas ${b.s.borderBottomWidth})`);
+          } else {
+            expect(b.defaut && !b.primary, `dossier ${i} : classes`);
+            for (const k of PROPS) { expect(b.s[k] === ref[k], `dossier ${i} ${k} : ${b.s[k]} pour ${ref[k]}`); }
+          }
+        });
+        sansFuite(o);
+      });
+    }
   }
 }
 
