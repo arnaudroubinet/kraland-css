@@ -1720,6 +1720,12 @@ const MASQUE_JAUGES_9 = {
 // modales passait deux fois (second indicateur d'onglets). Ces éléments créés par le script sont hors du chemin DOM et des mesures,
 // pour que leur place ne décale pas leurs frères. Retirer quand la base du nettoyage (COMMIT_NETTOYAGE) passe au-delà du commit de l'entrée 9.6.
 const MASQUE_MODULES_96 = '.kr-mobile-overlay, .kr-tabs-indicator + .kr-tabs-indicator';
+// Masque de l'entrée 9.4 (pages secondaires, cibles de 44 px) : sur /profil/interface en mobile, les options en label englobant passent à
+// 44 px de haut et centrent leur contenu ; le bundle testé reprend le min-height natif de Bootstrap (20 px) et, hors options du thème
+// (déjà centrées dans la base), l'alignement natif. Retirer quand la base du nettoyage (COMMIT_NETTOYAGE) passe au-delà de l'entrée 9.4.
+// Appliqué seulement contre une base sans la classe kr-page-secondaire.
+const MASQUE_CIBLES_94 = '@media (max-width: 767px) { html.kr-page-secondaire body.mobile-mode :is(.radio, .checkbox) > label { min-height: 20px !important; }'
+  + ' html.kr-page-secondaire body.mobile-mode :is(.radio, .checkbox):not(#kr-tamper-theme-form *) > label { align-items: normal !important; } }';
 const avantNettoyage = sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
@@ -1757,7 +1763,7 @@ const PAGES_NETTOYAGE = {
   reception: { def: PAGES_FORUM.reception, m: true },
   nouveau: { def: PAGES_FORUM.nouveau, m: true },
   repondre: { def: PAGES_RAYONS.accordeon.def, m: true },
-  interface: { def: PAGES_BOUTONS.interface, prep: OUVRIR_CHANGELOG, m: true },
+  interface: { def: PAGES_BOUTONS.interface, prep: OUVRIR_CHANGELOG, m: true, masque: avantNettoyage.includes('kr-page-secondaire') ? '' : MASQUE_CIBLES_94 },
   composants: { def: PAGES_BOUTONS.tableau }
 };
 const LARGEURS_NETTOYAGE = [375, 767, 768, 769, 1280];
@@ -1935,8 +1941,8 @@ const verifierNettoyage = (libelle, r) => check(libelle, () => {
   assert.ok(r.n > 0, 'aucun élément mesuré');
   assert.equal(r.diff, 0, `${r.diff} élément(s) sur ${r.n} : ${r.ecarts.join(' ; ')}`);
 });
-// Trois masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, et les dossiers du kramail
-// retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) ; sinon bundle testé, base du nettoyage et
+// Quatre masques dans la comparaison « styles calculés égaux à la base » : MASQUE_JAUGES_9, MASQUE_MODULES_96, MASQUE_CIBLES_94 (bundle
+// testé, Interface) et les dossiers du kramail retirés sous 768 px (RETIRER_DOSSIERS, épopée 7, entrée 1) ; sinon bundle testé, base du nettoyage et
 // base M1/M2 sont ouverts tels quels, sous le gel des animations et la marge mobile de l'épopée 9 neutralisée (SANS_MARGE_PAGE).
 const ouvrirNettoyage = async ({ nom, width, variante, script, tactile, css = '' }) => {
   const p = PAGES_NETTOYAGE[nom];
@@ -1972,7 +1978,7 @@ if (on('nettoyage')) {
   const cas = Object.keys(PAGES_NETTOYAGE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_NETTOYAGE.map(width => ({ nom, variante, width }))));
   const res = await mapLimit(cas, async c => {
     const p = PAGES_NETTOYAGE[c.nom];
-    const a = await ouvrirNettoyage({ ...c, script: userscript });
+    const a = await ouvrirNettoyage({ ...c, script: userscript, css: p.masque || '' });
     const b = await ouvrirNettoyage({ ...c, script: avantNettoyage, css: AVANT_TICKET92(avantNettoyage) ? CARTES_TICKET92 : '' });
     const out = { c, erreurs: a.erreurs, comparaisons: [], etats: [] };
     try {

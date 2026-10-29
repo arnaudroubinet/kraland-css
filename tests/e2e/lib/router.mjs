@@ -103,8 +103,9 @@ export const SUITES = [
   { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
-  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (règles, forum, kramail, notifications, Cybermonde) égales au bundle de base.
-  { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre']], needsBootstrap: true }
+  // 1280 px, bascule 767 <-> 768 et pages hors périmètre (forum, kramail, notifications) égales au bundle de base. Entrée 4 : pages
+  // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant.
+  { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -231,8 +232,9 @@ export const KEYWORDS = [
   // aussi par les suites qui la comparent au bundle de base (cartes-pastilles, typographie-formes).
   [/kr-forum-icon/, ['forum-activite', 'cartes-pastilles', 'typographie-formes']],
   // Marge mobile de 16 px (épopée 9, entrée 1) : classes de page posées par KR_PAGE_CLASSES, retrait --kr-marge-page et jeton
-  // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base).
-  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|kr-page-jeu|kr-page-aide|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile']]
+  // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base) ;
+  // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires.
+  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|kr-page-jeu|kr-page-aide|kr-page-secondaire|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile']]
 ];
 // Modules du template (titre de section de premier niveau : « // ====… » puis « // TITRE ») -> zones des suites qui les vérifient.
 // Un hunk du template est rattaché au module qui l'englobe : ses zones s'AJOUTENT à celles des mots-clés du hunk. Un module absent de

@@ -335,6 +335,11 @@ const texteColore = (avant, apres) => {
   return [avant.map(neutre), apres.map(neutre)];
 };
 
+// Écart accepté et consigné (épopée 9, entrée 4) : /map sans carte reçoit la marge mobile de 16 px des pages secondaires ; à 375 px, ses
+// sélecteurs (nom #…) se décalent de 16 px vers la droite. Seul ce décalage est retiré de la comparaison, et seulement contre une base
+// antérieure à 9.4.
+const margeSecondaire = (c, avant, bundle) => c.nom === 'sans carte' && c.largeur < 768 && !bundle.includes('kr-page-secondaire') ? avant.map(m => m.nom.startsWith('#') ? { ...m, gauche: m.gauche + 16 } : m) : avant;
+
 if (on('panneaux')) {
   const avant = bundleAvant();
   check('bundle « avant » disponible (feature/next ou KR_SCRIPT_AVANT)', () => assert.ok(avant, 'introuvable'));
@@ -361,7 +366,7 @@ if (on('panneaux')) {
       check(`[${c.variante}] ${c.nom} ${c.largeur} px : panneaux et sélecteurs inchangés (${a.panneaux.length}), aucune exception`, () => {
         assert.ok(a.panneaux.length > 0, 'aucun panneau mesuré');
         assert.deepEqual(p.erreurs, []);
-        const [na, np] = texteColore(a.panneaux, p.panneaux);
+        const [na, np] = texteColore(margeSecondaire(c, a.panneaux, avant), p.panneaux);
         assert.deepEqual(np, na, JSON.stringify(np) + ' au lieu de ' + JSON.stringify(na));
       });
     });

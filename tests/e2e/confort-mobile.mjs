@@ -8,11 +8,17 @@
 //                   débordement horizontal ; mini-profil du plateau plié et déplié à 375 et 700 px ;
 //   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
 //   bascule         Personnage, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet : marge à 767, base (même parcours) à 768 ;
-//   hors-perimetre  Règles, sous-forum, index RP, réception du kramail, notifications et Cybermonde à 375 et 767 px : sans kr-marge-mobile,
-//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles).
+//   hors-perimetre  sous-forum, index RP, réception du kramail et notifications à 375 et 767 px : sans kr-marge-mobile,
+//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles) ;
+//   secondaires     (entrée 4, plan story-pages-secondaires-marge-de-16-px-et-cibles-de-44-px) Règles, Guide, Organisations, Événements,
+//                   Statistiques, fiche de membre, Interface, carte de ville et Cybermonde (fixtures secondaires-*.html) à 320, 375 × 667 et
+//                   767 px, Kraland clair et Empire Brun sombre : classes kr-page-secondaire et kr-marge-mobile ; texte à 16 px des bords ;
+//                   cartes à 8 px ; cibles hors bouton à 44 × 44 aux cinq points (elementFromPoint) ; input.hidden masqués ;
+//                   formulaires à leur hauteur ; titre de la ville à 16 px du bord ; à 768 et 1280 px, textes égaux au bundle de base
+//                   (titre de la ville à 768 px excepté).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
-// site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show e203f87), KR_FRAG = mobile, bureau,
-// bascule, hors-perimetre (vide = tout).
+// site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 9b6851a, entrée 1 comprise), KR_FRAG =
+// mobile, bureau, bascule, hors-perimetre, secondaires (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -24,13 +30,13 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
 import { choisirVariante } from './lib/variantes.mjs';
-import { CARTES_SECTION, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
+import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = 'de4c079';
+const COMMIT_AVANT = '9b6851a'; // entrées 7.1, 9.1, 9.2 et 9.6 comprises
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
@@ -56,15 +62,32 @@ const PAGES = {
   bat: { url: '/jouer/bat', html: lire('jeu-batiments.html'), classe: 'kr-page-jeu' },
   pnj: { url: '/jouer/pnj', html: lire('jeu-employes.html'), classe: 'kr-page-jeu' },
   aide: { url: '/aide', html: lire('aide.html'), classe: 'kr-page-aide' },
-  regles: { url: '/regles/base', html: lire('regles-recherche.html'), classe: null },
   'sous-forum': { url: '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html'), classe: null },
   'index-rp': { url: '/forum/rp', html: lire('forum-index-rp.html'), classe: null },
   reception: { url: '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html'), classe: null },
-  report: { url: '/report', html: avecBootstrap(lire('report-non-lu.html')), classe: null },
-  cyber: { url: '/map', html: lire('cybermonde-ville.html'), classe: null }
+  report: { url: '/report', html: avecBootstrap(lire('report-non-lu.html')), classe: null }
 };
-const DANS = Object.keys(PAGES).filter(k => PAGES[k].classe);
+// Pages secondaires (entrée 4) : cibles hors bouton mesurées (sélecteur, toutes les occurrences) ; sansCartes : page sans carte de section ;
+// cartesJusqua : largeur maximale du contrôle des cartes (carte de ville : colonne native centrée à 767 px, identique à la base).
+const SECONDAIRES = {
+  regles: { url: '/regles/avancees', html: lire('secondaires-regles.html'), cibles: [] },
+  guide: { url: '/monde/guide', html: lire('secondaires-guide.html'), cibles: [] },
+  organisations: { url: '/monde/organisations', html: lire('secondaires-organisations.html'), cibles: ['td > a.nomargin'] },
+  evenements: { url: '/monde/evenements', html: lire('secondaires-evenements.html'), cibles: ['.form-check-label', '.pagination > li > a'], sansCartes: true },
+  stats: { url: '/communaute/stats', html: lire('secondaires-stats.html'), cibles: [], sansCartes: true },
+  membre: { url: '/communaute/membres/fixture-1', html: lire('secondaires-membre.html'), cibles: [] },
+  interface: { url: '/profil/interface', html: lire('secondaires-interface.html'), cibles: ['.radio > label', '.checkbox > label'], sansCartes: true, options: true },
+  ville: { url: '/map/ville/fixture-ville', html: lire('secondaires-carte-ville.html'), cartesJusqua: 375,
+    cibles: ['td > a:has(> i)', '.panel-heading span.clickable', '.center > .pagination > li > a:not(.btn)', '.center > .pagination select'] },
+  cybermonde: { url: '/map/cybermonde', html: lire('secondaires-cybermonde.html'), cibles: ['.center > .pagination > li > a:not(.btn)', '.center > .pagination select'], sansCartes: true }
+};
+Object.entries(SECONDAIRES).forEach(([k, v]) => { PAGES[k] = { ...v, classe: 'kr-page-secondaire' }; });
+const DANS = Object.keys(PAGES).filter(k => PAGES[k].classe && !SECONDAIRES[k]);
 const HORS = Object.keys(PAGES).filter(k => !PAGES[k].classe);
+// Compléments du fragment secondaires (hors listes DANS et HORS) : Événements sans libellé de case (repli), rédaction du kramail (page sans
+// garde, champs de formulaire).
+PAGES['evenements-sans-libelle'] = { url: '/monde/evenements', html: PAGES.evenements.html.replace(/<label class="form-check-label"[^>]*>[^<]*<\/label>/, ''), classe: 'kr-page-secondaire' };
+PAGES['kramail-nouveau'] = { url: '/kramail/post/nouveau-4-2000', html: lire('kramail-nouveau.html'), classe: null };
 
 let failures = 0;
 function check(name, fn) {
@@ -133,7 +156,7 @@ const ETAT = Q => {
     });
   return {
     theme: h.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'),
-    classes: ['kr-page-jeu', 'kr-page-aide', 'kr-marge-mobile'].filter(c => h.contains(c)),
+    classes: ['kr-page-jeu', 'kr-page-aide', 'kr-page-secondaire', 'kr-marge-mobile'].filter(c => h.contains(c)),
     vw, sw: document.documentElement.scrollWidth, cartes, imbriquees
   };
 };
@@ -158,13 +181,13 @@ function premierEcart(a, b) {
   return '';
 }
 
-function controlerMarge(m, hors) {
+function controlerMarge(m, hors, sansCartes = false) {
   assert.ok(m.theme, 'kr-theme-enabled absent');
   assert.ok(m.mobile, 'mode mobile absent');
   assert.ok(m.sw <= m.vw, `débordement horizontal ${m.sw} > ${m.vw}`);
   const t = hors.map(x => `« ${x.texte} » ${x.gauche}/${x.droite} (${x.chemin})`);
   assert.deepEqual(t, [], `${t.length} texte(s) à moins de ${MARGE} px : ${t.slice(0, 3).join(' ; ')}`);
-  assert.ok(m.cartes.length > 0, 'aucune carte de section');
+  if (!sansCartes) { assert.ok(m.cartes.length > 0, 'aucune carte de section'); }
   const c = m.cartes.filter(x => Math.abs(x.g - CARTE) > 0.5 || Math.abs(x.d - CARTE) > 0.5).map(x => `« ${x.nom} » ${x.g}/${x.d}`);
   assert.deepEqual(c, [], `cartes hors des ${CARTE} px : ${c.join(' ; ')}`);
   const i = m.imbriquees.filter(x => x.g < -0.5 || x.d < -0.5).map(x => `« ${x.nom} » ${x.g}/${x.d}`);
@@ -284,6 +307,196 @@ if (on('hors-perimetre')) {
       assert.equal(d, '', d);
     });
     check(`hors-perimetre ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+}
+
+// ---------- pages secondaires ----------
+// Champs témoins (input, select, input-lg en input et en select, hauteur en ligne) insérés dans #col-right ou dans une .bootbox.modal ouverte.
+const CHAMPS = modale => {
+  const f = document.createElement('form');
+  f.innerHTML = '<input class="form-control"><select class="form-control"><option>x</option></select><input class="form-control input-lg">'
+    + '<select class="form-control input-lg"><option>x</option></select><input class="form-control" style="height: 60px">';
+  if (modale) {
+    const m = document.createElement('div');
+    m.className = 'bootbox modal fade in';
+    m.style.display = 'block';
+    m.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-body"></div></div></div>';
+    m.querySelector('.modal-body').append(f);
+    document.body.append(m);
+  } else {
+    document.querySelector('#col-right').append(f);
+  }
+  return [...f.children].map(e => Math.round(e.getBoundingClientRect().height));
+};
+const CHAMPS_ATTENDUS = [44, 44, 46, 46, 60];
+// Dans une modale, tout select reste à 44 px (règle « .modal-body select » de la peau, antérieure à 9.4).
+const CHAMPS_MODALE = [44, 44, 46, 44, 60];
+// Éléments laissés natifs : relevé de taille et des propriétés que 9.4 pose ailleurs (comparé au bundle de base).
+const NATIFS = sel => [...document.querySelectorAll(sel)].map(e => {
+  const r = e.getBoundingClientRect();
+  const s = getComputedStyle(e);
+  return [e.tagName, Math.round(r.width), Math.round(r.height), s.minWidth, s.minHeight, s.display, s.alignItems, s.padding].join(' ');
+});
+// Radio et case dans une .modal de /monde : insérées ouvertes, hors de la règle des cibles des pages secondaires.
+const RADIO_MODALE = () => {
+  const m = document.createElement('div');
+  m.className = 'modal fade in';
+  m.style.display = 'block';
+  m.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-body"><div class="radio"><label><input type="radio" name="r"> Un</label></div>'
+    + '<div class="checkbox"><label><input type="checkbox"> Deux</label></div><div class="form-check"><input class="form-check-input" type="checkbox" id="m-c">'
+    + '<label class="form-check-label" for="m-c">Trois</label></div></div></div></div>';
+  document.body.append(m);
+};
+// Titre de la ville : premier nœud texte du titre (boîte à l'écran).
+const TITRE_VILLE = () => {
+  const h = document.querySelector('#mapname-container > h4');
+  if (!h) { return null; }
+  const rg = document.createRange();
+  rg.selectNodeContents(h.firstChild);
+  const b = rg.getBoundingClientRect();
+  return { gauche: b.left, droite: document.documentElement.clientWidth - b.right };
+};
+async function ouvrirOptions(page) {
+  await page.evaluate(() => document.querySelectorAll('.kr-options-section-title').forEach(t => { if (t.nextElementSibling?.classList.contains('collapsed')) { t.click(); } }));
+  await page.waitForFunction(() => document.querySelectorAll('.kr-options-section-content.collapsed').length === 0 && document.getAnimations().every(a => a.playState !== 'running'), null, { timeout: 5000 });
+  await page.waitForTimeout(400); // transitions max-height et opacité (0,3 s)
+}
+if (on('secondaires')) {
+  console.log('\n== secondaires ==');
+  const noms = Object.keys(SECONDAIRES);
+  const cas = noms.flatMap(nom => VARIANTES.flatMap(variante => [320, 375, 767].map(width => ({ nom, variante, width }))));
+  const res = await mapLimit(cas, async c => {
+    const def = PAGES[c.nom];
+    const { context, page, erreurs } = await ouvrir({ ...c, script: userscript });
+    if (def.options) { await ouvrirOptions(page); }
+    const m = await page.evaluate(ETAT, CARTES_SECTION);
+    const hors = await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: MARGE });
+    const titre = await page.evaluate(TITRE_VILLE);
+    const masques = await page.evaluate(() => [...document.querySelectorAll('input.hidden')].map(e => ({ id: e.id, vu: e.getClientRects().length > 0 })));
+    const cibles = [];
+    for (const sel of def.cibles) {
+      const n = await page.evaluate(s => document.querySelectorAll(s).length, sel);
+      if (n === 0) { cibles.push({ sel, i: 0, e: ['aucune cible'] }); }
+      for (let i = 0; i < n; i += 1) { cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
+    }
+    // Formulaires : champs témoins insérés (input, select, input-lg, hauteur en ligne) ; les hauteurs natives priment sur l'ancien 44 px imposé.
+    const champs = c.nom === 'evenements' ? await page.evaluate(CHAMPS, false) : null;
+    const chevron = await page.evaluate(() => { const i = document.querySelector('.panel-heading span.clickable > i'); return i ? document.documentElement.clientWidth - i.getBoundingClientRect().right : null; });
+    await context.close();
+    return { c, m, hors, titre, masques, cibles, chevron, champs, erreurs };
+  });
+  for (const { c, m, hors, titre, masques, cibles, chevron, champs, erreurs } of res) {
+    const def = PAGES[c.nom];
+    const lab = `secondaires ${c.nom} ${c.variante} ${c.width} px`;
+    const sansCartes = def.sansCartes || (def.cartesJusqua && c.width > def.cartesJusqua);
+    check(`${lab} : classes kr-page-secondaire et kr-marge-mobile sur <html>`, () => assert.deepEqual([...m.classes].sort(), ['kr-marge-mobile', 'kr-page-secondaire']));
+    check(`${lab} : texte à ${MARGE} px des bords${sansCartes ? '' : `, cartes à ${CARTE} px`}`, () => controlerMarge(sansCartes ? { ...m, cartes: [] } : m, hors, sansCartes));
+    if (def.cibles.length) {
+      check(`${lab} : cibles hors bouton à 44 × 44 (${def.cibles.join(', ')})`, () => {
+        const e = cibles.filter(x => x.e.length).map(x => `${x.sel}[${x.i}] ${x.e.join(', ')}`);
+        assert.deepEqual(e, [], e.slice(0, 3).join(' ; '));
+      });
+    }
+    if (c.nom === 'evenements') {
+      check(`${lab} : input#mySubmit1…6.hidden masqués`, () => {
+        assert.equal(masques.length, 6, 'input.hidden relevés');
+        assert.deepEqual(masques.filter(x => x.vu).map(x => x.id), []);
+      });
+      check(`${lab} : formulaires à leur hauteur (input et select 44, input-lg 46, hauteur en ligne 60)`, () => assert.deepEqual(champs, CHAMPS_ATTENDUS));
+    }
+    if (c.nom === 'ville') {
+      check(`${lab} : titre de la ville à ${MARGE} px du bord gauche, dans l'écran`, () => {
+        assert.ok(titre, 'titre absent');
+        assert.ok(titre.gauche >= MARGE - 0.5 && titre.droite >= 0, `titre à ${Math.round(titre.gauche)} / ${Math.round(titre.droite)} px`);
+      });
+      check(`${lab} : chevron Fonctionnaires à ${MARGE} px du bord droit`, () => assert.ok(chevron >= MARGE - 0.5, `chevron à ${chevron} px`));
+    }
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
+  }
+  // Compléments à 375 px, contre le bundle de base quand il s'agit de rester natif.
+  const casC = VARIANTES.map(variante => ({ variante, width: 375 }));
+  const complement = async (c, script) => {
+    const out = {};
+    let o = await ouvrir({ ...c, nom: 'evenements-sans-libelle', script });
+    out.sansLibelle = await o.page.evaluate(() => {
+      const l = document.querySelector('.form-check');
+      const i = l.querySelector('input');
+      const r = l.getBoundingClientRect();
+      const ri = i.getBoundingClientRect();
+      return { h: Math.round(r.height), libelle: !!l.querySelector('label'), case: i === document.elementFromPoint(ri.left + ri.width / 2, ri.top + ri.height / 2) };
+    });
+    out.debord = await o.page.evaluate(() => {
+      const t = document.querySelector('table.table-striped');
+      t.scrollLeft = 50;
+      return { page: document.documentElement.scrollWidth - document.documentElement.clientWidth, table: t.scrollWidth - t.clientWidth, defile: t.scrollLeft };
+    });
+    out.champsModale = await o.page.evaluate(CHAMPS, true);
+    await o.context.close();
+    o = await ouvrir({ ...c, nom: 'kramail-nouveau', script });
+    out.champsKramail = await o.page.evaluate(CHAMPS, false);
+    await o.context.close();
+    o = await ouvrir({ ...c, nom: 'guide', script });
+    await o.page.evaluate(RADIO_MODALE);
+    out.modale = await o.page.evaluate(NATIFS, '.modal .radio > label, .modal .checkbox > label, .modal .form-check, .modal .form-check-label');
+    await o.context.close();
+    o = await ouvrir({ ...c, nom: 'interface', script });
+    out.images = await o.page.evaluate(NATIFS, '#col-right > a, #col-right > div > a, #col-right td > a');
+    await o.context.close();
+    o = await ouvrir({ ...c, nom: 'ville', script });
+    out.travail = await o.page.evaluate(() => [...document.querySelectorAll('.center > .pagination > li > a.btn')].map(a => Math.round(a.getBoundingClientRect().height)));
+    await o.context.close();
+    return out;
+  };
+  const resC = await mapLimit(casC, async c => ({ c, teste: await complement(c, userscript), base: await complement(c, avant) }));
+  for (const { c, teste, base } of resC) {
+    const lab = `secondaires ${c.variante} ${c.width} px`;
+    check(`${lab} : Événements sans libellé de case, ligne .form-check à 44 px, case atteinte au toucher`, () => {
+      assert.equal(teste.sansLibelle.libelle, false, 'libellé présent');
+      assert.ok(teste.sansLibelle.h >= 44, `ligne de ${teste.sansLibelle.h} px`);
+      assert.ok(teste.sansLibelle.case, 'case couverte');
+    });
+    console.log(`  info ${lab} : ligne longue d'Événements, débordement page ${teste.debord.page} px (base ${base.debord.page}), tableau ${teste.debord.table} px (base ${base.debord.table}), défilement ${teste.debord.defile} px (base ${base.debord.defile})`);
+    check(`${lab} : ligne longue d'Événements, page sans débordement de plus que la base, tableau défilable`, () => {
+      assert.ok(teste.debord.page <= base.debord.page, `page ${teste.debord.page} px`);
+      assert.ok(teste.debord.defile > 0, 'tableau sans défilement');
+    });
+    check(`${lab} : formulaires dans une .bootbox.modal à leur hauteur`, () => assert.deepEqual(teste.champsModale, CHAMPS_MODALE));
+    check(`${lab} : formulaires de la rédaction du kramail (sans garde) à leur hauteur`, () => assert.deepEqual(teste.champsKramail, CHAMPS_ATTENDUS));
+    check(`${lab} : radio, case et form-check d'une .modal de /monde natifs (égaux au bundle de base)`, () => {
+      assert.equal(teste.modale.length, 4, 'éléments de la modale');
+      assert.deepEqual(teste.modale, base.modale);
+    });
+    check(`${lab} : liens-images de choix d'Interface (a > img, div > a, div.t > a, td > a) égaux au bundle de base`, () => {
+      assert.ok(teste.images.length >= 12, `${teste.images.length} liens`);
+      assert.deepEqual(teste.images, base.images);
+    });
+    check(`${lab} : bouton « Travail » de la carte de ville à 34 px de haut`, () => assert.deepEqual(teste.travail, [34]));
+  }
+
+  // Bureau : textes égaux au bundle de base ; titre de la ville à 768 px (collant à 16 px) masqué de la comparaison et contrôlé à part.
+  const casB = noms.flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.filter(w => w !== 769).map(width => ({ nom, variante, width }))));
+  const releve = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, height: 720, script });
+    const r = await page.evaluate(RELEVE);
+    const titre = await page.evaluate(TITRE_VILLE);
+    await context.close();
+    return { r, titre, erreurs };
+  };
+  const resB = await mapLimit(casB, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
+  const sansTitre = (l, c) => c.nom === 'ville' && c.width === 768 ? l.filter(x => !x.startsWith('Ville de Fixture')) : l;
+  for (const { c, teste, base } of resB) {
+    const lab = `secondaires bureau ${c.nom} ${c.variante} ${c.width} px`;
+    check(`${lab} : textes égaux au bundle de base`, () => {
+      assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
+      assert.equal(teste.r.mobile, false, 'mode mobile au-delà de 767 px');
+      assert.ok(teste.r.l.length > 0, 'aucun texte');
+      const d = premierEcart(sansTitre(teste.r.l, c), sansTitre(base.r.l, c));
+      assert.equal(d, '', d);
+    });
+    if (c.nom === 'ville') {
+      check(`${lab} : titre de la ville à ${MARGE} px du bord gauche`, () => assert.ok(teste.titre && teste.titre.gauche >= MARGE - 0.5, `titre à ${teste.titre && Math.round(teste.titre.gauche)} px`));
+    }
+    check(`${lab} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
   }
 }
 

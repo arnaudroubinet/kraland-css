@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Interface du profil, chemin servi /profil/interface.
+  Forme reprise des chaînes relevées en lecture seule sur le site réel à 375 px (relevé du 2026-10-29, section Interface) : `#col-right > h1.page-header`, puis `h4` « Thème de base » (le template insère avant lui son bloc `#kr-tamper-theme`), `a > img`, `div > a > img`, `div.t > a > img`, `hr`, `h2`, `table.table > tbody > tr ×4 > td[style=width:60px] > a > img + td > p > strong`.
+  Écarts assumés : textes, noms et valeurs INVENTÉS ; profondeur et nombre d’éléments réduits ; aucun script natif. Liens `profil/interface/…` = liens d’action sur le site : jamais suivis par les suites.
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Interface du profil</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-right" class="col-md-12">
+      <h1 class="page-header">Interface</h1>
+      <h4>Thème de base</h4>
+      <a href="profil/interface/fixture-1-1"><img src="http://img7.kraland.org/2/fixture/choix1.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-1-2"><img src="http://img7.kraland.org/2/fixture/choix2.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-1-3"><img src="http://img7.kraland.org/2/fixture/choix3.png" width="40" height="40" alt=""></a>
+      <div><a href="profil/interface/fixture-3-1"><img src="http://img7.kraland.org/2/fixture/choix1.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-3-2"><img src="http://img7.kraland.org/2/fixture/choix2.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-3-3"><img src="http://img7.kraland.org/2/fixture/choix3.png" width="40" height="40" alt=""></a></div>
+      <div class="t"><a href="profil/interface/fixture-10-1"><img src="http://img7.kraland.org/2/fixture/choix1.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-10-2"><img src="http://img7.kraland.org/2/fixture/choix2.png" width="40" height="40" alt=""></a><a href="profil/interface/fixture-10-3"><img src="http://img7.kraland.org/2/fixture/choix3.png" width="40" height="40" alt=""></a></div>
+      <hr>
+      <h2>Icônes</h2>
+      <table class="table"><tbody><tr><td style="width:60px"><a href="profil/interface/fixture-2-1"><img src="http://img7.kraland.org/2/fixture/icone1.png" width="40" height="40" alt=""></a></td><td><p><strong>Choix 1</strong> : une présentation de la fixture.</p></td></tr><tr><td style="width:60px"><a href="profil/interface/fixture-2-2"><img src="http://img7.kraland.org/2/fixture/icone2.png" width="40" height="40" alt=""></a></td><td><p><strong>Choix 2</strong> : une présentation de la fixture.</p></td></tr><tr><td style="width:60px"><a href="profil/interface/fixture-2-3"><img src="http://img7.kraland.org/2/fixture/icone3.png" width="40" height="40" alt=""></a></td><td><p><strong>Choix 3</strong> : une présentation de la fixture.</p></td></tr><tr><td style="width:60px"><a href="profil/interface/fixture-2-4"><img src="http://img7.kraland.org/2/fixture/icone4.png" width="40" height="40" alt=""></a></td><td><p><strong>Choix 4</strong> : une présentation de la fixture.</p></td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

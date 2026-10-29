@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Organisations, chemin servi /monde/organisations.
+  Forme reprise des chaînes relevées en lecture seule sur le site réel à 375 px (relevé 9.3 du 2026-10-28, plan spike-releve-des-pages-mobiles-hors-fixtures, F2) : carte `#col-right > .panel.panel-default` qui contient le tableau ; lignes `tbody > tr.odd|even > td > a.btn.btn-default` (32 px), `td > a.btn.btn-*.mini` (34 px), `td > a.nomargin` (nom, et « - » de 21 px).
+  Écarts assumés : textes, noms et valeurs INVENTÉS ; profondeur et nombre d’éléments réduits ; aucun script natif. Tableau relevé « défilant » sur le site, conteneur exact non relevé : ici, il tient dans la largeur.
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Organisations</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-right" class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <table class="table">
+            <thead><tr><th></th><th></th><th>Nom</th><th>Chef</th><th></th></tr></thead>
+            <tbody>
+            <tr class="odd"><td><a class="btn btn-default" href="monde/organisations/fixture-1"><i class="fa fa-search"></i></a></td><td><a class="btn btn-success mini" href="monde/organisations/fixture-1">R</a></td><td>Orga 1</td><td><a class="nomargin" href="communaute/membres/fixture-1">Chef1</a></td><td><a class="nomargin" href="monde/organisations/fixture-1">-</a></td></tr>
+            <tr class="even"><td><a class="btn btn-default" href="monde/organisations/fixture-2"><i class="fa fa-search"></i></a></td><td><a class="btn btn-success mini" href="monde/organisations/fixture-2">R</a></td><td>Orga 2</td><td><a class="nomargin" href="communaute/membres/fixture-2">Chef2</a></td><td><a class="nomargin" href="monde/organisations/fixture-2">-</a></td></tr>
+            <tr class="odd"><td><a class="btn btn-default" href="monde/organisations/fixture-3"><i class="fa fa-search"></i></a></td><td><a class="btn btn-success mini" href="monde/organisations/fixture-3">R</a></td><td>Orga 3</td><td><a class="nomargin" href="communaute/membres/fixture-3">Chef3</a></td><td><a class="nomargin" href="monde/organisations/fixture-3">-</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

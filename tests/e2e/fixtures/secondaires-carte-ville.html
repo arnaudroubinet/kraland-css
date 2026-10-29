@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Carte, vue d’une ville, chemin servi /map/ville/fixture-ville.
+  Forme reprise de cybermonde-region.html (constat du 2026-10-21 : boîte de région enfant de <body>, 678 px en ligne, contenu de 1017 px)
+  et du relevé 9.3 du 2026-10-28 (plan spike-releve-des-pages-mobiles-hors-fixtures, F7) : titre `#mapname-container > h4.page-header`
+  DANS la boîte de région (défilant avec elle ; à 1280 px aligné sur la carte, filet sur toute la largeur, icône à droite) ;
+  `div.center > ul.pagination > li > a` « Province » et `a.btn.btn-default` « Travail », sélecteurs `li > a > select` ; cartes
+  `div.container-fluid > .row > .col-md-6.col-xs-12 > .panel.panel-default` ; icônes de tableau `tbody > tr > td > a` (32 px) ;
+  chevron `.glyphicon-chevron-up` du panneau Fonctionnaires.
+  Écarts assumés : la cybermonde-region.html garde son titre hors de la boîte (constat antérieur) ; ici, le relevé 9.3 fait foi.
+  Conteneur du chevron (`.panel-heading > span.clickable.pull-right`, mécanisme natif de repli, placé à 16 px du bord de la carte comme relevé) et contenu des icônes de tableau SUPPOSÉS ; parent du
+  `div.container-fluid` (<body>) supposé ; noms, postes et bâtiments inventés ; images générées par la suite ; aucun script natif.
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Carte ville</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><a class="navbar-brand" href="map/cybermonde">Cybermonde</a></div></nav>
+<div class="center"><ul class="pagination"><li><a href="map/province/fixture-1">Province</a></li><li><a><select id="sel-province" onchange="void 0"><option>Province A</option><option>Province B</option></select></a></li><li><a><select id="sel-ville" onchange="void 0"><option>Ville de Fixture</option><option>Ville Deux</option></select></a></li><li><a class="btn btn-default" href="map/ville/fixture-ville-travail">Travail</a></li></ul></div>
+<div style="position:relative; width:678px; height:522px">
+  <div id="mapname-container"><h4 class="page-header">Ville de Fixture (Province A) <span class="pull-right"><i class="fa fa-info-circle"></i></span></h4></div>
+  <div id="c0-0" style="position:absolute; left:480px; top:150px; width:54px; height:54px; z-index:10"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c0-1" style="position:absolute; left:399px; top:176px; width:54px; height:54px; z-index:11"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c0-2" style="position:absolute; left:318px; top:202px; width:54px; height:54px; z-index:12"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c0-3" style="position:absolute; left:237px; top:228px; width:54px; height:54px; z-index:13"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c1-0" style="position:absolute; left:561px; top:176px; width:54px; height:54px; z-index:11"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c1-1" style="position:absolute; left:480px; top:202px; width:54px; height:54px; z-index:12"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c1-2" style="position:absolute; left:399px; top:228px; width:54px; height:54px; z-index:13"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c1-3" style="position:absolute; left:318px; top:254px; width:54px; height:54px; z-index:14"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c2-0" style="position:absolute; left:642px; top:202px; width:54px; height:54px; z-index:12"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c2-1" style="position:absolute; left:561px; top:228px; width:54px; height:54px; z-index:13"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c2-2" style="position:absolute; left:480px; top:254px; width:54px; height:54px; z-index:14"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c2-3" style="position:absolute; left:399px; top:280px; width:54px; height:54px; z-index:15"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c3-0" style="position:absolute; left:723px; top:228px; width:54px; height:54px; z-index:13"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c3-1" style="position:absolute; left:642px; top:254px; width:54px; height:54px; z-index:14"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c3-2" style="position:absolute; left:561px; top:280px; width:54px; height:54px; z-index:15"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c3-3" style="position:absolute; left:480px; top:306px; width:54px; height:54px; z-index:16"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c4-0" style="position:absolute; left:804px; top:254px; width:54px; height:54px; z-index:14"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c4-1" style="position:absolute; left:723px; top:280px; width:54px; height:54px; z-index:15"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c4-2" style="position:absolute; left:642px; top:306px; width:54px; height:54px; z-index:16"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c4-3" style="position:absolute; left:561px; top:332px; width:54px; height:54px; z-index:17"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c5-0" style="position:absolute; left:885px; top:280px; width:54px; height:54px; z-index:15"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c5-1" style="position:absolute; left:804px; top:306px; width:54px; height:54px; z-index:16"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c5-2" style="position:absolute; left:723px; top:332px; width:54px; height:54px; z-index:17"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="c5-3" style="position:absolute; left:642px; top:358px; width:54px; height:54px; z-index:18"><img src="http://img7.kraland.org/2/fixture/tuile.png" alt=""></div>
+  <div id="path1" style="position:absolute; left:520px; top:200px; width:54px; height:20px; z-index:40"></div>
+  <div id="path2" style="position:absolute; left:574px; top:226px; width:54px; height:20px; z-index:40"></div>
+  <div style="position:absolute; left:0px; top:0px; z-index:100"><img src="http://img7.kraland.org/2/fixture/map1.png" usemap="#map1" border="0" alt=""></div>
+</div>
+<map name="map1">
+  <area shape="rect" coords="60,60,120,100" href="map/ville/fixture-nord" alt="Sortie nord">
+  <area shape="rect" coords="900,60,960,100" href="map/ville/fixture-est" alt="Sortie est">
+  <area shape="rect" coords="60,440,120,480" href="map/ville/fixture-ouest" alt="Sortie ouest">
+  <area shape="rect" coords="900,440,960,480" href="map/ville/fixture-sud" alt="Sortie sud">
+  <area shape="poly" coords="480,250,540,220,600,250,540,280" href="jouer/bat/fixture-palais" alt="Palais de Fixture">
+  <area shape="rect" coords="640,200,680,240" href="jouer/bat/fixture-drapeau" alt="Drapeau de Fixture">
+</map>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-6 col-xs-12">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Fonctionnaires</h3><span class="clickable pull-right"><i class="glyphicon glyphicon-chevron-up"></i></span></div>
+        <div class="panel-body"><table class="table nomargin"><tbody><tr><td><a href="jouer/bat/fixture-1"><i class="fa fa-home"></i></a></td><td>Comte</td><td>(poste vacant)</td></tr><tr><td><a href="jouer/bat/fixture-2"><i class="fa fa-home"></i></a></td><td>Juge</td><td>Beta Fixture</td></tr></tbody></table></div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3 class="panel-title">Bâtiments Publics</h3></div>
+        <div class="panel-body"><table class="table nomargin minix"><tbody><tr><td><a href="jouer/bat/fixture-3"><i class="fa fa-home"></i></a></td><td>Palais de Fixture [6,4]</td><td>50 Co</td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+</body>
+</html>
