@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : page Membres, chemin servi /communaute/membres = fiche du compte connecté en édition
+  (ce n'est pas une liste de membres). Forme reprise du relevé en lecture seule du site réel du 2026-10-29 (agent releve-aide,
+  /tmp/kr-releve-aide/releve.md, hors dépôt) : `#content > div.row > div#col-right.col-md-9 > ul.nav.nav-tabs (2 li) + div#myTabContent.tab-content`,
+  2 `.tab-pane` (#home.active, second volet), puis `div.container-fluid > div.row > div.col-md-8.col-xs-12 > div.well.panel.panel-default > div.panel-body
+  > div.row > div.col-xs-12.col-sm-4.text-center | div.col-xs-12.col-sm-8` ; 7 `span.btn-group-xs` (un bouton chacun) dans `#ajax-av<id>` (×2, un par
+  volet), `h2 > span#ajax-membername<id>`, `div > span#ajax-name<id>`, `div > span#ajax-sex<id>`, `div#ajax-city<id>.t`, `div#ajax-birth<id>.t` ;
+  chaque bouton : `a.btn.btn-default[href^=javascript:updateAjax]` à un seul enfant `i.fa.fa-edit`, padding 8px, 14px, 33,8 × 44 px à 375 px.
+  La fiche d'un autre membre n'a ni .btn-group-xs ni #myTabContent.
+  Écarts assumés : textes, noms et valeurs INVENTÉS ; padding de 8 px des boutons et largeur de 16 px de l'icône (Font Awesome non servie)
+  posés en ligne pour retrouver 34 px de large sur le bundle de base ; contenu du second
+  volet supposé ; aucun script natif (updateAjax absent, aucun lien cliqué).
+  Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Membres (fiche du compte en édition)</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-right" class="col-md-9">
+      <ul id="myTab" class="nav nav-tabs">
+        <li class="active"><a href="#home" data-toggle="tab"><i class="fa fa-user"></i> Compte</a></li>
+        <li><a href="#perso-2" data-toggle="tab">Personnage</a></li>
+      </ul>
+      <div id="myTabContent" class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-8 col-xs-12">
+                <div class="well panel panel-default">
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-xs-12 col-sm-4 text-center"><img src="http://img7.kraland.org/avatar-1.gif" alt="" width="80" height="80"><div id="ajax-av1"><span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('av1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></div></div>
+                      <div class="col-xs-12 col-sm-8">
+                        <h2><span id="ajax-membername1">Compte Fixture <span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('membername1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></span></h2>
+                        <div>Nom : <span id="ajax-name1">Nom d'essai <span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('name1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></span></div>
+                        <div>Sexe : <span id="ajax-sex1">Inconnu <span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('sex1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></span></div>
+                        <div id="ajax-city1" class="t">Ville d'essai <span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('city1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></div>
+                        <div id="ajax-birth1" class="t">Date d'essai <span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('birth1')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></div>
+                        <p><a href="kramail/post/compte-fixture-1-1">Kramail d'essai</a></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="perso-2" class="tab-pane fade">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-8 col-xs-12">
+                <div class="well panel panel-default">
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-xs-12 col-sm-4 text-center"><img src="http://img7.kraland.org/avatar-2.gif" alt="" width="80" height="80"><div id="ajax-av2"><span class="btn-group-xs"><a class="btn btn-default" style="padding: 8px !important" href="javascript:updateAjax('av2')" title="Modifier"><i class="fa fa-edit" style="display: inline-block; width: 16px"></i></a></span></div></div>
+                      <div class="col-xs-12 col-sm-8">
+                        <h2>Personnage d'essai</h2>
+                        <p>Texte d'essai du second onglet.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

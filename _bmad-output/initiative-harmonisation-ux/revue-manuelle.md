@@ -135,6 +135,7 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 ## Visites du site réel faites en autonomie (lecture seule)
 
+- 2026-10-29 : relevé de structure (agent releve-aide) : /help, /help/staff, /help/password, /help/defkra, /communaute/membres, une fiche d'un autre membre (GET) ; aucun clic, variante inchangée, /report non visité
 - 2026-10-29 : relevé de structure (agent releve-membres, Chrome dédié, nouvel onglet fermé ensuite) : `/communaute/membres`, `/aide` (lecture des onclick), `/help`, `/help/staff`, à 375 et 1280 px. GET et évaluations seulement, aucun clic ni saisie, variante inchangée, `/report` non visité. Relevé hors dépôt dans `/tmp/kr-releve-membres/releve.md`.
 - 2026-10-29 : `/accueil` rechargé (GET), vérification du 8.2 par évaluation, `window.open` sondé ; aucun clic, aucune requête vers `/report`.
 
@@ -735,3 +736,13 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Peau coupée, la cloche garde le popup natif de 600×600, y compris quand la peau est coupée sans rechargement de la page. Choix pris par défaut (garde de peau des nouveaux modules, M10). À revoir si tu veux le 900×800 sans la peau.
 - De 768 à 991 px, la cloche reste invisible tant que le menu est fermé (D12, ta décision attendue) ; menu ouvert, elle ouvre le popup 900×800.
 - Vérifié le 2026-10-29 après fusion (5f5d299), Chrome dédié, Tampermonkey réel, `/accueil` rechargé, 1280 px, Empire Brun sombre : `openReport.krReportPopup === true`, et `openReport()` sous `window.open` sondé appelle `report`, `private_report`, `width=900,height=800,…` ; aucun clic, aucune requête vers `/report`. Reste Firefox, pour la passe finale d'Arnaud.
+
+## Ticket 9.13 — Membres et fenêtre d'aide (en revue, 2026-10-29)
+
+- Page Membres : `/communaute/membres` n'est pas une liste de membres, c'est la fiche du compte connecté en édition (relevé releve-aide). Ses 7 boutons d'édition `span.btn-group-xs > a.btn` (icône `fa-edit` seule, padding 8px) mesurent 33,8 × 44 px. La fixture les reproduit à 34 px sur la base (padding et largeur d'icône posés en ligne). Correctif : `min-width` de 44 px, limité à `#myTabContent` ; la fiche d'un autre membre n'a ni `#myTabContent` ni `.btn-group-xs`.
+- Fenêtre `/help` sur ordinateur : relevé à 1280 px, `#content` en padding-left 0 et padding-right 48px, `.row` en margin-left 0, textes à 0 px. Les fixtures reproduisent cet effet de `main.css` par un style en ligne. Le CSS du ticket est mobile seul : 768 à 1280 px restent égaux à la base. Aucune marge sur ordinateur, à trancher (fidélité de `/help` au bureau et parent de `#content` : relevé séparé du coordinateur en cours).
+- Page Membres : le relevé du 2026-10-29 (releve-membres) plaçait un `li` à 4 px du bord à 375 px. La fixture ne le reproduit pas. Probablement un onglet `ul#myTab` dont seule la boîte touche le bord. À vérifier sur le site.
+- `/help/staff` : les `.well` passent à 8 px des bords comme une carte de section (H4.1), premier texte à 24 px au plus ; sans cela, le texte des cellules serait à 40 px. Choix de rangement pris seul.
+- Les liens `td > a` agrandis sont limités aux `.well` : seule `/help/staff` en a (25, aucun dans une phrase) ; `/help/password` et `/help/defkra` n'ont ni `.well` ni `td > a`.
+- Les liens de texte de `/help` (`p > a`, `pre > a`) restent au fil du texte (exception H9.1), non agrandis.
+- L'exclusion des modales (`:where(:not(.modal *))`) n'a pas de contrôle : aucune fixture de ces pages ne contient de modale.

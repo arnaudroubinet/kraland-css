@@ -6946,7 +6946,8 @@ body > map {
     padding: 0 !important;
   }
 
-  /* MARGE MOBILE (H10.1) : pages posant kr-marge-mobile sur <html> (KR_PAGE_CLASSES du template : jeu, Aide). Conteneurs et colonnes
+  /* MARGE MOBILE (H10.1) : pages posant kr-marge-mobile sur <html> (KR_PAGE_CLASSES du template : jeu, Aide, pages secondaires de
+     l'épopée 9 entrée 4, fenêtre d'aide /help de l'entrée 13). Conteneurs et colonnes
      restent à 0 ci-dessus ; la ligne principale et le pied prennent --kr-margin-mobile, le mini-profil aussi ; les cartes de section
      et sections du plateau reculent de --kr-marge-page pour rester à 8 px des bords (règles de la carte de section et de 4d). */
   :where(html.kr-marge-mobile) body.mobile-mode {
@@ -7000,6 +7001,23 @@ body > map {
     min-width: var(--mobile-touch-target);
     min-height: var(--mobile-touch-target);
     margin-right: -12px;
+  }
+
+  /* FENÊTRE D'AIDE ET MEMBRES (épopée 9, entrée 13) : /help et /help/<partie> (kr-page-aide-fenetre, ouverte par openHelp) reçoivent la
+     marge par la règle ci-dessus ; ses .well à 8 px des bords comme une carte de section, liens de tableau des .well (Staff) à 44 px
+     de large ; page Membres (kr-page-members, fiche du compte connecté en édition) : boutons d'édition .btn-group-xs > .btn de
+     #myTabContent à 44 px de large, fiches des autres membres exclues (ni #myTabContent ni .btn-group-xs) ; la hauteur vient de « PHASE 5 » */
+  :where(html.kr-page-aide-fenetre) body.mobile-mode > .container > .row > .well {
+    margin-left: calc(var(--kr-space-2) - var(--kr-marge-page));
+    margin-right: calc(var(--kr-space-2) - var(--kr-marge-page));
+  }
+
+  :where(html.kr-page-aide-fenetre) body.mobile-mode .well td > a:not(.btn):where(:not(.modal *)) {
+    min-width: var(--mobile-touch-target);
+  }
+
+  :where(html.kr-page-members) body.mobile-mode #myTabContent .btn-group-xs > .btn:where(:not(.modal *)) {
+    min-width: var(--mobile-touch-target);
   }
     
     /* Style du panel-group pour ressembler aux barres du dessus */
