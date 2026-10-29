@@ -723,3 +723,17 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - 9.1, Aide : la route `/aide` est confirmée, la marge de 16 px est juste. La fixture `aide.html` a une structure plus riche que la page réelle (colonne `col-md-6`, ni panneau ni `h1`). La fenêtre `/help` (ouverte par `openHelp`) a un autre gabarit, non gardé, texte à 0 px du bord : à traiter dans le 9.4 ou en report.
 - Spike 9.3 complété : Interface et Contacts relevés (sans garde, texte à 0 px du bord sur Interface, cibles de 20 à 34 px). Sur mobile, Contacts reçoit à tort la peau du forum : ajouté au 7.8. Recherche et modération du forum introuvables sur ce compte.
 
+
+## Ticket 9.5 — cibles du plateau mobile (2026-10-29)
+
+- Groupes du plateau : sur la base, l'accordéon ne s'animait pas du tout. Sa transition était invalide (deux fonctions de temps, valeur calculée `all 0s`). Il s'anime maintenant sur 0,3 s. À vérifier à l'œil : accepter cette animation ou garder le repli instantané.
+- Le ticket cite un bouton réglages du mini-profil à 32 px. Cette règle (`.mobile-mini-profile-settings`) était morte : aucun élément ne porte la classe. Elle est supprimée. Le vrai bouton, `.mobile-mini-profile-manage-btn`, faisait déjà 44 × 45.
+- Grille d'actions du plateau : elle est masquée en mobile. Son plancher de 44 px n'a donc aucun effet visible. Les accès rapides faisaient déjà 44 px ; le plancher est seulement rendu explicite.
+- Cartes à plusieurs actions : leur structure native n'a pas été relevée. Le test suppose trois liens frères dans la même ligne. À vérifier sur une vraie carte.
+- Pièces de la croix : leurs lignes gardent le rythme de la croix (50 px) ; seule la pièce reçoit un plancher de 44 px.
+- Au survol, une action de carte grossit de 10 % (`transform: scale(1.1)`) : 2,2 px de plus par côté à 44 px. L'écart entre deux actions est de 8 px : il reste 5,8 px, sans contact. Avec un écart de 6 px, il resterait 3,8 px. Rien de changé.
+- Repli des deux accordéons : la hauteur maximale dépliée reste à 5000 px. La transition part donc de 5000 px, et non de la hauteur réelle : en début de repli, la hauteur visible ne baisse pas pendant un temps mort. Accepté par la revue du 9.5, non corrigé.
+- Groupes repliés au chargement : la transition, devenue valide, les faisait se replier sous les yeux en 0,3 s (saut d'environ 180 px). Corrigé : l'état initial est posé sans animation.
+- Les deux accordéons ne s'animent plus si le système demande moins d'animations (`prefers-reduced-motion: reduce`).
+- D9.1 (report, hors périmètre du 9.5) : selon la revue, sur la base, un groupe replié ne se replie plus après un aller-retour 767 -> 768 -> 767 px (`collapsed` reste à 900 px). Sur fixture, chaque changement de largeur recharge la page (2 rechargements sur 2), et les boîtes reviennent à l'état initial, en base comme en 9.5 : le défaut n'est pas reproduit. Non corrigé ; à vérifier sur un téléphone ou une fenêtre réelle.
+- Comparaisons à la base : plateau-qualite-usage (cartes) et typographie-formes (boutons, nettoyage) posent `CIBLES_TICKET95` sur leur bundle de base, tant que la base précède l'entrée. À retirer quand ces suites compareront à un SHA postérieur.

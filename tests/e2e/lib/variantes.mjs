@@ -429,6 +429,24 @@ export const CARTES_TICKET92 = [
 export const AVANT_TICKET92 = bundle => !bundle.includes('kr-carte-perso/inline-size');
 
 /**
+ * Écart accepté et consigné (épopée 9, entrée 5, story-plateau-mobile-cibles-des-cartes-des-groupes-du-mini-profil) : en mobile, les
+ * actions des cartes de personnage et les boutons des groupes passent de 26 et 28 px à --kr-touch-target (44 px), et les actions passent à
+ * la ligne. Feuille miroir des règles de la peau, mêmes sélecteurs ; les !important reprennent ceux de la base, qu'ils doivent battre.
+ * Posée sur un bundle de base antérieur à l'entrée (AVANT_TICKET95), jamais sur le bundle courant ; tout autre écart reste détecté. Les
+ * cibles sont vérifiées par confort-mobile (fragment plateau). Utilisateurs : plateau-qualite-usage (cartes) et typographie-formes
+ * (boutons, nettoyage). Retrait : quand ces suites comparent à un SHA postérieur à l'entrée 5.
+ */
+export const CIBLES_TICKET95 = [
+  '@media (max-width: 767px) {',
+  '  body.mobile-mode .dashboard-card-actions { flex-wrap: wrap; }',
+  '  body.mobile-mode .dashboard-card-actions a { width: 44px; height: 44px; min-height: 44px !important; }',
+  '  body.mobile-mode .dashboard-group-buttons .btn { width: 44px; height: 44px !important; min-height: 44px !important; }',
+  '}'
+].join('\n');
+/** Bundle d'avant l'épopée 9, entrée 5 : la croix n'y porte pas le jeton --kr-touche-croix (règle minifiée du bundle). */
+export const AVANT_TICKET95 = bundle => !bundle.includes('--kr-touche-croix');
+
+/**
  * Activité du forum (épopée 6, ticket 2, story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n) : repères de
  * forum-activite.mjs écrits ici, hors de la suite (routeur, MAX_CITING) : fixtures du fil de sujet et des index (citées par trois suites),
  * classes de l'index et du forum, carte de section, ligne de l'index et flèche « dernier message ».

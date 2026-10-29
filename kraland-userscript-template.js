@@ -2204,8 +2204,12 @@
       header.classList.add('dashboard-section-header-accordion');
 
       // État initial : mon groupe ouvert, autres fermés
+      // L'état initial n'est pas animé : transition coupée le temps de poser la classe et de forcer un calcul de style.
       const isExpanded = isMyGroup;
+      cardsGrid.style.transition = 'none';
       cardsGrid.classList.toggle('collapsed', !isExpanded);
+      void cardsGrid.offsetHeight;
+      cardsGrid.style.transition = '';
       header.classList.toggle('expanded', isExpanded);
 
       // Ajouter l'icône d'expansion
