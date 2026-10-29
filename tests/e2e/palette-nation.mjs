@@ -759,7 +759,9 @@ const TEXTES = [
   T('sous-forum', '.table > tbody > tr > td > a.nomargin', 'lien vers un forum pressé', MOBILE, 'active'),
   T('sous-forum', 'span.tagforum a', 'étiquette de forum pressée', MOBILE, 'active'),
   T('réception du kramail', '.kramail-character-option > div > span:first-child', 'coche du personnage actif', MOBILE),
-  T('réception du kramail', 'h1.page-header .btn-default', 'dossier du kramail survolé', BUREAU, 'hover'),
+  // Au bureau, le survol en accent du bouton de l'en-tête n'existe plus que sur la rédaction : la réception a les boutons du sous-forum
+  // (épopée 7, entrée 3)
+  T('rédaction du kramail', 'h1.page-header .btn-default', 'bouton Réception de la rédaction survolé', BUREAU, 'hover'),
   T('rédaction du kramail', 'span.required', 'astérisque d\'un champ obligatoire du kramail')
 ];
 // Rouge Kraland et bleu en dur : élément, quand, état forcé ; propriétés lues : texte, fond, bordure, contour, ombre, surbrillance tactile.

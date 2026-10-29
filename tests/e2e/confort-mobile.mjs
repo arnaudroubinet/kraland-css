@@ -23,7 +23,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { choisirVariante } from './lib/variantes.mjs';
+import { AVANT_TICKET73, choisirVariante, RETIRER_ENTETE_TICKET73 } from './lib/variantes.mjs';
 import { CARTES_SECTION, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -267,8 +267,13 @@ if (on('bascule')) {
 if (on('hors-perimetre')) {
   console.log('\n== hors-perimetre ==');
   const cas = HORS.flatMap(nom => VARIANTES.flatMap(variante => [375, 767].map(width => ({ nom, variante, width }))));
+  // Écart accepté et consigné (épopée 7, entrée 3) : h1 de la réception du kramail à l'en-tête du sous-forum (kramail-theme, fragments
+  // entete*), retiré des deux rendus avant le relevé (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_AVANT (base figée) sur un
+  // SHA qui contient l'entrée.
+  const ECART73 = AVANT_TICKET73(avant);
   const releve = async (c, script) => {
     const { context, page, erreurs } = await ouvrir({ ...c, script });
+    if (ECART73) { await page.evaluate(RETIRER_ENTETE_TICKET73); }
     const r = { ...(await page.evaluate(RELEVE)), classes: (await page.evaluate(ETAT, CARTES_SECTION)).classes };
     await context.close();
     return { r, erreurs };

@@ -7,8 +7,11 @@
 //             libellé de 12 px (DESIGN Q14), retrait de 4 px, hauteur >= 44 px ; filet de 2 px dans la ligne des inactifs, filet de
 //             3 px en couleur primaire dans la ligne du seul actif (600), sans bordure basse ; Nouveau, Contacts et « ••• » en carrés
 //             >= 44 px, atteints par elementFromPoint.
-//   bureau  : 768, 769 et 1280 px, deux variantes : styles calculés et rectangles du titre et de ses boutons égaux au bundle de base figé.
-//   bascule : 767, 768 puis 767 px dans le même onglet : onglets, puis titre égal à la base, puis onglets.
+//   bureau  : 768, 769 et 1280 px, deux variantes : styles calculés et rectangles des boutons du titre égaux au bundle de base figé, hors
+//             écart de l'entrée 3 tant que la base la précède (titre, graisse et largeur des boutons : ECART_ENTETE).
+//   bascule : 767, 768, 1280 puis 767 px dans le même onglet : onglets ; à 768 px boutons du titre égaux à la base (hors ECART_ENTETE) et
+//             h1 aux valeurs calculées de sous-forum-debuter ; à 768 et 1280 px menu de personnage visible, dans l'écran, fermé au clic
+//             extérieur ; puis onglets.
 //   lecture : (épopée 7, entrée 2) une page = un message (relevé du site réel, 2026-10-29). Trois fixtures sur la structure relevée,
 //             contenu inventé : kramail-lecture (Réception du compte membre, auteur forme A, sans destinataires), -recue (Réception d'un
 //             personnage, forme A, 4 destinataires, signature), -envoi (Envoi, forme B, 6 boutons -15-/-16-/-17-, destinataire, signature).
@@ -22,13 +25,22 @@
 //             dans la barre native ; Signaler (…-8-<id>) sans erreur, message cité natif.
 //   lecture-couleurs : 16 variantes, 375 et 1280 px : couleurs du message égales à celles du message de forum-sujet ; aucun littéral de
 //             couleur dans les règles de la lecture (kraland-theme.css).
+//   entete  : (épopée 7, entrée 3) kramail-reception et kramail-lecture, 375, 767, 768, 769 et 1280 px : valeurs calculées de l'en-tête (h1, fil
+//             d'Ariane, lien, séparateur, courant, tête, titre ; au bureau h1, hauteur et boutons) égales à celles de sous-forum-debuter ;
+//             fil « Kramail › Personnage fictif » (liste) et « Kramail › Personnage fictif › sujet » (lecture), sélecteur sur la liste
+//             seule, aucun style en ligne dans le titre ; lecture dérivée avec un bouton dans le titre : sujet sans le libellé du bouton.
+//   entete-menu : kramail-reception, 375, 767 et 1280 px, deux variantes : menu de personnage ouvert au clic, rayon de 8 px, aucun style
+//             en ligne, sélecteur et options >= 44 px atteints, personnage courant seul coché, fermé au clic extérieur.
+//   entete-clavier : kramail-reception, 375 et 1280 px, deux variantes : Entrée ouvre le menu, Tab atteint une option au contour primaire
+//             de 2 px, Entrée sur l'option suit son lien.
+//   entete-couleurs : 16 variantes, 375 et 1280 px (réception), 375 px (lecture) : textes du fil, du titre et du menu ouvert >= 4,5:1.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
-// lecture, lecture-plus, lecture-couleurs).
+// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
-// lecture-plus et lecture-couleurs rouges.
+// lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,7 +49,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, domQuiet, styleSettled } from './lib/settle.mjs';
-import { choisirVariante } from './lib/variantes.mjs';
+import { AVANT_TICKET73, choisirVariante } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -238,6 +250,53 @@ if (frag('onglets')) {
   }
 }
 
+// Mesures de l'en-tête (épopée 7, entrée 3), partagées par bascule et entete.
+// Référence : l'en-tête de page de la fixture sous-forum-debuter (fil d'Ariane commun et titre L2 sur mobile, h1 natif au bureau).
+const ENTETE_PROPS = ['display', 'flexDirection', 'alignItems', 'gap', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'paddingTop', 'paddingRight', 'paddingBottom',
+  'paddingLeft', 'fontSize', 'fontWeight', 'lineHeight', 'color', 'backgroundColor', 'borderBottomWidth', 'borderBottomStyle', 'borderBottomColor', 'minHeight', 'textDecorationLine'];
+const MESURER_ENTETE = props => {
+  const h1 = document.querySelector('#col-right h1.page-header');
+  const lire = el => { if (!el) { return null; } const cs = getComputedStyle(el); const o = {}; for (const k of props) { o[k] = cs[k]; } return o; };
+  const hauteur = Math.round(h1.getBoundingClientRect().height * 10) / 10;
+  const q = sel => h1.querySelector(sel);
+  const bouton = [...h1.querySelectorAll('.pull-right > a.btn-default')].find(a => !a.classList.contains('btn-primary'));
+  const titre = q('.forum-subforum-title');
+  return {
+    hauteur, h1: lire(h1), fil: lire(q('.forum-mobile-breadcrumb')), lien: lire(q('.forum-mobile-breadcrumb-link')), sep: lire(q('.forum-mobile-breadcrumb-sep')),
+    courant: lire(q('.forum-mobile-breadcrumb-current')), tete: lire(q('.forum-subforum-head')), titre: lire(titre),
+    bouton: bouton && window.innerWidth >= 768 ? { fontWeight: getComputedStyle(bouton).fontWeight, paddingTop: getComputedStyle(bouton).paddingTop, paddingLeft: getComputedStyle(bouton).paddingLeft, color: getComputedStyle(bouton).color } : null,
+    libelles: [...h1.querySelectorAll('.forum-mobile-breadcrumb-label')].map(e => e.textContent).concat(q('.forum-mobile-breadcrumb-current') ? ['› ' + q('.forum-mobile-breadcrumb-current').textContent] : []),
+    titreTexte: titre ? (titre.querySelector('.kramail-character-current') || titre).textContent.replace(/\s+/g, ' ').trim() : null,
+    styles: [h1, ...h1.querySelectorAll('*')].filter(el => el.hasAttribute('style')).map(el => el.tagName + '.' + el.className),
+    selecteur: !!h1.querySelector('.kramail-character-selector'), icone: !!h1.querySelector(':scope > i.fa, .forum-subforum-head i.fa-envelope-o')
+  };
+};
+LECTURES['sous-forum'] = { url: '/forum/hrp/debuter-20102', html: FIX('sous-forum-debuter.html') };
+// Menu de personnage : ouvert au clic (toucher sur mobile), rayon de 8 px, aucun style en ligne, options de 44 px atteintes, fermé au clic extérieur
+const MENU_PERSONNAGE = async page => {
+  const sel = '#col-right h1.page-header .kramail-character-selector';
+  const avant = await page.evaluate(s => { const d = document.querySelector(s + ' .kramail-character-dropdown'); return d ? d.getClientRects().length : -1; }, sel);
+  if (avant !== 0) { return { avant }; }
+  const b = await page.locator(sel + ' > span:first-child').boundingBox();
+  const cible = await page.evaluate(s => { const e = document.querySelector(s); const r = e.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { h: r.height, atteint: !!hit && e.contains(hit) }; }, sel);
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForTimeout(250);
+  const ouvert = await page.evaluate(s => {
+    const e = document.querySelector(s); const d = e.querySelector('.kramail-character-dropdown'); const cs = getComputedStyle(d);
+    const options = [...d.querySelectorAll('.kramail-character-option')].map(a => {
+      const r = a.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return { h: r.height, atteint: !!hit && a.contains(hit), courant: a.getAttribute('aria-current') === 'true', coche: !!a.querySelector(':scope > div > span:first-child.kramail-character-check') };
+    });
+    return {
+      visible: d.getClientRects().length > 0, rayons: [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borderBottomRightRadius, cs.borderBottomLeftRadius],
+      styles: [e, ...e.querySelectorAll('*')].filter(x => x.hasAttribute('style')).map(x => x.className), options, deborde: d.getBoundingClientRect().right > window.innerWidth + 0.5
+    };
+  }, sel);
+  await page.mouse.click(5, 400);
+  await page.waitForTimeout(250);
+  const ferme = await page.evaluate(s => document.querySelector(s + ' .kramail-character-dropdown').getClientRects().length === 0, sel);
+  return { avant, cible, ouvert, ferme };
+};
 // ---------- bureau ----------
 const RELEVER_BUREAU = () => {
   const props = ['display', 'flexDirection', 'float', 'width', 'height', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'marginTop', 'marginLeft',
@@ -251,8 +310,26 @@ const RELEVER_BUREAU = () => {
     return o;
   });
 };
+// Écart voulu (épopée 7, entrée 3), base antérieure à l'entrée seulement : au bureau, le titre de la liste prend l'en-tête du sous-forum
+// (comparé à sous-forum-debuter dans entete et bascule) et ses boutons la graisse du sous-forum. Ignorés : le titre, la graisse et la
+// largeur des boutons (largeur et abscisse du rectangle) ; hauteur et position verticale gardées. Retrait au recalage de BASE_SHA après
+// l'entrée 3 : AVANT_TICKET73 devient faux et tout est comparé.
+const ECART73 = AVANT_TICKET73(BASE_BUNDLE);
+const ECART_ENTETE = ECART73 ? new Set(['fontWeight', 'width']) : new Set();
+const RECT_VERTICAL = rect => rect.split(',').filter((v, i) => i % 2 === 1).join(',');
+const egalBase = (r, ref) => {
+  expect(r.length === ref.length, `éléments : ${r.length} pour ${ref.length}`);
+  r.forEach((e, i) => {
+    if (i === 0 && ECART73) { return; }
+    for (const k of Object.keys(e)) {
+      if (ECART_ENTETE.has(k)) { continue; }
+      const [a, b] = k === 'rect' && ECART73 ? [RECT_VERTICAL(e[k]), RECT_VERTICAL(ref[i][k])] : [e[k], ref[i][k]];
+      expect(a === b, `${e.el} ${k} : ${a} pour ${b}`);
+    }
+  });
+};
 if (frag('bureau')) {
-  console.log('bureau égal à la base ' + BASE_SHA.slice(0, 7));
+  console.log('bureau égal à la base ' + BASE_SHA.slice(0, 7) + ' (hors en-tête, entrée 3)');
   const cas = [];
   for (const cle of ['reception', 'envoi', 'corbeille']) { for (const width of [768, 769, 1280]) { for (const variante of ['kraland', DARK]) { cas.push({ cle, width, variante }); } } }
   const res = await mapLimit(cas, async c => {
@@ -260,11 +337,8 @@ if (frag('bureau')) {
     return { c, apres: await lire(APRES), avant: await lire(BASE_BUNDLE) };
   });
   for (const { c, apres, avant } of res) {
-    check(`${c.cle} ${c.width} px ${c.variante} : titre et boutons égaux à la base`, () => {
-      expect(apres.r.length === avant.r.length, `éléments : ${apres.r.length} pour ${avant.r.length}`);
-      apres.r.forEach((e, i) => {
-        for (const k of Object.keys(e)) { expect(e[k] === avant.r[i][k], `${e.el} ${k} : ${e[k]} pour ${avant.r[i][k]}`); }
-      });
+    check(`${c.cle} ${c.width} px ${c.variante} : boutons du titre égaux à la base`, () => {
+      egalBase(apres.r, avant.r);
       sansFuite(apres.o);
     });
   }
@@ -282,27 +356,43 @@ async function basculer(page, width, label) {
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 if (frag('bascule')) {
-  console.log('bascule 767 / 768 / 767 dans le même onglet');
+  console.log('bascule 767 / 768 / 1280 / 767 dans le même onglet');
   const res = await mapLimit(['kraland', DARK], async variante => {
     const base = await ouvrir('reception', { width: 768, variante, bundle: BASE_BUNDLE });
     const ref = await base.page.evaluate(RELEVER_BUREAU);
     await base.context.close();
+    const forum = await ouvrir('sous-forum', { width: 768, variante });
+    const refEntete = await forum.page.evaluate(MESURER_ENTETE, ENTETE_PROPS);
+    await forum.context.close();
     const o = await ouvrir('reception', { width: 767, variante, debut: true });
     const etapes = [['767', await o.page.evaluate(MESURER_TITRE)]];
     await basculer(o.page, 768, 'reception 768');
     etapes.push(['768', await o.page.evaluate(RELEVER_BUREAU)]);
+    const entete768 = await o.page.evaluate(MESURER_ENTETE, ENTETE_PROPS);
+    const menu768 = await MENU_PERSONNAGE(o.page);
+    await basculer(o.page, 1280, 'reception 1280');
+    const menu1280 = await MENU_PERSONNAGE(o.page);
     await basculer(o.page, 767, 'reception 767 retour');
     etapes.push(['767 retour', await o.page.evaluate(MESURER_TITRE)]);
     await o.context.close();
-    return { variante, o, ref, etapes };
+    return { variante, o, ref, etapes, refEntete, entete768, menus: [[768, menu768], [1280, menu1280]] };
   });
-  for (const { variante, o, ref, etapes } of res) {
+  for (const { variante, o, ref, etapes, refEntete, entete768, menus } of res) {
     check(`bascule ${variante} : 767 px, onglets`, () => verifierOnglets(etapes[0][1], 'reception'));
-    check(`bascule ${variante} : 768 px dans le même onglet, titre et boutons égaux à la base`, () => {
-      const r = etapes[1][1];
-      expect(r.length === ref.length, `éléments : ${r.length} pour ${ref.length}`);
-      r.forEach((e, i) => { for (const k of Object.keys(e)) { expect(e[k] === ref[i][k], `${e.el} ${k} : ${e[k]} pour ${ref[i][k]}`); } });
+    check(`bascule ${variante} : 768 px dans le même onglet, boutons du titre égaux à la base`, () => egalBase(etapes[1][1], ref));
+    check(`bascule ${variante} : 768 px dans le même onglet, titre aux valeurs calculées de sous-forum-debuter`, () => {
+      for (const k of Object.keys(refEntete.h1)) { expect(entete768.h1[k] === refEntete.h1[k], `h1 ${k} : ${entete768.h1[k]} pour ${refEntete.h1[k]}`); }
+      expect(entete768.hauteur === refEntete.hauteur, `hauteur du titre : ${entete768.hauteur} pour ${refEntete.hauteur}`);
+      expect(!entete768.fil && !entete768.tete, 'fil d\'Ariane ou tête mobile au bureau');
     });
+    for (const [width, m] of menus) {
+      check(`bascule ${variante} : ${width} px dans le même onglet, menu de personnage visible, dans l'écran, fermé au clic extérieur`, () => {
+        expect(m.avant === 0, 'menu introuvable ou ouvert : ' + m.avant);
+        expect(m.ouvert.visible, 'menu fermé après le clic');
+        expect(!m.ouvert.deborde, 'menu hors de l\'écran');
+        expect(m.ferme, 'menu ouvert après un clic extérieur');
+      });
+    }
     check(`bascule ${variante} : retour à 767 px, onglets`, () => { verifierOnglets(etapes[2][1], 'reception'); verifierBoutons(etapes[2][1]); sansFuite(o); });
   }
 }
@@ -587,6 +677,162 @@ if (frag('lecture-couleurs')) {
     }
     expect(fautes.length === 0, fautes.length + ' règle(s) : ' + fautes.slice(0, 3).join(' ; '));
   });
+}
+
+// ---------- en-tête (épopée 7, entrée 3) ----------
+const ENTETE_ATTENDU = {
+  reception: { libelles: ['Kramail', '› Personnage fictif'], titre: 'Personnage fictif', selecteur: true },
+  lecture: { libelles: ['Kramail', 'Personnage fictif', '› Sujet fictif de lecture'], titre: 'Sujet fictif de lecture', selecteur: false }
+};
+// Seuil : 767, 768 et 769 px
+const ENTETE_LARGEURS = [375, 767, 768, 769, 1280];
+// Lecture dérivée en mémoire avec un bouton dans le titre (.pull-right, comme la liste) : le sujet reste le seul texte direct du h1
+LECTURES['lecture-boutons'] = { ...PAGES.lecture, html: PAGES.lecture.html.replace(/Sujet fictif de lecture\s*<\/h1>/, 'Sujet fictif de lecture\n<span class="pull-right"><a href="kramail" class="btn btn-default">Réception</a></span></h1>') };
+if (frag('entete')) {
+  console.log('en-tête : valeurs calculées de l\'en-tête de sous-forum-debuter');
+  const cas = [];
+  for (const cle of ['sous-forum', 'reception', 'lecture']) { for (const width of ENTETE_LARGEURS) { cas.push({ cle, width, mobile: width < 768 }); } }
+  cas.push({ cle: 'lecture-boutons', width: 375, mobile: true });
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    const m = await o.page.evaluate(MESURER_ENTETE, ENTETE_PROPS);
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const width of ENTETE_LARGEURS) {
+    const ref = res.find(r => r.c.cle === 'sous-forum' && r.c.width === width).m;
+    for (const cle of ['reception', 'lecture']) {
+      const { o, m } = res.find(r => r.c.cle === cle && r.c.width === width);
+      const att = ENTETE_ATTENDU[cle];
+      check(`${cle} ${width} px : en-tête aux valeurs calculées de sous-forum-debuter`, () => {
+        const parts = width < 768 ? ['h1', 'fil', 'lien', 'sep', 'courant', 'tete', 'titre'] : ['h1', 'bouton'];
+        for (const part of parts) {
+          if (part === 'bouton' && !m.bouton) { continue; }
+          expect(m[part] && ref[part], `${part} absent (kramail ${!!m[part]}, sous-forum ${!!ref[part]})`);
+          for (const k of Object.keys(ref[part])) { expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`); }
+        }
+        if (width >= 768) {
+          expect(!m.fil && !m.tete, 'fil d\'Ariane ou tête mobile au bureau');
+          expect(m.hauteur === ref.hauteur, `hauteur du titre : ${m.hauteur} pour ${ref.hauteur}`);
+        }
+        sansFuite(o);
+      });
+      check(`${cle} ${width} px : ${width < 768 ? 'fil « ' + att.libelles.join(' ') + ' », titre « ' + att.titre + ' », ' : ''}sélecteur ${att.selecteur ? 'présent' : 'absent'}, aucun style en ligne`, () => {
+        if (width < 768) {
+          expect(m.libelles.join('|') === att.libelles.join('|'), 'fil : ' + m.libelles.join('|'));
+          expect(m.titreTexte === att.titre, 'titre : ' + m.titreTexte);
+          expect(!m.icone, 'icône native gardée dans le titre');
+        }
+        expect(m.selecteur === att.selecteur, 'sélecteur : ' + m.selecteur);
+        expect(m.styles.length === 0, 'styles en ligne : ' + m.styles.join(', '));
+      });
+    }
+  }
+  const { m: mb } = res.find(r => r.c.cle === 'lecture-boutons');
+  check('lecture avec un bouton dans le titre 375 px : sujet = texte direct du h1, sans le libellé du bouton', () => {
+    expect(mb.titreTexte === 'Sujet fictif de lecture', 'titre : ' + mb.titreTexte);
+    expect(mb.libelles.at(-1) === '› Sujet fictif de lecture', 'fil : ' + mb.libelles.join('|'));
+  });
+}
+
+if (frag('entete-menu')) {
+  console.log('en-tête : menu de personnage');
+  const cas = [375, 767, 1280].flatMap(width => ['kraland', DARK].map(variante => ({ width, variante, mobile: width < 768 })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir('reception', { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    const m = await MENU_PERSONNAGE(o.page);
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const { c, o, m } of res) {
+    check(`reception ${c.width} px ${c.variante} : menu ouvrable, rayon 8 px, aucun style en ligne, options >= 44 px atteintes, fermé au clic extérieur`, () => {
+      expect(m.avant === 0, 'menu introuvable ou ouvert au chargement : ' + m.avant);
+      if (c.mobile) { expect(m.cible.h >= 44 && m.cible.atteint, 'sélecteur : ' + JSON.stringify(m.cible)); }
+      expect(m.ouvert.visible, 'menu fermé après le clic');
+      expect(m.ouvert.rayons.every(r => r === '8px'), 'rayons : ' + m.ouvert.rayons.join(' '));
+      expect(m.ouvert.styles.length === 0, 'styles en ligne : ' + m.ouvert.styles.join(', '));
+      expect(m.ouvert.options.length === 2 && m.ouvert.options.every(x => x.h >= 44 && x.atteint), 'options : ' + JSON.stringify(m.ouvert.options));
+      expect(m.ouvert.options.filter(x => x.courant).length === 1 && m.ouvert.options.every(x => x.coche === x.courant), 'personnage courant : ' + JSON.stringify(m.ouvert.options));
+      expect(!m.ouvert.deborde, 'menu hors de l\'écran');
+      expect(m.ferme, 'menu ouvert après un clic extérieur');
+      sansFuite(o);
+    });
+  }
+}
+
+// Clavier : Entrée sur le sélecteur ouvre le menu, Tab atteint une option (contour primaire de 2 px au focus clavier), Entrée sur l'option
+// suit son lien (navigation demandée vers son href)
+if (frag('entete-clavier')) {
+  console.log('en-tête : menu de personnage au clavier');
+  const cas = [[375, true], [1280, false]].flatMap(([width, mobile]) => ['kraland', DARK].map(variante => ({ width, mobile, variante })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir('reception', { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    const sel = '#col-right h1.page-header .kramail-character-selector';
+    if (!(await o.page.$(sel))) { await o.context.close(); return { c, ouvert: false }; }
+    await o.page.focus(sel);
+    await o.page.keyboard.press('Enter');
+    await o.page.waitForTimeout(250);
+    const ouvert = await o.page.evaluate(s => document.querySelector(s).getAttribute('aria-expanded') === 'true', sel);
+    let option = null;
+    for (let i = 0; i < 4 && !option; i++) {
+      await o.page.keyboard.press('Tab');
+      option = await o.page.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || !a.matches('.kramail-character-option') || a.getAttribute('aria-current') === 'true') { return null; }
+        const cs = getComputedStyle(a); const sonde = document.createElement('span'); sonde.style.color = 'var(--kr-primary)'; document.body.appendChild(sonde);
+        const primaire = getComputedStyle(sonde).color; sonde.remove();
+        return { href: a.href, visible: a.matches(':focus-visible'), outline: [cs.outlineStyle, cs.outlineWidth, cs.outlineColor], primaire };
+      });
+    }
+    let cible = null;
+    if (option) {
+      const nav = o.page.waitForRequest(r => r.isNavigationRequest() && r.frame() === o.page.mainFrame(), { timeout: 3000 }).then(r => r.url()).catch(() => null);
+      await o.page.keyboard.press('Enter');
+      cible = await nav;
+    }
+    await o.context.close();
+    return { c, ouvert, option, cible };
+  });
+  for (const { c, ouvert, option, cible } of res) {
+    check(`reception ${c.width} px ${c.variante} : menu ouvert à Entrée, option atteinte par Tab au contour primaire, Entrée suit son lien`, () => {
+      expect(ouvert, 'menu fermé après Entrée sur le sélecteur');
+      expect(option, 'aucune option non courante atteinte par Tab');
+      expect(option.visible && option.outline[0] === 'solid' && option.outline[1] === '2px' && option.outline[2] === option.primaire, 'contour au focus clavier : ' + JSON.stringify(option));
+      expect(cible === option.href, `navigation : ${cible} pour ${option.href}`);
+    });
+  }
+}
+
+if (frag('entete-couleurs')) {
+  console.log('en-tête : contraste >= 4,5:1, 16 variantes');
+  const { VARIANTES, CONTRASTE } = await import('./lib/variantes.mjs');
+  // Lecture : fil et titre du sujet sur mobile seul (au bureau, h1 natif)
+  const SELS = {
+    reception: ['.forum-mobile-breadcrumb-link', '.forum-mobile-breadcrumb-sep', '.forum-mobile-breadcrumb-current', '.kramail-character-current', '.kramail-dropdown-icon',
+      '.kramail-character-option-name', '.kramail-character-check', '.kramail-character-category'],
+    lecture: ['.forum-mobile-breadcrumb-link', '.forum-mobile-breadcrumb-sep', '.forum-mobile-breadcrumb-current', '.forum-subforum-title']
+  };
+  const cas = VARIANTES.flatMap(variante => [['reception', 375, true], ['reception', 1280, false], ['lecture', 375, true]].map(([cle, width, mobile]) => ({ cle, variante, width, mobile })));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    await o.page.evaluate(CONTRASTE);
+    await o.page.evaluate(() => { const s = document.querySelector('#col-right h1.page-header .kramail-character-selector'); if (s) { s.click(); } });
+    await o.page.waitForTimeout(250);
+    const r = await o.page.evaluate(sels => {
+      const h1 = document.querySelector('#col-right h1.page-header');
+      return sels.map(s => { const e = h1.querySelector(s); return { s, ok: !!e && e.getClientRects().length > 0, c: e ? window.__krContraste.texte(e) : 0 }; });
+    }, SELS[c.cle]);
+    await o.context.close();
+    return { c, r };
+  });
+  for (const { c, r } of res) {
+    check(`${c.cle} ${c.variante} ${c.width} px : textes de l'en-tête${c.cle === 'reception' ? ' et du menu' : ''} >= 4,5:1`, () => {
+      const vus = r.filter(x => x.ok);
+      expect(vus.length === (c.cle === 'lecture' ? 4 : c.mobile ? 8 : 5), 'éléments visibles : ' + vus.map(x => x.s).join(', '));
+      const bas = vus.filter(x => x.c < 4.5);
+      expect(bas.length === 0, bas.map(x => `${x.s} ${x.c.toFixed(2)}`).join(', '));
+    });
+  }
 }
 
 await browser.close();

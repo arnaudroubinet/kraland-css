@@ -4480,7 +4480,7 @@ body > map {
   }
   
   /* Réduire l'espace sous le h1 sur les pages de thread (hors h1 de l'en-tête de sujet, H12.4 : marges de sa propre règle) */
-  h1.page-header:where(:not(.forum-thread-heading)) {
+  h1.page-header:where(:not(.forum-thread-heading, .kr-kramail-entete)) {
     margin-bottom: 10px !important;
   }
   
@@ -8957,8 +8957,8 @@ body > map {
        - .panel.panel-default > .panel-heading + .panel-body
      ============================================================================ */
 
-  /* === 1. H1 PAGE HEADER : layout vertical (scopé kramail) === */
-  body.page-kramail h1.page-header {
+  /* === 1. H1 PAGE HEADER : layout vertical de la rédaction ; liste et lecture : en-tête du sous-forum (épopée 7, entrée 3, ci-dessous) === */
+  :where(html.kr-page-kramail-compose) body.page-kramail h1.page-header {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
@@ -8966,6 +8966,18 @@ body > map {
     padding: 12px 16px !important;
     margin: 0 !important;
     border-bottom: none !important;
+  }
+
+  /* En-tête du sous-forum (fil d'Ariane, titre, règles communes en fin de feuille) ; la barre de boutons suit, à 12 px */
+  body.page-kramail h1.page-header.kr-kramail-entete {
+    margin: 12px 16px;
+    padding: 0;
+    border-bottom: 0;
+    background: transparent;
+  }
+
+  body.page-kramail h1.page-header.kr-kramail-entete > .pull-right {
+    margin-top: 12px;
   }
 
   /* Le span.pull-right qui contient TOUS les boutons : annuler le float */
@@ -9397,9 +9409,8 @@ body > map {
     border-radius: var(--kr-radius-sm) !important;
   }
 
-  /* === DROPDOWN CHANGEMENT DE PERSONNAGE === */
-
-  /* Wrapper titre cliquable */
+  /* === SÉLECTEUR DE PERSONNAGE (Kramail:CharacterSwitcher, épopée 7, entrée 3) ===
+     Aucun style en ligne : menu ouvert par aria-expanded="true", rayon et couleurs par jetons (clair et sombre). */
   .kramail-character-selector {
     position: relative !important;
     display: inline-flex !important;
@@ -9413,18 +9424,24 @@ body > map {
     transition: background var(--transition-fast) !important;
   }
 
+  .kramail-character-selector[aria-expanded="true"] {
+    background: var(--kr-bg-hover);
+  }
+
   .kramail-character-selector:active {
     background: var(--kr-bg-active) !important;
   }
 
-  /* Icône dropdown */
   .kramail-dropdown-icon {
     font-size: 12px !important;
     transition: transform var(--transition-fast) !important;
     color: var(--kr-text-secondary) !important;
   }
 
-  /* Container dropdown */
+  .kramail-character-selector[aria-expanded="true"] .kramail-dropdown-icon {
+    transform: rotate(180deg);
+  }
+
   .kramail-character-dropdown {
     position: absolute !important;
     top: 100% !important;
@@ -9433,6 +9450,7 @@ body > map {
     min-width: calc(100vw - 48px) !important;
     background: var(--kr-bg-surface) !important;
     border: 1px solid var(--kr-border-default) !important;
+    border-radius: var(--kr-radius-md);
     box-shadow: var(--kr-shadow-lg) !important;
     margin-top: 8px !important;
     z-index: 1000 !important;
@@ -9443,10 +9461,8 @@ body > map {
     flex-direction: column !important;
   }
 
-  /* Quand ouvert : afficher en colonne */
-  .kramail-character-dropdown[style*="display: block"],
-  .kramail-character-dropdown[style*="display:block"] {
-    display: flex !important;
+  .kramail-character-selector[aria-expanded="true"] .kramail-character-dropdown {
+    display: flex;
   }
 
   /* Options de personnage — centrées, une par ligne */
@@ -9463,34 +9479,47 @@ body > map {
     transition: background var(--transition-fast) !important;
   }
 
-  /* Nom du personnage centré (surcharge inline style) */
-  .kramail-character-option > div:first-child {
-    justify-content: center !important;
-    width: 100% !important;
+  .kramail-character-option-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 400;
   }
 
-  /* Catégorie centrée */
-  .kramail-character-option > div:last-child {
-    text-align: center !important;
+  .kramail-character-option[aria-current="true"] .kramail-character-option-name {
+    font-weight: 600;
+  }
+
+  .kramail-character-check {
+    color: var(--kr-text-accent);
+    font-weight: 700;
+  }
+
+  .kramail-character-category {
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+    text-align: center;
   }
 
   .kramail-character-option:last-child {
     border-bottom: none !important;
   }
 
+  .kramail-character-option:is(:hover, :focus-visible) {
+    background: var(--kr-bg-hover);
+  }
+
+  .kramail-character-option:focus-visible {
+    outline: 2px solid var(--kr-primary);
+    outline-offset: -2px;
+  }
+
   .kramail-character-option:active {
     background: var(--kr-bg-active) !important;
-  }
-
-  /* === DARK MODE KRAMAIL === */
-  html[class*="-dark"] .kramail-character-dropdown {
-    background: var(--kr-bg-surface) !important;
-    border-color: var(--kr-border-default) !important;
-  }
-
-  html[class*="-dark"] .kramail-character-option {
-    color: var(--kr-text-primary) !important;
-    border-bottom-color: var(--kr-border-default) !important;
   }
 
   /* ============================================================================
@@ -9896,16 +9925,31 @@ body.page-kramail .editeur-text .form-group > label.control-label .required {
   font-weight: 700;
 }
 
-/* Bouton retour Réception — style cohérent avec inbox */
-body.page-kramail h1.page-header .btn-default {
-  border-radius: var(--kr-radius-sm);
-  font-weight: 500;
-  transition: all 0.15s ease;
+/* Bouton retour Réception — style cohérent avec inbox. Au bureau, graisse, rayon et survol en accent pour la rédaction seule : la liste et la lecture ont les boutons du sous-forum (épopée 7, entrée 3) */
+@media (max-width: 767px) {
+  body.page-kramail h1.page-header .btn-default {
+    border-radius: var(--kr-radius-sm);
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+
+  body.page-kramail h1.page-header .btn-default:hover {
+    border-color: var(--kr-primary);
+    color: var(--kr-text-accent);
+  }
 }
 
-body.page-kramail h1.page-header .btn-default:hover {
-  border-color: var(--kr-primary);
-  color: var(--kr-text-accent);
+@media (min-width: 768px) {
+  :where(html.kr-page-kramail-compose) body.page-kramail h1.page-header .btn-default {
+    border-radius: var(--kr-radius-sm);
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+
+  :where(html.kr-page-kramail-compose) body.page-kramail h1.page-header .btn-default:hover {
+    border-color: var(--kr-primary);
+    color: var(--kr-text-accent);
+  }
 }
 
 /* --- Styles desktop uniquement --- */
@@ -9920,11 +9964,113 @@ body.page-kramail h1.page-header .btn-default:hover {
     box-shadow: var(--kr-shadow-md);
   }
 
-  /* 2. PAGE HEADER — ligne de séparation cohérente avec inbox */
-  body.page-kramail h1.page-header {
+  /* 2. PAGE HEADER — ligne de séparation cohérente avec inbox (rédaction seule : la liste et la lecture ont l'en-tête du sous-forum, épopée 7, entrée 3) */
+  :where(html.kr-page-kramail-compose) body.page-kramail h1.page-header {
     border-bottom-color: var(--kr-primary) !important;
     padding-bottom: 12px;
     margin-bottom: 16px;
+  }
+
+  /* Sélecteur de personnage de la liste (épopée 7, entrée 3) : à la place du nom, à la taille du titre ; menu sous le nom */
+  .kramail-character-selector {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    margin: 0 -12px;
+    border-radius: var(--kr-radius-sm);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition-fast);
+  }
+
+  .kramail-character-selector:hover,
+  .kramail-character-selector[aria-expanded="true"] {
+    background: var(--kr-bg-hover);
+  }
+
+  .kramail-dropdown-icon {
+    color: var(--kr-text-secondary);
+    font-size: 12px;
+    transition: transform var(--transition-fast);
+  }
+
+  .kramail-character-selector[aria-expanded="true"] .kramail-dropdown-icon {
+    transform: rotate(180deg);
+  }
+
+  .kramail-character-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    min-width: 240px;
+    max-height: 70vh;
+    margin-top: 8px;
+    overflow-y: auto;
+    border: 1px solid var(--kr-border-default);
+    border-radius: var(--kr-radius-md);
+    background: var(--kr-bg-surface);
+    box-shadow: var(--kr-shadow-lg);
+  }
+
+  .kramail-character-selector[aria-expanded="true"] .kramail-character-dropdown {
+    display: flex;
+  }
+
+  .kramail-character-dropdown .kramail-character-option {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 44px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--kr-border-default);
+    color: var(--kr-text-primary);
+    text-decoration: none;
+    transition: background var(--transition-fast);
+  }
+
+  .kramail-character-dropdown .kramail-character-option:last-child {
+    border-bottom: 0;
+  }
+
+  .kramail-character-dropdown .kramail-character-option:is(:hover, :focus-visible) {
+    background: var(--kr-bg-hover);
+    color: var(--kr-text-primary);
+    text-decoration: none;
+  }
+
+  .kramail-character-dropdown .kramail-character-option:focus-visible {
+    outline: 2px solid var(--kr-primary);
+    outline-offset: -2px;
+  }
+
+  .kramail-character-option-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .kramail-character-option[aria-current="true"] .kramail-character-option-name {
+    font-weight: 600;
+  }
+
+  .kramail-character-check {
+    color: var(--kr-text-accent);
+    font-weight: 700;
+  }
+
+  .kramail-character-category {
+    margin-top: 2px;
+    color: var(--kr-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
   }
 
   /* 3. INPUT-GROUP-ADDON — meilleur contraste et cohérence */
@@ -10113,6 +10259,10 @@ body.page-kramail h1.page-header .btn-default:hover {
   }
 
   /* Désactiver le curseur pointer, comportement interactif + flex (formulaire uniquement) */
+  body.page-kramail-compose h1.page-header .kramail-character-current {
+    font-weight: 700;
+  }
+
   body.page-kramail-compose h1.page-header .kramail-character-selector {
     cursor: default !important;
     pointer-events: none;
@@ -14627,9 +14777,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding-right: 35px !important;
   }
 
-  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3) et du sujet (H12.4) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
+  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
      de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -14639,7 +14789,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -14654,16 +14804,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-label {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-label {
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-sep {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail) #col-right .forum-mobile-breadcrumb-current {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -14672,14 +14822,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index) #col-right .forum-subforum-head {
+  :where(html.kr-page-forum-index, html.kr-page-kramail) #col-right .forum-subforum-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
 
-  :where(html.kr-page-forum-index) #col-right .forum-subforum-title {
+  :where(html.kr-page-forum-index, html.kr-page-kramail) #col-right .forum-subforum-title {
     min-width: 0;
     color: var(--kr-text-primary);
     font-size: 24px;

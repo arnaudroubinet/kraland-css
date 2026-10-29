@@ -721,3 +721,12 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - 9.1, Aide : la route `/aide` est confirmée, la marge de 16 px est juste. La fixture `aide.html` a une structure plus riche que la page réelle (colonne `col-md-6`, ni panneau ni `h1`). La fenêtre `/help` (ouverte par `openHelp`) a un autre gabarit, non gardé, texte à 0 px du bord : à traiter dans le 9.4 ou en report.
 - Spike 9.3 complété : Interface et Contacts relevés (sans garde, texte à 0 px du bord sur Interface, cibles de 20 à 34 px). Sur mobile, Contacts reçoit à tort la peau du forum : ajouté au 7.8. Recherche et modération du forum introuvables sur ce compte.
 
+
+## Ticket 7.3 — en-tête du kramail (2026-10-29)
+
+- Sur la lecture, il n'y a pas de sélecteur de personnage : le titre natif d'un message porte le sujet, pas le nom. Le fil d'Ariane donne « Kramail › Personnage › sujet », avec le lien de Réception (ou d'Envoi) du compte. Le verify cite kramail-lecture pour le menu : ce point est lu comme valant pour l'en-tête seul. À trancher : accepter ainsi, ou ajouter un sélecteur sur la lecture (qui mènerait à la Réception d'un autre personnage).
+- Au bureau, la liste gagne le sélecteur à la place du nom, alors que la colonne de gauche liste déjà les personnages. À trancher : le garder, ou le réserver au mobile.
+- Au bureau, la liste et la lecture perdent la bordure basse en couleur primaire, la graisse de 500 et le survol en accent des boutons du titre : elles prennent l'en-tête du sous-forum (bordure #eee, boutons en 400, survol Bootstrap). La rédaction garde son rendu, survol en `--kr-text-accent` compris (revue : A4 appliqué, palette-nation contrôle le survol sur la rédaction).
+- Menu de personnage : au clavier, l'option prend le fond de survol et un contour primaire de 2 px (`:focus-visible`, mobile et bureau) ; Entrée sur une option suit son lien. Le contrôle de cartes-pastilles exige désormais au moins autant de règles `:focus` que la base. Contour retenu en `:focus-visible` seul : un contour au survol de la souris n'était pas demandé.
+- La catégorie du menu (« (Compte Membre) ») passe de `--kr-text-muted` à `--kr-text-secondary` : le jeton atténué tombait à 2,54:1 dans 6 variantes claires et sous 4,5:1 dans les variantes sombres.
+- Sur mobile, le libellé du fil vient du titre actif de la colonne de gauche (« Kramail ») et pointe vers `kramail`. À vérifier sur le site que cette adresse mène bien à la Réception du compte courant.

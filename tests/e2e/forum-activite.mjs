@@ -85,7 +85,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1253,6 +1253,12 @@ if (on('plus')) {
   const AVANT_TICKET72 = !basePlus.includes('Kramail:Lecture');
   const RETIRER_LECTURE = () => { if (window.innerWidth >= 768 && /\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('a.btn:is([href*="-5-"], [href*="-6-"]), #col-right > ul.media-list.forum').forEach(e => e.remove()); } };
   const ECART72 = /-[567]-\d+$/;
+  // Écart accepté et consigné (épopée 7, entrée 3) : h1 de la liste et de la lecture du kramail à l'en-tête du sous-forum (kramail-theme,
+  // fragments entete*). Sur mobile, le « ••• » et les autres boutons du h1 restent comparés sans leur position (taille, couleurs, rayon) ;
+  // au seuil et au bureau, le h1 est retiré des deux rendus avant l'empreinte (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_PLUS
+  // (base figée) sur un SHA qui contient l'entrée.
+  const ECART73 = AVANT_TICKET73(basePlus);
+  const sansPosition = b => (ECART73 && b ? { w: b.w, h: b.h } : b);
   const mesurer = async (o, nom) => {
     await o.page.evaluate(RETIRER_DOSSIERS);
     if (AVANT_TICKET72) { await o.page.evaluate(RETIRER_LECTURE); }
@@ -1295,7 +1301,7 @@ if (on('plus')) {
   };
   const cas = NOMS.flatMap(nom => [375, 767].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
   const res = await mapLimit(cas, async c => ({ t: await parcours(c), b: await parcours({ ...c, src: basePlus }) }));
-  const vueKramail = v => v.map(x => ({ cls: x.cls, boite: x.boite, fond: x.fond, bordure: x.bordure, couleur: x.couleur }));
+  const vueKramail = v => v.map(x => ({ cls: x.cls, boite: sansPosition(x.boite), fond: x.fond, bordure: x.bordure, couleur: x.couleur }));
   const vueVoisin = v => v.map(x => ({ cls: x.cls, fond: x.fond, bordure: x.bordure, couleur: x.couleur, bordureL: x.bordureL }));
   cas.forEach(({ nom, width, variante }, i) => {
     const { t, b } = res[i];
@@ -1344,7 +1350,7 @@ if (on('plus')) {
       check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})`, () => {
         assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
         const ecart72 = AVANT_TICKET72 && nom === 'lecture';
-        const vue = h => ({ boite: ecart72 ? { ...h.boite, x: null } : h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        const vue = h => ({ boite: sansPosition(ecart72 ? { ...h.boite, x: null } : h.boite), fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
         assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
         const garder72 = v => (ecart72 ? v.filter(x => !ECART72.test(x.href || '')) : v);
         assert.ok(garder72(m.voisins).length > 0, 'aucun autre bouton du h1');
@@ -1457,6 +1463,7 @@ if (on('plus')) {
   const lireB = async (c, src) => {
     const o = await ouvrir({ ...c, cle: CLE[c.nom], src });
     const m = await mesurer(o, c.nom);
+    if (ECART73) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
     const em = await o.page.evaluate(EMPREINTE_FIL);
     await o.context.close();
     return { m, em, erreurs: o.erreurs };
