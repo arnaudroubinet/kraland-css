@@ -69,7 +69,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -1505,10 +1505,14 @@ if (on('etiquettes')) {
   const rb = await regles(avant55);
   const forcees = l => l.reduce((n, r) => n + Object.values(r.d).filter(([, p]) => p === 'important').length, 0);
   const focus = l => l.filter(r => r.sel.includes(':focus')).length;
+  // Écart accepté et consigné (épopée 7, entrée 5) : la barre BBCode des rédactions du kramail reprend celle du formulaire de réponse du
+  // forum ; ses règles :focus propres (page-kramail-compose … .btn-toolbar) sont retirées avec elles et ne sont plus comptées dans la base
+  // tant qu'elle précède l'entrée. Retrait au recalage de COMMIT_AVANT_55.
+  const focusBase = l => focus(AVANT_TICKET75(avant55) ? l.filter(r => !(/page-kramail-compose/.test(r.sel) && /btn-toolbar/.test(r.sel))) : l);
   check(`statique : pas plus de priorités forcées (${forcees(rs)}) et au moins autant de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT_55}) ; aucun #c9302c`, () => {
     assert.ok(forcees(rs) <= forcees(rb), `priorités forcées : ${forcees(rs)} > ${forcees(rb)}`);
     // Intention : aucune règle :focus perdue (focus visible gardé) ; un focus ajouté ailleurs (menu de personnage, épopée 7, entrée 3) est permis
-    assert.ok(focus(rs) >= focus(rb), `règles :focus : ${focus(rs)} < ${focus(rb)}`);
+    assert.ok(focus(rs) >= focusBase(rb), `règles :focus : ${focus(rs)} < ${focusBase(rb)}`);
     assert.ok(!/c9302c/i.test(cssDuBundle(userscript)), '#c9302c présent');
   });
   const net = v => v.replace(/\s+/g, '');

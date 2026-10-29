@@ -1,7 +1,7 @@
 // Kramail — thème (épopée 7, entrée 1) : gardes de page sur <html> et dossiers natifs (Réception, Envoi, Corbeille) en Onglets de section
 // libellés sur mobile. Pages = fixtures kramail existantes (tests/e2e/fixtures/kramail-*.html), servies en lieu et place du site.
 //   gardes  : kr-page-kramail et une seule sous-garde (liste, lecture, compose) sur les 8 pages, plus « Répondre » sans textarea#dest
-//             et « Signaler » (…-8-<id>, formulaire post_msg, pas une rédaction), dérivées en mémoire ; classe de rédaction sur body pour
+//             et « Signaler » (…-8-<id>, formulaire post_msg complet, une rédaction), dérivées en mémoire ; classe de rédaction sur body pour
 //             les seules rédactions ; 375 et 1280 px ; injection en tête et au DOMContentLoaded.
 //   onglets : 375 et 767 px, Kraland clair et Empire Brun sombre, injection en tête : trois onglets libellés en un rang pleine largeur,
 //             libellé de 12 px (DESIGN Q14), retrait de 4 px, hauteur >= 44 px ; filet de 2 px dans la ligne des inactifs, filet de
@@ -22,7 +22,7 @@
 //             ouvert au toucher, menu au-dessus d'un .dropdown-backdrop (990) avec les boutons natifs déplacés (Réception : Transférer,
 //             Signaler, Supprimer, Nouveau message, Contacts ; Envoi : Transférer, Nouveau message, Contacts) ; Supprimer garde son
 //             gestionnaire (fixture : gestionnaire de test, aucune requête) ; second passage du module sans effet ; 1280 px : libellés
-//             dans la barre native ; Signaler (…-8-<id>) sans erreur, message cité natif.
+//             dans la barre native ; Signaler (…-8-<id>) en rédaction, sans erreur, message cité natif.
 //   lecture-couleurs : 16 variantes, 375 et 1280 px : couleurs du message égales à celles du message de forum-sujet ; aucun littéral de
 //             couleur dans les règles de la lecture (kraland-theme.css).
 //   entete  : (épopée 7, entrée 3) kramail-reception et kramail-lecture, 375, 767, 768, 769 et 1280 px : valeurs calculées de l'en-tête (h1, fil
@@ -45,14 +45,29 @@
 //   liste-couleurs : 16 variantes, 375 et 1280 px : filet ou barre et pastille de la ligne non lue en --kr-status-unread ; aucun littéral
 //             de couleur dans le bloc « KRAMAIL — LISTE ».
 //   liste-dossiers : 1280 et 1440 px : dossier courant btn-primary au fond primaire, autres btn-default aux valeurs du bouton du sous-forum.
+//   redaction : (épopée 7, entrée 5) Nouveau, Répondre, Répondre à tous, Transférer et Signaler, 375, 767, 768, 769, 1280 et 1440 px, puis
+//             767, 768 et 767 px dans le même onglet : classes et valeurs calculées du formulaire de réponse du forum
+//             (typographie-forum-redaction servie au forum, barre de 18 outils du kramail) : lignes, libellés, champs, barre, outils,
+//             « Plus », zone de texte, options ; Sujet et Expéditeur aux valeurs de l'Expéditeur du forum. Hors comparaison : « Envoyer » et
+//             réserve basse du formulaire (entrée 7), ligne Destinataires (entrée 6), titre ; hauteur des options (3 cases contre 1).
+//             Aucun débordement horizontal.
+//             Libellé de Destinataires à la typographie des libellés (taille, graisse, casse, espacement, couleur). Bascule 767, 768 et
+//             767 px pour les 5 rédactions.
+//   redaction-focus : forum et 5 rédactions à 375 px (forum et Nouveau aussi à 767) : Maj+Tab depuis la zone de texte atteint « Plus »,
+//             puis Gras reçoit le focus : anneau focus-visible de 2 px en --kr-highlight.
+//   redaction-defilement : 5 rédactions à 375 px : zone de texte et dernière case amenées par scrollIntoView, leur bas hors de la barre
+//             « Envoyer » fixe (elementFromPoint).
+//   redaction-dest : les 5 rédactions, 375 et 1280 px : ajout d'une pastille, doublon refusé, retrait par la croix ; #dest suit.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
-// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers).
+// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
+// redaction, redaction-focus, redaction-defilement, redaction-dest).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
-// KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé).
+// KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
+// KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -96,13 +111,19 @@ PAGES['repondre-sans-dest'] = { ...PAGES.repondre, html: REPONDRE.replace('<text
 if (PAGES['repondre-sans-dest'].html === REPONDRE) { console.error('fixture de Répondre : textarea#dest introuvable'); process.exit(2); }
 // Signaler (…-8-<id>) : la fixture de Répondre servie à l'adresse de Signaler. Structure relevée sur le site (2026-10-29) : formulaire
 // post_msg complet, puis hr et div#accordion.panel-group > #collapseOne.collapse > ul.media-list.forum.t > li.media.well (message cité).
-PAGES.signaler = { ...PAGES.repondre, url: MESSAGE(8), garde: 'lecture' };
+// Le formulaire est complet : Signaler est une rédaction (épopée 7, entrée 5).
+PAGES.signaler = { ...PAGES.repondre, url: MESSAGE(8), garde: 'compose' };
 // Lecture (épopée 7, entrée 2) : hors du parcours des gardes ; le message de sujet du forum sert de référence.
 const LECTURES = {
   'lecture-recue': PAGE('lecture-recue', '/kramail/post/recu-fictif-0-9000003', 'lecture'),
   'lecture-envoi': PAGE('lecture-envoi', '/kramail/post/envoi-fictif-1-9000004', 'lecture'),
   forum: { url: '/forum/sujet/messages-v3-329425-1', html: FIX('forum-sujet.html') }
 };
+// Rédaction (épopée 7, entrée 5) : formulaire de réponse du forum, avec la barre de 18 outils du kramail à la place de la sienne.
+const BARRE_KRAMAIL = REPONDRE.slice(REPONDRE.indexOf('<div class="btn-toolbar"'), REPONDRE.indexOf('<textarea', REPONDRE.indexOf('<div class="btn-toolbar"')));
+const FORUM_REDACTION = FIX('typographie-forum-redaction.html');
+LECTURES['forum-redaction'] = { url: '/forum/post/repondre-2-329425', html: FORUM_REDACTION.replace(/<div class="btn-toolbar"[\s\S]*?(?=<textarea)/, BARRE_KRAMAIL) };
+if (!BARRE_KRAMAIL.includes('addtag(') || LECTURES['forum-redaction'].html === FORUM_REDACTION) { console.error('barre du kramail ou du forum introuvable'); process.exit(2); }
 const SOUS_GARDES = ['liste', 'lecture', 'compose'];
 const LIBELLES = ['Réception', 'Envoi', 'Corbeille'];
 const DARK = 'empire-brun-dark';
@@ -632,7 +653,7 @@ if (frag('lecture-plus')) {
     const li = document.querySelector('#accordion #collapseOne ul.media-list.forum > li.media');
     const info = li.querySelector('.user-info');
     return {
-      garde: document.documentElement.classList.contains('kr-page-kramail-lecture'),
+      garde: document.documentElement.classList.contains('kr-page-kramail-compose'),
       li: li.className, ordre: [...info.children].map(e => e.tagName.toLowerCase() + (e.className ? '.' + e.className : '')).join(' '),
       t: li.querySelector('.media-body > .t').className, marques: li.querySelectorAll('.kr-msg-signature, .kr-msg-recipients, [data-kr-libelle]').length,
       nom: getComputedStyle(info.querySelector('strong')).fontSize, titre: document.querySelectorAll('h1.page-header .kramail-post-kebab').length
@@ -645,7 +666,7 @@ if (frag('lecture-plus')) {
     const ob = await ouvrir('signaler', { width, height: mobile ? 667 : 720, mobile, bundle: BASE_BUNDLE });
     const rb = await ob.page.evaluate(CITE);
     await ob.context.close();
-    check(`signaler ${width} px : page de lecture, message cité natif, aucune erreur`, () => {
+    check(`signaler ${width} px : rédaction, message cité natif, aucune erreur`, () => {
       expect(r.garde, JSON.stringify(r));
       expect(r.li === 'media well' && r.ordre === 'img.avatar img-thumbnail strong div.cartouche' && r.t === 't' && r.marques === 0 && r.titre === 0, JSON.stringify(r));
       if (!mobile) { expect(r.nom === rb.nom, `nom du message cité : ${r.nom} pour ${rb.nom} (base)`); }
@@ -1207,6 +1228,233 @@ if (frag('liste-dossiers')) {
         sansFuite(o);
       });
     }
+  }
+}
+
+// ---------- rédaction : formulaire de réponse du forum (épopée 7, entrée 5) ----------
+const REDACTIONS = ['nouveau', 'repondre', 'repondre-tous', 'transferer', 'signaler'];
+const REDACTION_PROPS = ['display', 'position', 'width', 'height', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'paddingTop',
+  'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderTopColor',
+  'borderTopStyle', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius', 'backgroundColor', 'color',
+  'fontSize', 'fontWeight', 'lineHeight', 'textTransform', 'letterSpacing', 'gap', 'boxShadow', 'order', 'flexGrow', 'flexBasis', 'minHeight',
+  'cursor', 'visibility'];
+// Rôles du formulaire. La ligne Sujet (kramail seul) se compare à l'Expéditeur du forum.
+const MESURER_REDACTION = props => {
+  const f = document.querySelector('form[name="post_msg"]');
+  const lignes = [...f.querySelectorAll('.form-group')];
+  const ligne = sel => lignes.find(x => x.matches(sel)) || null;
+  const roles = { form: f };
+  for (const [k, sel] of [['sujet', ':has(> .col-sm-10 > .input-group > input)'], ['exp', ':has(> .col-sm-10 > .input-group > select)'],
+    ['msg', ':has(.btn-toolbar)'], ['opt', ':has(input[type="checkbox"])']]) {
+    const r = ligne(sel);
+    roles[k] = r;
+    roles[k + '.label'] = r && r.querySelector(':scope > label');
+    roles[k + '.col'] = r && r.querySelector(':scope > [class*="col-"]:not(label)');
+    roles[k + '.addon'] = r && r.querySelector('.input-group-addon');
+    roles[k + '.ctl'] = r && r.querySelector('.input-group > .form-control');
+  }
+  roles.bar = f.querySelector('.btn-toolbar');
+  for (const t of ['b', 'i', 'url', 'quote', 'u', 'spoiler']) { roles['tool.' + t] = f.querySelector(`.btn-toolbar a.btn[href*="addtag('${t}'"]`); }
+  roles['tool.smileys'] = f.querySelector('.btn-toolbar .dropdown:has(table) > .dropdown-toggle > .btn');
+  roles['tool.couleurs'] = f.querySelector('.btn-toolbar .dropdown:not(:has(table)) > .dropdown-toggle > .btn');
+  roles.plus = f.querySelector('.kr-tools-plus');
+  roles.textarea = f.querySelector('textarea[name="message"]');
+  roles['opt.check'] = f.querySelector('label.checkbox-inline');
+  roles['opt.input'] = f.querySelector('label.checkbox-inline > input');
+  roles['dest.label'] = f.querySelector('.kd-row > .kd-label');
+  const out = {};
+  for (const [k, el] of Object.entries(roles)) {
+    if (!el) { out[k] = null; continue; }
+    const cs = getComputedStyle(el);
+    const o = { classes: [...el.classList].filter(c => c.startsWith('kr-')).sort().join(' ') };
+    for (const p of props) { o[p] = cs[p]; }
+    const r = el.getBoundingClientRect();
+    o.rectW = String(Math.round(r.width));
+    o.rectH = String(Math.round(r.height));
+    out[k] = o;
+  }
+  out.__form = [...f.classList].sort().join(' ');
+  out.__debord = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+  return out;
+};
+const PAIRES_REDACTION = ['form', 'sujet=exp', 'sujet.label=exp.label', 'sujet.col=exp.col', 'sujet.addon=exp.addon', 'sujet.ctl=exp.ctl', 'exp',
+  'exp.label', 'exp.col', 'exp.addon', 'exp.ctl', 'msg', 'msg.label', 'msg.col', 'bar', 'tool.b', 'tool.i', 'tool.url', 'tool.quote', 'tool.u',
+  'tool.spoiler', 'tool.smileys', 'tool.couleurs', 'plus', 'textarea', 'opt', 'opt.label', 'opt.col', 'opt.check', 'opt.input',
+  'dest.label=exp.label'].map(x => x.includes('=') ? x.split('=') : [x, x]);
+// Écarts attendus : réserve basse du formulaire (entrée 7) ; 3 cases d'options au kramail contre 1 au forum (hauteur, largeur du libellé).
+const HORS_REDACTION = {
+  form: ['height', 'paddingBottom', 'rectH'],
+  opt: ['height', 'rectH'], 'opt.col': ['height', 'rectH'], 'opt.check': ['width', 'rectW'],
+  // Libellé « Sujet » plus court que « Expéditeur » (largeurs du libellé et du champ, en ligne sur mobile) ; champ texte contre liste
+  // native (hauteur de ligne et curseur natifs).
+  'sujet.label': ['width', 'rectW'], 'sujet.col': ['width', 'rectW'], 'sujet.ctl': ['lineHeight', 'cursor', 'width', 'rectW']
+};
+// Libellé de la ligne Destinataires (entrée 6, hors comparaison) : seule sa typographie suit celle des libellés du formulaire.
+const SEULES_REDACTION = { 'dest.label': ['fontSize', 'fontWeight', 'textTransform', 'letterSpacing', 'color'] };
+const comparerRedaction = (m, ref) => {
+  const ecarts = [];
+  if (m.__form !== ref.__form) { ecarts.push(`classes du formulaire : ${m.__form} pour ${ref.__form}`); }
+  for (const [k, kr] of PAIRES_REDACTION) {
+    const a = m[k];
+    const b = ref[kr];
+    if (!a || !b) { if (!!a !== !!b) { ecarts.push(`${k} : ${a ? 'présent' : 'absent'} pour ${b ? 'présent' : 'absent'} (${kr})`); } continue; }
+    const hors = HORS_REDACTION[k] || [];
+    for (const p of SEULES_REDACTION[k] || Object.keys(b)) { if (!hors.includes(p) && a[p] !== b[p]) { ecarts.push(`${k} ${p} : ${a[p]} pour ${b[p]}`); } }
+  }
+  return ecarts;
+};
+const LARGEURS_REDACTION = [375, 767, 768, 769, 1280, 1440];
+if (frag('redaction')) {
+  console.log('rédaction : formulaire de réponse du forum');
+  const refs = {};
+  await mapLimit([...LARGEURS_REDACTION.map(w => [w, w < 768]), [767, false]], async ([width, mobile]) => {
+    const o = await ouvrir('forum-redaction', { width, height: mobile ? 667 : 720, mobile });
+    refs[`${width}-${mobile}`] = await o.page.evaluate(MESURER_REDACTION, REDACTION_PROPS);
+    await o.context.close();
+  });
+  const cas = [];
+  for (const cle of REDACTIONS) { for (const width of LARGEURS_REDACTION) { cas.push({ cle, width, mobile: width < 768 }); } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    const m = await o.page.evaluate(MESURER_REDACTION, REDACTION_PROPS);
+    await o.context.close();
+    return { c, o, m };
+  });
+  for (const { c, o, m } of res) {
+    check(`${c.cle} ${c.width} px : formulaire aux classes et valeurs calculées de la réponse du forum, sans débordement`, () => {
+      const ecarts = comparerRedaction(m, refs[`${c.width}-${c.mobile}`]);
+      expect(ecarts.length === 0, ecarts.length + ' écart(s) : ' + ecarts.slice(0, Number(process.env.KR_ECARTS || 6)).join(' ; '));
+      expect(m.__debord === 0, 'débordement horizontal : ' + m.__debord + ' px');
+      sansFuite(o);
+    });
+  }
+  const bascules = await mapLimit(REDACTIONS, async cle => {
+    const o = await ouvrir(cle, { width: 767 });
+    const etapes = [[767, await o.page.evaluate(MESURER_REDACTION, REDACTION_PROPS)]];
+    await basculer(o.page, 768, cle + ' 768');
+    etapes.push([768, await o.page.evaluate(MESURER_REDACTION, REDACTION_PROPS)]);
+    await basculer(o.page, 767, cle + ' 767 retour');
+    etapes.push([767, await o.page.evaluate(MESURER_REDACTION, REDACTION_PROPS)]);
+    await o.context.close();
+    return { cle, etapes };
+  });
+  for (const { cle, etapes } of bascules) {
+    etapes.forEach(([width, m], i) => {
+      check(`bascule ${cle} ${['767', '768', '767 retour'][i]} px : valeurs calculées de la réponse du forum`, () => {
+        const ecarts = comparerRedaction(m, refs[`${width}-false`]);
+        expect(ecarts.length === 0, ecarts.length + ' écart(s) : ' + ecarts.slice(0, Number(process.env.KR_ECARTS || 6)).join(' ; '));
+      });
+    });
+  }
+}
+
+// ---------- rédaction : anneau de focus clavier des outils (forum et kramail, mobile) ----------
+if (frag('redaction-focus')) {
+  console.log('rédaction : focus clavier des outils');
+  const cas = [...['forum-redaction', ...REDACTIONS].map(cle => ({ cle, width: 375 })), { cle: 'forum-redaction', width: 767 }, { cle: 'nouveau', width: 767 }];
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: 667, mobile: true });
+    const p = o.page;
+    await p.focus('textarea[name="message"]');
+    await p.keyboard.down('Shift');
+    await p.keyboard.press('Tab');
+    await p.keyboard.up('Shift');
+    // Plus (Maj+Tab), puis Gras (focus après une touche) ; les outils ont une transition « all » : l'anneau se lit une fois la transition finie.
+    await p.waitForTimeout(600);
+    const lire = () => p.evaluate(() => {
+      const el = document.activeElement;
+      const t = document.createElement('i');
+      t.style.color = 'var(--kr-highlight)';
+      document.body.appendChild(t);
+      const attendu = getComputedStyle(t).color;
+      t.remove();
+      const cs = getComputedStyle(el);
+      return { outil: !!el.closest('form.kr-editor .btn-toolbar') && el.matches('.btn'), visible: el.matches(':focus-visible'),
+        style: cs.outlineStyle, largeur: cs.outlineWidth, couleur: cs.outlineColor, attendu,
+        desc: el.tagName + '.' + [...el.classList].join('.') + ' ' + (el.getAttribute('title') || el.getAttribute('href') || '').slice(0, 30) };
+    });
+    const m = [await lire()];
+    await p.focus('form[name="post_msg"] .btn-toolbar a.btn[href*="addtag(\'b\'"]', { timeout: 3000 });
+    await p.waitForTimeout(600);
+    m.push(await lire());
+    await o.context.close();
+    return { c, o, ms: m };
+  });
+  for (const { c, o, ms } of res) {
+    ms.forEach((m, i) => check(`${c.cle} ${c.width} px : ${['Plus', 'Gras'][i]} atteint au clavier, anneau de 2 px en --kr-highlight`, () => {
+      expect(m.outil && m.visible, `focus sur un outil : ${m.outil}, focus-visible : ${m.visible} (${m.desc})`);
+      expect(m.style === 'solid' && m.largeur === '2px' && m.couleur === m.attendu, `anneau : ${m.style} ${m.largeur} ${m.couleur} pour solid 2px ${m.attendu} (${m.desc})`);
+      sansFuite(o);
+    }));
+  }
+}
+
+// ---------- rédaction : champ atteint par défilement, hors de la barre « Envoyer » fixe (mobile) ----------
+if (frag('redaction-defilement')) {
+  console.log('rédaction : défilement vers un champ, hors de la barre « Envoyer »');
+  const res = await mapLimit(REDACTIONS, async cle => {
+    const o = await ouvrir(cle, { width: 375, height: 667, mobile: true });
+    const m = await o.page.evaluate(() => {
+      const f = document.querySelector('form[name="post_msg"]');
+      const cases = [...f.querySelectorAll('label.checkbox-inline > input[type="checkbox"]')];
+      return [['zone de texte', f.querySelector('textarea[name="message"]')], ['dernière case', cases[cases.length - 1]]].map(([nom, el]) => {
+        window.scrollTo(0, 0);
+        el.scrollIntoView({ block: 'nearest' });
+        const r = el.getBoundingClientRect();
+        const y = Math.min(r.bottom, window.innerHeight) - 4;
+        const vu = document.elementFromPoint(r.left + r.width / 2, y);
+        return { nom, bas: Math.round(r.bottom), vh: window.innerHeight, envoyer: !!(vu && vu.closest('button.btn-primary.pull-right')),
+          vu: vu ? vu.tagName + '.' + [...vu.classList].join('.') : null };
+      });
+    });
+    await o.context.close();
+    return { cle, o, m };
+  });
+  for (const { cle, o, m } of res) {
+    for (const x of m) {
+      check(`${cle} 375 px : ${x.nom} amenée par scrollIntoView, son bas hors de la barre « Envoyer »`, () => {
+        expect(!x.envoyer, `bas (${x.bas} / ${x.vh}) sous « Envoyer » : ${x.vu}`);
+        sansFuite(o);
+      });
+    }
+  }
+}
+
+// ---------- rédaction : Destinataires (ajout, doublon, retrait) ----------
+if (frag('redaction-dest')) {
+  console.log('rédaction : Destinataires');
+  const cas = [];
+  for (const cle of REDACTIONS) { for (const [width, mobile] of [[375, true], [1280, false]]) { cas.push({ cle, width, mobile }); } }
+  const LIRE = () => ({
+    chips: [...document.querySelectorAll('.kd-chip .kd-chip-name')].map(n => n.textContent),
+    dest: document.querySelector('#dest').value,
+    msg: document.querySelector('.kd-msg')?.textContent || ''
+  });
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
+    const p = o.page;
+    const etapes = {};
+    try {
+      etapes.depart = await p.evaluate(LIRE);
+      await p.focus('.kd-input', { timeout: 3000 });
+      await p.keyboard.type('Nadir Sable;', { delay: 20 });
+      etapes.ajout = await p.evaluate(LIRE);
+      await p.keyboard.type('nadir  SABLE;', { delay: 20 });
+      etapes.doublon = await p.evaluate(LIRE);
+      await p.locator('.kd-chip-x[aria-label="Retirer Nadir Sable"]').click({ timeout: 3000 });
+      etapes.retrait = await p.evaluate(LIRE);
+    } catch (e) { etapes.erreur = String(e.message).split('\n')[0]; }
+    await o.context.close();
+    return { c, o, etapes };
+  });
+  for (const { c, o, etapes: e } of res) {
+    check(`${c.cle} ${c.width} px : Destinataires, ajout, doublon refusé, retrait par la croix`, () => {
+      expect(!e.erreur, e.erreur);
+      expect(e.ajout.chips.join('|') === [...e.depart.chips, 'Nadir Sable'].join('|') && e.ajout.dest === e.depart.dest + 'Nadir Sable; ', 'ajout : ' + JSON.stringify(e.ajout));
+      expect(e.doublon.chips.join('|') === e.ajout.chips.join('|') && /Nadir Sable est déjà dans les destinataires\./.test(e.doublon.msg), 'doublon : ' + JSON.stringify(e.doublon));
+      expect(e.retrait.chips.join('|') === e.depart.chips.join('|') && e.retrait.dest === e.depart.dest, 'retrait : ' + JSON.stringify(e.retrait));
+      sansFuite(o);
+    });
   }
 }
 

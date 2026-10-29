@@ -827,11 +827,10 @@
         // Gardes de page du kramail (épopée 7, entrée 1), sur <html> : kr-page-kramail et une seule sous-garde.
         // Rédaction : Nouveau (…/post/nouveau-4-<compte>) et Répondre / Répondre à tous / Transférer (…/post/<sujet>-5-, -6-, -7-<id>
         // depuis la réception, -15-, -16-, -17-<id> depuis l'envoi) : même formulaire post_msg natif, reconnu sans exiger #dest (c[3]).
-        // Signaler (…/post/<sujet>-8-<id>) n'est pas une rédaction, même avec un formulaire post_msg (hypothèse non relevée sur le site).
-        // Lecture : …/post/… sans ce formulaire, et Signaler. Liste : tout autre chemin (Réception, Envoi, Corbeille).
+        // Signaler (…/post/<sujet>-8-<id>) aussi : formulaire post_msg complet (relevé du site, 2026-10-28).
+        // Lecture : …/post/… sans ce formulaire. Liste : tout autre chemin (Réception, Envoi, Corbeille).
         const isPost = /\/kramail\/post\//.test(path);
-        const isSignaler = isPost && /-8-\d+$/.test(path);
-        const isCompose = /\/kramail\/post\/nouveau/.test(path) || (isPost && !isSignaler && !!document.querySelector('form[name="post_msg"]'));
+        const isCompose = /\/kramail\/post\/nouveau/.test(path) || (isPost && !!document.querySelector('form[name="post_msg"]'));
         const kind = isCompose ? 'compose' : (isPost ? 'lecture' : 'liste');
         document.documentElement.classList.add('kr-page-kramail', 'kr-page-kramail-' + kind);
         if (isCompose) {
@@ -6232,8 +6231,6 @@
 
     function initKramailLecture() {
       if (!document.documentElement.classList.contains('kr-page-kramail-lecture')) {return;}
-      // Signaler (…-8-<id>) : formulaire post_msg, le message cité reste natif
-      if (document.querySelector('form[name="post_msg"]')) {return;}
       const mobile = document.body.classList.contains('mobile-mode') && window.innerWidth < 768;
       const bar = document.querySelector('.forum-top > .pull-right');
       if (bar) {
@@ -7163,7 +7160,8 @@
   // MODULE : Messages:V3 — messages du forum, lecture / rédaction / édition (mobile, maquette v3 validée)
   // Aucun nœud natif n'est cloné, recréé ni déplacé : la mise en page est faite en CSS (grille, ordre) sur les classes posées ici, les
   // liens, boutons, href, onclick et le texte du message restent ceux du site. La peau ajoute seulement deux boutons à elle
-  // (« ••• » sur chaque message, « Plus » dans l'éditeur) et des classes/étiquettes. Kramail n'est pas concerné (chemin /forum/ seulement).
+  // (« ••• » sur chaque message, « Plus » dans l'éditeur) et des classes/étiquettes. Au kramail, seules les rédactions (kr-page-kramail-compose)
+  // reçoivent l'éditeur, Sujet et Expéditeur en kr-sender-row (épopée 7, entrée 5).
   // ============================================================================
   (function () {
     'use strict';
@@ -7173,7 +7171,8 @@
     const COMMON_TOOLS = ['b', 'i', 'url', 'quote', 'smileys'];
 
     function isMessagesView() {
-      return !!document.body && document.body.classList.contains('mobile-mode') && window.innerWidth < 768 && window.location.pathname.indexOf('/forum/') === 0;
+      const page = window.location.pathname.indexOf('/forum/') === 0 || document.documentElement.classList.contains('kr-page-kramail-compose');
+      return !!document.body && document.body.classList.contains('mobile-mode') && window.innerWidth < 768 && page;
     }
 
     function nativeTitle(el) {
@@ -7222,8 +7221,12 @@
         if (!bar || bar.classList.contains('kr-tools-ready')) {return;}
         form.classList.add('kr-editor');
         const groups = Array.from(form.querySelectorAll('.form-group'));
-        const sender = groups.find(g => g.querySelector('.input-group') && g.querySelector('select, input'));
-        if (sender) {sender.classList.add('kr-sender-row');}
+        if (document.documentElement.classList.contains('kr-page-kramail-compose')) {
+          groups.filter(g => g.querySelector(':scope > .col-sm-10 > .input-group')).forEach(g => g.classList.add('kr-sender-row'));
+        } else {
+          const sender = groups.find(g => g.querySelector('.input-group') && g.querySelector('select, input'));
+          if (sender) {sender.classList.add('kr-sender-row');}
+        }
         const messageRow = groups.find(g => g.contains(bar));
         if (messageRow) {messageRow.classList.add('kr-message-row');}
 

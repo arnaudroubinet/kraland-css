@@ -1,4 +1,6 @@
 // Kramail — rédaction : barre d'outils fidèle (18 boutons natifs) et champ « Destinataires » unique (module Kramail:Destinataires, t_abf9ccd4).
+// Depuis l'épopée 7, entrée 5, la barre est celle du formulaire de réponse du forum (bureau natif ; mobile : 5 outils courants et « Plus »,
+// menus dans le flux) ; ses valeurs calculées sont comparées à celles du forum par kramail-theme#redaction.
 // Pages = FIXTURES inertes tirées du HTML RÉEL servi par le site (relevé en lecture seule du 14/10/2026, Chrome dédié 9223), anonymisées :
 //   tests/e2e/fixtures/kramail-nouveau.html  (rédaction : form[name=post_msg], #dest c[3], #contacts c[4] 47+2 contacts fictifs, #search, #results,
 //                                              barre btn-toolbar 4 groupes / 18 boutons ; copies verbatim de post.js (addtag), kramail_post.js, extraits de main.js)
@@ -320,7 +322,7 @@ const REACH = (sel) => Array.from(document.querySelectorAll(sel)).map(e => {
   const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   return { ok: !!hit && (hit === e || e.contains(hit)), w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10, what: hit ? hit.tagName + '.' + hit.className : 'rien' };
 });
-const SIGNATURE = () => Array.from(document.querySelectorAll('form[name="post_msg"] .btn-toolbar a, form[name="post_msg"] .btn-toolbar button, form[name="post_msg"] .btn-toolbar img'))
+const SIGNATURE = () => Array.from(document.querySelectorAll('form[name="post_msg"] .btn-toolbar a, form[name="post_msg"] .btn-toolbar button:not(.kr-tools-plus), form[name="post_msg"] .btn-toolbar img'))
   .map(e => `${e.tagName}|${e.getAttribute('href')}|${e.getAttribute('onclick')}|${e.getAttribute('data-toggle')}|${e.getAttribute('alt')}`);
 const DEST = () => {
   const vis = e => { if (!e) { return false; } const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden'; };
@@ -377,7 +379,7 @@ const shotDest = async (p, name) => {
 // 1) Barre d'outils
 // =====================================================================================================
 if (frag('barre')) {
-  console.log('Barre d\'outils : 18 boutons natifs, ordre, groupes, icônes, infobulles, tailles, lignes, actions natives');
+  console.log('Barre d\'outils : 18 boutons natifs, ordre, groupes, icônes, infobulles, outils courants et « Plus » (mobile), actions natives');
   const nat = await open({ width: 1280, bundle: null });
   const sigNatif = await nat.page.evaluate(SIGNATURE);
   const natBar = await nat.page.evaluate(BAR);
@@ -399,9 +401,8 @@ if (frag('barre')) {
   for (const width of [1280, 375, 320]) {
     const { context, page: p, state, errors } = await open({ width });
     const o = await p.evaluate(BAR);
-    const rows = [...new Set(o.buttons.map(b => Math.round(b.y)))].length;
-    const expectRows = width === 1280 ? 1 : (width === 375 ? 3 : 4);
-    const size = width === 1280 ? 24 : 40;
+    const rows = [...new Set(o.buttons.filter(b => b.w > 0).map(b => Math.round(b.y)))].length;
+    const mob = width < 768;
     const ref = width === 1280 ? { sig: sigNatif, tips: TOOLS.map(t => t[2]) } : { sig: refMobile[width]?.sig, tips: refMobile[width]?.bar.buttons.map(b => b.tip) };
     console.log(`  mesures ${width} px : lignes=${rows} boutons=${o.buttons.map(b => `${b.w.toFixed(1)}x${b.h.toFixed(1)}`).join(' ')} barre=${o.bar.w}/${o.bar.sw} ox=${o.ox}`);
     check(`barre ${width} px : 18 boutons, 4 groupes [4,4,4,6], même ordre, mêmes icônes${width === 1280 ? ' et infobulles natives' : ' ; infobulles comme avant (retirées au toucher par le thème)'}`, () => {
@@ -411,23 +412,41 @@ if (frag('barre')) {
     });
     const sig = await p.evaluate(SIGNATURE);
     check(`barre ${width} px : signature des ${sig.length} éléments actifs (balise, href, onclick, data-toggle, smileys) identique à ${width === 1280 ? 'la page sans script' : 'la page avec le bundle d\'avant'}`, () => assert.deepEqual(sig, ref.sig));
-    check(`barre ${width} px : ${expectRows} ligne(s), boutons de ${size} px de haut, ${width === 1280 ? '24' : '40'} px de large au moins`, () => {
-      assert.equal(rows, expectRows);
-      for (const b of o.buttons) { assert.ok(Math.abs(b.h - size) <= 0.6, `hauteur ${b.h}`); assert.ok(b.w >= size - 0.6 && b.w <= size + 12, `largeur ${b.w}`); }
-    });
-    check(`barre ${width} px : groupes entiers sur une ligne et accolés (aucun bouton isolé, plus de bouton de 295 px)`, () => {
-      for (let gi = 0; gi < 4; gi += 1) {
-        const bs = o.buttons.filter(b => b.gi === gi);
-        assert.equal(new Set(bs.map(b => Math.round(b.y))).size, 1, `groupe ${gi + 1} coupé`);
-        for (let k = 1; k < bs.length; k += 1) { const gap = bs[k].x - bs[k - 1].r; assert.ok(gap >= -1.6 && gap <= 0.6, `écart ${gap}`); }
-      }
-    });
-    check(`barre ${width} px : aucun défilement horizontal (page ${o.ox}, barre ${o.bar.sw - o.bar.w})`, () => { assert.ok(o.ox <= 0); assert.ok(o.bar.sw <= o.bar.w); assert.ok(o.buttons.every(b => b.x >= 0 && b.r <= o.vw)); });
-    // QA t_63fbb540 : l'ordre DOM ne suffit pas, la barre est en flex (un `order` ou un `row-reverse` changerait l'ordre vu sans changer le DOM)
-    check(`barre ${width} px : ordre À L'ÉCRAN identique à l'ordre natif (lignes de haut en bas, boutons de gauche à droite)`, () => {
-      const lu = o.buttons.map((b, i) => ({ i, y: Math.round(b.y), x: b.x })).sort((a, b) => (a.y - b.y) || (a.x - b.x)).map(v => v.i);
-      assert.deepEqual(lu, o.buttons.map((_b, i) => i));
-    });
+    // Épopée 7, entrée 5 : la barre est celle du formulaire de réponse du forum (valeurs calculées : kramail-theme#redaction). Bureau : rendu
+    // natif, groupes accolés dans l'ordre natif. Mobile (Messages:V3) : Gras, Italique, Lien, Citation, Smileys et « Plus » sur une ligne,
+    // les 13 autres repliés jusqu'au toucher de « Plus ».
+    if (mob) {
+      const COURANTS = ['fa fa-bold', 'fa fa-italic', 'fa fa-link', 'fa fa-quote-right', 'far fa-smile'];
+      const plus = await p.evaluate(() => { const b = document.querySelector('form[name="post_msg"] .btn-toolbar .kr-tools-plus'); if (!b) { return null; } const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, y: r.top + window.scrollY, expanded: b.getAttribute('aria-expanded') }; });
+      check(`barre ${width} px : 5 outils courants et « Plus » sur ${rows} ligne, cibles >= 44 px, 13 autres repliés`, () => {
+        const vus = o.buttons.filter(b => b.w > 0);
+        assert.deepEqual(vus.slice().sort((a, b) => (Math.round(a.y) - Math.round(b.y)) || (a.x - b.x)).map(b => b.icon), COURANTS);
+        assert.equal(rows, 1);
+        assert.ok(plus && plus.expanded === 'false' && Math.round(plus.y) === Math.round(vus[0].y), JSON.stringify(plus));
+        for (const b of vus) { assert.ok(b.w >= 43.5 && b.h >= 43.5, `cible ${b.w}x${b.h}`); }
+        assert.ok(plus.w >= 43.5 && plus.h >= 43.5, `Plus ${plus.w}x${plus.h}`);
+      });
+      if (plus) { await p.tap('form[name="post_msg"] .btn-toolbar .kr-tools-plus'); }
+      const ouverte = await p.evaluate(BAR);
+      check(`barre ${width} px : « Plus » déplie les 18 boutons, cibles >= 44 px, aucun défilement horizontal (page ${ouverte.ox}, barre ${ouverte.bar.sw - ouverte.bar.w})`, () => {
+        assert.ok(ouverte.buttons.every(b => b.w >= 43.5 && b.h >= 43.5), JSON.stringify(ouverte.buttons.map(b => `${b.w}x${b.h}`)));
+        assert.ok(ouverte.ox <= 0); assert.ok(ouverte.bar.sw <= ouverte.bar.w); assert.ok(ouverte.buttons.every(b => b.x >= 0 && b.r <= ouverte.vw));
+      });
+    } else {
+      check(`barre ${width} px : groupes entiers sur une ligne et accolés`, () => {
+        for (let gi = 0; gi < 4; gi += 1) {
+          const bs = o.buttons.filter(b => b.gi === gi);
+          assert.equal(new Set(bs.map(b => Math.round(b.y))).size, 1, `groupe ${gi + 1} coupé`);
+          for (let k = 1; k < bs.length; k += 1) { const gap = bs[k].x - bs[k - 1].r; assert.ok(gap >= -1.6 && gap <= 0.6, `écart ${gap}`); }
+        }
+      });
+      check(`barre ${width} px : aucun défilement horizontal (page ${o.ox}, barre ${o.bar.sw - o.bar.w})`, () => { assert.ok(o.ox <= 0); assert.ok(o.bar.sw <= o.bar.w); assert.ok(o.buttons.every(b => b.x >= 0 && b.r <= o.vw)); });
+      // QA t_63fbb540 : l'ordre DOM ne suffit pas (un `order` ou un `row-reverse` changerait l'ordre vu sans changer le DOM)
+      check(`barre ${width} px : ordre À L'ÉCRAN identique à l'ordre natif (lignes de haut en bas, boutons de gauche à droite)`, () => {
+        const lu = o.buttons.map((b, i) => ({ i, y: Math.round(b.y), x: b.x })).sort((a, b) => (a.y - b.y) || (a.x - b.x)).map(v => v.i);
+        assert.deepEqual(lu, o.buttons.map((_b, i) => i));
+      });
+    }
     const reach = await p.evaluate(REACH, 'form[name="post_msg"] .btn-toolbar > .btn-group > a.btn, form[name="post_msg"] .btn-toolbar > .btn-group > .dropdown > .dropdown-toggle > .btn');
     check(`barre ${width} px : les 18 boutons sont atteints en leur centre (elementFromPoint)`, () => assert.ok(reach.every(r => r.ok), JSON.stringify(reach.filter(r => !r.ok))));
     if (SHOTS) {
@@ -450,24 +469,36 @@ if (frag('barre')) {
     await p.keyboard.type('gras');
     const v1 = await act(GRAS, '[b]gras[/b]');
     check(`barre ${width} px : Gras insère le BBCode natif (addtag ouvre puis ferme la balise) : « ${v0} » puis « ${v1} »`, () => { assert.equal(v0, '[b]'); assert.equal(v1, '[b]gras[/b]'); });
-    await tapOrClick('form[name="post_msg"] .btn-toolbar .dropdown-toggle:has(.fa-smile)');
+    await tapOrClick('form[name="post_msg"] .btn-toolbar .dropdown-toggle:has(.fa-smile) > .btn');
     await p.waitForSelector('form[name="post_msg"] .btn-toolbar .dropdown.open .dropdown-menu table', { state: 'visible', timeout: 3000 }).catch(() => {});
     const sm = await p.evaluate(() => {
       const m = document.querySelector('form[name="post_msg"] .btn-toolbar .dropdown.open .dropdown-menu'); if (!m) { return null; }
       const r = m.getBoundingClientRect();
       const first = m.querySelector('a[onclick*="addtag(\':)\',0)"]').getBoundingClientRect();
       const hit = document.elementFromPoint(first.left + first.width / 2, first.top + first.height / 2);
-      return { l: r.left, r: r.right, t: r.top, b: r.bottom, vw: document.documentElement.clientWidth, vh: window.innerHeight, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth, firstReached: !!hit && !!hit.closest('a[onclick*="addtag"]'), n: m.querySelectorAll('a[onclick*="addtag"]').length };
+      const all = m.querySelectorAll('a[onclick*="addtag"]');
+      const last = all[all.length - 1];
+      const l0 = last.getBoundingClientRect();
+      const y0 = window.scrollY;
+      window.scrollTo(0, Math.max(0, l0.top + window.scrollY - window.innerHeight / 2));
+      const lr = last.getBoundingClientRect();
+      const lhit = document.elementFromPoint(lr.left + lr.width / 2, lr.top + lr.height / 2);
+      window.scrollTo(0, y0);
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom, vw: document.documentElement.clientWidth, vh: window.innerHeight, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth, firstReached: !!hit && !!hit.closest('a[onclick*="addtag"]'), lastReached: !!lhit && last.contains(lhit), n: all.length };
     });
-    check(`barre ${width} px : Smileys ouvre le menu natif (126 smileys), dans la fenêtre, 1er smiley atteint, sans débordement`, () => {
+    // Épopée 7, entrée 5 : sur mobile, le menu est celui du forum (dans le flux, sous la barre) et non plus une feuille fixe : il tient en largeur,
+    // et son dernier smiley s'atteint en faisant défiler la page.
+    check(`barre ${width} px : Smileys ouvre le menu natif (126 smileys), ${width < 768 ? 'dans la largeur, 1er et dernier smileys atteints' : 'dans la fenêtre, 1er smiley atteint'}, sans débordement`, () => {
       assert.ok(sm, 'menu fermé'); assert.equal(sm.n, 126);
-      assert.ok(sm.l >= 0 && sm.r <= sm.vw + 0.5 && sm.t >= 0 && sm.b <= sm.vh + 0.5, JSON.stringify(sm)); assert.ok(sm.firstReached, JSON.stringify(sm)); assert.ok(sm.ox <= 0);
+      assert.ok(sm.l >= 0 && sm.r <= sm.vw + 0.5 && sm.t >= 0, JSON.stringify(sm));
+      if (width < 768) { assert.ok(sm.lastReached, JSON.stringify(sm)); } else { assert.ok(sm.b <= sm.vh + 0.5, JSON.stringify(sm)); }
+      assert.ok(sm.firstReached, JSON.stringify(sm)); assert.ok(sm.ox <= 0);
     });
     await shot(p, `apres-${width}-barre-smileys`);
     const v2 = await act('form[name="post_msg"] .btn-toolbar .dropdown.open .dropdown-menu a[onclick*="addtag(\':)\',0)"]', '[b]gras[/b][:)]');
     check(`barre ${width} px : un smiley insère son code natif`, () => assert.equal(v2, '[b]gras[/b][:)]'));
     await p.evaluate(() => { document.querySelectorAll('.dropdown-backdrop').forEach(b => b.click()); document.querySelectorAll('form[name="post_msg"] .btn-toolbar .dropdown.open').forEach(d => d.classList.remove('open')); });
-    await tapOrClick('form[name="post_msg"] .btn-toolbar .dropdown-toggle:has(.fa-flask)');
+    await tapOrClick('form[name="post_msg"] .btn-toolbar .dropdown-toggle:has(.fa-flask) > .btn');
     await p.waitForSelector('form[name="post_msg"] .btn-toolbar .dropdown.open a[href="javascript:addtag(\'yellow\',1);"]', { state: 'visible', timeout: 3000 }).catch(() => {});
     await shot(p, `apres-${width}-barre-couleurs`);
     const v3 = await act('form[name="post_msg"] .btn-toolbar .dropdown.open a[href="javascript:addtag(\'yellow\',1);"]', '[b]gras[/b][:)][yellow]').catch(e => String(e.message).split('\n')[0]);
@@ -1145,12 +1176,12 @@ for (const [pg, R] of Object.entries(REPONSES)) {
       assert.equal(form.cite, 'Message auquel vous répondez');
     });
     const o = await p.evaluate(BAR);
-    const rows = [...new Set(o.buttons.map(bt => Math.round(bt.y)))].length;
-    check(`${pg} ${width} : même barre que Nouveau (18 boutons [4,4,4,6], ${width === 1280 ? 1 : (width === 375 ? 3 : 4)} ligne(s), ${mob ? 40 : 24} px), aucun défilement horizontal`, () => {
+    const vus = o.buttons.filter(bt => bt.w > 0).length;
+    // Épopée 7, entrée 5 : barre du formulaire de réponse du forum (mobile : 5 outils courants, les autres derrière « Plus »)
+    check(`${pg} ${width} : même barre que Nouveau (18 boutons [4,4,4,6], ${mob ? '5 visibles avant « Plus »' : 'tous visibles'}), aucun défilement horizontal`, () => {
       assert.deepEqual(o.groups, [4, 4, 4, 6]);
       assert.deepEqual(o.buttons.map(bt => bt.icon), TOOLS.map(t => t[1]));
-      assert.equal(rows, width === 1280 ? 1 : (width === 375 ? 3 : 4));
-      for (const bt of o.buttons) { assert.ok(Math.abs(bt.h - (mob ? 40 : 24)) <= 0.6); }
+      assert.equal(vus, mob ? 5 : 18);
       assert.ok(o.ox <= 0 && d.ox <= 0, `scrollX ${o.ox}/${d.ox}`);
     });
     if (SHOTS) {
@@ -1236,13 +1267,13 @@ if (frag('libelle')) {
       assert.ok(gap >= 8, `écart ${gap}`);
       assert.ok(m.ox <= 0);
     });
-    // Re-QA t_503eb6f6, S-1 : de 768 à 1199 px, même taille de 13 px que les autres libellés, et le texte tient dans la zone de contenu
-    // de sa colonne (marges comprises : aucun débordement, même de 1 px)
+    // Re-QA t_503eb6f6, S-1 : de 768 à 1199 px, même taille que les autres libellés (14 px natifs depuis l'épopée 7, entrée 5), et le texte
+    // tient dans la zone de contenu de sa colonne (marges comprises : aucun débordement, même de 1 px)
     if (width < 1200) {
       check(`libellé ${width} px : taille ${m.font} = celle des autres libellés (${m.others.join('/')}), texte dans la zone de contenu de sa colonne (${m.textL.toFixed(1)}–${m.textR.toFixed(1)} ⊂ ${m.contentL.toFixed(1)}–${m.contentR.toFixed(1)})`, () => {
         assert.ok(m.others.length >= 3, JSON.stringify(m.others));
         assert.ok(m.others.every(f => f === m.font), `${m.font} / ${m.others.join(',')}`);
-        assert.equal(m.font, '13px');
+        assert.equal(m.font, '14px');
         assert.ok(m.textL >= m.contentL - 0.5 && m.textR <= m.contentR + 0.5, JSON.stringify(m));
       });
     }

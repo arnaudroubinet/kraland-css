@@ -109,7 +109,7 @@ export const SUITES = [
   // DOMContentLoaded ; dossiers en Onglets de section libellés à 375 et 767 px, clair et sombre ; ordinateur (768, 1280) égal à la base figée.
   // Lecture (entrée 2) : message, fil et message de l'Envoi égaux au message de sujet du forum ; Répondre libellés, « ••• » ; 16 variantes.
   // Listes (entrée 4) : lignes de Réception, Envoi et Corbeille aux valeurs du sous-forum, sélection, pagination, « non lu », dossiers.
-  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers']], needsBootstrap: true },
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
   // 1280 px, bascule 767 <-> 768 et pages hors périmètre (forum, kramail) égales au bundle de base. Entrée 4 : pages
