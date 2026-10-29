@@ -9198,8 +9198,7 @@ body > map {
   }
 
   /* Icônes — taille et alignement uniformes */
-  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn > i,
-  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > .btn-group > .btn > i {
+  :is(body.page-kramail, :where(html.kr-page-contacts) body) h1.page-header .pull-right > a.btn > i {
     font-size: 18px !important;
     line-height: 1 !important;
   }

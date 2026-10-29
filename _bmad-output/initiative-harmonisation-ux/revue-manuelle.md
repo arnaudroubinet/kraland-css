@@ -936,3 +936,11 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Pied de page et « Remonter en haut » : le pied de page n'est plus remis dans le flux sur les pages de rédaction ; il reprend la règle mobile commune (collant, z-index 1000). « Remonter en haut » passe de 64 px à 20 px au kramail, comme au forum. Il reste la colonne de droite (marge de 52 px d'« Envoyer »). À voir en vrai, en bas de page.
 - `scroll-margin-bottom: 72px` (champs du forum et du kramail) est retiré avec la barre : un champ amené par le défilement peut toucher le bas de l'écran.
 - z-index 991 du backlog 12 : inchangé, seul son commentaire change.
+
+## Ticket 7.10 — Refactor sweep de l'épopée 7 (in-review, 2026-10-29)
+
+- Base commune `d64c578` (feature/next après 7.1 à 7.8) : `kramail-theme`, `confort-mobile`, `cartes-pastilles`, `forum-activite` (`COMMIT_FIL`, `COMMIT_PLUS`), `typographie-formes` (boutons, echelle, echelle-forum, rayons, espacement, nettoyage) et `kramail-redaction` (A9). Elle contient aussi bug 14, bug 15, 8.4, 8.5 et des entrées 9.x : les masques de ces tickets deviennent inertes, gardés pour le sweep 9.12.
+- Nettoyage (typographie-formes) : les exclusions à 768 px de la réception (7.3) et de la rédaction (7.5) sont désormais conditionnées sur la base dédiée `COMMIT_MEDIAS_410` (00b0786), pas sur la base du nettoyage. Sans cela, 6 FAIL sur `d64c578`. À confirmer : ces exclusions tomberont au recalage de `COMMIT_MEDIAS_410`.
+- `nameControls` du forum laissé à part (sélecteurs différents), voir deferred-work.
+- Rendu inchangé : aucun changement visible attendu.
+

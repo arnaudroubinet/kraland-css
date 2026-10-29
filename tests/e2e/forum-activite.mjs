@@ -70,9 +70,9 @@
 // et pour le fragment fil : forum-colonne-native-hrp.html, typographie-forum-redaction.html, palette-nation.html (noms tenus dans
 // lib/variantes.mjs, REPERES_FIL_TICKET63), pour le fragment entete : forum-sujet-communaute.html, forum-sujet-debats.html,
 // forum-sujet-staff.html, forum-sujet-ferme.html (noms tenus dans lib/variantes.mjs, REPERES_ENTETE_TICKET64). Fragment fil : bundle de
-// base de 6270c81 (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 6270c81 (COMMIT_ENTETE), sauf
+// base de d64c578 (COMMIT_FIL), sauf KR_SCRIPT_AVANT_FIL. Fragment entete : bundle de base de 6270c81 (COMMIT_ENTETE), sauf
 // KR_SCRIPT_AVANT_ENTETE. Fragment plus (bouton « ••• » commun du sujet et du kramail, fixtures nommées dans lib/variantes.mjs,
-// REPERES_PLUS_TICKET65) : bundle de base de 6270c81 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
+// REPERES_PLUS_TICKET65) : bundle de base de d64c578 (COMMIT_PLUS), sauf KR_SCRIPT_AVANT_PLUS. Fragment ligne (fixtures et classes
 // nommées dans lib/variantes.mjs, REPERES_LIGNE_TICKET66) : bundle de base de 6270c81 (COMMIT_LIGNE), sauf KR_SCRIPT_AVANT_LIGNE.
 // Fragment panneaux : bundle de base de 7e69719 (COMMIT_PANNEAUX), sauf KR_SCRIPT_AVANT_PANNEAUX ; fragment envoyer : contrôles absolus.
 // Fragment confort : bundle de base de 724c5c1 (COMMIT_CONFORT), sauf KR_SCRIPT_AVANT_CONFORT.
@@ -94,7 +94,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET77, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, RETIRER_ENVOYER_TICKET77, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE, TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -632,7 +632,7 @@ const EMPREINTE_FIL = () => {
   });
 };
 
-const COMMIT_FIL = '6270c81';
+const COMMIT_FIL = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
 if (on('fil')) {
   // Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet une fois
   // COMMIT_FIL recalé au-delà du bug 14.
@@ -640,12 +640,7 @@ if (on('fil')) {
     : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
   Object.assign(PAGES, pagesFil());
   console.log(`\n== fil : fil d'Ariane commun de l'index et du sous-forum, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sujet, réponse et hors forum égaux à ${COMMIT_FIL} ; seuil, bascule, bureau ==`);
-  // Écart accepté et consigné (épopée 7, entrée 7) : « Envoyer » mobile en 14 px dans le flux (kramail-theme et forum-activite, fragments
-  // envoyer) : sa ligne est retirée de l'empreinte des deux côtés tant que la base précède l'entrée. Retrait au recalage de COMMIT_FIL.
-  const MASQUE77 = AVANT_TICKET77(baseFil);
   const lireFil = async (o, empreinte = false) => {
-    // RETIRER_ENVOYER_TICKET77 ne retire rien au bureau hors kramail (largeur < 768 ou chemin /kramail/).
-    if (empreinte && MASQUE77) { await o.page.evaluate(RETIRER_ENVOYER_TICKET77); }
     await o.page.evaluate(CONTRASTE);
     const f = await o.page.evaluate(FIL, R);
     const e = empreinte ? await o.page.evaluate(EMPREINTE_FIL) : null;
@@ -1255,7 +1250,7 @@ const VOILE = ({ p, cle, poser }) => {
   return 1;
 };
 
-const COMMIT_PLUS = '6270c81';
+const COMMIT_PLUS = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
 if (on('plus')) {
   const basePlus = strip(process.env.KR_SCRIPT_AVANT_PLUS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PLUS, 'utf8')
     : execFileSync('git', ['show', `${COMMIT_PLUS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -1268,31 +1263,7 @@ if (on('plus')) {
   console.log(`\n== plus : bouton « ••• » commun (sujet, réception et lecture du kramail), 375 et 767 px tactiles (variantes ${VARIANTES.join(' et ')}) ; toucher, voile 990 ; contraste (16 variantes) ; seuil, bascule et bureau égaux à ${COMMIT_PLUS} ==`);
   const rgb = s => { const v = (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number); return s.startsWith('color(srgb') ? v.map(x => x * 255) : v; };
   const proche = (a, b) => { const x = rgb(a); const y = rgb(b); return x.length === 3 && [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1); };
-  // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste du kramail sous 768 px, les dossiers du titre (Réception, Envoi,
-  // Corbeille) deviennent des onglets, prouvés par la suite des onglets du kramail. Ils sont retirés des deux côtés avant la mesure, reconnus par leur
-  // lien natif ; « ••• » et les autres boutons du h1 restent comparés. Retrait : quand COMMIT_PLUS contient l'entrée.
-  const RETIRER_DOSSIERS = () => { if (window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); } };
-  // Écart accepté et consigné (épopée 7, entrée 2) : sur la lecture du kramail, Répondre et Répondre à tous libellés, Transférer passé dans
-  // « ••• » sur mobile et message au rendu du sujet (prouvés par kramail-theme, fragments lecture*). Sur ordinateur, Répondre, Répondre à
-  // tous et le message sont retirés des deux côtés avant la mesure ; Transférer reste comparé, à la même abscisse une fois les deux libellés
-  // retirés. Sur mobile, les trois boutons sont exclus des boutons comparés et l'abscisse du « ••• » (décalée par les libellés) n'est pas
-  // comparée. « ••• » (taille, couleurs, rayon) et Réception restent comparés.
-  // Nom du module = repère de retrait : le masque tombe dès que le bundle de base (COMMIT_PLUS) contient 'Kramail:Lecture'.
-  const AVANT_TICKET72 = !basePlus.includes('Kramail:Lecture');
-  const RETIRER_LECTURE = () => { if (window.innerWidth >= 768 && /\/kramail\/post\//.test(location.pathname)) { document.querySelectorAll('a.btn:is([href*="-5-"], [href*="-6-"]), #col-right > ul.media-list.forum').forEach(e => e.remove()); } };
-  const ECART72 = /-[567]-\d+$/;
-  // Écart accepté et consigné (épopée 7, entrée 3) : h1 de la liste et de la lecture du kramail à l'en-tête du sous-forum (kramail-theme,
-  // fragments entete*). Sur mobile, le « ••• » et les autres boutons du h1 restent comparés sans leur position (taille, couleurs, rayon) ;
-  // au seuil et au bureau, le h1 est retiré des deux rendus avant l'empreinte (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_PLUS
-  // (base figée) sur un SHA qui contient l'entrée.
-  const ECART73 = AVANT_TICKET73(basePlus);
-  // Écart accepté et consigné (épopée 7, entrée 4) : lignes de #topics de la liste au rendu du sous-forum (kramail-theme, fragments liste*),
-  // retirées des deux rendus avant l'empreinte (RETIRER_LISTE_TICKET74). Retrait au recalage de COMMIT_PLUS sur un SHA qui contient l'entrée.
-  const ECART74 = AVANT_TICKET74(basePlus);
-  const sansPosition = b => (ECART73 && b ? { w: b.w, h: b.h } : b);
   const mesurer = async (o, nom) => {
-    await o.page.evaluate(RETIRER_DOSSIERS);
-    if (AVANT_TICKET72) { await o.page.evaluate(RETIRER_LECTURE); }
     await o.page.evaluate(CONTRASTE);
     return o.page.evaluate(PLUS, { p: P, cle: nom });
   };
@@ -1332,7 +1303,7 @@ if (on('plus')) {
   };
   const cas = NOMS.flatMap(nom => [375, 767].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
   const res = await mapLimit(cas, async c => ({ t: await parcours(c), b: await parcours({ ...c, src: basePlus }) }));
-  const vueKramail = v => v.map(x => ({ cls: x.cls, boite: sansPosition(x.boite), fond: x.fond, bordure: x.bordure, couleur: x.couleur }));
+  const vueKramail = v => v.map(x => ({ cls: x.cls, boite: x.boite, fond: x.fond, bordure: x.bordure, couleur: x.couleur }));
   const vueVoisin = v => v.map(x => ({ cls: x.cls, fond: x.fond, bordure: x.bordure, couleur: x.couleur, bordureL: x.bordureL }));
   cas.forEach(({ nom, width, variante }, i) => {
     const { t, b } = res[i];
@@ -1380,12 +1351,10 @@ if (on('plus')) {
     } else {
       check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})`, () => {
         assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
-        const ecart72 = AVANT_TICKET72 && nom === 'lecture';
-        const vue = h => ({ boite: sansPosition(ecart72 ? { ...h.boite, x: null } : h.boite), fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        const vue = h => ({ boite: h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
         assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
-        const garder72 = v => (ecart72 ? v.filter(x => !ECART72.test(x.href || '')) : v);
-        assert.ok(garder72(m.voisins).length > 0, 'aucun autre bouton du h1');
-        assert.deepEqual(vueKramail(garder72(m.voisins)), vueKramail(garder72(b.m.voisins)), 'autres boutons du h1');
+        assert.ok(m.voisins.length > 0, 'aucun autre bouton du h1');
+        assert.deepEqual(vueKramail(m.voisins), vueKramail(b.m.voisins), 'autres boutons du h1');
       });
     }
     // Voile réel du kramail non contrôlé ici : le module arrête la propagation du clic, Bootstrap n'en pose donc aucun (vrai par
@@ -1494,8 +1463,6 @@ if (on('plus')) {
   const lireB = async (c, src) => {
     const o = await ouvrir({ ...c, cle: CLE[c.nom], src });
     const m = await mesurer(o, c.nom);
-    if (ECART73) { await o.page.evaluate(RETIRER_ENTETE_TICKET73); }
-    if (ECART74) { await o.page.evaluate(RETIRER_LISTE_TICKET74); }
     const em = await o.page.evaluate(EMPREINTE_FIL);
     await o.context.close();
     return { m, em, erreurs: o.erreurs };

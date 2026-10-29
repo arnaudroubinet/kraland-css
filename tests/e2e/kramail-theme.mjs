@@ -7,9 +7,8 @@
 //             libellé de 12 px (DESIGN Q14), retrait de 4 px, hauteur >= 44 px ; filet de 2 px dans la ligne des inactifs, filet de
 //             3 px en couleur primaire dans la ligne du seul actif (600), sans bordure basse ; Nouveau, Contacts et « ••• » en carrés
 //             >= 44 px, atteints par elementFromPoint.
-//   bureau  : 768, 769 et 1280 px, deux variantes : styles calculés et rectangles des boutons du titre égaux au bundle de base figé, hors
-//             écart de l'entrée 3 tant que la base la précède (titre, graisse et largeur des boutons : ECART_ENTETE).
-//   bascule : 767, 768, 1280 puis 767 px dans le même onglet : onglets ; à 768 px boutons du titre égaux à la base (hors ECART_ENTETE) et
+//   bureau  : 768, 769 et 1280 px, deux variantes : titre, styles calculés et rectangles des boutons du titre égaux au bundle de base figé.
+//   bascule : 767, 768, 1280 puis 767 px dans le même onglet : onglets ; à 768 px titre et boutons du titre égaux à la base et
 //             h1 aux valeurs calculées de sous-forum-debuter ; à 768 et 1280 px menu de personnage visible, dans l'écran, fermé au clic
 //             extérieur ; puis onglets.
 //   lecture : (épopée 7, entrée 2) une page = un message (relevé du site réel, 2026-10-29). Trois fixtures sur la structure relevée,
@@ -102,14 +101,14 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, domQuiet, styleSettled } from './lib/settle.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
-import { AVANT_TICKET73, choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-// Base figée (A9) : feature/next au départ de l'épopée 7, avant ce ticket.
-const BASE_SHA = '55ae556540e86100216fb3f0a4f089d09bcb72d0';
+// Base figée (A9) : feature/next après les entrées 1 à 8 de l'épopée 7 (recalage du sweep 7.10, ancienne base 55ae556).
+const BASE_SHA = 'd64c5787d2f2636eb600f2204fa3a485d8af8688';
 const BASE_BUNDLE = strip(process.env.KR_SCRIPT_BASE
   ? fs.readFileSync(process.env.KR_SCRIPT_BASE, 'utf8')
   : execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -373,26 +372,14 @@ const RELEVER_BUREAU = () => {
     return o;
   });
 };
-// Écart voulu (épopée 7, entrée 3), base antérieure à l'entrée seulement : au bureau, le titre de la liste prend l'en-tête du sous-forum
-// (comparé à sous-forum-debuter dans entete et bascule) et ses boutons la graisse du sous-forum. Ignorés : le titre, la graisse et la
-// largeur des boutons (largeur et abscisse du rectangle) ; hauteur et position verticale gardées. Retrait au recalage de BASE_SHA après
-// l'entrée 3 : AVANT_TICKET73 devient faux et tout est comparé.
-const ECART73 = AVANT_TICKET73(BASE_BUNDLE);
-const ECART_ENTETE = ECART73 ? new Set(['fontWeight', 'width']) : new Set();
-const RECT_VERTICAL = rect => rect.split(',').filter((v, i) => i % 2 === 1).join(',');
 const egalBase = (r, ref) => {
   expect(r.length === ref.length, `éléments : ${r.length} pour ${ref.length}`);
   r.forEach((e, i) => {
-    if (i === 0 && ECART73) { return; }
-    for (const k of Object.keys(e)) {
-      if (ECART_ENTETE.has(k)) { continue; }
-      const [a, b] = k === 'rect' && ECART73 ? [RECT_VERTICAL(e[k]), RECT_VERTICAL(ref[i][k])] : [e[k], ref[i][k]];
-      expect(a === b, `${e.el} ${k} : ${a} pour ${b}`);
-    }
+    for (const k of Object.keys(e)) { expect(e[k] === ref[i][k], `${e.el} ${k} : ${e[k]} pour ${ref[i][k]}`); }
   });
 };
 if (frag('bureau')) {
-  console.log('bureau égal à la base ' + BASE_SHA.slice(0, 7) + ' (hors en-tête, entrée 3)');
+  console.log('bureau égal à la base ' + BASE_SHA.slice(0, 7));
   const cas = [];
   for (const cle of ['reception', 'envoi', 'corbeille']) { for (const width of [768, 769, 1280]) { for (const variante of ['kraland', DARK]) { cas.push({ cle, width, variante }); } } }
   const res = await mapLimit(cas, async c => {

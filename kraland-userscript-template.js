@@ -6067,6 +6067,30 @@
   })();
 
   // ============================================================================
+  // Listes DataTables du kramail et des contacts (Kramail:Liste, Contacts:Page)
+  // Recherche et « Afficher » nommés d'après le nom des lignes ; sur mobile, un toucher dans la cellule de la case la coche.
+  // ============================================================================
+  function nommerControlesListe(noms) {
+    const search = document.querySelector('#topics_filter input');
+    if (search) {
+      if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
+      if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les ' + noms);}
+    }
+    const length = document.querySelector('#topics_length select');
+    if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de ' + noms + ' par page');}
+  }
+
+  function cocherAuToucher(topics) {
+    topics.addEventListener('click', function (e) {
+      if (!document.body.classList.contains('mobile-mode')) {return;}
+      const td = e.target.closest('td');
+      if (!td || td !== td.parentElement.cells[0] || e.target.closest('input, a')) {return;}
+      const box = td.querySelector('input[type="checkbox"]');
+      if (box) {box.click();}
+    });
+  }
+
+  // ============================================================================
   // MODULE : Kramail:Liste (épopée 7, entrée 4)
   // Les listes Réception, Envoi et Corbeille reprennent la ligne de sujet du sous-forum (CSS : « KRAMAIL — LISTE »), sur les deux supports.
   // - Non lu : icône i.fa-envelope sans fa-envelope-open dans la cellule du message (hypothèse : seul l'état lu, far fa-envelope-open, est relevé
@@ -6097,16 +6121,6 @@
       }
     }
 
-    function nameControls() {
-      const search = document.querySelector('#topics_filter input');
-      if (search) {
-        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
-        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les messages');}
-      }
-      const length = document.querySelector('#topics_length select');
-      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de messages par page');}
-    }
-
     function initKramailListe() {
       if (!document.documentElement.classList.contains('kr-page-kramail-liste')) {return;}
       const topics = document.getElementById('topics');
@@ -6114,17 +6128,11 @@
       const envoi = /-1$/.test(location.pathname);
       const processAll = () => {
         if (!envoi) {Array.from(topics.tBodies).forEach(body => Array.from(body.rows).forEach(processRow));}
-        nameControls();
+        nommerControlesListe('messages');
       };
       processAll();
       new MutationObserver(processAll).observe(topics.parentElement, { childList: true, subtree: true });
-      topics.addEventListener('click', function (e) {
-        if (!document.body.classList.contains('mobile-mode')) {return;}
-        const td = e.target.closest('td');
-        if (!td || td !== td.parentElement.cells[0] || e.target.closest('input, a')) {return;}
-        const box = td.querySelector('input[type="checkbox"]');
-        if (box) {box.click();}
-      });
+      cocherAuToucher(topics);
     }
 
     InitQueue.register('Kramail:Liste', initKramailListe, 27);
@@ -6158,16 +6166,6 @@
       });
     }
 
-    function nameControls() {
-      const search = document.querySelector('#topics_filter input');
-      if (search) {
-        if (!search.getAttribute('placeholder')) {search.setAttribute('placeholder', 'Rechercher…');}
-        if (!search.hasAttribute('aria-label')) {search.setAttribute('aria-label', 'Rechercher dans les contacts');}
-      }
-      const length = document.querySelector('#topics_length select');
-      if (length && !length.hasAttribute('aria-label')) {length.setAttribute('aria-label', 'Nombre de contacts par page');}
-    }
-
     function initContacts() {
       if (!document.documentElement.classList.contains('kr-page-contacts')) {return;}
       const col = document.getElementById('col-right');
@@ -6192,17 +6190,11 @@
       const processAll = () => {
         // « Changer de catégorie » (span#ajax-tN) garde sa classe d'état native : elle dit la catégorie du contact
         sansEtat(Array.from(topics.querySelectorAll('tbody a.btn')).filter(a => !a.closest('span[id^="ajax-t"]')));
-        nameControls();
+        nommerControlesListe('contacts');
       };
       processAll();
       new MutationObserver(processAll).observe(topics.parentElement, { childList: true, subtree: true });
-      topics.addEventListener('click', function (e) {
-        if (!document.body.classList.contains('mobile-mode')) {return;}
-        const td = e.target.closest('td');
-        if (!td || td !== td.parentElement.cells[0] || e.target.closest('input, a')) {return;}
-        const box = td.querySelector('input[type="checkbox"]');
-        if (box) {box.click();}
-      });
+      cocherAuToucher(topics);
     }
 
     InitQueue.register('Contacts:Page', initContacts, 27);

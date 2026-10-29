@@ -28,24 +28,20 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
-import { AVANT_TICKET45, AVANT_TICKET47, AVANT_TICKET48, AVANT_TICKET49, COMPOSANTS_TICKET4, ECHELLE_TICKET45, ECHELLE_TICKET47, ESPACEMENT_TICKET49, JETONS_REDEFINIS, RAYONS_TICKET48, TEXTE_SECONDAIRE_CLAIR, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-// Bundle « avant » : celui de la base (feature/next) tel que commité, sauf KR_SCRIPT_AVANT. Non-régression (regression) : sur une base
-// antérieure à l'épopée 3, ticket 1, les jetons que ce ticket redéfinit (lib/variantes.mjs, JETONS_REDEFINIS) sont posés par-dessus : seul
-// un écart qui vient d'eux est accepté (consigné dans le plan de ce ticket).
+// Bundle « avant » : base figée (A9) d64c578, feature/next après les entrées 1 à 8 de l'épopée 7 (recalage du sweep 7.10), sauf
+// KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure.
+const BASE_SHA = 'd64c5787d2f2636eb600f2204fa3a485d8af8688';
 function bundleAvant() {
   if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
-  for (const ref of ['origin/feature/next', 'feature/next']) {
-    try { return strip(execFileSync('git', ['show', `${ref}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })); } catch (_e) { /* ref suivante */ }
-  }
-  return null;
+  try { return strip(execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })); } catch (_e) { return null; }
 }
 const SHOTS = process.env.KR_SHOTS || '';
-// Superposition mobile retirée par l'entrée 9.6, encore posée par le bundle « avant » (feature/next) : voir regression.
+// Superposition mobile retirée par l'entrée 9.6, encore posée par le bundle « avant » (d64c578) : voir regression.
 const MASQUE_SUPERPOSITION_96 = '.kr-mobile-overlay';
 const FA_DIR = process.env.KR_FA_DIR || '';
 const BASE = 'http://www.kraland.org';
@@ -218,43 +214,6 @@ async function open({ width, page = 'nouveau', bundle = 'apres', variant = DARK,
   return { context, page: p, state, errors };
 }
 const AVANT = bundleAvant();
-// Écart accepté et consigné (épopée 7, entrée 1) : bundle « avant » antérieur aux gardes de page du kramail. Condition de retrait : base
-// figée (A9) ou base qui contient déjà l'entrée ; sur une telle base, rien n'est retiré de la comparaison.
-const AVANT_TICKET71 = !!AVANT && !AVANT.includes('kr-page-kramail-');
-// Bundle « avant » antérieur à l'épopée 7, entrée 2 (lecture au rendu du message de sujet, module Kramail:Lecture). Nom du module =
-// repère de retrait : le masque tombe dès que le bundle « avant » contient 'Kramail:Lecture'.
-const AVANT_TICKET72 = !!AVANT && !AVANT.includes('Kramail:Lecture');
-// Bundle « avant » antérieur à l'épopée 7, entrée 3 (en-tête du sous-forum sur la liste et la lecture, module Kramail:CharacterSwitcher).
-// Classe de l'en-tête = repère de retrait : le masque tombe dès que le bundle « avant » contient 'kr-kramail-entete'.
-const AVANT_TICKET73 = !!AVANT && !AVANT.includes('kr-kramail-entete');
-// Bundle « avant » antérieur à l'épopée 7, entrée 4 (listes au rendu de la liste des sujets du sous-forum, module Kramail:Liste). Nom du
-// module = repère de retrait : le masque tombe dès que le bundle « avant » contient 'Kramail:Liste'.
-const AVANT_TICKET74 = !!AVANT && !AVANT.includes('Kramail:Liste');
-// Jetons redéfinis par l'épopée 3, ticket 1, en feuille adoptée (lib/variantes.mjs) : code d'initialisation du bundle « avant » (regression),
-// seulement si ce bundle précède le ticket (il ne déclare pas --kr-text-accent). Sur une base qui le contient déjà, rien n'est posé : un
-// ticket suivant qui redéfinirait l'un de ces jetons n'est pas comparé à des valeurs figées.
-const JETONS_AVANT = AVANT && !AVANT.includes('--kr-text-accent:') ? `(${poserJetonsRedefinis})(${JSON.stringify(JETONS_REDEFINIS)});` : null;
-// Bundle « avant » antérieur à l'épopée 3, ticket 4 : il déclare encore le texte atténué du clair à #6b7280. Sur une base qui contient déjà
-// le ticket, rien n'est posé ni masqué.
-const AVANT_TICKET4 = !!AVANT && AVANT.includes('--kr-text-secondary:#6b7280');
-// Texte atténué du clair à #636a77 (Q26) : posé sur ce bundle « avant », seul écart de ce jeton accepté.
-const SECONDAIRE_AVANT = AVANT_TICKET4 ? `(${poserJetonsRedefinis})(${JSON.stringify(TEXTE_SECONDAIRE_CLAIR)});` : null;
-// Écart accepté et consigné (épopée 4, ticket 5) : titres des en-têtes de panneau en 17 px / 700 et échelle mobile des titres en px, posés
-// sur un bundle « avant » antérieur au ticket (ECHELLE_TICKET45) ; sur une base qui le contient déjà, rien n'est posé.
-const ECHELLE_AVANT = AVANT && AVANT_TICKET45(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(ECHELLE_TICKET45)});` : null;
-// Écart accepté et consigné (épopée 4, ticket 7) : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d'un kramail
-// lu 15 px sur mobile), posée sur un bundle « avant » antérieur au ticket (ECHELLE_TICKET47) ; sur une base qui le contient déjà, rien n'est posé.
-const ECHELLE_FORUM_AVANT = AVANT && AVANT_TICKET47(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(ECHELLE_TICKET47)});` : null;
-// Écart accepté et consigné (épopée 4, ticket 8) : rayons ramenés aux trois rôles (contrôles 4 px, cartes et panneaux 8 px), posés sur un
-// bundle « avant » antérieur au ticket (RAYONS_TICKET48) ; sur une base qui le contient déjà, rien n'est posé.
-const RAYONS_AVANT = AVANT && AVANT_TICKET48(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(RAYONS_TICKET48)});` : null;
-// Écart accepté et consigné (épopée 4, ticket 9) : grille d'espacement au pas de 4 px, posée sur un bundle « avant » antérieur au ticket
-// (ESPACEMENT_TICKET49) ; sur une base qui la contient déjà, rien n'est posé.
-const ESPACEMENT_AVANT = AVANT && AVANT_TICKET49(AVANT) ? `(${poserJetonsRedefinis})(${JSON.stringify(ESPACEMENT_TICKET49)});` : null;
-// Écart accepté et consigné (ticket 4), sur ce bundle « avant » seulement : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard
-// passés aux jetons qui changent avec le mode (COMPOSANTS_TICKET4) : marqués dans les deux bundles, puis masqués sur les deux captures ;
-// tout autre écart reste détecté.
-const MARQUER_COMPOSANTS = sel => { const l = document.querySelectorAll(sel); l.forEach(e => e.setAttribute('data-kr-composant', '')); return l.length; };
 // Écart accepté et consigné (épopée 3, ticket 2) : texte et fond posés sur la couleur de nation passent à la paire d'action (Empire Brun
 // sombre : texte des dossiers #f5f1ed -> blanc). Les éléments dont le fond propre est une couleur de nation (primaire, primaire foncée,
 // --kr-arm-bg, --kr-arm-bg-hover, mesurées dans chaque bundle) sont marqués, puis masqués sur les deux captures ; tout autre écart reste
@@ -1326,23 +1285,10 @@ if (frag('indicatif')) {
 // =====================================================================================================
 if (frag('regression')) {
   console.log('Non-régression : réception, envoi, corbeille, lecture rendues avec le bundle d\'avant et celui d\'après (1280 / 375 / 320)');
-  if (JETONS_AVANT) { console.log('  info écart accepté et consigné : jetons redéfinis par l\'épopée 3, ticket 1 (--kr-primary-dark, --kr-highlight-reverse, --kr-alert-info-*, --kr-btn-shadow), posés sur le bundle « avant », antérieur au ticket'); }
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
-  if (AVANT_TICKET4) {
-    console.log('  info écart accepté et consigné : texte atténué du clair à #636a77 posé sur le bundle « avant » (épopée 3, ticket 4, Q26)');
-    console.log('  info écart accepté et consigné : en-têtes, pieds, en-têtes de tableau, onglets et boutons standard (épopée 3, ticket 4) masqués sur les deux captures');
-  }
-  if (ECHELLE_AVANT) { console.log('  info écart accepté et consigné : titres des en-têtes de panneau en 17 px / 700 et échelle mobile des titres en px (h1-h3 17 px, h4-h6 15 px), .xmini et liens du pied de page en 12 px, posés sur le bundle « avant » (épopée 4, ticket 5)'); }
-  if (ECHELLE_FORUM_AVANT) { console.log('  info écart accepté et consigné : échelle du forum et du kramail (sujet 15 px, expéditeur et date 13 px, corps d\'un kramail lu 15 px sur mobile) posée sur le bundle « avant » (épopée 4, ticket 7)'); }
-  if (RAYONS_AVANT) { console.log('  info écart accepté et consigné : rayons des pages du kramail aux trois rôles (contrôles 4 px, cartes et panneaux 8 px, en-tête de panneau 7 px sur ordinateur) posés sur le bundle « avant » (épopée 4, ticket 8)'); }
-  if (ESPACEMENT_AVANT) { console.log('  info écart accepté et consigné : grille d\'espacement au pas de 4 px (en-têtes et corps de panneau, panneaux et liens mobiles) posée sur le bundle « avant » (épopée 4, ticket 9)'); }
-  if (AVANT_TICKET71) { console.log('  info écart accepté et consigné : gardes de page du kramail sur <html> et dossiers en onglets sous 768 px (épopée 7, entrée 1), dossiers du titre des listes mobiles retirés des deux rendus'); }
-  if (AVANT_TICKET72) { console.log('  info écart accepté et consigné : lecture au rendu du message de sujet (épopée 7, entrée 2), boutons du titre, barre d\'actions et messages de la lecture retirés des deux rendus'); }
-  if (AVANT_TICKET73) { console.log('  info écart accepté et consigné : en-tête du sous-forum sur la liste et la lecture (épopée 7, entrée 3), titre h1 retiré des deux rendus'); }
-  if (AVANT_TICKET74) { console.log('  info écart accepté et consigné : lignes du sous-forum sur Réception, Envoi et Corbeille (épopée 7, entrée 4), tableau #topics des listes retiré des deux rendus'); }
   if (!AVANT) {
-    check('bundle « avant » disponible (origin/feature/next ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
+    check('bundle « avant » disponible (base d64c578 ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
     // 12 combinaisons page × largeur indépendantes (contextes propres) capturées en parallèle (lib/parallele.mjs) ; dans chacune, avant
     // puis après en série comme auparavant. Notes et vérifications ensuite, dans l'ordre.
@@ -1352,37 +1298,21 @@ if (frag('regression')) {
       const doms = {};
       let texteColore = null;
       for (const bundle of ['avant', 'apres']) {
-        // Écart accepté et consigné : jetons redéfinis par l'épopée 3, ticket 1, posés sur un bundle « avant » antérieur au ticket, dès le
-        // début du document.
-        const init = bundle === 'avant' ? [JETONS_AVANT, SECONDAIRE_AVANT, ECHELLE_AVANT, ECHELLE_FORUM_AVANT, RAYONS_AVANT, ESPACEMENT_AVANT].filter(Boolean).join('\n') || null : null;
-        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900, init });
+        const { context, page: p, state, errors } = await open({ width, page: pg, bundle, height: 900 });
         await p.evaluate(() => {
           document.querySelectorAll('*').forEach(e => { e.style.transition = 'none'; e.style.animation = 'none'; e.style.caretColor = 'transparent'; });
           // Seule différence attendue entre les deux bundles : leur numéro de version, affiché en pied de page
           const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
           while (w.nextNode()) { if (/1\.0\.\d{10,}/.test(w.currentNode.nodeValue)) { w.currentNode.nodeValue = w.currentNode.nodeValue.replace(/1\.0\.\d{10,}/g, '1.0.X'); } }
         });
-        // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste seulement (pas sur …/post/…) sous 768 px, les dossiers du titre (Réception, Envoi, Corbeille, en
-        // onglets, couverts par la suite kramail-theme) sont retirés des deux côtés avant tout relevé ; tout le reste de la page reste comparé.
-        if (AVANT_TICKET71 && width < 768) { await p.evaluate(() => { if (/\/kramail\/post\//.test(location.pathname)) { return; } document.querySelectorAll('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])').forEach(a => a.remove()); }); }
-        // Écart accepté et consigné (épopée 7, entrée 2) : sur la lecture seulement, boutons du titre, barre d'actions et messages (couverts
-        // par kramail-theme, fragments lecture*) retirés des deux côtés avant tout relevé ; titre, menu, pagination et pied restent comparés.
-        if (AVANT_TICKET72 && pg === 'lecture') { await p.evaluate(() => { document.querySelectorAll('h1.page-header .pull-right, .forum-top, ul.media-list.forum').forEach(e => e.remove()); }); }
-        // Écart accepté et consigné (épopée 7, entrée 3) : titre h1 de la liste et de la lecture (couvert par kramail-theme, fragments entete*)
-        // retiré des deux côtés avant tout relevé ; le reste de la page reste comparé.
-        if (AVANT_TICKET73) { await p.evaluate(() => { document.querySelectorAll('#col-right h1.page-header').forEach(e => e.remove()); }); }
-        // Écart accepté et consigné (épopée 7, entrée 4) : sur une liste seulement, tableau #topics (couvert par kramail-theme, fragments
-        // liste*) retiré des deux côtés avant tout relevé ; titre, panneau, menu et pied restent comparés.
-        if (AVANT_TICKET74) { await p.evaluate(() => { if (/\/kramail\/post\//.test(location.pathname)) { return; } document.querySelectorAll('#topics_wrapper, #topics').forEach(e => e.remove()); }); }
         const paire = await p.evaluate(MARQUER_PAIRE);
         texteColore = await p.evaluate(MARQUER_TEXTE_COLORE, texteColore);
-        const composants = AVANT_TICKET4 ? await p.evaluate(MARQUER_COMPOSANTS, COMPOSANTS_TICKET4) : 0;
         // Écart accepté et consigné (entrée 9.6) : superposition mobile .kr-mobile-overlay (display: none en body.mobile-mode) posée par le
-        // bundle « avant » et retirée depuis, hors du compte des éléments. Retirer quand feature/next contient l'entrée 9.6.
-        doms[bundle] = await p.evaluate(([sansGardes, sel]) => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: sansGardes ? [...document.documentElement.classList].filter(k => !k.startsWith('kr-page-kramail')).join(' ') : document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), [AVANT_TICKET71, MASQUE_SUPERPOSITION_96]);
+        // bundle « avant » et retirée depuis, hors du compte des éléments. Retirer quand la base contient l'entrée 9.6.
+        doms[bundle] = await p.evaluate(sel => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length - document.querySelectorAll(sel).length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }), MASQUE_SUPERPOSITION_96);
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore], [data-kr-composant]')] });
+        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore]')] });
         let prev = await capture();
         for (let i = 0; i < 6; i++) {
           await p.waitForTimeout(150);
@@ -1393,7 +1323,6 @@ if (frag('regression')) {
         shots[bundle] = prev;
         if (SHOTS && bundle === 'apres') { fs.writeFileSync(path.join(SHOTS, `regression-${pg}-${width}.png`), shots[bundle]); }
         doms[bundle].paire = paire;
-        doms[bundle].composants = composants;
         doms[bundle].unexpected = unexpected(state);
         doms[bundle].errors = errors.length;
         await context.close();

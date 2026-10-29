@@ -81,7 +81,7 @@ export const SUITES = [
   // typographie-echelle.html (Matériel), Personnage, plateau, sous-forum, kramail ; en-têtes 17 px / 700, noms 15 px / 600, détails 13 px, texte
   // 15 px mobile, plancher de 12 px sur le plateau mobile, onglet « Personnage » entier à 360 et 375 px, jetons redéfinis suivis. Échelle du
   // forum et du kramail (ticket 7, fragment echelle-forum) : index, sous-forum, sujet, rédaction, kramail ; noms 15 px, détails 13 px, plancher
-  // de 12 px sur mobile, masque miroir ECHELLE_TICKET47 sur le bundle de base. Trois rayons (ticket 8, fragment rayons) : plateau, sujet,
+  // de 12 px sur mobile. Trois rayons (ticket 8, fragment rayons) : plateau, sujet,
   // rédaction, index RP, sous-forum, kramail, modale d'ordre ; rôles 4 px, 8 px, 7 px et plein mesurés, jetons redéfinis suivis, bascule,
   // contrôle statique des littéraux. Grille d'espacement (ticket 9, fragment espacement) : plateau, forum, kramail, modale d'ordre,
   // Interface, composants ; retraits, marges et écarts au jeton, exceptions égales au bundle de base, jetons redéfinis suivis. Nettoyage (ticket 10,
@@ -207,11 +207,11 @@ export const KEYWORDS = [
   // Matériel, Bâtiments, Employés (ticket 6, fragment echelle) : détails de ligne des pages de jeu (aussi les lignes du commerce du plateau)
   // et objets déplacés du panneau Matériel du plateau ; classe de page du plateau (exclu de ces règles, posée par le template).
   [/list-group-item-text|kr-materiel-moved|kr-page-plateau/, ['typographie-formes', 'plateau']],
-  // Trois rayons (ticket 8, fragment rayons) : tout rayon et ses jetons ; kramail aussi, dont la non-régression pose le masque miroir
-  // RAYONS_TICKET48 sur le bundle de base.
+  // Trois rayons (ticket 8, fragment rayons) : tout rayon et ses jetons ; kramail aussi, dont la non-régression compare les rendus au
+  // bundle de base.
   [/border(?:-[a-z]+)*-radius|--kr-radius|--mobile-radius/, ['typographie-formes', 'kramail']],
   // Grille d'espacement (ticket 9, fragment espacement) : tout emploi d'un jeton d'espacement ; zones dont les suites comparent des retraits,
-  // des positions ou des hauteurs au bundle de base (masque miroir ESPACEMENT_TICKET49).
+  // des positions ou des hauteurs au bundle de base.
   [/--kr-space-\d/, ['typographie-formes', 'forum', 'sous-forum', 'kramail', 'plateau', 'modale-ordre', 'cybermonde']],
   // Composants génériques de Bootstrap (en-têtes de panneau, titres d'élément de liste) : cités par plus de MAX_CITING suites, ils lancent
   // toutes les zones qui les rendent ou les comparent (forum-index, sous-forum, kramail-redaction, modale-ordre, cybermonde-carte,
