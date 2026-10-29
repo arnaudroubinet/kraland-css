@@ -135,6 +135,9 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 ## Visites du site réel faites en autonomie (lecture seule)
 
+- 2026-10-29 : relevé de structure (agent releve-membres, Chrome dédié, nouvel onglet fermé ensuite) : `/communaute/membres`, `/aide` (lecture des onclick), `/help`, `/help/staff`, à 375 et 1280 px. GET et évaluations seulement, aucun clic ni saisie, variante inchangée, `/report` non visité. Relevé hors dépôt dans `/tmp/kr-releve-membres/releve.md`.
+- 2026-10-29 : `/accueil` rechargé (GET), vérification du 8.2 par évaluation, `window.open` sondé ; aucun clic, aucune requête vers `/report`.
+
 - 2026-10-29 : `/accueil` déjà ouvert (Chrome dédié), lecture de `openReport`, des balises `<script>` et du onclick de la cloche par évaluation, sans clic ni navigation. Inconnue du 8.2 levée (champ `resolved` de l'entrée).
 
 - 2026-10-29 : relevé de structure (agent releve-site, Chrome dédié) : kramail (4 messages lus de la Réception et de l'Envoi), page Signaler, Interface, Contacts, `/aide` et `/help`. Variante non modifiée, aucun clic d'action. `/report` non visité : la cloche était active. Effet de bord possible : un sujet du forum Entraide ouvert en GET est peut-être passé en lu. Relevé hors dépôt dans `/tmp/kr-releve-2026-10-28/releve.md`.
@@ -731,3 +734,4 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Les options du popup (barre d'outils, défilement, etc.) sont recopiées de `main.js` (kraland-7.0.9). Seules la largeur et la hauteur changent. Si le site change ces options, le userscript garde les anciennes ; un test compare désormais ces options à celles de `tests/e2e/vendor/parler/main.js` et signale une dérive quand la copie de main.js est rafraîchie. À trancher : accepter, ou relire les options natives au clic.
 - Peau coupée, la cloche garde le popup natif de 600×600, y compris quand la peau est coupée sans rechargement de la page. Choix pris par défaut (garde de peau des nouveaux modules, M10). À revoir si tu veux le 900×800 sans la peau.
 - De 768 à 991 px, la cloche reste invisible tant que le menu est fermé (D12, ta décision attendue) ; menu ouvert, elle ouvre le popup 900×800.
+- Vérifié le 2026-10-29 après fusion (5f5d299), Chrome dédié, Tampermonkey réel, `/accueil` rechargé, 1280 px, Empire Brun sombre : `openReport.krReportPopup === true`, et `openReport()` sous `window.open` sondé appelle `report`, `private_report`, `width=900,height=800,…` ; aucun clic, aucune requête vers `/report`. Reste Firefox, pour la passe finale d'Arnaud.
