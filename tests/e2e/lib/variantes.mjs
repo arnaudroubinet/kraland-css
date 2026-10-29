@@ -119,6 +119,22 @@ export const AVANT_TICKET45 = bundle => !bundle.includes('h1,h2,h3{font-size:var
 export const TITRE_FORUM_REGLE_BUG10 = ':is(h1,h2,h3):where(:not(.forum-title)){font-size:var(--kr-font-section-title)!important}';
 /** Bundle d'avant le bug 10 : la règle mobile des titres h1-h3 n'y exclut pas encore le nom de forum (TITRE_FORUM_REGLE_BUG10 absente). */
 export const AVANT_BUG10 = bundle => !bundle.includes(TITRE_FORUM_REGLE_BUG10);
+/** Règle globale des champs d'avant le bug 14, telle que minifiée : taille .95rem et retrait .6rem .8rem (9,5 px et 6 × 8 px sur ordinateur). */
+const CHAMPS_REGLE_AVANT_BUG14 = /(\.form-control\.form-control\{[^}]*);padding:\.6rem \.8rem;font-size:\.95rem\}/;
+/** Bundle d'avant le bug 14 : la règle globale des champs pose encore taille et retrait en rem. */
+export const AVANT_BUG14 = bundle => CHAMPS_REGLE_AVANT_BUG14.test(bundle);
+/**
+ * Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : la base reçoit la règle réécrite comme dans le bundle (taille et
+ * retrait retirés). Sans effet sur une base qui contient déjà le correctif : se retire seul au recalage des COMMIT_* au-delà du bug 14.
+ * Base encore en .95rem sous une autre forme minifiée : rien n'est remplacé, avertissement au journal (le test ne tombe pas pour autant).
+ */
+export const CORRIGER_BUG14 = bundle => {
+  const corrige = bundle.replace(CHAMPS_REGLE_AVANT_BUG14, '$1}');
+  if (corrige === bundle && /\.form-control\.form-control\{[^}]*\.95rem/.test(bundle)) {
+    console.warn('CORRIGER_BUG14 : base d\'avant le bug 14 non reconnue (règle .form-control.form-control en .95rem), aucun remplacement');
+  }
+  return corrige;
+};
 /**
  * Échelle typographique du forum et du kramail (épopée 4, ticket 7 ; DESIGN.md › Typography). Masque miroir : chaque règle reprend le
  * sélecteur, le média et le drapeau !important de la règle dont le bundle réécrit la taille (ou à laquelle il l'ajoute : auteur du dernier

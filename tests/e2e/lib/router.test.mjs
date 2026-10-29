@@ -40,14 +40,14 @@ check('viewport des ordres et fixture Parler : zone parler', () => {
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
   assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
 });
-check('Notifications /report (kr-page-report) : zone report (et confort-mobile pour la ligne de KR_PAGE_CLASSES), suite -> report-non-lu seule ; fixture -> report-non-lu et palette-nation (balayage)', () => {
+check('Notifications /report (kr-page-report) : zone report (et confort-mobile pour la ligne de KR_PAGE_CLASSES), suite -> report-non-lu seule ; fixture -> report-non-lu, palette-nation (balayage) et typographie-formes (champs)', () => {
   assert.deepEqual(route('kraland-theme.css', hunk('html.kr-page-report table > tbody > tr.bg-info {', 'html.kr-page-report table > tbody > tr.bg-info { color: inherit; }')).zones, ['report']);
   const t = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/report(?:\\/|$)/.test(pathname), classes: ['kr-page-report', 'kr-marge-mobile'] }"));
   assert.deepEqual([...t.zones].sort(), ['confort-mobile', 'report']); // 9.10 : ligne /report de KR_PAGE_CLASSES (marge mobile)
   assert.equal(t.widened, false);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation']); // 9.10 : /report sort du hors périmètre de confort-mobile
+  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'typographie-formes']); // 9.10 : /report sort du hors périmètre de confort-mobile ; bug 14 : sélecteur mesuré par typographie-formes (champs)
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
   assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort']]); // 8.1 : fenêtre 600 remplacée ; 8.3 : haut de page ; 9.10 : confort
 });

@@ -85,9 +85,10 @@ export const SUITES = [
   // contrôle statique des littéraux. Grille d'espacement (ticket 9, fragment espacement) : plateau, forum, kramail, modale d'ordre,
   // Interface, composants ; retraits, marges et écarts au jeton, exceptions égales au bundle de base, jetons redéfinis suivis. Nettoyage (ticket 10,
   // fragment nettoyage) : styles calculés égaux au bundle de base après retrait des déclarations mortes, médias au seuil 767/768. Nom de forum
-  // des cartes mobiles (bug 10, fragment titre-forum) : h3.forum-title de Staff en 15 px, autres titres h1-h3 égaux au bundle de base. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
+  // des cartes mobiles (bug 10, fragment titre-forum) : h3.forum-title de Staff en 15 px, autres titres h1-h3 égaux au bundle de base. Champs .form-control (bug 14, fragment champs) : input, select et textarea en 14 px et retrait 6 × 12 px natifs sur
+  // ordinateur, .input-sm / .input-lg natifs, mobile égal au bundle de base. Mot-clé : composants mesurés (pas l'emploi du jeton, pour qu'une retouche de .label, .badge garde son élargissement) ; une déclaration
   // de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum']], needsBootstrap: true },
+  { name: 'typographie-formes', file: 'typographie-formes.mjs', zones: ['typographie-formes'], frags: [['jetons'], ['mobile'], ['bureau'], ['mini-profil'], ['bascule'], ['boutons'], ['boutons-bascule'], ['compact'], ['echelle'], ['echelle-forum'], ['rayons'], ['espacement'], ['nettoyage'], ['titre-forum'], ['champs']], needsBootstrap: true },
   // Cartes et pastilles (épopée 5, entrée 1) : carte de section mobile des pages de jeu, du kramail et des règles (8 px des bords, en-tête de
   // 48 px collé au contenu, titre en couleur du texte), module « Panel Sections Collapse » (chevron dans le flux, repli en 48 px, tap mesuré),
   // contrôles statiques ; ordinateur (768 à 1920) égal au bundle de base, bascule 767/768 dans les deux sens, contraste des 16 variantes.

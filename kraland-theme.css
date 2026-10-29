@@ -639,11 +639,11 @@ html.kr-hide-footer-quote .footer-quote {
    4. FORMS
    ============================================================================ */
 
+/* Taille et retrait des champs : natifs de Bootstrap (14 px, 6 × 12 px, .input-sm et .input-lg compris ; bug 14, 1 rem vaut 10 px).
+   Le textarea prend le retrait natif ; sa taille est celle de textarea.form-control.form-control. Mobile : règle .form-control en !important. */
 .form-control.form-control {
   border-radius: var(--kr-radius-sm);
   border: 1px solid rgb(0,0,0,0.08);
-  padding: .6rem .8rem;
-  font-size: .95rem;
 }
 
 /* Grille d'espacement au pas de 4 px (H11.2) : natifs de Bootstrap sans règle d'origine dans la peau, réécrits au rôle. Inerte sur mobile

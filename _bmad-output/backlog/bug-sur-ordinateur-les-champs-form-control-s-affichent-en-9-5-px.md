@@ -6,7 +6,7 @@ parent: none
 covers: []
 after: []
 assignee: ""
-refined: false
+refined: true
 hitl: false
 risk: medium
 severity: P2
@@ -71,6 +71,11 @@ La règle globale des champs exprime sa taille et son retrait en rem, comme si 1
   - `textarea.form-control.form-control` (~l.678) pose `1.4rem !important`, soit 14 px : le champ de rédaction n'a pas le défaut, par coïncidence avec la base de 10 px.
   - Halos de focus en rem : `.18rem` (~l.673, 1,8 px) et `.12rem` (~l.698, 1,2 px). Même base, effet minime.
   - Les autres `font-size` en rem (modale d'ordre `.bootbox-confirm` ~l.1362-2163, légende du carrousel ~l.4390-4396) sont toutes dans `@media (max-width: 767px)`. Elles se calculent aussi sur 10 px, mais sont hors de ce ticket (mobile inchangé).
+- Decision: taille cible 14 px (`--kr-font-body`, natif Bootstrap) pour les `input` et `select` `.form-control` hors mobile (orchestrateur, 2026-10-29).
+- Decision: le retrait intérieur suit : retour aux 6 × 12 px natifs pour les `input` et `select` (orchestrateur, 2026-10-29).
+- Decision: halos de focus en rem et tailles rem des règles mobiles hors périmètre, consignés dans `_bmad-output/initiative-harmonisation-ux/deferred-work.md` (orchestrateur, 2026-10-29).
+- Decision: `.input-sm` et `.input-lg` gardent leurs tailles natives Bootstrap ; vérifier que la peau ne les écrase pas (orchestrateur, 2026-10-29).
+- Decision: le `textarea` `.form-control` prend aussi le retrait natif 6 × 12 px, texte aligné sur le select voisin (orchestrateur, revue, 2026-10-29).
 - Captures et mesures hors dépôt : `/Users/arnaud/kraland-css-captures/8.5/` (`popup-900x800-notifications-kraland.png`, `popup-900x800-notifications-empire-brun-dark.png`, `mesures.txt` : lignes « peau 900 » et « native 900 »). Scripts `mesure.mjs` et `mesure2.mjs` : chemins du worktree `kraland-css-wt85` en dur.
 - Assumption: le défaut vaut pour toute largeur ≥ 768 px, déduit de la règle globale ; mesuré à 900 px seulement (`mesures.txt`). Le critère 1 le mesure à 768 et 1280 px.
 - Open question: `.input-sm` (12 px) et `.input-lg` (18 px) de Bootstrap sont aussi battus par la règle globale, de spécificité plus forte. Aucun emploi connu dans les fixtures. À vérifier au plan.

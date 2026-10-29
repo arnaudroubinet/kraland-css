@@ -94,7 +94,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
-import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { ACTIVITE_TICKET62 as A, AVANT_TICKET73, AVANT_TICKET95, CIBLES_TICKET95, CONTRASTE, CORRIGER_BUG14, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, RETIRER_ENTETE_TICKET73, VARIANTES as TOUTES_VARIANTES, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE, TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -634,8 +634,10 @@ const EMPREINTE_FIL = () => {
 
 const COMMIT_FIL = '6270c81';
 if (on('fil')) {
-  const baseFil = strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
-    : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  // Écart voulu du bug 14 (champs .form-control natifs sur ordinateur) : base corrigée par CORRIGER_BUG14, sans effet une fois
+  // COMMIT_FIL recalé au-delà du bug 14.
+  const baseFil = CORRIGER_BUG14(strip(process.env.KR_SCRIPT_AVANT_FIL ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_FIL, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_FIL}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
   Object.assign(PAGES, pagesFil());
   console.log(`\n== fil : fil d'Ariane commun de l'index et du sous-forum, 375 et 767 px (variantes ${VARIANTES.join(' et ')}) ; contraste (16 variantes) ; sujet, réponse et hors forum égaux à ${COMMIT_FIL} ; seuil, bascule, bureau ==`);
   const lireFil = async (o, empreinte = false) => {

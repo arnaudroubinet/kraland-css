@@ -832,3 +832,12 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - Liens au fil du texte des lignes (56 × 44, venus de PHASE 5) : non touchés (exception H9.1).
 - Fusion : conflit attendu avec 9.8 dans `tests/e2e/confort-mobile.mjs` (liste `PAGES`/`HORS`) et dans `tests/e2e/lib/router.mjs` (mots-clés de la marge).
 - Aucun masque ajouté. `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.
+
+## Bug 14 — champs à 9,5 px sur ordinateur (2026-10-29)
+
+- Textarea : décision prise (orchestrateur, 2026-10-29, « retrait 6 × 12 natif ») : la règle `:where(textarea)` est supprimée. Le textarea prend le 6 × 12 natif : son texte est aligné à 12 px, comme le select voisin (forum-nouveau-sujet, 1280 px ; il était décalé de 4 px). Taille inchangée (`textarea.form-control.form-control`).
+- Masques ajoutés (écart voulu, base corrigée par `CORRIGER_BUG14` de `tests/e2e/lib/variantes.mjs`, sans effet sur une base qui contient déjà le correctif) : `typographie-formes.mjs` (bases `avantEchelle`, `avantEchelleForum`, `avantEspacement`, `avantNettoyage`, `avantMedias410`) et `forum-activite.mjs` (`baseFil`). Retrait au recalage des COMMIT_* au-delà du bug 14.
+- `kramail-redaction#regression` (capture pleine page « lecture 375 px », 30 pixels, écart max de 2 par canal) : échec sous charge (load ~40), vert relancé seul. Flake présumé, non lié (mobile inchangé).
+- Non couverts par les fixtures, à voir lors de la passe manuelle : la recherche DataTables (`.input-sm`, 12 px natif) et le select de la modale d'ordre sur ordinateur.
+- Le ticket cite la base 2bdc8e1 ; base réellement mesurée et notée dans le plan : 5638f29.
+- `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.
