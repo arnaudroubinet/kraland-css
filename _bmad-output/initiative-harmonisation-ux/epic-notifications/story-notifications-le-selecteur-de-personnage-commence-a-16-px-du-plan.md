@@ -8,7 +8,7 @@ baseline_revision: '5f5d29917cf40521824c2db44f152317f823821c'
 route: 'oneshot'
 route_source: 'auto'
 risk: 'low'
-review: ''
+review: 'quick'
 review_source: ''
 lenses_ran: ['quick']
 review_loop_iteration: 0
@@ -69,6 +69,8 @@ Passe 1 (revue indépendante, 2026-10-29) : approuvable sous réserve ; 7 consta
 ## Result
 
 Provisoire, implémenteur ; revue indépendante à faire. Base `5f5d29917cf40521824c2db44f152317f823821c`, worktree `wt/8.3`, non commité.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (9f41971) et fusionné sur `feature/next` ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777`.
 
 - Rouge avant : `KR_SCRIPT=/tmp/kr83/base.user.js KR_FRAG=haut node tests/e2e/report-non-lu.mjs` (bundle `git show 5f5d299:kraland-userscript-main.user.js`, `kr-theme-variant-*` vérifié) : exit 1, 28 FAIL (16 largeurs + 12 étapes de bascule, « haut du bandeau 70 px (padding-top du body 60px, marge 10px) ») ; portée hors `/report` verte.
 - Contre-épreuves (copies mutées du bundle dans /tmp/kr83) : règle retirée → 28 FAIL ; `- 7px` (19 px) → 28 FAIL ; garde `:where(html.kr-page-report)` retirée → 4 FAIL (hors /report, padding-top 6 px) ; règle passée en `(min-width: 768px)` seul → 10 FAIL, tous à 375 et 767 (étapes 767 des bascules comprises), 768 et 769 verts (seuils N−1, N, N+1). Une mutation de 1 px (15 px) reste dans la tolérance ± 1, comme prévu.

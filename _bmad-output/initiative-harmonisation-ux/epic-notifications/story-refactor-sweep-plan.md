@@ -8,7 +8,7 @@ baseline_revision: 'abbe7be3fb7d0a32d0f15917b7a353c8cface6ef'
 route: 'oneshot'
 route_source: 'auto'
 risk: 'low'
-review: ''
+review: 'quick'
 review_source: ''
 lenses_ran: ['quick']
 review_loop_iteration: 0
@@ -82,6 +82,8 @@ Passe 1 (revue indépendante, 2026-10-29), décisions de l'orchestrateur :
 ## Result
 
 Provisoire, implémenteur ; revue indépendante à faire. Base `abbe7be3fb7d0a32d0f15917b7a353c8cface6ef`, worktree `wt/8.4`, non commité.
+
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (936c3af) et fusionné sur `feature/next` ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777`.
 
 - Rouges (copies du bundle dans /tmp/kr84) : S1, nouvelle suite contre l'ancienne base (`KR_SCRIPT_AVANT` = bundle de 9b6851a) : exit 1, 4 FAIL, `hors-perimetre report kraland 375 px`, `… kraland 767 px`, `… empire-brun-dark 375 px`, `… empire-brun-dark 767 px`, libellé « sans classe de marge, textes égaux au bundle de base ». Ils viennent du seul décalage de 54 px sur /report (8.3) ; aucun autre contrôle ne diffère. S2, garde `:not(:where(…))` retirée : `report-non-lu` exit 1, 168 FAIL (C2, N) ; fond transparent retiré : exit 1, 252 FAIL. S3, règle 14 px retirée : exit 0 (pas de rouge, voir notes).
 - Inertie (grep, template, feuille, bundle, `tests/` hors vendor) : `recaler`, `recalage`, `9b6851a` : 0 ; `padding-left: 10px` sur `/report` : 0.

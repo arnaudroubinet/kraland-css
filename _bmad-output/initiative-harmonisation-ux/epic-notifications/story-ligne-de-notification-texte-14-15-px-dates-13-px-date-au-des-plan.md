@@ -116,6 +116,8 @@ Une garde négative sur la règle générique évite de la battre :
 
 Provisoire, implémenteur ; revue indépendante à faire. Base `db25ad4`, worktree `wt/8.1`, non commité.
 
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (f24c332) et fusionné sur `feature/next` ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777`.
+
 - Rouge avant : `KR_SCRIPT=/tmp/kr81/base.user.js node tests/e2e/report-non-lu.mjs` (bundle de la base, thème appliqué dans tous les cas) : exit 1, 236 FAIL / 784 ok ; ordinateur (768 à 1920, popup) : dates en 14 px ; mobile (375, 767, bascule) : filet absent de la ligne, date en colonne, texte en 13 px, teinte présente ; portée verte.
 - Contre-épreuves (mutations du bundle construit, `KR_FRAG=mobile,popup`) : filet mobile retiré de la ligne → 96 FAIL (C1, B, C5) ; cellules remises en `table-cell` → 96 FAIL (L, N, débordement) ; taille des dates retirée → 48 FAIL (L). `palette-nation` `etats-pages-mobile` sur la mutation 1 → 1 FAIL.
 - Contre-épreuves de la revue (`KR_FRAG=mobile,portee`, copies mutées du bundle dans /tmp) : garde `:where(html:not(.kr-page-report))` retirée de la règle générique → exit 1, 32 FAIL (L, taille du texte 13 px) ; règle du bilan retirée → exit 1, 32 FAIL (L, taille du bilan). Bundle du dépôt intact.

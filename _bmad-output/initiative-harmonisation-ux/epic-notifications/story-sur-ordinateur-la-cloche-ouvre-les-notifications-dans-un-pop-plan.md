@@ -111,6 +111,8 @@ context:
 
 Provisoire, implémenteur, après la boucle de revue 1 ; revue indépendante à refaire. Base `c8c4082ae0c010bf946729bfe8fd050e9cf8c745`, worktree `wt/8.2`, non commité.
 
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (a8ab09f) et fusionné sur `feature/next` ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777`.
+
 - Rouge avant : `KR_SCRIPT=/tmp/kr82/base.user.js node tests/e2e/cloche-notifications.mjs` (bundle de `git show c8c4082:kraland-userscript-main.user.js`) : exit 1, 146 ok / 33 FAIL ; tous sur ordinateur (768 à 1920, étapes 768 de la bascule, bac à sable, options du popup, popup avant la coupure de peau) ; mobile, peau coupée et réseau verts.
 - Contre-épreuves (copies mutées du bundle construit, dans /tmp/kr82) :
   - boucle initiale : garde mobile retirée → 10 FAIL ; options en 600×600 → 28 FAIL ; garde de peau du chargement retirée → 1 FAIL ; `fetch("report")` ajouté → 24 FAIL ;

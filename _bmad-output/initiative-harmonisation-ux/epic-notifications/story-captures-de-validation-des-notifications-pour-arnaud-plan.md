@@ -50,6 +50,8 @@ Passe 1 (revue quick indépendante, 2026-10-29) : 4 constats.
 
 Constructeur ; revue quick faite, verdict visuel d'Arnaud à sa passe finale. Base `49d31df729a872f8f4683960b915cb04abd5e69b`, worktree `wt/8.5`, rien de commité.
 
+Clôture (orchestrateur, 2026-10-29) : revue indépendante faite, correctifs appliqués, commité (d486c1f, 443ebc4) et fusionné sur `feature/next` ; `test:all` vert contenant l'épopée : 18074 ok, 0 FAIL, sur `d8c8777`.
+
 - `npm run build` : validation passée (bundle et `version.json` régénérés ; seul l'horodatage change).
 - 22 captures dans `/Users/arnaud/kraland-css-captures/8.5/`, toutes ouvertes et contrôlées. Kraland clair et Empire Brun sombre ; mobile 375×667 (cloche et pastille, page des notifications en vue et en page entière) ; ordinateur 1280, 1440 et 1920 (barre, et recadrage de la cloche) ; popup 900×800.
 - Confinement : seules des requêtes vers les logos `img7.kraland.org` ont été tentées, et refusées ; le seul `/report` touché est l'URL de la fixture, servie par une route. Aucun site réel, aucun Chrome 9222 ni 9223, aucun clic.

@@ -944,3 +944,10 @@ Défauts visuels constatés (à trancher, rien de corrigé ici) :
 - `nameControls` du forum laissé à part (sélecteurs différents), voir deferred-work.
 - Rendu inchangé : aucun changement visible attendu.
 
+
+## Rétro épopée 8 — notifications (2026-10-29)
+
+- Rétro : `epic-notifications/epic-notifications-retrospective.md`, verdict **accepted-with-open-items** (critères déclarés). Les validations hitl de 8.2 et 8.5 attendent ta passe finale, comme tu l'as décidé : ce n'est pas un écart.
+- Les captures de 8.5 datent de 49d31df, avant 9.10, le bug 14 et le bug 15. Elles montrent trois défauts corrigés depuis : à reprendre sur `HEAD` avant ta passe (A1).
+- Le `test:all` vert qui contient l'épopée (18074 ok, sweep 7.10) n'est consigné que dans `/tmp`, sans SHA nommé (A2).
+- À trancher par toi : Firefox (procédure de console, section 8.2) ; options du popup recopiées de `main.js` ou relues au clic ; bug 15, décalage de 1 px et ligne à cellule unique lue ; fenêtres sans barre (`help.php?p=prev`, `/help`).
