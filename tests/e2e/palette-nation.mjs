@@ -966,7 +966,7 @@ if (on('textes-largeurs')) {
 // text-nation ; hr masqué ; --kr-text-secondary à #636a77 en clair (Q26). Sur mobile, l'en-tête de panneau garde la carte mobile
 // (bg-surface, sans bordure : règle propre au mobile, qui garde la main).
 // Bundle de base (garde de régression), sauf KR_SCRIPT_AVANT : comparaisons du tableau de bord et des pages de référence.
-const BASELINE4 = '6270c81';
+const BASELINE4 = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
 const avant4 = (() => {
   if (process.env.KR_SCRIPT_AVANT) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
   try { return execFileSync('git', ['show', `${BASELINE4}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
@@ -1145,11 +1145,7 @@ const RELEVER4 = sel => {
   const K = window.__krContraste;
   const nom = e => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].map(c => '.' + c).join('') + ' « ' + (e.value || e.textContent).trim().slice(0, 24) + ' »';
   const visible = e => { const r = e.getBoundingClientRect(); const s = getComputedStyle(e); return r.width >= 1 && r.height >= 1 && s.visibility === 'visible' && !e.closest('[aria-hidden="true"]'); };
-  // Écart accepté et consigné (épopée 7, entrée 1) : sur une liste du kramail sous 768 px, les dossiers du titre deviennent des onglets
-  // (bordure nulle, filet en box-shadow), prouvés par la suite des onglets du kramail ; ils sortent de la comparaison au bundle de base, reconnus par leur
-  // lien natif. Retrait : quand BASELINE4 contient l'entrée.
-  const dossier = e => window.innerWidth < 768 && !/\/kramail\/post\//.test(location.pathname) && e.matches('h1.page-header .pull-right > a.btn[href^="kramail/"]:not([href^="kramail/post/"])');
-  const releves = [...document.querySelectorAll(sel)].filter(e => !dossier(e)).map(e => {
+  const releves = [...document.querySelectorAll(sel)].map(e => {
     const s = getComputedStyle(e);
     return { nom: nom(e), standard: e.matches('.btn-default'), ongletActif: e.matches('.active > a'), th: e.tagName === 'TH', couleur: s.color, fondPropre: s.backgroundColor, haut: parseFloat(s.borderTopWidth) > 0 ? s.borderTopColor : 'aucune', bas: parseFloat(s.borderBottomWidth) > 0 ? s.borderBottomColor : 'aucune' };
   });

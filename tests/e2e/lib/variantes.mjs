@@ -20,44 +20,15 @@ export const VARIANTES = ['kraland', 'empire-brun', 'paladium', 'theocratie-seel
   'confederation-libre', 'royaume-ruthvenie', 'kraland-dark', 'empire-brun-dark', 'paladium-dark', 'theocratie-seelienne-dark',
   'paradigme-vert-dark', 'khanat-elmerien-dark', 'confederation-libre-dark', 'royaume-ruthvenie-dark'];
 
-/**
- * Jetons redéfinis par l'épopée 3, ticket 1 (H5.2 : primaire foncée, accent inverse et alerte info du clair tirées de la nation ; alerte
- * info du sombre et ombre des boutons dérivées de la primaire) : leurs nouvelles définitions, en !important, à poser par-dessus un bundle
- * d'avant ce ticket dans une comparaison figée (poserJetonsRedefinis). Seuls les écarts qui viennent de ces jetons sont ainsi acceptés, tout
- * autre écart reste détecté ; écart consigné dans le plan du ticket (story-jetons-de-role-des-16-variantes-et-liens-en-couleur-d-accent,
- * Implementation Notes). Les variantes sombres gardent leurs primaire foncée et accent inverse littéraux.
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9).
- */
-export const JETONS_REDEFINIS = [
-  'html:not([class*="-dark"]) {',
-  '  --kr-primary-dark: color-mix(in srgb, var(--kr-primary) 80%, #000) !important;',
-  '  --kr-highlight-reverse: color-mix(in srgb, var(--kr-highlight) 15%, #fff) !important;',
-  '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff) !important;',
-  '  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff) !important;',
-  '}',
-  'html[class*="-dark"] {',
-  '  --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 15%, var(--kr-bg-surface)) !important;',
-  '  --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 30%, var(--kr-bg-surface)) !important;',
-  '}',
-  'html { --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent) !important; }'
-].join('\n');
-
-/**
- * Texte atténué du clair foncé à #636a77 par l'épopée 3, ticket 4 (Q26 : #6b7280 tombe sous 4,5:1 sur bg-page, header-tint et info-bg) :
- * à poser par-dessus un bundle d'avant ce ticket dans une comparaison figée (poserJetonsRedefinis), seul écart de ce jeton accepté ;
- * consigné dans le plan du ticket (story-mode-clair-theme-comme-le-sombre-bouton-standard, Implementation Notes).
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9).
- */
+/** Texte atténué du clair à #636a77 (épopée 3, ticket 4, Q26 : #6b7280 tombe sous 4,5:1 sur bg-page, header-tint et info-bg). */
 export const TEXTE_SECONDAIRE_CLAIR_HEX = '#636a77';
-export const TEXTE_SECONDAIRE_CLAIR = `html:not([class*="-dark"]) { --kr-text-secondary: ${TEXTE_SECONDAIRE_CLAIR_HEX} !important; }`;
 
 /**
  * Composants que l'épopée 3, ticket 4 passe aux jetons qui changent avec le mode (H5.3) : en-tête et pied du panneau standard, en-têtes de
  * tableau (Bootstrap, DataTables), bouton standard, onglets. Les comparaisons figées neutralisent leur texte, leur fond et leurs bordures,
  * seul écart accepté (consigné dans le plan du ticket). Écrit ici, hors des suites : leurs classes y compteraient comme des citations
  * (routeur, MAX_CITING).
- * Dans kramail-redaction : retrait à la décision d'Arnaud sur les bases auto-référentes (action A9). palette-nation la garde comme
- * sélecteur de contrôle absolu (SEL_COMPOSANTS4, dont « aucun gris de Bootstrap ») : cet usage n'est pas un masque et ne se retire pas.
+ * palette-nation la garde comme sélecteur de contrôle absolu (SEL_COMPOSANTS4, dont « aucun gris de Bootstrap ») : cet usage n'est pas un masque et ne se retire pas.
  */
 export const COMPOSANTS_TICKET4 = '.panel-default > .panel-heading, .panel-default > .panel-footer, .table th, table.dataTable thead th, table.dataTable tfoot th, .btn-default, .nav-tabs, .nav-tabs > li > a';
 
@@ -136,127 +107,6 @@ export const CORRIGER_BUG14 = bundle => {
   return corrige;
 };
 /**
- * Échelle typographique du forum et du kramail (épopée 4, ticket 7 ; DESIGN.md › Typography). Masque miroir : chaque règle reprend le
- * sélecteur, le média et le drapeau !important de la règle dont le bundle réécrit la taille (ou à laquelle il l'ajoute : auteur du dernier
- * message sur ordinateur, index et sous-forum ; ou qu'il découpe : compteurs de l'index et du sous-forum sur ordinateur, séparés de
- * thead th ; ou qu'il crée faute de règle d'origine : auteur et cartouche d'un message du sujet sur ordinateur), avec la valeur du jeton en px (nom 15, détail 13, texte courant 14 / 15, étiquette 12, champ
- * de rédaction 16) ; feuille adoptée, hors couche, après les feuilles du document. Les tailles déjà égales au jeton n'y figurent pas, ni
- * les doublons morts retirés (tableau mobile en double). Les cartes de forum (.forum-title…) y sont sous le média mobile où le bundle
- * les déplace. Seule exception : les statistiques des sujets permanents (.permanent-topic-stats), dont seul le module pose la taille, en
- * style en ligne (aucune règle CSS), reçoivent 13 px en !important pour remplacer le style en ligne en 11 px du bundle « avant ». À poser par-dessus un bundle d'avant ce ticket
- * (AVANT_TICKET47) ; tout autre écart reste détecté. Écart consigné dans le plan du ticket
- * (story-echelle-typographique-du-forum-et-du-kramail, Implementation Notes).
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9).
- */
-export const ECHELLE_TICKET47 = [
-  '@media (max-width: 767px) {',
-  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > span.tagforum { font-size: 13px !important; }',
-  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:first-child > p:nth-child(2), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-description-wrapper > p { font-size: 15px !important; }',
-  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(2), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(3), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > .forum-stats-wrapper > td { font-size: 13px !important; }',
-  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4), :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child { font-size: 13px !important; }',
-  '  :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:nth-child(4) > a, :where(html:not(.kr-page-forum-index)) body.page-forum .panel-default .table > tbody > tr > td:last-child > a { font-size: 13px !important; }',
-  '  body.page-forum table.dataTable tbody td:nth-child(5) a:first-child { font-size: 13px !important; }',
-  '  body.page-kramail #topics_wrapper .dataTables_filter label { font-size: 15px !important; }',
-  '  body.page-kramail #topics tbody td:nth-child(4) { font-size: 13px !important; }',
-  '  .kramail-msg-date { font-size: 13px !important; }',
-  '  .kramail-msg-date i { font-size: 13px !important; }',
-  '  .kramail-msg-body blockquote, .kramail-msg-body .blockquote, .kramail-msg-body .quote { font-size: 15px !important; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec { font-size: 12px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec small { font-size: 12px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading, body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-opt { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-warn { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-empty { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-foot { font-size: 13px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-help { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-msg { font-size: 15px; }',
-  '  body.page-forum.kr-subforum .forum-mobile-breadcrumb { font-size: 13px; }',
-  '  body.page-forum.kr-subforum #topics tbody td { font-size: 13px !important; }',
-  '  body.page-forum.kr-subforum #topics tbody td:first-child p > a { font-size: 15px !important; }',
-  '  body.page-forum.kr-subforum #topics tbody td:nth-child(1)[data-kr-pages-label]::after { font-size: 13px; }',
-  '  body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin { font-size: 13px !important; }',
-  '  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before { font-size: 13px; }',
-  '  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum a { font-size: 13px !important; }',
-  '  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a { font-size: 15px !important; }',
-  '  :where(html.kr-page-forum-index) #col-right .forum-mobile-breadcrumb { font-size: 13px; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td { font-size: 13px !important; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:first-child > p > a { font-size: 15px !important; }',
-  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > strong { font-size: 15px; }',
-  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg .user-info > .cartouche { font-size: 13px; }',
-  '  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready + textarea.form-control { font-size: 16px !important; }',
-  '  .forum-title { font-size: 15px; }',
-  '  .forum-description { font-size: 15px; }',
-  '  .forum-moderators { font-size: 13px; }',
-  '  .last-time { font-size: 13px; }',
-  '}',
-  '.permanent-topic-stats { font-size: 13px !important; }',
-  '@media (min-width: 768px) {',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec { font-size: 12px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec small { font-size: 12px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-loading, body.page-kramail-compose form[name="post_msg"] .kd-sec.kd-error { font-size: 14px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-opt { font-size: 15px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-warn { font-size: 14px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-empty { font-size: 14px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-foot { font-size: 13px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-help { font-size: 14px; }',
-  '  body.page-kramail-compose form[name="post_msg"] .kd-msg { font-size: 14px; }',
-  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(4) > a.nomargin, html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(5) > a.nomargin { font-size: 13px !important; }',
-  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(2), html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td:nth-child(3) { font-size: 13px; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2), :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3) { font-size: 13px; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(4) > a.nomargin { font-size: 13px !important; }',
-  '  :where(body.page-forum) ul.media-list.forum > li.media .user-info > strong { font-size: 15px; }',
-  '  :where(body.page-forum) ul.media-list.forum > li.media .user-info > .cartouche { font-size: 13px; }',
-  '}'
-].join('\n');
-/**
- * Écart accepté et consigné (épopée 4, ticket 8) : rayons des pages du kramail ramenés aux trois rôles (contrôles 4 px, cartes et panneaux
- * 8 px, en-tête de panneau 7 px sur ordinateur). Feuille miroir posée sur un bundle « avant » antérieur au ticket (AVANT_TICKET48) par le
- * fragment regression de kramail-redaction.mjs, jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan
- * du ticket (story-trois-rayons-4-px-8-px-et-plein, Plan Change Log).
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9).
- */
-export const RAYONS_TICKET48 = [
-  '@media (max-width: 767px) {',
-  '  .navbar-header > .navbar-toggle, #col-right > h1.page-header > .kramail-character-selector, #col-right > h1.page-header > span.pull-right .btn, body.mobile-mode .center > ul.pagination.t > li > a { border-radius: 4px !important; }',
-  '  #col-right > form > .panel.panel-default, body.page-kramail #topics > tbody > tr, #col-right > ul.media-list > li.media.well { border-radius: 8px !important; }',
-  '}',
-  '@media (min-width: 768px) {',
-  '  #col-right > h1.page-header > span.pull-right .btn, li.media.well .btn-group-xs > span.btn { border-radius: 4px !important; }',
-  '  #col-right > form > .panel.panel-default, #col-right > ul.media-list > li.media.well { border-radius: 8px !important; }',
-  '  #col-right > form > .panel.panel-default > .panel-heading { border-radius: 7px 7px 0 0 !important; }',
-  '}'
-].join('\n');
-/**
- * Écart accepté et consigné (épopée 4, ticket 9) : grille d'espacement au pas de 4 px (story-grille-d-espacement-au-pas-de-4-px,
- * annexe d'inventaire, sections 1 à 3). Feuille miroir en valeurs littérales, posée sur un bundle de base antérieur au ticket
- * (AVANT_TICKET49), jamais sur le bundle courant ; tout autre écart reste détecté. Écart consigné dans le plan du ticket.
- * Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9).
- */
-export const ESPACEMENT_TICKET49 = [
-  '@media (max-width: 767px), (min-width: 768px) {',
-  '  .panel-body { padding: 16px; }',
-  '  .panel-heading { padding: 12px 16px; }',
-  '  .modal-footer .btn + .btn { margin-left: 4px; }',
-  '  .kr-order-form .kr-order-help-toggle { gap: 4px; margin-bottom: 8px; }',
-  '}',
-  '@media (max-width: 767px) {',
-  '  .panel { margin-bottom: 16px !important; }',
-  '  .panel-heading { gap: 8px !important; }',
-  '  .panel-body { padding: 16px !important; }',
-  '  .panel-body a { gap: 8px !important; margin-bottom: 4px !important; }',
-  '  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn { gap: 4px; }',
-  '  body.mobile-mode.page-forum form.kr-editor .btn-toolbar.kr-tools-ready .kr-tools-plus { padding: 0 8px !important; }',
-  '}',
-  '@media (min-width: 768px) {',
-  '  #kr-config-import-btn { margin-left: 4px !important; }',
-  '  :where(html body.page-forum.kr-subforum) table.dataTable thead th { padding: 8px; }',
-  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default tbody > tr > td { padding: 4px 8px !important; }',
-  '  html body.page-forum.kr-subforum:not(.mobile-mode) .panel-default > .panel-body { padding: 8px 16px 8px !important; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td { padding: 4px 8px !important; }',
-  '  :where(html.kr-page-forum-index) #col-right .panel-default > .panel-body { padding: 8px 16px 8px !important; }',
-  '}'
-].join('\n');
-/**
  * Écart accepté et consigné (épopée 4, ticket 10, story-refactor-sweep) : médias de l'éditeur du kramail et du changelog ramenés au seuil
  * 767/768 (à 768 px, rendu d'ordinateur au lieu du rendu mobile). Transformation de chaîne du bundle de base (médias minifiés), posée
  * seulement sur un bundle de base antérieur au ticket (AVANT_TICKET410), jamais sur le bundle courant ; tout autre écart reste détecté.
@@ -274,93 +124,22 @@ export const CHAMPS_TICKET410 = 'input[type="text"].form-control';
 export const LIGNES_FORUM_TICKET410 = '.panel-default .table > tbody > tr';
 /** Classes de la racine du forum (ticket 10, A3) : [classe d'index sur <html>, classe de racine sur <body>, classe du forum sur <body>]. */
 export const CLASSES_RACINE_TICKET410 = ['kr-page-forum-index', 'page-forum-racine', 'page-forum'];
-/** Bundle d'avant l'épopée 4, ticket 9 : le corps de panneau natif n'y emploie pas encore le jeton d'espacement (règle minifiée du bundle). Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
-export const AVANT_TICKET49 = bundle => !bundle.includes('.panel-body{padding:var(--kr-space-4)}');
-/** Bundle d'avant l'épopée 4, ticket 8 : il déclare encore --mobile-radius sur :root (règle minifiée du bundle). Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
-export const AVANT_TICKET48 = bundle => bundle.includes('--mobile-radius:');
-/** Bundle d'avant l'épopée 4, ticket 7 : la date d'un kramail lu n'y emploie pas encore le jeton du détail (règle minifiée du bundle) ;
- * un bundle qui contient l'épopée 7, entrée 2 (module Kramail:Lecture, règle kramail-msg-date retirée) est postérieur ; nom du module = repère de retrait de ce second critère. Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9). */
-export const AVANT_TICKET47 = bundle => !bundle.includes('.kramail-msg-date{font-size:var(--kr-font-detail)!important') && !bundle.includes('Kramail:Lecture');
 /**
  * En-tête du kramail (épopée 7, entrée 3) : la liste et la lecture reprennent l'en-tête du sous-forum (h1 réécrit sur mobile, valeurs du
  * sous-forum au bureau, sélecteur de personnage sans style en ligne), prouvé par kramail-theme.mjs (fragments entete, entete-menu,
  * entete-couleurs). Bundle d'avant : il ne pose pas la marque kr-kramail-entete. Écrit ici : cité par une 4e suite, le repère deviendrait
- * transverse (routeur, MAX_CITING). Retrait au recalage du COMMIT_* (base figée) de chaque suite
- * appelante sur un SHA qui contient l'entrée.
+ * transverse (routeur, MAX_CITING). Seul lecteur restant : typographie-formes#nettoyage, sur sa base dédiée COMMIT_MEDIAS_410
+ * (antérieure à l'épopée 7).
  */
 export const AVANT_TICKET73 = bundle => !bundle.includes('kr-kramail-entete');
-/** Dans la page : retire des deux rendus le h1 de la liste et de la lecture du kramail (rédaction exclue : formulaire post_msg). */
-export const RETIRER_ENTETE_TICKET73 = () => {
-  if (/\/kramail/.test(location.pathname) && !document.querySelector('form[name="post_msg"]')) {
-    document.querySelectorAll('#col-right h1.page-header').forEach(e => e.remove());
-  }
-};
-
-/**
- * Listes du kramail (épopée 7, entrée 4) : Réception, Envoi et Corbeille reprennent la ligne de sujet du sous-forum, prouvé par
- * kramail-theme.mjs (fragments liste*). Bundle d'avant : il n'enregistre pas le module Kramail:Liste. Écrit ici, comme AVANT_TICKET73.
- * Retrait au recalage du COMMIT_* (base figée) de chaque suite appelante sur un SHA qui contient l'entrée.
- */
-export const AVANT_TICKET74 = bundle => !bundle.includes('Kramail:Liste');
-/**
- * Dans la page : retire des deux rendus le tableau #topics (et son enveloppe DataTables) d'une liste du kramail. Garde par le chemin, pas
- * par la classe kr-page-kramail-liste, absente des bases antérieures à l'épopée 7.
- */
-export const RETIRER_LISTE_TICKET74 = () => {
-  if (/^\/kramail(\/|$)/.test(location.pathname) && !/^\/kramail\/post\//.test(location.pathname)) {
-    document.querySelectorAll('#topics_wrapper, #topics').forEach(e => e.remove());
-  }
-};
-
 /**
  * Rédaction du kramail (épopée 7, entrée 5) : les formulaires post_msg du kramail reprennent le formulaire de réponse du forum (Messages:V3
  * sur mobile, rendu natif du forum au bureau), prouvé par kramail-theme.mjs (fragments redaction, redaction-dest). Bundle d'avant : son
  * module Messages:V3 ne repère pas les lignes Sujet et Expéditeur du kramail (sélecteur propre à l'entrée, stable à la minification). Écrit
- * ici, comme AVANT_TICKET73. Retrait au recalage du COMMIT_* (base figée) de chaque suite appelante sur un SHA qui contient l'entrée.
+ * ici, comme AVANT_TICKET73. Lecteurs restants : bases dédiées antérieures à l'entrée (cartes-pastilles COMMIT_AVANT_55,
+ * typographie-formes COMMIT_CHAMPS et COMMIT_MEDIAS_410).
  */
 export const AVANT_TICKET75 = bundle => !bundle.includes(':scope > .col-sm-10 > .input-group');
-/**
- * Dans la page : retire des deux rendus les lignes du formulaire post_msg d'une rédaction du kramail reprises du forum (Sujet, Expéditeur,
- * Message et sa barre, options). Gardés : la ligne Destinataires (.kd, entrée 6), « Envoyer » (entrée 7) et l'accordéon du message cité.
- * Posés à l'identique dans les deux rendus, car changés par l'entrée : cadre du formulaire (carte du bureau et marge de page mobile
- * retirées), marge basse native de la ligne Destinataires (15 px), typographie de son libellé (alignée sur les libellés de l'éditeur,
- * prouvée par kramail-theme#redaction) et réserve de défilement des champs (prouvée par kramail-theme#redaction-defilement).
- */
-export const RETIRER_REDACTION_TICKET75 = () => {
-  if (/^\/kramail\/post\//.test(location.pathname)) {
-    document.querySelectorAll('form[name="post_msg"] .form-group:is(:has(> .col-sm-10 > .input-group), :has(.btn-toolbar), :has(input[type="checkbox"])):not(:has(#dest, .kd))').forEach(e => e.remove());
-    const neutre = (sel, decl) => document.querySelectorAll(sel).forEach(e => { e.style.cssText += ';' + decl.replace(/;/g, ' !important;'); });
-    neutre('form[name="post_msg"]', 'margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;');
-    neutre('form[name="post_msg"] .kd-label, form[name="post_msg"] .kd-label *', 'font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none; color: rgb(0, 0, 0);');
-    neutre('form[name="post_msg"] .kd-row', 'margin-bottom: 15px;');
-    neutre('form[name="post_msg"] :is(input, select, textarea, label)', 'scroll-margin-bottom: 0;');
-  }
-};
-
-/**
- * « Envoyer » dans le flux, au forum comme au kramail (épopée 7, entrée 7) : la barre fixe et ses réserves (réserve basse du formulaire,
- * scroll-margin de 72 px, pied de page remis dans le flux, « Remonter en haut » relevé) sont retirées ; « Envoyer » mobile prend 48 px,
- * 14 px et 600 dans le flux, prouvé par kramail-theme#envoyer et forum-activite#envoyer. Bundle d'avant : sa règle dans le flux ne vise
- * que le forum avec barre d'outils (sélecteur propre à l'entrée, stable à la minification). Retrait au recalage du COMMIT_* (base figée)
- * de chaque suite appelante sur un SHA qui contient l'entrée.
- */
-export const AVANT_TICKET77 = bundle => !bundle.includes('html body.mobile-mode:is(.page-forum,.page-kramail-compose) form[name=post_msg] div>button.btn-primary.pull-right');
-/**
- * Dans la page : vide des deux rendus la ligne d'« Envoyer » du formulaire post_msg (forum et kramail ; la ligne reste le dernier <div>,
- * marges, retraits, filet et dégagement neutralisés) et neutralise la réserve basse du formulaire, la réserve de défilement de ses champs
- * et la hauteur de « Remonter en haut » (8 px).
- */
-export const RETIRER_ENVOYER_TICKET77 = () => {
-  // La base ne fixait « Envoyer » que sur mobile, et ne le restylait au bureau que sur le kramail : ailleurs, rien à retirer.
-  if (!(window.innerWidth < 768 || /^\/kramail\//.test(location.pathname))) { return; }
-  const neutre = (sel, decl) => document.querySelectorAll(sel).forEach(e => { e.style.cssText += ';' + decl.replace(/;/g, ' !important;'); });
-  document.querySelectorAll('form[name="post_msg"] > div:has(button.btn-primary.pull-right)').forEach(e => e.replaceChildren());
-  neutre('form[name="post_msg"] > div:not(.form-group):empty', 'margin: 0; padding: 0; border: 0; text-align: left; clear: none;');
-  if (document.querySelector('form[name="post_msg"]')) { neutre('.container.white .kraland-back-to-top', 'bottom: 8px;'); }
-  neutre('form[name="post_msg"]', 'padding-bottom: 0;');
-  neutre('form[name="post_msg"] :is(input, select, textarea, label)', 'scroll-margin-bottom: 0;');
-};
-
 /**
  * Carte de section mobile (épopée 5, entrée 1) : repères de cartes-pastilles.mjs écrits ici, hors de la suite. panel-default, page-forum
  * et kr-page-forum-index, déjà cités par trois suites, compteraient sinon une quatrième citation (routeur, MAX_CITING).
@@ -618,7 +397,7 @@ export const REPERES_FIL_TICKET63 = {
 };
 
 /**
- * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, JETONS_REDEFINIS)) : jetons redéfinis en feuille adoptée, avant le
+ * Script d'initialisation (context.addInitScript(poserJetonsRedefinis, css)) : jetons redéfinis en feuille adoptée, avant le
  * premier rendu et sans élément de plus dans le DOM. Une feuille posée après le chargement rend la capture instable (coin d'un bouton du
  * kramail anticrénelé autrement d'une exécution à l'autre, jusqu'à 22 pixels d'écart 6).
  */

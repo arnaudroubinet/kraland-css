@@ -69,14 +69,14 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET74, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, RETIRER_ENTETE_TICKET73, RETIRER_LISTE_TICKET74, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET75, AVANT_TICKET92, AVANT_TICKET97, CARTES_TICKET92, CONTRASTE, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, sansClassesPv97, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 import { SANS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '6270c81';
+const COMMIT_AVANT = 'd64c578'; // recalage du sweep 7.10 (ancienne base 6270c81) : entrées 7.1 à 7.8 comprises
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 // Groupes du plateau (entrée 3, A6) : base dédiée, la carte des panneaux (6270c81) restant celle des autres fragments.
@@ -511,10 +511,6 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
-// Écart accepté et consigné (épopée 7, entrée 3) : h1 de la liste et de la lecture du kramail à l'en-tête du sous-forum (kramail-theme,
-// fragments entete*), retiré des deux rendus avant le relevé (RETIRER_ENTETE_TICKET73). Retrait au recalage de COMMIT_AVANT
-// (base figée) sur un SHA qui contient l'entrée. De même (entrée 4) : tableau #topics des listes à la ligne du sous-forum (kramail-theme,
-// fragments liste*), retiré des deux rendus (RETIRER_LISTE_TICKET74) tant que la base précède l'entrée.
 // Masque de l'entrée 9.8 (forum mobile, nom de l'auteur d'un message à 44 px de large au minimum, contrôlé par forum-activite, fragment
 // confort) : largeur minimale remise à 0 des deux côtés, pour le fragment forum seul et contre une base sans la classe de page
 // kr-page-forum. Retirer quand COMMIT_AVANT dépasse 9.8.
@@ -525,8 +521,6 @@ async function comparer(frag, cas) {
     const out = {};
     for (const [cle, script] of [['teste', userscript], ['base', avant]]) {
       const { context, page, erreurs } = await ouvrir({ ...c, script, sansMarge: true, css: frag === 'forum' ? MASQUE_FORUM_98 : '' });
-      if (AVANT_TICKET73(avant)) { await page.evaluate(RETIRER_ENTETE_TICKET73); }
-      if (AVANT_TICKET74(avant)) { await page.evaluate(RETIRER_LISTE_TICKET74); }
       out[cle] = { r: await page.evaluate(RELEVE, [PAGES[c.nom].racine, PAGES[c.nom].releve, undefined, MASQUE_INDICATEUR_96]), erreurs };
       await context.close();
     }

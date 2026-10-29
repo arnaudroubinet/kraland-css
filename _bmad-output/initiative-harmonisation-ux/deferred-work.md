@@ -141,7 +141,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-forum/story-index-mobile-dans-la-carte-de-section-la-fleche-et-premier-n-plan.md`
   summary: Le correctif d'ancres mobile ne retire plus que `#flap`. Les autres ancres (kramail, plateau, etc.) ne sont plus effacées quand la largeur lue à l'évaluation est < 768. Seul le fil de sujet (`#msg…`) le prouve ; aucune suite ne vérifie une ancre du kramail ou du plateau.
   evidence: Ce comportement est déjà celui du vrai téléphone : la largeur lue à l'évaluation y vaut 981, donc l'ancienne condition n'effaçait rien (H10, inventaire §1.1 et §1.3). Aucun autre code ne dépend de l'effacement (revue du ticket 6.2, constat 4). Fragment `ancres` de `forum-activite.mjs` : fil de sujet seulement.
-  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D11, garder ou retirer le correctif en entier est une question en attente d'Arnaud (`revue-manuelle.md`). ; ancres du kramail : sweep 7.10, si D11 est tranchée (2026-10-28).
+  status: rejeté par le sweep 6.7 (`epic-forum/story-refactor-sweep-plan.md`, 2026-10-25) : D11, garder ou retirer le correctif en entier est une question en attente d'Arnaud (`revue-manuelle.md`). ; ancres du kramail : sweep 7.10, si D11 est tranchée (2026-10-28). ; clos par le sweep 7.10 (`epic-kramail-mobile/story-refactor-sweep-plan.md`, 2026-10-29) : D11 tranchée (« correctif d'ancres limité à `#flap` », revue-manuelle 2026-10-28), aucune ancre du kramail à traiter, aucun code.
 
 ## Reports du ticket 6.4, en-tête de sujet mobile (2026-10-25)
 
@@ -167,6 +167,7 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - Règles mortes d'avant 6.2 (inventaire du ticket, §3.2). `forum-topic-stats-mobile` (et `.stats-sep`) : traitée, règles retirées de `kraland-theme.css` (9 `!important` en moins, 3290 → 3281). La classe était propre au userscript, posée par le template jusqu'à `ce0b012` ; plus aucune pose ni assertion dans le template, le bundle ou `tests/`. Restent signalées : `forum-description-wrapper`, `forum-stats-wrapper`, `forum-thread-detail`, `forum-thread-metadata`. Aucune fixture ne les porte, mais certaines peuvent être natives sur des pages hors fixtures. Non retirées (Ask First 3). Pour les retirer : relevé sur le site réel, sous mandat, en lecture, puis retrait un par un avec vérification du rendu. Source : `epic-forum/story-refactor-sweep-inventaire.md` §3.2.
 - Masques 3/4 inertes de `kramail-redaction.mjs` (`ESPACEMENT_AVANT` et voisins) : le bundle « avant » de la suite est auto-référent, ces masques ne sont plus posés. Non touchés (Ask First 6) : leur retrait revient à l'action A4 de la rétro 5.
   status: renvoyé à l'action A9 par le backlog 11 (`backlog/story-suites-e2e-sur-bases-a-jour-sans-masque-plan.md`, Ask First 8, 2026-10-25) : la base de `kramail-redaction` est auto-référente, hors périmètre ; ces masques ne sont pas touchés, et les constantes qu'elle importe de `lib/variantes.mjs` sont gardées, avec la condition « Retrait : à la décision d'Arnaud sur les bases auto-référentes (action A9) ».
+  status: traité par le sweep 7.10 (2026-10-29) : A9 tranchée (base figée), `kramail-redaction` lit la base `d64c578` ; masques 3.x, 4.x et 7.x retirés, avec leurs constantes de `lib/variantes.mjs`.
 - Action A4 de la rétro 5 (extinction des masques 3 à 6) non portée par 6.7 (Ask First 1). Les bases partagées (`forum-index` 81512a3, `cartes-pastilles` 21fed8d, `typographie-formes` d953969, 62fd47d et 00b0786, `palette-nation` 6685df5) ne bougent pas ; leurs masques 6.x sont gardés, avec une condition de retrait qui nomme le ticket A4, à créer à la rétro de l'épopée 6. Le nouveau masque `FLECHES_TICKET67` (flèches de tri à 4 px, posé sur les bases d'avant 6.7 de `forum-activite` 810901f, `forum-index` 81512a3 et `typographie-formes` 00b0786) suit la même condition pour les bases partagées. Pour `forum-activite`, il se retire au réalignement de ses bases sur un SHA qui contient 6.7, action de la rétro de l'épopée 6.
   status: traité par le backlog 11 (`backlog/story-suites-e2e-sur-bases-a-jour-sans-masque-plan.md`, 2026-10-25) : bases partagées réalignées sur `6270c81` (identique à HEAD), masques 6.x et `FLECHES_TICKET67` retirés, 31 exports orphelins retirés de `lib/variantes.mjs`. Restent les masques des bases dédiées (TF1, TF2, TF3, TF7, CP5, CP6), chacun avec une condition « au prochain ticket qui modifie <zone> ».
 
@@ -218,3 +219,28 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-kramail-mobile/story-la-page-contacts-reprend-la-carte-de-section-et-les-boutons-plan.md`
   summary: Pour le sweep (entrée 10) : `Contacts:Page` duplique, dans `Kramail:Liste`, deux blocs : `nameControls` (seuls les noms changent) et le toucher de la cellule de case. Ne pas les factoriser avant le sweep.
   evidence: revue indépendante du ticket 7.8 (2026-10-29) ; doublon voulu, pour que le ticket reste petit.
+  status: traité par le sweep 7.10 (2026-10-29) : helpers partagés `nommerControlesListe` et `cocherAuToucher` du template.
+
+## Reports du ticket 7.10, sweep de l'épopée 7 (2026-10-29)
+
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: Classes `body.page-kramail*` (environ 176 sélecteurs de `kraland-theme.css`) non migrées vers les gardes `:where(html.kr-page-kramail-*)` de 7.1.
+  evidence: lecteurs vivants : la peau, le template (~l.6364) et `kramail-theme#gardes`. La migration change la spécificité de chaque règle : ticket à part, pas un retrait de code mort.
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: Bases dédiées non recalées : `cartes-pastilles` `COMMIT_AVANT_55` (59567f0) et `typographie-formes` `COMMIT_CHAMPS` (5638f29), `COMMIT_MEDIAS_410` (00b0786). Leurs masques `AVANT_TICKET73` et `AVANT_TICKET75` restent posés.
+  evidence: chaque base prouve un ticket précis (assertions `AVANT_TICKET55`, `AVANT_BUG14`, `AVANT_TICKET410` sur la base). `champs` : sur d64c578, seule la précondition AVANT_BUG14 rougit ; les comparaisons « égal à la base » sont vertes, kramail mobile compris, sans le masque 7.5. Sur la base actuelle 5638f29, ce masque reste vivant (`AVANT_TICKET75` vrai) : sans lui, 4 FAIL (kramail 375 et 767 px). Gardé. Retrait : au recalage de `COMMIT_CHAMPS`, qui demande de revoir la précondition AVANT_BUG14. Autres retraits : au prochain ticket qui modifie ces fragments.
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: Pour le sweep 9.12 : masques d'autres épopées devenus inertes sur la base `d64c578` (aucun recalage ne les pose plus) mais gardés : `MASQUE_FORUM_98`, `MASQUE_INDICATEUR_96`, `MASQUE_SUPERPOSITION_96`, `CORRIGER_BUG14`, `LEGENDES_TICKET45`, `CIBLES_TICKET95`, miroir `ECHELLE_TICKET45`, `medias410`, `MASQUE_JAUGES_9`, `MASQUE_PV_97`, `MASQUE_MODULES_96`, `MASQUE_CIBLES_94`, `CARTES_TICKET92`.
+  evidence: hors périmètre par consigne (masques des épopées 4, 5, 9 et du bug 14).
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: `nameControls` du forum (template ~l.5235) non fusionné avec `nommerControlesListe` du kramail et des contacts.
+  evidence: sélecteurs différents (`.dataTables_filter` au forum, `#topics_filter` au kramail) ; la fusion ajouterait un paramètre pour un seul appelant.
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: Masques non conditionnés de `kramail-redaction#regression` (paire d'action 3.2, texte coloré 3.3) gardés.
+  evidence: posés sur les deux captures quelle que soit la base, ils ne relèvent pas d'un `AVANT_*` ; leur retrait rend la comparaison plus stricte, sans preuve qu'elle reste verte. Hors du recalage du sweep.
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: `kramail-redaction#regression` : la page `nouveau` manque aux COMBOS (réception, envoi, corbeille, lecture seulement) ; la rédaction n'y est pas comparée à la base.
+  evidence: revue indépendante du ticket 7.10 (2026-10-29) ; antérieur au ticket, hors périmètre du sweep.
+- source_plan: `epic-kramail-mobile/story-refactor-sweep-plan.md`
+  summary: `cartes-pastilles` : `KR_SCRIPT_AVANT` remplace aussi `avant55` (base dédiée `COMMIT_AVANT_55`) ; une variable dédiée (`KR_SCRIPT_AVANT_55`) est nécessaire pour rejouer l'une sans l'autre.
+  evidence: revue indépendante du ticket 7.10 (2026-10-29) ; antérieur au ticket, hors périmètre du sweep.
