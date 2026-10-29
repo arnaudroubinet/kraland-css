@@ -49,7 +49,7 @@ check('Notifications /report (kr-page-report) : zone report, suite -> report-non
   assert.equal(f.widened, false);
   assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'confort-mobile']);
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
-  assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee']]); // 8.1 : fenêtre 600 remplacée
+  assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut']]); // 8.1 : fenêtre 600 remplacée ; 8.3 : haut de page
 });
 check('cloche des notifications (ticket 8.2) : section CLOCHE DES NOTIFICATIONS et openReport -> zone cloche ; fixture et suite -> cloche-notifications seule', () => {
   assert.deepEqual(zonesOf('cloche-notifications.mjs'), ['cloche']);
