@@ -767,7 +767,8 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
   color: var(--kr-arm-ink-hover, var(--kr-white));
 }
 
-.bg-info {
+/* Hors lignes de tableau de /report (le journal) */
+.bg-info:not(:where(html.kr-page-report table > tbody > tr)) {
   background-color: var(--kr-arm-bg, var(--kr-primary));
   color: var(--kr-arm-ink, var(--kr-white));
 }
@@ -776,23 +777,19 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
    La règle générique ci-dessus (fond --kr-primary, texte blanc) y rendait illisibles les couleurs du serveur (<font color>, bilans
    .mini.text-muted) et se confondait avec la page active de la pagination et le bandeau du sélecteur. Sur /report seulement
    (html.kr-page-report, posé par applyVariant), la ligne garde le fond et le texte d'une ligne normale, sans mot visible (décision
-   d'Arnaud du 18/10/2026 : « Juste la marque à gauche »). L'état passe par la cellule de la date seule (option N, « Go pour n ») :
-   filet latéral de 4 px de la couleur du non lu du forum (jeton --kr-status-unread, option B) et fond teinté à 14 % de cette couleur.
-   Le texte de la date garde sa couleur et sa graisse ; le texte du serveur (2e cellule) n'est pas touché.
+   d'Arnaud du 18/10/2026 : « Juste la marque à gauche »). Sur ordinateur, l'état passe par la cellule de la date seule (option N,
+   « Go pour n ») : filet latéral de 4 px de la couleur du non lu du forum (jeton --kr-status-unread, option B) et fond teinté à 14 % de
+   cette couleur. Le texte de la date garde sa couleur et sa graisse ; le texte du serveur (2e cellule) n'est pas touché.
    Ligne de notification (DESIGN.md, H14.1, H14.2 ; ticket 8.1) : texte en --kr-font-body (14 px) sur ordinateur, popup 900×800 compris,
    et --kr-font-body-mobile (15 px) sur mobile ; dates en --kr-font-detail (13 px) sur les deux. Sur ordinateur, la colonne de date native
    (<col width="100">) reste, avec le filet et la teinte sur sa cellule. Sur mobile, le tableau, ses lignes et ses cellules passent en bloc :
    la date est au-dessus du texte, le texte prend toute la largeur, le filet passe sur la ligne entière (review-faisabilite L2) et la teinte
    n'est pas reprise (la date n'est plus une colonne). La règle mobile générique des tableaux (13 px, 8 px) est gardée hors /report.
-   Les autres .bg-info gardent la règle générique. */
+   La règle générique .bg-info exclut la ligne du journal (:not(:where(…)), ticket 8.4) au lieu d'être battue ici ; il ne reste qu'à
+   effacer le fond natif de Bootstrap. Les autres .bg-info gardent la règle générique. */
 @media (max-width: 767px), (min-width: 768px) {
   :where(html.kr-page-report) table > tbody > tr.bg-info {
     background-color: transparent;
-    color: inherit;
-  }
-
-  :where(html.kr-page-report) table > tbody > tr > td {
-    font-size: var(--kr-font-body);
   }
 
   :where(html.kr-page-report) table > tbody > tr > td:first-child:not(:only-child) {
@@ -808,6 +805,10 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
 }
 
 @media (min-width: 768px) {
+  :where(html.kr-page-report) table > tbody > tr > td {
+    font-size: var(--kr-font-body);
+  }
+
   :where(html.kr-page-report) table > tbody > tr.bg-info > td:first-child {
     box-shadow: inset 4px 0 0 var(--kr-status-unread);
     padding-left: var(--kr-space-3);

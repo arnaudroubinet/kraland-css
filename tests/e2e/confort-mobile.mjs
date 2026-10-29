@@ -9,8 +9,7 @@
 //   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
 //   bascule         Personnage, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet : marge à 767, base (même parcours) à 768 ;
 //   hors-perimetre  sous-forum, index RP, réception du kramail et notifications à 375 et 767 px : sans kr-marge-mobile,
-//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles ;
-//                   sur /report, ordonnées recalées de l'écart de padding-top du body, ticket 8.3) ;
+//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles) ;
 //   secondaires     (entrée 4, plan story-pages-secondaires-marge-de-16-px-et-cibles-de-44-px) Règles, Guide, Organisations, Événements,
 //                   Statistiques, fiche de membre, Interface, carte de ville et Cybermonde (fixtures secondaires-*.html) à 320, 375 × 667 et
 //                   767 px, Kraland clair et Empire Brun sombre : classes kr-page-secondaire et kr-marge-mobile ; texte à 16 px des bords ;
@@ -29,7 +28,7 @@
 //                   cibles du plateau à 44 × 44 aux cinq points, actions dans leur carte, tuiles à 64 px ; repli des deux accordéons sans
 //                   saut ; à 768 et 1280 px, boîtes des cibles égales au bundle de base.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
-// site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 9b6851a, entrée 1 comprise), KR_FRAG =
+// site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT), KR_FRAG =
 // mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau (vide = tout). KR_SCRIPT_AVANT_13 : bundle de base du fragment membres-aide
 // (défaut : git show 034a820, entrée 4 comprise).
 import assert from 'node:assert/strict';
@@ -49,7 +48,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_AVANT = '9b6851a'; // entrées 7.1, 9.1, 9.2 et 9.6 comprises
+const COMMIT_AVANT = 'abbe7be'; // entrées 7.1, 7.2, 8.1 à 8.3, 9.1, 9.2, 9.4 et 9.6 comprises (relevé par 8.4)
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const COMMIT_AVANT_13 = '034a820'; // base du fragment membres-aide : entrée 4 comprise
@@ -223,18 +222,8 @@ const RELEVE = () => {
     if (!b.length) { continue; }
     out.push(`${n.textContent.trim().replace(/\d{10,}/g, '#').slice(0, 24)} @ ${r2(b[0].left + window.scrollX)},${r2(b[0].top + window.scrollY)} ${b.length}`);
   }
-  return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), l: out,
-    report: document.documentElement.classList.contains('kr-page-report'), haut: parseFloat(getComputedStyle(document.body).paddingTop) };
+  return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), l: out };
 };
-// Ticket 8.3 : sur /report seulement, le padding-top du body passe de 60 px (base COMMIT_AVANT) à 6 px (haut de page, sans barre) ; les
-// ordonnées du relevé testé sont recalées de cet écart (54 px exactement : tout autre couple de valeurs échoue, écart nul compris). Hors /report,
-// relevé intact. Recalage à supprimer au relèvement de COMMIT_AVANT (entrée 8.4) : une base qui contient 8.3 (6 px) le fait échouer.
-function recaler(t, b) {
-  if (!(t.report && b.report)) { return t.l; }
-  const dy = b.haut - t.haut;
-  assert.ok(b.haut === 60 && t.haut === 6 && dy === 54, `recalage 8.3 hors borne : padding-top du body ${t.haut} px (attendu 6) contre ${b.haut} px sur la base (attendu 60) ; si COMMIT_AVANT contient 8.3, supprimer le recalage`);
-  return t.l.map(x => x.replace(/ @ ([\d.-]+),([\d.-]+) (\d+)$/, (m, gx, gy, k) => ` @ ${gx},${+gy + dy} ${k}`));
-}
 function premierEcart(a, b) {
   for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i] !== b[i]) { return `texte ${i} : « ${a[i]} » au lieu de « ${b[i]} »`; } }
   return '';
@@ -375,7 +364,7 @@ if (on('hors-perimetre')) {
       assert.ok(teste.r.mobile, 'mode mobile absent');
       assert.deepEqual(teste.r.classes, [], 'classes de page');
       assert.ok(teste.r.l.length > 0, 'aucun texte');
-      const d = premierEcart(recaler(teste.r, base.r), base.r.l);
+      const d = premierEcart(teste.r.l, base.r.l);
       assert.equal(d, '', d);
     });
     check(`hors-perimetre ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));

@@ -744,7 +744,7 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Les marges gauche, droite et basse de 10 px du bandeau restent natives. La marge latérale de 16 px relève de l'épopée 9.
 - Les autres fenêtres sans barre de navigation (aperçu `help.php?p=prev`, fenêtre `/help`) ne sont pas traitées. Elles ont peut-être la même bande vide de 60 px ; ce n'est pas vérifié.
 - Aucun partage avec le sélecteur de l'en-tête du kramail (7.3) : la règle est gardée par `kr-page-report`, et le bandeau de `/report` n'a pas d'autre règle que la règle générique `.bg-primary`, inchangée.
-- `confort-mobile` (`hors-perimetre`) compare `/report` à un bundle de base figé (9b6851a). Le contenu y remonte de 54 px. Sur `/report` seulement, les ordonnées sont recalées de l'écart des deux `padding-top` du body, borné à 54 px exactement (60 px sur la base, 6 px testé) ; tout autre écart fait échouer le contrôle. La base est figée : le recalage ne se retire pas seul. Il est à supprimer au relèvement de `COMMIT_AVANT` sur un SHA qui contient 8.3, tâche ajoutée à l'entrée 8.4. Un décalage d'une autre origine reste détecté (contre-épreuve : onglets décalés de 5 px, rouge).
+- `confort-mobile` (`hors-perimetre`) compare `/report` à un bundle de base figé (9b6851a). Le contenu y remonte de 54 px. Sur `/report` seulement, les ordonnées sont recalées de l'écart des deux `padding-top` du body, borné à 54 px exactement (60 px sur la base, 6 px testé) ; tout autre écart fait échouer le contrôle. La base est figée : le recalage ne se retire pas seul. Il est à supprimer au relèvement de `COMMIT_AVANT` sur un SHA qui contient 8.3 (fait en 8.4), tâche ajoutée à l'entrée 8.4. Un décalage d'une autre origine reste détecté (contre-épreuve : onglets décalés de 5 px, rouge).
 
 ## Ticket 7.3 — en-tête du kramail (2026-10-29)
 
@@ -779,3 +779,13 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - D9.1 (report, hors périmètre du 9.5) : selon la revue, sur la base, un groupe replié ne se replie plus après un aller-retour 767 -> 768 -> 767 px (`collapsed` reste à 900 px). Sur fixture, chaque changement de largeur recharge la page (2 rechargements sur 2), et les boîtes reviennent à l'état initial, en base comme en 9.5 : le défaut n'est pas reproduit. Non corrigé ; à vérifier sur un téléphone ou une fenêtre réelle.
 - Comparaisons à la base : plateau-qualite-usage (cartes) et typographie-formes (boutons, nettoyage) posent `CIBLES_TICKET95` sur leur bundle de base, tant que la base précède l'entrée. À retirer quand ces suites compareront à un SHA postérieur.
 - Trouvé à la fusion (test:all) : la fixture des Règles (`palette-nation.html`, servie à `/regles/avancees`) porte une carte du plateau ; ses actions à 44 px allongent la page de 5 px. Le fragment `forum-activite#fil` pose désormais `CIBLES_TICKET95` sur son bundle de base (6270c81), comme plateau-qualite-usage et typographie-formes. Contre-épreuve : bundle sans 9.5, rouge.
+
+## Ticket 8.4 — Refactor sweep des notifications (construit, 2026-10-29)
+
+- `confort-mobile` compare désormais `/report` au bundle d'abbe7be, qui contient 8.3. Le recalage vertical provisoire et son contrôle borné à 54 px sont retirés. Sur l'ancienne base (9b6851a), seuls les 4 contrôles `/report` de `hors-perimetre` diffèrent (8.3) ; aucun autre écart nouveau.
+- Conséquence à connaître : avec une base aussi récente, les comparaisons « égal au bundle de base » de `confort-mobile` prouvent seulement que rien n'a bougé depuis abbe7be.
+- La règle générique `.bg-info` exclut maintenant la ligne du journal de `/report`, au lieu d'être battue par la section `/report`. Rendu identique (suites vertes). Les autres `.bg-info`, y compris sur `/report`, gardent la règle générique.
+- Le masque du titre de la ville (768 px) de `confort-mobile` est devenu inerte. Il n'est pas retiré ici : il relève de l'épopée 9 (report consigné dans `deferred-work.md`).
+- Taille du texte à 14 px sur ordinateur : aucun test ne la distingue des 14 px natifs de Bootstrap. Report consigné, rien à faire de ton côté.
+- Écart du déplacement de la taille 14 px dans le bloc ordinateur : une table imbriquée dans une cellule du journal passe de 14 à 15 px sur mobile, car elle hérite de la règle mobile. Mesuré : 54 écarts à 375 px, 0 à 1280 px. Ce cas est absent de la fixture et reste hypothétique sur le site. La règle n'est pas restaurée.
+- `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion (verify de l'entrée).

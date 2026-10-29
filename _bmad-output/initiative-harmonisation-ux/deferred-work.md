@@ -194,3 +194,9 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-plateau-confort-mobile/story-marge-laterale-de-16-px-socle-et-pages-de-jeu-plan.md`
   summary: Le nettoyage des styles en ligne `.row` / `[class*="col-"]` de `.panel-info` (modale d'ordre, template ~l.9361) ne retire peut-être plus aucun style posé par le script depuis la suppression de applyMobileCriticalStyles. Vérifier si le site pose ces styles lui-même, sinon retirer ce code mort.
   evidence: revue du 9.1, constat 12 (2026-10-28).
+- source_plan: `epic-notifications/story-refactor-sweep-plan.md`
+  summary: Le masque `sansTitre` de `confort-mobile.mjs` (fragment `secondaires`, titre de la ville à 768 px retiré de la comparaison au bundle de base) est inerte depuis le relèvement de `COMMIT_AVANT` sur abbe7be (9.4 compris). À retirer par le sweep de l'épopée 9 (entrée 9.12), hors notifications.
+  evidence: sweep 8.4 (2026-10-29) : copie jetable de la suite sans le masque, `KR_FRAG=secondaires`, exit 0, tous les contrôles passent ; la suite du dépôt n'est pas modifiée.
+- source_plan: `epic-notifications/story-refactor-sweep-plan.md`
+  summary: Sur `/report` ordinateur, la règle `td { font-size: var(--kr-font-body) }` n'a pas de rouge : le texte hérite déjà des 14 px natifs du `body` de Bootstrap, égaux au jeton. Le contrôle L de `report-non-lu` ne la distingue donc pas du natif ; une fixture ou un jeton différent de 14 px le rendrait discriminant.
+  evidence: sweep 8.4 (2026-10-29) : règle retirée d'une copie du bundle, `report-non-lu.mjs` exit 0, aucun FAIL.
