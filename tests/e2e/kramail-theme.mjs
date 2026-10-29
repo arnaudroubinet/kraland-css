@@ -1995,8 +1995,14 @@ async function releverPalette(p, contraste) {
   Object.assign(m, await lire(PALETTE.effacerSurvol));
   await p.mouse.move(0, 0);
   for (const [cle, sel] of [['contactsFocus', '.kd-contacts'], ['croixFocus', '.kd-chip-x'], ['ajouterFocus', '.kd-msg-add']]) {
-    await p.evaluate(s => document.querySelector(s).focus({ focusVisible: true }), sel);
-    Object.assign(m, await lire(PALETTE[cle]));
+    // Les pastilles peuvent être redessinées après coup (la croix ciblée est alors remplacée) : refocaliser et relire
+    let r = {};
+    for (let essai = 0; essai < 20 && !PALETTE[cle].every(t => r[t.cle]); essai++) {
+      await p.evaluate(s => document.querySelector(s).focus({ focusVisible: true }), sel);
+      r = await lire(PALETTE[cle]);
+      if (!PALETTE[cle].every(t => r[t.cle])) { await p.waitForTimeout(100); }
+    }
+    Object.assign(m, r);
   }
   return m;
 }
