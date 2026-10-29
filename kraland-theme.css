@@ -829,9 +829,17 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
     display: none;
   }
 
+  /* Marge mobile (épopée 9, entrée 10 ; kr-marge-mobile posée par KR_PAGE_CLASSES) : texte des cellules à --kr-marge-page des bords,
+     la ligne et son filet restent pleine largeur ; 12 px avant body.mobile-mode. Contrôle : report-non-lu#confort. */
   :where(html.kr-page-report) table.table > tbody > tr > td {
-    padding: var(--kr-space-1) var(--kr-space-3) var(--kr-space-2);
+    padding: var(--kr-space-1) var(--kr-marge-page, var(--kr-space-3)) var(--kr-space-2);
     font-size: var(--kr-font-body-mobile);
+  }
+
+  /* Paragraphe et pagination posés directement dans le body (sans .container) : à la marge, comme la ligne principale des autres pages */
+  :where(html.kr-page-report) body.mobile-mode > :is(p, .pagination) {
+    padding-left: var(--kr-marge-page);
+    padding-right: var(--kr-marge-page);
   }
 
   :where(html.kr-page-report) table.table > tbody > tr > td:first-child {
@@ -6945,7 +6953,7 @@ body > map {
   }
 
   /* MARGE MOBILE (H10.1) : pages posant kr-marge-mobile sur <html> (KR_PAGE_CLASSES du template : jeu, Aide, pages secondaires de
-     l'épopée 9 entrée 4, fenêtre d'aide /help de l'entrée 13). Conteneurs et colonnes
+     l'épopée 9 entrée 4, fenêtre d'aide /help de l'entrée 13, Notifications /report de l'entrée 10). Conteneurs et colonnes
      restent à 0 ci-dessus ; la ligne principale et le pied prennent --kr-margin-mobile, le mini-profil aussi ; les cartes de section
      et sections du plateau reculent de --kr-marge-page pour rester à 8 px des bords (règles de la carte de section et de 4d). */
   :where(html.kr-marge-mobile) body.mobile-mode {

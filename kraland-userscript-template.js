@@ -308,7 +308,9 @@
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
     { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
     { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] },
-    { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] }
+    { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] },
+    // Notifications (/report, /report/<personnage>) : règles de la page (ligne non lue tr.bg-info, ligne de notification, haut de page) et marge mobile ; voir le CSS
+    { test: pathname => /^\/report(?:\/|$)/.test(pathname), classes: ['kr-page-report', 'kr-marge-mobile'] }
   ];
 
   /** Classes de page du chemin, sans doublon. */
@@ -3723,14 +3725,10 @@
       const isMembers = location?.pathname?.indexOf('/communaute/membres') === 0;
       document.documentElement.classList.toggle('kr-page-members', isMembers);
 
-      // Page Notifications (/report, /report/<personnage>) : garde les règles de la page (ligne non lue tr.bg-info, ligne de notification, haut de page ; voir le CSS)
-      const isReport = /^\/report(?:\/|$)/.test(location?.pathname || '');
-      document.documentElement.classList.toggle('kr-page-report', isReport);
-
       // Plateau (/jouer/plateau et sous-chemins) : exclu de l'échelle des détails de Matériel, Personnage, Bâtiments et Employés (voir le CSS)
       document.documentElement.classList.toggle('kr-page-plateau', krActiveGameSection(location?.pathname || '') === '/jouer/plateau');
 
-      // Classes de page déclarées par KR_PAGE_CLASSES (marge mobile de 16 px des pages de jeu, de l'Aide et des pages secondaires, voir le CSS « MARGE MOBILE »)
+      // Classes de page déclarées par KR_PAGE_CLASSES (marge mobile de 16 px des pages de jeu, de l'Aide, des pages secondaires et des Notifications, voir le CSS « MARGE MOBILE »)
       const pageClasses = krPageClasses(location?.pathname || '');
       KR_PAGE_CLASSES.flatMap(p => p.classes).forEach(c => document.documentElement.classList.toggle(c, pageClasses.includes(c)));
 

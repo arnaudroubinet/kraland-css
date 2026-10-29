@@ -21,7 +21,9 @@
 // Usage : npm run build && npm run test:zone -- report
 // Largeurs : mobile 375 × 667 et 767 px ; ordinateur 768, 769, popup de la cloche 900 × 800 (rendu ordinateur, R5), 1280, 1440 et 1920 px ;
 // bascule 767 ↔ 768 dans le même onglet, dans les deux sens (rechargement de bascule attendu) ; haut de page (8.3) : sélecteur à 16 px du haut.
-// Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee, haut (vide = tout).
+// Confort mobile (épopée 9, entrée 10) : marge de 16 px et cibles de 44 px de 320 à 767 px, textes égaux à la base dès 768 px.
+// Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base du fragment confort, défaut : git show COMMIT_AVANT_910),
+// KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee, haut, confort (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,6 +32,8 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
+import { execFileSync } from 'node:child_process';
+import { CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -56,7 +60,7 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function open(url, variante, viewport) {
+async function open(url, variante, viewport, script = userscript) {
   const context = await browser.newContext({ viewport });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
@@ -71,7 +75,7 @@ async function open(url, variante, viewport) {
     const go = () => (0, eval)(src);
     if (document.body) { go(); return; }
     new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
-  }, { src: userscript, v: variante });
+  }, { src: script, v: variante });
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'load' });
   await krReady(page, { ready: THEME_READY, label: `${variante} ${url}` });
@@ -402,6 +406,126 @@ if (on('haut')) {
       check(`${tagOf(viewport)} ${v} : hors /report, padding-top du body à 60 px (valeur relevée sur la base 5f5d299)`, () => { assert.equal(m.pageReport, false); assert.equal(m.paddingBody, '60px'); });
     }
   }
+}
+
+// Confort mobile (épopée 9, entrée 10 ; CAP-10, H10.1) : /report porte kr-page-report et kr-marge-mobile (KR_PAGE_CLASSES du template).
+// De 320 à 767 px : aucun nœud texte visible à moins de 16 px d'un bord (lib/marges.mjs), texte du sélecteur à 16 px au moins des deux
+// bords, bandeau toujours à 16 px du haut (8.3), première page de la pagination à 16 px du bord, sélecteur, onglets et pages de la
+// pagination à 44 × 44 aux cinq points (elementFromPoint), aucun débordement. Dès 768 px (popup 900 × 800 et 1280 compris) : boîtes de
+// tous les textes égales au bundle de base. Bascule 767 <-> 768 dans le même onglet, dans les deux sens.
+const COMMIT_AVANT_910 = '8420e3a'; // base de l'entrée 10 (épopée des notifications finie, 8.4 comprise) ; avancer la base, ou passer KR_SCRIPT_AVANT, à la prochaine retouche du rendu ordinateur de /report
+const MARGE = 16;
+const CIBLES = ['.bg-primary select', '#myTab > li > a', '.pagination > li > a'];
+const CONFORT = () => {
+  const h = document.documentElement;
+  const vw = h.clientWidth;
+  const s = document.querySelector('.bg-primary select');
+  const b = s.getBoundingClientRect();
+  const cs = getComputedStyle(s);
+  return {
+    variant: [...h.classList].find(c => c.startsWith('kr-theme-variant-')),
+    classes: ['kr-page-report', 'kr-marge-mobile'].filter(c => h.classList.contains(c)),
+    mobile: document.body.classList.contains('mobile-mode'),
+    debord: h.scrollWidth - vw,
+    selecteur: { g: b.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft), d: vw - b.right + parseFloat(cs.borderRightWidth) + parseFloat(cs.paddingRight) },
+    haut: document.querySelector('.bg-primary').getBoundingClientRect().top + window.scrollY,
+    pagination: document.querySelector('.pagination > li > a').getBoundingClientRect().left
+  };
+};
+// Relevé comparé au bundle de base (comme confort-mobile.mjs) : boîte de chaque nœud texte visible, ordre du DOM, au demi-pixel.
+const RELEVE = () => {
+  const r2 = v => Math.round(v * 2) / 2;
+  const out = [];
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style')) { continue; }
+    const rg = document.createRange();
+    rg.selectNodeContents(n);
+    const b = [...rg.getClientRects()].filter(x => x.width > 0 && x.height > 0);
+    if (!b.length) { continue; }
+    out.push(`${n.textContent.trim().slice(0, 24)} @ ${r2(b[0].left + window.scrollX)},${r2(b[0].top + window.scrollY)} ${b.length}`);
+  }
+  return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), l: out };
+};
+async function mesureConfort(page) {
+  const m = await page.evaluate(CONFORT);
+  m.hors = await page.evaluate(TEXTES_HORS_MARGE_PAGE, { marge: MARGE });
+  m.cibles = [];
+  for (const sel of CIBLES) {
+    const n = await page.evaluate(q => document.querySelectorAll(q).length, sel);
+    for (let i = 0; i < n; i += 1) { m.cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
+  }
+  return m;
+}
+function verifierConfort(variante, m, tag) {
+  check(`confort ${tag} ${variante} : kr-page-report et kr-marge-mobile, mode mobile, aucun débordement`, () => {
+    assert.equal(m.variant, 'kr-theme-variant-' + variante);
+    assert.deepEqual(m.classes, ['kr-page-report', 'kr-marge-mobile']);
+    assert.ok(m.mobile, 'body.mobile-mode absent');
+    assert.equal(m.debord, 0, 'débordement horizontal');
+  });
+  check(`confort ${tag} ${variante} : aucun texte à moins de ${MARGE} px d'un bord, sélecteur à ${MARGE} px au moins, première page de la pagination à ${MARGE} px`, () => {
+    const t = m.hors.map(x => `« ${x.texte} » ${x.gauche}/${x.droite} (${x.chemin})`);
+    assert.deepEqual(t, [], `${t.length} texte(s) à moins de ${MARGE} px : ${t.slice(0, 3).join(' ; ')}`);
+    assert.ok(m.selecteur.g >= MARGE - 0.5 && m.selecteur.d >= MARGE - 0.5, `texte du sélecteur ${JSON.stringify(m.selecteur)}`);
+    assert.ok(Math.abs(m.pagination - MARGE) <= 0.5, `première page de la pagination à ${m.pagination} px`);
+  });
+  check(`confort ${tag} ${variante} : bandeau du sélecteur à 16 px (± 1) du haut (8.3)`, () => assert.ok(Math.abs(m.haut - 16) <= 1, `haut ${m.haut}`));
+  check(`confort ${tag} ${variante} : sélecteur, 2 onglets et 3 pages de la pagination à 44 × 44 aux cinq points`, () => {
+    assert.equal(m.cibles.length, 6, 'cibles mesurées');
+    const e = m.cibles.filter(c => c.e.length).map(c => `${c.sel} [${c.i}] : ${c.e.join(', ')}`);
+    assert.deepEqual(e, []);
+  });
+}
+const premierEcart = (a, b) => { for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i] !== b[i]) { return `texte ${i} : « ${a[i]} » au lieu de « ${b[i]} »`; } } return ''; };
+function verifierBase(variante, t, b, tag) {
+  check(`confort ${tag} ${variante} : textes égaux au bundle de base ${COMMIT_AVANT_910}`, () => {
+    assert.ok(t.theme && b.theme, 'kr-theme-enabled absent');
+    assert.ok(!t.mobile, 'body.mobile-mode présent');
+    assert.ok(t.l.length > 0, 'aucun texte');
+    const d = premierEcart(t.l, b.l);
+    assert.equal(d, '', d);
+  });
+}
+if (on('confort')) {
+  const avant = (process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_AVANT_910}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))
+    .replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+  const releve = async (variante, viewport, src) => { const { context, page } = await open(REPORT, variante, viewport, src); const r = await page.evaluate(RELEVE); await context.close(); return r; };
+  console.log('Confort mobile (320, 375 × 667, 767) ; textes égaux à la base (768, 900 × 800, 1280), Kraland clair et Empire Brun sombre');
+  const mob = croise([{ width: 320, height: 667 }, { width: 375, height: 667 }, { width: 767, height: 667 }], DEUX);
+  const resM = await mapLimit(mob, async c => { const { context, page } = await open(REPORT, c.variante, c.viewport); const m = await mesureConfort(page); await context.close(); return m; });
+  mob.forEach((c, i) => verifierConfort(c.variante, resM[i], tagOf(c.viewport)));
+  const bur = croise([{ width: 768, height: 667 }, { width: 900, height: 800 }, { width: 1280, height: 720 }], DEUX);
+  const resB = await mapLimit(bur, async c => ({ t: await releve(c.variante, c.viewport, userscript), b: await releve(c.variante, c.viewport, avant) }));
+  bur.forEach((c, i) => verifierBase(c.variante, resB[i].t, resB[i].b, tagOf(c.viewport)));
+  const bas = DEUX.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
+  const base768 = Object.fromEntries(await mapLimit(DEUX, async v => [v, await releve(v, { width: 768, height: 667 }, avant)]));
+  const resS = await mapLimit(bas, async c => {
+    const { context, page } = await open(REPORT, c.variante, { width: c.largeurs[0], height: 667 });
+    const etapes = [];
+    const recharges = [];
+    for (let j = 0; j < c.largeurs.length; j += 1) {
+      if (j > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+        await page.setViewportSize({ width: c.largeurs[j], height: 667 });
+        recharges.push(await charge);
+        await krReady(page, { ready: THEME_READY, label: `confort bascule ${c.variante} ${c.largeurs[j]} px` });
+      }
+      etapes.push(c.largeurs[j] < 768 ? await mesureConfort(page) : await page.evaluate(RELEVE));
+    }
+    await context.close();
+    return { etapes, recharges };
+  });
+  bas.forEach((c, i) => {
+    const t = `bascule ${c.largeurs.join('>')}`;
+    check(`confort ${t} ${c.variante} : rechargement de bascule à chaque passage du seuil`, () => assert.deepEqual(resS[i].recharges, [true, true], 'load observé : ' + resS[i].recharges.join(', ')));
+    resS[i].etapes.forEach((m, j) => {
+      const tag = `${t} étape ${j + 1} (${c.largeurs[j]})`;
+      if (c.largeurs[j] < 768) { verifierConfort(c.variante, m, tag); } else { verifierBase(c.variante, m, base768[c.variante], tag); }
+    });
+  });
 }
 
 await browser.close();

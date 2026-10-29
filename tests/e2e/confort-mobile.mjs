@@ -8,7 +8,8 @@
 //                   débordement horizontal ; mini-profil du plateau plié et déplié à 375 et 700 px ;
 //   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
 //   bascule         Personnage, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet : marge à 767, base (même parcours) à 768 ;
-//   hors-perimetre  sous-forum, index RP, réception du kramail et notifications à 375 et 767 px : sans kr-marge-mobile,
+//   hors-perimetre  sous-forum, index RP et réception du kramail à 375 et 767 px (notifications : mesurées par report-non-lu#confort,
+//                   entrée 10) : sans kr-marge-mobile,
 //                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles) ;
 //   secondaires     (entrée 4, plan story-pages-secondaires-marge-de-16-px-et-cibles-de-44-px) Règles, Guide, Organisations, Événements,
 //                   Statistiques, fiche de membre, Interface, carte de ville et Cybermonde (fixtures secondaires-*.html) à 320, 375 × 667 et
@@ -79,8 +80,7 @@ const PAGES = {
   aide: { url: '/aide', html: lire('aide.html'), classe: 'kr-page-aide' },
   'sous-forum': { url: '/forum/hrp/debuter-20102', html: lire('sous-forum-debuter.html'), classe: null },
   'index-rp': { url: '/forum/rp', html: lire('forum-index-rp.html'), classe: null },
-  reception: { url: '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html'), classe: null },
-  report: { url: '/report', html: avecBootstrap(lire('report-non-lu.html')), classe: null }
+  reception: { url: '/kramail/personnage-fictif-2000-0', html: lire('kramail-reception.html'), classe: null }
 };
 // Pages secondaires (entrée 4) : cibles hors bouton mesurées (sélecteur, toutes les occurrences) ; sansCartes : page sans carte de section ;
 // cartesJusqua : largeur maximale du contrôle des cartes (carte de ville : colonne native centrée à 767 px, identique à la base).

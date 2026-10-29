@@ -789,3 +789,13 @@ Constantes signalées dans `lib/variantes.mjs` : 31 exports orphelins retirés (
 - Taille du texte à 14 px sur ordinateur : aucun test ne la distingue des 14 px natifs de Bootstrap. Report consigné, rien à faire de ton côté.
 - Écart du déplacement de la taille 14 px dans le bloc ordinateur : une table imbriquée dans une cellule du journal passe de 14 à 15 px sur mobile, car elle hérite de la règle mobile. Mesuré : 54 écarts à 375 px, 0 à 1280 px. Ce cas est absent de la fixture et reste hypothétique sur le site. La règle n'est pas restaurée.
 - `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion (verify de l'entrée).
+
+## Ticket 9.10 — Notifications mobiles : marge de 16 px et cibles de 44 px (2026-10-29)
+
+- Structure de `/report` vérifiée seulement sur la fixture synthétique. La règle `body.mobile-mode > :is(p, .pagination)` suppose que le paragraphe et la pagination sont posés directement dans `body`, sans `.container`. À vérifier sur le site. Relevé du vrai /report tenté par l'orchestrateur le 2026-10-29 : cloche active (pastille « ! »), GET /report interdit, structure non vérifiée. Si aucun `p` réel, réduire la règle à `.pagination`.
+- Bandeau du sélecteur : gardé à sa marge native de 10 px (boîte) et à 16 px du haut (8.3). Le texte du sélecteur est à 24 px des bords.
+- La boîte de la pagination est déplacée à 16 px du bord (la première page commence à 16 px).
+- Liens au fil du texte des lignes (56 × 44, venus de PHASE 5) : non touchés (exception H9.1).
+- Fusion : conflit attendu avec 9.8 dans `tests/e2e/confort-mobile.mjs` (liste `PAGES`/`HORS`) et dans `tests/e2e/lib/router.mjs` (mots-clés de la marge).
+- Aucun masque ajouté. `npm run test:all` reste à lancer une fois, machine calme, sur le SHA de fusion.
+
