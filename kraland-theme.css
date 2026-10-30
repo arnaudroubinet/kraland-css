@@ -4411,9 +4411,9 @@ body > map {
   /* Empiler les colonnes verticalement (sauf dans les modales) ; #col-right de l'accueil exclu (épopée 10, entrée 5 : colonne rangée par la
      section « PAGE ACCUEIL - MOBILE ») */
   body.mobile-mode > .container > .row > [class*="col-md-"]:where(:not(:where(html.kr-page-accueil) #col-right)),
-  body.mobile-mode > .container > .row > [class*="col-sm-"],
+  body.mobile-mode > .container > .row > [class*="col-sm-"]:where(:not(:where(html.kr-page-accueil) #col-right)),
   body.mobile-mode .container:not(.bootbox) > .row > [class*="col-md-"]:where(:not(:where(html.kr-page-accueil) #col-right)),
-  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"] {
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"]:where(:not(:where(html.kr-page-accueil) #col-right)) {
     width: 100% !important;
     float: none !important;
     margin-bottom: 15px !important;
@@ -4450,9 +4450,9 @@ body > map {
   
   /* Masquer les statistiques (Membres actifs, Personnages actifs, etc.) en mobile, sauf sur l'accueil (compteurs en carte, épopée 10,
      entrée 3) */
-  a.list-group-item.ds_users:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)),
-  a.list-group-item.ds_characters:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)),
-  a.list-group-item.ds_online:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  a.list-group-item.ds_users:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))),
+  a.list-group-item.ds_characters:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))),
+  a.list-group-item.ds_online:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     display: none !important;
   }
   
@@ -4471,7 +4471,7 @@ body > map {
   }
   
   /* Header "Nouvelles" avec croix à droite (accueil : en-tête de carte, section PAGE ACCUEIL - MOBILE) */
-  .list-group-item.active:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  .list-group-item.active:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -4731,11 +4731,11 @@ body > map {
 
   /* En liste verticale compacte ; listes des cartes de l'accueil exclues (Bienvenue, Forum, Compteurs, Nouvelles : section PAGE ACCUEIL - MOBILE) ;
      lignes natives de l'accueil déconnecté gardées */
-  .list-group:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  .list-group:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     margin-bottom: 15px !important;
   }
   
-  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     padding: 10px 12px !important;
     min-height: var(--kr-touch-target) !important;
     justify-content: space-between !important;
@@ -4745,19 +4745,19 @@ body > map {
   }
   
   /* Avatars de la liste réduits (exclut les images du dashboard et les icônes inline) */
-  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) img:not(.dashboard-card-avatar, .dashboard-card-world, .icon) {
+  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) img:not(.dashboard-card-avatar, .dashboard-card-world, .icon) {
     width: 40px !important;
     height: 40px !important;
     flex-shrink: 0 !important;
   }
   
   /* Texte des items */
-  .list-group-item-heading:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  .list-group-item-heading:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     font-size: 14px !important;
     margin-bottom: 4px !important;
   }
   
-  .list-group-item-text:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+  .list-group-item-text:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
     font-size: 12px !important;
   }
 
@@ -5444,7 +5444,7 @@ body > map {
     }
 
     /* Masquer le profil original en mobile (sur l'accueil, #player-header-section est la liste des Nouvelles, affichée) */
-    #player-header-section:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
+    #player-header-section:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section, :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *))) {
       display: none !important;
     }
     
@@ -6969,7 +6969,9 @@ body > map {
     min-height: var(--kr-touch-target);
   }
 
-  :where(html.kr-page-secondaire) body.mobile-mode .panel-heading:where(:not(.modal *)) span.clickable {
+  /* Chevron de repli natif à 44 px ; aussi celui du panneau ministériel de l'accueil (épopée 10, entrée 5) */
+  :where(html.kr-page-secondaire) body.mobile-mode .panel-heading:where(:not(.modal *)) span.clickable,
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default > .panel-heading span.clickable {
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -11478,18 +11480,9 @@ html[class*='-dark'] .mini.c10 {
 
 /* --- Accueil : reset des largeurs colonnes sur grands écrans ---
    Les règles plateau (#col-left: 20%, #col-right: 74%) s'appliquent globalement via les IDs.
-   Sur l'accueil (3 colonnes au lieu de 4), on rétablit les largeurs Bootstrap. */
+   Sur l'accueil (3 colonnes au lieu de 4), on rétablit les largeurs Bootstrap à partir de 2560 px, 3840 px compris (spécificité
+   au-dessus des IDs seuls du plateau). */
 @media (min-width: 2560px) {
-  .page-accueil #col-left {
-    width: 25% !important;
-  }
-
-  .page-accueil #col-right {
-    width: 50% !important;
-  }
-}
-
-@media (min-width: 3840px) {
   .page-accueil #col-left {
     width: 25% !important;
   }
@@ -11586,16 +11579,6 @@ html[class*='-dark'] .mini.c10 {
   /* Date de modification du message à l'échelle des détails */
   :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default .genmsg {
     font-size: var(--kr-font-detail);
-  }
-
-  /* Chevron de repli natif du panneau à 44 px (comme les pages secondaires) */
-  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default > .panel-heading span.clickable {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    min-width: var(--kr-touch-target);
-    min-height: var(--kr-touch-target);
-    margin-right: -12px;
   }
 
   /* Accueil déconnecté : « Se souvenir de moi » à l'échelle des détails */
@@ -11708,10 +11691,6 @@ html[class*='-dark'] .mini.c10 {
   }
 
   /* --- Forum : lignes de la carte, filet entre deux lignes --- */
-  :where(html.kr-page-accueil) body.mobile-mode #col-t > .accueil-forum-section {
-    order: 3;
-  }
-
   :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum {
     display: block;
     min-height: var(--kr-touch-target);

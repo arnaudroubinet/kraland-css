@@ -1218,3 +1218,11 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Liens texte en ligne des messages ministériels (dans le corps d'un message) : probablement sous 44 px de haut. Les messages de la fixture n'en ont pas ; à voir en passe manuelle.
 - `overflow: hidden` du panneau remplacé par un repli des mots longs (`overflow-wrap: anywhere`) : une longue URL n'est plus coupée.
 - Alternative `display: contents` (retirer la marge forcée de `.panel` plutôt que la compenser) écartée : la suite 4.9 fige cette déclaration par son sélecteur exact.
+
+## Ticket 10.4 — refactor sweep de l'épopée Accueil mobile (in-review, 2026-10-30)
+
+- Garde des quatre cartes de l'accueil (10 occurrences) réécrite sous une forme plus courte et équivalente, mais toujours recopiée : une vraie factorisation demanderait une classe posée par JS, qui arriverait après `DOMContentLoaded` alors que `kr-page-accueil` est posée au document-start (fenêtre où les règles génériques des listes s'appliqueraient). Écartée ; à rouvrir si Arnaud accepte ce compromis.
+- Chevron du panneau ministériel : rangé en liste combinée avec celui des pages secondaires, pas fusionné en `:where(html.kr-page-secondaire, html.kr-page-accueil)` (la fusion viserait tout `.panel-heading` de l'accueil et baisserait la spécificité de (1,4,2) à (0,3,2)).
+- Fixtures synthétiques `palette-nation-accueil.html`, `ACCUEIL_BOUTONS` et `ACCUEIL_RAYONS` gardées : elles portent `.kr-ministerial-card`, l'alerte transformée, `img-circle` et `dashboard-card-avatar`, absents de `accueil.html` ; leurs tests changeraient.
+- La règle `.kr-ministerial-card` mobile reste sans cas réel connu (le vrai message est un `.panel`) ; elle n'est gardée que pour les fixtures synthétiques. Décision possible d'Arnaud : la retirer avec ses contrôles.
+- Preuve finale : `test:all` non lancé par l'implémenteur (consigne du coordinateur), à faire sur machine calme et sur le SHA exact.
