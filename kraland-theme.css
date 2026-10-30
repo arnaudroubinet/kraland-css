@@ -4408,10 +4408,11 @@ body > map {
      Réorganise les blocs pour une lecture verticale fluide
      ========================================================================== */
   
-  /* Empiler les colonnes verticalement (sauf dans les modales) */
-  body.mobile-mode > .container > .row > [class*="col-md-"],
+  /* Empiler les colonnes verticalement (sauf dans les modales) ; #col-right de l'accueil exclu (épopée 10, entrée 5 : colonne rangée par la
+     section « PAGE ACCUEIL - MOBILE ») */
+  body.mobile-mode > .container > .row > [class*="col-md-"]:where(:not(:where(html.kr-page-accueil) #col-right)),
   body.mobile-mode > .container > .row > [class*="col-sm-"],
-  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-md-"],
+  body.mobile-mode .container:not(.bootbox) > .row > [class*="col-md-"]:where(:not(:where(html.kr-page-accueil) #col-right)),
   body.mobile-mode .container:not(.bootbox) > .row > [class*="col-sm-"] {
     width: 100% !important;
     float: none !important;
@@ -11499,11 +11500,12 @@ html[class*='-dark'] .mini.c10 {
 }
 
 /* ============================================================================
-   PAGE ACCUEIL - MOBILE (épopée 10, entrée 3)
+   PAGE ACCUEIL - MOBILE (épopée 10, entrées 3 et 5)
    kr-page-accueil et kr-marge-mobile posées sur <html> par KR_PAGE_CLASSES (/ et /accueil) : la ligne principale porte la marge de
-   page (16 px). Ordre Jouer, Bienvenue, Forum, Compteurs, Nouvelles ; #col-right masqué (message du ministre : entrée 5).
-   Bienvenue, Forum, Compteurs et Nouvelles en carte de section (DESIGN.md › Carte de section, valeurs de 5.1) : carte à 8 px des
-   bords (recul de la marge de page), fond de surface, rayon moyen, contenu à --kr-space-4 ; Forum et Nouvelles avec un en-tête de
+   page (16 px). Ordre Jouer, Bienvenue, message du ministre (entrée 5), Forum, Compteurs, Nouvelles ; de #col-right, seul le panneau
+   ministériel est affiché (carrousel masqué).
+   Bienvenue, message du ministre, Forum, Compteurs et Nouvelles en carte de section (DESIGN.md › Carte de section, valeurs de 5.1) : carte à 8 px des
+   bords (recul de la marge de page), fond de surface, rayon moyen, contenu à --kr-space-4 ; ministre, Forum et Nouvelles avec un en-tête de
    48 px au moins, titre 17 px gras couleur du texte. « Jouer » au bouton primaire de 4.2, dans la marge de page. Échelle de 4.5 :
    noms et valeurs 15 px, détails 13 px, étiquettes 12 px ; cibles de --kr-touch-target.
    ============================================================================ */
@@ -11523,9 +11525,9 @@ html[class*='-dark'] .mini.c10 {
     display: contents;
   }
 
-  /* Ordre : Jouer (1), Bienvenue (2), Forum (3), Compteurs (4), Nouvelles (5). Autres blocs de #col-t (accueil déconnecté : formulaire
-     de connexion, forum natif non regroupé) avec le Forum, avant les Compteurs, comme l'ancien ordre des colonnes ; autres blocs de
-     #col-left en fin */
+  /* Ordre : Jouer (1), Bienvenue (2), Forum (3), Compteurs (4), Nouvelles (5). Autres blocs de #col-t (accueil déconnecté : forum natif
+     non regroupé) avec le Forum, avant les Compteurs, comme l'ancien ordre des colonnes ; formulaire de connexion à la place de
+     Bienvenue (2, entrée 5) ; autres blocs de #col-left en fin */
   :where(html.kr-page-accueil) body.mobile-mode #col-t > * {
     order: 3;
   }
@@ -11534,8 +11536,66 @@ html[class*='-dark'] .mini.c10 {
     order: 6;
   }
 
+  /* Message du ministre (entrée 5) : #col-right reste masqué, sauf s'il porte le panneau ministériel (repéré par ses onglets #myTabContent) :
+     il ne montre alors que ce panneau, en carte de section de 5.1 ; le carrousel et tout autre bloc de la colonne restent masqués.
+     Ordre 3 : à ordre égal, le DOM place #col-right avant #col-t, donc le panneau vient sous Bienvenue (2) et avant le Forum (3).
+     La marge basse commune des panneaux mobiles (.panel, --kr-space-4, forcée) est reprise par la colonne, pour garder 8 px entre
+     deux blocs */
   :where(html.kr-page-accueil) body.mobile-mode #col-right {
     display: none;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-right:has(> .panel-default #myTabContent) {
+    display: flex;
+    flex-direction: column;
+    order: 3;
+    margin-bottom: calc(-1 * var(--kr-space-4));
+    padding: 0;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > * {
+    display: none;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default:has(#myTabContent) {
+    display: block;
+  }
+
+  /* Message : une longue URL ou un mot sans césure se replie dans la carte au lieu de déborder */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default > .panel-body {
+    overflow-wrap: anywhere;
+  }
+
+  /* Accueil déconnecté : le formulaire de connexion (bloc de #col-t qui porte le mot de passe) prend la place de Bienvenue (2), donc
+     avant le message du ministre (3) */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > :has(input[type="password"]) {
+    order: 2;
+  }
+
+  /* En-tête : le titre se replie sur deux lignes plutôt que de rejeter le chevron sous lui (en-tête commun en flex-wrap) */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default > .panel-heading > .panel-title {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  /* Bas du message : sans le saut de ligne final des volets */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right #myTabContent > .tab-pane > br:last-child {
+    display: none;
+  }
+
+  /* Date de modification du message à l'échelle des détails */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default .genmsg {
+    font-size: var(--kr-font-detail);
+  }
+
+  /* Chevron de repli natif du panneau à 44 px (comme les pages secondaires) */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default > .panel-heading span.clickable {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: var(--kr-touch-target);
+    min-height: var(--kr-touch-target);
+    margin-right: -12px;
   }
 
   /* Accueil déconnecté : « Se souvenir de moi » à l'échelle des détails */
@@ -11543,7 +11603,7 @@ html[class*='-dark'] .mini.c10 {
     font-size: var(--kr-font-detail);
   }
 
-  /* --- Cartes de section : Bienvenue, Forum, Compteurs, Nouvelles --- */
+  /* --- Cartes de section : Bienvenue, Forum, Compteurs, Nouvelles (message du ministre : carte de 5.1 générique) --- */
   :where(html.kr-page-accueil) body.mobile-mode :is(#col-t > .ds_user, #col-t > .accueil-forum-section, #col-left > .kraland-metrics, #col-left > #player-header-section) {
     background: var(--kr-bg-surface);
     border: none;
@@ -11626,7 +11686,8 @@ html[class*='-dark'] .mini.c10 {
     border-radius: 50%;
   }
 
-  /* --- Carte ministérielle (stylée si le template la pose ; le message du ministre reste masqué avec #col-right : entrée 5) --- */
+  /* --- Carte ministérielle (alerte .kr-ministerial-card, stylée si le template la pose ; le panneau du ministre de #col-right est une
+     carte de section de 5.1 : entrée 5) --- */
   :where(html.kr-page-accueil) .kr-ministerial-card {
     margin: 0 0 12px;
     padding: 12px 14px;

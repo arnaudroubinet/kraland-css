@@ -118,11 +118,11 @@ export const SUITES = [
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
   // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 7bec452. Entrée 5 : cibles du plateau (plateau).
   { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true },
-  // Accueil mobile (épopée 10, entrées 2 et 3) : fixture synthétique accueil.html (structure native relevée par le spike 10.1) ; à 320 et
-  // 375 px, ordre des blocs (Jouer, Bienvenue, Forum, Compteurs, Nouvelles), #col-right masqué, injections de la peau, aucun débordement ;
+  // Accueil mobile (épopée 10, entrées 2, 3 et 5) : fixture synthétique accueil.html (structure native relevée par le spike 10.1) ; à 320 et
+  // 375 px, ordre des blocs (Jouer, Bienvenue, Ministre, Forum, Compteurs, Nouvelles), de #col-right seul le panneau ministériel (E10.6, avec et sans panneau), injections de la peau, aucun débordement ;
   // de 320 à 767 px, marge, cibles de 44 px, cartes de section et échelle (E10.1-E10.4), contraste des 16 variantes à 375 px, bascule
   // 767/768 ; de 768 à 1920 px, textes égaux au bundle de base e2bcdd1 (trois colonnes à partir de 992 px) ; carrousel affiché sur option.
-  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte']], needsBootstrap: true }
+  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['ministre'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
