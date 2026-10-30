@@ -56,3 +56,4 @@ D9.2 relève un `a` en `inline-flex` `nowrap` avec 16 + 16 px de padding. Piste 
 - Assumption : le correctif porte sur la barre `.mobile-tab-bar` seule, sans toucher la règle générique des onglets mobiles des autres pages.
 - Assumption : à 320 px, le comportement n'est pas mesuré ; le plan le mesure et le consigne.
 - Decision: 2026-10-30 — orchestrateur, sur mandat d'Arnaud (« je vais suivre ta recommandation ») : D9.2 devient un ticket.
+- Relevé connecté du 2026-10-30, vrai plateau à 375 : barre de 385 px pour 375 ; Personnage, Bâtiments et Employés débordent de leur case de 75 px. Confirmé.

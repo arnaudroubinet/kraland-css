@@ -28,7 +28,7 @@ Sur toutes les pages mobiles mesurées, une bande vide reste sous le pied de pag
 
 ## Cause Hypothesis
 
-`ensureFooterSticky` (`kraland-userscript-template.js:7822`) pose `margin-bottom: 60px` en ligne sur `body`, pour le pied collant de Bootstrap 3.3. Sur mobile, le pied n'est pas collant : la marge ne sert plus.
+Relevé connecté du 2026-10-30 (vrai site, accueil, sujet du forum, kramail : 51-52 px) : la bande vient de `body.mobile-mode { padding-bottom: 52px }` (`kraland-theme.css:11942`, règle de la peau). Piste secondaire : `ensureFooterSticky` (`kraland-userscript-template.js:7822`) pose aussi `margin-bottom: 60px` en ligne sur `body`. Vérifier quel élément fixe comptait sur ces 52 px avant de les retirer. Captures : `/Users/arnaud/kraland-css-captures/connecte-2026-10-30/p11-*.png`.
 
 ## Acceptance Criteria
 

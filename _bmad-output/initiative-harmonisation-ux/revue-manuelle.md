@@ -7,7 +7,7 @@ Doutes, décisions et validations à trancher par Arnaud à la fin du travail en
 
 Tri complet du fichier par l'orchestrateur (2026-10-30). Aucun point ne dépend d'un goût personnel : tout point à option retenue suit la recommandation (mandat du 2026-10-28). Il ne reste que ce qu'un agent ne peut pas faire :
 
-- **Une session Kraland connectée** dans le Chrome dédié (mot de passe), pour un seul passage de relevé en lecture par l'orchestrateur : accueil connecté (l. Ticket 10.3, 10.5, 10.6, vide sous la barre), non-lu sur `i.fa-envelope`, vrai Signaler, `kramail` vers la Réception, Membres, chevrons du kramail, plateau réel (jauges PM/PP, cartes à plusieurs actions, barre de PV, accès rapides), forum (Staff, liste latérale, « répondre » sur sujet fermé, vrai sujet avec « Envoyer »), champ Tags, « Pas un contact », `.panel-info` du site, fixtures comparées au site ; `/report` seulement si la cloche est inactive.
+- ~~**Une session Kraland connectée**~~ : fait le 2026-10-30 (voir « Relevé connecté du 2026-10-30 » ci-dessous). Points :  : accueil connecté (l. Ticket 10.3, 10.5, 10.6, vide sous la barre), non-lu sur `i.fa-envelope`, vrai Signaler, `kramail` vers la Réception, Membres, chevrons du kramail, plateau réel (jauges PM/PP, cartes à plusieurs actions, barre de PV, accès rapides), forum (Staff, liste latérale, « répondre » sur sujet fermé, vrai sujet avec « Envoyer »), champ Tags, « Pas un contact », `.panel-info` du site, fixtures comparées au site ; `/report` seulement si la cloche est inactive.
 - **Un vrai téléphone** : protocole P2, ancres H10, clavier en mode « visuel » (bug 16), flash avant `DOMContentLoaded`.
 - **Firefox + Tampermonkey** : procédure de console du 8.2 (Chrome déjà prouvé).
 - Facultatif : vrai clic sur la cloche (marque les notifications lues ; la console a déjà prouvé `width=900,height=800`).
@@ -41,6 +41,23 @@ Captures et mesures : `/Users/arnaud/kraland-css-captures/verif-2026-10-30/`. Re
 - Niveaux de PV 4 et 5, barre de 6 px, recherche du sous-forum, marque PNJ : conformes.
 - `test:all` sur HEAD 2a41b35 (code produit et tests égaux à 50a3b05, vert à la fusion 10.6), aucun agent actif : 18939 ok, 3 FAIL, tous dans `breakpoint-switch` (`nav-large` 2, `nav-origine` 1 : à 1100 px après bascule, barre de 60 px mesurée au lieu de 120, mesure prise avant le retour à la ligne). Rejouée seule (`KR_FRAG=nav-large,nav-origine node tests/e2e/breakpoint-switch.mjs`) : verte 2 fois sur 2. Instabilité de mesure, même sans autre charge que la suite ; à joindre à la story backlog 22.
 - Site déconnecté : le panneau du ministre n'est pas servi aux visiteurs (doute levé) ; `ul.demo` à 60 px à 320 px de large ; le défileur des Nouvelles fait sauter le pied jusqu'à 66 px à chaque tour : backlog 25.
+
+### Relevé connecté du 2026-10-30 (vrai site, session d'Arnaud, Chrome dédié, lecture seule)
+
+Relevé et captures : `/Users/arnaud/kraland-css-captures/connecte-2026-10-30/`. Pilotage par CDP brut (Playwright ne se branche plus sur ce Chrome 156).
+- **Cloche, à savoir** : la pastille « ! » active au départ a disparu en cours de parcours, sans visite de `/report` à ce moment ; cause inconnue, une des pages ouvertes par GET a pu marquer des notifications comme lues (kramail déjà répondu, deux sujets déjà lus, pages de formulaire sans envoi : réponse 332315, nouveau sujet 20105, Signaler, `communaute/membres/edit`). `/report` visité ensuite seulement, cloche vérifiée inactive juste avant.
+- Accueil connecté : conforme (Done when 4 de l'épopée 10 tenu, rétro relevée en accepted-with-open-items). Image dans un lien 311/327 px laissée (décision du tri).
+- Vide sous la barre de l'accueil : 49 px, pseudo-éléments clearfix devenus items flex : backlog 29.
+- Défileur des Nouvelles connecté : stable (1 px) ; sauts seulement en déconnecté : backlog 25 annoté.
+- Kramail : aucun non-lu à observer (enveloppe blanche) ; `kramail` mène à la Réception ; chevrons 44×44 à 375, à 1280 seul le gauche est visible (35×34) ; Contacts à 375 déborde (pagination) : backlog 30 ; Signaler : loupe 34×32 et Contacts 105×40 sous 44 px : ajoutés au backlog 21 ; « Pas un contact » `btn-warning` 297×44 à 375.
+- Membres : `li` à 16 px, pas 4 : point clos.
+- Plateau : jauges PV/PM/PP distinctes et justes ; piste à 1,14:1 (backlog 23 confirmé) ; onglets débordent de 75 px (backlog 19 confirmé) ; accès rapides masqués à 375, +8 px non mesurable (backlog 20 à revoir) ; actions 44×44, sauf bouton maison 34×44 (ajouté au backlog 21) ; aucun `.panel-info` posé par le site.
+- Forum : pas d'accès Staff pour ce compte ; libellés latéraux « Jeu (RP) », « Jeu (HRP) », « Communauté », « Débats » ; sujet fermé : le site affiche « Répondre » (natif) ; « Envoyer » 120×48 atteignable à 375 ; Tags thémé (343×44) ; casse mêlée « Sujet * » / « TAGS » sur mobile, laissée.
+- Recherche DataTables : `input type=search` sans classe, thémé (222×44) : conforme.
+- `/help` : pas de bande ; `help.php?p=prev` en 404.
+- `/report` : icône collée au libellé sur mobile ET bureau : backlog 27 annoté.
+- Bande sous le pied : 51-52 px, `body.mobile-mode { padding-bottom: 52px }` : backlog 26 annoté.
+- Onglets des Contacts à 768/992 : non reproduit sur le site (29 px d'écart) : backlog 28 annoté, priorité basse.
 
 ## Décisions d'Arnaud du 2026-10-28 : recommandations suivies
 

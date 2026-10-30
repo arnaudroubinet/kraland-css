@@ -40,5 +40,7 @@ Sur mobile, le lien de l'onglet passe en `inline-flex` : l'espace blanc entre l'
 
 ## Notes
 
+- Relevé connecté du 2026-10-30 sur le vrai `/report` : écart de 0 px **sur mobile et sur bureau** (1280). Le critère 2 « ordinateur inchangé » est à revoir : le bureau a le même défaut sur le site.
+
 - Constat voisin non retenu : à 1280 px, la pastille de la cloche chevauche son glyphe de 0,3 à 0,9 px. Accepté, imperceptible.
 - Decision: 2026-10-30, orchestrateur, sur mandat « je vais suivre ta recommandation ».

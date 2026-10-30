@@ -52,3 +52,4 @@ Pas de défaut de cascade : la piste n'a ni bordure ni ombre. `kraland-theme.css
 - Assumption : type bug (lisibilité) plutôt que story ; le correctif reste une règle CSS dans le bloc mobile.
 - Assumption : le filet peut être une bordure ou une ombre interne ; la piste garde son `overflow: hidden` et son rayon.
 - Decision: 2026-10-30 — orchestrateur, sur mandat d'Arnaud (« je vais suivre ta recommandation ») : filet de 1 px en border-tint autour de la piste.
+- Relevé connecté du 2026-10-30, vrai plateau, Empire Brun sombre : contraste de la piste 1,14:1, sans filet. Confirmé.

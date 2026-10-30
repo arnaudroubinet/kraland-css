@@ -1,7 +1,7 @@
 ---
 epic: epic-accueil-mobile
 date: 2026-10-30
-verdict: rejected
+verdict: accepted-with-open-items
 criteria: declared
 headless: true
 ---
@@ -234,3 +234,6 @@ Une fois A1 fait sans écart, les preuves soutiennent **accepted-with-open-items
 - Revue de diff à portée réduite, faite dans le fil, sans `bmad-review` (voir « Revue du diff »).
 - Toutes les actions sont des propositions.
 - Écriture faite à la demande de l'orchestrateur, en plus de ce document : une ligne de clôture à la fin de chacun des cinq plans. Le workflow de rétro interdit d'ordinaire de modifier les plans ; la demande explicite de l'orchestrateur prime, comme aux rétros 7 et 9. Pas de `deferred-work.md` : le workflow ne l'exige pas, et les reports de l'épopée sont dans `revue-manuelle.md`. Pas de `test:all`, pas de site réel, aucune écriture git, aucune modification du code, des tests ni du bundle.
+
+**Mise à jour du 2026-10-30 : accepted-with-open-items.** Relevé du vrai `/accueil` connecté (session d'Arnaud, Chrome dédié, lecture seule, bundle 1.0.1793348337346) : marge, cibles ≥ 44 px, titres à 17 px, aucun texte sous 12 px, ordre Jouer, Bienvenue, Ministre, Forum, métriques, Nouvelles, drapeaux entiers, `.genmsg` entière, conformes à 375 et 320 ; rien de cassé à 1280. Done when 4 est tenu (action A1 faite). Points ouverts : vide de 49 px sous la barre (backlog 29), sauts du défileur mesurés seulement en déconnecté (backlog 25). Relevé : `/Users/arnaud/kraland-css-captures/connecte-2026-10-30/releve.md`.
+Decision: 2026-10-30 — orchestrateur, sur mandat « je vais suivre ta recommandation » : verdict relevé de rejected à accepted-with-open-items.

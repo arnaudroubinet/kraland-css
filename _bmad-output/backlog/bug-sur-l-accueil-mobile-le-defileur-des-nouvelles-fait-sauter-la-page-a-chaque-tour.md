@@ -43,6 +43,8 @@ Le ticket 10.6 a plafonné `ul.demo` à la nouvelle visible (`max-height: max-co
 
 ## Notes
 
+- Relevé connecté du 2026-10-30 à 375 : **non reproduit** (pied stable à 1 px sur 60 relevés en 30 s). Le saut n'est mesuré qu'en déconnecté. Commencer par comprendre la différence (nombre ou hauteur des nouvelles, structure du bloc) avant de corriger.
+
 - Assumption : hauteur fixe égale à la nouvelle la plus haute (mesurée par le script, ou `min-height` calé sur la plus haute) ; le repli d'une seule nouvelle prévu par la revue (`min-height` = hauteur d'une nouvelle) ne suffit pas, les nouvelles diffèrent de ±8 px.
 - La fixture `accueil.html` doit rejouer le défileur natif (la suite actuelle ne l'anime pas). Piège : `page.clock` casse `requestAnimationFrame`.
 - Decision: 2026-10-30, orchestrateur, sur mandat « je vais suivre ta recommandation ».

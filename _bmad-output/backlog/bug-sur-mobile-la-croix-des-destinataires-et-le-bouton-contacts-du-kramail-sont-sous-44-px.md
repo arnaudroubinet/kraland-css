@@ -58,3 +58,4 @@ Les boutons sont créés par `kraland-userscript-template.js:6457` (`kd-contacts
 - Assumption : la cible peut grandir sans grossir le glyphe (zone touchable étendue, par exemple par padding ou pseudo-élément) ; le choix revient au plan.
 - Assumption : `.kd-contacts` est placé en absolu à `top: -42px` ; passer à 44 px peut demander de revoir ce placement. Non mesuré.
 - Decision: 2026-10-30 — orchestrateur, sur mandat d'Arnaud (« je vais suivre ta recommandation ») : nouveau ticket plutôt que « tels quels » (A3 de la rétro 9).
+- Relevé connecté du 2026-10-30, page Signaler à 375 : loupe 34×32 et bouton Contacts 105×40, sous 44 px ; à inclure. Plateau, panneau Bâtiment : bouton maison 34×44 (même famille, à inclure si le correctif est commun).

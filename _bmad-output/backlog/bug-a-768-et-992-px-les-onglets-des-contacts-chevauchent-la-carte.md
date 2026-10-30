@@ -40,4 +40,6 @@ Non localisée. Les deux largeurs sont des seuils de Bootstrap (`sm` 768, `md` 9
 
 ## Notes
 
+- Relevé connecté du 2026-10-30 : **non reproduit sur le vrai site** (29 px d'écart entre onglets et carte à 768 et 992, vrai titre « Membres » court). Le chevauchement vient du titre long de la fixture. Assumption : rendre le titre robuste à un libellé long reste utile, priorité basse ; sinon, abandonner le ticket.
+
 - Decision: 2026-10-30, orchestrateur, sur mandat « je vais suivre ta recommandation ».
