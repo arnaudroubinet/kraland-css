@@ -117,7 +117,11 @@ export const SUITES = [
   // 1280 px, bascule 767 <-> 768 et page hors périmètre (index Staff) égales au bundle de base. Entrée 4 : pages
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
   // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 7bec452. Entrée 5 : cibles du plateau (plateau).
-  { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true }
+  { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true },
+  // Accueil mobile (épopée 10, entrée 2) : fixture synthétique accueil.html (structure native relevée par le spike 10.1) ; à 320 et 375 px,
+  // ordre des blocs (Jouer, Bienvenue, Forum, Compteurs, Nouvelles), #col-right masqué, injections de la peau, aucun débordement ; à
+  // 1280 px, trois colonnes, carrousel masqué par kr-hide-carousel et textes égaux au bundle de base e2bcdd1 ; carrousel affiché sur option.
+  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['bureau'], ['carrousel']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -258,6 +262,11 @@ export const KEYWORDS = [
   [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile', 'report']],
   [/kr-marge-page|kr-margin-mobile/, ['kramail']],
   [/kr-page-jeu|kr-page-aide|kr-page-secondaire/, ['confort-mobile']],
+  // Accueil (épopée 10, entrée 2) : classe de page, injections de la colonne droite (Homepage:RightColumn), compteurs et carrousel, vérifiés
+  // par accueil-mobile ; palette-nation et typographie-formes rendent aussi un accueil synthétique (sans ces deux suites, un hunk
+  // .page-accueil, qui élargissait au total, perdrait leur couverture). kr-ministerial-card n'est rendue que par ces deux suites (la fixture
+  // accueil.html a un panneau ministériel natif, sans .alert : la classe n'y est pas posée). page-accueil couvre aussi kr-page-accueil.
+  [/page-accueil|accueil-play-btn|accueil-forum-section|kraland-metrics|kr-ministerial-card|kr-hide-carousel|Homepage:RightColumn/, ['accueil-mobile', 'palette-nation', 'typographie-formes']],
   // Cibles du plateau mobile (épopée 9, entrée 5) : actions des cartes, boutons de groupe, bouton de gestion du mini-profil, accès rapides,
   // grille d'actions et repli des deux accordéons, mesurés par le fragment plateau de confort-mobile (et par les suites qui les comparent).
   [/dashboard-card-actions|dashboard-group-buttons|mobile-mini-profile-manage-btn|kr-action-grid|kr-quick-access-buttons|dashboard-cards-grid|building-section-content/, ['confort-mobile', 'cartes-pastilles', 'typographie-formes', 'plateau']]
@@ -288,7 +297,11 @@ export const SECTIONS = [
   // Correctifs mobiles du chargement (« FIX MOBILE : … » : défilement vers #flap) : ancres vérifiées par forum-activite.
   [/^FIX MOBILE : /, ['forum-activite']],
   // Cloche des notifications (ticket 8.2) : popup 900×800 sur ordinateur, vérifié par cloche-notifications.
-  [/^CLOCHE DES NOTIFICATIONS/, ['cloche']]
+  [/^CLOCHE DES NOTIFICATIONS/, ['cloche']],
+  // Accueil (épopée 10, entrée 2) : message de bienvenue et colonne droite (Homepage:RightColumn), vérifiés par accueil-mobile ; « Jouer »
+  // et section Forum injectés, rendus aussi par palette-nation et typographie-formes (mêmes zones que le mot-clé de l'accueil).
+  [/^TASK-2\.3 - MESSAGE DE BIENVENUE/, ['accueil-mobile', 'palette-nation', 'typographie-formes']],
+  [/^ACCUEIL - AMÉLIORATION COLONNE DROITE/, ['accueil-mobile', 'palette-nation', 'typographie-formes']]
 ];
 // Blocs du cœur pur (section « CŒUR PUR » en tête du template : « // @kr-pure-begin <nom> » … « // @kr-pure-end ») -> zones des suites
 // qui vérifient le module appelant. Un hunk entièrement dans des blocs connus est rattaché à leurs zones (en plus des mots-clés) ; un bloc
