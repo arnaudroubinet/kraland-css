@@ -84,6 +84,14 @@ Tests (`tests/e2e`) : toutes les constantes `COMMIT_*`, `BASE_SHA`, `BASELINE*` 
 ## Review Triage Log
 
 - Revue rapide par l'implémenteur. Libellé de base de `typographie-formes` corrigé : « 9.1 à 9.10 comprises », car 7bec452 contient 9.10 (fde18e7). Aucun autre constat. Une revue indépendante reste à faire (AGENTS.md).
+- Revue indépendante (2026-10-30, orchestrateur, agent en lecture seule sur `git show 6fbdba0 -m --first-parent`) : APPROUVÉ AVEC CORRECTIFS, aucun défaut bloquant. C1 à C6 vérifiés (jeton `--kr-touch-target` défini une seule fois, règles retirées mortes, 2943 `!important`). Constats :
+  1. medium : C4 n'a converti que `min-height` ; `min-width`, `width` et `height: 44px` restent en dur dans les mêmes règles. Déjà reporté dans `deferred-work.md`.
+  2. medium : comparateur `/tmp/kr912/diff.mjs` non rejouable ; copié le 2026-10-30 dans `/Users/arnaud/kraland-css-captures/9.12/diff.mjs`. Le passage à 1 écart reste inexpliqué (détail non gardé) : au prochain écart, garder le détail avant de conclure à une instabilité.
+  3. low : le critère `KR_SCRIPT` = 7bec452 ne prouve que les contrôles absolus et les bases gardées (déjà dit dans Verification).
+  4. low : exports retirés de `lib/marges.mjs` : `SANS_MARGE_PAGE`, mais aussi `textesHorsMarge`, `PREMIER_TEXTE_PAGE` et `premierTexte` (retirés après la revue, voir `revue-manuelle.md`).
+  5. low : `REGLES_CARTE_TICKET51`, `RETRAITS_TICKET49` et `ECARTS_TICKET49` restent exportés sans lecteur extérieur ; usage interne, laissés.
+  6. low, confirmé par l'orchestrateur : le miroir `ECHELLE_TICKET45` retiré, `.modal-title`, `.panel-group .panel-title`, `.xmini` et `footer a` n'ont plus de contrôle absolu dans `typographie-formes.mjs`. Ticket backlog 24.
+  7. low : le FAIL `kramail-theme#confort` du `test:all` de fusion est rejoué seul, vert 2 fois sur 2 (échec de charge connu) ; `test:all` machine calme sur HEAD à consigner par l'orchestrateur.
 
 ## Verification
 
