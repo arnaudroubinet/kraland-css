@@ -72,3 +72,15 @@ covers = ["CAP-10", "CAP-6", "CAP-5"]
 after = [1, 2, 3, 5]
 hitl = false
 risk = "medium"
+
+[[entry]]
+id = 6
+type = "bug"
+title = "Finitions de l'accueil mobile d'après la capture connectée d'Arnaud"
+description = "Capture d'Arnaud du vrai /accueil connecté sur téléphone (2026-10-30, build courant ; hors dépôt : /Users/arnaud/kraland-css-captures/10.3-arnaud/accueil-connecte-mobile.jpg). Retour d'Arnaud : « Les drapeaux sont tronqués et l'image illisible ». À corriger sur mobile seul, rendu ordinateur inchangé : (1) drapeaux des onglets du message du ministre (img 50×35 dans li > a[style=padding:5px]) rognés ; ils doivent s'afficher entiers, cibles ≥ 44 px gardées ; (2) image du message (img.img-responsive, parfois dans un lien, ex. 500×333) réduite à une vignette illisible ; elle doit occuper la largeur utile de la carte (max-width: 100 %, hauteur auto) ; (3) icône du .genmsg « Ce message a été modifié… » qui mord sur les filets, texte collé au bord droit ; (4) vide d'environ 70 px entre la barre et « Jouer » (réserve du défileur natif ?) ; (5) vide d'environ 80 px sous la dernière nouvelle ; (6) avatar de Bienvenue qui touche le haut de la carte. La fixture doit charger de vraies images (servies localement ou interceptées, tailles réelles 50×35 et 500×333) pour que les contrôles voient le rognage."
+verify = "Fragments accueil-mobile rouges sur la base puis verts à 320, 375×667 et 767 en Kraland clair et Empire Brun sombre : drapeaux affichés à leur taille naturelle sans rognage (boîte de l'image contenue dans sa cible, aucune règle object-fit/overflow qui la coupe), image du message ≥ 90 % de la largeur du contenu de la carte, ratio conservé ; .genmsg sans recouvrement et à ≥ 16 px du bord ; écarts verticaux mesurés ; bureau égal à la base à 768 et 1280 ; contre-épreuve par mutation ; npm run test:router vert."
+covers = ["CAP-10", "CAP-6"]
+after = [1, 2, 3, 5, 4]
+hitl = false
+risk = "medium"
+references = ["epic-accueil-mobile/epic-accueil-mobile-retrospective.md (A1)"]

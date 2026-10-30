@@ -10,7 +10,8 @@
 	     de #col-left sans id (nameLeftSidebarDivs le nomme player-header-section), ni « Bienvenue », ni accueil-play-btn, ni
 	     accueil-forum-section. Données de jeu réelles (nouvelles, forum, messages des ministres, compteurs). Retirés : publicités, formulaires
 	     #reconnect et #exit (jeton), bloc kramail de #col-t (structure native non relevée). Images hors Kraland (messages des ministres,
-	     avatar) remplacées par des adresses img7.kraland.org, servies par la suite : aucune requête hors fixture. Textes tronqués par le
+	     avatar) remplacées par des adresses img7.kraland.org, servies par la suite (drapeaux et images des messages à leur taille réelle,
+	     entrée 6) : aucune requête hors fixture. Textes tronqués par le
 	     relevé (légendes du carrousel, citation du pied) complétés. -->
 	<base href="http://www.kraland.org/">
 	<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
@@ -23,6 +24,12 @@
 	<style>
 		.falarge { font-size: 50px; text-align: right; position: absolute; top: 7px; right: 27px; outline: none; }
 		:where(.falarge)::before { content: "\271A"; }
+	</style>
+	<!-- Règle native de .genmsg, recopiée de la feuille native (main.css du site, relevé du 2026-10-30, entrée 6) : la feuille n'est pas
+	     servie par la fixture. Icône gen.gif (32 × 32) servie par la suite. -->
+	<style>
+		.genmsg { padding: 3px 0px 3px 36px; border-top: 1px solid #AAA; border-bottom: 1px solid #AAA;
+			background: url("http://img7.kraland.org/gen.gif") no-repeat; font-size: 12px; color: #777; text-align: right; float: right; }
 	</style>
 </head>
 <body style="margin-bottom: 60px;">

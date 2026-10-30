@@ -16,6 +16,12 @@
 //   ministre   E10.6, 320, 375 et 767 px, avec et sans panneau ministériel (variante sans panneau dérivée en mémoire) : panneau en carte de
 //              section juste sous Bienvenue et avant le Forum (en-tête 48 px, titre 17 px gras couleur du texte), onglets et chevron à 44 px ;
 //              #myCarousel jamais visible ; sans panneau, rien de #col-right n'apparaît et l'ordre des autres blocs reste ;
+//   finitions  entrée 6 (capture d'Arnaud du vrai accueil connecté), 320, 375 et 767 px, mêmes variantes : drapeaux des onglets à leur taille
+//              naturelle (50 × 35), contenus dans l'onglet ; image du message (500 × 333, dans un lien) à 90 % au moins de la largeur du contenu
+//              de la carte (de sa largeur naturelle si elle est plus petite : jamais agrandie), ratio gardé, de même pour l'image du volet sans
+//              lien #empire1 ; icône du .genmsg (règle native relevée dans main.css) entière dans sa boîte ; défileur des nouvelles sans vide
+//              sous la nouvelle visible ; avatar de Bienvenue rond (56 × 56) à 8 px au moins du haut et du bas de la carte, même avec une marge
+//              basse sur l'image (règle supposée, injectée) ou un avatar en portrait (80 × 120) ;
 //   contraste  375 px, 16 variantes : titres de carte (Ministre compris), valeurs et libellés des compteurs à 4,5:1 au moins ;
 //   bureau     768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : trois colonnes côte à côte (992 px et plus) ;
 //              carte ministérielle visible ; carrousel masqué par html.kr-hide-carousel (défaut) ; position des textes égale au bundle de base ;
@@ -24,7 +30,7 @@
 //              formulaire avant les Compteurs, lignes .ds_forum à 44 px, marge, cibles, « Se souvenir de moi » à 13 px, rien sous 12 px.
 // Partout : aucune exception de page, aucune requête hors fixture (coupée par la route de la fixture ou refusée par confineNetwork).
 // Aucun accès au site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT),
-// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, ministre, contraste, bureau, carrousel, deconnecte (vide = tout), KR_FA_DIR=/dossier (copie locale
+// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, ministre, finitions, contraste, bureau, carrousel, deconnecte (vide = tout), KR_FA_DIR=/dossier (copie locale
 // de Font Awesome 5.6.3 du site : css/all.min.css + webfonts/, comme messages-v3 ; sans elle, la feuille est vide et les icônes n'ont que le
 // glyphe de substitution de la fixture).
 import assert from 'node:assert/strict';
@@ -32,6 +38,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Buffer } from 'node:buffer';
+import zlib from 'node:zlib';
 import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
@@ -84,9 +91,42 @@ const HTML_MINISTRE_DUR = (() => {
   if (!h.includes('kr-inconnu') || !h.includes('kr-url-longue')) { throw new Error('variante durcie du panneau ministériel non dérivée'); }
   return h;
 })();
+// Accueil avec une marge basse native supposée sur l'avatar de Bienvenue (entrée 6 : sur la capture d'Arnaud, l'avatar touche le haut de
+// la carte ; la règle native en cause n'est pas relevée), dérivé en mémoire : l'avatar doit rester centré dans la carte.
+const HTML_AVATAR_MARGE = (() => {
+  const h = HTML.replace('</head>', '<style>.ds-img { margin-bottom: 20px; }</style>\n</head>');
+  if (h === HTML) { throw new Error('variante avatar à marge basse non dérivée'); }
+  return h;
+})();
+// Accueil avec un avatar de Bienvenue en portrait (80 × 120, entrée 6 : #col-t correspond aussi à [id^="c"]) : il doit rester rond (56 × 56,
+// object-fit de .img-circle) et contenu dans la carte.
+const HTML_AVATAR_PORTRAIT = (() => {
+  const h = HTML.replace('/2/fixture/avatar.jpg', '/2/fixture/avatar-portrait.png');
+  if (h === HTML) { throw new Error('variante avatar en portrait non dérivée'); }
+  return h;
+})();
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const on = name => FRAG.length === 0 || FRAG.includes(name);
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
+// PNG uni de taille réelle (entrée 6) : drapeaux des onglets 50 × 35, images des messages des ministres 500 × 333, icône du .genmsg
+// (gen.gif) 32 × 32, avatar en portrait 80 × 120.
+function png(w, h, [r, v, b]) {
+  const ligne = Buffer.alloc(1 + w * 3);
+  for (let x = 0; x < w; x++) { ligne[1 + x * 3] = r; ligne[2 + x * 3] = v; ligne[3 + x * 3] = b; }
+  const bloc = (type, data) => {
+    const td = Buffer.concat([Buffer.from(type), data]);
+    const lg = Buffer.alloc(4); lg.writeUInt32BE(data.length);
+    const crc = Buffer.alloc(4); crc.writeUInt32BE(zlib.crc32(td) >>> 0);
+    return Buffer.concat([lg, td, crc]);
+  };
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), bloc('IHDR', ihdr),
+    bloc('IDAT', zlib.deflateSync(Buffer.concat(Array.from({ length: h }, () => ligne)))), bloc('IEND', Buffer.alloc(0))]);
+}
+const DRAPEAU = png(50, 35, [200, 30, 30]);
+const IMAGE_MESSAGE = png(500, 333, [30, 120, 200]);
+const ICONE_GENMSG = png(32, 32, [90, 160, 220]);
+const AVATAR_PORTRAIT = png(80, 120, [220, 180, 40]);
 const VARIANTES = ['kraland', 'empire-brun-dark'];
 const MOBILES = [320, 375];
 const LARGEURS_E10 = [320, 375, 700, 767];
@@ -113,11 +153,18 @@ async function ouvrir({ width, height = 667, variante, script = userscript, carr
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   const coupees = []; // requêtes vers www.kraland.org coupées par la route de la fixture (hors page, Bootstrap, jQuery, CSS)
-  // Images du site : GIF 1 × 1. Les images de la fixture portent width et height, sauf celles des ministres et du carrousel, rendues
-  // à 1 × 1 px : leur géométrie n'est pas représentative. Les logos du thème (/2/world/logo*) sont laissés au refus du confinement,
-  // comme dans les autres suites (lib/confinement.mjs).
-  await context.route('http://img7.kraland.org/**', route => (new URL(route.request().url()).pathname.startsWith('/2/world/logo')
-    ? route.fallback() : route.fulfill({ status: 200, contentType: 'image/gif', body: GIF })));
+  // Images du site : drapeaux des onglets, images des messages des ministres et icône du .genmsg à leur taille réelle (entrée 6 : le
+  // rognage n'était pas visible avec un GIF 1 × 1) ; les autres en GIF 1 × 1 (elles portent width et height, sauf celles du carrousel,
+  // masqué). Les logos du thème (/2/world/logo*) sont laissés au refus du confinement, comme dans les autres suites (lib/confinement.mjs).
+  await context.route('http://img7.kraland.org/**', route => {
+    const p = new URL(route.request().url()).pathname;
+    if (p.startsWith('/2/world/logo')) { return route.fallback(); }
+    if (/^\/2\/world\/flag\d+\.gif$/.test(p)) { return route.fulfill({ status: 200, contentType: 'image/png', body: DRAPEAU }); }
+    if (/^\/2\/fixture\/ministre-\d+\.png$/.test(p)) { return route.fulfill({ status: 200, contentType: 'image/png', body: IMAGE_MESSAGE }); }
+    if (p === '/gen.gif') { return route.fulfill({ status: 200, contentType: 'image/png', body: ICONE_GENMSG }); }
+    if (p === '/2/fixture/avatar-portrait.png') { return route.fulfill({ status: 200, contentType: 'image/png', body: AVATAR_PORTRAIT }); }
+    return route.fulfill({ status: 200, contentType: 'image/gif', body: GIF });
+  });
   await context.route(BASE + '/**', route => {
     const u = new URL(route.request().url());
     if (u.href.split('#')[0] === URL_ACCUEIL) { return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }); }
@@ -631,6 +678,107 @@ if (on('ministre')) {
         for (let i = 1; i < ordre.length; i++) { assert.ok(ordre[i][1].h > ordre[i - 1][1].h, `${ordre[i][0]} pas sous ${ordre[i - 1][0]}`); }
       });
     }
+    controlerPropre(tag, r);
+  }
+}
+
+// Finitions (entrée 6) : géométrie des images du panneau ministériel, du .genmsg, du défileur et de l'avatar de Bienvenue.
+const FINITIONS = async () => {
+  const boite = e => { const b = e.getBoundingClientRect(); return { g: b.left, h: b.top, d: b.right, b: b.bottom, l: b.width, ht: b.height }; };
+  const r1 = x => Math.round(x * 10) / 10;
+  const carte = document.querySelector('#col-right > .panel');
+  const corps = carte.querySelector(':scope > .panel-body');
+  const cs = getComputedStyle(corps);
+  const contenu = corps.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const drapeaux = [...document.querySelectorAll('#myTab > li > a > img')].map(i => {
+    const b = boite(i); const a = boite(i.parentElement);
+    return { nat: [i.naturalWidth, i.naturalHeight], rendu: [r1(b.l), r1(b.ht)], dans: b.g >= a.g - 0.5 && b.d <= a.d + 0.5 && b.h >= a.h - 0.5 && b.b <= a.b + 0.5,
+      onglet: [r1(a.l), r1(a.ht)], ajustement: getComputedStyle(i).objectFit };
+  });
+  const img = document.querySelector('#myTabContent > .tab-pane.active a > img.img-responsive');
+  const bi = boite(img); const bc = boite(carte);
+  const image = { nat: [img.naturalWidth, img.naturalHeight], rendu: [r1(bi.l), r1(bi.ht)], contenu: r1(contenu), dansCarte: bi.g >= bc.g && bi.d <= bc.d };
+  // .genmsg : taille rendue de l'icône de fond (auto ou contain/cover/longueurs), contre la boîte de remplissage et le retrait du texte
+  const gm = document.querySelector('#myTabContent > .tab-pane.active .genmsg');
+  const gs = getComputedStyle(gm);
+  const url = (gs.backgroundImage.match(/url\("?(.*?)"?\)/) || [])[1];
+  let icone = null;
+  if (url) {
+    const im = new Image(); im.src = url; await im.decode();
+    const pw = gm.clientWidth; const ph = gm.clientHeight;
+    const [sx, sy = 'auto'] = gs.backgroundSize.split(/ (?![^(]*\))/);
+    let w = im.naturalWidth; let h = im.naturalHeight;
+    if (sx === 'contain' || sx === 'cover') { const k = (sx === 'contain' ? Math.min : Math.max)(pw / w, ph / h); w *= k; h *= k; } else if (sx !== 'auto' || sy !== 'auto') {
+      const px = (v, ref) => { const mn = v.match(/^min\((.+),\s*(.+)\)$/); return mn ? Math.min(px(mn[1], ref), px(mn[2], ref)) : (v.endsWith('%') ? parseFloat(v) / 100 * ref : parseFloat(v)); };
+      const nw = sx === 'auto' ? null : px(sx, pw); const nh = sy === 'auto' ? null : px(sy, ph);
+      w = nw ?? nh * im.naturalWidth / im.naturalHeight; h = nh ?? nw * im.naturalHeight / im.naturalWidth;
+    }
+    icone = { rendu: [r1(w), r1(h)], boite: [pw, ph], retrait: parseFloat(gs.paddingLeft) };
+  }
+  const genmsg = { icone };
+  // Défileur : vide entre la nouvelle visible et le bas de ul.demo
+  const ul = document.querySelector('#player-header-section ul.demo');
+  const li = [...ul.children].find(e => e.getClientRects().length > 0);
+  const defileur = { vide: r1(boite(ul).b - boite(li).b), ul: r1(boite(ul).ht), li: r1(boite(li).ht) };
+  // Avatar de Bienvenue dans sa carte
+  const ds = document.querySelector('#col-t > .ds_user'); const av = ds.querySelector('.pull-right img');
+  const avatar = { haut: r1(boite(av).h - boite(ds).h), bas: r1(boite(ds).b - boite(av).b), taille: [r1(boite(av).l), r1(boite(av).ht)] };
+  // Image d'un volet sans lien (#empire1, 500 × 333) : volet affiché par l'onglet Bootstrap (fondu de 150 ms)
+  window.jQuery('#myTab a[href="#empire1"]').tab('show');
+  await new Promise(ok => setTimeout(ok, 400));
+  const i1 = document.querySelector('#empire1.active img.img-responsive');
+  const b1 = i1 ? boite(i1) : null;
+  const imageSansLien = i1 && { nat: [i1.naturalWidth, i1.naturalHeight], rendu: [r1(b1.l), r1(b1.ht)], contenu: r1(contenu), dansCarte: b1.g >= bc.g && b1.d <= bc.d };
+  return { drapeaux, image, imageSansLien, genmsg, defileur, avatar };
+};
+
+if (on('finitions')) {
+  console.log('\n[finitions] entrée 6, 320, 375 et 767 px : drapeaux entiers, image du message lisible, .genmsg, défileur, avatar');
+  const AVATARS = { carre: HTML, marge: HTML_AVATAR_MARGE, portrait: HTML_AVATAR_PORTRAIT };
+  const cas = VARIANTES.flatMap(variante => [320, 375, 767].flatMap(width => Object.keys(AVATARS).map(avatar => ({ variante, width, avatar }))));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs, horsFixture } = await ouvrir({ variante: c.variante, width: c.width, html: AVATARS[c.avatar] });
+    await page.waitForFunction(() => [...document.images].filter(i => i.closest('#col-right')).every(i => i.complete));
+    const f = await page.evaluate(FINITIONS);
+    const m = await page.evaluate(ETAT, BLOCS);
+    await context.close();
+    return { c, f, m, r: { erreurs, hors: horsFixture() } };
+  });
+  for (const { c, f, m, r } of res) {
+    const tag = `finitions ${c.variante} ${c.width} px${{ carre: '', marge: ' (marge basse native supposée sur l\'avatar)', portrait: ' (avatar en portrait 80 × 120)' }[c.avatar]}`;
+    check(`${tag} : mode mobile, aucun débordement horizontal`, () => assert.ok(m.mobile && m.sw <= m.vw, `${m.sw} > ${m.vw}`));
+    check(`${tag} : avatar de Bienvenue à 8 px (± 0,5) au moins du haut et du bas de la carte`, () => {
+      assert.ok(f.avatar.haut >= 7.5 && f.avatar.bas >= 7.5, JSON.stringify(f.avatar));
+    });
+    check(`${tag} : avatar de Bienvenue rond, 56 × 56 (± 0,5)`, () => {
+      assert.ok(f.avatar.taille.every(t => Math.abs(t - 56) <= 0.5), JSON.stringify(f.avatar));
+    });
+    if (c.avatar !== 'carre') { controlerPropre(tag, r); continue; }
+    check(`${tag} : 6 drapeaux à leur taille naturelle 50 × 35 (aucun rognage), contenus dans leur onglet de 44 × 44 px au moins`, () => {
+      assert.equal(f.drapeaux.length, 6);
+      const ko = f.drapeaux.filter(d => d.nat[0] !== 50 || d.nat[1] !== 35 || Math.abs(d.rendu[0] - 50) > 0.5 || Math.abs(d.rendu[1] - 35) > 0.5
+        || !d.dans || d.onglet[0] < 43.5 || d.onglet[1] < 43.5);
+      assert.equal(ko.length, 0, JSON.stringify(ko));
+    });
+    check(`${tag} : image du message (500 × 333, dans un lien) à 90 % au moins de la largeur du contenu de la carte (ou de sa largeur naturelle), ratio gardé, dans la carte`, () => {
+      const { nat, rendu, contenu, dansCarte } = f.image;
+      assert.deepEqual(nat, [500, 333]);
+      assert.ok(rendu[0] >= 0.9 * Math.min(nat[0], contenu) && dansCarte, JSON.stringify(f.image)); // max-width 100 % : jamais agrandie
+      assert.ok(Math.abs(rendu[0] / rendu[1] - 500 / 333) < 0.02, `ratio ${JSON.stringify(rendu)}`);
+    });
+    check(`${tag} : image d'un volet sans lien (#empire1, 500 × 333) à 90 % au moins de la largeur du contenu de la carte (ou de sa largeur naturelle), ratio gardé, dans la carte`, () => {
+      assert.ok(f.imageSansLien, 'volet #empire1 non affiché');
+      const { nat, rendu, contenu, dansCarte } = f.imageSansLien;
+      assert.deepEqual(nat, [500, 333]);
+      assert.ok(rendu[0] >= 0.9 * Math.min(nat[0], contenu) && dansCarte, JSON.stringify(f.imageSansLien));
+      assert.ok(Math.abs(rendu[0] / rendu[1] - 500 / 333) < 0.02, `ratio ${JSON.stringify(rendu)}`);
+    });
+    check(`${tag} : icône du .genmsg (gen.gif 32 × 32, règle native relevée) entière dans sa boîte, sans mordre sur les filets ni sur le texte`, () => {
+      const { icone } = f.genmsg;
+      assert.ok(icone, 'icône de fond absente (règle native de la fixture)');
+      assert.ok(icone.rendu[1] <= icone.boite[1] + 0.5 && icone.rendu[0] <= icone.retrait + 0.5, JSON.stringify(icone));
+    });
+    check(`${tag} : défileur des nouvelles sans vide sous la nouvelle visible (1 px au plus)`, () => assert.ok(f.defileur.vide <= 1, JSON.stringify(f.defileur)));
     controlerPropre(tag, r);
   }
 }
