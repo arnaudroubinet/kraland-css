@@ -4720,9 +4720,10 @@ body > map {
     min-height: 400px !important;
   }
   
-  /* Images de la carte */
+  /* Images de la carte ; accueil exclu (#col-right et #col-t correspondent à [id^="c"] : image du message à max-width 100 %, avatar de
+     Bienvenue à la hauteur de .img-circle) */
   map + img,
-  [id^="c"] img {
+  [id^="c"] img:where(:not(:where(html.kr-page-accueil) *)) {
     max-width: none !important;
     height: auto !important;
   }
@@ -4792,7 +4793,8 @@ body > map {
     background-color: var(--kr-bg-hover) !important;
   }
   
-  .panel-body a img:not(.icon) {
+  /* Panneau ministériel de l'accueil exclu : drapeaux des onglets et image du message à leur taille (entrée 6) */
+  .panel-body a img:not(.icon):where(:not(:where(html.kr-page-accueil) #col-right *)) {
     width: 32px !important;
     height: 32px !important;
     flex-shrink: 0 !important;
@@ -11576,8 +11578,10 @@ html[class*='-dark'] .mini.c10 {
     display: none;
   }
 
-  /* Date de modification du message à l'échelle des détails */
+  /* Date de modification du message à l'échelle des détails ; icône de fond native (plus haute que la ligne, rognée par les filets) à la
+     hauteur de la boîte, sans dépasser 32 px (retrait natif du texte) (entrée 6) */
   :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default .genmsg {
+    background-size: auto min(100%, 32px);
     font-size: var(--kr-font-detail);
   }
 
@@ -11648,8 +11652,13 @@ html[class*='-dark'] .mini.c10 {
     padding-left: var(--kr-space-4);
   }
 
+  /* Boîte de l'avatar à la taille de l'image (entrée 6) : la boîte, pas l'image, est centrée (translateY des règles communes) ; une marge
+     ou un retrait natif sous l'image la décalait vers le haut de la carte */
   :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user > .pull-right {
     --kr-avatar-size: 56px;
+
+    height: var(--kr-avatar-size);
+    padding: 0;
   }
 
   :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user h4 {
@@ -11809,7 +11818,10 @@ html[class*='-dark'] .mini.c10 {
     display: contents;
   }
 
+  /* Défileur : sa hauteur en ligne (posée par le site pour plusieurs nouvelles) est plafonnée à la seule nouvelle visible, sans vide
+     dessous (entrée 6) */
   :where(html.kr-page-accueil) body.mobile-mode #player-header-section ul.demo {
+    max-height: max-content;
     margin: 0;
     padding: 0;
   }

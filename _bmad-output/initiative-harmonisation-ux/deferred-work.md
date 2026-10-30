@@ -277,3 +277,10 @@ Relevés en test (A10 de la rétro de l'épopée 4), non corrigés : le template
 - source_plan: `epic-plateau-confort-mobile/story-refactor-sweep-plan.md`
   summary: `typographie-formes` `COMMIT_MEDIAS_410` (00b0786) n'est pas recalé. Il faut convertir M1/M2 (précondition `AVANT_TICKET410`, « rendu à 768 px changé », A8) en contrôles absolus à 768 px, puis recaler la base sur un SHA récent, puis retirer `CORRIGER_BUG14` et `AVANT_TICKET73/75`.
   evidence: sweep 9.12 (2026-10-29) : écart au brief, qui demandait le recalage. Il attend la validation d'Arnaud (revue-manuelle, « Ticket 9.12 »).
+
+## Reports du ticket 10.6, finitions de l'accueil mobile (2026-10-30)
+
+- source_plan: `epic-accueil-mobile/bug-finitions-de-l-accueil-mobile-d-apres-la-capture-connectee-d-plan.md`
+  summary: D10.1 : le fond de survol `.panel-body a:hover` (mobile, `!important`) s'applique encore aux onglets de drapeaux et au lien de l'image du message ministériel de l'accueil, et peut rester collé après un tap.
+  evidence: Le sélecteur de survol (kraland-theme.css l.~4792) n'a pas la garde `#col-right` de l'accueil ; le défaut est préexistant.
+  status: proposé
