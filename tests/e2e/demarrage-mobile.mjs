@@ -92,7 +92,7 @@ async function scenario({ moment, width, route, lateViewport = false, blockStora
   const context = await browser.newContext(emulate ? { viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width, height: 800 } });
   let documents = 0;
   await confineNetwork(context); // refus global EN PREMIER
-  await installClock(context); // horloge simulée AVANT l'injection du script (minuteries simulées dès le début du document)
+  await installClock(context, { paused: true }); // horloge simulée en pause AVANT l'injection du script (minuteries simulées dès le début du document)
   await context.route('http://www.kraland.org/**', r => {
     const u = new URL(r.request().url());
     if (u.pathname.startsWith('/lib/bootstrap') || u.pathname.startsWith('/lib/jquery')) {

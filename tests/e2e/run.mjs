@@ -172,7 +172,8 @@ async function runAll(units, concurrency, logDir) {
   const replay = []; // fragments touchés par une perte du navigateur partagé : rejoués en tête
   const live = new Set();
   let next = 0;
-  const report = r => process.stdout.write(`  ${r.code === 0 && !r.fail ? 'ok  ' : 'FAIL'} ${r.id} (${(r.ms / 1000).toFixed(0)} s, ${r.ok} ok, ${r.fail} FAIL)\n`);
+  // Sortie non nulle sans contrôle en échec (exception, délai dépassé) : signalée, sinon le fragment se lit « FAIL (…, 0 FAIL) » sans cause.
+  const report = r => process.stdout.write(`  ${r.code === 0 && !r.fail ? 'ok  ' : 'FAIL'} ${r.id} (${(r.ms / 1000).toFixed(0)} s, ${r.ok} ok, ${r.fail} FAIL${typeof r.code === 'number' && r.code !== 0 && !r.fail ? `, interrompu : sortie ${r.code}` : ''})\n`);
   await new Promise(done => {
     const launch = u => {
       const entry = { unit: u, gen: shared.on ? shared.gen : 0, child: null };
@@ -229,8 +230,10 @@ function summarize(results, wallMs, logDir, extra = []) {
     totalOk += ok; totalFail += fail; bad = bad || failed;
     lines.push(`  ${failed ? 'FAIL' : 'ok  '} ${name.padEnd(24)} ${String(ok).padStart(4)} ok  ${String(fail).padStart(3)} FAIL  (${rs.length} fragment${rs.length > 1 ? 's' : ''}, ${(cpu / 1000).toFixed(0)} s cumulées)${skipped ? `  [${skipped} fragment(s) SKIP : ${rs.find(r => r.skipped).skip}]` : ''}`);
   }
-  for (const r of results.filter(x => !x.skipped && (x.code !== 0 || x.fail > 0))) { lines.push(`  -> journal en échec : ${r.logFile}`); }
-  lines.push(`Total : ${totalOk} ok, ${totalFail} FAIL en ${(wallMs / 1000).toFixed(0)} s (concurrence ${results.concurrency}). Journaux : ${logDir}`);
+  const failedUnits = results.filter(x => !x.skipped && (x.code !== 0 || x.fail > 0));
+  for (const r of failedUnits) { lines.push(`  -> journal en échec${typeof r.code === 'number' && r.code !== 0 && !r.fail ? ` (interrompu : sortie ${r.code})` : ''} : ${r.logFile}`); }
+  const stopped = failedUnits.filter(r => typeof r.code === 'number' && r.code !== 0 && !r.fail).length;
+  lines.push(`Total : ${totalOk} ok, ${totalFail} FAIL${stopped ? `, ${stopped} fragment(s) interrompu(s)` : ''} en ${(wallMs / 1000).toFixed(0)} s (concurrence ${results.concurrency}). Journaux : ${logDir}`);
   const causes = [...(bad ? ['suites e2e'] : []), ...extra];
   lines.push(causes.length ? `RÉSULTAT : ÉCHEC${extra.length ? ` (${causes.join(', ')})` : ''}` : 'RÉSULTAT : VERT');
   return { text: lines.join('\n'), bad, totalOk, totalFail };

@@ -20,9 +20,18 @@ const pause = ms => new Promise(r => setTimeout(r, ms));
 // pas, au lieu que 2,5 s de minuteries passent avant la première image ; sans cela, un champ autofocus pouvait ne pas encore avoir le
 // focus quand l'anti-rebond de 400 ms vérifiait la saisie en cours. Limite connue : performance.timeOrigin est simulé et identique d'un
 // document à l'autre ; pour identifier un document, utiliser window.__krDocId (posé par installClock).
+// Option paused (installClock(context, { paused: true })) : hors des pas, le temps simulé ne suit plus le temps réel. Sans elle, le
+// document suivant un rechargement dérive en temps réel : Playwright 1.59 rejoue son journal d'horloge en deux lots (le premier appel
+// à Date.now du userscript précède les entrées runFor, ajoutées après lui), et le second lot ajoute les écarts RÉELS entre les pas,
+// puis relance l'horloge en temps réel (mesuré : 500 ms simulées par 500 ms réelles, même après pauseAt). Une durée simulée entre
+// deux rechargements dépend alors de la charge de la machine. En pause, chaque pas est suivi d'un pauseAt à l'heure simulée exacte,
+// qui ramène le second lot à cette heure et le laisse en pause : Date.now ne vient plus que des pas. Limite (lecture du code de
+// Playwright, non mesurée) : pauseAt ne recale pas performance.now ni les échéances ; ils gardent l'écart réel du premier pas du
+// second lot (borné à un pas).
 export const CLOCK_STEP_MS = 100;
+const pausedClocks = new WeakMap();
 
-export async function installClock(context) {
+export async function installClock(context, { paused = false } = {}) {
   // AVANT l'horloge : les scripts d'initialisation s'exécutent dans l'ordre d'ajout, celui-ci voit donc le requestAnimationFrame réel
   await context.addInitScript(() => {
     const raf = window.requestAnimationFrame.bind(window);
@@ -38,6 +47,11 @@ export async function installClock(context) {
     window.addEventListener('beforeunload', () => { window.__krLeaving = true; });
     window.addEventListener('resize', () => { window.__krResizes += 1; });
   });
+  if (paused) {
+    const at = { time: Date.now() + 1000 };
+    await context.clock.pauseAt(at.time);
+    pausedClocks.set(context, at);
+  }
 }
 
 /**
@@ -88,7 +102,10 @@ export async function runClock(page, ms, { stepMs = CLOCK_STEP_MS } = {}) {
   const start = await doc();
   if (start.leaving) { return { left: true, at: 0 }; }
   for (let t = 0; t < ms; t += stepMs) {
-    await page.clock.runFor(Math.min(stepMs, ms - t)).catch(() => {});
+    const step = Math.min(stepMs, ms - t);
+    await page.clock.runFor(step).catch(() => {});
+    const at = pausedClocks.get(page.context());
+    if (at) { at.time += step; await page.clock.pauseAt(at.time).catch(() => {}); }
     const now = await doc();
     if (now.leaving || now.id !== start.id) { return { left: true, at: t + stepMs }; }
   }
