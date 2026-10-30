@@ -76,3 +76,7 @@ Preuves :
 - `test:router`, `test:unit`, `lint:css` et `lint:js` : code 0.
 
 Écartés : `!important` du flex mobile (déjà retirés par 10.3), classe JS, fusion des fixtures (voir Intent). `test:all` reste à lancer par le coordinateur. Rien n'est commité.
+
+Clôture (orchestrateur, 2026-10-30) : revue quick faite (1 low, corrigé) ; approbation de la revue indépendante rapportée par l'orchestrateur, sans trace dans ce plan ; commité (c8ef8c1) et fusionné sur `feature/next` (697c363), malgré « Rien n'est commité » du Result ; `test:all` : 18840 ok, 0 FAIL, sur l'arbre de `697c363` (`/private/tmp/kr-testall-104.log`, SHA déduit de l'heure ; la fusion ne diffère de c8ef8c1 que par le bundle et `version.json`).
+
+- Revue indépendante (orchestrateur, 2026-10-30) : APPROUVÉ, lecture seule ; portée et spécificité vérifiées pour les 5 points (garde réécrite équivalente car html est racine, bloc 3840 vrai doublon, chevron sans inversion de cascade, retrait de order: 3 neutre) ; 2 low : hypothèse col-sm- prouvée sur fixture seule, commentaire du chevron corrigé avant commit (c8ef8c1).

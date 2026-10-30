@@ -218,3 +218,5 @@ Clôture : spike en revue ; aucune revue indépendante faite.
 - `/Users/arnaud/kraland-css-captures/10.1/accueil_{375,320,1280,1440,1920}_empire-brun-sombre_userscript{,_ecran}.png` -- captures pleine page et écran.
 - `/Users/arnaud/kraland-css-captures/10.1/travail/releve.json` -- blocs, marge, cibles avec `elementFromPoint`, titres, cartes et règles appliquées par largeur ; `requetesReport` vide sur les cinq passes.
 - `git status` -- seuls ce plan et `revue-manuelle.md` changent.
+
+Clôture (orchestrateur, 2026-10-30) : relevé commité directement sur `feature/next` (e2bcdd1), sans branche de fusion ; décision d'Arnaud sur le ministre (entrée 5, 59bedf0) ; aucune revue indépendante ; pas de `test:all` (aucun code).

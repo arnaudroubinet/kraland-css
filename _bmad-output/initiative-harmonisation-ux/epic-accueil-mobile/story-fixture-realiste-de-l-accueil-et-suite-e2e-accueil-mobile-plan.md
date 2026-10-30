@@ -138,3 +138,5 @@ Le ticket demande des mesures avec `lib/marges.mjs` (marge, cibles, titres). Le 
 - `npm run test:zone -- palette-nation` -- expected: vert.
 - `npm run lint:css` ; `npm run lint:js` ; `npm run test:unit` -- expected: code 0.
 - `diff -r .hermes/skills .claude/skills` -- expected: sortie vide.
+
+Clôture (orchestrateur, 2026-10-30) : revue indépendante faite (OK avec correctifs), correctifs appliqués, commité (e966d17) et fusionné sur `feature/next` (d00e6f2) ; `test:all` de fusion : 18497 ok, 1 FAIL `kramail-theme#confort` (`/private/tmp/kr-testall-102.log`, cas instable de la rétro 9, vert rejoué seul selon l'orchestrateur) ; `test:all` vert contenant l'épopée : 18840 ok, 0 FAIL, sur l'arbre de `697c363` (`-104.log`, SHA déduit de l'heure du journal).

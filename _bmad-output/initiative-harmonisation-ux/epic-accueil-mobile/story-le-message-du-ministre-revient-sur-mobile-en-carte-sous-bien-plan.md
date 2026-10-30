@@ -137,3 +137,5 @@ Sur mobile, le panneau ministériel de `#col-right` s'affiche en carte 5.1 sous 
 - Revue quick et revue indépendante appliquées. L'alternative `display: contents` est écartée, car elle casse le sélecteur figé par 4.9.
 - Différé : liens texte du message (passe manuelle) ; constats 7 et 8 (sweep 10.4).
 - Rien n'est commité.
+
+Clôture (orchestrateur, 2026-10-30) : revue indépendante faite (approuvé avec correctifs : ordre déconnecté, écart de 8 px, enfant inconnu, overflow), correctifs appliqués, commité (9d03df3) et fusionné sur `feature/next` (1e8e6e2), malgré « Rien n'est commité » du Result ; `test:all` de fusion : 18840 ok, 0 FAIL (`/private/tmp/kr-testall-105.log`, SHA déduit de l'heure) ; constats 7 et 8 appliqués par 10.4 ; vrai /accueil connecté non vérifié (session déconnectée), ouvert jusqu'à une session (A1 de la rétro 10).
