@@ -408,8 +408,11 @@ if (frag('bureau')) {
 
 // ---------- bascule 767 -> 768 -> 767 dans le même onglet ----------
 // Le passage du seuil recharge la page (bascule de support) : on attend le chargement, la peau et un style stable.
+// Défilement à 0 AVANT le passage : le produit enregistre window.scrollY au rechargement et le rétablit jusqu'à 1,8 s après (minuteries
+// de restoreScrollAfterReload) ; un scrollTo(0, 0) posé après le chargement serait annulé par la dernière d'entre elles sous charge.
 async function basculer(page, width, label) {
   await page.waitForTimeout(1300);
+  await page.evaluate(() => window.scrollTo(0, 0));
   const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
   await page.setViewportSize({ width, height: 720 });
   await charge;

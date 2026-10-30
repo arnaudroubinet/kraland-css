@@ -114,6 +114,9 @@ async function newPage(variant = 'empire-brun-dark', enabled = true) {
 
 async function load(page, width, html, waitBlock = true) {
   currentHtml = html;
+  // Document précédent quitté AVANT le changement de largeur : un franchissement du seuil y arme le rechargement produit
+  // (checkBreakpointCrossing, 400 ms), qui annulait le goto suivant (net::ERR_ABORTED) dès que la réponse tardait sous charge.
+  await page.goto('about:blank');
   await page.setViewportSize({ width, height: 800 });
   await page.goto(TARGET, { waitUntil: 'load' });
   // Fin d'initialisation (html[data-kr-ready] : syncNavigation et son anti-rebond suivis par InitQueue) au lieu de 500 / 2 500 ms.
