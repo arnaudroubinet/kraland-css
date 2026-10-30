@@ -27,6 +27,20 @@ Decision: 2026-10-30 — orchestrateur, sur mandat « je vais suivre ta recomman
 - tickets backlog à créer : premier toucher qui ferme le menu et ouvre aussi le message ; D9.2 (onglets qui débordent) ; D9.3 (+8 px) ; `kd-contacts` et `kd-chip-x` sous 44 px ; stabilité de `demarrage-mobile` ; filet des jauges.
 - Vérifications en émulation à faire par l'orchestrateur : `test:all` consigné sur le SHA de HEAD, revue indépendante de 9.12, captures 7.9 reprises sur HEAD, mesures 8.5 (onglets à 375, pastille à 1280), carré vide de « Boîte de réception » à 1440, Contacts à 768, bande de 60 px sur `/help`, aller-retour 767/768/767 (D9.1), DataTables `.input-sm`, formulaire sans barre d'outils, niveaux de PV 4 et 5 ; site déconnecté : ministre servi aux visiteurs, `ul.demo` à 320 px, défileur des Nouvelles.
 
+### Vérifications du 2026-10-30 (émulation et site déconnecté, bundle 1.0.1793348337346, HEAD 1e4de5c)
+
+Captures et mesures : `/Users/arnaud/kraland-css-captures/verif-2026-10-30/`. Revue indépendante du 9.12 : approuvé avec correctifs (plan du 9.12, backlog 24).
+- Captures 7.9 reprises sur HEAD : changements attendus seulement (version du pied, carte de lecture à 8 px des bords, citation du pied à 16 px).
+- Carré vide de « Boîte de réception » : chevron natif `glyphicon-chevron-up`, carré parce que les fixtures ne servent pas la police Glyphicons. Pas un défaut.
+- Contacts à 768 : pas de rendu mixte ; chevauchement des onglets de 11 px à 768 et 992 : backlog 28.
+- `/help` : pas de bande de 60 px sur la fixture (cas sans barre de navigation non reproduit, à revoir en session connectée).
+- D9.1 (767/768/767) : non reproduit ; chaque bascule recharge la page, rendus revenus identiques (plateau +1 px).
+- Recherche DataTables : sans classe sur la fixture, rendu natif ; avec `form-control input-sm`, thémée. Classe réelle à relever en session connectée.
+- Formulaire sans barre d'outils : « Envoyer » atteignable ; bande de 52 px sous le pied sur mobile : backlog 26.
+- Onglets de `/report` : icône collée au libellé sur mobile : backlog 27. Pastille de la cloche à 1280 px chevauchant le glyphe de moins de 1 px : acceptée.
+- Niveaux de PV 4 et 5, barre de 6 px, recherche du sous-forum, marque PNJ : conformes.
+- Site déconnecté : le panneau du ministre n'est pas servi aux visiteurs (doute levé) ; `ul.demo` à 60 px à 320 px de large ; le défileur des Nouvelles fait sauter le pied jusqu'à 66 px à chaque tour : backlog 25.
+
 ## Décisions d'Arnaud du 2026-10-28 : recommandations suivies
 
 Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais suivre ta recommandation. » Chaque point ouvert ci-dessous prend la recommandation de l'orchestrateur. Les actions qui exigent Arnaud restent à sa main : clic sur la cloche (8.2, marque les notifications lues), session Kraland dans le Chrome dédié (spike 9.3, Signaler du 7.1, fixtures réelles du 7.2), essais sur téléphone, captures hitl (4.6, 6.1, 6.4, 7.9, 8.5, 9.11). A1 : aucune fusion vers `main`. Arnaud, 2026-10-28 : « Non pas de fusion vers main. On travail que sur next. » Tout le travail est livré sur `feature/next`.
