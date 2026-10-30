@@ -118,10 +118,11 @@ export const SUITES = [
   // secondaires (fixtures synthétiques secondaires-*.html) à 320, 375 et 767 px, cibles hors bouton à 44 px, titre de la ville collant. Entrée 13 : liste des Membres et fenêtre d'aide /help (fixtures
   // secondaires-membres.html, aide-fenetre*.html), marge, cibles de 44 px, bureau et bascule égaux à la base 7bec452. Entrée 5 : cibles du plateau (plateau).
   { name: 'confort-mobile', file: 'confort-mobile.mjs', zones: ['confort-mobile'], frags: [['mobile'], ['bureau'], ['bascule'], ['hors-perimetre'], ['secondaires'], ['membres-aide'], ['plateau']], needsBootstrap: true },
-  // Accueil mobile (épopée 10, entrée 2) : fixture synthétique accueil.html (structure native relevée par le spike 10.1) ; à 320 et 375 px,
-  // ordre des blocs (Jouer, Bienvenue, Forum, Compteurs, Nouvelles), #col-right masqué, injections de la peau, aucun débordement ; à
-  // 1280 px, trois colonnes, carrousel masqué par kr-hide-carousel et textes égaux au bundle de base e2bcdd1 ; carrousel affiché sur option.
-  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['bureau'], ['carrousel']], needsBootstrap: true }
+  // Accueil mobile (épopée 10, entrées 2 et 3) : fixture synthétique accueil.html (structure native relevée par le spike 10.1) ; à 320 et
+  // 375 px, ordre des blocs (Jouer, Bienvenue, Forum, Compteurs, Nouvelles), #col-right masqué, injections de la peau, aucun débordement ;
+  // de 320 à 767 px, marge, cibles de 44 px, cartes de section et échelle (E10.1-E10.4), contraste des 16 variantes à 375 px, bascule
+  // 767/768 ; de 768 à 1920 px, textes égaux au bundle de base e2bcdd1 (trois colonnes à partir de 992 px) ; carrousel affiché sur option.
+  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -258,8 +259,9 @@ export const KEYWORDS = [
   // Marge mobile de 16 px (épopée 9, entrée 1) : classes de page posées par KR_PAGE_CLASSES, retrait --kr-marge-page et jeton
   // --kr-margin-mobile, vérifiés par confort-mobile (les pages de jeu y sont mesurées ; les autres, comparées au bundle de base) ;
   // pages secondaires (entrée 4, kr-page-secondaire) mesurées par le fragment secondaires ; notifications (entrée 10) par report-non-lu#confort ;
-  // kramail et contacts (entrée 9, retrait --kr-marge-page sans kr-marge-mobile) par kramail-theme#confort.
-  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['confort-mobile', 'report']],
+  // kramail et contacts (entrée 9, retrait --kr-marge-page sans kr-marge-mobile) par kramail-theme#confort ; accueil (épopée 10, entrée 3,
+  // ligne kr-page-accueil de KR_PAGE_CLASSES) par accueil-mobile (fragment marge).
+  [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['accueil-mobile', 'confort-mobile', 'report']],
   [/kr-marge-page|kr-margin-mobile/, ['kramail']],
   [/kr-page-jeu|kr-page-aide|kr-page-secondaire/, ['confort-mobile']],
   // Accueil (épopée 10, entrée 2) : classe de page, injections de la colonne droite (Homepage:RightColumn), compteurs et carrousel, vérifiés

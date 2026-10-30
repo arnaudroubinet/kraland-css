@@ -1102,10 +1102,11 @@ html.kr-hide-carousel .carousel {
   border: none !important;
 }
 
-.list-group-item.active,
-.list-group-item.active:focus,
-.list-group-item.active:hover,
-.list-group-item.active a {
+/* Titre actif en paire d'action ; en-tête « Nouvelles » de l'accueil mobile exclu (en-tête de carte, section PAGE ACCUEIL - MOBILE) */
+.list-group-item.active:where(:not(:where(html.kr-page-accueil) body.mobile-mode #player-header-section > *)),
+.list-group-item.active:where(:not(:where(html.kr-page-accueil) body.mobile-mode #player-header-section > *)):focus,
+.list-group-item.active:where(:not(:where(html.kr-page-accueil) body.mobile-mode #player-header-section > *)):hover,
+.list-group-item.active:where(:not(:where(html.kr-page-accueil) body.mobile-mode #player-header-section > *)) a {
   background-color: var(--kr-arm-bg, var(--kr-primary)) !important;
   border-color: var(--kr-primary-dark) !important;
   color: var(--kr-arm-ink, var(--kr-white)) !important;
@@ -4446,10 +4447,11 @@ body > map {
     height: auto !important;
   }
   
-  /* Masquer les statistiques (Membres actifs, Personnages actifs, etc.) en mobile */
-  a.list-group-item.ds_users,
-  a.list-group-item.ds_characters,
-  a.list-group-item.ds_online {
+  /* Masquer les statistiques (Membres actifs, Personnages actifs, etc.) en mobile, sauf sur l'accueil (compteurs en carte, épopée 10,
+     entrée 3) */
+  a.list-group-item.ds_users:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)),
+  a.list-group-item.ds_characters:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)),
+  a.list-group-item.ds_online:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     display: none !important;
   }
   
@@ -4467,8 +4469,8 @@ body > map {
     line-height: 1.2 !important;
   }
   
-  /* Header "Nouvelles" avec croix à droite */
-  .list-group-item.active {
+  /* Header "Nouvelles" avec croix à droite (accueil : en-tête de carte, section PAGE ACCUEIL - MOBILE) */
+  .list-group-item.active:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -4726,12 +4728,13 @@ body > map {
   
   /* === LISTE DES PERSONNAGES === */
 
-  /* En liste verticale compacte */
-  .list-group {
+  /* En liste verticale compacte ; listes des cartes de l'accueil exclues (Bienvenue, Forum, Compteurs, Nouvelles : section PAGE ACCUEIL - MOBILE) ;
+     lignes natives de l'accueil déconnecté gardées */
+  .list-group:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     margin-bottom: 15px !important;
   }
   
-  .list-group-item {
+  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     padding: 10px 12px !important;
     min-height: var(--kr-touch-target) !important;
     justify-content: space-between !important;
@@ -4741,19 +4744,19 @@ body > map {
   }
   
   /* Avatars de la liste réduits (exclut les images du dashboard et les icônes inline) */
-  .list-group-item img:not(.dashboard-card-avatar, .dashboard-card-world, .icon) {
+  .list-group-item:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) img:not(.dashboard-card-avatar, .dashboard-card-world, .icon) {
     width: 40px !important;
     height: 40px !important;
     flex-shrink: 0 !important;
   }
   
   /* Texte des items */
-  .list-group-item-heading {
+  .list-group-item-heading:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     font-size: 14px !important;
     margin-bottom: 4px !important;
   }
   
-  .list-group-item-text {
+  .list-group-item-text:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
     font-size: 12px !important;
   }
 
@@ -4955,9 +4958,10 @@ body > map {
   
   /* Typographie mobile, en px (DESIGN.md › Typography : aucun titre plus petit que le texte courant) ; titres d'en-tête de panneau
      (hors accordéon et modale) exclus de h4-h6 : ils sont titres de section (règle .panel-heading de la section 6) ; nom de forum des
-     cartes (h3.forum-title du template) exclu de h1-h3 : c'est un nom (règle .forum-title des cartes, --kr-font-forum-name) */
+     cartes (h3.forum-title du template) exclu de h1-h3 : c'est un nom (règle .forum-title des cartes, --kr-font-forum-name) ; titre
+     « Forum » de l'accueil exclu de h4-h6 : titre de carte (section PAGE ACCUEIL - MOBILE) */
   :is(h1, h2, h3):where(:not(.forum-title)) { font-size: var(--kr-font-section-title) !important; }
-  :is(h4, h5, h6):where(:not(.panel-heading > *), .panel-group *, .modal *) { font-size: var(--kr-font-name) !important; }
+  :is(h4, h5, h6):where(:not(.panel-heading > *, .accueil-forum-section > h4), .panel-group *, .modal *) { font-size: var(--kr-font-name) !important; }
   
   /* Espacement vertical */
   .row {
@@ -5438,8 +5442,8 @@ body > map {
       transform: rotate(-180deg) !important;
     }
 
-    /* Masquer le profil original en mobile */
-    #player-header-section {
+    /* Masquer le profil original en mobile (sur l'accueil, #player-header-section est la liste des Nouvelles, affichée) */
+    #player-header-section:where(:not(:where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section), :where(html.kr-page-accueil) :is(.ds_user, .accueil-forum-section, .kraland-metrics, #player-header-section) *)) {
       display: none !important;
     }
     
@@ -11495,313 +11499,301 @@ html[class*='-dark'] .mini.c10 {
 }
 
 /* ============================================================================
-   PAGE ACCUEIL - MOBILE
+   PAGE ACCUEIL - MOBILE (épopée 10, entrée 3)
+   kr-page-accueil et kr-marge-mobile posées sur <html> par KR_PAGE_CLASSES (/ et /accueil) : la ligne principale porte la marge de
+   page (16 px). Ordre Jouer, Bienvenue, Forum, Compteurs, Nouvelles ; #col-right masqué (message du ministre : entrée 5).
+   Bienvenue, Forum, Compteurs et Nouvelles en carte de section (DESIGN.md › Carte de section, valeurs de 5.1) : carte à 8 px des
+   bords (recul de la marge de page), fond de surface, rayon moyen, contenu à --kr-space-4 ; Forum et Nouvelles avec un en-tête de
+   48 px au moins, titre 17 px gras couleur du texte. « Jouer » au bouton primaire de 4.2, dans la marge de page. Échelle de 4.5 :
+   noms et valeurs 15 px, détails 13 px, étiquettes 12 px ; cibles de --kr-touch-target.
    ============================================================================ */
 
 @media (max-width: 767px) {
-  /* ==========================================================================
-     A. CONTENEUR + ORDRE DES COLONNES
-     Réorganisation mobile-first : Jouer → Welcome → Forum → Métriques → News
-     ========================================================================== */
-
-  /* Conteneur principal en flex column */
-  .page-accueil .row {
-    display: flex !important;
-    flex-direction: column !important;
+  /* --- Colonnes sans boîte (ni la marge basse commune des colonnes) : les blocs sont rangés dans la ligne principale, 8 px entre deux
+     blocs --- */
+  :where(html.kr-page-accueil) body.mobile-mode > .container > .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kr-space-2);
+    padding-top: var(--kr-space-2);
+    padding-bottom: var(--kr-space-2);
   }
 
-  /* #col-t en premier (contient Jouer + Welcome + Forum) */
-  .page-accueil #col-t {
-    order: -1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    margin-bottom: 0 !important;
-    padding: 0 !important;
+  :where(html.kr-page-accueil) body.mobile-mode :is(#col-t, #col-left) {
+    display: contents;
   }
 
-  /* #col-left en second (contient métriques + news) */
-  .page-accueil #col-left {
-    order: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    margin-bottom: 0 !important;
-    padding: 0 !important;
+  /* Ordre : Jouer (1), Bienvenue (2), Forum (3), Compteurs (4), Nouvelles (5). Autres blocs de #col-t (accueil déconnecté : formulaire
+     de connexion, forum natif non regroupé) avec le Forum, avant les Compteurs, comme l'ancien ordre des colonnes ; autres blocs de
+     #col-left en fin */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > * {
+    order: 3;
   }
 
-  /* #col-right caché (carousel supprimé) */
-  .page-accueil #col-right {
-    display: none !important;
-    margin-bottom: 0 !important;
+  :where(html.kr-page-accueil) body.mobile-mode #col-left > * {
+    order: 6;
   }
 
-  /* ==========================================================================
-     B. COMPOSANTS
-     Chaque composant inclut sa propriété order pour le réordonnancement.
-     Dans #col-t : play (-2) → welcome (-1) → forum (0)
-     Dans #col-left : métriques (-1) → news (0)
-     ========================================================================== */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right {
+    display: none;
+  }
 
-  /* --- Alerte stylisée --- */
-  .page-accueil .alert-info {
-    background: var(--kr-alert-info-bg);
+  /* Accueil déconnecté : « Se souvenir de moi » à l'échelle des détails */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t .checkbox label {
+    font-size: var(--kr-font-detail);
+  }
+
+  /* --- Cartes de section : Bienvenue, Forum, Compteurs, Nouvelles --- */
+  :where(html.kr-page-accueil) body.mobile-mode :is(#col-t > .ds_user, #col-t > .accueil-forum-section, #col-left > .kraland-metrics, #col-left > #player-header-section) {
+    background: var(--kr-bg-surface);
     border: none;
-    border-left: 3px solid var(--kr-primary);
-    color: var(--kr-text-primary);
+    border-radius: var(--kr-radius-md);
+    box-shadow: none;
+    margin: 0 calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
+    overflow: hidden;
+  }
+
+  /* En-tête de carte : « Forum » et « Nouvelles » (croix de repli à droite) */
+  :where(html.kr-page-accueil) body.mobile-mode :is(#col-t > .accueil-forum-section > h4, #player-header-section > .list-group-item.active) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    margin: 0;
+    padding: 0 var(--kr-space-4);
+    background: var(--kr-bg-surface);
+    border: none;
     border-radius: 0;
-    padding: 8px 12px;
-    font-size: 12px;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-section-title);
+    font-weight: 700;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+  }
+
+  /* --- Jouer : bouton primaire (4.2), à la marge de page --- */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .accueil-play-btn {
+    order: 1;
+    gap: var(--kr-space-2);
+    margin: 0;
+    padding: 12px 20px;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    border: 1px solid var(--kr-primary-dark);
+    border-radius: var(--kr-radius-sm);
+    box-shadow: 0 6px 18px var(--kr-btn-shadow);
+    color: var(--kr-arm-ink, var(--kr-white));
+    font-size: var(--kr-font-button);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .accueil-play-btn:is(:hover, :focus, :active) {
+    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
+    color: var(--kr-arm-ink-hover, var(--kr-white));
+    text-decoration: none;
+  }
+
+  /* --- Bienvenue : carte sans en-tête, avatar à droite (règles communes de .ds_user et .img-circle, à --kr-avatar-size) : carte de 72 px
+     au moins, avatar de 56 px, 8 px au-dessus et au-dessous --- */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user {
+    --kr-avatar-size: 72px;
+
+    order: 2;
+    padding-top: var(--kr-space-2);
+    padding-bottom: var(--kr-space-2);
+    padding-left: var(--kr-space-4);
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user > .pull-right {
+    --kr-avatar-size: 56px;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user h4 {
+    margin: 0;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-name);
+    font-weight: 600;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user p {
     margin: 0;
   }
 
-  .page-accueil .alert-info .close {
-    color: var(--kr-text-muted);
-    opacity: 0.7;
-    text-shadow: none;
+  /* Avatar rond, même sans .img-circle (repris de l'ancien bloc) */
+  :where(html.kr-page-accueil) .ds_user .pull-right img {
+    display: block;
+    border-radius: 50%;
   }
 
-  /* --- Carte ministérielle stylisée --- */
-  .page-accueil .kr-ministerial-card {
-    background: var(--kr-bg-elevated);
+  /* --- Carte ministérielle (stylée si le template la pose ; le message du ministre reste masqué avec #col-right : entrée 5) --- */
+  :where(html.kr-page-accueil) .kr-ministerial-card {
+    margin: 0 0 12px;
+    padding: 12px 14px;
     border: 1px solid var(--kr-border-default);
     border-radius: var(--kr-radius-md);
-    padding: 12px 14px;
-    margin: 0 0 12px;
-    font-size: 12px;
+    background: var(--kr-bg-elevated);
     box-shadow: var(--kr-shadow-sm);
+    font-size: 12px;
   }
 
-  .page-accueil .kr-ministerial-card strong {
+  :where(html.kr-page-accueil) .kr-ministerial-card strong {
     color: var(--kr-text-accent);
   }
 
-  .page-accueil .kr-ministerial-card img {
+  :where(html.kr-page-accueil) .kr-ministerial-card img {
     max-width: 100%;
     height: auto;
   }
 
-  /* --- 1. Bouton Jouer — Hero CTA (above the fold) --- */
-  .page-accueil .accueil-play-btn {
-    order: -2;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: var(--kr-arm-bg, var(--kr-primary));
-    color: var(--kr-arm-ink, #fff) !important;
-    text-align: center;
-    padding: 14px 16px;
-    font-size: var(--kr-font-button);
-    font-weight: 700;
-    text-decoration: none !important;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+  /* --- Forum : lignes de la carte, filet entre deux lignes --- */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .accueil-forum-section {
+    order: 3;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum {
+    display: block;
+    min-height: var(--kr-touch-target);
     margin: 0;
+    padding: var(--kr-space-2) var(--kr-space-4);
+    background: transparent;
     border: none;
+    border-top: 1px solid var(--kr-border-default);
     border-radius: 0;
-    width: 100%;
   }
 
-  .page-accueil .accueil-play-btn:active {
-    background: var(--kr-arm-bg-hover, var(--kr-primary-dark));
-    color: var(--kr-arm-ink-hover, #fff) !important;
+  /* Icône décorative de ligne (.falarge natif : 50 px en position absolue, recouvrait « Bug ? Problème ? ») : masquée, comme celles des
+     compteurs */
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum > .pull-right {
+    display: none;
   }
 
-  .page-accueil .accueil-play-btn .fa {
-    font-size: 16px;
-  }
-
-  /* --- 2. Welcome — Barre horizontale compacte --- */
-  .page-accueil .ds_user {
-    order: -1;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    text-align: left;
-    background: var(--kr-bg-elevated);
-    padding: 8px 12px !important;
-    margin: 0;
-    border-radius: 0;
-    border-bottom: 1px solid var(--kr-border-default);
-    gap: 10px;
-  }
-
-  .page-accueil .ds_user .pull-right {
-    float: none !important;
-    position: static !important;
-    transform: none !important;
-    order: -1;
-    flex-shrink: 0;
-    margin: 0;
-  }
-
-  .page-accueil .ds_user .pull-right img {
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    border-radius: 50%;
-    display: block;
-  }
-
-  .page-accueil .ds_user h4 {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--kr-text-primary);
-  }
-
-  .page-accueil .ds_user p {
-    font-size: 11px;
-    color: var(--kr-text-muted);
-    margin: 2px 0 0;
-  }
-
-  /* --- 3. Forum — Liste compacte --- */
-  .page-accueil .accueil-forum-section {
-    margin: 0;
-  }
-
-  .page-accueil .accueil-forum-section h4.center {
-    background: var(--kr-bg-active);
-    margin: 0;
-    padding: 6px 12px;
-    font-size: 11px;
-    color: var(--kr-text-secondary);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-align: left;
-  }
-
-  .page-accueil .accueil-forum-section .ds_forum {
-    display: block;
-    padding: 8px 12px !important;
-    border-bottom: 1px solid var(--kr-border-default);
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    border-radius: 0 !important;
-    font-size: 12px;
-    background: var(--kr-bg-surface);
-  }
-
-  .page-accueil .accueil-forum-section .ds_forum h4 {
-    font-size: 9px;
-    font-weight: 600;
-    color: var(--kr-highlight);
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum h4 {
     margin: 0 0 2px;
-    background: none;
     padding: 0;
+    background: none;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-name);
+    font-weight: 600;
+    letter-spacing: normal;
     text-align: left;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    text-transform: none;
   }
 
-  .page-accueil .accueil-forum-section .ds_forum p {
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum .label {
+    font-size: var(--kr-font-label);
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum p {
     margin: 0;
-    font-size: 13px;
-    color: var(--kr-text-primary);
     overflow: hidden;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-detail);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .page-accueil .accueil-forum-section .ds_forum p img {
-    width: auto !important;
-    height: 12px !important;
-    min-width: auto !important;
-    min-height: auto !important;
+  :where(html.kr-page-accueil) body.mobile-mode .accueil-forum-section > .ds_forum p img {
+    width: auto;
+    height: 1em;
     vertical-align: middle;
   }
 
-  /* --- 4. Métriques — Strip inline --- */
-  .page-accueil .kraland-metrics {
-    order: -1;
-    display: flex !important;
-    gap: 0;
-    padding: 0;
-    overflow: hidden;
-    border: none;
-    border-bottom: 1px solid var(--kr-border-default);
-    background: var(--kr-bg-elevated);
+  /* --- Compteurs : carte sans en-tête, trois tuiles --- */
+  :where(html.kr-page-accueil) body.mobile-mode #col-left > .kraland-metrics {
+    order: 4;
+    display: flex;
+    padding: 0 var(--kr-space-2);
   }
 
-  .page-accueil .kraland-metrics .list-group-item {
+  :where(html.kr-page-accueil) body.mobile-mode .kraland-metrics > .list-group-item {
+    display: flex;
     flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: none;
-    border-right: 1px solid var(--kr-border-default);
-    border-radius: 0;
-    padding: 8px 4px;
-    text-align: center;
-    display: flex !important;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-  }
-
-  .page-accueil .kraland-metrics .list-group-item:last-child {
-    border-right: none;
-  }
-
-  .page-accueil .kraland-metrics .list-group-item .pull-right {
-    display: none !important;
-  }
-
-  .page-accueil .kraland-metrics .list-group-item h4.count {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--kr-text-accent);
+    justify-content: center;
+    min-width: 0;
+    min-height: var(--kr-touch-target);
     margin: 0;
-    line-height: 1;
-  }
-
-  .page-accueil .kraland-metrics .list-group-item p {
-    font-size: 8px;
-    color: var(--kr-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin: 2px 0 0;
-    line-height: 1;
-  }
-
-  /* --- 5. News — Compacte, en dernier --- */
-  body.mobile-mode.page-accueil #player-header-section {
-    display: block !important;
-  }
-
-  .page-accueil #player-header-section > .list-group-item.active {
-    background: var(--kr-bg-active);
-    border-color: var(--kr-bg-active);
-    color: var(--kr-text-secondary);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 6px 12px;
-    margin: 0;
-    border-radius: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .page-accueil #player-header-section .panel {
+    padding: var(--kr-space-2);
+    background: transparent;
     border: none;
     border-radius: 0;
+    text-align: center;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode .kraland-metrics > .list-group-item > .pull-right {
+    display: none;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode .kraland-metrics > .list-group-item h4.count {
     margin: 0;
-    box-shadow: none;
+    color: var(--kr-text-accent);
+    font-size: var(--kr-font-name);
+    font-weight: 700;
+    line-height: 1.2;
   }
 
-  .page-accueil #player-header-section .panel-body {
-    padding: 0 !important;
+  :where(html.kr-page-accueil) body.mobile-mode .kraland-metrics > .list-group-item p {
+    margin: 2px 0 0;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    letter-spacing: normal;
+    line-height: 1.2;
+    text-transform: none;
   }
 
-  .page-accueil #player-header-section .panel-body .news-item {
-    padding: 8px 12px;
+  /* --- Nouvelles : en-tête de carte et une nouvelle (défileur natif), pagination masquée --- */
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section {
+    order: 5;
+    display: block;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section > .list-group-item.active {
+    padding-right: var(--kr-space-1);
     border-bottom: 1px solid var(--kr-border-default);
-    font-size: 12px;
   }
 
-  .page-accueil #player-header-section .pagination {
+  /* Croix de repli : cible de 44 px */
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section #slide-submenu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--kr-touch-target);
+    min-height: var(--kr-touch-target);
+  }
+
+  /* Panneau interne sans boîte (ni fond, ni marge basse commune des panneaux) : son corps, au retrait commun de --kr-space-4, est le
+     contenu de la carte */
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section > .panel {
+    display: contents;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section ul.demo {
+    margin: 0;
+    padding: 0;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section .news-item {
+    padding: 0;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-detail);
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section .news-item td:first-child {
+    padding-right: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section .news-item small {
+    font-size: var(--kr-font-detail);
+  }
+
+  /* Lien vers le sujet (icône seule) : cible de 44 px */
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section .news-item td a {
+    min-width: var(--kr-touch-target);
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section > .panel > .panel-footer {
     display: none;
   }
 }

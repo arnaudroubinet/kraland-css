@@ -1183,3 +1183,21 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Font Awesome : la suite le sert sur option `KR_FA_DIR`, comme messages-v3. Aucune copie locale n'existe : sans elle, les icônes n'ont pas de glyphe. Le chevauchement de `fa-medkit` (50 px) sur la ligne « A l'aide ! » n'est donc pas vérifié en 10.2. 10.3 doit reproduire ce cas, avec une copie de Font Awesome ou une boîte imposée à l'icône, et l'écrire en rouge puis vert.
 - Défileur des Nouvelles : la hauteur mobile de `ul.demo` est figée à 81 px, la valeur relevée à 375 px. À 320 px, la vraie hauteur n'a pas été relevée. À vérifier en émulation sur le vrai site en 10.3.
 - Les images des ministres et du carrousel sont rendues en 1 × 1 px (GIF de la fixture, sans width ni height) : leur géométrie n'est pas représentative.
+
+## Ticket 10.3 — refonte mobile de l'accueil (in-review, 2026-10-30)
+
+- Plan : `epic-accueil-mobile/story-refonte-mobile-de-l-accueil-marge-de-16-px-cartes-de-section-plan.md`. Fichiers : `kraland-userscript-template.js` (ligne `KR_PAGE_CLASSES`), `kraland-theme.css` (gardes et bloc mobile de l'accueil réécrit), fixture `accueil.html` (règle native `.falarge`), `accueil-mobile.mjs`, routeur et son test, `tests/unit/identite.test.mjs`, skill (deux copies).
+- Icône des lignes du forum (`h3.pull-right`, dont le medkit) masquée sur mobile, comme celle des compteurs : choix du correctif du chevauchement. La garder, plus petite, à droite ?
+- Libellés des compteurs en texte secondaire et sans capitales (le gris actuel tombe à 2,5:1 en clair ; « PERSONNAGES » en 13 px déborde d'une tuile à 320 px).
+- Nouvelles en 13 px (détail), titre de nouvelle compris.
+- En-tête Nouvelles : passé du fond d'action (accent) au fond de surface, comme toute carte de section 5.1.
+- Cartes blanches sur fond blanc en thème clair : composant 5.1 repris tel quel, la séparation tient au filet et à l'espacement.
+- Accueil déconnecté (correctif de revue) : les autres blocs de `#col-t` (formulaire de connexion, forum natif non regroupé) passent en order 3, avec le Forum et avant les Compteurs, comme l'ancien ordre des colonnes ; ceux de `#col-left` restent en fin (order 6). Variante déconnectée dérivée en mémoire dans la suite (fragment `deconnecte`) ; le bloc ajouté après `#col-t` (qui empêche le regroupement du forum) est une supposition, faute de HTML brut versionné. « Se souvenir de moi » passe à 13 px (détail).
+- Vrai /accueil : session déconnectée, ni Bienvenue, ni Forum injecté, ni Jouer, ni ligne `/aide`. Tampermonkey de Chrome 9223 ne peut pas être neutralisé proprement : HTML natif lu en mémoire (GET) puis rejoué dans un Chromium local avec le bundle du worktree. Mesures à 375 et 320 : marge OK, aucune cible sous 44 px, en-tête Nouvelles 48 px / 17 px / 700, pas de débordement ; reste « Se souvenir de moi » à 11,9 px (formulaire de connexion, hors périmètre). Captures `reel-avant-*.png`, `reel-apres-*.png` dans `kraland-css-captures/10.3/`. À revoir connecté.
+- Carte ministérielle : style mobile de l'ancien bloc repris (sans `!important`) ; le message reste masqué avec `#col-right` (entrée 5). L'ancien style mobile `.page-accueil .alert-info` visait cette alerte de `#col-right` : retiré sans remplacement, car rien ne l'affiche sur mobile ; à reprendre avec l'entrée 5.
+- Garde des listes génériques restreinte aux blocs pris en charge (`.ds_user`, `.accueil-forum-section`, `.kraland-metrics`, `#player-header-section`) : les lignes natives de l'accueil (déconnecté) gardent padding et min-height de 44 px.
+- Règle globale `.list-group-item.active` (hors media) : seule la garde y est ajoutée, sans effet sur bureau (`body.mobile-mode` absent) ; laissée en place, la déplacer obligerait à dupliquer la règle pour le bureau.
+- `COMMIT_AVANT` de la suite gardé à `e2bcdd1` (bureau égal à la base) ; le rouge de 10.3 est prouvé par `KR_SCRIPT` = bundle de d00e6f2.
+- Libellés du pied en 10 px : hors E10.4 (qui ne mesure que `#content`).
+- Routage : la règle `KR_PAGE_CLASSES` lance désormais aussi accueil-mobile.
+- Revue quick : flash possible avant `DOMContentLoaded` rejeté (low) ; à vérifier sur appareil si gênant.
