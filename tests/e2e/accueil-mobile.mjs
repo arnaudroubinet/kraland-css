@@ -1,27 +1,30 @@
-// Accueil mobile (épopée 10, entrées 2 et 3 ; plans story-fixture-realiste-de-l-accueil-et-suite-e2e-accueil-mobile et
-// story-refonte-mobile-de-l-accueil-marge-de-16-px-cartes-de-section) sur la fixture synthétique accueil.html, reconstruite d'après le
+// Accueil mobile (épopée 10, entrées 2, 3 et 5 ; plans story-fixture-realiste-de-l-accueil-et-suite-e2e-accueil-mobile,
+// story-refonte-mobile-de-l-accueil-marge-de-16-px-cartes-de-section et story-le-message-du-ministre-revient-sur-mobile-en-carte-sous-bien) sur la fixture synthétique accueil.html, reconstruite d'après le
 // relevé du spike 10.1 (structure native, avant le template).
-//   mobile     320 et 375 × 667 px, Kraland clair et Empire Brun sombre : mode mobile ; ordre visuel Jouer, Bienvenue, Forum, Compteurs,
-//              Nouvelles ; #col-right masqué ; aucun débordement horizontal ; « Bienvenue » devant le nom ; a.accueil-play-btn injecté
+//   mobile     320 et 375 × 667 px, Kraland clair et Empire Brun sombre : mode mobile ; ordre visuel Jouer, Bienvenue, Ministre, Forum,
+//              Compteurs, Nouvelles ; de #col-right, seul le panneau ministériel visible ; aucun débordement horizontal ; « Bienvenue » devant le nom ; a.accueil-play-btn injecté
 //              juste après .ds_user ; .accueil-forum-section (titre et 4 liens) ; <hr> retirés de #col-t ; compteurs déplacés dans
 //              #col-left .kraland-metrics (E10.5) ;
 //   marge      E10.1, 320, 375, 700 et 767 px, mêmes variantes : aucun texte visible de #content ni du pied à moins de 16 px d'un bord ;
 //   cibles     E10.2 : toute cible visible de #content et du pied fait 44 × 44 px et se touche au centre et aux quatre bords ;
-//   cartes     E10.3 : Bienvenue, Forum, Compteurs et Nouvelles en carte à 8 px des bords, rayon 8 px, fond de surface opaque ; en-têtes de
-//              Forum et Nouvelles de 48 px au moins, titre 17 px gras couleur du texte ; « Jouer » au bouton de 4.2 (rayon 4 px, 44 px au
+//   cartes     E10.3 : Bienvenue, Ministre, Forum, Compteurs et Nouvelles en carte à 8 px des bords, rayon 8 px, fond de surface opaque ;
+//              en-têtes du Ministre, de Forum et de Nouvelles de 48 px au moins, titre 17 px gras couleur du texte ; « Jouer » au bouton de 4.2 (rayon 4 px, 44 px au
 //              moins, fond d'action, à 16 px des bords) ; premier texte à 16 px du bord de la carte ; icône de la ligne « A l'aide ! »
 //              masquée (état choisi ; visible : sans recouvrement du texte) ;
 //   echelle    E10.4 : noms et valeurs 15 px, détails 13 px, aucun texte visible de #content sous 12 px ;
 //   bascule    767 -> 768 et 768 -> 767 px dans le même onglet : état égal à une ouverture directe à la largeur d'arrivée ;
-//   contraste  375 px, 16 variantes : titres de carte, valeurs et libellés des compteurs à 4,5:1 au moins ;
+//   ministre   E10.6, 320, 375 et 767 px, avec et sans panneau ministériel (variante sans panneau dérivée en mémoire) : panneau en carte de
+//              section juste sous Bienvenue et avant le Forum (en-tête 48 px, titre 17 px gras couleur du texte), onglets et chevron à 44 px ;
+//              #myCarousel jamais visible ; sans panneau, rien de #col-right n'apparaît et l'ordre des autres blocs reste ;
+//   contraste  375 px, 16 variantes : titres de carte (Ministre compris), valeurs et libellés des compteurs à 4,5:1 au moins ;
 //   bureau     768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : trois colonnes côte à côte (992 px et plus) ;
 //              carte ministérielle visible ; carrousel masqué par html.kr-hide-carousel (défaut) ; position des textes égale au bundle de base ;
-//   carrousel  kr-carousel-hide = 'false' : carrousel affiché à 1280 px, #col-right toujours masqué à 375 px ;
+//   carrousel  kr-carousel-hide = 'false' : carrousel affiché à 1280 px, #myCarousel toujours masqué à 375 px ;
 //   deconnecte variante déconnectée dérivée en mémoire (formulaire de connexion, forum natif non regroupé), 320, 375 et 767 px :
 //              formulaire avant les Compteurs, lignes .ds_forum à 44 px, marge, cibles, « Se souvenir de moi » à 13 px, rien sous 12 px.
 // Partout : aucune exception de page, aucune requête hors fixture (coupée par la route de la fixture ou refusée par confineNetwork).
 // Aucun accès au site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT),
-// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, contraste, bureau, carrousel, deconnecte (vide = tout), KR_FA_DIR=/dossier (copie locale
+// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, ministre, contraste, bureau, carrousel, deconnecte (vide = tout), KR_FA_DIR=/dossier (copie locale
 // de Font Awesome 5.6.3 du site : css/all.min.css + webfonts/, comme messages-v3 ; sans elle, la feuille est vide et les icônes n'ont que le
 // glyphe de substitution de la fixture).
 import assert from 'node:assert/strict';
@@ -66,6 +69,21 @@ const HTML_DECONNECTE = (() => {
   if (h === HTML || !h.includes('type="password"') || h.includes('ds_user"') || !h.includes('clearfix')) { throw new Error('variante déconnectée non dérivée'); }
   return h;
 })();
+// Accueil sans message du ministre (entrée 5), dérivé en mémoire : #col-right garde le seul carrousel.
+const HTML_SANS_MINISTRE = (() => {
+  const h = HTML.replace(/(<div id="col-right" class="col-md-6">)\s*<div class="panel [^"]*">[\s\S]*?(\s*<div id="myCarousel")/, '$1$2');
+  if (h === HTML || h.includes('myTabContent') || !h.includes('id="myCarousel"')) { throw new Error('variante sans panneau ministériel non dérivée'); }
+  return h;
+})();
+// Accueil avec message du ministre, durci en mémoire (revue de l'entrée 5) : un enfant inconnu de #col-right (doit rester masqué) et une
+// longue URL sans césure dans le message affiché (aucun débordement, rien de coupé).
+const URL_LONGUE = 'http://www.kraland.org/forum/sujet/' + 'TrahisonEnCoursVeuillezPatienter'.repeat(4) + '_335083_1';
+const HTML_MINISTRE_DUR = (() => {
+  const h = HTML.replace('<div id="col-right" class="col-md-6">', '$&<div class="kr-inconnu">texte</div>')
+    .replace(/(<div class="tab-pane fade in active" id="empire8">[\s\S]*?)(<div class="genmsg">)/, `$1<p class="kr-url-longue">${URL_LONGUE}</p>$2`);
+  if (!h.includes('kr-inconnu') || !h.includes('kr-url-longue')) { throw new Error('variante durcie du panneau ministériel non dérivée'); }
+  return h;
+})();
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const on = name => FRAG.length === 0 || FRAG.includes(name);
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=', 'base64');
@@ -77,10 +95,12 @@ const BUREAUX = [768, 769, 1280, 1440, 1920];
 const BLOCS = [
   ['Jouer', '#col-t > a.accueil-play-btn'],
   ['Bienvenue', '#col-t > .ds_user'],
+  ['Ministre', '#col-right > .panel'],
   ['Forum', '#col-t > .accueil-forum-section'],
   ['Compteurs', '#col-left > .kraland-metrics'],
   ['Nouvelles', '#col-left > #player-header-section']
 ];
+const MINISTRE = '#col-right > .panel';
 
 let failures = 0;
 function check(name, fn) {
@@ -158,8 +178,16 @@ const ETAT = blocs => {
     blocs: blocs.map(([nom, sel]) => [nom, boite(document.querySelector(sel))]),
     colonnes: ['#col-left', '#col-right', '#col-t'].map(s => boite(document.querySelector(s))),
     colRight: getComputedStyle(document.getElementById('col-right')).display,
+    // Enfants de #col-right rendus (boîte non vide, aucun ancêtre masqué).
+    colRightVisibles: [...document.getElementById('col-right').children].filter(e => {
+      const b = e.getBoundingClientRect();
+      if (b.width === 0 || b.height === 0) { return false; }
+      for (let x = e; x; x = x.parentElement) { if (getComputedStyle(x).display === 'none') { return false; } }
+      return true;
+    }).map(e => e.id ? '#' + e.id : e.matches('.panel') ? '.panel' : e.tagName),
     ministre: vis(document.querySelector('#col-right > .panel .panel-title')),
     carrousel: carrousel ? getComputedStyle(carrousel).display : 'absent',
+    carrouselVu: !!carrousel && carrousel.getBoundingClientRect().height > 0,
     nom: dsUser ? dsUser.querySelector('h4.list-group-item-heading').textContent.trim() : null,
     jouer: suivant && suivant.matches('a.accueil-play-btn') ? { href: suivant.getAttribute('href'), texte: suivant.textContent.trim(), icone: !!suivant.querySelector('i.fa.fa-play') } : null,
     forum: forum ? { titre: (forum.querySelector(':scope > h4') || {}).textContent, liens: forum.querySelectorAll(':scope > a.ds_forum').length } : null,
@@ -194,11 +222,14 @@ function premierEcart(a, b) {
 // Entrée 3 (E10.1-E10.4) : cartes, en-têtes et échelle de l'accueil mobile.
 const CARTES = [
   ['Bienvenue', '#col-t > .ds_user'],
+  ['Ministre', MINISTRE],
   ['Forum', '#col-t > .accueil-forum-section'],
   ['Compteurs', '#col-left > .kraland-metrics'],
   ['Nouvelles', '#col-left > #player-header-section']
 ];
+// [nom, en-tête mesuré, titre (défaut : l'en-tête)].
 const EN_TETES = [
+  ['Ministre', MINISTRE + ' > .panel-heading', MINISTRE + ' > .panel-heading .panel-title'],
   ['Forum', '#col-t > .accueil-forum-section > h4'],
   ['Nouvelles', '#player-header-section > span.list-group-item.active']
 ];
@@ -210,7 +241,8 @@ const ECHELLE = [
   ['sujet ou détail de forum', '.accueil-forum-section .ds_forum p', 13],
   ['libellé de compteur', '.kraland-metrics p', 13],
   ['texte de nouvelle', '#player-header-section .news-item td:last-child', 13],
-  ['date de nouvelle', '#player-header-section .news-item small', 13]
+  ['date de nouvelle', '#player-header-section .news-item small', 13],
+  ['date du message du ministre', MINISTRE + ' .genmsg', 13]
 ];
 const RACINES = '#content, footer';
 
@@ -246,10 +278,11 @@ const MESURE_E10 = ({ cartes, entetes, echelle, racines }) => {
     }
     return { nom, g: r1(b.left), d: r1(vw - b.right), rayon: s.borderTopLeftRadius, fond: fond[3] === 1 && k.procheRgb(fond, surface), retrait };
   };
-  const entete = ([nom, sel]) => {
+  const entete = ([nom, sel, titre]) => {
     const e = document.querySelector(sel);
-    if (!vis(e)) { return { nom, absent: true }; }
-    const s = getComputedStyle(e);
+    const t = titre ? document.querySelector(titre) : e;
+    if (!vis(e) || !vis(t)) { return { nom, absent: true }; }
+    const s = getComputedStyle(t);
     return { nom, h: r1(e.getBoundingClientRect().height), taille: s.fontSize, graisse: s.fontWeight, couleur: k.procheRgb(k.rgb(s.color), texte) };
   };
   const jouer = (() => {
@@ -309,7 +342,7 @@ const MESURE_E10 = ({ cartes, entetes, echelle, racines }) => {
   };
   const cibles = [];
   document.querySelectorAll('[data-kr-cible]').forEach(e => e.removeAttribute('data-kr-cible'));
-  for (const e of document.querySelectorAll(racines.split(',').map(r => `${r.trim()} a, ${r.trim()} button, ${r.trim()} #slide-submenu`).join(', '))) {
+  for (const e of document.querySelectorAll(racines.split(',').map(r => `${r.trim()} a, ${r.trim()} button, ${r.trim()} #slide-submenu, ${r.trim()} .panel-heading span.clickable`).join(', '))) {
     if (!vis(e) || coupe(e) || e.closest('.kraland-back-to-top') || cibles.some(c => c.e.contains(e))) { continue; }
     e.setAttribute('data-kr-cible', String(cibles.length));
     cibles.push({ e, nom: (e.textContent.trim() || e.getAttribute('href') || e.id || e.className).slice(0, 30) });
@@ -396,7 +429,7 @@ async function mesurer(c, script) {
 }
 
 if (on('mobile')) {
-  console.log('\n[mobile] 320 et 375 × 667 px : ordre des blocs, #col-right masqué, injections de la peau');
+  console.log('\n[mobile] 320 et 375 × 667 px : ordre des blocs, seul le panneau ministériel de #col-right, injections de la peau');
   const cas = VARIANTES.flatMap(variante => MOBILES.map(width => ({ variante, width })));
   const res = await mapLimit(cas, async c => ({ c, r: await mesurer(c, userscript) }));
   for (const { c, r } of res) {
@@ -410,7 +443,10 @@ if (on('mobile')) {
         assert.ok(m.blocs[i][1].h > m.blocs[i - 1][1].h, `${m.blocs[i][0]} (${m.blocs[i][1].h}) pas sous ${m.blocs[i - 1][0]} (${m.blocs[i - 1][1].h})`);
       }
     });
-    check(`${tag} : #col-right masqué (carte ministérielle et carrousel absents)`, () => assert.equal(m.colRight, 'none'));
+    check(`${tag} : de #col-right, seul le panneau ministériel visible (carrousel absent)`, () => {
+      assert.deepEqual(m.colRightVisibles, ['.panel']);
+      assert.deepEqual([m.carrousel, m.carrouselVu], ['none', false]);
+    });
     check(`${tag} : aucun débordement horizontal`, () => assert.ok(m.sw <= m.vw, `débordement ${m.sw} > ${m.vw}`));
     check(`${tag} : « Bienvenue » devant le nom de .ds_user`, () => assert.equal(m.nom, 'Bienvenue Thanaël'));
     check(`${tag} : a.accueil-play-btn juste après .ds_user, vers /jouer/plateau`, () => assert.deepEqual(m.jouer, { href: '/jouer/plateau', texte: 'Jouer', icone: true }));
@@ -446,7 +482,7 @@ if (['marge', 'cibles', 'cartes', 'echelle'].some(on)) {
 }
 
 if (on('deconnecte')) {
-  console.log('\n[deconnecte] accueil déconnecté, 320, 375 et 767 px : formulaire avant les Compteurs, marge, cibles, échelle');
+  console.log('\n[deconnecte] accueil déconnecté (avec message du ministre), 320, 375 et 767 px : formulaire, ministre, forum natif, Compteurs ; marge, cibles, échelle');
   const cas = VARIANTES.flatMap(variante => [320, 375, 767].map(width => ({ variante, width })));
   const res = await mapLimit(cas, async c => {
     const { context, page, erreurs, horsFixture } = await ouvrir({ ...c, html: HTML_DECONNECTE });
@@ -457,6 +493,7 @@ if (on('deconnecte')) {
       const planchers = [...document.querySelectorAll('#content a.ds_forum')].map(a => parseFloat(getComputedStyle(a).minHeight) || 0);
       const label = document.querySelector('#col-t .checkbox label');
       return { mobile: document.body.classList.contains('mobile-mode'), form: top('#col-t form input[type="password"]'), compteurs: top('.kraland-metrics'),
+        ministre: top('#col-right > .panel'), forum: top('#content a.ds_forum'),
         nouvelles: top('#player-header-section'), lignes, planchers, souvenir: label ? parseFloat(getComputedStyle(label).fontSize) : null };
     });
     const e = await mesurerE10(page);
@@ -468,6 +505,10 @@ if (on('deconnecte')) {
     check(`${tag} : mode mobile, formulaire de connexion visible avant les Compteurs et les Nouvelles`, () => {
       assert.ok(m.mobile);
       assert.ok(m.form !== null && m.compteurs !== null && m.form < m.compteurs && m.compteurs < m.nouvelles, JSON.stringify(m));
+    });
+    check(`${tag} : E10.6 ordre formulaire de connexion, message du ministre, forum natif`, () => {
+      assert.ok(m.form !== null && m.ministre !== null && m.forum !== null, JSON.stringify(m));
+      assert.ok(m.form < m.ministre && m.ministre < m.forum && m.forum < m.compteurs, JSON.stringify(m));
     });
     check(`${tag} : lignes .ds_forum natives à 44 px au moins, plancher min-height 44 px compris (${m.lignes.length})`, () => {
       assert.equal(m.lignes.length, 3);
@@ -522,14 +563,86 @@ if (on('bascule')) {
   }
 }
 
+if (on('ministre')) {
+  console.log('\n[ministre] E10.6, 320, 375 et 767 px, avec et sans panneau ministériel : carte sous Bienvenue, carrousel masqué');
+  const cas = VARIANTES.flatMap(variante => [320, 375, 767].flatMap(width => [true, false].map(avec => ({ variante, width, avec }))));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs, horsFixture } = await ouvrir({ variante: c.variante, width: c.width, html: c.avec ? HTML_MINISTRE_DUR : HTML_SANS_MINISTRE });
+    await page.evaluate(CONTRASTE);
+    const m = await page.evaluate(ETAT, BLOCS);
+    // Écarts entre cartes (bas de l'une, haut de la suivante) ; contenu du message : largeur de défilement contre largeur visible
+    const g = await page.evaluate(() => {
+      const r = s => { const e = document.querySelector(s); const b = e && e.getBoundingClientRect(); return b && b.height > 0 ? b : null; };
+      const ecart = (a, b) => (r(a) && r(b) ? Math.round((r(b).top - r(a).bottom) * 10) / 10 : null);
+      const corps = document.querySelector('#col-right > .panel > .panel-body');
+      const url = r('#col-right .kr-url-longue');
+      return { bienvenueMinistre: ecart('#col-t > .ds_user', '#col-right > .panel'), ministreForum: ecart('#col-right > .panel', '#col-t > .accueil-forum-section'),
+        forumCompteurs: ecart('#col-t > .accueil-forum-section', '#col-left > .kraland-metrics'),
+        corps: corps ? [corps.scrollWidth, corps.clientWidth] : null, url: url && r('#col-right > .panel') ? [Math.round(url.right), Math.round(r('#col-right > .panel').right)] : null };
+    });
+    const e = await page.evaluate(MESURE_E10, { cartes: [['Ministre', MINISTRE]], entetes: [EN_TETES[0]], echelle: [], racines: '#col-right' });
+    const ecarts = [];
+    for (let i = 0; i < e.cibles.length; i++) {
+      const x = ecartsCible(await cible(page, `[data-kr-cible="${i}"]`));
+      if (x.length) { ecarts.push(`${e.cibles[i]} : ${x.join(', ')}`); }
+    }
+    await context.close();
+    return { c, m, e, g, ecarts, r: { erreurs, hors: horsFixture() } };
+  });
+  for (const { c, m, e, g, ecarts, r } of res) {
+    const tag = `ministre ${c.avec ? 'avec' : 'sans'} panneau ${c.variante} ${c.width} px`;
+    const boites = Object.fromEntries(m.blocs);
+    check(`${tag} : mode mobile, aucun débordement horizontal`, () => {
+      assert.ok(m.mobile);
+      assert.ok(m.sw <= m.vw, `débordement ${m.sw} > ${m.vw}`);
+    });
+    check(`${tag} : #myCarousel jamais visible`, () => assert.deepEqual([m.carrousel, m.carrouselVu], ['none', false]));
+    if (c.avec) {
+      check(`${tag} : E10.6 panneau ministériel visible, seul de #col-right (enfant inconnu masqué), juste sous Bienvenue et avant le Forum`, () => {
+        assert.deepEqual(m.colRightVisibles, ['.panel']);
+        const [b, mi, f] = [boites.Bienvenue, boites.Ministre, boites.Forum];
+        assert.ok(b && mi && f, JSON.stringify(boites));
+        assert.ok(b.h < mi.h && mi.h < f.h, `Bienvenue ${b.h}, Ministre ${mi.h}, Forum ${f.h}`);
+      });
+      check(`${tag} : E10.6 8 px (± 0,5) de Bienvenue au ministre et du ministre au Forum, comme entre le Forum et les Compteurs`, () => {
+        assert.ok(Math.abs(g.forumCompteurs - 8) <= 0.5, `référence Forum-Compteurs ${g.forumCompteurs}`);
+        assert.ok(Math.abs(g.bienvenueMinistre - 8) <= 0.5 && Math.abs(g.ministreForum - 8) <= 0.5, JSON.stringify(g));
+      });
+      check(`${tag} : E10.6 longue URL du message repliée dans la carte (rien de coupé)`, () => {
+        assert.ok(g.corps && g.corps[0] <= g.corps[1], `corps ${JSON.stringify(g.corps)}`);
+        assert.ok(g.url && g.url[0] <= g.url[1], `URL ${JSON.stringify(g.url)}`);
+      });
+      check(`${tag} : E10.6 carte de section à 8 px des bords, rayon 8 px, fond de surface ; en-tête de 48 px au moins, titre 17 px gras couleur du texte`, () => {
+        const [k] = e.cartes;
+        assert.ok(!k.absent && Math.abs(k.g - 8) <= 0.5 && Math.abs(k.d - 8) <= 0.5 && k.rayon === '8px' && k.fond, JSON.stringify(k));
+        const [t] = e.entetes;
+        assert.ok(!t.absent && t.h >= 47.5 && t.taille === '17px' && Number(t.graisse) >= 700 && t.couleur, JSON.stringify(t));
+      });
+      check(`${tag} : E10.6 onglets, chevron et lien du message à 44 × 44 px, touchés au centre et aux bords (${e.cibles.length})`, () => {
+        assert.ok(e.cibles.length >= 8, 'trop peu de cibles : ' + e.cibles.join(' | '));
+        assert.equal(ecarts.length, 0, ecarts.join(' | '));
+      });
+    } else {
+      check(`${tag} : E10.6 rien de #col-right visible ; ordre Jouer, Bienvenue, Forum, Compteurs, Nouvelles`, () => {
+        assert.deepEqual(m.colRightVisibles, []);
+        const ordre = m.blocs.filter(([n]) => n !== 'Ministre');
+        assert.deepEqual(ordre.filter(([, x]) => !x).map(([n]) => n), [], 'blocs absents');
+        assert.equal(boites.Ministre, null);
+        for (let i = 1; i < ordre.length; i++) { assert.ok(ordre[i][1].h > ordre[i - 1][1].h, `${ordre[i][0]} pas sous ${ordre[i - 1][0]}`); }
+      });
+    }
+    controlerPropre(tag, r);
+  }
+}
+
 if (on('contraste')) {
-  console.log('\n[contraste] 375 px, 16 variantes : titres de carte, valeurs et libellés des compteurs à 4,5:1 au moins');
-  const SELS = [...EN_TETES.map(([nom, sel]) => [`titre ${nom}`, sel]), ['valeurs des compteurs', '.kraland-metrics h4.count'], ['libellés des compteurs', '.kraland-metrics p']];
+  console.log('\n[contraste] 375 px, 16 variantes : titres de carte (Ministre compris), valeurs et libellés des compteurs à 4,5:1 au moins');
+  const SELS = [...EN_TETES.map(([nom, sel, titre]) => [`titre ${nom}`, titre || sel]), ['valeurs des compteurs', '.kraland-metrics h4.count'], ['libellés des compteurs', '.kraland-metrics p']];
   const res = await mapLimit(TOUTES_VARIANTES, async variante => {
     const { context, page, erreurs, horsFixture } = await ouvrir({ width: 375, variante });
     await page.evaluate(CONTRASTE);
     const posee = await page.evaluate(VARIANTE_POSEE, variante);
-    const rapports = await page.evaluate(sels => sels.map(([nom, sel]) => [nom, [...document.querySelectorAll(sel)].map(e => Math.round(window.__krContraste.texte(e) * 100) / 100)]), SELS);
+    const rapports = await page.evaluate(sels => sels.map(([nom, sel]) => [nom, [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length > 0).map(e => Math.round(window.__krContraste.texte(e) * 100) / 100)]), SELS);
     await context.close();
     return { variante, posee, rapports, r: { erreurs, hors: horsFixture() } };
   });
@@ -577,7 +690,7 @@ if (on('bureau')) {
 }
 
 if (on('carrousel')) {
-  console.log('\n[carrousel] kr-carousel-hide = false : affiché à 1280 px, #col-right masqué à 375 px');
+  console.log('\n[carrousel] kr-carousel-hide = false : affiché à 1280 px, #myCarousel masqué à 375 px');
   const cas = VARIANTES.flatMap(variante => [{ variante, width: 1280, height: 720, carrousel: 'false' }, { variante, width: 375, carrousel: 'false' }]);
   const res = await mapLimit(cas, async c => ({ c, r: await mesurer(c, userscript) }));
   for (const { c, r } of res) {
@@ -586,7 +699,7 @@ if (on('carrousel')) {
     if (c.width === 1280) {
       check(`${tag} : sans kr-hide-carousel, #myCarousel affiché`, () => assert.deepEqual([m.cache, m.carrousel], [false, 'block']));
     } else {
-      check(`${tag} : sans kr-hide-carousel, #col-right toujours masqué`, () => assert.deepEqual([m.cache, m.colRight], [false, 'none']));
+      check(`${tag} : sans kr-hide-carousel, #myCarousel toujours masqué`, () => assert.deepEqual([m.cache, m.carrousel, m.carrouselVu], [false, 'none', false]));
     }
     controlerPropre(tag, r);
   }

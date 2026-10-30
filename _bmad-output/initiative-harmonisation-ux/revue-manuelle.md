@@ -1201,3 +1201,20 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Libellés du pied en 10 px : hors E10.4 (qui ne mesure que `#content`).
 - Routage : la règle `KR_PAGE_CLASSES` lance désormais aussi accueil-mobile.
 - Revue quick : flash possible avant `DOMContentLoaded` rejeté (low) ; à vérifier sur appareil si gênant.
+
+## Ticket 10.5 — message du ministre sur mobile (in-review, 2026-10-30)
+
+- Plan : `epic-accueil-mobile/story-le-message-du-ministre-revient-sur-mobile-en-carte-sous-bien-plan.md`. Fichiers : `kraland-theme.css` (bloc mobile de l'accueil, garde sur la règle « Empiler les colonnes »), `accueil-mobile.mjs` (fragment `ministre`, E10.6), routeur et son test, skill (deux copies).
+- À vérifier connecté (passe manuelle) : vrai /accueil à 375×667 et 320, panneau du ministre sous Bienvenue, carrousel absent. La session du Chrome 9223 étant déconnectée, je n'ai fait ni vérification sur le site ni captures dans `kraland-css-captures/10.5/`. Le panneau est-il servi aux visiteurs déconnectés ? Inconnu : la règle s'applique dès que le panneau existe.
+- `#col-right` devient une colonne flex, rangée en order 3 entre Bienvenue et le Forum. Elle porte une marge basse de −16 px, qui annule la marge commune des panneaux mobiles (16 px, forcée et figée par le test d'espacement 4.9) et laisse 8 px entre les cartes. Cette marge négative est un compromis ; `display: contents` ne permettait pas d'annuler la marge forcée du panneau sans `!important`.
+- La règle générique mobile « Empiler les colonnes » (`margin-bottom: 15px !important`) exclut désormais `#col-right` de l'accueil par une garde `:where(...)`, sans changement de spécificité ni de rendu ailleurs.
+- Le titre « Message du Ministre de l'Information » passe sur deux lignes à 375 et 320 px. Sinon, l'en-tête commun en flex-wrap rejetait le chevron sous le titre. Faut-il un titre plus court ou une seule ligne tronquée ?
+- Les six onglets de drapeaux passent sur deux lignes à 375 px (cibles de 44 px gardées).
+- Chevron de repli natif du panneau porté à 44 px. Son repli n'est pas exercé par la fixture (script natif absent) : à essayer sur le vrai site.
+- Date « Ce message a été modifié… » en 13 px (détail) ; le saut de ligne final du message est masqué.
+- Routage : la suite ne cite plus `panel-default`. Comme 4e suite à citer ce repère, elle l'aurait rendu transverse, et le test du routeur perdait `sous-forum`.
+- L'ancien style mobile `.page-accueil .alert-info`, retiré en 10.3, n'est pas repris : le message est un `.panel`, pas une `.alert`.
+- Accueil déconnecté (correctif de revue) : ordre formulaire de connexion, message du ministre, forum natif, Compteurs, Nouvelles. Le bloc de `#col-t` qui porte le mot de passe prend l'ordre de Bienvenue. Le site sert-il ce panneau aux visiteurs déconnectés ? À confirmer par toi : la variante de la suite le suppose.
+- Liens texte en ligne des messages ministériels (dans le corps d'un message) : probablement sous 44 px de haut. Les messages de la fixture n'en ont pas ; à voir en passe manuelle.
+- `overflow: hidden` du panneau remplacé par un repli des mots longs (`overflow-wrap: anywhere`) : une longue URL n'est plus coupée.
+- Alternative `display: contents` (retirer la marge forcée de `.panel` plutôt que la compenser) écartée : la suite 4.9 fige cette déclaration par son sélecteur exact.
