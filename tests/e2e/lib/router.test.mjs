@@ -598,6 +598,33 @@ check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, co
   assert.deepEqual(suite.zones, []);
   assert.deepEqual(sorted(suite.units), ['confinement-reseau', 'forum-activite']);
 });
+check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobile, palette-nation et typographie-formes ; modules Bienvenue et colonne droite -> les mêmes trois zones ; fixture -> accueil-mobile (et palette-nation)', () => {
+  assert.deepEqual(zonesOf('accueil-mobile.mjs'), ['accueil-mobile']);
+  assert.deepEqual(SUITES.find(s => s.name === 'accueil-mobile').frags, [['mobile'], ['bureau'], ['carrousel']]);
+  for (const [f, a, b] of [['kraland-theme.css', '@media (max-width: 767px) {', '  .page-accueil #col-t { order: -1; }'],
+    ['kraland-theme.css', '@media (max-width: 767px) {', '  :where(html.kr-page-accueil) #col-left { padding: 0; }'],
+    ['kraland-theme.css', '.x {', 'html.kr-hide-carousel .carousel { display: none; }'],
+    ['kraland-theme.css', '.x {', '  .accueil-play-btn { min-height: 44px; }'],
+    ['kraland-theme.css', '.x {', '  .accueil-forum-section > h4 { font-size: 17px; }'],
+    ['kraland-theme.css', '.x {', '  .kraland-metrics .list-group-item { padding: 16px; }'],
+    ['kraland-theme.css', '.x {', '  .kr-ministerial-card { margin: 0; }'],
+    [T, 'function x() {', "  InitQueue.register('Homepage:RightColumn', function enhanceHomeRightColumn() {"]]) {
+    const r = route(f, hunk(a, b));
+    assert.equal(r.widened, false, r.reasons.join(' ; '));
+    for (const z of ['accueil-mobile', 'palette-nation', 'typographie-formes']) { assert.ok(r.zones.includes(z), `${b.trim()} : ${z} absent (${r.zones.join(', ')})`); }
+  }
+  for (const titre of ['TASK-2.3 - MESSAGE DE BIENVENUE SUR PAGE D\'ACCUEIL', 'ACCUEIL - AMÉLIORATION COLONNE DROITE']) {
+    const t = tpl([titre, ['  function g() {', '    return 7;', '  }']]);
+    const r = route(T, hunkAt(at(t, 'return 7'), '    const n = 7;'), t);
+    assert.equal(r.widened, false, r.reasons.join(' ; '));
+    assert.deepEqual(sorted(r.zones), ['accueil-mobile', 'palette-nation', 'typographie-formes']);
+  }
+  // Le nom de la fixture est aussi la fin de palette-nation-accueil.html, cité par palette-nation : la règle des fixtures (citation du nom)
+  // lance donc les deux suites, ce qui reste conservateur.
+  const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/accueil.html': [] }), readWith({}));
+  assert.equal(f.widened, false);
+  assert.deepEqual(sorted(f.units), ['accueil-mobile', 'palette-nation']);
+});
 check('fil d\'Ariane du forum (épopée 6, entrée 3) : règle CSS fusionnée, section commune et module ForumHeader -> forum-activite', () => {
   assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('fil')), 'fragment fil');
   const css = route('kraland-theme.css', hunk('.x {', ':where(html.kr-page-forum-index, body.page-forum.kr-subforum) #col-right .forum-mobile-breadcrumb-current { min-width: 0; }'));

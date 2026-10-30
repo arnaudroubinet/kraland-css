@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+	<meta charset="utf-8"/>
+	<title>Kraland Interactif - Accueil</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<!-- FIXTURE SYNTHÉTIQUE de l'accueil connecté (épopée 10, entrée 2), reconstruite d'après le relevé du spike 10.1 (squelettes assainis,
+	     hors dépôt), sans HTML brut du site. Servie à /accueil. Structure NATIVE, avant le template : compteurs (.ds_users, .ds_characters,
+	     .ds_online) dans #col-t avec des <hr> (la peau les déplace dans #col-left .kraland-metrics et retire les <hr>), premier .list-group
+	     de #col-left sans id (nameLeftSidebarDivs le nomme player-header-section), ni « Bienvenue », ni accueil-play-btn, ni
+	     accueil-forum-section. Données de jeu réelles (nouvelles, forum, messages des ministres, compteurs). Retirés : publicités, formulaires
+	     #reconnect et #exit (jeton), bloc kramail de #col-t (structure native non relevée). Images hors Kraland (messages des ministres,
+	     avatar) remplacées par des adresses img7.kraland.org, servies par la suite : aucune requête hors fixture. Textes tronqués par le
+	     relevé (légendes du carrousel, citation du pied) complétés. -->
+	<base href="http://www.kraland.org/">
+	<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css" />
+	<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css" />
+	<!-- Imite une règle de la feuille native du site, non servie par la fixture : .mini-submenu est masqué (relevé 10.1, 375 et 1280 px). -->
+	<style>.mini-submenu { display: none; }</style>
+</head>
+<body style="margin-bottom: 60px;">
+<!-- navbar -->
+<nav class="navbar navbar-inverse nomargin">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="accueil">Kraland</a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse navbar-collapse1">
+			<ul class="nav navbar-nav">
+				<li class="dropdown">
+					<a href="jouer/plateau" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Jouer <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="jouer/plateau">Plateau</a></li>
+						<li><a href="jouer/materiel">Matériel</a></li>
+						<li><a href="jouer/perso">Personnage</a></li>
+						<li><a href="jouer/bat">Bâtiments</a></li>
+						<li><a href="jouer/pnj">Employés</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="regles/avancees" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Règles <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="regles/base">Règles de Base</a></li>
+						<li><a href="regles/avancees">Règles Avancées</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Vocations</li>
+						<li><a href="regles/carrieres">Carrières</a></li>
+						<li><a href="regles/types">Types</a></li>
+						<li><a href="regles/politique">Politique</a></li>
+						<li><a href="regles/combat">Combat</a></li>
+						<li><a href="regles/pouvoir">Pouvoir</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Gestion Publique</li>
+						<li><a href="regles/ville">Gestion de Ville</a></li>
+						<li><a href="regles/province">Gestion de Province</a></li>
+						<li><a href="regles/empire">Gestion d'Empire</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Annexes</li>
+						<li><a href="regles/provinces">Provinces</a></li>
+						<li><a href="regles/materiel">Liste du Matériel</a></li>
+						<li><a href="regles/batiments">Liste des Bâtiments</a></li>
+						<li><a href="regles/bestiaire">Le Bestiaire</a></li>
+						<li><a href="regles/ordres">Liste des Ordres</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="monde/evenements" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Monde <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="monde/citoyens">Citoyens</a></li>
+						<li><a href="monde/empires">Empires</a></li>
+						<li><a href="monde/organisations">Organisations</a></li>
+						<li><a href="monde/evenements">Événements</a></li>
+						<li><a href="monde/guide">Guide du Monde</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum/rp" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum RP <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/rp/taverne-10101">Taverne</a></li>
+						<li><a href="forum/rp/marche-10102">Marché</a></li>
+						<li><a href="forum/rp/monde-10103">Monde</a></li>
+						<li class="divider"></li>
+						<li><a href="forum/rp/royaume-de-ruthvenie-101118">Royaume de Ruthvénie</a></li>
+						<li><a href="forum/rp/province-geofront-1011220">Province Géofront</a></li>
+						<li><a href="forum/rp/province-niarkalistan-1011222">Province Niarkalistan</a></li>
+						<li><a href="forum/rp/les-cadets-royaux-101148">Les Cadets Royaux</a></li>
+						<li><a href="forum/rp/mecharium-101149521">Mecharium</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum/hrp" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum HRP <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/hrp/site-annonces-20101">Site &amp; Annonces</a></li>
+						<li><a href="forum/hrp/debuter-20102">Débuter</a></li>
+						<li><a href="forum/hrp/regles-20103">Règles</a></li>
+						<li><a href="forum/hrp/entracte-20104">Entracte</a></li>
+						<li><a href="forum/hrp/bugs-20105">Bugs</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum/communaute" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum Communauté <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/communaute/bavardage-divers-30101">Bavardage &amp; Divers</a></li>
+						<li><a href="forum/communaute/entraide-30102">Entraide</a></li>
+						<li><a href="forum/communaute/loisirs-30103">Loisirs</a></li>
+						<li><a href="forum/communaute/jeux-30104">Jeux</a></li>
+						<li><a href="forum/communaute/rencontres-rik-30105">Rencontres (RIK)</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="forum/debats" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Forum Débats <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="forum/debats">Voir tous les forums</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="communaute/membres" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Communauté <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres">Membres</a></li>
+						<li><a href="communaute/chat">Mini-Chat</a></li>
+						<li><a href="communaute/soutien">Soutenir le Site</a></li>
+						<li class="divider"></li>
+						<li class="dropdown-header">Mini-Jeux</li>
+						<li><a href="communaute/civikra">Civikra</a></li>
+						<li><a href="communaute/krasolo">Kraland Solo</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="monde/citoyens" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Statistiques <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/stats">Communautés</a></li>
+						<li><a href="monde/citoyens">Citoyens</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="" onclick="javascript:openReport();return false;"><i class="fa fa-bell"></i><span class="badge badge-danger">!</span></a></li>
+				<li><a href="kramail"><i class="fa fa-envelope"></i><span id="badge" class="badge" style="display:none;"></span></a></li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-user"></i> <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="communaute/membres/edit"><i class="fa fa-user"></i> Modifier profil</a></li>
+						<li><a href="profil/interface"><i class="fa fa-cog"></i> Paramètres</a></li>
+						<li><a href="contacts"><i class="fa fa-users"></i> Contacts</a></li>
+						<li><a href="profil/notes"><i class="fas fa-file-signature"></i> Notes</a></li>
+						<li><a href="aide"><i class="fa fa-medkit"></i> A l'aide !</a></li>
+						<li class="divider"></li>
+						<!-- Natif : ces liens soumettent les formulaires #reconnect et #exit, retirés de la fixture avec leur jeton. -->
+						<li><a href="javascript:document.getElementById('reconnect').submit();"><i class="fa fa-sync-alt"></i> Reconnexion</a></li>
+						<li><a href="javascript:document.getElementById('exit').submit();"><i class="fa fa-sign-out-alt"></i> Déconnexion</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+</nav>
+
+<div id="content" class="container">
+	<div class="row">
+		<div id="col-left" class="col-md-3 sidebar">
+			<div class="mini-submenu navbar-default">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</div>
+			<div class="list-group">
+				<span class="list-group-item active">Nouvelles <span class="pull-right" id="slide-submenu"><i class="fa fa-times"></i></span></span>
+				<div class="panel panel-default">
+					<div class="panel-body panel-news">
+						<ul class="demo" style="overflow-y: hidden; height: 280px;">
+							<li class="news-item"><table><tbody><tr style="vertical-align:top;"><td><img src="http://img7.kraland.org/2/mat/69/6999.gif" alt="" width="40" height="40"><br><small class="text-muted"><i class="fa fa-calendar-o"></i> 11/10</small></td><td>RIK de Noël le 12 décembre <a href="forum/sujet/rik-speciale-noel-12-decembre-a-paris-335000-1" title="" data-toggle="tooltip"><i class="fa fa-external-link-alt"></i></a></td></tr></tbody></table></li>
+							<li class="news-item"><table><tbody><tr style="vertical-align:top;"><td><img src="http://img7.kraland.org/2/map/1/55_1.gif" alt="" width="40" height="40"><br><small class="text-muted"><i class="fa fa-calendar-o"></i> 04/10</small></td><td>Sortie de la V7.0.9 <a href="forum/sujet/sortie-de-la-v7-0-9-334914-1" title="" data-toggle="tooltip"><i class="fa fa-external-link-alt"></i></a></td></tr></tbody></table></li>
+							<li class="news-item"><table><tbody><tr style="vertical-align:top;"><td><img src="http://img7.kraland.org/2/map/1/3527.gif" alt="" width="40" height="40"><br><small class="text-muted"><i class="fa fa-calendar-o"></i> 13/09</small></td><td>Sortie de la V7.0.8 <a href="forum/sujet/sortie-de-la-v7-0-8-334686-1" title="" data-toggle="tooltip"><i class="fa fa-external-link-alt"></i></a></td></tr></tbody></table></li>
+							<li class="news-item"><table><tbody><tr style="vertical-align:top;"><td><img src="http://img7.kraland.org/2/mat/13/1321.gif" alt="" width="40" height="40"><br><small class="text-muted"><i class="fa fa-calendar-o"></i> 11/10</small></td><td>Bois ton Houblon à Lille le 30 octobre ! <a href="forum/sujet/bhl-bois-ton-houblon-a-lille-le-retour-du-revival-334983-1" title="" data-toggle="tooltip"><i class="fa fa-external-link-alt"></i></a></td></tr></tbody></table></li>
+						</ul>
+					</div>
+					<div class="panel-footer">
+						<ul class="pagination pull-right" style="margin:0px;">
+							<li><a href="#" class="prev"><span class="glyphicon glyphicon-chevron-down"></span></a></li>
+							<li><a href="#" class="next"><span class="glyphicon glyphicon-chevron-up"></span></a></li>
+						</ul>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="col-right" class="col-md-6">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title"><i class="fa fa-bullhorn"></i> Message du Ministre de l'Information</h3>
+					<span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+				</div>
+				<div class="panel-body">
+					<ul id="myTab" class="nav nav-pills nav-tabs">
+						<li><a href="#empire1" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag1.gif" alt="République de Kraland" width="50" height="35"></a></li>
+						<li><a href="#empire2" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag2.gif" alt="Empire Brun" width="50" height="35"></a></li>
+						<li><a href="#empire5" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag5.gif" alt="Paradigme Vert" width="50" height="35"></a></li>
+						<li><a href="#empire6" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag6.gif" alt="Khanat Elmérien" width="50" height="35"></a></li>
+						<li><a href="#empire7" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag7.gif" alt="Confédération Libre" width="50" height="35"></a></li>
+						<li class="active"><a href="#empire8" data-toggle="tab" style="padding:5px;"><img src="http://img7.kraland.org/2/world/flag8.gif" alt="Royaume de Ruthvénie" width="50" height="35"></a></li>
+					</ul>
+					<div id="myTabContent" class="tab-content">
+						<div class="tab-pane fade" id="empire1"><p></p><center><img class="img-responsive" src="http://img7.kraland.org/2/fixture/ministre-1.png" style="display:inline;"></center><p></p><div class="genmsg">Ce message a été modifié le 28/10/26 à 00:23</div><br></div>
+						<div class="tab-pane fade" id="empire2"><p></p><center><b>Mariage Impérial</b><br><br><a href="forum/sujet/mariage-imperial-335083-1" target="_blank"><img class="img-responsive" src="http://img7.kraland.org/2/fixture/ministre-2.png" style="display:inline;"></a></center><p></p><div class="genmsg">Ce message a été modifié le 20/10/26 à 14:07</div><br></div>
+						<div class="tab-pane fade" id="empire5"><p></p><center><img class="img-responsive" src="http://img7.kraland.org/2/fixture/ministre-5.png" style="display:inline;"></center><p></p><div class="genmsg">Ce message a été modifié le 12/09/26 à 23:08</div><br></div>
+						<div class="tab-pane fade" id="empire6"><p></p><center><br><img class="img-responsive" src="http://img7.kraland.org/2/world/flag6.gif" style="display:inline;"><br><b>Quand il s'agit de défendre nos terres et notre liberté, nous sommes tous Elmériens.</b></center><p></p><div class="genmsg">Ce message a été modifié le 18/10/26 à 20:21</div><br></div>
+						<div class="tab-pane fade" id="empire7"><p></p><center><b><font><u>Tampon d'authenticité démocratique</u></font></b><br><img class="img-responsive" src="http://img7.kraland.org/2/fixture/ministre-7.png" style="display:inline;"></center><p></p><div class="genmsg">Ce message a été modifié le 19/10/26 à 23:15</div><br></div>
+						<div class="tab-pane fade in active" id="empire8"><p></p><center><b><font>⚜ Trahison en cours,</font> <font>veuillez patienter ⚜</font></b><br><br><a href="http://img7.kraland.org/2/fixture/ministre-8.png" target="_blank"><img class="img-responsive" src="http://img7.kraland.org/2/fixture/ministre-8.png" style="display:inline;" width="500" height="333"></a></center><p></p><div class="genmsg">Ce message a été modifié le 29/10/26 à 01:03</div><br></div>
+					</div>
+				</div>
+			</div>
+			<div id="myCarousel" class="carousel slide" data-ride="carousel">
+				<ol class="carousel-indicators">
+					<li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+					<li data-target="#myCarousel" data-slide-to="1"></li>
+					<li data-target="#myCarousel" data-slide-to="2"></li>
+					<li data-target="#myCarousel" data-slide-to="3"></li>
+				</ol>
+				<div class="carousel-inner" role="listbox">
+					<div class="item active">
+						<img class="first-slide" src="http://img7.kraland.org/1/slide1.png" alt="First slide">
+						<div class="container"><div class="carousel-caption">
+							<h1>Kraland Interactif</h1>
+							<p>Bienvenue sur Kraland Interactif, le jeu de parodie politique. Le cybermonde vous attend : incarnez un citoyen et changez la face du monde.</p>
+							<p><a class="btn btn-lg btn-primary" href="jouer/plateau" role="button">Jouez !</a></p>
+						</div></div>
+					</div>
+					<div class="item">
+						<img class="second-slide" src="http://img7.kraland.org/1/slide2.png" alt="Second slide">
+						<div class="container"><div class="carousel-caption">
+							<span class="mention pull-right xmini" style="position:fixed;margin-left:215px;margin-top:255px;">ill: Jenarth</span>
+							<h1>Un grand choix de carrières</h1>
+							<p>Diplomate belliciste, trafiquant légaliste, révolutionnaire de salon, médecin sans diplôme : plus de cinquante carrières vous tendent les bras.</p>
+							<p><a class="btn btn-lg btn-primary" href="jouer/plateau" role="button">Jouez !</a></p>
+						</div></div>
+					</div>
+					<div class="item">
+						<img class="third-slide" src="http://img7.kraland.org/1/slide3.png" alt="Third slide">
+						<div class="container"><div class="carousel-caption">
+							<span class="mention pull-right xmini" style="position:fixed;margin-left:210px;margin-top:250px;">ill: Eàràné Coàmenel</span>
+							<h1>Vivez de grandes aventures</h1>
+							<p>Voyagez à travers le monde, colportez une rumeur, détournez des fonds, fondez une secte ou une entreprise : à vous de choisir votre destin.</p>
+							<p><a class="btn btn-lg btn-primary" href="jouer/plateau" role="button">Jouez !</a></p>
+						</div></div>
+					</div>
+					<div class="item">
+						<img class="third-slide" src="http://img7.kraland.org/1/slide4.png" alt="Third slide">
+						<div class="container"><div class="carousel-caption">
+							<span class="mention pull-right xmini" style="position:fixed;margin-left:220px;margin-top:220px;">ill: uzleS</span>
+							<h1>...et ce n'est pas fini !</h1>
+							<p>Fraudez aux élections, devenez bourgmestre ou ministre, renversez le chef de votre empire et prenez sa place sur le trône.</p>
+							<p><a class="btn btn-lg btn-primary" href="jouer/plateau" role="button">Jouez !</a></p>
+						</div></div>
+					</div>
+				</div>
+				<a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span><span class="sr-only">Previous</span></a>
+				<a class="right carousel-control" href="#myCarousel" role="button" data-slide="next"><span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span><span class="sr-only">Next</span></a>
+			</div>
+		</div>
+
+		<div id="col-t" class="col-md-3">
+			<a href="communaute/membres" class="list-group-item ds_user" title="" data-toggle="tooltip">
+				<div class="pull-right"><img class="img-circle ds-img" src="http://img7.kraland.org/2/fixture/avatar.jpg" alt="" width="50" height="50"></div>
+				<h4 class="list-group-item-heading count">Thanaël</h4>
+				<p class="list-group-item-text"></p>
+			</a>
+			<hr>
+			<a href="communaute/membres" class="list-group-item ds_users" title="" data-toggle="tooltip">
+				<h3 class="pull-right"><i class="fa falarge fa-users"></i></h3>
+				<h4 class="list-group-item-heading count">431</h4>
+				<p class="list-group-item-text">Membres actifs</p>
+			</a>
+			<a href="jouer/plateau" class="list-group-item ds_characters" title="" data-toggle="tooltip">
+				<h3 class="pull-right"><i class="fa falarge fa-users"></i></h3>
+				<h4 class="list-group-item-heading count">331</h4>
+				<p class="list-group-item-text">Personnages actifs</p>
+			</a>
+			<a href="jouer/plateau" class="list-group-item ds_online" title="" data-toggle="tooltip">
+				<h3 class="pull-right"><i class="fa falarge fa-users"></i></h3>
+				<h4 class="list-group-item-heading count">38</h4>
+				<p class="list-group-item-text">Personnes en ligne</p>
+			</a>
+			<hr>
+			<h4 class="center">Forum</h4>
+			<a href="aide" class="list-group-item ds_forum" title="" data-toggle="tooltip">
+				<h3 class="pull-right"><i class="fa falarge fa-medkit"></i></h3>
+				<h4 class="list-group-item-heading count">A l'aide !</h4>
+				<p class="list-group-item-text">Bug ? Problème ?</p>
+			</a>
+			<a href="forum/sujet/stream-on-speedrun-prison-any-no-glitches-just-skill-issue-335090-1" class="list-group-item ds_forum" title="" data-toggle="tooltip">
+				<div class="label label-success">Dernier sujet lancé</div>
+				<p class="list-group-item-text"><i class="fa fa-comments"></i> [STREAM ON] — SPEEDRUN PRISON ANY% — NO GLITCHES, JUST SKILL ISSUE</p>
+			</a>
+			<a href="forum/sujet/bhl-bois-ton-houblon-A-lille-le-retour-du-revival-334983-1" class="list-group-item ds_forum" title="" data-toggle="tooltip">
+				<div class="label label-warning">Dernier sujet actif</div>
+				<p class="list-group-item-text"><i class="fa fa-calendar-alt"></i> [BHL] Bois ton Houblon à Lille, le retour du revival</p>
+			</a>
+			<a href="forum/sujet/la-bouletie-aux-riches-334922-4" class="list-group-item ds_forum" title="" data-toggle="tooltip">
+				<div class="label label-danger">Sujet le plus actif créé ce mois</div>
+				<p class="list-group-item-text"><i class="fa fa-circle"></i> La Bouletie aux riches !</p>
+			</a>
+		</div>
+	</div>
+</div>
+
+<span id="top-link" class="hidden"></span>
+<footer class="navbar-inverse">
+	<div class="container white">
+		<div class="footer-quote">« Entre le fort et le faible, entre le riche et le pauvre, entre le maître et le serviteur, c'est la liberté qui opprime et la loi qui affranchit. » Henri Lacordaire</div>
+		<div style="margin-top:5px;text-align:right;font-size:10px;"><a href="mentions" style="color:inherit;">Mentions légales</a> | <a href="defkra" style="color:inherit;">Defkra 5</a> | Généré en 0.05 sec. | 30 oct 00:13</div>
+	</div>
+</footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<!-- Imite le défileur natif des Nouvelles, non servi par la fixture. En mobile, il ramène ul.demo à la hauteur d'une nouvelle :
+     81 px relevés à 375 px (10.1). Seule la première reste visible, la pagination est masquée. À 768 px et plus, les 280 px natifs restent.
+     La valeur est figée : la hauteur réelle à 320 px n'a pas été relevée. -->
+<script>
+	if (window.matchMedia('(max-width: 767px)').matches) { document.querySelector('ul.demo').style.height = '81px'; }
+</script>
+</body>
+</html>

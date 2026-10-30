@@ -1162,3 +1162,24 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
   - Ordre mobile gardé (Jouer, Bienvenue, Forum, Compteurs, Nouvelles) ? Les Nouvelles, seul contenu éditorial, arrivent en dernier.
   - Sur la ligne « A l'aide ! », l'icône `fa-medkit` de 50 px recouvre « Bug ? Problème ? ». La corriger dans 10.3 ?
 - Recommandation : ne pas redécouper 10.3. Les écarts sont peu nombreux et homogènes, et la marge commune couvre déjà le pied.
+
+## Ticket 10.2 — fixture de l'accueil et suite accueil-mobile (in-review, 2026-10-30)
+
+- Plan : `epic-accueil-mobile/story-fixture-realiste-de-l-accueil-et-suite-e2e-accueil-mobile-plan.md`. Fichiers : `tests/e2e/fixtures/accueil.html`, `tests/e2e/accueil-mobile.mjs`, routeur et son test, skill `tester-kraland-css` (deux copies).
+- La fixture reconstruit l'état natif, avant la peau. Le relevé 10.1 a vu le DOM après la peau, donc trois points sont supposés :
+  - les compteurs sont dans `#col-t`, après `.ds_user` (le README le confirme, mais pas leur position exacte) ;
+  - la fixture place deux `<hr>` dans `#col-t`, après `.ds_user` et avant « Forum » ;
+  - le premier `.list-group` de `#col-left` n'a pas d'id : la peau le nomme `player-header-section`.
+- Le bloc kramail natif de `#col-t` (retiré par la peau) est omis, car sa structure n'a pas été relevée.
+- Les formulaires `#reconnect` et `#exit` (jeton) sont retirés, ainsi que les publicités.
+- Les images hors Kraland (messages des ministres, avatar) pointent vers `img7.kraland.org`.
+- Les textes tronqués par le relevé sont complétés par moi : légendes du carrousel, devise elmérienne, citation du pied.
+- Le ticket demandait aussi des mesures de marge, de cibles et de titres (`lib/marges.mjs`). Elles sont écartées sur mandat : ce sont les écarts de 10.3.
+- Le relevé comparé au bundle de base masque le numéro de version du pied (horodatage du build), comme dans confort-mobile. Ce n'est pas une liste d'écarts.
+- Routage : une modification de `accueil.html` lance aussi palette-nation. Le routeur trouve le nom dans `palette-nation-accueil.html` (citation par sous-chaîne). C'est conservateur ; je n'ai pas renommé la fixture, nommée par le ticket.
+- À trancher par toi : le mot-clé de l'accueil lance aussi palette-nation et typographie-formes (avant, un hunk `.page-accueil` élargissait au total). Garder ce routage ?
+- Après la revue, les sections « TASK-2.3 - MESSAGE DE BIENVENUE » et « ACCUEIL - AMÉLIORATION COLONNE DROITE » visent aussi ces trois zones. Le contrôle réseau de la suite n'exclut qu'une requête : `version.json`, la vérification de version du thème, refusée par le confinement sur toute page.
+- Revue indépendante : les correctifs sont appliqués (barre complète, `.mini-submenu` masqué, défileur des Nouvelles simulé en mobile, cloche en `href=""`, logos refusés).
+- Font Awesome : la suite le sert sur option `KR_FA_DIR`, comme messages-v3. Aucune copie locale n'existe : sans elle, les icônes n'ont pas de glyphe. Le chevauchement de `fa-medkit` (50 px) sur la ligne « A l'aide ! » n'est donc pas vérifié en 10.2. 10.3 doit reproduire ce cas, avec une copie de Font Awesome ou une boîte imposée à l'icône, et l'écrire en rouge puis vert.
+- Défileur des Nouvelles : la hauteur mobile de `ul.demo` est figée à 81 px, la valeur relevée à 375 px. À 320 px, la vraie hauteur n'a pas été relevée. À vérifier en émulation sur le vrai site en 10.3.
+- Les images des ministres et du carrousel sont rendues en 1 × 1 px (GIF de la fixture, sans width ni height) : leur géométrie n'est pas représentative.
