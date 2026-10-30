@@ -39,6 +39,7 @@ Captures et mesures : `/Users/arnaud/kraland-css-captures/verif-2026-10-30/`. Re
 - Formulaire sans barre d'outils : « Envoyer » atteignable ; bande de 52 px sous le pied sur mobile : backlog 26.
 - Onglets de `/report` : icône collée au libellé sur mobile : backlog 27. Pastille de la cloche à 1280 px chevauchant le glyphe de moins de 1 px : acceptée.
 - Niveaux de PV 4 et 5, barre de 6 px, recherche du sous-forum, marque PNJ : conformes.
+- `test:all` sur HEAD 2a41b35 (code produit et tests égaux à 50a3b05, vert à la fusion 10.6), aucun agent actif : 18939 ok, 3 FAIL, tous dans `breakpoint-switch` (`nav-large` 2, `nav-origine` 1 : à 1100 px après bascule, barre de 60 px mesurée au lieu de 120, mesure prise avant le retour à la ligne). Rejouée seule (`KR_FRAG=nav-large,nav-origine node tests/e2e/breakpoint-switch.mjs`) : verte 2 fois sur 2. Instabilité de mesure, même sans autre charge que la suite ; à joindre à la story backlog 22.
 - Site déconnecté : le panneau du ministre n'est pas servi aux visiteurs (doute levé) ; `ul.demo` à 60 px à 320 px de large ; le défileur des Nouvelles fait sauter le pied jusqu'à 66 px à chaque tour : backlog 25.
 
 ## Décisions d'Arnaud du 2026-10-28 : recommandations suivies

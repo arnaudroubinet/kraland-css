@@ -49,3 +49,5 @@ Le contrôle concerné (`tests/e2e/demarrage-mobile.mjs:248-252`) joue `/forum` 
 - retro — _bmad-output/initiative-harmonisation-ux/epic-plateau-confort-mobile/epic-plateau-confort-mobile-retrospective.md
 - suite — tests/e2e/demarrage-mobile.mjs, fragment `pire-cas`
 - Decision: 2026-10-30 — orchestrateur, sur mandat d'Arnaud (« je vais suivre ta recommandation ») : stabiliser ; en attendant, lancer à part.
+
+- Constat du 2026-10-30 : `breakpoint-switch#nav-large` et `#nav-origine` échouent aussi dans un `test:all` sans autre charge (barre mesurée à 60 px au lieu de 120 à 1100 px après bascule), verts rejoués seuls. Même famille : mesure prise avant stabilisation de la mise en page.
