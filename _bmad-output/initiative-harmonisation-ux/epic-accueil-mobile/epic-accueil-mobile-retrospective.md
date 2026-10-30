@@ -65,6 +65,7 @@ Les points déjà en attente d'Arnaud dans `revue-manuelle.md` ne sont pas repri
   - 10.5 n'a rien vu du site ;
   - aucune mesure du vrai accueil connecté n'existe donc avec la peau livrée. Bienvenue, Jouer, Forum, ligne `/aide` et ministre ne sont mesurés que sur fixture.
 - Disposition : **defer** (action A1). C'est le seul critère non tenu. Il ne demande qu'une session ouverte : l'agent peut faire l'émulation sous le mandat de lecture.
+- Suite (2026-10-30) : Arnaud a fourni une capture du vrai accueil connecté à 375 px (hors dépôt). Elle a révélé des drapeaux rognés, une image du message illisible, une icône `.genmsg` coupée et une liste de nouvelles tronquée. Ces défauts sont corrigés par l'entrée 6 (bug 10.6, fusion 50a3b05, `test:all` 18942 ok). Done when 4 reste ouvert : aucune mesure connectée de la peau livrée, A1 inchangée.
 - Leçon amont : un ticket hitl qui dépend d'une session ouverte vérifie la session au départ. Sinon, il note dès le départ que son critère sur site restera ouvert, au lieu de le découvrir en cours de route.
 
 ### F2. Deux revues indépendantes sur trois trouvent l'ordre de l'accueil déconnecté faux
