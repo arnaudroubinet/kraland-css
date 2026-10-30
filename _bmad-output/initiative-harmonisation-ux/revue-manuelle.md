@@ -3,6 +3,30 @@
 Doutes, décisions et validations à trancher par Arnaud à la fin du travail en autonomie (consigne du 2026-10-22). Chaque point porte l'option retenue en attendant, marquée comme hypothèse.
 
 
+## État au 2026-10-30 : ce qui reste vraiment à Arnaud
+
+Tri complet du fichier par l'orchestrateur (2026-10-30). Aucun point ne dépend d'un goût personnel : tout point à option retenue suit la recommandation (mandat du 2026-10-28). Il ne reste que ce qu'un agent ne peut pas faire :
+
+- **Une session Kraland connectée** dans le Chrome dédié (mot de passe), pour un seul passage de relevé en lecture par l'orchestrateur : accueil connecté (l. Ticket 10.3, 10.5, 10.6, vide sous la barre), non-lu sur `i.fa-envelope`, vrai Signaler, `kramail` vers la Réception, Membres, chevrons du kramail, plateau réel (jauges PM/PP, cartes à plusieurs actions, barre de PV, accès rapides), forum (Staff, liste latérale, « répondre » sur sujet fermé, vrai sujet avec « Envoyer »), champ Tags, « Pas un contact », `.panel-info` du site, fixtures comparées au site ; `/report` seulement si la cloche est inactive.
+- **Un vrai téléphone** : protocole P2, ancres H10, clavier en mode « visuel » (bug 16), flash avant `DOMContentLoaded`.
+- **Firefox + Tampermonkey** : procédure de console du 8.2 (Chrome déjà prouvé).
+- Facultatif : vrai clic sur la cloche (marque les notifications lues ; la console a déjà prouvé `width=900,height=800`).
+
+Decision: 2026-10-30 — orchestrateur, sur mandat « je vais suivre ta recommandation » :
+- épopée 1 close ; rétros 5, 7 et 9 en accepted-with-open-items (hitl reportés par mandat) ;
+- piste des jauges mobiles : filet de 1 px en border-tint (ticket à créer) ;
+- pas de contrôle absolu « sombre » propre aux pages ; options du popup copiées de `main.js` acceptées (test de dérive) ; peau coupée = popup natif 600×600 ;
+- sélecteur de personnage : rien sur la lecture, gardé au bureau ; /help sur ordinateur sans marge : hors périmètre ; animation de 0,3 s des accordéons acceptée ;
+- bug 15 : décalage de 1 px et ligne à cellule unique laissés ; case à cocher à droite gardée ; Envoi sans signal « non lu » ;
+- anneau de focus de la barre BBCode gardé ; libellés « n°1 » à « n°4 » gardés ; Contacts mobile en tableau qui défile ; « Envoyer » mobile à 14 px ;
+- `COMMIT_MEDIAS_410` gardé ; bug 16 : masquage pendant la saisie et bouton de 36 px acceptés ;
+- Done when 2 de l'épopée 7 : retirer « et d'un fil » ; avertissements `no-loop-func` laissés ; ligne 10 de `lots-de-livraison.md` : non ;
+- Kraland clair via `localStorage` sur le site autorisé en restaurant la variante (précédents des 22 et 23 octobre) ; `kr-theme-enabled` reste intouché ;
+- routage accueil vers palette-nation et typographie-formes gardé ; medkit masqué sur mobile ; titre du ministre sur deux lignes accepté ; garde des cartes recopiée acceptée ; `.kr-ministerial-card` gardé tant que des fixtures l'utilisent ;
+- 10.6 : image du message à 90 % non agrandie ; image dans un lien à 311 px laissée ;
+- tickets backlog à créer : premier toucher qui ferme le menu et ouvre aussi le message ; D9.2 (onglets qui débordent) ; D9.3 (+8 px) ; `kd-contacts` et `kd-chip-x` sous 44 px ; stabilité de `demarrage-mobile` ; filet des jauges.
+- Vérifications en émulation à faire par l'orchestrateur : `test:all` consigné sur le SHA de HEAD, revue indépendante de 9.12, captures 7.9 reprises sur HEAD, mesures 8.5 (onglets à 375, pastille à 1280), carré vide de « Boîte de réception » à 1440, Contacts à 768, bande de 60 px sur `/help`, aller-retour 767/768/767 (D9.1), DataTables `.input-sm`, formulaire sans barre d'outils, niveaux de PV 4 et 5 ; site déconnecté : ministre servi aux visiteurs, `ul.demo` à 320 px, défileur des Nouvelles.
+
 ## Décisions d'Arnaud du 2026-10-28 : recommandations suivies
 
 Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais suivre ta recommandation. » Chaque point ouvert ci-dessous prend la recommandation de l'orchestrateur. Les actions qui exigent Arnaud restent à sa main : clic sur la cloche (8.2, marque les notifications lues), session Kraland dans le Chrome dédié (spike 9.3, Signaler du 7.1, fixtures réelles du 7.2), essais sur téléphone, captures hitl (4.6, 6.1, 6.4, 7.9, 8.5, 9.11). A1 : aucune fusion vers `main`. Arnaud, 2026-10-28 : « Non pas de fusion vers main. On travail que sur next. » Tout le travail est livré sur `feature/next`.
@@ -135,7 +159,7 @@ Decision: 2026-10-28 — Arnaud : « Globalement pour tous les points, je vais s
 
 ## Hors autonomie
 
-- Push et PR de `feature/next` : aucun push fait.
+- Push de `feature/next` : autorisé et fait (mandat « Tu as le droit de push les travaux complets validés ») ; aucune fusion vers `main`.
 
 ## Visites du site réel faites en autonomie (lecture seule)
 
