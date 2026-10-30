@@ -312,7 +312,9 @@
     // Forum sauf la catégorie Staff (/forum/staff[/…]), hors de l'entrée 8 tant que son alignement attend une décision
     { test: pathname => /^\/forum(?:\/|$)/.test(pathname) && !/^\/forum\/staff(?:\/|$)/.test(pathname), classes: ['kr-page-forum'] },
     // Notifications (/report, /report/<personnage>) : règles de la page (ligne non lue tr.bg-info, ligne de notification, haut de page) et marge mobile ; voir le CSS
-    { test: pathname => /^\/report(?:\/|$)/.test(pathname), classes: ['kr-page-report', 'kr-marge-mobile'] }
+    { test: pathname => /^\/report(?:\/|$)/.test(pathname), classes: ['kr-page-report', 'kr-marge-mobile'] },
+    // Accueil (/ et /accueil, comme body.page-accueil) : cartes de section mobiles et marge mobile (épopée 10, entrée 3) ; voir le CSS
+    { test: pathname => /^\/(?:accueil)?$/.test(pathname), classes: ['kr-page-accueil', 'kr-marge-mobile'] }
   ];
 
   /** Classes de page du chemin, sans doublon. */

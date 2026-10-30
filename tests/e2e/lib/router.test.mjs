@@ -43,7 +43,7 @@ check('viewport des ordres et fixture Parler : zone parler', () => {
 check('Notifications /report (kr-page-report) : zone report (et confort-mobile pour la ligne de KR_PAGE_CLASSES), suite -> report-non-lu seule ; fixture -> report-non-lu, palette-nation (balayage) et typographie-formes (champs)', () => {
   assert.deepEqual(route('kraland-theme.css', hunk('html.kr-page-report table > tbody > tr.bg-info {', 'html.kr-page-report table > tbody > tr.bg-info { color: inherit; }')).zones, ['report']);
   const t = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/report(?:\\/|$)/.test(pathname), classes: ['kr-page-report', 'kr-marge-mobile'] }"));
-  assert.deepEqual([...t.zones].sort(), ['confort-mobile', 'report']); // 9.10 : ligne /report de KR_PAGE_CLASSES (marge mobile)
+  assert.deepEqual([...t.zones].sort(), ['accueil-mobile', 'confort-mobile', 'report']); // 10.3 : accueil-mobile (fragment marge) ; 9.10 : ligne /report de KR_PAGE_CLASSES (marge mobile)
   assert.equal(t.widened, false);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
   assert.equal(f.widened, false);
@@ -600,7 +600,9 @@ check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, co
 });
 check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobile, palette-nation et typographie-formes ; modules Bienvenue et colonne droite -> les mêmes trois zones ; fixture -> accueil-mobile (et palette-nation)', () => {
   assert.deepEqual(zonesOf('accueil-mobile.mjs'), ['accueil-mobile']);
-  assert.deepEqual(SUITES.find(s => s.name === 'accueil-mobile').frags, [['mobile'], ['bureau'], ['carrousel']]);
+  assert.deepEqual(SUITES.find(s => s.name === 'accueil-mobile').frags, [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte']]);
+  const acc = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/(?:accueil)?$/.test(pathname), classes: ['kr-page-accueil', 'kr-marge-mobile'] }"));
+  assert.deepEqual([...acc.zones].sort(), ['accueil-mobile', 'confort-mobile', 'palette-nation', 'report', 'typographie-formes']); // 10.3 : ligne de l'accueil (kr-page-accueil couvert par page-accueil)
   for (const [f, a, b] of [['kraland-theme.css', '@media (max-width: 767px) {', '  .page-accueil #col-t { order: -1; }'],
     ['kraland-theme.css', '@media (max-width: 767px) {', '  :where(html.kr-page-accueil) #col-left { padding: 0; }'],
     ['kraland-theme.css', '.x {', 'html.kr-hide-carousel .carousel { display: none; }'],

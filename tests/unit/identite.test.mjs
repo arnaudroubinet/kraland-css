@@ -27,6 +27,8 @@ test('classes de page : pages secondaires (épopée 9, entrée 4) avec la marge 
   ['/help', '/help/staff'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-aide-fenetre', 'kr-marge-mobile'], p));
   ['/report', '/report/perso-1'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-report', 'kr-marge-mobile'], p));
   assert.deepEqual(plain(krPageClasses('/jouer/plateau')), ['kr-page-jeu', 'kr-marge-mobile']);
+  ['/', '/accueil'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), ['kr-page-accueil', 'kr-marge-mobile'], p));
+  ['/accueils', '/accueil/', '/accueil/x'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
 });
 
 test('classes de page : forum (épopée 9, entrée 8) sans la marge de ligne, Contacts et Staff exclus', () => {

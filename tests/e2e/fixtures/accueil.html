@@ -17,6 +17,13 @@
 	<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css" />
 	<!-- Imite une règle de la feuille native du site, non servie par la fixture : .mini-submenu est masqué (relevé 10.1, 375 et 1280 px). -->
 	<style>.mini-submenu { display: none; }</style>
+	<!-- Imite la règle .falarge de la feuille native lib/kraland-7.0.9/css/dashboard.css (non servie) : icône de 50 px en position absolue,
+	     cause du chevauchement de l'icône fa-medkit sur « Bug ? Problème ? » (entrée 3). Sans Font Awesome (KR_FA_DIR absent), un glyphe de
+	     substitution donne une boîte à l'icône ; spécificité nulle : la vraie feuille de Font Awesome l'emporte quand elle est servie. -->
+	<style>
+		.falarge { font-size: 50px; text-align: right; position: absolute; top: 7px; right: 27px; outline: none; }
+		:where(.falarge)::before { content: "\271A"; }
+	</style>
 </head>
 <body style="margin-bottom: 60px;">
 <!-- navbar -->
