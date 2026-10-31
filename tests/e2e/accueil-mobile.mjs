@@ -43,7 +43,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
-import { krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
+import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { choisirVariante, VARIANTE_POSEE, VARIANTES as TOUTES_VARIANTES, CONTRASTE } from './lib/variantes.mjs';
 import { TEXTES_HORS_MARGE_PAGE, cible, ecartsCible } from './lib/marges.mjs';
 
@@ -468,6 +468,14 @@ function controlerPropre(tag, r) {
 
 async function mesurer(c, script) {
   const { context, page, erreurs, horsFixture } = await ouvrir({ ...c, script });
+  if (script === avant && c.width >= 992) {
+    // Ticket backlog 32 : le bundle de base ne mesure la barre qu'une fois (rAF + 200 ms) ; un logo du thème refusé APRÈS cette mesure
+    // la fait passer à une rangée de plus sans remesure (« Nouvelles » 50 px trop haut, rouge rare de bureau). Référence remesurée :
+    // logo réglé, puis un redimensionnement simulé (anti-rebond de 150 ms, minuterie de 400 ms servie après lui), puis deux images.
+    await waitState(page, () => [...document.querySelectorAll('img.kr-logo')].every(i => i.complete));
+    await page.evaluate(() => { window.dispatchEvent(new Event('resize')); return new Promise(r => setTimeout(r, 400)); });
+    await frames(page, 2);
+  }
   const m = await page.evaluate(ETAT, BLOCS);
   m.variante = await page.evaluate(VARIANTE_POSEE, c.variante);
   const releve = c.releve ? await page.evaluate(RELEVE) : null;

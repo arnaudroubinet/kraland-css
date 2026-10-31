@@ -887,9 +887,19 @@
   (function () {
     // E1 : recalculé au chargement ET à chaque redimensionnement (anti-rebond), car la
     // hauteur de barre dépend de la largeur (60 px < 992, 106 à 206 px de 992 à 1359).
+    // Hauteurs des enfants de la barre (.container) à la dernière mesure : le ResizeObserver ne remesure que si l'une d'elles a changé.
+    // Pas les .navbar-nav : leur hauteur reste à 0 (entrées flottantes), seul le conteneur suit le nombre de rangées.
+    var lastRowHeights = '';
+    var lastWidth = 0;
+    function rowHeights(nav) {
+      return Array.from(nav.children).map(function (el) { return el.offsetHeight; }).join(',');
+    }
+
     function applyNavbarPadding() {
       var nav = document.querySelector('nav.navbar');
       if (!nav || !document.body) {return;}
+      lastRowHeights = rowHeights(nav);
+      lastWidth = window.innerWidth;
 
       // 1. Repartir de la hauteur déterminée par la feuille de style
       nav.style.removeProperty('max-height');
@@ -923,9 +933,22 @@
       const release = InitQueue.hold('fixNavbarPadding');
       requestAnimationFrame(function () {
         setTimeout(function () {
-          try { applyNavbarPadding(); } finally { release(); }
+          try { applyNavbarPadding(); watchNavbarRows(); } finally { release(); }
         }, 200);
       });
+    }
+
+    // Ticket backlog 32 : la barre change de rangées sans redimensionnement (logo réglé en retard, police, entrée ajoutée).
+    // La remesure ne change que max-height de la barre et padding-top du corps, pas la hauteur de ses enfants : pas de boucle.
+    function watchNavbarRows() {
+      var nav = document.querySelector('nav.navbar');
+      if (!nav || typeof window.ResizeObserver !== 'function') {return;}
+      var observer = new window.ResizeObserver(function () {
+        // Largeur changée : redimensionnement en cours, traité par ResizeManager (anti-rebond)
+        if (isMobileMode() || window.innerWidth < 992 || window.innerWidth !== lastWidth) {return;}
+        if (rowHeights(nav) !== lastRowHeights) {applyNavbarPadding();}
+      });
+      Array.from(nav.children).forEach(function (el) { observer.observe(el); });
     }
 
     InitQueue.register('fixNavbarPadding', fixNavbarPadding, 3);
