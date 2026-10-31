@@ -1351,7 +1351,12 @@
       if (typeof native !== 'function' || native.krReportPopup) {return;}
       const openReport = function (link) {
         if (isMobileMode() || !isThemeEnabled()) {return native.apply(this, arguments);}
-        return w.open('report' + (link ? '/' + link : ''), 'private_report', OPTIONS);
+        const popup = w.open('report' + (link ? '/' + link : ''), 'private_report', OPTIONS);
+        // Popup déjà ouvert derrière la fenêtre du jeu : window.open le recharge sans le ramener devant, la cloche semblait ne rien ouvrir
+        if (popup) {
+          try { popup.focus(); } catch (_e) { /* fenêtre fermée entre-temps : rien à faire */ }
+        }
+        return popup;
       };
       // eslint-disable-next-line no-undef -- exportFunction n'existe que dans le bac à sable de Firefox
       w.openReport = (typeof exportFunction === 'function') ? exportFunction(openReport, w) : openReport;

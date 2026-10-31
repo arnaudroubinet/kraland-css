@@ -69,7 +69,8 @@ async function open(variante, viewport, { theme = true, bac = false } = {}) {
   await context.addInitScript(({ src, v, t, b }) => {
     // Sonde : window.open ne fait que noter ses arguments (aucune fenêtre, aucune requête), posée avant tout script de la page.
     window.__krOpens = [];
-    window.open = function () { window.__krOpens.push([...arguments]); return null; };
+    window.__krFocus = 0;
+    window.open = function () { window.__krOpens.push([...arguments]); return { focus() { window.__krFocus += 1; } }; };
     window.GM = { xmlHttpRequest: () => {} };
     localStorage.setItem('kr-theme-enabled', t ? 'true' : 'false');
     localStorage.setItem('kr-theme-variant', v);
@@ -129,7 +130,8 @@ async function cliquer(ctx, width) {
   const lire = fn => page.evaluate(fn).catch(e => 'contexte perdu après le clic : ' + e.message.split('\n')[0]);
   await lire(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
   const opens = await lire(() => window.__krOpens);
-  return { etat, cible, avant, opens, reports: [...reports], pages: pages.length, url: page.url() };
+  const focus = await lire(() => window.__krFocus);
+  return { etat, cible, avant, opens, focus, reports: [...reports], pages: pages.length, url: page.url() };
 }
 
 function verifier(tag, r, attendu, { mobile }) {
@@ -139,6 +141,8 @@ function verifier(tag, r, attendu, { mobile }) {
   });
   check(`${tag} : cloche ${mobile ? 'du clone mobile' : 'de la barre'} visible au centre (elementFromPoint)`, () => assert.ok(r.cible.trouve && r.cible.touche, JSON.stringify(r.cible)));
   check(`${tag} : un seul window.open(${attendu === POPUP ? '900×800' : 'natif 600×600'}) au clic`, () => assert.deepEqual(r.opens, [attendu]));
+  // Popup déjà ouvert derrière la fenêtre du jeu : la cloche le ramène devant (focus) ; l'appel natif reste tel quel
+  check(`${tag} : ${attendu === POPUP ? 'popup ramené devant (un focus)' : 'aucun focus ajouté à l\'appel natif'}`, () => assert.equal(r.focus, attendu === POPUP ? 1 : 0));
   check(`${tag} : aucune requête vers /report (avant ni après le clic), aucune page ouverte, page inchangée`, () => {
     assert.equal(r.avant, 0, 'avant le clic : ' + r.reports.join(', '));
     assert.deepEqual(r.reports, []);
