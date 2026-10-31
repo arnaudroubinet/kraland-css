@@ -1804,10 +1804,18 @@ const IGNORER_KD = [
   ['body.mobile-mode form[name="post_msg"] .kd-contacts', ['height', 'block-size', 'top', 'bottom', 'inset-block-start', 'inset-block-end', 'perspective-origin', 'transform-origin']],
   ['body.mobile-mode form[name="post_msg"] .kd-flow', ['row-gap']]
 ];
+// Pistes des jauges mobiles bordées d'un filet de 1 px (ticket backlog 23) : bordures des pistes et taille du remplissage (boîte intérieure
+// réduite de 2 px), en mode mobile seulement, mesurées par palette-nation#jauges-filet.
+const BORDS = ['top', 'right', 'bottom', 'left', 'block-start', 'block-end', 'inline-start', 'inline-end'].flatMap(c => ['color', 'style', 'width'].map(p => `border-${c}-${p}`));
+const IGNORER_JAUGES = [
+  ['body.mobile-mode :is(.mobile-gauge-compact-bar, .mobile-gauge-full-bar)', BORDS],
+  ['body.mobile-mode :is(.mobile-gauge-compact-fill, .mobile-gauge-full-fill)', ['width', 'inline-size', 'height', 'block-size', 'right', 'bottom', 'inset-inline-end', 'inset-block-end', 'perspective-origin', 'transform-origin']]
+];
 const IGNORER_NETTOYAGE = [
   ['.mobile-tab-bar, .mobile-tab-bar *', ['width', 'inline-size', 'padding-left', 'padding-right', 'padding-inline-start', 'padding-inline-end', 'perspective-origin', 'transform-origin']],
   ['.mobile-tab-bar', null, '::after'],
-  ...IGNORER_KD
+  ...IGNORER_KD,
+  ...IGNORER_JAUGES
 ];
 const EXCLUSIONS_A8 = Object.fromEntries(Object.entries(EXCLUES_A8).map(([p, [sel]]) => [p, sel]));
 const ecartsA8 = (ha, hb) => {
@@ -1972,7 +1980,7 @@ if (on('nettoyage')) {
       if (caracs.length) { out.caracs = caracs; }
       // Barre d'onglets de section (ticket 19 du backlog) : seules ses propriétés géométriques sont écartées (liens bornés à leur case,
       // 2 px sur les côtés, ::after de défilement masqué faute de débordement) ; géométrie mesurée par jeu-identite#onglets. Même principe
-      // pour la croix des pastilles, « Contacts » et l'écart des rangées du kramail en mobile (ticket backlog 21, IGNORER_KD).
+      // pour la croix des pastilles, « Contacts » et l'écart des rangées du kramail en mobile (ticket backlog 21, IGNORER_KD) et pour le filet des pistes des jauges mobiles (ticket backlog 23, IGNORER_JAUGES).
       out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_NETTOYAGE })]);
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) : A8 et « rendu changé » n'y ont plus d'objet tant que la base M1/M2 (COMMIT_MEDIAS_410) précède l'entrée.

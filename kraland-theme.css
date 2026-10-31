@@ -5237,6 +5237,7 @@ body > map {
       flex: 1 !important;
       height: 6px !important;
       background: var(--kr-gauge-track) !important;
+      border: 1px solid var(--kr-border-tint) !important; /* filet : la piste se distingue du fond (backlog 23) */
       border-radius: 3px !important;
       overflow: hidden !important;
       position: relative !important;
@@ -5309,6 +5310,7 @@ body > map {
     .mobile-gauge-full-bar {
       height: 12px !important;
       background: var(--kr-gauge-track) !important;
+      border: 1px solid var(--kr-border-tint) !important;
       border-radius: 6px !important;
       overflow: hidden !important;
       position: relative !important;
