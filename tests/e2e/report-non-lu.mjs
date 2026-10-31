@@ -23,7 +23,9 @@
 // bascule 767 ↔ 768 dans le même onglet, dans les deux sens (rechargement de bascule attendu) ; haut de page (8.3) : sélecteur à 16 px du haut.
 // Confort mobile (épopée 9, entrée 10) : marge de 16 px et cibles de 44 px de 320 à 767 px, textes égaux à la base dès 768 px.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base du fragment confort, défaut : git show COMMIT_AVANT_910),
-// KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee, haut, confort (vide = tout).
+// Onglets (ticket backlog 27) : 4 px entre l'icône et le libellé des onglets Rapport / Combats à 320, 375 et 767 px, avec ou sans espace
+// blanc dans le HTML ; écart égal au bundle de base (KR_SCRIPT_ONGLETS, défaut : git show COMMIT_AVANT_27) à 768 et 1280 px.
+// KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = popup, mobile, bureau, bascule, portee, haut, confort, onglets (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -60,10 +62,10 @@ function check(name, fn) {
 
 const browser = await launchBrowser();
 
-async function open(url, variante, viewport, script = userscript) {
+async function open(url, variante, viewport, script = userscript, body = html) {
   const context = await browser.newContext({ viewport });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
-  await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }));
+  await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/js/bootstrap.min.js', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.js'), contentType: 'application/javascript' }));
   await context.route(BASE + '/lib/jquery-3.3.1/jquery-3.3.1.min.js', route => route.fulfill({ path: path.join(VENDOR, 'jquery.min.js'), contentType: 'application/javascript' }));
@@ -534,6 +536,69 @@ if (on('confort')) {
       const tag = `${t} étape ${j + 1} (${c.largeurs[j]})`;
       if (c.largeurs[j] < 768) { verifierConfort(c.variante, m, tag); } else { verifierBase(c.variante, m, base768[c.variante], tag); }
     });
+  });
+}
+
+// Onglets (ticket backlog 27) : écart entre le bord droit de l'icône et le premier caractère du libellé, par onglet.
+const COMMIT_AVANT_27 = '245b8f7';
+const ECARTS_ONGLETS = () => [...document.querySelectorAll('#myTab > li > a')].map(a => {
+  const t = [...a.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+  const k = t.textContent.search(/\S/);
+  const r = document.createRange();
+  r.setStart(t, k);
+  r.setEnd(t, k + 1);
+  return { nom: t.textContent.trim(), ecart: r.getBoundingClientRect().left - a.querySelector('i').getBoundingClientRect().right };
+});
+if (on('onglets')) {
+  const avant = (process.env.KR_SCRIPT_ONGLETS ? fs.readFileSync(process.env.KR_SCRIPT_ONGLETS, 'utf8')
+    : execFileSync('git', ['show', `${COMMIT_AVANT_27}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))
+    .replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+  const collee = html.replace(/(<i class="fa [^"]+"><\/i>)\s+(Rapport|Combats)/g, '$1$2');
+  assert.notEqual(collee, html, 'dérivé sans espace blanc : onglets introuvables dans la fixture');
+  const releve = async (c, src, body) => { const { context, page } = await open(REPORT, c.variante, c.viewport, src, body); const r = await page.evaluate(ECARTS_ONGLETS); await context.close(); return r; };
+  console.log('Onglets : 4 px entre icône et libellé (320, 375, 767 ; HTML avec et sans espace) ; égal à la base (768, 1280), Kraland clair et Empire Brun sombre');
+  const mob = croise([{ width: 320, height: 667 }, { width: 375, height: 667 }, { width: 767, height: 667 }], DEUX)
+    .flatMap(c => [{ ...c, body: html, forme: 'fixture' }, { ...c, body: collee, forme: 'sans espace' }]);
+  const resM = await mapLimit(mob, c => releve(c, userscript, c.body));
+  mob.forEach((c, i) => check(`onglets ${tagOf(c.viewport)} ${c.variante} (${c.forme}) : 4 px entre icône et libellé`, () => {
+    assert.equal(resM[i].length, 2, 'onglets mesurés : ' + resM[i].length);
+    const hors = resM[i].filter(o => Math.abs(o.ecart - 4) > 0.5);
+    assert.equal(hors.length, 0, hors.map(o => `${o.nom} ${o.ecart.toFixed(1)} px`).join(', '));
+  }));
+  const bur = croise([{ width: 768, height: 667 }, { width: 1280, height: 720 }], DEUX);
+  const resB = await mapLimit(bur, async c => ({ t: await releve(c, userscript, html), b: await releve(c, avant, html) }));
+  bur.forEach((c, i) => check(`onglets ${tagOf(c.viewport)} ${c.variante} : écart égal au bundle de base ${COMMIT_AVANT_27}`, () => {
+    assert.deepEqual(resB[i].t.map(o => o.ecart.toFixed(1)), resB[i].b.map(o => o.ecart.toFixed(1)));
+  }));
+  const bas = DEUX.flatMap(variante => [[767, 768, 767], [768, 767, 768]].map(largeurs => ({ variante, largeurs })));
+  const resS = await mapLimit(bas, async c => {
+    const { context, page } = await open(REPORT, c.variante, { width: c.largeurs[0], height: 667 });
+    const etapes = [];
+    const recharges = [];
+    for (let j = 0; j < c.largeurs.length; j += 1) {
+      if (j > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+        await page.setViewportSize({ width: c.largeurs[j], height: 667 });
+        recharges.push(await charge);
+        await krReady(page, { ready: THEME_READY, label: `onglets bascule ${c.variante} ${c.largeurs[j]} px` });
+      }
+      etapes.push(await page.evaluate(ECARTS_ONGLETS));
+    }
+    await context.close();
+    return { etapes, recharges };
+  });
+  const base768 = Object.fromEntries(await mapLimit(DEUX, async v => [v, await releve({ variante: v, viewport: { width: 768, height: 667 } }, avant, html)]));
+  bas.forEach((c, i) => {
+    const t = `onglets bascule ${c.largeurs.join('>')} ${c.variante}`;
+    check(`${t} : rechargement de bascule à chaque passage du seuil`, () => assert.deepEqual(resS[i].recharges, [true, true], 'load observé : ' + resS[i].recharges.join(', ')));
+    resS[i].etapes.forEach((m, j) => check(`${t} étape ${j + 1} (${c.largeurs[j]}) : ${c.largeurs[j] < 768 ? '4 px' : 'égal à la base'}`, () => {
+      if (c.largeurs[j] < 768) {
+        assert.deepEqual(m.map(o => Math.abs(o.ecart - 4) <= 0.5), [true, true], m.map(o => `${o.nom} ${o.ecart.toFixed(1)} px`).join(', '));
+      } else {
+        assert.deepEqual(m.map(o => o.ecart.toFixed(1)), base768[c.variante].map(o => o.ecart.toFixed(1)));
+      }
+    }));
   });
 }
 

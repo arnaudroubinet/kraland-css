@@ -1423,3 +1423,23 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 
 - « Jouer » à 16 px de la barre (contre 49 px). La fixture reçoit la règle native `#content { padding-top: 25px }` relevée le 2026-10-30.
 - Le bloc `.clearfix` masqué vient de la variante déconnectée de la suite, structure supposée. Sur le vrai accueil déconnecté, l'écart pourrait différer. Capture demandée : accueil déconnecté à 375 px (la même que pour le ticket 25).
+
+## Lot B : tickets backlog 27, 28, 30
+
+### Ticket 27 — onglets de /report, icône collée au libellé (in-review, 2026-10-31)
+
+- Cause : la règle tactile mobile des liens (`inline-flex !important`) fait de l'icône et du libellé deux éléments flex, et l'espace blanc qui les séparait n'est plus rendu. Correctif : `gap` de 4 px, mobile seulement, garde `kr-page-report`.
+- Critère 2 gardé tel quel : l'ordinateur est identique à la base (3,9 px, dû à l'espace blanc de la fixture). La note du ticket dit que le site donne 0 px aussi sur ordinateur. Si le HTML réel n'a pas d'espace entre `</i>` et le libellé, l'ordinateur reste collé. À trancher : étendre le `gap` à l'ordinateur ? Capture demandée : outerHTML de `#myTab` sur /report.
+- Portée : seul /report est couvert. Les autres `#myTab` (/combats, /communaute/membres) ne portent pas la garde `kr-page-report` et ne sont pas traités. À trancher.
+
+### Ticket 28 — onglets des Contacts sur la carte à 768 et 992 px (in-review, 2026-10-31)
+
+- La suite sert une CSS Font Awesome vide : les icônes ont une largeur nulle et la fixture « Membre fictif » ne reproduit pas le bug. Preuve sur un dérivé à titre long (« Membre fictif au nom assez long »). Sur la base, il chevauche de 10,7 px de 768 à 1280 px. Le relevé avec Font Awesome (hors suite) reproduit les 11 px du ticket sur la fixture à 768, 769, 992 et 993.
+- Correctif : clearfix `::after` sur le titre (le `display` du h1 reste celui de la Réception, contrôlé par `kramail-theme#contacts`), plus une marge basse de −4 px sur le flottant. Sans cette marge, le flottant (boutons alignés sur la ligne de base) dépasse la ligne du titre d'environ 1 px et décale la carte de 1 px quand les boutons tiennent à côté. La valeur dépend des métriques de police. Avec la police réelle, vérifier que 900 et 1280 px restent identiques.
+- Non reproduit sur le site (titre « Membres », court) : correctif préventif, priorité basse, comme le dit le ticket.
+
+### Ticket 30 — pagination des Contacts hors de la page (in-review, 2026-10-31)
+
+- La fixture (3 pages) ne déborde pas. La structure réelle n'est pas relevée. Hypothèse retenue : pagination `full_numbers` (Premier / Dernier). Le dérivé déborde à 463 px sur la base, à 320 et 375 px, très près des 459 px relevés. Capture demandée : outerHTML réel de `#topics_paginate` sur /contacts, mobile.
+- Correctif indépendant de la structure : la pagination passe à la ligne (`flex-wrap: wrap`) au lieu de faire défiler la page. Le span des numéros est en `display: contents` : un seul flux, coupé bouton par bouton (dérivé à 320 px : 2 rangées au lieu de 3, après la revue). « Premier » et « Dernier » gardent leur libellé (non compactés). À trancher : les remplacer par « « » et « » » comme ‹ et › ?
+- La liste du kramail (`kr-page-kramail-liste`) partage la règle `nowrap`, mais n'est pas élargie (hors ticket).

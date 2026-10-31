@@ -878,6 +878,12 @@ html.kr-theme-enabled a.label[href]:is(:hover, :focus) {
   :where(html.kr-page-report) table.table > tbody > tr.bg-info {
     box-shadow: inset 4px 0 0 var(--kr-status-unread);
   }
+
+  /* Onglets Rapport / Combats (ticket backlog 27) : la règle tactile des liens (inline-flex) ne rend plus l'espace blanc entre l'icône
+     et le libellé ; 4 px d'écart, même sans espace dans le HTML. Contrôle : report-non-lu#onglets. */
+  :where(html.kr-page-report) .nav-tabs > li > a {
+    gap: var(--kr-space-1);
+  }
 }
 
 /* Pastille d'état (DESIGN › badge-state) : cloche, enveloppe et compteurs de contact du kramail en non lu, toutes variantes */
@@ -14313,6 +14319,32 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     min-width: 44px;
     min-height: var(--kr-touch-target);
     justify-content: center;
+  }
+
+  /* Pagination (ticket backlog 30) : passe à la ligne au lieu de faire défiler la page quand ses boutons dépassent la carte ; cibles de
+     44 px inchangées, rangées espacées de 4 px. Le span des numéros s'efface (display: contents) : un seul flux, coupé bouton par bouton.
+     Contrôle : kramail-theme#contacts-pagination. */
+  :where(html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate {
+    flex-wrap: wrap !important;
+  }
+
+  :where(html.kr-page-contacts) #col-right #topics_wrapper .dataTables_paginate > span {
+    display: contents;
+  }
+}
+
+/* Contacts, bureau (ticket backlog 28) : quand les boutons de catégorie (span.pull-right flottant) passent sous un titre long, le titre
+   les contient (clearfix, display du h1 inchangé) au lieu de les laisser chevaucher la carte. À côté du titre, le flottant (boutons alignés sur la ligne de base) dépasse la
+   ligne du titre d'environ 1 px : la marge négative l'absorbe, rendu inchangé. Contrôle : kramail-theme#contacts-onglets. */
+@media (min-width: 768px) {
+  :where(html.kr-page-contacts) #col-right h1.page-header::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  :where(html.kr-page-contacts) #col-right h1.page-header > .pull-right {
+    margin-bottom: calc(-1 * var(--kr-space-1));
   }
 }
 

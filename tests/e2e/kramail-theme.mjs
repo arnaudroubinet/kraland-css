@@ -90,6 +90,12 @@
 //             d'un bord (ellipse rognée comprise) ; cibles hors bouton (chevron du panneau, cellule de case, nom, destinataires, case
 //             d'option) à 44 × 44 aux cinq points ; 768, 769 et 1280 px : boîtes des textes égales au bundle COMMIT_AVANT_99 ; Réception,
 //             lecture reçue, Nouveau et Répondre (croix mesurées) en bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
+//   contacts-onglets : (ticket backlog 28) /contacts, fixture et dérivé à titre long, à 767, 768, 769, 991, 992, 993 et 1280 px, Kraland
+//             clair et Empire Brun sombre : bas des boutons de catégorie au-dessus du haut de la carte ; fixture à 900 et 1280 px : boîtes
+//             des textes égales au bundle COMMIT_AVANT_LOTB ; titre long en bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
+//   contacts-pagination : (ticket backlog 30) /contacts, fixture et dérivés (pagination longue, full_numbers avec Premier / Dernier),
+//             320 et 375 px, deux variantes : aucun débordement, boutons visibles dans la carte, 44 × 44, atteints par elementFromPoint ;
+//             768 et 1280 px : pagination égale au bundle COMMIT_AVANT_LOTB.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
@@ -100,7 +106,9 @@
 //             pendant la saisie.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
 // lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-toucher, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
-// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter, confort), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
+// redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter, confort,
+// contacts-onglets, contacts-pagination), KR_SCRIPT_AVANT_LOTB (bundle de base de contacts-onglets et contacts-pagination, sinon celui du
+// commit COMMIT_AVANT_LOTB), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
 // sinon celui du commit PALETTE_BASE_SHA), KR_SCRIPT_AVANT_99 (bundle de base de confort, sinon celui du commit COMMIT_AVANT_99).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
@@ -108,7 +116,7 @@
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
 // KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts, contacts-boutons et envoyer rouges
 // (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge ;
-// KR_SCRIPT=<bundle d8c8777> rend confort rouge ; KR_SCRIPT=<bundle 8a58d08> rend entete-menu et entete-toucher rouges sur mobile seul.
+// KR_SCRIPT=<bundle d8c8777> rend confort rouge ; KR_SCRIPT=<bundle 245b8f7> rend contacts-onglets et contacts-pagination rouges ; KR_SCRIPT=<bundle 8a58d08> rend entete-menu et entete-toucher rouges sur mobile seul.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -2510,8 +2518,8 @@ function verifierConfort(cle, m, tag) {
   });
 }
 const premierEcartTextes = (a, b) => { for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i] !== b[i]) { return `texte ${i} : « ${a[i]} » au lieu de « ${b[i]} »`; } } return ''; };
-function verifierTextesBase(t, b, tag) {
-  check(`confort ${tag} : textes égaux au bundle de base ${COMMIT_AVANT_99.slice(0, 7)}`, () => {
+function verifierTextesBase(t, b, tag, base = `confort ${tag} : textes égaux au bundle de base ${COMMIT_AVANT_99.slice(0, 7)}`) {
+  check(base, () => {
     expect(!t.mobile && !b.mobile, 'body.mobile-mode présent');
     expect(t.l.length > 0, 'aucun texte');
     const d = premierEcartTextes(t.l, b.l);
@@ -2556,6 +2564,113 @@ if (frag('confort')) {
   bas.forEach((c, i) => resS[i].forEach((m, j) => {
     const tag = `${c.cle} bascule ${c.largeurs.join('>')} étape ${j + 1} (${c.largeurs[j]})`;
     if (c.largeurs[j] < 768) { verifierConfort(c.cle, m, tag); } else { verifierTextesBase(m, base768[c.cle], tag); }
+  }));
+}
+
+// ---------- contacts, lot B (tickets backlog 28 et 30) ----------
+const COMMIT_AVANT_LOTB = '245b8f78a54114adc4efbc4976803c558f66cb99';
+const AVANT_LOTB = () => strip(process.env.KR_SCRIPT_AVANT_LOTB ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_LOTB, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_AVANT_LOTB}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+const ONGLETS_CONTACTS = () => {
+  const g = document.querySelector('#col-right h1.page-header .pull-right').getBoundingClientRect();
+  const carte = document.querySelector('#list_msg .panel').getBoundingClientRect();
+  return { bas: g.bottom, carte: carte.top, ecart: carte.top - g.bottom };
+};
+// Suite sans Font Awesome (icônes de largeur nulle) : les boutons de la fixture tiennent à côté du titre. Dérivé à titre long (hypothèse
+// du ticket : titre robuste à un libellé long) : les boutons passent sous le titre de 768 à 1280 px.
+LECTURES['contacts-titre-long'] = { ...LECTURES.contacts, html: LECTURES.contacts.html.replace('<h1 class="page-header">Membre fictif', '<h1 class="page-header">Membre fictif au nom assez long') };
+if (LECTURES['contacts-titre-long'].html === LECTURES.contacts.html) { console.error('titre des contacts introuvable'); process.exit(2); }
+if (frag('contacts-onglets')) {
+  console.log('contacts-onglets : boutons de catégorie au-dessus de la carte (767 à 993, 1280), textes égaux à la base (900, 1280), bascule');
+  const avant = AVANT_LOTB();
+  const cas = [];
+  for (const variante of ['kraland', DARK]) { for (const width of [767, 768, 769, 991, 992, 993, 1280]) { for (const cle of ['contacts', 'contacts-titre-long']) { cas.push({ cle, variante, width }); } } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: c.width < 768 ? 667 : 720, mobile: c.width < 768, variante: c.variante });
+    const m = await o.page.evaluate(ONGLETS_CONTACTS);
+    await o.context.close();
+    return { o, m };
+  });
+  cas.forEach((c, i) => {
+    check(`contacts-onglets ${c.cle} ${c.width} px ${c.variante} : boutons au-dessus de la carte`, () => expect(res[i].m.ecart >= 0, `bas des boutons ${res[i].m.bas.toFixed(1)}, haut de la carte ${res[i].m.carte.toFixed(1)} : chevauchement de ${(-res[i].m.ecart).toFixed(1)} px`));
+    check(`contacts-onglets ${c.cle} ${c.width} px ${c.variante} : sans fuite ni erreur`, () => sansFuite(res[i].o));
+  });
+  const bur = [];
+  for (const variante of ['kraland', DARK]) { for (const width of [900, 1280]) { bur.push({ variante, width }); } }
+  const releve = async (c, bundle) => { const o = await ouvrir('contacts', { width: c.width, variante: c.variante, bundle }); const r = await o.page.evaluate(RELEVE_TEXTES); await o.context.close(); return r; };
+  const resB = await mapLimit(bur, async c => ({ t: await releve(c, APRES), b: await releve(c, avant) }));
+  bur.forEach((c, i) => verifierTextesBase(resB[i].t, resB[i].b, '', `contacts-onglets ${c.width} px ${c.variante} : textes égaux au bundle de base ${COMMIT_AVANT_LOTB.slice(0, 7)}`));
+  const bas = [[767, 768, 767], [768, 767, 768]];
+  const resS = await mapLimit(bas, async largeurs => {
+    const o = await ouvrir('contacts-titre-long', { width: largeurs[0] });
+    const etapes = [];
+    for (let j = 0; j < largeurs.length; j += 1) {
+      if (j > 0) { await basculer(o.page, largeurs[j], `contacts-onglets ${largeurs[j]}`); }
+      etapes.push(await o.page.evaluate(ONGLETS_CONTACTS));
+    }
+    await o.context.close();
+    return etapes;
+  });
+  bas.forEach((largeurs, i) => resS[i].forEach((m, j) => check(`contacts-onglets contacts-titre-long bascule ${largeurs.join('>')} étape ${j + 1} (${largeurs[j]}) : boutons au-dessus de la carte`,
+    () => expect(m.ecart >= 0, `chevauchement de ${(-m.ecart).toFixed(1)} px`))));
+}
+
+// Pagination des Contacts (ticket backlog 30) : la structure réelle qui déborde n'est pas relevée. Dérivés : pagination longue
+// (« 1 2 3 4 5 … 13 », compactée en « 1 2 3 … 13 ») et full_numbers (Premier / Dernier en plus, déborde sur la base à 320 et 375 px).
+const PAGES_CONTACTS = [1, 2, 3, 4, 5].map(n => `<a class="paginate_button${n === 1 ? ' current' : ''}" aria-controls="topics" data-dt-idx="${n + 1}" tabindex="0">${n}</a>`).join('')
+  + '<span>…</span><a class="paginate_button" aria-controls="topics" data-dt-idx="7" tabindex="0">13</a>';
+const PAGINATE_CONTACTS = /<div class="dataTables_paginate paging_simple_numbers" id="topics_paginate">[\s\S]*?id="topics_next">Suivant<\/a><\/div>/;
+LECTURES['contacts-longue'] = { ...LECTURES.contacts, html: LECTURES.contacts.html.replace(/(id="topics_previous">Précédent<\/a>)<span>[\s\S]*?<\/span>/, `$1<span>${PAGES_CONTACTS}</span>`) };
+LECTURES['contacts-full'] = { ...LECTURES.contacts, html: LECTURES.contacts.html.replace(PAGINATE_CONTACTS, '<div class="dataTables_paginate paging_full_numbers" id="topics_paginate">'
+  + '<a class="paginate_button first disabled" aria-controls="topics" data-dt-idx="0" tabindex="0" id="topics_first">Premier</a>'
+  + '<a class="paginate_button previous disabled" aria-controls="topics" data-dt-idx="1" tabindex="0" id="topics_previous">Précédent</a>'
+  + `<span>${PAGES_CONTACTS}</span>`
+  + '<a class="paginate_button next" aria-controls="topics" data-dt-idx="8" tabindex="0" id="topics_next">Suivant</a>'
+  + '<a class="paginate_button last" aria-controls="topics" data-dt-idx="9" tabindex="0" id="topics_last">Dernier</a></div>') };
+if (!LECTURES['contacts-longue'].html.includes('<span>…</span>') || !LECTURES['contacts-full'].html.includes('topics_last')) { console.error('pagination des contacts non dérivée'); process.exit(2); }
+const PAGINATION_CONTACTS = () => {
+  const r = b => [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)].join(',');
+  const carte = document.querySelector('#list_msg .panel').getBoundingClientRect();
+  const boutons = [...document.querySelectorAll('#topics_paginate a.paginate_button')].filter(a => a.getClientRects().length > 0).map(a => {
+    const b = a.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, window.scrollY + b.top - 100));
+    const c = a.getBoundingClientRect();
+    const hit = document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2);
+    return { t: a.textContent.trim(), l: c.left, rt: c.right, w: c.width, h: c.height, atteint: a.classList.contains('disabled') || (!!hit && a.contains(hit)), dedans: c.left >= carte.left - 0.5 && c.right <= carte.right + 0.5, rect: r(b) };
+  });
+  window.scrollTo(0, 0);
+  return { sw: document.documentElement.scrollWidth, vw: window.innerWidth, boutons, pag: r(document.querySelector('#topics_paginate').getBoundingClientRect()) };
+};
+if (frag('contacts-pagination')) {
+  console.log('contacts-pagination : sans débordement, boutons de 44 px dans la carte (320, 375 ; fixture, longue, full_numbers), égale à la base (768, 1280)');
+  const avant = AVANT_LOTB();
+  const cles = ['contacts', 'contacts-longue', 'contacts-full'];
+  const cas = [];
+  for (const variante of ['kraland', DARK]) { for (const width of [320, 375]) { for (const cle of cles) { cas.push({ cle, variante, width }); } } }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: 667, mobile: true, variante: c.variante });
+    const m = await o.page.evaluate(PAGINATION_CONTACTS);
+    await o.context.close();
+    return { o, m };
+  });
+  cas.forEach((c, i) => {
+    const { m } = res[i];
+    const tag = `contacts-pagination ${c.cle} ${c.width} px ${c.variante}`;
+    check(`${tag} : aucun débordement`, () => expect(m.sw === c.width && m.vw === c.width, `scrollWidth ${m.sw}, innerWidth ${m.vw} pour ${c.width}`));
+    check(`${tag} : boutons dans la carte, 44 × 44, atteints (sauf désactivés)`, () => {
+      expect(m.boutons.length >= 5, 'boutons visibles : ' + m.boutons.length);
+      const ko = m.boutons.filter(b => !b.dedans || b.w < 44 || b.h < 44 || !b.atteint);
+      expect(ko.length === 0, ko.slice(0, 3).map(b => `${b.t} ${b.l.toFixed(0)}-${b.rt.toFixed(0)} ${b.w.toFixed(0)}x${b.h.toFixed(0)} atteint=${b.atteint}`).join(', '));
+    });
+    check(`${tag} : sans fuite ni erreur`, () => sansFuite(res[i].o));
+  });
+  const bur = [];
+  for (const variante of ['kraland', DARK]) { for (const width of [768, 1280]) { for (const cle of cles) { bur.push({ cle, variante, width }); } } }
+  const releve = async (c, bundle) => { const o = await ouvrir(c.cle, { width: c.width, variante: c.variante, bundle }); const r = await o.page.evaluate(PAGINATION_CONTACTS); await o.context.close(); return r; };
+  const resB = await mapLimit(bur, async c => ({ t: await releve(c, APRES), b: await releve(c, avant) }));
+  bur.forEach((c, i) => check(`contacts-pagination ${c.cle} ${c.width} px ${c.variante} : pagination égale au bundle de base`, () => {
+    const f = m => [m.sw, m.pag, ...m.boutons.map(b => b.rect)].join(' ');
+    expect(f(resB[i].t) === f(resB[i].b), `${f(resB[i].t)} au lieu de ${f(resB[i].b)}`);
   }));
 }
 

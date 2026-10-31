@@ -48,8 +48,9 @@ export const SUITES = [
   // Notifications (/report) : ligne non lue tr.bg-info lisible (piste O-A) et ligne de notification (8.1 : date au-dessus du texte sur mobile, 13/14/15 px) ;
   // 16 variantes en popup 900×800, mobile 375 et 767, onglet 1280 ; 768, 769, 1440, 1920 et bascule 767 ↔ 768 en deux variantes ; portée limitée à /report ;
   // haut de page (8.3) : sélecteur à 16 px du haut de 375 à 1920 et en bascule, padding-top du body inchangé hors /report ;
-  // confort (9.10) : marge de 16 px et cibles de 44 px de 320 à 767, textes égaux à la base dès 768 et en bascule.
-  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort']], needsBootstrap: true },
+  // confort (9.10) : marge de 16 px et cibles de 44 px de 320 à 767, textes égaux à la base dès 768 et en bascule ;
+  // onglets (backlog 27) : 4 px entre icône et libellé des onglets de 320 à 767, avec ou sans espace blanc ; base dès 768 et en bascule.
+  { name: 'report-non-lu', file: 'report-non-lu.mjs', zones: ['report'], frags: [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort'], ['onglets']], needsBootstrap: true },
   // Cloche des notifications (ticket 8.2, R5) : openReport redéfinie, popup 900×800 sur ordinateur (barre 992 à 1920, menu compact 768 à 991),
   // fonction native en mobile (375, 767) et peau coupée ; bascule 767 ↔ 768 ; window.open en sonde, aucune requête vers /report.
   { name: 'cloche-notifications', file: 'cloche-notifications.mjs', zones: ['cloche'], frags: [['barre'], ['compact'], ['mobile'], ['bascule'], ['peau']], needsBootstrap: true },
@@ -112,7 +113,8 @@ export const SUITES = [
   // Listes (entrée 4) : lignes de Réception, Envoi et Corbeille aux valeurs du sous-forum, sélection, pagination, « non lu », dossiers.
   // Contacts (entrée 8) : en-tête et carte de la Réception, boutons standard ou primaire, cibles de 44 px, 16 variantes.
   // Confort (épopée 9, entrée 9) : dossiers, lecture, rédaction et contacts à 320, 375 et 767 px, texte à 16 px, cibles de 44 px ; 768, 1280 px et bascule égaux à la base.
-  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-toucher'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter'], ['confort']], needsBootstrap: true },
+  // Contacts, lot B (backlog 28, 30) : boutons de catégorie au-dessus de la carte de 767 à 1280 px (titre long) ; pagination sans débordement à 320 et 375 px.
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-toucher'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter'], ['confort'], ['contacts-onglets'], ['contacts-pagination']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
   // 1280 px, bascule 767 <-> 768 et page hors périmètre (index Staff) égales au bundle de base. Entrée 4 : pages
