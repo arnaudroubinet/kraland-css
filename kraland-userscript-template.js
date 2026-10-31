@@ -5889,6 +5889,14 @@
       document.addEventListener('click', e => {
         if (!selector.contains(e.target)) {setOpen(false);}
       });
+      // Mobile : le toucher qui ferme le menu est absorbé, sinon il ouvre le message dont le lien étiré couvre la ligne dessous.
+      // Ni clic issu du clavier (detail 0), ni menu masqué (rédaction mobile : sélecteur sans menu affiché).
+      document.addEventListener('click', e => {
+        if (!isMobileMode() || !isOpen() || e.detail === 0 || dropdown.getClientRects().length === 0 || selector.contains(e.target)) {return;}
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(false);
+      }, true);
       return selector;
     }
 

@@ -29,7 +29,12 @@
 //             fil « Kramail › Personnage fictif » (liste) et « Kramail › Personnage fictif › sujet » (lecture), sélecteur sur la liste
 //             seule, aucun style en ligne dans le titre ; lecture dérivée avec un bouton dans le titre : sujet sans le libellé du bouton.
 //   entete-menu : kramail-reception, 375, 767 et 1280 px, deux variantes : menu de personnage ouvert au clic, rayon de 8 px, aucun style
-//             en ligne, sélecteur et options >= 44 px atteints, personnage courant seul coché, fermé au clic extérieur.
+//             en ligne, sélecteur et options >= 44 px atteints, personnage courant seul coché, fermé au clic extérieur (mobile : sur une
+//             ligne de la liste, sans navigation).
+//   entete-toucher : (ticket backlog 18) Réception dérivée en liste, 375 et 767 px tactiles, 768 et 1280 px, deux variantes : menu ouvert,
+//             toucher d'une ligne ; mobile : menu fermé, ni navigation ni case cochée, le toucher suivant ouvre le message ; bureau : menu
+//             fermé et lien suivi (base) ; toucher d'une option à 375 px : lien suivi ; Entrée sur le lien d'une ligne, menu ouvert : lien
+//             suivi ; Nouveau à 375 px, sélecteur sans menu ouvert au clavier : toucher suivant non absorbé ; bascule 375 / 768 / 767.
 //   entete-clavier : kramail-reception, 375 et 1280 px, deux variantes : Entrée ouvre le menu, Tab atteint une option au contour primaire
 //             de 2 px, Entrée sur l'option suit son lien.
 //   entete-couleurs : 16 variantes, 375 et 1280 px (réception), 375 px (lecture) : textes du fil, du titre et du menu ouvert >= 4,5:1.
@@ -94,7 +99,7 @@
 //             viewport à 667 puis 350 px : aucun point du contenu de la zone de texte sous le lien ; les 3 pages à 1280 px : lien affiché
 //             pendant la saisie.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
-// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
+// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-toucher, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
 // redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter, confort), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
 // sinon celui du commit PALETTE_BASE_SHA), KR_SCRIPT_AVANT_99 (bundle de base de confort, sinon celui du commit COMMIT_AVANT_99).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
@@ -103,7 +108,7 @@
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
 // KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts, contacts-boutons et envoyer rouges
 // (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge ;
-// KR_SCRIPT=<bundle d8c8777> rend confort rouge.
+// KR_SCRIPT=<bundle d8c8777> rend confort rouge ; KR_SCRIPT=<bundle 8a58d08> rend entete-menu et entete-toucher rouges sur mobile seul.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -363,13 +368,14 @@ const MENU_PERSONNAGE = async page => {
       styles: [e, ...e.querySelectorAll('*')].filter(x => x.hasAttribute('style')).map(x => x.className), options, deborde: d.getBoundingClientRect().right > window.innerWidth + 0.5
     };
   }, sel);
-  // Clic extérieur : au bureau en 5, 400 (colonne de gauche) ; sur mobile sur le titre du panneau, car depuis l'entrée 4 les lignes de la
-  // liste sont pleine largeur et leur lien étiré couvre tout point de la liste (un clic en 5, 400 ouvrirait le message).
-  const neutre = await page.evaluate(() => window.innerWidth < 768 ? (r => ({ x: r.left + 4, y: r.top + r.height / 2 }))(document.querySelector('#col-right .panel-heading h3.panel-title').getBoundingClientRect()) : { x: 5, y: 400 });
+  // Clic extérieur : au bureau en 5, 400 (colonne de gauche) ; sur mobile au centre du titre du dernier message, sur le lien étiré de sa
+  // ligne : le clic qui ferme le menu y est absorbé (ticket backlog 18), aucune navigation demandée.
+  const neutre = await page.evaluate(() => window.innerWidth < 768 ? (r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 }))([...document.querySelectorAll('#col-right #topics tbody span[id^="ajax-m"] > a:last-child')].at(-1).getBoundingClientRect()) : { x: 5, y: 400 });
+  const nav = page.waitForRequest(r => r.isNavigationRequest() && r.frame() === page.mainFrame(), { timeout: 1000 }).then(r => r.url()).catch(() => null);
   await page.mouse.click(neutre.x, neutre.y);
   await page.waitForTimeout(250);
-  const ferme = await page.evaluate(s => document.querySelector(s + ' .kramail-character-dropdown').getClientRects().length === 0, sel);
-  return { avant, cible, ouvert, ferme };
+  const ferme = await page.evaluate(s => { const d = document.querySelector(s + ' .kramail-character-dropdown'); return !!d && d.getClientRects().length === 0; }, sel);
+  return { avant, cible, ouvert, ferme, nav: await nav };
 };
 // ---------- bureau ----------
 const RELEVER_BUREAU = () => {
@@ -821,11 +827,68 @@ if (frag('entete-menu')) {
       expect(m.ouvert.options.filter(x => x.courant).length === 1 && m.ouvert.options.every(x => x.coche === x.courant), 'personnage courant : ' + JSON.stringify(m.ouvert.options));
       expect(!m.ouvert.deborde, 'menu hors de l\'écran');
       expect(m.ferme, 'menu ouvert après un clic extérieur');
+      if (c.mobile) { expect(m.nav === null, 'clic extérieur suivi : ' + m.nav); }
       sansFuite(o);
     });
   }
 }
 
+// Ticket backlog 18 : menu de personnage ouvert, toucher une ligne de la liste. Mobile (tap tactile) : le premier toucher ferme le menu
+// sans navigation ni case cochée, le suivant ouvre le message ; bureau (768 et 1280 px, clic) : comportement de la base, le clic ferme le
+// menu et suit le lien. Liste dérivée (balisage DataTables, lignes de 8 à 367 px à 375 px : le 5, 400 du relevé 7.4 tombe hors ligne sur
+// cette fixture) ; point = centre du titre du dernier message, hors du menu ouvert au bureau ; vérifié par elementFromPoint menu ouvert.
+const SEL_MENU = '#col-right h1.page-header .kramail-character-selector';
+const toucher = async (page, mobile, x, y) => {
+  const nav = page.waitForRequest(r => r.isNavigationRequest() && r.frame() === page.mainFrame(), { timeout: 1000 }).then(r => r.url()).catch(() => null);
+  await (mobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
+  await page.waitForTimeout(250);
+  return nav;
+};
+const ETAT_LIGNE = ({ s, pt }) => {
+  const sel = document.querySelector(s);
+  if (!sel) { return { ouvert: null, href: null, horsMenu: false, cases: [], url: location.href }; }
+  const hit = document.elementFromPoint(pt.x, pt.y);
+  const tr = hit && hit.closest('#col-right #topics tbody tr');
+  const a = tr && tr.querySelector('span[id^="ajax-m"] > a:last-child');
+  return { ouvert: sel.getAttribute('aria-expanded') === 'true', href: a ? a.href : null, horsMenu: !!hit && !sel.contains(hit), cases: tr ? [...tr.querySelectorAll('input[type="checkbox"]')].map(c => c.checked) : [], url: location.href };
+};
+// errors : erreurs de page relevées avant que la page soit quittée (second toucher sur mobile, clic au bureau) : la navigation
+// interrompue du site fictif en produit.
+// retenir : le clic est arrêté en fin de propagation (window), après le script, pour rester sur la page (bascule) ; clic = ce qu'il y
+// trouve (null s'il n'y est pas parvenu)
+const TOUCHER_LIGNE = async (page, mobile, retenir = false, errors = []) => {
+  const b = await page.locator(SEL_MENU + ' > span:first-child').boundingBox();
+  await toucher(page, mobile, b.x + b.width / 2, b.y + b.height / 2);
+  const pt = await page.evaluate(r => {
+    if (r) { window.__krClic = null; window.addEventListener('click', e => { const a = e.target.closest('a'); window.__krClic = { prevented: e.defaultPrevented, href: a ? a.href : null }; e.preventDefault(); }); }
+    const box = [...document.querySelectorAll('#col-right #topics tbody span[id^="ajax-m"] > a:last-child')].at(-1).getBoundingClientRect();
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  }, retenir);
+  const avant = await page.evaluate(ETAT_LIGNE, { s: SEL_MENU, pt });
+  const erreursAvant = errors.slice();
+  const nav1 = await toucher(page, mobile, pt.x, pt.y);
+  const apres = await page.evaluate(ETAT_LIGNE, { s: SEL_MENU, pt });
+  const clic = retenir ? await page.evaluate(() => window.__krClic) : null;
+  const erreurs = mobile ? errors.slice() : erreursAvant;
+  const nav2 = mobile && !retenir && nav1 === null ? await toucher(page, mobile, pt.x, pt.y) : null;
+  return { avant, nav1, apres, clic, nav2, erreurs };
+};
+const verifierToucher = (t, mobile) => {
+  expect(t.avant.ouvert, 'menu fermé après le toucher du sélecteur');
+  expect(t.avant.href && t.avant.horsMenu, 'point de la ligne hors d\'une ligne ou couvert : ' + JSON.stringify(t.avant));
+  expect(t.nav1 === null || !mobile, 'premier toucher suivi : ' + t.nav1);
+  expect(t.apres.ouvert === false || (!mobile && t.nav1), 'menu ouvert ou page quittée après le toucher de la ligne : ' + JSON.stringify(t.apres));
+  if (mobile) {
+    expect(t.apres.url === t.avant.url, 'URL : ' + t.apres.url);
+    expect(JSON.stringify(t.apres.cases) === JSON.stringify(t.avant.cases), 'cases : ' + JSON.stringify(t.avant.cases) + ' puis ' + JSON.stringify(t.apres.cases));
+    expect(!t.clic || t.clic.prevented, 'premier toucher parvenu à la page sans être annulé : ' + JSON.stringify(t.clic));
+    if (!t.retenu) { expect(t.nav2 === t.avant.href, `second toucher : ${t.nav2} pour ${t.avant.href}`); }
+  } else if (t.retenu) {
+    expect(t.clic && !t.clic.prevented && t.clic.href === t.avant.href, `clic : ${JSON.stringify(t.clic)} pour ${t.avant.href} (base : le clic suit le lien)`);
+  } else {
+    expect(t.nav1 === t.avant.href, `clic : ${t.nav1} pour ${t.avant.href} (base : le clic suit le lien)`);
+  }
+};
 // Clavier : Entrée sur le sélecteur ouvre le menu, Tab atteint une option (contour primaire de 2 px au focus clavier), Entrée sur l'option
 // suit son lien (navigation demandée vers son href)
 if (frag('entete-clavier')) {
@@ -934,6 +997,100 @@ const PAGINATION_LONGUE = '<span>' + [1, 2, 3, 4, 5].map(n => `<a class="paginat
   + '<span>…</span><a class="paginate_button" aria-controls="topics" data-dt-idx="6" tabindex="0">15</a></span>';
 LECTURES['liste-longue'] = { ...LECTURES['liste-reception'], html: LECTURES['liste-reception'].html.replace(/(id="topics_previous">Précédent<\/a>)<span>[\s\S]*?<\/span>/, '$1' + PAGINATION_LONGUE) };
 if (!LECTURES['liste-longue'].html.includes('<span>…</span>')) { console.error('pagination longue non dérivée'); process.exit(2); }
+
+if (frag('entete-toucher')) {
+  console.log('en-tête : toucher qui ferme le menu de personnage');
+  const cas = [[375, 'kraland'], [375, DARK], [767, 'kraland'], [767, DARK], [768, 'kraland'], [1280, 'kraland'], [1280, DARK]].map(([width, variante]) => ({ width, variante, mobile: width < 768 }));
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir('liste-reception', { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile, variante: c.variante });
+    const t = await TOUCHER_LIGNE(o.page, c.mobile, false, o.errors);
+    await o.context.close();
+    return { c, t };
+  });
+  for (const { c, t } of res) {
+    check(`liste-reception ${c.width} px ${c.variante} : ${c.mobile ? 'premier toucher d\'une ligne absorbé (menu fermé, ni navigation ni case), le suivant ouvre le message' : 'clic sur une ligne : menu fermé, lien suivi (base)'}`, () => {
+      verifierToucher(t, c.mobile);
+      expect(t.erreurs.length === 0, 'erreurs de page avant la navigation : ' + t.erreurs.join(' | '));
+    });
+  }
+  const options = await mapLimit(['kraland', DARK], async variante => {
+    const o = await ouvrir('liste-reception', { width: 375, height: 667, mobile: true, variante });
+    const b = await o.page.locator(SEL_MENU + ' > span:first-child').boundingBox();
+    await toucher(o.page, true, b.x + b.width / 2, b.y + b.height / 2);
+    const opt = await o.page.evaluate(s => {
+      const a = document.querySelector(s + ' .kramail-character-option:not([aria-current="true"])'); const r = a.getBoundingClientRect();
+      const x = r.left + r.width / 2; const y = r.top + r.height / 2; const hit = document.elementFromPoint(x, y);
+      return { x, y, href: a.href, atteint: !!hit && a.contains(hit) };
+    }, SEL_MENU);
+    const nav = await toucher(o.page, true, opt.x, opt.y);
+    await o.context.close();
+    return { variante, opt, nav };
+  });
+  for (const { variante, opt, nav } of options) {
+    check(`liste-reception 375 px ${variante} : toucher d'une option du menu suit son lien`, () => {
+      expect(opt.atteint, 'option couverte : ' + JSON.stringify(opt));
+      expect(nav === opt.href, `navigation : ${nav} pour ${opt.href}`);
+    });
+  }
+  // Clavier (liste, 375 px) : menu ouvert au toucher, Entrée sur le lien du dernier message : clic issu du clavier non absorbé, lien suivi.
+  // Rédaction mobile (Nouveau, 375 px) : sélecteur sans menu affiché, ouvert au clavier (aria-expanded) : un toucher hors du sélecteur
+  // parvient à la page sans être annulé.
+  const autres = await Promise.all([
+    (async () => {
+      const o = await ouvrir('liste-reception', { width: 375, height: 667, mobile: true });
+      const b = await o.page.locator(SEL_MENU + ' > span:first-child').boundingBox();
+      await toucher(o.page, true, b.x + b.width / 2, b.y + b.height / 2);
+      const lien = o.page.locator('#col-right #topics tbody span[id^="ajax-m"] > a:last-child').last();
+      const href = await lien.evaluate(a => a.href);
+      const ouvert = await o.page.evaluate(s => document.querySelector(s).getAttribute('aria-expanded') === 'true', SEL_MENU);
+      await lien.focus();
+      const nav = o.page.waitForRequest(r => r.isNavigationRequest() && r.frame() === o.page.mainFrame(), { timeout: 1000 }).then(r => r.url()).catch(() => null);
+      await o.page.keyboard.press('Enter');
+      const cible = await nav;
+      await o.context.close();
+      return { href, ouvert, cible };
+    })(),
+    (async () => {
+      const o = await ouvrir('nouveau', { width: 375, height: 667, mobile: true });
+      const present = !!(await o.page.$(SEL_MENU));
+      if (present) { await o.page.focus(SEL_MENU); await o.page.keyboard.press('Enter'); }
+      const etat = await o.page.evaluate(s => {
+        const e = document.querySelector(s);
+        window.__krClic = null;
+        window.addEventListener('click', ev => { window.__krClic = { prevented: ev.defaultPrevented }; ev.preventDefault(); });
+        const r = document.querySelector('h1.page-header').getBoundingClientRect();
+        return { ouvert: !!e && e.getAttribute('aria-expanded') === 'true', menu: !!e && e.querySelector('.kramail-character-dropdown').getClientRects().length > 0, x: r.left + 4, y: r.bottom + 30 };
+      }, SEL_MENU);
+      await o.page.touchscreen.tap(etat.x, etat.y);
+      await o.page.waitForTimeout(250);
+      const clic = await o.page.evaluate(() => window.__krClic);
+      await o.context.close();
+      return { present, etat, clic };
+    })()
+  ]);
+  check('liste-reception 375 px : menu ouvert, Entrée sur le lien d\'une ligne suit le lien (clic clavier non absorbé)', () => {
+    expect(autres[0].ouvert, 'menu fermé avant Entrée');
+    expect(autres[0].cible === autres[0].href, `navigation : ${autres[0].cible} pour ${autres[0].href}`);
+  });
+  check('nouveau 375 px : sélecteur sans menu affiché, ouvert au clavier, toucher suivant non absorbé', () => {
+    const r = autres[1];
+    expect(r.present && r.etat.ouvert && !r.etat.menu, 'état du sélecteur : ' + JSON.stringify(r));
+    expect(r.clic && !r.clic.prevented, 'toucher absorbé : ' + JSON.stringify(r.clic));
+  });
+  // Bascule dans le même onglet : 375 (absorbé), 768 (base), 767 (absorbé). Chaque franchissement du seuil recharge la page (basculer
+  // attend le load) : chaque étape part d'une page neuve, ce qui garde aussi un seul écouteur de retenue par document.
+  const o = await ouvrir('liste-reception', { width: 375, height: 667, mobile: true });
+  const etapes = [[375, true, await TOUCHER_LIGNE(o.page, true, true)]];
+  await basculer(o.page, 768, 'liste-reception 768');
+  etapes.push([768, false, await TOUCHER_LIGNE(o.page, false, true)]);
+  await basculer(o.page, 767, 'liste-reception 767 retour');
+  etapes.push([767, true, await TOUCHER_LIGNE(o.page, true, true)]);
+  await o.context.close();
+  for (const [width, mobile, t] of etapes) {
+    check(`bascule 375 / 768 / 767 : ${width} px dans le même onglet, ${mobile ? 'premier toucher absorbé' : 'clic suivi (base)'}`, () => verifierToucher({ ...t, retenu: true }, mobile));
+  }
+}
+
 const LISTE_LARGEURS = [375, 767, 768, 1280, 1440];
 // Une ligne lue et une ligne non lue, leur titre, le nom, la date et la pastille ; propriétés de ligne (mobile) ou de cellule (bureau).
 const MESURER_LIGNES = ({ kramail, props }) => {
