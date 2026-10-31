@@ -838,8 +838,8 @@ if (frag('entete-menu')) {
 // menu et suit le lien. Liste dérivée (balisage DataTables, lignes de 8 à 367 px à 375 px : le 5, 400 du relevé 7.4 tombe hors ligne sur
 // cette fixture) ; point = centre du titre du dernier message, hors du menu ouvert au bureau ; vérifié par elementFromPoint menu ouvert.
 const SEL_MENU = '#col-right h1.page-header .kramail-character-selector';
-const toucher = async (page, mobile, x, y) => {
-  const nav = page.waitForRequest(r => r.isNavigationRequest() && r.frame() === page.mainFrame(), { timeout: 1000 }).then(r => r.url()).catch(() => null);
+const toucher = async (page, mobile, x, y, attente = 1000) => {
+  const nav = page.waitForRequest(r => r.isNavigationRequest() && r.frame() === page.mainFrame(), { timeout: attente }).then(r => r.url()).catch(() => null);
   await (mobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y));
   await page.waitForTimeout(250);
   return nav;
@@ -866,9 +866,12 @@ const TOUCHER_LIGNE = async (page, mobile, retenir = false, errors = []) => {
   }, retenir);
   const avant = await page.evaluate(ETAT_LIGNE, { s: SEL_MENU, pt });
   const erreursAvant = errors.slice();
-  const nav1 = await toucher(page, mobile, pt.x, pt.y);
-  const apres = await page.evaluate(ETAT_LIGNE, { s: SEL_MENU, pt });
-  const clic = retenir ? await page.evaluate(() => window.__krClic) : null;
+  // Au bureau sans retenir, la navigation est attendue : délai de 3 s pour la voir sous charge
+  const nav1 = await toucher(page, mobile, pt.x, pt.y, mobile || retenir ? 1000 : 3000);
+  // Navigation demandée (clic au bureau, toucher suivi sur mobile) : la page est quittée, rien à mesurer ; l'evaluate courrait contre le
+  // commit de la page d'erreur (navigation abandonnée par la fixture) et perdrait son contexte (ticket backlog 34)
+  const apres = nav1 ? null : await page.evaluate(ETAT_LIGNE, { s: SEL_MENU, pt });
+  const clic = retenir && !nav1 ? await page.evaluate(() => window.__krClic) : null;
   const erreurs = mobile ? errors.slice() : erreursAvant;
   const nav2 = mobile && !retenir && nav1 === null ? await toucher(page, mobile, pt.x, pt.y) : null;
   return { avant, nav1, apres, clic, nav2, erreurs };
@@ -877,7 +880,7 @@ const verifierToucher = (t, mobile) => {
   expect(t.avant.ouvert, 'menu fermé après le toucher du sélecteur');
   expect(t.avant.href && t.avant.horsMenu, 'point de la ligne hors d\'une ligne ou couvert : ' + JSON.stringify(t.avant));
   expect(t.nav1 === null || !mobile, 'premier toucher suivi : ' + t.nav1);
-  expect(t.apres.ouvert === false || (!mobile && t.nav1), 'menu ouvert ou page quittée après le toucher de la ligne : ' + JSON.stringify(t.apres));
+  expect((t.apres && t.apres.ouvert === false) || (!mobile && t.nav1), 'menu ouvert ou page quittée après le toucher de la ligne : ' + JSON.stringify(t.apres));
   if (mobile) {
     expect(t.apres.url === t.avant.url, 'URL : ' + t.apres.url);
     expect(JSON.stringify(t.apres.cases) === JSON.stringify(t.avant.cases), 'cases : ' + JSON.stringify(t.avant.cases) + ' puis ' + JSON.stringify(t.apres.cases));
