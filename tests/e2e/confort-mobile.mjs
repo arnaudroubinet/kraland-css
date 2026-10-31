@@ -6,12 +6,14 @@
 //                   et libellés de la barre d'onglets de section à part, ticket 19 du backlog) ; cartes de section (CARTES_SECTION, lib/marges.mjs) à 8 px des deux bords ; carte et section imbriquées
 //                   dans une carte (Aide) dans la boîte de contenu de leur parent ; aucun
 //                   débordement horizontal ; mini-profil du plateau plié et déplié à 375 et 700 px ;
-//   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
+//   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base (base d'avant la revue S21 :
+//                   ligne de version de l'Aide déplacée dans le pied de la page, n° 12) ;
 //   bascule         Personnage, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet : marge à 767, base (même parcours) à 768 ;
 //   hors-perimetre  index du forum Staff (/forum/staff, fixture forum-index-rp.html) à 375 et 767 px (sous-forum et index RP : mesurés
 //                   par forum-activite confort, entrée 8 ; notifications : report-non-lu#confort, entrée 10 ; kramail et contacts :
 //                   kramail-theme#confort, entrée 9) : sans kr-marge-mobile,
-//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles) ;
+//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles ;
+//                   base d'avant la revue S21 : haut des pages, n° 4, et citation du pied de page posés sur la base) ;
 //   secondaires     (entrée 4, plan story-pages-secondaires-marge-de-16-px-et-cibles-de-44-px) Règles, Guide, Organisations, Événements,
 //                   Statistiques, fiche de membre, Interface, carte de ville et Cybermonde (fixtures secondaires-*.html) à 320, 375 × 667 et
 //                   767 px, Kraland clair et Empire Brun sombre : classes kr-page-secondaire et kr-marge-mobile ; texte à 16 px des bords ;
@@ -47,7 +49,8 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { choisirVariante } from './lib/variantes.mjs';
+import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_REVUE_S21, deplacerVersionS21, HAUT_S21, PIED_S21 } from './lib/revue-s21.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -279,13 +282,19 @@ if (on('mobile')) {
 if (on('bureau')) {
   console.log('\n== bureau ==');
   const cas = DANS.flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.map(width => ({ nom, variante, width }))));
-  const releve = async (c, script) => {
+  // Revue S21 (écart accepté et consigné, n° 12) : sur l'Aide, la ligne de version passe du pied de la citation au pied de la page (script,
+  // vaut aussi sur ordinateur). Contre une base d'avant la revue, elle est déplacée sur la base avant le relevé (deplacerVersionS21,
+  // lib/revue-s21.mjs) ; tout autre écart reste vu. Contrôle absolu : revue-s21#pied. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
+  const VERSION_PIED_S21 = AVANT_REVUE_S21(avant);
+  if (VERSION_PIED_S21) { console.log('  info écart accepté et consigné : ligne de version de l\'Aide dans le pied de la page (n° 12), revue S21, posée sur le bundle de base'); }
+  const releve = async (c, script, base = false) => {
     const { context, page, erreurs } = await ouvrir({ ...c, height: 720, script });
+    if (base && VERSION_PIED_S21) { await page.evaluate(deplacerVersionS21); }
     const r = await page.evaluate(RELEVE);
     await context.close();
     return { r, erreurs };
   };
-  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant, true) }));
   for (const { c, teste, base } of res) {
     check(`bureau ${c.nom} ${c.variante} ${c.width} px : textes égaux au bundle de base`, () => {
       assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
@@ -350,13 +359,19 @@ if (on('bascule')) {
 if (on('hors-perimetre')) {
   console.log('\n== hors-perimetre ==');
   const cas = HORS.flatMap(nom => VARIANTES.flatMap(variante => [375, 767].map(width => ({ nom, variante, width }))));
-  const releve = async (c, script) => {
-    const { context, page, erreurs } = await ouvrir({ ...c, script });
+  // Revue S21 (écart accepté et consigné) : contre une base d'avant la revue, haut des pages mobiles (n° 4 : contenu 7 px plus haut)
+  // et citation du pied de page (constat « Pied de page » : 21 px sur 22 px) recopiés sur la base (lib/revue-s21.mjs) ; tout autre écart
+  // reste vu. Retrait au recalage de COMMIT_AVANT au-delà de la revue (AVANT_REVUE_S21 faux).
+  const MIROIRS_HORS = AVANT_REVUE_S21(avant) ? [HAUT_S21, PIED_S21].join('\n') : '';
+  if (MIROIRS_HORS) { console.log('  info écart accepté et consigné : haut des pages mobiles (n° 4) et citation du pied de page, revue S21, posés sur le bundle de base'); }
+  const releve = async (c, script, base = false) => {
+    const init = base && MIROIRS_HORS ? `(${poserJetonsRedefinis})(${JSON.stringify(MIROIRS_HORS)})` : null;
+    const { context, page, erreurs } = await ouvrir({ ...c, script, init });
     const r = { ...(await page.evaluate(RELEVE)), classes: (await page.evaluate(ETAT, CARTES_SECTION)).classes };
     await context.close();
     return { r, erreurs };
   };
-  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant, true) }));
   for (const { c, teste, base } of res) {
     check(`hors-perimetre ${c.nom} ${c.variante} ${c.width} px : sans classe de marge, textes égaux au bundle de base`, () => {
       assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
@@ -488,7 +503,8 @@ if (on('secondaires')) {
     out.debord = await o.page.evaluate(() => {
       const t = document.querySelector('table.table-striped');
       t.scrollLeft = 50;
-      return { page: document.documentElement.scrollWidth - document.documentElement.clientWidth, table: t.scrollWidth - t.clientWidth, defile: t.scrollLeft };
+      const cellule = Math.max(0, ...[...t.querySelectorAll('td, th')].map(td => td.scrollWidth - td.clientWidth));
+      return { page: document.documentElement.scrollWidth - document.documentElement.clientWidth, table: t.scrollWidth - t.clientWidth, defile: t.scrollLeft, cellule };
     });
     out.champsModale = await o.page.evaluate(CHAMPS, true);
     await o.context.close();
@@ -516,9 +532,11 @@ if (on('secondaires')) {
       assert.ok(teste.sansLibelle.case, 'case couverte');
     });
     console.log(`  info ${lab} : ligne longue d'Événements, débordement page ${teste.debord.page} px (base ${base.debord.page}), tableau ${teste.debord.table} px (base ${base.debord.table}), défilement ${teste.debord.defile} px (base ${base.debord.defile})`);
-    check(`${lab} : ligne longue d'Événements, page sans débordement de plus que la base, tableau défilable`, () => {
+    // Revue S21 : le mot très long d'Événements se coupe dans sa cellule (overflow-wrap: anywhere) au lieu d'élargir le tableau ; un
+    // tableau qui déborde encore reste défilable.
+    check(`${lab} : ligne longue d'Événements, page sans débordement de plus que la base, tableau défilable s'il déborde, sinon mot coupé dans sa cellule`, () => {
       assert.ok(teste.debord.page <= base.debord.page, `page ${teste.debord.page} px`);
-      assert.ok(teste.debord.defile > 0, 'tableau sans défilement');
+      if (teste.debord.table > 0) { assert.ok(teste.debord.defile > 0, 'tableau sans défilement'); } else { assert.ok(teste.debord.cellule <= 0, `cellule débordante de ${teste.debord.cellule} px`); }
     });
     check(`${lab} : formulaires dans une .bootbox.modal à leur hauteur`, () => assert.deepEqual(teste.champsModale, CHAMPS_MODALE));
     check(`${lab} : formulaires de la rédaction du kramail (sans garde) à leur hauteur`, () => assert.deepEqual(teste.champsKramail, CHAMPS_ATTENDUS));

@@ -47,7 +47,7 @@ check('Notifications /report (kr-page-report) : zone report (et confort-mobile p
   assert.equal(t.widened, false);
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/report-non-lu.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'typographie-formes']); // 9.10 : /report sort du hors périmètre de confort-mobile ; bug 14 : sélecteur mesuré par typographie-formes (champs)
+  assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'typographie-formes', 'revue-s21']); // 9.10 : /report sort du hors périmètre de confort-mobile ; bug 14 : sélecteur mesuré par typographie-formes (champs) ; revue S21 : contrastes des notifications
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
   assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort'], ['onglets']]); // 8.1 : fenêtre 600 remplacée ; 8.3 : haut de page ; 9.10 : confort ; backlog 27 : onglets
 });
@@ -77,7 +77,7 @@ check('marge mobile (épopée 9, entrées 1, 9 et 10) : classes de page et retra
   assert.ok(t.zones.includes('confort-mobile'), t.zones.join(', '));
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/aide.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(f.units, ['confort-mobile']);
+  assert.deepEqual(f.units, ['confort-mobile', 'revue-s21']); // revue S21 : liens du texte, citation et bloc préformaté de l'Aide
 });
 check('PV des cartes en jetons (épopée 9, entrée 7) : cercle, barre et jetons --kr-pv-* -> plateau (fragment pv)', () => {
   for (const [f, a, b] of [['kraland-theme.css', '.dashboard-card-hp-progress {', '  stroke: var(--kr-pv);'], ['kraland-theme.css', '  --kr-success: #2e7d32;', '  --kr-pv-1: var(--kr-success);'],
@@ -625,7 +625,7 @@ check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobi
   // lance donc aussi cette suite, ce qui reste conservateur. confort-mobile la lit pour son fragment pied-bas (ticket 26 du backlog).
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/accueil.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(sorted(f.units), ['accueil-mobile', 'confort-mobile', 'palette-nation']);
+  assert.deepEqual(sorted(f.units), ['accueil-mobile', 'confort-mobile', 'palette-nation', 'revue-s21']); // revue S21 : texte discret de l'accueil
 });
 check('fil d\'Ariane du forum (épopée 6, entrée 3) : règle CSS fusionnée, section commune et module ForumHeader -> forum-activite', () => {
   assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('fil')), 'fragment fil');

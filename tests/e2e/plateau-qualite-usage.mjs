@@ -132,12 +132,19 @@ function verifierCartes(m, etiquette) {
   check(`${etiquette} : pas de débordement horizontal`, () => assert.equal(m.overflowX, 0));
 }
 
-const memesBoites = (m, base, garde = () => true) => {
+// Haut de page mobile remonté (revue S21, n° 4 : bande vide et marge sous les onglets retirées, mini-profil resserré) : sous 768 px, les
+// boîtes sont comparées à la base après un recalage vertical sur la première carte (decalageHaut) ; tailles, positions horizontales et
+// écarts verticaux entre cartes restent comparés tels quels. Sur ordinateur, aucun recalage.
+const decalageHaut = (m, base, boite) => (m.cartes.length && base.cartes.length && boite(m.cartes[0]) && boite(base.cartes[0])
+  ? boite(m.cartes[0])[1] - boite(base.cartes[0])[1] : 0);
+const recaleY = (b, dy) => (b ? [b[0], b[1] - dy, b[2], b[3]] : b);
+const memesBoites = (m, base, garde = () => true, { recaler = false } = {}) => {
   const ecarts = [];
+  const dy = recaler ? decalageHaut(m, base, c => c.carte) : 0;
   m.cartes.forEach((c, i) => {
     const b = base.cartes[i];
     if (!garde(c, b)) { return; }
-    for (const k of ['carte', 'avatar', 'boiteNom']) { if (JSON.stringify(c[k]) !== JSON.stringify(b[k])) { ecarts.push(`${c.nom} ${k} ${c[k]} / ${b[k]}`); } }
+    for (const k of ['carte', 'avatar', 'boiteNom']) { if (JSON.stringify(recaleY(c[k], dy)) !== JSON.stringify(b[k])) { ecarts.push(`${c.nom} ${k} ${c[k]} / ${b[k]}`); } }
   });
   return ecarts;
 };
@@ -160,7 +167,7 @@ if (on('cartes')) {
     for (const width of [375, 700, 767]) {
       const m = await cartesDe(userscript, { width, height: 667, variante });
       const base = await cartesDe(avant, { width, height: 667, variante });
-      check(`mobile ${width} px ${variante} : cartes, avatars et noms égaux à la base`, () => { assert.equal(m.cartes.length, base.cartes.length); assert.deepEqual(memesBoites(m, base), []); });
+      check(`mobile ${width} px ${variante} : cartes, avatars et noms égaux à la base (recalés sur la première carte)`, () => { assert.equal(m.cartes.length, base.cartes.length); assert.deepEqual(memesBoites(m, base, undefined, { recaler: true }), []); });
       // Styles de la règle du ticket (conteneur, coupure, bloc du nom) égaux à la base : une règle sortie de son média rougit à toute largeur mobile.
       check(`mobile ${width} px ${variante} : conteneur, coupure et bloc du nom égaux à la base`, () => vide(m.cartes.filter((c, i) => c.styles !== base.cartes[i].styles).map(c => `${c.nom} ${c.styles} / ${base.cartes[m.cartes.indexOf(c)].styles}`)));
     }
@@ -181,7 +188,7 @@ if (on('cartes')) {
         const m = await mesurerCartes(p);
         check(`bascule ${variante} : ${w} px, body.mobile-mode ${mobile ? 'remis' : 'levé'}`, () => assert.ok(etat));
         if (!mobile) { verifierCartes(m, `bascule ${w} px ${variante}`); }
-        check(`bascule ${variante} : ${w} px égal au chargement direct${mobile ? ' de la base' : ''}`, () => { assert.equal(m.cartes.length, directs[w].cartes.length); vide(memesBoites(m, directs[w])); });
+        check(`bascule ${variante} : ${w} px égal au chargement direct${mobile ? ' de la base (recalé sur la première carte)' : ''}`, () => { assert.equal(m.cartes.length, directs[w].cartes.length); vide(memesBoites(m, directs[w], undefined, { recaler: mobile })); });
       }
       await ctx.close();
     }
@@ -318,9 +325,12 @@ if (on('pv')) {
     for (const variante of ['kraland', 'empire-brun-dark']) {
       const b = variante === 'kraland' ? base : await pvDe(avantPv, { width, height, variante });
       const m = mesures[TOUTES_VARIANTES.indexOf(variante)];
-      check(`${width} px ${variante} : arcs, largeurs de barre et boîtes (cercle, avatar, barre) égaux à la base`, () => vide(m.cartes.flatMap((c, i) => {
+      // Sous 768 px, boîtes recalées sur l'avatar de la première carte (decalageHaut, revue S21, n° 4).
+      const dy = width < 768 ? decalageHaut(m, b, c => c.boites[1]) : 0;
+      check(`${width} px ${variante} : arcs, largeurs de barre et boîtes (cercle, avatar, barre) égaux à la base${dy ? ' (recalées sur la première carte)' : ''}`, () => vide(m.cartes.flatMap((c, i) => {
         const o = b.cartes[i];
-        return ['arc', 'largeur', 'boites'].filter(k => JSON.stringify(c[k]) !== JSON.stringify(o[k])).map(k => `${c.nom} ${k} ${JSON.stringify(c[k])} / ${JSON.stringify(o[k])}`);
+        const r = { ...c, boites: c.boites.map(x => recaleY(x, dy)) };
+        return ['arc', 'largeur', 'boites'].filter(k => JSON.stringify(r[k]) !== JSON.stringify(o[k])).map(k => `${c.nom} ${k} ${JSON.stringify(c[k])} / ${JSON.stringify(o[k])}`);
       })));
     }
   }

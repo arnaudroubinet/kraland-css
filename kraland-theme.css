@@ -72,6 +72,18 @@
   --kr-shadow-md: 0 4px 6px rgb(0,0,0,0.07);
   --kr-shadow-lg: 0 10px 15px rgb(0,0,0,0.1);
 
+  /* Contour des cartes de section mobiles en clair (revue S21, n° 3) : filet gris de 1 px et ombre légère, sans teinter le fond de page
+     (O1) ni changer la taille des cartes (ombre, pas bordure). En sombre, la surface se détache déjà du fond : aucun contour. */
+  --kr-card-shadow: 0 0 0 1px rgb(0,0,0,0.11), 0 1px 3px rgb(0,0,0,0.06);
+
+  /* Bordure des champs mobiles en clair (revue S21, n° 7) : gris moyen, 3,42:1 sur blanc et 3,14:1 sur bg-page (au lieu de 1,2:1). En sombre,
+     le fond plein des champs les détache déjà : règles du thème clair seulement. */
+  --kr-field-border: #868b94;
+
+  /* Alerte du pied de page (revue S21, n° 12) : « mise à jour disponible ». Le pied reste sombre dans les 16 variantes (rgb(17, 19, 21)) :
+     rouge clair du danger sombre, 8,3:1 (le danger clair #c62828 n'y ferait que 3,2:1). */
+  --kr-footer-alert: #ff8a80;
+
   /* Couleurs spécifiques */
   --kr-white: #fff;
   --kr-focus-ring: rgb(164,18,13,0.22);
@@ -238,6 +250,7 @@ html[class*="-dark"] {
   --kr-shadow-sm: 0 1px 3px rgb(0,0,0,0.4);
   --kr-shadow-md: 0 4px 8px rgb(0,0,0,0.5);
   --kr-shadow-lg: 0 10px 20px rgb(0,0,0,0.6);
+  --kr-card-shadow: none;
   --kr-nation-1: #ff8080;
   --kr-nation-3: #ffe066;
   --kr-nation-9: #c4b958;
@@ -5977,11 +5990,12 @@ body > map {
     pointer-events: none;
   }
 
-  /* --- 4d. Sections : carte de section (8 px des bords, fond surface, sans ombre), comme les panneaux --- */
+  /* --- 4d. Sections : carte de section (8 px des bords, fond surface, ombre de carte du thème : contour en clair, aucune en sombre,
+     revue S21 n° 3), comme les panneaux --- */
   body.mobile-mode .dashboard-section {
     margin: 0 var(--kr-space-2) 10px;
     background: var(--kr-bg-surface);
-    box-shadow: none;
+    box-shadow: var(--kr-card-shadow);
   }
 
   /* Marge mobile (9.1) : seule une section de premier niveau de la colonne principale compense la marge de page */
@@ -8169,7 +8183,7 @@ body > map {
   body.mobile-mode .panel-default:where(:not(.panel-group > *, .modal *)) {
     background: var(--kr-bg-surface) !important;
     border: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--kr-card-shadow) !important;
     margin-left: var(--kr-space-2);
     margin-right: var(--kr-space-2);
   }
@@ -8632,6 +8646,11 @@ body > map {
   body.page-forum .panel-default:where(:not(.panel-group > *, .modal *)) {
     border: none !important;
     box-shadow: none !important;
+  }
+
+  /* Revue S21 (n° 3) : carte détourée en clair (--kr-card-shadow, aucune en sombre), en mode mobile seulement */
+  body.page-forum:where(.mobile-mode) .panel-default:where(:not(.panel-group > *, .modal *)) {
+    box-shadow: var(--kr-card-shadow) !important;
   }
   
   /* En-tête du panneau : fond, rayon et retrait de la carte de section, sans filet bas ; collé à la liste */
@@ -9265,6 +9284,23 @@ body > map {
 
   :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle]::after {
     content: attr(data-kr-libelle);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Lecture (revue S21, P1) : un seul rang (retour, Répondre, Répondre à tous, « ••• ») ; les boutons libellés rétrécissent, libellé tronqué
+     en dernier recours, au lieu de renvoyer « ••• » seul sur une deuxième ligne, d'où son menu sortait de l'écran par la gauche */
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right {
+    flex-wrap: nowrap !important;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle] {
+    min-width: 0;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > a.btn[data-kr-libelle] > i {
+    flex-shrink: 0;
   }
 
   /* Container du bouton kebab — taille contrainte */
@@ -9273,22 +9309,27 @@ body > map {
     height: 44px !important;
   }
 
-  :where(html:not(.kr-page-kramail-liste)) body.page-kramail h1.page-header .pull-right > .btn-group {
+  :where(html:not(.kr-page-kramail-liste, .kr-page-kramail-lecture)) body.page-kramail h1.page-header .pull-right > .btn-group {
     position: relative !important;
   }
 
-  /* Liste : « ••• » ouvre son menu sous le rang des boutons, calé à gauche du titre (calé sur le bouton, il sortait de l'écran par la gauche) */
-  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right {
+  /* Liste et lecture : « ••• » ouvre son menu sous le rang des boutons, borné à sa largeur (calé sur le bouton, il sortait de l'écran par la
+     gauche) ; calé à gauche du titre en liste, à droite sous « ••• » en lecture */
+  :where(html.kr-page-kramail-liste, html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right {
     position: relative;
   }
 
-  :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > .btn-group {
+  :where(html.kr-page-kramail-liste, html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group {
     position: static;
   }
 
   :where(html:not(.kr-page-kramail-liste)) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
     right: 0 !important;
     left: auto !important;
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
+    max-width: 100%;
   }
 
   :where(html.kr-page-kramail-liste) body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu {
@@ -9309,9 +9350,11 @@ body > map {
     box-shadow: var(--kr-shadow-lg);
   }
 
+  /* Entrées alignées à gauche, icône puis libellé (la règle des cibles tactiles les centrait) */
   body.page-kramail h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a {
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     gap: 8px !important;
     padding: 12px 16px !important;
     min-height: var(--kr-touch-target) !important;
@@ -9338,6 +9381,12 @@ body > map {
   :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel.panel-default {
     border: none !important;
     box-shadow: none !important;
+  }
+
+  /* Revue S21 (n° 3) : carte de section détourée en clair (--kr-card-shadow, aucune en sombre), comme la carte commune : mode mobile
+     seulement, accordéons (Répondre) et modales exclus */
+  :is(body.page-kramail, :where(html.kr-page-contacts) body):where(.mobile-mode) .panel.panel-default:where(:not(.panel-group > *, .modal *)) {
+    box-shadow: var(--kr-card-shadow) !important;
   }
 
   :is(body.page-kramail, :where(html.kr-page-contacts) body) .panel-heading h3.panel-title {
@@ -9690,7 +9739,7 @@ body > map {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--kr-primary) 10%, transparent);
   }
 
-  /* Textarea - Priorité message */
+  /* Textarea - Priorité message (police du site en mode mobile : revue S21, n° 13) */
   textarea.form-control {
     min-height: 150px !important;
     font-family: monospace;
@@ -11673,7 +11722,7 @@ html[class*='-dark'] .mini.c10 {
     background: var(--kr-bg-surface);
     border: none;
     border-radius: var(--kr-radius-md);
-    box-shadow: none;
+    box-shadow: var(--kr-card-shadow);
     margin: 0 calc(var(--kr-space-2) - var(--kr-marge-page, 0px));
     overflow: hidden;
   }
@@ -13325,7 +13374,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   /* Tri : les 5 en-têtes natifs (th) deviennent des puces de 44 px qui défilent, la colonne triée en premier, fondu à droite. */
   body.page-forum.kr-subforum #topics thead {
+    position: relative;
     display: block !important;
+    timeline-scope: --kr-tri;
   }
 
   body.page-forum.kr-subforum #topics thead tr {
@@ -13333,12 +13384,39 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     flex-wrap: nowrap;
     align-items: center;
     gap: 8px;
-    padding: 4px 16px 8px;
+    padding: 4px 40px 8px 16px;
     overflow: auto hidden;
     background: transparent !important;
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-timeline: --kr-tri inline;
+  }
+
+  /* Indice de défilement (revue S21, n° 6) : chevron « › » sur un fondu à droite de la barre de tri ; il s'efface en fin de défilement là où
+     le navigateur suit le défilement en CSS (animation-timeline), sinon il reste affiché */
+  body.page-forum.kr-subforum #topics thead::after {
+    content: "\203A";
+    position: absolute;
+    top: 4px;
+    right: 0;
+    bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 44px;
+    padding-right: 8px;
+    background: linear-gradient(to right, transparent, var(--kr-bg-surface) 55%);
+    color: var(--kr-text-secondary);
+    font-size: 24px;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    body.page-forum.kr-subforum #topics thead::after {
+      animation: kr-tri-fin linear both;
+      animation-timeline: --kr-tri;
+    }
   }
 
   body.page-forum.kr-subforum #topics thead tr::before {
@@ -13570,17 +13648,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     order: 12;
   }
 
+  /* Séparateur « · » en fin d'élément (revue S21, n° 6) : quand la ligne passe à la ligne, la suivante ne commence plus par « · » */
   body.page-forum.kr-subforum #topics tbody td:nth-child(2)::after,
   body.page-forum.kr-subforum #topics tbody td:nth-child(3)::after {
-    content: " " attr(data-kr-unit);
-  }
-
-  body.page-forum.kr-subforum #topics tbody td:nth-child(3)::before {
-    content: "· ";
+    content: " " attr(data-kr-unit) " ·";
   }
 
   body.page-forum.kr-subforum #topics tbody td:nth-child(1)[data-kr-pages-label]::after {
-    content: "· " attr(data-kr-pages-label);
+    content: attr(data-kr-pages-label) " ·";
     order: 13;
     color: var(--kr-text-secondary);
     font-size: var(--kr-font-detail);
@@ -13597,7 +13672,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   body.page-forum.kr-subforum #topics tbody td:nth-child(4) > a.nomargin::before {
-    content: "· par ";
+    content: "par ";
+  }
+
+  body.page-forum.kr-subforum #topics tbody tr:has(> td:first-child > span.tagforum a) > td:nth-child(4) > a.nomargin::after {
+    content: " ·";
   }
 
   body.page-forum.kr-subforum #topics tbody td:nth-child(4) > p {
@@ -13610,11 +13689,6 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 0 !important;
     color: var(--kr-text-secondary) !important;
     font-size: 0 !important;
-  }
-
-  body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum::before {
-    content: "· ";
-    font-size: var(--kr-font-detail);
   }
 
   body.page-forum.kr-subforum #topics tbody td:first-child > span.tagforum > i {
@@ -13639,7 +13713,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 }
 
-/* L4 — sujets permanents mobile (variante A) : une ligne de 44 px par sujet = cadenas, titre coupé par « … », NON LU, date du dernier message ; toute la ligne
+/* L4 — sujets permanents mobile (variante A, revue S21 n° 6) : deux lignes par sujet, cadenas et titre (entier, deux lignes au plus) puis NON LU ou
+   NOUVEAU MESSAGE et date du dernier message ; avant, pastille et date sur la ligne du titre le coupaient à une quinzaine de caractères. Toute la ligne
    mène au sujet (lien du titre étiré). Compteurs, auteur et pages restent dans le sujet : leurs cellules natives sont masquées, pas déplacées.
    Spécificité volontairement haute : les anciennes règles « cartes » des permanents (body.mobile-mode / body.page-forum .panel-default .table …) sont en !important. */
 @media (max-width: 767px) {
@@ -13667,12 +13742,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     position: relative;
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 2px 8px;
     min-height: var(--kr-touch-target) !important;
     margin: 0 !important;
-    padding: 0 12px !important;
+    padding: 8px 12px !important;
     border: 0 !important;
     border-bottom: 1px solid var(--kr-border-default) !important;
     border-left: 4px solid transparent !important;
@@ -13729,10 +13804,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     margin: 0;
   }
 
+  /* Titre sur toute la ligne (cadenas compris) : pastille et date passent dessous */
   html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a {
-    display: block !important;
+    display: -webkit-box !important;
     order: 1;
-    flex: 1 1 0 !important;
+    flex: 1 0 calc(100% - 32px) !important;
     min-width: 0 !important;
     min-height: 0 !important;
     margin: 0 !important;
@@ -13742,8 +13818,8 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-name) !important;
     line-height: 1.3 !important;
     text-decoration: none !important;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr > td:first-child > p > a::after {
@@ -13766,18 +13842,6 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     color: var(--kr-text-secondary) !important;
     font-size: var(--kr-font-detail) !important;
     white-space: nowrap;
-  }
-}
-
-/* L4 — permanents sur petit téléphone (< 480 px) : « NOUVEAU MESSAGE » sur une ligne prend ~130 px et ne laisse que 3 ou 4 lettres du titre à 320 px
-   (aucune pour un permanent verrouillé daté avec l'année). Le libellé est conservé en entier, replié sur deux lignes (« NOUVEAU / MESSAGE », ~75 px),
-   qui tiennent dans la ligne de 44 px. La liste #topics n'est pas concernée (sa pastille est sur la 2e ligne de texte). */
-@media (max-width: 479px) {
-  html body.page-forum.kr-subforum.mobile-mode .panel-default table.table > tbody > tr.kr-topic-newmsg > td:first-child > p > .kr-topic-badge {
-    width: min-content;
-    line-height: 1.2;
-    text-align: center;
-    white-space: normal;
   }
 }
 
@@ -14812,13 +14876,14 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     order: 12;
   }
 
-  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2)[data-kr-unit]::after,
-  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3)[data-kr-unit]::after {
-    content: " " attr(data-kr-unit);
+  /* Séparateur « · » en fin d'élément, comme au sous-forum (revue S21, n° 6) : quand la ligne passe à la ligne, la suivante ne commence
+     plus par « · » */
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(2)[data-kr-unit]::after {
+    content: " " attr(data-kr-unit) " ·";
   }
 
-  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3)::before {
-    content: "· ";
+  :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr > td:nth-child(3)[data-kr-unit]::after {
+    content: " " attr(data-kr-unit);
   }
 
   :where(html.kr-page-forum-index) #col-right .panel-default .table > tbody > tr:active {
@@ -15123,7 +15188,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     max-width: none !important;
     height: 44px !important;
     margin: 0 !important;
-    padding: 0 12px !important;
+
+    /* Revue S21, n° 13 : 8 px de retrait au lieu de 12, la barre tient sur un rang à 360 px (règle suivante pour les votes) */
+    padding: 0 var(--kr-space-2) !important;
     border-radius: var(--kr-radius-sm) !important;
     font-size: 14px !important;
     line-height: 1.2 !important;
@@ -15474,5 +15541,726 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Cartouche vidé par le déplacement du nom (Kramail:Lecture) */
   :where(html.kr-page-kramail-lecture) .user-info > .cartouche[hidden] {
     display: none;
+  }
+}
+
+/* ============================================================================
+   REVUE MOBILE GALAXY S21 (360 × 800, 16 variantes) : corrections du rapport du 31 octobre 2026
+   Chaque bloc renvoie au numéro du tableau « Corrections prioritaires » (n° 1 à 15) ou à la section du rapport.
+   ============================================================================ */
+
+/* N° 1 : lecture du kramail sous 400 px, « Répondre à tous » devient « À tous » (data-kr-libelle-court, Kramail:Lecture) et les boutons
+   libellés passent à 8 px de retrait : retour, Répondre, À tous et « ••• » tiennent sur un rang dès 320 px */
+@media (max-width: 399px) {
+  :where(html.kr-page-kramail-lecture) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn[data-kr-libelle] {
+    padding: 0 var(--kr-space-2);
+  }
+
+  :where(html.kr-page-kramail-lecture) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn[data-kr-libelle-court]::after {
+    content: attr(data-kr-libelle-court);
+  }
+}
+
+@media (max-width: 767px) {
+  /* N° 2 : liens du texte (messages du forum et du kramail, paragraphes, citations, blocs préformatés) en ligne, sans la hauteur de
+     44 px de la règle des cibles tactiles (PHASE 5), qui faisait de chaque lien un bloc et écartait sa ligne de ses voisines, ni le
+     retrait de 8 px des liens de panneau (commerce), dont la zone de toucher mordait, en ligne, sur le bouton de la ligne d'au-dessus.
+     Exclus, cibles de 44 px voulues : destinataires du kramail, paragraphes des cellules de tableau (nom d'un forum, d'un sujet : lien de
+     navigation, pas texte courant) et lien seul de son paragraphe (kr-lien-seul, Mobile:LiensSeuls). Étiquettes et pastilles en lien
+     (a.label, a.badge) en ligne aussi, avec leur retrait natif. */
+  :where(body.mobile-mode) :is(.forum-msg, p:not(.kr-msg-recipients, :is(td, th) p), pre, blockquote, dd) a:not(.btn, .list-group-item, .kr-lien-seul) {
+    display: inline !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
+  :where(body.mobile-mode) :is(.forum-msg, p:not(.kr-msg-recipients, :is(td, th) p), pre, blockquote, dd) a.label:not(.btn, .list-group-item, .kr-lien-seul) {
+    padding: 0.2em 0.6em 0.3em !important;
+  }
+
+  :where(body.mobile-mode) :is(.forum-msg, p:not(.kr-msg-recipients, :is(td, th) p), pre, blockquote, dd) a.badge:not(.btn, .list-group-item, .kr-lien-seul) {
+    display: inline-block !important;
+    padding: 3px 7px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* N° 4 : haut des pages mobiles. Retrait natif de #content (25 px) ramené à 8 px, colonne latérale vide (menus du site masqués en mobile :
+     hauteur minimale de 1 px de Bootstrap et marge basse de 15 px) sans hauteur, titre en tête de colonne sans marge haute : la bande vide
+     d'environ 40 px sous la barre disparaît (kramail, forum, contacts, pages de jeu). Accueil exclu (Ticket 29 : déjà sans retrait). Index
+     du forum exclu du titre sans marge : son titre garde les 12 px de celui du sous-forum (marge en ligne posée par le module du
+     sous-forum), même rendu sur les deux pages (L2). */
+  :where(html:not(.kr-page-accueil)) body.mobile-mode > #content.container {
+    padding-top: var(--kr-space-2);
+  }
+
+  body.mobile-mode > #content > .row > #col-left:not(:has(> :not(.list-group, .mini-submenu))) {
+    min-height: 0;
+    margin-bottom: 0 !important; /* socle des colonnes empilées : 15 px !important */
+  }
+
+  :where(html:not(.kr-page-forum-index)) body.mobile-mode #col-right > h1.page-header:first-child {
+    margin-top: 0 !important;
+  }
+
+  /* N° 1 (finition) : icônes du menu « ••• » du kramail sur une même largeur, libellés alignés */
+  body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > .btn-group > .dropdown-menu > li > a > i:first-child {
+    flex-shrink: 0;
+    width: 1.25em;
+    text-align: center;
+  }
+}
+
+/* N° 6 : effacement du chevron de la barre de tri du sous-forum en fin de défilement */
+@keyframes kr-tri-fin {
+  0%,
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  /* N° 5 : menu de navigation ouvert dans l'écran. Le conteneur de la barre n'a pas de retrait intérieur en mobile : les marges négatives
+     de Bootstrap (.container > .navbar-collapse, −15 px) décalaient le panneau de 15 px vers la gauche et laissaient voir la page à droite. */
+  :where(body.mobile-mode) .navbar > .container > .navbar-collapse {
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  /* N° 7 : bordure des champs en thème clair (--kr-field-border, au moins 3:1), focus et erreurs exclus : champs, recherche et « Afficher »
+     des listes, destinataires du kramail, cadre de l'éditeur (barre d'outils et zone de saisie, filet intérieur gardé discret). */
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) .form-control.form-control:not(:focus),
+  :where(html:not([class*="-dark"])) body.page-kramail-compose:where(.mobile-mode) form[name="post_msg"] .kd-field:not(.is-focus, .is-invalid),
+  :where(html:not([class*="-dark"])) body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .btn-toolbar.kr-tools-ready {
+    border-color: var(--kr-field-border);
+  }
+
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) :is(.dataTables_filter input, .dataTables_length select):not(:focus) {
+    border-color: var(--kr-field-border) !important;
+  }
+
+  :where(html:not([class*="-dark"])) body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .btn-toolbar.kr-tools-ready {
+    border-bottom-color: var(--kr-border-default);
+  }
+
+  /* N° 7 (suite) : texte indicatif des champs en couleur secondaire, au moins 4,5:1 dans les 16 variantes (2,7 à 3,1:1 avant) */
+  body:where(.mobile-mode) :is(.form-control, .dataTables_filter input).form-control::placeholder,
+  body:where(.mobile-mode) .dataTables_filter input::placeholder {
+    color: var(--kr-text-secondary);
+    opacity: 1;
+  }
+
+  /* N° 8 : croix des alertes dans la couleur du texte de l'alerte (Bootstrap : opacité de 20 %, 1,5:1 en clair et 1,8:1 en sombre) */
+  :where(body.mobile-mode) .alert .close,
+  :where(body.mobile-mode) .alert .close:is(:hover, :focus) {
+    color: inherit;
+    text-shadow: none;
+  }
+
+  :where(body.mobile-mode) .alert .close {
+    opacity: 0.75;
+  }
+
+  :where(body.mobile-mode) .alert .close:is(:hover, :focus) {
+    opacity: 1;
+  }
+
+  /* N° 8 (suite) : alertes en tête de colonne du forum (« Bienvenue », « Sujet bloqué ») à 8 px des bords, comme les cartes */
+  :where(html.kr-page-forum) :where(body.mobile-mode) #col-right > .alert {
+    margin-right: var(--kr-space-2);
+    margin-left: var(--kr-space-2);
+  }
+
+  /* N° 9 : une seule icône de repli. Les chevrons natifs (span.clickable > i.glyphicon) prennent celle des sections converties
+     (.accordion-icon) : chevron Font Awesome de 14 px en couleur secondaire, centré sur la ligne du titre, dans une cible de 44 x 44 dont
+     le glyphe finit à 16 px du bord de la carte, comme l'icône convertie. Les sous-forums et l'index gardent leur marge propre. */
+  body.mobile-mode .panel > .panel-heading > span.clickable {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--kr-touch-target);
+    min-height: var(--kr-touch-target);
+    margin: 0 -16px 0 auto;
+    cursor: pointer;
+  }
+
+  body.mobile-mode .panel > .panel-heading > span.clickable > i.glyphicon {
+    top: 0;
+    color: var(--kr-text-secondary) !important;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Police du chevron portée par l'icône elle-même, pas seulement par son glyphe : sa boîte a alors la hauteur de l'icône convertie */
+  body.mobile-mode .panel > .panel-heading > span.clickable > i.glyphicon:is(.glyphicon-chevron-up, .glyphicon-chevron-down) {
+    font-family: "Font Awesome 5 Free", sans-serif;
+    font-weight: 900;
+  }
+
+  body.mobile-mode .panel > .panel-heading > span.clickable > i.glyphicon:is(.glyphicon-chevron-up, .glyphicon-chevron-down)::before {
+    font-family: "Font Awesome 5 Free", sans-serif;
+    font-weight: 900;
+    content: "\f077";
+  }
+
+  body.mobile-mode .panel > .panel-heading > span.clickable > i.glyphicon.glyphicon-chevron-down::before {
+    content: "\f078";
+  }
+
+  /* N° 10 : modale d'ordre. Titre sans texte (image seule de l'ordre, kr-order-titre-image posé par applyOrderModal) dans la rangée de la
+     croix, sans bandeau (72 px avant) ; onglet seul masqué (« Dormir » écrit deux fois de suite) ; « [?] » accolé au titre de la section
+     au lieu de flotter seul à droite. */
+  body.mobile-mode .bootbox.modal.kr-order-modal form > h3.kr-order-titre-image {
+    min-height: 0 !important;
+    margin: 0 0 var(--kr-space-2) !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+  }
+
+  /* L'en-tête des onglets porte un display: block !important en ligne (chaîne mobile des modales) : il est réduit à zéro, pas retiré. */
+  body.mobile-mode .bootbox.modal.kr-order-modal .panel.with-nav-tabs > .panel-heading:has(> ul.nav-tabs > li:only-child) {
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-width: 0 !important;
+    visibility: hidden !important;
+  }
+
+  body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane > h4:has(> .mention.pull-right) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--kr-space-2);
+  }
+
+  body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane > h4 > .mention.pull-right {
+    order: 1;
+    float: none !important;
+    margin: 0;
+  }
+
+  /* N° 10 (suite) : Bootbox donne le focus à « Valider » à l'ouverture ; l'anneau natif de 2 px (noir en clair, blanc en sombre) se lisait
+     comme une bordure. Au toucher, aucun anneau ; au clavier, un halo de la nation. */
+  :where(body.mobile-mode) .bootbox.modal.kr-order-modal .modal-footer .btn:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :where(body.mobile-mode) .bootbox.modal.kr-order-modal .modal-footer .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--kr-primary) 40%, transparent) !important;
+  }
+
+  /* N° 11 : rédaction du kramail, retours libellés (« Réception », « Message ») au lieu de deux carrés ◀◀ identiques. Sous 360 px, l'icône
+     seule revient (règle suivante) : le titre garde sa place. */
+  :where(html.kr-page-kramail-compose) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn {
+    width: auto !important;
+    gap: var(--kr-space-1);
+    padding: 0 var(--kr-space-2) !important;
+    font-size: var(--kr-font-button) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-kramail-compose) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn > i {
+    font-size: 14px !important;
+  }
+
+  /* N° 13 : rédaction du forum (Répondre, Nouveau sujet), bouton de retour centré sur la ligne du titre au lieu de déborder sous son filet,
+     icône séparée du mot (« ◀◀ sujet ») */
+  :where(html.kr-page-forum) body.mobile-mode #col-right > h1.page-header:not(.forum-thread-heading):has(> .pull-right > a.btn) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode #col-right > h1.page-header:not(.forum-thread-heading) > .pull-right {
+    flex: 0 0 auto;
+  }
+
+  :where(html.kr-page-forum) body.mobile-mode #col-right > h1.page-header > .pull-right > a.btn {
+    gap: var(--kr-space-1);
+  }
+
+  /* N° 13 : zone de saisie des messages dans la police du site (la chasse fixe du socle mobile se lisait mal, forum et kramail) */
+  body.mobile-mode textarea.form-control {
+    font-family: inherit;
+  }
+
+  /* N° 13 : filets des titres de page dans la bordure du thème (Bootstrap : #eee, presque blanc en sombre ; sujet, rédaction, Interface,
+     Statistiques, Aide, cartes de ville) */
+  :where(body.mobile-mode) .page-header {
+    border-bottom-color: var(--kr-border-default);
+  }
+
+  /* N° 13 : en-tête du sujet, « Par Nerys » séparé de l'icône des messages (spans natifs accolés, sans espace) */
+  :where(body.page-forum.kr-forum-sujet.mobile-mode) #col-right .forum-top > span:not(.pull-right, :empty) + span:not(.pull-right) {
+    margin-left: var(--kr-space-3);
+  }
+
+  /* N° 13 : barre d'actions des messages sur un rang à 360 px (score, pouces, Répondre et « ••• » : 330 px pour 314 avant ; retrait des
+     boutons ramené à 8 px dans leur règle d'origine, 6 px pour les pouces, qui restent d'au moins 48 × 44 px : avec les icônes du site et
+     un score à un chiffre, la barre tient en 305 à 311 px) ; sous 360 px, elle passe sur deux rangs comme avant (« Répondre » garde son
+     libellé) */
+  body.mobile-mode ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right a[href^="javascript:updateAjax"] {
+    min-width: 48px !important;
+    padding-right: 6px !important;
+    padding-left: 6px !important;
+  }
+
+  /* N° 13 : sujet fermé, « Nouveau sujet » seul : à sa largeur en haut comme en bas (la barre du bas réserve 52 px au bouton « Remonter ») */
+  :where(body.mobile-mode) .forum-thread-actions:not(:has(.forum-thread-action-reply)) > .forum-thread-action {
+    flex: 0 1 auto;
+  }
+
+  /* N° 13 : racine et index, titre de carte identique au titre de la page (kr-titre-repete, ForumIndex:Presentation) masqué avec son
+     chevron ; le corps reste ouvert (un repli mémorisé ne le cache pas sans moyen de le rouvrir) */
+  :where(html.kr-page-forum-index) :where(body.mobile-mode) #col-right > .panel > .panel-heading.kr-titre-repete {
+    display: none !important;
+  }
+
+  :where(html.kr-page-forum-index) :where(body.mobile-mode) #col-right > .panel > .panel-heading.kr-titre-repete ~ .panel-body {
+    display: block !important;
+  }
+
+  /* Kramail, lecture : « posté » aligné sur « Citoyen ». L'icône native fa-clock-o (nom Font Awesome 4) n'a pas de glyphe en 5 : son
+     espace décalait la ligne ; elle prend l'horloge du forum (far fa-clock). */
+  :where(html.kr-page-kramail-lecture) :where(body.mobile-mode) li.media .media-body > .btn-group > .btn > i.fa-clock-o::before {
+    font-family: "Font Awesome 5 Free", sans-serif;
+    font-weight: 400;
+    content: "\f017";
+  }
+
+  /* Contacts : une ligne par contact (60 px au lieu de 120). Case, nom sur une ligne (ellipse), catégorie, kramail et retrait côte à côte
+     dans la carte, sans défilement horizontal ; la carte de profil (même lien que le nom) est retirée ; en-têtes des colonnes à icône
+     sans libellé (ils élargissaient le tableau). */
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > :is(thead, tbody) > tr > :is(th, td) {
+    padding: var(--kr-space-2) 2px !important;
+    vertical-align: middle !important;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > :is(thead, tbody) > tr > :is(th, td):first-child {
+    width: 44px !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    text-align: center;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > tbody > tr > td:nth-child(2) {
+    width: 100%;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > tbody > tr > td:nth-child(2) > a {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    line-height: var(--kr-touch-target);
+    text-overflow: ellipsis;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > tbody > tr > td:nth-child(4) {
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > tbody > tr > td:nth-child(4) > a.btn[href*="communaute/membres/"] {
+    display: none !important;
+  }
+
+  :where(html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > thead > tr > th:nth-child(n+3) {
+    font-size: 0 !important;
+  }
+
+  /* Cases à cocher des listes (kramail, contacts) : 24 px au lieu de 20 ; toute leur cellule de 44 px les coche déjà (cocherAuToucher) */
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) :where(body.mobile-mode) #col-right #topics > tbody > tr > td:first-child input[type="checkbox"] {
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    accent-color: var(--kr-primary);
+  }
+}
+
+/* N° 11 sous 360 px : retours de la rédaction du kramail en icône seule, comme avant la revue (les deux libellés ne tiennent pas à côté du
+   titre), mais deux icônes distinctes au lieu de deux ◀◀ : boîte de réception pour le dossier, enveloppe ouverte pour le message
+   (kramail/post/…). « Répondre » sous un message garde son libellé (messages-v3) : la barre passe sur deux rangs, comme avant. */
+@media (max-width: 359px) {
+  :where(html.kr-page-kramail-compose) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn {
+    width: 44px !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  :where(html.kr-page-kramail-compose) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn > i.fa-backward::before {
+    content: "\f01c";
+  }
+
+  :where(html.kr-page-kramail-compose) body.page-kramail:where(.mobile-mode) h1.page-header .pull-right > a.btn[href*="kramail/post/"] > i.fa-backward::before {
+    content: "\f2b6";
+  }
+}
+
+@media (max-width: 767px) {
+  /* N° 4 et 14 : actions rapides du plateau. Sans la marge basse du socle des groupes de boutons (8 px, rangée de 72 px pour des boutons de
+     64), ni l'ombre des boutons pleins (rosée en clair sous la rangée) ; libellés en 13 px au lieu de 12 */
+  body.mobile-mode .mobile-quick-actions > .btn-group > .mobile-quick-action.btn {
+    margin-bottom: 0 !important;
+  }
+
+  body.mobile-mode .mobile-quick-actions > .btn-group > .mobile-quick-action.btn:not(:active) {
+    box-shadow: none !important;
+  }
+
+  body.mobile-mode .mobile-quick-action .mobile-quick-action-label {
+    font-size: var(--kr-font-detail) !important;
+  }
+
+  /* N° 4 et 14 : mini-profil replié resserré (115 px à environ 90). Retrait vertical de 8 px ; le bouton de gestion (44 px) occupe la
+     hauteur du nom et de la ligne de l'argent, au lieu de fixer à lui seul la hauteur du nom. */
+  body.mobile-mode .mobile-mini-profile {
+    padding-top: var(--kr-space-2);
+    padding-bottom: var(--kr-space-2);
+  }
+
+  body.mobile-mode .mobile-mini-profile-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--kr-space-2);
+  }
+
+  body.mobile-mode .mobile-mini-profile-info > .mobile-mini-profile-name-row {
+    display: contents !important;
+  }
+
+  body.mobile-mode .mobile-mini-profile-name {
+    grid-area: 1 / 1;
+  }
+
+  body.mobile-mode .mobile-mini-profile-money {
+    grid-area: 2 / 1;
+  }
+
+  /* N° 14 : roue dentée et horloge en icônes Font Awesome (au lieu d'émojis) aux couleurs du thème : la roue garde la couleur de nation
+     du bouton natif (alert100), l'horloge la couleur secondaire du texte */
+  body.mobile-mode .mobile-mini-profile-manage-btn {
+    grid-area: 1 / 2 / span 2;
+    margin: 0 calc(-1 * var(--kr-space-2)) 0 0 !important;
+    font-size: 18px !important;
+  }
+
+  body.mobile-mode .mobile-mini-profile-clock {
+    font-size: var(--kr-font-detail) !important;
+  }
+
+  body.mobile-mode .mobile-mini-profile-clock > i {
+    margin-right: 2px;
+  }
+
+  /* N° 14 : jauges compactes de 6 px utiles (8 px avec le filet, 4 px avant), libellés et valeurs en 13 px ; masquées une fois le
+     mini-profil déplié, où le bloc détaillé les reprend (jauges montrées deux fois) */
+  body.mobile-mode .mobile-mini-profile-gauges-compact {
+    margin-top: 0 !important;
+  }
+
+  body.mobile-mode .mobile-mini-profile-gauges-compact,
+  body.mobile-mode .mobile-gauge-compact-label,
+  body.mobile-mode .mobile-gauge-compact-value,
+  body.mobile-mode .mobile-gauge-full-header {
+    font-size: var(--kr-font-detail) !important;
+  }
+
+  body.mobile-mode .mobile-gauge-compact-bar {
+    height: 8px !important;
+  }
+
+  body.mobile-mode .mobile-mini-profile.expanded > .mobile-mini-profile-gauges-compact {
+    display: none !important;
+  }
+
+  /* Bloc détaillé sans jauge (personnage sans PV, PM ni PP lus) : pas de cadre vide */
+  body.mobile-mode .mobile-mini-profile-gauges-full:empty {
+    display: none !important;
+  }
+
+  /* Onglet Agir (section Plateau du rapport) : jauges PV, PM et PP du panneau aux couleurs de celles du mini-profil, reste fondu dans la
+     piste (règle H5.4 du bureau, au lieu du vert et de l'orange de Bootstrap, lus comme une alerte) */
+  :where(body.mobile-mode) #player-vitals-section .progress {
+    background-color: var(--kr-gauge-track);
+  }
+
+  :where(body.mobile-mode) #player-vitals-section .col-sm-4:has(.alert141) + .col-sm-8 .progress > .progress-bar:first-child {
+    background-color: var(--kr-gauge-pv);
+  }
+
+  :where(body.mobile-mode) #player-vitals-section .col-sm-4:has(.alert142) + .col-sm-8 .progress > .progress-bar:first-child {
+    background-color: var(--kr-gauge-pm);
+  }
+
+  :where(body.mobile-mode) #player-vitals-section .col-sm-4:has(.alert143) + .col-sm-8 .progress > .progress-bar:first-child {
+    background-color: var(--kr-gauge-pp);
+  }
+
+  :where(body.mobile-mode) #player-vitals-section .progress > .progress-bar:not(:first-child) {
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  /* Anneau du minuteur : palier posé par handleDualLapClock (data-kr-clock) dans la palette d'états du thème, comme le cercle des PV des
+     cartes (--kr-pv-1 à 4), au lieu du vert lime, du vert clair, de l'or, de l'orange et du rouge en dur. Le second tour garde son anneau. */
+  :where(body.mobile-mode) .c100:is([data-kr-clock="excellent"], [data-kr-clock="bon"]) {
+    --clock-color: var(--kr-pv-1) !important;
+  }
+
+  :where(body.mobile-mode) .c100[data-kr-clock="moyen"] {
+    --clock-color: var(--kr-pv-2) !important;
+  }
+
+  :where(body.mobile-mode) .c100[data-kr-clock="attention"] {
+    --clock-color: var(--kr-pv-3) !important;
+  }
+
+  :where(body.mobile-mode) .c100[data-kr-clock="critique"] {
+    --clock-color: var(--kr-pv-4) !important;
+  }
+}
+
+/* N° 12 : ligne de version du pied de page. Pied sombre (footer.navbar-inverse, rgb(17, 19, 21)) en clair : texte en gris discret
+   (--kr-text-muted, 7,1:1 au lieu de 3,4:1) ; le pied transparent des pages de jeu garde --kr-text-secondary (5,4:1 sur blanc). Numéro de
+   dernière version dans la couleur de la ligne (couleur de la nation avant, jusqu'à 1,4:1 en Paradigme Vert) ; couleur d'alerte seulement
+   si une mise à jour existe (kr-maj-disponible, displayVersionInfo) : danger du thème, rouge clair sur le pied sombre en clair. En sombre,
+   la ligne garde --kr-text-secondary (7,6 à 9,9:1). */
+@media (max-width: 767px) {
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version {
+    color: var(--kr-text-muted) !important;
+  }
+
+  :where(body.mobile-mode) .kraland-css-version span span {
+    color: inherit !important;
+  }
+
+  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible,
+  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible span {
+    color: var(--kr-danger) !important;
+  }
+
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible,
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible span {
+    color: var(--kr-footer-alert) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Pied de page : citation manuscrite en 21 px (28 px avant, sur un interligne de 24 px : environ 100 px sur quatre lignes à 360 px ;
+     70 px sur trois lignes pour la même citation) */
+  :where(body.mobile-mode) footer .footer-quote {
+    font-size: 21px;
+    line-height: 22px;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Accueil (section du rapport) : avatar de Bienvenue à 16 px du bord droit de sa carte, comme le texte à gauche (right: .75rem des règles
+     communes de .ds_user : 7,5 px avec la racine de 10 px de Bootstrap) */
+  :where(html.kr-page-accueil) body.mobile-mode #col-t > .ds_user > .pull-right {
+    right: var(--kr-space-4) !important;
+  }
+
+  /* « Ce message a été modifié » : 8 px avant le bord droit (flottant natif à la largeur du texte, aligné à droite, sans retrait à droite :
+     le texte touchait le bout des filets) */
+  :where(html.kr-page-accueil) body.mobile-mode #col-right > .panel-default .genmsg {
+    padding-right: var(--kr-space-2);
+  }
+}
+
+@media (max-width: 767px) {
+  /* Contrastes (section du rapport) : textes discrets de Bootstrap et du site (#777 : 4,48:1 sur blanc, 3,4 à 4,4:1 en sombre) en couleur
+     secondaire du thème : dates des nouvelles de l'accueil, bilans [PA] des notifications, auteur d'une citation (aide), messages .genmsg
+     (date de modification d'un message, texte de la carte du monde). Un .genmsg qui enveloppe une grille (.container : panneaux
+     Information et Fonctionnaires du Cybermonde) n'est pas un message : ses panneaux gardent la couleur de leur texte. */
+  body.mobile-mode :is(.text-muted, .genmsg, blockquote footer, blockquote small, blockquote .small):where(:not(.genmsg:has(.container))) {
+    color: var(--kr-text-secondary);
+  }
+
+  /* Couleurs natives des notifications (<font color> du serveur) à 4,5:1 au moins, même teinte : en clair, plus foncées sur blanc (gris
+     3,95:1, jaune 1,95:1, orange, fuchsia, olive, vert clair, bleu clair : 2,8 à 4,4:1) */
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="gray" i], [color="#808080"], [color="808080"]) {
+    color: #6e6e6e;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="#f4ac00" i], [color="f4ac00" i]) {
+    color: #926700;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="#f77400" i], [color="f77400" i]) {
+    color: #b25400;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="#ed6161" i], [color="ed6161" i]) {
+    color: #b84848;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="olive" i], [color="#808000"], [color="808000"]) {
+    color: #737300;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="#219c5a" i], [color="219c5a" i]) {
+    color: #1a7d48;
+  }
+
+  :where(html.kr-page-report:not([class*="-dark"])) body.mobile-mode font:is([color="#5577bc" i], [color="5577bc" i]) {
+    color: #4e6dad;
+  }
+
+  /* En sombre, sur le fond de page : bleu, marine et indigo des règles globales (#55f, #55c, #85c : 3,2 à 3,8:1) éclaircis. Sélecteurs plus
+     spécifiques que les règles globales (!important elles aussi). */
+  html.kr-page-report[class*="-dark"] body.mobile-mode font:is([color="#2b2be4" i], [color="2b2be4" i]) {
+    color: #8181ff !important;
+  }
+
+  html.kr-page-report[class*="-dark"] body.mobile-mode font[color="navy" i] {
+    color: #8585da !important;
+  }
+
+  html.kr-page-report[class*="-dark"] body.mobile-mode font:is([color="#4b0082" i], [color="4b0082" i]) {
+    color: #a57ed8 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Pages secondaires (section du rapport). Texte justifié (.justify du site) aligné à gauche : sur une colonne de 328 px, la justification
+     creusait des trous entre les mots (Règles, Histoire) */
+  body.mobile-mode .justify {
+    text-align: left;
+  }
+
+  /* Tableaux en bloc défilant (règle mobile des tableaux de #col-right) qui tiennent dans leur colonne, pages secondaires et de jeu :
+     présentation de tableau sur toute la largeur (kr-table-pleine, Mobile:Tableaux) au lieu d'une table resserrée sur son contenu
+     (Organisations, Citoyenneté) */
+  :where(html:is(.kr-page-secondaire, .kr-page-jeu)) body.mobile-mode #col-right table.kr-table-pleine:not(.dataTable) {
+    display: table !important;
+    width: 100% !important;
+  }
+
+  /* Cellules des pages secondaires centrées verticalement : texte aligné sur les boutons et liens de 44 px de la ligne (Organisations,
+     Fonctionnaires) ; mot très long coupé dans sa cellule au lieu d'élargir tout le tableau (Événements). Les en-têtes gardent leurs mots
+     entiers : coupés à tout caractère, « Niveau » et « Salaire » des Bâtiments du Cybermonde passaient sur deux lignes. */
+  :where(html.kr-page-secondaire) body.mobile-mode .table > :is(thead, tbody, tfoot) > tr > :is(td, th) {
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .table > :is(thead, tbody, tfoot) > tr > th {
+    overflow-wrap: normal;
+  }
+
+  /* Filtres des Événements (liste latérale qui porte un formulaire, seule gardée en mobile) : carte de section comme les autres (n° 3),
+     fond surface, arrondi et contour du thème en clair (aucun en sombre), à sa place ; la case « Mes événements » à 12 px du bord de la
+     carte, comme les champs */
+  :where(html.kr-page-secondaire) body.mobile-mode #col-left > .list-group:has(> form) {
+    background: var(--kr-bg-surface);
+    border-radius: var(--kr-radius-md);
+    box-shadow: var(--kr-card-shadow);
+    overflow: hidden;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode #col-left > .list-group:has(> form) > form > .center {
+    padding: 0 var(--kr-space-3);
+  }
+
+  /* Colonnes resserrées (Mobile:Tableaux) : une colonne d'icônes ou de boutons seuls prend sa largeur au lieu d'une part de la place
+     en trop du tableau à 100 % (icône de Citoyenneté dans 90 px) ; une colonne de mots courts (date des Événements) reste sur une
+     ligne, que la coupure à tout caractère réduisait à quelques signes par ligne */
+  :where(html.kr-page-secondaire, html.kr-page-jeu) body.mobile-mode table > tbody > tr > .kr-colonne-icone {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-secondaire, html.kr-page-jeu) body.mobile-mode table > tbody > tr > .kr-colonne-courte {
+    white-space: nowrap;
+  }
+
+  /* Barre du Cybermonde et de la Carte : sélecteurs sans double cadre (le lien qui les porte perd cadre, fond et retrait) et à 44 px comme
+     les onglets voisins ; tous les éléments de la barre, séparés par un espace, prennent le même arrondi */
+  :where(body.mobile-mode) .center > ul.pagination:has(select) > li > a:has(> select) {
+    padding: 0 !important;
+    border-width: 0 !important;
+    background-color: transparent !important;
+  }
+
+  :where(body.mobile-mode) .center > ul.pagination:has(select) > li > a {
+    border-radius: var(--kr-radius-sm) !important;
+  }
+
+  :where(body.mobile-mode) .center > ul.pagination:has(select) select {
+    height: var(--kr-touch-target) !important;
+  }
+
+  :where(html:not([class*="-dark"])) :where(body.mobile-mode) .center > ul.pagination:has(select) select {
+    border-color: var(--kr-field-border) !important;
+  }
+
+  /* Recherche des règles : bouton « ok » accolé au champ (il passait seul sous le champ, flottant à droite) */
+  :where(html.kr-page-secondaire) body.mobile-mode form[name="recherche"]:has(> input.form-control + button.btn) {
+    display: flex;
+    align-items: stretch;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode form[name="recherche"] > input.form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode form[name="recherche"] > input.form-control + button.btn {
+    flex: 0 0 auto;
+    float: none !important;
+    height: auto !important;
+    min-height: var(--kr-touch-target);
+    margin: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
+
+  /* Compte (fiche du membre en édition) : crayons de modification après le texte de chaque ligne. reorderBtnGroupXs les place avant la
+     valeur, donc après les libellés « Nom : » et « Sexe : » mais en tête des autres lignes : bord gauche irrégulier */
+  :where(html.kr-page-members) body.mobile-mode :is(span, div)[id^="ajax-"]:not([id^="ajax-av"]):has(> span.btn-group-xs > a[href^="javascript:updateAjax"]) {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 var(--kr-space-2);
+  }
+
+  :where(html.kr-page-members) body.mobile-mode div[id^="ajax-"]:not([id^="ajax-av"]):has(> span.btn-group-xs > a[href^="javascript:updateAjax"]) {
+    display: flex;
+  }
+
+  :where(html.kr-page-members) body.mobile-mode [id^="ajax-"] > span.btn-group-xs:has(> a[href^="javascript:updateAjax"]) {
+    order: 1;
+  }
+
+  /* Citations (aide) : l'auteur (blockquote > footer) prenait la hauteur minimale du pied de page du site (52 px) et, en sombre, son fond et
+     son filet (règle html[class*="-dark"] footer) : une boîte vide sous le nom */
+  body.mobile-mode blockquote footer {
+    min-height: 0;
+    border-top: 0;
+    background-color: transparent;
+  }
+
+  /* Bloc préformaté (aide) aux couleurs du thème sombre (Bootstrap : fond #f5f5f5, texte #333) */
+  html[class*="-dark"] body.mobile-mode pre {
+    border-color: var(--kr-border-default);
+    background-color: var(--kr-bg-elevated);
+    color: var(--kr-text-primary);
   }
 }

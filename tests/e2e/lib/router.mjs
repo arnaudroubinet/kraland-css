@@ -126,7 +126,11 @@ export const SUITES = [
   // de 320 à 767 px, marge, cibles de 44 px, cartes de section et échelle (E10.1-E10.4), contraste des 16 variantes à 375 px, bascule
   // 767/768 ; de 768 à 1920 px, textes égaux au bundle de base e2bcdd1 (trois colonnes à partir de 992 px) ; carrousel affiché sur option ;
   // finitions (entrée 6) : drapeaux et image du message à leur taille réelle, icône du .genmsg, défileur sans vide, avatar à distance des bords.
-  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['ministre'], ['finitions'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte'], ['defileur'], ['jouer']], needsBootstrap: true }
+  { name: 'accueil-mobile', file: 'accueil-mobile.mjs', zones: ['accueil-mobile'], frags: [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['ministre'], ['finitions'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte'], ['defileur'], ['jouer']], needsBootstrap: true },
+  // Revue mobile Galaxy S21 (rapport du 31 octobre 2026) : une vérification par constat corrigé, émulation S21 (360 × 800, tactile), feuilles
+  // natives du site (vendor/parler) ; rouge sur le bundle d'avant la revue (f404965), vert après. Repères déjà cités par trois suites tenus
+  // dans lib/revue-s21.mjs (MAX_CITING). Fragments = constats du rapport.
+  { name: 'revue-s21', file: 'revue-s21.mjs', zones: ['revue-s21'], frags: [['kramail'], ['liens'], ['cartes'], ['haut'], ['navigation'], ['sous-forum'], ['champs'], ['alertes'], ['chevrons'], ['ordre'], ['pied'], ['forum'], ['mini-profil'], ['palette'], ['contrastes'], ['secondaires']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)

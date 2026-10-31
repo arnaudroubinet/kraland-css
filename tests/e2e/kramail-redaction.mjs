@@ -27,6 +27,7 @@ import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
+import { AVANT_REVUE_S21, sansClassesRevueS21 } from './lib/revue-s21.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 import { CORRIGER_BUG26 } from './lib/variantes.mjs';
 
@@ -35,7 +36,8 @@ const root = path.resolve(here, '../..');
 const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 // Bundle « avant » : base figée (A9) 7bec452, feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12), sauf
-// KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure.
+// KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure (captures mobiles différées
+// tant que la base précède la revue S21, DIFFERE_S21).
 const BASE_SHA = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
 // Écart voulu du bug 26 du backlog (réserve de 52 px sous le pied mobile seulement bouton « Remonter en haut » affiché) : base corrigée
 // par CORRIGER_BUG26.
@@ -1293,8 +1295,14 @@ if (frag('indicatif')) {
 // =====================================================================================================
 // 7) Non-régression des autres pages Kramail : rendu identique avant / après (pixel à pixel) et aucun ajout
 // =====================================================================================================
+// Écart accepté et consigné (revue S21) : en mobile, la revue change ces quatre pages (haut des pages, n° 4 ; cartes détourées en clair,
+// n° 3 ; boutons de la lecture sur un rang, n° 1 ; bordure des champs de la liste, n° 7 ; cases de 24 px ; pied, n° 12). Tant que la base
+// précède la revue, captures mobiles (375 et 320 px) différées, DOM comparé hors classes de la revue ; 1280 px comparé en entier.
+// Contrôles absolus de la revue : revue-s21.mjs. Retrait au recalage de BASE_SHA au-delà de la revue.
+const DIFFERE_S21 = !!AVANT && AVANT_REVUE_S21(AVANT);
 if (frag('regression')) {
   console.log('Non-régression : réception, envoi, corbeille, lecture rendues avec le bundle d\'avant et celui d\'après (1280 / 375 / 320)');
+  if (DIFFERE_S21) { console.log('  info : base d\'avant la revue S21, captures mobiles (375 et 320 px) différées, DOM comparé hors classes de la revue'); }
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
   if (!AVANT) {
@@ -1342,12 +1350,15 @@ if (frag('regression')) {
     });
     for (const [i, { pg, width }] of COMBOS.entries()) {
       const { doms, diffs, sizes } = compared[i];
-      if (!diffs.identique) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
-      check(`${pg} ${width} px : rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module, aucune erreur`, () => {
+      const differe = DIFFERE_S21 && width < 768;
+      if (!diffs.identique && !differe) { console.log(`  note ${pg} ${width} px : captures non identiques octet pour octet, écart mesuré ${JSON.stringify(diffs)}`); }
+      check(`${pg} ${width} px : ${differe ? 'aucun élément ni classe du module, DOM égal hors classes de la revue (capture différée, revue S21)' : 'rendu identique avant / après (capture pleine page octet pour octet), aucun élément ni classe du module'}, aucune erreur`, () => {
         assert.equal(doms.apres.kd, 0);
-        assert.deepEqual({ ...doms.apres, unexpected: undefined }, { ...doms.avant, unexpected: undefined }, JSON.stringify([doms.avant, doms.apres]));
+        // Mobile différé : nombre d'éléments, débordement et erreurs comparés ; classes sans celles de la revue
+        const vue = d => (differe ? { ...d, unexpected: undefined, html: sansClassesRevueS21(d.html), body: sansClassesRevueS21(d.body) } : { ...d, unexpected: undefined });
+        assert.deepEqual(vue(doms.apres), vue(doms.avant), JSON.stringify([doms.avant, doms.apres]));
         assert.deepEqual(doms.apres.unexpected, []);
-        assert.ok(pixelsEquivalent(diffs), `captures différentes (${sizes[0]} / ${sizes[1]} octets) : ${JSON.stringify(diffs)}`);
+        if (!differe) { assert.ok(pixelsEquivalent(diffs), `captures différentes (${sizes[0]} / ${sizes[1]} octets) : ${JSON.stringify(diffs)}`); }
       });
     }
   }
