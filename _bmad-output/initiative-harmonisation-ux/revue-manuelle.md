@@ -1393,3 +1393,11 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - En sombre, `--kr-border-tint` vaut `rgba(255, 255, 255, 0.08)` (alias de `--kr-border-default`) : le filet n'est qu'un éclaircissement de 8 % de la piste. Mesuré 1,39:1 à 1,48:1. Si ce n'est pas assez visible, il faudra un autre jeton (par exemple `--kr-border-strong` s'il existe, ou une teinte opaque), hors du choix « border-tint » tranché le 2026-10-30.
 - Capture demandée : mini-profil mobile du plateau à 375 px, plié puis déplié, en Kraland clair et en Empire Brun sombre, pour juger le filet à l'œil (relevé du 2026-10-30 : 1,14:1 sans filet en Empire Brun sombre).
 - Tests : nouveau fragment `palette-nation#jauges-filet` (base 036c832). `typographie-formes#nettoyage` écarte, en mode mobile seulement, les bordures des pistes et la géométrie du remplissage (`IGNORER_JAUGES`).
+
+## Ticket backlog 24 — contrôle absolu des titres de modale et d'accordéon, `.xmini` et liens du pied (in-review, 2026-10-31)
+
+- Ticket de tests seuls : nouveau contrôle dans le fragment `typographie-formes#echelle`. Matériel, sous-forum et kramail, Kraland clair et Empire Brun sombre, à 375, 767, 768 et 1280 px (24 cas).
+- Valeurs relevées sur 77f0aba et écrites en dur. Mobile : titre de modale 15 px / 500, titre d'accordéon 14 px / 500. Ordinateur : modale 18 px / 500, accordéon 16 px / 500 (valeurs Bootstrap, non retouchées par la peau). `.xmini` et `footer a` en 12 px. Les titres de modale et d'accordéon ne sont pas à 17 px comme les en-têtes de panneau : c'est le rendu actuel accepté par le ticket, pas une décision de DESIGN.md.
+- `.xmini` : aucune des trois fixtures n'en porte (le miroir retiré n'en mesurait donc aucun). Le test pose une sonde `span.xmini` dans la page : il vérifie la règle générale `.xmini`, pas les contextes réels (étiquette PNJ `.btn.btn-danger.xmini`, `.mention .xmini` du Commerce). Une régression limitée à l'un de ces contextes passerait. Capture demandée : une page réelle portant un `.xmini` hors étiquette PNJ, pour en dériver une fixture si tu veux un contrôle en contexte.
+- `footer a` : mesuré sur Matériel (1 lien) et kramail (2 liens) ; le pied du sous-forum n'a pas de lien.
+- Contre-épreuve : 6 bundles mutés (taille ou graisse de chacun des quatre éléments, mobile et ordinateur), tous rouges sur le nouveau contrôle seulement.
