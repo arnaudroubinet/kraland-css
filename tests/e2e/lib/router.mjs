@@ -315,7 +315,8 @@ export const PURE_BLOCKS = {
   'menus-forums': ['menus-forums'],
   images: ['images'], // image-fallback, map-exclusions (et audit-map-images, même zone)
   destinataires: ['kramail'],
-  identite: ['plateau', 'profil']
+  identite: ['plateau', 'profil'],
+  version: ['confinement'] // comparaison couverte par tests/unit/version.test.mjs ; confinement-reseau ne vérifie que le refus du fetch de version.json
 };
 // Repère de classe ou d'id cité par une suite : le hunk qui le touche lance aussi les suites qui le citent (au plus MAX_CITING suites :
 // au-delà, le repère est transverse, ex. mobile-mode, et les mots-clés en décident). S'ajoute aux zones, ne remplace jamais l'élargissement.

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { loadPure, pureBlocks, forbiddenRefs, TEMPLATE } from './lib/pure.mjs';
 
-const BLOCKS = ['pagination', 'rechargement', 'menus-forums', 'images', 'destinataires', 'identite'];
+const BLOCKS = ['pagination', 'rechargement', 'menus-forums', 'images', 'destinataires', 'identite', 'version'];
 const text = fs.readFileSync(TEMPLATE, 'utf8');
 const block = (name, body) => `  // @kr-pure-begin ${name}\n${body}\n  // @kr-pure-end\n`;
 const ok = '  function f() { return 1; }';
