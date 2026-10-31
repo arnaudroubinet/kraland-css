@@ -46,7 +46,8 @@
 //                   réception, lecture et nouveau kramail : 375, 767, 768, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre :
 //                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
 //                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
-//                   taille de chaque élément de #col-right égale au bundle de base (COMMIT_ECHELLE_FORUM), sans masque, 375, 768, 1280 px.
+//                   taille de chaque élément de #col-right égale au bundle de base (COMMIT_ECHELLE_FORUM), sans masque hors écarts consignés
+//                   de la revue S21 (classes de la revue retirées des clés, retours de la rédaction du kramail), 375, 768, 1280 px.
 // Trois rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) :
 //   rayons          plateau, forum (sujet, rédaction, index RP), sous-forum, kramail (réception, lecture, nouveau) et modale d'ordre :
 //                   375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, rayon calculé aux quatre coins :
@@ -67,7 +68,8 @@
 //                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE) ; à
 //                   768 px, pages des blocs M1 et M2 : propriétés de ces blocs égales à la base M1/M2 (COMMIT_MEDIAS_410) à 769 px ; hamburger survolé et en
 //                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
-//                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum.
+//                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum ;
+//                   tant que la base précède la revue S21, comparaisons mobiles des styles calculés différées (DIFFERE_NETTOYAGE_S21).
 // Nom de forum des cartes mobiles à 15 px (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) :
 //   titre-forum     index Staff (forum-index-rp.html servi à /forum/staff, cartes du template) : 375 et 767 px, Kraland clair et Empire Brun
 //                   sombre : chaque .forum-card h3.forum-title en 15 px / 700, au moins une carte ; h1-h3 visibles de #col-right hors
@@ -113,6 +115,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
+import { AVANT_REVUE_S21, BARRE_MESSAGE_S21, CLASSES_REVUE_S21, HAUT_S21, PRIMAIRE_LECTURE_S21, RETOURS_KRAMAIL_S21 } from './lib/revue-s21.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -576,10 +579,14 @@ if (on('boutons')) {
   // absolu des légendes des compétences en 12 px (ticket 4.5).
   const baseBoutons = nom => (PAGES_BOUTONS[nom].base === 'modales' ? avantModales : avantBoutons);
   // Écart accepté et consigné (épopée 9, entrée 5) : boutons des groupes à 44 px en mobile posés sur un bundle de base antérieur (CIBLES_TICKET95).
+  // Écart accepté et consigné (revue S21, n° 11 et 13) : retours libellés de la rédaction du kramail et barre d'actions des messages du
+  // forum à 8 px de retrait posés sur un bundle de base d'avant la revue (RETOURS_KRAMAIL_S21, BARRE_MESSAGE_S21, lib/revue-s21.mjs).
   const masqueBoutons = nom => [PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET45(baseBoutons(nom)) ? LEGENDES_TICKET45 : '',
-    PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET95(baseBoutons(nom)) ? CIBLES_TICKET95 : ''].filter(Boolean).join('\n');
+    PAGES_BOUTONS[nom].exclus.length && AVANT_TICKET95(baseBoutons(nom)) ? CIBLES_TICKET95 : '',
+    PAGES_BOUTONS[nom].exclus.length && AVANT_REVUE_S21(baseBoutons(nom)) ? `${RETOURS_KRAMAIL_S21}\n${BARRE_MESSAGE_S21}` : ''].filter(Boolean).join('\n');
   for (const nom of Object.keys(PAGES_BOUTONS).filter(n => PAGES_BOUTONS[n].exclus.length && AVANT_TICKET45(baseBoutons(n)))) { console.log(`  info écart accepté et consigné : ${nom}, légendes des compétences en 12 px (plancher PLT-QU, épopée 4, ticket 5) posées sur le bundle de base`); }
   for (const nom of Object.keys(PAGES_BOUTONS).filter(n => PAGES_BOUTONS[n].exclus.length && AVANT_TICKET95(baseBoutons(n)))) { console.log(`  info écart accepté et consigné : ${nom}, actions des cartes et boutons des groupes à 44 px en mobile (épopée 9, entrée 5) posés sur le bundle de base`); }
+  if (Object.keys(PAGES_BOUTONS).some(n => PAGES_BOUTONS[n].exclus.length && AVANT_REVUE_S21(baseBoutons(n)))) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (n° 11) et barre d\'actions des messages à 8 px de retrait (n° 13), revue S21, posés sur le bundle de base'); }
   const res = await mapLimit(cas, async c => ({ c, r: await releverBoutons({ ...c, script: userscript }),
     a: PAGES_BOUTONS[c.nom].exclus.length ? await releverBoutons({ ...c, script: baseBoutons(c.nom), css: masqueBoutons(c.nom) }) : null }));
   for (const { c, r, a } of res) {
@@ -669,7 +676,11 @@ async function releverCompact({ nom, width, variante, script, css }) {
 if (on('compact')) {
   console.log('\n== compact ==');
   const cas = Object.keys(PAGES_COMPACT).flatMap(nom => VARIANTES.flatMap(variante => [375, 767, 768, 1280, 1440, 1920].map(width => ({ nom, variante, width }))));
-  const res = await mapLimit(cas, async c => ({ c, r: await releverCompact({ ...c, script: userscript }), a: await releverCompact({ ...c, script: avantCompact }) }));
+  // Écart accepté et consigné (revue S21, n° 13) : barre d'actions des messages à 8 px de retrait en mobile (votes et autres boutons du
+  // message), posée sur un bundle de base d'avant la revue (BARRE_MESSAGE_S21, lib/revue-s21.mjs).
+  const cssCompact = AVANT_REVUE_S21(avantCompact) ? BARRE_MESSAGE_S21 : '';
+  if (cssCompact) { console.log('  info écart accepté et consigné : barre d\'actions des messages à 8 px de retrait en mobile (revue S21, n° 13) posée sur le bundle de base'); }
+  const res = await mapLimit(cas, async c => ({ c, r: await releverCompact({ ...c, script: userscript }), a: await releverCompact({ ...c, script: avantCompact, css: cssCompact }) }));
   for (const { c, r, a } of res) {
     const mobile = c.width < 768;
     for (const [k, , vise, bureauSeul] of PAGES_COMPACT[c.nom].elements) {
@@ -762,6 +773,8 @@ const SEL_ECHELLE = {
   champ: '#champ-essai',
   onglets: '.mobile-tab-bar .mobile-tab-label',
   jauges: '.mobile-gauge-compact-label, .mobile-gauge-compact-value',
+  // Revue S21 (n° 14) : libellés et valeurs des jauges détaillées du mini-profil déplié (les compactes y sont masquées).
+  jaugesPleines: '.mobile-gauge-full-header > span',
   batiment: '#panneau-batiment .building-section-content h4.list-group-item-heading',
   // Ticket 6 : détails des pages de jeu (texte de ligne, charge, cadre de charge, alerte d'Employés) et objets déplacés du plateau.
   detailsJeu: `${LIGNE_OBJET_TICKET6} > :is(.list-group-item-text, .mention), #col-right .dashboard > .well, #col-right .panel-body > .alert`,
@@ -919,17 +932,20 @@ if (on('echelle')) {
     check(`echelle ${etiquette(c)} : aucune erreur de page`, () => assert.deepEqual(r.erreurs, []));
   }
 
-  // Onglet « Personnage » entier (12 px, sans ellipse ni coupure) à 360 et 375 px ; jauges du mini-profil en 12 px, plié et déplié,
-  // à 375 et 700 px.
+  // Onglet « Personnage » entier (12 px, sans ellipse ni coupure) à 360 et 375 px ; jauges du mini-profil en 13 px (revue S21, n° 14 :
+  // --kr-font-detail au lieu de 12 px), compactes plié, détaillées déplié (les compactes y sont masquées : jauges montrées deux fois avant
+  // la revue), à 360, 375 et 700 px.
   const casMini = VARIANTES.flatMap(variante => [360, 375, 700].map(width => ({ nom: 'materiel', variante, width })));
   const resMini = await mapLimit(casMini, async c => ({ c, r: await releverEchelle({ ...c, script: userscript, deplier: true }) }));
   for (const { c, r } of resMini) {
     for (const [etat, m] of [['plié', r.replie], ['déplié', r.deplie]]) {
-      check(`echelle ${etiquette(c)} ${etat} : jauges du mini-profil en 12 px, onglets entiers en 12 px`, () => {
-        assert.ok(m.jauges.length === 6, `${m.jauges.length} libellé(s) de jauge`);
+      const jauges = etat === 'plié' ? m.jauges : m.jaugesPleines;
+      check(`echelle ${etiquette(c)} ${etat} : jauges du mini-profil en 13 px (${etat === 'plié' ? 'compactes' : 'détaillées, compactes masquées'}, revue S21 n° 14), onglets entiers en 12 px`, () => {
+        assert.ok(jauges.length === 6, `${jauges.length} libellé(s) de jauge`);
+        if (etat === 'déplié') { assert.equal(m.jauges.length, 0, `${m.jauges.length} libellé(s) de jauge compacte encore affiché(s)`); }
         const perso = m.onglets.find(o => o.texte === 'Personnage');
         assert.ok(perso, 'onglet « Personnage » absent');
-        const hors = [...tailles(m.jauges, '12px'), ...tailles(m.onglets, '12px'), ...m.onglets.filter(o => o.sw > o.cw).map(o => `« ${o.texte} » coupé ${o.sw} > ${o.cw}`)];
+        const hors = [...tailles(jauges, '13px'), ...tailles(m.onglets, '12px'), ...m.onglets.filter(o => o.sw > o.cw).map(o => `« ${o.texte} » coupé ${o.sw} > ${o.cw}`)];
         assert.deepEqual(hors, [], hors.join(' ; '));
       });
     }
@@ -947,7 +963,8 @@ if (on('echelle')) {
       const hors = [...tailles(m.titres, '19px')];
       if (c.nom === 'materiel') {
         hors.push(...tailles(m.noms, '16px'), ...tailles(m.details, '14px'));
-        if (mobile) { hors.push(...tailles(m.texte, '16px'), ...tailles(m.onglets, '13px'), ...tailles(m.jauges, '13px')); }
+        // Jauges compactes : --kr-font-detail (14 px ici) depuis la revue S21 (n° 14), --kr-font-label (13 px ici) avant.
+        if (mobile) { hors.push(...tailles(m.texte, '16px'), ...tailles(m.onglets, '13px'), ...tailles(m.jauges, '14px')); }
       }
       if (c.nom === 'jeu-materiel') { hors.push(...tailles(m.noms, '16px'), ...tailles(m.detailsJeu, '14px')); }
       assert.ok(m.titres.length > 0, 'aucun en-tête');
@@ -1236,17 +1253,26 @@ if (on('echelle-forum')) {
   // Garde de régression : la taille de chaque élément de #col-right est égale à celle du bundle de base (COMMIT_ECHELLE_FORUM), sans
   // masque ; les rôles du ticket 7 sont prouvés par les contrôles absolus plus haut. Pages comparées hors périmètre par forum-index.mjs
   // (sous-forum, sujet, Staff) et kramail-redaction.mjs (réception, lecture), plus l'index et le nouveau kramail.
-  const MESURE_TAILLES = () => [...document.querySelectorAll('#col-right, #col-right *')]
-    .map(e => { const st = getComputedStyle(e); return `${e.tagName}.${typeof e.className === 'string' ? e.className : ''} ${st.fontSize}`; });
+  // Écart accepté et consigné (revue S21) : classes posées par la revue (CLASSES_REVUE_S21) et btn-primary des boutons du rang de la
+  // lecture du kramail (passé du retour à « Répondre », n° 1, PRIMAIRE_LECTURE_S21) retirés des clés des deux côtés ; retours libellés de
+  // la rédaction du kramail (n° 11, RETOURS_KRAMAIL_S21) posés sur un bundle de base d'avant la revue (lib/revue-s21.mjs).
+  const MESURE_TAILLES = ([classes, primaire]) => [...document.querySelectorAll('#col-right, #col-right *')]
+    .map(e => {
+      const st = getComputedStyle(e);
+      const cls = typeof e.className === 'string' ? e.className.split(' ').filter(k => !classes.includes(k) && !(k === 'btn-primary' && e.matches(primaire))).join(' ') : '';
+      return `${e.tagName}.${cls} ${st.fontSize}`;
+    });
   const PAGES_MIROIR = { ...PAGES_FORUM, staff: { url: BASE + '/forum/staff', html: lire('forum-index-rp.html') } };
   const casMiroir = ['index-rp', 'sous-forum', 'sujet', 'staff', 'redaction', 'reception', 'lecture', 'nouveau'].flatMap(nom => VARIANTES.flatMap(variante => [375, 768, 1280].map(width => ({ nom, variante, width }))));
   const releverTailles = async (c, script, css, init) => {
     const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script, def: PAGES_MIROIR[c.nom], css, init });
-    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
+    const l = (await parEtat(c.nom, page, () => page.evaluate(MESURE_TAILLES, [CLASSES_REVUE_S21, PRIMAIRE_LECTURE_S21]))).flatMap(([etat, t]) => t.map(x => `${etat} ${x}`));
     await context.close();
     return l;
   };
-  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), base: await releverTailles(c, avantEchelleForum) }));
+  const cssMiroir = AVANT_REVUE_S21(avantEchelleForum) ? RETOURS_KRAMAIL_S21 : '';
+  if (cssMiroir) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (revue S21, n° 11) posés sur le bundle de base'); }
+  const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), base: await releverTailles(c, avantEchelleForum, cssMiroir) }));
   for (const { c, apres, base } of resMiroir) {
     check(`echelle-forum ${etiquette(c)} : taille de chaque élément de #col-right égale au bundle de base (${COMMIT_ECHELLE_FORUM}), états compris`, () => {
       assert.equal(base.length, apres.length, 'nombre d\'éléments');
@@ -1290,8 +1316,10 @@ const PAGES_RAYONS = {
     ['retour', '.kraland-back-to-top', 'K8'], ['carte', '.dashboard-card', 'K8'], ['entete', '.panel > .panel-heading', 'K7', 'b'],
     ['croix', '.kr-nav-v2 :is(.kr-n, .kr-s, .kr-w, .kr-e, .kr-hub)', 'X', 'm'], ['ici', '.kr-room-here', 'P', 'm'], ['competences', '#skills-panel', 'K8', 'b']
   ] },
+  // Revue S21 : le bloc détaillé des jauges du mini-profil vide (aucune jauge lue, cas de cette fixture) est masqué, sans cadre : seuls
+  // les blocs non vides portent le rayon du conteneur.
   'plateau-jeu': { def: PAGES_ECHELLE.plateau, cas: [
-    ['mini-profil', '.mobile-mini-profile-gauges-full, .mobile-mini-profile-characteristics, .mobile-mini-profile-skills', 'K8', 'm'],
+    ['mini-profil', '.mobile-mini-profile-gauges-full:not(:empty), .mobile-mini-profile-characteristics, .mobile-mini-profile-skills', 'K8', 'm'],
     ['panneau-joueur', '#player-main-panel', 'K8'], ['stats', '#col-leftest-stats', 'K8', 'b'], ['acces', '.kr-quick-access-buttons > .btn', 'C4'],
     ['actions', '.kr-action-grid > .btn', 'C4', 'b'], ['pastilles', '.kr-stat-badge, .kr-skill-badge', 'P']
   ] },
@@ -1654,8 +1682,12 @@ if (on('espacement')) {
   console.log('\n== espacement ==');
   const cas = Object.keys(PAGES_ESPACEMENT).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_ESPACEMENT.map(width => ({ nom, variante, width }))));
   const base = new Map();
+  // Écart accepté et consigné (revue S21, n° 4 et 13) : colonne latérale vide sans marge basse en mobile (modale d'ordre) et « ••• » des
+  // messages à 8 px de retrait (sujet), posés sur un bundle de base d'avant la revue (HAUT_S21, BARRE_MESSAGE_S21, lib/revue-s21.mjs).
+  const cssEspacement = AVANT_REVUE_S21(avantEspacement) ? `${HAUT_S21}\n${BARRE_MESSAGE_S21}` : '';
+  if (cssEspacement) { console.log('  info écart accepté et consigné : haut des pages mobiles (n° 4) et barre d\'actions des messages (n° 13), revue S21, posés sur le bundle de base'); }
   const res = await mapLimit(cas, async c => {
-    const a = await releverEspacement({ ...c, script: avantEspacement });
+    const a = await releverEspacement({ ...c, script: avantEspacement, css: cssEspacement });
     base.set(etiquette(c), a);
     return { c, r: await releverEspacement({ ...c, script: userscript }), a };
   });
@@ -1995,8 +2027,15 @@ async function basculer(page, width, label) {
   await krReady(page, { ready: THEME_READY, label });
   await styleSettled(page, 'body');
 }
+// Écart accepté et consigné (revue S21) : en mobile, la revue change toutes les pages du nettoyage (haut des pages, n° 4 ; cartes détourées,
+// n° 3 ; champs, n° 7 ; chevrons, n° 9 ; forum, n° 6 et 13 ; mini-profil, n° 14...). Tant que la base du nettoyage précède la revue, les
+// comparaisons mobiles de styles calculés (375 et 767 px, pas mobiles de la bascule, lignes du forum en :active) sont différées ;
+// bureau, 768 et 769 px, « 1280 puis 767 sans mode mobile », états du hamburger, champs (R4) et contrôles statiques restent comparés.
+// Contrôles absolus de la revue : revue-s21.mjs. Retrait au recalage de COMMIT_NETTOYAGE au-delà de la revue.
+const DIFFERE_NETTOYAGE_S21 = AVANT_REVUE_S21(avantNettoyage);
 if (on('nettoyage')) {
   console.log('\n== nettoyage ==');
+  if (DIFFERE_NETTOYAGE_S21) { console.log('  info : base d\'avant la revue S21, comparaisons mobiles des styles calculés différées (375 et 767 px)'); }
   check(`nettoyage : base M1/M2 d'avant 4.10 (${COMMIT_MEDIAS_410} : média (width>=769px) présent)`, () => assert.ok(AVANT_TICKET410(avantMedias410)));
   const cas = Object.keys(PAGES_NETTOYAGE).flatMap(nom => VARIANTES.flatMap(variante => LARGEURS_NETTOYAGE.map(width => ({ nom, variante, width }))));
   const res = await mapLimit(cas, async c => {
@@ -2011,7 +2050,9 @@ if (on('nettoyage')) {
       // Barre d'onglets de section (ticket 19 du backlog) : seules ses propriétés géométriques sont écartées (liens bornés à leur case,
       // 2 px sur les côtés, ::after de défilement masqué faute de débordement) ; géométrie mesurée par jeu-identite#onglets. Même principe
       // pour la croix des pastilles, « Contacts » et l'écart des rangées du kramail en mobile (ticket backlog 21, IGNORER_KD) et pour le filet des pistes des jauges mobiles (ticket backlog 23, IGNORER_JAUGES).
-      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_NETTOYAGE })]);
+      if (!(DIFFERE_NETTOYAGE_S21 && c.width < 768)) {
+        out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_NETTOYAGE })]);
+      }
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) : A8 et « rendu changé » n'y ont plus d'objet tant que la base M1/M2 (COMMIT_MEDIAS_410) précède l'entrée.
       // Même écart pour l'éditeur des rédactions (épopée 7, entrée 5) : M1/M2 ne touchaient que le formulaire, au rendu du forum.
@@ -2066,7 +2107,9 @@ if (on('nettoyage')) {
         await forcerEtat(b.context, b.page, LIGNES_FORUM_TICKET410, ['active']);
         const r = n ? await comparerNettoyage(a.page, b.page, { racine: LIGNES_FORUM_TICKET410 }) : { n: 0 };
         out.etats.push(['lignes du forum :active', r.n]);
-        if (r.n || r.nonPret) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
+        // Lignes du forum en :active (revue S21, n° 6 : compteurs de l'index terminés par « · », sujets permanents du sous-forum sur deux
+        // lignes) : comparaison différée avec les autres comparaisons mobiles (DIFFERE_NETTOYAGE_S21) ; le décompte reste exigé ci-dessous.
+        if ((r.n || r.nonPret) && !DIFFERE_NETTOYAGE_S21) { out.comparaisons.push([`lignes du forum :active égales à la base (${n})`, r]); }
       }
       if (mobile && ['champ', 'nouveau', 'repondre'].includes(c.nom)) {
         out.champs = await a.page.$$eval(CHAMPS_TICKET410, l => l.filter(e => e.getClientRects().length).map(e => {
@@ -2194,10 +2237,12 @@ if (on('nettoyage')) {
     const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyage, tactile: false });
     const pas = [];
     const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
-    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]] });
+    // Pas mobiles différés tant que la base précède la revue S21 (DIFFERE_NETTOYAGE_S21) ; le pas de 768 px reste comparé.
+    const comparer = async width => (DIFFERE_NETTOYAGE_S21 && width < 768 ? [] : [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]]);
+    pas.push({ width: 767, mobile: await mode(), comparaisons: await comparer(767) });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
-      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]];
+      const comparaisons = await comparer(width);
       pas.push({ width, mobile: await mode(), comparaisons });
     }
     await a.context.close();
@@ -2303,7 +2348,8 @@ if (on('titre-forum')) {
 // ---------- Champs .form-control sur ordinateur (bug 14, bug-sur-ordinateur-les-champs-form-control-s-affichent-en-9-5-px-plan) ----------
 // La règle globale des champs ne pose plus de taille ni de retrait en rem (1 rem = 10 px sous Bootstrap 3) : sur ordinateur, input et select
 // .form-control reprennent les 14 px (--kr-font-body) et le retrait 6 × 12 px natifs ; .input-sm et .input-lg (sondes ajoutées) restent
-// natifs ; le textarea garde sa taille (14 px) et prend le retrait natif. Mobile : tous les champs égaux au bundle de base (COMMIT_CHAMPS).
+// natifs ; le textarea garde sa taille (14 px) et prend le retrait natif. Mobile : tous les champs égaux au bundle de base (COMMIT_CHAMPS),
+// sauf l'Expéditeur de la rédaction du forum, égal à celui du kramail depuis la revue S21 (n° 13, écart consigné plus bas).
 const COMMIT_CHAMPS = '7bec452'; // recalage du sweep 9.12 (ancienne base 5638f29) : entrées 9.1 à 9.10 comprises
 const avantChamps = sansEntete(process.env.KR_SCRIPT_AVANT_CHAMPS ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_CHAMPS, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_CHAMPS}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
@@ -2345,11 +2391,25 @@ if (on('champs')) {
     };
     return { c, a: await mesurer(userscript), b: await mesurer(avantChamps) };
   });
+  // Écart accepté et consigné (revue S21, n° 13) : à la rédaction du forum, le rang Expéditeur (select c[4]) devient un rang d'expéditeur
+  // (kr-sender-row, posé par le template) comme au kramail. Contre une base d'avant la revue, ce sélecteur n'est plus comparé à la base mais
+  // au sélecteur d'expéditeur du kramail nouveau (select c[2]), même largeur et même variante ; les autres champs restent égaux à la base.
+  const EXPEDITEUR_FORUM_S21 = 'select[c[4]]';
+  const EXPEDITEUR_KRAMAIL_S21 = 'select[c[2]]';
+  const expediteurS21 = AVANT_REVUE_S21(avantChamps);
   for (const { c, a, b } of res) {
     if (c.width < 768) {
-      check(`champs ${etiquette(c)} : champs .form-control (sondes .input-sm / .input-lg comprises) égaux à la base (${COMMIT_CHAMPS})`, () => {
+      const s21 = expediteurS21 && c.nom === 'forum';
+      check(`champs ${etiquette(c)} : champs .form-control (sondes .input-sm / .input-lg comprises) égaux à la base (${COMMIT_CHAMPS})${s21 ? ', Expéditeur égal à celui du kramail (revue S21, n° 13)' : ''}`, () => {
         assert.ok(a.champs.length > 4, 'aucun champ de la page mesuré');
-        const ecarts = ecartsChamps(a.champs, b.champs);
+        const hors = l => (s21 ? l.filter(x => x.cle !== EXPEDITEUR_FORUM_S21) : l);
+        const ecarts = ecartsChamps(hors(a.champs), hors(b.champs));
+        if (s21) {
+          const kramail = res.find(o => o.c.nom === 'kramail' && o.c.width === c.width && o.c.variante === c.variante);
+          const exp = a.champs.find(x => x.cle === EXPEDITEUR_FORUM_S21);
+          const ref = kramail && kramail.a.champs.find(x => x.cle === EXPEDITEUR_KRAMAIL_S21);
+          if (!exp || !ref || exp.complet !== ref.complet) { ecarts.push(`Expéditeur ${exp ? exp.complet : 'absent'} au lieu de ${ref ? ref.complet : '(kramail absent)'} (kramail)`); }
+        }
         assert.deepEqual(ecarts, [], ecarts.join(' ; '));
       });
     } else {

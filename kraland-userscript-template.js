@@ -1052,6 +1052,93 @@
   })();
 
   // ============================================================================
+  // TABLEAUX DU CONTENU EN PLEINE LARGEUR (mobile, revue S21, pages secondaires)
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    /**
+     * Sur mobile, les tableaux de #col-right passent en bloc défilant (display: block) pour qu'un tableau large défile sans élargir la page ;
+     * la table anonyme s'y resserre alors sur son contenu et un tableau étroit n'occupait qu'une partie de sa carte (Organisations,
+     * Citoyenneté). Sur les pages secondaires et de jeu, un tableau qui tient dans sa colonne (aucun défilement) reprend la présentation
+     * de tableau sur toute la largeur (kr-table-pleine) ; un tableau plus large garde le défilement. Revu au chargement complet (polices,
+     * images) et après un changement de taille de l'écran (rotation) : un tableau élargi devenu plus large que sa colonne retrouve le
+     * défilement, un tableau qui tient de nouveau reprend toute la largeur.
+     */
+    /**
+     * Colonnes à resserrer d'un tableau (pages secondaires et de jeu) : une colonne d'icônes ou de boutons seuls, sans texte, prend sa
+     * largeur (kr-colonne-icone) au lieu d'une part de la place en trop d'un tableau à 100 % (icône de Citoyenneté dans 90 px) ; une
+     * colonne de mots courts sans espace, comme une date, reste sur une ligne (kr-colonne-courte). Les lignes à cellules fusionnées
+     * (colspan) sont ignorées : elles ne disent rien d'une colonne. Noms de classe sans « col- », que la règle des colonnes Bootstrap
+     * ([class*="col-"], marges intérieures à 0) attraperait.
+     */
+    function marquerColonnes(table) {
+      const lignes = [...table.tBodies].flatMap(corps => [...corps.rows]).filter(ligne => ![...ligne.cells].some(c => c.colSpan > 1));
+      const nbColonnes = Math.max(0, ...lignes.map(ligne => ligne.cells.length));
+      for (let i = 0; i < nbColonnes; i++) {
+        const cellules = lignes.map(ligne => ligne.cells[i]).filter(Boolean);
+        const textes = cellules.map(c => c.textContent.trim());
+        const icones = cellules.every((c, k) => !textes[k] && c.querySelector('i, img, svg, .btn'));
+        const courtes = !icones && textes.some(Boolean)
+          && cellules.every((c, k) => c.children.length === 0 && textes[k].length <= 12 && !/\s/.test(textes[k]));
+        if (icones || courtes) {cellules.forEach(c => c.classList.add(icones ? 'kr-colonne-icone' : 'kr-colonne-courte'));}
+      }
+    }
+
+    const PAGES_TABLEAUX = ':is(html.kr-page-secondaire, html.kr-page-jeu)';
+
+    function ajusterTableaux() {
+      if (!isMobileMode()) {return;}
+      document.querySelectorAll(`${PAGES_TABLEAUX} table.table:not(.dataTable)`).forEach(marquerColonnes);
+      document.querySelectorAll(`${PAGES_TABLEAUX} #col-right table:not(.dataTable)`).forEach(table => {
+        if (!table.classList.contains('kr-table-pleine')) {
+          if (table.clientWidth > 0 && table.scrollWidth <= table.clientWidth) {table.classList.add('kr-table-pleine');}
+          return;
+        }
+        const parent = table.parentElement;
+        if (!parent) {return;}
+        const style = getComputedStyle(parent);
+        const place = parent.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        if (table.offsetWidth > place + 1) {table.classList.remove('kr-table-pleine');}
+      });
+    }
+
+    InitQueue.register('Mobile:Tableaux', ajusterTableaux, 95);
+    window.addEventListener('load', ajusterTableaux, { once: true });
+    let attente = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(attente);
+      attente = setTimeout(ajusterTableaux, 150);
+    });
+  })();
+
+  // ============================================================================
+  // LIENS SEULS D'UN PARAGRAPHE (mobile, revue S21, n° 2)
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    /**
+     * Les liens du texte passent en ligne sur mobile (n° 2). Un lien seul dans son paragraphe ou sa définition (rien d'autre que des
+     * espaces et des <br>) n'est pas du texte courant mais un lien de navigation (« Kramail » d'une fiche de membre) : marqué
+     * kr-lien-seul, il garde sa cible de 44 px. Les messages du forum et du kramail, citations, blocs préformatés et cellules de tableau
+     * restent hors de ce marquage : un message réduit à un lien reste du texte.
+     */
+    function marquerLiensSeuls() {
+      if (!isMobileMode()) {return;}
+      document.querySelectorAll(':is(p, dd) > a[href]').forEach(a => {
+        const bloc = a.parentElement;
+        if (bloc.closest('.forum-msg, blockquote, pre, td, th, .kr-msg-recipients')) {return;}
+        const seul = [...bloc.childNodes].every(n => n === a || n.nodeType === Node.COMMENT_NODE
+          || (n.nodeType === Node.TEXT_NODE && !n.data.trim()) || (n.nodeType === Node.ELEMENT_NODE && n.tagName === 'BR'));
+        if (seul) {a.classList.add('kr-lien-seul');}
+      });
+    }
+
+    InitQueue.register('Mobile:LiensSeuls', marquerLiensSeuls, 95);
+  })();
+
+  // ============================================================================
   // TASK-1.2 - HEADER RESPONSIVE (Bootstrap 3)
   // ============================================================================
   (function () {
@@ -1467,7 +1554,10 @@
       const manageBtn = document.createElement('a');
       manageBtn.href = '#';
       manageBtn.className = 'btn btn-default alert100 mobile-mini-profile-manage-btn';
-      manageBtn.innerHTML = '<span>⚙️</span>';
+      // Icônes Font Awesome aux couleurs du thème (revue S21, n° 14 : émojis bleu-gris hors palette, d'aspect variable selon le téléphone)
+      // Icône masquée aux lecteurs d'écran : le nom vient d'aria-label, que l'infobulle Bootstrap ne vide pas (elle déplace title)
+      manageBtn.innerHTML = '<i class="fas fa-cog" aria-hidden="true"></i>';
+      manageBtn.setAttribute('aria-label', 'Gestion du personnage');
       manageBtn.setAttribute('data-toggle', 'tooltip');
       manageBtn.setAttribute('data-placement', 'bottom');
       manageBtn.setAttribute('title', 'Gestion du personnage');
@@ -1479,7 +1569,7 @@
       moneyRow.className = 'mobile-mini-profile-money';
       moneyRow.innerHTML = `
         <span>${profileData.money}</span>
-        <span class="mobile-mini-profile-clock">⏱️ ${profileData.clock}</span>
+        <span class="mobile-mini-profile-clock"><i class="far fa-clock" aria-hidden="true"></i> ${profileData.clock}</span>
       `;
       info.appendChild(moneyRow);
 
@@ -5756,19 +5846,45 @@
       }));
     }
 
+    // Titre de page du modèle de l'index (span.forum-subforum-title, 24 px gras en CSS)
+    function subforumHead(titleText) {
+      const head = document.createElement('div');
+      head.className = 'forum-subforum-head';
+      const title = document.createElement('span');
+      title.className = 'forum-subforum-title';
+      title.textContent = titleText;
+      head.appendChild(title);
+      return head;
+    }
+
+    // Revue S21 n° 13 (mobile) : la carte dont le titre répète celui de la page (« Jeu (RP) » de l'index, « Forum » de la racine) perd son
+    // en-tête (kr-titre-repete, masqué en CSS avec son chevron ; le corps reste ouvert). Comparaison sans casse ni espaces multiples.
+    function markRepeatedTitle(colRight) {
+      const title = colRight.querySelector(':scope > h1.page-header .forum-subforum-title');
+      if (!title) {return;}
+      const key = s => s.replace(/\s+/g, ' ').trim().toLowerCase();
+      colRight.querySelectorAll(':scope > .panel > .panel-heading').forEach(heading => {
+        const text = heading.querySelector('.panel-title');
+        if (text && key(text.textContent) === key(title.textContent)) {heading.classList.add('kr-titre-repete');}
+      });
+    }
+
     function transformHeader(colRight) {
       const heading = colRight.querySelector(':scope > h1.page-header');
       const allLink = colRight.querySelector(':scope > span.pull-right > a[href="forum"]');
-      if (!heading || !allLink) {return;}
+      if (!heading) {return;}
+      // Racine (sans bouton « Tous les forums ») : titre en 24 px gras comme à l'index (revue S21 n° 13 : 17 px maigre), sans fil d'Ariane
+      if (!allLink) {
+        if (isMobileMode() && document.body.classList.contains('page-forum-racine') && !heading.querySelector('.forum-subforum-head')
+          && heading.children.length === 0 && heading.textContent.trim()) {
+          heading.replaceChildren(subforumHead(heading.textContent.trim()));
+        }
+        return;
+      }
       const titleText = heading.textContent.trim();
       if (isMobileMode()) {
-        const head = document.createElement('div');
-        head.className = 'forum-subforum-head';
-        const title = document.createElement('span');
-        title.className = 'forum-subforum-title';
-        title.textContent = titleText;
-        head.appendChild(title);
-        heading.replaceChildren(createForumBreadcrumb([{ label: ALL_FORUMS_LABEL, href: allLink.getAttribute('href') }], getActiveTitleLabel() || titleText), head);
+        heading.replaceChildren(createForumBreadcrumb([{ label: ALL_FORUMS_LABEL, href: allLink.getAttribute('href') }], getActiveTitleLabel() || titleText),
+          subforumHead(titleText));
         allLink.parentElement.remove();
       } else {
         if (!allLink.textContent.trim()) {allLink.append(' ' + ALL_FORUMS_LABEL);}
@@ -5786,6 +5902,7 @@
         decorateRows(table, icons);
       });
       transformHeader(colRight);
+      if (isMobileMode()) {markRepeatedTitle(colRight);}
     }
 
     InitQueue.register('ForumIndex:Presentation', initForumIndex, 26);
@@ -6268,6 +6385,8 @@
     // Actions reconnues au mode du chemin (…-<mode>-<id>, Réception 5 à 8, Envoi 15 à 17), Supprimer à alertdel, Contacts à son chemin :
     // les boutons n'ont pas de classe propre et leur title est retiré sur mobile (disableTooltips)
     const LIBELLES = { 5: 'Répondre', 15: 'Répondre', 6: 'Répondre à tous', 16: 'Répondre à tous' };
+    // Libellé court des écrans étroits (< 400 px, règle CSS) : le rang retour, Répondre, Répondre à tous et « ••• » tient alors sur une ligne
+    const LIBELLES_COURTS = { 6: 'À tous', 16: 'À tous' };
     const MENU = { 4: 'Nouveau message', 7: 'Transférer', 17: 'Transférer', 8: 'Signaler' };
 
     function mode(btn) {
@@ -6330,13 +6449,14 @@
 
       buttons.forEach(function (btn) {
         if (btn.querySelector('.fa-backward')) {
-          // Réception ou Envoi : retour au dossier, icône seule (en-tête : entrée 3)
+          // Réception ou Envoi : retour au dossier, icône seule (en-tête : entrée 3), en bouton standard : l'action principale est Répondre
           btn.childNodes.forEach(function (n) { if (n.nodeType === 3) {n.textContent = '';} });
-          btn.classList.add('btn-primary');
           pullRight.appendChild(btn);
           return;
         }
         if (btn.hasAttribute('data-kr-libelle')) {
+          // Répondre : action principale de la lecture, seul bouton plein du rang (revue S21 : le retour plein attirait l'œil à sa place)
+          if (LIBELLES[mode(btn)] === 'Répondre') {btn.classList.add('btn-primary');}
           pullRight.appendChild(btn);
           return;
         }
@@ -6380,6 +6500,7 @@
       if (bar) {
         bar.querySelectorAll(':scope > a.btn').forEach(function (btn) {
           if (LIBELLES[mode(btn)]) {btn.setAttribute('data-kr-libelle', LIBELLES[mode(btn)]);}
+          if (LIBELLES_COURTS[mode(btn)]) {btn.setAttribute('data-kr-libelle-court', LIBELLES_COURTS[mode(btn)]);}
         });
       }
       document.querySelectorAll('#col-right > ul.media-list.forum > li.media').forEach(post => shapeMessage(post, mobile));
@@ -7371,13 +7492,16 @@
         if (!bar || bar.classList.contains('kr-tools-ready')) {return;}
         form.classList.add('kr-editor');
         const groups = Array.from(form.querySelectorAll('.form-group'));
+        const messageRow = groups.find(g => g.contains(bar));
         if (document.documentElement.classList.contains('kr-page-kramail-compose')) {
           groups.filter(g => g.querySelector(':scope > .col-sm-10 > .input-group')).forEach(g => g.classList.add('kr-sender-row'));
         } else {
-          const sender = groups.find(g => g.querySelector('.input-group') && g.querySelector('select, input'));
-          if (sender) {sender.classList.add('kr-sender-row');}
+          // Forum : chaque rang à champ avant le message (Sujet du nouveau sujet, Expéditeur), comme au kramail. Revue S21 n° 13 : seul le
+          // premier rang à .input-group était pris (le Sujet du nouveau sujet), l'Expéditeur restait en libellé capitales au-dessus du champ.
+          const before = messageRow ? groups.slice(0, groups.indexOf(messageRow)) : groups;
+          before.filter(g => g.querySelector(':scope > .col-sm-10 :is(select, input:not([type="hidden"], [type="checkbox"], [type="radio"]))'))
+            .forEach(g => g.classList.add('kr-sender-row'));
         }
-        const messageRow = groups.find(g => g.contains(bar));
         if (messageRow) {messageRow.classList.add('kr-message-row');}
 
         bar.querySelectorAll(':scope > .btn-group > a.btn, :scope > .btn-group > .dropdown').forEach(item => {
@@ -7883,7 +8007,8 @@
    * - Dernière version disponible sur GitHub (ou serveur local en dev)
    */
   function displayVersionInfo() {
-    const footer = document.querySelector('footer, .footer, .contentinfo');
+    // Pied de la page, pas le premier <footer> venu : sur l'aide, celui d'une citation (blockquote > footer) passait devant
+    const footer = document.querySelector('body > footer, footer.navbar-inverse') || document.querySelector('footer, .footer, .contentinfo');
     if (!footer) {return;}
 
     // Créer l'élément de version s'il n'existe pas
@@ -7923,8 +8048,10 @@
         if (latestSpan) {
           latestSpan.innerHTML = `<strong>${data.version}</strong>`;
 
-          // Indicateur seulement si la version publiée est plus récente (une version installée plus récente, ex. feature/next, n'avertit pas)
+          // Indicateur seulement si la version publiée est plus récente (une version installée plus récente, ex. feature/next, n'avertit pas) ;
+          // kr-maj-disponible : seul cas où le numéro prend la couleur d'alerte (revue S21, n° 12)
           if (krIsUpdateAvailable(currentVersion, data.version)) {
+            latestSpan.classList.add('kr-maj-disponible');
             latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
           }
         }
@@ -8466,8 +8593,10 @@
   function insertToggleCSSButton() {
     if (document.getElementById('kr-toggle-css-btn')) {return;}
 
+    // Lien de la carte du menu du site, jamais sa copie de la barre mobile (moveHeaderButtons, .navbar-header-buttons-left, placée avant le
+    // menu) : appelé par l'observateur après la construction de la barre, le bouton s'y insérait et décalait les icônes (revue S21, n° 15)
     const mapBtn = Array.from(document.querySelectorAll('a'))
-      .find(a => a.getAttribute('onclick')?.includes('openMap'));
+      .find(a => a.getAttribute('onclick')?.includes('openMap') && !a.closest('.navbar-header-buttons-left'));
     if (!mapBtn) {return;}
 
     const mapLi = mapBtn.closest('li');
@@ -9040,6 +9169,12 @@
     });
     if (!form.classList.contains('kr-order-form')) {form.classList.add('kr-order-form');}
     arrangeOrderAlerts(form);
+    // Revue S21 n° 10 : titre sans texte (image seule de l'ordre, Dormir) marqué kr-order-titre-image ; le CSS mobile le range dans la
+    // rangée de la croix au lieu d'un bandeau de 72 px. Écrit seulement si l'état change.
+    const title = form.querySelector(':scope > h3');
+    if (title && title.classList.contains('kr-order-titre-image') === !!title.textContent.trim()) {
+      title.classList.toggle('kr-order-titre-image', !title.textContent.trim());
+    }
   }
 
   function watchOrderModal(modal) {
@@ -10157,20 +10292,28 @@
     // 18-24h → Vert clair (#90EE90) - "Bon"
     // 24-48h → Vert lime (#32CD32) - "Excellent" (second tour)
     let clockColor;
+    let clockLevel;
     if (hours >= 24) {
       clockColor = '#32CD32'; // Vert lime - Second tour
+      clockLevel = 'excellent';
     } else if (hours >= 18) {
       clockColor = '#90EE90'; // Vert clair
+      clockLevel = 'bon';
     } else if (hours >= 12) {
       clockColor = '#FFD700'; // Jaune/or
+      clockLevel = 'moyen';
     } else if (hours >= 6) {
       clockColor = '#FF8C00'; // Orange
+      clockLevel = 'attention';
     } else {
       clockColor = '#8B0000'; // Rouge foncé
+      clockLevel = 'critique';
     }
 
-    // Appliquer la couleur via CSS custom property
+    // Appliquer la couleur via CSS custom property ; le palier (data-kr-clock) donne sur mobile la couleur de la palette d'états du thème
+    // (revue S21 : vert lime hors palette sur l'onglet Agir)
     clockEl.style.setProperty('--clock-color', clockColor);
+    clockEl.setAttribute('data-kr-clock', clockLevel);
 
     // Une journée Kraland = 24h = 1440 minutes
     // Si on dépasse 24h, on est sur le deuxième tour

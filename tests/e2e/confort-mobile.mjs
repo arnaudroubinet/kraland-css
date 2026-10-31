@@ -488,7 +488,8 @@ if (on('secondaires')) {
     out.debord = await o.page.evaluate(() => {
       const t = document.querySelector('table.table-striped');
       t.scrollLeft = 50;
-      return { page: document.documentElement.scrollWidth - document.documentElement.clientWidth, table: t.scrollWidth - t.clientWidth, defile: t.scrollLeft };
+      const cellule = Math.max(0, ...[...t.querySelectorAll('td, th')].map(td => td.scrollWidth - td.clientWidth));
+      return { page: document.documentElement.scrollWidth - document.documentElement.clientWidth, table: t.scrollWidth - t.clientWidth, defile: t.scrollLeft, cellule };
     });
     out.champsModale = await o.page.evaluate(CHAMPS, true);
     await o.context.close();
@@ -516,9 +517,11 @@ if (on('secondaires')) {
       assert.ok(teste.sansLibelle.case, 'case couverte');
     });
     console.log(`  info ${lab} : ligne longue d'Événements, débordement page ${teste.debord.page} px (base ${base.debord.page}), tableau ${teste.debord.table} px (base ${base.debord.table}), défilement ${teste.debord.defile} px (base ${base.debord.defile})`);
-    check(`${lab} : ligne longue d'Événements, page sans débordement de plus que la base, tableau défilable`, () => {
+    // Revue S21 : le mot très long d'Événements se coupe dans sa cellule (overflow-wrap: anywhere) au lieu d'élargir le tableau ; un
+    // tableau qui déborde encore reste défilable.
+    check(`${lab} : ligne longue d'Événements, page sans débordement de plus que la base, tableau défilable s'il déborde, sinon mot coupé dans sa cellule`, () => {
       assert.ok(teste.debord.page <= base.debord.page, `page ${teste.debord.page} px`);
-      assert.ok(teste.debord.defile > 0, 'tableau sans défilement');
+      if (teste.debord.table > 0) { assert.ok(teste.debord.defile > 0, 'tableau sans défilement'); } else { assert.ok(teste.debord.cellule <= 0, `cellule débordante de ${teste.debord.cellule} px`); }
     });
     check(`${lab} : formulaires dans une .bootbox.modal à leur hauteur`, () => assert.deepEqual(teste.champsModale, CHAMPS_MODALE));
     check(`${lab} : formulaires de la rédaction du kramail (sans garde) à leur hauteur`, () => assert.deepEqual(teste.champsKramail, CHAMPS_ATTENDUS));
