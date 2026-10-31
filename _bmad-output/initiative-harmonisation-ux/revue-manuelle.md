@@ -1324,3 +1324,10 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 ## test:all sur b02a9ec (fusion ticket 32, 2026-10-31)
 
 - 19015 ok, 1 FAIL : `kramail-redaction#regression` « lecture 375 », 32 pixels d'écart 2 (bruit d'anticrénelage, borne 20). Vert 3/3 seul. Ticket backlog 33.
+
+## Ticket backlog 33 — bruit d'anticrénelage de `kramail-redaction#regression` à 375 px (in-review, 2026-10-31)
+
+- Borne relevée de 20 à 80 pixels (écart maximal inchangé, 4). Conséquence : une vraie différence de 21 à 80 pixels d'écart 4 au plus passe désormais. Option « écart ≤ 2 sans borne de nombre » écartée : elle laisserait passer un voile léger sur toute la page, et la mesure A/A atteint un écart de 3.
+- Le bruit vient du cadre arrondi de l'avatar de la lecture à 375 px (boîte (22-82, 291-365)). Il apparaît dans 57 passes A/A sur 176 sous charge, dont 15 rouges sur 112 avec l'ancienne borne. C'est beaucoup plus fréquent que les 1 sur 19016 observés dans `test:all` : la charge de la mesure (16 exécutions parallèles, machine partagée) est plus forte.
+- La branche « dimensions » (hauteur +1 px qui agrandit la capture) n'est pas exerçable sur ces pages : elles tiennent dans la fenêtre de 900 px. Une hauteur +1 px y décale le contenu, ce qui est détecté (142 pixels, écart 190).
+- Ticket de tests seuls : `version.json` et le bundle sont régénérés par `npm run build` et embarqués, pour suivre la règle de livraison (précédent 406485c).
