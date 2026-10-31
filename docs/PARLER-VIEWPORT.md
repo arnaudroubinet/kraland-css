@@ -35,3 +35,14 @@ Le dépôt n'a pas `_bmad/` : proposition de `bmad setup` séparé, aucune insta
 Leçon de la sonde : imposer une transition effective de métriques CDP avant clear et contrôler ensemble dimensions de capture et visualViewport ; le simple clear peut laisser des métriques anciennes malgré une capture de taille différente. Un rouge dû à une sonde incohérente ne constitue jamais la reproduction produit. Bootbox délègue les handlers de clic sur la modale : comparer ces références, pas des handlers supposés sur le bouton.
 
 Nettoyage : aucun serveur ni port CDP partagé utilisé ; browser.close en finally ; profils/logs et worktree dans scratch. Aucun conteneur créé. Ne jamais nettoyer le checkout partagé préexistant sale ni le worktree Messages.
+
+## Suite : Vivaldi mobile, barre d'adresse après le clavier
+
+Signalement d'Arnaud (téléphone réel, Vivaldi) : après usage du clavier, la barre d'adresse réapparaît, la popin rétrécit et « Valider » devient inaccessible. Deux causes plausibles corrigées :
+
+- la mesure `visualViewport` peut rester périmée quand la barre réapparaît sans resize fiable : la CSS borne désormais le budget par `min(var(--kr-order-visible-height), 100dvh)` (variable `--kr-order-budget`), et le JS remesure à `focusin`/`focusout` et après chaque resize (50 à 1 000 ms), plus au scroll de la fenêtre ;
+- le suivi ne visait que `.panel-order textarea#message` : il couvre maintenant toute Bootbox mobile contenant un champ qui ouvre le clavier (textarea, input texte/nombre/etc., contenteditable). Les Bootbox sans saisie gardent leur géométrie historique.
+
+Les plafonds mobiles génériques (`.modal-dialog` en mobile-mode, `.bootbox-confirm .modal-content`) passent de `vh` à `dvh`.
+
+Test : fragment `vivaldi` de `tests/e2e/parler-viewport.mjs` (mesure périmée forcée, remesure au focusout, Bootbox avec input texte à 390×320). Rouge sur le bundle de base (1 ok / 3 FAIL), vert après correctif. Réserve : émulation Chromium, pas de validation physique Vivaldi.

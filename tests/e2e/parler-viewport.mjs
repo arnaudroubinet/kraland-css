@@ -128,7 +128,7 @@ async function open({ fallback = false, desktop = false, delayed = false, debut 
   }
   return { ctx, page, cdp, snap, gestures, errors, blocked };
 }
-// Fragmentation (lot H, exécution parallèle) : KR_FRAG = transitions, fallback, ajax, bureau, debut ; vide = tout jouer. Chaque scénario ouvre
+// Fragmentation (lot H, exécution parallèle) : KR_FRAG = transitions, fallback, ajax, bureau, debut, vivaldi ; vide = tout jouer. Chaque scénario ouvre
 // SON contexte (open()) : aucun état partagé. « transitions » garde la séquence barres -> transitions -> fermeture d'un seul tenant (même
 // page, chaque taille part de la précédente).
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -206,8 +206,34 @@ try {
     check(b.errors.length === 0, 'document-start : aucune erreur JavaScript ' + b.errors.join(' | '));
     await b.ctx.close();
   }
+  if (frag('vivaldi')) {
+    // Vivaldi mobile : à la fermeture du clavier, la barre d'adresse réapparaît sans resize fiable ; la hauteur mesurée par le JS reste
+    // celle d'avant (plus grande que la zone visible). 100dvh borne alors la modale, et focusout relance la mesure.
+    const v = await open();
+    await v.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 500, deviceScaleFactor: 1, mobile: true });
+    await frames(v.page);
+    const inside = () => v.page.evaluate(() => { const b = document.querySelector('[data-bb-handler=confirm]'); const r = b.getBoundingClientRect(); const vv = window.visualViewport; const top = vv?.offsetTop || 0; const h = vv?.height || window.innerHeight; return r.top >= top && r.bottom <= top + h; });
+    // Mesure périmée (hauteur sans barre) posée à la main : aucun événement ne la corrige avant la vérification
+    await v.page.evaluate(() => document.querySelector('.bootbox').style.setProperty('--kr-order-visible-height', '844px'));
+    await frames(v.page);
+    check(await inside(), 'vivaldi : mesure JS périmée (844 px pour 500 px visibles), Valider reste dans la zone visible (borne 100dvh)');
+    await v.page.evaluate(() => { const m = document.querySelector('#message'); m.dispatchEvent(new window.FocusEvent('focusout', { bubbles: true })); });
+    const remesure = await until(v.page, () => document.querySelector('.bootbox').style.getPropertyValue('--kr-order-visible-height') === (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px', null, 2000);
+    check(remesure, 'vivaldi : fermeture du clavier (focusout), hauteur visible remesurée');
+    await v.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
+    await until(v.page, () => !document.body.contains(window.__closedModal));
+    // Autre Bootbox avec un champ texte (pas textarea#message) : suivie aussi
+    await v.page.evaluate(() => window.bootbox.dialog({ message: '<form onsubmit="return false"><p>' + 'Ligne de test. '.repeat(120) + '</p><input type="text" name="nom" class="form-control"></form>', buttons: { confirm: { label: 'Valider', className: 'btn-primary', callback: () => false } } }));
+    await until(v.page, () => { const m = document.querySelector('.bootbox'); return !!m && window.__shown.includes(m); });
+    await v.cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 320, deviceScaleFactor: 1, mobile: true });
+    await frames(v.page); await v.gestures(); await frames(v.page);
+    const autre = await v.page.evaluate(() => { const m = document.querySelector('.bootbox'); const b = m.querySelector('[data-bb-handler=confirm]'); const r = b.getBoundingClientRect(); const vv = window.visualViewport; const top = vv?.offsetTop || 0; const h = vv?.height || window.innerHeight; const hit = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2); return { suivie: m.classList.contains('kr-order-viewport'), dedans: r.top >= top && r.bottom <= top + h, touche: hit === b || b.contains(hit) }; });
+    check(autre.suivie && autre.dedans && autre.touche, 'vivaldi : Bootbox avec champ texte suivie, Valider visible et touchable à 390x320 ' + JSON.stringify(autre));
+    check(v.errors.length === 0, 'vivaldi : aucune erreur JavaScript ' + v.errors.join(' | '));
+    await v.ctx.close();
+  }
   // Fragment inconnu : aucun scénario joué ne doit pas passer pour un succès.
-  if (checks === 0) { check(false, `KR_FRAG=${FRAG.join(',')} : aucun scénario joué (fragments : transitions, fallback, ajax, bureau, debut)`); }
+  if (checks === 0) { check(false, `KR_FRAG=${FRAG.join(',')} : aucun scénario joué (fragments : transitions, fallback, ajax, bureau, debut, vivaldi)`); }
 } catch (e) { check(false, e.stack); }
 finally { await browser.close(); fs.writeFileSync(path.join(out, 'mesures.json'), JSON.stringify({ checks, failures, results }, null, 2)); console.log(`Parler : ${checks - failures} ok, ${failures} FAIL ; preuves : ${out}`); }
 process.exitCode = failures ? 1 : 0;
