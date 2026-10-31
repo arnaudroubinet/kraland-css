@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
-import { clockQuiet, installClock, krReady, resizeViewport } from './lib/settle.mjs';
+import { clockQuiet, installClock, krReady, resizeViewport, runClock, waitState } from './lib/settle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -26,7 +26,7 @@ const ABSENCE_QUIET_MS = 1800; // assertions d'ABSENCE de rechargement : fenêtr
 // départ de document (rechargement) relance la fenêtre sur le document suivant.
 const TARGET = 'http://www.kraland.org/jouer/plateau';
 
-// Fragmentation (exécution parallèle) : KR_FRAG = widths, nav-large, nav-origine ; vide = tout jouer.
+// Fragmentation (exécution parallèle) : KR_FRAG = widths, nav-large, nav-origine, nav-tardif ; vide = tout jouer.
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
 const frag = id => FRAG.length === 0 || FRAG.includes(id);
 
@@ -257,8 +257,102 @@ async function navSuite(fixtureFile, strict) {
   check(`rotation : padding-top du body = hauteur de barre (${landscape.paddingTop} vs ${landscape.barHeight})`, () => assert.ok(paddingOk(landscape)));
   await navContext.close();
 }
+// 5. Ticket backlog 32 : la barre change de rangées APRÈS la mesure de chargement, sans redimensionnement. Logo du thème refusé
+// seulement APRÈS la mesure de chargement (réseau lent) : tant que l'image n'est pas réglée, la marque fait 16 px ;
+// l'erreur affiche le texte de remplacement (68 px) et la barre passe de 1 à 2 rangées à 1100 px. Puis une entrée ajoutée après le marqueur.
+async function navTardif() {
+  console.log('Barre de navigation qui change de rangées après le chargement (logo tardif, entrée ajoutée)');
+  const navHtml = fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-navbar-large.html'), 'utf8');
+  async function ouvrir(width) {
+    const ctx = await browser.newContext({ viewport: { width, height: 800 } });
+    await confineNetwork(ctx);
+    let lacher;
+    const logoLache = new Promise(r => { lacher = r; });
+    await ctx.route(/\/2\/world\/logo\d+\.gif$/, async route => { await logoLache; await route.abort(); });
+    await installClock(ctx);
+    await ctx.route(TARGET, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: navHtml }));
+    await ctx.addInitScript(({ src }) => {
+      window.GM = { xmlHttpRequest: () => {} };
+      localStorage.setItem('kr-theme-enabled', 'true');
+      localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
+      // eslint-disable-next-line no-eval
+      const go = () => (0, eval)(src);
+      if (document.body) { go(); return; }
+      new MutationObserver((m, o) => { if (document.body) { o.disconnect(); go(); } }).observe(document, { childList: true, subtree: true });
+    }, { src: userscript });
+    const p = await ctx.newPage();
+    await p.goto(TARGET, { waitUntil: 'domcontentloaded' });
+    // Le marqueur attend le load, donc le logo : on lâche le logo quand la mesure de chargement (rAF + 200 ms simulées) est passée,
+    // 1 s simulée après le départ et deux vraies images plus tard. État relevé juste avant : logo en attente, marque étroite.
+    await p.waitForFunction(() => document.querySelector('img.kr-logo') && performance.now() > 1000, null, { timeout: 15000 });
+    await p.evaluate(() => window.__krRealFrame().then(() => window.__krRealFrame()));
+    const auLacher = await p.evaluate(() => { const i = document.querySelector('img.kr-logo'); return { attente: !i.complete, bar: Math.round(document.querySelector('nav.navbar').getBoundingClientRect().height) }; });
+    lacher();
+    await krReady(p, { label: `barre tardive ${width}px` });
+    // Logo réglé (erreur reçue), sans lever d'erreur : la mesure qui suit tranche
+    await waitState(p, () => { const i = document.querySelector('img.kr-logo'); return Boolean(i && i.complete); }, null, { maxMs: 8000 });
+    return { ctx, p, auLacher };
+  }
+  const mesure = p => p.evaluate(() => {
+    const nav = document.querySelector('nav.navbar');
+    const r = nav.getBoundingClientRect();
+    const items = Array.from(nav.querySelectorAll('.navbar-nav > li')).filter(li => li.getBoundingClientRect().height > 0);
+    return {
+      bar: Math.round(r.height), pad: Math.round(parseFloat(getComputedStyle(document.body).paddingTop)),
+      bas: Math.round(Math.max(0, ...items.map(li => li.getBoundingClientRect().bottom))),
+      outside: items.filter(li => li.getBoundingClientRect().bottom > r.bottom + 1).length,
+      inlinePad: document.body.style.getPropertyValue('padding-top'), inlineMax: nav.style.getPropertyValue('max-height')
+    };
+  });
+  const stable = (p, label) => clockQuiet(p, () => mesure(p), { quietMs: RESIZE_QUIET_MS, label });
+  // Mutations de style de la barre et du corps pendant 1 s simulée, page stable : 0 attendu (pas de remesure en boucle)
+  async function mutationsStyle(p) {
+    await p.evaluate(() => {
+      window.__krStyleMut = 0;
+      const o = new MutationObserver(m => { window.__krStyleMut += m.length; });
+      o.observe(document.querySelector('nav.navbar'), { attributes: true, attributeFilter: ['style'] });
+      o.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+    });
+    await runClock(p, 1000);
+    return p.evaluate(() => window.__krStyleMut);
+  }
+
+  {
+    const { ctx, p, auLacher } = await ouvrir(1100);
+    const m = await stable(p, 'logo tardif 1100px');
+    check(`logo tardif 1100px : scénario produit (logo en attente après la mesure de chargement, barre ${auLacher.bar} px, puis entrées jusqu'à ${m.bas} px)`, () => assert.ok(auLacher.attente && m.bas > auLacher.bar + 20));
+    check(`logo tardif 1100px : entrées toutes dans la barre (bas ${m.bas}, barre ${m.bar})`, () => assert.equal(m.outside, 0));
+    check(`logo tardif 1100px : padding-top du body = hauteur de barre (${m.pad} vs ${m.bar}, ±1)`, () => assert.ok(Math.abs(m.pad - m.bar) <= 1 && m.bar >= m.bas - 1));
+    const n = await mutationsStyle(p);
+    check(`logo tardif 1100px : aucune mutation de style de la barre ni du corps en 1 s stable (${n})`, () => assert.equal(n, 0));
+    await ctx.close();
+  }
+  {
+    const { ctx, p } = await ouvrir(1280);
+    const avant = await stable(p, 'entrée ajoutée 1280px (avant)');
+    await p.evaluate(() => {
+      const ul = document.querySelector('nav.navbar .navbar-nav');
+      for (let i = 0; i < 8; i++) { const li = document.createElement('li'); li.innerHTML = `<a href="/ajout${i}">Entrée ajoutée ${i}</a>`; ul.appendChild(li); }
+    });
+    const m = await stable(p, 'entrée ajoutée 1280px');
+    check(`entrée ajoutée 1280px : la barre gagne une rangée (barre ${avant.bar} px, bas des entrées ${m.bas} px)`, () => assert.ok(m.bas > avant.bar + 20, `bas des entrées ${m.bas}`));
+    check(`entrée ajoutée 1280px : entrées toutes dans la barre (bas ${m.bas}, barre ${m.bar})`, () => assert.equal(m.outside, 0));
+    check(`entrée ajoutée 1280px : padding-top du body = hauteur de barre (${m.pad} vs ${m.bar}, ±1)`, () => assert.ok(Math.abs(m.pad - m.bar) <= 1));
+    const n = await mutationsStyle(p);
+    check(`entrée ajoutée 1280px : aucune mutation de style de la barre ni du corps en 1 s stable (${n})`, () => assert.equal(n, 0));
+    await ctx.close();
+  }
+  for (const width of [900, 375]) {
+    const { ctx, p } = await ouvrir(width);
+    const m = await stable(p, `logo tardif ${width}px`);
+    check(`logo tardif ${width}px : ni padding-top ni max-height en ligne (« ${m.inlinePad} », « ${m.inlineMax} »)`, () => assert.deepEqual([m.inlinePad, m.inlineMax], ['', '']));
+    await ctx.close();
+  }
+}
+
 if (frag('nav-large')) { await navSuite('plateau-navbar-large.html', true); }
 if (frag('nav-origine')) { await navSuite('plateau-navbar-large-origine.html', false); }
+if (frag('nav-tardif')) { await navTardif(); }
 
 await browser.close();
 console.log(failures === 0 ? '\nTous les contrôles passent.' : `\n${failures} contrôle(s) en échec.`);
