@@ -1320,3 +1320,7 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Pendant un redimensionnement, l'observateur ne remesure pas (largeur changée depuis la dernière mesure) : l'anti-rebond de `ResizeManager` reste seul juge.
 - Un enfant direct ajouté à `nav.navbar` après la première mesure ne serait pas observé. Aucun module ne le fait aujourd'hui.
 - Contre-épreuve `nav-tardif` : le logo est lâché 1 s simulée et deux images après le départ, quand la mesure de chargement (rAF + 200 ms) est passée. Si elle était retardée au-delà, le contrôle « scénario produit » reste vert mais la base pourrait passer au vert : risque résiduel faible, consigné.
+
+## test:all sur b02a9ec (fusion ticket 32, 2026-10-31)
+
+- 19015 ok, 1 FAIL : `kramail-redaction#regression` « lecture 375 », 32 pixels d'écart 2 (bruit d'anticrénelage, borne 20). Vert 3/3 seul. Ticket backlog 33.
