@@ -66,14 +66,15 @@
 // Ticket 6 (H5.4, Q3, CAP-4 ; plan story-jauges-une-couleur-par-jauge-identique-sur-ordinateur-et-mob) : une couleur par jauge, la même
 // sur les deux supports, un ton par mode (fixture synthétique palette-nation-jauges.html, structure du panneau relevée en lecture seule) :
 //   jetons          --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp de DESIGN.md › Jauges (clair, sombre), 375 et 1280 px, 16 variantes ;
-//   mobile          profil mobile plié et déplié, 375 × 667 : jauges compactes et complètes aux jetons, visibles, ≥ 3:1 sur leur piste
-//                   (#f5f5f5 en clair, bg-elevated en sombre) ;
+//   mobile          profil mobile plié et déplié, 375 × 667 : jauges compactes (plié) et complètes (déplié) aux jetons, visibles, ≥ 3:1 sur
+//                   leur piste (#f5f5f5 en clair, bg-elevated en sombre) ; déplié, compactes masquées (revue S21, n° 14) ;
 //   ordinateur      barres PV, PM, PP du panneau du plateau, 1280 px : valeur aux mêmes couleurs que sur mobile, ≥ 3:1 sur la même piste ;
 //                   aucun segment en #5cb85c, #f0ad4e, #28a745, #007bff, #ffc107 ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
 // Backlog 23 (fragment jauges-filet, même fixture) : pistes mobiles bordées d'un filet de 1 px en --kr-border-tint, 16 variantes à 375,
 // Kraland et Empire Brun sombre à 700 et 767, plié et déplié, et en bascule 767 / 768 / 767 ; contraste du filet sur son fond consigné ;
-// remplissage et hauteur comparés au bundle de base (BASELINE23) ; panneau du plateau à 768, 769 et 1280 (× 720) égal à la base.
+// remplissage et hauteur comparés au bundle de base (BASELINE23), sauf les compactes du profil déplié, masquées depuis la revue S21
+// (n° 14) ; panneau du plateau à 768, 769 et 1280 (× 720) égal à la base.
 // Hors de ces tickets, donc non vérifiés ici : onglet actif et « Valider » de la modale d'ordre (ticket 2.6), barres de
 // PV des cartes de personnages (épopée 5) ; alertes de la modale d'ordre : modale-ordre.mjs.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
@@ -1622,7 +1623,9 @@ for (const [frag, width, seuil] of [['etats-pages-mobile', 375, 767], ['etats-pa
 // réel, valeurs inventées), vrai Bootstrap 3.3.7. Ordinateur : les trois .progress du panneau, dans l'ordre PV, PM, PP ; segment
 // 1er segment = remplissage (.progress-bar-success dans le relevé), segment suivant (.progress-bar-warning) = reste de la piste. Variante
 // « classes » (ordinateur) : valeur de PV en .progress-bar-danger et de PM en .progress-bar-warning, au cas où le site change la classe avec
-// le niveau. Mobile : jauges compactes (profil mobile plié et déplié) et complètes (déplié) du profil mobile.
+// le niveau. Mobile : jauges compactes (profil mobile plié) et complètes (déplié) du profil mobile. Revue mobile Galaxy S21 (n° 14,
+// 2026-10-31) : déplié, les jauges compactes sont masquées, le bloc détaillé les reprend (elles étaient montrées deux fois). Écart accepté et
+// consigné : déplié, les compactes ne sont plus vérifiées aux jetons, mais masquées.
 const PAGE_JAUGES = { url: BASE + '/jouer/plateau', corps: FIXTURE('palette-nation-jauges.html') };
 const PAGE_JAUGES_CLASSES = { url: PAGE_JAUGES.url, corps: PAGE_JAUGES.corps
   .replace('<div class="progress-bar progress-bar-success" style="width: 60%">', '<div class="progress-bar progress-bar-danger" style="width: 60%">')
@@ -1704,10 +1707,11 @@ function verifierJauges(tag, variante, r, mobile) {
   });
   check(`${tag} ${variante} : jetons --kr-gauge-pv, --kr-gauge-pm, --kr-gauge-pp égaux à DESIGN.md (${ton})`, () => sansEcart(ecartsJetonsJauges(variante, r.plie)));
   if (mobile) {
-    check(`${tag} ${variante} : profil mobile plié et déplié, jauges compactes (et complètes, déplié) PV, PM, PP aux couleurs de DESIGN.md (${ton}), visibles, ≥ 3:1 sur leur piste (${ton === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
+    check(`${tag} ${variante} : profil mobile plié et déplié, jauges compactes (plié) et complètes (déplié) PV, PM, PP aux couleurs de DESIGN.md (${ton}), visibles, ≥ 3:1 sur leur piste (${ton === 'clair' ? PISTE_CLAIRE : 'bg-elevated'}) ; déplié, compactes masquées (revue S21, n° 14)`, () => {
       assert.ok(r.deplie, 'profil mobile non déplié');
       sansEcart(JAUGES.flatMap(j => [...ecartsJauge(variante, 'plié, compacte', j, r.plie.compact[j], r.plie.eleve),
-        ...ecartsJauge(variante, 'déplié, compacte', j, r.deplie.compact[j], r.deplie.eleve), ...ecartsJauge(variante, 'déplié, complète', j, r.deplie.complet[j], r.deplie.eleve)]));
+        ...(r.deplie.compact[j] && r.deplie.compact[j].visible ? [`déplié, compacte ${j} : encore affichée (revue S21, n° 14)`] : []),
+        ...ecartsJauge(variante, 'déplié, complète', j, r.deplie.complet[j], r.deplie.eleve)]));
     });
   } else {
     check(`${tag} ${variante} : barres PV, PM, PP du panneau aux couleurs du mobile (DESIGN.md, ${ton}), visibles, ≥ 3:1 sur leur piste (${ton === 'clair' ? PISTE_CLAIRE : 'bg-elevated'})`, () => {
@@ -1786,7 +1790,7 @@ const RELEVER23 = () => {
     const filet = [0, 1, 2].map(i => t[i] * t[3] + dessous[i] * (1 - t[3]));
     return {
       bords: ['Top', 'Right', 'Bottom', 'Left'].map(c => ({ largeur: s[`border${c}Width`], style: s[`border${c}Style`], couleur: s[`border${c}Color`] })),
-      rayon: s.borderTopLeftRadius, debord: s.overflow, hauteur: r.height,
+      rayon: s.borderTopLeftRadius, debord: s.overflow, hauteur: r.height, masquee: b.getClientRects().length === 0,
       fill: { fond: getComputedStyle(f).backgroundColor, part: l > 0 ? fr.width / l : -1,
         dedans: fr.left >= g - 0.01 && fr.top >= h - 0.01 && fr.right <= g + l + 0.01 && fr.bottom <= h + ht + 0.01 },
       sous: `rgb(${sous.map(Math.round).join(', ')})`, contrasteFilet: K.rapport(filet, sous), contrastePiste: K.rapport(K.fond(b), sous)
@@ -1842,6 +1846,9 @@ const procheCouleur = (a, b) => { const x = lire(a); const y = lire(b); return [
 // Pistes d'un relevé (plié : compactes ; déplié : compactes et complètes), étiquetées.
 const pistes23 = r => [['plié, compacte', r.plie, 'compact'], ['déplié, compacte', r.deplie, 'compact'], ['déplié, complète', r.deplie, 'complet']]
   .flatMap(([quoi, m, k]) => (m ? m[k].map((p, i) => [`${quoi} ${JAUGES[i]}`, { ...p, tint: m.tint }]) : []));
+// Revue mobile Galaxy S21 (n° 14, 2026-10-31) : déplié, les pistes compactes sont masquées (le bloc détaillé reprend les jauges). Écart
+// accepté et consigné : elles ne sont plus comparées à la base (qui les affichait), on vérifie qu'elles sont masquées.
+const masqueeS21 = quoi => quoi.startsWith('déplié, compacte');
 function verifierFilet(tag, variante, r, b) {
   check(`${tag} ${variante} : mode mobile, profil déplié, aucune exception, aucune requête vers le site hors fixture (filet)`, () => {
     assert.ok(r.plie.mobile, 'mode mobile');
@@ -1850,15 +1857,16 @@ function verifierFilet(tag, variante, r, b) {
     assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
   });
   const nous = pistes23(r);
-  check(`${tag} ${variante} : 3 pistes compactes (plié, déplié) et 3 complètes (déplié), chacune bordée d'un filet de 1 px en --kr-border-tint sur ses quatre côtés`, () => {
+  check(`${tag} ${variante} : 3 pistes compactes (plié) et 3 complètes (déplié), chacune bordée d'un filet de 1 px en --kr-border-tint sur ses quatre côtés ; déplié, les 3 compactes masquées (revue S21, n° 14)`, () => {
     assert.equal(nous.length, 9, `${nous.length} pistes`);
-    sansEcart(nous.flatMap(([quoi, p]) => ecartsFilet(quoi, p)));
+    sansEcart(nous.flatMap(([quoi, p]) => (masqueeS21(quoi) ? (p.masquee ? [] : [`${quoi} : encore affichée`]) : ecartsFilet(quoi, p))));
   });
   check(`${tag} ${variante} : remplissage PV, PM, PP à la couleur et à la part de la base, dans sa piste ; hauteur à 2 px près, rayon et overflow: hidden de la base`, () => {
     assert.ok(b, `bundle de base introuvable (KR_SCRIPT_AVANT23 ou commit ${BASELINE23})`);
     const base = pistes23(b);
     assert.equal(base.length, nous.length, 'pistes de la base');
     sansEcart(nous.flatMap(([quoi, p], i) => {
+      if (masqueeS21(quoi)) { return []; }
       const a = base[i][1];
       const faux = [];
       if (!memeCouleur(p.fill.fond, a.fill.fond)) { faux.push(`${quoi} : remplissage ${p.fill.fond} au lieu de ${a.fill.fond}`); }

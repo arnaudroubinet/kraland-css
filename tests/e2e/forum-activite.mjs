@@ -63,7 +63,8 @@
 //             qui en porte une, dans le coin haut droit de l'alerte (1 px près) ; aucun débordement ; Staff (/forum/staff[/…]) exclu, hors de
 //             l'entrée 8 ; 768 et 1280 px : textes égaux au bundle de base (7bec452).
 // Bundle de base : celui de 7bec452 (fin des entrées 9.1 à 9.10, SHA figé, recalage du sweep 9.12) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
-// aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus. Fixtures synthétiques du dépôt seulement ; le
+// aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus (revue S21 : tant que la base
+// d'un fragment précède la revue, ses comparaisons mobiles qui en dépendent sont différées, differeS21). Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
 // Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
@@ -96,6 +97,7 @@ import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
 import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 import { TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
+import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -109,6 +111,12 @@ const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(here, 'vendor');
 if (!['bootstrap.min.css', 'bootstrap.min.js', 'jquery.min.js'].every(f => fs.existsSync(path.join(VENDOR, f)))) { console.error('Bootstrap 3.3.7 / jQuery incomplets dans ' + VENDOR); process.exit(2); }
 const BASE = 'http://www.kraland.org';
 const VARIANTES = ['kraland', 'empire-brun-dark'];
+// Écart accepté et consigné (revue S21) : en mobile, la revue change le haut des pages (n° 4), les cartes du forum (n° 3), l'index et le
+// sous-forum (n° 6 et 13) et les boutons du kramail (n° 1). La suite ne pose aucun masque sur sa base : tant que la base d'un fragment précède
+// la revue, ses comparaisons mobiles à cette base qui en dépendent sont différées (le reste de chaque contrôle est gardé) ; bureau et seuils
+// restent comparés. Contrôles absolus de la revue : revue-s21.mjs. Retrait au recalage des COMMIT_* au-delà de la revue.
+const differeS21 = (base, width) => width < 768 && AVANT_REVUE_S21(base);
+const DIFFERE_S21 = ' (comparaison mobile à la base différée, revue S21)';
 const ECART_RECHARGEMENT_MS = 1300; // garde-fou du thème : deux rechargements au franchissement du seuil à 1 200 ms d'écart au moins
 const APRES_MS = 2000; // le correctif d'ancres agit au chargement et à 500 ms : le hash est relu 2 s plus tard
 const FRAG = (process.env.KR_FRAG || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -516,10 +524,11 @@ if (on('bureau')) {
   });
   cas.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = res[i];
-    check(`bureau ${PAGES[cle].url} ${variante} ${width} px : lignes et flèches (boîtes, cibles) égales au bundle de base (${COMMIT_AVANT}), aucune exception`, () => {
+    const differe = differeS21(avant, width);
+    check(`bureau ${PAGES[cle].url} ${variante} ${width} px : lignes et flèches (boîtes, cibles) égales au bundle de base (${COMMIT_AVANT})${differe ? DIFFERE_S21 : ''}, aucune exception`, () => {
       assert.ok(teste.l.theme && base.l.theme, 'kr-theme-enabled absent');
       assert.ok(teste.l.lignes.length >= 3, 'lignes : ' + teste.l.lignes.length);
-      assert.deepEqual(teste.l, base.l);
+      if (differe) { assert.equal(teste.l.lignes.length, base.l.lignes.length, 'nombre de lignes'); } else { assert.deepEqual(teste.l, base.l); }
       assert.deepEqual(teste.erreurs, []);
     });
   });
@@ -776,9 +785,11 @@ if (on('fil')) {
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
-    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu, aucune exception`, () => {
+    const differe = differeS21(baseFil, width);
+    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu${differe ? DIFFERE_S21 : ''}, aucune exception`, () => {
       assert.ok(teste.f.theme && base.f.theme, 'kr-theme-enabled absent');
       if (width >= 768) { assert.equal(teste.f.conteneurs.filter(c => c.cls === R.fil).length, 0, 'fil au bureau'); }
+      if (differe) { assert.deepEqual(teste.erreurs, []); return; }
       assert.deepEqual(teste.f, base.f, 'fil');
       const k = teste.e.findIndex((x, j) => x !== base.e[j]);
       assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
@@ -1086,20 +1097,24 @@ if (on('entete')) {
   casB.forEach(({ cle, width, variante, quoi }, i) => {
     const { teste: t, base: b } = resB[i];
     const lab = `entete ${cle} ${variante} ${width} px`;
+    const differe = differeS21(baseEntete, width);
     if (quoi === 'sous') {
-      check(`${lab} : sous-forum, « Nouveau sujet » (styles calculés, boîtes) et empreinte du contenu égaux au bundle de base (${COMMIT_ENTETE}), sans garde du sujet`, () => {
+      check(`${lab} : sous-forum, « Nouveau sujet » (styles calculés, boîtes) et empreinte du contenu égaux au bundle de base (${COMMIT_ENTETE})${differe ? DIFFERE_S21 : ''}, sans garde du sujet`, () => {
         assert.ok(t.m.theme && b.m.theme, 'kr-theme-enabled absent');
         assert.equal(t.m.garde, false, 'garde du sujet posée sur le sous-forum');
         assert.ok(actionsDe(t.m).length >= 1, 'aucune action');
-        assert.deepEqual(vueAction(t.m), vueAction(b.m));
-        empreinteEgale(t, b);
+        if (!differe) {
+          assert.deepEqual(vueAction(t.m), vueAction(b.m));
+          empreinteEgale(t, b);
+        }
         assert.deepEqual(t.erreurs, []);
       });
     } else if (quoi === 'h1') {
-      check(`${lab} : h1 (classe posée, position, largeur, marges, retraits, fond, bordure) et bandeau natif du bas (marges, retraits, fond, bordure, largeur) égaux au bundle de base (${COMMIT_ENTETE}), sans style en ligne`, () => {
+      // Revue S21 (n° 4) : titre de tête sans marge haute ; tant que la base précède la revue, ordonnée et marge haute du h1 à part.
+      check(`${lab} : h1 (classe posée, position, largeur, marges, retraits, fond, bordure) et bandeau natif du bas (marges, retraits, fond, bordure, largeur) égaux au bundle de base (${COMMIT_ENTETE})${differe ? ', ordonnée et marge haute du h1 à part (revue S21, n° 4)' : ''}, sans style en ligne`, () => {
         assert.ok(t.m.theme && b.m.theme && t.m.garde, `kr-theme-enabled ${t.m.theme}/${b.m.theme}, garde ${t.m.garde}`);
         assert.ok(t.m.h1Classe.split(' ').includes(E.titre), 'classe du h1 : ' + t.m.h1Classe);
-        const vue = c => c && ({ x: c.boite.x, y: c.boite.y, w: c.boite.w, marge: c.marge, retrait: c.retrait, fond: c.fond, bordure: c.bordure });
+        const vue = c => c && ({ x: c.boite.x, y: differe ? '·' : c.boite.y, w: c.boite.w, marge: differe ? ['·', ...c.marge.slice(1)] : c.marge, retrait: c.retrait, fond: c.fond, bordure: c.bordure });
         const vueBas = c => c && ({ x: c.boite.x, w: c.boite.w, marge: c.marge, retrait: c.retrait, fond: c.fond, bordure: c.bordure });
         assert.deepEqual(vue(t.m.h1), vue(b.m.h1), 'h1 ' + JSON.stringify(vue(t.m.h1)) + ' BASE ' + JSON.stringify(vue(b.m.h1)));
         assert.deepEqual(vueBas(t.m.basDePage), vueBas(b.m.basDePage), 'bandeau natif du bas');
@@ -1336,12 +1351,22 @@ if (on('plus')) {
         assert.deepEqual(vueVoisin(m.voisins), vueVoisin(b.m.voisins));
       });
     } else {
-      check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})`, () => {
+      // Revue S21 : le h1 du kramail remonte (n° 4 : titre de tête sans marge haute, retrait de #content de 8 px) ; en lecture, ses boutons
+      // tiennent sur un seul rang (n° 1 : boutons libellés à 8 px de retrait, « ••• » au bout du rang au lieu d'une deuxième ligne). Tant que
+      // la base précède la revue, ordonnée des boutons à part, et en lecture abscisse et largeur aussi (« ••• » de 44 × 44 px exigé
+      // ci-dessus ; menu entier dans l'écran : revue-s21.mjs).
+      const differe = differeS21(basePlus, width);
+      const rang = differe && nom === 'lecture';
+      const sansY = bt => (differe ? { ...bt, y: '·', ...(rang ? { x: '·', w: '·' } : {}) } : bt);
+      check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})${rang ? ', position et largeur à part (revue S21, n° 1 et 4)' : differe ? ', ordonnée à part (revue S21, n° 4)' : ''}`, () => {
         assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
-        const vue = h => ({ boite: h.boite, fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        const vue = h => ({ boite: sansY(h.boite), fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
         assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
         assert.ok(m.voisins.length > 0, 'aucun autre bouton du h1');
-        assert.deepEqual(vueKramail(m.voisins), vueKramail(b.m.voisins), 'autres boutons du h1');
+        const vueK = v => vueKramail(v).map(x => ({ ...x, boite: sansY(x.boite) }));
+        // N° 1 : btn-primary passe du retour au dossier à « Répondre » ; en lecture, mêmes boutons à l'ordre près (les apparences permutent)
+        const ordre = l => (rang ? l.map(x => JSON.stringify(x)).sort() : l);
+        assert.deepEqual(ordre(vueK(m.voisins)), ordre(vueK(b.m.voisins)), 'autres boutons du h1');
       });
     }
     // Voile réel du kramail non contrôlé ici : le module arrête la propagation du clic, Bootstrap n'en pose donc aucun (vrai par
@@ -1701,9 +1726,10 @@ if (on('ligne')) {
     return out;
   });
   casM.forEach(({ cle, width, variante }, n) => {
-    check(`ligne mobile ${PAGES[cle].url} ${variante} ${width} px : lignes, flèches, cibles et auteur égaux à la base (${COMMIT_LIGNE})`, () => {
+    const differe = differeS21(baseLigne, width);
+    check(`ligne mobile ${PAGES[cle].url} ${variante} ${width} px : lignes, flèches, cibles et auteur égaux à la base (${COMMIT_LIGNE})${differe ? DIFFERE_S21 : ''}`, () => {
       assert.ok(resM[n].teste.l.mobile, 'mode mobile');
-      assert.deepEqual(resM[n].teste.l, resM[n].base.l);
+      if (differe) { assert.equal(resM[n].teste.l.lignes.length, resM[n].base.l.lignes.length, 'nombre de lignes'); } else { assert.deepEqual(resM[n].teste.l, resM[n].base.l); }
       assert.deepEqual(resM[n].teste.a, resM[n].base.a);
     });
   });
@@ -1750,9 +1776,11 @@ if (on('ligne')) {
   });
   casH.forEach(({ cle, width, variante }, n) => {
     const { teste, base } = resH[n];
-    check(`ligne ${PAGES[cle].url} ${variante} ${width} px : aucune icône${cle === 'debuter' ? ', bouton → de 32 px' : ''}, empreinte du contenu égale au bundle de base (${COMMIT_LIGNE})`, () => {
+    const differe = differeS21(baseLigne, width);
+    check(`ligne ${PAGES[cle].url} ${variante} ${width} px : aucune icône${cle === 'debuter' ? ', bouton → de 32 px' : ''}, empreinte du contenu égale au bundle de base (${COMMIT_LIGNE})${differe ? DIFFERE_S21 : ''}`, () => {
       assert.equal(teste.total, 0, 'icônes');
       if (cle === 'debuter') { assert.ok(teste.fleche.length >= 1 && teste.fleche.every(([w, h]) => w === 32 && h === 32), JSON.stringify(teste.fleche)); }
+      if (differe) { assert.equal(teste.e.length, base.e.length, `éléments : ${teste.e.length} au lieu de ${base.e.length}`); assert.deepEqual(teste.erreurs, []); return; }
       const k = teste.e.findIndex((x, j) => x !== base.e[j]);
       assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
       assert.deepEqual(teste.erreurs, []);
@@ -1950,8 +1978,10 @@ if (on('panneaux')) {
   const casC = ['rp', 'debuter'].flatMap(cle => [375, 767].flatMap(width => VARIANTES.map(variante => ({ cle, width, variante }))));
   const resC = await mapLimit(casC, async c => ({ t: await mesurer(c, A.panneau), b: await mesurer({ ...c, src: basePanneaux }, A.panneau) }));
   casC.forEach(({ cle, width, variante }, n) => {
-    check(`panneaux carte ${PAGES[cle].url} ${variante} ${width} px : carte de section du forum égale au bundle de base (${COMMIT_PANNEAUX})`, () => {
+    const differe = differeS21(basePanneaux, width);
+    check(`panneaux carte ${PAGES[cle].url} ${variante} ${width} px : carte de section du forum égale au bundle de base (${COMMIT_PANNEAUX})${differe ? DIFFERE_S21 : ''}`, () => {
       assert.ok(resC[n].t.m.panneaux.length >= 1, 'aucun panneau');
+      if (differe) { assert.equal(resC[n].t.m.panneaux.length, resC[n].b.m.panneaux.length, 'nombre de panneaux'); return; }
       assert.deepEqual(resC[n].t.m.panneaux, resC[n].b.m.panneaux);
     });
   });

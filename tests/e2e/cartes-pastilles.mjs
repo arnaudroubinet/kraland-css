@@ -4,34 +4,40 @@
 //               Empire Brun sombre : chaque panneau à 8 px de chaque bord (largeur vw − 16), fond surface, 4 rayons de 8 px ; en-tête collé
 //               en haut du panneau, de 48 px (plus haut seulement si son contenu l'exige), retrait 0 16 px ; contenu sans écart sous
 //               l'en-tête, corps en retrait de 16 px, dernier corps aux coins bas de 8 px ; titre 17 px 700 en couleur du texte ; chevrons
-//               (natif ou du module, enfants directs de l'en-tête) dans l'en-tête, à 16 px du bord droit ; aucun débordement horizontal ;
+//               (natif ou du module, enfants directs de l'en-tête) dans l'en-tête, à 16 px du bord droit (chevron natif depuis la revue S21,
+//               n° 9 : cible de 44 x 44 au bord droit, glyphe centré) ; aucun débordement horizontal ;
 //   module      Bâtiments (Bâtiments Privés), plateau (Commerce, Matériel), Cybermonde (Bâtiments) à 375 et 767 px : chevron du module à
 //               16 px du bord droit, centré, chevron natif masqué ; un tap sur l'en-tête (elementFromPoint vérifié avant) replie : carte de
 //               48 px, corps de 0 px ; un 2e tap déplie : hauteur d'origine ; contrôle statique : règles du module dans le média mobile ;
 //   kramail     réception et envoyés à 375 et 767 px : même carte, corps sans retrait (lignes pleine largeur) ; contrôle statique : règles de la
 //               carte (priorités) et règles du kramail ciblées sans marge, fond ni couleur propres ;
 //   forum       (entrée 2) sous-forum, index RP, Communauté, Staff, racine et racine-groupes à 375 et 767 px, Kraland clair et Empire Brun
-//               sombre : même carte (corps sans retrait, chevron natif de 44 x 44 dans la carte), tout élément des panneaux dans la carte,
-//               aucun débordement (Staff : largeur défilable égale à la base, sa croix d'alerte débordant déjà) ; contrôle statique : règles du
-//               forum ciblées sans fond transparent, filet, rayon, retrait propre ni --kr-text-accent ; fil de sujet : messages égaux au
-//               bundle de base (7bec452) ; exclus de la carte, mêmes largeurs et variantes, égaux à la base sous leur racine : accordéon
+//               sombre : même carte (corps sans retrait, chevron natif de 44 x 44 dans la carte, Staff compris depuis la revue S21, n° 9 ;
+//               en-tête qui répète le titre de la page, index et racine, n° 13 : masqué avec son chevron, contenu en haut de la carte), tout
+//               élément des panneaux dans la carte, aucun débordement (Staff : largeur défilable égale à la base, sa croix d'alerte débordant
+//               déjà) ; contrôle statique : règles du forum ciblées sans fond transparent, filet, rayon, retrait propre ni
+//               --kr-text-accent ; fil de sujet : messages égaux au bundle de base (7bec452) ; exclus de la carte, mêmes largeurs et
+//               variantes, égaux à la base sous leur racine : accordéon
 //               (.panel-group) de Répondre (kramail) et de la page de l'échelle, panneau à onglets des modales d'ordre Dormir et Pouvoir ;
 //   lignes      mêmes pages du forum, largeurs et variantes : chaque ligne de tableau dans la carte, sans ombre ; hauteur, retraits, filets
 //               (gauche de 4 px des non lus, bas), fond, icônes d'état et cadenas, pastilles, flèche « dernier message » et cibles
-//               (elementFromPoint au centre, en haut, en bas, à droite et sur le filet) égaux au bundle de base ;
+//               (elementFromPoint au centre, en haut, en bas, à droite et sur le filet) égaux au bundle de base (sujets permanents du
+//               sous-forum hors comparaison tant que la base précède la revue S21 : deux lignes par sujet, n° 6) ;
 //   chevron     sous-forum à 375 et 767 px : chevron natif de 44 x 44 dans la carte, touché au centre (elementFromPoint) ; 1er tap : carte
-//               réduite à l'en-tête ; 2e tap : hauteur d'origine ;
+//               réduite à l'en-tête ; 2e tap : hauteur d'origine ; en-tête qui répète le titre de la page (index, racine-groupes : revue
+//               S21, n° 13, kr-titre-repete) : masqué avec son chevron, corps affiché, aucun tap ;
 //   bureau      toutes les pages à 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : égales au bundle de base ;
 //   bascule     Bâtiments, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet (section repliée avant chaque passage) : carte à 767,
 //               égal au bundle de base (même parcours) à 768 ;
 //   groupes     (entrée 3) groupes du plateau (plateau-qualite-usage, .dashboard natif de deux groupes) à 375 et 767 px, Kraland clair et
-//               Empire Brun sombre : chaque groupe en carte (8 px des bords, fond surface, rayons 8 px, sans ombre ; en-tête de 48 px au
+//               Empire Brun sombre : chaque groupe en carte (8 px des bords, fond surface, rayons 8 px, ombre de carte du thème, contour en
+//               clair et aucune en sombre depuis la revue S21, n° 3 ; en-tête de 48 px au
 //               moins, retrait 0 16 px, fond surface, sans filet ; titre 17 px 700 text-primary sans capitales ; chevron dans le flux à 16 px
 //               du bord droit ; cartes de personnages à 8 px des bords), aucun débordement ; « mon groupe » ouvert, l'autre réduit à son
 //               en-tête de 48 px (grille de 0 px sans cible, cartes dans le DOM) ; deux taps par en-tête (scrollTo puis elementFromPoint) :
 //               état et aria-expanded inversés puis rétablis ; tap sur un bouton de groupe sans effet ; ordre des groupes et contenu des
 //               cartes égaux au bundle de base (7bec452) ; mini-profil plié et déplié à 375 et 700 px (plateau-minimal, plateau-qualite-usage)
-//               égal à la base ; 768, 769, 1280, 1440 et 1920 px égaux à la base ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le
+//               égal à la base (différé tant que la base précède la revue S21 : mini-profil refait, n° 4 et 14) ; 768, 769, 1280, 1440 et 1920 px égaux à la base ; bascule 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le
 //               même onglet : carte à 767, base à 768 ; contrôle statique : règles des groupes sans !important, dans le média mobile ;
 //   contraste   16 variantes, Bâtiments, réception, sous-forum, index RP et groupes du plateau à 375 px : titre de chaque carte ≥ 4,5:1 sur
 //               son fond ; coins de la carte et coins bas du dernier corps à 8 px ;
@@ -50,10 +56,12 @@
 //               plein, aucune couleur d'état ; position, boîte, retrait, casse et espacement égaux au bundle de base (7bec452) ; tags égaux
 //               à la base à 768 et au-delà ; compteurs de contact du kramail (réception dérivée, contact actif compris) en pastille d'état
 //               comme « NOUVEAU MESSAGE » du sous-forum, vides invisibles ; « guilde », « [mod] », « Arme en main », pastilles d'ordre,
-//               éléments hors familles, étiquettes d'état, pièce courante et tags natifs égaux à la base ; fil de sujet sans étiquette ;
+//               éléments hors familles, étiquettes d'état, pièce courante et tags natifs égaux à la base (étiquettes du sous-forum mobile
+//               sans position ni largeur tant que la base précède la revue S21, n° 6) ; fil de sujet sans étiquette ;
 //               16 variantes à 375, 1280, 1440 et 1920 px : mêmes couleurs, ≥ 4,5:1 (rapport exact) ; bascule 767 -> 768 -> 767 et 768 ->
-//               767 -> 768 dans le même onglet ; contrôles statiques (priorités forcées au plus égales à la base, règles :focus au moins aussi nombreuses, aucune
-//               couleur littérale, règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
+//               767 -> 768 dans le même onglet ; contrôles statiques (priorités forcées au plus égales à la base, plus le surplus
+//               consigné de la revue S21 tant que la base la précède, règles :focus au moins aussi nombreuses, aucune couleur littérale,
+//               règle de la marque, sélecteur des contacts en tête de la règle d'état, détecteurs 5.4 et 5.5).
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Les repères cités par trois suites (panneau, gardes du forum) sont dans lib/variantes.mjs (routeur, MAX_CITING).
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show 7bec452, recalage du sweep 9.12, anciennes bases
@@ -69,7 +77,8 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, CORRIGER_BUG20, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, CORRIGER_BUG20, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
+import { ACTIONS_RAPIDES_S21, AVANT_REVUE_S21, BARRE_MESSAGE_S21, HAUT_S21, LIENS_S21, MINI_PROFIL_S21, MODALE_ORDRE_S21 } from './lib/revue-s21.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -79,6 +88,12 @@ const COMMIT_AVANT = '7bec452'; // recalage du sweep 9.12 (une base pour tous le
 // Écart voulu du bug 20 (accès rapides du plateau mobile 24 px moins hauts, groupes remontés) : base corrigée par CORRIGER_BUG20.
 const avant = CORRIGER_BUG20(sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
   : execFileSync('git', ['show', `${COMMIT_AVANT}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
+// Écarts acceptés et consignés de la revue S21 (lib/revue-s21.mjs) : feuilles miroirs posées sur toute ouverture de la base tant qu'elle
+// précède la revue, média mobile seulement (sans effet au bureau) : liens du texte (n° 2), haut des pages (n° 4), modale d'ordre (n° 10),
+// barre d'actions des messages du forum (n° 13), actions rapides et mini-profil du plateau (n° 4 et 14). Retrait au recalage de COMMIT_AVANT
+// au-delà de la revue.
+const MIROIRS_BASE = AVANT_REVUE_S21(avant) ? [LIENS_S21, HAUT_S21, MODALE_ORDRE_S21, BARRE_MESSAGE_S21, ACTIONS_RAPIDES_S21, MINI_PROFIL_S21].join('\n') : '';
+if (MIROIRS_BASE) { console.log('info : base d\'avant la revue S21, feuilles miroirs des n° 2, 4, 10, 13 et 14 posées sur la base (écarts consignés)'); }
 const lire = f => fs.readFileSync(path.join(here, 'fixtures', f), 'utf8');
 const ordre = f => lire(path.join(DOSSIER_MODALE_TICKET51, f)).replace(/^<!--[\s\S]*?-->\s*/, '');
 // Styles et scripts natifs du site pour les modales d'ordre (vendor/parler, comme la suite de la modale d'ordre).
@@ -160,6 +175,8 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
   const def = PAGES[nom];
   const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   await confineNetwork(context); // refus global EN PREMIER, routes des fixtures ensuite
+  // Base d'avant la revue S21 : feuilles miroirs (MIROIRS_BASE) en feuille adoptée, avant le premier rendu.
+  if (script === avant && MIROIRS_BASE) { await context.addInitScript(poserJetonsRedefinis, MIROIRS_BASE); }
   await context.route('http://img7.kraland.org/**', route => route.fulfill({ status: 200, contentType: 'image/gif', body: GIF }));
   await context.route(BASE + '/**', route => {
     const u = new URL(route.request().url());
@@ -248,6 +265,7 @@ const MESURE = ([sel, texte]) => {
         .map(([e, b]) => `${e.tagName}.${[...e.classList].join('.')} [${Math.round(b.left * 10) / 10}..${Math.round(b.right * 10) / 10}]`);
       return {
         nom: (titre ? titre.textContent : h.textContent).trim().replace(/\s+/g, ' ').slice(0, 30),
+        repete: h.classList.contains('kr-titre-repete'),
         p: boite(p), fond: s.backgroundColor, coins: coins(s),
         h: boite(h), filet: hs.borderBottomWidth, retrait: [hs.paddingTop, hs.paddingRight, hs.paddingBottom, hs.paddingLeft], contenu: contenu + px(hs.paddingTop) + px(hs.paddingBottom),
         titre: titre ? { tag: titre.tagName, taille: ts.fontSize, graisse: ts.fontWeight, couleur: ts.color, rapport: C.texte(titre) } : null,
@@ -292,10 +310,10 @@ const pres = (a, b, tol = 0.5) => Math.abs(a - b) <= tol;
 const r1 = v => Math.round(v * 10) / 10;
 // Forum (entrée 2) : corps sans retrait, chevron natif de 44 x 44 dans la carte (marge droite d'origine), tout élément du panneau dans la
 // carte. swBase : largeur défilable du bundle de base ; si la base déborde déjà (Staff : croix de l'alerte hors panneau), la page testée
-// garde la même largeur défilable, sans élément de panneau sorti. chevronsBase : chevrons du bundle de base ; chevronNatif (Staff seul,
-// sans règle de sous-forum ni d'index, A6) : un chevron de base sous 44 x 44 garde sa taille, dans la carte et dans l'en-tête ; partout
-// ailleurs, 44 x 44 exigé.
-function controlerCarte(m, famille, swBase, chevronsBase = [], chevronNatif = false) {
+// garde la même largeur défilable, sans élément de panneau sorti. 44 x 44 exigé partout, Staff compris (revue S21, n° 9 : avant, le chevron
+// natif de Staff, sans règle de sous-forum ni d'index, A6, gardait la taille de la base). En-tête qui répète le titre de la page (index et
+// racine, revue S21, n° 13, kr-titre-repete) : masqué avec son chevron, contenu en haut de la carte ; le reste de la carte est contrôlé.
+function controlerCarte(m, famille, swBase) {
   assert.ok(m.theme, 'kr-theme-enabled absent');
   assert.ok(m.mobile, 'mobile-mode absent');
   assert.ok(m.panneaux.length > 0, 'aucun panneau à en-tête');
@@ -309,22 +327,31 @@ function controlerCarte(m, famille, swBase, chevronsBase = [], chevronNatif = fa
     if (!pres(c.p.x, 8) || !pres(c.p.w, m.vw - 16)) { e.push(`boîte x ${c.p.x} largeur ${c.p.w} (vw ${m.vw})`); }
     if (c.fond !== m.surface) { e.push(`fond ${c.fond} ≠ ${m.surface}`); }
     if (c.coins.some(v => v !== '8px')) { e.push(`rayons ${c.coins.join(' ')}`); }
+    const attendu = famille === 'jeu' ? '16px 16px 16px 16px' : '0px 0px 0px 0px';
+    if (c.corps.some(v => v.join(' ') !== attendu)) { e.push(`corps ${c.corps.map(v => v.join(' ')).join(' ; ')}`); }
+    if (c.dernier && c.dernier.some(v => v !== '8px')) { e.push(`coins bas du dernier corps ${c.dernier.join(' ')}`); }
+    if (c.repete) {
+      if (c.h.h > 0 || c.chevrons.length) { e.push(`en-tête qui répète le titre de la page affiché (${r1(c.h.h)} px, ${c.chevrons.length} chevron(s))`); }
+      if (!c.suite || !pres(c.suite.y, c.p.y)) { e.push(`contenu à ${c.suite ? r1(c.suite.y - c.p.y) : '-'} px du haut de la carte`); }
+      if (forum && c.hors.length) { e.push(`hors de la carte : ${c.hors.join(', ')}`); }
+      if (e.length) { ecarts.push(`« ${c.nom} » : ${e.join(', ')}`); }
+      continue;
+    }
     if (!pres(c.h.y, c.p.y) || !pres(c.h.x, c.p.x) || !pres(c.h.w, c.p.w)) { e.push(`en-tête décalé [${c.h.x},${c.h.y},${c.h.w}]`); }
     if (c.h.h < 47.5 || (c.h.h > 48.5 && c.contenu < c.h.h - 0.5)) { e.push(`en-tête ${c.h.h} px (contenu ${c.contenu})`); }
     if (c.retrait.join(' ') !== '0px 16px 0px 16px') { e.push(`retrait ${c.retrait.join(' ')}`); }
     if (c.filet !== '0px') { e.push(`filet sous l'en-tête ${c.filet}`); }
     if (c.suite && !pres(c.suite.y, c.h.bas)) { e.push(`écart de ${Math.round((c.suite.y - c.h.bas) * 10) / 10} px sous l'en-tête`); }
-    const attendu = famille === 'jeu' ? '16px 16px 16px 16px' : '0px 0px 0px 0px';
-    if (c.corps.some(v => v.join(' ') !== attendu)) { e.push(`corps ${c.corps.map(v => v.join(' ')).join(' ; ')}`); }
-    if (c.dernier && c.dernier.some(v => v !== '8px')) { e.push(`coins bas du dernier corps ${c.dernier.join(' ')}`); }
     if (!c.titre || c.titre.tag !== 'H3') { e.push(`titre ${c.titre ? c.titre.tag : 'absent'}`); } else if (c.titre.taille !== '17px' || c.titre.graisse !== '700' || c.titre.couleur !== m.primaire) {
       e.push(`titre ${c.titre.taille}/${c.titre.graisse} ${c.titre.couleur} (attendu 17px/700 ${m.primaire})`);
     }
     for (const v of c.chevrons) {
-      const vb = chevronsBase[m.panneaux.flatMap(q => q.chevrons).indexOf(v)];
-      const petit = chevronNatif && vb && (vb.w < 43.5 || vb.h < 43.5);
       if (forum) {
-        if ((petit ? !pres(v.w, vb.w) || !pres(v.h, vb.h) : v.w < 43.5 || v.h < 43.5) || v.x < c.p.x - 0.5 || v.d > c.p.d + 0.5 || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} ${v.w} x ${v.h} [${v.x}..${v.d}, ${v.y}..${v.bas}] hors de la carte ou de l'en-tête`); }
+        if (v.w < 43.5 || v.h < 43.5 || v.x < c.p.x - 0.5 || v.d > c.p.d + 0.5 || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} ${v.w} x ${v.h} [${v.x}..${v.d}, ${v.y}..${v.bas}] hors de la carte ou de l'en-tête [${c.h.y}..${c.h.bas}]`); }
+      } else if (/\bclickable\b/.test(v.cls)) {
+        // Revue S21 (n° 9) : chevron natif (span.clickable) en cible de 44 x 44 au bord droit de l'en-tête, glyphe centré (il finit à 16 px
+        // du bord, comme l'icône convertie) ; avant la revue, glyphe seul à 16 px du bord.
+        if (v.w < 43.5 || v.h < 43.5 || !pres(c.h.d, v.d) || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} ${r1(v.w)} x ${r1(v.h)} à ${r1(c.h.d - v.d)} px du bord, [${v.y},${v.bas}] hors de [${c.h.y},${c.h.bas}]`); }
       } else if (!pres(c.h.d - v.d, 16) || v.y < c.h.y - 0.5 || v.bas > c.h.bas + 0.5) { e.push(`chevron ${v.cls} à ${Math.round((c.h.d - v.d) * 10) / 10} px du bord, [${v.y},${v.bas}] hors de [${c.h.y},${c.h.bas}]`); }
     }
     if (forum && c.hors.length) { e.push(`hors de la carte : ${c.hors.join(', ')}`); }
@@ -345,7 +372,7 @@ for (const [frag, famille] of [['carte', 'jeu'], ['kramail', 'kramail']]) {
     return { c, m, erreurs };
   });
   for (const { c, m, erreurs } of res) {
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons à 16 px du bord droit, sans débordement`, () => controlerCarte(m, famille));
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons convertis à 16 px du bord droit, natifs en cible de 44 x 44 au bord droit (revue S21, n° 9), sans débordement`, () => controlerCarte(m, famille));
     check(`${frag} ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
@@ -492,6 +519,7 @@ if (on('module')) {
 }
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
+const EXCEPTION_REVUE_S21_10 = AVANT_REVUE_S21(avant);
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
@@ -505,11 +533,15 @@ async function comparer(frag, cas) {
   for (const { c, teste, base } of res) {
     const sous = PAGES[c.nom].racine ? ` sous ${PAGES[c.nom].racine}` : '';
     const quoi = PAGES[c.nom].releve ? 'messages' : 'panneaux, en-têtes, titres et corps';
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${quoi}${sous} égaux au bundle de base (${teste.r.l.length} éléments)`, () => {
+    // Écart accepté et consigné (revue S21, n° 10) : le titre de la modale Dormir passe à l'image seule (kr-order-titre-image, posé par le
+    // template, absent d'une base d'avant la revue) : 32 px de moins au-dessus des onglets, ordonnée à part ; le reste est comparé.
+    const titreImage = EXCEPTION_REVUE_S21_10 && c.nom === 'modale-dormir' && c.width < 768;
+    const net = l => (titreImage ? l.map(x => x.replace(/\[([^,\]]+),[^,\]]+,/, '[$1,·,')) : l);
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${quoi}${sous} égaux au bundle de base (${teste.r.l.length} éléments)${titreImage ? ', ordonnée à part (titre image, revue S21, n° 10)' : ''}`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
       assert.equal(teste.r.mobile, c.width < 768, 'mode');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
-      const e = premierEcart(teste.r.l, base.r.l);
+      const e = premierEcart(net(teste.r.l), net(base.r.l));
       assert.equal(e, '', e);
       assert.equal(teste.r.sw, base.r.sw, 'largeur défilable');
     });
@@ -537,10 +569,10 @@ if (on('forum')) {
     const b = await ouvrir({ ...c, script: avant });
     const mb = await b.page.evaluate(MESURE, [PANNEAU_TICKET51, TEXTE_TICKET51]);
     await b.context.close();
-    return { c, m, swBase: mb.sw, chevronsBase: mb.panneaux.flatMap(p => p.chevrons), erreurs: t.erreurs };
+    return { c, m, swBase: mb.sw, erreurs: t.erreurs };
   });
-  for (const { c, m, swBase, chevronsBase, erreurs } of res) {
-    check(`forum ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps sans retrait, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevron de 44 x 44 dans la carte, éléments des panneaux dans la carte, sans débordement (base : ${swBase} px)`, () => controlerCarte(m, 'forum', swBase, chevronsBase, c.nom === 'staff'));
+  for (const { c, m, swBase, erreurs } of res) {
+    check(`forum ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps sans retrait, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevron de 44 x 44 dans la carte (Staff compris, revue S21, n° 9), en-tête qui répète le titre de la page masqué avec son chevron (n° 13), éléments des panneaux dans la carte, sans débordement (base : ${swBase} px)`, () => controlerCarte(m, 'forum', swBase));
     check(`forum ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
   await comparer('forum', [...DE('sujet'), ...DE('exclus')].flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante })))));
@@ -587,6 +619,7 @@ const LIGNES = ([sel, pastille]) => {
       const fleches = [...tr.querySelectorAll('a.btn')].filter(vis);
       out.push({
         nom: (tr.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30),
+        permanent: document.body.classList.contains('kr-subforum') && !tr.closest('#topics'),
         dans: b.left >= pb.left - 0.5 && b.right <= pb.right + 0.5, x: `[${r(b.left)}..${r(b.right)}] carte [${r(pb.left)}..${r(pb.right)}]`,
         ombre: s.boxShadow,
         tailles: fleches.map(e => [e.getBoundingClientRect().width, e.getBoundingClientRect().height]),
@@ -608,8 +641,13 @@ const LIGNES = ([sel, pastille]) => {
   window.scrollTo(0, 0);
   return { theme: document.documentElement.classList.contains('kr-theme-enabled'), mobile: document.body.classList.contains('mobile-mode'), lignes: out };
 };
+// Écart accepté et consigné (revue S21, n° 6, EXCEPTION_REVUE_S21_6) : sujets permanents du sous-forum sur deux lignes (titre entier puis
+// statut et date ; retrait vertical de 8 px, compteurs masqués), hors comparaison à une base d'avant la revue ; contrôlés en absolu par
+// sous-forum.mjs (l4-perm) et revue-s21.mjs. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
+const EXCEPTION_REVUE_S21_6 = AVANT_REVUE_S21(avant);
 if (on('lignes')) {
   console.log('\n== lignes ==');
+  if (EXCEPTION_REVUE_S21_6) { console.log('  info : base d\'avant la revue S21, sujets permanents du sous-forum hors comparaison (n° 6, EXCEPTION_REVUE_S21_6)'); }
   const cas = DE('forum').flatMap(nom => MOBILES.flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
   const res = await mapLimit(cas, async c => {
     const out = {};
@@ -629,11 +667,12 @@ if (on('lignes')) {
       const ecarts = t.filter(l => !l.dans || l.ombre !== 'none').map(l => `« ${l.nom} » ${l.x} ombre ${l.ombre}`);
       assert.deepEqual(ecarts, [], ecarts.join(' ; '));
     });
-    check(`${lab} : hauteur, retraits, filets, fond, icônes d'état et cadenas, pastilles, flèches et cibles (centre, haut, bas, droite, filet) égaux au bundle de base`, () => {
+    check(`${lab} : hauteur, retraits, filets, fond, icônes d'état et cadenas, pastilles, flèches et cibles (centre, haut, bas, droite, filet) égaux au bundle de base${EXCEPTION_REVUE_S21_6 && t.some(l => l.permanent) ? ' (sujets permanents hors comparaison : revue S21, n° 6)' : ''}`, () => {
       assert.equal(t.length, base.l.lignes.length, 'nombre de lignes');
       const ecarts = [];
       t.forEach((l, k) => {
         const z = base.l.lignes[k];
+        if (EXCEPTION_REVUE_S21_6 && l.permanent && z.permanent) { return; }
         for (const [cle, v] of Object.entries(l.egal)) {
           if (JSON.stringify(v) !== JSON.stringify(z.egal[cle])) { ecarts.push(`« ${l.nom} » ${cle} : testé ${JSON.stringify(v)} / base ${JSON.stringify(z.egal[cle])}`); }
         }
@@ -694,11 +733,16 @@ if (on('chevron')) {
         const ch = document.querySelectorAll(sel)[k];
         const p = ch.closest('.panel');
         const b = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, d: r.right, bas: r.bottom }; };
-        return { p: b(p), h: b(p.querySelector(':scope > .panel-heading')), ch: b(ch), titre: p.querySelector(':scope > .panel-heading').textContent.trim() };
+        const h = p.querySelector(':scope > .panel-heading');
+        const corps = p.querySelector(':scope > .panel-body');
+        return { p: b(p), h: b(h), ch: b(ch), titre: h.textContent.trim(), repete: h.classList.contains('kr-titre-repete'),
+          masque: !h.getClientRects().length && !ch.getClientRects().length, corps: !!corps && corps.getClientRects().length > 0 };
       }, [CHEVRON, i]);
       await page.evaluate(([sel, k]) => { window.scrollTo(0, 0); window.scrollTo(0, document.querySelectorAll(sel)[k].getBoundingClientRect().top - 150); }, [CHEVRON, i]);
       await styleSettled(page, 'body');
       const depart = await etat();
+      // Revue S21 (n° 13) : en-tête masqué parce qu'il répète le titre de la page, chevron compris : rien à toucher.
+      if (depart.repete) { chevrons.push({ depart }); continue; }
       const taper = async () => {
         const e = await etat();
         const x = e.ch.x + e.ch.w / 2;
@@ -722,6 +766,12 @@ if (on('chevron')) {
     check(`${lab} : ${ATTENDUS[c.nom]} chevron(s) natif(s)`, () => assert.equal(chevrons.length, ATTENDUS[c.nom]));
     for (const s of chevrons) {
       const a = s.depart;
+      if (a.repete) {
+        check(`${lab} « ${a.titre} » : en-tête qui répète le titre de la page masqué avec son chevron, corps affiché (revue S21, n° 13)`, () => {
+          assert.ok(a.masque && a.corps, JSON.stringify({ masque: a.masque, corps: a.corps }));
+        });
+        continue;
+      }
       check(`${lab} « ${a.titre} » : chevron de 44 x 44 dans l'en-tête et dans la carte`, () => {
         assert.ok(a.ch.w >= 43.5 && a.ch.h >= 43.5, `${a.ch.w} x ${a.ch.h}`);
         assert.ok(a.ch.x >= a.p.x - 0.5 && a.ch.d <= a.p.d + 0.5 && a.ch.y >= a.h.y - 0.5 && a.ch.bas <= a.h.bas + 0.5, `chevron [${a.ch.x}..${a.ch.d}, ${a.ch.y}..${a.ch.bas}], carte [${a.p.x}..${a.p.d}], en-tête [${a.h.y}..${a.h.bas}]`);
@@ -802,6 +852,8 @@ const MESURE_GROUPES = ([Q, texte]) => {
     sw: document.documentElement.scrollWidth,
     surface: C.sonde('var(--kr-bg-surface)'),
     primaire: C.sonde(texte),
+    // Ombre de carte du thème calculée (revue S21, n° 3 : contour en clair, aucune en sombre), sondée sur un élément du corps.
+    ombreCarte: (() => { const o = document.createElement('div'); o.style.boxShadow = 'var(--kr-card-shadow)'; document.body.appendChild(o); const v = getComputedStyle(o).boxShadow; o.remove(); return v; })(),
     sections: [...document.querySelectorAll(Q.section)].map(s => {
       const ss = getComputedStyle(s);
       const h = s.querySelector(Q.entete);
@@ -877,7 +929,7 @@ function controlerGroupes(m) {
     if (!pres(c.p.x, 8) || !pres(c.p.w, m.vw - 16)) { e.push(`boîte x ${r1(c.p.x)} largeur ${r1(c.p.w)} (vw ${m.vw})`); }
     if (c.fond !== m.surface) { e.push(`fond ${c.fond} ≠ ${m.surface}`); }
     if (c.coins.some(v => v !== '8px')) { e.push(`rayons ${c.coins.join(' ')}`); }
-    if (c.ombre !== 'none') { e.push(`ombre ${c.ombre}`); }
+    if (c.ombre !== m.ombreCarte) { e.push(`ombre ${c.ombre} ≠ ${m.ombreCarte}`); }
     if (!pres(c.h.y, c.p.y) || !pres(c.h.x, c.p.x) || !pres(c.h.w, c.p.w)) { e.push(`en-tête décalé [${r1(c.h.x)},${r1(c.h.y)},${r1(c.h.w)}]`); }
     if (c.h.h < 47.5) { e.push(`en-tête ${r1(c.h.h)} px`); }
     if (!(parseFloat(c.hmin) >= 48)) { e.push(`min-height de l'en-tête ${c.hmin}`); }
@@ -958,7 +1010,7 @@ if (on('groupes')) {
   });
   for (const { c, m, contenu, contenuBase, themeBase, taps, erreurs } of res) {
     const lab = `groupes ${c.variante} ${c.width} px`;
-    check(`${lab} : 2 groupes en carte (8 px des bords, fond surface, rayons 8 px, sans ombre ; en-tête ≥ 48 px, retrait 0 16 px, fond surface, sans filet ; titre 17 px 700 text-primary sans capitales ; chevron dans le flux à 16 px du bord droit ; cartes à 8 px des bords), sans débordement`, () => controlerGroupes(m));
+    check(`${lab} : 2 groupes en carte (8 px des bords, fond surface, rayons 8 px, ombre de carte du thème, revue S21 n° 3 ; en-tête ≥ 48 px, retrait 0 16 px, fond surface, sans filet ; titre 17 px 700 text-primary sans capitales ; chevron dans le flux à 16 px du bord droit ; cartes à 8 px des bords), sans débordement`, () => controlerGroupes(m));
     check(`${lab} : « mon groupe » ouvert, second groupe réduit à son en-tête (48 px au moins ; grille de 0 px sans cible, cartes dans le DOM)`, () => {
       assert.ok(/dashboard-section-mygroup/.test(contenu[0].cls), contenu[0].cls);
       etatGroupe(m.sections[0], true);
@@ -1030,15 +1082,23 @@ if (on('groupes')) {
     return { plie, deplie, erreurs };
   };
   const casMp = ['plateau-minimal', 'groupes'].flatMap(nom => [375, 700].flatMap(width => VARIANTES.map(variante => ({ nom, width, variante }))));
+  // Écart accepté et consigné (revue S21, n° 4 et 14, EXCEPTION_REVUE_S21_14) : mini-profil resserré (retrait vertical de 8 px, nom et argent
+  // en grille autour du bouton de gestion), roue et horloge en icônes Font Awesome (un élément de plus : l'icône de l'horloge), jauges
+  // compactes de 8 px en 13 px, masquées une fois déplié. Le DOM change : aucune feuille miroir ne rend la base comparable. Comparaison à une
+  // base d'avant la revue différée ; contrôles absolus dans revue-s21.mjs (mini-profil, haut) et typographie-formes.mjs (echelle) ; les
+  // caractéristiques (backlog 13) restent contrôlées ici. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
+  const EXCEPTION_REVUE_S21_14 = AVANT_REVUE_S21(avant);
+  if (EXCEPTION_REVUE_S21_14) { console.log('  info : base d\'avant la revue S21, mini-profil comparé à la base différé (n° 4 et 14, EXCEPTION_REVUE_S21_14)'); }
   const resMp = await mapLimit(casMp, async c => ({ c, teste: await miniProfil(c, userscript), base: await miniProfil(c, avant) }));
   for (const { c, teste, base } of resMp) {
     for (const k of ['plie', 'deplie']) {
       const etat = k === 'plie' ? 'plié' : 'déplié';
       // Caractéristiques (backlog 13) : fond et texte égaux à leur compétence de référence, et non plus à la base (palette du ticket 3.5).
-      check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${etat} : égal au bundle de base (${teste[k].l.length} éléments, fond et texte des caractéristiques à part)`, () => {
+      check(`groupes mini-profil ${c.nom} ${c.variante} ${c.width} px ${etat} : ${EXCEPTION_REVUE_S21_14 ? `présent (${teste[k].l.length} éléments ; comparaison à la base différée, revue S21, n° 14)` : `égal au bundle de base (${teste[k].l.length} éléments, fond et texte des caractéristiques à part)`}`, () => {
         assert.ok(teste[k].theme && base[k].theme, `kr-theme-enabled testé ${teste[k].theme} / base ${base[k].theme}`);
         assert.ok(teste[k].mobile, 'mobile-mode absent');
         assert.ok(teste[k].l.length > 1, 'mini-profil absent');
+        if (EXCEPTION_REVUE_S21_14) { return; }
         const d = premierEcart(teste[k].l, base[k].l);
         assert.equal(d, '', d);
       });
@@ -1450,6 +1510,11 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
   }
   return e.length ? [`${quoi} « ${x.texte} » : ${e.join(', ')}`] : [];
 }
+// Écart accepté et consigné (revue S21, n° 6, EXCEPTION_REVUE_S21_6) : au sous-forum mobile, les sujets permanents sur deux lignes
+// descendent la liste des sujets, et le séparateur « · » qui précédait les étiquettes du sujet passe après l'auteur (une ligne de
+// métadonnées ne commence plus par « · ») : l'étiquette perd la largeur du séparateur. Position et largeur n'y sont pas comparées à une
+// base d'avant la revue (hauteur, cadre, couleurs et typographie le sont) ; métadonnées sans « · » initial : revue-s21.mjs.
+const ordonneeHorsComparaisonS21 = c => EXCEPTION_REVUE_S21_6 && c.nom === 'sous-forum' && c.width < 768;
 // Caractéristiques et leurs pastilles (backlog 13) : fond, texte, bordures et contraste relevés à part, égaux à la compétence de la page.
 const sansPalette13 = (k, x) => (C13.horsFamilles.includes(k) ? { ...x, fond: '·', couleur: '·', bordures: '·', rapport: '·' } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
@@ -1462,8 +1527,15 @@ if (on('etiquettes')) {
   const rb = await regles(avant);
   const forcees = l => l.reduce((n, r) => n + Object.values(r.d).filter(([, p]) => p === 'important').length, 0);
   const focus = l => l.filter(r => r.sel.includes(':focus')).length;
-  check(`statique : pas plus de priorités forcées (${forcees(rs)}) et au moins autant de règles :focus (${focus(rs)}) que la base (${COMMIT_AVANT}) ; aucun #c9302c`, () => {
-    assert.ok(forcees(rs) <= forcees(rb), `priorités forcées : ${forcees(rs)} > ${forcees(rb)}`);
+  // Écart accepté et consigné (revue S21) : des règles de la revue battent des priorités forcées du thème ou en ligne (onglet seul et titre
+  // image de la modale d'ordre, barre du Cybermonde, contacts, rédaction du kramail, mini-profil, retrait des liens du texte en panneau,
+  // retraits des votes du forum, ombre des cartes du forum et du kramail, retrait natif des étiquettes et pastilles en lien du texte...).
+  // Décompte CSSOM : 7132 au départ de la revue (f404965), 7301 après, soit SURPLUS_FORCEES_REVUE_S21 de plus que la base (7204) ; permis
+  // tant que la base précède la revue, pas une priorité forcée de plus. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
+  const SURPLUS_FORCEES_REVUE_S21 = 97;
+  const surplus = AVANT_REVUE_S21(avant) ? SURPLUS_FORCEES_REVUE_S21 : 0;
+  check(`statique : pas plus de priorités forcées (${forcees(rs)}) que la base (${COMMIT_AVANT}, ${forcees(rb)})${surplus ? ` plus le surplus consigné de la revue S21 (${surplus})` : ''}, au moins autant de règles :focus (${focus(rs)}) ; aucun #c9302c`, () => {
+    assert.ok(forcees(rs) <= forcees(rb) + surplus, `priorités forcées : ${forcees(rs)} > ${forcees(rb)}${surplus ? ` + ${surplus}` : ''}`);
     // Intention : aucune règle :focus perdue (focus visible gardé) ; un focus ajouté ailleurs (menu de personnage, épopée 7, entrée 3) est permis
     assert.ok(focus(rs) >= focus(rb), `règles :focus : ${focus(rs)} < ${focus(rb)}`);
     assert.ok(!/c9302c/i.test(cssDuBundle(userscript)), '#c9302c présent');
@@ -1531,9 +1603,11 @@ if (on('etiquettes')) {
         continue;
       }
       if (sort === 'egal' || sort === 'conforme' || tagsBase) {
-        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}`, () => {
+        const ordonnee = ordonneeHorsComparaisonS21(c);
+        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}${ordonnee ? ', position et largeur à part (permanents sur deux lignes, « · » après l\'auteur, revue S21, n° 6)' : ''}`, () => {
           if (rendu !== 'mobile' || c.width < 768) { assert.ok(l.length > 0, 'absent'); }
-          const d = premierEcart(l.map(x => JSON.stringify(sansPalette13(k, x))), lb.map(x => JSON.stringify(sansPalette13(k, x))));
+          const vue = x => JSON.stringify(sansPalette13(k, ordonnee ? { ...x, geo: x.geo.replace(/\[[^,\]]+,[^,\]]+,[^,\]]+,/, '[·,·,·,') } : x));
+          const d = premierEcart(l.map(vue), lb.map(vue));
           assert.equal(d, '', d);
           if (sort === 'conforme') { sansEcart55(l.flatMap(x => ecartsCategorie(k, x, j))); }
         });

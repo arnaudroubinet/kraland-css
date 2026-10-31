@@ -17,7 +17,7 @@
 //             375, 767, 1280 et 1440 px : le message a les classes et les valeurs calculées (taille, couleur, rayon, espacement) du
 //             message de la fixture forum-sujet ; lien du nom natif ; signature dans le corps, destinataires gardés avant le corps,
 //             aucun bloc de destinataires vide ; 768 et 1280 px : largeur de .media-body au moins celle du bundle de base.
-//   lecture-plus : 320, 375 et 767 px : Répondre et Répondre à tous libellés, cibles >= 44 px atteintes, sans débordement ; « ••• »
+//   lecture-plus : 320, 375 et 767 px : Répondre et Répondre à tous (« À tous » sous 400 px, revue S21 n° 1) libellés, cibles >= 44 px atteintes, sans débordement ; « ••• »
 //             ouvert au toucher, menu au-dessus d'un .dropdown-backdrop (990) avec les boutons natifs déplacés (Réception : Transférer,
 //             Signaler, Supprimer, Nouveau message, Contacts ; Envoi : Transférer, Nouveau message, Contacts) ; Supprimer garde son
 //             gestionnaire (fixture : gestionnaire de test, aucune requête) ; second passage du module sans effet ; 1280 px : libellés
@@ -68,7 +68,8 @@
 //             des pastilles (doublon, sélection, croix), de Contacts, du panneau (sections, options, option active, déjà ajouté, vide,
 //             libre), du pied, de l'aide et du blocage (Ajouter, Effacer), survols et focus-visible compris, égales au bundle de base
 //             PALETTE_BASE_SHA, hors écarts ECARTS_PALETTE (filets, contours et icônes d'accent en --kr-text-accent, section en
-//             --kr-text-accent, filet du doublon et contour de la croix ciblée en --kr-text-primary, invalide en --kr-danger) ;
+//             --kr-text-accent, filet du doublon et contour de la croix ciblée en --kr-text-primary, invalide en --kr-danger ; en mobile
+//             et en clair, bordure du champ en --kr-field-border, revue S21 n° 7) ;
 //             textes >= 4,5:1, filets, contours d'état et icônes >= 3:1 sur leurs deux fonds.
 //   contacts : (épopée 7, entrée 8) fixture synthétique contacts.html (structure du relevé, noms inventés), 375, 767, 1280 et 1440 px :
 //             en-tête (parties mobiles ou h1 et bouton du bureau) et carte de section (panneau, en-tête, titre, corps, enveloppe, contrôles,
@@ -77,8 +78,9 @@
 //             sous-forum-debuter à 375 px garde ses actions, la Réception n'a pas la garde.
 //   contacts-boutons : /contacts et /contacts/<membre>/2, mêmes largeurs : aucune classe d'état (danger, warning, info, success), catégories
 //             libellées (Toutes, n°1 à n°4, Catégories), seule la catégorie courante en btn-primary ; boutons de l'en-tête aux valeurs du
-//             bouton de la Réception, courant au fond d'action ; mobile : cibles >= 44 px atteintes, toucher de la cellule coche la case ;
-//             bureau : le même clic ne coche rien ; recherche et « Afficher » nommées.
+//             bouton de la Réception, courant au fond d'action ; mobile : cibles >= 44 px atteintes, toucher de la cellule coche la case,
+//             carte de profil des lignes retirée, nom visible au même lien (revue S21) ; bureau : le même clic ne coche rien, aucun
+//             contrôle retiré ; recherche et « Afficher » nommées.
 //   contacts-couleurs : 16 variantes, 375 et 1280 px : textes de l'en-tête, des boutons et de la carte >= 4,5:1.
 //   envoyer : (épopée 7, entrée 7) les 5 rédactions et la réponse du forum (typographie-forum-redaction), 375, 767, 768 et 1280 px : aucun
 //             élément fixed/sticky dans le formulaire ; « Envoyer » dans le flux, sous la zone de texte, à droite, dans le formulaire,
@@ -661,8 +663,11 @@ if (frag('lecture-plus')) {
     return { c, o, m, menu, voile };
   });
   for (const { c, o, m, menu, voile } of res) {
-    check(`${c.cle} ${c.width} px : Répondre et Répondre à tous libellés, visibles, ${c.mobile ? '>= 44 px, ' : ''}atteints`, () => {
-      expect(m.libelles.map(l => l.libelle).join('|') === '"Répondre"|"Répondre à tous"', 'libellés : ' + m.libelles.map(l => l.libelle).join('|'));
+    // Revue S21 (n° 1) : sous 400 px, « Répondre à tous » s'abrège en « À tous » (data-kr-libelle-court) pour que retour, Répondre, À tous
+    // et « ••• » tiennent sur un rang.
+    const libelles = c.mobile && c.width < 400 ? '"Répondre"|"À tous"' : '"Répondre"|"Répondre à tous"';
+    check(`${c.cle} ${c.width} px : Répondre et ${c.mobile && c.width < 400 ? 'À tous (revue S21, n° 1)' : 'Répondre à tous'} libellés, visibles, ${c.mobile ? '>= 44 px, ' : ''}atteints`, () => {
+      expect(m.libelles.map(l => l.libelle).join('|') === libelles, 'libellés : ' + m.libelles.map(l => l.libelle).join('|'));
       expect(m.titre === (c.mobile ? 2 : 0), `boutons libellés dans le titre : ${m.titre}`);
       for (const l of m.libelles) {
         expect(l.visible && l.atteint, `${l.libelle} : visible ${l.visible}, atteint ${l.atteint}`);
@@ -789,7 +794,12 @@ if (frag('entete')) {
         for (const part of parts) {
           if (part === 'bouton' && !m.bouton) { continue; }
           expect(m[part] && ref[part], `${part} absent (kramail ${!!m[part]}, sous-forum ${!!ref[part]})`);
-          for (const k of Object.keys(ref[part])) { expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`); }
+          for (const k of Object.keys(ref[part])) {
+            // Revue S21 (n° 4) : en mobile, le titre de tête du kramail perd sa marge haute (le sous-forum garde la sienne, posée en ligne
+            // par le template comme à l'index et au sujet) ; exigée nulle ici, le reste de l'en-tête égal au sous-forum.
+            if (width < 768 && part === 'h1' && k === 'marginTop') { expect(m.h1.marginTop === '0px', `h1 marginTop : ${m.h1.marginTop} (attendu 0px, revue S21 n° 4)`); continue; }
+            expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`);
+          }
         }
         if (width >= 768) {
           expect(!m.fil && !m.tete, 'fil d\'Ariane ou tête mobile au bureau');
@@ -1556,7 +1566,14 @@ const RELEVER_BOUTONS_CONTACTS = () => {
     return { nom: el.tagName + '.' + el.className + (el.title ? ' ' + el.title : ''), w: Math.round(b.width), h: Math.round(b.height), atteint: el.classList.contains('disabled') || (!!hit && (hit === el || el.contains(hit))) };
   };
   const tete = [...h1.querySelectorAll('.pull-right > a.btn')];
-  const cibles = [...tete, ...col.querySelectorAll('#topics tbody a.btn, #topics tbody td.center, #topics_paginate .paginate_button:not(.kr-page-hidden), #topics_filter input, #topics_length select')].map(cible);
+  // Revue S21 : en mobile, la carte de profil de chaque ligne (même lien que le nom) est retirée ; relevée à part (retirees), hors des cibles
+  const rendu = el => el.getClientRects().length > 0;
+  const controles = [...col.querySelectorAll('#topics tbody a.btn, #topics tbody td.center, #topics_paginate .paginate_button:not(.kr-page-hidden), #topics_filter input, #topics_length select')];
+  const cibles = [...tete, ...controles.filter(rendu)].map(cible);
+  const retirees = controles.filter(e => !rendu(e)).map(e => {
+    const nom = e.closest('tr') && e.closest('tr').querySelector(':scope > td:nth-child(2) > a');
+    return { href: e.getAttribute('href'), profil: /communaute\/membres\//.test(e.getAttribute('href') || ''), nom: !!nom && rendu(nom) && nom.getAttribute('href') === e.getAttribute('href') };
+  });
   window.scrollTo(0, 0);
   const td = col.querySelector('#topics tbody td.center');
   const box = td.querySelector('input');
@@ -1568,7 +1585,7 @@ const RELEVER_BOUTONS_CONTACTS = () => {
     etats: [...col.querySelectorAll('.btn-danger, .btn-warning, .btn-info, .btn-success')].filter(e => !e.closest('span[id^="ajax-t"]')).map(e => e.className + ' ' + (e.title || e.textContent.trim())),
     categories: [...col.querySelectorAll('#topics tbody span[id^="ajax-t"] > a.btn')].map(e => e.className),
     tete: tete.map(a => ({ texte: a.textContent.replace(/\s+/g, ' ').trim(), primary: a.classList.contains('btn-primary'), defaut: a.classList.contains('btn-default'), href: a.getAttribute('href'), s: lire(a) })),
-    cibles, coche: box.checked !== avant, arm: sonde('var(--kr-arm-bg, var(--kr-primary))'),
+    cibles, retirees, coche: box.checked !== avant, arm: sonde('var(--kr-arm-bg, var(--kr-primary))'),
     rang: (() => {
       const pr = h1.querySelector('.pull-right').getBoundingClientRect();
       const s = document.createElement('span'); s.style.fontSize = 'var(--kr-font-button)'; document.body.appendChild(s); const police = getComputedStyle(s).fontSize; s.remove();
@@ -1648,10 +1665,13 @@ if (frag('contacts-boutons')) {
       });
     }
     if (mobile) {
-      check(`${c.cle} ${c.width} px : cibles >= 44 px atteintes (en-tête, boutons de ligne, case, pagination, contrôles), toucher de la cellule coche la case`, () => {
+      check(`${c.cle} ${c.width} px : cibles >= 44 px atteintes (en-tête, boutons de ligne, case, pagination, contrôles), toucher de la cellule coche la case ; carte de profil retirée, nom au même lien (revue S21)`, () => {
         const petites = m.cibles.filter(x => x.w < 44 || x.h < 44 || !x.atteint);
         expect(petites.length === 0, petites.slice(0, 4).map(x => `${x.nom} ${x.w}×${x.h}${x.atteint ? '' : ' non atteint'}`).join(' ; '));
         expect(m.coche, 'la case n\'a pas changé');
+        expect(m.retirees.length > 0, 'aucune carte de profil retirée');
+        const autres = m.retirees.filter(r => !r.profil || !r.nom);
+        expect(autres.length === 0, 'contrôles retirés hors carte de profil, ou sans nom visible au même lien : ' + autres.map(r => r.href).join(', '));
       });
       check(`${c.cle} ${c.width} px : boutons libellés de l'en-tête à la taille des boutons, chaque rang rempli jusqu'au bord droit`, () => {
         for (const b of m.rang.boutons) { expect(b.fontSize === m.rang.police, `${b.texte} : ${b.fontSize} pour ${m.rang.police}`); }
@@ -1662,7 +1682,10 @@ if (frag('contacts-boutons')) {
         }
       });
     } else {
-      check(`${c.cle} ${c.width} px : le même clic dans la cellule ne coche rien au bureau`, () => { expect(!m.coche, 'case cochée au bureau'); });
+      check(`${c.cle} ${c.width} px : le même clic dans la cellule ne coche rien au bureau ; aucun contrôle retiré`, () => {
+        expect(!m.coche, 'case cochée au bureau');
+        expect(m.retirees.length === 0, 'contrôles retirés au bureau : ' + m.retirees.map(r => r.href).join(', '));
+      });
     }
     if (m.redessin) {
       check(`${c.cle} ${c.width} px : après redessin (ligne ajoutée, catégorie changée en AJAX, recherche reconstruite), ni classe d'état hors catégorie des lignes (gardée), ni contrôle anonyme`, () => {
@@ -2127,6 +2150,10 @@ const PALETTE = {
 const ACCENT = 'var(--kr-text-accent)';
 const DANGER = 'var(--kr-danger)';
 const TEXTE = 'var(--kr-text-primary)';
+// Revue S21 (n° 7) : en mobile et en thème clair, le champ des destinataires prend la bordure des champs (--kr-field-border, au moins 3:1).
+const BORDURE_CHAMP_S21 = 'var(--kr-field-border)';
+const ecartPalette = (c, cle, prop) => ECARTS_PALETTE[`${cle}.${prop}`]
+  || (c.mobile && !c.variante.includes('-dark') && cle === 'champ' && prop === 'borderTopColor' ? BORDURE_CHAMP_S21 : undefined);
 const ECARTS_PALETTE = {
   'champ-focus.borderTopColor': ACCENT, 'doublon.borderTopColor': TEXTE, 'selection.outlineColor': ACCENT, 'contacts-icone.color': ACCENT,
   'contacts-survol.borderTopColor': ACCENT, 'option-active.borderLeftColor': ACCENT, 'surligne.textDecorationColor': ACCENT,
@@ -2166,7 +2193,7 @@ async function releverPalette(p, contraste) {
   await p.evaluate(contraste);
   const lire = async (cibles, etat = null) => {
     if (etat) { await p.evaluate(([sel, k]) => document.querySelector(sel).classList.add(k), etat); }
-    const r = await p.evaluate(LIRE_PALETTE, [cibles, KD_ANCIENS, [ACCENT, DANGER, TEXTE]]);
+    const r = await p.evaluate(LIRE_PALETTE, [cibles, KD_ANCIENS, [ACCENT, DANGER, TEXTE, BORDURE_CHAMP_S21]]);
     if (etat) { await p.evaluate(([sel, k]) => document.querySelector(sel).classList.remove(k), etat); }
     return r;
   };
@@ -2259,7 +2286,7 @@ if (frag('redaction-palette')) {
         if (cle.startsWith('__')) { continue; }
         for (const [prop, x] of Object.entries(v)) {
           if (prop === 'rapport') { continue; }
-          const jeton = ECARTS_PALETTE[`${cle}.${prop}`];
+          const jeton = ecartPalette(c, cle, prop);
           const attendu = jeton ? apres.__jetons[jeton] : b[cle][prop];
           if (x !== attendu) { ecarts.push(`${cle} ${prop} ${x} au lieu de ${attendu}${jeton ? ' (' + jeton + ')' : ''}`); }
         }

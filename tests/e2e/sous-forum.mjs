@@ -505,7 +505,10 @@ const TOOLBAR = () => {
   const input = document.querySelector('.dataTables_filter input'); const select = document.querySelector('.dataTables_length select');
   const ths = [...document.querySelectorAll('#topics thead th')];
   const tr = document.querySelector('#topics thead tr');
+  // Fondu à droite : masque de la rangée des puces, ou (revue S21, n° 6) indice « › » sur un fondu, pseudo-élément de thead
   const mask = tr ? (getComputedStyle(tr).maskImage || '') + (getComputedStyle(tr).webkitMaskImage || '') : '';
+  const thead = document.querySelector('#topics thead');
+  const indice = thead ? { content: getComputedStyle(thead, '::after').content, fond: getComputedStyle(thead, '::after').backgroundImage } : null;
   const chipRatio = th => { const bg = t.bgOf(th); return t.round(t.ratio(t.fgOn(th, bg), bg)); };
   const firstRegular = document.querySelector('#topics tbody tr');
   return {
@@ -514,7 +517,7 @@ const TOOLBAR = () => {
     input: input ? { ...rect(input), vis: vis(input), placeholder: input.getAttribute('placeholder'), aria: input.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(input).fontSize) } : null,
     select: select ? { ...rect(select), vis: vis(select), aria: select.getAttribute('aria-label'), fs: parseFloat(getComputedStyle(select).fontSize) } : null,
     chips: ths.map(th => ({ text: th.textContent.replace(/\s+/g, ' ').trim(), ...rect(th), vis: vis(th), cls: th.className, aria: th.getAttribute('aria-sort'), ratio: vis(th) ? chipRatio(th) : null, fleche: /\bsorting_(asc|desc)\b/.test(th.className) ? getComputedStyle(th, '::after').marginLeft : null })),
-    mask, scrollX: tr ? getComputedStyle(tr).overflowX : '',
+    mask, indice, scrollX: tr ? getComputedStyle(tr).overflowX : '',
     triPrefix: tr ? getComputedStyle(tr, '::before').content : '',
     triRatio: tr ? (() => { const bg = t.bgOf(tr); const c = t.parse(getComputedStyle(tr, '::before').color); return t.round(t.ratio(t.over(c, bg), bg)); })() : null,
     firstRegularY: firstRegular ? Math.round(firstRegular.getBoundingClientRect().top + window.scrollY) : null,
@@ -547,7 +550,11 @@ const checkToolbar = (label, m) => {
   check(`${label} : champs nommés (placeholder et libellés accessibles), police 16 px (pas de zoom iOS)`, () => { assert.ok(/Rechercher/.test(m.input.placeholder || '')); assert.ok(m.input.aria && m.select.aria); assert.equal(m.input.fs, 16); assert.equal(m.select.fs, 16); });
   check(`${label} : 5 puces de tri natives (th) visibles, 44 px de haut, la colonne triée en premier`, () => { assert.equal(m.chips.length, 5); assert.ok(m.chips.every(c => c.vis && c.h >= 44 && c.w >= 44), JSON.stringify(m.chips.map(c => [c.text, c.w, c.h, c.vis]))); const sorted = m.chips.find(c => c.aria); assert.ok(sorted && /Dernier/.test(sorted.text)); assert.ok(m.chips.every(c => c === sorted || c.x > sorted.x)); });
   check(`${label} : flèche de tri de la colonne triée à 4 px du libellé (grille de 4 px)`, () => { const f = m.chips.filter(c => c.fleche !== null); assert.ok(f.length === 1 && f[0].fleche === '4px', JSON.stringify(m.chips.map(c => [c.text, c.cls, c.fleche]))); });
-  check(`${label} : puces défilantes avec fondu à droite, préfixe « Trier : »`, () => { assert.equal(m.scrollX, 'auto'); assert.ok(/gradient/.test(m.mask), m.mask); assert.ok(/Trier/.test(m.triPrefix)); });
+  check(`${label} : puces défilantes avec fondu et indice « › » à droite (revue S21, n° 6), préfixe « Trier : »`, () => {
+    assert.equal(m.scrollX, 'auto');
+    assert.ok(m.indice && /›/.test(m.indice.content) && /gradient/.test(m.indice.fond), JSON.stringify(m.indice));
+    assert.ok(/Trier/.test(m.triPrefix));
+  });
   check(`${label} : 0 débordement horizontal`, () => assert.equal(m.overflowX, 0));
 };
 
@@ -621,7 +628,9 @@ if (frag('l3-themes')) {
   }
 }
 
-// ---------- L4 : sujets permanents mobile (1 ligne de 44 px : cadenas, titre, NON LU, date du dernier message ; toute la ligne mène au sujet) ----------
+// ---------- L4 : sujets permanents mobile (revue S21, n° 6 : deux rangs au plus, cadenas et titre entier puis NON LU et date du dernier
+// message ; avant la revue, une ligne de 44 px où pastille et date coupaient le titre à une quinzaine de caractères ; toute la ligne mène au
+// sujet) ----------
 const PERM_ROWS = () => {
   const t = window.__krColorTools(); const vt = window.__krVisibleText;
   const rect = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top + window.scrollY), w: Math.round(r.width), h: Math.round(r.height), r: Math.round(r.right), b: Math.round(r.bottom + window.scrollY) }; };
@@ -645,6 +654,7 @@ const PERM_ROWS = () => {
       return {
         title: title.textContent.trim(), href, unread: tr.classList.contains('kr-topic-unread'), newmsg: tr.classList.contains('kr-topic-newmsg'), locked: !!lock,
         text: vt(tr), row: r, titleRect: rect(title), titleVisible: vis(title), titleOverflow: getComputedStyle(title).textOverflow, titleNowrap: getComputedStyle(title).whiteSpace,
+        titleLh: parseFloat(getComputedStyle(title).lineHeight), titleClip: title.scrollHeight > title.clientHeight + 1,
         lockRect: lock && vis(lock) ? rect(lock) : null, badgeRect: badge && vis(badge) ? rect(badge) : null, dateRect: vis(date) ? rect(date) : null,
         dateText: date.textContent.replace(/\s+/g, ' ').trim(),
         hits: [hit(0.15), hit(0.5), hit(0.8)],
@@ -657,13 +667,15 @@ const PERM_ROWS = () => {
 const checkPerm = (label, m) => {
   const bad = pred => JSON.stringify(m.rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
   check(`${label} : 5 sujets permanents visibles`, () => assert.equal(m.rows.length, 5));
-  check(`${label} : une ligne de 44 à 48 px par permanent, tableau de 5 lignes <= 240 px`, () => { assert.ok(m.rows.every(r => r.row.h >= 44 && r.row.h <= 48), JSON.stringify(m.rows.map(r => r.row.h))); assert.ok(m.tableH <= 240, 'tableau ' + m.tableH); });
-  check(`${label} : titre sur une seule ligne, coupé par « … » s'il est trop long`, () => assert.ok(m.rows.every(r => r.titleVisible && r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis' && r.titleNowrap === 'nowrap'), bad(r => r.titleRect.h <= 24 && r.titleOverflow === 'ellipsis')));
+  check(`${label} : deux rangs au plus par permanent, de 44 à 80 px, tableau de 5 lignes <= 400 px`, () => { assert.ok(m.rows.every(r => r.row.h >= 44 && r.row.h <= 80), JSON.stringify(m.rows.map(r => r.row.h))); assert.ok(m.tableH <= 400, 'tableau ' + m.tableH); });
+  check(`${label} : titre entier, sur deux lignes au plus, sans « … »`, () => assert.ok(m.rows.every(r => r.titleVisible && r.titleRect.h <= 2 * r.titleLh + 2 && !r.titleClip && r.titleNowrap !== 'nowrap'), bad(r => r.titleRect.h <= 2 * r.titleLh + 2 && !r.titleClip && r.titleNowrap !== 'nowrap')));
   check(`${label} : cadenas visible si verrouillé, pastille NON LU si non lu, NOUVEAU MESSAGE si lu en partie, date du dernier message toujours`, () => assert.ok(m.rows.every(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === (r.unread || r.newmsg)) && r.dateRect && r.text.includes(r.dateText) && (!r.unread || r.text.includes('NON LU')) && (r.text.includes('NOUVEAU MESSAGE') === r.newmsg)), bad(r => (!!r.lockRect === r.locked) && (!!r.badgeRect === (r.unread || r.newmsg)) && r.dateRect)));
-  check(`${label} : ordre sur la ligne = cadenas, titre, NON LU, date (de gauche à droite, sans retour à la ligne)`, () => assert.ok(m.rows.every(r => {
-    const seq = [r.lockRect, r.titleRect, r.badgeRect, r.dateRect].filter(Boolean);
-    return seq.every((a, i) => i === 0 || seq[i - 1].r <= a.x + 1) && seq.every(a => a.y >= r.row.y - 1 && a.b <= r.row.b + 1);
-  }), bad(r => r.titleRect.r <= (r.dateRect || {}).x + 1)));
+  check(`${label} : ordre = cadenas puis titre au premier rang, NON LU puis date au rang suivant (de gauche à droite), rien hors de la ligne`, () => assert.ok(m.rows.every(r => {
+    const haut = [r.lockRect, r.titleRect].filter(Boolean);
+    const bas = [r.badgeRect, r.dateRect].filter(Boolean);
+    const gaucheDroite = l => l.every((a, i) => i === 0 || l[i - 1].r <= a.x + 1);
+    return gaucheDroite(haut) && gaucheDroite(bas) && bas.every(a => a.y >= r.titleRect.b - 1) && [...haut, ...bas].every(a => a.y >= r.row.y - 1 && a.b <= r.row.b + 1);
+  }), bad(r => [r.badgeRect, r.dateRect].filter(Boolean).every(a => a.y >= r.titleRect.b - 1))));
   check(`${label} : compteurs, auteur et pages ne sont pas affichés dans les permanents (ils sont dans le sujet)`, () => assert.ok(m.rows.every(r => !/messages?|vues?|pages? ·|par KraDesk/.test(r.text)), bad(r => !/messages?|vues?/.test(r.text))));
   check(`${label} : toute la ligne mène au sujet (le toucher à gauche, au centre et à droite atteint le lien du titre)`, () => assert.ok(m.rows.every(r => r.hits.every(h => h === r.href)), JSON.stringify(m.rows.map(r => r.hits.map(h => h === r.href)))));
   check(`${label} : pas de bloc de statistiques ajouté par l'ancien module des permanents`, () => assert.equal(m.statsWrappers, 0));
@@ -672,14 +684,17 @@ const checkPerm = (label, m) => {
 };
 
 if (frag('l4-perm')) {
-  console.log('L4 : sujets permanents mobile (1 ligne de 44 px)');
+  console.log('L4 : sujets permanents mobile (deux rangs au plus, titre entier : revue S21, n° 6)');
   for (const [width, height] of [[375, 667], [700, 800]]) {
     const { context, page: p } = await open({ width, height });
     await withTools(p);
     const m = await p.evaluate(PERM_ROWS);
     if (SHOTS) { await p.screenshot({ path: path.join(SHOTS, `sous-forum-permanents-${width}.png`), fullPage: true }); }
     checkPerm(`${width}`, m);
-    check(`${width} : le 1er sujet réel commence à 0,95 écran ou moins (écran de ${height} px)`, () => assert.ok(m.firstRegularY <= 0.95 * height, `${m.firstRegularY} px sur ${height} (${(m.firstRegularY / height).toFixed(2)})`));
+    // Revue S21 (n° 6) : titres entiers sur deux rangs, la liste descend ; à 375 × 667 px, 1er sujet réel à 743 px, 1,11 écran (630 px, 0,94
+    // avant la revue), borne relevée à 1,15 ; à 700 px, borne de 0,95 inchangée.
+    const borne = width < 480 ? 1.15 : 0.95;
+    check(`${width} : le 1er sujet réel commence à ${String(borne).replace('.', ',')} écran ou moins (écran de ${height} px)`, () => assert.ok(m.firstRegularY <= borne * height, `${m.firstRegularY} px sur ${height} (${(m.firstRegularY / height).toFixed(2)})`));
     const small = await p.evaluate(() => window.__krSmallTargets('#fx-permanents', null));
     check(`${width} : toutes les cibles du panneau des permanents font au moins 44 x 44 (grille elementFromPoint)`, () => { const bad = small.filter(s => s.w < 44 || s.h < 44); assert.ok(small.length >= 6 && bad.length === 0, JSON.stringify(bad.slice(0, 5))); });
     // Repli natif : un toucher sur le chevron replie le panneau (mécanisme du site)
@@ -1086,7 +1101,8 @@ const NEWMSG = () => {
 };
 
 // Pastille à 12 px gras depuis l'épopée 4, ticket 1 (--kr-font-label, au lieu de 11 px) : écart voulu, consigné dans le plan du ticket ;
-// les hauteurs ci-dessous (<= 20 px une ligne, <= 34 px deux lignes, permanent 44 à 48 px) sont tenues à cette taille. Taille : typographie-formes.mjs.
+// les hauteurs ci-dessous (<= 20 px une ligne, <= 34 px deux lignes, permanent de 44 à 80 px sur deux rangs depuis la revue S21, n° 6) sont
+// tenues à cette taille. Taille : typographie-formes.mjs.
 const checkNewmsg = (label, m) => {
   const bad = pred => JSON.stringify(m.rows.filter(r => !pred(r)).map(r => r.title)).slice(0, 300);
   check(`${label} : les trois états sont présents (jamais ouvert, lu en partie, entièrement lu)`, () => { assert.ok(m.rows.some(r => r.unreadIcon)); assert.ok(m.rows.some(r => r.newmsgIcon)); assert.ok(m.rows.some(r => !r.unreadIcon && !r.newmsgIcon)); });
@@ -1103,7 +1119,7 @@ const checkNewmsg = (label, m) => {
     }
     check(`${label} : navigation intelligente, le titre d'un sujet lu en partie mène au premier message non lu (lien de l'icône, #msg)`, () => assert.ok(topics.every(r => r.iconHref && r.titleHref.endsWith(r.iconHref) && /-1#msg\d+$/.test(r.titleHref) && r.smart === 'first-unread'), JSON.stringify(topics.map(r => [r.titleHref, r.iconHref, r.smart]))));
     const perm = m.rows.filter(r => r.perm && r.newmsgIcon);
-    check(`${label} : permanent lu en partie sur une ligne de 44 à 48 px, titre encore lisible (>= 80 px avant « … »)`, () => assert.ok(perm.length === 1 && perm.every(r => r.row.h >= 44 && r.row.h <= 48 && r.titleRect.w >= 80), JSON.stringify(perm.map(r => [r.row.h, r.titleRect.w]))));
+    check(`${label} : permanent lu en partie sur deux rangs au plus (44 à 80 px, revue S21, n° 6), titre d'au moins 80 px de large`, () => assert.ok(perm.length === 1 && perm.every(r => r.row.h >= 44 && r.row.h <= 80 && r.titleRect.w >= 80), JSON.stringify(perm.map(r => [r.row.h, r.titleRect.w]))));
   }
 };
 
@@ -1133,7 +1149,7 @@ if (frag('l7-nouveau')) {
   for (const width of [320, 375]) {
     const { context, page: p } = await open({ width, height: 667 });
     const w = await p.evaluate(WORST_PERM);
-    check(`${width} pire cas : permanent verrouillé + NOUVEAU MESSAGE + date avec l'année sur une ligne de 44 à 48 px, titre >= 40 px, rien hors de la ligne`, () => { assert.ok(w.newmsg && w.locked && w.label === 'NOUVEAU MESSAGE'); assert.ok(w.row.h >= 44 && w.row.h <= 48, 'h ' + w.row.h); assert.ok(w.title.w >= 40, 'titre ' + w.title.w); assert.ok(w.badge.r <= w.date.x && w.date.r <= w.row.r && w.badge.y >= w.row.y && w.badge.b <= w.row.b, JSON.stringify(w)); assert.equal(w.overflowX, 0); });
+    check(`${width} pire cas : permanent verrouillé + NOUVEAU MESSAGE + date avec l'année sur deux rangs de 44 à 80 px (revue S21, n° 6), titre >= 40 px, pastille puis date sous le titre, rien hors de la ligne`, () => { assert.ok(w.newmsg && w.locked && w.label === 'NOUVEAU MESSAGE'); assert.ok(w.row.h >= 44 && w.row.h <= 80, 'h ' + w.row.h); assert.ok(w.title.w >= 40, 'titre ' + w.title.w); assert.ok(w.badge.r <= w.date.x && w.date.r <= w.row.r && w.badge.y >= w.title.b - 1 && w.badge.y >= w.row.y && w.badge.b <= w.row.b && w.date.b <= w.row.b, JSON.stringify(w)); assert.equal(w.overflowX, 0); });
     await context.close();
   }
   for (const width of [375, 1280]) {

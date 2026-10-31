@@ -7,9 +7,10 @@
 //                     « Dernier : auteur, heure » ; « N sujets · N messages » ; bouton → de 44 px ; toute la ligne ouvre le forum ;
 //   forum sans message (« 0 sujets · 0 messages », ni dernier message ni bouton →) ; auteur avec icône (nom et icône conservés, en gras) ;
 //   en-têtes (titre de page, « Tous les forums », en-tête de section) : même rendu que le sous-forum, titre de section jamais en couleur de
-//                     nation (couleur de texte sur mobile) ;
+//                     nation (couleur de texte sur mobile) ; sur mobile, un en-tête de section qui répète le titre de la page est masqué
+//                     avec son chevron, corps ouvert (revue S21, n° 13, EXCEPTION_REVUE_S21_13) ;
 //   racine /forum : tous les groupes restent visibles et utilisent les lignes de l'index ; sous-forum, sujet et index Staff égaux au bundle de base
-//                     (7bec452), sans masque ;
+//                     (7bec452), sans masque (à 375 px, tant que la base précède la revue S21 : même nombre d'éléments, empreinte différée) ;
 //   seuil : 767, 768 et 769 px, et aller-retour 767 → 768 → 767 dans le même onglet (rechargement du thème au franchissement) ;
 //   peau coupée : la page native est intacte.
 // « Même rendu que le sous-forum » : le sous-forum « Débuter » (fixture sous-forum-debuter.html) est mesuré dans le même navigateur, à la même
@@ -34,6 +35,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
+import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -237,7 +239,10 @@ const ENTETES = () => {
   const h3 = document.querySelector('#col-right .panel-default > .panel-heading h3');
   const icone = h3 ? h3.querySelector('i') : null;
   const chevron = document.querySelector('#col-right .panel-default > .panel-heading span.clickable');
+  const entete = document.querySelector('#col-right .panel-default > .panel-heading');
+  const corps = entete ? entete.parentElement.querySelector(':scope > .panel-body') : null;
   return {
+    entete: entete ? { visible: visible(entete), repete: entete.classList.contains('kr-titre-repete'), corpsVisible: visible(corps) } : null,
     h1: h1 ? { rect: rect(h1), texte: h1.textContent.replace(/\s+/g, ' ').trim() } : null,
     tous: tous.map(a => ({ texte: a.textContent.replace(/\s+/g, ' ').trim(), rect: rect(a), dansH1: h1 ? h1.contains(a) : false, dansFil: fil ? fil.contains(a) : false })),
     fil: fil ? { texte: [...fil.children].map(c => c.textContent.replace(/\s+/g, ' ').trim()).join(' '), visible: visible(fil) } : null,
@@ -275,6 +280,8 @@ const COMPOSANTS_MOBILE = {
   'bouton →': ['#col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini .btn-group > a.btn', '#topics tbody tr td:nth-child(5) > p.mini .btn-group > a.btn', ['width', 'height', 'border-top-width', 'border-top-color', 'border-top-left-radius', 'background-color', 'color', 'font-size']],
   'groupe du bouton →': ['#col-right .panel-default .table > tbody > tr > td:nth-child(4) > p.mini .btn-group', '#topics tbody tr td:nth-child(5) > p.mini .btn-group', ['position', 'right', 'z-index', 'width', 'height', 'transform']],
   'compteur': ['#col-right .panel-default .table > tbody > tr > td:nth-child(2)', '#topics tbody tr td:nth-child(2)', ['font-size', 'color', 'line-height']],
+  // Revue S21 (n° 6) : aucun « · » en tête du second compteur, comme au sous-forum (le séparateur finit le premier : « N sujets · N messages »,
+  // contrôlé par le texte des lignes).
   'séparateur des compteurs': ['#col-right .panel-default .table > tbody > tr > td:nth-child(3)', '#topics tbody tr td:nth-child(3)', ['content'], '::before']
 };
 const COMPOSANTS_BUREAU = {
@@ -311,6 +318,16 @@ const EXCEPTION_TICKET66 = {
   'auteur du dernier message': ['color'],
   'bouton →': ['width', 'height'],
   'groupe du bouton →': ['width', 'height', 'transform']
+};
+
+// Exception nommée (revue S21, n° 13, mobile) : l'en-tête de section masqué parce qu'il répète le titre de la page n'a plus de rendu à
+// comparer à celui du sous-forum (display, boîte, chevron) ; ses propriétés seules sont exclues, le reste de la carte reste comparé.
+const EXCEPTION_REVUE_S21_13 = {
+  'en-tête de section': ['display', 'align-items', 'min-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'background-color',
+    'border-bottom-width', 'border-bottom-style', 'border-bottom-color', 'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius',
+    'border-bottom-left-radius'],
+  'titre de section': ['font-size', 'font-weight', 'color', 'margin-top', 'margin-bottom'],
+  'chevron de repli': ['display', 'min-width', 'min-height', 'margin-right']
 };
 
 // Position du bouton du titre (bureau) : bord droit et haut du bouton par rapport au h1, dernier bouton du titre.
@@ -435,14 +452,26 @@ if (on('mobile')) {
       assert.ok(E.tous[0].dansFil && E.tous[0].rect.h >= 44, JSON.stringify(E.tous[0]));
       assert.ok(E.titre && E.titre.texte === INDEX[cle].titre && E.titre.rect.x >= 16, JSON.stringify(E.titre));
     });
-    check(`${tag} : en-tête de section : titre en couleur de texte (pas la couleur de nation), icône rendue, chevron de 44 px`, () => {
-      const E = m.entetes;
-      assert.equal(E.h3.couleur, E.textePrincipal);
-      assert.ok(E.icone && /fa-comments-o/.test(E.icone.classes) && E.icone.glyphe !== 'none' && E.icone.glyphe !== '""', JSON.stringify(E.icone));
-      assert.ok(E.chevron && E.chevron.w >= 44 && E.chevron.h >= 44, JSON.stringify(E.chevron));
-    });
-    check(`${tag} : même rendu que le sous-forum (en-tête de page, en-tête de section, ligne, nom, dernier message, bouton →, compteurs)`, () => {
-      assert.deepEqual(ecarts(m.composants, modeles[v].composants), []);
+    // Revue S21, n° 13 : sur mobile, un en-tête de section qui répète le titre de la page (« Jeu (RP) », « Communauté ») est masqué avec
+    // son chevron (kr-titre-repete), le corps reste ouvert ; un en-tête différent garde le rendu du sous-forum.
+    const repete = !!m.entetes.h3 && m.entetes.h3.texte.replace(/\s+/g, ' ').trim().toLowerCase() === INDEX[cle].titre.toLowerCase();
+    if (repete) {
+      check(`${tag} : en-tête de section qui répète le titre de la page : masqué avec son chevron (kr-titre-repete), lignes visibles`, () => {
+        const E = m.entetes;
+        assert.ok(E.entete && E.entete.repete && !E.entete.visible && E.entete.corpsVisible && E.chevron === null, JSON.stringify(E.entete));
+      });
+    } else {
+      check(`${tag} : en-tête de section : titre en couleur de texte (pas la couleur de nation), icône rendue, chevron de 44 px`, () => {
+        const E = m.entetes;
+        assert.ok(E.entete && E.entete.visible && !E.entete.repete, JSON.stringify(E.entete));
+        assert.equal(E.h3.couleur, E.textePrincipal);
+        assert.ok(E.icone && /fa-comments-o/.test(E.icone.classes) && E.icone.glyphe !== 'none' && E.icone.glyphe !== '""', JSON.stringify(E.icone));
+        assert.ok(E.chevron && E.chevron.w >= 44 && E.chevron.h >= 44, JSON.stringify(E.chevron));
+      });
+    }
+    check(`${tag} : même rendu que le sous-forum (en-tête de page, ${repete ? '' : 'en-tête de section, '}ligne, nom, dernier message, bouton →, compteurs)`, () => {
+      const e = ecarts(m.composants, modeles[v].composants, repete ? EXCEPTION_REVUE_S21_13 : {});
+      assert.deepEqual(e, [], e.join(' ; '));
     });
   });
 }
@@ -697,14 +726,22 @@ if (on('hors-perimetre')) {
       }
       return mesures;
     });
+    // Écart accepté et consigné (revue S21) : à 375 px, les trois pages changent avec la revue (haut des pages, n° 4 ; sujets permanents sur
+    // deux lignes, n° 6 ; chevrons natifs, n° 9 ; barre d'actions des messages, n° 13). Tant que la base précède la revue, l'empreinte n'y est
+    // pas comparée élément par élément (classe de page, classes de html et body, nombre d'éléments et erreurs le sont) ; le bureau reste
+    // comparé en entier. Retrait au recalage de COMMIT_AVANT au-delà de la revue (contrôles absolus : revue-s21.mjs, sous-forum.mjs).
+    const differeS21 = c => AVANT_REVUE_S21(avant) && c.width < 768;
+    if (cas.some(differeS21)) { console.log(`  info : base d'avant la revue S21, empreinte mobile (${MOBILE} px) comparée en nombre d'éléments seulement`); }
     cas.forEach((c, i) => {
       const [a, p] = res[i];
-      check(`[${c.v}] ${c.nom} ${c.width} px : sans html.kr-page-forum-index, rendu égal au bundle de base (${COMMIT_AVANT}) (${a.e.elements.length} éléments de #col-right), aucune exception`, () => {
+      const differe = differeS21(c);
+      check(`[${c.v}] ${c.nom} ${c.width} px : sans html.kr-page-forum-index, ${differe ? `même nombre d'éléments que le bundle de base (${COMMIT_AVANT}) (${a.e.elements.length} éléments de #col-right ; empreinte différée, revue S21)` : `rendu égal au bundle de base (${COMMIT_AVANT}) (${a.e.elements.length} éléments de #col-right)`}, aucune exception`, () => {
         assert.equal(p.index, false);
         assert.deepEqual(p.erreurs, []);
         assert.equal(p.e.html, a.e.html, 'classes de html');
         assert.equal(p.e.corps, a.e.corps, 'classes de body');
         assert.equal(p.e.elements.length, a.e.elements.length, `éléments : ${p.e.elements.length} au lieu de ${a.e.elements.length}`);
+        if (differe) { return; }
         const k = p.e.elements.findIndex((x, j) => x !== a.e.elements[j]);
         assert.equal(k, -1, k < 0 ? '' : `élément ${k} : ${p.e.elements[k]} au lieu de ${a.e.elements[k]}`);
       });

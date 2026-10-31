@@ -16,7 +16,8 @@
 // 1280 px, le point visé est une <area> (elementFromPoint) et le toucher ou le clic ouvre sa destination.
 // Fragment panneaux (critère 4) : panneaux et sélecteurs (position horizontale, largeur, couleurs, taille de police) identiques au bundle
 // « avant » (feature/next tel que commité, ou KR_SCRIPT_AVANT), à 375 et 1280 px, Kraland clair et Empire Brun sombre ; la page Cybermonde sans
-// carte (cybermonde-ville.html) aussi, sans exception.
+// carte (cybermonde-ville.html) aussi, sans exception. Liste de la barre sur mobile : position du bord de son lien (revue S21, cadreLien),
+// cadre unique de 44 px vérifié à part.
 // Fragment sans-carte : page /map sans img[usemap], page /maps (hors Cybermonde) et ville dont la boîte n'a pas width:678px (non reconnue) :
 // aucune exception, aucune classe kr-cybermonde-*, et sur /maps comme sur la ville la carte garde sa position native.
 // Fragment recentrage : cadre mobile ouvert à 375 px puis fenêtre réduite à 320 px (toujours mobile, sans rechargement) : le cadre est
@@ -326,8 +327,12 @@ const MESURE_PANNEAUX = () => {
     const s = getComputedStyle(el);
     const titre = el.querySelector('.panel-title');
     const c = lire(s.color);
+    // Retrait du lien porteur d'une liste de la barre (marge intérieure et bordure gauches de li > a) : voir cadreLien ci-dessous.
+    const lien = el.matches('select') ? el.closest('ul.pagination > li > a') : null;
+    const ls = lien && getComputedStyle(lien);
     return { nom: titre ? titre.textContent.trim() : '#' + el.id, gauche: Math.round(r.left), largeur: Math.round(r.width), couleur: s.color, fond: s.backgroundColor, police: s.fontSize,
-      primaire: primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)) };
+      primaire: primaires.some(x => [0, 1, 2].every(i => Math.abs(x[i] - c[i]) <= 1)),
+      barre: !!lien, retrait: ls ? Math.round(parseFloat(ls.paddingLeft) + parseFloat(ls.borderLeftWidth)) : 0, hauteur: Math.round(r.height) };
   });
 };
 const texteColore = (avant, apres) => {
@@ -338,6 +343,12 @@ const texteColore = (avant, apres) => {
 // Écart accepté et consigné (épopée 9, entrée 4) : /map sans carte reçoit la marge mobile de 16 px des pages secondaires ; à 375 px, ses
 // sélecteurs (nom #…) se décalent de 16 px vers la droite. Seul ce décalage est retiré de la comparaison, et seulement contre une base
 // antérieure à 9.4.
+// Écart accepté et consigné (revue S21, pages secondaires : « double cadre et hauteurs inégales ») : sur mobile, la liste déroulante de la
+// barre du Cybermonde (.center > ul.pagination > li > a > select) perd le cadre et la marge intérieure du lien qui la porte ; elle se
+// décale vers la gauche de ce retrait. La position comparée est donc celle du bord du lien (gauche - retrait), des deux côtés ; tout
+// autre écart (lien déplacé, largeur, couleurs, police) reste rouge. Le retrait et la hauteur ne sont pas comparés à la base : ils sont
+// vérifiés à part (cadre unique de 44 px).
+const cadreLien = l => l.map(({ retrait, hauteur: _hauteur, barre: _barre, ...m }) => ({ ...m, gauche: m.gauche - retrait }));
 const margeSecondaire = (c, avant, bundle) => c.nom === 'sans carte' && c.largeur < 768 && !bundle.includes('kr-page-secondaire') ? avant.map(m => m.nom.startsWith('#') ? { ...m, gauche: m.gauche + 16 } : m) : avant;
 
 if (on('panneaux')) {
@@ -366,9 +377,15 @@ if (on('panneaux')) {
       check(`[${c.variante}] ${c.nom} ${c.largeur} px : panneaux et sélecteurs inchangés (${a.panneaux.length}), aucune exception`, () => {
         assert.ok(a.panneaux.length > 0, 'aucun panneau mesuré');
         assert.deepEqual(p.erreurs, []);
-        const [na, np] = texteColore(margeSecondaire(c, a.panneaux, avant), p.panneaux);
+        const [na, np] = texteColore(cadreLien(margeSecondaire(c, a.panneaux, avant)), cadreLien(p.panneaux));
         assert.deepEqual(np, na, JSON.stringify(np) + ' au lieu de ' + JSON.stringify(na));
       });
+      const listes = p.panneaux.filter(m => m.barre);
+      if (c.largeur < 768 && listes.length) {
+        check(`[${c.variante}] ${c.nom} ${c.largeur} px : listes de la barre en cadre unique (lien sans retrait) de 44 px de haut (${listes.length})`, () => {
+          assert.deepEqual(listes.filter(m => m.retrait !== 0 || m.hauteur !== 44).map(m => `${m.nom} retrait ${m.retrait} hauteur ${m.hauteur}`), []);
+        });
+      }
     });
   }
 }
