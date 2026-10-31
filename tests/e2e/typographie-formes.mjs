@@ -1792,6 +1792,10 @@ const EXCLUES_A8 = {
   left: ['.kr-changelog-content', 'changelog centré par left: 50% et translate(-50%, -50%) : 384 au lieu de 384,5 px'],
   right: ['.kr-changelog-content', 'valeur calculée de right, déduite de left et de la largeur de la fenêtre : -216 au lieu de -215,5 px']
 };
+const IGNORER_ONGLETS = [
+  ['.mobile-tab-bar, .mobile-tab-bar *', ['width', 'inline-size', 'padding-left', 'padding-right', 'padding-inline-start', 'padding-inline-end', 'perspective-origin', 'transform-origin']],
+  ['.mobile-tab-bar', null, '::after']
+];
 const EXCLUSIONS_A8 = Object.fromEntries(Object.entries(EXCLUES_A8).map(([p, [sel]]) => [p, sel]));
 const ecartsA8 = (ha, hb) => {
   const cles = [...new Set([...Object.keys(ha), ...Object.keys(hb)])];
@@ -1806,8 +1810,9 @@ const ecartsA8 = (ha, hb) => {
 };
 // Dans la page : empreinte (FNV-1a) des propriétés calculées de chaque élément visible (racine : sous-arbres des éléments visés) et de ses
 // ::before / ::after à contenu posé ; cles : ces clés seulement, visibles ou non ; detail : propriétés en clair ; ecarter : sous-arbres
-// mesurés à part (caractéristiques, backlog 13).
-const EMPREINTES = ({ racine, cles, detail, ecarter }) => {
+// mesurés à part (caractéristiques, backlog 13) ; ignorer : [sélecteur, propriétés] retirées des éléments visés, ou [sélecteur, null,
+// pseudo] pour écarter ce pseudo-élément.
+const EMPREINTES = ({ racine, cles, detail, ecarter, ignorer }) => {
   const garder = p => !p.startsWith('--');
   const chemin = e => { const l = []; for (let n = e; n !== document.documentElement; n = n.parentElement) { l.push([...n.parentElement.children].indexOf(n)); } return l.reverse().join('.'); };
   const trouver = c => { let n = document.documentElement; for (const i of c ? c.split('.') : []) { n = n && n.children[Number(i)]; } return n; };
@@ -1815,6 +1820,7 @@ const EMPREINTES = ({ racine, cles, detail, ecarter }) => {
   const fnv = t => { let h = 0x811c9dc5; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
   const valeur = (e, pseudo) => {
     const o = proprietes(getComputedStyle(e, pseudo || null));
+    for (const [sel, props] of ignorer || []) { if (props && e.matches(sel)) { for (const p of props) { delete o[p]; } } }
     return detail ? { quoi: `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}.${[...e.classList].slice(0, 3).join('.')}${pseudo || ''}`, o } : fnv(Object.entries(o).map(([p, v]) => p + ':' + v).join(';'));
   };
   const out = {};
@@ -1835,6 +1841,7 @@ const EMPREINTES = ({ racine, cles, detail, ecarter }) => {
       const c = chemin(e);
       out[c] = valeur(e);
       for (const pseudo of ['::before', '::after']) {
+        if ((ignorer || []).some(([sel, props, ps]) => !props && ps === pseudo && e.matches(sel))) { continue; }
         const contenu = getComputedStyle(e, pseudo).content;
         if (contenu !== 'none' && contenu !== 'normal') { out[c + '|' + pseudo] = valeur(e, pseudo); }
       }
@@ -1950,7 +1957,9 @@ if (on('nettoyage')) {
       // Caractéristiques (backlog 13) : égales à leur compétence de référence de la même page, et non plus à la base (palette du ticket 3.5).
       const caracs = await a.page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13);
       if (caracs.length) { out.caracs = caracs; }
-      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres })]);
+      // Barre d'onglets de section (ticket 19 du backlog) : seules ses propriétés géométriques sont écartées (liens bornés à leur case,
+      // 2 px sur les côtés, ::after de défilement masqué faute de débordement) ; géométrie mesurée par jeu-identite#onglets.
+      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_ONGLETS })]);
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) : A8 et « rendu changé » n'y ont plus d'objet tant que la base M1/M2 (COMMIT_MEDIAS_410) précède l'entrée.
       // Même écart pour l'éditeur des rédactions (épopée 7, entrée 5) : M1/M2 ne touchaient que le formulaire, au rendu du forum.

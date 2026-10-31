@@ -5610,13 +5610,17 @@ body > map {
       min-width: 0; /* Permet le shrink */
     }
     
+    /* La règle tactile des liens rend ce lien inline-flex : sans largeur, il prend celle de son libellé et déborde de sa case (ticket 19
+       du backlog). width: 100% le borne à son li, qui garde sa hauteur (l'inline-flex est conservé) ; padding en !important contre celui
+       des .nav-tabs mobiles : hauteur de base (12 px), 2 px sur les côtés, « Personnage » en demi-gras tient entier dans une case de 75 px */
     .mobile-tab-bar.nav-tabs > li > a {
       min-height: var(--kr-touch-target);
       display: flex;
+      width: 100%;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 8px 4px;
+      padding: 12px 2px !important;
       margin-right: 0;
       border-radius: 0;
       border: none;

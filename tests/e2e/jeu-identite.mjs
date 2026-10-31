@@ -30,6 +30,10 @@
 // l'index) ; sur la racine du forum, les blocs sont également exclus. La garde de page n'est exercée qu'à 320 et 375 px (mode mobile) ; à 768
 // et 1280 px, le module sort déjà sur sa garde mobile. Sur Personnage (lignes de 2 cellules au plus), seul le marquage des lignes trahissait le module.
 // Sur Cybermonde et Personnage, aucune cellule ne reçoit non plus le décor CSS du forum (« sujets », « messages », « → », ticket 4 du backlog).
+// Fragment onglets (ticket 19 du backlog) : sur les cinq pages de jeu (fixtures jeu-plateau-objets, jeu-materiel, jeu-perso, jeu-batiments,
+// jeu-employes) à 320, 375 et 767 px (tactile), Kraland clair et Empire Brun sombre, chaque lien de la barre d'onglets mobile tient dans son li,
+// la barre ne déborde ni ne défile, chaque onglet est sa propre cible à 1 px de ses bords et mesure au moins 44 px de haut, son libellé est
+// entier ou tronqué par ellipse, jamais sous --kr-font-label ; à 768 px, pas de barre ; bascule 767 -> 768 -> 767 sur Personnage.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures/jeu-perso.html, plateau-minimal.html, forum-index-rp.html, forum-racine.html, regles-recherche.html,
 // cybermonde-ville.html reconstruite), aucune donnée réelle, et la fixture anonymisée de la rédaction d'un Kramail (kramail-nouveau.html,
 // servie à son URL de kramail-redaction.mjs) ;
@@ -37,7 +41,7 @@
 // d'une fixture, pour le déplier).
 //
 // Usage : npm run build && node tests/e2e/jeu-identite.mjs   (ou : npm run test:zone -- plateau)
-// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones, hors-forum-js (vide = tout).
+// Options : KR_SCRIPT (bundle testé), KR_FRAG = fuite-forum, regles-ok, nom, section-active, icones, onglets, hors-forum-js (vide = tout).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -658,6 +662,107 @@ if (on('icones')) {
     verifierSocle(mobile, V);
     assert.deepEqual(mobile.onglets, ICONES, 'icônes des onglets de section : ' + JSON.stringify(mobile.onglets));
   });
+}
+
+// Fragment onglets (ticket 19 du backlog) : chaque onglet de la barre de section mobile tient dans sa case. Mesure, après le défilement
+// automatique vers l'onglet actif (100 ms puis défilement doux) : boîtes du li et du lien, débordement et défilement de la barre, cible à 1 px
+// de chaque bord du lien (elementFromPoint, à mi-hauteur), taille et troncature du libellé.
+const MESURE_ONGLETS = async () => {
+  await new Promise(r => setTimeout(r, 600));
+  const bar = document.querySelector('.mobile-tab-bar');
+  if (!bar) { return { barre: null }; }
+  const plancher = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--kr-font-label'));
+  return {
+    barre: { scrollWidth: bar.scrollWidth, clientWidth: bar.clientWidth, scrollLeft: bar.scrollLeft, droite: bar.getBoundingClientRect().right },
+    ecran: document.documentElement.clientWidth, pageLarge: document.documentElement.scrollWidth,
+    plancher,
+    onglets: [...bar.children].map((li, i) => {
+      const a = li.querySelector('a');
+      const lab = a.querySelector('.mobile-tab-label');
+      const rl = li.getBoundingClientRect();
+      const ra = a.getBoundingClientRect();
+      const rb = lab.getBoundingClientRect();
+      const y = ra.top + ra.height / 2;
+      const cible = x => { const el = document.elementFromPoint(x, y); const o = el && el.closest('.mobile-tab-bar > li'); return o ? [...bar.children].indexOf(o) : -1; };
+      const sl = getComputedStyle(lab);
+      return {
+        texte: lab.textContent, i, li: [rl.left, rl.right], a: [ra.left, ra.right], hauteur: ra.height,
+        gauche: cible(ra.left + 1), droite: cible(ra.right - 1),
+        taille: parseFloat(sl.fontSize), entier: lab.scrollWidth <= lab.clientWidth,
+        ellipse: sl.textOverflow === 'ellipsis' && sl.overflow === 'hidden' && sl.whiteSpace === 'nowrap',
+        labDedans: rb.left >= rl.left - 0.5 && rb.right <= rl.right + 0.5
+      };
+    })
+  };
+};
+const PAGES_ONGLETS = [
+  { nom: 'Agir', url: PLATEAU, html: 'jeu-plateau-objets.html' },
+  { nom: 'Matériel', url: BASE + '/jouer/materiel', html: 'jeu-materiel.html' },
+  { nom: 'Personnage', url: PERSO, html: 'jeu-perso.html' },
+  { nom: 'Bâtiments', url: BASE + '/jouer/bat', html: 'jeu-batiments.html' },
+  { nom: 'Employés', url: PNJ, html: 'jeu-employes.html' }
+];
+function verifierOnglets(m, lab) {
+  check(`${lab} : barre de 5 onglets, sans débordement ni défilement`, () => {
+    assert.ok(m.barre, 'barre absente');
+    assert.equal(m.onglets.length, 5);
+    assert.ok(m.barre.scrollWidth <= m.barre.clientWidth, `scrollWidth ${m.barre.scrollWidth} > clientWidth ${m.barre.clientWidth}`);
+    assert.equal(m.barre.scrollLeft, 0, 'barre défilée de ' + m.barre.scrollLeft + ' px');
+    assert.ok(m.barre.droite <= m.ecran + 0.5, `barre jusqu'à ${m.barre.droite} px pour un écran de ${m.ecran} px`);
+    assert.ok(m.pageLarge <= m.ecran, `page de ${m.pageLarge} px pour un écran de ${m.ecran} px`);
+    m.onglets.forEach(o => assert.ok(o.a[0] >= o.li[0] - 0.5 && o.a[1] <= o.li[1] + 0.5, `${o.texte} : lien ${JSON.stringify(o.a)} hors de sa case ${JSON.stringify(o.li)}`));
+  });
+  check(`${lab} : chaque onglet est sa propre cible à 1 px de ses bords, hauteur ≥ 44 px`, () => {
+    m.onglets.forEach(o => {
+      assert.deepEqual([o.gauche, o.droite], [o.i, o.i], `${o.texte} : cibles gauche/droite ${o.gauche}/${o.droite}`);
+      assert.ok(o.hauteur >= 44, `${o.texte} : hauteur ${o.hauteur}`);
+    });
+  });
+  check(`${lab} : libellés entiers ou tronqués par ellipse dans leur case, jamais sous --kr-font-label`, () => {
+    m.onglets.forEach(o => {
+      assert.ok(o.taille >= m.plancher, `${o.texte} : ${o.taille} px < ${m.plancher} px`);
+      assert.ok(o.entier || o.ellipse, `${o.texte} : tronqué sans ellipse`);
+      assert.ok(o.labDedans, `${o.texte} : libellé hors de sa case`);
+    });
+  });
+}
+
+if (on('onglets')) {
+  console.log('Barre d\'onglets mobile : cinq pages de jeu à 320, 375 et 767 px (tactile), 768 px sans barre, bascule 767 -> 768 -> 767 sur Personnage');
+  const cas = VARIANTES.flatMap(v => PAGES_ONGLETS.flatMap(p => [320, 375, 767, 768].map(l => ({ v, p, l }))));
+  const device = l => (l < 768 ? { viewport: { width: l, height: 667 }, isMobile: true, hasTouch: true } : { viewport: { width: l, height: 800 } });
+  const res = await mapLimit(cas, c => mesurerPage({ url: c.p.url, html: fixture(c.p.html), variante: c.v, device: device(c.l), mesure: MESURE_ONGLETS }));
+  cas.forEach((c, i) => {
+    const m = res[i];
+    const lab = `[${c.v}] ${c.p.nom} ${c.l} px`;
+    check(`${lab} : thème appliqué, mode attendu, aucune exception`, () => {
+      verifierSocle(m, c.v, { mobile: c.l < 768 });
+      assert.deepEqual(m.erreurs, []);
+    });
+    if (c.l < 768) {
+      verifierOnglets(m, lab);
+    } else {
+      check(`${lab} : pas de barre d'onglets mobile`, () => assert.equal(m.barre, null));
+    }
+  });
+  for (const v of VARIANTES) {
+    const { context, page, erreurs } = await open(PERSO, fixture('jeu-perso.html'), v, { viewport: { width: 767, height: 667 } });
+    const etapes = [await page.evaluate(MESURE_ONGLETS)];
+    for (const w of [768, 767]) {
+      await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+      await page.setViewportSize({ width: w, height: 667 });
+      await charge;
+      await page.waitForFunction(mm => document.body && document.body.classList.contains('mobile-mode') === mm, w < 768, { timeout: 10000 });
+      await krReady(page, { ready: THEME_READY, label: `onglets bascule ${v} ${w} px` });
+      etapes.push(await page.evaluate(MESURE_ONGLETS));
+    }
+    await context.close();
+    verifierOnglets(etapes[0], `[${v}] bascule Personnage 767 px (départ)`);
+    check(`[${v}] bascule Personnage 768 px : pas de barre d'onglets mobile`, () => assert.equal(etapes[1].barre, null));
+    verifierOnglets(etapes[2], `[${v}] bascule Personnage 767 px (retour)`);
+    check(`[${v}] bascule Personnage : aucune exception`, () => assert.deepEqual(erreurs, []));
+  }
 }
 
 // Effets du module des sujets permanents : blocs de compteurs ajoutés, lignes marquées, cellules de tableau masquées (display: none calculé)
