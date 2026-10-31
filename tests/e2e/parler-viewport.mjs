@@ -220,6 +220,15 @@ try {
     await v.page.evaluate(() => { const m = document.querySelector('#message'); m.dispatchEvent(new window.FocusEvent('focusout', { bubbles: true })); });
     const remesure = await until(v.page, () => document.querySelector('.bootbox').style.getPropertyValue('--kr-order-visible-height') === (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px', null, 2000);
     check(remesure, 'vivaldi : fermeture du clavier (focusout), hauteur visible remesurée');
+    // Clavier ouvert (champ focalisé, zone visible réduite) : mode compact, pied sur une ligne, plus de place pour la saisie
+    await v.cdp.send('Emulation.setDeviceMetricsOverride', { width: 360, height: 380, deviceScaleFactor: 1, mobile: true });
+    await v.page.evaluate(() => document.querySelector('#message').focus());
+    await until(v.page, () => document.querySelector('.bootbox').classList.contains('kr-keyboard-open'), null, 2000);
+    await frames(v.page);
+    const compact = await v.page.evaluate(() => { const m = document.querySelector('.bootbox'); const f = m.querySelector('.modal-footer').getBoundingClientRect(); const bd = m.querySelector('.modal-body').getBoundingClientRect(); const b = m.querySelector('[data-bb-handler=confirm]').getBoundingClientRect(); const c = m.querySelector('[data-bb-handler=cancel]').getBoundingClientRect(); const h = window.visualViewport ? window.visualViewport.height : window.innerHeight; return { compact: m.classList.contains('kr-keyboard-open'), pied: f.height, corps: bd.height, ligne: Math.abs(b.top - c.top) < 2, dedans: b.bottom <= h && b.top >= 0, h }; });
+    check(compact.compact && compact.ligne && compact.pied <= 70 && compact.corps >= compact.h * 0.75 && compact.dedans, 'vivaldi : clavier ouvert à 360x380, pied compact sur une ligne et corps ≥ 75 % de la zone visible ' + JSON.stringify(compact));
+    await v.page.evaluate(() => document.querySelector('#message').blur());
+    check(await until(v.page, () => !document.querySelector('.bootbox').classList.contains('kr-keyboard-open'), null, 2000), 'vivaldi : clavier fermé (blur), mode compact retiré');
     await v.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
     await until(v.page, () => !document.body.contains(window.__closedModal));
     // Autre Bootbox avec un champ texte (pas textarea#message) : suivie aussi

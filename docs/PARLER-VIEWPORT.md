@@ -46,3 +46,7 @@ Signalement d'Arnaud (téléphone réel, Vivaldi) : après usage du clavier, la 
 Les plafonds mobiles génériques (`.modal-dialog` en mobile-mode, `.bootbox-confirm .modal-content`) passent de `vh` à `dvh`.
 
 Test : fragment `vivaldi` de `tests/e2e/parler-viewport.mjs` (mesure périmée forcée, remesure au focusout, Bootbox avec input texte à 390×320). Rouge sur le bundle de base (1 ok / 3 FAIL), vert après correctif. Réserve : émulation Chromium, pas de validation physique Vivaldi.
+
+## Suite : mode compact clavier ouvert
+
+Retour d'Arnaud : le correctif fonctionne mais la zone utile devient minuscule. Mesure à 360×380 (S21, clavier ouvert) : pied 143 px (Annuler et Valider empilés), onglets collants 58 px, marges 10 px, corps 215 px. Quand un champ de saisie de la modale est focalisé et que la zone visible fait moins de 600 px, `trackOrderModalViewport` pose `kr-keyboard-open` : modale bord à bord, onglets non collants, pied sur une ligne (Annuler | Valider), pastilles masquées. Résultat : pied 57 px, corps 321 px. Le mode est retiré au blur. Test : fragment `vivaldi`.
