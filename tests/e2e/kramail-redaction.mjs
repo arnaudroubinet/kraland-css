@@ -510,10 +510,10 @@ for (const width of [1280, 375, 320]) {
   });
   const fieldBox = await p.evaluate(() => { const f = document.querySelector('.kd-field').getBoundingClientRect(); const c = document.querySelector('.kd-contacts').getBoundingClientRect(); const l = document.querySelector('.kd-label').getBoundingClientRect(); return { f: { w: f.width, h: f.height, l: f.left, r: f.right }, c: { w: c.width, h: c.height, t: c.top, b: c.bottom, l: c.left, r: c.right }, lab: { t: l.top, b: l.bottom, r: l.right } }; });
   console.log(`  mesures ${width} : champ ${fieldBox.f.w.toFixed(0)}x${fieldBox.f.h.toFixed(0)}, Contacts ${fieldBox.c.w.toFixed(0)}x${fieldBox.c.h.toFixed(0)}`);
-  check(`${width} : champ ${mob ? '>= 44' : '34'} px de haut, Contacts ${mob ? 'au bout de la ligne du libellé, 40 px' : 'dans le champ'}`, () => {
+  check(`${width} : champ ${mob ? '>= 44' : '34'} px de haut, Contacts ${mob ? 'au bout de la ligne du libellé, 44 px (ticket backlog 21)' : 'dans le champ'}`, () => {
     if (mob) {
       assert.ok(fieldBox.f.h >= 44 - 0.5, `${fieldBox.f.h}`);
-      assert.ok(Math.abs(fieldBox.c.h - 40) <= 0.5);
+      assert.ok(Math.abs(fieldBox.c.h - 44) <= 0.5, `${fieldBox.c.h}`);
       assert.ok(fieldBox.c.t >= fieldBox.lab.t - 1 && fieldBox.c.b <= fieldBox.lab.b + 1, JSON.stringify(fieldBox));
       assert.ok(Math.abs(fieldBox.c.r - fieldBox.f.r) <= 1);
     } else {
@@ -582,9 +582,9 @@ for (const width of [1280, 375, 320]) {
   });
   const chipReach = await p.evaluate(REACH, '.kd-chip-x');
   console.log(`  mesures ${width} : croix ${chipReach.map(r => `${r.w}x${r.h}`).join(' ')}`);
-  check(`${width} pastilles : croix « Retirer <nom> » de ${mob ? '34x32' : '26x24'} px atteintes en leur centre`, () => {
+  check(`${width} pastilles : croix « Retirer <nom> » de ${mob ? '44x44 (ticket backlog 21)' : '26x24'} px atteintes en leur centre`, () => {
     assert.deepEqual(d.chips.map(c => c.x), ['Retirer Marelle Duvent', 'Retirer Omar Sablier']);
-    assert.ok(chipReach.every(r => r.ok && Math.abs(r.w - (mob ? 34 : 26)) <= 0.6 && Math.abs(r.h - (mob ? 32 : 24)) <= 0.6), JSON.stringify(chipReach));
+    assert.ok(chipReach.every(r => r.ok && Math.abs(r.w - (mob ? 44 : 26)) <= 0.6 && Math.abs(r.h - (mob ? 44 : 24)) <= 0.6), JSON.stringify(chipReach));
   });
   await p.evaluate(() => window.scrollTo(0, Math.max(0, document.querySelector('.kd-row').getBoundingClientRect().top + window.scrollY - 60)));
   await shotDest(p, `apres-${width}-dest-deux`);

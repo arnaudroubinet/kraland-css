@@ -89,7 +89,7 @@
 //             375 × 667 et 767 px, Kraland clair et Empire Brun sombre : garde sans kr-marge-mobile, mode mobile, aucun débordement ; aucun texte à moins de 16 px
 //             d'un bord (ellipse rognée comprise) ; cibles hors bouton (chevron du panneau, cellule de case, nom, destinataires, case
 //             d'option) à 44 × 44 aux cinq points ; 768, 769 et 1280 px : boîtes des textes égales au bundle COMMIT_AVANT_99 ; Réception,
-//             lecture reçue et Nouveau en bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
+//             lecture reçue, Nouveau et Répondre (croix mesurées) en bascule 767 / 768 / 767 et 768 / 767 / 768 dans le même onglet.
 // Confinement : refus global posé avant les routes de fixtures. Aucune requête ne quitte la machine.
 //
 // Usage : npm run build && npm run test:zone -- kramail
@@ -2402,6 +2402,53 @@ const CONFORT_CIBLES = {
   lecture: ['li.media.kr-msg .user-info > strong > a, li.media.kr-msg .kramail-msg-sender > a', '.kr-msg-recipients > a'],
   compose: ['label.checkbox-inline']
 };
+// Ticket backlog 21 : boutons du champ Destinataires posés par le script (croix de chaque pastille, « Contacts ») à 44 × 44 aux cinq
+// points ; « Contacts » ne recouvre aucun élément hors le libellé (dont il occupe la marge droite, son texte excepté) ; une croix ne
+// recouvre aucun élément hors sa pastille. Nouveau et Transférer sans pastille : une pastille posée au clavier (annuaire vide), sauf en
+// bascule (un champ rempli retient le rechargement de 767 à 768) où seul « Contacts » est mesuré.
+const CONFORT_BOUTONS_DEST = ['.kd-chip-x', '.kd-contacts'];
+const RECOUVREMENTS_DEST = ([sel, index]) => {
+  const e = document.querySelectorAll('form[name="post_msg"] ' + sel)[index];
+  if (!e) { return ['bouton absent']; }
+  const b = e.getBoundingClientRect();
+  const coupe = r => r.width > 0 && r.height > 0 && Math.min(r.right, b.right) - Math.max(r.left, b.left) > 0.5 && Math.min(r.bottom, b.bottom) - Math.max(r.top, b.top) > 0.5;
+  const libelle = document.querySelector('form[name="post_msg"] .kd-label');
+  const propre = e.closest('.kd-chip') || e;
+  const nom = x => x.tagName.toLowerCase() + (x.id ? '#' + x.id : '') + (x.classList.length ? '.' + [...x.classList].join('.') : '');
+  const out = [];
+  // « Contacts » est un enfant du champ : le filtre des ancêtres l'écarte, sa boîte est donc comparée à part
+  const champ = document.querySelector('form[name="post_msg"] .kd-field');
+  if (e.classList.contains('kd-contacts') && champ && coupe(champ.getBoundingClientRect())) { out.push('champ .kd-field'); }
+  for (const x of document.body.querySelectorAll('*')) {
+    if (x.contains(e) || propre.contains(x) || getComputedStyle(x).visibility === 'hidden') { continue; }
+    if (x === libelle) {
+      const rg = document.createRange();
+      rg.selectNodeContents(libelle);
+      if ([...rg.getClientRects()].some(coupe)) { out.push('texte du libellé'); }
+      continue;
+    }
+    if (libelle && libelle.contains(x)) { continue; }
+    if (coupe(x.getBoundingClientRect())) { out.push(nom(x)); }
+  }
+  return out;
+};
+async function mesurerBoutonsDest(page, poser) {
+  if (poser && !(await page.evaluate(() => document.querySelectorAll('form[name="post_msg"] .kd-chip').length))) {
+    await page.route(BASE + '/ajaxsearch.php*', r => r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '' }));
+    await page.focus('form[name="post_msg"] .kd-input', { timeout: 3000 });
+    await page.keyboard.type('Nadir Sable;', { delay: 20 });
+    await page.evaluate(() => document.activeElement.blur());
+  }
+  const out = [];
+  for (const sel of CONFORT_BOUTONS_DEST) {
+    const n = await page.evaluate(q => document.querySelectorAll('form[name="post_msg"] ' + q).length, sel);
+    for (let i = 0; i < n; i += 1) {
+      const c = await page.evaluate(CIBLE_PAGE, ['form[name="post_msg"] ' + sel, i]);
+      out.push({ sel, i, taille: c ? `${Math.round(c.l)} x ${Math.round(c.h)}` : '', e: ecartsCible(c), sur: await page.evaluate(RECOUVREMENTS_DEST, [sel, i]) });
+    }
+  }
+  return out;
+}
 const confortGroupe = cle => cle === 'contacts' || PAGES[cle]?.garde === 'liste' ? 'liste' : (PAGES[cle] || LECTURES[cle]).garde;
 const CONFORT_MARGE = 16;
 const RELEVE_TEXTES = () => {
@@ -2419,7 +2466,7 @@ const RELEVE_TEXTES = () => {
   }
   return { mobile: document.body.classList.contains('mobile-mode'), l: out };
 };
-async function mesurerConfort(page, cle) {
+async function mesurerConfort(page, cle, poser = true) {
   const m = await page.evaluate(() => ({
     gardes: ['kr-page-kramail', 'kr-page-contacts'].filter(c => document.documentElement.classList.contains(c)),
     margeMobile: document.documentElement.classList.contains('kr-marge-mobile'),
@@ -2432,6 +2479,7 @@ async function mesurerConfort(page, cle) {
     const n = await page.evaluate(q => document.querySelectorAll(q).length, sel);
     for (let i = 0; i < n; i += 1) { m.cibles.push({ sel, i, e: ecartsCible(await page.evaluate(CIBLE_PAGE, [sel, i])) }); }
   }
+  if (confortGroupe(cle) === 'compose') { m.boutons = await mesurerBoutonsDest(page, poser); m.poser = poser; }
   return m;
 }
 function verifierConfort(cle, m, tag) {
@@ -2448,6 +2496,16 @@ function verifierConfort(cle, m, tag) {
   check(`confort ${tag} : cibles hors bouton à 44 × 44 aux cinq points`, () => {
     expect(m.cibles.length > 0, 'aucune cible mesurée');
     const e = m.cibles.filter(c => c.e.length).map(c => `${c.sel} [${c.i}] : ${c.e.join(', ')}`);
+    expect(e.length === 0, e.slice(0, 3).join(' ; '));
+  });
+  if (!m.boutons) { return; }
+  check(`confort ${tag} : croix des pastilles et « Contacts » à 44 × 44 aux cinq points`, () => {
+    expect((!m.poser || m.boutons.some(c => c.sel === '.kd-chip-x')) && m.boutons.some(c => c.sel === '.kd-contacts'), 'boutons mesurés : ' + m.boutons.map(c => c.sel).join(', '));
+    const e = m.boutons.filter(c => c.e.length).map(c => `${c.sel} [${c.i}] ${c.taille} : ${c.e.join(', ')}`);
+    expect(e.length === 0, e.slice(0, 3).join(' ; '));
+  });
+  check(`confort ${tag} : « Contacts » et les croix ne recouvrent ni titre, ni champ, ni bouton, ni pastille voisine`, () => {
+    const e = m.boutons.filter(c => c.sur.length).map(c => `${c.sel} [${c.i}] sur ${c.sur.slice(0, 3).join(', ')}`);
     expect(e.length === 0, e.slice(0, 3).join(' ; '));
   });
 }
@@ -2483,14 +2541,14 @@ if (frag('confort')) {
   const resB = await mapLimit(bur, async c => ({ t: await releve(c, APRES), b: await releve(c, AVANT_99) }));
   bur.forEach((c, i) => verifierTextesBase(resB[i].t, resB[i].b, `${c.cle} ${c.width} px ${c.variante}`));
   const bas = [];
-  for (const cle of ['reception', 'lecture-recue', 'nouveau']) { for (const largeurs of [[767, 768, 767], [768, 767, 768]]) { bas.push({ cle, largeurs }); } }
-  const base768 = Object.fromEntries(await mapLimit(['reception', 'lecture-recue', 'nouveau'], async cle => [cle, await releve({ cle, width: 768, variante: 'kraland' }, AVANT_99)]));
+  for (const cle of ['reception', 'lecture-recue', 'nouveau', 'repondre']) { for (const largeurs of [[767, 768, 767], [768, 767, 768]]) { bas.push({ cle, largeurs }); } }
+  const base768 = Object.fromEntries(await mapLimit(['reception', 'lecture-recue', 'nouveau', 'repondre'], async cle => [cle, await releve({ cle, width: 768, variante: 'kraland' }, AVANT_99)]));
   const resS = await mapLimit(bas, async c => {
     const o = await ouvrir(c.cle, { width: c.largeurs[0] });
     const etapes = [];
     for (let j = 0; j < c.largeurs.length; j += 1) {
       if (j > 0) { await basculer(o.page, c.largeurs[j], `confort ${c.cle} ${c.largeurs[j]}`); }
-      etapes.push(c.largeurs[j] < 768 ? await mesurerConfort(o.page, c.cle) : await o.page.evaluate(RELEVE_TEXTES));
+      etapes.push(c.largeurs[j] < 768 ? await mesurerConfort(o.page, c.cle, false) : await o.page.evaluate(RELEVE_TEXTES));
     }
     await o.context.close();
     return etapes;
