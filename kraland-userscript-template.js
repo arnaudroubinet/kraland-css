@@ -9089,15 +9089,24 @@
     }
   }
 
+  // Champs qui ouvrent le clavier virtuel : une Bootbox qui en contient un est suivie sur mobile.
+  const KEYBOARD_FIELD_SELECTOR = 'textarea, [contenteditable=""], [contenteditable="true"], input:not([type]), '
+    + 'input[type="text"], input[type="number"], input[type="search"], input[type="email"], input[type="password"], '
+    + 'input[type="tel"], input[type="url"]';
+  // Délais de remesure après ouverture/fermeture du clavier : certains navigateurs (Vivaldi) réaffichent la barre d'adresse
+  // sans émettre de resize, ou après le dernier resize du clavier.
+  const VIEWPORT_SETTLE_DELAYS = [50, 150, 300, 600, 1000];
+
   /**
-   * Contient les ordres avec saisie dans la zone réellement visible, sans toucher au formulaire.
-   * Le contenu peut arriver par Ajax ; les autres Bootbox et le bureau restent hors périmètre.
+   * Contient les Bootbox avec saisie (ordres, formulaires) dans la zone réellement visible, sans toucher au formulaire.
+   * Le contenu peut arriver par Ajax ; les Bootbox sans champ de saisie et le bureau restent hors périmètre.
    */
   function trackOrderModalViewport(modal) {
     const viewport = window.visualViewport;
     const mobile = window.matchMedia('(max-width: 767px)');
+    let settleTimers = [];
     function update() {
-      const active = mobile.matches && !!modal.querySelector('.panel-order textarea#message');
+      const active = mobile.matches && !!modal.querySelector(KEYBOARD_FIELD_SELECTOR);
       modal.classList.toggle('kr-order-viewport', active);
       if (active) {
         modal.style.setProperty('--kr-order-visible-height', (viewport ? viewport.height : window.innerHeight) + 'px');
@@ -9107,20 +9116,34 @@
         modal.style.removeProperty('--kr-order-visible-top');
       }
     }
+    // Clavier ouvert ou fermé : la barre d'adresse peut réapparaître sans événement, on remesure plusieurs fois.
+    function settle() {
+      settleTimers.forEach(clearTimeout);
+      settleTimers = VIEWPORT_SETTLE_DELAYS.map(delay => setTimeout(update, delay));
+      update();
+    }
     const contentObserver = new MutationObserver(update);
     contentObserver.observe(modal, { childList: true, subtree: true });
-    window.addEventListener('resize', update);
+    window.addEventListener('resize', settle);
+    window.addEventListener('scroll', update, { passive: true });
+    modal.addEventListener('focusin', settle);
+    modal.addEventListener('focusout', settle);
     mobile.addEventListener('change', update);
     if (viewport) {
-      viewport.addEventListener('resize', update);
+      viewport.addEventListener('resize', settle);
       viewport.addEventListener('scroll', update);
     }
     $(modal).one('hidden.bs.modal', function () {
       contentObserver.disconnect();
-      window.removeEventListener('resize', update);
+      settleTimers.forEach(clearTimeout);
+      settleTimers = [];
+      window.removeEventListener('resize', settle);
+      window.removeEventListener('scroll', update);
+      modal.removeEventListener('focusin', settle);
+      modal.removeEventListener('focusout', settle);
       mobile.removeEventListener('change', update);
       if (viewport) {
-        viewport.removeEventListener('resize', update);
+        viewport.removeEventListener('resize', settle);
         viewport.removeEventListener('scroll', update);
       }
       modal.classList.remove('kr-order-viewport');
