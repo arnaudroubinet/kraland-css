@@ -9096,6 +9096,8 @@
   // Délais de remesure après ouverture/fermeture du clavier : certains navigateurs (Vivaldi) réaffichent la barre d'adresse
   // sans émettre de resize, ou après le dernier resize du clavier.
   const VIEWPORT_SETTLE_DELAYS = [50, 150, 300, 600, 1000];
+  // Hauteur visible (px CSS) sous laquelle un champ focalisé passe la modale en mode compact (clavier ouvert).
+  const KEYBOARD_COMPACT_MAX_HEIGHT = 600;
 
   /**
    * Contient les Bootbox avec saisie (ordres, formulaires) dans la zone réellement visible, sans toucher au formulaire.
@@ -9108,6 +9110,13 @@
     function update() {
       const active = mobile.matches && !!modal.querySelector(KEYBOARD_FIELD_SELECTOR);
       modal.classList.toggle('kr-order-viewport', active);
+      // Clavier ouvert : champ de saisie de la modale focalisé et zone visible réduite → mode compact (pied sur une ligne,
+      // marges retirées, onglets non collants) pour rendre l'écran au champ de saisie.
+      const focused = document.activeElement;
+      const visibleHeight = viewport ? viewport.height : window.innerHeight;
+      const keyboardOpen = active && !!focused && modal.contains(focused) && focused.matches(KEYBOARD_FIELD_SELECTOR)
+        && visibleHeight < KEYBOARD_COMPACT_MAX_HEIGHT;
+      modal.classList.toggle('kr-keyboard-open', keyboardOpen);
       if (active) {
         modal.style.setProperty('--kr-order-visible-height', (viewport ? viewport.height : window.innerHeight) + 'px');
         modal.style.setProperty('--kr-order-visible-top', (viewport ? viewport.offsetTop : 0) + 'px');
@@ -9146,7 +9155,7 @@
         viewport.removeEventListener('resize', settle);
         viewport.removeEventListener('scroll', update);
       }
-      modal.classList.remove('kr-order-viewport');
+      modal.classList.remove('kr-order-viewport', 'kr-keyboard-open');
       modal.style.removeProperty('--kr-order-visible-height');
       modal.style.removeProperty('--kr-order-visible-top');
     });

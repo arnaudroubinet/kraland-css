@@ -8009,6 +8009,47 @@ body > map {
   }
 }
 
+/* Clavier ouvert (kr-keyboard-open, posé par trackOrderModalViewport) : l'écran restant va au champ de saisie.
+   Modale bord à bord, onglets qui défilent avec le contenu, pied compact sur une ligne (Annuler | Valider),
+   pastilles coût/durée masquées le temps de la saisie. Clavier fermé : rendu habituel. */
+@media (max-width: 767px) {
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open {
+    padding: 0 !important;
+  }
+
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open > .modal-dialog {
+    margin: 0 !important;
+    max-width: 100vw !important;
+    max-height: var(--kr-order-budget) !important;
+  }
+
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open .modal-content {
+    max-height: var(--kr-order-budget) !important;
+    border-radius: 0 !important;
+  }
+
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open .kraland-actions-zone,
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open .kraland-modal-header,
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open .kraland-character-title {
+    position: static !important;
+  }
+
+  html.kr-theme-enabled body .bootbox.modal.kr-order-viewport.kr-keyboard-open .modal-footer {
+    flex-direction: row !important;
+    padding: 6px 8px !important;
+    gap: 8px !important;
+  }
+
+  html.kr-theme-enabled body .bootbox.modal.kr-order-viewport.kr-keyboard-open .modal-footer .btn {
+    flex: 1 1 0 !important;
+    width: auto !important;
+  }
+
+  .bootbox.modal.kr-order-viewport.kr-keyboard-open .modal-footer > .kr-order-badges {
+    display: none !important;
+  }
+}
+
 /* ============================================================================
    MOBILE - PAGE PROFIL/INTERFACE
    ============================================================================ */
