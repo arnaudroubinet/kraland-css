@@ -955,6 +955,35 @@ if (on('echelle')) {
     });
   }
 
+  // Contrôle absolu (backlog 24, remplace le miroir ECHELLE_TICKET45 retiré par le sweep 9.12) : titres de modale et d'accordéon à
+  // leurs valeurs relevées sur 77f0aba (mobile et ordinateur), .xmini et footer a en 12 px. Éléments mesurés même masqués (taille et
+  // graisse calculées). Aucune des trois fixtures ne porte de .xmini : une sonde span.xmini est ajoutée au corps de page.
+  const ABSOLU = { '.modal-title': '18px/500', '.panel-group .panel-title': '16px/500', '.xmini': '12px', 'footer a': '12px' };
+  const ABSOLU_MOBILE = { ...ABSOLU, '.modal-title': '15px/500', '.panel-group .panel-title': '14px/500' };
+  const MESURE_ABSOLU = sels => {
+    const sonde = document.createElement('span');
+    sonde.className = 'xmini';
+    sonde.textContent = 'sonde';
+    document.body.appendChild(sonde);
+    return Object.fromEntries(sels.map(sel => [sel, [...document.querySelectorAll(sel)].map(e => { const st = getComputedStyle(e); return `${st.fontSize}/${st.fontWeight}`; })]));
+  };
+  const casAbsolu = ['materiel', 'sous-forum', 'kramail'].flatMap(nom => VARIANTES.flatMap(variante => [375, 767, 768, 1280].map(width => ({ nom, variante, width }))));
+  const resAbsolu = await mapLimit(casAbsolu, async c => {
+    const { context, page } = await ouvrir({ nom: c.nom, width: c.width, height: c.width < 768 ? 667 : 900, variante: c.variante, script: userscript, def: PAGES_ECHELLE[c.nom] });
+    const l = await page.evaluate(MESURE_ABSOLU, Object.keys(ABSOLU));
+    await context.close();
+    return { c, l };
+  });
+  for (const { c, l } of resAbsolu) {
+    const att = c.width < 768 ? ABSOLU_MOBILE : ABSOLU;
+    check(`echelle ${etiquette(c)} : titres de modale (${att['.modal-title']}) et d'accordéon (${att['.panel-group .panel-title']}), .xmini et footer a en 12 px`, () => {
+      const attendus = { '.modal-title': c.nom === 'materiel', '.panel-group .panel-title': c.nom === 'materiel', '.xmini': true, 'footer a': c.nom !== 'sous-forum' };
+      const absents = Object.entries(attendus).filter(([sel, present]) => present && l[sel].length === 0).map(([sel]) => `${sel} absent`);
+      const hors = Object.entries(l).flatMap(([sel, vals]) => vals.filter(v => (att[sel].includes('/') ? v : v.split('/')[0]) !== att[sel]).map(v => `${sel} ${v}`));
+      assert.deepEqual([...absents, ...hors], [], [...absents, ...hors].join(' ; '));
+    });
+  }
+
   // Plateau inchangé par le ticket 6 (FIXTURE SYNTHÉTIQUE jeu-plateau-objets.html, /jouer/plateau) : produits du Commerce et panneau
   // Matériel (déplacé dans la colonne gauche sur ordinateur) égaux au bundle d'avant le ticket (COMMIT_TICKET6) ; détail du Commerce en 12 px sur mobile.
   // Seul écart voulu (plan, Always) : sur ordinateur, la taille du panneau Matériel déplacé (ligne, charge, détail ; 10,6 px avant) passe
