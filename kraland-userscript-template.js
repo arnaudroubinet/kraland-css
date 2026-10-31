@@ -9247,15 +9247,22 @@
     const viewport = window.visualViewport;
     const mobile = window.matchMedia('(max-width: 767px)');
     let settleTimers = [];
+    // Pendant focusout, document.activeElement vaut encore <body> : l'élément qui reçoit le focus est e.relatedTarget.
+    let focusTarget = null;
     function update() {
       const active = mobile.matches && !!modal.querySelector(KEYBOARD_FIELD_SELECTOR);
       modal.classList.toggle('kr-order-viewport', active);
       // Clavier ouvert : champ de saisie de la modale focalisé et zone visible réduite → mode compact (pied sur une ligne,
       // marges retirées, onglets non collants) pour rendre l'écran au champ de saisie.
-      const focused = document.activeElement;
+      const focused = focusTarget || document.activeElement;
       const visibleHeight = viewport ? viewport.height : window.innerHeight;
-      const keyboardOpen = active && !!focused && modal.contains(focused) && focused.matches(KEYBOARD_FIELD_SELECTOR)
-        && visibleHeight < KEYBOARD_COMPACT_MAX_HEIGHT;
+      // Focus passé du champ à un bouton de la modale (tap sur Annuler/Valider) : le mode compact est gardé tant que la zone visible
+      // reste réduite. Le retirer au mousedown remettrait le pied sur deux lignes avant le mouseup, et le clic tomberait à côté du bouton.
+      // La fermeture réelle du clavier (zone visible ≥ seuil) ou un focus hors de la modale le retire.
+      const focusInModal = !!focused && modal.contains(focused);
+      const fieldFocused = focusInModal && focused.matches(KEYBOARD_FIELD_SELECTOR);
+      const keepCompact = focusInModal && modal.classList.contains('kr-keyboard-open');
+      const keyboardOpen = active && (fieldFocused || keepCompact) && visibleHeight < KEYBOARD_COMPACT_MAX_HEIGHT;
       modal.classList.toggle('kr-keyboard-open', keyboardOpen);
       if (active) {
         modal.style.setProperty('--kr-order-visible-height', (viewport ? viewport.height : window.innerHeight) + 'px');
@@ -9276,7 +9283,12 @@
     window.addEventListener('resize', settle);
     window.addEventListener('scroll', update, { passive: true });
     modal.addEventListener('focusin', settle);
-    modal.addEventListener('focusout', settle);
+    function onFocusOut(e) {
+      focusTarget = e.relatedTarget;
+      settle();
+      focusTarget = null;
+    }
+    modal.addEventListener('focusout', onFocusOut);
     mobile.addEventListener('change', update);
     if (viewport) {
       viewport.addEventListener('resize', settle);
@@ -9289,7 +9301,7 @@
       window.removeEventListener('resize', settle);
       window.removeEventListener('scroll', update);
       modal.removeEventListener('focusin', settle);
-      modal.removeEventListener('focusout', settle);
+      modal.removeEventListener('focusout', onFocusOut);
       mobile.removeEventListener('change', update);
       if (viewport) {
         viewport.removeEventListener('resize', settle);

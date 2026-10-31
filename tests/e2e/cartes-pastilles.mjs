@@ -1533,8 +1533,12 @@ if (on('etiquettes')) {
   // Décompte CSSOM : 7132 au départ de la revue (f404965), 7301 après, soit SURPLUS_FORCEES_REVUE_S21 de plus que la base (7204) ; permis
   // tant que la base précède la revue, pas une priorité forcée de plus. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
   const SURPLUS_FORCEES_REVUE_S21 = 97;
-  const surplus = AVANT_REVUE_S21(avant) ? SURPLUS_FORCEES_REVUE_S21 : 0;
-  check(`statique : pas plus de priorités forcées (${forcees(rs)}) que la base (${COMMIT_AVANT}, ${forcees(rb)})${surplus ? ` plus le surplus consigné de la revue S21 (${surplus})` : ''}, au moins autant de règles :focus (${focus(rs)}) ; aucun #c9302c`, () => {
+  // Écart accepté et consigné (#32, mode compact clavier ouvert de la modale d'ordre mobile) : modale bord à bord, onglets non collants et
+  // pied sur une ligne battent les priorités forcées de la chaîne mobile des modales. 7301 -> 7333 au CSSOM après la fusion de #32 dans la
+  // revue S21 ; même condition de retrait que le surplus de la revue.
+  const SURPLUS_FORCEES_CLAVIER_COMPACT = 32;
+  const surplus = AVANT_REVUE_S21(avant) ? SURPLUS_FORCEES_REVUE_S21 + SURPLUS_FORCEES_CLAVIER_COMPACT : 0;
+  check(`statique : pas plus de priorités forcées (${forcees(rs)}) que la base (${COMMIT_AVANT}, ${forcees(rb)})${surplus ? ` plus les surplus consignés de la revue S21 et du mode compact (${surplus})` : ''}, au moins autant de règles :focus (${focus(rs)}) ; aucun #c9302c`, () => {
     assert.ok(forcees(rs) <= forcees(rb) + surplus, `priorités forcées : ${forcees(rs)} > ${forcees(rb)}${surplus ? ` + ${surplus}` : ''}`);
     // Intention : aucune règle :focus perdue (focus visible gardé) ; un focus ajouté ailleurs (menu de personnage, épopée 7, entrée 3) est permis
     assert.ok(focus(rs) >= focus(rb), `règles :focus : ${focus(rs)} < ${focus(rb)}`);

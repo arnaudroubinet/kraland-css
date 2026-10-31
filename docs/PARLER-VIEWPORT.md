@@ -50,3 +50,7 @@ Test : fragment `vivaldi` de `tests/e2e/parler-viewport.mjs` (mesure périmée f
 ## Suite : mode compact clavier ouvert
 
 Retour d'Arnaud : le correctif fonctionne mais la zone utile devient minuscule. Mesure à 360×380 (S21, clavier ouvert) : pied 143 px (Annuler et Valider empilés), onglets collants 58 px, marges 10 px, corps 215 px. Quand un champ de saisie de la modale est focalisé et que la zone visible fait moins de 600 px, `trackOrderModalViewport` pose `kr-keyboard-open` : modale bord à bord, onglets non collants, pied sur une ligne (Annuler | Valider), pastilles masquées. Résultat : pied 57 px, corps 321 px. Le mode est retiré au blur. Test : fragment `vivaldi`.
+
+## Suite : tap sur Annuler perdu en mode compact
+
+Revue après fusion de #32 et #34 : clavier ouvert, un tap sur Annuler ne faisait rien. Le focus passe du champ au bouton dès le mousedown ; le `focusout` retirait `kr-keyboard-open` (à cet instant `document.activeElement` vaut `<body>`), le pied repassait sur deux lignes et le mouseup tombait sur Valider : le clic, distribué à l'ancêtre commun (le pied), était perdu. Correctif : le mode compact est gardé quand le focus reste dans la modale (cible lue dans `e.relatedTarget` pendant `focusout`) ; il est retiré quand la zone visible repasse au-dessus du seuil (clavier réellement fermé) ou quand le focus sort de la modale. Test : fragment `vivaldi` (tap tactile sur Annuler, rouge avant le correctif).
