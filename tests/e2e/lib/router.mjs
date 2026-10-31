@@ -54,7 +54,7 @@ export const SUITES = [
   // fonction native en mobile (375, 767) et peau coupée ; bascule 767 ↔ 768 ; window.open en sonde, aucune requête vers /report.
   { name: 'cloche-notifications', file: 'cloche-notifications.mjs', zones: ['cloche'], frags: [['barre'], ['compact'], ['mobile'], ['bascule'], ['peau']], needsBootstrap: true },
   // Harmonisation UX, lot 1 (défauts de style et identité du personnage) : fixtures synthétiques du plateau, de Personnage, de l'index du forum et des Règles (et rédaction Kramail), mobile 375 × 667 (titre du panneau et accès rapides : ordinateur 1280 × 720) ; fixture reconstruite de Cybermonde, 320 à 1280 px (hors-forum-js).
-  { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail', 'sous-forum', 'cybermonde'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['hors-forum-js']] },
+  { name: 'jeu-identite', file: 'jeu-identite.mjs', zones: ['plateau', 'profil', 'forum', 'kramail', 'sous-forum', 'cybermonde'], frags: [['fuite-forum'], ['regles-ok'], ['nom'], ['section-active', 'icones'], ['onglets'], ['hors-forum-js']] },
   // Cybermonde : carte du monde et carte de ville centrées sur ordinateur (768 à 1920 px), cadre défilant ouvert au milieu sur mobile (320 à 767 px),
   // zones cliquables intactes, panneaux comparés au bundle « avant » ; fixtures synthétiques cybermonde-monde.html et cybermonde-region.html.
   { name: 'cybermonde-carte', file: 'cybermonde-carte.mjs', zones: ['cybermonde'], frags: [['monde'], ['region'], ['zones'], ['panneaux'], ['sans-carte'], ['recentrage']], needsBootstrap: true },

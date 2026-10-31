@@ -3,7 +3,7 @@
 //   mobile          plateau (groupes, objets), Matériel, Personnage, Bâtiments, Employés et Aide (fixture synthétique aide.html) à 320,
 //                   375 × 667, 700 et 767 px, Kraland clair et Empire Brun sombre : classes de page posées (kr-page-jeu ou kr-page-aide,
 //                   kr-marge-mobile) ; aucun nœud texte visible à moins de 16 px d'un bord (lib/marges.mjs ; texte d'un conteneur défilant
-//                   à part) ; cartes de section (CARTES_SECTION, lib/marges.mjs) à 8 px des deux bords ; carte et section imbriquées
+//                   et libellés de la barre d'onglets de section à part, ticket 19 du backlog) ; cartes de section (CARTES_SECTION, lib/marges.mjs) à 8 px des deux bords ; carte et section imbriquées
 //                   dans une carte (Aide) dans la boîte de contenu de leur parent ; aucun
 //                   débordement horizontal ; mini-profil du plateau plié et déplié à 375 et 700 px ;
 //   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
@@ -230,7 +230,9 @@ function controlerMarge(m, hors, sansCartes = false) {
   assert.ok(m.theme, 'kr-theme-enabled absent');
   assert.ok(m.mobile, 'mode mobile absent');
   assert.ok(m.sw <= m.vw, `débordement horizontal ${m.sw} > ${m.vw}`);
-  const t = hors.map(x => `« ${x.texte} » ${x.gauche}/${x.droite} (${x.chemin})`);
+  // Libellés de la barre d'onglets de section exclus : barre pleine largeur, cinq cases égales, libellés centrés (ticket 19 du backlog ;
+  // avant lui, la barre débordait et défilait, ses textes étaient donc exclus comme texte d'un conteneur défilant)
+  const t = hors.filter(x => !x.chemin.endsWith('span.mobile-tab-label')).map(x => `« ${x.texte} » ${x.gauche}/${x.droite} (${x.chemin})`);
   assert.deepEqual(t, [], `${t.length} texte(s) à moins de ${MARGE} px : ${t.slice(0, 3).join(' ; ')}`);
   if (!sansCartes) { assert.ok(m.cartes.length > 0, 'aucune carte de section'); }
   const c = m.cartes.filter(x => Math.abs(x.g - CARTE) > 0.5 || Math.abs(x.d - CARTE) > 0.5).map(x => `« ${x.nom} » ${x.g}/${x.d}`);
