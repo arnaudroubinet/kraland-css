@@ -11,7 +11,8 @@
 //   hors-perimetre  index du forum Staff (/forum/staff, fixture forum-index-rp.html) à 375 et 767 px (sous-forum et index RP : mesurés
 //                   par forum-activite confort, entrée 8 ; notifications : report-non-lu#confort, entrée 10 ; kramail et contacts :
 //                   kramail-theme#confort, entrée 9) : sans kr-marge-mobile,
-//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles) ;
+//                   boîtes de tous les textes égales au bundle de base (socle zéro sans le style en ligne d'applyMobileCriticalStyles ;
+//                   base d'avant la revue S21 : haut des pages, n° 4, et citation du pied de page posés sur la base) ;
 //   secondaires     (entrée 4, plan story-pages-secondaires-marge-de-16-px-et-cibles-de-44-px) Règles, Guide, Organisations, Événements,
 //                   Statistiques, fiche de membre, Interface, carte de ville et Cybermonde (fixtures secondaires-*.html) à 320, 375 × 667 et
 //                   767 px, Kraland clair et Empire Brun sombre : classes kr-page-secondaire et kr-marge-mobile ; texte à 16 px des bords ;
@@ -47,7 +48,8 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
-import { choisirVariante } from './lib/variantes.mjs';
+import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_REVUE_S21, HAUT_S21, PIED_S21 } from './lib/revue-s21.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -350,13 +352,19 @@ if (on('bascule')) {
 if (on('hors-perimetre')) {
   console.log('\n== hors-perimetre ==');
   const cas = HORS.flatMap(nom => VARIANTES.flatMap(variante => [375, 767].map(width => ({ nom, variante, width }))));
-  const releve = async (c, script) => {
-    const { context, page, erreurs } = await ouvrir({ ...c, script });
+  // Revue S21 (écart accepté et consigné) : contre une base d'avant la revue, haut des pages mobiles (n° 4 : contenu 7 px plus haut)
+  // et citation du pied de page (constat « Pied de page » : 21 px sur 22 px) recopiés sur la base (lib/revue-s21.mjs) ; tout autre écart
+  // reste vu. Retrait au recalage de COMMIT_AVANT au-delà de la revue (AVANT_REVUE_S21 faux).
+  const MIROIRS_HORS = AVANT_REVUE_S21(avant) ? [HAUT_S21, PIED_S21].join('\n') : '';
+  if (MIROIRS_HORS) { console.log('  info écart accepté et consigné : haut des pages mobiles (n° 4) et citation du pied de page, revue S21, posés sur le bundle de base'); }
+  const releve = async (c, script, base = false) => {
+    const init = base && MIROIRS_HORS ? `(${poserJetonsRedefinis})(${JSON.stringify(MIROIRS_HORS)})` : null;
+    const { context, page, erreurs } = await ouvrir({ ...c, script, init });
     const r = { ...(await page.evaluate(RELEVE)), classes: (await page.evaluate(ETAT, CARTES_SECTION)).classes };
     await context.close();
     return { r, erreurs };
   };
-  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant, true) }));
   for (const { c, teste, base } of res) {
     check(`hors-perimetre ${c.nom} ${c.variante} ${c.width} px : sans classe de marge, textes égaux au bundle de base`, () => {
       assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');

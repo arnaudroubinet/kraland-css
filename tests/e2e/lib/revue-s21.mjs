@@ -48,6 +48,13 @@ export const HAUT_S21 = [
   '}'
 ].join('\n');
 
+/** Constat « Pied de page » (avec le n° 12) : citation manuscrite en 21 px sur un interligne de 22 px (28 px sur 24 px avant). */
+export const PIED_S21 = [
+  '@media (max-width: 767px) {',
+  '  :where(body.mobile-mode) footer .footer-quote { font-size: 21px; line-height: 22px; }',
+  '}'
+].join('\n');
+
 /** N° 11 : rédaction du kramail, retours libellés (« Réception », « Message »), icône seule et distincte (dossier, message) sous 360 px. */
 export const RETOURS_KRAMAIL_S21 = [
   '@media (max-width: 767px) {',
