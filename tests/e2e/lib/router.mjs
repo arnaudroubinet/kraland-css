@@ -70,9 +70,10 @@ export const SUITES = [
   // en-têtes, onglets, bouton standard et hr thémés comme le sombre, texte atténué du clair (ticket 4 ; fixture synthétique
   // palette-nation-composants.html, pages de référence comparées au bundle d'avant le ticket) ; palette d'états réservée aux états (ticket 5 ;
   // fixtures synthétiques palette-nation-etats.html et palette-nation-profil.html, pages de référence, non lu gardé) ; une couleur par jauge,
-  // la même sur ordinateur et mobile (ticket 6 ; fixture synthétique palette-nation-jauges.html). Aucun mot-clé : une
+  // la même sur ordinateur et mobile (ticket 6 ; fixture synthétique palette-nation-jauges.html) ; filet des pistes mobiles en
+  // --kr-border-tint (backlog 23, fragment jauges-filet, même fixture). Aucun mot-clé : une
   // déclaration de jeton élargit au total, comme toute déclaration de variable.
-  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau'], ['etats-mobile'], ['etats-bureau'], ['etats-largeurs'], ['etats-pages-mobile'], ['etats-pages-bureau'], ['jauges-mobile'], ['jauges-bureau'], ['jauges-largeurs']], needsBootstrap: true },
+  { name: 'palette-nation', file: 'palette-nation.mjs', zones: ['palette-nation'], frags: [['mobile'], ['bureau'], ['largeurs', 'peau-coupee'], ['balayage-mobile'], ['balayage-bureau'], ['textes-mobile'], ['textes-bureau'], ['textes-largeurs'], ['composants-mobile'], ['composants-bureau'], ['composants-largeurs'], ['composants-pages-mobile'], ['composants-pages-bureau'], ['etats-mobile'], ['etats-bureau'], ['etats-largeurs'], ['etats-pages-mobile'], ['etats-pages-bureau'], ['jauges-mobile'], ['jauges-bureau'], ['jauges-largeurs'], ['jauges-filet']], needsBootstrap: true },
   // Typographie et formes (épopée 4) : jetons d'échelle de DESIGN.md sur :root (tailles, rayons, espacements, cibles tactiles), étiquettes et
   // pastilles en 12 px gras par --kr-font-label (ticket 1) ; fixture synthétique typographie-formes.html (plateau, sujet de forum inventé),
   // index RP, sous-forum, rédaction du kramail ; 375, 767, 768, 769 et 1280 px, Kraland clair et Empire Brun sombre, couleurs comparées au bundle

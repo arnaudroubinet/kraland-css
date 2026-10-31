@@ -71,6 +71,9 @@
 //   ordinateur      barres PV, PM, PP du panneau du plateau, 1280 px : valeur aux mêmes couleurs que sur mobile, ≥ 3:1 sur la même piste ;
 //                   aucun segment en #5cb85c, #f0ad4e, #28a745, #007bff, #ffc107 ;
 //   largeurs        767, 768, 769, 1440 et 1920 px, Kraland et Empire Brun sombre : mêmes couleurs qu'à 375 ou 1280 px.
+// Backlog 23 (fragment jauges-filet, même fixture) : pistes mobiles bordées d'un filet de 1 px en --kr-border-tint, 16 variantes à 375,
+// Kraland et Empire Brun sombre à 700 et 767, plié et déplié, et en bascule 767 / 768 / 767 ; contraste du filet sur son fond consigné ;
+// remplissage et hauteur comparés au bundle de base (BASELINE23) ; panneau du plateau à 768, 769 et 1280 (× 720) égal à la base.
 // Hors de ces tickets, donc non vérifiés ici : onglet actif et « Valider » de la modale d'ordre (ticket 2.6), barres de
 // PV des cartes de personnages (épopée 5) ; alertes de la modale d'ordre : modale-ordre.mjs.
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/palette-nation.html) servie à /regles/avancees ; vrai Bootstrap 3.3.7 (tests/e2e/vendor) ;
@@ -81,7 +84,7 @@
 // Options : KR_SCRIPT (bundle testé), KR_SHOTS=/dossier (captures hors dépôt), KR_FRAG = mobile, bureau, largeurs, peau-coupee, balayage-mobile,
 //           balayage-bureau, textes-mobile, textes-bureau, textes-largeurs, composants-mobile, composants-bureau, composants-largeurs,
 //           composants-pages-mobile, composants-pages-bureau, etats-mobile, etats-bureau, etats-largeurs, etats-pages-mobile, etats-pages-bureau,
-//           jauges-mobile, jauges-bureau, jauges-largeurs (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages) ; KR_SCRIPT_AVANT5 (bundle d'avant le ticket 5).
+//           jauges-mobile, jauges-bureau, jauges-largeurs, jauges-filet (vide = tout) ; KR_SCRIPT_AVANT (bundle d'avant le ticket 4, pages) ; KR_SCRIPT_AVANT5 (bundle d'avant le ticket 5).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -181,9 +184,8 @@ const browser = await launchBrowser();
 // Ouvre la fixture dans SON contexte : variante choisie avant le bundle (outil des 16 variantes), ou peau coupée ; mobile sous 768 px.
 // `url` et `corps` : autre fixture servie à son chemin (balayage) ; `script` : bundle évalué.
 // `gmErreur` : GM.xmlHttpRequest répond par une erreur (changelog chargé à vide, bouton du profil posé).
-async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, gmErreur = false }) {
-  const mobile = width < 768;
-  const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
+async function ouvrir({ width, height, variante = 'kraland', theme = true, url = PAGE, corps = html, script = userscript, gmErreur = false, tactile = width < 768 }) {
+  const context = await browser.newContext({ viewport: { width, height }, isMobile: tactile, hasTouch: tactile, deviceScaleFactor: 1 });
   const denied = await confineNetwork(context); // refus global EN PREMIER, routes de la fixture ensuite
   await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: corps }));
   await context.route(BASE + '/lib/bootstrap-3.3.7/css/bootstrap1.min.css', route => route.fulfill({ path: path.join(VENDOR, 'bootstrap.min.css'), contentType: 'text/css' }));
@@ -1754,6 +1756,157 @@ if (on('jauges-largeurs')) {
       });
     }
   }
+}
+
+// ---------- Filet des pistes mobiles (backlog 23) ----------
+// Bundle d'avant le backlog 23 : pistes sans filet ; remplissage, hauteur, rayon et panneau du plateau comparés à lui.
+const BASELINE23 = '036c832';
+const avant23 = (() => {
+  if (process.env.KR_SCRIPT_AVANT23) { return fs.readFileSync(process.env.KR_SCRIPT_AVANT23, 'utf8').replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); }
+  try { return execFileSync('git', ['show', `${BASELINE23}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }).replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''); } catch (_e) { return null; }
+})();
+// Pistes : quatre bords, rayon, débordement, hauteur extérieure ; remplissage (couleur, part de la largeur intérieure, dans la boîte
+// intérieure) ; contraste du filet composé sur le fond effectif du parent, et de la piste seule sur ce fond. Panneau : styles des .progress.
+const RELEVER23 = () => {
+  const K = window.__krContraste;
+  const piste = b => {
+    const s = getComputedStyle(b);
+    const r = b.getBoundingClientRect();
+    const bord = c => parseFloat(s[`border${c}Width`]);
+    const g = r.left + bord('Left');
+    const h = r.top + bord('Top');
+    const l = r.width - bord('Left') - bord('Right');
+    const ht = r.height - bord('Top') - bord('Bottom');
+    const f = b.querySelector('.mobile-gauge-compact-fill, .mobile-gauge-full-fill');
+    const fr = f.getBoundingClientRect();
+    const sous = K.fond(b.parentElement);
+    const t = K.rgb(s.borderTopColor);
+    // Fond posé par le raccourci background : background-clip à border-box, la piste passe sous un filet translucide (sombre).
+    const dessous = s.backgroundClip === 'border-box' ? K.fond(b) : sous;
+    const filet = [0, 1, 2].map(i => t[i] * t[3] + dessous[i] * (1 - t[3]));
+    return {
+      bords: ['Top', 'Right', 'Bottom', 'Left'].map(c => ({ largeur: s[`border${c}Width`], style: s[`border${c}Style`], couleur: s[`border${c}Color`] })),
+      rayon: s.borderTopLeftRadius, debord: s.overflow, hauteur: r.height,
+      fill: { fond: getComputedStyle(f).backgroundColor, part: l > 0 ? fr.width / l : -1,
+        dedans: fr.left >= g - 0.01 && fr.top >= h - 0.01 && fr.right <= g + l + 0.01 && fr.bottom <= h + ht + 0.01 },
+      sous: `rgb(${sous.map(Math.round).join(', ')})`, contrasteFilet: K.rapport(filet, sous), contrastePiste: K.rapport(K.fond(b), sous)
+    };
+  };
+  const st = e => { const s = getComputedStyle(e); return [s.backgroundColor, s.backgroundImage, s.borderTopWidth, s.borderTopColor, s.borderRadius, s.boxShadow, s.height].join(' | '); };
+  return {
+    mobile: document.body.classList.contains('mobile-mode'),
+    tint: K.sonde('var(--kr-border-tint)'),
+    compact: [...document.querySelectorAll('.mobile-gauge-compact-bar')].map(piste),
+    complet: [...document.querySelectorAll('.mobile-gauge-full-bar')].map(piste),
+    panneau: [...document.querySelectorAll('#player-vitals-section .progress')].map(p => [st(p), ...[...p.querySelectorAll('.progress-bar')].map(st)].join(' ; '))
+  };
+};
+async function deplier23(page) {
+  await page.tap('.mobile-mini-profile-header');
+  await waitState(page, () => {
+    const d = document.querySelector('.mobile-mini-profile-details');
+    return !!d && d.parentElement.classList.contains('expanded') && d.getBoundingClientRect().height > 0 && d.parentElement.getAnimations({ subtree: true }).every(a => a.playState !== 'running');
+  }, null, { maxMs: 3000 });
+  await frames(page, 1);
+}
+async function filetScenario(variante, width, script) {
+  if (!script) { return null; }
+  const mobile = width < 768;
+  const { context, page, denied, erreurs } = await ouvrir({ width, height: mobile ? 667 : 720, variante, url: PAGE_JAUGES.url, corps: PAGE_JAUGES.corps, script });
+  const r = { plie: await page.evaluate(RELEVER23) };
+  if (mobile) { await deplier23(page); r.deplie = await page.evaluate(RELEVER23); }
+  await context.close();
+  return { ...r, erreurs, denied: denied.filter(d => d.url.startsWith(BASE)).map(d => d.url) };
+}
+// Bascule dans le même onglet (souris, comme typographie-formes#bascule) : 767, 768 puis 767, plié.
+async function filetBascule(variante, script) {
+  if (!script) { return null; }
+  const { context, page, erreurs } = await ouvrir({ width: 767, height: 667, variante, url: PAGE_JAUGES.url, corps: PAGE_JAUGES.corps, script, tactile: false });
+  const releves = [await page.evaluate(RELEVER23)];
+  for (const width of [768, 767]) {
+    await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+    const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+    await page.setViewportSize({ width, height: 667 });
+    await charge;
+    await krReady(page, { ready: THEME_READY, label: `filet bascule ${variante} ${width} px` });
+    await styleSettled(page, 'body');
+    await page.evaluate(CONTRASTE);
+    releves.push(await page.evaluate(RELEVER23));
+  }
+  await context.close();
+  return { releves, erreurs };
+}
+const ecartsFilet = (quoi, m) => m.bords.flatMap((b, i) => (b.largeur === '1px' && b.style === 'solid' && procheCouleur(b.couleur, m.tint) ? []
+  : [`${quoi} bord ${['haut', 'droit', 'bas', 'gauche'][i]} : ${b.largeur} ${b.style} ${b.couleur} au lieu de 1px solid ${m.tint}`]));
+const procheCouleur = (a, b) => { const x = lire(a); const y = lire(b); return [0, 1, 2].every(i => Math.abs(x[i] - y[i]) <= 1) && Math.abs(x[3] - y[3]) <= 0.01; };
+// Pistes d'un relevé (plié : compactes ; déplié : compactes et complètes), étiquetées.
+const pistes23 = r => [['plié, compacte', r.plie, 'compact'], ['déplié, compacte', r.deplie, 'compact'], ['déplié, complète', r.deplie, 'complet']]
+  .flatMap(([quoi, m, k]) => (m ? m[k].map((p, i) => [`${quoi} ${JAUGES[i]}`, { ...p, tint: m.tint }]) : []));
+function verifierFilet(tag, variante, r, b) {
+  check(`${tag} ${variante} : mode mobile, profil déplié, aucune exception, aucune requête vers le site hors fixture (filet)`, () => {
+    assert.ok(r.plie.mobile, 'mode mobile');
+    assert.ok(r.deplie, 'profil non déplié');
+    assert.deepEqual(r.erreurs, [], 'exceptions : ' + r.erreurs.join(' | '));
+    assert.deepEqual(r.denied, [], 'requêtes refusées : ' + r.denied.join(' '));
+  });
+  const nous = pistes23(r);
+  check(`${tag} ${variante} : 3 pistes compactes (plié, déplié) et 3 complètes (déplié), chacune bordée d'un filet de 1 px en --kr-border-tint sur ses quatre côtés`, () => {
+    assert.equal(nous.length, 9, `${nous.length} pistes`);
+    sansEcart(nous.flatMap(([quoi, p]) => ecartsFilet(quoi, p)));
+  });
+  check(`${tag} ${variante} : remplissage PV, PM, PP à la couleur et à la part de la base, dans sa piste ; hauteur à 2 px près, rayon et overflow: hidden de la base`, () => {
+    assert.ok(b, `bundle de base introuvable (KR_SCRIPT_AVANT23 ou commit ${BASELINE23})`);
+    const base = pistes23(b);
+    assert.equal(base.length, nous.length, 'pistes de la base');
+    sansEcart(nous.flatMap(([quoi, p], i) => {
+      const a = base[i][1];
+      const faux = [];
+      if (!memeCouleur(p.fill.fond, a.fill.fond)) { faux.push(`${quoi} : remplissage ${p.fill.fond} au lieu de ${a.fill.fond}`); }
+      if (!(Math.abs(p.fill.part - a.fill.part) <= 0.01)) { faux.push(`${quoi} : part ${p.fill.part.toFixed(3)} au lieu de ${a.fill.part.toFixed(3)}`); }
+      if (!p.fill.dedans) { faux.push(`${quoi} : remplissage hors de la piste`); }
+      if (!(Math.abs(p.hauteur - a.hauteur) <= 2)) { faux.push(`${quoi} : hauteur ${p.hauteur} au lieu de ${a.hauteur}`); }
+      if (p.rayon !== a.rayon || p.debord !== 'hidden') { faux.push(`${quoi} : rayon ${p.rayon} (base ${a.rayon}), overflow ${p.debord}`); }
+      return faux;
+    }));
+  });
+}
+if (on('jauges-filet')) {
+  console.log(`Filet des pistes mobiles (backlog 23) : 16 variantes à 375 px, ${VARIANTES_LARGEURS.join(' et ')} à 700 et 767 px, plié et déplié ; 768, 769, 1280 px et bascule contre la base ${BASELINE23}`);
+  const cas = [...VARIANTES.map(variante => ({ variante, width: 375 })), ...VARIANTES_LARGEURS.flatMap(variante => [700, 767, 768, 769, 1280].map(width => ({ variante, width })))];
+  const res = await mapLimit(cas, async c => ({ nous: await filetScenario(c.variante, c.width, userscript), base: await filetScenario(c.variante, c.width, avant23) }));
+  const contrastes = [];
+  cas.forEach((c, i) => {
+    const { nous, base } = res[i];
+    const tag = `[filet ${c.width}]`;
+    if (c.width < 768) {
+      verifierFilet(tag, c.variante, nous, base);
+      const [compacte, complete] = [nous.plie.compact[0], nous.deplie && nous.deplie.complet[0]];
+      if (c.width === 375 && compacte) {
+        contrastes.push(`${c.variante} : filet ${compacte.contrasteFilet.toFixed(2)}:1 sur ${compacte.sous} (compacte), ${complete ? complete.contrasteFilet.toFixed(2) : '?'}:1 sur ${complete ? complete.sous : '?'} (complète) ; piste seule ${compacte.contrastePiste.toFixed(2)}:1 / ${complete ? complete.contrastePiste.toFixed(2) : '?'}:1`);
+      }
+    } else {
+      check(`${tag} ${c.variante} : mode ordinateur, barres du panneau du plateau égales à la base, aucune exception`, () => {
+        assert.ok(base, `bundle de base introuvable (KR_SCRIPT_AVANT23 ou commit ${BASELINE23})`);
+        assert.equal(nous.plie.mobile, false, 'mode mobile');
+        assert.deepEqual(nous.erreurs, [], 'exceptions : ' + nous.erreurs.join(' | '));
+        assert.equal(nous.plie.panneau.length, 3, `${nous.plie.panneau.length} barres`);
+        assert.deepEqual(nous.plie.panneau, base.plie.panneau);
+      });
+    }
+  });
+  console.log('  Contraste du filet et de la piste sur leur fond, 375 px (consigné, sans seuil) :\n' + contrastes.map(x => '    ' + x).join('\n'));
+  const bascules = await mapLimit(VARIANTES_LARGEURS, async variante => ({ nous: await filetBascule(variante, userscript), base: await filetBascule(variante, avant23) }));
+  VARIANTES_LARGEURS.forEach((variante, i) => {
+    const { nous, base } = bascules[i];
+    check(`[filet bascule] ${variante} : 767, 768 puis 767 px dans le même onglet, filet de 1 px en --kr-border-tint à 767 px, panneau de la base à 768 px`, () => {
+      assert.ok(base, `bundle de base introuvable (KR_SCRIPT_AVANT23 ou commit ${BASELINE23})`);
+      assert.deepEqual(nous.erreurs, [], 'exceptions : ' + nous.erreurs.join(' | '));
+      assert.deepEqual(nous.releves.map(m => m.mobile), [true, false, true], 'modes');
+      sansEcart([0, 2].flatMap(k => (nous.releves[k].compact.length === 3 ? nous.releves[k].compact.flatMap((p, j) => ecartsFilet(`${k ? 'retour' : 'départ'} 767, compacte ${JAUGES[j]}`, { ...p, tint: nous.releves[k].tint }))
+        : [`${k ? 'retour' : 'départ'} 767 : ${nous.releves[k].compact.length} pistes compactes`])));
+      assert.deepEqual(nous.releves[1].panneau, base.releves[1].panneau);
+    });
+  });
 }
 
 // ---------- Peau coupée ----------
