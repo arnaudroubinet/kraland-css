@@ -27,6 +27,7 @@
 //                focus posé par script sans toucher préalable vaut un focus clavier) ;
 //   pied         n° 12 : ligne de version à 4,5:1, 16 variantes ; numéro à jour dans la couleur de la ligne, en alerte seulement si une
 //                mise à jour existe ; citation au moins un quart moins haute qu'avec le bundle de base (police manuscrite non servie) ;
+//                sur l'Aide, ligne de version dans le pied de la page, pas dans celui de la citation qui le précède ;
 //   forum        n° 13 : « Par Nerys » séparé de l'icône des messages ; barre d'actions d'un message sur un rang ; filet du titre en sombre
 //                dans la bordure du thème ; racine titrée en 24 px gras ; en-tête de carte répétant le titre de la page masqué ;
 //                « Expéditeur » du nouveau sujet sans capitales forcées, comme « Sujet » ; retour de la réponse centré sur la ligne du
@@ -681,7 +682,7 @@ if (on('ordre')) {
 
 // ---------- pied : n° 12 ----------
 if (on('pied')) {
-  console.log('Pied de page : ligne de version lisible (16 variantes), numéro coloré seulement si une mise à jour existe, citation courte');
+  console.log('Pied de page : ligne de version lisible (16 variantes), numéro coloré seulement si une mise à jour existe, citation courte, ligne de version de l\'Aide dans le pied');
   const PIED = () => {
     const C = window.__krContraste;
     const ligne = document.querySelector('.kraland-css-version');
@@ -713,6 +714,18 @@ if (on('pied')) {
     assert.ok(Number.isFinite(res[0].h) && Number.isFinite(qa.h), `${res[0].h} / ${qa.h}`);
     assert.ok(res[0].h <= 0.75 * qa.h, `${res[0].h} / ${qa.h} px`);
   });
+  // Script (vaut aussi sur ordinateur) : la ligne va dans le pied de la page, plus dans le premier <footer> venu ; sur l'Aide, celui de la
+  // citation (blockquote > footer) passait devant
+  const aide = await mesurer(P.aide, {}, p => p.evaluate(() => {
+    const v = [...document.querySelectorAll('.kraland-css-version')];
+    return { n: v.length, citation: v.some(e => !!e.closest('blockquote')), pied: v.some(e => !!e.closest('footer') && e.closest('footer').parentElement === document.body) };
+  }));
+  check(`Aide : ligne de version dans le pied de la page, pas dans le pied de la citation (${aide.n} ligne, citation ${aide.citation}, pied ${aide.pied})`, () => {
+    assert.equal(aide.n, 1);
+    assert.equal(aide.citation, false);
+    assert.equal(aide.pied, true);
+  });
+  sansErreur(aide, 'Aide, ligne de version');
   const maj = await mapLimit(DEUX, variante => mesurer(P.reception, { variante, publie: '9.9.9' }, p => p.evaluate(PIED)));
   DEUX.forEach((variante, i) => check(`${variante}, mise à jour disponible : numéro en alerte, ≥ 4,5:1 (${maj[i].rNum.toFixed(2)}:1)`, () => {
     assert.equal(maj[i].alerte, true);

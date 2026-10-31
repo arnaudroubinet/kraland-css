@@ -48,6 +48,19 @@ export const HAUT_S21 = [
   '}'
 ].join('\n');
 
+/**
+ * N° 12 (script, vaut aussi sur ordinateur) : la ligne de version va dans le pied de la page, plus dans le premier <footer> venu ; sur l'Aide,
+ * une base d'avant la revue la posait dans le pied d'une citation (blockquote > footer). Script de page (page.evaluate), sur la base seule :
+ * la déplace là où le script la pose (fin du .container.white du pied de la page) ; renvoie vrai si elle était dans une citation.
+ */
+export function deplacerVersionS21() {
+  const v = document.querySelector('blockquote .kraland-css-version');
+  const pied = document.querySelector('body > footer, footer.navbar-inverse');
+  if (!v || !pied) { return false; }
+  (pied.querySelector('.container.white') || pied).appendChild(v);
+  return true;
+}
+
 /** Constat « Pied de page » (avec le n° 12) : citation manuscrite en 21 px sur un interligne de 22 px (28 px sur 24 px avant). */
 export const PIED_S21 = [
   '@media (max-width: 767px) {',

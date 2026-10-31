@@ -6,7 +6,8 @@
 //                   et libellés de la barre d'onglets de section à part, ticket 19 du backlog) ; cartes de section (CARTES_SECTION, lib/marges.mjs) à 8 px des deux bords ; carte et section imbriquées
 //                   dans une carte (Aide) dans la boîte de contenu de leur parent ; aucun
 //                   débordement horizontal ; mini-profil du plateau plié et déplié à 375 et 700 px ;
-//   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base ;
+//   bureau          mêmes pages à 768, 769 et 1280 px : boîtes de tous les textes égales au bundle de base (base d'avant la revue S21 :
+//                   ligne de version de l'Aide déplacée dans le pied de la page, n° 12) ;
 //   bascule         Personnage, 767 -> 768 -> 767 et 768 -> 767 -> 768 dans le même onglet : marge à 767, base (même parcours) à 768 ;
 //   hors-perimetre  index du forum Staff (/forum/staff, fixture forum-index-rp.html) à 375 et 767 px (sous-forum et index RP : mesurés
 //                   par forum-activite confort, entrée 8 ; notifications : report-non-lu#confort, entrée 10 ; kramail et contacts :
@@ -49,7 +50,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
 import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
-import { AVANT_REVUE_S21, HAUT_S21, PIED_S21 } from './lib/revue-s21.mjs';
+import { AVANT_REVUE_S21, deplacerVersionS21, HAUT_S21, PIED_S21 } from './lib/revue-s21.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -281,13 +282,19 @@ if (on('mobile')) {
 if (on('bureau')) {
   console.log('\n== bureau ==');
   const cas = DANS.flatMap(nom => VARIANTES.flatMap(variante => BUREAUX.map(width => ({ nom, variante, width }))));
-  const releve = async (c, script) => {
+  // Revue S21 (écart accepté et consigné, n° 12) : sur l'Aide, la ligne de version passe du pied de la citation au pied de la page (script,
+  // vaut aussi sur ordinateur). Contre une base d'avant la revue, elle est déplacée sur la base avant le relevé (deplacerVersionS21,
+  // lib/revue-s21.mjs) ; tout autre écart reste vu. Contrôle absolu : revue-s21#pied. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
+  const VERSION_PIED_S21 = AVANT_REVUE_S21(avant);
+  if (VERSION_PIED_S21) { console.log('  info écart accepté et consigné : ligne de version de l\'Aide dans le pied de la page (n° 12), revue S21, posée sur le bundle de base'); }
+  const releve = async (c, script, base = false) => {
     const { context, page, erreurs } = await ouvrir({ ...c, height: 720, script });
+    if (base && VERSION_PIED_S21) { await page.evaluate(deplacerVersionS21); }
     const r = await page.evaluate(RELEVE);
     await context.close();
     return { r, erreurs };
   };
-  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant) }));
+  const res = await mapLimit(cas, async c => ({ c, teste: await releve(c, userscript), base: await releve(c, avant, true) }));
   for (const { c, teste, base } of res) {
     check(`bureau ${c.nom} ${c.variante} ${c.width} px : textes égaux au bundle de base`, () => {
       assert.ok(teste.r.theme && base.r.theme, 'kr-theme-enabled absent');
