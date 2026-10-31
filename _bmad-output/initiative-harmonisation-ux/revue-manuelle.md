@@ -1302,3 +1302,10 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - `croix-directionnelle#transitions` (CA9, « transitions avec rechargement ») recharge chaque largeur par un `goto` neuf : il ne prouve pas le rechargement dans le même onglet (vert sans `checkBreakpointCrossing`). C'était déjà le cas avant le ticket.
 - Horloge de Playwright 1.59 : le rejeu en deux lots dans un document rechargé fait fuir du temps réel dans le temps simulé. La parade est l'option `paused` de `installClock`. Les autres suites sous horloge simulée gardent l'ancien mode ; à basculer si elles comptent des durées entre rechargements.
 - Veille capot fermé : de 22:02 à 23:52, les processus n'ont tourné que pendant des DarkWake, et les lots de cette période ont été jetés. Les preuves retenues ont été faites sous `caffeinate -ims`, avec un `pmset -g log` vérifié sans Sleep ni DarkWake. À prévoir pour toute preuve longue faite capot fermé.
+
+## Ticket backlog 31 — bouton « Voir l'historique des changements » parfois absent (in-review, 2026-10-31)
+
+- Le bouton est maintenant posé sans attendre le changelog ; le chargement est lancé à la pose et attendu au clic. Sur réseau lent, un clic avant la réponse n'ouvre l'historique qu'à son arrivée (au plus 5 s, puis historique vide). Aucun indicateur d'attente : à décider si ça te gêne.
+- Attente de `#kr-changelog-section` bornée à 10 s en plus de `themeUiSettled`. `addResetButtonToInterfacePage` dépend de `themeUiSettled` sans borne : si `insertTampermonkeyThemeUI` lève une exception, `html[data-kr-ready]` n'est jamais posé. Défaut antérieur, non corrigé ici.
+- Le faux `GM.xmlHttpRequest` de `fin-initialisation.mjs` répond maintenant par une erreur sur toutes les pages (avant : jamais de réponse). Seul le changelog utilise `GM.xmlHttpRequest`.
+- `confort-mobile.mjs` exclut maintenant `#kr-changelog-section` de sa comparaison des textes au bundle de base (son faux GM ne répond jamais : la base ne posait pas le bouton). Le `test:all` complet n'a pas été relancé après cette retouche du test ; seule la zone `confort-mobile` l'a été (verte).

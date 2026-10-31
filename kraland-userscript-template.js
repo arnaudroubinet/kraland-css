@@ -10486,6 +10486,7 @@
     STORAGE_KEY: 'kr-changelog-viewed',
     CHANGELOG_URL: 'https://raw.githubusercontent.com/arnaudroubinet/kraland-css/main/changelog.json',
     changelog: null, // Sera chargé dynamiquement
+    _loading: null, // Chargement en cours, partagé (une seule requête)
 
     /**
      * Charge le changelog depuis le fichier JSON externe
@@ -10494,7 +10495,15 @@
       if (this.changelog !== null) {
         return this.changelog; // Déjà chargé
       }
+      if (this._loading) {
+        return this._loading; // Déjà en vol
+      }
 
+      this._loading = this._requestChangelog();
+      return this._loading;
+    },
+
+    async _requestChangelog() {
       try {
         // Utiliser GM.xmlHttpRequest ou fetch si disponible
         return new Promise((resolve, _reject) => {
@@ -10516,6 +10525,11 @@
               },
               onerror: (error) => {
                 console.warn('[Changelog] Erreur chargement:', error);
+                this.changelog = {}; // Fallback vide
+                resolve(this.changelog);
+              },
+              ontimeout: () => {
+                console.warn('[Changelog] Délai de chargement dépassé');
                 this.changelog = {}; // Fallback vide
                 resolve(this.changelog);
               }
@@ -10880,29 +10894,39 @@
      * Ajoute un bouton sur la page profil pour voir le changelog
      */
     addChangelogButton() {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          this.insertChangelogButton();
-        });
-      } else {
-        setTimeout(() => this.insertChangelogButton(), 500);
+      if (!window.location.href.includes('/profil/interface')) {return;}
+
+      // #kr-changelog-section est créée par insertTampermonkeyThemeUI, parfois après DOMContentLoaded (essais toutes les 200 ms) :
+      // on l'attend jusqu'à ce qu'elle existe ou que l'interface du thème renonce, en tenant la file d'initialisation
+      // (borne de 10 s si l'interface du thème ne se règle jamais, pour ne pas tenir la file indéfiniment)
+      const release = InitQueue.hold('addChangelogButton');
+      let attempts = 0;
+      const tryInsert = () => {
+        const section = document.querySelector('#kr-changelog-section');
+        if (!section && !themeUiSettled && attempts++ < 50) {return false;}
+        if (section) {this.insertChangelogButton();}
+        // Fin de tâche après la pose synchrone du bouton : le marqueur la suit
+        release();
+        return true;
+      };
+      if (!tryInsert()) {
+        const id = setInterval(() => {
+          if (tryInsert()) {clearInterval(id);}
+        }, 200);
       }
     },
 
     /**
      * Insère le bouton dans la page profil
      */
-    async insertChangelogButton() {
+    insertChangelogButton() {
       // Vérifier qu'on est sur la page interface du profil
       if (!window.location.href.includes('/profil/interface')) {
         return;
       }
 
-      // Charger le changelog si pas encore chargé (pour l'historique complet)
-      if (this.changelog === null) {
-        console.log('[Changelog] Chargement changelog pour page profil...');
-        await this.loadChangelog();
-      }
+      // Bouton posé sans attendre le changelog (réseau lent) : chargement lancé ici, attendu au clic
+      this.loadChangelog();
 
       // Vérifier que le bouton n'existe pas déjà
       if (document.getElementById('kr-changelog-btn')) {
@@ -10936,7 +10960,7 @@
       btn.innerHTML = '📝 Voir l\'historique des changements';
 
       btn.addEventListener('click', () => {
-        this.showFullChangelog();
+        this.loadChangelog().then(() => this.showFullChangelog());
       });
 
       btnContainer.appendChild(btn);

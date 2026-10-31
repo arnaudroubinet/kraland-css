@@ -205,12 +205,14 @@ const ETAT = Q => {
 };
 
 // Relevé comparé au bundle de base : boîte de chaque nœud texte visible (ordre du DOM), arrondie au demi-pixel.
+// #kr-changelog-section exclue (ticket backlog 31) : le bouton « Voir l'historique des changements » n'attend plus la réponse du
+// changelog ; le faux GM ne répond jamais, la base ne le posait donc pas et le bundle testé le pose.
 const RELEVE = () => {
   const r2 = v => Math.round(v * 2) / 2;
   const out = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = w.nextNode(); n; n = w.nextNode()) {
-    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style')) { continue; }
+    if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style, #kr-changelog-section')) { continue; }
     const rg = document.createRange();
     rg.selectNodeContents(n);
     const b = [...rg.getClientRects()].filter(x => x.width > 0 && x.height > 0);
