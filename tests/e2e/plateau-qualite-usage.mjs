@@ -8,11 +8,16 @@
 // Usage : npm run build && node tests/e2e/plateau-qualite-usage.mjs
 // Options : KR_SCRIPT=/chemin/script.user.js pour tester un autre fichier (défaut : bundle principal) ; KR_SCRIPT_AVANT (bundle de base
 // du fragment cartes, défaut : git show 7bec452, recalage du sweep 9.12, ancienne base e203f87) ; KR_SCRIPT_AVANT_PV (bundle de base du fragment pv, défaut : git show cb73530) ;
-// KR_FRAG = usage, cartes, pv (vide = tout).
+// KR_SCRIPT_AVANT_ACCES (bundle de base du fragment acces-mobile, défaut : git show 666debd) ;
+// KR_FRAG = usage, cartes, pv, acces-mobile (vide = tout).
 //
 // Fragment pv (épopée 9, entrée 7, Q30.5) : cercle et barre de PV des cartes par niveau de santé, en jetons de la feuille ; fixture
 // plateau-cartes-noms.html, barres de PV ajoutées au chargement (largeurs 85, 71, 70, 31, 30, 10 %) et pdv6 à pdv9 hors table ; 16 variantes
 // à 375 et 1280 px ; niveaux, arcs, largeurs et boîtes comparés au bundle de base (Kraland clair et Empire Brun sombre).
+//
+// Fragment acces-mobile (backlog 20) : cases des accès rapides et des actions de même hauteur, alignées par rangée ; fixture
+// plateau-qualite-usage.html, vrai Bootstrap 3.3.7, 375 et 767 px, Kraland clair et Empire Brun sombre ; marge de 8 px entre deux .btn
+// voisins hors de ces grilles gardée ; 768 px égal au bundle de base ; bascule 767 -> 768 -> 767 px dans le même onglet.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
@@ -22,7 +27,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { CONTRASTE, VARIANTES as TOUTES_VARIANTES, parVariante } from './lib/variantes.mjs';
+import { CONTRASTE, CORRIGER_BUG20, VARIANTES as TOUTES_VARIANTES, parVariante } from './lib/variantes.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -48,10 +53,10 @@ const BUREAUX = [768, 769, 900, 1024, 1100, 1280, 1366, 1440, 1500, 1512, 1920];
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(root, 'tests/e2e/vendor');
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
 
-async function ouvrirCartes(src, { width, height = 800, variante, transformer = h => h }) {
+async function ouvrirCartes(src, { width, height = 800, variante, transformer = h => h, fixture = 'plateau-cartes-noms.html' }) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await confineNetwork(ctx);
-  const noms = transformer(fs.readFileSync(path.join(root, 'tests/e2e/fixtures/plateau-cartes-noms.html'), 'utf8'))
+  const noms = transformer(fs.readFileSync(path.join(root, 'tests/e2e/fixtures', fixture), 'utf8'))
     .replace('</head>', '<link rel="stylesheet" href="/lib/bootstrap-3.3.7/css/bootstrap.min.css"></head>');
   await ctx.route('http://www.kraland.org/**', route => {
     const u = new URL(route.request().url());
@@ -138,8 +143,9 @@ const memesBoites = (m, base, garde = () => true) => {
 };
 
 if (on('cartes')) {
-  const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
-    : execFileSync('git', ['show', '7bec452:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  // Écart voulu du bug 20 (accès rapides mobiles 24 px moins hauts, cartes remontées) : base corrigée par CORRIGER_BUG20.
+  const avant = CORRIGER_BUG20(sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
+    : execFileSync('git', ['show', '7bec452:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
   for (const variante of VARIANTES) {
     console.log(`Cartes de personnage selon leur largeur (${variante})`);
     for (const width of BUREAUX) {
@@ -253,8 +259,8 @@ async function pvDe(src, opts) {
 }
 
 if (on('pv')) {
-  const avantPv = sansEntete(process.env.KR_SCRIPT_AVANT_PV ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PV, 'utf8')
-    : execFileSync('git', ['show', 'cb73530:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const avantPv = CORRIGER_BUG20(sansEntete(process.env.KR_SCRIPT_AVANT_PV ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_PV, 'utf8')
+    : execFileSync('git', ['show', 'cb73530:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
   const proche = (a, b) => !!a && !!b && [0, 1, 2].every(i => Math.abs(a[i] - b[i]) <= 1);
   for (const width of [375, 1280]) {
     const height = width < 768 ? 667 : 800;
@@ -317,6 +323,61 @@ if (on('pv')) {
         return ['arc', 'largeur', 'boites'].filter(k => JSON.stringify(c[k]) !== JSON.stringify(o[k])).map(k => `${c.nom} ${k} ${JSON.stringify(c[k])} / ${JSON.stringify(o[k])}`);
       })));
     }
+  }
+}
+
+// ---------- acces-mobile : cases des grilles du plateau sans la marge de .btn + .btn (backlog 20) ----------
+const mesurerAcces = p => p.evaluate(() => {
+  const box = el => { const r = el.getBoundingClientRect(); return [r.left, r.top, r.width, r.height].map(x => Math.round(x * 2) / 2); };
+  const grille = sel => [...document.querySelectorAll(sel)].map(e => ({ texte: e.textContent.trim(), boite: box(e), marge: getComputedStyle(e).marginTop, affiche: e.getClientRects().length > 0 }));
+  const temoin = document.createElement('div');
+  temoin.innerHTML = '<a class="btn btn-default" href="#">A</a><a class="btn btn-default" href="#">B</a>';
+  document.body.appendChild(temoin);
+  const margeTemoin = getComputedStyle(temoin.lastElementChild).marginTop;
+  temoin.remove();
+  return { mobile: document.body.classList.contains('mobile-mode'), acces: grille('.kr-quick-access-buttons > .btn'), actions: grille('.kr-action-grid > .btn'), margeTemoin };
+});
+const verifierAcces = (m, e) => {
+  check(`${e} : mode mobile, 5 accès rapides affichés, 4 actions dans le DOM`, () => { assert.ok(m.mobile); assert.equal(m.acces.filter(c => c.affiche).length, 5); assert.equal(m.actions.length, 4); });
+  check(`${e} : cases affichées des deux grilles de même hauteur`, () => assert.equal(new Set([...m.acces, ...m.actions].filter(c => c.affiche).map(c => c.boite[3])).size, 1));
+  for (const [nom, cases] of [['accès rapides', m.acces], ['actions', m.actions]]) {
+    const vues = cases.filter(c => c.affiche);
+    check(`${e} : ${nom}, cases de même hauteur (≥ 44 px), même top par rangée`, () => {
+      const h = [...new Set(vues.map(c => c.boite[3]))];
+      assert.ok(h.length <= 1 && (h.length === 0 || h[0] >= 44), vues.map(c => `${c.texte} ${c.boite[3]}`).join(', '));
+      for (let i = 0; i + 1 < vues.length; i += 2) { assert.equal(vues[i].boite[1], vues[i + 1].boite[1], `${vues[i].texte} / ${vues[i + 1].texte}`); }
+    });
+    check(`${e} : ${nom}, marge haute nulle sur chaque case (affichée ou non)`, () => assert.deepEqual(cases.filter(c => c.marge !== '0px').map(c => `${c.texte} ${c.marge}`), []));
+  }
+  check(`${e} : deux .btn voisins hors des grilles, marge haute de 8 px gardée`, () => assert.equal(m.margeTemoin, '8px'));
+};
+
+if (on('acces-mobile')) {
+  const avant = sansEntete(process.env.KR_SCRIPT_AVANT_ACCES ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_ACCES, 'utf8')
+    : execFileSync('git', ['show', '666debd:kraland-userscript-main.user.js'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const accesDe = async (src, o) => { const { ctx, p } = await ouvrirCartes(src, { ...o, height: 667, fixture: 'plateau-qualite-usage.html' }); await frames(p); const m = await mesurerAcces(p); await ctx.close(); return m; };
+  const egalBase = (m, b, e) => check(`${e} : accès rapides et actions égaux à la base`, () => assert.deepEqual([m.acces, m.actions], [b.acces, b.actions]));
+  for (const variante of VARIANTES) {
+    console.log(`Accès rapides mobiles alignés (${variante})`);
+    for (const width of [375, 767]) { verifierAcces(await accesDe(userscript, { width, variante }), `${width} px ${variante}`); }
+    const base768 = await accesDe(avant, { width: 768, variante });
+    const m768 = await accesDe(userscript, { width: 768, variante });
+    check(`768 px ${variante} : mode ordinateur`, () => assert.ok(!m768.mobile));
+    egalBase(m768, base768, `768 px ${variante}`);
+    const { ctx, p } = await ouvrirCartes(userscript, { width: 767, height: 667, variante, fixture: 'plateau-qualite-usage.html' });
+    for (const [w, mobile] of [[768, false], [767, true]]) {
+      await p.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+      const charge = p.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+      await p.setViewportSize({ width: w, height: 667 });
+      await charge;
+      const etat = await waitState(p, m => document.body && document.body.classList.contains('mobile-mode') === m, mobile, { maxMs: 10000 });
+      await krReady(p, { ready: THEME_READY, label: `bascule acces ${w} px ${variante}` });
+      await frames(p);
+      const m = await mesurerAcces(p);
+      check(`bascule acces ${variante} : ${w} px, body.mobile-mode ${mobile ? 'remis' : 'levé'}`, () => assert.ok(etat));
+      if (mobile) { verifierAcces(m, `bascule ${w} px ${variante}`); } else { egalBase(m, base768, `bascule ${w} px ${variante}`); }
+    }
+    await ctx.close();
   }
 }
 

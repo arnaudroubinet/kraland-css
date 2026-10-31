@@ -325,7 +325,7 @@ check('carte de personnage (kr-carte-perso, en-tête, bloc du nom) -> plateau, c
     for (const z of ['plateau', 'cartes-pastilles', 'typographie-formes']) { assert.ok(d.zones.includes(z), `${z} absente : ${d.zones.join(', ')}`); }
   }
   const s = SUITES.find(x => x.name === 'plateau-qualite-usage');
-  assert.deepEqual(s.frags, [['usage'], ['cartes'], ['pv']]);
+  assert.deepEqual(s.frags, [['usage'], ['cartes'], ['pv'], ['acces-mobile']]);
   assert.equal(s.needsBootstrap, true);
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/plateau-cartes-noms.html': [] }), readWith({})).zones, ['plateau']);
 });

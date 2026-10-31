@@ -4881,8 +4881,8 @@ body > map {
     cursor: pointer !important;
   }
   
-  /* Espacement entre éléments cliquables (dossiers du kramail en onglets contigus exclus) */
-  .btn + .btn:where(:not([data-kr-dossier])) {
+  /* Espacement entre éléments cliquables (dossiers du kramail en onglets contigus et cases des grilles du plateau exclus) */
+  .btn + .btn:where(:not([data-kr-dossier], .kr-action-grid > .btn, .kr-quick-access-buttons > .btn)) {
     margin-top: 8px !important;
     margin-left: 0 !important;
   }

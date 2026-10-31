@@ -1366,3 +1366,11 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Reste ouvert : sur mobile, une navigation demandée après 1000 + 250 ms échapperait toujours à la garde. Elle n'existe qu'avec un bundle fautif (contre-épreuve), qui est rouge de toute façon.
 - Relevé des autres usages (note du ticket) : `MENU_PERSONNAGE` (`entete-menu`) lit `ferme` après le clic extérieur sans garde. Au bureau, (5, 400) ne navigue pas. Sur mobile avec un bundle fautif (8a58d08), ce clic navigue : la contre-épreuve peut s'y interrompre au lieu d'être rouge. Non traité : aucune instabilité observée avec le bundle courant. Les autres appels de `toucher` (options, clavier, Nouveau) ne lisent plus la page après le toucher qui navigue.
 - Ticket de tests seuls : `version.json` et le bundle sont régénérés par `npm run build` et embarqués (règle de livraison).
+
+## Ticket backlog 20 — première case des accès rapides du plateau mobile plus haute de 8 px (in-review, 2026-10-31)
+
+- Correctif : les cases de `.kr-action-grid` et de `.kr-quick-access-buttons` sont exclues de la règle mobile `.btn + .btn`, dans son `:where(:not(...))` (spécificité inchangée, aucun `!important` ajouté). Le `margin: 0` de la grille s'applique. Le bloc des accès rapides perd 24 px sur mobile (2 × 8 px de marge et 8 px d'étirement d'Agir), et tout ce qui suit remonte d'autant : cartes, groupes, hauteur de page.
+- Grille d'actions : sur `plateau-qualite-usage` à 375 et 767 px, elle est dans le DOM mais masquée (boîte 0 × 0). Sa marge nulle est vérifiée, mais pas sa hauteur à l'écran. Je n'ai aucune capture d'un plateau mobile réel avec cette grille ou les accès rapides affichés (hypothèse de D9.3). Demande de capture : plateau mobile à 375 px, montrant les accès rapides et, s'il y en a, les actions.
+- Bases de comparaison : `CORRIGER_BUG20` réécrit la règle dans les bases de `plateau-qualite-usage` (cartes, pv), `cartes-pastilles`, `typographie-formes` (espacement, nettoyage). Le masque disparaît dès qu'une base est recalée au-delà du bug 20.
+- Le premier `test:all` a été rouge (`typographie-formes#nettoyage`, 12 FAIL, page plus courte de 24 px : base non masquée). Le masque y a été ajouté, puis un second `test:all` a été lancé : vert.
+
