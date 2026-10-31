@@ -49,7 +49,7 @@ check('Notifications /report (kr-page-report) : zone report (et confort-mobile p
   assert.equal(f.widened, false);
   assert.deepEqual(f.units, ['report-non-lu', 'palette-nation', 'typographie-formes']); // 9.10 : /report sort du hors périmètre de confort-mobile ; bug 14 : sélecteur mesuré par typographie-formes (champs)
   assert.deepEqual(zonesOf('report-non-lu.mjs'), ['report']);
-  assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort']]); // 8.1 : fenêtre 600 remplacée ; 8.3 : haut de page ; 9.10 : confort
+  assert.deepEqual(SUITES.find(s => s.name === 'report-non-lu').frags, [['popup'], ['mobile'], ['bureau'], ['bascule'], ['portee'], ['haut'], ['confort'], ['onglets']]); // 8.1 : fenêtre 600 remplacée ; 8.3 : haut de page ; 9.10 : confort ; backlog 27 : onglets
 });
 check('cloche des notifications (ticket 8.2) : section CLOCHE DES NOTIFICATIONS et openReport -> zone cloche ; fixture et suite -> cloche-notifications seule', () => {
   assert.deepEqual(zonesOf('cloche-notifications.mjs'), ['cloche']);
