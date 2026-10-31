@@ -1401,3 +1401,25 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - `.xmini` : aucune des trois fixtures n'en porte (le miroir retiré n'en mesurait donc aucun). Le test pose une sonde `span.xmini` dans la page : il vérifie la règle générale `.xmini`, pas les contextes réels (étiquette PNJ `.btn.btn-danger.xmini`, `.mention .xmini` du Commerce). Une régression limitée à l'un de ces contextes passerait. Capture demandée : une page réelle portant un `.xmini` hors étiquette PNJ, pour en dériver une fixture si tu veux un contrôle en contexte.
 - `footer a` : mesuré sur Matériel (1 lien) et kramail (2 liens) ; le pied du sous-forum n'a pas de lien.
 - Contre-épreuve : 6 bundles mutés (taille ou graisse de chacun des quatre éléments, mobile et ordinateur), tous rouges sur le nouveau contrôle seulement.
+
+## Lot A : tickets backlog 25, 26, 29
+
+### Ticket 25 — défileur des Nouvelles (in-review, 2026-10-31)
+
+- Correctif : nouvelles empilées dans une seule cellule de grille, seule la première visible. La liste prend la hauteur de la nouvelle la plus haute : plus aucun saut. Contrepartie : une nouvelle plus courte laisse un vide dessous, de la différence de hauteur. Sur la fixture, le vide relevé est de 0 px. Sur le vrai site, une nouvelle d'une ligne à côté d'une de trois laisserait environ deux lignes vides. À juger à l'œil.
+- Le changement de nouvelle est instantané (fin du repli) : il n'y a plus de glissement visible. Autre option : garder un fondu, hors périmètre.
+- L'animation est rejouée dans le test par jQuery (`slideUp`, `appendTo`, `slideDown`, 400 ms), pas par le plugin natif du site, absent des fixtures. Si le plugin pose d'autres styles en ligne (`margin`, `opacity`, `position`), ils ne sont pas couverts. Demande : le nom ou le code du plugin du défileur de l'accueil, ou une capture HTML du `ul.demo` en cours de tour.
+- La variante déconnectée de la suite (`HTML_DECONNECTE`) est une structure supposée. Le saut n'a pas été reproduit en connecté sur la fixture. Capture demandée : accueil déconnecté à 375 px.
+
+### Ticket 26 — bande sous le pied mobile (in-review, 2026-10-31)
+
+- Réserve de 52 px seulement tant que le bouton « Remonter en haut » est affiché (au-delà de 400 px de défilement). La hauteur du document change alors sous l'écran.
+- Ajout hors intention stricte, pour tenir « bouton entièrement sous le pied » : le bouton perd la marge basse mobile des `.well` (15 px). Il mordait de 15 px sur le pied à la base. Sur les pages de rédaction (forum, kramail), où le bouton est remonté à 20 px du bas, la réserve vaut 64 px. À valider.
+- Saisie en cours (ticket 16) : le bouton est masqué pendant la frappe, mais la réserve reste, car elle suit la classe `kr-btt-visible`. Choix délibéré, pour éviter un saut de 52 px pendant la frappe. À trancher.
+- Le bouton du mini-chat et les autres éléments fixes du bas ne sont pas mesurés par `pied-bas`. Seuls les textes croisant le bouton sont contrôlés.
+- Bases de comparaison : `CORRIGER_BUG26` réécrit la réserve et le bouton dans la base 7bec452 de `typographie-formes#nettoyage` et de `kramail-redaction`. Sans lui, 58 et 8 FAIL, dus à l'écart voulu.
+
+### Ticket 29 — vide au-dessus de « Jouer » (in-review, 2026-10-31)
+
+- « Jouer » à 16 px de la barre (contre 49 px). La fixture reçoit la règle native `#content { padding-top: 25px }` relevée le 2026-10-30.
+- Le bloc `.clearfix` masqué vient de la variante déconnectée de la suite, structure supposée. Sur le vrai accueil déconnecté, l'écart pourrait différer. Capture demandée : accueil déconnecté à 375 px (la même que pour le ticket 25).

@@ -29,9 +29,14 @@
 //                   à 375 et 700 px), cartes à une et trois actions, à 320, 375 × 667, 700 et 767 px, Kraland clair et Empire Brun sombre :
 //                   cibles du plateau à 44 × 44 aux cinq points, actions dans leur carte, tuiles à 64 px ; repli des deux accordéons sans
 //                   saut ; à 768 et 1280 px, boîtes des cibles égales au bundle de base.
+//   pied-bas        (ticket 26 du backlog) forum (index Staff), rédaction du kramail, objets du plateau et accueil (bouton « Remonter en
+//                   haut » natif, ajouté en mémoire au forum et à l'accueil) et page courte à 375 et 767 px, Kraland clair et Empire Brun
+//                   sombre : en haut et après retour en haut, bouton masqué et 8 px au plus sous le pied ; en bas, bouton affiché
+//                   entièrement sous le pied, dans la réserve (52 px, 64 px en rédaction), sans couvrir aucun texte ; page courte : bouton jamais affiché, 8 px au plus ; à 768 et
+//                   1280 px, mesures égales au bundle de base ; bascule 767 -> 768 -> 767 dans le même onglet.
 // Pages = FIXTURES SYNTHÉTIQUES (tests/e2e/fixtures), servies à leurs adresses ; vrai Bootstrap 3.3.7 (tests/e2e/vendor). Aucun accès au
 // site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT), KR_FRAG =
-// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau (vide = tout).
+// mobile, bureau, bascule, hors-perimetre, secondaires, membres-aide, plateau, pied-bas (vide = tout).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -826,6 +831,134 @@ if (on('plateau')) {
   const resB = await mapLimit(casB, async c => ({ c, teste: await boites(c, userscript), base: await boites(c, avant) }));
   for (const { c, teste, base } of resB) {
     check(`plateau bureau ${c.nom} ${c.variante} ${c.width} px : boîtes des cibles égales au bundle de base`, () => assert.deepEqual(teste, base));
+  }
+}
+
+// ---------- pied-bas (ticket 26) ----------
+// Bouton « Remonter en haut » natif (a.well.well-sm vers #top, comme jeu-perso.html), ajouté en mémoire au pied des pages qui n'en ont pas
+// dans leur fixture (forum, accueil : présent sur le vrai accueil, relevé connecté du 2026-10-30) ; page courte (défilement maximal sous
+// 400 px : bouton jamais affiché) dérivée de l'index du forum Staff, contenu réduit à son titre.
+const BOUTON_HAUT = '<a href="#top" class="well well-sm"><i class="glyphicon glyphicon-chevron-up"></i></a>';
+const avecBoutonHaut = h => {
+  const r = h.replace(/(<footer[^>]*>\s*<div class="container white">)/, '$1' + BOUTON_HAUT);
+  if (r === h) { throw new Error('bouton « Remonter en haut » non ajouté au pied'); }
+  return r;
+};
+PAGES['pied-forum'] = { url: '/forum/staff', html: avecBoutonHaut(PAGES.staff.html) };
+PAGES['pied-accueil'] = { url: '/accueil', html: avecBoutonHaut(lire('accueil.html')) };
+PAGES['pied-court'] = { url: '/forum/staff', html: (() => {
+  const h = PAGES['pied-forum'].html.replace(/(<div id="content"[^>]*>)[\s\S]*?(\n\s*<footer)/, '$1<h1>Forum Staff</h1></div>$2');
+  if (h === PAGES['pied-forum'].html) { throw new Error('page courte non dérivée'); }
+  return h;
+})() };
+const PAGES_PIED = ['pied-forum', 'kramail-nouveau', 'objets', 'pied-accueil', 'pied-court'];
+// Défilement jusqu'en bas (répété : la réserve agrandit le document une fois le bouton affiché), puis retour en haut. Espace sous le pied :
+// hauteur du document moins le bas du pied (coordonnées du document).
+const PIED_BAS = async () => {
+  const de = document.documentElement;
+  const images = () => new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok)));
+  const r1 = x => Math.round(x * 10) / 10;
+  // Textes visibles (hors bouton) dont une boîte de ligne croise le bouton affiché.
+  const textesSous = (b, btn) => {
+    const out = [];
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (!n.textContent.trim() || !n.parentElement || n.parentElement.closest('script, style') || btn.contains(n)) { continue; }
+      const rg = document.createRange();
+      rg.selectNodeContents(n);
+      if ([...rg.getClientRects()].some(x => x.width > 0 && x.height > 0 && x.left < b.right && x.right > b.left && x.top < b.bottom && x.bottom > b.top)) {
+        out.push(n.textContent.trim().slice(0, 30));
+      }
+    }
+    return out;
+  };
+  const mesure = () => {
+    const pied = document.querySelector('footer').getBoundingClientRect();
+    const btn = document.querySelector('.kraland-back-to-top');
+    const b = btn && btn.getBoundingClientRect();
+    return { scrollY: r1(window.scrollY), max: de.scrollHeight - de.clientHeight, espace: r1(de.scrollHeight - (pied.bottom + window.scrollY)),
+      vu: !!btn && btn.classList.contains('kr-btt-visible') && getComputedStyle(btn).visibility === 'visible',
+      bouton: b && { h: r1(b.top), b: r1(b.bottom), g: r1(b.left), d: r1(b.right) }, piedBas: r1(pied.bottom), vh: de.clientHeight,
+      couverts: b ? textesSous(b, btn) : [] };
+  };
+  const haut = mesure();
+  for (let i = 0; i < 3; i++) { window.scrollTo(0, de.scrollHeight); await images(); }
+  const bas = mesure();
+  window.scrollTo(0, 0);
+  await images();
+  return { haut, bas, retour: mesure(), present: !!document.querySelector('.kraland-back-to-top'), mobile: document.body.classList.contains('mobile-mode'),
+    redaction: !!document.querySelector('form[name="post_msg"]') };
+};
+const controlerPied = (tag, m, court) => {
+  check(`${tag} : bouton « Remonter en haut » présent`, () => assert.ok(m.present));
+  if (court) {
+    check(`${tag} : page courte (défilement maximal sous 400 px), bouton jamais affiché, 8 px au plus sous le pied`, () => {
+      assert.ok(m.bas.max <= 400 && !m.bas.vu, JSON.stringify(m.bas));
+      assert.ok(m.bas.espace <= 8, JSON.stringify(m.bas));
+    });
+    return;
+  }
+  check(`${tag} : en haut, bouton masqué et 8 px au plus sous le pied`, () => assert.ok(!m.haut.vu && m.haut.espace <= 8, JSON.stringify(m.haut)));
+  // Réserve : 52 px (bouton à 8 px du bas), 64 px sur les pages de rédaction (bouton remonté à 20 px du bas).
+  const reserve = m.redaction ? 64 : 52;
+  check(`${tag} : en bas, bouton affiché entièrement sous le pied, dans une réserve de ${reserve} px (± 0,5), sans couvrir aucun texte`, () => {
+    assert.ok(m.bas.vu && Math.abs(m.bas.espace - reserve) <= 0.5, JSON.stringify(m.bas));
+    assert.ok(m.bas.bouton.h >= m.bas.piedBas - 0.5 && m.bas.bouton.b <= m.bas.vh && m.bas.couverts.length === 0, JSON.stringify(m.bas));
+  });
+  check(`${tag} : retour en haut, bouton masqué, plus rien sous le pied`, () => assert.ok(!m.retour.vu && m.retour.espace <= 8 && m.retour.scrollY === 0, JSON.stringify(m.retour)));
+};
+if (on('pied-bas')) {
+  console.log('\n== pied-bas ==');
+  const cas = PAGES_PIED.flatMap(nom => VARIANTES.flatMap(variante => [375, 767, 768, 1280].map(width => ({ nom, variante, width }))));
+  const pied = async (c, script) => {
+    const { context, page, erreurs } = await ouvrir({ ...c, height: c.width < 768 ? 667 : 720, script });
+    const m = await page.evaluate(PIED_BAS);
+    await context.close();
+    return { m, erreurs };
+  };
+  const res = await mapLimit(cas, async c => ({ c, teste: await pied(c, userscript), base: c.width < 768 ? null : await pied(c, avant) }));
+  for (const { c, teste, base } of res) {
+    const tag = `pied-bas ${c.nom} ${c.variante} ${c.width} px`;
+    if (c.width < 768) {
+      check(`${tag} : mode mobile`, () => assert.ok(teste.m.mobile));
+      controlerPied(tag, teste.m, c.nom === 'pied-court');
+    } else {
+      check(`${tag} : espace sous le pied et bouton égaux au bundle de base (haut, bas, retour)`, () => {
+        assert.equal(teste.m.mobile, false);
+        assert.deepEqual(teste.m, base.m);
+      });
+    }
+    check(`${tag} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
+  }
+  // Bascule dans le même onglet : 767 -> 768 -> 767 (objets, bouton natif), mesure en bas de page à chaque étape.
+  const bascule = async (script, variante) => {
+    const largeurs = [767, 768, 767];
+    const { context, page, erreurs } = await ouvrir({ nom: 'objets', width: largeurs[0], variante, script, tactile: false });
+    const etapes = [];
+    for (let i = 0; i < largeurs.length; i += 1) {
+      if (i > 0) {
+        await page.waitForTimeout(1300); // écart minimal entre deux rechargements de bascule
+        const charge = page.waitForEvent('load', { timeout: 8000 }).catch(() => null);
+        await page.setViewportSize({ width: largeurs[i], height: 667 });
+        await charge;
+        await prete(page, `pied-bas bascule ${variante} ${largeurs[i]} px`);
+      }
+      etapes.push({ width: largeurs[i], m: await page.evaluate(PIED_BAS) });
+    }
+    await context.close();
+    return { etapes, erreurs };
+  };
+  const resB = await mapLimit(VARIANTES, async variante => ({ variante, teste: await bascule(userscript, variante), base: await bascule(avant, variante) }));
+  for (const { variante, teste, base } of resB) {
+    teste.etapes.forEach((e, i) => {
+      const tag = `pied-bas bascule ${variante} 767 -> 768 -> 767, étape ${i + 1} (${e.width} px)`;
+      if (e.width < 768) {
+        controlerPied(tag, e.m, false);
+      } else {
+        check(`${tag} : égal au bundle de base (même parcours)`, () => assert.deepEqual(e.m, base.etapes[i].m));
+      }
+    });
+    check(`pied-bas bascule ${variante} : aucune erreur de page`, () => assert.deepEqual(teste.erreurs, []));
   }
 }
 

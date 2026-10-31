@@ -27,10 +27,14 @@
 //              carte ministérielle visible ; carrousel masqué par html.kr-hide-carousel (défaut) ; position des textes égale au bundle de base ;
 //   carrousel  kr-carousel-hide = 'false' : carrousel affiché à 1280 px, #myCarousel toujours masqué à 375 px ;
 //   deconnecte variante déconnectée dérivée en mémoire (formulaire de connexion, forum natif non regroupé), 320, 375 et 767 px :
-//              formulaire avant les Compteurs, lignes .ds_forum à 44 px, marge, cibles, « Se souvenir de moi » à 13 px, rien sous 12 px.
+//              formulaire avant les Compteurs, lignes .ds_forum à 44 px, marge, cibles, « Se souvenir de moi » à 13 px, rien sous 12 px ;
+//   defileur   ticket 25, 320 et 375 px, connecté et déconnecté : 3 tours du défileur des nouvelles rejoués (jQuery, comme le défileur
+//              natif) ; hauteur de la carte Nouvelles et haut du pied constants à chaque image, seule la nouvelle de tête visible ;
+//   jouer      ticket 29, 320, 375 et 767 px, connecté et déconnecté : premier bloc (« Jouer » ou formulaire) à 16 px sous la barre (règle
+//              native #content relevée, recopiée dans la fixture), 8 px de « Jouer » à Bienvenue.
 // Partout : aucune exception de page, aucune requête hors fixture (coupée par la route de la fixture ou refusée par confineNetwork).
 // Aucun accès au site réel. Options : KR_SCRIPT (bundle testé), KR_SCRIPT_AVANT (bundle de base, défaut : git show COMMIT_AVANT),
-// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, ministre, finitions, contraste, bureau, carrousel, deconnecte (vide = tout), KR_FA_DIR=/dossier (copie locale
+// KR_FRAG = mobile, marge, cibles, cartes, echelle, bascule, ministre, finitions, contraste, bureau, carrousel, deconnecte, defileur, jouer (vide = tout), KR_FA_DIR=/dossier (copie locale
 // de Font Awesome 5.6.3 du site : css/all.min.css + webfonts/, comme messages-v3 ; sans elle, la feuille est vide et les icônes n'ont que le
 // glyphe de substitution de la fixture).
 import assert from 'node:assert/strict';
@@ -726,8 +730,9 @@ const FINITIONS = async () => {
   const genmsg = { icone };
   // Défileur : vide entre la nouvelle visible et le bas de ul.demo
   const ul = document.querySelector('#player-header-section ul.demo');
-  const li = [...ul.children].find(e => e.getClientRects().length > 0);
-  const defileur = { vide: r1(boite(ul).b - boite(li).b), ul: r1(boite(ul).ht), li: r1(boite(li).ht) };
+  const lis = [...ul.children].filter(e => e.getClientRects().length > 0);
+  const bas = Math.max(...lis.map(e => boite(e).b));
+  const defileur = { vide: r1(boite(ul).b - bas), ul: r1(boite(ul).ht), li: lis.map(e => r1(boite(e).ht)) };
   // Avatar de Bienvenue dans sa carte
   const ds = document.querySelector('#col-t > .ds_user'); const av = ds.querySelector('.pull-right img');
   const avatar = { haut: r1(boite(av).h - boite(ds).h), bas: r1(boite(ds).b - boite(av).b), taille: [r1(boite(av).l), r1(boite(av).ht)] };
@@ -786,7 +791,110 @@ if (on('finitions')) {
       assert.ok(icone, 'icône de fond absente (règle native de la fixture)');
       assert.ok(icone.rendu[1] <= icone.boite[1] + 0.5 && icone.rendu[0] <= icone.retrait + 0.5, JSON.stringify(icone));
     });
-    check(`${tag} : défileur des nouvelles sans vide sous la nouvelle visible (1 px au plus)`, () => assert.ok(f.defileur.vide <= 1, JSON.stringify(f.defileur)));
+    check(`${tag} : défileur des nouvelles sans vide sous la nouvelle la plus haute (1 px au plus)`, () => assert.ok(f.defileur.vide <= 1, JSON.stringify(f.defileur)));
+    controlerPropre(tag, r);
+  }
+}
+
+// Ticket 25 : tours du défileur des nouvelles rejoués comme le défileur natif (sens « up » : repli de la première nouvelle, déplacement en fin
+// de liste, dépli), par jQuery, sans page.clock (rAF réel) ; hauteur de la carte Nouvelles et haut du pied (coordonnées du document)
+// relevés à chaque image, ainsi que les nouvelles visibles et le vide sous la nouvelle affichée.
+const TOURS_DEFILEUR = async tours => {
+  const $ = window.jQuery;
+  const ul = document.querySelector('#player-header-section ul.demo');
+  const carte = document.querySelector('#col-left > #player-header-section');
+  const pied = document.querySelector('footer');
+  const mesure = () => [carte.getBoundingClientRect().height, pied.getBoundingClientRect().top + window.scrollY];
+  const visibles = () => [...ul.children].filter(e => e.getClientRects().length > 0 && getComputedStyle(e).visibility === 'visible');
+  const ref = mesure();
+  let ecart = 0; let images = 0; let actif = true; let vuesFausses = 0; let videVue = 0;
+  const boucle = () => {
+    const m = mesure();
+    ecart = Math.max(ecart, Math.abs(m[0] - ref[0]), Math.abs(m[1] - ref[1]));
+    const v = visibles();
+    if (v.length !== 1 || v[0] !== ul.firstElementChild) { vuesFausses += 1; }
+    if (v.length > 0) { videVue = Math.max(videVue, ul.getBoundingClientRect().bottom - Math.max(...v.map(e => e.getBoundingClientRect().bottom))); }
+    images += 1;
+    if (actif) { requestAnimationFrame(boucle); }
+  };
+  requestAnimationFrame(boucle);
+  const tetes = [ul.firstElementChild.textContent.trim().slice(0, 30)];
+  for (let t = 0; t < tours; t++) {
+    await new Promise(ok => {
+      const li = $(ul).children('li:first');
+      li.slideUp(400, () => { li.appendTo(ul); li.slideDown(400, ok); });
+    });
+    tetes.push(ul.firstElementChild.textContent.trim().slice(0, 30));
+  }
+  await new Promise(ok => requestAnimationFrame(ok));
+  actif = false;
+  const bu = ul.getBoundingClientRect();
+  const lis = [...ul.children];
+  const vues = visibles();
+  const bas = Math.max(...lis.filter(e => e.getClientRects().length > 0).map(e => e.getBoundingClientRect().bottom));
+  return { ref, ecart: Math.round(ecart * 10) / 10, images, tetes, vues: vues.map(e => lis.indexOf(e)), vuesFausses,
+    videVue: Math.round(videVue * 10) / 10, vide: Math.round((bu.bottom - bas) * 10) / 10, coupee: lis.some(e => e.getBoundingClientRect().bottom > bu.bottom + 0.5) };
+};
+
+if (on('defileur')) {
+  console.log('\n[defileur] ticket 25, 320 et 375 px, connecté et déconnecté : 3 tours du défileur sans variation de la carte Nouvelles ni du pied');
+  const cas = VARIANTES.flatMap(variante => MOBILES.flatMap(width => [false, true].map(deconnecte => ({ variante, width, deconnecte }))));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs, horsFixture } = await ouvrir({ variante: c.variante, width: c.width, html: c.deconnecte ? HTML_DECONNECTE : HTML });
+    const mobile = await page.evaluate(() => document.body.classList.contains('mobile-mode'));
+    const t = await page.evaluate(TOURS_DEFILEUR, 3);
+    await context.close();
+    return { c, mobile, t, r: { erreurs, hors: horsFixture() } };
+  });
+  for (const { c, mobile, t, r } of res) {
+    const tag = `défileur ${c.deconnecte ? 'déconnecté ' : ''}${c.variante} ${c.width} px`;
+    check(`${tag} : mode mobile, 3 tours joués (la nouvelle de tête change à chaque tour)`, () => {
+      assert.ok(mobile);
+      assert.equal(t.tetes.length, 4);
+      for (let i = 1; i < t.tetes.length; i++) { assert.notEqual(t.tetes[i], t.tetes[i - 1], JSON.stringify(t.tetes)); }
+    });
+    check(`${tag} : hauteur de la carte Nouvelles et haut du pied constants pendant les tours (0 px au dixième près, ${t.images} images)`, () => {
+      assert.ok(t.images >= 30, `trop peu d'images : ${t.images}`);
+      assert.ok(t.ecart === 0, `variation ${t.ecart} px (référence ${JSON.stringify(t.ref)})`);
+    });
+    check(`${tag} : seule la nouvelle de tête visible à chaque image, aucune coupée, aucun vide sous la plus haute (1 px au plus)`, () => {
+      assert.ok(t.vuesFausses === 0 && t.vues.length === 1 && t.vues[0] === 0, JSON.stringify({ vues: t.vues, vuesFausses: t.vuesFausses }));
+      assert.ok(!t.coupee && t.vide <= 1, JSON.stringify({ vide: t.vide, coupee: t.coupee }));
+    });
+    check(`${tag} : 8 px au plus sous la nouvelle affichée, à chaque image (relevé : ${t.videVue} px au plus)`, () => assert.ok(t.videVue <= 8, JSON.stringify({ videVue: t.videVue })));
+    controlerPropre(tag, r);
+  }
+}
+
+// Ticket 29 : vide entre le bas de la barre et le premier bloc de l'accueil mobile (« Jouer », formulaire de connexion en déconnecté).
+const ECART_BARRE = () => {
+  const r = s => { const e = document.querySelector(s); const b = e && e.getBoundingClientRect(); return b && b.height > 0 ? b : null; };
+  const barre = r('nav.navbar');
+  const premier = r('#col-t > a.accueil-play-btn') || r('#col-t > :has(input[type="password"])');
+  const suivant = r('#col-t > .ds_user');
+  const r1 = x => Math.round(x * 10) / 10;
+  return { mobile: document.body.classList.contains('mobile-mode'), haut: barre && premier ? r1(premier.top - barre.bottom) : null,
+    jouerBienvenue: r('#col-t > a.accueil-play-btn') && suivant ? r1(suivant.top - r('#col-t > a.accueil-play-btn').bottom) : null, scrollY: window.scrollY };
+};
+
+if (on('jouer')) {
+  console.log('\n[jouer] ticket 29, 320, 375 et 767 px, connecté et déconnecté : premier bloc à 16 px sous la barre, 8 px de Jouer à Bienvenue');
+  const cas = VARIANTES.flatMap(variante => [320, 375, 767].flatMap(width => [false, true].map(deconnecte => ({ variante, width, deconnecte }))));
+  const res = await mapLimit(cas, async c => {
+    const { context, page, erreurs, horsFixture } = await ouvrir({ variante: c.variante, width: c.width, html: c.deconnecte ? HTML_DECONNECTE : HTML });
+    const g = await page.evaluate(ECART_BARRE);
+    await context.close();
+    return { c, g, r: { erreurs, hors: horsFixture() } };
+  });
+  for (const { c, g, r } of res) {
+    const tag = `jouer ${c.deconnecte ? 'déconnecté ' : ''}${c.variante} ${c.width} px`;
+    check(`${tag} : ${c.deconnecte ? 'formulaire de connexion' : '« Jouer »'} à 16 px (± 1) sous la barre`, () => {
+      assert.ok(g.mobile && g.scrollY === 0);
+      assert.ok(g.haut !== null && Math.abs(g.haut - 16) <= 1, JSON.stringify(g));
+    });
+    if (!c.deconnecte) {
+      check(`${tag} : 8 px (± 0,5) de « Jouer » à Bienvenue`, () => assert.ok(g.jouerBienvenue !== null && Math.abs(g.jouerBienvenue - 8) <= 0.5, JSON.stringify(g)));
+    }
     controlerPropre(tag, r);
   }
 }

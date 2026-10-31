@@ -11526,8 +11526,21 @@ html[class*='-dark'] .mini.c10 {
     display: flex;
     flex-direction: column;
     gap: var(--kr-space-2);
-    padding-top: var(--kr-space-2);
+    padding-top: var(--kr-space-4);
     padding-bottom: var(--kr-space-2);
+  }
+
+  /* Ticket 29 : « Jouer » à la marge de page (16 px) sous la barre, sans le retrait haut natif de #content (25 px) ni les écarts des
+     clearfix de Bootstrap (pseudo-éléments de la ligne, bloc .clearfix de l'accueil déconnecté), devenus blocs vides de la ligne avant
+     « Jouer » */
+  :where(html.kr-page-accueil) body.mobile-mode > #content {
+    padding-top: 0;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode > .container > .row::before,
+  :where(html.kr-page-accueil) body.mobile-mode > .container > .row::after,
+  :where(html.kr-page-accueil) body.mobile-mode > .container > .row > .clearfix {
+    display: none;
   }
 
   :where(html.kr-page-accueil) body.mobile-mode :is(#col-t, #col-left) {
@@ -11832,12 +11845,25 @@ html[class*='-dark'] .mini.c10 {
     display: contents;
   }
 
-  /* Défileur : sa hauteur en ligne (posée par le site pour plusieurs nouvelles) est plafonnée à la seule nouvelle visible, sans vide
-     dessous (entrée 6) */
+  /* Défileur : sa hauteur en ligne (posée par le site pour plusieurs nouvelles) est remplacée par celle de la nouvelle la plus haute
+     (entrée 6). Ticket 25 : les nouvelles sont empilées dans une seule cellule, gardées dans la mise en page malgré le repli et le
+     dépli de l'animation native (styles en ligne), seule la première visible : la hauteur reste fixe à chaque tour ; une nouvelle plus
+     courte laisse un vide dessous */
   :where(html.kr-page-accueil) body.mobile-mode #player-header-section ul.demo {
-    max-height: max-content;
+    display: grid;
+    height: auto !important;
     margin: 0;
     padding: 0;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section ul.demo > li.news-item {
+    display: list-item !important;
+    grid-area: 1 / 1;
+    height: auto !important;
+  }
+
+  :where(html.kr-page-accueil) body.mobile-mode #player-header-section ul.demo > li.news-item:nth-child(n+2) {
+    visibility: hidden;
   }
 
   :where(html.kr-page-accueil) body.mobile-mode #player-header-section .news-item {
@@ -11950,9 +11976,13 @@ html[class*='-dark'] .mini.c10 {
     justify-content: center;
     right: 8px;
     bottom: 8px;
+
+    /* Ticket 26 : sans la marge basse mobile des .well (15 px), le bouton (44 px de haut, plancher tactile) tient dans la réserve */
+    margin: 0 !important;
   }
 
-  body.mobile-mode {
+  /* Ticket 26 : réserve sous le pied seulement tant que le bouton est affiché */
+  body.mobile-mode:has(.kraland-back-to-top.kr-btt-visible) {
     padding-bottom: 52px;
   }
 
@@ -15275,6 +15305,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
      (marge de 52 px = 8 + 36 + 8) pour qu'il ne le recouvre à aucune position de défilement. */
   body.mobile-mode:where(.page-forum, .page-kramail-compose):has(form[name="post_msg"]) .container.white .kraland-back-to-top {
     bottom: 20px;
+  }
+
+  /* Ticket 26 : réserve sous le pied à la mesure du bouton remonté (20 + 44 px) */
+  body.mobile-mode:where(.page-forum, .page-kramail-compose):has(form[name="post_msg"]):has(.kraland-back-to-top.kr-btt-visible) {
+    padding-bottom: 64px;
   }
 }
 
