@@ -772,7 +772,7 @@ check('template réel : chaque bloc @kr-pure-begin a ses zones dans PURE_BLOCKS,
   assert.deepEqual([...names].sort(), Object.keys(PURE_BLOCKS).sort());
   assert.equal((REAL_TPL.match(/^\s*\/\/ @kr-pure-begin\b/gm) || []).length, names.length, 'bloc non fermé ou mal écrit');
 });
-for (const [name, expected] of [['pagination', ['sous-forum']], ['rechargement', BASCULE], ['menus-forums', ['menus-forums']], ['images', ['images']], ['destinataires', ['kramail']], ['identite', ['plateau', 'profil']]]) {
+for (const [name, expected] of [['pagination', ['sous-forum']], ['rechargement', BASCULE], ['menus-forums', ['menus-forums']], ['images', ['images']], ['destinataires', ['kramail']], ['identite', ['plateau', 'profil']], ['version', ['confinement']]]) {
   check(`cœur pur, hunk sans mot-clé dans le bloc « ${name} » : ${expected.join(' + ')}, pas d'élargissement`, () => {
     const b = pureBlocks(REAL_TPL).find(x => x.name === name);
     assert.ok(b, 'bloc introuvable');

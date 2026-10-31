@@ -338,6 +338,28 @@
   }
   // @kr-pure-end
 
+  // @kr-pure-begin version
+  // Version du thème « 1.0.<horodatage> » (pied de page) : la mise à jour n'est annoncée que si la version publiée est plus récente.
+
+  /** Segments numériques d'une version (« 1.0.123 » -> [1, 0, 123]), ou null si elle est illisible. */
+  function krVersionParts(version) {
+    if (typeof version !== 'string' || !/^\d+(?:\.\d+)*$/.test(version.trim())) {return null;}
+    return version.trim().split('.').map(Number);
+  }
+
+  /** Vrai si la version publiée est strictement plus récente que l'installée (segment par segment, absent = 0) ; faux si l'une est illisible. */
+  function krIsUpdateAvailable(installed, published) {
+    const a = krVersionParts(installed);
+    const b = krVersionParts(published);
+    if (!a || !b) {return false;}
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      const diff = (b[i] || 0) - (a[i] || 0);
+      if (diff !== 0) {return diff > 0;}
+    }
+    return false;
+  }
+  // @kr-pure-end
+
   // ============================================================================
   // PERFORMANCE LOGGING
   // ============================================================================
@@ -7893,8 +7915,8 @@
         if (latestSpan) {
           latestSpan.innerHTML = `<strong>${data.version}</strong>`;
 
-          // Comparer les versions et afficher un indicateur si mise à jour disponible
-          if (data.version !== currentVersion) {
+          // Indicateur seulement si la version publiée est plus récente (une version installée plus récente, ex. feature/next, n'avertit pas)
+          if (krIsUpdateAvailable(currentVersion, data.version)) {
             latestSpan.innerHTML += ' <span style="color: #d9534f;">⚠️ (mise à jour disponible)</span>';
           }
         }

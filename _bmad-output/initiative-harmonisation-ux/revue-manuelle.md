@@ -1331,3 +1331,9 @@ Inception de l'épopée 10 « Page d'accueil mobile » (2026-10-29), faite en au
 - Le bruit vient du cadre arrondi de l'avatar de la lecture à 375 px (boîte (22-82, 291-365)). Il apparaît dans 57 passes A/A sur 176 sous charge, dont 15 rouges sur 112 avec l'ancienne borne. C'est beaucoup plus fréquent que les 1 sur 19016 observés dans `test:all` : la charge de la mesure (16 exécutions parallèles, machine partagée) est plus forte.
 - La branche « dimensions » (hauteur +1 px qui agrandit la capture) n'est pas exerçable sur ces pages : elles tiennent dans la fenêtre de 900 px. Une hauteur +1 px y décale le contenu, ce qui est détecté (142 pixels, écart 190).
 - Ticket de tests seuls : `version.json` et le bundle sont régénérés par `npm run build` et embarqués, pour suivre la règle de livraison (précédent 406485c).
+
+## Ticket backlog 17 — « mise à jour disponible » pour une version installée plus récente (in-review, 2026-10-31)
+
+- Comparaison extraite dans le bloc pur `version` (`krIsUpdateAvailable(installée, publiée)`), testée par `tests/unit/version.test.mjs`. L'appel dans `displayVersionInfo` n'est couvert par aucun test : toutes les fixtures refusent le fetch de `version.json`, donc la branche d'affichage ne s'exécute jamais. Des arguments inversés passeraient au vert. Ordre vérifié à la lecture, dans le template et dans le bundle. Une fixture qui sert `version.json` n'a pas été ajoutée : le ticket accepte le test unitaire seul.
+- Le bloc `version` est rattaché à la zone `confinement` dans `PURE_BLOCKS` : le routeur impose une zone. `confinement-reseau` vérifie seulement le refus du fetch ; la vraie preuve est `test:unit`, que le routeur lance pour toute modification du template.
+- Une version installée illisible (autre chose que des chiffres séparés par des points) n'avertit pas non plus. Le mode développement (`__USERSCRIPT_VERSION__` → `dev`) sort avant la comparaison : inchangé.
