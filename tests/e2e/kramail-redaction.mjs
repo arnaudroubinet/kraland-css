@@ -109,9 +109,13 @@ const DARK = 'empire-brun-dark';
 //   chrome-headless-shell 1248 (Chromium 156) : au plus 9 pixels, écart 2 ; « lecture 1280 » varie de 9 pixels, écart 1, en (357-432, 265-267).
 //   ticket 4.8 (A/A sous charge, 28 passes, bundle 4.8 des deux côtés) : coin haut droit de la carte li.media.well de « lecture 1280 »
 //   (rayon 8 px sur un bord fractionnaire, 917,6 px) : 2 pixels, écart 4, en (916-917, 176), 4 passes sur 28.
-// Borne du nombre de pixels = plus de 2 x le maximum mesuré (9) ; borne d'écart = maximum mesuré (4). Le bruit est de quelques pixels :
-// un voile à écart 4 sur toute la page (~300 000 px), un pixel franc (écart 255), une hauteur +1 px (dimensions) restent détectés.
-const PIX_MAX_PIXELS = 20;
+//   ticket backlog 33 (A/A sous charge, 176 passes : 16 exécutions parallèles, KR_SCRIPT_AVANT = bundle 893894a) : cadre arrondi de
+//   l'avatar de « lecture 375 » (boîte (22-82, 291-365)) : au plus 32 pixels, écart au plus 3, 57 passes sur 176 ; « lecture 1280 » :
+//   9 pixels, écart 1. Sous l'ancienne borne (20 pixels), 15 passes rouges sur les 112 premières.
+// Borne du nombre de pixels = plus de 2 x le maximum mesuré (32) ; borne d'écart = maximum mesuré (4). Le bruit tient dans un coin ou
+// un cadre : un voile à écart 4 sur toute la page (~300 000 px), un pixel franc (écart 255), une couleur décalée de plus de 4,
+// une hauteur +1 px (dimensions ou contenu décalé) restent détectés.
+const PIX_MAX_PIXELS = 80;
 const PIX_MAX_CANAL = 4;
 /* global atob, createImageBitmap, Blob -- utilisés dans pg.evaluate, donc dans le navigateur */
 async function comparePixels(a, b) {
@@ -129,13 +133,18 @@ async function comparePixels(a, b) {
       };
       const x = await dec(ba); const y = await dec(bb);
       if (x.w !== y.w || x.h !== y.h) { return { dims: [x.w + 'x' + x.h, y.w + 'x' + y.h] }; }
-      let pixels = 0; let maxCanal = 0; const first = [];
+      let pixels = 0; let maxCanal = 0; const first = []; const box = [Infinity, Infinity, -1, -1];
       for (let i = 0; i < x.d.length; i += 4) {
         let m = 0;
         for (let c = 0; c < 4; c++) { m = Math.max(m, Math.abs(x.d[i + c] - y.d[i + c])); }
-        if (m > 0) { pixels += 1; maxCanal = Math.max(maxCanal, m); if (first.length < 3) { const n = i / 4; first.push([n % x.w, Math.floor(n / x.w)]); } }
+        if (m > 0) {
+          pixels += 1; maxCanal = Math.max(maxCanal, m);
+          const n = i / 4; const px = n % x.w; const py = Math.floor(n / x.w);
+          if (first.length < 3) { first.push([px, py]); }
+          box[0] = Math.min(box[0], px); box[1] = Math.min(box[1], py); box[2] = Math.max(box[2], px); box[3] = Math.max(box[3], py);
+        }
       }
-      return { pixels, maxCanal, first };
+      return pixels ? { pixels, maxCanal, first, box } : { pixels, maxCanal, first };
     }, [a.toString('base64'), b.toString('base64')]);
   } finally { await ctx.close(); }
 }
@@ -1324,7 +1333,7 @@ if (frag('regression')) {
         await context.close();
       }
       // Octet pour octet si possible ; sinon pixels décodés, avec une tolérance bornée (bruit d'anticrénelage de Chromium sur
-      // le coin arrondi d'un panneau et sur du texte, mesuré en A/A : même bundle des deux côtés, jusqu'à 9 pixels, écart <= 2 sur un canal ; voir PIX_MAX_*).
+      // le coin arrondi d'un panneau, le cadre d'un avatar et sur du texte, mesuré en A/A : même bundle des deux côtés, jusqu'à 32 pixels, écart <= 4 sur un canal ; voir PIX_MAX_*).
       const diffs = Buffer.compare(shots.avant, shots.apres) === 0 ? { identique: true } : await comparePixels(shots.avant, shots.apres);
       return { doms, diffs, sizes: [shots.avant.length, shots.apres.length] };
     });
