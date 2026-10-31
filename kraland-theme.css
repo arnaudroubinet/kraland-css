@@ -10606,9 +10606,10 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     border-radius: var(--kr-radius-sm);
   }
 
+  /* Rangées espacées de 10 px : les cibles de 44 px des croix (5 px au-delà de la pastille) de deux rangées ne se chevauchent pas */
   body.page-kramail-compose form[name="post_msg"] .kd-flow {
     flex: 1;
-    gap: 6px;
+    gap: 10px 6px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-chips {
@@ -10625,15 +10626,22 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     font-size: var(--kr-font-name);
   }
 
+  /* Croix : cible de 44 × 44 (ticket backlog 21) autour du même dessin de 34 × 32 ; padding et marges négatives gardent la pastille à 34 px
+     et le glyphe en place, le fond de survol reste dans la zone de contenu. */
   body.page-kramail-compose form[name="post_msg"] .kd-chip-x {
-    width: 34px;
+    width: var(--kr-touch-target);
     min-width: 0 !important;
     min-height: 0 !important;
-    height: 32px;
-    margin: 0;
-    padding: 0;
+    height: var(--kr-touch-target);
+    margin: -6px -5px;
+    padding: 6px 5px;
     border-radius: 0 var(--kr-radius-full) var(--kr-radius-full) 0;
+    background-clip: content-box;
     font-size: var(--kr-font-detail);
+  }
+
+  body.page-kramail-compose form[name="post_msg"] .kd-chip-x:focus-visible {
+    outline-offset: -7px;
   }
 
   body.page-kramail-compose form[name="post_msg"] .kd-input {
@@ -10650,10 +10658,10 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   body.page-kramail-compose form[name="post_msg"] .kd-contacts {
     position: absolute;
     z-index: 2;
-    top: -42px;
+    top: calc(-1 * var(--kr-touch-target));
     right: 0;
     gap: 6px;
-    height: 40px;
+    height: var(--kr-touch-target);
     min-height: 0 !important;
     margin: 0;
     padding: 0 12px;

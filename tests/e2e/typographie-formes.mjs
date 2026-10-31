@@ -1794,9 +1794,20 @@ const EXCLUES_A8 = {
   left: ['.kr-changelog-content', 'changelog centré par left: 50% et translate(-50%, -50%) : 384 au lieu de 384,5 px'],
   right: ['.kr-changelog-content', 'valeur calculée de right, déduite de left et de la largeur de la fenêtre : -216 au lieu de -215,5 px']
 };
-const IGNORER_ONGLETS = [
+const IGNORER_KD = [
+  // Croix des pastilles et « Contacts » du kramail portés à 44 × 44 (ticket backlog 21), rangées des pastilles à 10 px : seules leurs
+  // propriétés géométriques sont écartées, en mode mobile seulement, mesurées par kramail-theme#confort.
+  ['body.mobile-mode form[name="post_msg"] .kd-chip-x', ['width', 'inline-size', 'height', 'block-size', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+    'margin-block-start', 'margin-block-end', 'margin-inline-start', 'margin-inline-end', 'padding-top', 'padding-bottom', 'padding-left',
+    'padding-right', 'padding-block-start', 'padding-block-end', 'padding-inline-start', 'padding-inline-end', 'background-clip', 'outline-offset',
+    'perspective-origin', 'transform-origin']],
+  ['body.mobile-mode form[name="post_msg"] .kd-contacts', ['height', 'block-size', 'top', 'bottom', 'inset-block-start', 'inset-block-end', 'perspective-origin', 'transform-origin']],
+  ['body.mobile-mode form[name="post_msg"] .kd-flow', ['row-gap']]
+];
+const IGNORER_NETTOYAGE = [
   ['.mobile-tab-bar, .mobile-tab-bar *', ['width', 'inline-size', 'padding-left', 'padding-right', 'padding-inline-start', 'padding-inline-end', 'perspective-origin', 'transform-origin']],
-  ['.mobile-tab-bar', null, '::after']
+  ['.mobile-tab-bar', null, '::after'],
+  ...IGNORER_KD
 ];
 const EXCLUSIONS_A8 = Object.fromEntries(Object.entries(EXCLUES_A8).map(([p, [sel]]) => [p, sel]));
 const ecartsA8 = (ha, hb) => {
@@ -1960,8 +1971,9 @@ if (on('nettoyage')) {
       const caracs = await a.page.evaluate(RELEVER_CARACTERISTIQUES_BACKLOG13, C13);
       if (caracs.length) { out.caracs = caracs; }
       // Barre d'onglets de section (ticket 19 du backlog) : seules ses propriétés géométriques sont écartées (liens bornés à leur case,
-      // 2 px sur les côtés, ::after de défilement masqué faute de débordement) ; géométrie mesurée par jeu-identite#onglets.
-      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_ONGLETS })]);
+      // 2 px sur les côtés, ::after de défilement masqué faute de débordement) ; géométrie mesurée par jeu-identite#onglets. Même principe
+      // pour la croix des pastilles, « Contacts » et l'écart des rangées du kramail en mobile (ticket backlog 21, IGNORER_KD).
+      out.comparaisons.push([`styles calculés égaux à la base${caracs.length ? ' (caractéristiques à part)' : ''}`, await comparerNettoyage(a.page, b.page, { ecarter: C13.sousArbres, ignorer: IGNORER_NETTOYAGE })]);
       // Écart accepté et consigné (épopée 7, entrée 3) : sur la réception, M1/M2 ne touchaient que le h1, réécrit par l'entrée (en-tête du
       // sous-forum) : A8 et « rendu changé » n'y ont plus d'objet tant que la base M1/M2 (COMMIT_MEDIAS_410) précède l'entrée.
       // Même écart pour l'éditeur des rédactions (épopée 7, entrée 5) : M1/M2 ne touchaient que le formulaire, au rendu du forum.
@@ -2144,10 +2156,10 @@ if (on('nettoyage')) {
     const b = await ouvrirNettoyage({ nom, width: 767, variante, script: avantNettoyage, tactile: false });
     const pas = [];
     const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
-    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]] });
+    pas.push({ width: 767, mobile: await mode(), comparaisons: [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]] });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));
-      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page)]];
+      const comparaisons = [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]];
       pas.push({ width, mobile: await mode(), comparaisons });
     }
     await a.context.close();
