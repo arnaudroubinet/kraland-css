@@ -14,7 +14,9 @@
 //   3. page /profil/interface sans le titre « Thème de base » (l'interface du thème renonce, #kr-alerts-section n'apparaît jamais) :
 //      le marqueur est quand même posé (addResetButtonToInterfacePage cesse d'attendre quand l'interface a renoncé, ~5 s) ;
 //   4. même page, titre inséré tard par la page (THEME_TARDIF_MS) : l'interface du thème s'insère pendant ses essais et, au marqueur,
-//      la liste des alertes masquées d'addResetButtonToInterfacePage est déjà présente (puis aucune mutation).
+//      la liste des alertes masquées d'addResetButtonToInterfacePage est déjà présente (puis aucune mutation) ;
+//   5. ticket 31 : au marqueur, un seul bouton #kr-changelog-btn dans #kr-changelog-section sur les deux pages où l'interface du thème
+//      s'insère (d'emblée ou tard), aucun ailleurs (le faux GM.xmlHttpRequest répond par une erreur : changelog chargé à vide).
 // Contre-preuves « détectée », déterministes (R1 de la QA du lot E) : une tâche privée de son enregistrement mute à une heure sans lien
 // avec le marqueur ; sous charge (concurrence 16), revealPage (2 rAF + 200 ms) passait parfois AVANT le marqueur, donc avant l'observation
 // (faux rouge). Chaque variante « détectée » attend donc, avant sa première mutation, que l'observateur du garde-fou écoute
@@ -86,11 +88,13 @@ const PAGES = [
   // barre sur deux lignes de 992 à 1359 px : à 1000 px, fixNavbarPadding pose padding-top et max-height (rien à 1280 px)
   { id: 'plateau-barre-large', url: '/jouer/plateau', html: FIX('plateau-navbar-large.html'), widths: [375, 1000, 1280] },
   { id: 'sujet-tags', url: '/forum/sujet/fixture-1-2', html: SUJET },
-  { id: 'profil-interface', url: '/profil/interface', html: INTERFACE('Thème de base') },
+  { id: 'profil-interface', url: '/profil/interface', html: INTERFACE('Thème de base'), historique: 1 },
   // S1 (QA du lot B) : sans titre « Thème de base », #kr-alerts-section n'apparaît jamais ; avant le lot C, la file restait tenue
   { id: 'profil-interface-sans-theme', url: '/profil/interface', html: INTERFACE('Préférences') },
   // R2 (QA du lot C) : titre « Thème de base » inséré par la page à THEME_TARDIF_MS ; au marqueur, la liste des alertes masquées est là
-  { id: 'profil-interface-theme-tardif', url: '/profil/interface', html: INTERFACE('Préférences', TITRE_TARDIF), alertsList: true }
+  { id: 'profil-interface-theme-tardif', url: '/profil/interface', html: INTERFACE('Préférences', TITRE_TARDIF), alertsList: true, historique: 1 },
+  // Ticket 31 (revue) : requête du changelog sans réponse (réseau lent) ; le bouton ne l'attend pas, il est posé avant le marqueur
+  { id: 'profil-interface-reseau-muet', url: '/profil/interface', html: INTERFACE('Thème de base'), historique: 1, gmMuet: true }
 ];
 
 // Document-start : l'observateur de l'injection n'est livré par le parseur qu'à son premier script. Sans script avant <body>, le bundle
@@ -126,8 +130,10 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     }
     return r.abort();
   });
-  await context.addInitScript(({ code, when }) => {
-    window.GM = { xmlHttpRequest: () => {} };
+  await context.addInitScript(({ code, when, muet }) => {
+    // Ticket 31 : la requête du changelog échoue (changelog chargé à vide) au lieu de rester sans réponse ; sur le profil, le bouton
+    // « Voir l'historique des changements » est alors posé, et doit l'être avant le marqueur
+    window.GM = { xmlHttpRequest: o => { if (!muet && o.onerror) { o.onerror(new Error('réseau refusé')); } } };
     localStorage.setItem('kr-theme-enabled', 'true');
     localStorage.setItem('kr-theme-variant', 'empire-brun-dark');
     // eslint-disable-next-line no-eval
@@ -138,7 +144,7 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     if (when === 'start') {
       if (document.documentElement) { go(); } else { new MutationObserver((m, o) => { if (document.documentElement) { o.disconnect(); go(); } }).observe(document, { childList: true }); }
     } else { document.addEventListener('DOMContentLoaded', go); }
-  }, { code: src, when: mode });
+  }, { code: src, when: mode, muet: !!pg.gmMuet });
   const p = await context.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(String(e.message)));
@@ -151,7 +157,8 @@ async function probe({ page: pg, width, mode, src = SRC }) {
     const atReady = await p.evaluate(() => ({
       opacity: document.documentElement.style.opacity, transition: document.documentElement.style.transition, foucPose: window.__krFoucPose === true,
       tardif: document.body.getAttribute('data-garde-tardif'), injection: window.__krInjection || null,
-      alertsList: !!document.querySelector('#kr-alerts-section .kr-dismissed-alerts-list')
+      alertsList: !!document.querySelector('#kr-alerts-section .kr-dismissed-alerts-list'),
+      historique: [document.querySelectorAll('#kr-changelog-btn').length, document.querySelectorAll('#kr-changelog-section #kr-changelog-btn').length]
     }));
     const late = ready ? await watchMutations(p, { ms: WINDOW_MS, armed: ARMEE }) : [];
     return { ready, readyMs, atReady, late, errors };
@@ -200,6 +207,9 @@ try {
     if (j.page.alertsList) {
       check(`${tag} : au marqueur, la liste des alertes masquées (.kr-dismissed-alerts-list) est dans #kr-alerts-section`, () => { assert.equal(r.atReady.alertsList, true); });
     }
+    // Ticket 31 : section #kr-changelog-section posée tard (titre tardif) ou d'emblée : un seul bouton, dans la section ; ailleurs aucun
+    const n = j.page.historique || 0;
+    check(`${tag} : au marqueur, ${n} bouton « Voir l'historique des changements » (#kr-changelog-btn), dans #kr-changelog-section`, () => { assert.deepEqual(r.atReady.historique, [n, n]); });
     if (j.mode === 'start') {
       check(`${tag} : bundle évalué avant <body>, document en cours d'analyse (précondition du document-start)`, () => { assert.deepEqual(r.atReady.injection, { body: false, etat: 'loading' }); });
       check(`${tag} : masquage anti-FOUC posé à l'injection (la levée est réellement exercée)`, () => { assert.equal(r.atReady.foucPose, true); });
