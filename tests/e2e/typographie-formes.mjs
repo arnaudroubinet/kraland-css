@@ -113,7 +113,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
-import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1726,8 +1726,9 @@ if (on('espacement')) {
 // deux pages. Cartes du forum (R5) : racine page-forum-racine et index kr-page-forum-index (repères cités, ils lancent ce fragment).
 const COMMIT_NETTOYAGE = '7bec452'; // recalage du sweep 9.12 (ancienne base d64c578) : entrées 9.1 à 9.10 comprises
 // Écart voulu du bug 20 (accès rapides du plateau mobile 24 px moins hauts, page raccourcie d'autant) : base corrigée par CORRIGER_BUG20.
-const avantNettoyage = CORRIGER_BUG20(sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
-  : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })));
+// Écart voulu du bug 26 du backlog (réserve de 52 px sous le pied mobile seulement bouton « Remonter en haut » affiché) : CORRIGER_BUG26.
+const avantNettoyage = CORRIGER_BUG26(CORRIGER_BUG20(sansEntete(process.env.KR_SCRIPT_AVANT_NETTOYAGE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_NETTOYAGE, 'utf8')
+  : execFileSync('git', ['show', `${COMMIT_NETTOYAGE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))));
 // Base des corrections de média M1 et M2 (d'avant le ticket 10, médias au seuil 768/769 encore présents) : seule à porter le check
 // de base d'avant 4.10, le rendu à 768 px qui change (change) et la base relevée à 769 px (A8). Retrait : au prochain ticket qui modifie les
 // médias 768/769 du kramail ou du changelog ; il remplace ces trois contrôles par un contrôle absolu des propriétés de M1 et M2 à 768 px.

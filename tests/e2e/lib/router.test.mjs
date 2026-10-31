@@ -598,9 +598,9 @@ check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, co
   assert.deepEqual(suite.zones, []);
   assert.deepEqual(sorted(suite.units), ['confinement-reseau', 'forum-activite']);
 });
-check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobile, palette-nation et typographie-formes ; modules Bienvenue et colonne droite -> les mêmes trois zones ; fixture -> accueil-mobile (et palette-nation)', () => {
+check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobile, palette-nation et typographie-formes ; modules Bienvenue et colonne droite -> les mêmes trois zones ; fixture -> accueil-mobile (et palette-nation, confort-mobile)', () => {
   assert.deepEqual(zonesOf('accueil-mobile.mjs'), ['accueil-mobile']);
-  assert.deepEqual(SUITES.find(s => s.name === 'accueil-mobile').frags, [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['ministre'], ['finitions'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte']]);
+  assert.deepEqual(SUITES.find(s => s.name === 'accueil-mobile').frags, [['mobile'], ['marge'], ['cibles'], ['cartes'], ['echelle'], ['bascule'], ['ministre'], ['finitions'], ['contraste'], ['bureau'], ['carrousel'], ['deconnecte'], ['defileur'], ['jouer']]);
   const acc = route(T, hunk('  const KR_PAGE_CLASSES = [', "    { test: pathname => /^\\/(?:accueil)?$/.test(pathname), classes: ['kr-page-accueil', 'kr-marge-mobile'] }"));
   assert.deepEqual([...acc.zones].sort(), ['accueil-mobile', 'confort-mobile', 'palette-nation', 'report', 'typographie-formes']); // 10.3 : ligne de l'accueil (kr-page-accueil couvert par page-accueil)
   for (const [f, a, b] of [['kraland-theme.css', '@media (max-width: 767px) {', '  .page-accueil #col-t { order: -1; }'],
@@ -622,10 +622,10 @@ check('accueil (épopée 10, entrée 2) : repères de l\'accueil -> accueil-mobi
     assert.deepEqual(sorted(r.zones), ['accueil-mobile', 'palette-nation', 'typographie-formes']);
   }
   // Le nom de la fixture est aussi la fin de palette-nation-accueil.html, cité par palette-nation : la règle des fixtures (citation du nom)
-  // lance donc les deux suites, ce qui reste conservateur.
+  // lance donc aussi cette suite, ce qui reste conservateur. confort-mobile la lit pour son fragment pied-bas (ticket 26 du backlog).
   const f = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/accueil.html': [] }), readWith({}));
   assert.equal(f.widened, false);
-  assert.deepEqual(sorted(f.units), ['accueil-mobile', 'palette-nation']);
+  assert.deepEqual(sorted(f.units), ['accueil-mobile', 'confort-mobile', 'palette-nation']);
 });
 check('fil d\'Ariane du forum (épopée 6, entrée 3) : règle CSS fusionnée, section commune et module ForumHeader -> forum-activite', () => {
   assert.ok(SUITES.find(s => s.file === 'forum-activite.mjs').frags.some(f => f.includes('fil')), 'fragment fil');

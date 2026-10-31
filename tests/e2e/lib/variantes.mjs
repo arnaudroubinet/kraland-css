@@ -90,6 +90,24 @@ export const CORRIGER_BUG20 = bundle => {
   if (corrige === bundle) { console.warn('CORRIGER_BUG20 : base d\'avant le bug 20 non reconnue (règle .btn+.btn), aucun remplacement'); }
   return corrige;
 };
+/** Bouton « Remonter en haut » mobile et réserve sous le pied d'avant le bug 26 (backlog), tels que minifiés : réserve sur toute page. */
+const PIED_AVANT_BUG26 = 'display:flex;bottom:8px;right:8px}body.mobile-mode{padding-bottom:52px}';
+/** Mêmes règles réécrites par le bug 26 : bouton sans marge basse, réserve seulement tant que le bouton est affiché. */
+export const PIED_BUG26 = 'display:flex;bottom:8px;right:8px;margin:0!important}body.mobile-mode:has(.kraland-back-to-top.kr-btt-visible){padding-bottom:52px}';
+/** Bouton remonté des pages de rédaction (forum, kramail) : présent dans les bases récentes seulement, réserve de 64 px ajoutée derrière. */
+const REDACTION_AVANT_BUG26 = ':has(form[name=post_msg]) .container.white .kraland-back-to-top{bottom:20px}}';
+const REDACTION_BUG26 = ':has(form[name=post_msg]) .container.white .kraland-back-to-top{bottom:20px}body.mobile-mode:where(.page-forum,.page-kramail-compose):has(form[name=post_msg]):has(.kraland-back-to-top.kr-btt-visible){padding-bottom:64px}}';
+/**
+ * Écart voulu du bug 26 du backlog (plus de bande de 52 px sous le pied mobile tant que le bouton « Remonter en haut » est masqué) : la
+ * base reçoit les règles réécrites comme dans le bundle. Sans effet sur une base qui contient déjà le correctif : se retire au recalage des
+ * bases au-delà du bug 26. Base d'une autre forme : rien n'est remplacé, avertissement au journal.
+ */
+export const CORRIGER_BUG26 = bundle => {
+  if (bundle.includes(PIED_BUG26)) { return bundle; }
+  const corrige = bundle.replace(PIED_AVANT_BUG26, PIED_BUG26).replace(REDACTION_AVANT_BUG26, REDACTION_BUG26);
+  if (!corrige.includes(PIED_BUG26)) { console.warn('CORRIGER_BUG26 : base d\'avant le bug 26 non reconnue (réserve body.mobile-mode), aucun remplacement'); }
+  return corrige;
+};
 /** Bundle d'avant l'épopée 4, ticket 10 : l'éditeur du kramail y est encore sous le média minifié (width>=769px). */
 export const AVANT_TICKET410 = src => src.includes('(width>=769px)');
 /** Champs de saisie d'une ligne mesurés par le fragment nettoyage (ticket 10, retrait R4) : 44 px de haut, retraits 12 px, police 16 px. */

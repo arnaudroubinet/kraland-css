@@ -28,6 +28,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { launchBrowser } from './lib/navigateur.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
+import { CORRIGER_BUG26 } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -36,9 +37,11 @@ const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kr
 // Bundle « avant » : base figée (A9) 7bec452, feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12), sauf
 // KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure.
 const BASE_SHA = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
+// Écart voulu du bug 26 du backlog (réserve de 52 px sous le pied mobile seulement bouton « Remonter en haut » affiché) : base corrigée
+// par CORRIGER_BUG26.
 function bundleAvant() {
-  if (process.env.KR_SCRIPT_AVANT) { return strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')); }
-  try { return strip(execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })); } catch (_e) { return null; }
+  if (process.env.KR_SCRIPT_AVANT) { return CORRIGER_BUG26(strip(fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8'))); }
+  try { return CORRIGER_BUG26(strip(execFileSync('git', ['show', `${BASE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }))); } catch (_e) { return null; }
 }
 const SHOTS = process.env.KR_SHOTS || '';
 const FA_DIR = process.env.KR_FA_DIR || '';
