@@ -1848,7 +1848,7 @@ a.carousel-control.right{
   .bootbox-confirm .modal-content {
     display: flex !important;
     flex-direction: column !important;
-    max-height: 90vh !important;
+    max-height: 90dvh !important;
   }
   
   /* Header zone (select + title) - sticky */
@@ -7155,7 +7155,7 @@ body > map {
       width: 100% !important;
       max-width: calc(100vw - 20px) !important;
       margin: 10px !important;
-      max-height: calc(100vh - 20px) !important;
+      max-height: calc(100dvh - 20px) !important;
     }
     
     /* Modal content - optimiser l'espace */
@@ -7973,14 +7973,18 @@ body > map {
     }
   }
 
-/* Ordres avec saisie : budget vertical visible, marges incluses (barres/clavier).
+/* Bootbox avec saisie : budget vertical visible, marges incluses (barres/clavier).
+   --kr-order-visible-height suit visualViewport (clavier) ; 100dvh borne la hauteur quand la barre
+   d'adresse réapparaît sans événement (Vivaldi) et que la mesure JS est en retard.
    Le scroll du content/dialog reste possible si le footer seul dépasse ce budget.
-   Les autres Bootbox et le bureau conservent leur cascade historique. */
+   Les Bootbox sans saisie et le bureau conservent leur cascade historique. */
 @media (max-width: 767px) {
   .bootbox.modal.kr-order-viewport {
+    --kr-order-budget: min(var(--kr-order-visible-height, 100dvh), 100dvh);
+
     top: var(--kr-order-visible-top, 0) !important;
     bottom: auto !important;
-    height: var(--kr-order-visible-height, 100vh) !important;
+    height: var(--kr-order-budget) !important;
     box-sizing: border-box;
     padding: 10px 0 !important;
     overflow-y: auto !important;
@@ -7988,11 +7992,11 @@ body > map {
 
   .bootbox.modal.kr-order-viewport > .modal-dialog {
     margin: 0 10px !important;
-    max-height: calc(var(--kr-order-visible-height, 100vh) - 20px) !important;
+    max-height: calc(var(--kr-order-budget) - 20px) !important;
   }
 
   .bootbox.modal.kr-order-viewport .modal-content {
-    max-height: calc(var(--kr-order-visible-height, 100vh) - 20px) !important;
+    max-height: calc(var(--kr-order-budget) - 20px) !important;
     overflow-y: auto !important;
   }
 
