@@ -75,6 +75,21 @@ export const CORRIGER_BUG14 = bundle => {
   }
   return corrige;
 };
+/** Règle mobile de .btn + .btn d'avant le bug 20, telle que minifiée : les cases des grilles du plateau n'en sont pas exclues. */
+const BOUTONS_REGLE_AVANT_BUG20 = '.btn+.btn:where(:not([data-kr-dossier])){margin-top:8px!important';
+/** Règle réécrite par le bug 20, telle que minifiée : cases de .kr-action-grid et de .kr-quick-access-buttons exclues. */
+export const BOUTONS_REGLE_BUG20 = '.btn+.btn:where(:not([data-kr-dossier],.kr-action-grid>.btn,.kr-quick-access-buttons>.btn)){margin-top:8px!important';
+/**
+ * Écart voulu du bug 20 (cases des accès rapides et des actions du plateau mobile sans la marge de 8 px de .btn + .btn) : la base reçoit
+ * la règle réécrite comme dans le bundle. Sans effet sur une base qui contient déjà le correctif : se retire au recalage des bases
+ * au-delà du bug 20. Base d'une autre forme : rien n'est remplacé, avertissement au journal.
+ */
+export const CORRIGER_BUG20 = bundle => {
+  if (bundle.includes(BOUTONS_REGLE_BUG20)) { return bundle; }
+  const corrige = bundle.replace(BOUTONS_REGLE_AVANT_BUG20, BOUTONS_REGLE_BUG20);
+  if (corrige === bundle) { console.warn('CORRIGER_BUG20 : base d\'avant le bug 20 non reconnue (règle .btn+.btn), aucun remplacement'); }
+  return corrige;
+};
 /** Bundle d'avant l'épopée 4, ticket 10 : l'éditeur du kramail y est encore sous le média minifié (width>=769px). */
 export const AVANT_TICKET410 = src => src.includes('(width>=769px)');
 /** Champs de saisie d'une ligne mesurés par le fragment nettoyage (ticket 10, retrait R4) : 44 px de haut, retraits 12 px, police 16 px. */
