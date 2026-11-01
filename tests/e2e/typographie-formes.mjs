@@ -70,7 +70,9 @@
 //                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE) ; à
 //                   768 px, pages des blocs M1 et M2 : propriétés de ces blocs égales à la base M1/M2 (COMMIT_MEDIAS_410) à 769 px ; hamburger survolé et en
 //                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
-//                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum ;
+//                   personnage du kramail 375 puis 1280 px (à 375 px, right relatif au sélecteur tronqué à part tant que la base précède la
+//                   densité des listes du kramail, lib/densite-liste-kramail.mjs, boîte du menu égale à la base) ; bascule 767, 768, 767 px ;
+//                   contrôle statique des médias et de la racine du forum ;
 //                   tant que la base précède la revue S21, comparaisons mobiles des styles calculés différées (DIFFERE_NETTOYAGE_S21).
 // Nom de forum des cartes mobiles à 15 px (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) :
 //   titre-forum     index Staff (forum-index-rp.html servi à /forum/staff, cartes du template) : 375 et 767 px, Kraland clair et Empire Brun
@@ -120,6 +122,7 @@ import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/s
 import { AVANT_REVUE_S21, BARRE_MESSAGE_S21, CLASSES_REVUE_S21, HAUT_S21, PRIMAIRE_LECTURE_S21, RETOURS_KRAMAIL_S21 } from './lib/revue-s21.mjs';
 import { AVANT_DENSITE_REDACTION, TAILLES_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
+import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -2221,6 +2224,14 @@ if (on('nettoyage')) {
   // Menu de personnage du kramail (R6) ouvert à 375 px sur la réception (la rédaction le masque), puis fenêtre passée à 1280 px (saisie en
   // cours dans un champ sonde ajouté des deux côtés : pas de rechargement, menu gardé) : rayon md aux quatre coins à chaque pas, menu égal
   // à la base.
+  // Écart accepté et consigné (densité des listes du kramail, 1er novembre 2026, lib/densite-liste-kramail.mjs) : en mode mobile sous
+  // 768 px, le nom de personnage se tronque dans la place laissée par les carrés (sélecteur de 207 px au lieu de 246 à 375 px). Le menu,
+  // calé à gauche du sélecteur, garde son bord gauche, sa largeur et sa hauteur, mais son right calculé, relatif au sélecteur, passe de
+  // -80,7 à -120 px : right et inset-inline-end sont retirés de la comparaison à 375 px, et la boîte du menu (bord gauche, largeur,
+  // hauteur) est comparée à celle de la base à part.
+  const ECART_MENU_LISTE = AVANT_DENSITE_LISTE_KRAMAIL(avantNettoyage) ? [['.kramail-character-dropdown', ['right', 'inset-inline-end']]] : [];
+  if (ECART_MENU_LISTE.length) { console.log('  info écart accepté et consigné : right du menu de personnage relatif au sélecteur tronqué sur la liste mobile (densité du 1er novembre 2026)'); }
+  const boiteMenu = page => page.$eval('.kramail-character-dropdown', e => { const r = e.getBoundingClientRect(); return [r.left, r.width, r.height].map(v => v.toFixed(2)).join(' '); });
   const resMenu = await mapLimit(VARIANTES, async variante => {
     const ouvrirMenu = async script => {
       const o = await ouvrirNettoyage({ nom: 'reception', width: 375, variante, script });
@@ -2232,7 +2243,7 @@ if (on('nettoyage')) {
     const rayons = page => page.$eval('.kramail-character-dropdown', e => { const s = getComputedStyle(e); return [e.getClientRects().length ? 'ouvert' : 'fermé', s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius].join(' '); });
     const a = await ouvrirMenu(userscript);
     const b = await ouvrirMenu(avantNettoyage);
-    const pas = [{ width: 375, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown' }) }];
+    const pas = [{ width: 375, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown', ignorer: ECART_MENU_LISTE }), boite: [await boiteMenu(a.page), await boiteMenu(b.page)] }];
     for (const o of [a, b]) {
       await o.page.evaluate(() => { const i = document.createElement('input'); i.type = 'text'; i.id = 'kr-sonde-saisie'; document.body.appendChild(i); i.value = 'Saisie en cours'; });
       await o.page.setViewportSize({ width: 1280, height: 900 });
@@ -2248,7 +2259,8 @@ if (on('nettoyage')) {
     check(`nettoyage menu-personnage ${variante} 375 puis 1280 px : même onglet, sans rechargement`, () => assert.equal(mobile, true));
     for (const p of pas) {
       check(`nettoyage menu-personnage ${variante} ${p.width} px : ouvert, rayon md (8 px) aux quatre coins (R6)`, () => assert.equal(p.rayons, 'ouvert 8px 8px 8px 8px', p.rayons));
-      verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base`, p.r);
+      verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base${p.boite && ECART_MENU_LISTE.length ? ' (right et inset-inline-end à part, écart consigné)' : ''}`, p.r);
+      if (p.boite) { check(`nettoyage menu-personnage ${variante} ${p.width} px : bord gauche, largeur et hauteur du menu égaux à la base`, () => assert.equal(p.boite[0], p.boite[1])); }
     }
   }
   // Bascule 767, 768 puis 767 px dans le même onglet (rédaction du kramail, M1), base basculée de même : mode suivi, tout égal à chaque pas.

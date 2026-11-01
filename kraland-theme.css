@@ -16893,13 +16893,12 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     height: var(--kr-space-2);
   }
 
-  /* Onglets : icône à côté du libellé (dessus avant : 52 px), un rang de 44 px ; libellé de 12 px et retrait de 4 px inchangés. */
+  /* Onglets : icône à côté du libellé (dessus avant : 52 px), un rang de 44 px ; libellé de 12 px et retraits (8 et 4 px) inchangés. */
   :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > a.btn[data-kr-dossier] {
     order: 4;
     flex-direction: row;
     gap: var(--kr-space-2);
     min-height: var(--kr-touch-target);
-    padding: 0 var(--kr-space-1);
   }
 
   /* « ••• » : menu sous le bouton, calé à droite (sans boîte, le span ne peut plus le borner). */
