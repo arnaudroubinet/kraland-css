@@ -35,8 +35,8 @@ function check(name, fn) {
 
 const T = 'kraland-userscript-template.js';
 console.log('Routeur test:changed');
-check('viewport des ordres et fixture Parler : zone parler', () => {
-  assert.deepEqual(route(T, hunk('function trackOrderModalViewport(modal) {', "modal.classList.add('kr-order-viewport');")).zones, ['parler']);
+check('viewport des ordres et fixture Parler : zone parler (et densite-jeu pour le cadre bord à bord des ordres longs)', () => {
+  assert.deepEqual(sorted(route(T, hunk('function trackOrderModalViewport(modal) {', "modal.classList.add('kr-order-viewport');")).zones), ['densite-jeu', 'parler']);
   assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/parler/model-form.html': [] })).zones, ['parler']);
   assert.deepEqual(zonesOf('parler-viewport.mjs'), ['parler']);
 });
@@ -567,18 +567,33 @@ check('template, hunk sans mot-clé dans le module ForumIndex (index du forum) :
   assert.equal(r.widened, false, r.reasons.join(' ; '));
   assert.deepEqual(sorted(r.zones), ['forum', 'forum-activite', 'sous-forum']);
 });
-check('modale d\'ordre : module des modales, repères du socle et .bootbox-confirm -> modale-ordre + parler ; fixtures -> modale-ordre ; harnais Bootbox -> les deux', () => {
+check('modale d\'ordre : module des modales, repères du socle et .bootbox-confirm -> modale-ordre + parler + densite-jeu ; fixtures -> modale-ordre + densite-jeu ; harnais Bootbox -> les trois', () => {
   assert.deepEqual(zonesOf('modale-ordre.mjs'), ['modale-ordre']);
   const t = tpl(['MODAL PERSONNAGE MOBILE - INTERACTIONS UX/UI', ['  function e() {', '    return 5;', '  }']]);
   const r = route(T, hunkAt(at(t, 'return 5'), '    const n = 5;'), t);
   assert.equal(r.widened, false, r.reasons.join(' ; '));
-  assert.deepEqual(sorted(r.zones), ['modale-ordre', 'parler']);
-  assert.deepEqual(sorted(route('kraland-theme.css', hunk('.x {', '.kr-order-modal .modal-footer .btn { margin: 0; }')).zones), ['modale-ordre', 'parler']);
+  assert.deepEqual(sorted(r.zones), ['densite-jeu', 'modale-ordre', 'parler']);
+  assert.deepEqual(sorted(route('kraland-theme.css', hunk('.x {', '.kr-order-modal .modal-footer .btn { margin: 0; }')).zones), ['densite-jeu', 'modale-ordre', 'parler']);
   const css = route('kraland-theme.css', hunkAt(2, '  padding: 0;'), '.bootbox-confirm .modal-footer {\n  margin: 0;\n}');
   assert.equal(css.widened, false, css.reasons.join(' ; '));
-  assert.deepEqual(sorted(css.zones), ['modale-ordre', 'parler']);
-  assert.deepEqual(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/modale-ordre/dormir.html': [] })).zones, ['modale-ordre']);
-  assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ 'tests/e2e/vendor/parler/bootbox.min.js': [] })).zones), ['modale-ordre', 'parler']);
+  assert.deepEqual(sorted(css.zones), ['densite-jeu', 'modale-ordre', 'parler']);
+  assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/modale-ordre/dormir.html': [] })).zones), ['densite-jeu', 'modale-ordre']);
+  assert.deepEqual(sorted(zonesFromDiff('REF', fakeGit({ 'tests/e2e/vendor/parler/bootbox.min.js': [] })).zones), ['densite-jeu', 'modale-ordre', 'parler']);
+});
+check('densité du Matériel et du Personnage : classes de page et retrait de corps -> densite-jeu et les suites qui mesurent ces pages ; suite -> elle seule ; fixtures -> densite-jeu', () => {
+  assert.deepEqual(zonesOf('densite-jeu.mjs'), ['densite-jeu']);
+  const css = route('kraland-theme.css', hunk('.x {', '  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table { margin: 0; }'));
+  assert.equal(css.widened, false, css.reasons.join(' ; '));
+  for (const z of ['densite-jeu', 'cartes-pastilles', 'typographie-formes', 'confort-mobile']) { assert.ok(css.zones.includes(z), `${z} absente : ${css.zones.join(', ')}`); }
+  const corps = route('kraland-theme.css', hunk('.x {', '  .panel-body:has(> p) { --kr-densite-corps-cote: var(--kr-space-4); }'));
+  assert.ok(corps.zones.includes('densite-jeu'), corps.zones.join(', '));
+  const suite = zonesFromDiff('REF', fakeGit({ 'tests/e2e/densite-jeu.mjs': [] }));
+  assert.equal(suite.widened, false);
+  assert.deepEqual(suite.zones, []);
+  assert.deepEqual(sorted(suite.units), ['confinement-reseau', 'densite-jeu']);
+  const fixture = zonesFromDiff('REF', fakeGit({ 'tests/e2e/fixtures/jeu-perso-densite.html': [] }), readWith({}));
+  assert.equal(fixture.widened, false);
+  assert.deepEqual(fixture.units, ['densite-jeu']);
 });
 check('activité du forum (épopée 6, entrée 2) : ligne de l\'index mobile, correctif « FIX MOBILE » et fichier de suite -> forum-activite', () => {
   assert.deepEqual(zonesOf('forum-activite.mjs'), ['forum-activite']);

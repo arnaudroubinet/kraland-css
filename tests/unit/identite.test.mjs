@@ -36,6 +36,14 @@ test('classes de page : forum (épopée 9, entrée 8) sans la marge de ligne, Co
   ['/contacts', '/forums', '/kramail', '/forum/staff', '/forum/staff/', '/forum/staff/coulisses-50101'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
 });
 
+test('classes de page : Matériel et Personnage (densité mobile du 1er novembre 2026), sous-chemins compris', () => {
+  const jeu = ['kr-page-jeu', 'kr-marge-mobile'];
+  ['/jouer/materiel', '/jouer/materiel/x'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [...jeu, 'kr-page-materiel'], p));
+  ['/jouer/perso', '/jouer/perso/x'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [...jeu, 'kr-page-personnage'], p));
+  ['/jouer/plateau', '/jouer/bat', '/jouer/pnj'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), jeu, p));
+  ['/jouer/materiels', '/jouer/persos'].forEach(p => assert.deepEqual(plain(krPageClasses(p)), [], p));
+});
+
 test('nom lu seulement sur plateau, matériel, bâtiments', () => {
   assert.equal(krCharacterNameFromPage('/jouer/plateau', ' Nerys '), 'Nerys');
   assert.equal(krCharacterNameFromPage('/jouer/plateau/200002-11211-13-7956839652', 'Nerys'), 'Nerys');

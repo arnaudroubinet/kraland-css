@@ -16656,3 +16656,182 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     max-width: 50%;
   }
 }
+
+/* ============================================================================
+   MATÉRIEL ET PERSONNAGE MOBILES : DENSITÉ (Matériel, détail d'un objet, Personnage, vue d'une organisation ; relevé sur le site réel au
+   format Galaxy S21, 360 × 680 visibles, thème Empire Brun)
+   Retours d'Arnaud du 1er novembre 2026 : « les mêmes reproches que pour la popin d'ordre » (retours à la ligne injustifiés, interlignes
+   trop grands, espace horizontal mal employé) et « la vue organisation qui est mal gérée ». Portée : html.kr-page-materiel et
+   html.kr-page-personnage (KR_PAGE_CLASSES, sous-chemins compris) ; modales d'ordre (kr-order-modal) pour la vue d'une organisation.
+   Ordinateur : rendu inchangé.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Panneaux (hors accordéon) : 8 px d'écart au lieu de 16, en-tête à la hauteur de sa cible de 44 px (48 avant), corps à 8 px de retrait
+     au lieu de 16 : lignes d'objet et cellules gardent leurs 8 px, leur contenu s'aligne sur le titre du panneau. Corps de texte (Finance) :
+     16 px de côté, comme le titre. */
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel:not(.panel-group > *) {
+    margin-bottom: var(--kr-space-2) !important;
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-heading {
+    min-height: var(--kr-touch-target);
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body {
+    --kr-densite-corps-cote: var(--kr-space-2);
+
+    padding: var(--kr-space-2) var(--kr-densite-corps-cote) !important;
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body:has(> p) {
+    --kr-densite-corps-cote: var(--kr-space-4);
+  }
+
+  /* Corps vides retirés : Autres Objets Personnalisés sans objet (blancs seuls), Maladies sans maladie (tableau sans rangée). Le chevron
+     du site les rouvre (style en ligne). */
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body:is(:not(:has(*)), :has(> table:only-child):not(:has(tr))) {
+    display: none;
+  }
+
+  /* Ligne d'objet (Matériel) : nom sur toute la largeur, détail et charge dessous (avant : charge à droite du nom, détail dessous). La
+     deuxième ligne existait pour chaque objet (détail réduit à une espace insécable le plus souvent) : la charge y prend place, le nom
+     ne se replie plus à côté d'elle. Retrait vertical de 4 px au lieu de 8, cible de 44 px gardée. */
+  :where(html.kr-page-materiel body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) {
+    grid-template: "nom nom" auto "texte charge" auto / minmax(0, 1fr) auto;
+    padding-block: var(--kr-space-1) !important;
+  }
+
+  :where(html.kr-page-materiel body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *):has(> img) {
+    grid-template: "image nom nom" auto "image texte charge" auto / auto minmax(0, 1fr) auto;
+  }
+
+  /* Citoyenneté : cellule à lien sans retrait, le lien (cible de 44 px, 8 px de retrait) l'occupe en entier ; rangée de 45 px au lieu de
+     65, filet compris, texte du lien au milieu de la rangée et aligné sur celui des cellules sans lien. Priorités forcées : retrait des
+     cellules (« .table td { padding: 8px !important } ») et marge basse du lien (« .panel-body a { margin-bottom: 4px !important } »). */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td:has(> a:only-child:not(.btn)) {
+    padding: 0 !important;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > a:only-child:not(.btn) {
+    margin-bottom: 0 !important;
+  }
+
+  /* Organisations : chaque type (lien vers la vue de l'organisation, ou case sans organisation) dans un carré de 44 px, pastille de
+     28 px peinte au centre, à 8 px du bord (avant : 18 ou 42 px de large selon la balise, noms décalés de 24 px) ; rangées de 45 px, filet
+     compris (65 et 61 px avant), badge du rang au milieu ; le lien couvre la cellule, nom compris. Priorités forcées : retrait des cellules
+     (« .table td { padding: 8px !important } »), retrait du bouton (style en ligne du site, 2 px 5 px) et marge basse du lien (« .panel-body
+     a { margin-bottom: 4px !important } »). Rayon extérieur = rayon de la pastille + retrait (fond peint dans la boîte de contenu). */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr:has(> td > .btn) > td {
+    padding-block: 0 !important;
+    vertical-align: middle;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td:has(> .btn) {
+    position: relative;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > .btn {
+    box-sizing: border-box;
+    width: var(--kr-touch-target);
+    margin-bottom: 0 !important;
+    padding: var(--kr-space-2) !important;
+    border-width: 0;
+    border-radius: calc(var(--kr-radius-sm) + var(--kr-space-2));
+    background-clip: content-box;
+    box-shadow: none;
+    vertical-align: middle;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > a.btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Finance : marge de paragraphe de 4 px au lieu de 10 */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > p {
+    margin-bottom: var(--kr-space-1);
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Avis de Recherche : titre replié dans sa colonne, chevron sur sa première ligne (avant : seul sur une ligne, en-tête de 89 px) ;
+     tableau réduit à ses en-têtes (aucun avis) retiré avec son filet (priorité forcée : règle mobile des tableaux de #col-right, en bloc
+     défilant) ; drapeaux et compteurs par paires, repliés à la ligne au besoin (354 px pour 312 avant). Groupe de rangées en bloc : la
+     grille prend la largeur de la carte, que le tableau soit en bloc défilant ou élargi (kr-table-pleine, Mobile:Tableaux), sinon elle se
+     resserre sur une paire par ligne. Compteur d'au moins trois chiffres, suivi sur le site de trois espaces insécables (séparateurs de
+     l'ancienne ligne unique) coupées au bord de sa colonne plutôt que de faire défiler le tableau. */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-default > .panel-heading > .panel-title {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table.table:has(> thead):not(:has(> tbody > tr)),
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table.table:has(> thead):not(:has(> tbody > tr)) + hr {
+    display: none !important;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody:has(> tr > td > img) {
+    display: block;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody > tr:has(> td > img) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 26px minmax(3ch, 1fr));
+    gap: var(--kr-space-1);
+    align-items: center;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody > tr:has(> td > img) > td:not(:has(> img)) {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* Vue d'une organisation (bouton du panneau Organisations, ordre Quitter) : membres à la suite, séparés par des virgules, sous le
+     libellé de leur niveau (avant : une rangée de 41 px par membre et de 34 px par niveau, 462 px pour huit membres). Tableau des membres :
+     sans classe, une rangée th par niveau. Priorités forcées : règles des tableaux de Bootbox (« préserver le comportement normal des
+     tableaux Bootstrap » : table, groupe de rangées et cellule forcés en tableau ; cellules à 10 px 8 px de retrait) ; les rangées, éléments
+     du groupe en flex, passent en bloc sans règle. Infos de l'organisation (Politique, Empire, Siège, Indice de gloire) : 4 px entre les
+     lignes au lieu de 10. */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form:has(> table:not([class]) > tbody > tr > th) > p {
+    margin-bottom: var(--kr-space-1);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]):has(> tbody > tr > th) {
+    display: block !important;
+    margin-bottom: var(--kr-space-2);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) {
+    display: flex !important;
+    flex-wrap: wrap;
+    column-gap: 0.3em;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> th) {
+    flex: 1 0 100%;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> th):not(:first-child) {
+    margin-top: var(--kr-space-2);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr > :is(th, td) {
+    display: inline !important;
+    padding: 0 !important;
+    border: 0;
+    background: none;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr > th {
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    font-weight: 600;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> td):has(+ tr > td) > td::after {
+    content: ",";
+  }
+}
