@@ -83,6 +83,7 @@ import { ACTIONS_RAPIDES_S21, AVANT_REVUE_S21, BARRE_MESSAGE_S21, HAUT_S21, LIEN
 import { AVANT_CLAVIER_COMPACT, AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
 import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_DENSITE_JEU, PAGES_DENSITE_JEU } from './lib/densite-jeu.mjs';
+import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1576,12 +1577,18 @@ if (on('etiquettes')) {
   // calculés comparés : chacune des priorités restantes bat une priorité forcée du thème ou un style en ligne du site sur le même élément
   // (écart et retraits des panneaux, retraits des liens et cellules de panneau, tableaux de Bootbox, tableaux de #col-right).
   const SURPLUS_FORCEES_DENSITE_JEU = 31;
+  // Densité des listes du kramail sur mobile (1er novembre 2026, lib/densite-liste-kramail.mjs), même condition de retrait : le span des
+  // boutons du titre s'efface (display: contents), contre « h1.page-header .pull-right { display: flex !important } » des en-têtes du
+  // kramail ; la pagination d'une seule page est masquée, contre « #topics_wrapper .dataTables_paginate { display: flex !important } » des
+  // listes du kramail et de Contacts.
+  const SURPLUS_FORCEES_DENSITE_LISTE_KRAMAIL = 2;
   const consignes = [
     [AVANT_REVUE_S21(avant), SURPLUS_FORCEES_REVUE_S21, 'revue S21'],
     [AVANT_CLAVIER_COMPACT(avant), SURPLUS_FORCEES_CLAVIER_COMPACT, 'clavier compact'],
     [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre'],
     [AVANT_DENSITE_REDACTION(avant), SURPLUS_FORCEES_DENSITE_REDACTION, 'densité de la rédaction'],
-    [AVANT_DENSITE_JEU(avant), SURPLUS_FORCEES_DENSITE_JEU, 'densité du Matériel et du Personnage']
+    [AVANT_DENSITE_JEU(avant), SURPLUS_FORCEES_DENSITE_JEU, 'densité du Matériel et du Personnage'],
+    [AVANT_DENSITE_LISTE_KRAMAIL(avant), SURPLUS_FORCEES_DENSITE_LISTE_KRAMAIL, 'densité des listes du kramail']
   ].filter(([avantChangement]) => avantChangement);
   const surplus = consignes.reduce((n, [, k]) => n + k, 0);
   const detailSurplus = consignes.map(([, k, quoi]) => `${quoi} ${k}`).join(', ');
