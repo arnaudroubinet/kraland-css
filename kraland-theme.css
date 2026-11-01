@@ -11194,6 +11194,12 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
 /* Responsive mobile */
 @media (max-width: 767px) {
+  /* Bouton « Voir l'historique des changements » : à 320 px, son libellé sur une ligne (.btn en nowrap) mordait sur la marge de 16 px */
+  .kr-changelog-btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+
   .kr-changelog-content {
     width: 95%;
     max-height: 85vh;

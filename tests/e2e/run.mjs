@@ -49,7 +49,9 @@ import { sharedDisabled } from './lib/navigateur.mjs';
 // `changed` quand le template ou tests/unit/ change (ou en cas d'élargissement). Un échec rend le résultat ÉCHEC.
 function runUnitTests() {
   const t0 = Date.now();
-  const t = spawnSync(process.execPath, ['--test', '--test-reporter=spec', 'tests/unit/'], { cwd: root, encoding: 'utf8' });
+  // Fichiers listés explicitement : Node 22 refuse un dossier en argument de --test (« Cannot find module tests/unit »).
+  const files = fs.readdirSync(path.join(root, 'tests/unit')).filter(f => f.endsWith('.test.mjs')).sort().map(f => path.join('tests/unit', f));
+  const t = spawnSync(process.execPath, ['--test', '--test-reporter=spec', ...files], { cwd: root, encoding: 'utf8' });
   const out = (t.stdout || '') + (t.stderr || '');
   const count = k => { const m = out.match(new RegExp(`^ℹ ${k} (\\d+)`, 'm')); return m ? Number(m[1]) : NaN; };
   const bad = t.status !== 0 || !(count('pass') > 0) || count('fail') !== 0;

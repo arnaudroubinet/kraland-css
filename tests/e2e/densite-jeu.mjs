@@ -36,10 +36,11 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { krReady, THEME_READY, waitState } from './lib/settle.mjs';
 import { choisirVariante } from './lib/variantes.mjs';
 import { REPERES_DENSITE_JEU as R } from './lib/densite-jeu.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_BASE = '4881f49'; // feature/next avant la densité du Matériel et du Personnage (popin Parler, #36)
 const base = sansEntete(execFileSync('git', ['show', `${COMMIT_BASE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));

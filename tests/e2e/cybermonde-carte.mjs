@@ -39,10 +39,11 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, waitState } from './lib/settle.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const strip = src => src.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const strip = src => figerVersion(src.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
 const userscript = strip(fs.readFileSync(scriptPath, 'utf8'));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');

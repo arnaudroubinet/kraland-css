@@ -50,10 +50,11 @@ import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { choisirVariante, VARIANTE_POSEE, VARIANTES as TOUTES_VARIANTES, CONTRASTE } from './lib/variantes.mjs';
 import { TEXTES_HORS_MARGE_PAGE, cible, ecartsCible } from './lib/marges.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_AVANT = 'e2bcdd1'; // feature/next au départ de l'épopée 10 (spike 10.1)
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')
