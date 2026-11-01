@@ -47,7 +47,8 @@
 //                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
 //                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
 //                   taille de chaque élément de #col-right égale au bundle de base (COMMIT_ECHELLE_FORUM), sans masque hors écarts consignés
-//                   de la revue S21 (classes de la revue retirées des clés, retours de la rédaction du kramail), 375, 768, 1280 px.
+//                   de la revue S21 (classes de la revue retirées des clés, retours de la rédaction du kramail) et de la densité de la
+//                   rédaction (« Options » en 13 px, cases en 15 px, lib/densite-redaction.mjs), 375, 768, 1280 px.
 // Trois rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) :
 //   rayons          plateau, forum (sujet, rédaction, index RP), sous-forum, kramail (réception, lecture, nouveau) et modale d'ordre :
 //                   375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, rayon calculé aux quatre coins :
@@ -116,6 +117,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_REVUE_S21, BARRE_MESSAGE_S21, CLASSES_REVUE_S21, HAUT_S21, PRIMAIRE_LECTURE_S21, RETOURS_KRAMAIL_S21 } from './lib/revue-s21.mjs';
+import { AVANT_DENSITE_REDACTION, TAILLES_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
@@ -1271,8 +1273,11 @@ if (on('echelle-forum')) {
     await context.close();
     return l;
   };
-  const cssMiroir = AVANT_REVUE_S21(avantEchelleForum) ? RETOURS_KRAMAIL_S21 : '';
-  if (cssMiroir) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (revue S21, n° 11) posés sur le bundle de base'); }
+  // Écart accepté et consigné (densité de la rédaction du 1er novembre 2026, lib/densite-redaction.mjs) : libellé « Options » en 13 px et
+  // cases en 15 px (14 px avant), posés sur un bundle de base d'avant ce changement (TAILLES_DENSITE_REDACTION).
+  const cssMiroir = [AVANT_REVUE_S21(avantEchelleForum) ? RETOURS_KRAMAIL_S21 : '', AVANT_DENSITE_REDACTION(avantEchelleForum) ? TAILLES_DENSITE_REDACTION : ''].filter(Boolean).join('\n');
+  if (AVANT_REVUE_S21(avantEchelleForum)) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (revue S21, n° 11) posés sur le bundle de base'); }
+  if (AVANT_DENSITE_REDACTION(avantEchelleForum)) { console.log('  info écart accepté et consigné : « Options » en 13 px et cases en 15 px de la rédaction (densité du 1er novembre 2026) posés sur le bundle de base'); }
   const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), base: await releverTailles(c, avantEchelleForum, cssMiroir) }));
   for (const { c, apres, base } of resMiroir) {
     check(`echelle-forum ${etiquette(c)} : taille de chaque élément de #col-right égale au bundle de base (${COMMIT_ECHELLE_FORUM}), états compris`, () => {

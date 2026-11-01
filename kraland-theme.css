@@ -14592,9 +14592,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     height: var(--kr-touch-target);
   }
 
-  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
+  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4), du kramail (épopée 7, entrée 3) et de la rédaction du forum
+     (densité du 1er novembre 2026, kr-forum-redaction) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
      de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -14604,7 +14605,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -14619,16 +14620,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-label {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-label {
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-sep {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-current {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -16576,5 +16577,82 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: 0;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+  }
+}
+
+/* ============================================================================
+   RÉDACTION MOBILE : DENSITÉ (kramail : nouveau, réponses, transfert ; forum : réponse, nouveau sujet. Relevé sur le site réel au format
+   Galaxy S21, 360 × 680 visibles, thème Empire Brun)
+   Même travail que la modale d'ordre (retours d'Arnaud du 1er novembre 2026 : retours à la ligne injustifiés, interlignes trop grands,
+   espace horizontal mal employé). Relevé avant correction :
+   - champs Sujet et Expéditeur décalés de 35 px (chacun commençait au bout de son libellé) ;
+   - aide des destinataires sur trois lignes (65 px), même quand le destinataire est déjà choisi (réponse, envoi depuis un profil) ;
+   - Destinataires et Options suivis de 16 px, les autres rangs de 8 ;
+   - Options : libellé en capitales de 30 px de haut, une case par ligne, la 2e et la 3e décalées de 10 px (retrait Bootstrap entre cases en
+     ligne), libellés des cases en capitales ;
+   - réponse au forum : titre du sujet écrasé sur trois lignes à côté d'un bouton de forum de 161 px (ancien fil d'Ariane du template).
+   Après : champs alignés ; aide masquée dès qu'un destinataire est choisi (comme le texte indicatif du champ, S-2) ; 8 px entre les rangs ;
+   Options au style des autres libellés de l'éditeur, cases en casse normale, deux par rangée dès que la place le permet ; fil d'Ariane
+   commun sur une ligne (template : transformPostHeader). Les cibles de 44 px restent ; « Envoyer » garde sa réserve de droite (ticket 26).
+   Ordinateur : rendu inchangé.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Sujet et Expéditeur : libellés à la largeur du plus long (« Expéditeur * », 76 à 78 px selon la police), les deux champs commencent au
+     même endroit. Un libellé plus long élargit le sien sans rien casser. */
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .form-group.kr-sender-row > label {
+    min-width: 6.25em;
+  }
+
+  /* Destinataires : 8 px sous le rang, comme les autres. L'aide (« Tapez au moins 2 lettres… ») s'efface dès qu'un destinataire est choisi,
+     comme le texte indicatif du champ (S-2) ; elle reste la description du champ pour les lecteurs d'écran (aria-describedby). */
+  body.mobile-mode.page-kramail-compose form[name="post_msg"] .kd-row {
+    margin-bottom: var(--kr-space-2);
+  }
+
+  body.mobile-mode.page-kramail-compose form[name="post_msg"] .kd:has(.kd-chip) > .kd-help {
+    display: none;
+  }
+
+  /* Options : 8 px sous le rang ; libellé au style de « Message » (13 px, casse normale, sans les 5 px haut et bas de la règle mobile
+     commune des libellés, priorité forcée) ; cases en casse normale à la taille du texte, alignées à gauche (sans le retrait Bootstrap de
+     10 px entre cases en ligne), deux par rangée dès que la place le permet. */
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group:has(> .col-md-10 > label.checkbox-inline) {
+    margin-bottom: var(--kr-space-2);
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group:has(> .col-md-10 > label.checkbox-inline) > label.control-label {
+    margin-bottom: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group > .col-md-10:has(> label.checkbox-inline) {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--kr-space-1);
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group > .col-md-10 > label.checkbox-inline {
+    margin-left: 0;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-body-mobile);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Fil de la rédaction du forum, « Forum › Sujet › Réponse » : le sujet cède la place (ellipse, 44 px au moins) avant l'action courante,
+     lue en entier jusqu'à la moitié de la ligne (au-delà, ellipse comme les parents). Avec un seul parent, règle commune. */
+  :where(body.page-forum.kr-forum-redaction) #col-right .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-link {
+    flex-shrink: 1;
+  }
+
+  :where(body.page-forum.kr-forum-redaction) #col-right .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-current {
+    flex-shrink: 0;
+    max-width: 50%;
   }
 }

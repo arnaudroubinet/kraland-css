@@ -5628,6 +5628,30 @@
       console.log('[Forum Header Mobile] En-tête du sous-forum créé');
     }
 
+    // Rédaction du forum (/forum/post/…, densité du 1er novembre 2026, relevé réel sur une réponse) : le titre natif « Sujet > Réponse » et
+    // ses boutons « ◀◀ Forum » et « ◀◀ sujet » deviennent le fil d'Ariane commun (H12.3) sur une ligne, « Forum › Sujet › Réponse » : forum
+    // et sujet en liens (href recopiés tels quels), l'action en niveau courant. L'ancien fil gardait le bouton du forum (161 px de large),
+    // écrasait le titre sur trois lignes dans 135 px et perdait le lien du sujet. Replis : sans « > » dans le titre, le sujet garde le
+    // libellé de son lien et le titre entier devient le niveau courant ; sans lien de sujet, le forum seul est en lien.
+    function transformPostHeader(forumHeading, links, titleText) {
+      const topicLink = links.find(a => /(^|\/)forum\/sujet\//.test(a.getAttribute('href') || ''));
+      const forumLink = links.find(a => a !== topicLink);
+      const cut = topicLink ? titleText.lastIndexOf('>') : -1;
+      const topicTitle = cut > 0 ? titleText.slice(0, cut).trim() : '';
+      const action = cut > 0 ? titleText.slice(cut + 1).trim() : '';
+      const parents = [];
+      if (forumLink) {
+        parents.push({ label: forumLink.textContent.trim(), href: forumLink.getAttribute('href') });
+      }
+      if (topicLink) {
+        parents.push({ label: topicTitle || topicLink.textContent.trim(), href: topicLink.getAttribute('href') });
+      }
+      forumHeading.replaceChildren(createForumBreadcrumb(parents, (topicTitle && action) || titleText));
+      // Garde de page de la rédaction transformée (CSS : fil commun)
+      document.body.classList.add('kr-forum-redaction');
+      console.log('[Forum Header Mobile] Fil d\'Ariane de la rédaction créé');
+    }
+
     function transformForumHeader() {
       // Uniquement en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {
@@ -5667,6 +5691,11 @@
       // L2 (sous-forum) : la page de liste des sujets (table#topics) a son propre en-tête : fil d'Ariane, titre, « + Nouveau sujet » libellé
       if (document.getElementById('topics') && !/\/forum\/post\//.test(window.location.pathname)) {
         transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText);
+        return;
+      }
+      // Rédaction (réponse et autres pages /forum/post/ à deux liens de titre) : fil commun, sans « + » (F-01)
+      if (/\/forum\/post\//.test(window.location.pathname)) {
+        transformPostHeader(forumHeading, Array.from(links), titleText);
         return;
       }
       // ========================================
@@ -5729,7 +5758,8 @@
       breadcrumbLeft.appendChild(currentTitle);
 
       // Partie droite : bouton (+)
-      // F-01 : pas de « + » sur les pages d'édition (/forum/post/...) : il mènerait à « nouveau sujet » et ferait quitter la saisie
+      // F-01 : jamais sur les pages d'édition (/forum/post/...), qui ont leur propre en-tête (transformPostHeader, plus haut) : le « + »
+      // mènerait à « nouveau sujet » et ferait quitter la saisie
       const fab = document.createElement('a');
       fab.href = newTopicLink.href;
       fab.className = 'forum-new-topic-fab';
@@ -5762,9 +5792,7 @@
       });
 
       breadcrumbWrapper.appendChild(breadcrumbLeft);
-      if (!/\/forum\/post\//.test(window.location.pathname)) {
-        breadcrumbWrapper.appendChild(fab);
-      }
+      breadcrumbWrapper.appendChild(fab);
 
       // ========================================
       // 2. REMPLACER LE CONTENU DU H1
