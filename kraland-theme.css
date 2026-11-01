@@ -16835,3 +16835,103 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     content: ",";
   }
 }
+
+/* ============================================================================
+   KRAMAIL, LISTES MOBILES : DENSITÉ (Réception, Envoi, Corbeille ; relevé sur le site réel au format Galaxy S21, 360 × 680 visibles,
+   thème Empire Brun)
+   Demande d'Arnaud du 1er novembre 2026 : retravailler la liste du kramail, avec les reproches faits à la modale d'ordre (retours à la
+   ligne injustifiés, interlignes trop grands, espace horizontal mal employé). Relevé avant correction, à 360 px :
+   - en-tête de 193 px : fil d'Ariane (44), titre seul sur son rang (29), puis onglets et carrés sur deux rangs (Réception : Réception,
+     « ••• », Nouveau et Contacts au premier, Envoi et Corbeille au second, Envoi sorti de 8 px à gauche ; Envoi et Corbeille : onglets de
+     52 px, icône sur le libellé, carrés seuls au rang suivant) ;
+   - recherche décalée de 8 px : le clearfix de DataTables (.dataTables_wrapper::after, display: block) devient un élément flexible
+     d'ordre 0 de l'enveloppe et prend un écart devant elle (24 px de retrait à gauche, 16 à droite) ; même défaut dans Contacts ;
+   - pagination « ‹ 1 › » de 44 px, plus son écart, pour une liste d'une seule page.
+   Après : titre et carrés sur un rang (le nom de personnage se tronque avant les carrés), onglets sur un rang de 44 px (icône à côté du
+   libellé), 8 px entre les deux ; en-tête de 144 px. Recherche alignée sur l'info et les lignes. Pagination masquée tant que Précédent et
+   Suivant sont tous deux désactivés (une seule page, liste vide), affichée dès la deuxième page. Premier message 49 px plus haut, fin d'une
+   liste d'une page 109 px plus haut. « ••• » ouvre son menu sous lui, calé à droite. Ordinateur et fenêtre d'ordinateur rétrécie : rendu
+   inchangé (mode mobile seul).
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* En-tête en trois rangs : fil d'Ariane ; titre et carrés ; onglets. Le span.pull-right s'efface (display: contents) : ses boutons
+     deviennent des éléments du titre, rangés par order ; ::after force le retour au rang des onglets et en tient l'écart de 8 px. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.page-header.kr-kramail-entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .forum-mobile-breadcrumb {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  /* Titre : la place laissée par les carrés, plus 4 px d'écart (12 en tout) : la zone de toucher du sélecteur de personnage, qui déborde
+     de 12 px à droite du titre, s'arrête au bord du premier carré au lieu de le recouvrir. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .forum-subforum-head {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: var(--kr-space-1);
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right {
+    display: contents !important;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > :is(a.btn:not([data-kr-dossier]), .btn-group) {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete::after {
+    content: "";
+    order: 3;
+    flex: 1 0 100%;
+    height: var(--kr-space-2);
+  }
+
+  /* Onglets : icône à côté du libellé (dessus avant : 52 px), un rang de 44 px ; libellé de 12 px et retrait de 4 px inchangés. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > a.btn[data-kr-dossier] {
+    order: 4;
+    flex-direction: row;
+    gap: var(--kr-space-2);
+    min-height: var(--kr-touch-target);
+    padding: 0 var(--kr-space-1);
+  }
+
+  /* « ••• » : menu sous le bouton, calé à droite (sans boîte, le span ne peut plus le borner). */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > .btn-group {
+    position: relative;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > .btn-group > .dropdown-menu {
+    right: 0;
+    left: auto;
+  }
+
+  /* Nom de personnage long : tronqué dans la place laissée par les carrés, au lieu de passer à la ligne. Le sélecteur déborde de 12 px de
+     chaque côté (marges négatives de sa zone de toucher) : sa largeur maximale les reprend. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete .kramail-character-selector {
+    max-width: calc(100% + 2 * var(--kr-space-3));
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete .kramail-character-selector > .kramail-character-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Clearfix de DataTables retiré de l'enveloppe en flex : la recherche reprend le retrait de 16 px de l'info et des lignes. */
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) body.mobile-mode #col-right #topics_wrapper::after {
+    content: none;
+  }
+
+  /* Une seule page (ou aucune ligne) : Précédent et Suivant désactivés, la pagination n'a rien à proposer. L'info reste. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right #topics_wrapper > .dataTables_paginate:has(> .paginate_button.previous.disabled):has(> .paginate_button.next.disabled) {
+    display: none !important;
+  }
+}

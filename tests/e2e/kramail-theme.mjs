@@ -6,7 +6,8 @@
 //   onglets : 375 et 767 px, Kraland clair et Empire Brun sombre, injection en tête : trois onglets libellés en un rang pleine largeur,
 //             libellé de 12 px (DESIGN Q14), retrait de 4 px, hauteur >= 44 px ; filet de 2 px dans la ligne des inactifs, filet de
 //             3 px en couleur primaire dans la ligne du seul actif (600), sans bordure basse ; Nouveau, Contacts et « ••• » en carrés
-//             >= 44 px, atteints par elementFromPoint.
+//             >= 44 px, atteints par elementFromPoint (centre et coins), au rang du titre, calés à droite, au-dessus des onglets (densité de
+//             la liste, 1er novembre 2026 ; avant, au rang sous les onglets).
 //   bureau  : 768, 769 et 1280 px, deux variantes : titre, styles calculés et rectangles des boutons du titre égaux au bundle de base figé.
 //   bascule : 767, 768, 1280 puis 767 px dans le même onglet : onglets ; à 768 px titre et boutons du titre égaux à la base et
 //             h1 aux valeurs calculées de sous-forum-debuter ; à 768 et 1280 px menu de personnage visible, dans l'écran, fermé au clic
@@ -25,8 +26,8 @@
 //   lecture-couleurs : 16 variantes, 375 et 1280 px : couleurs du message égales à celles du message de forum-sujet ; aucun littéral de
 //             couleur dans les règles de la lecture (kraland-theme.css).
 //   entete  : (épopée 7, entrée 3) kramail-reception et kramail-lecture, 375, 767, 768, 769 et 1280 px : valeurs calculées de l'en-tête (h1, fil
-//             d'Ariane, lien, séparateur, courant, tête, titre ; au bureau h1, hauteur et boutons) égales à celles de sous-forum-debuter ;
-//             fil « Kramail › Personnage fictif » (liste) et « Kramail › Personnage fictif › sujet » (lecture), sélecteur sur la liste
+//             d'Ariane, lien, séparateur, courant, tête, titre ; au bureau h1, hauteur et boutons) égales à celles de sous-forum-debuter,
+//             hors mise en page de l'en-tête de la liste en mobile (ENTETE_LISTE_MOBILE, exigée) ; fil « Kramail › Personnage fictif » (liste) et « Kramail › Personnage fictif › sujet » (lecture), sélecteur sur la liste
 //             seule, aucun style en ligne dans le titre ; lecture dérivée avec un bouton dans le titre : sujet sans le libellé du bouton.
 //   entete-menu : kramail-reception, 375, 767 et 1280 px, deux variantes : menu de personnage ouvert au clic, rayon de 8 px, aucun style
 //             en ligne, sélecteur et options >= 44 px atteints, personnage courant seul coché, fermé au clic extérieur (mobile : sur une
@@ -49,6 +50,15 @@
 //   liste-couleurs : 16 variantes, 375 et 1280 px : filet ou barre et pastille de la ligne non lue en --kr-status-unread ; aucun littéral
 //             de couleur dans le bloc « KRAMAIL — LISTE ».
 //   liste-dossiers : 1280 et 1440 px : dossier courant btn-primary au fond primaire, autres btn-default aux valeurs du bouton du sous-forum.
+//   liste-densite : (demande d'Arnaud du 1er novembre 2026, relevé sur le site réel) listes dérivées avec le clearfix de jquery.dataTables.css
+//             et la pagination d'une seule page, Corbeille vide, Réception de trois pages, nom de personnage long ; 320, 360, 375 et 767 px
+//             (Empire Brun sombre, et Kraland clair à 375 px) : en-tête en trois rangs (fil d'Ariane ; titre puis Nouveau, Contacts et
+//             « ••• » en carrés de 44 px atteints aux coins, calés à droite, 8 px entre eux, la zone de toucher du sélecteur avant le premier ;
+//             onglets de 44 px sur un rang, libellés entiers, 8 px sous le rang du titre), aucun débordement ; recherche alignée sur l'info,
+//             « Afficher » en fin de rang ; pagination masquée pour une seule page ou une liste vide, affichée dès trois pages, info gardée ;
+//             nom long tronqué en ellipse sur une ligne ; « ••• » touché : menu sous le bouton, calé sur son bord droit, dans l'écran, « Tout
+//             sélectionner » atteint. 768, 769 et 1280 px, et 1280 -> 767 px pendant une recherche (bandeau, pas de mode mobile) : en-tête et
+//             enveloppe égaux au bundle AVANT_DENSITE_SHA ; bascule 767 -> 768 -> 767 dans le même onglet.
 //   redaction : (épopée 7, entrée 5) Nouveau, Répondre, Répondre à tous, Transférer et Signaler, 375, 767, 768, 769, 1280 et 1440 px, puis
 //             767, 768 et 767 px dans le même onglet : classes et valeurs calculées du formulaire de réponse du forum
 //             (typographie-forum-redaction servie au forum, barre de 18 outils du kramail) : lignes, libellés, champs, barre, outils,
@@ -73,7 +83,8 @@
 //             textes >= 4,5:1, filets, contours d'état et icônes >= 3:1 sur leurs deux fonds.
 //   contacts : (épopée 7, entrée 8) fixture synthétique contacts.html (structure du relevé, noms inventés), 375, 767, 1280 et 1440 px :
 //             en-tête (parties mobiles ou h1 et bouton du bureau) et carte de section (panneau, en-tête, titre, corps, enveloppe, contrôles,
-//             info, page courante) aux valeurs calculées de la Réception ; garde kr-page-contacts, fil « Contacts › Membre fictif », ni
+//             info, page courante) aux valeurs calculées de la Réception (mise en page de l'en-tête mobile : celle de sous-forum-debuter, la
+//             Réception ayant la sienne, ENTETE_LISTE_MOBILE) ; garde kr-page-contacts, fil « Contacts › Membre fictif », ni
 //             peau du forum (fil du forum, actions du sous-forum, forum-thread-actions) ni style en ligne dans le h1, aucun débordement ;
 //             sous-forum-debuter à 375 px garde ses actions, la Réception n'a pas la garde.
 //   contacts-boutons : /contacts et /contacts/<membre>/2, mêmes largeurs : aucune classe d'état (danger, warning, info, success), catégories
@@ -107,18 +118,20 @@
 //             viewport à 667 puis 350 px : aucun point du contenu de la zone de texte sous le lien ; les 3 pages à 1280 px : lien affiché
 //             pendant la saisie.
 // Options : KR_SCRIPT (bundle testé), KR_SCRIPT_BASE (bundle de base, sinon celui du commit BASE_SHA), KR_FRAG (gardes, onglets, bureau, bascule,
-// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-toucher, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers,
+// lecture, lecture-plus, lecture-couleurs, entete, entete-menu, entete-toucher, entete-clavier, entete-couleurs, liste, liste-actions, liste-couleurs, liste-dossiers, liste-densite,
 // redaction, redaction-focus, redaction-defilement, redaction-dest, redaction-palette, contacts, contacts-boutons, contacts-couleurs, envoyer, remonter, confort,
 // contacts-onglets, contacts-pagination), KR_SCRIPT_AVANT_LOTB (bundle de base de contacts-onglets et contacts-pagination, sinon celui du
 // commit COMMIT_AVANT_LOTB), KR_SCRIPT_PALETTE (bundle de base de redaction-palette,
-// sinon celui du commit PALETTE_BASE_SHA), KR_SCRIPT_AVANT_99 (bundle de base de confort, sinon celui du commit COMMIT_AVANT_99).
+// sinon celui du commit PALETTE_BASE_SHA), KR_SCRIPT_AVANT_99 (bundle de base de confort, sinon celui du commit COMMIT_AVANT_99),
+// KR_SCRIPT_AVANT_DENSITE (bundle de base de liste-densite, sinon celui du commit AVANT_DENSITE_SHA).
 // Contre-épreuve : KR_SCRIPT=<bundle de base> doit rendre gardes, onglets et bascule rouges ; KR_SCRIPT=<bundle 95119b8> rend lecture,
 // lecture-plus et lecture-couleurs rouges ; KR_SCRIPT=<bundle c8c4082> rend entete, entete-menu, entete-clavier et entete-couleurs rouges ;
 // KR_SCRIPT=<bundle cb73530> rend liste, liste-actions et liste-couleurs rouges (liste-dossiers vérifie un rendu natif inchangé) ;
 // KR_SCRIPT=<bundle 2e65328> rend redaction, redaction-focus, redaction-defilement, redaction-dest et gardes (Signaler) rouges ;
 // KR_SCRIPT=<bundle 0b27dc2> rend redaction-palette rouge ; KR_SCRIPT=<bundle f48a01f> rend contacts, contacts-boutons et envoyer rouges
 // (contacts-couleurs garde le contraste, déjà tenu à la base) ; KR_SCRIPT=<bundle 6788cbf> rend remonter rouge ;
-// KR_SCRIPT=<bundle d8c8777> rend confort rouge ; KR_SCRIPT=<bundle 245b8f7> rend contacts-onglets et contacts-pagination rouges ; KR_SCRIPT=<bundle 8a58d08> rend entete-menu et entete-toucher rouges sur mobile seul.
+// KR_SCRIPT=<bundle d8c8777> rend confort rouge ; KR_SCRIPT=<bundle 245b8f7> rend contacts-onglets et contacts-pagination rouges ; KR_SCRIPT=<bundle 8a58d08> rend entete-menu et entete-toucher rouges sur mobile seul ;
+// KR_SCRIPT=<bundle 30b3d03> rend liste-densite (hors bureau et pagination de trois pages), onglets (carrés), bascule (retour à 767 px) et entete (h1 de la liste) rouges.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -271,17 +284,26 @@ const MESURER_TITRE = () => {
     const b = el.getBoundingClientRect(); const cs = getComputedStyle(el);
     const cx = b.left + b.width / 2; const cy = b.top + b.height / 2;
     const hit = document.elementFromPoint(cx, cy);
+    const coins = [[2, 2], [b.width - 2, 2], [2, b.height - 2], [b.width - 2, b.height - 2]].every(([dx, dy]) => {
+      const h = document.elementFromPoint(b.left + dx, b.top + dy); return !!h && (h === el || el.contains(h));
+    });
     return {
       texte: el.textContent.replace(/\s+/g, ' ').trim(), actif: el.classList.contains('btn-primary'),
-      x: b.left, y: b.top, w: b.width, h: b.height, atteint: !!hit && (hit === el || el.contains(hit)),
+      x: b.left, y: b.top, w: b.width, h: b.height, atteint: !!hit && (hit === el || el.contains(hit)), coins,
       fontSize: parseFloat(cs.fontSize), weight: cs.fontWeight, paddingLeft: cs.paddingLeft, bas: cs.borderBottomWidth, ombre: cs.boxShadow
     };
   };
   const couleur = expr => { const sonde = document.createElement('span'); sonde.style.color = expr; document.body.appendChild(sonde); const c = getComputedStyle(sonde).color; sonde.remove(); return c; };
-  const prb = pr.getBoundingClientRect();
+  // Rang : boîte de contenu du h1. Le span.pull-right en prenait toute la largeur ; depuis la densité de la liste (1er novembre 2026), il
+  // s'efface (display: contents, aucune boîte) et ses boutons se rangent dans le h1.
+  const h1 = pr.closest('h1'); const hb = h1.getBoundingClientRect(); const hcs = getComputedStyle(h1);
+  const retrait = cote => parseFloat(hcs['padding' + cote]) + parseFloat(hcs['border' + cote + 'Width']);
+  const boite = el => { if (!el) { return null; } const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
   return {
     liens: liens.map(mesure), kebab: kebab ? mesure(kebab) : null, plus: !!document.querySelector('#topics thead .btn-group'),
-    primaire: couleur('var(--kr-primary)'), bordure: couleur('var(--kr-border-default)'), rang: { x: prb.left, w: prb.width }
+    primaire: couleur('var(--kr-primary)'), bordure: couleur('var(--kr-border-default)'),
+    rang: { x: hb.left + retrait('Left'), w: hb.width - retrait('Left') - retrait('Right') },
+    tete: boite(h1.querySelector(':scope > .forum-subforum-head')), selecteur: boite(h1.querySelector('.kramail-character-selector'))
   };
 };
 const verifierOnglets = (m, cle) => {
@@ -306,14 +328,25 @@ const verifierOnglets = (m, cle) => {
     expect(t.ombre === filet, `${t.texte} ${actif ? 'actif' : 'inactif'} : filet ${t.ombre} au lieu de ${filet}`);
   });
 };
+// Nouveau, Contacts et « ••• » au rang du titre depuis la densité de la liste (demande d'Arnaud du 1er novembre 2026 ; avant, au rang
+// sous les onglets) : après le titre, calés sur la fin du rang, 8 px entre eux, au-dessus des onglets ; atteints au centre et aux quatre
+// coins, la zone de toucher du sélecteur de personnage s'arrêtant avant le premier.
 const verifierBoutons = m => {
   const autres = m.liens.slice(3).concat(m.kebab ? [m.kebab] : []);
   expect(autres.length === (m.plus ? 3 : 2), 'boutons hors onglets : ' + autres.length);
+  expect(m.tete, 'tête du titre absente');
   for (const b of autres) {
-    expect(b.w >= 44 && b.h >= 44, `${b.texte || 'bouton'} : ${b.w}×${b.h}`);
-    expect(b.atteint, `${b.texte || 'bouton'} : non atteint par elementFromPoint`);
-    expect(b.y > m.liens[0].y, `${b.texte || 'bouton'} : sur le rang des onglets`);
+    const nom = b.texte || 'bouton';
+    expect(b.w >= 44 && b.h >= 44, `${nom} : ${b.w}×${b.h}`);
+    expect(b.atteint && b.coins, `${nom} : non atteint par elementFromPoint (centre ${b.atteint}, coins ${b.coins})`);
+    expect(b.y + b.h <= m.liens[0].y + 0.5, `${nom} : bas à ${b.y + b.h}, sous le haut des onglets (${m.liens[0].y})`);
+    expect(Math.abs(b.y + b.h / 2 - (m.tete.y + m.tete.h / 2)) <= 1, `${nom} : milieu à ${b.y + b.h / 2}, hors du rang du titre (${m.tete.y + m.tete.h / 2})`);
+    expect(b.x >= m.tete.x + m.tete.w + 8 - 0.5, `${nom} : à ${b.x - m.tete.x - m.tete.w} px du titre`);
   }
+  const xs = autres.map(b => [b.x, b.x + b.w]).sort((a, c) => a[0] - c[0]);
+  for (let i = 1; i < xs.length; i++) { expect(Math.abs(xs[i][0] - xs[i - 1][1] - 8) < 1, `écart entre carrés : ${xs[i][0] - xs[i - 1][1]} px`); }
+  expect(Math.abs(xs.at(-1)[1] - (m.rang.x + m.rang.w)) < 1, `fin des carrés à ${xs.at(-1)[1]}, fin du rang à ${m.rang.x + m.rang.w}`);
+  if (m.selecteur) { expect(m.selecteur.x + m.selecteur.w <= xs[0][0] + 0.5, `sélecteur jusqu'à ${m.selecteur.x + m.selecteur.w}, premier carré à ${xs[0][0]}`); }
 };
 if (frag('onglets')) {
   console.log('onglets de dossier (mobile)');
@@ -329,7 +362,7 @@ if (frag('onglets')) {
   for (const { c, o, m } of res) {
     check(`${c.cle} ${c.width} px ${c.variante} : trois onglets libellés, un rang pleine largeur, dossier courant seul actif`, () => verifierOnglets(m, c.cle));
     // « ••• » : clone du « + » natif de l'en-tête de la liste (absent de l'Envoi)
-    check(`${c.cle} ${c.width} px ${c.variante} : Nouveau, Contacts${m.plus ? ' et •••' : ''} en cibles de 44 px atteintes`, () => {
+    check(`${c.cle} ${c.width} px ${c.variante} : Nouveau, Contacts${m.plus ? ' et •••' : ''} en cibles de 44 px atteintes, au rang du titre`, () => {
       verifierBoutons(m);
       sansFuite(o);
     });
@@ -771,6 +804,13 @@ const ENTETE_ATTENDU = {
 };
 // Seuil : 767, 768 et 769 px
 const ENTETE_LARGEURS = [375, 767, 768, 769, 1280];
+// Liste en mobile (densité, demande d'Arnaud du 1er novembre 2026) : le h1 range en flex le fil d'Ariane, le titre suivi de Nouveau,
+// Contacts et « ••• », puis les onglets (liste-densite) ; fil et tête y deviennent des éléments flexibles, d'où min-height calculé à auto
+// (valeur initiale d'un élément flexible, sans effet sur leur hauteur) ; la tête garde 4 px de plus avant les carrés (la zone de toucher du
+// sélecteur de personnage s'arrête au premier). Ces valeurs sont exigées, le reste de l'en-tête reste égal au sous-forum ; Contacts garde
+// la mise en page du sous-forum.
+const ENTETE_LISTE_MOBILE = { h1: { display: 'flex', alignItems: 'center', gap: 'normal 8px' }, fil: { minHeight: 'auto' }, tete: { minHeight: 'auto', marginRight: '4px' } };
+const ENTETE_LISTE_CLES = Object.fromEntries(Object.entries(ENTETE_LISTE_MOBILE).map(([part, v]) => [part, Object.keys(v)]));
 // Lecture dérivée en mémoire avec un bouton dans le titre (.pull-right, comme la liste) : le sujet reste le seul texte direct du h1
 LECTURES['lecture-boutons'] = { ...PAGES.lecture, html: PAGES.lecture.html.replace(/Sujet fictif de lecture\s*<\/h1>/, 'Sujet fictif de lecture\n<span class="pull-right"><a href="kramail" class="btn btn-default">Réception</a></span></h1>') };
 if (frag('entete')) {
@@ -798,6 +838,10 @@ if (frag('entete')) {
             // Revue S21 (n° 4) : en mobile, le titre de tête du kramail perd sa marge haute (le sous-forum garde la sienne, posée en ligne
             // par le template comme à l'index et au sujet) ; exigée nulle ici, le reste de l'en-tête égal au sous-forum.
             if (width < 768 && part === 'h1' && k === 'marginTop') { expect(m.h1.marginTop === '0px', `h1 marginTop : ${m.h1.marginTop} (attendu 0px, revue S21 n° 4)`); continue; }
+            if (width < 768 && cle === 'reception' && (ENTETE_LISTE_CLES[part] || []).includes(k)) {
+              expect(m[part][k] === ENTETE_LISTE_MOBILE[part][k], `${part} ${k} : ${m[part][k]} (attendu ${ENTETE_LISTE_MOBILE[part][k]}, densité de la liste)`);
+              continue;
+            }
             expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`);
           }
         }
@@ -1433,6 +1477,246 @@ if (frag('liste-dossiers')) {
   }
 }
 
+// ---------- liste : densité mobile (demande d'Arnaud du 1er novembre 2026) ----------
+// Relevé sur le site réel (Réception, Envoi, Corbeille et Contacts d'un compte de joueur, 360 × 680, Empire Brun, lecture seule) : en-tête
+// de 193 px (onglets et carrés mêlés sur deux rangs), recherche décalée de 8 px par le clearfix de DataTables, pagination « ‹ 1 › » pour une
+// seule page. Listes dérivées des listes ci-dessus avec ce qui manquait à la fixture : le clearfix de jquery.dataTables.css
+// (.dataTables_wrapper:after, display: block, élément flexible d'ordre 0 de l'enveloppe en flex) et la pagination d'une seule page
+// (Précédent et Suivant désactivés) ; Corbeille vide (ligne .dataTables_empty, aucune page) ; Réception de trois pages ; Réception d'un
+// personnage au nom long.
+const AVANT_DENSITE_SHA = '30b3d030f3281e0512ee13cdef56a216ba6167ed';
+const DT_CLEARFIX = '<style>.dataTables_wrapper:after { visibility: hidden; display: block; content: ""; clear: both; height: 0; }</style>';
+const BOUTON_PAGE = (classe, idx, texte, id) => `<a class="paginate_button ${classe}" aria-controls="topics" data-dt-idx="${idx}" tabindex="0"${id ? ` id="${id}"` : ''}>${texte}</a>`;
+const PAGINATION_UNE = BOUTON_PAGE('previous disabled', 0, 'Précédent', 'topics_previous') + '<span>' + BOUTON_PAGE('current', 1, '1') + '</span>' + BOUTON_PAGE('next disabled', 2, 'Suivant', 'topics_next');
+const PAGINATION_AUCUNE = BOUTON_PAGE('previous disabled', 0, 'Précédent', 'topics_previous') + '<span></span>' + BOUTON_PAGE('next disabled', 1, 'Suivant', 'topics_next');
+const NOM_LONG = 'Personnage fictif au nom vraiment très long de démonstration';
+const deriverDensite = (html, { pagination, info, corps, nom } = {}) => {
+  let h = html.replace('</head>', DT_CLEARFIX + '</head>');
+  if (pagination) { h = h.replace(/(<div class="dataTables_paginate paging_simple_numbers" id="topics_paginate">)[\s\S]*?(<\/div><\/div>)/, `$1${pagination}$2`); }
+  if (info) { h = h.replace(/(<div class="dataTables_info" id="topics_info"[^>]*>)[^<]*/, `$1${info}`); }
+  if (corps !== undefined) { h = h.replace(/<tbody>[\s\S]*?<\/tbody>/, `<tbody>${corps}</tbody>`); }
+  if (nom) { h = h.replace(/(<h1 class="page-header">)Personnage fictif/, `$1${nom}`); }
+  return h;
+};
+const DENSITE = {
+  'densite-reception': deriverDensite(LECTURES['liste-reception'].html, { pagination: PAGINATION_UNE, info: 'Affiche 1 à 3 de 3 lignes' }),
+  'densite-envoi': deriverDensite(LECTURES['liste-envoi'].html, { pagination: PAGINATION_UNE, info: 'Affiche 1 à 3 de 3 lignes' }),
+  'densite-corbeille': deriverDensite(LECTURES['liste-corbeille'].html, { pagination: PAGINATION_AUCUNE, info: 'Affiche 0 à 0 de 0 lignes',
+    corps: '<tr class="odd"><td valign="top" colspan="4" class="dataTables_empty">Aucun message</td></tr>' }),
+  'densite-pages': deriverDensite(LECTURES['liste-reception'].html),
+  'densite-long': deriverDensite(LECTURES['liste-reception'].html, { pagination: PAGINATION_UNE, info: 'Affiche 1 à 3 de 3 lignes', nom: NOM_LONG })
+};
+for (const [cle, html] of Object.entries(DENSITE)) {
+  const source = { 'densite-envoi': 'liste-envoi', 'densite-corbeille': 'liste-corbeille' }[cle] || 'liste-reception';
+  LECTURES[cle] = { ...LECTURES[source], html };
+  const attendus = [DT_CLEARFIX, cle === 'densite-pages' ? 'data-dt-idx="3"' : (cle === 'densite-corbeille' ? '<span></span>' : 'next disabled'),
+    cle === 'densite-corbeille' ? 'dataTables_empty' : 'name="c[]"', cle === 'densite-long' ? NOM_LONG : 'topics_info'];
+  if (!attendus.every(x => html.includes(x))) { console.error('liste de densité incomplète : ' + cle); process.exit(2); }
+}
+// En-tête, enveloppe et pagination d'une liste, en mobile. Cible atteinte : centre et quatre coins (à 2 px) rendus par elementFromPoint.
+const MESURER_DENSITE = () => {
+  const boite = el => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+  const touche = el => { const r = el.getBoundingClientRect(); return [[r.width / 2, r.height / 2], [2, 2], [r.width - 2, 2], [2, r.height - 2], [r.width - 2, r.height - 2]].every(([dx, dy]) => { const h = document.elementFromPoint(r.left + dx, r.top + dy); return !!h && (h === el || el.contains(h)); }); };
+  const visible = el => !!el && el.getClientRects().length > 0;
+  const h1 = document.querySelector('#col-right > h1.page-header'); const hb = boite(h1); const hcs = getComputedStyle(h1);
+  const retrait = cote => parseFloat(hcs['padding' + cote]) + parseFloat(hcs['border' + cote + 'Width']);
+  const cur = h1.querySelector('.kramail-character-current');
+  const lignes = el => { const rg = document.createRange(); rg.selectNodeContents(el); return new Set([...rg.getClientRects()].filter(r => r.width > 0.5).map(r => Math.round(r.top))).size; };
+  const wr = document.getElementById('topics_wrapper'); const wb = boite(wr); const wcs = getComputedStyle(wr);
+  const pag = document.getElementById('topics_paginate'); const info = document.getElementById('topics_info');
+  return {
+    deborde: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    h1: hb, contenu: { x: hb.x + retrait('Left'), w: hb.w - retrait('Left') - retrait('Right') },
+    fil: boite(h1.querySelector(':scope > .forum-mobile-breadcrumb')), tete: boite(h1.querySelector(':scope > .forum-subforum-head')),
+    selecteur: h1.querySelector('.kramail-character-selector') ? boite(h1.querySelector('.kramail-character-selector')) : null,
+    onglets: [...h1.querySelectorAll('.pull-right > a.btn[data-kr-dossier]')].map(o => ({ ...boite(o), texte: o.textContent.replace(/\s+/g, ' ').trim(), coupe: o.scrollWidth > o.clientWidth + 0.5, touche: touche(o) })),
+    carres: [...h1.querySelectorAll('.pull-right > a.btn:not([data-kr-dossier]), .pull-right > .btn-group > .btn')].map(c => ({ ...boite(c), touche: touche(c) })),
+    nom: cur ? { ...boite(cur), tronque: cur.scrollWidth > cur.clientWidth + 0.5, ellipse: getComputedStyle(cur).textOverflow, lignes: lignes(cur) } : null,
+    enveloppe: { ...wb, gauche: wb.x + parseFloat(wcs.paddingLeft), droite: wb.x + wb.w - parseFloat(wcs.paddingRight) },
+    recherche: boite(document.querySelector('#topics_filter input')), afficher: boite(document.querySelector('#topics_length select')),
+    info: visible(info) ? boite(info) : null,
+    // Pagination : amenée dans l'écran avant le toucher (centre, comme liste-actions), défilement remis à 0 ensuite.
+    pagination: visible(pag) ? (() => {
+      window.scrollTo(0, window.scrollY + pag.getBoundingClientRect().top - 200);
+      const boutons = [...pag.querySelectorAll('.paginate_button')].filter(visible).map(a => {
+        const r = a.getBoundingClientRect(); const h = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return { ...boite(a), touche: a.classList.contains('disabled') || (!!h && (h === a || a.contains(h))) };
+      });
+      window.scrollTo(0, 0);
+      return boutons;
+    })() : null
+  };
+};
+// « ••• » touché : menu ouvert, sa boîte, celle du bouton, et « Tout sélectionner » atteint en son centre.
+const OUVRIR_PLUS = async page => {
+  const b = await page.locator('h1.page-header .kramail-actions-mobile > .dropdown-toggle').boundingBox();
+  await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForTimeout(150);
+  return page.evaluate(() => {
+    const g = document.querySelector('h1.page-header .kramail-actions-mobile'); const menu = g.querySelector('.dropdown-menu');
+    const boite = el => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+    const tout = g.querySelector('input[name="allbox-mobile"]').closest('a'); const t = tout.getBoundingClientRect();
+    const hit = document.elementFromPoint(t.left + t.width / 2, t.top + t.height / 2);
+    return { ouvert: g.classList.contains('open') && menu.getClientRects().length > 0, menu: boite(menu), bouton: boite(g.querySelector('.dropdown-toggle')), vw: document.documentElement.clientWidth, tout: !!hit && tout.contains(hit) };
+  });
+};
+// En-tête et enveloppe au bureau (et fenêtre d'ordinateur rétrécie) : boîtes et valeurs calculées, comparées au bundle d'avant.
+const RELEVER_LISTE = () => {
+  const props = ['display', 'flexDirection', 'flexWrap', 'alignItems', 'gap', 'order', 'flexBasis', 'width', 'height', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+    'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'position', 'left', 'right', 'fontSize', 'textOverflow', 'whiteSpace', 'maxWidth'];
+  const h1 = document.querySelector('#col-right > h1.page-header'); const wr = document.getElementById('topics_wrapper');
+  const els = [h1, ...h1.querySelectorAll('*'), wr, ...wr.children, ...wr.querySelectorAll('.dataTables_paginate *, .dataTables_filter *, .dataTables_length *')];
+  return els.map(el => {
+    const cs = getComputedStyle(el); const b = el.getBoundingClientRect();
+    const o = { el: el.tagName + '.' + [...el.classList].join('.'), rect: [b.left, b.top, b.width, b.height].map(v => Math.round(v * 10) / 10).join(',') };
+    for (const p of props) { o[p] = cs[p]; }
+    return o;
+  }).concat([{ el: 'h1::after', content: getComputedStyle(h1, '::after').content }, { el: '#topics_wrapper::after', content: getComputedStyle(wr, '::after').content }]);
+};
+// Écarts à la densité attendue, par exigence (liste vide = conforme).
+const ecartsEntete = (m, c) => {
+  const e = [];
+  if (m.deborde > 0) { e.push(`débordement horizontal ${m.deborde} px`); }
+  const droite = m.contenu.x + m.contenu.w;
+  if (Math.abs(m.fil.x - m.contenu.x) > 0.5 || Math.abs(m.fil.w - m.contenu.w) > 0.5) { e.push(`fil ${m.fil.x}+${m.fil.w} pour ${m.contenu.x}+${m.contenu.w}`); }
+  if (m.tete.y < m.fil.y + m.fil.h - 0.5) { e.push('titre sur le fil d\'Ariane'); }
+  // Titre puis carrés : même rang, carrés calés sur la fin du rang, 8 px entre eux, la zone de toucher du sélecteur avant le premier
+  const attendus = c.cle === 'densite-envoi' ? 2 : 3;
+  if (m.carres.length !== attendus) { e.push(`carrés : ${m.carres.length} pour ${attendus}`); }
+  const rangTitre = m.tete.y + m.tete.h / 2;
+  const xs = m.carres.map(b => [b.x, b.x + b.w]).sort((a, b) => a[0] - b[0]);
+  m.carres.forEach((b, i) => {
+    if (b.w < 44 || b.h < 44) { e.push(`carré ${i} : ${b.w}×${b.h}`); }
+    if (!b.touche) { e.push(`carré ${i} : non atteint (centre et coins)`); }
+    if (Math.abs(b.y + b.h / 2 - rangTitre) > 1) { e.push(`carré ${i} : milieu à ${b.y + b.h / 2}, rang du titre à ${rangTitre}`); }
+  });
+  if (xs.length) {
+    if (xs[0][0] < m.tete.x + m.tete.w + 8 - 0.5) { e.push(`premier carré à ${xs[0][0] - m.tete.x - m.tete.w} px du titre`); }
+    if (Math.abs(xs.at(-1)[1] - droite) > 0.5) { e.push(`fin des carrés ${xs.at(-1)[1]} pour ${droite}`); }
+    for (let i = 1; i < xs.length; i++) { if (Math.abs(xs[i][0] - xs[i - 1][1] - 8) > 0.5) { e.push(`écart entre carrés ${xs[i][0] - xs[i - 1][1]} px`); } }
+    if (m.selecteur && m.selecteur.x + m.selecteur.w > xs[0][0] + 0.5) { e.push(`sélecteur jusqu'à ${m.selecteur.x + m.selecteur.w}, premier carré à ${xs[0][0]}`); }
+  }
+  // Onglets : un rang de 44 px sur toute la largeur, contigus, libellés entiers, à 8 px sous le rang du titre ; le h1 s'arrête avec eux
+  const basTitre = Math.max(m.tete.y + m.tete.h, ...m.carres.map(b => b.y + b.h));
+  if (m.onglets.length !== 3) { e.push(`onglets : ${m.onglets.length}`); }
+  m.onglets.forEach((o, i) => {
+    if (Math.abs(o.h - 44) > 0.5) { e.push(`${o.texte} : ${o.h} px de haut`); }
+    if (Math.abs(o.y - m.onglets[0].y) > 0.5) { e.push(`${o.texte} : pas au rang des onglets`); }
+    if (o.coupe) { e.push(`${o.texte} : libellé coupé`); }
+    if (!o.touche) { e.push(`${o.texte} : non atteint (centre et coins)`); }
+    if (i > 0 && Math.abs(o.x - (m.onglets[i - 1].x + m.onglets[i - 1].w)) > 1) { e.push(`${o.texte} : non contigu`); }
+  });
+  if (m.onglets.length === 3) {
+    if (Math.abs(m.onglets[0].x - m.contenu.x) > 1 || Math.abs(m.onglets[2].x + m.onglets[2].w - droite) > 1) { e.push(`onglets ${m.onglets[0].x}-${m.onglets[2].x + m.onglets[2].w} pour ${m.contenu.x}-${droite}`); }
+    if (Math.abs(m.onglets[0].y - basTitre - 8) > 0.5) { e.push(`${m.onglets[0].y - basTitre} px entre le rang du titre et les onglets`); }
+    if (Math.abs(m.h1.y + m.h1.h - (m.onglets[0].y + m.onglets[0].h)) > 0.5) { e.push(`h1 jusqu'à ${m.h1.y + m.h1.h}, onglets jusqu'à ${m.onglets[0].y + m.onglets[0].h}`); }
+  }
+  return e;
+};
+const ecartsEnveloppe = m => {
+  const e = [];
+  if (Math.abs(m.recherche.x - m.enveloppe.gauche) > 0.5) { e.push(`recherche à ${m.recherche.x}, retrait de l'enveloppe à ${m.enveloppe.gauche}`); }
+  if (m.info && Math.abs(m.recherche.x - m.info.x) > 0.5) { e.push(`recherche à ${m.recherche.x}, info à ${m.info.x}`); }
+  if (Math.abs(m.afficher.x + m.afficher.w - m.enveloppe.droite) > 0.5) { e.push(`« Afficher » finit à ${m.afficher.x + m.afficher.w} pour ${m.enveloppe.droite}`); }
+  if (Math.abs(m.afficher.x - (m.recherche.x + m.recherche.w) - 8) > 0.5) { e.push(`${m.afficher.x - m.recherche.x - m.recherche.w} px entre la recherche et « Afficher »`); }
+  if (Math.abs(m.afficher.y - m.recherche.y) > 0.5) { e.push('recherche et « Afficher » sur deux rangs'); }
+  return e;
+};
+const ecartsPagination = (m, c) => {
+  const e = [];
+  if (!m.info) { e.push('info masquée'); }
+  if (c.cle === 'densite-pages') {
+    if (!m.pagination || m.pagination.length < 3) { e.push('pagination de trois pages masquée'); } else {
+      for (const b of m.pagination) { if (b.w < 44 || b.h < 44 || !b.touche) { e.push(`bouton de page ${b.w}×${b.h}, atteint ${b.touche}`); } }
+    }
+  } else if (m.pagination) { e.push(`pagination affichée (${m.pagination.length} boutons) pour ${c.cle === 'densite-corbeille' ? 'une liste vide' : 'une seule page'}`); }
+  return e;
+};
+const ecartsNom = m => (!m.nom || !m.nom.tronque || m.nom.ellipse !== 'ellipsis' || m.nom.lignes !== 1) ? ['nom long : ' + JSON.stringify(m.nom)] : [];
+const sansEcart = (e, nom) => expect(e.length === 0, `${nom} : ${e.slice(0, 4).join(' ; ')}${e.length > 4 ? ` (+${e.length - 4})` : ''}`);
+const verifierDensite = (m, c) => sansEcart([...ecartsEntete(m, c), ...ecartsEnveloppe(m), ...ecartsPagination(m, c), ...(c.cle === 'densite-long' ? ecartsNom(m) : [])], `${c.cle} ${c.width} px`);
+if (frag('liste-densite')) {
+  console.log('liste : densité mobile (en-tête, recherche, pagination), bureau égal au bundle d\'avant');
+  const AVANT_DENSITE = strip(process.env.KR_SCRIPT_AVANT_DENSITE ? fs.readFileSync(process.env.KR_SCRIPT_AVANT_DENSITE, 'utf8')
+    : execFileSync('git', ['show', `${AVANT_DENSITE_SHA}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+  const cas = [];
+  for (const width of [320, 360, 375, 767]) { for (const cle of Object.keys(DENSITE)) { cas.push({ cle, width, variante: DARK }); } }
+  for (const cle of ['densite-reception', 'densite-envoi']) { cas.push({ cle, width: 375, variante: 'kraland' }); }
+  const res = await mapLimit(cas, async c => {
+    const o = await ouvrir(c.cle, { width: c.width, height: 667, mobile: true, variante: c.variante });
+    await o.page.evaluate(() => window.scrollTo(0, 0));
+    const m = await o.page.evaluate(MESURER_DENSITE);
+    const plus = ['densite-reception', 'densite-long'].includes(c.cle) ? await OUVRIR_PLUS(o.page) : null;
+    await o.context.close();
+    return { c, o, m, plus };
+  });
+  for (const { c, o, m, plus } of res) {
+    const nom = `${c.cle} ${c.width} px ${c.variante}`;
+    check(`${nom} : en-tête en trois rangs (fil ; titre puis Nouveau, Contacts${c.cle === 'densite-envoi' ? '' : ', « ••• »'} ; onglets de 44 px), aucun débordement`, () => { sansEcart(ecartsEntete(m, c), nom); sansFuite(o); });
+    check(`${nom} : recherche alignée sur l'info, « Afficher » en fin de rang`, () => sansEcart(ecartsEnveloppe(m), nom));
+    check(`${nom} : pagination ${c.cle === 'densite-pages' ? 'de trois pages affichée, boutons >= 44 px atteints' : `masquée (${c.cle === 'densite-corbeille' ? 'liste vide' : 'une seule page'})`}, info gardée`, () => sansEcart(ecartsPagination(m, c), nom));
+    if (c.cle === 'densite-long') { check(`${nom} : nom long tronqué en ellipse sur une ligne`, () => sansEcart(ecartsNom(m), nom)); }
+    if (plus) {
+      check(`${c.cle} ${c.width} px ${c.variante} : « ••• » touché, menu sous le bouton, calé à droite, dans l'écran, « Tout sélectionner » atteint`, () => {
+        expect(plus.ouvert, 'menu fermé');
+        expect(plus.menu.x >= -0.5 && plus.menu.x + plus.menu.w <= plus.vw + 0.5, `menu ${plus.menu.x}-${plus.menu.x + plus.menu.w} pour un écran de ${plus.vw}`);
+        expect(plus.menu.y >= plus.bouton.y + plus.bouton.h - 0.5, `menu à ${plus.menu.y}, bouton jusqu'à ${plus.bouton.y + plus.bouton.h}`);
+        expect(Math.abs(plus.menu.x + plus.menu.w - (plus.bouton.x + plus.bouton.w)) < 1, `menu calé à ${plus.menu.x + plus.menu.w}, bouton à ${plus.bouton.x + plus.bouton.w}`);
+        expect(plus.tout, '« Tout sélectionner » non atteint');
+      });
+    }
+  }
+  // Bureau : 768, 769 et 1280 px égaux au bundle d'avant ; fenêtre d'ordinateur rétrécie à 767 px pendant une recherche (pas de
+  // rechargement, pas de mode mobile) égale au bundle d'avant ; bascule 767 -> 768 -> 767 dans le même onglet.
+  const bureau = [];
+  for (const width of [768, 769, 1280]) { for (const avant of [false, true]) { bureau.push({ width, avant }); } }
+  for (const avant of [false, true]) { bureau.push({ width: 1280, avant, retreci: true }); }
+  const rb = await mapLimit(bureau, async c => {
+    const o = await ouvrir('densite-reception', { width: c.width, variante: DARK, bundle: c.avant ? AVANT_DENSITE : APRES });
+    if (c.retreci) {
+      await o.page.click('#topics_filter input');
+      await o.page.keyboard.type('a');
+      await o.page.setViewportSize({ width: 767, height: 720 });
+      await o.page.waitForSelector('#kr-resize-banner', { timeout: 4000 }).catch(() => null);
+      await styleSettled(o.page, 'body');
+    }
+    const r = { liste: await o.page.evaluate(RELEVER_LISTE), mobile: await o.page.evaluate(() => document.body.classList.contains('mobile-mode')), bandeau: await o.page.evaluate(() => !!document.getElementById('kr-resize-banner')), vw: await o.page.evaluate(() => window.innerWidth) };
+    await o.context.close();
+    return { c, o, r };
+  });
+  for (const width of [768, 769, 1280]) {
+    const a = rb.find(x => x.c.width === width && !x.c.avant && !x.c.retreci); const b = rb.find(x => x.c.width === width && x.c.avant && !x.c.retreci);
+    check(`densite-reception ${width} px : en-tête et enveloppe égaux au bundle ${AVANT_DENSITE_SHA.slice(0, 7)}`, () => { egalBase(a.r.liste, b.r.liste); sansFuite(a.o); });
+  }
+  {
+    const a = rb.find(x => x.c.retreci && !x.c.avant); const b = rb.find(x => x.c.retreci && x.c.avant);
+    check(`densite-reception 1280 -> 767 px pendant une recherche (bandeau, pas de mode mobile) : égale au bundle ${AVANT_DENSITE_SHA.slice(0, 7)}`, () => {
+      expect(a.r.vw === 767 && a.r.bandeau && !a.r.mobile, `largeur ${a.r.vw}, bandeau ${a.r.bandeau}, mode mobile ${a.r.mobile}`);
+      egalBase(a.r.liste, b.r.liste);
+      sansFuite(a.o);
+    });
+  }
+  const [bas] = await mapLimit([0], async () => {
+    const ref = await ouvrir('densite-reception', { width: 768, variante: DARK, bundle: AVANT_DENSITE });
+    const ref768 = await ref.page.evaluate(RELEVER_LISTE);
+    await ref.context.close();
+    const o = await ouvrir('densite-reception', { width: 767, variante: DARK });
+    const etapes = [['767', await o.page.evaluate(MESURER_DENSITE)]];
+    await basculer(o.page, 768, 'densite 768');
+    etapes.push(['768', await o.page.evaluate(RELEVER_LISTE)]);
+    await basculer(o.page, 767, 'densite 767 retour');
+    etapes.push(['767 retour', await o.page.evaluate(MESURER_DENSITE)]);
+    await o.context.close();
+    return { o, ref768, etapes };
+  });
+  check('densite-reception bascule 767 -> 768 -> 767 dans le même onglet : densité, bureau égal au bundle d\'avant, densité', () => {
+    verifierDensite(bas.etapes[0][1], { cle: 'densite-reception', width: 767 });
+    egalBase(bas.etapes[1][1], bas.ref768);
+    verifierDensite(bas.etapes[2][1], { cle: 'densite-reception', width: '767 (retour)' });
+    sansFuite(bas.o);
+  });
+}
+
 // ---------- contacts (épopée 7, entrée 8) ----------
 // Fixture synthétique tests/e2e/fixtures/contacts.html (structure du relevé en lecture seule du 2026-10-28, aucune donnée réelle) ; la même
 // page servie au chemin d'une catégorie (…-0/2) pour la catégorie courante. Référence : la Réception dérivée (liste-reception).
@@ -1461,10 +1745,13 @@ const MESURER_CARTE = props => {
   o.bords = [Math.round(p.left), Math.round(document.documentElement.clientWidth - p.right)];
   return o;
 };
-const egalParts = (m, ref, parts) => {
+const egalParts = (m, ref, parts, sauf = {}) => {
   for (const part of parts) {
     expect(m[part] && ref[part], `${part} absent (contacts ${!!m[part]}, Réception ${!!ref[part]})`);
-    for (const k of Object.keys(ref[part])) { expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`); }
+    for (const k of Object.keys(ref[part])) {
+      if ((sauf[part] || []).includes(k)) { continue; }
+      expect(m[part][k] === ref[part][k], `${part} ${k} : ${m[part][k]} pour ${ref[part][k]}`);
+    }
   }
 };
 const RELEVER_CONTACTS = () => {
@@ -1480,7 +1767,7 @@ if (frag('contacts')) {
   console.log('contacts : en-tête du kramail et carte de section aux valeurs de la Réception');
   const cas = [];
   for (const cle of ['liste-reception', 'contacts']) { for (const width of CONTACTS_LARGEURS) { cas.push({ cle, width, mobile: width < 768 }); } }
-  cas.push({ cle: 'sous-forum', width: 375, mobile: true }, { cle: 'liste-reception', width: 375, mobile: true, garde: true });
+  cas.push({ cle: 'sous-forum', width: 375, mobile: true }, { cle: 'liste-reception', width: 375, mobile: true, garde: true }, { cle: 'sous-forum', width: 767, mobile: true });
   const res = await mapLimit(cas, async c => {
     const o = await ouvrir(c.cle, { width: c.width, height: c.mobile ? 667 : 720, mobile: c.mobile });
     await o.page.evaluate(() => window.scrollTo(0, 0));
@@ -1492,8 +1779,14 @@ if (frag('contacts')) {
     const mobile = width < 768;
     const ref = res.find(x => x.c.cle === 'liste-reception' && x.c.width === width).m;
     const { o, m } = res.find(x => x.c.cle === 'contacts' && x.c.width === width);
-    check(`contacts ${width} px : en-tête aux valeurs calculées de la Réception`, () => {
-      egalParts(m.entete, ref.entete, mobile ? ['h1', 'fil', 'lien', 'sep', 'courant', 'tete', 'titre'] : ['h1', 'bouton']);
+    check(`contacts ${width} px : en-tête aux valeurs calculées de la Réception${mobile ? ' (mise en page du h1 : celle du sous-forum)' : ''}`, () => {
+      egalParts(m.entete, ref.entete, mobile ? ['h1', 'fil', 'lien', 'sep', 'courant', 'tete', 'titre'] : ['h1', 'bouton'], mobile ? ENTETE_LISTE_CLES : {});
+      if (mobile) {
+        const forum = res.find(x => x.c.cle === 'sous-forum' && x.c.width === width).m.entete;
+        for (const [part, cles] of Object.entries(ENTETE_LISTE_CLES)) {
+          for (const k of cles) { expect(m.entete[part][k] === forum[part][k], `${part} ${k} : ${m.entete[part][k]} pour ${forum[part][k]} (sous-forum)`); }
+        }
+      }
       if (!mobile) { expect(!m.entete.fil && !m.entete.tete, 'fil d\'Ariane ou tête mobile au bureau'); }
       sansFuite(o);
     });
@@ -1512,7 +1805,7 @@ if (frag('contacts')) {
       expect(m.r.deborde <= 0, 'débordement horizontal : ' + m.r.deborde + ' px');
     });
   }
-  const forum = res.find(x => x.c.cle === 'sous-forum').m;
+  const forum = res.find(x => x.c.cle === 'sous-forum' && x.c.width === 375).m;
   const kramail = res.find(x => x.c.garde).m;
   check('sous-forum-debuter 375 px : en-tête mobile du forum gardé (« Nouveau sujet » haut), Réception sans kr-page-contacts', () => {
     expect(forum.r.peauForum.some(k => /forum-subforum-actions-top/.test(k)), 'actions du sous-forum absentes : ' + forum.r.peauForum.join(', '));
