@@ -36,10 +36,11 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
 import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const strip = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
 const userscript = strip(fs.readFileSync(scriptPath, 'utf8'));
 const fixture = name => fs.readFileSync(path.join(here, 'fixtures', name), 'utf8');

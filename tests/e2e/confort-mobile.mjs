@@ -52,10 +52,11 @@ import { frames, krReady, styleSettled, THEME_READY } from './lib/settle.mjs';
 import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
 import { AVANT_REVUE_S21, deplacerVersionS21, HAUT_S21, PIED_S21 } from './lib/revue-s21.mjs';
 import { CARTES_SECTION, CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_AVANT = '7bec452'; // feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12, anciennes bases d64c578 et 034a820)
 const avant = sansEntete(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')

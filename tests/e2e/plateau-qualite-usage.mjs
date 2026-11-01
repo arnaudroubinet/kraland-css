@@ -28,6 +28,7 @@ import { launchBrowser } from './lib/navigateur.mjs';
 import { confineNetwork } from './lib/confinement.mjs';
 import { frames, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { CONTRASTE, CORRIGER_BUG20, VARIANTES as TOUTES_VARIANTES, parVariante } from './lib/variantes.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const scriptPath = process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js');
@@ -51,7 +52,7 @@ const SEUIL_CARTE = 200; // en dessous, le nom passe sous l'avatar
 const VARIANTES = ['kraland', 'empire-brun-dark'];
 const BUREAUX = [768, 769, 900, 1024, 1100, 1280, 1366, 1440, 1500, 1512, 1920];
 const VENDOR = process.env.KR_BOOTSTRAP_DIR || path.join(root, 'tests/e2e/vendor');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 
 async function ouvrirCartes(src, { width, height = 800, variante, transformer = h => h, fixture = 'plateau-cartes-noms.html' }) {
   const ctx = await browser.newContext({ viewport: { width, height } });

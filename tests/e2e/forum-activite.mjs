@@ -102,10 +102,11 @@ import { TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './li
 import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
 import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const strip = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_AVANT = '7bec452'; // recalage du sweep 9.12 (ancienne base 6270c81)
 const avant = strip(process.env.KR_SCRIPT_AVANT ? fs.readFileSync(process.env.KR_SCRIPT_AVANT, 'utf8')

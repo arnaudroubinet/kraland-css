@@ -84,10 +84,11 @@ import { AVANT_CLAVIER_COMPACT, AVANT_DENSITE_ORDRE } from './lib/densite-ordre.
 import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_DENSITE_JEU, PAGES_DENSITE_JEU } from './lib/densite-jeu.mjs';
 import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 const COMMIT_AVANT = '7bec452'; // recalage du sweep 9.12 (une base pour tous les fragments) : entrées 9.1 à 9.10 comprises
 // Écart voulu du bug 20 (accès rapides du plateau mobile 24 px moins hauts, groupes remontés) : base corrigée par CORRIGER_BUG20.

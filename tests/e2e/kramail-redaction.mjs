@@ -30,10 +30,11 @@ import { mapLimit } from './lib/parallele.mjs';
 import { AVANT_REVUE_S21, sansClassesRevueS21 } from './lib/revue-s21.mjs';
 import { domQuiet, krReady, THEME_READY } from './lib/settle.mjs';
 import { CORRIGER_BUG26 } from './lib/variantes.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const strip = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 // Bundle « avant » : base figée (A9) 7bec452, feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12), sauf
 // KR_SCRIPT_AVANT. Non-régression (regression) : rendu identique, sans jeton posé ni masque d'entrée antérieure (captures mobiles différées

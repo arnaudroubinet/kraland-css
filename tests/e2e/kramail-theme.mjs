@@ -142,10 +142,11 @@ import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY, domQuiet, styleSettled } from './lib/settle.mjs';
 import { CIBLE_PAGE, ecartsCible, TEXTES_HORS_MARGE_PAGE } from './lib/marges.mjs';
 import { choisirVariante, poserJetonsRedefinis } from './lib/variantes.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const strip = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const strip = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const APRES = strip(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
 // Base figée (A9) : feature/next après les entrées 9.1 à 9.10 (recalage du sweep 9.12, ancienne base d64c578).
 const BASE_SHA = '7bec45299cd1427408b3a9c7889e0eaa3ef1326a';
@@ -2076,7 +2077,10 @@ const HORS_REDACTION = {
   opt: ['height', 'rectH'], 'opt.col': ['height', 'rectH'], 'opt.check': ['width', 'rectW'],
   // Libellé « Sujet » plus court que « Expéditeur » (largeurs du libellé et du champ, en ligne sur mobile) ; champ texte contre liste
   // native (hauteur de ligne et curseur natifs).
-  'sujet.label': ['width', 'rectW'], 'sujet.col': ['width', 'rectW'], 'sujet.ctl': ['lineHeight', 'cursor', 'width', 'rectW']
+  'sujet.label': ['width', 'rectW'], 'sujet.col': ['width', 'rectW'], 'sujet.ctl': ['lineHeight', 'cursor', 'width', 'rectW'],
+  // Astérisque « * » du libellé Message en gras 700 au kramail (H5.6, fb8ee5c) contre 600 hérité au forum sur mobile : libellé plus large
+  // d'environ 0,3 px. Sa typographie reste comparée (fontWeight du libellé lui-même, taille, casse, couleur).
+  'msg.label': ['width', 'rectW']
 };
 // Libellé de la ligne Destinataires (entrée 6, hors comparaison) : seule sa typographie suit celle des libellés du formulaire.
 const SEULES_REDACTION = { 'dest.label': ['fontSize', 'fontWeight', 'textTransform', 'letterSpacing', 'color'] };

@@ -62,10 +62,11 @@ import { mapLimit } from './lib/parallele.mjs';
 import { frames, krReady, THEME_READY, waitState } from './lib/settle.mjs';
 import { REPERES_REVUE_S21 as R } from './lib/revue-s21.mjs';
 import { choisirVariante, CONTRASTE, VARIANTES } from './lib/variantes.mjs';
+import { figerVersion } from './lib/version-figee.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
-const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
+const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const versionDe = s => (/@version\s+(\S+)/.exec(s) || [])[1] || '';
 const brut = fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8');
 const userscript = sansEntete(brut);
