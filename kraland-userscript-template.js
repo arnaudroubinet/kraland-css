@@ -9418,6 +9418,9 @@
   /**
    * Force le layout grid pour les actions de la modal d'ordre
    * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
+   * Colonnes, écart, affichage et retrait des onglets passent par des variables CSS (--kr-order-tabs-columns, --kr-order-tabs-gap,
+   * --kr-order-tab-display, --kr-order-tab-padding) : le thème les règle sur mobile (3 colonnes serrées), les valeurs de repli gardent
+   * le rendu historique (2 colonnes, 12 px).
    */
   function forceOrderModalGridLayout(modal) {
     if (!modal) {return;}
@@ -9443,9 +9446,9 @@
       ul.style.setProperty('display', 'grid', 'important');
 
       // Tous les groupes en 2 colonnes - grille homogène continue
-      ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+      ul.style.setProperty('grid-template-columns', 'var(--kr-order-tabs-columns, repeat(2, 1fr))', 'important');
 
-      ul.style.setProperty('gap', '12px', 'important');
+      ul.style.setProperty('gap', 'var(--kr-order-tabs-gap, 12px)', 'important');
       ul.style.setProperty('padding-left', '0', 'important');
 
       // Force l'alignement des grid items au début (gauche)
@@ -9453,7 +9456,7 @@
       ul.style.setProperty('align-items', 'stretch', 'important');
 
       // Grille continue - même espacement partout (pas de séparation visuelle)
-      ul.style.setProperty('margin-bottom', '12px', 'important');
+      ul.style.setProperty('margin-bottom', 'var(--kr-order-tabs-gap, 12px)', 'important');
       ul.style.setProperty('border-bottom', 'none', 'important');
       ul.style.setProperty('border-top', 'none', 'important');
       ul.style.setProperty('padding-top', '0', 'important');
@@ -9494,10 +9497,10 @@
         // Style les liens
         const link = li.querySelector('a');
         if (link) {
-          link.style.setProperty('display', 'block', 'important');
+          link.style.setProperty('display', 'var(--kr-order-tab-display, block)', 'important');
           link.style.setProperty('width', '100%', 'important');
           link.style.setProperty('min-height', '44px', 'important');
-          link.style.setProperty('padding', '12px 16px', 'important');
+          link.style.setProperty('padding', 'var(--kr-order-tab-padding, 12px 16px)', 'important');
           link.style.setProperty('text-align', 'center', 'important');
           link.style.setProperty('border-radius', 'var(--kr-radius-sm)', 'important');
           link.style.setProperty('margin', '0', 'important');
