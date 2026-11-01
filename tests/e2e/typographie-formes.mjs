@@ -34,8 +34,9 @@
 //   echelle         fragment étendu aux FIXTURES SYNTHÉTIQUES jeu-materiel.html, jeu-batiments.html et jeu-employes.html (/jouer/materiel,
 //                   /jouer/bat, /jouer/pnj) : 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : noms et
 //                   valeurs 15 px / 600, détails (texte de ligne, charge, well « Charge … », alerte des Employés) 13 px ; rien sous 12 px
-//                   dans #content (mobile) ou #col-right (ordinateur) ; ligne d'objet du Matériel à 375 et 767 px : image à gauche, charge
-//                   au bord droit (≤ 1 px) sur la ligne du nom, sans chevauchement, en couleur de texte secondaire ; charge premier enfant et
+//                   dans #content (mobile) ou #col-right (ordinateur) ; ligne d'objet du Matériel à 375 et 767 px : image à gauche, nom sur
+//                   toute la largeur, charge au bord droit (≤ 1 px) sous le nom, sur la ligne du détail (densité du 1er novembre 2026 ; sur la
+//                   ligne du nom avant), sans chevauchement, en couleur de texte secondaire ; charge premier enfant et
 //                   cible de la ligne conservées à toutes les largeurs ; objets déplacés (.kr-materiel-moved, typographie-echelle.html) :
 //                   nom 15 px / 600, détail et charge 13 px sur ordinateur ; ligne sans image : nom au bord ; texte réel du nom (Range)
 //                   sans chevauchement de la charge ; Personnage : plancher de 12 px dans #content ; plateau (FIXTURE SYNTHÉTIQUE
@@ -47,7 +48,8 @@
 //                   noms 15 px (nom de forum de l'index en 400), détails 13 px, texte courant 15 px sur mobile, libellés de rédaction
 //                   13 px, champ de rédaction et corps des messages 16 px sur mobile ; aucun texte de #col-right sous 12 px sur mobile ;
 //                   taille de chaque élément de #col-right égale au bundle de base (COMMIT_ECHELLE_FORUM), sans masque hors écarts consignés
-//                   de la revue S21 (classes de la revue retirées des clés, retours de la rédaction du kramail), 375, 768, 1280 px.
+//                   de la revue S21 (classes de la revue retirées des clés, retours de la rédaction du kramail) et de la densité de la
+//                   rédaction (« Options » en 13 px, cases en 15 px, lib/densite-redaction.mjs), 375, 768, 1280 px.
 // Trois rayons (ticket 8, story-trois-rayons-4-px-8-px-et-plein-plan) :
 //   rayons          plateau, forum (sujet, rédaction, index RP), sous-forum, kramail (réception, lecture, nouveau) et modale d'ordre :
 //                   375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre, rayon calculé aux quatre coins :
@@ -68,7 +70,9 @@
 //                   tous les styles calculés (éléments visibles, ::before et ::after) égaux au bundle de base (COMMIT_NETTOYAGE) ; à
 //                   768 px, pages des blocs M1 et M2 : propriétés de ces blocs égales à la base M1/M2 (COMMIT_MEDIAS_410) à 769 px ; hamburger survolé et en
 //                   focus (order 1 gardé), lignes du forum :active, champs d'une ligne 44 px ; fenêtre rétrécie sans mode mobile ; menu de
-//                   personnage du kramail 375 puis 1280 px ; bascule 767, 768, 767 px ; contrôle statique des médias et de la racine du forum ;
+//                   personnage du kramail 375 puis 1280 px (à 375 px, right relatif au sélecteur tronqué à part tant que la base précède la
+//                   densité des listes du kramail, lib/densite-liste-kramail.mjs, boîte du menu égale à la base) ; bascule 767, 768, 767 px ;
+//                   contrôle statique des médias et de la racine du forum ;
 //                   tant que la base précède la revue S21, comparaisons mobiles des styles calculés différées (DIFFERE_NETTOYAGE_S21).
 // Nom de forum des cartes mobiles à 15 px (bug 10, bug-nom-de-forum-mobile-a-17-px-au-lieu-de-15-plan) :
 //   titre-forum     index Staff (forum-index-rp.html servi à /forum/staff, cartes du template) : 375 et 767 px, Kraland clair et Empire Brun
@@ -116,6 +120,9 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_REVUE_S21, BARRE_MESSAGE_S21, CLASSES_REVUE_S21, HAUT_S21, PRIMAIRE_LECTURE_S21, RETOURS_KRAMAIL_S21 } from './lib/revue-s21.mjs';
+import { AVANT_DENSITE_REDACTION, TAILLES_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
+import { AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
+import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -822,7 +829,9 @@ const MESURE_ECHELLE = ({ ligne, secondaire: couleurSecondaire, ...sels }) => {
       imageAGauche: img ? img.getBoundingClientRect().right <= rn.left + 0.5 : null,
       nomAuBord: Math.abs(rn.left - ra.left - parseFloat(s.paddingLeft) - parseFloat(s.borderLeftWidth)),
       ecartDroit: Math.abs(ra.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - rc.right),
-      memeLigne: rc.top < rn.bottom && rn.top < rc.bottom,
+      // Densité du 1er novembre 2026 : nom sur toute la largeur du contenu, charge sur la ligne du détail, sous le texte du nom
+      sousLeNom: rc.top >= Math.max(rn.top, ...textes.map(r => r.bottom)) - 0.5,
+      nomPleineLargeur: Math.abs(ra.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - rn.right) <= 1,
       chevauchement: textes.length === 0 || textes.some(r => r.right > rc.left + 0.5 && r.left < rc.right - 0.5 && r.top < rc.bottom && rc.top < r.bottom)
         || Math.max(...textes.map(r => r.right)) > ra.right - parseFloat(s.paddingRight) + 0.5,
       couleur: getComputedStyle(ch).color, secondaire, cible: Boolean(cible && cible.closest('a') === a) };
@@ -899,7 +908,7 @@ if (on('echelle')) {
       });
     }
     if (c.nom === 'jeu-materiel') {
-      check(`echelle ${etiquette(c)} : ligne d'objet ${mobile ? 'image, nom, charge au bord droit sur la même ligne, charge en text-secondary' : 'en ordre natif'}`, () => {
+      check(`echelle ${etiquette(c)} : ligne d'objet ${mobile ? 'image, nom sur toute la largeur, charge au bord droit sous le nom (ligne du détail), charge en text-secondary' : 'en ordre natif'}`, () => {
         assert.ok(m.lignes.length >= 7 && m.lignes.some(l => !l.image), `${m.lignes.length} ligne(s) d'objet, ligne sans image ${m.lignes.some(l => !l.image) ? 'présente' : 'absente'}`);
         const ecarts = m.lignes.flatMap(l => [
           l.premier ? null : `« ${l.texte} » charge déplacée dans le DOM`,
@@ -907,7 +916,8 @@ if (on('echelle')) {
           ...(mobile ? [
             l.image ? (l.imageAGauche ? null : `« ${l.texte} » image pas à gauche du nom`) : (l.nomAuBord <= 1 ? null : `« ${l.texte} » sans image : nom à ${l.nomAuBord.toFixed(1)} px du bord`),
             l.ecartDroit <= 1 ? null : `« ${l.texte} » charge à ${l.ecartDroit.toFixed(1)} px du bord droit`,
-            l.memeLigne ? null : `« ${l.texte} » charge hors de la ligne du nom`,
+            l.nomPleineLargeur ? null : `« ${l.texte} » nom pas sur toute la largeur`,
+            l.sousLeNom ? null : `« ${l.texte} » charge pas sous le nom`,
             l.chevauchement ? `« ${l.texte} » texte du nom sur la charge ou hors de la ligne` : null,
             l.couleur === l.secondaire ? null : `« ${l.texte} » charge en ${l.couleur} au lieu de ${l.secondaire}`
           ] : [])
@@ -1049,9 +1059,9 @@ if (on('echelle')) {
     for (const { width, m } of releves) {
       const mobile = width < 768;
       if (nomPage === 'jeu-materiel') {
-        check(`echelle bascule ${bascule}${variante} ${width} px : détails en 13 px, charge ${mobile ? 'au bord droit sur la ligne du nom' : 'en ordre natif'}`, () => {
+        check(`echelle bascule ${bascule}${variante} ${width} px : détails en 13 px, charge ${mobile ? 'au bord droit sous le nom' : 'en ordre natif'}`, () => {
           assert.ok(m.detailsJeu.length > 0 && m.lignes.length > 0, 'éléments absents');
-          const hors = [...tailles(m.detailsJeu, '13px'), ...m.lignes.filter(l => !l.premier || (mobile && (l.ecartDroit > 1 || !l.memeLigne))).map(l => `« ${l.texte} » charge mal placée`)];
+          const hors = [...tailles(m.detailsJeu, '13px'), ...m.lignes.filter(l => !l.premier || (mobile && (l.ecartDroit > 1 || !l.sousLeNom))).map(l => `« ${l.texte} » charge mal placée`)];
           assert.deepEqual(hors, [], hors.join(' ; '));
         });
       }
@@ -1270,8 +1280,11 @@ if (on('echelle-forum')) {
     await context.close();
     return l;
   };
-  const cssMiroir = AVANT_REVUE_S21(avantEchelleForum) ? RETOURS_KRAMAIL_S21 : '';
-  if (cssMiroir) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (revue S21, n° 11) posés sur le bundle de base'); }
+  // Écart accepté et consigné (densité de la rédaction du 1er novembre 2026, lib/densite-redaction.mjs) : libellé « Options » en 13 px et
+  // cases en 15 px (14 px avant), posés sur un bundle de base d'avant ce changement (TAILLES_DENSITE_REDACTION).
+  const cssMiroir = [AVANT_REVUE_S21(avantEchelleForum) ? RETOURS_KRAMAIL_S21 : '', AVANT_DENSITE_REDACTION(avantEchelleForum) ? TAILLES_DENSITE_REDACTION : ''].filter(Boolean).join('\n');
+  if (AVANT_REVUE_S21(avantEchelleForum)) { console.log('  info écart accepté et consigné : retours libellés de la rédaction du kramail (revue S21, n° 11) posés sur le bundle de base'); }
+  if (AVANT_DENSITE_REDACTION(avantEchelleForum)) { console.log('  info écart accepté et consigné : « Options » en 13 px et cases en 15 px de la rédaction (densité du 1er novembre 2026) posés sur le bundle de base'); }
   const resMiroir = await mapLimit(casMiroir, async c => ({ c, apres: await releverTailles(c, userscript), base: await releverTailles(c, avantEchelleForum, cssMiroir) }));
   for (const { c, apres, base } of resMiroir) {
     check(`echelle-forum ${etiquette(c)} : taille de chaque élément de #col-right égale au bundle de base (${COMMIT_ECHELLE_FORUM}), états compris`, () => {
@@ -2176,6 +2189,17 @@ if (on('nettoyage')) {
   }
   // Fenêtre rétrécie sans mode mobile (bloc Bootbox sans mobile-mode, R1) : modale d'ordre ouverte à 1280 px, saisie en cours (pas de
   // rechargement), fenêtre passée à 767 px.
+  // Écart accepté et consigné (densité de la modale d'ordre, 1er novembre 2026, lib/densite-ordre.mjs) : sous 768 px, mobile-mode ou non, le
+  // pied d'un ordre passe en rangée (pastilles, puis « Annuler » | « Valider » à parts égales) et le corps de la modale gagne la hauteur
+  // rendue. Pied mesuré à part (modale-ordre.mjs, fragment seuil : rangée, boutons de 44 px à parts égales), hauteur du corps ignorée. Même
+  // changement : le bandeau de rechargement (PLT-01) passe sous le fond de la modale ouverte (z-index 1035 au lieu de 2000) au lieu de
+  // couvrir « Valider » et les pastilles (modale-ordre.mjs, fragment seuil). Le reste de la page est comparé, largeur de la modale comprise.
+  const ECART_DENSITE_RETRECI = AVANT_DENSITE_ORDRE(avantNettoyage)
+    ? {
+      ecarter: '.kr-order-modal .modal-footer',
+      ignorer: [['.kr-order-modal .modal-body', ['block-size', 'height', 'perspective-origin', 'transform-origin']], ['#kr-resize-banner', ['z-index']]]
+    }
+    : {};
   const resRetreci = await mapLimit(VARIANTES, async variante => {
     const ouvrirRetreci = async script => {
       const o = await ouvrirNettoyage({ nom: 'modale-ordre', width: 1280, variante, script });
@@ -2188,7 +2212,7 @@ if (on('nettoyage')) {
     };
     const a = await ouvrirRetreci(userscript);
     const b = await ouvrirRetreci(avantNettoyage);
-    const r = await comparerNettoyage(a.page, b.page);
+    const r = await comparerNettoyage(a.page, b.page, ECART_DENSITE_RETRECI);
     await a.context.close();
     await b.context.close();
     return { variante, r, mobile: a.mobile };
@@ -2200,6 +2224,14 @@ if (on('nettoyage')) {
   // Menu de personnage du kramail (R6) ouvert à 375 px sur la réception (la rédaction le masque), puis fenêtre passée à 1280 px (saisie en
   // cours dans un champ sonde ajouté des deux côtés : pas de rechargement, menu gardé) : rayon md aux quatre coins à chaque pas, menu égal
   // à la base.
+  // Écart accepté et consigné (densité des listes du kramail, 1er novembre 2026, lib/densite-liste-kramail.mjs) : en mode mobile sous
+  // 768 px, le nom de personnage se tronque dans la place laissée par les carrés (sélecteur de 207 px au lieu de 246 à 375 px). Le menu,
+  // calé à gauche du sélecteur, garde son bord gauche, sa largeur et sa hauteur, mais son right calculé, relatif au sélecteur, passe de
+  // -80,7 à -120 px : right et inset-inline-end sont retirés de la comparaison à 375 px, et la boîte du menu (bord gauche, largeur,
+  // hauteur) est comparée à celle de la base à part.
+  const ECART_MENU_LISTE = AVANT_DENSITE_LISTE_KRAMAIL(avantNettoyage) ? [['.kramail-character-dropdown', ['right', 'inset-inline-end']]] : [];
+  if (ECART_MENU_LISTE.length) { console.log('  info écart accepté et consigné : right du menu de personnage relatif au sélecteur tronqué sur la liste mobile (densité du 1er novembre 2026)'); }
+  const boiteMenu = page => page.$eval('.kramail-character-dropdown', e => { const r = e.getBoundingClientRect(); return [r.left, r.width, r.height].map(v => v.toFixed(2)).join(' '); });
   const resMenu = await mapLimit(VARIANTES, async variante => {
     const ouvrirMenu = async script => {
       const o = await ouvrirNettoyage({ nom: 'reception', width: 375, variante, script });
@@ -2211,7 +2243,7 @@ if (on('nettoyage')) {
     const rayons = page => page.$eval('.kramail-character-dropdown', e => { const s = getComputedStyle(e); return [e.getClientRects().length ? 'ouvert' : 'fermé', s.borderTopLeftRadius, s.borderTopRightRadius, s.borderBottomRightRadius, s.borderBottomLeftRadius].join(' '); });
     const a = await ouvrirMenu(userscript);
     const b = await ouvrirMenu(avantNettoyage);
-    const pas = [{ width: 375, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown' }) }];
+    const pas = [{ width: 375, rayons: await rayons(a.page), r: await comparerNettoyage(a.page, b.page, { racine: '.kramail-character-dropdown', ignorer: ECART_MENU_LISTE }), boite: [await boiteMenu(a.page), await boiteMenu(b.page)] }];
     for (const o of [a, b]) {
       await o.page.evaluate(() => { const i = document.createElement('input'); i.type = 'text'; i.id = 'kr-sonde-saisie'; document.body.appendChild(i); i.value = 'Saisie en cours'; });
       await o.page.setViewportSize({ width: 1280, height: 900 });
@@ -2227,7 +2259,8 @@ if (on('nettoyage')) {
     check(`nettoyage menu-personnage ${variante} 375 puis 1280 px : même onglet, sans rechargement`, () => assert.equal(mobile, true));
     for (const p of pas) {
       check(`nettoyage menu-personnage ${variante} ${p.width} px : ouvert, rayon md (8 px) aux quatre coins (R6)`, () => assert.equal(p.rayons, 'ouvert 8px 8px 8px 8px', p.rayons));
-      verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base`, p.r);
+      verifierNettoyage(`nettoyage menu-personnage ${variante} ${p.width} px : menu égal à la base${p.boite && ECART_MENU_LISTE.length ? ' (right et inset-inline-end à part, écart consigné)' : ''}`, p.r);
+      if (p.boite) { check(`nettoyage menu-personnage ${variante} ${p.width} px : bord gauche, largeur et hauteur du menu égaux à la base`, () => assert.equal(p.boite[0], p.boite[1])); }
     }
   }
   // Bascule 767, 768 puis 767 px dans le même onglet (rédaction du kramail, M1), base basculée de même : mode suivi, tout égal à chaque pas.

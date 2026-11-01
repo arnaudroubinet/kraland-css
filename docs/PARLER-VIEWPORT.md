@@ -51,6 +51,28 @@ Test : fragment `vivaldi` de `tests/e2e/parler-viewport.mjs` (mesure périmée f
 
 Retour d'Arnaud : le correctif fonctionne mais la zone utile devient minuscule. Mesure à 360×380 (S21, clavier ouvert) : pied 143 px (Annuler et Valider empilés), onglets collants 58 px, marges 10 px, corps 215 px. Quand un champ de saisie de la modale est focalisé et que la zone visible fait moins de 600 px, `trackOrderModalViewport` pose `kr-keyboard-open` : modale bord à bord, onglets non collants, pied sur une ligne (Annuler | Valider), pastilles masquées. Résultat : pied 57 px, corps 321 px. Le mode est retiré au blur. Test : fragment `vivaldi`.
 
+## Suite : densité de la popin (relevé sur le site réel)
+
+Retour d'Arnaud du 1er novembre 2026 sur la popin Parler, thème brun : retours à la ligne injustifiés, interlignes trop grands, espace horizontal mal employé, barre Valider/Annuler trop haute. Relevé cette fois sur le site réel (popin Parler ouverte sur un personnage du plateau, sans validation), page de 360 × 680 px visibles, thème Empire Brun sombre, feuille de `feature/next` injectée à la place de celle du serveur local.
+
+| Mesure (360 × 680) | Avant | Après |
+| --- | --- | --- |
+| Pied (pastilles, Annuler, Valider) | 209 px, boutons empilés, pastilles sur 2 rangées | 89 px, pastilles sur 1 rangée, Annuler \| Valider côte à côte |
+| Corps visible | 449 px | 591 px |
+| Liste de la cible | 141 px (2 colonnes vides de 20 px, liste de 56 px) | 44 px, à côté de la croix |
+| Titre (avatar, nom, icônes) | 116 px, nom sur 2 lignes | 60 px, nom sur 1 ligne |
+| Lien du nom dans la description | bloc de 44 px | en ligne, 17 px |
+| Onglets (8) | 226 px, 2 colonnes | 146 px, 3 colonnes |
+| « Masquer son identité » | 3 lignes dans 83 px | 1 ligne |
+| Libellés Action, Options, Message | 44 px chacun | 21 px |
+| Zone de saisie | 240 px de large, à 1 956 px du haut | 314 px de large, à 1 216 px |
+
+Corrections : section « MODALE D'ORDRE MOBILE : DENSITÉ » en fin de `kraland-theme.css` (sous 768 px), et `forceOrderModalGridLayout` qui lit colonnes, écart et retrait des onglets dans des variables CSS (valeurs de repli : rendu historique, bureau inchangé). Le mode compact du clavier ouvert reste tel quel. Le retrait de 15 px du corps reste : la croix garde la place de celle des confirmations hors ordre (ticket 2.5). Les confirmations hors ordre gardent le pied en colonne.
+
+Fenêtre rétrécie sous 768 px sans rechargement (saisie en cours, bandeau « La mise en page s'adaptera au prochain rechargement ») : la règle mobile générale `.btn + .btn` mettait 8 px au-dessus de « Valider », désormais sans marge dans le pied d'un ordre. Le bandeau (z-index 2000) recouvrait le bas de la modale, « Valider » compris, déjà avant ce changement : modale ouverte, il passe sous son fond (z-index 1035) et revient à la fermeture.
+
+Tests : `tests/e2e/modale-ordre.mjs` attend désormais, sous 768 px, le pied d'un ordre en rangée (« Annuler » | « Valider » à parts égales) et celui d'une confirmation hors ordre en colonne.
+
 ## Suite : tap sur Annuler perdu en mode compact
 
-Revue après fusion de #32 et #34 : clavier ouvert, un tap sur Annuler ne faisait rien. Le focus passe du champ au bouton dès le mousedown ; le `focusout` retirait `kr-keyboard-open` (à cet instant `document.activeElement` vaut `<body>`), le pied repassait sur deux lignes et le mouseup tombait sur Valider : le clic, distribué à l'ancêtre commun (le pied), était perdu. Correctif : le mode compact est gardé quand le focus reste dans la modale (cible lue dans `e.relatedTarget` pendant `focusout`) ; il est retiré quand la zone visible repasse au-dessus du seuil (clavier réellement fermé) ou quand le focus sort de la modale. Test : fragment `vivaldi` (tap tactile sur Annuler, rouge avant le correctif).
+Revue après fusion de #32 et #34 : clavier ouvert, un tap sur Annuler ne faisait rien. Le focus passe du champ au bouton dès le mousedown ; le `focusout` retirait `kr-keyboard-open` (à cet instant `document.activeElement` vaut `<body>`), le pied repassait sur deux lignes et le mouseup tombait sur Valider : le clic, distribué à l'ancêtre commun (le pied), était perdu. Correctif : le mode compact est gardé quand le focus reste dans la modale (cible lue dans `e.relatedTarget` pendant `focusout`) ; il est retiré quand la zone visible repasse au-dessus du seuil (clavier réellement fermé) ou quand le focus sort de la modale. Depuis la densité de la popin, le pied d'un ordre reste en rangée : le défaut ne touche plus que les confirmations hors ordre avec champ (pied en colonne hors mode compact). Test : fragment `vivaldi` (confirmation hors ordre, tap tactile sur Annuler, rouge avant le correctif).

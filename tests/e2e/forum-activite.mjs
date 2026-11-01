@@ -64,7 +64,9 @@
 //             l'entrée 8 ; 768 et 1280 px : textes égaux au bundle de base (7bec452).
 // Bundle de base : celui de 7bec452 (fin des entrées 9.1 à 9.10, SHA figé, recalage du sweep 9.12) pour tous les fragments, sauf KR_SCRIPT_AVANT ;
 // aucun masque : la base est une garde de régression, les décisions sont prouvées par les contrôles absolus (revue S21 : tant que la base
-// d'un fragment précède la revue, ses comparaisons mobiles qui en dépendent sont différées, differeS21). Fixtures synthétiques du dépôt seulement ; le
+// d'un fragment précède la revue, ses comparaisons mobiles qui en dépendent sont différées, differeS21 ; densités du 1er novembre 2026 :
+// écarts consignés à leur fragment tant que la base précède le changement, rédaction au fragment fil, lib/densite-redaction.mjs, listes du
+// kramail au fragment plus, lib/densite-liste-kramail.mjs). Fixtures synthétiques du dépôt seulement ; le
 // #flap et les ancres renommées sont posés en mémoire. Vrai Bootstrap 3.3.7 (tests/e2e/vendor), confinement réseau, aucune requête hors
 // fixture. Repères partagés (fixtures, classes de page, ligne, flèche) importés de lib/variantes.mjs (routeur, MAX_CITING).
 // Fixtures citées pour le routage des fixtures : forum-index-rp.html, forum-racine-groupes.html, sous-forum-debuter.html (règle de fichier),
@@ -97,6 +99,8 @@ import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
 import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 import { TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
+import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
+import { AVANT_DENSITE_LISTE_KRAMAIL } from './lib/densite-liste-kramail.mjs';
 import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -785,8 +789,11 @@ if (on('fil')) {
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
-    const differe = differeS21(baseFil, width);
-    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu${differe ? DIFFERE_S21 : ''}, aucune exception`, () => {
+    // Écart accepté et consigné (densité de la rédaction, lib/densite-redaction.mjs) : la réponse mobile a le fil commun « Forum › Sujet ›
+    // Réponse » (contrôle absolu ci-dessous) ; comparaison à la base différée tant que la base précède ce changement.
+    const differeRedaction = cle === 'reponse' && width < 768 && AVANT_DENSITE_REDACTION(baseFil);
+    const differe = differeS21(baseFil, width) || differeRedaction;
+    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu${differe ? (differeS21(baseFil, width) ? DIFFERE_S21 : ' (comparaison mobile à la base différée, densité de la rédaction)') : ''}, aucune exception`, () => {
       assert.ok(teste.f.theme && base.f.theme, 'kr-theme-enabled absent');
       if (width >= 768) { assert.equal(teste.f.conteneurs.filter(c => c.cls === R.fil).length, 0, 'fil au bureau'); }
       if (differe) { assert.deepEqual(teste.erreurs, []); return; }
@@ -794,6 +801,33 @@ if (on('fil')) {
       const k = teste.e.findIndex((x, j) => x !== base.e[j]);
       assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
       assert.deepEqual(teste.erreurs, []);
+    });
+  });
+
+  // Réponse au forum (densité de la rédaction, 1er novembre 2026 ; transformPostHeader) : titre réel « Sujet > Réponse » à deux liens
+  // (forum, sujet), fil commun sur une ligne « Forum › Sujet › Réponse » ; le sujet cède la place, « Réponse » reste lisible en entier.
+  const casR = [320, 375].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante })));
+  const resR = await mapLimit(casR, async c => lireFil(await ouvrir(c)));
+  casR.forEach(({ width, variante }, i) => {
+    const { f, erreurs } = resR[i];
+    check(`fil reponse ${variante} ${width} px (densité de la rédaction) : un seul fil de la famille commune, « Site & Annonces › FIXTURE sujet de test › Réponse » sur une ligne, forum et sujet en liens au href du site, sans icône ni style en ligne, liens d'au moins 44 px atteints ; « Réponse » en entier ; aucun bouton flottant, aucun débordement, aucune exception`, () => {
+      assert.ok(f.theme && f.mobile, `kr-theme-enabled ${f.theme}, mobile ${f.mobile}`);
+      assert.equal(f.conteneurs.length, 1, 'conteneurs de fil : ' + f.conteneurs.map(c => c.cls).join(', '));
+      const c = f.conteneurs[0];
+      assert.equal(c.cls, R.fil, 'classe du conteneur');
+      assert.deepEqual(c.enfants.map(e => [e.tag, e.cls]), [['A', R.lien], ['SPAN', R.sep], ['A', R.lien], ['SPAN', R.sep], ['SPAN', R.courant]], 'structure du fil');
+      const [forum, sep, sujet, , courant] = c.enfants;
+      assert.deepEqual([forum.texte, forum.href, sujet.texte, sujet.href, courant.texte], ['Site & Annonces', 'forum/hrp/site-annonces-20101', 'FIXTURE sujet de test', 'forum/sujet/fixture-1-1', 'Réponse'], 'liens et courant');
+      assert.deepEqual([sep.texte, sep.masque], ['›', 'true'], 'séparateur');
+      assert.ok(!c.icone, `icône de retour dans le fil : « ${c.texte} »`);
+      assert.equal(c.style, '', 'style en ligne du conteneur');
+      const centres = c.enfants.map(e => e.boite.y + e.boite.h / 2);
+      assert.ok(Math.max(...centres) - Math.min(...centres) <= 1, 'une ligne : ' + centres.join(', '));
+      assert.ok([forum, sujet].every(a => a.boite.h >= 44 && a.cible), 'liens : ' + JSON.stringify([forum, sujet].map(a => [a.boite.h, a.cible])));
+      assert.ok(courant.sw <= courant.cw, `« Réponse » tronqué : ${courant.sw} > ${courant.cw}`);
+      assert.equal(f.fabs, 0, 'bouton flottant');
+      assert.ok(f.debordPage <= 0, 'débordement ' + f.debordPage);
+      assert.deepEqual(erreurs, []);
     });
   });
 
@@ -1207,7 +1241,7 @@ const PLUS = ({ p, cle }) => {
     // Forum : autres actions des barres (hors « ••• ») ; kramail : autres boutons du h1 (hors toggle du menu).
     voisins: cle === 'sujet'
       ? [...document.querySelectorAll(p.message + ' > ' + p.barre + ' .btn')].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, ...couleurs(b) }))
-      : [...document.querySelectorAll(p.boutonsH1)].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, href: b.getAttribute('href'), boite: boite(b), ...couleurs(b) }))
+      : [...document.querySelectorAll(p.boutonsH1)].filter(b => !hotes.includes(b)).map(b => ({ cls: b.className, href: b.getAttribute('href'), dossier: b.hasAttribute('data-kr-dossier'), boite: boite(b), ...couleurs(b) }))
   };
   hotes.forEach((h, i) => { out.hotes[i].cible = cible(h); });
   window.scrollTo(0, 0);
@@ -1358,12 +1392,19 @@ if (on('plus')) {
       const differe = differeS21(basePlus, width);
       const rang = differe && nom === 'lecture';
       const sansY = bt => (differe ? { ...bt, y: '·', ...(rang ? { x: '·', w: '·' } : {}) } : bt);
-      check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})${rang ? ', position et largeur à part (revue S21, n° 1 et 4)' : differe ? ', ordonnée à part (revue S21, n° 4)' : ''}`, () => {
+      // Écart accepté et consigné (densité des listes du kramail, 1er novembre 2026, lib/densite-liste-kramail.mjs) : en mode mobile sous
+      // 768 px, « ••• », Nouveau et Contacts passent au rang du titre, en bout de rang, et les onglets au rang suivant : abscisse des carrés
+      // et ordonnée de tous les boutons changent, leurs tailles non (carrés de 44 px, onglets inchangés). Tant que la base précède ce
+      // changement, abscisse des carrés et ordonnée à part sur la réception ; carrés atteints au centre et aux coins, au rang du titre, et
+      // onglets entiers sur un rang de 44 px : kramail-theme#liste-densite et #onglets.
+      const liste = nom === 'reception' && width < 768 && AVANT_DENSITE_LISTE_KRAMAIL(basePlus);
+      const vueBoite = (bt, dossier) => (liste ? { ...sansY(bt), y: '·', ...(dossier ? {} : { x: '·' }) } : sansY(bt));
+      check(`${lab} : « ••• » du kramail (fond, bordure, texte, boîte, rayon) et autres boutons du h1 (boîtes, fond, bordure, texte) égaux au bundle de base (${COMMIT_PLUS})${rang ? ', position et largeur à part (revue S21, n° 1 et 4)' : differe ? ', ordonnée à part (revue S21, n° 4)' : ''}${liste ? `, abscisse de « ••• », Nouveau et Contacts${differe ? '' : ' et ordonnée'} à part (densité des listes du kramail)` : ''}`, () => {
         assert.equal(m.hotes.length, b.m.hotes.length, 'boutons d\'accroche');
-        const vue = h => ({ boite: sansY(h.boite), fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
+        const vue = h => ({ boite: vueBoite(h.boite, false), fond: h.fond, bordure: h.bordure, couleur: h.couleur, rayon: h.rayon });
         assert.deepEqual(m.hotes.map(vue), b.m.hotes.map(vue), '« ••• »');
         assert.ok(m.voisins.length > 0, 'aucun autre bouton du h1');
-        const vueK = v => vueKramail(v).map(x => ({ ...x, boite: sansY(x.boite) }));
+        const vueK = v => vueKramail(v).map((x, k) => ({ ...x, dossier: v[k].dossier, boite: vueBoite(x.boite, v[k].dossier) }));
         // N° 1 : btn-primary passe du retour au dossier à « Répondre » ; en lecture, mêmes boutons à l'ordre près (les apparences permutent)
         const ordre = l => (rang ? l.map(x => JSON.stringify(x)).sort() : l);
         assert.deepEqual(ordre(vueK(m.voisins)), ordre(vueK(b.m.voisins)), 'autres boutons du h1');

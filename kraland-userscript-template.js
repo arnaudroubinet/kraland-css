@@ -306,6 +306,9 @@
   /** Classes de page posées sur <html> par applyVariant : test du chemin -> classes (les pages secondaires s'ajoutent ici). */
   const KR_PAGE_CLASSES = [
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
+    // Matériel et Personnage, sous-chemins compris : densité mobile de leurs panneaux (CSS « MATÉRIEL ET PERSONNAGE MOBILES : DENSITÉ »)
+    { test: pathname => krActiveGameSection(pathname) === '/jouer/materiel', classes: ['kr-page-materiel'] },
+    { test: pathname => krActiveGameSection(pathname) === '/jouer/perso', classes: ['kr-page-personnage'] },
     { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
     { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] },
     { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] },
@@ -5628,6 +5631,30 @@
       console.log('[Forum Header Mobile] En-tête du sous-forum créé');
     }
 
+    // Rédaction du forum (/forum/post/…, densité du 1er novembre 2026, relevé réel sur une réponse) : le titre natif « Sujet > Réponse » et
+    // ses boutons « ◀◀ Forum » et « ◀◀ sujet » deviennent le fil d'Ariane commun (H12.3) sur une ligne, « Forum › Sujet › Réponse » : forum
+    // et sujet en liens (href recopiés tels quels), l'action en niveau courant. L'ancien fil gardait le bouton du forum (161 px de large),
+    // écrasait le titre sur trois lignes dans 135 px et perdait le lien du sujet. Replis : sans « > » dans le titre, le sujet garde le
+    // libellé de son lien et le titre entier devient le niveau courant ; sans lien de sujet, le forum seul est en lien.
+    function transformPostHeader(forumHeading, links, titleText) {
+      const topicLink = links.find(a => /(^|\/)forum\/sujet\//.test(a.getAttribute('href') || ''));
+      const forumLink = links.find(a => a !== topicLink);
+      const cut = topicLink ? titleText.lastIndexOf('>') : -1;
+      const topicTitle = cut > 0 ? titleText.slice(0, cut).trim() : '';
+      const action = cut > 0 ? titleText.slice(cut + 1).trim() : '';
+      const parents = [];
+      if (forumLink) {
+        parents.push({ label: forumLink.textContent.trim(), href: forumLink.getAttribute('href') });
+      }
+      if (topicLink) {
+        parents.push({ label: topicTitle || topicLink.textContent.trim(), href: topicLink.getAttribute('href') });
+      }
+      forumHeading.replaceChildren(createForumBreadcrumb(parents, (topicTitle && action) || titleText));
+      // Garde de page de la rédaction transformée (CSS : fil commun)
+      document.body.classList.add('kr-forum-redaction');
+      console.log('[Forum Header Mobile] Fil d\'Ariane de la rédaction créé');
+    }
+
     function transformForumHeader() {
       // Uniquement en mode mobile
       if (!document.body.classList.contains('mobile-mode')) {
@@ -5667,6 +5694,11 @@
       // L2 (sous-forum) : la page de liste des sujets (table#topics) a son propre en-tête : fil d'Ariane, titre, « + Nouveau sujet » libellé
       if (document.getElementById('topics') && !/\/forum\/post\//.test(window.location.pathname)) {
         transformSubforumHeader(forumHeading, backLink, newTopicLink, titleText);
+        return;
+      }
+      // Rédaction (réponse et autres pages /forum/post/ à deux liens de titre) : fil commun, sans « + » (F-01)
+      if (/\/forum\/post\//.test(window.location.pathname)) {
+        transformPostHeader(forumHeading, Array.from(links), titleText);
         return;
       }
       // ========================================
@@ -5729,7 +5761,8 @@
       breadcrumbLeft.appendChild(currentTitle);
 
       // Partie droite : bouton (+)
-      // F-01 : pas de « + » sur les pages d'édition (/forum/post/...) : il mènerait à « nouveau sujet » et ferait quitter la saisie
+      // F-01 : jamais sur les pages d'édition (/forum/post/...), qui ont leur propre en-tête (transformPostHeader, plus haut) : le « + »
+      // mènerait à « nouveau sujet » et ferait quitter la saisie
       const fab = document.createElement('a');
       fab.href = newTopicLink.href;
       fab.className = 'forum-new-topic-fab';
@@ -5762,9 +5795,7 @@
       });
 
       breadcrumbWrapper.appendChild(breadcrumbLeft);
-      if (!/\/forum\/post\//.test(window.location.pathname)) {
-        breadcrumbWrapper.appendChild(fab);
-      }
+      breadcrumbWrapper.appendChild(fab);
 
       // ========================================
       // 2. REMPLACER LE CONTENU DU H1
@@ -9238,10 +9269,15 @@
   const VIEWPORT_SETTLE_DELAYS = [50, 150, 300, 600, 1000];
   // Hauteur visible (px CSS) sous laquelle un champ focalisé passe la modale en mode compact (clavier ouvert).
   const KEYBOARD_COMPACT_MAX_HEIGHT = 600;
+  // Formulaire d'ordre (socle de la modale d'ordre, applyOrderModal)
+  const ORDER_FORM_SELECTOR = '#ajax-order form[name="post_msg"]';
 
   /**
-   * Contient les Bootbox avec saisie (ordres, formulaires) dans la zone réellement visible, sans toucher au formulaire.
-   * Le contenu peut arriver par Ajax ; les Bootbox sans champ de saisie et le bureau restent hors périmètre.
+   * Contient les Bootbox avec saisie (ordres, formulaires) et les ordres trop longs pour leur carte dans la zone réellement visible, sans
+   * toucher au formulaire. Ordre long (densité du 1er novembre 2026 : détail d'un objet du Matériel, vue d'une organisation) : corps qui
+   * défile dans la carte, mesuré avant le premier rendu (ResizeObserver) ; le cadre bord à bord reste jusqu'à la fermeture, d'un onglet
+   * à l'autre. Le contenu peut arriver par Ajax ; les ordres courts (Dormir), les Bootbox sans saisie hors ordre et le bureau gardent leur
+   * cadre, une fenêtre d'ordinateur rétrécie sous 768 px aussi (ordre long mesuré en mode mobile seulement).
    */
   function trackOrderModalViewport(modal) {
     const viewport = window.visualViewport;
@@ -9249,8 +9285,30 @@
     let settleTimers = [];
     // Pendant focusout, document.activeElement vaut encore <body> : l'élément qui reçoit le focus est e.relatedTarget.
     let focusTarget = null;
+    let longOrder = false;
+    let measuredForm = null;
+    // Ordre long : corps de la carte qui défile (contenu plus haut que sa boîte). Le formulaire est suivi aussi (images chargées, onglet
+    // remplacé par Ajax). Sans ResizeObserver, les mutations et la zone visible déclenchent seules la mesure.
+    const sizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => update()) : null;
+    function measureLongOrder() {
+      if (longOrder || !mobile.matches || !isMobileMode()) {return;}
+      const form = modal.querySelector(ORDER_FORM_SELECTOR);
+      const body = modal.querySelector('.modal-body');
+      if (!form || !body) {return;}
+      if (sizeObserver && form !== measuredForm) {
+        if (measuredForm) {sizeObserver.unobserve(measuredForm);}
+        sizeObserver.observe(form);
+        sizeObserver.observe(body);
+        measuredForm = form;
+      }
+      // Mesure sur la carte de l'ordre mise en forme (applyOrderModal, kr-order-modal), pas sur le contenu brut de Bootbox : Dormir y
+      // dépasse avant la mise en forme (633 px pour 467) et tient après (409)
+      if (!modal.classList.contains('kr-order-modal')) {return;}
+      longOrder = body.clientHeight > 0 && body.scrollHeight > body.clientHeight + 1;
+    }
     function update() {
-      const active = mobile.matches && !!modal.querySelector(KEYBOARD_FIELD_SELECTOR);
+      measureLongOrder();
+      const active = mobile.matches && (!!modal.querySelector(KEYBOARD_FIELD_SELECTOR) || longOrder);
       modal.classList.toggle('kr-order-viewport', active);
       // Clavier ouvert : champ de saisie de la modale focalisé et zone visible réduite → mode compact (pied sur une ligne,
       // marges retirées, onglets non collants) pour rendre l'écran au champ de saisie.
@@ -9296,6 +9354,7 @@
     }
     $(modal).one('hidden.bs.modal', function () {
       contentObserver.disconnect();
+      if (sizeObserver) {sizeObserver.disconnect();}
       settleTimers.forEach(clearTimeout);
       settleTimers = [];
       window.removeEventListener('resize', settle);
@@ -9430,6 +9489,9 @@
   /**
    * Force le layout grid pour les actions de la modal d'ordre
    * Contourne le display:flex de Bootstrap 3 qui empêche grid de fonctionner
+   * Colonnes, écart, affichage et retrait des onglets passent par des variables CSS (--kr-order-tabs-columns, --kr-order-tabs-gap,
+   * --kr-order-tab-display, --kr-order-tab-padding) : le thème les règle sur mobile (3 colonnes serrées), les valeurs de repli gardent
+   * le rendu historique (2 colonnes, 12 px).
    */
   function forceOrderModalGridLayout(modal) {
     if (!modal) {return;}
@@ -9455,9 +9517,9 @@
       ul.style.setProperty('display', 'grid', 'important');
 
       // Tous les groupes en 2 colonnes - grille homogène continue
-      ul.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+      ul.style.setProperty('grid-template-columns', 'var(--kr-order-tabs-columns, repeat(2, 1fr))', 'important');
 
-      ul.style.setProperty('gap', '12px', 'important');
+      ul.style.setProperty('gap', 'var(--kr-order-tabs-gap, 12px)', 'important');
       ul.style.setProperty('padding-left', '0', 'important');
 
       // Force l'alignement des grid items au début (gauche)
@@ -9465,7 +9527,7 @@
       ul.style.setProperty('align-items', 'stretch', 'important');
 
       // Grille continue - même espacement partout (pas de séparation visuelle)
-      ul.style.setProperty('margin-bottom', '12px', 'important');
+      ul.style.setProperty('margin-bottom', 'var(--kr-order-tabs-gap, 12px)', 'important');
       ul.style.setProperty('border-bottom', 'none', 'important');
       ul.style.setProperty('border-top', 'none', 'important');
       ul.style.setProperty('padding-top', '0', 'important');
@@ -9506,10 +9568,10 @@
         // Style les liens
         const link = li.querySelector('a');
         if (link) {
-          link.style.setProperty('display', 'block', 'important');
+          link.style.setProperty('display', 'var(--kr-order-tab-display, block)', 'important');
           link.style.setProperty('width', '100%', 'important');
           link.style.setProperty('min-height', '44px', 'important');
-          link.style.setProperty('padding', '12px 16px', 'important');
+          link.style.setProperty('padding', 'var(--kr-order-tab-padding, 12px 16px)', 'important');
           link.style.setProperty('text-align', 'center', 'important');
           link.style.setProperty('border-radius', 'var(--kr-radius-sm)', 'important');
           link.style.setProperty('margin', '0', 'important');
@@ -9546,8 +9608,9 @@
     const h3Title = modalBody.querySelector('h3');
 
     if (selectRow && h3Title) {
-      // Marquer pour styling sticky
-      selectRow.classList.add('kraland-modal-header');
+      // Marquer pour styling sticky. Rangée d'en-tête : celle du sélecteur, avant le titre ; sans sélecteur, la première rangée est un
+      // champ du formulaire (Option de Quitter, Nombre de Dormir), plus bas, qui n'en est pas une.
+      if (selectRow.compareDocumentPosition(h3Title) & Node.DOCUMENT_POSITION_FOLLOWING) {selectRow.classList.add('kraland-modal-header');}
       h3Title.classList.add('kraland-character-title');
       console.log('[Order Modal] Header marqué');
     }
@@ -9697,10 +9760,14 @@
 
     const select = modal.querySelector('.kraland-modal-header select');
     if (!select) {return;}
+    // Groupes du site déjà posés (objets du Matériel par catégorie : Argent, Outils, Armes…) : ils restent, ce ne sont pas des personnages
+    if (select.querySelector('optgroup')) {return;}
 
     // Récupérer toutes les options
     const options = Array.from(select.options);
     if (options.length === 0) {return;}
+    // Option choisie (cible ouverte) : déplacer les options la ferait passer à une autre
+    const choisie = select.selectedOptions[0] || null;
 
     // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
     const pjOptions = [];
@@ -9736,6 +9803,7 @@
       pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
       select.appendChild(pnjGroup);
     }
+    if (choisie) {choisie.selected = true;}
 
     console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
   }
@@ -10090,7 +10158,12 @@
       for (const navTab of allNavTabs) {
         activeTab = navTab.querySelector('li.active');
         if (activeTab) {
-          activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          // Liste d'onglets seule, à l'horizontale : scrollIntoView faisait aussi défiler le corps de la modale jusqu'aux onglets (vue
+          // d'une organisation ouverte au milieu de la liste des membres, densité du 1er novembre 2026)
+          if (navTab.scrollWidth > navTab.clientWidth) {
+            const gauche = activeTab.getBoundingClientRect().left - navTab.getBoundingClientRect().left + navTab.scrollLeft;
+            navTab.scrollTo({ left: gauche - (navTab.clientWidth - activeTab.offsetWidth) / 2, behavior: 'smooth' });
+          }
           break;
         }
       }

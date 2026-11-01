@@ -40,7 +40,7 @@ export const SUITES = [
   // Messages du forum v3 (lecture, rédaction, édition ; mobile) : fixtures du DOM réel, vrai Bootstrap. Fragments = vues du rapport.
   { name: 'messages-v3', file: 'messages-v3.mjs', zones: ['messages'], frags: [['lecture-sombre'], ['redaction-sombre'], ['edition'], ['seuils'], ['transitions'], ['bureau'], ['themes'], ['confinement']], needsBootstrap: true },
   // Kramail rédaction (barre d'outils fidèle, champ Destinataires) : fixtures anonymisées du DOM réel, autres pages Kramail comparées au bundle de feature/next.
-  { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau'], ['envoi', 'repli'], ['libelle', 'indicatif']] },
+  { name: 'kramail-redaction', file: 'kramail-redaction.mjs', zones: ['kramail'], frags: [['regression'], ['themes'], ['reponses-repondre'], ['reponses-tous'], ['reponses-transferer'], ['dest-1280'], ['dest-375'], ['dest-320'], ['barre'], ['blocage-1280'], ['blocage-375'], ['blocage-320'], ['clavier', 'reseau'], ['envoi', 'repli'], ['libelle', 'indicatif'], ['densite']] },
   // Garde du confinement réseau : refus effectif d'une sonde hors local (lib/confinement.mjs) et chaque contexte de suite confiné (lecture statique).
   { name: 'confinement-reseau', file: 'confinement-reseau.mjs', zones: ['confinement'] },
   // Garde-fou de fin d'initialisation : html[data-kr-ready] (InitQueue) suit toutes les mutations différées ; contre-preuves d'oubli intégrées.
@@ -114,7 +114,7 @@ export const SUITES = [
   // Contacts (entrée 8) : en-tête et carte de la Réception, boutons standard ou primaire, cibles de 44 px, 16 variantes.
   // Confort (épopée 9, entrée 9) : dossiers, lecture, rédaction et contacts à 320, 375 et 767 px, texte à 16 px, cibles de 44 px ; 768, 1280 px et bascule égaux à la base.
   // Contacts, lot B (backlog 28, 30) : boutons de catégorie au-dessus de la carte de 767 à 1280 px (titre long) ; pagination sans débordement à 320 et 375 px.
-  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-toucher'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter'], ['confort'], ['contacts-onglets'], ['contacts-pagination']], needsBootstrap: true },
+  { name: 'kramail-theme', file: 'kramail-theme.mjs', zones: ['kramail'], frags: [['gardes'], ['onglets'], ['bureau'], ['bascule'], ['lecture'], ['lecture-plus'], ['lecture-couleurs'], ['entete'], ['entete-menu'], ['entete-toucher'], ['entete-clavier'], ['entete-couleurs'], ['liste'], ['liste-actions'], ['liste-couleurs'], ['liste-dossiers'], ['liste-densite'], ['redaction'], ['redaction-focus'], ['redaction-defilement'], ['redaction-dest'], ['redaction-palette'], ['contacts'], ['contacts-boutons'], ['contacts-couleurs'], ['envoyer'], ['remonter'], ['confort'], ['contacts-onglets'], ['contacts-pagination']], needsBootstrap: true },
   // Confort mobile (épopée 9, entrée 1) : marge latérale de 16 px des pages de jeu et de l'Aide (fixture synthétique aide.html), mesurée sur
   // le texte (lib/marges.mjs) à 320, 375, 700 et 767 px, cartes de section à 8 px, mini-profil du plateau plié et déplié ; 768, 769 et
   // 1280 px, bascule 767 <-> 768 et page hors périmètre (index Staff) égales au bundle de base. Entrée 4 : pages
@@ -130,7 +130,12 @@ export const SUITES = [
   // Revue mobile Galaxy S21 (rapport du 31 octobre 2026) : une vérification par constat corrigé, émulation S21 (360 × 800, tactile), feuilles
   // natives du site (vendor/parler) ; rouge sur le bundle d'avant la revue (f404965), vert après. Repères déjà cités par trois suites tenus
   // dans lib/revue-s21.mjs (MAX_CITING). Fragments = constats du rapport.
-  { name: 'revue-s21', file: 'revue-s21.mjs', zones: ['revue-s21'], frags: [['kramail'], ['liens'], ['cartes'], ['haut'], ['navigation'], ['sous-forum'], ['champs'], ['alertes'], ['chevrons'], ['ordre'], ['pied'], ['forum'], ['mini-profil'], ['palette'], ['contrastes'], ['secondaires']], needsBootstrap: true }
+  { name: 'revue-s21', file: 'revue-s21.mjs', zones: ['revue-s21'], frags: [['kramail'], ['liens'], ['cartes'], ['haut'], ['navigation'], ['sous-forum'], ['champs'], ['alertes'], ['chevrons'], ['ordre'], ['pied'], ['forum'], ['mini-profil'], ['palette'], ['contrastes'], ['secondaires']], needsBootstrap: true },
+  // Densité mobile du Matériel et du Personnage (retours d'Arnaud du 1er novembre 2026) : Matériel, Personnage, détail d'un objet et vue
+  // d'une organisation (fixtures synthétiques à structure relevée, feuilles natives vendor/parler), 320, 360 et 375 px ; ordres courts
+  // (Dormir, Pouvoir) gardant leur carte ; seuil (767, 768 et 769 px, aller-retour dans le même onglet) ; ordinateur égal au bundle de
+  // base (4881f49). Rouge sur ce bundle, vert après.
+  { name: 'densite-jeu', file: 'densite-jeu.mjs', zones: ['densite-jeu'], frags: [['materiel'], ['personnage'], ['objet'], ['organisation'], ['courts'], ['seuil']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -163,8 +168,8 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/plateau-(?:qualite-usage|minimal)\.html$/, ['plateau', 'cartes-pastilles']],
   [/^tests\/e2e\/fixtures\/plateau-/, ['plateau']],
   [/^tests\/e2e\/fixtures\/parler\//, ['parler']],
-  [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre']],
-  [/^tests\/e2e\/vendor\/parler\//, ['parler', 'modale-ordre']], // harnais Bootbox natif, repris par la suite de la modale d'ordre
+  [/^tests\/e2e\/fixtures\/modale-ordre\//, ['modale-ordre', 'densite-jeu']], // détail d'objet, vue d'organisation, ordres courts : densite-jeu aussi
+  [/^tests\/e2e\/vendor\/parler\//, ['parler', 'modale-ordre', 'densite-jeu']], // harnais Bootbox natif, repris par la modale d'ordre et densite-jeu
   // Fixtures lues aussi par cartes-pastilles (fragment pastilles, épopée 5, entrée 4 : référence du sous-forum, pastilles vides de la réception).
   // Parcours « premier non lu » de forum-activite (épopée 6, entrée 2) : titre du sujet « Gagner des PA ».
   [/^tests\/e2e\/fixtures\/sous-forum-debuter\.html$/, ['sous-forum', 'cartes-pastilles', 'forum-activite']],
@@ -188,10 +193,16 @@ const PACKAGE_INERT_KEYS = ['name', 'version', 'description', 'author', 'license
 const BASCULE_ZONES = ['demarrage', ...SUITES.filter(s => s.file === 'breakpoint-switch.mjs').flatMap(s => s.zones)];
 // Mots-clés d'un hunk (CSS/JS) -> zone. Un hunk sans mot-clé reconnu (ni dans son module englobant, voir SECTIONS) élargit au total.
 export const KEYWORDS = [
-  [/kr-order-viewport|kr-order-visible|trackOrderModalViewport|visualViewport/i, ['parler']],
+  // Cadre bord à bord des ordres : à saisie (parler) et longs (densite-jeu : détail d'objet, vue d'organisation ; ordres courts gardant leur carte).
+  [/kr-order-viewport|kr-order-visible|trackOrderModalViewport|visualViewport/i, ['parler', 'densite-jeu']],
   // Modale d'ordre : repères du socle (kr-order-modal, kr-order-form...), règles .bootbox-confirm, contenu #ajax-order, boutons Bootbox.
-  // Parler aussi : sa sonde est une modale d'ordre (#ajax-order form[name=post_msg]) dont il mesure la géométrie et les nœuds natifs.
-  [/kr-order-(?!viewport|visible)|bootbox-confirm|ajax-order|bb-handler|modale-ordre/i, ['modale-ordre', 'parler']],
+  // Parler aussi : sa sonde est une modale d'ordre (#ajax-order form[name=post_msg]) dont il mesure la géométrie et les nœuds natifs ;
+  // densite-jeu de même (détail d'objet, vue d'organisation : membres de la vue resserrés sous .kr-order-modal .kr-order-form).
+  [/kr-order-(?!viewport|visible)|bootbox-confirm|ajax-order|bb-handler|modale-ordre/i, ['modale-ordre', 'parler', 'densite-jeu']],
+  // Densité mobile du Matériel et du Personnage (1er novembre 2026) : classes de page (KR_PAGE_CLASSES) et section du thème ; mesurées aussi
+  // par cartes-pastilles (carte, étiquettes), typographie-formes (échelle, espacement : plateau-typo est servie à /jouer/materiel) et
+  // confort-mobile (pages de jeu).
+  [/kr-page-materiel|kr-page-personnage|kr-densite-corps-cote/, ['densite-jeu', 'cartes-pastilles', 'typographie-formes', 'confort-mobile']],
   [/kr-page-report/, ['report']],
   // Cloche des notifications (ticket 8.2) : redéfinition d'openReport, vérifiée par cloche-notifications.
   [/openReport|private_report/, ['cloche']],
@@ -302,8 +313,9 @@ export const SECTIONS = [
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']],
   [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],
   [/^CYBERMONDE/, ['cybermonde']],
-  // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : seules ces deux suites ouvrent une modale Bootbox.
-  [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler']],
+  // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : suites qui ouvrent une modale d'ordre (densite-jeu :
+  // détail d'objet, vue d'organisation, ordres courts ; sélecteur d'objet, onglet actif, rangée d'en-tête).
+  [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler', 'densite-jeu']],
   // Correctifs mobiles du chargement (« FIX MOBILE : … » : défilement vers #flap) : ancres vérifiées par forum-activite.
   [/^FIX MOBILE : /, ['forum-activite']],
   // Cloche des notifications (ticket 8.2) : popup 900×800 sur ordinateur, vérifié par cloche-notifications.

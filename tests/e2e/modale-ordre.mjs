@@ -41,16 +41,19 @@
 // croix d'une confirmation hors ordre ne change pas (relevé du bundle 061fd4a : Bootstrap sur ordinateur, règle mobile commune sur
 // mobile).
 // Épopée 2, ticket 6, même socle : sous 768 px, « Valider » prend la paire arm (--kr-arm-bg / --kr-arm-ink, survol --kr-arm-bg-hover /
-// --kr-arm-ink-hover), sans dégradé ni halo vert, pleine largeur sous « Annuler », dans le
-// flux ; au-delà, son rendu ne change pas. L'onglet actif suit un seul modèle aux deux supports : aucun bleu de Bootstrap, fond et texte du
+// --kr-arm-ink-hover), sans dégradé ni halo vert, dans le flux, à droite d'« Annuler » sur la même rangée et de même largeur (densité de la
+// modale d'ordre mobile, retours d'Arnaud du 1er novembre 2026 ; avant : pleine largeur sous « Annuler ») ; au-delà, son rendu ne change
+// pas. L'onglet actif suit un seul modèle aux deux supports : aucun bleu de Bootstrap, fond et texte du
 // thème (--kr-bg-surface, --kr-text-primary), libellé coloré (span.text-danger de Pouvoir) compris, ≥ 4,5:1 dans les 16 variantes ; à
 // 375, 767, 768, 769, 1280 px et en transition 769 / 767 dans le même onglet.
 // Épopée 2, ticket 7, sur mobile (375 et 767 px, 16 variantes à 375) : les groupes PJ / PNJ que la chaîne mobile pose dans le sélecteur de
 // personnage (optgroup, groupSelectOptions) ont leur libellé en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1. Ordre : Dormir avec le
 // sélecteur de la fixture selecteur.html inséré avant le titre de l'ordre.
 // Épopée 4, ticket 3 (taille normale des modales Bootbox) : à 375 et 767 px, « Annuler » et « Valider » de Dormir et de Pouvoir, « Cancel »
-// et « OK » de la confirmation hors ordre, en 14 px et au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler » ;
-// à 768, 769, 1280, 1440 et 1920 px, pied pas en colonne.
+// et « OK » de la confirmation hors ordre, en 14 px et au moins 44 px de haut ; pied d'un ordre en rangée, « Annuler » | « Valider » à parts
+// égales (densité, 1er novembre 2026) ; pied de la confirmation hors ordre en colonne, « OK » pleine largeur sous « Cancel » ; à 768, 769,
+// 1280, 1440 et 1920 px, pied pas en colonne. Densité (mobile-mode) : titre de l'onglet et « ? Aide » sur une rangée, « ? Aide » à droite,
+// sans marge basse (Dormir, Pouvoir).
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -593,12 +596,28 @@ const VALIDER = async () => {
     largeur: dixieme(rv.width),
     largeurAnnuler: dixieme(ra.width),
     interieur: dixieme(pied.clientWidth - parseFloat(sp.paddingLeft) - parseFloat(sp.paddingRight)),
+    ecart: dixieme(parseFloat(sp.columnGap) || 0),
     dessous: rv.top >= ra.bottom - 0.5,
     aDroite: Math.abs(rv.top - ra.top) < 1 && rv.left >= ra.right - 0.5,
     positions: [s.position, sp.position],
     focus: v.matches(':focus'),
     boutons: [['Annuler', a], ['Valider', v]].map(([nom, b]) => ({ nom, taille: getComputedStyle(b).fontSize, hauteur: dixieme(b.getBoundingClientRect().height) })),
     colonne: sp.display.includes('flex') && sp.flexDirection === 'column'
+  };
+};
+// Rangée du titre de l'onglet (densité, 1er novembre 2026) : écart entre les centres verticaux du titre (h4) et de « ? Aide », « ? Aide »
+// à droite du titre, marge basse d'« ? Aide ».
+const RANGEE_TITRE = () => {
+  const m = window.__modale;
+  const h = m.querySelector('#ajax-order .tab-pane.active > h4');
+  const b = [...m.querySelectorAll('.modal-body button')].find(x => x.textContent.trim() === 'Aide');
+  if (!h || !b) { return null; }
+  const rh = h.getBoundingClientRect();
+  const rb = b.getBoundingClientRect();
+  return {
+    ecartCentres: Math.round(Math.abs((rh.top + rh.bottom) / 2 - (rb.top + rb.bottom) / 2) * 10) / 10,
+    aDroite: rb.left >= rh.right - 0.5,
+    margeBasse: getComputedStyle(b).marginBottom
   };
 };
 // Onglet actif (ticket 6, section 9h) : fond, image de fond, ombre et bordures du lien ; pour le lien et chaque descendant qui porte du
@@ -628,10 +647,17 @@ const ONGLET = () => {
 // rgba(92, 184, 92, .4)), dans une valeur calculée.
 const BLEU = /66, 139, 202|48, 113, 169/;
 const VERT = /92, 184, 92|68, 157, 68/;
-// « Valider » (ticket 6) : sur mobile (< 768 px), paire arm sans dégradé ni halo vert, texte ≥ 4,5:1, pleine largeur (celle d'« Annuler »
-// et du pied), sous « Annuler », dans le flux ; sur ordinateur, rendu de la base : paire arm, sans dégradé, à droite d'« Annuler ». Paire
-// de repos, ou de survol quand « Valider » a le focus (règles de focus des boutons primaires, inchangées).
-function valide(v, nom, mobile) {
+// « Valider » (ticket 6) : sur mobile (< 768 px), paire arm sans dégradé ni halo vert, texte ≥ 4,5:1, dans le flux ; modale d'ordre : à
+// droite d'« Annuler » sur la même rangée, même largeur, les deux boutons et leur écart remplissant le pied (densité, 1er novembre 2026) ;
+// confirmation hors ordre : pleine largeur (celle d'« Annuler » et du pied), sous « Annuler » ; sur ordinateur, rendu de la base : paire
+// arm, sans dégradé, à droite d'« Annuler ». Paire de repos, ou de survol quand « Valider » a le focus (règles de focus des boutons
+// primaires, inchangées).
+function coteACote(v, nom) {
+  assert.equal(v.aDroite, true, `${nom} : « Valider » n'est pas à droite d'« Annuler », sur la même rangée`);
+  assert.ok(Math.abs(v.largeur - v.largeurAnnuler) <= 0.5 && Math.abs(v.largeur + v.largeurAnnuler + v.ecart - v.interieur) <= 1,
+    `${nom} : largeur de « Valider » ${v.largeur}, d'« Annuler » ${v.largeurAnnuler}, écart ${v.ecart}, pied ${v.interieur}`);
+}
+function valide(v, nom, mobile, ordre = true) {
   const x = n => n.toFixed(2) + ':1';
   const p = v.focus ? v.survol : v.repos;
   assert.deepEqual([v.fond, v.encre], [p.fond, p.encre], `${nom} : « Valider »${v.focus ? ' (focus)' : ''} ${JSON.stringify(v)}`);
@@ -639,7 +665,9 @@ function valide(v, nom, mobile) {
   assert.ok(!VERT.test(v.ombre), `${nom} : ombre ${v.ombre}`);
   assert.ok(v.contraste >= 4.5, `${nom} : texte de « Valider » ${x(v.contraste)}`);
   assert.ok(!v.positions.includes('fixed') && !['absolute', 'fixed'].includes(v.positions[0]), `${nom} : positions (bouton, pied) ${v.positions}`);
-  if (mobile) {
+  if (mobile && ordre) {
+    coteACote(v, nom);
+  } else if (mobile) {
     assert.ok(Math.abs(v.largeur - v.largeurAnnuler) <= 0.5 && Math.abs(v.largeur - v.interieur) <= 1, `${nom} : largeur de « Valider » ${v.largeur}, d'« Annuler » ${v.largeurAnnuler}, du pied ${v.interieur}`);
     assert.equal(v.dessous, true, `${nom} : « Valider » n'est pas sous « Annuler »`);
   } else {
@@ -647,9 +675,15 @@ function valide(v, nom, mobile) {
   }
 }
 // Taille normale des boutons du pied (épopée 4, ticket 3) : sous 768 px, « Annuler » et « Valider » (« Cancel » et « OK » hors ordre) en
-// 14 px, au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler » ; à partir de 768 px, pied pas en colonne.
-function piedNormal(v, nom, mobile) {
-  if (mobile) {
+// 14 px, au moins 44 px de haut ; modale d'ordre : pied en rangée, « Annuler » | « Valider » à parts égales (densité, 1er novembre 2026) ;
+// confirmation hors ordre : pied en colonne, « Valider » pleine largeur sous « Annuler » ; à partir de 768 px, pied pas en colonne.
+function piedNormal(v, nom, mobile, ordre = true) {
+  if (mobile && ordre) {
+    const hors = v.boutons.filter(b => b.taille !== '14px' || b.hauteur < 44).map(b => `${b.nom} ${b.taille}/${b.hauteur} px`);
+    assert.deepEqual(hors, [], `${nom} : ${hors.join(' ; ')}`);
+    assert.equal(v.colonne, false, `${nom} : pied en colonne`);
+    coteACote(v, nom);
+  } else if (mobile) {
     const hors = v.boutons.filter(b => b.taille !== '14px' || b.hauteur < 44).map(b => `${b.nom} ${b.taille}/${b.hauteur} px`);
     assert.deepEqual(hors, [], `${nom} : ${hors.join(' ; ')}`);
     assert.equal(v.colonne, true, `${nom} : pied pas en colonne`);
@@ -845,6 +879,7 @@ async function scenario(cfg) {
   r.croix = { Dormir: await page.evaluate(CROIX) };
   r.valider = { Dormir: await page.evaluate(VALIDER) };
   r.onglet = { Dormir: await page.evaluate(ONGLET) };
+  r.rangeeTitre = { Dormir: await page.evaluate(RANGEE_TITRE) };
   await capture(page, tag + '-dormir-ouverture');
   r.lienDormir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-dormir');
@@ -887,6 +922,7 @@ async function scenario(cfg) {
   r.croix.Pouvoir = await page.evaluate(CROIX);
   r.valider.Pouvoir = await page.evaluate(VALIDER);
   r.onglet.Pouvoir = await page.evaluate(ONGLET);
+  r.rangeeTitre.Pouvoir = await page.evaluate(RANGEE_TITRE);
   await capture(page, tag + '-pouvoir-ouverture');
   r.audits.pouvoir = await page.evaluate(AUDIT);
   r.lienPouvoir = await page.evaluate(LIEN_REGLES);
@@ -1043,16 +1079,23 @@ const CROIX_HORS_ORDRE = {
 
 function verifier(r) {
   const tag = `${r.cfg.width} px${r.cfg.mobile ? ' (mobile, ' + r.cfg.width + ' × ' + r.cfg.height + ')' : ''}`;
-  check(`${tag} (ticket 6) : « Valider » ${r.cfg.width < 768 ? 'en paire arm, sans dégradé ni halo vert, pleine largeur sous « Annuler », dans le flux' : 'inchangé (paire arm, à droite d\'« Annuler »)'} ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, Pouvoir)`, () => {
+  check(`${tag} (ticket 6) : « Valider » ${r.cfg.width < 768 ? 'en paire arm, sans dégradé ni halo vert, à droite d\'« Annuler », même largeur, dans le flux' : 'inchangé (paire arm, à droite d\'« Annuler »)'} ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, Pouvoir)`, () => {
     for (const nom of ['Dormir', 'Pouvoir']) {
       valide(r.valider[nom], nom, r.cfg.width < 768);
       ongletLisible(r.onglet[nom], nom);
     }
   });
-  check(`${tag} (épopée 4, ticket 3) : ${r.cfg.width < 768 ? 'boutons du pied en 14 px, au moins 44 px de haut, pied en colonne, « Valider » pleine largeur sous « Annuler »' : 'pied pas en colonne'} (Dormir, Pouvoir, confirmation hors ordre)`, () => {
-    for (const [nom, v] of [['Dormir', r.valider.Dormir], ['Pouvoir', r.valider.Pouvoir], ['hors ordre', r.validerHorsOrdre]]) { piedNormal(v, nom, r.cfg.width < 768); }
+  check(`${tag} (épopée 4, ticket 3) : ${r.cfg.width < 768 ? 'boutons du pied en 14 px, au moins 44 px de haut ; ordre : pied en rangée, « Annuler » | « Valider » à parts égales ; hors ordre : pied en colonne, « OK » pleine largeur sous « Cancel »' : 'pied pas en colonne'} (Dormir, Pouvoir, confirmation hors ordre)`, () => {
+    for (const [nom, v] of [['Dormir', r.valider.Dormir], ['Pouvoir', r.valider.Pouvoir], ['hors ordre', r.validerHorsOrdre]]) { piedNormal(v, nom, r.cfg.width < 768, nom !== 'hors ordre'); }
   });
   if (r.mobileMode) {
+    check(`${tag} (densité, 1er novembre 2026) : titre de l'onglet et « ? Aide » sur une rangée (centres à 1 px près, « ? Aide » à droite), « ? Aide » sans marge basse (Dormir, Pouvoir)`, () => {
+      for (const [nom, t] of Object.entries(r.rangeeTitre)) {
+        assert.ok(t, `${nom} : titre de l'onglet ou « ? Aide » absent`);
+        assert.ok(t.ecartCentres <= 1 && t.aDroite, `${nom} : ${JSON.stringify(t)}`);
+        assert.equal(t.margeBasse, '0px', `${nom} : marge basse d'« ? Aide » ${t.margeBasse}`);
+      }
+    });
     check(`${tag} (ticket 7) : groupes PJ / PNJ du sélecteur de personnage en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1`, () => groupesLisibles(r.groupes, 'Dormir avec sélecteur'));
   }
   check(`${tag} Dormir (avertissement avant les onglets) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.dormir, 'Dormir'));
@@ -1383,7 +1426,7 @@ function verifierTeintes(t) {
       });
     }
   });
-  check(`${tag} (ticket 6) : « Valider » ${t.cfg.mobile ? 'en paire arm, sans dégradé ni halo vert, pleine largeur sous « Annuler »' : 'inchangé (paire arm, à droite d\'« Annuler »)'}, ≥ 4,5:1 ; au survol, paire --kr-arm-bg-hover / --kr-arm-ink-hover ≥ 4,5:1 ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, puis contenu remplacé par Pouvoir)`, () => {
+  check(`${tag} (ticket 6) : « Valider » ${t.cfg.mobile ? 'en paire arm, sans dégradé ni halo vert, à droite d\'« Annuler », même largeur' : 'inchangé (paire arm, à droite d\'« Annuler »)'}, ≥ 4,5:1 ; au survol, paire --kr-arm-bg-hover / --kr-arm-ink-hover ≥ 4,5:1 ; onglet actif sans bleu, fond et texte du thème (span.text-danger de Pouvoir compris), ≥ 4,5:1 (Dormir, puis contenu remplacé par Pouvoir)`, () => {
     assert.equal(t.valider.Pouvoir.focus, false, 'Pouvoir : « Valider » encore focalisé');
     for (const nom of ['Dormir', 'Pouvoir']) {
       valide(t.valider[nom], nom, t.cfg.mobile);
@@ -1491,12 +1534,12 @@ async function transition(depart, arrivee) {
   check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 2.5) : de chaque côté du seuil, croix de Dormir de 44 × 44 px entièrement visibles dans le corps (intersection avec sa boîte de découpe ; sous 768 px sans mobile-mode, le corps n'a pas de rembourrage), couleur du texte du thème, opacité 1, ≥ 3:1 sur le fond de la modale, à sa place native`, () => {
     for (const { w, croix } of etats) { lisible(croix, `${w} px`); }
   });
-  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 6) : de chaque côté du seuil, « Valider » au rendu de son support (pleine largeur sous « Annuler » sous 768 px, à sa droite au-delà), paire arm ; onglet actif sans bleu, fond et texte du thème`, () => {
+  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (ticket 6) : de chaque côté du seuil, « Valider » au rendu de son support (à droite d'« Annuler » et de même largeur sous 768 px, à sa droite au-delà), paire arm ; onglet actif sans bleu, fond et texte du thème`, () => {
     for (const { w, valider, onglet } of etats) {
       valide(valider, `${w} px`, w < 768);
       ongletLisible(onglet, `${w} px`);
     }
-  });  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (épopée 4, ticket 3) : de chaque côté du seuil, pied de Dormir sous 768 px (mobile-mode ou non) en colonne, boutons en 14 px, au moins 44 px de haut, « Valider » pleine largeur sous « Annuler » ; à partir de 768 px, pas en colonne`, () => {
+  });  check(`transition ${depart} -> ${arrivee} -> ${depart} px dans le même onglet (épopée 4, ticket 3) : de chaque côté du seuil, pied de Dormir sous 768 px (mobile-mode ou non) en rangée, boutons en 14 px, au moins 44 px de haut, « Annuler » | « Valider » à parts égales ; à partir de 768 px, pas en colonne`, () => {
     for (const { w, valider } of etats) { piedNormal(valider, `${w} px`, w < 768); }
   });
 }

@@ -446,7 +446,8 @@ export const RETRAITS_TICKET49 = ['padding-top', 'padding-right', 'padding-botto
 export const ECARTS_TICKET49 = ['row-gap', 'column-gap'];
 // Cas communs aux panneaux mobiles (« Panels responsive ») et aux natifs sur ordinateur ; null retire le cas. Hors portée (battus dans la
 // base comme dans le bundle testé) : panneaux d'un accordéon (.panel-group, marge 0), corps du kramail (0), corps de la commande (16 px
-// littéral, déjà au pas), corps d'une liste d'objets (.list-group, 10 px), corps à champ « c… » (l.4508, 10 px, exception E ci-dessous).
+// littéral, déjà au pas), corps d'une liste d'objets (.list-group, 10 px), corps à champ « c… » (l.4508, 10 px ; resserré au Matériel,
+// plateau-typo ci-dessous).
 const PANNEAUX = ({ panneau = '.panel:not(.panel-group > .panel)', entete = '.panel-heading', corps = '.panel-body', corpsMobile = corps, liens = '.panel-body a' } = {}) => [
   panneau && ['panneau', panneau, 'R', 'm', { 'margin-bottom': 4 }], entete && ['entete', entete, 'R', 'm', ECART(2)],
   corpsMobile && ['corps', corpsMobile, 'R', 'm', RETRAIT(4)], liens && ['liens', liens, 'R', 'm', ECART(2)],
@@ -471,9 +472,16 @@ export const CAS_ESPACEMENT_TICKET49 = {
     ['tuiles', '.mobile-mini-profile .mobile-skill-item, .mobile-mini-profile .mobile-characteristic-badge', 'E', 'm', EXCEPTION],
     ['liste', '.list-group-item', 'E', null, EXCEPTION], COLONNES
   ],
+  // Servie à /jouer/materiel : sur mobile, panneaux de #col-right resserrés (densité du 1er novembre 2026, lib/densite-jeu.mjs), 8 px
+  // d'écart, corps à 8 px de retrait, 16 px de côté pour un corps de texte (corps à champ « c… » compris, au-dessus de la règle de la
+  // carte du jeu à 10 px) ; hors de #col-right (panneau du joueur), rôles communs.
   'plateau-typo': [
-    ...PANNEAUX({ corps: '.panel-body:not(.grid-transformed)', corpsMobile: '.panel-body:not(.grid-transformed, :has([id^="c"]))' }),
-    ['corps-champ', '.panel-body:has([id^="c"])', 'E', 'm', EXCEPTION], ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES
+    ...PANNEAUX({ panneau: '.panel:not(.panel-group > .panel, #col-right .panel)', corps: '.panel-body:not(.grid-transformed)',
+      corpsMobile: '.panel-body:not(.grid-transformed, :has([id^="c"]), #col-right .panel-body)' }),
+    ['panneau-densite', '#col-right .panel:not(.panel-group > .panel)', 'R', 'm', { 'margin-bottom': 2 }],
+    ['corps-densite', '#col-right .panel-default:not(.panel-group > *) > .panel-body:not(:has(> p))', 'R', 'm', RETRAIT(2)],
+    ['corps-texte', '#col-right .panel-default:not(.panel-group > *) > .panel-body:has(> p)', 'R', 'm', RETRAIT(2, 4)],
+    ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES
   ],
   sujet: [
     ['messages', 'ul.media-list.forum > li.media.kr-msg > .media-body > .pull-right .btn', 'R', 'm', ECART(1)],
@@ -509,9 +517,12 @@ export const CAS_ESPACEMENT_TICKET49 = {
     ...PANNEAUX({ panneau: null, corps: null, liens: null }), ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU],
     ['bbcode', 'form[name="post_msg"] .btn-toolbar .btn', 'E', null, EXCEPTION]
   ],
+  // Mobile (densité de la modale d'ordre, 1er novembre 2026) : « ? Aide » sur la rangée du titre de l'ordre, centré, sans marge basse
+  // (la rangée porte l'écart de 8 px avec la suite) ; marge basse au jeton sur ordinateur.
   'modale-ordre': [
     ...PANNEAUX({ corps: '.panel-body:not(.grid-transformed, .list-group > .panel-body)', corpsMobile: null }),
-    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', null, { ...ECART(1), 'margin-bottom': 2 }],
+    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', 'm', ECART(1)],
+    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', 'b', { ...ECART(1), 'margin-bottom': 2 }],
     ['pied', '.modal-footer .btn + .btn', 'N', 'b', { 'margin-left': 1 }], ['pied-boutons', '.modal-footer .btn:not(.btn + .btn)', 'E', 'b', BOUTONS_BUREAU],
     ['pied-boutons', '.modal-footer .btn + .btn', 'E', 'b', SAUF('margin-left')],
     ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU], ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES

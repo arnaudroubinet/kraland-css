@@ -18,7 +18,7 @@
 // Options : KR_SCRIPT (bundle « après »), KR_SCRIPT_AVANT (bundle « avant », pour la non-régression et les captures avant/après),
 //   KR_SHOTS=/dossier (captures), KR_FA_DIR=/dossier (copie locale de Font Awesome 5.6.3 : css/all.min.css + webfonts/, captures seulement),
 //   KR_FRAG (fragments : barre, dest-1280, dest-375, dest-320, blocage-1280, blocage-375, blocage-320, reponses-repondre, reponses-tous,
-//   reponses-transferer, clavier, reseau, envoi, repli, libelle, indicatif, regression, themes, avant).
+//   reponses-transferer, clavier, reseau, envoi, repli, libelle, indicatif, regression, themes, densite, avant).
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
@@ -61,7 +61,9 @@ const PAGES = {
   repondre: { url: '/kramail/post/sujet-fictif-de-lecture-5-9000002', html: FIX('kramail-repondre.html') },
   'repondre-tous': { url: '/kramail/post/sujet-fictif-de-lecture-6-9000002', html: FIX('kramail-repondre-tous.html') },
   // depuis l'envoi, le site numérote 15 / 16 / 17 : la page est reconnue par son formulaire, pas par le numéro
-  transferer: { url: '/kramail/post/sujet-fictif-de-lecture-17-9000002', html: FIX('kramail-transferer.html') }
+  transferer: { url: '/kramail/post/sujet-fictif-de-lecture-17-9000002', html: FIX('kramail-transferer.html') },
+  // Densité de la rédaction (fragment densite) : règles communes au forum, Sujet et Expéditeur du nouveau sujet
+  'forum-nouveau': { url: '/forum/post/nouveau-sujet-1-10101', html: FIX('forum-nouveau-sujet.html') }
 };
 // Requêtes émises par le script et refusées explicitement par le harnais (hôte + chemin exacts) : vérification de version du CSS, logo du thème.
 const EXPECTED_REFUSALS = [
@@ -1417,6 +1419,87 @@ if (frag('themes')) {
       const bad = Object.entries(all).filter(([, v]) => v === null || v < 4.5).map(([k, v]) => `${k} ${v}`);
       assert.equal(bad.length, 0, bad.join(' ; '));
     });
+  }
+}
+
+// =====================================================================================================
+// 8 bis) Densité de la rédaction sur mobile (1er novembre 2026, section « RÉDACTION MOBILE : DENSITÉ » du thème) : Sujet et Expéditeur
+//        alignés, aide des destinataires masquée dès qu'un destinataire est choisi (visible sans pastille, de retour après le retrait de la
+//        dernière), Options au style des libellés de l'éditeur, cases en casse normale à l'aplomb du libellé, deux par rangée dès 360 px.
+//        Règles communes au forum : nouveau sujet (Sujet et Expéditeur, Signature).
+// =====================================================================================================
+const DENSITE = () => {
+  const r1 = v => Math.round(v * 10) / 10;
+  const boite = e => { if (!e) { return null; } const b = e.getBoundingClientRect(); return { x: r1(b.left), y: r1(b.top + window.scrollY), w: r1(b.width), h: r1(b.height), r: r1(b.right) }; };
+  const vis = e => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+  const sonde = expr => { const i = document.createElement('i'); i.style.color = expr; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+  const form = document.forms.post_msg;
+  const opt = form.querySelector('.form-group:has(> .col-md-10 > label.checkbox-inline)');
+  const optLabel = opt ? opt.querySelector(':scope > label') : null;
+  const ls = optLabel ? getComputedStyle(optLabel) : null;
+  const kd = form.querySelector('.kd-row');
+  return {
+    iw: window.innerWidth,
+    ox: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    rangs: [...form.querySelectorAll('.form-group.kr-sender-row')].map(g => ({
+      libelle: g.querySelector(':scope > label').textContent.replace(/\s+/g, ' ').trim(),
+      label: boite(g.querySelector(':scope > label')), champ: boite(g.querySelector(':scope > .col-sm-10 .form-control'))
+    })),
+    kdMb: kd ? getComputedStyle(kd).marginBottom : null,
+    pastilles: form.querySelectorAll('.kd-chip').length,
+    aide: vis(form.querySelector('.kd-help')),
+    options: opt ? {
+      mb: getComputedStyle(opt).marginBottom,
+      label: { ...boite(optLabel), texte: optLabel.textContent.trim(), tt: ls.textTransform, fs: ls.fontSize, pt: ls.paddingTop, pb: ls.paddingBottom, mb: ls.marginBottom, couleur: ls.color },
+      cases: [...opt.querySelectorAll('label.checkbox-inline')].map(l => { const s = getComputedStyle(l); return { ...boite(l), texte: l.textContent.trim(), tt: s.textTransform, fs: s.fontSize, fw: s.fontWeight }; })
+    } : null,
+    secondaire: sonde('var(--kr-text-secondary)')
+  };
+};
+if (frag('densite')) {
+  console.log('Densité de la rédaction sur mobile : Sujet et Expéditeur alignés, aide des destinataires, Options (kramail et nouveau sujet du forum)');
+  const CAS = [['nouveau', 375], ['nouveau', 320], ['repondre', 375], ['forum-nouveau', 375]];
+  for (const [pg, width] of CAS) {
+    const { context, page: p, state, errors } = await open({ width, page: pg, height: 800 });
+    const m = await p.evaluate(DENSITE);
+    const lab = `densite ${pg} ${width}`;
+    check(`${lab} : Sujet et Expéditeur alignés (bords gauches des champs à 1 px près), chaque libellé à gauche de son champ`, () => {
+      assert.deepEqual(m.rangs.map(x => x.libelle), ['Sujet *', 'Expéditeur *']);
+      const [a, b] = m.rangs;
+      assert.ok(Math.abs(a.champ.x - b.champ.x) <= 1, `champs à ${a.champ.x} et ${b.champ.x}`);
+      assert.ok(m.rangs.every(x => x.label.r <= x.champ.x), JSON.stringify(m.rangs));
+    });
+    if (pg !== 'forum-nouveau') {
+      check(`${lab} : Destinataires suivi de 8 px ; aide ${m.pastilles ? 'masquée (destinataire choisi)' : 'visible (aucun destinataire)'}`, () => {
+        assert.equal(m.kdMb, '8px');
+        assert.equal(m.aide, m.pastilles === 0, `aide ${m.aide}, ${m.pastilles} pastille(s)`);
+      });
+    }
+    const o = m.options;
+    const deux = pg !== 'forum-nouveau' && width >= 360;
+    check(`${lab} : Options suivi de 8 px, libellé au style des libellés de l'éditeur (13 px, casse normale, sans retrait haut ni bas, texte secondaire) ; cases en casse normale à 15 px, à l'aplomb du libellé, cibles de 44 px${deux ? ' ; Signature et Accusé de réception sur une rangée' : ''}`, () => {
+      assert.ok(o, 'rang Options');
+      assert.equal(o.mb, '8px');
+      assert.deepEqual([o.label.texte, o.label.tt, o.label.fs, o.label.pt, o.label.pb, o.label.mb, o.label.couleur], ['Options', 'none', '13px', '0px', '0px', '0px', m.secondaire]);
+      assert.ok(o.cases.length >= 1);
+      assert.ok(o.cases.every(c => c.tt === 'none' && c.fs === '15px' && c.fw === '400' && c.h >= 44), JSON.stringify(o.cases));
+      assert.ok(Math.abs(o.cases[0].x - o.label.x) <= 1, `case à ${o.cases[0].x}, libellé à ${o.label.x}`);
+      const rangees = new Set(o.cases.map(c => c.y));
+      assert.ok(o.cases.filter(c => Math.abs(c.x - o.label.x) <= 1).length === rangees.size, 'chaque rangée commence à l\'aplomb du libellé : ' + JSON.stringify(o.cases));
+      if (deux) { assert.equal(o.cases[0].y, o.cases[1].y, JSON.stringify(o.cases)); assert.equal(rangees.size, 2); }
+    });
+    if (pg === 'repondre') {
+      const sel = '.kd-chip-x[aria-label="Retirer Marelle Duvent"]';
+      await p.evaluate(s => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); window.scrollTo(0, Math.max(0, b.top + window.scrollY - window.innerHeight / 2)); }, sel);
+      await p.tap(sel);
+      const apres = await p.evaluate(DENSITE);
+      check(`${lab} : retrait du seul destinataire → aide de retour`, () => { assert.equal(apres.pastilles, 0); assert.equal(apres.aide, true); });
+    }
+    check(`${lab} : pas de débordement horizontal, aucune erreur, aucune requête imprévue`, () => {
+      assert.ok(m.ox <= 0, `scrollX ${m.ox}`); assert.deepEqual(errors, []); assert.deepEqual(unexpected(state), []);
+    });
+    if (SHOTS) { await p.evaluate(() => window.scrollTo(0, 0)); await p.screenshot({ path: path.join(SHOTS, `densite-${pg}-${width}.png`), fullPage: true }); }
+    await context.close();
   }
 }
 

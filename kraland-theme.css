@@ -12060,6 +12060,13 @@ html[class*='-dark'] .mini.c10 {
   outline-offset: 2px;
 }
 
+/* Modale ouverte : le bandeau passe sous le fond de la modale (Bootstrap : fond 1040, modale 1050) au lieu de recouvrir son pied
+   (pastilles, « Valider »), par exemple dans une fenêtre rétrécie sous 768 px pendant une saisie. Il revient à la fermeture. Des deux
+   côtés du seuil, comme le bandeau. */
+body.modal-open > #kr-resize-banner {
+  z-index: 1035;
+}
+
 /* PLT-09 : bouton « retour en haut » masqué en haut de page, et réserve en bas de page en mobile */
 .container.white .kraland-back-to-top:not(.kr-btt-visible) {
   visibility: hidden;
@@ -14585,9 +14592,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     height: var(--kr-touch-target);
   }
 
-  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4) et du kramail (épopée 7, entrée 3) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
+  /* Fil d'Ariane commun de l'index, du sous-forum (H12.3), du sujet (H12.4), du kramail (épopée 7, entrée 3) et de la rédaction du forum
+     (densité du 1er novembre 2026, kr-forum-redaction) : sur une ligne. Le lien parent garde sa taille jusqu'à la moitié
      de la ligne, puis son libellé est tronqué par une ellipse ; le niveau courant prend le reste, tronqué de même. */
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -14597,7 +14605,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     font-size: var(--kr-font-detail);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-link {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -14612,16 +14620,16 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     white-space: nowrap;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-label {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-label {
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-sep {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-sep {
     color: var(--kr-text-secondary);
   }
 
-  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-current {
+  :where(html.kr-page-forum-index, body.page-forum.kr-subforum, body.page-forum.kr-forum-sujet, body.page-forum.kr-forum-redaction, html.kr-page-kramail, html.kr-page-contacts) #col-right .forum-mobile-breadcrumb-current {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -16262,5 +16270,667 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     border-color: var(--kr-border-default);
     background-color: var(--kr-bg-elevated);
     color: var(--kr-text-primary);
+  }
+}
+
+/* ============================================================================
+   MODALE D'ORDRE MOBILE : DENSITÉ (ordre Parler, relevé sur le site réel au format Galaxy S21, 360 × 680 visibles, thème Empire Brun)
+   Retours d'Arnaud du 1er novembre 2026 : retours à la ligne injustifiés, interlignes trop grands, espace horizontal mal employé, barre
+   Valider/Annuler trop haute. Relevé avant correction (Parler, cible Morgann Velvet) : pied de 209 px sur 680 (pastilles sur deux
+   rangées puis Annuler et Valider empilés), corps visible de 449 px, zone de saisie de 240 px de large (cinq retraits imbriqués),
+   « Masquer son identité » sur trois lignes dans une colonne de 83 px, nom du titre sur deux lignes, libellés de champ de 44 px de haut,
+   liens de la description en blocs de 44 px, onglets sur quatre rangées (226 px), saisie à 1 956 px du haut du formulaire.
+   Après : pied de 89 px (pastilles sur une rangée, Annuler | Valider côte à côte), corps visible de 591 px, zone de saisie de 314 px,
+   chaque action sur une ligne, onglets sur trois colonnes (146 px), saisie à 1 216 px. Les cibles de 44 px restent (onglets, actions,
+   cases, boutons). Socle commun des modales d'ordre (kr-order-modal) : les autres ordres en profitent. Clavier ouvert : mode compact
+   inchangé (kr-keyboard-open). Ordinateur : rendu inchangé.
+   Priorités forcées : seules restent celles qui battent une priorité forcée du thème sur le même élément. Audit du 1er novembre 2026
+   sur la vraie popin (ordres Parler à Coup Monté, clavier ouvert ou fermé, 320 à 767 px, mobile-mode ou non) : chaque !important rendu
+   normal à son tour, styles calculés comparés ; 93 longhands sur 173 n'y changeaient rien et sont passés en priorité normale (rendu
+   identique, vérifié élément par élément).
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Cadre : modale bord à bord, comme en clavier ouvert (20 px de large et 20 px de haut rendus). Le retrait de 15 px du corps reste : la
+     croix garde le coin haut droit de celle d'une confirmation hors ordre (ticket 2.5). */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport {
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport > .modal-dialog {
+    max-width: 100vw !important;
+    max-height: var(--kr-order-budget) !important;
+    margin: 0;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport .modal-content {
+    max-height: var(--kr-order-budget) !important;
+    border-width: 0;
+    border-radius: 0 !important;
+  }
+
+  /* Pied : pastilles sur une rangée, puis Annuler | Valider côte à côte, à parts égales (modèle du clavier ouvert, pastilles gardées).
+     Une pastille trop longue passe à la rangée suivante au lieu de déborder. Boutons sans marge et étirés à la hauteur de leur rangée : même
+     haut et même hauteur. Même portée que le modèle en colonne de la section 9h (sous 768 px, body.mobile-mode ou non : fenêtre rétrécie
+     sans rechargement comprise) ; les confirmations hors ordre le gardent. Largeur propre du pied hors du calcul de celle de la modale
+     (contain) : en fenêtre rétrécie sans mobile-mode, la modale ajustée à son contenu prendrait sinon la largeur des pastilles et des deux
+     boutons mis bout à bout (432 px au lieu de 387). */
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal:not(.kr-keyboard-open) .modal-footer {
+    contain: inline-size;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 6px var(--kr-space-2) !important;
+    padding: var(--kr-space-2) 10px !important;
+    padding-bottom: max(var(--kr-space-2), env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Clearfix de Bootstrap (.modal-footer::before/::after, display: table) : deux éléments flex vides, une rangée vide de 6 px en tête du
+     pied et un écart de 8 px de trop à côté des boutons */
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal .modal-footer::before,
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal .modal-footer::after {
+    content: none;
+  }
+
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal .modal-footer > .kr-order-badges {
+    flex: 1 0 100%;
+    gap: var(--kr-space-1) 6px;
+  }
+
+  /* Marge nulle : sans mobile-mode, la règle mobile générale .btn + .btn met 8 px au-dessus de « Valider » (pied en colonne) et le
+     décalerait sous « Annuler » */
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal .modal-footer > .btn {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    margin-top: 0 !important;
+  }
+
+  html.kr-theme-enabled body .bootbox.modal.kr-order-modal .kr-order-badge {
+    padding: 3px var(--kr-space-2);
+  }
+
+  /* Cible : liste sur la rangée de la croix (48 px réservés à droite), sans les colonnes d'espacement de Bootstrap (col-md-3 vides,
+     un &nbsp; chacune : 20 px de haut l'une) */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > .row:has(> .col-md-6 > select[name="top"]) {
+    margin: 0;
+    margin-right: 48px !important;
+    margin-bottom: var(--kr-space-2) !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > .row:has(> .col-md-6 > select[name="top"]) > .col-md-3:not(:has(*)) {
+    display: none !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form select[name="top"].form-control {
+    min-height: var(--kr-touch-target) !important;
+    margin-bottom: 0 !important;
+    padding: var(--kr-space-2) var(--kr-space-3) !important;
+  }
+
+  /* Titre : avatar, nom, puis fiche, kramail et groupe sur une seule rangée (avant : avatar et icônes empilés dans une colonne de 96 px,
+     nom sur deux lignes). Le bloc flottant (div.pull-right) s'efface au profit de ses enfants. Retrait et écarts serrés : à 360 px, le
+     nom dispose de 126 px (« Morgann Velvet » en tient 122) ; un nom plus long passe sur deux lignes dans la hauteur de l'avatar.
+     Titre-image (Dormir) exclu. */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) {
+    gap: var(--kr-space-1) !important;
+    margin-bottom: var(--kr-space-2) !important;
+    padding: 6px !important;
+    font-size: var(--kr-font-section-title) !important;
+    line-height: 1.25 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > .pull-right {
+    display: contents;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > .pull-right > img {
+    flex: 0 0 auto;
+    order: -1;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > .pull-right > .mini {
+    order: 1;
+    gap: 0 !important;
+    margin-left: auto !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > a.btn {
+    order: 2;
+  }
+
+  /* Description de la cible : liens en ligne (modèle du n° 2 de la revue S21 ; la cible de 44 px écartait la première ligne de la
+     suivante) ; paragraphes vides du formulaire retirés (10 px de marge chacun) */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > div:not([class]) a:not(.btn, .list-group-item) {
+    display: inline !important;
+    min-height: 0 !important;
+    padding: 0;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > p:empty {
+    display: none;
+  }
+
+  /* Onglets : trois colonnes, 4 px d'écart, libellé centré sur deux lignes au besoin (valeurs lues par forceOrderModalGridLayout, qui
+     pose la grille en style en ligne). Le texte d'un onglet inactif est dans un span que la feuille du site remonte de 20 px
+     (.panel-heading span) : sans effet en ligne, la marge jouait dès que le lien passe en flex. */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal {
+    --kr-order-tabs-columns: repeat(3, minmax(0, 1fr));
+    --kr-order-tabs-gap: var(--kr-space-1);
+    --kr-order-tab-padding: var(--kr-space-1);
+    --kr-order-tab-display: flex;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel.with-nav-tabs > .panel-heading > ul.nav-tabs > li > a {
+    align-items: center;
+    justify-content: center;
+    white-space: normal !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel.with-nav-tabs > .panel-heading > ul.nav-tabs > li > a > span {
+    margin-top: 0;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel.with-nav-tabs > .panel-body.panel-order {
+    padding: var(--kr-space-2) !important;
+  }
+
+  /* Section de l'ordre : titre (et son « [?] ») et « ? Aide » sur une rangée, centrés, sans marge ; l'aide dépliée et la suite passent
+     dessous, 8 px sous la rangée */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--kr-space-2);
+    align-items: center;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) > * {
+    grid-column: 1 / -1;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) > h4 {
+    grid-column: 1;
+    margin: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) > .kr-order-help-toggle {
+    grid-column: 2;
+    margin: 0;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > * + :is(.panel-info, .row.form-group) {
+    margin-top: var(--kr-space-2);
+  }
+
+  /* Tableau des actions : grille radio | libellé | coût | chance, le libellé prend toute la place restante (avant : flex avec les
+     pseudo-éléments clearfix de Bootstrap comptés comme éléments, 40 px d'écarts et 12 px de retrait par rangée) */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .panel-info {
+    margin-bottom: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-body.panel-actions {
+    padding: var(--kr-space-2) !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    column-gap: var(--kr-space-2);
+    align-items: center;
+    min-height: var(--kr-touch-target);
+    margin: 0 0 var(--kr-space-1);
+    padding: 0 var(--kr-space-2);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group::before,
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group::after {
+    content: none;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group > div {
+    width: auto;
+    max-width: none;
+    padding: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group > div > label {
+    min-height: 0;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  /* Pied du tableau : Maladresse à gauche, Bonus et sa liste à droite, sur une rangée (avant : deux rangées, 135 px) */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer {
+    padding: var(--kr-space-1) var(--kr-space-2) !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--kr-space-1) var(--kr-space-2) !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    max-width: none;
+    padding: 0;
+    padding-right: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div:has(> label) + div:has(> label) {
+    margin-left: auto !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div > label {
+    min-height: 0;
+    margin: 0;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row select {
+    width: auto;
+    margin: 0;
+    margin-bottom: 0 !important;
+  }
+
+  /* Champs (Action, Options, Message) : libellé à la hauteur de son texte (avant : 44 px de haut, plus 8 px), 8 px entre deux champs,
+     sans retrait latéral ; chaque case d'option garde une rangée de 44 px */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group {
+    margin-bottom: 0 !important;
+    padding: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group > .control-label {
+    min-height: 0;
+    margin: var(--kr-space-1) 0;
+    margin-bottom: var(--kr-space-1) !important;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group select.form-control {
+    margin-bottom: 0 !important;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group .checkbox {
+    margin: 0;
+    padding: 0;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group .checkbox > label {
+    align-items: center;
+    min-height: var(--kr-touch-target);
+    margin: 0;
+    margin-bottom: 0 !important;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+/* ============================================================================
+   RÉDACTION MOBILE : DENSITÉ (kramail : nouveau, réponses, transfert ; forum : réponse, nouveau sujet. Relevé sur le site réel au format
+   Galaxy S21, 360 × 680 visibles, thème Empire Brun)
+   Même travail que la modale d'ordre (retours d'Arnaud du 1er novembre 2026 : retours à la ligne injustifiés, interlignes trop grands,
+   espace horizontal mal employé). Relevé avant correction :
+   - champs Sujet et Expéditeur décalés de 35 px (chacun commençait au bout de son libellé) ;
+   - aide des destinataires sur trois lignes (65 px), même quand le destinataire est déjà choisi (réponse, envoi depuis un profil) ;
+   - Destinataires et Options suivis de 16 px, les autres rangs de 8 ;
+   - Options : libellé en capitales de 30 px de haut, une case par ligne, la 2e et la 3e décalées de 10 px (retrait Bootstrap entre cases en
+     ligne), libellés des cases en capitales ;
+   - réponse au forum : titre du sujet écrasé sur trois lignes à côté d'un bouton de forum de 161 px (ancien fil d'Ariane du template).
+   Après : champs alignés ; aide masquée dès qu'un destinataire est choisi (comme le texte indicatif du champ, S-2) ; 8 px entre les rangs ;
+   Options au style des autres libellés de l'éditeur, cases en casse normale, deux par rangée dès que la place le permet ; fil d'Ariane
+   commun sur une ligne (template : transformPostHeader). Les cibles de 44 px restent ; « Envoyer » garde sa réserve de droite (ticket 26).
+   Ordinateur : rendu inchangé.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Sujet et Expéditeur : libellés à la largeur du plus long (« Expéditeur * », 76 à 78 px selon la police), les deux champs commencent au
+     même endroit. Un libellé plus long élargit le sien sans rien casser. */
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor .form-group.kr-sender-row > label {
+    min-width: 6.25em;
+  }
+
+  /* Destinataires : 8 px sous le rang, comme les autres. L'aide (« Tapez au moins 2 lettres… ») s'efface dès qu'un destinataire est choisi,
+     comme le texte indicatif du champ (S-2) ; elle reste la description du champ pour les lecteurs d'écran (aria-describedby). */
+  body.mobile-mode.page-kramail-compose form[name="post_msg"] .kd-row {
+    margin-bottom: var(--kr-space-2);
+  }
+
+  body.mobile-mode.page-kramail-compose form[name="post_msg"] .kd:has(.kd-chip) > .kd-help {
+    display: none;
+  }
+
+  /* Options : 8 px sous le rang ; libellé au style de « Message » (13 px, casse normale, sans les 5 px haut et bas de la règle mobile
+     commune des libellés, priorité forcée) ; cases en casse normale à la taille du texte, alignées à gauche (sans le retrait Bootstrap de
+     10 px entre cases en ligne), deux par rangée dès que la place le permet. */
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group:has(> .col-md-10 > label.checkbox-inline) {
+    margin-bottom: var(--kr-space-2);
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group:has(> .col-md-10 > label.checkbox-inline) > label.control-label {
+    margin-bottom: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group > .col-md-10:has(> label.checkbox-inline) {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--kr-space-1);
+  }
+
+  body.mobile-mode:is(.page-forum, .page-kramail-compose) form.kr-editor > .form-group > .col-md-10 > label.checkbox-inline {
+    margin-left: 0;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-body-mobile);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Fil de la rédaction du forum, « Forum › Sujet › Réponse » : le sujet cède la place (ellipse, 44 px au moins) avant l'action courante,
+     lue en entier jusqu'à la moitié de la ligne (au-delà, ellipse comme les parents). Avec un seul parent, règle commune. */
+  :where(body.page-forum.kr-forum-redaction) #col-right .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-link {
+    flex-shrink: 1;
+  }
+
+  :where(body.page-forum.kr-forum-redaction) #col-right .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-link ~ .forum-mobile-breadcrumb-current {
+    flex-shrink: 0;
+    max-width: 50%;
+  }
+}
+
+/* ============================================================================
+   MATÉRIEL ET PERSONNAGE MOBILES : DENSITÉ (Matériel, détail d'un objet, Personnage, vue d'une organisation ; relevé sur le site réel au
+   format Galaxy S21, 360 × 680 visibles, thème Empire Brun)
+   Retours d'Arnaud du 1er novembre 2026 : « les mêmes reproches que pour la popin d'ordre » (retours à la ligne injustifiés, interlignes
+   trop grands, espace horizontal mal employé) et « la vue organisation qui est mal gérée ». Portée : html.kr-page-materiel et
+   html.kr-page-personnage (KR_PAGE_CLASSES, sous-chemins compris) ; modales d'ordre (kr-order-modal) pour la vue d'une organisation.
+   Ordinateur : rendu inchangé.
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Panneaux (hors accordéon) : 8 px d'écart au lieu de 16, en-tête à la hauteur de sa cible de 44 px (48 avant), corps à 8 px de retrait
+     au lieu de 16 : lignes d'objet et cellules gardent leurs 8 px, leur contenu s'aligne sur le titre du panneau. Corps de texte (Finance) :
+     16 px de côté, comme le titre. */
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel:not(.panel-group > *) {
+    margin-bottom: var(--kr-space-2) !important;
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-heading {
+    min-height: var(--kr-touch-target);
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body {
+    --kr-densite-corps-cote: var(--kr-space-2);
+
+    padding: var(--kr-space-2) var(--kr-densite-corps-cote) !important;
+  }
+
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body:has(> p) {
+    --kr-densite-corps-cote: var(--kr-space-4);
+  }
+
+  /* Corps vides retirés : Autres Objets Personnalisés sans objet (blancs seuls), Maladies sans maladie (tableau sans rangée). Le chevron
+     du site les rouvre (style en ligne). */
+  :where(html:is(.kr-page-materiel, .kr-page-personnage) body.mobile-mode) #col-right .panel-default:not(.panel-group > *) > .panel-body:is(:not(:has(*)), :has(> table:only-child):not(:has(tr))) {
+    display: none;
+  }
+
+  /* Ligne d'objet (Matériel) : nom sur toute la largeur, détail et charge dessous (avant : charge à droite du nom, détail dessous). La
+     deuxième ligne existait pour chaque objet (détail réduit à une espace insécable le plus souvent) : la charge y prend place, le nom
+     ne se replie plus à côté d'elle. Retrait vertical de 4 px au lieu de 8, cible de 44 px gardée. */
+  :where(html.kr-page-materiel body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *) {
+    grid-template: "nom nom" auto "texte charge" auto / minmax(0, 1fr) auto;
+    padding-block: var(--kr-space-1) !important;
+  }
+
+  :where(html.kr-page-materiel body.mobile-mode:has(#col-leftest)) #col-right .panel-body > a.list-group-item:has(> .mention):not(.kr-materiel-moved *):has(> img) {
+    grid-template: "image nom nom" auto "image texte charge" auto / auto minmax(0, 1fr) auto;
+  }
+
+  /* Citoyenneté : cellule à lien sans retrait, le lien (cible de 44 px, 8 px de retrait) l'occupe en entier ; rangée de 45 px au lieu de
+     65, filet compris, texte du lien au milieu de la rangée et aligné sur celui des cellules sans lien. Priorités forcées : retrait des
+     cellules (« .table td { padding: 8px !important } ») et marge basse du lien (« .panel-body a { margin-bottom: 4px !important } »). */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td:has(> a:only-child:not(.btn)) {
+    padding: 0 !important;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > a:only-child:not(.btn) {
+    margin-bottom: 0 !important;
+  }
+
+  /* Organisations : chaque type (lien vers la vue de l'organisation, ou case sans organisation) dans un carré de 44 px, pastille de
+     28 px peinte au centre, à 8 px du bord (avant : 18 ou 42 px de large selon la balise, noms décalés de 24 px) ; rangées de 45 px, filet
+     compris (65 et 61 px avant), badge du rang au milieu ; le lien couvre la cellule, nom compris. Priorités forcées : retrait des cellules
+     (« .table td { padding: 8px !important } »), retrait du bouton (style en ligne du site, 2 px 5 px) et marge basse du lien (« .panel-body
+     a { margin-bottom: 4px !important } »). Rayon extérieur = rayon de la pastille + retrait (fond peint dans la boîte de contenu). */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr:has(> td > .btn) > td {
+    padding-block: 0 !important;
+    vertical-align: middle;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td:has(> .btn) {
+    position: relative;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > .btn {
+    box-sizing: border-box;
+    width: var(--kr-touch-target);
+    margin-bottom: 0 !important;
+    padding: var(--kr-space-2) !important;
+    border-width: 0;
+    border-radius: calc(var(--kr-radius-sm) + var(--kr-space-2));
+    background-clip: content-box;
+    box-shadow: none;
+    vertical-align: middle;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > .table > tbody > tr > td > a.btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Finance : marge de paragraphe de 4 px au lieu de 10 */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > p {
+    margin-bottom: var(--kr-space-1);
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Avis de Recherche : titre replié dans sa colonne, chevron sur sa première ligne (avant : seul sur une ligne, en-tête de 89 px) ;
+     tableau réduit à ses en-têtes (aucun avis) retiré avec son filet (priorité forcée : règle mobile des tableaux de #col-right, en bloc
+     défilant) ; drapeaux et compteurs par paires, repliés à la ligne au besoin (354 px pour 312 avant). Groupe de rangées en bloc : la
+     grille prend la largeur de la carte, que le tableau soit en bloc défilant ou élargi (kr-table-pleine, Mobile:Tableaux), sinon elle se
+     resserre sur une paire par ligne. Compteur d'au moins trois chiffres, suivi sur le site de trois espaces insécables (séparateurs de
+     l'ancienne ligne unique) coupées au bord de sa colonne plutôt que de faire défiler le tableau. */
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-default > .panel-heading > .panel-title {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table.table:has(> thead):not(:has(> tbody > tr)),
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table.table:has(> thead):not(:has(> tbody > tr)) + hr {
+    display: none !important;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody:has(> tr > td > img) {
+    display: block;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody > tr:has(> td > img) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 26px minmax(3ch, 1fr));
+    gap: var(--kr-space-1);
+    align-items: center;
+  }
+
+  :where(html.kr-page-personnage body.mobile-mode) #col-right .panel-body > table:not(.table) > tbody > tr:has(> td > img) > td:not(:has(> img)) {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* Vue d'une organisation (bouton du panneau Organisations, ordre Quitter) : membres à la suite, séparés par des virgules, sous le
+     libellé de leur niveau (avant : une rangée de 41 px par membre et de 34 px par niveau, 462 px pour huit membres). Tableau des membres :
+     sans classe, une rangée th par niveau. Priorités forcées : règles des tableaux de Bootbox (« préserver le comportement normal des
+     tableaux Bootstrap » : table, groupe de rangées et cellule forcés en tableau ; cellules à 10 px 8 px de retrait) ; les rangées, éléments
+     du groupe en flex, passent en bloc sans règle. Infos de l'organisation (Politique, Empire, Siège, Indice de gloire) : 4 px entre les
+     lignes au lieu de 10. */
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form:has(> table:not([class]) > tbody > tr > th) > p {
+    margin-bottom: var(--kr-space-1);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]):has(> tbody > tr > th) {
+    display: block !important;
+    margin-bottom: var(--kr-space-2);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) {
+    display: flex !important;
+    flex-wrap: wrap;
+    column-gap: 0.3em;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> th) {
+    flex: 1 0 100%;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> th):not(:first-child) {
+    margin-top: var(--kr-space-2);
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr > :is(th, td) {
+    display: inline !important;
+    padding: 0 !important;
+    border: 0;
+    background: none;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr > th {
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    font-weight: 600;
+  }
+
+  html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > table:not([class]) > tbody:has(> tr > th) > tr:has(> td):has(+ tr > td) > td::after {
+    content: ",";
+  }
+}
+
+/* ============================================================================
+   KRAMAIL, LISTES MOBILES : DENSITÉ (Réception, Envoi, Corbeille ; relevé sur le site réel au format Galaxy S21, 360 × 680 visibles,
+   thème Empire Brun)
+   Demande d'Arnaud du 1er novembre 2026 : retravailler la liste du kramail, avec les reproches faits à la modale d'ordre (retours à la
+   ligne injustifiés, interlignes trop grands, espace horizontal mal employé). Relevé avant correction, à 360 px :
+   - en-tête de 193 px : fil d'Ariane (44), titre seul sur son rang (29), puis onglets et carrés sur deux rangs (Réception : Réception,
+     « ••• », Nouveau et Contacts au premier, Envoi et Corbeille au second, Envoi sorti de 8 px à gauche ; Envoi et Corbeille : onglets de
+     52 px, icône sur le libellé, carrés seuls au rang suivant) ;
+   - recherche décalée de 8 px : le clearfix de DataTables (.dataTables_wrapper::after, display: block) devient un élément flexible
+     d'ordre 0 de l'enveloppe et prend un écart devant elle (24 px de retrait à gauche, 16 à droite) ; même défaut dans Contacts ;
+   - pagination « ‹ 1 › » de 44 px, plus son écart, pour une liste d'une seule page.
+   Après : titre et carrés sur un rang (le nom de personnage se tronque avant les carrés), onglets sur un rang de 44 px (icône à côté du
+   libellé), 8 px entre les deux ; en-tête de 144 px. Recherche alignée sur l'info et les lignes. Pagination masquée tant que Précédent et
+   Suivant sont tous deux désactivés (une seule page, liste vide), affichée dès la deuxième page. Premier message 49 px plus haut, fin d'une
+   liste d'une page 109 px plus haut. « ••• » ouvre son menu sous lui, calé à droite. Ordinateur et fenêtre d'ordinateur rétrécie : rendu
+   inchangé (mode mobile seul).
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* En-tête en trois rangs : fil d'Ariane ; titre et carrés ; onglets. Le span.pull-right s'efface (display: contents) : ses boutons
+     deviennent des éléments du titre, rangés par order ; ::after force le retour au rang des onglets et en tient l'écart de 8 px. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.page-header.kr-kramail-entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--kr-space-2);
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .forum-mobile-breadcrumb {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  /* Titre : la place laissée par les carrés, plus 4 px d'écart (12 en tout) : la zone de toucher du sélecteur de personnage, qui déborde
+     de 12 px à droite du titre, s'arrête au bord du premier carré au lieu de le recouvrir. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .forum-subforum-head {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: var(--kr-space-1);
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right {
+    display: contents !important;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > :is(a.btn:not([data-kr-dossier]), .btn-group) {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete::after {
+    content: "";
+    order: 3;
+    flex: 1 0 100%;
+    height: var(--kr-space-2);
+  }
+
+  /* Onglets : icône à côté du libellé (dessus avant : 52 px), un rang de 44 px ; libellé de 12 px et retraits (8 et 4 px) inchangés. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > a.btn[data-kr-dossier] {
+    order: 4;
+    flex-direction: row;
+    gap: var(--kr-space-2);
+    min-height: var(--kr-touch-target);
+  }
+
+  /* « ••• » : menu sous le bouton, calé à droite (sans boîte, le span ne peut plus le borner). */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > .btn-group {
+    position: relative;
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete > .pull-right > .btn-group > .dropdown-menu {
+    right: 0;
+    left: auto;
+  }
+
+  /* Nom de personnage long : tronqué dans la place laissée par les carrés, au lieu de passer à la ligne. Le sélecteur déborde de 12 px de
+     chaque côté (marges négatives de sa zone de toucher) : sa largeur maximale les reprend. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete .kramail-character-selector {
+    max-width: calc(100% + 2 * var(--kr-space-3));
+  }
+
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right > h1.kr-kramail-entete .kramail-character-selector > .kramail-character-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Clearfix de DataTables retiré de l'enveloppe en flex : la recherche reprend le retrait de 16 px de l'info et des lignes. */
+  :where(html.kr-page-kramail-liste, html.kr-page-contacts) body.mobile-mode #col-right #topics_wrapper::after {
+    content: none;
+  }
+
+  /* Une seule page (ou aucune ligne) : Précédent et Suivant désactivés, la pagination n'a rien à proposer. L'info reste. */
+  :where(html.kr-page-kramail-liste) body.page-kramail.mobile-mode #col-right #topics_wrapper > .dataTables_paginate:has(> .paginate_button.previous.disabled):has(> .paginate_button.next.disabled) {
+    display: none !important;
   }
 }
