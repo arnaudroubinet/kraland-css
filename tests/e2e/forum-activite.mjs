@@ -97,6 +97,7 @@ import { mapLimit } from './lib/parallele.mjs';
 import { krReady, THEME_READY } from './lib/settle.mjs';
 import { ACTIVITE_TICKET62 as A, CONTRASTE, REPERES_ENTETE_TICKET64 as E, REPERES_FIL_TICKET63 as R, REPERES_LIGNE_TICKET66 as L, REPERES_CONFORT_ENTREE8 as CF8, REPERES_PANNEAUX_TICKET12 as PN, REPERES_PLUS_TICKET65 as P, VARIANTES as TOUTES_VARIANTES } from './lib/variantes.mjs';
 import { TEXTES_HORS_MARGE_PAGE, cible as cibleTactile, ecartsCible } from './lib/marges.mjs';
+import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 import { AVANT_REVUE_S21 } from './lib/revue-s21.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -785,8 +786,11 @@ if (on('fil')) {
   casB.forEach(({ cle, width, variante }, i) => {
     const { teste, base } = resB[i];
     const quoi = width >= 768 ? 'aucun fil, ' : '';
-    const differe = differeS21(baseFil, width);
-    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu${differe ? DIFFERE_S21 : ''}, aucune exception`, () => {
+    // Écart accepté et consigné (densité de la rédaction, lib/densite-redaction.mjs) : la réponse mobile a le fil commun « Forum › Sujet ›
+    // Réponse » (contrôle absolu ci-dessous) ; comparaison à la base différée tant que la base précède ce changement.
+    const differeRedaction = cle === 'reponse' && width < 768 && AVANT_DENSITE_REDACTION(baseFil);
+    const differe = differeS21(baseFil, width) || differeRedaction;
+    check(`fil ${cle} ${variante} ${width} px : ${quoi}égal au bundle de base (${COMMIT_FIL}) : fil, bouton flottant et empreinte du contenu${differe ? (differeS21(baseFil, width) ? DIFFERE_S21 : ' (comparaison mobile à la base différée, densité de la rédaction)') : ''}, aucune exception`, () => {
       assert.ok(teste.f.theme && base.f.theme, 'kr-theme-enabled absent');
       if (width >= 768) { assert.equal(teste.f.conteneurs.filter(c => c.cls === R.fil).length, 0, 'fil au bureau'); }
       if (differe) { assert.deepEqual(teste.erreurs, []); return; }
@@ -794,6 +798,33 @@ if (on('fil')) {
       const k = teste.e.findIndex((x, j) => x !== base.e[j]);
       assert.ok(k === -1 && teste.e.length === base.e.length, k < 0 ? `éléments : ${teste.e.length} au lieu de ${base.e.length}` : `élément ${k} : ${teste.e[k]} au lieu de ${base.e[k]}`);
       assert.deepEqual(teste.erreurs, []);
+    });
+  });
+
+  // Réponse au forum (densité de la rédaction, 1er novembre 2026 ; transformPostHeader) : titre réel « Sujet > Réponse » à deux liens
+  // (forum, sujet), fil commun sur une ligne « Forum › Sujet › Réponse » ; le sujet cède la place, « Réponse » reste lisible en entier.
+  const casR = [320, 375].flatMap(width => VARIANTES.map(variante => ({ cle: 'reponse', width, variante })));
+  const resR = await mapLimit(casR, async c => lireFil(await ouvrir(c)));
+  casR.forEach(({ width, variante }, i) => {
+    const { f, erreurs } = resR[i];
+    check(`fil reponse ${variante} ${width} px (densité de la rédaction) : un seul fil de la famille commune, « Site & Annonces › FIXTURE sujet de test › Réponse » sur une ligne, forum et sujet en liens au href du site, sans icône ni style en ligne, liens d'au moins 44 px atteints ; « Réponse » en entier ; aucun bouton flottant, aucun débordement, aucune exception`, () => {
+      assert.ok(f.theme && f.mobile, `kr-theme-enabled ${f.theme}, mobile ${f.mobile}`);
+      assert.equal(f.conteneurs.length, 1, 'conteneurs de fil : ' + f.conteneurs.map(c => c.cls).join(', '));
+      const c = f.conteneurs[0];
+      assert.equal(c.cls, R.fil, 'classe du conteneur');
+      assert.deepEqual(c.enfants.map(e => [e.tag, e.cls]), [['A', R.lien], ['SPAN', R.sep], ['A', R.lien], ['SPAN', R.sep], ['SPAN', R.courant]], 'structure du fil');
+      const [forum, sep, sujet, , courant] = c.enfants;
+      assert.deepEqual([forum.texte, forum.href, sujet.texte, sujet.href, courant.texte], ['Site & Annonces', 'forum/hrp/site-annonces-20101', 'FIXTURE sujet de test', 'forum/sujet/fixture-1-1', 'Réponse'], 'liens et courant');
+      assert.deepEqual([sep.texte, sep.masque], ['›', 'true'], 'séparateur');
+      assert.ok(!c.icone, `icône de retour dans le fil : « ${c.texte} »`);
+      assert.equal(c.style, '', 'style en ligne du conteneur');
+      const centres = c.enfants.map(e => e.boite.y + e.boite.h / 2);
+      assert.ok(Math.max(...centres) - Math.min(...centres) <= 1, 'une ligne : ' + centres.join(', '));
+      assert.ok([forum, sujet].every(a => a.boite.h >= 44 && a.cible), 'liens : ' + JSON.stringify([forum, sujet].map(a => [a.boite.h, a.cible])));
+      assert.ok(courant.sw <= courant.cw, `« Réponse » tronqué : ${courant.sw} > ${courant.cw}`);
+      assert.equal(f.fabs, 0, 'bouton flottant');
+      assert.ok(f.debordPage <= 0, 'débordement ' + f.debordPage);
+      assert.deepEqual(erreurs, []);
     });
   });
 

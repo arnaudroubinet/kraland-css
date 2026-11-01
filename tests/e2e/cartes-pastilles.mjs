@@ -80,6 +80,7 @@ import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs'
 import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, CORRIGER_BUG20, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 import { ACTIONS_RAPIDES_S21, AVANT_REVUE_S21, BARRE_MESSAGE_S21, HAUT_S21, LIENS_S21, MINI_PROFIL_S21, MODALE_ORDRE_S21 } from './lib/revue-s21.mjs';
 import { AVANT_CLAVIER_COMPACT, AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
+import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -1555,10 +1556,14 @@ if (on('etiquettes')) {
   //   chacune des 87 restantes bat une priorité forcée du thème sur le même élément.
   const SURPLUS_FORCEES_CLAVIER_COMPACT = 32;
   const SURPLUS_FORCEES_DENSITE_ORDRE = 87;
+  // Densité de la rédaction sur mobile (1er novembre 2026, lib/densite-redaction.mjs), même condition de retrait : retraits haut et bas du
+  // libellé « Options », qui battent la règle mobile commune des libellés (« label { padding: 5px 0 !important } »).
+  const SURPLUS_FORCEES_DENSITE_REDACTION = 2;
   const consignes = [
     [AVANT_REVUE_S21(avant), SURPLUS_FORCEES_REVUE_S21, 'revue S21'],
     [AVANT_CLAVIER_COMPACT(avant), SURPLUS_FORCEES_CLAVIER_COMPACT, 'clavier compact'],
-    [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre']
+    [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre'],
+    [AVANT_DENSITE_REDACTION(avant), SURPLUS_FORCEES_DENSITE_REDACTION, 'densité de la rédaction']
   ].filter(([avantChangement]) => avantChangement);
   const surplus = consignes.reduce((n, [, k]) => n + k, 0);
   const detailSurplus = consignes.map(([, k, quoi]) => `${quoi} ${k}`).join(', ');
