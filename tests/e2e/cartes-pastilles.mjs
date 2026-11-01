@@ -5,7 +5,8 @@
 //               en haut du panneau, de 48 px (plus haut seulement si son contenu l'exige), retrait 0 16 px ; contenu sans écart sous
 //               l'en-tête, corps en retrait de 16 px, dernier corps aux coins bas de 8 px ; titre 17 px 700 en couleur du texte ; chevrons
 //               (natif ou du module, enfants directs de l'en-tête) dans l'en-tête, à 16 px du bord droit (chevron natif depuis la revue S21,
-//               n° 9 : cible de 44 x 44 au bord droit, glyphe centré) ; aucun débordement horizontal ;
+//               n° 9 : cible de 44 x 44 au bord droit, glyphe centré) ; aucun débordement horizontal. Matériel et Personnage (densité du
+//               1er novembre 2026, lib/densite-jeu.mjs) : en-tête de 44 px, corps à 8 px de retrait (16 px de côté pour un corps de texte) ;
 //   module      Bâtiments (Bâtiments Privés), plateau (Commerce, Matériel), Cybermonde (Bâtiments) à 375 et 767 px : chevron du module à
 //               16 px du bord droit, centré, chevron natif masqué ; un tap sur l'en-tête (elementFromPoint vérifié avant) replie : carte de
 //               48 px, corps de 0 px ; un 2e tap déplie : hauteur d'origine ; contrôle statique : règles du module dans le média mobile ;
@@ -81,6 +82,7 @@ import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, CORRIGER_BUG20, DOSSIER_MODA
 import { ACTIONS_RAPIDES_S21, AVANT_REVUE_S21, BARRE_MESSAGE_S21, HAUT_S21, LIENS_S21, MINI_PROFIL_S21, MODALE_ORDRE_S21 } from './lib/revue-s21.mjs';
 import { AVANT_CLAVIER_COMPACT, AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
 import { AVANT_DENSITE_REDACTION } from './lib/densite-redaction.mjs';
+import { AVANT_DENSITE_JEU, PAGES_DENSITE_JEU } from './lib/densite-jeu.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -273,6 +275,7 @@ const MESURE = ([sel, texte]) => {
         titre: titre ? { tag: titre.tagName, taille: ts.fontSize, graisse: ts.fontWeight, couleur: ts.color, rapport: C.texte(titre) } : null,
         suite: suite.length ? boite(suite[0]) : null,
         corps: corps.map(c => { const cs = getComputedStyle(c); return [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft]; }),
+        corpsTexte: corps.map(c => !!c.querySelector(':scope > p')),
         dernier: dernier && dernier.classList.contains('panel-body') && vis(dernier) && dernier !== h ? coins(getComputedStyle(dernier)).slice(2) : null,
         chevrons, hors
       };
@@ -315,7 +318,9 @@ const r1 = v => Math.round(v * 10) / 10;
 // garde la même largeur défilable, sans élément de panneau sorti. 44 x 44 exigé partout, Staff compris (revue S21, n° 9 : avant, le chevron
 // natif de Staff, sans règle de sous-forum ni d'index, A6, gardait la taille de la base). En-tête qui répète le titre de la page (index et
 // racine, revue S21, n° 13, kr-titre-repete) : masqué avec son chevron, contenu en haut de la carte ; le reste de la carte est contrôlé.
-function controlerCarte(m, famille, swBase) {
+// densite : Matériel et Personnage (densité du 1er novembre 2026, lib/densite-jeu.mjs), en-tête de 44 px (plus haut seulement si son contenu
+// l'exige), corps à 8 px de retrait, 16 px de côté pour un corps de texte (paragraphes de Finance).
+function controlerCarte(m, famille, swBase, densite = false) {
   assert.ok(m.theme, 'kr-theme-enabled absent');
   assert.ok(m.mobile, 'mobile-mode absent');
   assert.ok(m.panneaux.length > 0, 'aucun panneau à en-tête');
@@ -329,8 +334,8 @@ function controlerCarte(m, famille, swBase) {
     if (!pres(c.p.x, 8) || !pres(c.p.w, m.vw - 16)) { e.push(`boîte x ${c.p.x} largeur ${c.p.w} (vw ${m.vw})`); }
     if (c.fond !== m.surface) { e.push(`fond ${c.fond} ≠ ${m.surface}`); }
     if (c.coins.some(v => v !== '8px')) { e.push(`rayons ${c.coins.join(' ')}`); }
-    const attendu = famille === 'jeu' ? '16px 16px 16px 16px' : '0px 0px 0px 0px';
-    if (c.corps.some(v => v.join(' ') !== attendu)) { e.push(`corps ${c.corps.map(v => v.join(' ')).join(' ; ')}`); }
+    const attendu = k => (densite ? (c.corpsTexte[k] ? '8px 16px 8px 16px' : '8px 8px 8px 8px') : famille === 'jeu' ? '16px 16px 16px 16px' : '0px 0px 0px 0px');
+    if (c.corps.some((v, k) => v.join(' ') !== attendu(k))) { e.push(`corps ${c.corps.map(v => v.join(' ')).join(' ; ')}`); }
     if (c.dernier && c.dernier.some(v => v !== '8px')) { e.push(`coins bas du dernier corps ${c.dernier.join(' ')}`); }
     if (c.repete) {
       if (c.h.h > 0 || c.chevrons.length) { e.push(`en-tête qui répète le titre de la page affiché (${r1(c.h.h)} px, ${c.chevrons.length} chevron(s))`); }
@@ -340,7 +345,8 @@ function controlerCarte(m, famille, swBase) {
       continue;
     }
     if (!pres(c.h.y, c.p.y) || !pres(c.h.x, c.p.x) || !pres(c.h.w, c.p.w)) { e.push(`en-tête décalé [${c.h.x},${c.h.y},${c.h.w}]`); }
-    if (c.h.h < 47.5 || (c.h.h > 48.5 && c.contenu < c.h.h - 0.5)) { e.push(`en-tête ${c.h.h} px (contenu ${c.contenu})`); }
+    const hauteur = densite ? 44 : 48;
+    if (c.h.h < hauteur - 0.5 || (c.h.h > hauteur + 0.5 && c.contenu < c.h.h - 0.5)) { e.push(`en-tête ${c.h.h} px (contenu ${c.contenu})`); }
     if (c.retrait.join(' ') !== '0px 16px 0px 16px') { e.push(`retrait ${c.retrait.join(' ')}`); }
     if (c.filet !== '0px') { e.push(`filet sous l'en-tête ${c.filet}`); }
     if (c.suite && !pres(c.suite.y, c.h.bas)) { e.push(`écart de ${Math.round((c.suite.y - c.h.bas) * 10) / 10} px sous l'en-tête`); }
@@ -374,7 +380,8 @@ for (const [frag, famille] of [['carte', 'jeu'], ['kramail', 'kramail']]) {
     return { c, m, erreurs };
   });
   for (const { c, m, erreurs } of res) {
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de 48 px (retrait 0 16 px, sans filet) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons convertis à 16 px du bord droit, natifs en cible de 44 x 44 au bord droit (revue S21, n° 9), sans débordement`, () => controlerCarte(m, famille));
+    const densite = famille === 'jeu' && PAGES_DENSITE_JEU.some(d => PAGES[c.nom].url === d || PAGES[c.nom].url.startsWith(d + '/'));
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${m.panneaux.length} carte(s) à 8 px des bords, fond surface, rayons 8 px, en-tête de ${densite ? 44 : 48} px (retrait 0 16 px, sans filet) collé au contenu, corps ${famille === 'kramail' ? 'sans retrait' : densite ? 'à 8 px (16 px de côté pour un corps de texte, densité du 1er novembre 2026)' : 'à 16 px'}, coins bas du dernier corps à 8 px, titre 17 px 700 text-primary, chevrons convertis à 16 px du bord droit, natifs en cible de 44 x 44 au bord droit (revue S21, n° 9), sans débordement`, () => controlerCarte(m, famille, undefined, densite));
     check(`${frag} ${c.nom} ${c.variante} ${c.width} px : aucune erreur de page`, () => assert.deepEqual(erreurs, []));
   }
 }
@@ -1530,6 +1537,11 @@ function ecartsCategorie(quoi, x, j, { fond = j.fond, texte = j.texte, forme = t
 // métadonnées ne commence plus par « · ») : l'étiquette perd la largeur du séparateur. Position et largeur n'y sont pas comparées à une
 // base d'avant la revue (hauteur, cadre, couleurs et typographie le sont) ; métadonnées sans « · » initial : revue-s21.mjs.
 const ordonneeHorsComparaisonS21 = c => EXCEPTION_REVUE_S21_6 && c.nom === 'sous-forum' && c.width < 768;
+// Écart accepté et consigné (densité du Matériel, 1er novembre 2026, lib/densite-jeu.mjs) : sur mobile, panneaux, corps et lignes d'objet
+// resserrés remontent et décalent « Arme en main » (8 px plus à gauche, corps à 8 px de retrait). Position seule hors comparaison à une base
+// d'avant ce changement (largeur, hauteur, cadre, couleurs et typographie le sont).
+const EXCEPTION_DENSITE_JEU = AVANT_DENSITE_JEU(avant);
+const positionHorsComparaisonDensiteJeu = c => EXCEPTION_DENSITE_JEU && c.nom === 'materiel' && c.width < 768;
 // Caractéristiques et leurs pastilles (backlog 13) : fond, texte, bordures et contraste relevés à part, égaux à la compétence de la page.
 const sansPalette13 = (k, x) => (C13.horsFamilles.includes(k) ? { ...x, fond: '·', couleur: '·', bordures: '·', rapport: '·' } : x);
 const sansEcart55 = ecarts => assert.deepEqual(ecarts, [], ecarts.join(' ; '));
@@ -1559,11 +1571,17 @@ if (on('etiquettes')) {
   // Densité de la rédaction sur mobile (1er novembre 2026, lib/densite-redaction.mjs), même condition de retrait : retraits haut et bas du
   // libellé « Options », qui battent la règle mobile commune des libellés (« label { padding: 5px 0 !important } »).
   const SURPLUS_FORCEES_DENSITE_REDACTION = 2;
+  // Densité du Matériel et du Personnage sur mobile (1er novembre 2026, lib/densite-jeu.mjs), même condition de retrait : audit sur les
+  // fixtures (Matériel, Personnage, détail d'objet, vue d'organisation, 320 et 360 px), chaque !important rendu normal à son tour et styles
+  // calculés comparés : chacune des priorités restantes bat une priorité forcée du thème ou un style en ligne du site sur le même élément
+  // (écart et retraits des panneaux, retraits des liens et cellules de panneau, tableaux de Bootbox, tableaux de #col-right).
+  const SURPLUS_FORCEES_DENSITE_JEU = 31;
   const consignes = [
     [AVANT_REVUE_S21(avant), SURPLUS_FORCEES_REVUE_S21, 'revue S21'],
     [AVANT_CLAVIER_COMPACT(avant), SURPLUS_FORCEES_CLAVIER_COMPACT, 'clavier compact'],
     [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre'],
-    [AVANT_DENSITE_REDACTION(avant), SURPLUS_FORCEES_DENSITE_REDACTION, 'densité de la rédaction']
+    [AVANT_DENSITE_REDACTION(avant), SURPLUS_FORCEES_DENSITE_REDACTION, 'densité de la rédaction'],
+    [AVANT_DENSITE_JEU(avant), SURPLUS_FORCEES_DENSITE_JEU, 'densité du Matériel et du Personnage']
   ].filter(([avantChangement]) => avantChangement);
   const surplus = consignes.reduce((n, [, k]) => n + k, 0);
   const detailSurplus = consignes.map(([, k, quoi]) => `${quoi} ${k}`).join(', ');
@@ -1637,9 +1655,11 @@ if (on('etiquettes')) {
       }
       if (sort === 'egal' || sort === 'conforme' || tagsBase) {
         const ordonnee = ordonneeHorsComparaisonS21(c);
-        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}${ordonnee ? ', position et largeur à part (permanents sur deux lignes, « · » après l\'auteur, revue S21, n° 6)' : ''}`, () => {
+        const position = positionHorsComparaisonDensiteJeu(c);
+        check(`${lab} : ${k} (${l.length}) égal${sort === 'conforme' ? ', déjà en catégorie,' : ''} au bundle de base (${COMMIT_AVANT})${tagsBase ? ', sans règle bureau' : ''}${C13.horsFamilles.includes(k) ? ', palette à part' : ''}${ordonnee ? ', position et largeur à part (permanents sur deux lignes, « · » après l\'auteur, revue S21, n° 6)' : ''}${position ? ', position à part (densité du Matériel)' : ''}`, () => {
           if (rendu !== 'mobile' || c.width < 768) { assert.ok(l.length > 0, 'absent'); }
-          const vue = x => JSON.stringify(sansPalette13(k, ordonnee ? { ...x, geo: x.geo.replace(/\[[^,\]]+,[^,\]]+,[^,\]]+,/, '[·,·,·,') } : x));
+          const geo = g => (ordonnee ? g.replace(/\[[^,\]]+,[^,\]]+,[^,\]]+,/, '[·,·,·,') : position ? g.replace(/\[[^,\]]+,[^,\]]+,/, '[·,·,') : g);
+          const vue = x => JSON.stringify(sansPalette13(k, ordonnee || position ? { ...x, geo: geo(x.geo) } : x));
           const d = premierEcart(l.map(vue), lb.map(vue));
           assert.equal(d, '', d);
           if (sort === 'conforme') { sansEcart55(l.flatMap(x => ecartsCategorie(k, x, j))); }

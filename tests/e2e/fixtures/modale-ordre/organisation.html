@@ -1,0 +1,56 @@
+<!-- FIXTURE SYNTHÉTIQUE : contenu de #ajax-order pour la vue d'une organisation (bouton de l'organisation du panneau Organisations de /jouer/perso ; ordre Quitter, seul onglet). Structure native relevée en lecture seule le 2026-11-01 sur le site réel (thème Empire Brun) : titre avec logo de 80 px dans div.pull-right, quatre paragraphes d'informations (le troisième suivi d'un span.mini), alerte du rang, tableau des membres sans classe (une rangée th par niveau, une rangée td par membre), filet, description en texte libre et br, paragraphe vide, cinq champs cachés, panneau d'onglets, aide repliable, case de confirmation, ligne de coût. Noms et textes du jeu gardés (données de jeu publiques) ; logo et valeurs des champs cachés inventés. -->
+<form name="post_msg" method="post" action="/fixture/envoi-bloque">
+  <h3><div class="pull-right"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="80" height="80"></div>Mecharium</h3>
+  <p>Politique : Aucune</p>
+  <p>Empire : Provinces Indépendantes</p>
+  <p>Siège : Géofront - Sanctuaire - Électronique [19,5]<br><span class="mini">Bureau ouvert (inscription possible)</span></p>
+  <p>Indice de gloire : 26 · Ruban non exigé</p>
+  <div class="alert alert-success alert-sm" role="alert">Vous êtes Employé-e (niveau 2) au sein de cette organisation.</div>
+  <table>
+    <tbody>
+      <tr><th>Niveau 6 - Président-e</th></tr>
+      <tr><td>IA MichaDOS</td></tr>
+      <tr><th>Niveau 4 - Direction de secteur</th></tr>
+      <tr><td>M-831</td></tr>
+      <tr><th>Niveau 3 - Représentant-e de branche</th></tr>
+      <tr><td>Silas des Sables</td></tr>
+      <tr><td>Shiki Chantargent</td></tr>
+      <tr><th>Niveau 2 - Employé-e</th></tr>
+      <tr><td>Ninoo Chantargent</td></tr>
+      <tr><td>Sophos</td></tr>
+      <tr><td>Nerys</td></tr>
+      <tr><td>Syllabus</td></tr>
+    </tbody>
+  </table>
+  <hr style="border-top: 1px solid #337ab7; background: transparent;">
+  Ancienne organisation ayant connu un âge d'or lointain, la Mecharium se reconstitue peu à peu.<br><br>Son objectif est l'avènement de la Post-Humanité : une ère nouvelle de l'évolution, grâce à l'augmentation technologique des êtres vivants.
+  <p></p>
+  <input type="hidden" name="t" value="0">
+  <input type="hidden" name="a" value="0">
+  <input type="hidden" name="n[101]" value="0">
+  <input type="hidden" name="n[102]" value="0">
+  <input type="hidden" name="n[103]" value="0">
+  <div class="panel with-nav-tabs panel-default">
+    <div class="panel-heading">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="javascript:updateAjax( 'ajax-order', 'fixture-quitter', 0 )">Quitter</a></li>
+      </ul>
+    </div>
+    <div class="panel-body panel-order">
+      <div class="tab-content">
+        <div class="tab-pane active">
+          <h4><span class="mention pull-right mini"><a href="regles/avancees/org#410001" target="_blank">[?]</a></span><strong>Quitter</strong></h4>
+          <div class="alert alert-dismissible alert-order" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <p class="mini justify">Vous pouvez quitter cette organisation. Si vous êtes de rang 6, vous devez d'abord procéder à votre succession. Vous devez cocher la case de confirmation avant de passer l'ordre.</p>
+          </div>
+          <div class="row form-group">
+            <label class="col-sm-2 control-label label-order">Option</label>
+            <div class="col-sm-10"><div class="checkbox nomargin"><label><input type="checkbox" name="f[1]" value="1">confirmer</label></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer"><p class="mini">Coût: 0 FK | Durée: 00:10 | Automatique</p></div>
+  </div>
+</form>

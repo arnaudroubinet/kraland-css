@@ -306,6 +306,9 @@
   /** Classes de page posées sur <html> par applyVariant : test du chemin -> classes (les pages secondaires s'ajoutent ici). */
   const KR_PAGE_CLASSES = [
     { test: pathname => krActiveGameSection(pathname) !== null, classes: ['kr-page-jeu', 'kr-marge-mobile'] },
+    // Matériel et Personnage, sous-chemins compris : densité mobile de leurs panneaux (CSS « MATÉRIEL ET PERSONNAGE MOBILES : DENSITÉ »)
+    { test: pathname => krActiveGameSection(pathname) === '/jouer/materiel', classes: ['kr-page-materiel'] },
+    { test: pathname => krActiveGameSection(pathname) === '/jouer/perso', classes: ['kr-page-personnage'] },
     { test: pathname => /^\/aide(?:\/|$)/.test(pathname), classes: ['kr-page-aide', 'kr-marge-mobile'] },
     { test: pathname => /^\/(?:regles|monde|map|communaute\/(?:membres|stats))(?:\/|$)|^\/profil\/interface(?:\/|$)/.test(pathname), classes: ['kr-page-secondaire', 'kr-marge-mobile'] },
     { test: pathname => /^\/help(?:\/|$)/.test(pathname), classes: ['kr-page-aide-fenetre', 'kr-marge-mobile'] },
@@ -9266,17 +9269,44 @@
   const VIEWPORT_SETTLE_DELAYS = [50, 150, 300, 600, 1000];
   // Hauteur visible (px CSS) sous laquelle un champ focalisé passe la modale en mode compact (clavier ouvert).
   const KEYBOARD_COMPACT_MAX_HEIGHT = 600;
+  // Formulaire d'ordre (socle de la modale d'ordre, applyOrderModal)
+  const ORDER_FORM_SELECTOR = '#ajax-order form[name="post_msg"]';
 
   /**
-   * Contient les Bootbox avec saisie (ordres, formulaires) dans la zone réellement visible, sans toucher au formulaire.
-   * Le contenu peut arriver par Ajax ; les Bootbox sans champ de saisie et le bureau restent hors périmètre.
+   * Contient les Bootbox avec saisie (ordres, formulaires) et les ordres trop longs pour leur carte dans la zone réellement visible, sans
+   * toucher au formulaire. Ordre long (densité du 1er novembre 2026 : détail d'un objet du Matériel, vue d'une organisation) : corps qui
+   * défile dans la carte, mesuré avant le premier rendu (ResizeObserver) ; le cadre bord à bord reste jusqu'à la fermeture, d'un onglet
+   * à l'autre. Le contenu peut arriver par Ajax ; les ordres courts (Dormir), les Bootbox sans saisie hors ordre et le bureau gardent leur
+   * cadre, une fenêtre d'ordinateur rétrécie sous 768 px aussi (ordre long mesuré en mode mobile seulement).
    */
   function trackOrderModalViewport(modal) {
     const viewport = window.visualViewport;
     const mobile = window.matchMedia('(max-width: 767px)');
     let settleTimers = [];
+    let longOrder = false;
+    let measuredForm = null;
+    // Ordre long : corps de la carte qui défile (contenu plus haut que sa boîte). Le formulaire est suivi aussi (images chargées, onglet
+    // remplacé par Ajax). Sans ResizeObserver, les mutations et la zone visible déclenchent seules la mesure.
+    const sizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(() => update()) : null;
+    function measureLongOrder() {
+      if (longOrder || !mobile.matches || !isMobileMode()) {return;}
+      const form = modal.querySelector(ORDER_FORM_SELECTOR);
+      const body = modal.querySelector('.modal-body');
+      if (!form || !body) {return;}
+      if (sizeObserver && form !== measuredForm) {
+        if (measuredForm) {sizeObserver.unobserve(measuredForm);}
+        sizeObserver.observe(form);
+        sizeObserver.observe(body);
+        measuredForm = form;
+      }
+      // Mesure sur la carte de l'ordre mise en forme (applyOrderModal, kr-order-modal), pas sur le contenu brut de Bootbox : Dormir y
+      // dépasse avant la mise en forme (633 px pour 467) et tient après (409)
+      if (!modal.classList.contains('kr-order-modal')) {return;}
+      longOrder = body.clientHeight > 0 && body.scrollHeight > body.clientHeight + 1;
+    }
     function update() {
-      const active = mobile.matches && !!modal.querySelector(KEYBOARD_FIELD_SELECTOR);
+      measureLongOrder();
+      const active = mobile.matches && (!!modal.querySelector(KEYBOARD_FIELD_SELECTOR) || longOrder);
       modal.classList.toggle('kr-order-viewport', active);
       // Clavier ouvert : champ de saisie de la modale focalisé et zone visible réduite → mode compact (pied sur une ligne,
       // marges retirées, onglets non collants) pour rendre l'écran au champ de saisie.
@@ -9312,6 +9342,7 @@
     }
     $(modal).one('hidden.bs.modal', function () {
       contentObserver.disconnect();
+      if (sizeObserver) {sizeObserver.disconnect();}
       settleTimers.forEach(clearTimeout);
       settleTimers = [];
       window.removeEventListener('resize', settle);
@@ -9565,8 +9596,9 @@
     const h3Title = modalBody.querySelector('h3');
 
     if (selectRow && h3Title) {
-      // Marquer pour styling sticky
-      selectRow.classList.add('kraland-modal-header');
+      // Marquer pour styling sticky. Rangée d'en-tête : celle du sélecteur, avant le titre ; sans sélecteur, la première rangée est un
+      // champ du formulaire (Option de Quitter, Nombre de Dormir), plus bas, qui n'en est pas une.
+      if (selectRow.compareDocumentPosition(h3Title) & Node.DOCUMENT_POSITION_FOLLOWING) {selectRow.classList.add('kraland-modal-header');}
       h3Title.classList.add('kraland-character-title');
       console.log('[Order Modal] Header marqué');
     }
@@ -9716,10 +9748,14 @@
 
     const select = modal.querySelector('.kraland-modal-header select');
     if (!select) {return;}
+    // Groupes du site déjà posés (objets du Matériel par catégorie : Argent, Outils, Armes…) : ils restent, ce ne sont pas des personnages
+    if (select.querySelector('optgroup')) {return;}
 
     // Récupérer toutes les options
     const options = Array.from(select.options);
     if (options.length === 0) {return;}
+    // Option choisie (cible ouverte) : déplacer les options la ferait passer à une autre
+    const choisie = select.selectedOptions[0] || null;
 
     // Séparer PJ et PNJ (PNJ contiennent souvent "PNJ" dans le texte ou ont des patterns spécifiques)
     const pjOptions = [];
@@ -9755,6 +9791,7 @@
       pnjOptions.forEach(opt => pnjGroup.appendChild(opt));
       select.appendChild(pnjGroup);
     }
+    if (choisie) {choisie.selected = true;}
 
     console.log(`[Order Modal] Select groupé (${pjOptions.length} PJ, ${pnjOptions.length} PNJ)`);
   }
@@ -10109,7 +10146,12 @@
       for (const navTab of allNavTabs) {
         activeTab = navTab.querySelector('li.active');
         if (activeTab) {
-          activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          // Liste d'onglets seule, à l'horizontale : scrollIntoView faisait aussi défiler le corps de la modale jusqu'aux onglets (vue
+          // d'une organisation ouverte au milieu de la liste des membres, densité du 1er novembre 2026)
+          if (navTab.scrollWidth > navTab.clientWidth) {
+            const gauche = activeTab.getBoundingClientRect().left - navTab.getBoundingClientRect().left + navTab.scrollLeft;
+            navTab.scrollTo({ left: gauche - (navTab.clientWidth - activeTab.offsetWidth) / 2, behavior: 'smooth' });
+          }
           break;
         }
       }

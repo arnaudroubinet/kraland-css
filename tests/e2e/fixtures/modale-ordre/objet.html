@@ -1,0 +1,56 @@
+<!-- FIXTURE SYNTHÉTIQUE : contenu de #ajax-order pour le détail d'un objet du Matériel (ordre Déposer ; onglets Déposer, Personnaliser, Sortir/Ranger). Structure native relevée en lecture seule le 2026-11-01 sur le site réel (Épée Magique, thème Empire Brun) : sélecteur d'objet en tête (col-md-3 vides autour), titre avec image dans div.pull-right, description et prix de la règle du jeu, filet puis description personnalisée, paragraphe vide, cinq champs cachés, panneau d'onglets, aide repliable, Nombre et Option, ligne de coût. Description personnalisée et valeurs des champs cachés inventées ; liste du sélecteur réduite. -->
+<form name="post_msg" method="post" action="/fixture/envoi-bloque">
+  <div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+      <select name="top" class="form-control">
+        <optgroup label="Argent"><option value="0">2270 FK</option></optgroup>
+        <optgroup label="Outils"><option value="13007">Lanterne</option></optgroup>
+        <optgroup label="Armes de contact"><option value="76419" selected>Épée Magique</option><option value="11569">Rasoir</option></optgroup>
+        <optgroup label="Objets magiques"><option value="75690">Parchemin (4)</option></optgroup>
+        <optgroup label="Clefs"><option value="86485">Clef Hôtel</option></optgroup>
+      </select>
+    </div>
+    <div class="col-md-3"></div>
+  </div>
+  <h3><div class="pull-right"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="32" height="32"></div>Épée Magique « Dague de courtoisie »</h3>
+  <p>Avec cette épée magique, vous anéantirez tous vos adversaires car elle vous accorde un +6 aux dégâts que vous faites. Seuls les Enchanteurs peuvent fabriquer une telle arme.</p>
+  <p>Prix indicatif : 3125 FK</p>
+  <hr style="border-top: 1px solid #337ab7; background: transparent;">
+  <p>Une lame d'essai au fil bleuté.<br>Description personnalisée inventée pour le test.</p>
+  <p></p>
+  <input type="hidden" name="t" value="0">
+  <input type="hidden" name="a" value="0">
+  <input type="hidden" name="n[101]" value="0">
+  <input type="hidden" name="n[102]" value="0">
+  <input type="hidden" name="n[103]" value="0">
+  <div class="panel with-nav-tabs panel-default">
+    <div class="panel-heading">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="javascript:updateAjax( 'ajax-order', 'fixture-deposer', 0 )">Déposer</a></li>
+        <li><a href="javascript:updateAjax( 'ajax-order', 'fixture-personnaliser', 0 )"><span>Personnaliser</span></a></li>
+        <li><a href="javascript:updateAjax( 'ajax-order', 'fixture-sortir', 0 )"><span>Sortir/Ranger</span></a></li>
+      </ul>
+    </div>
+    <div class="panel-body panel-order">
+      <div class="tab-content">
+        <div class="tab-pane active">
+          <h4><span class="mention pull-right mini"><a href="regles/base/vie#110001" target="_blank">[?]</a></span><strong>Déposer</strong></h4>
+          <div class="alert alert-dismissible alert-order" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <p class="mini justify">Vous pouvez déposer de l'argent ou des objets sur la case ou dans le bâtiment où vous vous trouvez. Vous pouvez également choisir de détruire l'objet en question.</p>
+          </div>
+          <div class="row form-group">
+            <label for="n[1]" class="col-sm-2 control-label label-order text-nowrap">Nombre</label>
+            <div class="col-sm-10"><select name="n[1]" class="form-control"><option value="1">1</option></select></div>
+          </div>
+          <div class="row form-group">
+            <label class="col-sm-2 control-label label-order">Option</label>
+            <div class="col-sm-10"><div class="checkbox nomargin"><label><input type="checkbox" name="f[1]" value="1">Détruire l'objet</label></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer"><p class="mini">Coût: 0 FK | Durée: 00:00 | Automatique</p></div>
+  </div>
+</form>

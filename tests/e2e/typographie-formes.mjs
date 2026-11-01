@@ -34,8 +34,9 @@
 //   echelle         fragment étendu aux FIXTURES SYNTHÉTIQUES jeu-materiel.html, jeu-batiments.html et jeu-employes.html (/jouer/materiel,
 //                   /jouer/bat, /jouer/pnj) : 375, 767, 768, 769, 1280, 1440 et 1920 px, Kraland clair et Empire Brun sombre : noms et
 //                   valeurs 15 px / 600, détails (texte de ligne, charge, well « Charge … », alerte des Employés) 13 px ; rien sous 12 px
-//                   dans #content (mobile) ou #col-right (ordinateur) ; ligne d'objet du Matériel à 375 et 767 px : image à gauche, charge
-//                   au bord droit (≤ 1 px) sur la ligne du nom, sans chevauchement, en couleur de texte secondaire ; charge premier enfant et
+//                   dans #content (mobile) ou #col-right (ordinateur) ; ligne d'objet du Matériel à 375 et 767 px : image à gauche, nom sur
+//                   toute la largeur, charge au bord droit (≤ 1 px) sous le nom, sur la ligne du détail (densité du 1er novembre 2026 ; sur la
+//                   ligne du nom avant), sans chevauchement, en couleur de texte secondaire ; charge premier enfant et
 //                   cible de la ligne conservées à toutes les largeurs ; objets déplacés (.kr-materiel-moved, typographie-echelle.html) :
 //                   nom 15 px / 600, détail et charge 13 px sur ordinateur ; ligne sans image : nom au bord ; texte réel du nom (Range)
 //                   sans chevauchement de la charge ; Personnage : plancher de 12 px dans #content ; plateau (FIXTURE SYNTHÉTIQUE
@@ -825,7 +826,9 @@ const MESURE_ECHELLE = ({ ligne, secondaire: couleurSecondaire, ...sels }) => {
       imageAGauche: img ? img.getBoundingClientRect().right <= rn.left + 0.5 : null,
       nomAuBord: Math.abs(rn.left - ra.left - parseFloat(s.paddingLeft) - parseFloat(s.borderLeftWidth)),
       ecartDroit: Math.abs(ra.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - rc.right),
-      memeLigne: rc.top < rn.bottom && rn.top < rc.bottom,
+      // Densité du 1er novembre 2026 : nom sur toute la largeur du contenu, charge sur la ligne du détail, sous le texte du nom
+      sousLeNom: rc.top >= Math.max(rn.top, ...textes.map(r => r.bottom)) - 0.5,
+      nomPleineLargeur: Math.abs(ra.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - rn.right) <= 1,
       chevauchement: textes.length === 0 || textes.some(r => r.right > rc.left + 0.5 && r.left < rc.right - 0.5 && r.top < rc.bottom && rc.top < r.bottom)
         || Math.max(...textes.map(r => r.right)) > ra.right - parseFloat(s.paddingRight) + 0.5,
       couleur: getComputedStyle(ch).color, secondaire, cible: Boolean(cible && cible.closest('a') === a) };
@@ -902,7 +905,7 @@ if (on('echelle')) {
       });
     }
     if (c.nom === 'jeu-materiel') {
-      check(`echelle ${etiquette(c)} : ligne d'objet ${mobile ? 'image, nom, charge au bord droit sur la même ligne, charge en text-secondary' : 'en ordre natif'}`, () => {
+      check(`echelle ${etiquette(c)} : ligne d'objet ${mobile ? 'image, nom sur toute la largeur, charge au bord droit sous le nom (ligne du détail), charge en text-secondary' : 'en ordre natif'}`, () => {
         assert.ok(m.lignes.length >= 7 && m.lignes.some(l => !l.image), `${m.lignes.length} ligne(s) d'objet, ligne sans image ${m.lignes.some(l => !l.image) ? 'présente' : 'absente'}`);
         const ecarts = m.lignes.flatMap(l => [
           l.premier ? null : `« ${l.texte} » charge déplacée dans le DOM`,
@@ -910,7 +913,8 @@ if (on('echelle')) {
           ...(mobile ? [
             l.image ? (l.imageAGauche ? null : `« ${l.texte} » image pas à gauche du nom`) : (l.nomAuBord <= 1 ? null : `« ${l.texte} » sans image : nom à ${l.nomAuBord.toFixed(1)} px du bord`),
             l.ecartDroit <= 1 ? null : `« ${l.texte} » charge à ${l.ecartDroit.toFixed(1)} px du bord droit`,
-            l.memeLigne ? null : `« ${l.texte} » charge hors de la ligne du nom`,
+            l.nomPleineLargeur ? null : `« ${l.texte} » nom pas sur toute la largeur`,
+            l.sousLeNom ? null : `« ${l.texte} » charge pas sous le nom`,
             l.chevauchement ? `« ${l.texte} » texte du nom sur la charge ou hors de la ligne` : null,
             l.couleur === l.secondaire ? null : `« ${l.texte} » charge en ${l.couleur} au lieu de ${l.secondaire}`
           ] : [])
@@ -1052,9 +1056,9 @@ if (on('echelle')) {
     for (const { width, m } of releves) {
       const mobile = width < 768;
       if (nomPage === 'jeu-materiel') {
-        check(`echelle bascule ${bascule}${variante} ${width} px : détails en 13 px, charge ${mobile ? 'au bord droit sur la ligne du nom' : 'en ordre natif'}`, () => {
+        check(`echelle bascule ${bascule}${variante} ${width} px : détails en 13 px, charge ${mobile ? 'au bord droit sous le nom' : 'en ordre natif'}`, () => {
           assert.ok(m.detailsJeu.length > 0 && m.lignes.length > 0, 'éléments absents');
-          const hors = [...tailles(m.detailsJeu, '13px'), ...m.lignes.filter(l => !l.premier || (mobile && (l.ecartDroit > 1 || !l.memeLigne))).map(l => `« ${l.texte} » charge mal placée`)];
+          const hors = [...tailles(m.detailsJeu, '13px'), ...m.lignes.filter(l => !l.premier || (mobile && (l.ecartDroit > 1 || !l.sousLeNom))).map(l => `« ${l.texte} » charge mal placée`)];
           assert.deepEqual(hors, [], hors.join(' ; '));
         });
       }
