@@ -1405,7 +1405,7 @@ a.carousel-control.right{
   border: 1px solid var(--kr-border-default) !important;
   border-radius: var(--kr-radius-sm) !important;
   font-weight: 500;
-  font-size: var(--kr-font-body-mobile);
+  font-size: 0.95rem;
   text-decoration: none;
   transition: all var(--transition-fast);
   margin: 0 !important; /* Override Bootstrap margin */
@@ -1453,7 +1453,7 @@ a.carousel-control.right{
   content: "Actions";
   display: block;
   font-weight: 600;
-  font-size: var(--kr-font-label);
+  font-size: 0.8125rem;
   color: var(--kr-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1520,7 +1520,7 @@ a.carousel-control.right{
 .bootbox-confirm .panel-actions .row.form-group > div:nth-child(4) {
   justify-content: center;
   font-weight: 600;
-  font-size: var(--kr-font-detail);
+  font-size: 0.875rem;
   color: var(--kr-text-secondary);
   background: rgba(0, 0, 0, 0.15);
 }
@@ -1541,7 +1541,7 @@ a.carousel-control.right{
 .bootbox-confirm .panel-actions label {
   cursor: pointer;
   margin: 0 !important;
-  font-size: var(--kr-font-body-mobile);
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--kr-text-primary);
   transition: color 0.2s ease;
@@ -1569,7 +1569,7 @@ a.carousel-control.right{
 
 .bootbox-confirm table th {
   font-weight: 600;
-  font-size: var(--kr-font-detail);
+  font-size: 0.875rem;
   color: var(--kr-text-secondary);
   background: var(--kr-bg-elevated);
 }
@@ -1611,7 +1611,7 @@ a.carousel-control.right{
 .bootbox-confirm select[name="bonus"] {
   min-height: var(--kr-touch-target);
   padding: 10px 12px;
-  font-size: var(--kr-font-body-mobile);
+  font-size: 0.9375rem;
   border: 1px solid var(--kr-border-default);
   border-radius: var(--kr-radius-sm);
   background: var(--kr-bg-surface);
@@ -2175,7 +2175,7 @@ a.carousel-control.right{
 /* 7. ALERTES : mise en page commune ; seule l'aide (alert-order) prend la teinte d'information, les blocages et avertissements gardent
    leur couleur d'état (R2, ticket 2.3) */
 .bootbox-confirm .alert {
-  font-size: var(--kr-font-body-mobile);
+  font-size: 0.875rem;
   padding: 12px;
   margin-bottom: var(--mobile-spacing-lg);
   border-radius: var(--kr-radius-md);
@@ -2207,7 +2207,7 @@ a.carousel-control.right{
 
 /* Info coût/durée/potentiel */
 .bootbox-confirm .modal-footer p {
-  font-size: var(--kr-font-body);
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--kr-text-primary);
   margin-bottom: 0;
@@ -2223,6 +2223,28 @@ a.carousel-control.right{
   border-radius: var(--kr-radius-sm);
   font-weight: 500;
 }
+}
+
+/* Revue des thèmes, n° 1 : textes de la modale d'ordre en mode mobile. Ces tailles en rem supposaient 1 rem = 16 px ; sur le site, 1 rem vaut
+   10 px et ils sortaient en 8,1 à 9,4 px. Jetons de l'échelle, en mode mobile seulement (onglets, libellés et colonnes Diff./Jet ont déjà
+   leurs tailles mobiles ; une fenêtre étroite sans mode mobile garde la modale de base, voir typographie-formes#nettoyage). */
+@media (max-width: 767px) {
+  :where(body.mobile-mode) .bootbox-confirm .panel-actions::before {
+    font-size: var(--kr-font-label);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm table th {
+    font-size: var(--kr-font-detail);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm select[name="bonus"],
+  :where(body.mobile-mode) .bootbox-confirm .alert {
+    font-size: var(--kr-font-body-mobile);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm .modal-footer p {
+    font-size: var(--kr-font-body);
+  }
 } /* Fin @media (max-width: 767px) pour BOOTBOX ORDER MODAL */
 
 /* ============================================================================
@@ -16058,30 +16080,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    (--kr-text-muted, 7,1:1 au lieu de 3,4:1) ; le pied transparent des pages de jeu garde --kr-text-secondary (5,4:1 sur blanc). Numéro de
    dernière version dans la couleur de la ligne (couleur de la nation avant, jusqu'à 1,4:1 en Paradigme Vert) ; couleur d'alerte seulement
    si une mise à jour existe (kr-maj-disponible, displayVersionInfo) : danger du thème, rouge clair sur le pied sombre en clair. En sombre,
-   la ligne garde --kr-text-secondary (7,6 à 9,9:1). */
-@media (max-width: 767px) {
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version {
-    color: var(--kr-text-muted) !important;
-  }
-
-  :where(body.mobile-mode) .kraland-css-version span span {
-    color: inherit !important;
-  }
-
-  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible,
-  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible span {
-    color: var(--kr-danger) !important;
-  }
-
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible,
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible span {
-    color: var(--kr-footer-alert) !important;
-  }
-}
-
-/* Revue des thèmes, n° 6 : même ligne de version sur ordinateur, qui gardait le texte secondaire (3,42:1 sur le pied sombre) et le numéro
-   dans l'accent du thème (jusqu'à 1,40:1 en Paradigme Vert clair). Mêmes couleurs que le n° 12 mobile ci-dessus. */
-@media (min-width: 768px) {
+   la ligne garde --kr-text-secondary (7,6 à 9,9:1). Revue des thèmes, n° 6 : étendu à l'ordinateur, qui gardait le texte secondaire
+   (3,42:1 sur le pied sombre) et le numéro dans l'accent du thème (jusqu'à 1,40:1 en Paradigme Vert clair). */
+@media (max-width: 767px), (min-width: 768px) {
   :where(html:not([class*="-dark"])) footer.navbar-inverse .kraland-css-version {
     color: var(--kr-text-muted) !important;
   }
