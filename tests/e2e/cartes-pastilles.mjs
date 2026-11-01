@@ -79,6 +79,7 @@ import { mapLimit } from './lib/parallele.mjs';
 import { krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_TICKET54, AVANT_TICKET55, CONTRASTE, CORRIGER_BUG20, DOSSIER_MODALE_TICKET51, ETIQUETTES_TICKET55 as E, GROUPES_TICKET53 as G, PANNEAU_TICKET51, PASTILLES_TICKET54 as P, PASTILLE_TICKET52, RACCOURCIS_TICKET51, REGLES_CARTE_TICKET52, REGLES_FORUM_TICKET52, REGLES_KRAMAIL_TICKET51, SUJET_TICKET52, TEXTE_TICKET51, VALEURS_FORUM_TICKET52, VARIANTES as TOUTES, CARACTERISTIQUES_BACKLOG13 as C13, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis, RELEVER_CARACTERISTIQUES_BACKLOG13 } from './lib/variantes.mjs';
 import { ACTIONS_RAPIDES_S21, AVANT_REVUE_S21, BARRE_MESSAGE_S21, HAUT_S21, LIENS_S21, MINI_PROFIL_S21, MODALE_ORDRE_S21 } from './lib/revue-s21.mjs';
+import { AVANT_CLAVIER_COMPACT, AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -520,6 +521,17 @@ if (on('module')) {
 
 // ---------- égalité au bundle de base : forum (mobile) et bureau ----------
 const EXCEPTION_REVUE_S21_10 = AVANT_REVUE_S21(avant);
+const EXCEPTION_DENSITE_ORDRE = AVANT_DENSITE_ORDRE(avant);
+// Écart accepté et consigné (densité de la modale d'ordre, 1er novembre 2026) : sous 768 px, onglets sur trois colonnes à 4 px d'écart et
+// corps de l'ordre à 8 px de retrait (relevé sur le site réel, ordre Parler) : boîte, retraits, marges et hauteur minimale des panneaux de
+// la modale à part ; affichage, position, fond, texte, rayons, typographie, bordure, ombre et transformation restent comparés.
+const sansGeometrieDensite = x => {
+  const m = x.match(/^(\S+ \S+) \[[^\]]*\] (.*)$/);
+  if (!m) { return x; }
+  const p = m[2].split('|');
+  for (let k = 8; k <= 16; k += 1) { p[k] = '·'; }
+  return `${m[1]} [·] ${p.join('|')}`;
+};
 async function comparer(frag, cas) {
   const res = await mapLimit(cas, async c => {
     const out = {};
@@ -536,8 +548,10 @@ async function comparer(frag, cas) {
     // Écart accepté et consigné (revue S21, n° 10) : le titre de la modale Dormir passe à l'image seule (kr-order-titre-image, posé par le
     // template, absent d'une base d'avant la revue) : 32 px de moins au-dessus des onglets, ordonnée à part ; le reste est comparé.
     const titreImage = EXCEPTION_REVUE_S21_10 && c.nom === 'modale-dormir' && c.width < 768;
-    const net = l => (titreImage ? l.map(x => x.replace(/\[([^,\]]+),[^,\]]+,/, '[$1,·,')) : l);
-    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${quoi}${sous} égaux au bundle de base (${teste.r.l.length} éléments)${titreImage ? ', ordonnée à part (titre image, revue S21, n° 10)' : ''}`, () => {
+    const densite = EXCEPTION_DENSITE_ORDRE && PAGES[c.nom].ordre && c.width < 768;
+    const net = l => (densite ? l.map(sansGeometrieDensite) : titreImage ? l.map(x => x.replace(/\[([^,\]]+),[^,\]]+,/, '[$1,·,')) : l);
+    const aPart = densite ? ', boîtes, retraits et marges à part (densité de la modale d\'ordre)' : titreImage ? ', ordonnée à part (titre image, revue S21, n° 10)' : '';
+    check(`${frag} ${c.nom} ${c.variante} ${c.width} px : ${quoi}${sous} égaux au bundle de base (${teste.r.l.length} éléments)${aPart}`, () => {
       assert.ok(teste.r.theme && base.r.theme, `kr-theme-enabled testé ${teste.r.theme} / base ${base.r.theme}`);
       assert.equal(teste.r.mobile, c.width < 768, 'mode');
       assert.ok(teste.r.l.length > 0, 'aucun élément');
@@ -1533,8 +1547,22 @@ if (on('etiquettes')) {
   // Décompte CSSOM : 7132 au départ de la revue (f404965), 7301 après, soit SURPLUS_FORCEES_REVUE_S21 de plus que la base (7204) ; permis
   // tant que la base précède la revue, pas une priorité forcée de plus. Retrait au recalage de COMMIT_AVANT au-delà de la revue.
   const SURPLUS_FORCEES_REVUE_S21 = 97;
-  const surplus = AVANT_REVUE_S21(avant) ? SURPLUS_FORCEES_REVUE_S21 : 0;
-  check(`statique : pas plus de priorités forcées (${forcees(rs)}) que la base (${COMMIT_AVANT}, ${forcees(rb)})${surplus ? ` plus le surplus consigné de la revue S21 (${surplus})` : ''}, au moins autant de règles :focus (${focus(rs)}) ; aucun #c9302c`, () => {
+  // Écarts acceptés et consignés (modale d'ordre sur mobile, lib/densite-ordre.mjs), même condition de retrait :
+  // - mode compact clavier ouvert (#32) : cadre bord à bord, pied sur une ligne, pastilles masquées ; 32 priorités forcées, non auditées
+  //   (ses règles visent aussi les Bootbox de saisie hors ordre) ;
+  // - densité (1er novembre 2026) : audit sur la vraie popin (ordres Parler à Coup Monté, clavier ouvert ou fermé, 320 à 767 px, mobile-mode
+  //   ou non), chaque !important rendu normal à son tour et styles calculés comparés : les inutiles sont retirés (décompte de 200 à 87) ;
+  //   chacune des 87 restantes bat une priorité forcée du thème sur le même élément.
+  const SURPLUS_FORCEES_CLAVIER_COMPACT = 32;
+  const SURPLUS_FORCEES_DENSITE_ORDRE = 87;
+  const consignes = [
+    [AVANT_REVUE_S21(avant), SURPLUS_FORCEES_REVUE_S21, 'revue S21'],
+    [AVANT_CLAVIER_COMPACT(avant), SURPLUS_FORCEES_CLAVIER_COMPACT, 'clavier compact'],
+    [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre']
+  ].filter(([avantChangement]) => avantChangement);
+  const surplus = consignes.reduce((n, [, k]) => n + k, 0);
+  const detailSurplus = consignes.map(([, k, quoi]) => `${quoi} ${k}`).join(', ');
+  check(`statique : pas plus de priorités forcées (${forcees(rs)}) que la base (${COMMIT_AVANT}, ${forcees(rb)})${surplus ? ` plus les surplus consignés (${detailSurplus})` : ''}, au moins autant de règles :focus (${focus(rs)}) ; aucun #c9302c`, () => {
     assert.ok(forcees(rs) <= forcees(rb) + surplus, `priorités forcées : ${forcees(rs)} > ${forcees(rb)}${surplus ? ` + ${surplus}` : ''}`);
     // Intention : aucune règle :focus perdue (focus visible gardé) ; un focus ajouté ailleurs (menu de personnage, épopée 7, entrée 3) est permis
     assert.ok(focus(rs) >= focus(rb), `règles :focus : ${focus(rs)} < ${focus(rb)}`);

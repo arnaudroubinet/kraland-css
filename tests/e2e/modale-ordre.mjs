@@ -52,7 +52,8 @@
 // Épopée 4, ticket 3 (taille normale des modales Bootbox) : à 375 et 767 px, « Annuler » et « Valider » de Dormir et de Pouvoir, « Cancel »
 // et « OK » de la confirmation hors ordre, en 14 px et au moins 44 px de haut ; pied d'un ordre en rangée, « Annuler » | « Valider » à parts
 // égales (densité, 1er novembre 2026) ; pied de la confirmation hors ordre en colonne, « OK » pleine largeur sous « Cancel » ; à 768, 769,
-// 1280, 1440 et 1920 px, pied pas en colonne.
+// 1280, 1440 et 1920 px, pied pas en colonne. Densité (mobile-mode) : titre de l'onglet et « ? Aide » sur une rangée, « ? Aide » à droite,
+// sans marge basse (Dormir, Pouvoir).
 // Page = FIXTURE SYNTHÉTIQUE (tests/e2e/fixtures/modale-ordre/ : plateau minimal, contenus Dormir et Pouvoir inventés sur la structure
 // native relevée le 2026-10-22) ; vrai Bootbox 4.4.0, Bootstrap 3.3.7 et jQuery 3.3.1 du site (harnais tests/e2e/vendor/parler/), servis
 // à leurs adresses. Ouverture par bootbox.confirm comme le site (contenu de l'ordre dans le message, libellés par défaut). Seuls gestes :
@@ -604,6 +605,21 @@ const VALIDER = async () => {
     colonne: sp.display.includes('flex') && sp.flexDirection === 'column'
   };
 };
+// Rangée du titre de l'onglet (densité, 1er novembre 2026) : écart entre les centres verticaux du titre (h4) et de « ? Aide », « ? Aide »
+// à droite du titre, marge basse d'« ? Aide ».
+const RANGEE_TITRE = () => {
+  const m = window.__modale;
+  const h = m.querySelector('#ajax-order .tab-pane.active > h4');
+  const b = [...m.querySelectorAll('.modal-body button')].find(x => x.textContent.trim() === 'Aide');
+  if (!h || !b) { return null; }
+  const rh = h.getBoundingClientRect();
+  const rb = b.getBoundingClientRect();
+  return {
+    ecartCentres: Math.round(Math.abs((rh.top + rh.bottom) / 2 - (rb.top + rb.bottom) / 2) * 10) / 10,
+    aDroite: rb.left >= rh.right - 0.5,
+    margeBasse: getComputedStyle(b).marginBottom
+  };
+};
 // Onglet actif (ticket 6, section 9h) : fond, image de fond, ombre et bordures du lien ; pour le lien et chaque descendant qui porte du
 // texte (span.text-danger de Pouvoir compris) : couleur et contraste ; fond et texte du thème (--kr-bg-surface, --kr-text-primary) lus
 // sur une sonde.
@@ -863,6 +879,7 @@ async function scenario(cfg) {
   r.croix = { Dormir: await page.evaluate(CROIX) };
   r.valider = { Dormir: await page.evaluate(VALIDER) };
   r.onglet = { Dormir: await page.evaluate(ONGLET) };
+  r.rangeeTitre = { Dormir: await page.evaluate(RANGEE_TITRE) };
   await capture(page, tag + '-dormir-ouverture');
   r.lienDormir = await page.evaluate(LIEN_REGLES);
   await capture(page, tag + '-dormir');
@@ -905,6 +922,7 @@ async function scenario(cfg) {
   r.croix.Pouvoir = await page.evaluate(CROIX);
   r.valider.Pouvoir = await page.evaluate(VALIDER);
   r.onglet.Pouvoir = await page.evaluate(ONGLET);
+  r.rangeeTitre.Pouvoir = await page.evaluate(RANGEE_TITRE);
   await capture(page, tag + '-pouvoir-ouverture');
   r.audits.pouvoir = await page.evaluate(AUDIT);
   r.lienPouvoir = await page.evaluate(LIEN_REGLES);
@@ -1071,6 +1089,13 @@ function verifier(r) {
     for (const [nom, v] of [['Dormir', r.valider.Dormir], ['Pouvoir', r.valider.Pouvoir], ['hors ordre', r.validerHorsOrdre]]) { piedNormal(v, nom, r.cfg.width < 768, nom !== 'hors ordre'); }
   });
   if (r.mobileMode) {
+    check(`${tag} (densité, 1er novembre 2026) : titre de l'onglet et « ? Aide » sur une rangée (centres à 1 px près, « ? Aide » à droite), « ? Aide » sans marge basse (Dormir, Pouvoir)`, () => {
+      for (const [nom, t] of Object.entries(r.rangeeTitre)) {
+        assert.ok(t, `${nom} : titre de l'onglet ou « ? Aide » absent`);
+        assert.ok(t.ecartCentres <= 1 && t.aDroite, `${nom} : ${JSON.stringify(t)}`);
+        assert.equal(t.margeBasse, '0px', `${nom} : marge basse d'« ? Aide » ${t.margeBasse}`);
+      }
+    });
     check(`${tag} (ticket 7) : groupes PJ / PNJ du sélecteur de personnage en --kr-text-accent, sans bleu de Bootstrap, ≥ 4,5:1`, () => groupesLisibles(r.groupes, 'Dormir avec sélecteur'));
   }
   check(`${tag} Dormir (avertissement avant les onglets) : boutons « Annuler » / « Valider », modale marquée une fois`, () => socle(r.dormir, 'Dormir'));

@@ -509,9 +509,12 @@ export const CAS_ESPACEMENT_TICKET49 = {
     ...PANNEAUX({ panneau: null, corps: null, liens: null }), ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU],
     ['bbcode', 'form[name="post_msg"] .btn-toolbar .btn', 'E', null, EXCEPTION]
   ],
+  // Mobile (densité de la modale d'ordre, 1er novembre 2026) : « ? Aide » sur la rangée du titre de l'ordre, centré, sans marge basse
+  // (la rangée porte l'écart de 8 px avec la suite) ; marge basse au jeton sur ordinateur.
   'modale-ordre': [
     ...PANNEAUX({ corps: '.panel-body:not(.grid-transformed, .list-group > .panel-body)', corpsMobile: null }),
-    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', null, { ...ECART(1), 'margin-bottom': 2 }],
+    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', 'm', ECART(1)],
+    ['aide', '.kr-order-form .kr-order-help-toggle', 'R', 'b', { ...ECART(1), 'margin-bottom': 2 }],
     ['pied', '.modal-footer .btn + .btn', 'N', 'b', { 'margin-left': 1 }], ['pied-boutons', '.modal-footer .btn:not(.btn + .btn)', 'E', 'b', BOUTONS_BUREAU],
     ['pied-boutons', '.modal-footer .btn + .btn', 'E', 'b', SAUF('margin-left')],
     ['champs', '.form-control', 'E', 'b', BOUTONS_BUREAU], ['grille', '#col-leftest .panel-body.grid-transformed', 'E', 'b', EXCEPTION], COLONNES

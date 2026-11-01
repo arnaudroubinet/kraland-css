@@ -116,6 +116,7 @@ import { confineNetwork } from './lib/confinement.mjs';
 import { mapLimit } from './lib/parallele.mjs';
 import { domQuiet, krReady, styleSettled, THEME_READY, waitState } from './lib/settle.mjs';
 import { AVANT_REVUE_S21, BARRE_MESSAGE_S21, CLASSES_REVUE_S21, HAUT_S21, PRIMAIRE_LECTURE_S21, RETOURS_KRAMAIL_S21 } from './lib/revue-s21.mjs';
+import { AVANT_DENSITE_ORDRE } from './lib/densite-ordre.mjs';
 import { AVANT_BUG10, AVANT_BUG14, AVANT_TICKET410, AVANT_TICKET45, AVANT_TICKET54, AVANT_TICKET55, AVANT_TICKET73, AVANT_TICKET75, AVANT_TICKET95, CARACTERISTIQUES_BACKLOG13 as C13, CARTES_TICKET54, CARTES_TICKET55, CAS_ESPACEMENT_TICKET49, CHAMPS_TICKET410, CIBLES_TICKET95, CLASSES_RACINE_TICKET410, CORRIGER_BUG14, CORRIGER_BUG20, CORRIGER_BUG26, DECLARATIONS_ESPACEMENT_TICKET49, LEGENDES_TICKET45, LIGNES_FORUM_TICKET410, LIGNE_OBJET_TICKET6, PROPRIETES_ESPACEMENT_TICKET49, PROPRIETES_RAYON_TICKET48, RELEVER_CARACTERISTIQUES_BACKLOG13, SECONDAIRE_TICKET6, TITRE_FORUM_REGLE_BUG10, choisirVariante, ecartsCaracteristiquesBacklog13, poserJetonsRedefinis } from './lib/variantes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -2176,6 +2177,17 @@ if (on('nettoyage')) {
   }
   // Fenêtre rétrécie sans mode mobile (bloc Bootbox sans mobile-mode, R1) : modale d'ordre ouverte à 1280 px, saisie en cours (pas de
   // rechargement), fenêtre passée à 767 px.
+  // Écart accepté et consigné (densité de la modale d'ordre, 1er novembre 2026, lib/densite-ordre.mjs) : sous 768 px, mobile-mode ou non, le
+  // pied d'un ordre passe en rangée (pastilles, puis « Annuler » | « Valider » à parts égales) et le corps de la modale gagne la hauteur
+  // rendue. Pied mesuré à part (modale-ordre.mjs, fragment seuil : rangée, boutons de 44 px à parts égales), hauteur du corps ignorée. Même
+  // changement : le bandeau de rechargement (PLT-01) passe sous le fond de la modale ouverte (z-index 1035 au lieu de 2000) au lieu de
+  // couvrir « Valider » et les pastilles (modale-ordre.mjs, fragment seuil). Le reste de la page est comparé, largeur de la modale comprise.
+  const ECART_DENSITE_RETRECI = AVANT_DENSITE_ORDRE(avantNettoyage)
+    ? {
+      ecarter: '.kr-order-modal .modal-footer',
+      ignorer: [['.kr-order-modal .modal-body', ['block-size', 'height', 'perspective-origin', 'transform-origin']], ['#kr-resize-banner', ['z-index']]]
+    }
+    : {};
   const resRetreci = await mapLimit(VARIANTES, async variante => {
     const ouvrirRetreci = async script => {
       const o = await ouvrirNettoyage({ nom: 'modale-ordre', width: 1280, variante, script });
@@ -2188,7 +2200,7 @@ if (on('nettoyage')) {
     };
     const a = await ouvrirRetreci(userscript);
     const b = await ouvrirRetreci(avantNettoyage);
-    const r = await comparerNettoyage(a.page, b.page);
+    const r = await comparerNettoyage(a.page, b.page, ECART_DENSITE_RETRECI);
     await a.context.close();
     await b.context.close();
     return { variante, r, mobile: a.mobile };

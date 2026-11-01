@@ -16283,33 +16283,45 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    chaque action sur une ligne, onglets sur trois colonnes (146 px), saisie à 1 216 px. Les cibles de 44 px restent (onglets, actions,
    cases, boutons). Socle commun des modales d'ordre (kr-order-modal) : les autres ordres en profitent. Clavier ouvert : mode compact
    inchangé (kr-keyboard-open). Ordinateur : rendu inchangé.
+   Priorités forcées : seules restent celles qui battent une priorité forcée du thème sur le même élément. Audit du 1er novembre 2026
+   sur la vraie popin (ordres Parler à Coup Monté, clavier ouvert ou fermé, 320 à 767 px, mobile-mode ou non) : chaque !important rendu
+   normal à son tour, styles calculés comparés ; 93 longhands sur 173 n'y changeaient rien et sont passés en priorité normale (rendu
+   identique, vérifié élément par élément).
    ============================================================================ */
 @media (max-width: 767px) {
   /* Cadre : modale bord à bord, comme en clavier ouvert (20 px de large et 20 px de haut rendus). Le retrait de 15 px du corps reste : la
      croix garde le coin haut droit de celle d'une confirmation hors ordre (ticket 2.5). */
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport {
-    padding: 0 !important;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport > .modal-dialog {
     max-width: 100vw !important;
     max-height: var(--kr-order-budget) !important;
-    margin: 0 !important;
+    margin: 0;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal.kr-order-viewport .modal-content {
     max-height: var(--kr-order-budget) !important;
-    border-width: 0 !important;
+    border-width: 0;
     border-radius: 0 !important;
   }
 
   /* Pied : pastilles sur une rangée, puis Annuler | Valider côte à côte, à parts égales (modèle du clavier ouvert, pastilles gardées).
      Une pastille trop longue passe à la rangée suivante au lieu de déborder. Boutons sans marge et étirés à la hauteur de leur rangée : même
      haut et même hauteur. Même portée que le modèle en colonne de la section 9h (sous 768 px, body.mobile-mode ou non : fenêtre rétrécie
-     sans rechargement comprise) ; les confirmations hors ordre le gardent. */
+     sans rechargement comprise) ; les confirmations hors ordre le gardent. Largeur propre du pied hors du calcul de celle de la modale
+     (contain) : en fenêtre rétrécie sans mobile-mode, la modale ajustée à son contenu prendrait sinon la largeur des pastilles et des deux
+     boutons mis bout à bout (432 px au lieu de 387). */
   html.kr-theme-enabled body .bootbox.modal.kr-order-modal:not(.kr-keyboard-open) .modal-footer {
-    flex-flow: row wrap !important;
-    align-items: stretch !important;
+    contain: inline-size;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: stretch;
     gap: 6px var(--kr-space-2) !important;
     padding: var(--kr-space-2) 10px !important;
     padding-bottom: max(var(--kr-space-2), env(safe-area-inset-bottom)) !important;
@@ -16330,10 +16342,11 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Marge nulle : sans mobile-mode, la règle mobile générale .btn + .btn met 8 px au-dessus de « Valider » (pied en colonne) et le
      décalerait sous « Annuler » */
   html.kr-theme-enabled body .bootbox.modal.kr-order-modal .modal-footer > .btn {
-    flex: 1 1 0 !important;
-    width: auto !important;
+    flex: 1 1 0;
+    width: auto;
     min-width: 0;
-    margin: 0 !important;
+    margin: 0;
+    margin-top: 0 !important;
   }
 
   html.kr-theme-enabled body .bootbox.modal.kr-order-modal .kr-order-badge {
@@ -16343,7 +16356,9 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   /* Cible : liste sur la rangée de la croix (48 px réservés à droite), sans les colonnes d'espacement de Bootstrap (col-md-3 vides,
      un &nbsp; chacune : 20 px de haut l'une) */
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > .row:has(> .col-md-6 > select[name="top"]) {
-    margin: 0 48px var(--kr-space-2) 0 !important;
+    margin: 0;
+    margin-right: 48px !important;
+    margin-bottom: var(--kr-space-2) !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > .row:has(> .col-md-6 > select[name="top"]) > .col-md-3:not(:has(*)) {
@@ -16369,7 +16384,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > .pull-right {
-    display: contents !important;
+    display: contents;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > h3:not(.kr-order-titre-image) > .pull-right > img {
@@ -16392,7 +16407,7 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > div:not([class]) a:not(.btn, .list-group-item) {
     display: inline !important;
     min-height: 0 !important;
-    padding: 0 !important;
+    padding: 0;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .kr-order-form > p:empty {
@@ -16423,9 +16438,10 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     padding: var(--kr-space-2) !important;
   }
 
-  /* Section de l'ordre : titre (et son « [?] ») et « ? Aide » sur une rangée ; l'aide dépliée et la suite passent dessous */
+  /* Section de l'ordre : titre (et son « [?] ») et « ? Aide » sur une rangée, centrés, sans marge ; l'aide dépliée et la suite passent
+     dessous, 8 px sous la rangée */
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) {
-    display: grid !important;
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--kr-space-2);
     align-items: center;
@@ -16437,16 +16453,18 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) > h4 {
     grid-column: 1;
-    margin: 0 !important;
+    margin: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active:has(> h4 + .kr-order-help-toggle) > .kr-order-help-toggle {
     grid-column: 2;
-    margin: 0 !important;
+    margin: 0;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > * + :is(.panel-info, .row.form-group) {
-    margin-top: var(--kr-space-2) !important;
+    margin-top: var(--kr-space-2);
   }
 
   /* Tableau des actions : grille radio | libellé | coût | chance, le libellé prend toute la place restante (avant : flex avec les
@@ -16463,27 +16481,29 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: grid !important;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
     column-gap: var(--kr-space-2);
-    align-items: center !important;
-    min-height: var(--kr-touch-target) !important;
-    margin: 0 0 var(--kr-space-1) !important;
-    padding: 0 var(--kr-space-2) !important;
+    align-items: center;
+    min-height: var(--kr-touch-target);
+    margin: 0 0 var(--kr-space-1);
+    padding: 0 var(--kr-space-2);
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group::before,
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group::after {
-    content: none !important;
+    content: none;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group > div {
-    width: auto !important;
-    max-width: none !important;
-    padding: 0 !important;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-actions > .row.form-group > div > label {
-    min-height: 0 !important;
-    margin: 0 !important;
-    line-height: 1.3 !important;
+    min-height: 0;
+    margin: 0;
+    line-height: 1.3;
   }
 
   /* Pied du tableau : Maladresse à gauche, Bonus et sa liste à droite, sur une rangée (avant : deux rangées, 135 px) */
@@ -16492,17 +16512,18 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--kr-space-1) var(--kr-space-2) !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div {
     flex: 0 1 auto !important;
     width: auto !important;
-    max-width: none !important;
-    padding: 0 !important;
+    max-width: none;
+    padding: 0;
+    padding-right: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div:has(> label) + div:has(> label) {
@@ -16510,26 +16531,32 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row > div > label {
-    min-height: 0 !important;
-    margin: 0 !important;
+    min-height: 0;
+    margin: 0;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .panel-info > .panel-footer > .row select {
-    width: auto !important;
-    margin: 0 !important;
+    width: auto;
+    margin: 0;
+    margin-bottom: 0 !important;
   }
 
   /* Champs (Action, Options, Message) : libellé à la hauteur de son texte (avant : 44 px de haut, plus 8 px), 8 px entre deux champs,
      sans retrait latéral ; chaque case d'option garde une rangée de 44 px */
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group {
     margin-bottom: 0 !important;
-    padding: 0 !important;
+    padding: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group > .control-label {
-    min-height: 0 !important;
-    margin: var(--kr-space-1) 0 !important;
-    padding: 0 !important;
+    min-height: 0;
+    margin: var(--kr-space-1) 0;
+    margin-bottom: var(--kr-space-1) !important;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group select.form-control {
@@ -16537,14 +16564,17 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group .checkbox {
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0;
+    padding: 0;
   }
 
   html.kr-theme-enabled body.mobile-mode .bootbox.modal.kr-order-modal .tab-pane.active > .row.form-group .checkbox > label {
-    align-items: center !important;
-    min-height: var(--kr-touch-target) !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    align-items: center;
+    min-height: var(--kr-touch-target);
+    margin: 0;
+    margin-bottom: 0 !important;
+    padding: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
 }
