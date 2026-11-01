@@ -229,6 +229,22 @@ try {
     check(compact.compact && compact.ligne && compact.pied <= 70 && compact.corps >= compact.h * 0.75 && compact.dedans, 'vivaldi : clavier ouvert à 360x380, pied compact sur une ligne et corps ≥ 75 % de la zone visible ' + JSON.stringify(compact));
     await v.page.evaluate(() => document.querySelector('#message').blur());
     check(await until(v.page, () => !document.querySelector('.bootbox').classList.contains('kr-keyboard-open'), null, 2000), 'vivaldi : clavier fermé (blur), mode compact retiré');
+    // Tap sur Annuler clavier ouvert, confirmation hors ordre avec champ (pied en colonne hors mode compact) : le focus passe au bouton dès
+    // le mousedown ; le mode compact doit rester jusqu'au mouseup, sinon le pied repasse en colonne, le mouseup tombe sur Valider et le
+    // clic, distribué au pied (ancêtre commun), est perdu.
+    await v.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
+    await until(v.page, () => !document.body.contains(window.__closedModal));
+    await v.page.evaluate(() => { window.__reponses = []; window.bootbox.confirm({ message: '<p>Confirmation hors ordre</p><input type="text" id="champ" class="form-control">', buttons: { confirm: { label: 'Valider' }, cancel: { label: 'Annuler' } }, callback: r => { window.__reponses.push(r); return false; } }); });
+    await until(v.page, () => { const m = document.querySelector('.bootbox'); return !!m && window.__shown.includes(m); });
+    await frames(v.page);
+    await v.page.evaluate(() => document.querySelector('#champ').focus());
+    await until(v.page, () => document.querySelector('.bootbox').classList.contains('kr-keyboard-open'), null, 2000);
+    await frames(v.page);
+    const annuler = await v.page.evaluate(() => { const r = document.querySelector('.bootbox [data-bb-handler=cancel]').getBoundingClientRect(); return { x: (r.left + r.right) / 2, y: (r.top + r.bottom) / 2 }; });
+    await v.page.touchscreen.tap(annuler.x, annuler.y);
+    check(await until(v.page, () => window.__reponses.length === 1 && window.__reponses[0] === false, null, 2000), 'vivaldi : confirmation hors ordre, clavier ouvert, tap sur Annuler pris en compte (pied stable entre mousedown et mouseup)');
+    await v.page.evaluate(() => document.activeElement.blur());
+    check(await until(v.page, () => !document.querySelector('.bootbox').classList.contains('kr-keyboard-open'), null, 2000), 'vivaldi : focus sorti de la modale, mode compact retiré');
     await v.page.evaluate(() => { window.__closedModal = document.querySelector('.bootbox'); $('.bootbox').modal('hide'); });
     await until(v.page, () => !document.body.contains(window.__closedModal));
     // Autre Bootbox avec un champ texte (pas textarea#message) : suivie aussi
