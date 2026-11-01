@@ -1887,7 +1887,14 @@ const IGNORER_JAUGES = [
   ['body.mobile-mode :is(.mobile-gauge-compact-bar, .mobile-gauge-full-bar)', BORDS],
   ['body.mobile-mode :is(.mobile-gauge-compact-fill, .mobile-gauge-full-fill)', ['width', 'inline-size', 'height', 'block-size', 'right', 'bottom', 'inset-inline-end', 'inset-block-end', 'perspective-origin', 'transform-origin']]
 ];
+// Écarts acceptés et consignés (revue des thèmes, n° 5 et 6) : la ligne de version du pied prend sur ordinateur les couleurs du correctif
+// mobile n° 12 (texte discret sur le pied sombre en clair, numéro dans la couleur de la ligne au lieu de l'accent du thème) ; le bouton du
+// bandeau de rechargement passe en blanc sur son fond sombre (l'accent tombait à 1,40:1). Couleurs seules ignorées, boîtes et autres
+// propriétés comparées ; contrôle absolu de la ligne : revue-s21#pied.
+const COULEURS_TEXTE = ['color', 'caret-color', 'column-rule-color', 'row-rule-color', 'outline-color', 'text-decoration-color', 'text-emphasis-color', '-webkit-text-fill-color', '-webkit-text-stroke-color', ...BORDS.filter(p => p.endsWith('-color'))];
+const IGNORER_VERSION = [['.kraland-css-version, .kraland-css-version *, #kr-resize-banner button', COULEURS_TEXTE]];
 const IGNORER_NETTOYAGE = [
+  ...IGNORER_VERSION,
   ['.mobile-tab-bar, .mobile-tab-bar *', ['width', 'inline-size', 'padding-left', 'padding-right', 'padding-inline-start', 'padding-inline-end', 'perspective-origin', 'transform-origin']],
   ['.mobile-tab-bar', null, '::after'],
   ...IGNORER_KD,
@@ -2198,9 +2205,9 @@ if (on('nettoyage')) {
   const ECART_DENSITE_RETRECI = AVANT_DENSITE_ORDRE(avantNettoyage)
     ? {
       ecarter: '.kr-order-modal .modal-footer',
-      ignorer: [['.kr-order-modal .modal-body', ['block-size', 'height', 'perspective-origin', 'transform-origin']], ['#kr-resize-banner', ['z-index']]]
+      ignorer: [['.kr-order-modal .modal-body', ['block-size', 'height', 'perspective-origin', 'transform-origin']], ['#kr-resize-banner', ['z-index']], ...IGNORER_VERSION]
     }
-    : {};
+    : { ignorer: IGNORER_VERSION };
   const resRetreci = await mapLimit(VARIANTES, async variante => {
     const ouvrirRetreci = async script => {
       const o = await ouvrirNettoyage({ nom: 'modale-ordre', width: 1280, variante, script });
@@ -2272,7 +2279,7 @@ if (on('nettoyage')) {
     const pas = [];
     const mode = () => a.page.evaluate(() => document.body.classList.contains('mobile-mode'));
     // Pas mobiles différés tant que la base précède la revue S21 (DIFFERE_NETTOYAGE_S21) ; le pas de 768 px reste comparé.
-    const comparer = async width => (DIFFERE_NETTOYAGE_S21 && width < 768 ? [] : [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: IGNORER_KD })]]);
+    const comparer = async width => (DIFFERE_NETTOYAGE_S21 && width < 768 ? [] : [['styles calculés égaux à la base', await comparerNettoyage(a.page, b.page, { ignorer: [...IGNORER_KD, ...IGNORER_VERSION] })]]);
     pas.push({ width: 767, mobile: await mode(), comparaisons: await comparer(767) });
     for (const width of [768, 767]) {
       await Promise.all([a, b].map(o => basculer(o.page, width, `nettoyage bascule ${variante} ${width} px`)));

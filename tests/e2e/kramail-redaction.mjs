@@ -1308,6 +1308,7 @@ if (frag('regression')) {
   if (DIFFERE_S21) { console.log('  info : base d\'avant la revue S21, captures mobiles (375 et 320 px) différées, DOM comparé hors classes de la revue'); }
   console.log('  info écart accepté et consigné : éléments posés sur la couleur de nation (paire d\'action, épopée 3, ticket 2) masqués sur les deux captures');
   console.log('  info écart accepté et consigné : texte en primaire ou en primaire foncée du bundle « avant » (passé à --kr-text-accent, épopée 3, ticket 3) masqué sur les deux captures');
+  console.log('  info écart accepté et consigné : ligne de version du pied aux couleurs du correctif mobile n° 12, étendu à l\'ordinateur (revue des thèmes, n° 6), masquée sur les deux captures ; contrôle absolu : revue-s21#pied');
   if (!AVANT) {
     check('bundle « avant » disponible (base 7bec452 ou KR_SCRIPT_AVANT)', () => assert.fail('introuvable'));
   } else {
@@ -1331,7 +1332,7 @@ if (frag('regression')) {
         doms[bundle] = await p.evaluate(() => ({ kd: document.querySelectorAll('.kd, .kd-natif-cache, .kd-row').length, body: document.body.className, html: document.documentElement.className, n: document.querySelectorAll('*').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
         // Capture stable : on recapture jusqu'à deux images consécutives identiques (sous charge, police et images peuvent
         // finir de se peindre après le repos du DOM) ; une vraie différence avant/après reste, elle, stable et détectée.
-        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore]')] });
+        const capture = () => p.screenshot({ fullPage: true, animations: 'disabled', mask: [p.locator('[data-kr-paire], [data-kr-texte-colore], .kraland-css-version')] });
         let prev = await capture();
         for (let i = 0; i < 6; i++) {
           await p.waitForTimeout(150);

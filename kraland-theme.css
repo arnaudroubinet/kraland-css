@@ -64,7 +64,7 @@
   --kr-bg-active: rgb(0,0,0,0.05);
   --kr-text-primary: #0f1724;
   --kr-text-secondary: #636a77; /* Q26 : #6b7280 tombait sous 4,5:1 sur bg-page, header-tint et info-bg */
-  --kr-text-muted: #9ca3af;
+  --kr-text-muted: #9ca3af; /* 2,54:1 sur blanc : réservé au décor et aux états désactivés, jamais à du texte à lire (revue des thèmes, n° 3) */
   --kr-text-inverse: #fff;
   --kr-border-default: rgb(0,0,0,0.08);
   --kr-border-strong: rgb(0,0,0,0.15);
@@ -86,8 +86,10 @@
 
   /* Couleurs spécifiques */
   --kr-white: #fff;
-  --kr-focus-ring: rgb(164,18,13,0.22);
-  --kr-focus-ring-light: rgb(164,18,13,0.18);
+
+  /* Anneau de focus (revue des thèmes, n° 4) : trait plein de 2 px au texte coloré du thème, >= 4,84:1 sur la surface dans les 16 variantes
+     (l'ancien rouge Kraland à 22 % d'opacité, figé pour toutes les nations, ne faisait que 1,1 à 1,5:1). */
+  --kr-focus-ring: var(--kr-text-accent);
   --kr-alert-info-bg: color-mix(in srgb, var(--kr-primary) 6%, #fff); /* H5.2 : alerte info (6 % et 14 %) et ombre des boutons (12 %) tirées de la primaire */
   --kr-alert-info-border: color-mix(in srgb, var(--kr-primary) 14%, #fff);
   --kr-btn-shadow: color-mix(in srgb, var(--kr-primary) 12%, transparent);
@@ -693,7 +695,7 @@ html.kr-hide-footer-quote .footer-quote {
 }
 
 .form-control:focus {
-  box-shadow: 0 0 0 .18rem var(--kr-focus-ring);
+  box-shadow: 0 0 0 2px var(--kr-focus-ring);
   border-color: var(--kr-primary);
   outline: none;
 }
@@ -715,10 +717,10 @@ input[type="radio"] {
   accent-color: var(--kr-primary) !important;
 }
 
-input[type="checkbox"]:focus,
-input[type="radio"]:focus {
-  outline: none;
-  box-shadow: 0 0 0 .12rem var(--kr-focus-ring-light) !important;
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid var(--kr-focus-ring);
+  outline-offset: 2px;
 }
 
 input[type="checkbox"]:checked {
@@ -1410,9 +1412,10 @@ a.carousel-control.right{
 }
 
 .bootbox-confirm .panel-heading ul.nav-tabs > li.active > a {
-  background: var(--kr-primary);
-  color: white;
-  border-color: var(--kr-primary) !important;
+  /* Revue des thèmes, n° 2 : paire d'action (blanc sur primaire tombait à 1,65:1 en Paladium sombre) */
+  background: var(--kr-arm-bg, var(--kr-primary));
+  color: var(--kr-arm-ink, var(--kr-white));
+  border-color: var(--kr-arm-bg, var(--kr-primary)) !important;
 }
 
 .bootbox-confirm .panel-heading ul.nav-tabs > li > a:hover,
@@ -2118,7 +2121,7 @@ a.carousel-control.right{
 
 .bootbox-confirm textarea.form-control:focus {
   border-color: var(--kr-primary);
-  box-shadow: 0 0 0 3px var(--kr-focus-ring);
+  box-shadow: 0 0 0 2px var(--kr-focus-ring);
   outline: none;
 }
 
@@ -2220,6 +2223,28 @@ a.carousel-control.right{
   border-radius: var(--kr-radius-sm);
   font-weight: 500;
 }
+}
+
+/* Revue des thèmes, n° 1 : textes de la modale d'ordre en mode mobile. Ces tailles en rem supposaient 1 rem = 16 px ; sur le site, 1 rem vaut
+   10 px et ils sortaient en 8,1 à 9,4 px. Jetons de l'échelle, en mode mobile seulement (onglets, libellés et colonnes Diff./Jet ont déjà
+   leurs tailles mobiles ; une fenêtre étroite sans mode mobile garde la modale de base, voir typographie-formes#nettoyage). */
+@media (max-width: 767px) {
+  :where(body.mobile-mode) .bootbox-confirm .panel-actions::before {
+    font-size: var(--kr-font-label);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm table th {
+    font-size: var(--kr-font-detail);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm select[name="bonus"],
+  :where(body.mobile-mode) .bootbox-confirm .alert {
+    font-size: var(--kr-font-body-mobile);
+  }
+
+  :where(body.mobile-mode) .bootbox-confirm .modal-footer p {
+    font-size: var(--kr-font-body);
+  }
 } /* Fin @media (max-width: 767px) pour BOOTBOX ORDER MODAL */
 
 /* ============================================================================
@@ -7383,7 +7408,7 @@ body > map {
     body.mobile-mode .bootbox.modal select[name="top"].form-control:focus {
       border-color: var(--kr-primary) !important;
       outline: none !important;
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+      box-shadow: 0 0 0 2px var(--kr-focus-ring) !important;
     }
     
     /* Conteneur du select avec marges */
@@ -7946,7 +7971,7 @@ body > map {
     body.mobile-mode .bootbox.modal textarea.form-control:focus {
       border-color: var(--kr-primary) !important;
       outline: none !important;
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1) !important;
+      box-shadow: 0 0 0 2px var(--kr-focus-ring) !important;
     }
     
     /* Compteur */
@@ -8282,7 +8307,7 @@ body > map {
     padding: 3px 15px 3px 25px !important;
     font-size: 12px !important;
     line-height: 1.4286 !important;
-    color: var(--kr-text-muted) !important;
+    color: var(--kr-text-secondary) !important;
     white-space: nowrap !important;
     text-transform: uppercase !important;
     font-weight: 600 !important;
@@ -8423,7 +8448,7 @@ body > map {
 
   .forum-moderators {
     font-size: var(--kr-font-detail);
-    color: var(--kr-text-muted);
+    color: var(--kr-text-secondary);
     margin: 0 0 10px;
     font-style: normal;
     font-weight: 400;
@@ -8441,7 +8466,7 @@ body > map {
 
   .forum-stats {
     font-size: var(--kr-font-detail);
-    color: var(--kr-text-muted);
+    color: var(--kr-text-secondary);
     margin-bottom: 6px;
     white-space: nowrap;
     text-align: left !important;
@@ -8471,7 +8496,7 @@ body > map {
   }
 
   .last-time {
-    color: var(--kr-text-muted);
+    color: var(--kr-text-secondary);
     font-size: var(--kr-font-detail);
   }
 }
@@ -9040,7 +9065,7 @@ body > map {
   /* Paragraphe date/heure */
   body.page-forum table.dataTable tbody td:nth-child(5) p {
     font-size: var(--kr-font-detail) !important;
-    color: var(--kr-text-muted) !important;
+    color: var(--kr-text-secondary) !important;
     margin: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -9736,7 +9761,7 @@ body > map {
   .form-control:focus {
     outline: none;
     border-color: var(--kr-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--kr-primary) 10%, transparent);
+    box-shadow: 0 0 0 2px var(--kr-focus-ring);
   }
 
   /* Textarea - Priorité message (police du site en mode mobile : revue S21, n° 13) */
@@ -11331,10 +11356,11 @@ html[class*='-dark'] .mini.c10 {
     overflow: hidden;
   }
 
+  /* Revue des thèmes, n° 2 : paire d'action, >= 4,5:1 dans les 16 variantes (le blanc fixe tombait à 1,65:1 en Paladium sombre) */
   .page-accueil #player-header-section > .list-group-item.active {
-    background: var(--kr-primary);
-    border-color: var(--kr-primary);
-    color: #fff;
+    background: var(--kr-arm-bg, var(--kr-primary));
+    border-color: var(--kr-arm-bg, var(--kr-primary));
+    color: var(--kr-arm-ink, var(--kr-white));
     font-weight: 600;
     font-size: 13px;
     border-radius: 0;
@@ -11410,7 +11436,7 @@ html[class*='-dark'] .mini.c10 {
 
   .page-accueil .kraland-metrics .list-group-item p {
     font-size: 10px;
-    color: var(--kr-text-muted);
+    color: var(--kr-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 2px 0 0;
@@ -12051,13 +12077,15 @@ html[class*='-dark'] .mini.c10 {
   box-shadow: 0 4px 12px rgb(0,0,0,0.4);
 }
 
+/* Revue des thèmes, n° 5 : le bandeau reste sombre dans les 16 variantes ; bouton en blanc comme le texte du bandeau (l'accent du thème
+   tombait à 1,40:1 en Paradigme Vert clair) */
 #kr-resize-banner button {
   margin-left: 8px;
   padding: 4px 12px;
-  border: 1px solid var(--kr-highlight);
+  border: 1px solid rgb(255,255,255,0.5);
   border-radius: var(--kr-radius-sm);
   background: transparent;
-  color: var(--kr-highlight);
+  color: var(--kr-white);
   font-size: 14px;
 }
 
@@ -16052,23 +16080,24 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
    (--kr-text-muted, 7,1:1 au lieu de 3,4:1) ; le pied transparent des pages de jeu garde --kr-text-secondary (5,4:1 sur blanc). Numéro de
    dernière version dans la couleur de la ligne (couleur de la nation avant, jusqu'à 1,4:1 en Paradigme Vert) ; couleur d'alerte seulement
    si une mise à jour existe (kr-maj-disponible, displayVersionInfo) : danger du thème, rouge clair sur le pied sombre en clair. En sombre,
-   la ligne garde --kr-text-secondary (7,6 à 9,9:1). */
-@media (max-width: 767px) {
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version {
+   la ligne garde --kr-text-secondary (7,6 à 9,9:1). Revue des thèmes, n° 6 : étendu à l'ordinateur, qui gardait le texte secondaire
+   (3,42:1 sur le pied sombre) et le numéro dans l'accent du thème (jusqu'à 1,40:1 en Paradigme Vert clair). */
+@media (max-width: 767px), (min-width: 768px) {
+  :where(html:not([class*="-dark"])) footer.navbar-inverse .kraland-css-version {
     color: var(--kr-text-muted) !important;
   }
 
-  :where(body.mobile-mode) .kraland-css-version span span {
+  .kraland-css-version span span {
     color: inherit !important;
   }
 
-  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible,
-  :where(body.mobile-mode) .kraland-css-version #latest-version.kr-maj-disponible span {
+  .kraland-css-version #latest-version.kr-maj-disponible,
+  .kraland-css-version #latest-version.kr-maj-disponible span {
     color: var(--kr-danger) !important;
   }
 
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible,
-  :where(html:not([class*="-dark"])) :where(body.mobile-mode) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible span {
+  :where(html:not([class*="-dark"])) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible,
+  :where(html:not([class*="-dark"])) footer.navbar-inverse .kraland-css-version #latest-version.kr-maj-disponible span {
     color: var(--kr-footer-alert) !important;
   }
 }
