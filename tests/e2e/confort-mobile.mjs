@@ -961,6 +961,10 @@ if (on('pied-bas')) {
         await page.setViewportSize({ width: largeurs[i], height: 667 });
         await charge;
         await prete(page, `pied-bas bascule ${variante} ${largeurs[i]} px`);
+        // Le rechargement de bascule restaure le défilement d'avant (restoreScrollAfterReload : scrollTo à 0, 150, 400, 900 et 1800 ms,
+        // hors InitQueue). Sans attendre la dernière tentative, elle tombait au milieu de la mesure en bas de page et ramenait la page en
+        // haut (scrollY 0, réserve retirée) : échec selon la vitesse de la machine.
+        await page.waitForTimeout(2000);
       }
       etapes.push({ width: largeurs[i], m: await page.evaluate(PIED_BAS) });
     }

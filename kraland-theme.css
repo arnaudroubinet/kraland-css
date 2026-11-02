@@ -212,6 +212,7 @@ html.kr-theme-variant-paladium {
   --kr-primary: #D4AF37; 
   --kr-highlight: #044c17; 
   --kr-text-nation: var(--kr-highlight); /* Q2 : texte de la nation en vert (10,24:1) ; l'or (2,10:1) reste aux fonds */
+  --kr-text-accent: #077623; /* Revue des thèmes : lien à 3,11:1 contre le texte (1,76:1 avec #044c17), 5,30:1 sur la page, 4,63:1 sur l'entrée active du menu */
 }
 
 html.kr-theme-variant-theocratie-seelienne {
@@ -222,17 +223,20 @@ html.kr-theme-variant-theocratie-seelienne {
 html.kr-theme-variant-paradigme-vert {
   --kr-primary: #0B6623;
   --kr-highlight: #063803;
+  --kr-text-accent: #0c7707; /* Revue des thèmes : lien à 3,12:1 contre le texte (1,35:1 avec #063803), 5,28:1 sur la page, 4,61:1 sur l'entrée active du menu */
 }
 
 html.kr-theme-variant-khanat-elmerien {
   --kr-primary: #6A0DAD;
   --kr-highlight: #7b4c9c;
+  --kr-text-accent: #8150a4; /* Revue des thèmes : lien à 3,11:1 contre le texte (2,87:1 avant), 5,31:1 sur la page, 4,64:1 sur l'entrée active du menu */
 }
 
 html.kr-theme-variant-confederation-libre {
   --kr-primary: #6B7280;
   --kr-highlight: #475369;
   --kr-text-nation: var(--kr-highlight); /* H5.3, Q2 : la primaire ne fait que 4,38:1 sur header-tint (bouton standard survolé ou pressé) */
+  --kr-text-accent: #576681; /* Revue des thèmes : lien à 3,11:1 contre le texte (2,32:1 avant), 5,29:1 sur la page, 4,62:1 sur l'entrée active du menu */
 }
 
 html.kr-theme-variant-royaume-ruthvenie {
@@ -338,6 +342,7 @@ html.kr-theme-variant-paladium-dark {
   --kr-primary-dark: #D4AF37;
   --kr-highlight: #4a9d5f;
   --kr-highlight-reverse: #021a0a;
+  --kr-text-accent: #80ba8f; /* Revue des thèmes : lien à 5,68:1 sur l'alerte info (3,80:1 avec l'accent) */
   --kr-bg-page: #0f0e0a;
   --kr-bg-surface: #1a1810;
   --kr-bg-elevated: #252015;
@@ -696,7 +701,7 @@ html.kr-hide-footer-quote .footer-quote {
 
 .form-control:focus {
   box-shadow: 0 0 0 2px var(--kr-focus-ring);
-  border-color: var(--kr-primary);
+  border-color: var(--kr-focus-ring); /* Revue des thèmes, n° 11 : la primaire tombait à 2,10:1 (Paladium) */
   outline: none;
 }
 
@@ -2487,6 +2492,16 @@ a:focus {
   outline: none;
 }
 
+/* Revue des thèmes, n° 7 : dans le corps d'un message (forum, kramail), le lien est souligné au repos. La couleur seule ne le distinguait
+   pas du texte (moins de 3:1 contre lui dans 12 variantes sur 16, WCAG 1.4.1) ; navigation et boutons gardent le soulignement au survol. */
+@media (max-width: 767px), (min-width: 768px) {
+  :is(.forum-msg, ul.media-list .media-body > .t) a:not(.btn):link,
+  :is(.forum-msg, ul.media-list .media-body > .t) a:not(.btn):visited {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
 /* Q1, H5.1 : boutons primaires de toute balise (button, a, label, span, input) et de tout état, dans les 16 variantes : paire d'action au
    repos et désactivé, paire de survol au survol, au focus, à l'appui, en .active, .focus et menu ouvert. Bordure en primaire foncée.
    Spécificité : les états de Bootstrap vont jusqu'à (0,4,0) (.open > .dropdown-toggle.btn-primary.focus) et la règle des liens du sombre
@@ -2609,7 +2624,7 @@ footer .container.white {
   background: var(--kr-arm-bg, var(--kr-primary));
   color: var(--kr-arm-ink, var(--kr-white));
   padding: 3px 8px;
-  font-size: 9px;
+  font-size: var(--kr-font-label);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -3010,7 +3025,7 @@ footer .container.white {
   }
 
   .dashboard-section-header {
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     padding: 5px 10px;
   }
 }
@@ -3186,13 +3201,14 @@ html[class*="-dark"] .form-control {
   color: var(--kr-text-primary);
 }
 
+/* Revue des thèmes, n° 8 : placeholder en texte secondaire, comme en mobile (le gris discret ne faisait que 2,7 à 3,5:1 sur les champs) */
 html[class*="-dark"] .form-control::placeholder {
-  color: var(--kr-text-muted);
+  color: var(--kr-text-secondary);
 }
 
 html[class*="-dark"] .form-control:focus {
   background-color: var(--kr-form-bg-focus);
-  border-color: var(--kr-primary);
+  border-color: var(--kr-focus-ring);
   color: var(--kr-text-primary);
 }
 
@@ -4483,7 +4499,7 @@ body > map {
   }
   
   .carousel .carousel-caption p {
-    font-size: 0.95rem !important;
+    font-size: var(--kr-font-label) !important;
   }
   
   /* Images du carousel */
@@ -6462,7 +6478,7 @@ body > map {
   }
 
   html.kr-commerce-list-mode .commerce-products-container > a.list-group-item .mention .xmini {
-    font-size: 11px;
+    font-size: var(--kr-font-label);
     opacity: 0.7;
   }
 

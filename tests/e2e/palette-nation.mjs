@@ -133,15 +133,15 @@ const JETONS = [
 const DESIGN = {
   kraland: ['#8b0f0e', '#6f0c0b', '#c41e3a', '#f6dde1', '#c41e3a', '#8b0f0e', '#8b0f0e', '#ffffff', '#6f0c0b', '#ffffff', '#f6ecec', '#ead4d4', '#f8f1f1', '#efdddd', '#8b0f0e1f'],
   'empire-brun': ['#5e3b2d', '#4b2f24', '#c69100', '#f6efd9', '#8a5a00', '#5e3b2d', '#5e3b2d', '#ffffff', '#4b2f24', '#ffffff', '#f2efee', '#e2dcd9', '#f5f3f2', '#e8e4e2', '#5e3b2d1f'],
-  paladium: ['#d4af37', '#aa8c2c', '#044c17', '#d9e4dc', '#044c17', '#044c17', '#d4af37', '#1e1a15', '#aa8c2c', '#1e1a15', '#fcf9ef', '#f7f1db', '#fcfaf3', '#f9f4e3', '#d4af371f'],
+  paladium: ['#d4af37', '#aa8c2c', '#044c17', '#d9e4dc', '#077623', '#044c17', '#d4af37', '#1e1a15', '#aa8c2c', '#1e1a15', '#fcf9ef', '#f7f1db', '#fcfaf3', '#f9f4e3', '#d4af371f'],
   'theocratie-seelienne': ['#0033a0', '#002980', '#2d5fcb', '#e0e7f7', '#2d5fcb', '#0033a0', '#0033a0', '#ffffff', '#002980', '#ffffff', '#ebeff7', '#d1daee', '#f0f3f9', '#dbe2f2', '#0033a01f'],
-  'paradigme-vert': ['#0b6623', '#09521c', '#063803', '#dae1d9', '#063803', '#0b6623', '#0b6623', '#ffffff', '#09521c', '#ffffff', '#ebf3ed', '#d3e3d7', '#f0f6f2', '#ddeae0', '#0b66231f'],
-  'khanat-elmerien': ['#6a0dad', '#550a8a', '#7b4c9c', '#ebe4f0', '#7b4c9c', '#6a0dad', '#6a0dad', '#ffffff', '#550a8a', '#ffffff', '#f3ecf8', '#e4d3f0', '#f6f0fa', '#eaddf4', '#6a0dad1f'],
-  'confederation-libre': ['#6b7280', '#565b66', '#475369', '#e3e5e9', '#475369', '#475369', '#6b7280', '#ffffff', '#565b66', '#ffffff', '#f3f4f5', '#e4e6e8', '#f6f7f7', '#eaebed', '#6b72801f'],
+  'paradigme-vert': ['#0b6623', '#09521c', '#063803', '#dae1d9', '#0c7707', '#0b6623', '#0b6623', '#ffffff', '#09521c', '#ffffff', '#ebf3ed', '#d3e3d7', '#f0f6f2', '#ddeae0', '#0b66231f'],
+  'khanat-elmerien': ['#6a0dad', '#550a8a', '#7b4c9c', '#ebe4f0', '#8150a4', '#6a0dad', '#6a0dad', '#ffffff', '#550a8a', '#ffffff', '#f3ecf8', '#e4d3f0', '#f6f0fa', '#eaddf4', '#6a0dad1f'],
+  'confederation-libre': ['#6b7280', '#565b66', '#475369', '#e3e5e9', '#576681', '#475369', '#6b7280', '#ffffff', '#565b66', '#ffffff', '#f3f4f5', '#e4e6e8', '#f6f7f7', '#eaebed', '#6b72801f'],
   'royaume-ruthvenie': ['#0a6b2d', '#085624', '#c41e3a', '#f6dde1', '#c41e3a', '#0a6b2d', '#0a6b2d', '#ffffff', '#085624', '#ffffff', '#ebf3ee', '#d3e4d9', '#f0f6f2', '#ddeae2', '#0a6b2d1f'],
   'kraland-dark': ['#c45252', '#8b0f0e', '#e07070', '#1a0505', '#e07070', '#e07070', '#b64c4c', '#f5f1ed', '#8b0f0e', '#f5f1ed', '#2a1f1f', '#ffffff14', '#371e1e', '#502727', '#c452521f'],
   'empire-brun-dark': ['#7a5240', '#5e3b2d', '#d4a574', '#1a0f0a', '#d4a574', '#d4a574', '#7a5240', '#ffffff', '#5e3b2d', '#ffffff', '#2a251f', '#ffffff14', '#2c221b', '#3a2b22', '#7a52401f'],
-  'paladium-dark': ['#e6c76e', '#d4af37', '#4a9d5f', '#021a0a', '#4a9d5f', '#4a9d5f', '#e6c76e', '#1e1a15', '#d4af37', '#1e1a15', '#252015', '#ffffff14', '#39321e', '#574d2c', '#e6c76e1f'],
+  'paladium-dark': ['#e6c76e', '#d4af37', '#4a9d5f', '#021a0a', '#80ba8f', '#4a9d5f', '#e6c76e', '#1e1a15', '#d4af37', '#1e1a15', '#252015', '#ffffff14', '#39321e', '#574d2c', '#e6c76e1f'],
   'theocratie-seelienne-dark': ['#5a8fd9', '#2d5fcb', '#80b3ff', '#000d1f', '#80b3ff', '#80b3ff', '#5a8fd9', '#1e1a15', '#2d5fcb', '#f5f1ed', '#1a2438', '#ffffff14', '#1d2a44', '#283c5f', '#5a8fd91f'],
   'paradigme-vert-dark': ['#4d9c61', '#2a7a3d', '#70c784', '#021508', '#70c784', '#70c784', '#4d9c61', '#1e1a15', '#2a7a3d', '#f5f1ed', '#1a2820', '#ffffff14', '#182e1f', '#22412a', '#4d9c611f'],
   'khanat-elmerien-dark': ['#9966cc', '#7b4c9c', '#b794d9', '#1a0425', '#b794d9', '#b794d9', '#8659b3', '#f5f1ed', '#7b4c9c', '#f5f1ed', '#251a2d', '#ffffff14', '#2d1f39', '#402b53', '#9966cc1f'],
@@ -1280,6 +1280,7 @@ async function etatsScenario(variante, width) {
   const { context, page, denied, erreurs } = await ouvrir({ width, height, variante, url: PAGE_ETATS.url, corps: PAGE_ETATS.corps });
   const r = { posee: await page.evaluate(VARIANTE_POSEE, variante), mobile: await page.evaluate(() => document.body.classList.contains('mobile-mode')) };
   r.jetons = await page.evaluate(JETONS5, [ABSENT, ETIQUETTES_TICKET55]);
+  r.accent = await page.evaluate(() => window.__krContraste.sonde('var(--kr-text-accent)'));
   r.repos = await page.evaluate(MESURES5, SELS5);
   r.survol = await forcer(page, [...SURVOLS5, '#pnj', ...HORS5], 'hover', () => page.evaluate(MESURES5, [...SURVOLS5, '#pnj', ...HORS5]));
   r.hors = hors;
@@ -1380,7 +1381,11 @@ function verifierEtats(tag, variante, r) {
     sansEcart(['repos', 'survol'].flatMap(etat => HORS5.flatMap(sel => {
       const a = r.hors[etat][sel];
       const p = r[etat][sel];
-      return !a || !p ? [`${sel} (${etat}) : absent`] : ['couleur', 'fondPropre', 'bordure'].filter(k => !proche(p[k], a[k])).map(k => `${sel} (${etat}) : ${k} ${p[k]} au lieu de ${a[k]}`);
+      // Écart accepté et consigné (revue des thèmes) : la pièce garde le texte coloré du thème, dont la nuance a changé en Paladium, Paradigme
+      // Vert, Khanat Elmérien et Confédération Libre clairs et en Paladium sombre (lien ≥ 3:1 contre le texte) : couleur comparée à
+      // --kr-text-accent quand elle diffère de la base.
+      const accepte = k => k === 'couleur' && proche(p[k], r.accent);
+      return !a || !p ? [`${sel} (${etat}) : absent`] : ['couleur', 'fondPropre', 'bordure'].filter(k => !proche(p[k], a[k]) && !accepte(k)).map(k => `${sel} (${etat}) : ${k} ${p[k]} au lieu de ${a[k]}`);
     })));
   });
   check(`${tag} ${variante} : « Voir l'historique des changements » (profil) en bouton standard : .btn-default sans .btn-info, fond bg-surface, texte text-nation ≥ 4,5:1`, () => {

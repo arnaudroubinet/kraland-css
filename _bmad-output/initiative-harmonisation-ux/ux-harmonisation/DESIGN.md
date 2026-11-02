@@ -327,15 +327,15 @@ Entre parenthèses : contraste sur `bg-surface`. En clair, `primary-strong` et 
 |---|---|---|---|---|---|---|
 | Kraland clair | `#8b0f0e` | `#6f0c0b` | `#c41e3a` | `#f6dde1` | `#c41e3a` (5,84) | `#8b0f0e` (9,67) |
 | Empire Brun clair | `#5e3b2d` | `#4b2f24` | `#c69100` | `#f6efd9` | `#8a5a00` (5,93, Q2) | `#5e3b2d` (9,82) |
-| Paladium clair | `#d4af37` | `#aa8c2c` | `#044c17` | `#d9e4dc` | `#044c17` (10,24) | `#044c17` (10,24, Q2) |
+| Paladium clair | `#d4af37` | `#aa8c2c` | `#044c17` | `#d9e4dc` | `#077623` (5,77, revue des thèmes) | `#044c17` (10,24, Q2) |
 | Théocratie Seelienne clair | `#0033a0` | `#002980` | `#2d5fcb` | `#e0e7f7` | `#2d5fcb` (5,82) | `#0033a0` (10,60) |
-| Paradigme Vert clair | `#0b6623` | `#09521c` | `#063803` | `#dae1d9` | `#063803` (13,34) | `#0b6623` (7,15) |
-| Khanat Elmérien clair | `#6a0dad` | `#550a8a` | `#7b4c9c` | `#ebe4f0` | `#7b4c9c` (6,26) | `#6a0dad` (9,24) |
-| Confédération Libre clair | `#6b7280` | `#565b66` | `#475369` | `#e3e5e9` | `#475369` (7,75) | `#475369` (7,75, ticket 3.4) |
+| Paradigme Vert clair | `#0b6623` | `#09521c` | `#063803` | `#dae1d9` | `#0c7707` (5,76, revue des thèmes) | `#0b6623` (7,15) |
+| Khanat Elmérien clair | `#6a0dad` | `#550a8a` | `#7b4c9c` | `#ebe4f0` | `#8150a4` (5,79, revue des thèmes) | `#6a0dad` (9,24) |
+| Confédération Libre clair | `#6b7280` | `#565b66` | `#475369` | `#e3e5e9` | `#576681` (5,77, revue des thèmes) | `#475369` (7,75, ticket 3.4) |
 | Royaume de Ruthvénie clair | `#0a6b2d` | `#085624` | `#c41e3a` | `#f6dde1` | `#c41e3a` (5,84) | `#0a6b2d` (6,66) |
 | Kraland sombre | `#c45252` | `#8b0f0e` | `#e07070` | `#1a0505` | `#e07070` (5,73) | `#e07070` (5,73) |
 | Empire Brun sombre | `#7a5240` | `#5e3b2d` | `#d4a574` | `#1a0f0a` | `#d4a574` (7,77) | `#d4a574` (7,77) |
-| Paladium sombre | `#e6c76e` | `#d4af37` | `#4a9d5f` | `#021a0a` | `#4a9d5f` (5,31) | `#4a9d5f` (5,31) |
+| Paladium sombre | `#e6c76e` | `#d4af37` | `#4a9d5f` | `#021a0a` | `#80ba8f` (7,90, revue des thèmes) | `#4a9d5f` (5,31) |
 | Théocratie Seelienne sombre | `#5a8fd9` | `#2d5fcb` | `#80b3ff` | `#000d1f` | `#80b3ff` (8,24) | `#80b3ff` (8,24) |
 | Paradigme Vert sombre | `#4d9c61` | `#2a7a3d` | `#70c784` | `#021508` | `#70c784` (8,66) | `#70c784` (8,66) |
 | Khanat Elmérien sombre | `#9966cc` | `#7b4c9c` | `#b794d9` | `#1a0425` | `#b794d9` (7,17) | `#b794d9` (7,17) |

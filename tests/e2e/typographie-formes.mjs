@@ -1893,8 +1893,11 @@ const IGNORER_JAUGES = [
 // propriétés comparées ; contrôle absolu de la ligne : revue-s21#pied.
 const COULEURS_TEXTE = ['color', 'caret-color', 'column-rule-color', 'row-rule-color', 'outline-color', 'text-decoration-color', 'text-emphasis-color', '-webkit-text-fill-color', '-webkit-text-stroke-color', ...BORDS.filter(p => p.endsWith('-color'))];
 const IGNORER_VERSION = [['.kraland-css-version, .kraland-css-version *, #kr-resize-banner button', COULEURS_TEXTE]];
+// Écart accepté et consigné (revue des thèmes, n° 7) : liens du corps d'un message (forum, kramail) soulignés au repos (WCAG 1.4.1).
+const IGNORER_LIENS_MESSAGE = [[':is(.forum-msg, ul.media-list .media-body > .t) a', ['text-decoration', 'text-decoration-line', 'text-underline-offset', '-webkit-text-decorations-in-effect']]];
 const IGNORER_NETTOYAGE = [
   ...IGNORER_VERSION,
+  ...IGNORER_LIENS_MESSAGE,
   ['.mobile-tab-bar, .mobile-tab-bar *', ['width', 'inline-size', 'padding-left', 'padding-right', 'padding-inline-start', 'padding-inline-end', 'perspective-origin', 'transform-origin']],
   ['.mobile-tab-bar', null, '::after'],
   ...IGNORER_KD,
