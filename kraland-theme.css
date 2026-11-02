@@ -11039,8 +11039,8 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     gap: var(--kr-space-2);
     width: 100%;
     min-height: 48px !important;
-    padding: 0 var(--kr-space-3) !important;
-    margin: 0 !important;
+    padding: 0 var(--kr-space-3);
+    margin: 0;
     border: 0;
     background: transparent;
     color: var(--kr-text-primary);
@@ -11182,7 +11182,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     min-width: var(--kr-touch-target);
     margin: 0 !important;
     padding: 0 !important;
-    font-size: var(--kr-font-button) !important;
+    font-size: var(--kr-font-button);
   }
 
   /* Case « images incluses » alignée à gauche, comme les champs */
@@ -11196,19 +11196,19 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: var(--kr-space-2);
-    margin: 0 0 var(--kr-space-2) !important;
+    margin: 0 0 var(--kr-space-2);
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group.row.center > div {
     flex: none;
-    width: auto !important;
-    padding: 0 !important;
+    width: auto;
+    padding: 0;
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group.row.center a.btn {
     width: var(--kr-touch-target);
     height: var(--kr-touch-target);
-    margin: 0 !important;
+    margin: 0;
     padding: 0 !important;
   }
 
@@ -11231,9 +11231,9 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   /* Fil d'événements : le tableau devient une carte de section (8 px des bords) ; dates en intertitres ; chaque événement sur deux
      étages (icône, heure et lien en tête, texte en pleine largeur dessous) au lieu de quatre colonnes qui débordaient de l'écran */
   :where(html.kr-page-secondaire) body.mobile-mode #col-right table.kr-ev-liste {
-    display: block !important;
-    width: auto !important;
-    max-width: none !important;
+    display: block;
+    width: auto;
+    max-width: none;
     margin: 0 calc(var(--kr-space-2) - var(--kr-marge-page, 0px)) var(--kr-space-4);
     overflow: hidden !important;
     border-radius: var(--kr-radius-md);
@@ -11251,18 +11251,18 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
 
   :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-date > :is(th, td) {
     display: block;
-    padding: var(--kr-space-2) var(--kr-space-2) !important;
-    border: 0 !important;
+    padding: var(--kr-space-2) var(--kr-space-2);
+    border: 0;
     border-top: 1px solid var(--kr-border-default) !important;
-    background: var(--kr-header-tint) !important;
+    background: var(--kr-header-tint);
     color: var(--kr-text-primary);
-    font-size: var(--kr-font-detail) !important;
+    font-size: var(--kr-font-detail);
     font-weight: 700;
     letter-spacing: 0.3px;
   }
 
   :where(html[class*="-dark"].kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-date > :is(th, td) {
-    background: var(--kr-bg-elevated) !important;
+    background: var(--kr-bg-elevated);
   }
 
   :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr:first-child > :is(th, td) {
@@ -11288,8 +11288,8 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     display: block;
     min-width: 0;
     padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
+    border: 0;
+    background: transparent;
     font-size: var(--kr-font-body-mobile) !important;
   }
 
@@ -11338,16 +11338,16 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
     position: absolute;
     top: var(--kr-space-2);
     right: var(--kr-space-1);
-    float: none !important;
+    float: none;
     width: var(--kr-touch-target);
     height: var(--kr-touch-target);
     min-width: 0;
-    margin: 0 !important;
+    margin: 0;
     padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    color: var(--kr-text-accent) !important;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--kr-text-accent);
     font-size: var(--kr-font-body-mobile) !important;
   }
 
@@ -11358,7 +11358,7 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   /* Images des discours dans la largeur de la carte, proportions gardées (attribut width de 800 px natif) */
   :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste td.kr-ev-texte img {
     max-width: 100% !important;
-    height: auto !important;
+    height: auto;
   }
 }
 
