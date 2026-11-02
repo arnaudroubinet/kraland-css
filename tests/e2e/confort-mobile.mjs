@@ -92,7 +92,9 @@ const SECONDAIRES = {
   regles: { url: '/regles/avancees', html: lire('secondaires-regles.html'), cibles: [] },
   guide: { url: '/monde/guide', html: lire('secondaires-guide.html'), cibles: [] },
   organisations: { url: '/monde/organisations', html: lire('secondaires-organisations.html'), cibles: ['td > a.nomargin'] },
-  evenements: { url: '/monde/evenements', html: lire('secondaires-evenements.html'), cibles: ['.form-check-label', '.pagination > li > a'], sansCartes: true },
+  // Filtres des Événements repliés par défaut en mobile (Evenements:Mobile) : ouverts ici pour mesurer la case et les champs
+  evenements: { url: '/monde/evenements', html: lire('secondaires-evenements.html'), cibles: ['.form-check-label', '.pagination > li > a'], sansCartes: true,
+    init: () => { localStorage.setItem('kr-ev-filtres-ouverts', '1'); } },
   stats: { url: '/communaute/stats', html: lire('secondaires-stats.html'), cibles: [], sansCartes: true },
   membre: { url: '/communaute/membres/fixture-1', html: lire('secondaires-membre.html'), cibles: [] },
   interface: { url: '/profil/interface', html: lire('secondaires-interface.html'), cibles: ['.radio > label', '.checkbox > label'], sansCartes: true, options: true },
@@ -105,7 +107,7 @@ const DANS = Object.keys(PAGES).filter(k => PAGES[k].classe && !SECONDAIRES[k]);
 const HORS = Object.keys(PAGES).filter(k => !PAGES[k].classe);
 // Compléments du fragment secondaires (hors listes DANS et HORS) : Événements sans libellé de case (repli), rédaction du kramail (page sans
 // garde, champs de formulaire).
-PAGES['evenements-sans-libelle'] = { url: '/monde/evenements', html: PAGES.evenements.html.replace(/<label class="form-check-label"[^>]*>[^<]*<\/label>/, ''), classe: 'kr-page-secondaire' };
+PAGES['evenements-sans-libelle'] = { url: '/monde/evenements', html: PAGES.evenements.html.replace(/<label class="form-check-label"[^>]*>[^<]*<\/label>/, ''), classe: 'kr-page-secondaire', init: PAGES.evenements.init };
 PAGES['kramail-nouveau'] = { url: '/kramail/post/nouveau-4-2000', html: lire('kramail-nouveau.html'), classe: null };
 // Membres et fenêtre d'aide (entrée 13) : classes attendues, cibles mesurées, cartes (sélecteur d'ETAT ; null : page sans carte).
 const CARTES_AIDE = { cartes: '.well', exclues: '.modal' };
@@ -164,6 +166,7 @@ async function ouvrir({ nom, width, height = 667, variante, script, tactile = wi
   });
   await context.addInitScript(choisirVariante, variante);
   if (init) { await context.addInitScript(init); }
+  if (def.init) { await context.addInitScript(def.init); }
   await context.addInitScript(src => {
     window.GM = { xmlHttpRequest: () => {} };
     // Soumission neutralisée (aucun envoi, même depuis une fixture).

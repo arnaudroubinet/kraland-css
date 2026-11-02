@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE SYNTHÉTIQUE (pas une capture du site) : Événements, chemin servi /monde/evenements, pour la refonte mobile de la vue.
+  Forme reprise des captures du site réel (galerie snapshot/, PR #44, 2026-11-02, 360 et 1280 px) et du relevé 9.3 (F3) :
+  `#col-left > .list-group > span.list-group-item.active` (titre et croix), `form > .form-group > label.col-sm-2.control-label.mini +
+  .col-sm-10 > .input-group` (icône en addon devant le select : globe, carte, immeuble, marcheur), boutons de lieu (globe, position,
+  domicile, fonction) dans un `.center`, boutons 25/50/100/250 `input[name="n[4]"]` suivis de « actions/page », case « images incluses »
+  (`.form-check`), deux rangées de trois marqueurs (`.form-group.row.center > div > a.btn > i.fa-map-marker-alt`), `input#mySubmit1…6.hidden`.
+  Liste : `#col-right` pagination puis `table.table.table-striped` : ligne de date (`th` seul), puis lignes icône (img) / heure / texte
+  (bouton lien `a.btn.btn-xs.pull-right` en tête de la cellule de texte) ; texte avec images larges et paragraphes.
+  Écarts assumés : textes, noms, liens et valeurs INVENTÉS ; balisage exact SUPPOSÉ (place du bouton lien, colspan de la date, classes des
+  boutons) ; nombre de lignes réduit ; aucun script natif. Un vert sur cette fixture ne prouve pas le rendu sur le site.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE SYNTHÉTIQUE Événements (mobile)</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+  <div class="row">
+    <div id="col-left" class="col-md-3">
+      <div class="list-group">
+        <span class="list-group-item active">Événements<a href="monde/evenements/0" class="pull-right"><i class="fa fa-times"></i></a></span>
+        <form class="form-horizontal" action="monde/evenements" method="post">
+          <div class="form-group"><label class="col-sm-2 control-label mini">Empire</label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-globe"></i></span><select class="form-control" name="n[0]"><option>Nation de la fixture</option><option>Autre nation</option></select></div></div></div>
+          <br>
+          <div class="form-group"><label class="col-sm-2 control-label mini">Prov.</label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-map"></i></span><select class="form-control" name="n[1]"><option>Aucune province</option></select></div></div></div>
+          <br>
+          <div class="form-group"><label class="col-sm-2 control-label mini">Ville</label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-city"></i></span><select class="form-control" name="n[2]"><option>Aucune ville</option></select></div></div></div>
+          <div class="center"><a class="btn btn-primary btn-xs" href="monde/evenements/1"><i class="fa fa-globe"></i></a> <a class="btn btn-primary btn-xs" href="monde/evenements/2">position</a> <a class="btn btn-primary btn-xs" href="monde/evenements/3">domicile</a> <a class="btn btn-default btn-xs" href="monde/evenements/4">fonction</a></div>
+          <div class="form-group"><label class="col-sm-2 control-label mini">Action</label><div class="col-sm-10"><div class="input-group"><span class="input-group-addon"><i class="fa fa-walking"></i></span><select class="form-control" name="n[3]"><option>Toutes les actions</option></select></div></div></div>
+          <br><br>
+          <div class="center"><input type="submit" name="n[4]" value="25" class="btn btn-primary btn-xs active"> <input type="submit" name="n[4]" value="50" class="btn btn-primary btn-xs"> <input type="submit" name="n[4]" value="100" class="btn btn-primary btn-xs"> <input type="submit" name="n[4]" value="250" class="btn btn-primary btn-xs"> actions/page</div>
+          <div class="center"><div class="form-check"><input class="form-check-input" type="checkbox" id="ev-img" name="img" checked><label class="form-check-label" for="ev-img">images incluses</label></div></div>
+          <div class="form-group row center"><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m1" title="Lieu 1"><i class="fa fa-map-marker-alt"></i></a></div><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m2" title="Lieu 2"><i class="fa fa-map-marker-alt"></i></a></div><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m3" title="Lieu 3"><i class="fa fa-map-marker-alt"></i></a></div></div>
+          <div class="form-group row center"><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m4" title="Lieu 4"><i class="fa fa-map-marker-alt"></i></a></div><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m5" title="Lieu 5"><i class="fa fa-map-marker-alt"></i></a></div><div class="col-xs-4"><a class="btn btn-default btn-xs" href="monde/evenements/m6" title="Lieu 6"><i class="fa fa-map-marker-alt"></i></a></div></div>
+          <input type="submit" id="mySubmit1" class="hidden" value="1"><input type="submit" id="mySubmit2" class="hidden" value="2"><input type="submit" id="mySubmit3" class="hidden" value="3">
+          <input type="submit" id="mySubmit4" class="hidden" value="4"><input type="submit" id="mySubmit5" class="hidden" value="5"><input type="submit" id="mySubmit6" class="hidden" value="6">
+        </form>
+      </div>
+    </div>
+    <div id="col-right" class="col-md-9">
+      <div class="center"><ul class="pagination"><li class="disabled"><a href="monde/evenements"><i class="fa fa-fast-backward"></i></a></li><li class="disabled"><a href="monde/evenements"><i class="fa fa-backward"></i></a></li><li class="active"><a href="monde/evenements">1</a></li><li><a href="monde/evenements/p2">2</a></li><li><a href="monde/evenements/p3">3</a></li><li><a href="monde/evenements/p4">4</a></li><li><a href="monde/evenements/p2"><i class="fa fa-forward"></i></a></li><li><a href="monde/evenements/p4"><i class="fa fa-fast-forward"></i></a></li></ul></div>
+      <table class="table table-striped"><tbody>
+        <tr><th colspan="3">2026-10-20</th></tr>
+        <tr><td><img src="http://img7.kraland.org/2/world/1.gif" width="24" height="16" alt=""></td><td>18:05</td><td><a class="btn btn-default btn-xs pull-right" href="monde/evenements/e1"><i class="fa fa-link"></i></a>Le personnage 1 de la fixture a accepté la proposition de paix d’une autre nation : « Chère fixture, ta demande est acceptée. »</td></tr>
+        <tr><td><img src="http://img7.kraland.org/2/world/1.gif" width="24" height="16" alt=""></td><td>17:23</td><td><a class="btn btn-default btn-xs pull-right" href="monde/evenements/e2"><i class="fa fa-link"></i></a>Le personnage 2 de la fixture a adressé un discours à la population mondiale : « <br><img src="http://img7.kraland.org/2/fixture/discours.jpg" width="800" height="600" alt=""><br><br>Ola fixture,<br><br>Texte du discours sur plusieurs lignes, assez long pour passer à la ligne sur un téléphone, avec un mot-très-long-sans-espace-trombonetrombonetrombonetrombonetrombone. »</td></tr>
+        <tr><td><img src="http://img7.kraland.org/2/world/2.gif" width="24" height="16" alt=""></td><td>15:04</td><td><a class="btn btn-default btn-xs pull-right" href="monde/evenements/e3"><i class="fa fa-link"></i></a>Le personnage 3 de la fixture a annulé la proposition d’alliance faite auprès d’une autre nation : « <b>Chère nation,</b><br><br>Je préfère repartir sur de bonnes bases. »</td></tr>
+        <tr><th colspan="3">2026-10-19</th></tr>
+        <tr><td><img src="http://img7.kraland.org/2/world/3.gif" width="24" height="16" alt=""></td><td>12:17</td><td><a class="btn btn-default btn-xs pull-right" href="monde/evenements/e4"><i class="fa fa-link"></i></a>Le personnage 4 de la fixture a accordé la récompense <b>Héros de la fixture</b> au personnage 5 : « Merci. » <font color="#ff6600">Signé</font></td></tr>
+      </tbody></table>
+      <div class="center"><ul class="pagination"><li class="active"><a href="monde/evenements">1</a></li><li><a href="monde/evenements/p2">2</a></li></ul></div>
+    </div>
+  </div>
+</div>
+<footer class="navbar-inverse"><div class="container white">pied</div></footer>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
