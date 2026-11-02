@@ -1583,13 +1583,19 @@ if (on('etiquettes')) {
   // kramail ; la pagination d'une seule page est masquée, contre « #topics_wrapper .dataTables_paginate { display: flex !important } » des
   // listes du kramail et de Contacts.
   const SURPLUS_FORCEES_DENSITE_LISTE_KRAMAIL = 2;
+  // Vue Événements mobile (2 novembre 2026, evenements-mobile.mjs), même condition de retrait : audit sur la fixture (320 et 360 px, clair
+  // et sombre, filtres ouverts), chaque !important rendu normal à son tour et styles calculés comparés : les inutiles sont retirés (45 à
+  // 21 déclarations) ; chacune des restantes bat une priorité forcée du thème ou de Bootstrap (cibles de 44 px, retraits des .btn, input-group
+  // en bloc, tableaux défilants, cellules à 8 px et 13 px, .pull-right) ; 61 priorités au décompte CSSOM (raccourcis développés).
+  const SURPLUS_FORCEES_EVENEMENTS = 61;
   const consignes = [
     [AVANT_REVUE_S21(avant), SURPLUS_FORCEES_REVUE_S21, 'revue S21'],
     [AVANT_CLAVIER_COMPACT(avant), SURPLUS_FORCEES_CLAVIER_COMPACT, 'clavier compact'],
     [AVANT_DENSITE_ORDRE(avant), SURPLUS_FORCEES_DENSITE_ORDRE, 'densité de la modale d\'ordre'],
     [AVANT_DENSITE_REDACTION(avant), SURPLUS_FORCEES_DENSITE_REDACTION, 'densité de la rédaction'],
     [AVANT_DENSITE_JEU(avant), SURPLUS_FORCEES_DENSITE_JEU, 'densité du Matériel et du Personnage'],
-    [AVANT_DENSITE_LISTE_KRAMAIL(avant), SURPLUS_FORCEES_DENSITE_LISTE_KRAMAIL, 'densité des listes du kramail']
+    [AVANT_DENSITE_LISTE_KRAMAIL(avant), SURPLUS_FORCEES_DENSITE_LISTE_KRAMAIL, 'densité des listes du kramail'],
+    [!avant.includes('kr-ev-liste'), SURPLUS_FORCEES_EVENEMENTS, 'vue Événements mobile']
   ].filter(([avantChangement]) => avantChangement);
   const surplus = consignes.reduce((n, [, k]) => n + k, 0);
   const detailSurplus = consignes.map(([, k, quoi]) => `${quoi} ${k}`).join(', ');

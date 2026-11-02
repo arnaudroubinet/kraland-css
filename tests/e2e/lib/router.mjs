@@ -135,7 +135,11 @@ export const SUITES = [
   // d'une organisation (fixtures synthétiques à structure relevée, feuilles natives vendor/parler), 320, 360 et 375 px ; ordres courts
   // (Dormir, Pouvoir) gardant leur carte ; seuil (767, 768 et 769 px, aller-retour dans le même onglet) ; ordinateur égal au bundle de
   // base (4881f49). Rouge sur ce bundle, vert après.
-  { name: 'densite-jeu', file: 'densite-jeu.mjs', zones: ['densite-jeu'], frags: [['materiel'], ['personnage'], ['objet'], ['organisation'], ['courts'], ['seuil']], needsBootstrap: true }
+  { name: 'densite-jeu', file: 'densite-jeu.mjs', zones: ['densite-jeu'], frags: [['materiel'], ['personnage'], ['objet'], ['organisation'], ['courts'], ['seuil']], needsBootstrap: true },
+  // Vue Événements mobile (retour d'Arnaud du 2 novembre 2026) : filtres repliables, icônes accolées, liste en fil d'événements dans une
+  // carte, pagination sur une ligne (fixture synthétique evenements-mobile.html, feuilles natives vendor/parler), 320, 360 et 375 px ;
+  // ordinateur (768, 1280) égal au bundle de base (7e28cd0). Rouge sur ce bundle, vert après.
+  { name: 'evenements-mobile', file: 'evenements-mobile.mjs', zones: ['evenements'], frags: [['mobile'], ['bureau']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -178,6 +182,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/kramail-reception\.html$/, ['kramail', 'cartes-pastilles']],
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
   [/^tests\/e2e\/fixtures\/contacts\.html$/, ['kramail']],
+  [/^tests\/e2e\/fixtures\/evenements-mobile\.html$/, ['evenements']],
   [/^tests\/e2e\/fixtures\//, 'fixture'], // autre fixture : les suites qui citent son nom de fichier (aucune -> total)
   [/^tests\/e2e\/durations\.json$/, []], // durées mesurées : changent l'ordre de lancement, jamais le résultat d'une vérification
   [/^(README\.md|CLAUDE\.md|AGENTS\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.github\/)/, []],
@@ -283,6 +288,9 @@ export const KEYWORDS = [
   [/kr-marge-mobile|kr-marge-page|kr-margin-mobile|KR_PAGE_CLASSES|krPageClasses/, ['accueil-mobile', 'confort-mobile', 'report']],
   [/kr-marge-page|kr-margin-mobile/, ['kramail']],
   [/kr-page-jeu|kr-page-aide|kr-page-secondaire/, ['confort-mobile']],
+  // Vue Événements mobile : classes kr-ev-* et module Evenements:Mobile, vérifiés par evenements-mobile ; la page reste une page secondaire
+  // mesurée par confort-mobile (fragment secondaires).
+  [/kr-ev-|page-evenements|Evenements:Mobile/, ['evenements', 'confort-mobile']],
   // Accueil (épopée 10, entrée 2) : classe de page, injections de la colonne droite (Homepage:RightColumn), compteurs et carrousel, vérifiés
   // par accueil-mobile ; palette-nation et typographie-formes rendent aussi un accueil synthétique (sans ces deux suites, un hunk
   // .page-accueil, qui élargissait au total, perdrait leur couverture). kr-ministerial-card n'est rendue que par ces deux suites (la fixture
@@ -313,6 +321,7 @@ export const SECTIONS = [
   [/^TASK-1\.4 - MINI-PROFIL/, ['profil']],
   [/^IDENTITÉ DU PERSONNAGE/, ['plateau', 'profil']],
   [/^CYBERMONDE/, ['cybermonde']],
+  [/^ÉVÉNEMENTS \(mobile\)/, ['evenements', 'confort-mobile']],
   // Modales Bootbox (socle de la modale d'ordre, chaîne mobile, viewport des ordres) : suites qui ouvrent une modale d'ordre (densite-jeu :
   // détail d'objet, vue d'organisation, ordres courts ; sélecteur d'objet, onglet actif, rangée d'en-tête).
   [/^MODAL PERSONNAGE MOBILE/, ['modale-ordre', 'parler', 'densite-jeu']],

@@ -1093,7 +1093,7 @@
     function ajusterTableaux() {
       if (!isMobileMode()) {return;}
       document.querySelectorAll(`${PAGES_TABLEAUX} table.table:not(.dataTable)`).forEach(marquerColonnes);
-      document.querySelectorAll(`${PAGES_TABLEAUX} #col-right table:not(.dataTable)`).forEach(table => {
+      document.querySelectorAll(`${PAGES_TABLEAUX} #col-right table:not(.dataTable, .kr-ev-liste)`).forEach(table => {
         if (!table.classList.contains('kr-table-pleine')) {
           if (table.clientWidth > 0 && table.scrollWidth <= table.clientWidth) {table.classList.add('kr-table-pleine');}
           return;
@@ -1113,6 +1113,115 @@
       clearTimeout(attente);
       attente = setTimeout(ajusterTableaux, 150);
     });
+  })();
+
+  // ============================================================================
+  // ÉVÉNEMENTS (mobile) : filtres repliables et liste en fil d'événements
+  // ============================================================================
+  (function () {
+    'use strict';
+
+    const CLE_FILTRES = 'kr-ev-filtres-ouverts';
+    const HEURE = /^\d{1,2}[:h]\d{2}$/;
+
+    /**
+     * Liste des événements (/monde/evenements) : chaque ligne du tableau natif est marquée pour que la feuille mobile la présente en
+     * entrée de fil (icône, heure et bouton lien sur une ligne de tête, texte en pleine largeur dessous) au lieu d'un tableau de quatre
+     * colonnes qui débordait de l'écran. Le DOM n'est pas déplacé : seules des classes sont posées, sans effet hors mode mobile, de sorte
+     * qu'une bascule 767 <-> 768 retrouve le tableau natif. Ligne de date : une seule cellule (en-tête ou fusionnée). Cellules d'une ligne
+     * d'événement : icône (image ou icône sans texte), heure (« 18:05 »), bouton lien seul (cellule sans texte), texte (la plus longue).
+     */
+    function marquerListe(table) {
+      table.classList.add('kr-ev-liste');
+      [...table.tBodies].flatMap(corps => [...corps.rows]).forEach(ligne => {
+        const cellules = [...ligne.cells];
+        if (cellules.length === 1 || (cellules.length > 0 && cellules.every(c => c.tagName === 'TH'))) {
+          ligne.classList.add('kr-ev-date');
+          return;
+        }
+        ligne.classList.add('kr-ev-ligne');
+        const restantes = [];
+        cellules.forEach(c => {
+          const texte = c.textContent.trim();
+          if (HEURE.test(texte)) {
+            c.classList.add('kr-ev-heure');
+          } else if (!texte && c.querySelector('a.btn, a > i, button')) {
+            c.classList.add('kr-ev-lien-cellule');
+          } else if (!texte && c.querySelector('img, i, svg')) {
+            c.classList.add('kr-ev-icone');
+          } else {
+            restantes.push(c);
+          }
+        });
+        if (restantes.length === 0) {return;}
+        const texte = restantes.reduce((a, b) => (b.textContent.length > a.textContent.length ? b : a));
+        texte.classList.add('kr-ev-texte');
+        restantes.filter(c => c !== texte).forEach(c => c.classList.add('kr-ev-autre'));
+        // Bouton lien en tête de la cellule de texte (pull-right) : placé par la feuille mobile sur la ligne de tête
+        const lien = [...texte.children].find(e => e.matches('a.btn, a.pull-right') && !e.textContent.trim() && e.querySelector('i, img, svg'));
+        if (lien) {
+          lien.classList.add('kr-ev-lien');
+          ligne.classList.add('kr-ev-avec-lien');
+        }
+      });
+    }
+
+    function resumeFiltres(form) {
+      const choix = [...form.querySelectorAll('select')].map(sel => {
+        const opt = sel.options[sel.selectedIndex];
+        return opt ? opt.textContent.trim() : '';
+      }).filter(t => t && !/^(aucun|aucune|toutes?|tous)\b/i.test(t));
+      return choix.join(' · ') || 'Tous les événements';
+    }
+
+    function lireEtat() {
+      try {return localStorage.getItem(CLE_FILTRES) === '1';} catch {return false;}
+    }
+
+    function ecrireEtat(ouvert) {
+      try {localStorage.setItem(CLE_FILTRES, ouvert ? '1' : '0');} catch {/* stockage indisponible : état non retenu */}
+    }
+
+    /**
+     * Filtres (#col-left) : sur mobile ils occupaient tout le premier écran avant le premier événement. Un bouton « Filtres » (résumé des
+     * lieux et de l'action choisis, chevron) est inséré sous le titre de la carte et replie le formulaire ; l'état est retenu d'une visite
+     * à l'autre (fermé par défaut). Le bouton est masqué hors mode mobile par la feuille, et le repli n'y a aucun effet.
+     */
+    function preparerFiltres() {
+      const groupe = document.querySelector('#col-left > .list-group');
+      const form = groupe && groupe.querySelector(':scope > form');
+      if (!form || groupe.querySelector(':scope > .kr-ev-bascule')) {return;}
+      groupe.classList.add('kr-ev-filtres');
+      if (!form.id) {form.id = 'kr-ev-filtres-form';}
+      const bouton = document.createElement('button');
+      bouton.type = 'button';
+      bouton.className = 'kr-ev-bascule';
+      bouton.setAttribute('aria-controls', form.id);
+      bouton.innerHTML = '<span class="kr-ev-bascule-titre"><i class="fa fa-filter" aria-hidden="true"></i> Filtres</span>'
+        + '<span class="kr-ev-bascule-resume"></span><i class="fa fa-chevron-down kr-ev-bascule-chevron" aria-hidden="true"></i>';
+      bouton.querySelector('.kr-ev-bascule-resume').textContent = resumeFiltres(form);
+      const appliquer = ouvert => {
+        groupe.classList.toggle('kr-ev-filtres-ferme', !ouvert);
+        bouton.setAttribute('aria-expanded', String(ouvert));
+      };
+      bouton.addEventListener('click', () => {
+        const ouvert = groupe.classList.contains('kr-ev-filtres-ferme');
+        appliquer(ouvert);
+        ecrireEtat(ouvert);
+      });
+      appliquer(lireEtat());
+      const titre = groupe.querySelector(':scope > .list-group-item.active');
+      if (titre) {titre.after(bouton);} else {groupe.prepend(bouton);}
+    }
+
+    function preparerEvenements() {
+      if (!window.location.pathname.startsWith('/monde/evenements')) {return;}
+      preparerFiltres();
+      const table = document.querySelector('#col-right table.table');
+      if (table) {marquerListe(table);}
+    }
+
+    InitQueue.register('Evenements:Mobile', preparerEvenements, 90);
   })();
 
   // ============================================================================

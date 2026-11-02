@@ -11014,6 +11014,354 @@ body.page-kramail-compose form[name="post_msg"] .kd-msg-btn:focus-visible {
   }
 } /* fin @media (min-width: 768px) — Événements filtres desktop */
 
+@media (min-width: 768px) {
+  /* Bouton de repli des filtres (Evenements:Mobile) : mobile seulement, le formulaire reste toujours ouvert sur ordinateur */
+  body.page-evenements #col-left .kr-ev-bascule {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   PAGE ÉVÉNEMENTS - Vue mobile (filtres repliables, fil d'événements)
+   Classes posées par le module Evenements:Mobile du template (aucun déplacement de DOM) : kr-ev-filtres et kr-ev-bascule (carte des
+   filtres), kr-ev-liste, kr-ev-date, kr-ev-ligne et kr-ev-icone / -heure / -texte / -lien (tableau des événements).
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  /* Carte des filtres : bouton « Filtres » sous le titre (résumé des choix, chevron), formulaire replié par défaut */
+  :where(html.kr-page-secondaire) body.mobile-mode #col-left > .kr-ev-filtres {
+    margin: 0 calc(var(--kr-space-2) - var(--kr-marge-page, 0px)) var(--kr-space-2);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > .kr-ev-bascule {
+    display: flex !important;
+    align-items: center;
+    gap: var(--kr-space-2);
+    width: 100%;
+    min-height: 48px !important;
+    padding: 0 var(--kr-space-3);
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-body-mobile);
+    text-align: left;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > .kr-ev-bascule:focus-visible {
+    outline: 2px solid var(--kr-focus-ring);
+    outline-offset: -2px;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-bascule-titre {
+    flex: none;
+    font-weight: 700;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-bascule-titre > i {
+    margin-right: var(--kr-space-1);
+    color: var(--kr-text-accent);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-bascule-resume {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-bascule-chevron {
+    flex: none;
+    color: var(--kr-text-secondary);
+    transition: transform var(--transition-fast, 0.15s);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-bascule[aria-expanded="true"] > .kr-ev-bascule-chevron {
+    transform: rotate(180deg);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres.kr-ev-filtres-ferme > form {
+    display: none;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form {
+    padding: var(--kr-space-3) 0 var(--kr-space-2);
+    border-top: 1px solid var(--kr-border-default);
+  }
+
+  /* Retours à la ligne natifs entre les champs : l'écart vient des marges des groupes */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > br {
+    display: none;
+  }
+
+  /* Champs : libellé discret au-dessus, icône accolée au select (elle formait une barre pleine largeur au-dessus du champ) */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group:not(.row) {
+    margin-bottom: var(--kr-space-3);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group > label.control-label {
+    float: none;
+    width: auto !important;
+    margin: 0;
+    padding: 0 0 var(--kr-space-1) !important;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-label);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres .input-group {
+    display: flex !important;
+    align-items: stretch;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres .input-group > .input-group-addon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--kr-touch-target);
+    padding: 0;
+    border-right: 0;
+    border-radius: var(--kr-radius-sm) 0 0 var(--kr-radius-sm);
+    background-color: var(--kr-bg-elevated);
+    color: var(--kr-text-secondary);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres .input-group > .form-control {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    border-radius: 0 var(--kr-radius-sm) var(--kr-radius-sm) 0 !important;
+  }
+
+  /* Boutons de lieu (monde, position, domicile, fonction) : une rangée régulière, sans le décalage de « .btn + .btn » */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center:has(> a.btn) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--kr-space-2);
+    margin: 0 0 var(--kr-space-3);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center > a.btn {
+    flex: 1 1 auto;
+    min-width: var(--kr-touch-target);
+    margin: 0 !important;
+    padding: 0 var(--kr-space-3) !important;
+  }
+
+  /* Actions par page : libellé en tête comme les autres champs (le texte natif « actions/page » est masqué), quatre boutons de même largeur */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center:has(> input[name="n[4]"]) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--kr-space-2);
+    margin: 0 0 var(--kr-space-3);
+    font-size: 0;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center:has(> input[name="n[4]"])::before {
+    content: "Actions par page";
+    flex: 0 0 100%;
+    margin-bottom: calc(var(--kr-space-1) - var(--kr-space-2));
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-label);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center > input[name="n[4]"] {
+    flex: 1 1 0;
+    min-width: var(--kr-touch-target);
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: var(--kr-font-button);
+  }
+
+  /* Case « images incluses » alignée à gauche, comme les champs */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .center:has(> .form-check) {
+    margin: 0 0 var(--kr-space-2);
+    text-align: left;
+  }
+
+  /* Marqueurs de lieu : rangées de cibles de 44 px alignées à gauche (une colonne par marqueur en pleine largeur auparavant) */
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group.row.center {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--kr-space-2);
+    margin: 0 0 var(--kr-space-2);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group.row.center > div {
+    flex: none;
+    width: auto;
+    padding: 0;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode .kr-ev-filtres > form > .form-group.row.center a.btn {
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target);
+    margin: 0;
+    padding: 0 !important;
+  }
+
+  /* Pagination des événements : sur une ligne, boutons inactifs (première et précédente en page 1) retirés */
+  :where(html.kr-page-secondaire) body.mobile-mode #col-right:has(.kr-ev-liste) ul.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: var(--kr-space-2) 0 var(--kr-space-3);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode #col-right:has(.kr-ev-liste) ul.pagination > li.disabled {
+    display: none;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode #col-right:has(.kr-ev-liste) ul.pagination > li > a {
+    min-width: var(--kr-touch-target);
+  }
+
+  /* Fil d'événements : le tableau devient une carte de section (8 px des bords) ; dates en intertitres ; chaque événement sur deux
+     étages (icône, heure et lien en tête, texte en pleine largeur dessous) au lieu de quatre colonnes qui débordaient de l'écran */
+  :where(html.kr-page-secondaire) body.mobile-mode #col-right table.kr-ev-liste {
+    display: block;
+    width: auto;
+    max-width: none;
+    margin: 0 calc(var(--kr-space-2) - var(--kr-marge-page, 0px)) var(--kr-space-4);
+    overflow: hidden !important;
+    border-radius: var(--kr-radius-md);
+    background: var(--kr-bg-surface);
+    box-shadow: var(--kr-card-shadow);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody {
+    display: block;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-date {
+    display: block;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-date > :is(th, td) {
+    display: block;
+    padding: var(--kr-space-2) var(--kr-space-2);
+    border: 0;
+    border-top: 1px solid var(--kr-border-default) !important;
+    background: var(--kr-header-tint);
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-detail);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  :where(html[class*="-dark"].kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-date > :is(th, td) {
+    background: var(--kr-bg-elevated);
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr:first-child > :is(th, td) {
+    border-top: 0 !important;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: var(--kr-space-1) var(--kr-space-2);
+    padding: var(--kr-space-2) var(--kr-space-2) var(--kr-space-3);
+    border-top: 1px solid var(--kr-border-default);
+    background: transparent !important;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne.kr-ev-avec-lien {
+    min-height: calc(var(--kr-touch-target) + var(--kr-space-2));
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td {
+    display: block;
+    min-width: 0;
+    padding: 0 !important;
+    border: 0;
+    background: transparent;
+    font-size: var(--kr-font-body-mobile) !important;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-icone {
+    grid-area: 1 / 1;
+    width: auto;
+    line-height: 0;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-heure {
+    grid-area: 1 / 2;
+    width: auto;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail) !important;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-lien-cellule {
+    grid-area: 1 / 4;
+    justify-self: end;
+    margin: calc(0px - var(--kr-space-2)) calc(0px - var(--kr-space-2)) 0 0;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td:is(.kr-ev-texte, .kr-ev-autre) {
+    grid-column: 1 / -1;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  /* Ligne de tête à la hauteur du bouton lien (posé à droite de la ligne, hors du flux du texte) */
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-avec-lien > td:is(.kr-ev-icone, .kr-ev-heure) {
+    min-height: var(--kr-touch-target);
+    display: flex;
+    align-items: center;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-texte {
+    grid-row: 2;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-texte > a.kr-ev-lien,
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-lien-cellule > a {
+    position: absolute;
+    top: var(--kr-space-2);
+    right: var(--kr-space-1);
+    float: none;
+    width: var(--kr-touch-target);
+    height: var(--kr-touch-target);
+    min-width: 0;
+    margin: 0;
+    padding: 0 !important;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--kr-text-accent);
+    font-size: var(--kr-font-body-mobile) !important;
+  }
+
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste > tbody > tr.kr-ev-ligne > td.kr-ev-lien-cellule > a {
+    position: static;
+  }
+
+  /* Images des discours dans la largeur de la carte, proportions gardées (attribut width de 800 px natif) */
+  :where(html.kr-page-secondaire) body.mobile-mode table.kr-ev-liste td.kr-ev-texte img {
+    max-width: 100% !important;
+    height: auto;
+  }
+}
+
 /* ============================================================================
    FORUM THREAD DETAIL - Hide tags
    ============================================================================ */
