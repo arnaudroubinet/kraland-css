@@ -1,6 +1,15 @@
 {
   "versions": [
     {
+      "version": "1.0.1793648539974",
+      "releaseDate": "2026-11-02",
+      "changes": [
+        "Refonte globale de l'interface : thèmes des 8 nations en clair et en sombre, typographie, cartes, boutons et couleurs harmonisés sur tout le site",
+        "Compatibilité mobile complète : plateau, Matériel, Personnage, Bâtiments, Employés, kramail, forums, accueil, notifications, Événements et pages secondaires adaptés aux téléphones (marges, cibles tactiles de 44 px, modales d'ordre, clavier)",
+        "Vue Événements mobile retravaillée : filtres repliables, liste en fil d'événements lisible sans débordement"
+      ]
+    },
+    {
       "version": "1.0.1772474054408",
       "releaseDate": "2026-03-02",
       "changes": [
