@@ -31,6 +31,8 @@ const BASE = 'http://www.kraland.org';
 const SESSION = process.env.KR_SNAPSHOT_SESSION || path.join(os.homedir(), '.kraland-snapshot', 'session.json');
 const ECART_MS = Number(process.env.KR_SNAPSHOT_ECART_MS || 1000);
 const BUREAU = '4-ordinateur';
+// KR_CHROMIUM : autre binaire Chromium (ex. quand la version de Playwright n'a que la coquille headless).
+const LANCEMENT = process.env.KR_CHROMIUM ? { executablePath: process.env.KR_CHROMIUM } : {};
 const THEMES_TOUTES_DIMENSIONS = ['kraland', 'empire-brun-dark'];
 
 const sansEntete = s => s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, '');
@@ -53,7 +55,7 @@ export const ECRANS_REELS = [
   { id: '04-personnage', nom: 'Personnage', url: '/jouer/perso' },
   { id: '05-materiel', nom: 'Matériel', url: '/jouer/materiel' },
   { id: '06-batiments', nom: 'Bâtiments', url: '/jouer/bat' },
-  { id: '07-employes', nom: 'Employés', url: '/jouer/employes' },
+  { id: '07-employes', nom: 'Employés', url: '/jouer/pnj' },
   { id: '08-kramail-reception', nom: 'Kramail : réception (floutée)', url: '/kramail', action: flouterKramail },
   { id: '10-kramail-redaction', nom: 'Kramail : rédaction', depuis: '/kramail', trouver: 'a[href*="kramail/post/nouveau"]' },
   { id: '11-forums', nom: 'Forums', url: '/forum' },
@@ -136,7 +138,7 @@ async function capturer(p, ecran, palier, fichier) {
 
 async function connexion() {
   fs.mkdirSync(path.dirname(SESSION), { recursive: true });
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ ...LANCEMENT, headless: false });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   await p.goto(BASE + '/accueil');
@@ -166,10 +168,12 @@ async function resoudre(browser, ecrans) {
   const urls = {};
   for (const e of ecrans) {
     if (e.url) { urls[e.id] = e.url; continue; }
-    const depuis = urls[e.depuis] || e.depuis;
+    const depuis = e.depuis.startsWith('/') ? e.depuis : urls[e.depuis];
+    if (!depuis) { console.log(`Écran ${e.id} : page parente ${e.depuis} absente, sauté.`); continue; }
     await charger(p, depuis, 'kraland');
-    const href = await p.locator(e.trouver).first().getAttribute('href').catch(() => null);
-    if (href) { urls[e.id] = new URL(href, BASE + depuis).pathname; } else { console.log(`Écran ${e.id} : aucun lien ${e.trouver} sur ${depuis}, sauté.`); }
+    // Propriété href du DOM : adresse déjà résolue contre la balise <base> du site.
+    const href = await p.locator(e.trouver).first().evaluate(a => a.href).catch(() => null);
+    if (href) { urls[e.id] = new URL(href).pathname; } else { console.log(`Écran ${e.id} : aucun lien ${e.trouver} sur ${depuis}, sauté.`); }
   }
   await ctx.close();
   return urls;
@@ -187,11 +191,11 @@ async function main() {
   // Génération complète : les captures précédentes (fixtures ou autre passage) sont retirées.
   if (!ids) { for (const t of THEMES) { fs.rmSync(path.join(ICI, t.id), { recursive: true, force: true }); } }
   const ecrans = ids ? ECRANS_REELS.filter(e => ids.some(id => e.id === id || e.id.endsWith('-' + id))) : ECRANS_REELS;
-  let browser = await chromium.launch();
+  let browser = await chromium.launch(LANCEMENT);
   if (!(await connecte(browser))) {
     await browser.close();
     await connexion();
-    browser = await chromium.launch();
+    browser = await chromium.launch(LANCEMENT);
     if (!(await connecte(browser))) { throw new Error('Session non reconnue après connexion.'); }
   }
   const urls = await resoudre(browser, ECRANS_REELS.filter(e => ecrans.includes(e) || ecrans.some(x => x.depuis === e.id)));
