@@ -1,6 +1,6 @@
 // Fichier généré par snapshot/capturer.mjs : ne pas modifier à la main.
 window.KR_SNAPSHOT = {
- "genere": "2026-11-02T18:45:22.462Z",
+ "genere": "2026-11-02T19:14:31.110Z",
  "source": "site réel",
  "version": "1.0.1793579012186",
  "themes": [

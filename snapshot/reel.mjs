@@ -47,6 +47,110 @@ const flouterKramail = async p => {
   await p.addStyleTag({ content: '#topics tbody td, #col-right table tbody td { filter: blur(5px) !important; }' });
 };
 
+// Maquillage des pages /jouer/* avant capture : richesses, objets et bâtiments du compte remplacés
+// par des valeurs factices, dans le DOM seulement (aucune requête). Même structure, seuls textes et images changent.
+const maquiller = async p => {
+  await p.evaluate(() => {
+    const icone = couleur => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect x="4" y="4" width="24" height="24" rx="6" fill="${couleur}"/><circle cx="16" cy="16" r="6" fill="#fff" opacity=".6"/></svg>`);
+    const tourne = liste => { let i = 0; return () => liste[i++ % liste.length]; };
+    const sommes = tourne(['1 337', '42', '808', '256', '7 777', '99']);
+    const vues = new Map();
+    // Même montant d'origine, même montant factice : l'argent du mini-profil et du Matériel concordent.
+    const somme = brut => { const cle = brut.replace(/\D/g, ''); if (!vues.has(cle)) { vues.set(cle, sommes()); } return vues.get(cle); };
+    const textes = racine => {
+      const marcheur = document.createTreeWalker(racine, NodeFilter.SHOW_TEXT);
+      const noeuds = [];
+      while (marcheur.nextNode()) { noeuds.push(marcheur.currentNode); }
+      return noeuds;
+    };
+    // Les étiquettes d'état (« Arme en main »…) restent : seul le texte libre est remplacé.
+    const libres = el => textes(el).filter(n => n.nodeValue.trim() && !n.parentElement.closest('.label'));
+    const remplacerTexte = (el, texte) => {
+      const noeuds = libres(el);
+      if (!noeuds.length) { el.append(texte); return; }
+      noeuds[0].nodeValue = texte;
+      noeuds.slice(1).forEach(n => { n.nodeValue = ''; });
+    };
+    const chiffres = el => textes(el).forEach(n => { n.nodeValue = n.nodeValue.replace(/\d+/g, d => String((Number(d) * 7 + 3) % (10 ** d.length) || 1)); });
+    const panneau = classe => [...document.querySelectorAll('.panel')].find(x => x.querySelector(`.panel-heading .${classe}`));
+    const objet = (a, nom, detail, couleur) => {
+      a.title = nom;
+      const h4 = a.querySelector('.list-group-item-heading');
+      if (h4) { remplacerTexte(h4, nom); }
+      const img = a.querySelector('img.pull-left');
+      if (img) { img.src = icone(couleur); img.alt = nom; img.removeAttribute('srcset'); }
+      const detailEl = a.querySelector('.list-group-item-text');
+      if (detailEl && detail) { remplacerTexte(detailEl, detail); }
+      a.querySelectorAll('.mention, .xmini').forEach(chiffres);
+    };
+
+    // 1. Montants en FK (texte et attributs), mini-profil compris.
+    const fk = /\d[\d\s.,]*\s?FK/g;
+    textes(document.body).forEach(n => { if (fk.test(n.nodeValue)) { n.nodeValue = n.nodeValue.replace(fk, m => `${somme(m)} FK`); } fk.lastIndex = 0; });
+    document.querySelectorAll('[title*="FK"], [alt*="FK"]').forEach(el => {
+      ['title', 'alt'].forEach(at => { if (el.hasAttribute(at)) { el.setAttribute(at, el.getAttribute(at).replace(fk, m => `${somme(m)} FK`)); } });
+    });
+
+    const page = location.pathname;
+    if (page.startsWith('/jouer/materiel')) {
+      // 2. Objets : nom, charge, détail et image.
+      const nom = tourne(['Parapluie à pédales', 'Kroissant rassis', 'Tuba de combat', 'Chaussette orpheline', 'Grille-pain diplomatique', 'Pelle à tarte', 'Boussole qui ment', 'Canard en plastique', 'Moufle gauche', 'Trombone de secours']);
+      const detail = tourne(['Sent vaguement le fromage', 'Garanti trois minutes', 'Usage douteux', 'Reliquat de brocante']);
+      const couleur = tourne(['#8a6d3b', '#3b6d8a', '#6d8a3b', '#8a3b6d']);
+      document.querySelectorAll('.panel a.list-group-item').forEach(a => {
+        if (/FK/.test(a.textContent)) { return; }
+        objet(a, nom(), libres(a.querySelector('.list-group-item-text') || document.createElement('p')).length ? detail() : null, couleur());
+      });
+      textes(document.body).forEach(n => { n.nodeValue = n.nodeValue.replace(/Charge\s*[\d.]+\s*\/\s*\d+/, 'Charge 12.5/22'); });
+    }
+
+    if (page.startsWith('/jouer/bat')) {
+      // 3. Bâtiments : panneaux vides garnis de faux bâtiments, bâtiments existants renommés.
+      const faux = { 'Privés': [['Cabane du Kapitaine', 'Kramobourg [3,4]'], ['Échoppe à rien', 'Krampton [7,2]']], 'Publics': [['Mairie en carton', 'Kramobourg [5,5]'], ['Musée du Caillou', 'Krampton [1,8]']] };
+      const couleur = tourne(['#8a6d3b', '#3b6d8a']);
+      document.querySelectorAll('.panel').forEach(pn => {
+        const titre = pn.querySelector('.panel-title');
+        const cle = titre && Object.keys(faux).find(k => titre.textContent.includes('Bâtiments ' + k));
+        if (!cle) { return; }
+        const corps = pn.querySelector('.panel-body');
+        corps.querySelectorAll('a.list-group-item').forEach(a => a.remove());
+        textes(corps).forEach(n => { n.nodeValue = ''; });
+        faux[cle].forEach(([nom, lieu]) => {
+          const a = document.createElement('a');
+          a.className = 'list-group-item ds_game';
+          a.innerHTML = '<img width="32" height="32" class="pull-left" style="margin-right:3px"><h4 class="list-group-item-heading nomargin"></h4><p class="list-group-item-text"></p>';
+          objet(a, nom, lieu, couleur());
+          corps.appendChild(a);
+        });
+        textes(titre).forEach(n => { n.nodeValue = n.nodeValue.replace(/\(\d+\/(\d+)\)/, '(2/$1)'); });
+      });
+    }
+
+    if (page.startsWith('/jouer/plateau')) {
+      // Bloc du bâtiment courant, installation et commerce.
+      const bat = panneau('fa-home');
+      if (bat) {
+        bat.querySelectorAll('a.list-group-item').forEach(a => objet(a, 'Taverne du Kanard Boiteux', 'Proprio : Personne', '#8a6d3b'));
+        bat.querySelectorAll('.btn-group-xs a.btn, .progress').forEach(chiffres);
+        const desc = [...bat.querySelectorAll('.panel-body > div, .panel-body > p')].filter(d => !d.querySelector('.row, .btn, .progress, a.list-group-item') && d.textContent.trim()).pop();
+        if (desc) { remplacerTexte(desc, 'Une bâtisse banale où il ne se passe rien de notable, sauf le mardi.'); }
+      }
+      const inst = panneau('fa-charging-station');
+      if (inst) { inst.querySelectorAll('a.list-group-item').forEach(a => objet(a, 'Machine à bulles', 'Artefact Installable', '#3b6d8a')); }
+      const com = panneau('fa-hand-holding-usd');
+      if (com) {
+        const produit = tourne(['Soupe', 'Pain sec', 'Clou', 'Savon', 'Eau tiède']);
+        com.querySelectorAll('.commerce-products-container a.list-group-item').forEach(a => {
+          const h4 = a.querySelector('.list-group-item-heading');
+          const suffixe = h4 ? (h4.textContent.match(/\(\d+\/\d+\)\s*$/) || [''])[0] : '';
+          objet(a, produit(), null, '#6d8a3b');
+          if (h4 && suffixe) { remplacerTexte(h4, `${a.title} ${suffixe}`); }
+        });
+      }
+    }
+  });
+};
+
 // url : adresse fixe ; trouver : lien cherché sur la page « depuis » (adresses propres au compte ou au moment).
 export const ECRANS_REELS = [
   { id: '01-accueil', nom: 'Accueil', url: '/accueil' },
@@ -131,6 +235,7 @@ async function charger(p, url, theme) {
 
 async function capturer(p, ecran, palier, fichier) {
   if (ecran.action) { await ecran.action(p); }
+  if (ecran.url?.startsWith('/jouer/')) { await maquiller(p); }
   if (ecran.ecranSeul) { await p.screenshot({ path: fichier }); return; }
   const hauteur = await p.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body.scrollHeight));
   await p.screenshot({ path: fichier, fullPage: true, clip: { x: 0, y: 0, width: palier.width, height: Math.min(hauteur, palier.height * ECRANS_MAX) } });
