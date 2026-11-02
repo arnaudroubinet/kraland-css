@@ -104,7 +104,7 @@ export default [
     }
   },
   {
-    files: ['tests/**/*.js', 'tests/**/*.mjs'],
+    files: ['tests/**/*.js', 'tests/**/*.mjs', 'snapshot/**/*.mjs'],
     languageOptions: {
       sourceType: 'module',
       globals: {
@@ -128,7 +128,8 @@ export default [
       'images/**',
       'demos/**',
       'docs/**',
-      'tests/e2e/vendor/**' // Bootstrap et jQuery tiers, non modifiés
+      'tests/e2e/vendor/**', // Bootstrap et jQuery tiers, non modifiés
+      'snapshot/manifest.js' // Manifeste généré par snapshot/capturer.mjs
     ]
   }
 ];

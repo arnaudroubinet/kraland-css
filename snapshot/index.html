@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Captures Kraland CSS</title>
+<style>
+  :root {
+    --fond: #f4f5f7; --surface: #fff; --texte: #1d2129; --discret: #5d6470; --bord: #d9dce1; --accent: #8b0f0e; --accent-texte: #fff;
+    --vignette: #e9ebef; --ombre: 0 1px 3px rgb(0 0 0 / 12%);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fond: #15171b; --surface: #1e2126; --texte: #e6e8eb; --discret: #9aa1ab; --bord: #33373e; --accent: #e0524f; --accent-texte: #15171b; --vignette: #262a30; --ombre: none; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--fond); color: var(--texte); }
+  header { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--bord); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  header h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+  header .meta { color: var(--discret); font-size: 12px; }
+  .vues { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+  button, select { font: inherit; color: inherit; }
+  .vues button, .chips button { border: 1px solid var(--bord); background: var(--surface); padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+  .vues button[aria-pressed="true"], .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-texte); }
+  .vues button:focus-visible, .chips button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .page { display: grid; grid-template-columns: 250px 1fr; min-height: calc(100vh - 54px); }
+  aside { border-right: 1px solid var(--bord); background: var(--surface); padding: 12px; overflow: auto; position: sticky; top: 54px; height: calc(100vh - 54px); }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--discret); margin: 14px 0 6px; }
+  aside h2:first-child { margin-top: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chips.liste { flex-direction: column; }
+  .chips.liste button { text-align: left; display: flex; align-items: center; gap: 8px; }
+  .pastille { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgb(0 0 0 / 25%); flex: none; }
+  [aria-pressed="true"] .pastille { border-color: #fff; }
+  .chips button small { color: inherit; opacity: .75; }
+  main { padding: 16px; min-width: 0; }
+  .fil { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; margin-bottom: 12px; }
+  .fil strong { font-size: 16px; }
+  .fil span { color: var(--discret); }
+  .aide { color: var(--discret); font-size: 12px; margin-left: auto; }
+  .seule { text-align: center; }
+  .seule img { max-width: 100%; height: auto; border: 1px solid var(--bord); box-shadow: var(--ombre); background: var(--vignette); cursor: zoom-in; }
+  .seule.zoom img { max-width: none; cursor: zoom-out; }
+  .seule.zoom { overflow-x: auto; text-align: left; }
+  .nav { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .nav button { border: 1px solid var(--bord); background: var(--surface); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--min, 200px), 1fr)); gap: 14px; align-items: start; }
+  .carte { background: var(--surface); border: 1px solid var(--bord); border-radius: 8px; overflow: hidden; cursor: pointer; display: block; text-decoration: none; color: inherit; box-shadow: var(--ombre); }
+  .carte:hover { border-color: var(--accent); }
+  .carte .cadre { background: var(--vignette); height: var(--h, 260px); overflow: hidden; display: flex; justify-content: center; align-items: flex-start; }
+  .carte img { width: 100%; height: auto; display: block; }
+  .carte .legende { padding: 6px 8px; font-size: 12px; border-top: 1px solid var(--bord); display: flex; justify-content: space-between; gap: 6px; }
+  .carte .legende span { color: var(--discret); }
+  .vide { color: var(--discret); padding: 40px; text-align: center; }
+  select { display: none; width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--bord); background: var(--surface); margin-bottom: 6px; }
+  @media (max-width: 760px) {
+    header { position: static; }
+    .page { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--bord); }
+    aside .chips { display: none; }
+    aside select { display: block; }
+    aside h2 { margin: 8px 0 4px; }
+    .aide { display: none; }
+    main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Captures Kraland CSS</h1>
+  <span class="meta" id="meta"></span>
+  <div class="vues" role="group" aria-label="Vue">
+    <button data-vue="capture">Une capture</button>
+    <button data-vue="ecrans">Tous les écrans</button>
+    <button data-vue="themes">Tous les thèmes</button>
+    <button data-vue="paliers">Toutes les dimensions</button>
+  </div>
+</header>
+<div class="page">
+  <aside>
+    <h2>Thème</h2>
+    <select id="sel-theme" aria-label="Thème"></select>
+    <div class="chips liste" id="themes"></div>
+    <h2>Dimension</h2>
+    <select id="sel-palier" aria-label="Dimension"></select>
+    <div class="chips liste" id="paliers"></div>
+    <h2>Écran</h2>
+    <select id="sel-ecran" aria-label="Écran"></select>
+    <div class="chips liste" id="ecrans"></div>
+  </aside>
+  <main id="vue"></main>
+</div>
+<script src="manifest.js"></script>
+<script>
+(function () {
+  'use strict';
+  const M = window.KR_SNAPSHOT;
+  const vue = document.getElementById('vue');
+  if (!M) { vue.innerHTML = '<p class="vide">manifest.js introuvable : lancer <code>npm run snapshot</code>.</p>'; return; }
+  const couleur = id => (M.themes.find(t => t.id === id) || {}).couleur || '#888';
+  const etat = { vue: 'capture', theme: M.themes[0].id, palier: '2-mobile', ecran: M.ecrans[0].id, zoom: false };
+  if (!M.paliers.some(p => p.id === etat.palier)) { etat.palier = M.paliers[0].id; }
+  const nom = (liste, id) => (liste.find(x => x.id === id) || {}).nom || id;
+  const src = (t, p, e) => `${t}/${p}/${e}.png`;
+  const existe = (t, p, e) => (M.captures[e] || []).includes(`${t}/${p}`);
+  const ecransDispo = (t, p) => M.ecrans.filter(e => existe(t, p, e.id));
+
+  document.getElementById('meta').textContent = `${M.themes.length} thèmes · ${M.paliers.length} dimensions · ${M.ecrans.length} écrans · script ${M.version} · ${new Date(M.genere).toLocaleString('fr-FR')}`;
+
+  function lireHash() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    for (const k of ['vue', 'theme', 'palier', 'ecran']) { if (h.get(k)) { etat[k] = h.get(k); } }
+  }
+  function ecrireHash() {
+    const h = new URLSearchParams({ vue: etat.vue, theme: etat.theme, palier: etat.palier, ecran: etat.ecran });
+    history.replaceState(null, '', '#' + h);
+  }
+
+  function chips(id, liste, cle, libelle) {
+    const box = document.getElementById(id);
+    box.innerHTML = '';
+    const sel = document.getElementById('sel-' + cle);
+    sel.innerHTML = '';
+    for (const x of liste) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(etat[cle] === x.id));
+      b.innerHTML = libelle(x);
+      b.addEventListener('click', () => { etat[cle] = x.id; rendre(); });
+      box.appendChild(b);
+      const o = document.createElement('option');
+      o.value = x.id; o.textContent = x.nom; o.selected = etat[cle] === x.id;
+      sel.appendChild(o);
+    }
+    sel.onchange = () => { etat[cle] = sel.value; rendre(); };
+  }
+
+  function carte(t, p, e, titre, sous) {
+    const a = document.createElement('a');
+    a.className = 'carte';
+    a.href = '#';
+    a.innerHTML = `<div class="cadre"><img loading="lazy" alt="" src="${src(t, p, e)}"></div><div class="legende"><strong>${titre}</strong><span>${sous || ''}</span></div>`;
+    a.addEventListener('click', ev => { ev.preventDefault(); Object.assign(etat, { theme: t, palier: p, ecran: e, vue: 'capture' }); rendre(); window.scrollTo(0, 0); });
+    return a;
+  }
+
+  function grille(min, h) {
+    const g = document.createElement('div');
+    g.className = 'grille';
+    g.style.setProperty('--min', min + 'px');
+    g.style.setProperty('--h', h + 'px');
+    return g;
+  }
+
+  function rendre() {
+    const dispo = ecransDispo(etat.theme, etat.palier);
+    if (etat.vue === 'capture' && !dispo.some(e => e.id === etat.ecran) && dispo.length) { etat.ecran = dispo[0].id; }
+    document.querySelectorAll('.vues button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vue === etat.vue)));
+    chips('themes', M.themes, 'theme', t => `<span class="pastille" style="background:${couleur(t.id)}${/-dark$/.test(t.id) ? ';outline:3px solid #222;outline-offset:-3px' : ''}"></span>${t.nom}`);
+    chips('paliers', M.paliers, 'palier', p => `${p.nom} <small>${p.width} px</small>`);
+    chips('ecrans', M.ecrans, 'ecran', e => e.nom + (e.mobileSeul ? ' <small>(mobile)</small>' : ''));
+    const palier = M.paliers.find(p => p.id === etat.palier) || M.paliers[0];
+    vue.innerHTML = '';
+    const fil = document.createElement('div');
+    fil.className = 'fil';
+    vue.appendChild(fil);
+
+    if (etat.vue === 'capture') {
+      fil.innerHTML = `<strong>${nom(M.ecrans, etat.ecran)}</strong><span>${nom(M.themes, etat.theme)}</span><span>${palier.nom} : ${palier.detail}</span>` +
+        '<span class="aide">← → écran · ↑ ↓ thème · 1 à 7 dimension · clic : taille réelle</span>';
+      const nav = document.createElement('div');
+      nav.className = 'nav';
+      const i = dispo.findIndex(e => e.id === etat.ecran);
+      const prec = document.createElement('button');
+      prec.textContent = '← ' + (dispo[i - 1] ? dispo[i - 1].nom : '');
+      prec.disabled = i <= 0;
+      prec.onclick = () => deplacer(-1);
+      const suiv = document.createElement('button');
+      suiv.textContent = (dispo[i + 1] ? dispo[i + 1].nom : '') + ' →';
+      suiv.disabled = i >= dispo.length - 1;
+      suiv.onclick = () => deplacer(1);
+      nav.append(prec, suiv);
+      vue.appendChild(nav);
+      const box = document.createElement('div');
+      box.className = 'seule' + (etat.zoom ? ' zoom' : '');
+      if (existe(etat.theme, etat.palier, etat.ecran)) {
+        const img = document.createElement('img');
+        img.src = src(etat.theme, etat.palier, etat.ecran);
+        img.alt = `${nom(M.ecrans, etat.ecran)}, ${nom(M.themes, etat.theme)}, ${palier.nom}`;
+        img.style.width = etat.zoom ? '' : Math.min(palier.width, 1600) + 'px';
+        img.addEventListener('click', () => { etat.zoom = !etat.zoom; rendre(); });
+        box.appendChild(img);
+      } else {
+        box.innerHTML = '<p class="vide">Pas de capture pour cette combinaison (écran réservé au mobile).</p>';
+      }
+      vue.appendChild(box);
+    } else if (etat.vue === 'ecrans') {
+      fil.innerHTML = `<strong>${nom(M.themes, etat.theme)}</strong><span>${palier.nom} : ${palier.detail}</span><span>${dispo.length} écrans</span>`;
+      const g = grille(palier.width < 768 ? 180 : 300, palier.width < 768 ? 360 : 240);
+      for (const e of dispo) { g.appendChild(carte(etat.theme, etat.palier, e.id, e.nom)); }
+      vue.appendChild(g);
+    } else if (etat.vue === 'themes') {
+      fil.innerHTML = `<strong>${nom(M.ecrans, etat.ecran)}</strong><span>${palier.nom} : ${palier.detail}</span><span>tous les thèmes</span>`;
+      const g = grille(palier.width < 768 ? 180 : 300, palier.width < 768 ? 360 : 240);
+      for (const t of M.themes) { if (existe(t.id, etat.palier, etat.ecran)) { g.appendChild(carte(t.id, etat.palier, etat.ecran, t.nom)); } }
+      if (!g.children.length) { g.innerHTML = '<p class="vide">Écran absent à cette dimension.</p>'; }
+      vue.appendChild(g);
+    } else {
+      fil.innerHTML = `<strong>${nom(M.ecrans, etat.ecran)}</strong><span>${nom(M.themes, etat.theme)}</span><span>toutes les dimensions</span>`;
+      const g = grille(220, 380);
+      for (const p of M.paliers) { if (existe(etat.theme, p.id, etat.ecran)) { g.appendChild(carte(etat.theme, p.id, etat.ecran, p.nom, p.width + ' × ' + p.height)); } }
+      vue.appendChild(g);
+    }
+    ecrireHash();
+  }
+
+  function deplacer(sens) {
+    const dispo = ecransDispo(etat.theme, etat.palier);
+    const i = dispo.findIndex(e => e.id === etat.ecran);
+    const j = Math.max(0, Math.min(dispo.length - 1, i + sens));
+    if (dispo[j]) { etat.ecran = dispo[j].id; etat.zoom = false; rendre(); }
+  }
+
+  document.querySelectorAll('.vues button').forEach(b => b.addEventListener('click', () => { etat.vue = b.dataset.vue; rendre(); }));
+  document.addEventListener('keydown', ev => {
+    if (ev.target.tagName === 'SELECT' || ev.altKey || ev.ctrlKey || ev.metaKey) { return; }
+    const ti = M.themes.findIndex(t => t.id === etat.theme);
+    if (ev.key === 'ArrowLeft') { deplacer(-1); } else if (ev.key === 'ArrowRight') { deplacer(1); } else if (ev.key === 'ArrowUp' && ti > 0) {
+      etat.theme = M.themes[ti - 1].id; rendre();
+    } else if (ev.key === 'ArrowDown' && ti < M.themes.length - 1) {
+      etat.theme = M.themes[ti + 1].id; rendre();
+    } else if (/^[1-9]$/.test(ev.key) && M.paliers[Number(ev.key) - 1]) {
+      etat.palier = M.paliers[Number(ev.key) - 1].id; rendre();
+    } else { return; }
+    ev.preventDefault();
+  });
+  window.addEventListener('hashchange', () => { lireHash(); rendre(); });
+  lireHash();
+  rendre();
+}());
+</script>
+</body>
+</html>
