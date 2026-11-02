@@ -98,14 +98,14 @@
   const vue = document.getElementById('vue');
   if (!M) { vue.innerHTML = '<p class="vide">manifest.js introuvable : lancer <code>npm run snapshot</code>.</p>'; return; }
   const couleur = id => (M.themes.find(t => t.id === id) || {}).couleur || '#888';
-  const etat = { vue: 'capture', theme: M.themes[0].id, palier: '2-mobile', ecran: M.ecrans[0].id, zoom: false };
+  const etat = { vue: 'capture', theme: M.themes[0].id, palier: '4-ordinateur', ecran: M.ecrans[0].id, zoom: false };
   if (!M.paliers.some(p => p.id === etat.palier)) { etat.palier = M.paliers[0].id; }
   const nom = (liste, id) => (liste.find(x => x.id === id) || {}).nom || id;
   const src = (t, p, e) => `${t}/${p}/${e}.png`;
   const existe = (t, p, e) => (M.captures[e] || []).includes(`${t}/${p}`);
   const ecransDispo = (t, p) => M.ecrans.filter(e => existe(t, p, e.id));
 
-  document.getElementById('meta').textContent = `${M.themes.length} thèmes · ${M.paliers.length} dimensions · ${M.ecrans.length} écrans · script ${M.version} · ${new Date(M.genere).toLocaleString('fr-FR')}`;
+  document.getElementById('meta').textContent = `${M.source ? M.source + ' · ' : ''}${M.themes.length} thèmes · ${M.paliers.length} dimensions · ${M.ecrans.length} écrans · script ${M.version} · ${new Date(M.genere).toLocaleString('fr-FR')}`;
 
   function lireHash() {
     const h = new URLSearchParams(location.hash.slice(1));

@@ -31,7 +31,16 @@ QHD et 4K sont rendus avec un facteur de pixels réduit (0,75 et 0,5) : la mise 
 - Clavier : ← → écran précédent / suivant, ↑ ↓ thème, 1 à 7 dimension. Clic sur une capture : taille réelle.
 - L'adresse garde la sélection (`#vue=…&theme=…`) : un lien copié rouvre la même vue.
 
-## Régénérer
+## Situation réelle (`npm run snapshot:reel`)
+
+`snapshot/reel.mjs` capture le vrai site www.kraland.org avec le compte du joueur : les 16 thèmes en « Ordinateur », et les autres dimensions en République de Kraland (clair) et Empire Brun (sombre) seulement.
+
+- Premier lancement : une fenêtre Chromium s'ouvre, on s'y connecte soi-même ; la session est gardée hors du dépôt (`~/.kraland-snapshot/session.json`).
+- Lecture seule : toute requête autre que GET est bloquée, `/report` n'est jamais chargé, aucun kramail n'est ouvert et la liste de réception est floutée.
+- Une page à la fois, une seconde d'écart au moins (`KR_SNAPSHOT_ECART_MS`). Chaque thème est ouvert par un rechargement.
+- Adresses propres au compte (sous-forum, sujet, réponse, rédaction) : relevées sur la page parente au moment de la capture.
+
+## Régénérer sur les fixtures
 
 ```bash
 npm ci

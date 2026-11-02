@@ -12,6 +12,7 @@
     "serve": "http-server -p 4848 --cors -c-1",
     "test:e2e": "npx playwright test --project=chromium",
     "snapshot": "node snapshot/capturer.mjs",
+    "snapshot:reel": "node snapshot/reel.mjs",
     "test:all": "node tests/e2e/run.mjs all",
     "test:zone": "node tests/e2e/run.mjs zone",
     "test:changed": "node tests/e2e/run.mjs changed",

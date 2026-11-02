@@ -213,7 +213,7 @@ function couleurPrincipale(id) {
 }
 
 // ---------- Manifeste lu par index.html (script classique : la galerie s'ouvre aussi en file://) ----------
-export function ecrireManifeste() {
+export function ecrireManifeste(ecrans = ECRANS, source = 'fixtures du dépôt') {
   const themes = THEMES.filter(t => fs.existsSync(path.join(ICI, t.id)));
   const captures = {};
   for (const t of themes) {
@@ -227,10 +227,11 @@ export function ecrireManifeste() {
   }
   const manifeste = {
     genere: new Date().toISOString(),
+    source,
     version: (/@version\s+(\S+)/.exec(fs.readFileSync(path.join(RACINE, 'kraland-userscript-main.user.js'), 'utf8')) || [])[1] || '',
     themes: themes.map(({ id, nom }) => ({ id, nom, couleur: couleurPrincipale(id) })),
     paliers: PALIERS.map(({ id, nom, detail, width, height }) => ({ id, nom, detail, width, height })),
-    ecrans: ECRANS.filter(e => captures[e.id]).map(e => ({ id: e.id, nom: e.nom, url: e.url, mobileSeul: !!e.mobileSeul })),
+    ecrans: ecrans.filter(e => captures[e.id]).map(e => ({ id: e.id, nom: e.nom, url: e.url, mobileSeul: !!e.mobileSeul })),
     captures
   };
   fs.writeFileSync(path.join(ICI, 'manifest.js'), '// Fichier généré par snapshot/capturer.mjs : ne pas modifier à la main.\nwindow.KR_SNAPSHOT = ' + JSON.stringify(manifeste, null, 1) + ';\n');
