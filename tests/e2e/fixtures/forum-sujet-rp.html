@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  FIXTURE : sujet du forum RP, chemin servi /forum/sujet/this-is-the-police-335287-1, pour le titre de rang de la colonne auteur.
+  Forme reprise du DOM réel collé par Arnaud le 2026-11-08 (sujet « This is the police », Province Mystisie) : `.user-info > img.avatar +
+  .cartouche > div > img (drapeau de nation 80 × 26) + strong > a + div > img[src*="/rank/"] (24 × 24, intitulé dans title)`. Le collage
+  montrait le DOM APRÈS le userscript (div[data-kr-rank-title]) ; la forme native (div > img seule) est déduite d'addRankTitles.
+  Colonne native SUPPOSÉE (feuille du forum absente de tests/e2e/vendor) : `.user-info` de 80 px, centrée, d'après la capture d'Arnaud
+  (avatar et drapeau de 80 px alignés, rangée du rang qui déborde des deux côtés) ; reproduite par la balise <style> ci-dessous.
+  Écarts assumés : avatars en aplats, messages raccourcis, boutons réduits ; troisième et quatrième messages (rang court, sans rang) inventés.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<base href="http://www.kraland.org/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FIXTURE Sujet RP (titre de rang)</title>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap1.min.css">
+<link rel="stylesheet" href="lib/fontawesome-free-5.6.3/css/all.min.css">
+<style>.media-list.forum .user-info { width: 80px; text-align: center; }</style>
+</head>
+<body>
+<nav class="navbar navbar-inverse nomargin"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="/">Kraland</a></div></div></nav>
+<div id="content" class="container">
+<div class="row">
+<div id="col-left" class="col-md-3 sidebar">
+<div class="list-group" id="player-header-section">
+<span class="list-group-item active">Jeu (RP)</span>
+<a href="forum/rp/taverne-10101" class="list-group-item"><span class="lefticon"><i class="far fa-comments"></i></span>Taverne</a>
+<a href="forum/rp/province-mystisie-1011217" class="list-group-item"><span class="lefticon"><i class="fa fa-map"></i></span>Province Mystisie</a>
+</div>
+</div>
+<div id="col-right" class="col-md-9">
+<h1 class="page-header"><i class="far fa-comments"></i> This is the police</h1>
+<div class="forum-top"><span></span><span><i class="fa fa-user"></i> Par <a href="communaute/membres/nerys-2-82794" class="nomargin">Nerys</a> </span><span><i class="fa fa-comments"></i> 4 messages</span>
+<span class="pull-right"><a href="forum/rp/province-mystisie-1011217" class="btn btn-default"><i class="fa fa-backward"></i> Province Mystisie</a> <a href="forum/post/repondre-2-335287" class="btn btn-default"><i class="fa fa-reply"></i> répondre</a></span></div>
+<div class="center"><ul class="pagination"></ul></div>
+<ul class="media-list forum">
+<a name="msg6814296"></a>
+<li class="media well" style="overflow-wrap:anywhere;">
+<div class="pull-left">
+<div class="user-info">
+<img class="avatar img-thumbnail" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjM2I0ZmEwIi8+PC9zdmc+" width="80" alt="Nerys">
+<div class="cartouche">
+<div><img src="http://img7.kraland.org/2/world/logo8.gif" width="80" height="26" title="Royaume de Ruthvénie" data-toggle="tooltip" data-placement="bottom"></div>
+<strong><a href="communaute/membres/nerys-2-82794">Nerys</a></strong>
+<div><img src="http://img7.kraland.org/2/rank/109.png" width="24" height="24" title="Commissaire de Police Lampe du Génie" data-toggle="tooltip" data-placement="bottom"></div>
+</div>
+</div>
+</div>
+<div class="media-body">
+<div class="btn-group btn-group-xs"><span class="btn btn-default" disabled="" title="posté Aujourd'hui (11:37)"><i class="far fa-clock"></i> posté Aujourd'hui (11:37)</span></div>
+<div class="pull-right" style="padding-right:7px;">
+<div class="btn-group btn-group-xs" role="group"><a href="communaute/membres/nerys-2-82794" class="btn btn-default" title="profil"><i class="fa fa-user"></i></a><a href="forum/post/repondre-3-6814296" class="btn btn-default" title="citer"><i class="fa fa-reply"></i></a></div>
+</div>
+<div id="ajax-h6814296"></div>
+<div class="forum-msg" id="ajax-m6814296">Bon. Mes petits génies : <i>this is the police.</i><br><br>Et ne venez pas vous plaindre à moi.<div id="ajax-s6814296"><br>___<br><br>Nerys</div></div>
+</div>
+</li>
+<a name="msg6814299"></a>
+<li class="media well" style="overflow-wrap:anywhere;">
+<div class="pull-left">
+<div class="user-info">
+<img class="avatar img-thumbnail" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjM2I0ZmEwIi8+PC9zdmc+" width="80" alt="Silas des Sables">
+<div class="cartouche">
+<div><img src="http://img7.kraland.org/2/world/logo2.gif" width="80" height="26" title="Empire Brun" data-toggle="tooltip" data-placement="bottom"></div>
+<strong><a href="communaute/membres/silas-des-sables-2-81908">Silas des Sables</a></strong>
+<div><img src="http://img7.kraland.org/2/rank/51_2.png" width="24" height="24" title="Gouverneur Mystisie" data-toggle="tooltip" data-placement="bottom"></div>
+</div>
+</div>
+</div>
+<div class="media-body">
+<div class="btn-group btn-group-xs"><span class="btn btn-default" disabled="" title="modifié Aujourd'hui (11:52)"><i class="far fa-clock"></i> modifié Aujourd'hui (11:52)</span></div>
+<div class="pull-right" style="padding-right:7px;">
+<div class="btn-group btn-group-xs" role="group"><a href="communaute/membres/silas-des-sables-2-81908" class="btn btn-default" title="profil"><i class="fa fa-user"></i></a><a href="forum/post/repondre-3-6814299" class="btn btn-default" title="citer"><i class="fa fa-reply"></i></a></div>
+</div>
+<div id="ajax-h6814299"></div>
+<div class="forum-msg" id="ajax-m6814299">Félicitations pour votre domiciliation et votre poste, Nerys.<div id="ajax-s6814299"><br>___<br><br>Silas des Sables</div></div>
+</div>
+</li>
+<a name="msg6814300"></a>
+<li class="media well" style="overflow-wrap:anywhere;">
+<div class="pull-left">
+<div class="user-info">
+<img class="avatar img-thumbnail" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjM2I0ZmEwIi8+PC9zdmc+" width="80" alt="Fulbert de la Bretelle">
+<div class="cartouche">
+<div><img src="http://img7.kraland.org/2/world/logo2.gif" width="80" height="26" title="Empire Brun" data-toggle="tooltip" data-placement="bottom"></div>
+<strong><a href="communaute/membres/fulbert-de-la-bretelle-2-81909">Fulbert de la Bretelle</a></strong>
+<div><img src="http://img7.kraland.org/2/rank/12.png" width="24" height="24" title="Citoyen" data-toggle="tooltip" data-placement="bottom"></div>
+</div>
+</div>
+</div>
+<div class="media-body">
+<div class="btn-group btn-group-xs"><span class="btn btn-default" disabled="" title="posté Aujourd'hui (12:03)"><i class="far fa-clock"></i> posté Aujourd'hui (12:03)</span></div>
+<div class="pull-right" style="padding-right:7px;">
+<div class="btn-group btn-group-xs" role="group"><a href="communaute/membres/fulbert-de-la-bretelle-2-81909" class="btn btn-default" title="profil"><i class="fa fa-user"></i></a><a href="forum/post/repondre-3-6814300" class="btn btn-default" title="citer"><i class="fa fa-reply"></i></a></div>
+</div>
+<div id="ajax-h6814300"></div>
+<div class="forum-msg" id="ajax-m6814300">Rang court, une seule ligne attendue.<div id="ajax-s6814300"><br>___<br><br>Fulbert de la Bretelle</div></div>
+</div>
+</li>
+<a name="msg6814301"></a>
+<li class="media well" style="overflow-wrap:anywhere;">
+<div class="pull-left">
+<div class="user-info">
+<img class="avatar img-thumbnail" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjM2I0ZmEwIi8+PC9zdmc+" width="80" alt="Marelle Duvent">
+<div class="cartouche">
+<div><img src="http://img7.kraland.org/2/world/logo8.gif" width="80" height="26" title="Royaume de Ruthvénie" data-toggle="tooltip" data-placement="bottom"></div>
+<strong><a href="communaute/membres/marelle-duvent-2-81910">Marelle Duvent</a></strong>
+
+</div>
+</div>
+</div>
+<div class="media-body">
+<div class="btn-group btn-group-xs"><span class="btn btn-default" disabled="" title="posté Aujourd'hui (12:10)"><i class="far fa-clock"></i> posté Aujourd'hui (12:10)</span></div>
+<div class="pull-right" style="padding-right:7px;">
+<div class="btn-group btn-group-xs" role="group"><a href="communaute/membres/marelle-duvent-2-81910" class="btn btn-default" title="profil"><i class="fa fa-user"></i></a><a href="forum/post/repondre-3-6814301" class="btn btn-default" title="citer"><i class="fa fa-reply"></i></a></div>
+</div>
+<div id="ajax-h6814301"></div>
+<div class="forum-msg" id="ajax-m6814301">Message sans image de rang.<div id="ajax-s6814301"><br>___<br><br>Marelle Duvent</div></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<script src="lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
