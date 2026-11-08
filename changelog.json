@@ -1,6 +1,13 @@
 {
   "versions": [
     {
+      "version": "1.0.1794140564224",
+      "releaseDate": "2026-11-08",
+      "changes": [
+        "Forum RP : intitulé de la fonction lisible sous le nom de l'auteur (icône de rang au-dessus, texte sur 2 ou 3 lignes au lieu d'une colonne étroite) ; sur mobile, rang sur une ligne et drapeau de nation devant le nom"
+      ]
+    },
+    {
       "version": "1.0.1793648539974",
       "releaseDate": "2026-11-02",
       "changes": [
