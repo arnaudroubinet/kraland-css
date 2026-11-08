@@ -24,7 +24,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const sansEntete = s => figerVersion(s.replace(/^\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/, ''));
 const userscript = sansEntete(fs.readFileSync(process.env.KR_SCRIPT || path.join(root, 'kraland-userscript-main.user.js'), 'utf8'));
-const COMMIT_BASE = '8a55c66'; // feature/next avant le titre de rang
+const COMMIT_BASE = '50fb6f2'; // main avant le titre de rang
 const base = sansEntete(execFileSync('git', ['show', `${COMMIT_BASE}:kraland-userscript-main.user.js`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 const PARLER = path.join(here, 'vendor/parler');
 const SHOTS = process.env.KR_SHOTS || '';

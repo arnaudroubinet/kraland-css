@@ -142,7 +142,7 @@ export const SUITES = [
   { name: 'evenements-mobile', file: 'evenements-mobile.mjs', zones: ['evenements'], frags: [['mobile'], ['bureau']], needsBootstrap: true },
   // Titre de rang du forum (retour d'Arnaud du 8 novembre 2026) : classe kr-rank-title sans style en ligne ; ordinateur (768, 1280) colonne de
   // 112 px, icône au-dessus du texte ; mobile (320, 375, 767) icône et texte sur une ligne, drapeau devant le nom ; sujet sans rang égal au
-  // bundle de base (8a55c66). Fixture forum-sujet-rp.html, feuilles natives vendor/parler. Rouge sur ce bundle, vert après.
+  // bundle de base (50fb6f2). Fixture forum-sujet-rp.html, feuilles natives vendor/parler. Rouge sur ce bundle, vert après.
   { name: 'forum-rang', file: 'forum-rang.mjs', zones: ['rang', 'forum'], frags: [['bureau'], ['mobile'], ['hors']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
