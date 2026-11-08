@@ -4159,6 +4159,9 @@
       const isInGridTransformed = el.closest('.panel-body.grid-transformed');
 
       if (isMobile || isInColLeftest || isInGridTransformed) {
+        // Image de rang du forum : intitulé gardé pour addRankTitles, qui peut passer après (l'observateur tourne pendant l'analyse de la page)
+        const rankLabel = el.getAttribute('data-original-title') || el.getAttribute('title');
+        if (rankLabel && el.matches('img[src*="img7.kraland.org/2/rank/"]')) {el.setAttribute('data-kr-rank-label', rankLabel);}
         el.removeAttribute('data-toggle');
         el.removeAttribute('data-placement');
         el.removeAttribute('title');
@@ -4204,7 +4207,7 @@
     // Trouver toutes les images de rang
     document.querySelectorAll('img[src*="img7.kraland.org/2/rank/"]').forEach(img => {
       // Récupérer le contenu de data-original-title ou title
-      let title = img.getAttribute('data-original-title') || img.getAttribute('title');
+      let title = img.getAttribute('data-original-title') || img.getAttribute('title') || img.getAttribute('data-kr-rank-label');
       if (!title) {return;}
 
       // Trouver la div parente contenant l'image
@@ -4252,14 +4255,10 @@
       const nextSibling = parentDiv.nextElementSibling;
       if (nextSibling && nextSibling.hasAttribute('data-kr-rank-title')) {return;}
 
-      // Créer un conteneur flex pour l'icône + titre
+      // Conteneur de l'icône + titre : mise en page dans le thème (« TITRE DE RANG DU FORUM »), aucun style en ligne
       const rankContainer = document.createElement('div');
       rankContainer.setAttribute('data-kr-rank-title', 'true');
-      rankContainer.style.display = 'flex';
-      rankContainer.style.alignItems = 'center';
-      rankContainer.style.justifyContent = 'center';
-      rankContainer.style.gap = '4px';
-      rankContainer.style.marginTop = '4px';
+      rankContainer.className = 'kr-rank-title';
 
       // Déplacer l'image dans ce conteneur
       const rankImg = parentDiv.querySelector('img[src*="/rank/"]');

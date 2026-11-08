@@ -17333,3 +17333,91 @@ html[class*="-dark"] a.list-group-item.btn-default:hover {
     display: none !important;
   }
 }
+
+/* ============================================================================
+   TITRE DE RANG DU FORUM (module addRankTitles, classe kr-rank-title)
+   Intitulé de la fonction sous le nom de l'auteur (« Commissaire de Police Lampe du Génie »). Avant : rangée flex centrée en style en ligne,
+   icône à gauche du texte, plus large que la colonne de l'avatar (80 px) : l'icône débordait à gauche, le texte en gras se cassait en
+   4 lignes et passait devant le nom. Ordinateur : colonne élargie à 112 px dans un sujet où un rang est affiché (tous ses messages, pour
+   aligner les corps), icône au-dessus du texte, texte au rôle détail, équilibré. Mobile : icône et texte sur une ligne, à gauche, sous le nom ; drapeau de nation réduit devant le nom.
+   ============================================================================ */
+@media (min-width: 768px) {
+  :where(body.page-forum) ul.media-list.forum:has(.kr-rank-title) > li.media > .pull-left > .user-info {
+    width: 112px;
+    text-align: center;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 6px;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title > img {
+    width: 24px;
+    height: 24px;
+    flex: none;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title > strong {
+    max-width: 100%;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Sujet RP (drapeau de nation et nom dans la cartouche) : cartouche alignée à gauche comme le reste de l'en-tête, drapeau réduit devant le
+     nom sur la même ligne, rang dessous */
+  :where(body.page-forum) ul.media-list.forum > li.media.kr-msg .user-info > .cartouche:has(> div > img[src*="/world/"]) {
+    text-align: left;
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media.kr-msg .user-info > .cartouche > div:has(> img[src*="/world/"]) {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media.kr-msg .user-info > .cartouche > div > img[src*="/world/"] {
+    display: block;
+    width: 40px;
+    height: 13px;
+  }
+
+  :where(body.page-forum) ul.media-list.forum > li.media.kr-msg .user-info > .cartouche > strong {
+    color: var(--kr-text-primary);
+    font-size: var(--kr-font-name);
+    line-height: 21px;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 2px;
+    text-align: left;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title > img {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  :where(body.page-forum) .user-info .kr-rank-title > strong {
+    min-width: 0;
+    color: var(--kr-text-secondary);
+    font-size: var(--kr-font-detail);
+    font-weight: 600;
+    line-height: 18px;
+    overflow-wrap: break-word;
+  }
+}

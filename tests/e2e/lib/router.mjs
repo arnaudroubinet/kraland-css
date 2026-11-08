@@ -139,7 +139,11 @@ export const SUITES = [
   // Vue Événements mobile (retour d'Arnaud du 2 novembre 2026) : filtres repliables, icônes accolées, liste en fil d'événements dans une
   // carte, pagination sur une ligne (fixture synthétique evenements-mobile.html, feuilles natives vendor/parler), 320, 360 et 375 px ;
   // ordinateur (768, 1280) égal au bundle de base (7e28cd0). Rouge sur ce bundle, vert après.
-  { name: 'evenements-mobile', file: 'evenements-mobile.mjs', zones: ['evenements'], frags: [['mobile'], ['bureau']], needsBootstrap: true }
+  { name: 'evenements-mobile', file: 'evenements-mobile.mjs', zones: ['evenements'], frags: [['mobile'], ['bureau']], needsBootstrap: true },
+  // Titre de rang du forum (retour d'Arnaud du 8 novembre 2026) : classe kr-rank-title sans style en ligne ; ordinateur (768, 1280) colonne de
+  // 112 px, icône au-dessus du texte ; mobile (320, 375, 767) icône et texte sur une ligne, drapeau devant le nom ; sujet sans rang égal au
+  // bundle de base (8a55c66). Fixture forum-sujet-rp.html, feuilles natives vendor/parler. Rouge sur ce bundle, vert après.
+  { name: 'forum-rang', file: 'forum-rang.mjs', zones: ['rang', 'forum'], frags: [['bureau'], ['mobile'], ['hors']], needsBootstrap: true }
 ];
 export const ZONES = [...new Set(SUITES.flatMap(s => s.zones))];
 const GARDE_CONFINEMENT = 'confinement-reseau'; // relancée dès qu'un fichier de suite change (nouveau contexte non confiné ?)
@@ -183,6 +187,7 @@ export const FILE_RULES = [
   [/^tests\/e2e\/fixtures\/kramail-/, ['kramail']],
   [/^tests\/e2e\/fixtures\/contacts\.html$/, ['kramail']],
   [/^tests\/e2e\/fixtures\/evenements-mobile\.html$/, ['evenements']],
+  [/^tests\/e2e\/fixtures\/forum-sujet-rp\.html$/, ['rang']],
   [/^tests\/e2e\/fixtures\//, 'fixture'], // autre fixture : les suites qui citent son nom de fichier (aucune -> total)
   [/^tests\/e2e\/durations\.json$/, []], // durées mesurées : changent l'ordre de lancement, jamais le résultat d'une vérification
   [/^(README\.md|CLAUDE\.md|AGENTS\.md|REPORT\.md|docs\/|\.claude\/|changelog\.json|version\.json|screenshots\/|start-server\.|\.github\/)/, []],
@@ -291,6 +296,9 @@ export const KEYWORDS = [
   // Vue Événements mobile : classes kr-ev-* et module Evenements:Mobile, vérifiés par evenements-mobile ; la page reste une page secondaire
   // mesurée par confort-mobile (fragment secondaires).
   [/kr-ev-|page-evenements|Evenements:Mobile/, ['evenements', 'confort-mobile']],
+  // Titre de rang du forum : module addRankTitles et classe kr-rank-title, vérifiés par forum-rang ; l'intitulé gardé par disableTooltips
+  // sur mobile (data-kr-rank-label) aussi.
+  [/kr-rank-|addRankTitles|data-kr-rank/, ['rang', 'messages']],
   // Accueil (épopée 10, entrée 2) : classe de page, injections de la colonne droite (Homepage:RightColumn), compteurs et carrousel, vérifiés
   // par accueil-mobile ; palette-nation et typographie-formes rendent aussi un accueil synthétique (sans ces deux suites, un hunk
   // .page-accueil, qui élargissait au total, perdrait leur couverture). kr-ministerial-card n'est rendue que par ces deux suites (la fixture
